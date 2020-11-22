@@ -14,7 +14,7 @@ struct DolphinModuleState
 {
 };
 
-void SetupDolphinModule(PyObject* module, DolphinModuleState* state)
+static void SetupDolphinModule(PyObject* module, DolphinModuleState* state)
 {
   static const char pycode[] = R"(
 """
@@ -44,7 +44,7 @@ __all__ = [event, memory, gui, savestate, controller]
   }
 }
 
-void CleanupDolphinModule(PyObject* module, DolphinModuleState* state)
+static void CleanupDolphinModule(PyObject* module, DolphinModuleState* state)
 {
 }
 

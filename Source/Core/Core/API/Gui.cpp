@@ -13,7 +13,7 @@ namespace API
 
 constexpr u32 ARGBToABGR(u32 color_abgr)
 {
-  return color_abgr & 0xFF00FF00 | ((color_abgr & 0xFF) << 16) | ((color_abgr >> 16) & 0xFF);
+  return (color_abgr & 0xFF00FF00) | ((color_abgr & 0xFF) << 16) | ((color_abgr >> 16) & 0xFF);
 }
 
 void Gui::AddOSDMessage(std::string message, u32 duration_ms, u32 color)

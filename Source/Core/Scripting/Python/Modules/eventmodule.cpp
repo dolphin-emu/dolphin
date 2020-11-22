@@ -184,7 +184,8 @@ using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 // For all python events listed here, listens to the respective API::Events event
 // deduced from the PyEvent signature's input argument.
 using EventContainer = PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent>;
-const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent> EventContainer::s_pyevents;
+template <>
+const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent> EventContainer::s_pyevents = {};
 
 std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 {
@@ -202,7 +203,7 @@ std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
     return iter->second;
 }
 
-void SetupEventModule(PyObject* module, EventModuleState* state)
+static void SetupEventModule(PyObject* module, EventModuleState* state)
 {
   static const char pycode[] = R"(
 class _DolphinAsyncEvent:
@@ -228,7 +229,7 @@ async def memorybreakpoint():
   EventContainer::RegisterListeners(Py::Take(module));
 }
 
-void CleanupEventModule(PyObject* module, EventModuleState* state)
+static void CleanupEventModule(PyObject* module, EventModuleState* state)
 {
   EventContainer::UnregisterListeners(state);
 }

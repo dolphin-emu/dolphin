@@ -56,8 +56,7 @@ void HandleCoroutine(const Py::Object module, const Py::Object coro, const Py::O
   auto scheduler_opt = GetCoroutineScheduler(event_name);
   if (!scheduler_opt.has_value())
   {
-    std::string error = "An unknown event was tried to be awaited: " + std::string(event_name);
-    ERROR_LOG(SCRIPTING, error.c_str());
+    ERROR_LOG(SCRIPTING, "An unknown event was tried to be awaited: %s", event_name);
     return;
   }
   std::function<void(const Py::Object, const Py::Object)> scheduler = scheduler_opt.value();

@@ -17,94 +17,94 @@ struct GuiModuleState
   API::Gui* gui;
 };
 
-void add_osd_message(PyObject* self, const char* message, u32 duration_ms, u32 color_argb)
+static void add_osd_message(PyObject* self, const char* message, u32 duration_ms, u32 color_argb)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->AddOSDMessage(std::string(message), duration_ms, color_argb);
 }
 
-void clear_osd_messages(PyObject* self)
+static void clear_osd_messages(PyObject* self)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->ClearOSDMessages();
 }
 
-PyObject* get_display_size(PyObject* self, PyObject* args)
+static PyObject* get_display_size(PyObject* self, PyObject* args)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   auto size = state->gui->GetDisplaySize();
   return Py_BuildValue("(ff)", size.x, size.y);
 }
 
-void draw_line(PyObject* self, float ax, float ay, float bx, float by, u32 color, float thickness = 1.0f)
+static void draw_line(PyObject* self, float ax, float ay, float bx, float by, u32 color, float thickness = 1.0f)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawLine({ax, ay}, {bx, by}, color, thickness);
 }
 
-void draw_rect(PyObject* self, float ax, float ay, float bx, float by, u32 color,
+static void draw_rect(PyObject* self, float ax, float ay, float bx, float by, u32 color,
                float rounding = 0.0f, float thickness = 1.0f)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawRect({ax, ay}, {bx, by}, color, rounding, thickness);
 }
 
-void draw_rect_filled(PyObject* self, float ax, float ay, float bx, float by, u32 color,
+static void draw_rect_filled(PyObject* self, float ax, float ay, float bx, float by, u32 color,
                       float rounding = 0.0f)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawRectFilled({ax, ay}, {bx, by}, color, rounding);
 }
 
-void draw_quad(PyObject* self, float ax, float ay, float bx, float by, float cx, float cy, float dx,
+static void draw_quad(PyObject* self, float ax, float ay, float bx, float by, float cx, float cy, float dx,
                float dy, u32 color, float thickness = 1.0f)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawQuad({ax, ay}, {bx, by}, {cx, cy}, {dx, dy}, color, thickness);
 }
 
-void draw_quad_filled(PyObject* self, float ax, float ay, float bx, float by, float cx, float cy,
+static void draw_quad_filled(PyObject* self, float ax, float ay, float bx, float by, float cx, float cy,
                       float dx, float dy, u32 color)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawQuadFilled({ax, ay}, {bx, by}, {cx, cy}, {dx, dy}, color);
 }
 
-void draw_triangle(PyObject* self, float ax, float ay, float bx, float by, float cx, float cy,
+static void draw_triangle(PyObject* self, float ax, float ay, float bx, float by, float cx, float cy,
                    u32 color, float thickness = 1.0f)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawTriangle({ax, ay}, {bx, by}, {cx, cy}, color, thickness);
 }
 
-void draw_triangle_filled(PyObject* self, float ax, float ay, float bx, float by, float cx,
+static void draw_triangle_filled(PyObject* self, float ax, float ay, float bx, float by, float cx,
                           float cy, u32 color)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawTriangleFilled({ax, ay}, {bx, by}, {cx, cy}, color);
 }
 
-void draw_circle(PyObject* self, float centerX, float centerY, float radius, u32 color,
+static void draw_circle(PyObject* self, float centerX, float centerY, float radius, u32 color,
                  int num_segments = 12, float thickness = 1.0f)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawCircle({centerX, centerY}, radius, color, num_segments, thickness);
 }
 
-void draw_circle_filled(PyObject* self, float centerX, float centerY, float radius, u32 color,
+static void draw_circle_filled(PyObject* self, float centerX, float centerY, float radius, u32 color,
                         int num_segments = 12)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawCircleFilled({centerX, centerY}, radius, color, num_segments);
 }
 
-void draw_text(PyObject* self, float posX, float posY, u32 color, const char* text)
+static void draw_text(PyObject* self, float posX, float posY, u32 color, const char* text)
 {
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
   state->gui->DrawText({posX, posY}, color, std::string(text));
 }
 
-PyObject* draw_polyline(PyObject* self, PyObject* args)
+static PyObject* draw_polyline(PyObject* self, PyObject* args)
 {
   PyObject* points_list_obj;
   u32 color;
@@ -131,7 +131,7 @@ PyObject* draw_polyline(PyObject* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
-PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
+static PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
 {
   PyObject* points_list_obj;
   u32 color;
@@ -154,7 +154,7 @@ PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
-void draw_bezier_curve(PyObject* self, float pos0x, float pos0y, float cp0x, float cp0y, float cp1x,
+static void draw_bezier_curve(PyObject* self, float pos0x, float pos0y, float cp0x, float cp0y, float cp1x,
                        float cp1y, float pos1x, float pos1y, u32 color, float thickness,
                        int num_segments = 0)
 {
@@ -163,7 +163,7 @@ void draw_bezier_curve(PyObject* self, float pos0x, float pos0y, float cp0x, flo
                               thickness, num_segments);
 }
 
-void SetupGuiModule(PyObject* module, GuiModuleState* state)
+static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
 def add_osd_message(message: str, duration_ms: int = 2000, color_argb: int = 0xFFFFFF30):
@@ -221,7 +221,7 @@ def draw_bezier_curve(pos0, cp0, cp1, pos1, color, thickness = 1, num_segments =
   state->gui = gui;
 }
 
-void CleanupGuiModule(PyObject* module, GuiModuleState* state)
+static void CleanupGuiModule(PyObject* module, GuiModuleState* state)
 {
 }
 

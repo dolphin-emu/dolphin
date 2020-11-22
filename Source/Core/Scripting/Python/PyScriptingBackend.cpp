@@ -25,13 +25,15 @@
 namespace PyScripting
 {
 
-PyThreadState* InitMainPythonInterpreter()
+static PyThreadState* InitMainPythonInterpreter()
 {
+#ifdef _WIN32
   static const std::wstring python_home = UTF8ToWString(File::GetExeDirectory()) + L"/python-embed";
   static const std::wstring python_path =
       UTF8ToWString(File::GetExeDirectory()) + L"/python-embed/python38.zip;" +
       UTF8ToWString(File::GetExeDirectory()) + L"/python-embed;" +
       UTF8ToWString(File::GetExeDirectory());
+#endif
 
   if (PyImport_AppendInittab("dolio_stdout", PyInit_dolio_stdout) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolio_stdout to builtins");
@@ -51,8 +53,10 @@ PyThreadState* InitMainPythonInterpreter()
   if (PyImport_AppendInittab("dolphin", PyInit_dolphin) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolphin to builtins");
 
+#ifdef _WIN32
   Py_SetPythonHome(const_cast<wchar_t*>(python_home.c_str()));
   Py_SetPath(python_path.c_str());
+#endif
   INFO_LOG(SCRIPTING, "Initializing embedded python... %s", Py_GetVersion());
   Py_InitializeEx(0);
 
@@ -63,7 +67,7 @@ PyThreadState* InitMainPythonInterpreter()
   return PyEval_SaveThread();
 }
 
-void Init(std::filesystem::path script_filepath)
+static void Init(std::filesystem::path script_filepath)
 {
   if (script_filepath.is_relative())
     script_filepath = File::GetExeDirectory() / script_filepath;
@@ -94,7 +98,7 @@ void Init(std::filesystem::path script_filepath)
   }
 }
 
-void ShutdownMainPythonInterpreter()
+static void ShutdownMainPythonInterpreter()
 {
   if (Py_FinalizeEx() != 0)
   {
@@ -123,10 +127,16 @@ PyScriptingBackend::PyScriptingBackend(std::filesystem::path script_filepath,
     // below (PyEval_SaveThread) because DECREF-ing them needs the GIL to be held.
     Py::Object result_stdout = Py::Wrap(PyImport_ImportModule("dolio_stdout"));
     if (result_stdout.IsNull())
+    {
       ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stdout for stdout");
+      PyErr_Print();
+    }
     Py::Object result_stderr = Py::Wrap(PyImport_ImportModule("dolio_stderr"));
     if (result_stderr.IsNull())
+    {
       ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stderr for stderr");
+      PyErr_Print();
+    }
   }
 
   Init(script_filepath);

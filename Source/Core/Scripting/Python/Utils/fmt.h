@@ -32,7 +32,7 @@ constexpr const char* GetPyFmt()
   static_assert((!std::is_same_v<T, bool>),
                 "The Python C API does not have a boolean type. "
                 "Consider using PyObject* and checking with PyObject_IsTrue(PyObject*)");
-  static_assert(false, R"(
+  static_assert(sizeof(T) != sizeof(T), R"(
   no python format string known for type.
 
   If you get a compile error that ends in here, typically one of these things happened:
@@ -63,7 +63,7 @@ constexpr const char* GetPyFmt()
   )");
   return nullptr;
 }
-#pragma region template specializations for each type
+// template specializations for each type
 template <>
 constexpr const char* GetPyFmt<signed char>()
 {
@@ -139,7 +139,7 @@ constexpr const char* GetPyFmt<PyBytesObject*>()
 {
   return "S";
 }
-#pragma endregion
+// end of template specializations for each type
 
 template <typename T>
 constexpr const char* fmt = GetPyFmt<T>();
