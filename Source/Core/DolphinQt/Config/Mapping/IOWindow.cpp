@@ -240,7 +240,6 @@ void IOWindow::CreateMainLayout()
   m_test_button = new QPushButton(tr("Test"), this);
   m_button_box = new QDialogButtonBox();
   m_clear_button = new QPushButton(tr("Clear"));
-  m_apply_button = new QPushButton(tr("Apply"));
   m_range_slider = new QSlider(Qt::Horizontal);
   m_range_spinbox = new QSpinBox();
 
@@ -376,7 +375,6 @@ void IOWindow::CreateMainLayout()
   // Button Box
   m_main_layout->addWidget(m_button_box);
   m_button_box->addButton(m_clear_button, QDialogButtonBox::ActionRole);
-  m_button_box->addButton(m_apply_button, QDialogButtonBox::ActionRole);
   m_button_box->addButton(QDialogButtonBox::Ok);
 
   setLayout(m_main_layout);
@@ -419,11 +417,8 @@ void IOWindow::ConnectWidgets()
   connect(m_range_spinbox, qOverload<int>(&QSpinBox::valueChanged), this,
           &IOWindow::OnRangeChanged);
 
-  connect(m_expression_text, &QPlainTextEdit::textChanged, [this] {
-    m_apply_button->setText(m_apply_button->text().remove(QStringLiteral("*")));
-    m_apply_button->setText(m_apply_button->text() + QStringLiteral("*"));
-    UpdateExpression(m_expression_text->toPlainText().toStdString());
-  });
+  connect(m_expression_text, &QPlainTextEdit::textChanged,
+          [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
 
   connect(m_operators_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
     if (0 == index)
@@ -475,15 +470,13 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   UpdateExpression(m_expression_text->toPlainText().toStdString());
   m_original_expression = m_reference->GetExpression();
 
-  m_apply_button->setText(m_apply_button->text().remove(QStringLiteral("*")));
-
   if (ciface::ExpressionParser::ParseStatus::SyntaxError == m_reference->GetParseStatus())
   {
     ModalMessageBox::warning(this, tr("Error"), tr("The expression contains a syntax error."));
   }
 
-  if (button != m_apply_button)
-    accept();
+  // must be the OK button
+  accept();
 }
 
 void IOWindow::OnDetectButtonPressed()

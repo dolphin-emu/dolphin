@@ -115,7 +115,6 @@ private:
   // Buttonbox
   QDialogButtonBox* m_button_box;
   QPushButton* m_clear_button;
-  QPushButton* m_apply_button;
 
   ControlReference* m_reference;
   std::string m_original_expression;
