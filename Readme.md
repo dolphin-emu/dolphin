@@ -81,21 +81,17 @@ You can theoretically debug embedded scripts the same way you could debug any ot
 I tried using [debugpy](https://github.com/microsoft/debugpy) from within Visual Studio Code and that worked fine.
 See [Python debug configurations in Visual Studio Code](https://code.visualstudio.com/docs/python/debugging)
 for a good guide on how to get started.
-
-**BUT** things will horribly break and confuse you if you are not aware of these issues:
+Here are some pitfalls I encountered:
 
 - Dolphin may call into the python code from a different thread than the thread
   the initial script execution was invoked from.
   For example, if you want to add breakpoints to emulation events you need to call
-  `debugpy.debug_this_thread()` once after some emulation event occured.
+  `debugpy.debug_this_thread()` once after some emulation event occurred.
   Alternatively you can add `breakpoint()` calls to your python code.
-- `debugpy.listen(5678)` causes a timeout and the debugger won't work,
-  unless `sys.executable` is temporarily mocked to point to some `python.exe`.
-  See https://github.com/microsoft/debugpy/issues/262
-- Use v1.0.0b13 (or current [master](https://github.com/microsoft/debugpy)) or higher,
-  otherwise debugging async code will corrupt Python code frames and probably crash.
-  See https://github.com/microsoft/debugpy/issues/348
-- debugpy will print errors regarding internal generated filenames not being absolute.
+- you need to call `debugpy.configure(python="/path/to/python")` before
+  `debugpy.listen(5678)`, otherwise you get a timeout and the debugger won't work.
+  See https://github.com/microsoft/debugpy/issues/262 for more details.
+- `debugpy` will print errors regarding internal generated filenames not being absolute.
   That looks scary but doesn't seem to be a problem during debugging.
   See https://bugs.python.org/issue20443 (probably, I haven't tried it with 3.9 yet)
 
