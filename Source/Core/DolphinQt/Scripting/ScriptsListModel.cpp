@@ -16,17 +16,16 @@ int ScriptsListModel::columnCount(const QModelIndex& parent) const
 
 QVariant ScriptsListModel::data(const QModelIndex& index, int role) const
 {
-  if (!index.isValid())
-    return QVariant();
-
-  if (index.row() >= m_scripts.size())
+  if (!index.isValid() || (size_t)index.row() >= m_scripts.size())
     return QVariant();
 
   if (role == Qt::DisplayRole || role == Qt::EditRole)
+  {
     if (index.column() == 0)
       return QVariant();
     else if (index.column() == 1)
       return QVariant(QString::fromStdString(m_scripts[index.row()].filename));
+  }
   return QVariant();
 }
 
