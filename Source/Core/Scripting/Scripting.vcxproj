@@ -1,75 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{83794107-D372-4804-B463-E2719B50FB6B}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PCHUse.props" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)zlib;$(ExternalsDir)python\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)python\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Python\Modules\controllermodule.cpp" />
-    <ClCompile Include="Python\Modules\guimodule.cpp" />
-    <ClCompile Include="ScriptingEngine.cpp" />
     <ClCompile Include="Python\coroutine.cpp" />
+    <ClCompile Include="Python\Modules\controllermodule.cpp" />
     <ClCompile Include="Python\Modules\doliomodule.cpp" />
     <ClCompile Include="Python\Modules\dolphinmodule.cpp" />
     <ClCompile Include="Python\Modules\eventmodule.cpp" />
+    <ClCompile Include="Python\Modules\guimodule.cpp" />
     <ClCompile Include="Python\Modules\memorymodule.cpp" />
     <ClCompile Include="Python\Modules\savestatemodule.cpp" />
     <ClCompile Include="Python\PyScriptingBackend.cpp" />
     <ClCompile Include="Python\Utils\object_wrapper.cpp" />
+    <ClCompile Include="ScriptingEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Python\Modules\controllermodule.h" />
-    <ClInclude Include="Python\Modules\guimodule.h" />
-    <ClInclude Include="ScriptingEngine.h" />
     <ClInclude Include="Python\coroutine.h" />
-    <ClInclude Include="Python\PyScriptingBackend.h" />
+    <ClInclude Include="Python\Modules\controllermodule.h" />
     <ClInclude Include="Python\Modules\doliomodule.h" />
     <ClInclude Include="Python\Modules\dolphinmodule.h" />
     <ClInclude Include="Python\Modules\eventmodule.h" />
+    <ClInclude Include="Python\Modules\guimodule.h" />
     <ClInclude Include="Python\Modules\memorymodule.h" />
     <ClInclude Include="Python\Modules\savestatemodule.h" />
+    <ClInclude Include="Python\PyScriptingBackend.h" />
     <ClInclude Include="Python\Utils\as_py_func.h" />
     <ClInclude Include="Python\Utils\convert.h" />
     <ClInclude Include="Python\Utils\fmt.h" />
     <ClInclude Include="Python\Utils\invoke.h" />
     <ClInclude Include="Python\Utils\module.h" />
     <ClInclude Include="Python\Utils\object_wrapper.h" />
+    <ClInclude Include="ScriptingEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
