@@ -190,7 +190,7 @@ USB_KBD::USB_KBD(Kernel& ios, const std::string& device_name) : Device(ios, devi
 
 IPCCommandResult USB_KBD::Open(const OpenRequest& request)
 {
-  INFO_LOG(IOS, "USB_KBD: Open");
+  INFO_LOG_FMT(IOS, "USB_KBD: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_keyboard_layout, KBD_LAYOUT_QWERTY);

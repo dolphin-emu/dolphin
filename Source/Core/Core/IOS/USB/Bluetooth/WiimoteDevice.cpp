@@ -60,7 +60,7 @@ WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd
       m_name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 
 {
-  INFO_LOG(IOS_WIIMOTE, "Wiimote: #%i Constructed", number);
+  INFO_LOG_FMT(IOS_WIIMOTE, "Wiimote: #{} Constructed", number);
 
   m_link_key.fill(0xa0 + number);
   m_class = {0x00, 0x04, 0x48};
@@ -335,7 +335,7 @@ void WiimoteDevice::Update()
   {
     if (LinkChannel(L2CAP_PSM_HID_CNTL) && LinkChannel(L2CAP_PSM_HID_INTR))
     {
-      DEBUG_LOG(IOS_WIIMOTE, "HID linking is complete.");
+      DEBUG_LOG_FMT(IOS_WIIMOTE, "HID linking is complete.");
       m_hid_state = HIDState::Inactive;
     }
   }
@@ -368,12 +368,12 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
   l2cap_hdr_t* header = (l2cap_hdr_t*)ptr;
   u8* data = ptr + sizeof(l2cap_hdr_t);
   const u32 data_size = size - sizeof(l2cap_hdr_t);
-  DEBUG_LOG(IOS_WIIMOTE, "  CID 0x%04x, Len 0x%x, DataSize 0x%x", header->dcid, header->length,
-            data_size);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "  CID {:#06x}, Len {:#x}, DataSize {:#x}", header->dcid,
+                header->length, data_size);
 
   if (header->length != data_size)
   {
-    INFO_LOG(IOS_WIIMOTE, "Faulty packet. It is dropped.");
+    INFO_LOG_FMT(IOS_WIIMOTE, "Faulty packet. It is dropped.");
     return;
   }
 
@@ -386,7 +386,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
   const auto itr = m_channels.find(header->dcid);
   if (itr == m_channels.end())
   {
-    ERROR_LOG(IOS_WIIMOTE, "L2CAP: SendACLPacket to unknown channel %i", header->dcid);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "L2CAP: SendACLPacket to unknown channel {}", header->dcid);
     return;
   }
 
@@ -423,7 +423,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
     }
     else
     {
-      ERROR_LOG(IOS_WIIMOTE, "Unknown HID-type (0x%x) on L2CAP_PSM_HID_CNTL", hid_type);
+      ERROR_LOG_FMT(IOS_WIIMOTE, "Unknown HID-type ({:#x}) on L2CAP_PSM_HID_CNTL", hid_type);
     }
   }
   break;
@@ -434,12 +434,12 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
     if (hid_type == ((WiimoteCommon::HID_TYPE_DATA << 4) | WiimoteCommon::HID_PARAM_OUTPUT))
       m_hid_source->InterruptDataOutput(data + sizeof(hid_type), data_size - sizeof(hid_type));
     else
-      ERROR_LOG(IOS_WIIMOTE, "Unknown HID-type (0x%x) on L2CAP_PSM_HID_INTR", hid_type);
+      ERROR_LOG_FMT(IOS_WIIMOTE, "Unknown HID-type ({:#x}) on L2CAP_PSM_HID_INTR", hid_type);
   }
   break;
 
   default:
-    ERROR_LOG(IOS_WIIMOTE, "Channel 0x%x has unknown PSM %x", header->dcid, channel.psm);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "Channel {:#x} has unknown PSM {:x}", header->dcid, channel.psm);
     break;
   }
 }
@@ -455,8 +455,8 @@ void WiimoteDevice::SignalChannel(u8* data, u32 size)
     switch (cmd_hdr->code)
     {
     case L2CAP_COMMAND_REJ:
-      ERROR_LOG(IOS_WIIMOTE, "SignalChannel - L2CAP_COMMAND_REJ (something went wrong)."
-                             "Try to replace your SYSCONF file with a new copy.");
+      ERROR_LOG_FMT(IOS_WIIMOTE, "SignalChannel - L2CAP_COMMAND_REJ (something went wrong)."
+                                 "Try to replace your SYSCONF file with a new copy.");
       break;
 
     case L2CAP_CONNECT_REQ:
@@ -480,7 +480,7 @@ void WiimoteDevice::SignalChannel(u8* data, u32 size)
       break;
 
     default:
-      ERROR_LOG(IOS_WIIMOTE, "  Unknown Command-Code (0x%02x)", cmd_hdr->code);
+      ERROR_LOG_FMT(IOS_WIIMOTE, "  Unknown Command-Code ({:#04x})", cmd_hdr->code);
       return;
     }
 
@@ -492,10 +492,10 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
 {
   l2cap_con_req_cp* command_connection_req = (l2cap_con_req_cp*)data;
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveConnectionRequest");
-  DEBUG_LOG(IOS_WIIMOTE, "    Ident: 0x%02x", ident);
-  DEBUG_LOG(IOS_WIIMOTE, "    PSM: 0x%04x", command_connection_req->psm);
-  DEBUG_LOG(IOS_WIIMOTE, "    SCID: 0x%04x", command_connection_req->scid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveConnectionRequest");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Ident: {:#04x}", ident);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    PSM: {:#06x}", command_connection_req->psm);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    SCID: {:#06x}", command_connection_req->scid);
 
   l2cap_con_rsp_cp rsp = {};
   rsp.scid = command_connection_req->scid;
@@ -503,8 +503,8 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
 
   if (FindChannelWithPSM(command_connection_req->psm) != nullptr)
   {
-    ERROR_LOG(IOS_WIIMOTE, "Multiple channels with same PSM (%d) are not allowed.",
-              command_connection_req->psm);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "Multiple channels with same PSM ({}) are not allowed.",
+                  command_connection_req->psm);
 
     // A real wii remote refuses multiple connections with the same PSM.
     rsp.result = L2CAP_NO_RESOURCES;
@@ -522,14 +522,14 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
     if (channel.psm != L2CAP_PSM_SDP && channel.psm != L2CAP_PSM_HID_CNTL &&
         channel.psm != L2CAP_PSM_HID_INTR)
     {
-      WARN_LOG(IOS_WIIMOTE, "L2CAP connection with unknown psm (0x%x)", channel.psm);
+      WARN_LOG_FMT(IOS_WIIMOTE, "L2CAP connection with unknown psm ({:#x})", channel.psm);
     }
 
     rsp.result = L2CAP_SUCCESS;
     rsp.dcid = local_cid;
   }
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendConnectionResponse");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] SendConnectionResponse");
   SendCommandToACL(ident, L2CAP_CONNECT_RSP, sizeof(l2cap_con_rsp_cp), (u8*)&rsp);
 }
 
@@ -539,11 +539,11 @@ void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, u32 size)
 
   DEBUG_ASSERT(size == sizeof(l2cap_con_rsp_cp));
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveConnectionResponse");
-  DEBUG_LOG(IOS_WIIMOTE, "    DCID: 0x%04x", rsp->dcid);
-  DEBUG_LOG(IOS_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
-  DEBUG_LOG(IOS_WIIMOTE, "    Result: 0x%04x", rsp->result);
-  DEBUG_LOG(IOS_WIIMOTE, "    Status: 0x%04x", rsp->status);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveConnectionResponse");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    DCID: {:#06x}", rsp->dcid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    SCID: {:#06x}", rsp->scid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Result: {:#06x}", rsp->result);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Status: {:#06x}", rsp->status);
 
   DEBUG_ASSERT(rsp->result == L2CAP_SUCCESS);
   DEBUG_ASSERT(rsp->status == L2CAP_NO_INFO);
@@ -564,10 +564,10 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
 
   SChannel& channel = m_channels[command_config_req->dcid];
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveConfigurationRequest");
-  DEBUG_LOG(IOS_WIIMOTE, "    Ident: 0x%02x", ident);
-  DEBUG_LOG(IOS_WIIMOTE, "    DCID: 0x%04x", command_config_req->dcid);
-  DEBUG_LOG(IOS_WIIMOTE, "    Flags: 0x%04x", command_config_req->flags);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveConfigurationRequest");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Ident: {:#04x}", ident);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    DCID: {:#06x}", command_config_req->dcid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Flags: {:#06x}", command_config_req->flags);
 
   offset += sizeof(l2cap_cfg_req_cp);
 
@@ -597,7 +597,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
       DEBUG_ASSERT(options->length == L2CAP_OPT_MTU_SIZE);
       l2cap_cfg_opt_val_t* mtu = (l2cap_cfg_opt_val_t*)&data[offset];
       remote_mtu = mtu->mtu;
-      DEBUG_LOG(IOS_WIIMOTE, "    MTU: 0x%04x", mtu->mtu);
+      DEBUG_LOG_FMT(IOS_WIIMOTE, "    MTU: {:#06x}", mtu->mtu);
     }
     break;
 
@@ -606,12 +606,12 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
     {
       DEBUG_ASSERT(options->length == L2CAP_OPT_FLUSH_TIMO_SIZE);
       l2cap_cfg_opt_val_t* flush_time_out = (l2cap_cfg_opt_val_t*)&data[offset];
-      DEBUG_LOG(IOS_WIIMOTE, "    FlushTimeOut: 0x%04x", flush_time_out->flush_timo);
+      DEBUG_LOG_FMT(IOS_WIIMOTE, "    FlushTimeOut: {:#06x}", flush_time_out->flush_timo);
     }
     break;
 
     default:
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown Option: 0x%02x", options->type);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown Option: {:#04x}", options->type);
       break;
     }
 
@@ -622,7 +622,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
     resp_len += option_size;
   }
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendConfigurationResponse");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] SendConfigurationResponse");
   SendCommandToACL(ident, L2CAP_CONFIG_RSP, resp_len, temp_buffer);
 
   channel.remote_mtu = remote_mtu;
@@ -632,10 +632,10 @@ void WiimoteDevice::ReceiveConfigurationResponse(u8 ident, u8* data, u32 size)
 {
   l2cap_cfg_rsp_cp* rsp = (l2cap_cfg_rsp_cp*)data;
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveConfigurationResponse");
-  DEBUG_LOG(IOS_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
-  DEBUG_LOG(IOS_WIIMOTE, "    Flags: 0x%04x", rsp->flags);
-  DEBUG_LOG(IOS_WIIMOTE, "    Result: 0x%04x", rsp->result);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveConfigurationResponse");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    SCID: {:#06x}", rsp->scid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Flags: {:#06x}", rsp->flags);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Result: {:#06x}", rsp->result);
 
   DEBUG_ASSERT(rsp->result == L2CAP_SUCCESS);
 
@@ -646,10 +646,10 @@ void WiimoteDevice::ReceiveDisconnectionReq(u8 ident, u8* data, u32 size)
 {
   l2cap_discon_req_cp* command_disconnection_req = (l2cap_discon_req_cp*)data;
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveDisconnectionReq");
-  DEBUG_LOG(IOS_WIIMOTE, "    Ident: 0x%02x", ident);
-  DEBUG_LOG(IOS_WIIMOTE, "    DCID: 0x%04x", command_disconnection_req->dcid);
-  DEBUG_LOG(IOS_WIIMOTE, "    SCID: 0x%04x", command_disconnection_req->scid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] ReceiveDisconnectionReq");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Ident: {:#04x}", ident);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    DCID: {:#06x}", command_disconnection_req->dcid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    SCID: {:#06x}", command_disconnection_req->scid);
 
   DEBUG_ASSERT(DoesChannelExist(command_disconnection_req->dcid));
 
@@ -659,7 +659,7 @@ void WiimoteDevice::ReceiveDisconnectionReq(u8 ident, u8* data, u32 size)
   rsp.dcid = command_disconnection_req->dcid;
   rsp.scid = command_disconnection_req->scid;
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendDisconnectionResponse");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] SendDisconnectionResponse");
   SendCommandToACL(ident, L2CAP_DISCONNECT_RSP, sizeof(l2cap_discon_req_cp), (u8*)&rsp);
 }
 
@@ -677,9 +677,9 @@ void WiimoteDevice::SendConnectionRequest(u16 psm)
   cr.psm = psm;
   cr.scid = local_cid;
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendConnectionRequest");
-  DEBUG_LOG(IOS_WIIMOTE, "    Psm: 0x%04x", cr.psm);
-  DEBUG_LOG(IOS_WIIMOTE, "    Scid: 0x%04x", cr.scid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] SendConnectionRequest");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Psm: {:#06x}", cr.psm);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Scid: {:#06x}", cr.scid);
 
   SendCommandToACL(L2CAP_CONNECT_REQ, L2CAP_CONNECT_REQ, sizeof(l2cap_con_req_cp), (u8*)&cr);
 }
@@ -694,9 +694,9 @@ void WiimoteDevice::SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_ou
   cr->flags = 0;
   offset += sizeof(l2cap_cfg_req_cp);
 
-  DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendConfigurationRequest");
-  DEBUG_LOG(IOS_WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
-  DEBUG_LOG(IOS_WIIMOTE, "    Flags: 0x%04x", cr->flags);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "[L2CAP] SendConfigurationRequest");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Dcid: {:#06x}", cr->dcid);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Flags: {:#06x}", cr->flags);
 
   l2cap_cfg_opt_t* options;
 
@@ -708,7 +708,7 @@ void WiimoteDevice::SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_ou
     options->length = L2CAP_OPT_MTU_SIZE;
     *(u16*)&buffer[offset] = mtu;
     offset += L2CAP_OPT_MTU_SIZE;
-    DEBUG_LOG(IOS_WIIMOTE, "    MTU: 0x%04x", mtu);
+    DEBUG_LOG_FMT(IOS_WIIMOTE, "    MTU: {:#06x}", mtu);
   }
 
   if (flush_time_out != L2CAP_FLUSH_TIMO_DEFAULT)
@@ -719,7 +719,7 @@ void WiimoteDevice::SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_ou
     options->length = L2CAP_OPT_FLUSH_TIMO_SIZE;
     *(u16*)&buffer[offset] = flush_time_out;
     offset += L2CAP_OPT_FLUSH_TIMO_SIZE;
-    DEBUG_LOG(IOS_WIIMOTE, "    FlushTimeOut: 0x%04x", flush_time_out);
+    DEBUG_LOG_FMT(IOS_WIIMOTE, "    FlushTimeOut: {:#06x}", flush_time_out);
   }
 
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
@@ -788,8 +788,8 @@ static u32 ParseCont(u8* cont)
   {
     return 0x00;
   }
-  ERROR_LOG(IOS_WIIMOTE, "ParseCont: wrong cont: %i", type_id);
-  PanicAlert("ParseCont: wrong cont: %i", type_id);
+  ERROR_LOG_FMT(IOS_WIIMOTE, "ParseCont: wrong cont: {}", type_id);
+  PanicAlertFmt("ParseCont: wrong cont: {}", type_id);
   return 0;
 }
 
@@ -823,8 +823,8 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
     start_id = attrib_list.Read16(attrib_offset);
     attrib_offset += 2;
     end_id = start_id;
-    WARN_LOG(IOS_WIIMOTE, "Read just a single attrib - not tested");
-    PanicAlert("Read just a single attrib - not tested");
+    WARN_LOG_FMT(IOS_WIIMOTE, "Read just a single attrib - not tested");
+    PanicAlertFmt("Read just a single attrib - not tested");
   }
 
   return attrib_offset;
@@ -837,8 +837,8 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id,
 {
   if (service_handle != 0x10000)
   {
-    ERROR_LOG(IOS_WIIMOTE, "Unknown service handle %x", service_handle);
-    PanicAlert("Unknown service handle %x", service_handle);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "Unknown service handle {:x}", service_handle);
+    PanicAlertFmt("Unknown service handle {:x}", service_handle);
   }
 
   const u32 cont_state = ParseCont(continuation_state);
@@ -876,7 +876,7 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
   // SDP_ServiceSearchRequest
   case 0x02:
   {
-    WARN_LOG(IOS_WIIMOTE, "!!! SDP_ServiceSearchRequest !!!");
+    WARN_LOG_FMT(IOS_WIIMOTE, "!!! SDP_ServiceSearchRequest !!!");
 
     DEBUG_ASSERT(size == 13);
 
@@ -892,7 +892,7 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
   // SDP_ServiceAttributeRequest
   case 0x04:
   {
-    WARN_LOG(IOS_WIIMOTE, "!!! SDP_ServiceAttributeRequest !!!");
+    WARN_LOG_FMT(IOS_WIIMOTE, "!!! SDP_ServiceAttributeRequest !!!");
 
     u16 start_attr_id, end_attr_id;
     u32 offset = 1;
@@ -914,8 +914,8 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
   break;
 
   default:
-    ERROR_LOG(IOS_WIIMOTE, "Unknown SDP command %x", data[0]);
-    PanicAlert("WIIMOTE: Unknown SDP command %x", data[0]);
+    ERROR_LOG_FMT(IOS_WIIMOTE, "Unknown SDP command {:x}", data[0]);
+    PanicAlertFmt("WIIMOTE: Unknown SDP command {:x}", data[0]);
     break;
   }
 }
@@ -938,9 +938,9 @@ void WiimoteDevice::SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* c
 
   memcpy(&data_frame[offset], command_data, command_length);
 
-  DEBUG_LOG(IOS_WIIMOTE, "Send ACL Command to CPU");
-  DEBUG_LOG(IOS_WIIMOTE, "    Ident: 0x%02x", ident);
-  DEBUG_LOG(IOS_WIIMOTE, "    Code: 0x%02x", code);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "Send ACL Command to CPU");
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Ident: {:#04x}", ident);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "    Code: {:#04x}", code);
 
   m_host->SendACLPacket(GetBD(), data_frame, header->length + sizeof(l2cap_hdr_t));
 }
@@ -951,7 +951,7 @@ void WiimoteDevice::InterruptDataInputCallback(u8 hid_type, const u8* data, u32 
 
   if (!channel)
   {
-    WARN_LOG(IOS_WIIMOTE, "Data callback with invalid L2CAP_PSM_HID_INTR channel.");
+    WARN_LOG_FMT(IOS_WIIMOTE, "Data callback with invalid L2CAP_PSM_HID_INTR channel.");
     return;
   }
 
