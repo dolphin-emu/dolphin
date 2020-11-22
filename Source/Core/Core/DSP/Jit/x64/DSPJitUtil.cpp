@@ -4,6 +4,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Common/Logging/Log.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
@@ -554,7 +555,7 @@ void DSPEmitter::dmem_write_imm(u16 address, X64Reg value)
     break;
   }
   default:  // Unmapped/non-existing memory
-    ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, address);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Write to UNKNOWN ({:04x}) memory", g_dsp.pc, address);
     break;
   }
 }
@@ -642,7 +643,7 @@ void DSPEmitter::dmem_read_imm(u16 address)
     break;
   }
   default:  // Unmapped/non-existing memory
-    ERROR_LOG(DSPLLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, address);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Read from UNKNOWN ({:04x}) memory", g_dsp.pc, address);
   }
 }
 

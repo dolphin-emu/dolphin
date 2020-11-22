@@ -40,7 +40,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     UpdateButtonsEnabled();
     if (state == Core::State::Uninitialized)
     {
@@ -50,10 +50,10 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     }
   });
 
-  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsBreakpointsVisible());
   });
 
@@ -188,7 +188,15 @@ void BreakpointWidget::Update()
     m_table->setItem(i, 3,
                      create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0'))));
 
-    m_table->setItem(i, 4, create_item());
+    QString flags;
+
+    if (bp.break_on_hit)
+      flags.append(QLatin1Char{'b'});
+
+    if (bp.log_on_hit)
+      flags.append(QLatin1Char{'l'});
+
+    m_table->setItem(i, 4, create_item(flags));
 
     i++;
   }
@@ -308,7 +316,12 @@ void BreakpointWidget::OnSave()
 
 void BreakpointWidget::AddBP(u32 addr)
 {
-  PowerPC::breakpoints.Add(addr);
+  AddBP(addr, false, true, true);
+}
+
+void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit)
+{
+  PowerPC::breakpoints.Add(addr, temp, break_on_hit, log_on_hit);
 
   Update();
 }

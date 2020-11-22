@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <QString>
 #include <QValidator>
 
@@ -11,9 +13,10 @@ class UTF8CodePointCountValidator : public QValidator
 {
   Q_OBJECT
 public:
-  explicit UTF8CodePointCountValidator(int max_count, QObject* parent = nullptr);
+  explicit UTF8CodePointCountValidator(std::size_t max_count, QObject* parent = nullptr);
 
   QValidator::State validate(QString& input, int& pos) const override;
 
-  int m_max_count;
+private:
+  std::size_t m_max_count;
 };

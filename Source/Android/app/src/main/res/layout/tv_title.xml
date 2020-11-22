@@ -12,7 +12,7 @@
             android:visibility="gone"
             android:layout_alignTop="@+id/badge"
             android:layout_alignBottom="@+id/badge"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:id="@+id/title"
             android:gravity="center_vertical"
             android:layout_width="wrap_content"
@@ -21,7 +21,7 @@
 
         <ImageView
             android:visibility="gone"
-            android:layout_toLeftOf="@id/title"
+            android:layout_toStartOf="@id/title"
             android:id="@+id/badge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

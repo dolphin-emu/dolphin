@@ -7,6 +7,8 @@
 #include <optional>
 #include <string>
 
+#include <mbedtls/sha1.h>
+
 #include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
@@ -26,6 +28,7 @@ public:
 
 protected:
   Region RegionCodeToRegion(std::optional<u32> region_code) const;
+  void AddGamePartitionToSyncHash(mbedtls_sha1_context* context) const;
 };
 
 }  // namespace DiscIO

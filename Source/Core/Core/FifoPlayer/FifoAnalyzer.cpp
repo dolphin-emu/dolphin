@@ -253,7 +253,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     }
     else
     {
-      PanicAlert("FifoPlayer: Unknown Opcode (0x%x).\n", cmd);
+      PanicAlertFmt("FifoPlayer: Unknown Opcode ({:#x}).\n", cmd);
       return 0;
     }
     break;

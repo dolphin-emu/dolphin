@@ -9,7 +9,7 @@
 #if defined(__APPLE__)
 #include "Common/GL/GLInterface/AGL.h"
 #endif
-#if defined(WIN32)
+#if defined(_WIN32)
 #include "Common/GL/GLInterface/WGL.h"
 #endif
 #if HAVE_X11

@@ -1,46 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|ARM64">
-      <Configuration>Debug</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|ARM64">
-      <Configuration>Release</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{474661E7-C73A-43A6-AFEE-EE1EC433D49E}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
+  <Import Project="$(VSPropsDir)Configuration.Application.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\VSProps\Base.props" />
-    <Import Project="..\VSProps\PCHUse.props" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
@@ -60,15 +32,50 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Core\DSP\DSPTestBinary.h" />
+    <ClInclude Include="Core\DSP\DSPTestText.h" />
+    <ClInclude Include="Core\DSP\HermesBinary.h" />
+    <ClInclude Include="Core\IOS\ES\TestBinaryData.h" />
+  </ItemGroup>
+  <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
     <ClCompile Include="$(ExternalsDir)gtest\src\gtest-all.cc" />
     <ClCompile Include="$(ExternalsDir)gtest\src\gtest_main.cc" />
     <!--Lump all of the tests (and supporting code) into one binary-->
-    <ClCompile Include="*.cpp" />
-    <ClCompile Include="*\*.cpp">
-      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="*\*\*.cpp" />
+    <ClCompile Include="Common\BitFieldTest.cpp" />
+    <ClCompile Include="Common\BitSetTest.cpp" />
+    <ClCompile Include="Common\BitUtilsTest.cpp" />
+    <ClCompile Include="Common\BlockingLoopTest.cpp" />
+    <ClCompile Include="Common\BusyLoopTest.cpp" />
+    <ClCompile Include="Common\CommonFuncsTest.cpp" />
+    <ClCompile Include="Common\Crypto\EcTest.cpp" />
+    <ClCompile Include="Common\EventTest.cpp" />
+    <ClCompile Include="Common\FixedSizeQueueTest.cpp" />
+    <ClCompile Include="Common\FlagTest.cpp" />
+    <ClCompile Include="Common\FloatUtilsTest.cpp" />
+    <ClCompile Include="Common\MathUtilTest.cpp" />
+    <ClCompile Include="Common\NandPathsTest.cpp" />
+    <ClCompile Include="Common\SPSCQueueTest.cpp" />
+    <ClCompile Include="Common\StringUtilTest.cpp" />
+    <ClCompile Include="Common\SwapTest.cpp" />
+    <ClCompile Include="Core\CoreTimingTest.cpp" />
+    <ClCompile Include="Core\DSP\DSPAcceleratorTest.cpp" />
+    <ClCompile Include="Core\DSP\DSPAssemblyTest.cpp" />
+    <ClCompile Include="Core\DSP\DSPTestBinary.cpp" />
+    <ClCompile Include="Core\DSP\DSPTestText.cpp" />
+    <ClCompile Include="Core\DSP\HermesBinary.cpp" />
+    <ClCompile Include="Core\IOS\ES\FormatsTest.cpp" />
+    <ClCompile Include="Core\IOS\FS\FileSystemTest.cpp" />
+    <ClCompile Include="Core\MMIOTest.cpp" />
+    <ClCompile Include="Core\PageFaultTest.cpp" />
+    <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
+    <ClCompile Include="StubHost.cpp" />
+  </ItemGroup>
+  <!--Arch-specific tests-->
+  <ItemGroup Condition="'$(Platform)'=='x64'">
+    <ClCompile Include="Common\x64EmitterTest.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\ConvertDoubleToSingle.cpp" />
+    <ClCompile Include="Core\PowerPC\Jit64Common\Frsqrte.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
@@ -77,8 +84,17 @@
     <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
       <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
+      <Project>{604c8368-f34a-4d55-82c8-cc92a0c13254}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
       <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3D12\D3D12.vcxproj">
+      <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
+      <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj" Condition="'$(Platform)'!='ARM64'">
       <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
@@ -86,17 +102,8 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj" Condition="'$(Platform)'!='ARM64'">
       <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
-      <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29F29A19-F141-45AD-9679-5A2923B49DA3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
-      <Project>{604c8368-f34a-4d55-82c8-cc92a0c13254}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\VideoBackends\D3D12\D3D12.vcxproj">
-      <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

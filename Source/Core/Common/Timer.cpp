@@ -254,7 +254,7 @@ std::string Timer::GetDateTimeFormatted(double time)
 
 #ifdef _WIN32
   wchar_t tmp[32] = {};
-  wcsftime(tmp, sizeof(tmp), L"%x %X", localTime);
+  wcsftime(tmp, std::size(tmp), L"%x %X", localTime);
   return WStringToUTF8(tmp);
 #else
   char tmp[32] = {};

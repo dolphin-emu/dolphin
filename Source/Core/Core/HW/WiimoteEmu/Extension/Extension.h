@@ -31,7 +31,6 @@ public:
   // but M+ does some tricks with it during activation.
   virtual bool ReadDeviceDetectPin() const = 0;
 
-  virtual bool IsButtonPressed() const = 0;
   virtual void Reset() = 0;
   virtual void DoState(PointerWrap& p) = 0;
   virtual void Update() = 0;
@@ -49,7 +48,6 @@ public:
 private:
   bool ReadDeviceDetectPin() const override;
   void Update() override;
-  bool IsButtonPressed() const override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
 

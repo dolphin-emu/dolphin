@@ -5,6 +5,7 @@
 #pragma once
 
 #include <SFML/Network/Packet.hpp>
+
 #include <map>
 #include <memory>
 #include <mutex>
@@ -14,19 +15,20 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+
 #include "Common/Event.h"
 #include "Common/QoSSession.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
+#include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
 #include "UICommon/NetPlayIndex.h"
 
 namespace NetPlay
 {
 class NetPlayUI;
-enum class PlayerGameStatus;
 
 class NetPlayServer : public TraversalClientClient
 {
@@ -43,8 +45,8 @@ public:
                 const NetTraversalConfig& traversal_config);
   ~NetPlayServer();
 
-  bool ChangeGame(const std::string& game);
-  bool ComputeMD5(const std::string& file_identifier);
+  bool ChangeGame(const SyncIdentifier& sync_identifier, const std::string& netplay_name);
+  bool ComputeMD5(const SyncIdentifier& sync_identifier);
   bool AbortMD5();
   void SendChatMessage(const std::string& msg);
 
@@ -80,7 +82,7 @@ private:
     PlayerId pid;
     std::string name;
     std::string revision;
-    PlayerGameStatus game_status;
+    SyncIdentifierComparison game_status;
     bool has_ipl_dump;
 
     ENetPeer* socket;
@@ -180,7 +182,8 @@ private:
   Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
   Common::SPSCQueue<ChunkedDataQueueEntry, false> m_chunked_data_queue;
 
-  std::string m_selected_game;
+  SyncIdentifier m_selected_game_identifier;
+  std::string m_selected_game_name;
   std::thread m_thread;
   Common::Event m_chunked_data_event;
   Common::Event m_chunked_data_complete_event;

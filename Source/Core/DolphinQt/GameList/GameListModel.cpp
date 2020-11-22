@@ -313,14 +313,9 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) 
   return m_games[index];
 }
 
-QString GameListModel::GetPath(int index) const
+std::string GameListModel::GetNetPlayName(const UICommon::GameFile& game) const
 {
-  return QString::fromStdString(m_games[index]->GetFilePath());
-}
-
-QString GameListModel::GetUniqueIdentifier(int index) const
-{
-  return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
+  return game.GetNetPlayName(m_title_database);
 }
 
 void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)

@@ -6,7 +6,7 @@
 #
 # vim: expandtab sw=4 ts=4 sts=4:
 
-include(FindPkgConfig)
+find_package(PkgConfig QUIET)
 pkg_check_modules (BlueZ_PKG QUIET bluez)
 
 find_path(BlueZ_INCLUDE_DIR NAMES bluetooth/bluetooth.h

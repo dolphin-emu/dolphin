@@ -29,7 +29,6 @@ public:
   DrawsomeTablet();
 
   void Update() override;
-  bool IsButtonPressed() const override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(DrawsomeTabletGroup group);

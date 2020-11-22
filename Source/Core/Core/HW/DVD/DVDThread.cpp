@@ -4,7 +4,6 @@
 
 #include "Core/HW/DVD/DVDThread.h"
 
-#include <cinttypes>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -159,7 +158,7 @@ void DoState(PointerWrap& p)
   if (had_disc != HasDisc())
   {
     if (had_disc)
-      PanicAlertT("An inserted disc was expected but not found.");
+      PanicAlertFmtT("An inserted disc was expected but not found.");
     else
       s_disc.reset();
   }
@@ -333,22 +332,22 @@ static void FinishRead(u64 id, s64 cycles_late)
   const ReadRequest& request = result.first;
   const std::vector<u8>& buffer = result.second;
 
-  DEBUG_LOG(DVDINTERFACE,
-            "Disc has been read. Real time: %" PRIu64 " us. "
-            "Real time including delay: %" PRIu64 " us. "
-            "Emulated time including delay: %" PRIu64 " us.",
-            request.realtime_done_us - request.realtime_started_us,
-            Common::Timer::GetTimeUs() - request.realtime_started_us,
-            (CoreTiming::GetTicks() - request.time_started_ticks) /
-                (SystemTimers::GetTicksPerSecond() / 1000000));
+  DEBUG_LOG_FMT(DVDINTERFACE,
+                "Disc has been read. Real time: {} us. "
+                "Real time including delay: {} us. "
+                "Emulated time including delay: {} us.",
+                request.realtime_done_us - request.realtime_started_us,
+                Common::Timer::GetTimeUs() - request.realtime_started_us,
+                (CoreTiming::GetTicks() - request.time_started_ticks) /
+                    (SystemTimers::GetTicksPerSecond() / 1000000));
 
   DVDInterface::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
-    PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
-                request.dvd_offset, request.dvd_offset + request.length);
+    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
+                   request.dvd_offset + request.length);
 
-    DVDInterface::SetHighError(DVDInterface::ERROR_BLOCK_OOB);
+    DVDInterface::SetDriveError(DVDInterface::DriveError::BlockOOB);
     interrupt = DVDInterface::DIInterruptType::DEINT;
   }
   else

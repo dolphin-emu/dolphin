@@ -26,7 +26,6 @@ class NetPlayClient;
 class NetPlayServer;
 }  // namespace NetPlay
 
-class GameListModel;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
@@ -73,6 +72,7 @@ public:
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
   void RefreshGameList();
+  void NotifyRefreshGameListStarted();
   void NotifyRefreshGameListComplete();
   void RefreshMetadata();
   void NotifyMetadataRefreshComplete();
@@ -145,8 +145,6 @@ public:
   bool IsAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool enabled);
 
-  // Other
-  GameListModel* GetGameListModel() const;
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
@@ -155,6 +153,7 @@ signals:
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
   void GameListRefreshRequested();
+  void GameListRefreshStarted();
   void GameListRefreshCompleted();
   void TitleDBReloadRequested();
   void MetadataRefreshRequested();

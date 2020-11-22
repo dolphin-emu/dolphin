@@ -15,6 +15,13 @@
 #include <unistd.h>
 #endif
 
+#ifdef ANDROID
+#include <algorithm>
+
+#include "Common/StringUtil.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -62,7 +69,21 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 #ifdef _WIN32
   m_good = _tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str()) == 0;
 #else
-  m_file = std::fopen(filename.c_str(), openmode);
+#ifdef ANDROID
+  if (StringBeginsWith(filename, "content://"))
+  {
+    // The Java method which OpenAndroidContent passes the mode to does not support the b specifier.
+    // Since we're on POSIX, it's fine to just remove the b.
+    std::string mode_without_b(openmode);
+    mode_without_b.erase(std::remove(mode_without_b.begin(), mode_without_b.end(), 'b'),
+                         mode_without_b.end());
+    m_file = fdopen(OpenAndroidContent(filename, mode_without_b), mode_without_b.c_str());
+  }
+  else
+#endif
+  {
+    m_file = std::fopen(filename.c_str(), openmode);
+  }
   m_good = m_file != nullptr;
 #endif
 

@@ -99,7 +99,7 @@ u32 HashEctor(const u8* ptr, size_t length)
 {
   u32 crc = 0;
 
-  for (int i = 0; i < length; i++)
+  for (size_t i = 0; i < length; i++)
   {
     crc ^= ptr[i];
     crc = (crc << 3) | (crc >> 29);

@@ -94,11 +94,11 @@ public:
 
   u32 GetDataSize() const;
 
-  static constexpr int HEADER_SIZE = 2;
-  static constexpr int MAX_DATA_SIZE = MAX_PAYLOAD - 2;
+  // The largest report is 0x3d (21 extension bytes).
+  static constexpr int MAX_DATA_SIZE = 21;
 
 private:
-  TypedHIDInputData<std::array<u8, MAX_DATA_SIZE>> m_data;
+  TypedInputData<std::array<u8, MAX_DATA_SIZE>> m_data;
 
   std::unique_ptr<DataReportManipulator> m_manip;
 };

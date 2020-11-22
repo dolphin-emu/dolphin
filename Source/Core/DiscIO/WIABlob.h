@@ -59,13 +59,12 @@ public:
   std::string GetCompressionMethod() const override;
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
-  bool SupportsReadWiiDecrypted() const override;
+  bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const override;
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
   static ConversionResultCode Convert(BlobReader* infile, const VolumeDisc* infile_volume,
                                       File::IOFile* outfile, WIARVZCompressionType compression_type,
-                                      int compression_level, int chunk_size, CompressCB callback,
-                                      void* arg);
+                                      int compression_level, int chunk_size, CompressCB callback);
 
 private:
   using SHA1 = std::array<u8, 20>;
@@ -224,6 +223,8 @@ private:
   bool Initialize(const std::string& path);
   bool HasDataOverlap() const;
 
+  const PartitionEntry* GetPartition(u64 partition_data_offset, u32* partition_first_sector) const;
+
   bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
                       u32 exception_lists);
@@ -349,8 +350,7 @@ private:
                                      std::mutex* reusable_groups_mutex, GroupEntry* group_entry,
                                      u64* bytes_written);
   static ConversionResultCode RunCallback(size_t groups_written, u64 bytes_read, u64 bytes_written,
-                                          u32 total_groups, u64 iso_size, CompressCB callback,
-                                          void* arg);
+                                          u32 total_groups, u64 iso_size, CompressCB callback);
 
   bool m_valid;
   WIARVZCompressionType m_compression_type;

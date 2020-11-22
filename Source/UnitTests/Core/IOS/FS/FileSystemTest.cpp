@@ -97,7 +97,7 @@ TEST_F(FileSystemTest, CreateFile)
   ASSERT_TRUE(stats.Succeeded());
   EXPECT_TRUE(stats->is_file);
   EXPECT_EQ(stats->size, 0u);
-  EXPECT_EQ(stats->uid, 0);
+  EXPECT_EQ(stats->uid, 0u);
   EXPECT_EQ(stats->gid, 0);
   EXPECT_EQ(stats->modes, modes);
   EXPECT_EQ(stats->attribute, ArbitraryAttribute);
@@ -128,7 +128,7 @@ TEST_F(FileSystemTest, CreateDirectory)
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
   EXPECT_FALSE(stats->is_file);
-  EXPECT_EQ(stats->uid, 0);
+  EXPECT_EQ(stats->uid, 0u);
   EXPECT_EQ(stats->gid, 0);
   EXPECT_EQ(stats->modes, modes);
   EXPECT_EQ(stats->attribute, ArbitraryAttribute);
@@ -335,7 +335,8 @@ TEST_F(FileSystemTest, WriteAndSimpleReadback)
 TEST_F(FileSystemTest, WriteAndRead)
 {
   const std::vector<u8> TEST_DATA{{0xf, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
-  std::vector<u8> buffer(TEST_DATA.size());
+  const u32 TEST_DATA_SIZE = static_cast<u32>(TEST_DATA.size());
+  std::vector<u8> buffer(TEST_DATA_SIZE);
 
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
@@ -345,24 +346,25 @@ TEST_F(FileSystemTest, WriteAndRead)
 
   // Try to read from an empty file. This should do nothing.
   // See https://github.com/dolphin-emu/dolphin/pull/4942
-  Result<u32> read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), buffer.size());
+  Result<u32> read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), TEST_DATA_SIZE);
   EXPECT_TRUE(read_result.Succeeded());
   EXPECT_EQ(*read_result, 0u);
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, 0u);
 
-  ASSERT_TRUE(m_fs->WriteBytesToFile(fd, TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+  ASSERT_TRUE(m_fs->WriteBytesToFile(fd, TEST_DATA.data(), TEST_DATA_SIZE).Succeeded());
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
 
   // Try to read past EOF while we are at the end of the file. This should do nothing too.
-  read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), buffer.size());
+  read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), TEST_DATA_SIZE);
   EXPECT_TRUE(read_result.Succeeded());
   EXPECT_EQ(*read_result, 0u);
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
 
   // Go back to the start and try to read past EOF. This should read the entire file until EOF.
   ASSERT_TRUE(m_fs->SeekFile(fd, 0, SeekMode::Set).Succeeded());
-  std::vector<u8> larger_buffer(TEST_DATA.size() + 10);
-  read_result = m_fs->ReadBytesFromFile(fd, larger_buffer.data(), larger_buffer.size());
+  const u32 LARGER_TEST_DATA_SIZE = TEST_DATA_SIZE + 10;
+  std::vector<u8> larger_buffer(LARGER_TEST_DATA_SIZE);
+  read_result = m_fs->ReadBytesFromFile(fd, larger_buffer.data(), LARGER_TEST_DATA_SIZE);
   EXPECT_TRUE(read_result.Succeeded());
   EXPECT_EQ(*read_result, TEST_DATA.size());
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());

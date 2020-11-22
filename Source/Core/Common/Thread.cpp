@@ -5,9 +5,11 @@
 #include "Common/Thread.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
+#include <processthreadsapi.h>
 #else
 #include <unistd.h>
 #endif
@@ -64,7 +66,7 @@ void SwitchCurrentThread()
 // Sets the debugger-visible name of the current thread.
 // Uses trick documented in:
 // https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
-void SetCurrentThreadName(const char* szThreadName)
+static void SetCurrentThreadNameViaException(const char* name)
 {
   static const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
@@ -79,7 +81,7 @@ void SetCurrentThreadName(const char* szThreadName)
 #pragma pack(pop)
 
   info.dwType = 0x1000;
-  info.szName = szThreadName;
+  info.szName = name;
   info.dwThreadID = static_cast<DWORD>(-1);
   info.dwFlags = 0;
 
@@ -90,6 +92,25 @@ void SetCurrentThreadName(const char* szThreadName)
   __except (EXCEPTION_CONTINUE_EXECUTION)
   {
   }
+}
+
+static void SetCurrentThreadNameViaApi(const char* name)
+{
+  // If possible, also set via the newer API. On some versions of Server it needs to be manually
+  // resolved. This API allows being able to observe the thread name even if a debugger wasn't
+  // attached when the name was set (see above link for more info).
+  static auto pSetThreadDescription = (decltype(&SetThreadDescription))GetProcAddress(
+      GetModuleHandleA("kernel32"), "SetThreadDescription");
+  if (pSetThreadDescription)
+  {
+    pSetThreadDescription(GetCurrentThread(), UTF8ToWString(name).c_str());
+  }
+}
+
+void SetCurrentThreadName(const char* name)
+{
+  SetCurrentThreadNameViaException(name);
+  SetCurrentThreadNameViaApi(name);
 }
 
 #else  // !WIN32, so must be POSIX threads
@@ -129,22 +150,22 @@ void SwitchCurrentThread()
   usleep(1000 * 1);
 }
 
-void SetCurrentThreadName(const char* szThreadName)
+void SetCurrentThreadName(const char* name)
 {
 #ifdef __APPLE__
-  pthread_setname_np(szThreadName);
+  pthread_setname_np(name);
 #elif defined __FreeBSD__ || defined __OpenBSD__
-  pthread_set_name_np(pthread_self(), szThreadName);
+  pthread_set_name_np(pthread_self(), name);
 #elif defined __HAIKU__
-  rename_thread(find_thread(nullptr), szThreadName);
+  rename_thread(find_thread(nullptr), name);
 #else
   // linux doesn't allow to set more than 16 bytes, including \0.
-  pthread_setname_np(pthread_self(), std::string(szThreadName).substr(0, 15).c_str());
+  pthread_setname_np(pthread_self(), std::string(name).substr(0, 15).c_str());
 #endif
 #ifdef USE_VTUNE
   // VTune uses OS thread names by default but probably supports longer names when set via its own
   // API.
-  __itt_thread_set_name(szThreadName);
+  __itt_thread_set_name(name);
 #endif
 }
 

@@ -21,7 +21,7 @@ GraphicsInteger::GraphicsInteger(int minimum, int maximum, const Config::Info<in
   setValue(Config::Get(setting));
 
   connect(this, qOverload<int>(&GraphicsInteger::valueChanged), this, &GraphicsInteger::Update);
-  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);

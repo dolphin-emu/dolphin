@@ -412,10 +412,10 @@ void VertexShaderManager::SetConstants()
     break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
+      ERROR_LOG_FMT(VIDEO, "Unknown projection type: {}", xfmem.projection.type);
     }
 
-    PRIM_LOG("Projection: %f %f %f %f %f %f", rawProjection[0], rawProjection[1], rawProjection[2],
+    PRIM_LOG("Projection: {} {} {} {} {} {}", rawProjection[0], rawProjection[1], rawProjection[2],
              rawProjection[3], rawProjection[4], rawProjection[5]);
 
     auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
@@ -452,7 +452,6 @@ void VertexShaderManager::SetConstants()
       constants.xfmem_pack1[i][3] = xfmem.alpha[i].hex;
     }
     constants.xfmem_numColorChans = xfmem.numChan.numColorChans;
-
     dirty = true;
   }
 }
@@ -615,6 +614,17 @@ void VertexShaderManager::SetVertexFormat(u32 components)
   if (components != constants.components)
   {
     constants.components = components;
+    dirty = true;
+  }
+
+  // The default alpha channel seems to depend on the number of components in the vertex format.
+  // If the vertex attribute has an alpha channel, zero is used, otherwise one.
+  const u32 color_chan_alpha =
+      (g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color0Elements ^ 1) |
+      ((g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color1Elements ^ 1) << 1);
+  if (color_chan_alpha != constants.color_chan_alpha)
+  {
+    constants.color_chan_alpha = color_chan_alpha;
     dirty = true;
   }
 }

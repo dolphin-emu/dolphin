@@ -64,9 +64,11 @@ void GeneralWidget::CreateWidgets()
 
   m_video_box->setLayout(m_video_layout);
 
-  for (auto& backend : g_available_video_backends)
+  for (auto& backend : VideoBackendBase::GetAvailableBackends())
+  {
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()),
                              QVariant(QString::fromStdString(backend->GetName())));
+  }
 
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   m_video_layout->addWidget(m_backend_combo, 0, 1);
@@ -159,8 +161,8 @@ void GeneralWidget::SaveSettings()
   const auto current_backend = m_backend_combo->currentData().toString().toStdString();
   if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
   {
-    auto warningMessage =
-        g_available_video_backends[m_backend_combo->currentIndex()]->GetWarningMessage();
+    auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
+                              ->GetWarningMessage();
     if (warningMessage)
     {
       ModalMessageBox confirm_sw(this);

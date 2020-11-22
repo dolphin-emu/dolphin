@@ -80,7 +80,7 @@ public class AppLinkHelper
 
   private static long extractLong(Uri uri, int index)
   {
-    return Long.valueOf(extract(uri, index));
+    return Long.parseLong(extract(uri, index));
   }
 
   private static String extract(Uri uri, int index)

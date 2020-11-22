@@ -2652,6 +2652,7 @@ struct SHCIEventInquiryComplete
   u8 EventType;
   u8 PayloadLength;
   u8 EventStatus;
+  u8 num_responses;
 };
 
 struct SHCIEventReadClockOffsetComplete

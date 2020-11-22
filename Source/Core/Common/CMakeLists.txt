@@ -34,8 +34,6 @@ add_library(common
   Crypto/ec.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
-  Debug/OSThread.cpp
-  Debug/OSThread.h
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
@@ -55,6 +53,7 @@ add_library(common
   Flag.h
   FloatUtils.cpp
   FloatUtils.h
+  FormatUtil.h
   FPURoundMode.h
   GekkoDisassembler.cpp
   GekkoDisassembler.h
@@ -164,6 +163,11 @@ elseif(WIN32)
   if (_M_X86_64)
 	  target_link_libraries(common PRIVATE opengl32.lib)
   endif()
+elseif (ANDROID)
+  target_link_libraries(common
+  PRIVATE
+    androidcommon
+  )
 endif()
 
 if(ANDROID)

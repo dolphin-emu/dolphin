@@ -156,7 +156,7 @@ void MemoryViewWidget::Update()
         }
         else
         {
-          hex_item->setFlags(0);
+          hex_item->setFlags({});
           hex_item->setText(QStringLiteral("-"));
         }
       }

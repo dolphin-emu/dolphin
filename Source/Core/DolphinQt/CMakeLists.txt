@@ -1,8 +1,8 @@
 if (NOT Qt5_DIR AND MSVC)
   if(_M_ARM_64)
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_arm64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
   else()
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
   endif()
 endif()
 
@@ -59,10 +59,14 @@ add_executable(dolphin-emu
   Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
+  Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
+  Config/ControllerInterface/DualShockUDPClientAddServerDialog.h
   Config/ControllerInterface/DualShockUDPClientWidget.cpp
   Config/ControllerInterface/DualShockUDPClientWidget.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
+  Config/ControllerInterface/ServerStringValidator.cpp
+  Config/ControllerInterface/ServerStringValidator.h
   Config/ControllersWindow.cpp
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
@@ -273,6 +277,8 @@ add_executable(dolphin-emu
   TAS/TASCheckBox.h
   TAS/TASInputWindow.cpp
   TAS/TASInputWindow.h
+  TAS/TASSlider.cpp
+  TAS/TASSlider.h
   TAS/StickWidget.cpp
   TAS/StickWidget.h
   TAS/IRWidget.cpp

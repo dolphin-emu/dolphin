@@ -106,7 +106,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   bool enable_validation_layer = g_Config.bEnableValidationLayer;
   if (enable_validation_layer && !VulkanContext::CheckValidationLayerAvailablility())
   {
-    WARN_LOG(VIDEO, "Validation layer requested but not available, disabling.");
+    WARN_LOG_FMT(VIDEO, "Validation layer requested but not available, disabling.");
     enable_validation_layer = false;
   }
 
@@ -166,7 +166,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
   if (selected_adapter_index >= gpu_list.size())
   {
-    WARN_LOG(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
+    WARN_LOG_FMT(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
     selected_adapter_index = 0;
   }
 
@@ -312,7 +312,7 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   Class clsCAMetalLayer = objc_getClass("CAMetalLayer");
   if (!clsCAMetalLayer)
   {
-    ERROR_LOG(VIDEO, "Failed to get CAMetalLayer class.");
+    ERROR_LOG_FMT(VIDEO, "Failed to get CAMetalLayer class.");
     return;
   }
 
@@ -321,7 +321,7 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
                                                                 sel_getUid("layer"));
   if (!layer)
   {
-    ERROR_LOG(VIDEO, "Failed to create Metal layer.");
+    ERROR_LOG_FMT(VIDEO, "Failed to create Metal layer.");
     return;
   }
 

@@ -41,10 +41,10 @@ NKitWarningDialog::NKitWarningDialog(QWidget* parent) : QDialog(parent)
          "• You can't use NetPlay with people who have normal disc images\n"
          "• Input recordings are not compatible between NKit disc images and normal disc images\n"
          "• Savestates are not compatible between NKit disc images and normal disc images\n"
-         "• Some games crash, such as Super Paper Mario\n"
+         "• Some games can crash, such as Super Paper Mario and Metal Gear Solid: The Twin Snakes\n"
          "• Wii games don't work at all in older versions of Dolphin and in many other programs\n"
          "\n"
-         "Are you sure you want to continue anyway?\n"));
+         "Are you sure you want to continue anyway?"));
   warning->setWordWrap(true);
   main_layout->addWidget(warning);
 

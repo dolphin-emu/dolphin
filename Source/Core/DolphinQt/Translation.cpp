@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <string>
 
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -185,7 +186,7 @@ public:
                                  [](const char* a, const char* b) { return strcmp(a, b) < 0; });
 
     if (iter == end || strcmp(*iter, original_string) != 0)
-      return original_string;
+      return nullptr;
 
     u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
     return &m_data[offset];
@@ -213,7 +214,21 @@ public:
   QString translate(const char* context, const char* source_text,
                     const char* disambiguation = nullptr, int n = -1) const override
   {
-    return QString::fromUtf8(m_mo_file.Translate(source_text));
+    const char* translated_text;
+
+    if (disambiguation)
+    {
+      std::string combined_string = disambiguation;
+      combined_string += '\4';
+      combined_string += source_text;
+      translated_text = m_mo_file.Translate(combined_string.c_str());
+    }
+    else
+    {
+      translated_text = m_mo_file.Translate(source_text);
+    }
+
+    return QString::fromUtf8(translated_text ? translated_text : source_text);
   }
 
 private:

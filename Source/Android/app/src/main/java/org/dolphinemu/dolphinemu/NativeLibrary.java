@@ -6,11 +6,18 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.view.Surface;
+import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.Keep;
+import androidx.fragment.app.FragmentManager;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.dialogs.AlertMessage;
+import org.dolphinemu.dolphinemu.utils.CompressCallback;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 
@@ -23,6 +30,9 @@ import java.util.LinkedHashMap;
  */
 public final class NativeLibrary
 {
+  private static final Object sAlertMessageLock = new Object();
+  private static boolean sIsShowingAlertMessage = false;
+
   private static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
 
   /**
@@ -107,7 +117,7 @@ public final class NativeLibrary
     public static final int NUNCHUK_SWING_UP = 208;
     public static final int NUNCHUK_SWING_DOWN = 209;
     public static final int NUNCHUK_SWING_LEFT = 210;
-    public static final int NUNCHUK_SWING_RIGHT = 221;
+    public static final int NUNCHUK_SWING_RIGHT = 211;
     public static final int NUNCHUK_SWING_FORWARD = 212;
     public static final int NUNCHUK_SWING_BACKWARD = 213;
     public static final int NUNCHUK_TILT = 214;
@@ -255,6 +265,7 @@ public final class NativeLibrary
    * @param padID Ignored for now. Future use would be to pass rumble to a connected controller
    * @param state Ignored for now since phone rumble can't just be 'turned' on/off
    */
+  @Keep
   public static void rumble(int padID, double state)
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -272,43 +283,6 @@ public final class NativeLibrary
 
   // Angle is in radians and should be non-negative
   public static native double GetInputRadiusAtAngle(int emu_pad_id, int stick, double angle);
-
-  public static native void NewGameIniFile();
-
-  public static native void LoadGameIniFile(String gameId);
-
-  public static native void SaveGameIniFile(String gameId);
-
-  public static native String GetUserSetting(String gameID, String Section, String Key);
-
-  public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
-
-  public static native void SetProfileSetting(String profile, String Section, String Key,
-          String Value);
-
-  public static native void InitGameIni(String gameID);
-
-  /**
-   * Gets a value from a key in the given ini-based config file.
-   *
-   * @param configFile The ini-based config file to get the value from.
-   * @param Section    The section key that the actual key is in.
-   * @param Key        The key to get the value from.
-   * @param Default    The value to return in the event the given key doesn't exist.
-   * @return the value stored at the key, or a default value if it doesn't exist.
-   */
-  public static native String GetConfig(String configFile, String Section, String Key,
-          String Default);
-
-  /**
-   * Sets a value to a key in the given ini config file.
-   *
-   * @param configFile The ini-based config file to add the value to.
-   * @param Section    The section key for the ini key
-   * @param Key        The actual ini key to set.
-   * @param Value      The string to set the ini key to.
-   */
-  public static native void SetConfig(String configFile, String Section, String Key, String Value);
 
   /**
    * Gets the Dolphin version string.
@@ -357,6 +331,11 @@ public final class NativeLibrary
   public static native void LoadStateAs(String path);
 
   /**
+   * Returns when the savestate in the given slot was created, or 0 if the slot is empty.
+   */
+  public static native long GetUnixTimeOfStateSlot(int slot);
+
+  /**
    * Sets the current working user directory
    * If not set, it auto-detects a location
    */
@@ -371,9 +350,13 @@ public final class NativeLibrary
 
   public static native int DefaultCPUCore();
 
+  public static native String GetDefaultGraphicsBackendName();
+
   public static native int GetMaxLogLevel();
 
   public static native void ReloadConfig();
+
+  public static native void UpdateGCAdapterScanThread();
 
   /**
    * Initializes the native parts of the app.
@@ -424,12 +407,12 @@ public final class NativeLibrary
    */
   public static native void StopEmulation();
 
-  public static native void WaitUntilDoneBooting();
-
   /**
    * Returns true if emulation is running (or is paused).
    */
   public static native boolean IsRunning();
+
+  public static native boolean IsRunningAndStarted();
 
   /**
    * Enables or disables CPU block profiling
@@ -461,88 +444,125 @@ public final class NativeLibrary
 
   public static native boolean InstallWAD(String file);
 
+  public static native boolean ConvertDiscImage(String inPath, String outPath, int platform,
+          int format, int blockSize, int compression, int compressionLevel, boolean scrub,
+          CompressCallback callback);
+
   public static native String FormatSize(long bytes, int decimals);
 
-  private static boolean alertResult = false;
+  public static native void SetObscuredPixelsLeft(int width);
 
+  public static native void SetObscuredPixelsTop(int height);
+
+  public static native boolean IsGameMetadataValid();
+
+  public static boolean IsEmulatingWii()
+  {
+    CheckGameMetadataValid();
+    return IsEmulatingWiiUnchecked();
+  }
+
+  public static String GetCurrentGameID()
+  {
+    CheckGameMetadataValid();
+    return GetCurrentGameIDUnchecked();
+  }
+
+  public static String GetCurrentTitleDescription()
+  {
+    CheckGameMetadataValid();
+    return GetCurrentTitleDescriptionUnchecked();
+  }
+
+  private static void CheckGameMetadataValid()
+  {
+    if (!IsGameMetadataValid())
+    {
+      throw new IllegalStateException("No game is running");
+    }
+  }
+
+  private static native boolean IsEmulatingWiiUnchecked();
+
+  private static native String GetCurrentGameIDUnchecked();
+
+  private static native String GetCurrentTitleDescriptionUnchecked();
+
+  @Keep
   public static boolean displayAlertMsg(final String caption, final String text,
-          final boolean yesNo)
+          final boolean yesNo, final boolean isWarning, final boolean nonBlocking)
   {
     Log.error("[NativeLibrary] Alert: " + text);
     final EmulationActivity emulationActivity = sEmulationActivity.get();
     boolean result = false;
-    if (emulationActivity == null)
+    if (isWarning && emulationActivity != null && emulationActivity.isIgnoringWarnings())
     {
-      Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic alert.");
+      return true;
     }
     else
     {
-      // Create object used for waiting.
-      final Object lock = new Object();
-      AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
-              R.style.DolphinDialogBase)
-              .setTitle(caption)
-              .setMessage(text);
-
-      // If not yes/no dialog just have one button that dismisses modal,
-      // otherwise have a yes and no button that sets alertResult accordingly.
-      if (!yesNo)
+      // We can't use AlertMessages unless we have a non-null activity reference
+      // and are allowed to block. As a fallback, we can use toasts.
+      if (emulationActivity == null || nonBlocking)
       {
-        builder
-                .setCancelable(false)
-                .setPositiveButton("OK", (dialog, whichButton) ->
-                {
-                  dialog.dismiss();
-                  synchronized (lock)
-                  {
-                    lock.notify();
-                  }
-                });
+        new Handler(Looper.getMainLooper()).post(
+                () -> Toast.makeText(DolphinApplication.getAppContext(), text, Toast.LENGTH_LONG)
+                        .show());
       }
       else
       {
-        alertResult = false;
+        sIsShowingAlertMessage = true;
 
-        builder
-                .setPositiveButton("Yes", (dialog, whichButton) ->
-                {
-                  alertResult = true;
-                  dialog.dismiss();
-                  synchronized (lock)
-                  {
-                    lock.notify();
-                  }
-                })
-                .setNegativeButton("No", (dialog, whichButton) ->
-                {
-                  alertResult = false;
-                  dialog.dismiss();
-                  synchronized (lock)
-                  {
-                    lock.notify();
-                  }
-                });
-      }
-
-      // Show the AlertDialog on the main thread.
-      emulationActivity.runOnUiThread(builder::show);
-
-      // Wait for the lock to notify that it is complete.
-      synchronized (lock)
-      {
-        try
+        emulationActivity.runOnUiThread(() ->
         {
-          lock.wait();
-        }
-        catch (Exception ignored)
+          FragmentManager fragmentManager = emulationActivity.getSupportFragmentManager();
+          if (fragmentManager.isStateSaved())
+          {
+            // The activity is being destroyed, so we can't use it to display an AlertMessage.
+            // Fall back to a toast.
+            Toast.makeText(emulationActivity, text, Toast.LENGTH_LONG).show();
+            NotifyAlertMessageLock();
+          }
+          else
+          {
+            AlertMessage.newInstance(caption, text, yesNo, isWarning)
+                    .show(fragmentManager, "AlertMessage");
+          }
+        });
+
+        // Wait for the lock to notify that it is complete.
+        synchronized (sAlertMessageLock)
         {
+          try
+          {
+            sAlertMessageLock.wait();
+          }
+          catch (Exception ignored)
+          {
+          }
+        }
+
+        if (yesNo)
+        {
+          result = AlertMessage.getAlertResult();
         }
       }
-
-      if (yesNo)
-        result = alertResult;
     }
+    sIsShowingAlertMessage = false;
     return result;
+  }
+
+  public static boolean IsShowingAlertMessage()
+  {
+    return sIsShowingAlertMessage;
+  }
+
+  public static void NotifyAlertMessageLock()
+  {
+    synchronized (sAlertMessageLock)
+    {
+      sAlertMessageLock.notify();
+    }
   }
 
   public static void setEmulationActivity(EmulationActivity emulationActivity)
@@ -558,6 +578,22 @@ public final class NativeLibrary
     sEmulationActivity.clear();
   }
 
+  @Keep
+  public static void finishEmulationActivity()
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null.");
+    }
+    else
+    {
+      Log.verbose("[NativeLibrary] Finishing EmulationActivity.");
+      emulationActivity.runOnUiThread(emulationActivity::finish);
+    }
+  }
+
+  @Keep
   public static void updateTouchPointer()
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -569,6 +605,28 @@ public final class NativeLibrary
     {
       emulationActivity.runOnUiThread(emulationActivity::initInputPointer);
     }
+  }
+
+  @Keep
+  public static void onTitleChanged()
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null.");
+    }
+    else
+    {
+      emulationActivity.runOnUiThread(emulationActivity::onTitleChanged);
+    }
+  }
+
+  @Keep
+  public static float getRenderSurfaceScale()
+  {
+    DisplayMetrics metrics = new DisplayMetrics();
+    sEmulationActivity.get().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+    return metrics.scaledDensity;
   }
 
   public static native float GetGameAspectRatio();

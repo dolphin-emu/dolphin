@@ -168,10 +168,9 @@ void USBDeviceAddToWhitelistDialog::OnDeviceSelection()
 {
   // Not the nicest way of doing this but...
   QString device = usb_inserted_devices_list->currentItem()->text().left(9);
-  QString* vid = new QString(
-      device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[0]);
-  QString* pid = new QString(
-      device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[1]);
+  QStringList split = device.split(QString::fromStdString(":"));
+  QString* vid = new QString(split[0]);
+  QString* pid = new QString(split[1]);
   device_vid_textbox->setText(*vid);
   device_pid_textbox->setText(*pid);
 }

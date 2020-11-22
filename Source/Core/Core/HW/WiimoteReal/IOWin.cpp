@@ -24,6 +24,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/DynamicLibrary.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -168,6 +169,7 @@ bool load_bthprops()
 void init_lib()
 {
   static bool initialized = false;
+  static Common::DynamicLibrary bt_api_lib;
 
   if (!initialized)
   {
@@ -181,6 +183,10 @@ void init_lib()
       NOTICE_LOG(WIIMOTE, "Failed to load Bluetooth support libraries, Wiimotes will not function");
       return;
     }
+
+    // Try to incref on this dll to prevent it being reloaded continuously (caused by
+    // BluetoothFindFirstRadio)
+    bt_api_lib.Open("BluetoothApis.dll");
 
     s_loaded_ok = true;
   }
@@ -418,6 +424,10 @@ int WriteToHandle(HANDLE& dev_handle, WinWriteMethod& method, const u8* buf, siz
 {
   OVERLAPPED hid_overlap_write = OVERLAPPED();
   hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
+  if (!hid_overlap_write.hEvent)
+  {
+    return 0;
+  }
 
   DWORD written = 0;
   IOWrite(dev_handle, hid_overlap_write, method, buf, size, &written);
@@ -431,6 +441,10 @@ int ReadFromHandle(HANDLE& dev_handle, u8* buf)
 {
   OVERLAPPED hid_overlap_read = OVERLAPPED();
   hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
+  if (!hid_overlap_read.hEvent)
+  {
+    return 0;
+  }
   const int read = IORead(dev_handle, hid_overlap_read, buf, 1);
   CloseHandle(hid_overlap_read.hEvent);
   return read;
@@ -533,7 +547,6 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 
   SP_DEVICE_INTERFACE_DATA device_data = {};
   device_data.cbSize = sizeof(device_data);
-  PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = nullptr;
 
   for (int index = 0;
        SetupDiEnumDeviceInterfaces(device_info, nullptr, &device_id, index, &device_data); ++index)
@@ -541,7 +554,8 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
     // Get the size of the data block required
     DWORD len;
     SetupDiGetDeviceInterfaceDetail(device_info, &device_data, nullptr, 0, &len, nullptr);
-    detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
+    auto detail_data_buf = std::make_unique<u8[]>(len);
+    auto detail_data = reinterpret_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA>(detail_data_buf.get());
     detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
     SP_DEVINFO_DATA device_info_data = {};
@@ -558,7 +572,6 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 
       if (!IsNewWiimote(WStringToUTF8(device_path)) || !IsWiimote(device_path, write_method))
       {
-        free(detail_data);
         continue;
       }
 
@@ -568,8 +581,6 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
       else
         found_wiimotes.push_back(wiimote);
     }
-
-    free(detail_data);
   }
 
   SetupDiDestroyDeviceInfoList(device_info);

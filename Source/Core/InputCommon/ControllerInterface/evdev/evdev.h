@@ -82,6 +82,7 @@ public:
   bool AddNode(std::string devnode, int fd, libevdev* dev);
 
   const char* GetUniqueID() const;
+  const char* GetPhysicalLocation() const;
 
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }

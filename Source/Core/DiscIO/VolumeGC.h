@@ -51,6 +51,8 @@ public:
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
 
+  std::array<u8, 20> GetSyncHash() const override;
+
 private:
   static const u32 GC_BANNER_WIDTH = 96;
   static const u32 GC_BANNER_HEIGHT = 32;

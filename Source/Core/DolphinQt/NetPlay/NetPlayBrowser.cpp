@@ -26,7 +26,6 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
@@ -35,6 +34,7 @@ NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
+  RestoreSettings();
   ConnectWidgets();
 
   resize(750, 500);
@@ -44,8 +44,6 @@ NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
 
   m_refresh_run.Set(true);
   m_refresh_thread = std::thread([this] { RefreshLoop(); });
-
-  RestoreSettings();
 
   UpdateList();
   Refresh();
@@ -149,6 +147,11 @@ void NetPlayBrowser::ConnectWidgets()
   connect(m_table_widget, &QTableWidget::itemSelectionChanged, this,
           &NetPlayBrowser::OnSelectionChanged);
   connect(m_table_widget, &QTableWidget::itemDoubleClicked, this, &NetPlayBrowser::accept);
+
+  connect(this, &NetPlayBrowser::UpdateStatusRequested, this,
+          &NetPlayBrowser::OnUpdateStatusRequested, Qt::QueuedConnection);
+  connect(this, &NetPlayBrowser::UpdateListRequested, this, &NetPlayBrowser::OnUpdateListRequested,
+          Qt::QueuedConnection);
 }
 
 void NetPlayBrowser::Refresh()
@@ -192,10 +195,7 @@ void NetPlayBrowser::RefreshLoop()
 
       lock.unlock();
 
-      RunOnObject(this, [this] {
-        m_status_label->setText(tr("Refreshing..."));
-        return nullptr;
-      });
+      emit UpdateStatusRequested(tr("Refreshing..."));
 
       NetPlayIndex client;
 
@@ -203,19 +203,12 @@ void NetPlayBrowser::RefreshLoop()
 
       if (entries)
       {
-        RunOnObject(this, [this, &entries] {
-          m_sessions = *entries;
-          UpdateList();
-          return nullptr;
-        });
+        emit UpdateListRequested(std::move(*entries));
       }
       else
       {
-        RunOnObject(this, [this, &client] {
-          m_status_label->setText(tr("Error obtaining session list: %1")
-                                      .arg(QString::fromStdString(client.GetLastError())));
-          return nullptr;
-        });
+        emit UpdateStatusRequested(tr("Error obtaining session list: %1")
+                                       .arg(QString::fromStdString(client.GetLastError())));
       }
     }
   }
@@ -276,6 +269,17 @@ void NetPlayBrowser::OnSelectionChanged()
 {
   m_button_box->button(QDialogButtonBox::Ok)
       ->setEnabled(!m_table_widget->selectedItems().isEmpty());
+}
+
+void NetPlayBrowser::OnUpdateStatusRequested(const QString& status)
+{
+  m_status_label->setText(status);
+}
+
+void NetPlayBrowser::OnUpdateListRequested(std::vector<NetPlaySession> sessions)
+{
+  m_sessions = std::move(sessions);
+  UpdateList();
 }
 
 void NetPlayBrowser::accept()

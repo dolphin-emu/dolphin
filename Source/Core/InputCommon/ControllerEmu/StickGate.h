@@ -15,6 +15,9 @@
 
 namespace ControllerEmu
 {
+// Minimum stick distance from the center before virtual notches are applied.
+constexpr ControlState MINIMUM_NOTCH_DISTANCE = 0.9;
+
 // An abstract class representing the plastic shell that limits an analog stick's movement.
 class StickGate
 {
@@ -85,6 +88,8 @@ public:
 
   ControlState GetDeadzonePercentage() const;
 
+  virtual ControlState GetVirtualNotchSize() const { return 0.0; };
+
   virtual ControlState GetGateRadiusAtAngle(double angle) const = 0;
   virtual ReshapeData GetReshapableState(bool adjusted) = 0;
   virtual ControlState GetDefaultInputRadiusAtAngle(double ang) const;
@@ -92,7 +97,8 @@ public:
   void SetCalibrationToDefault();
   void SetCalibrationFromGate(const StickGate& gate);
 
-  static void UpdateCalibrationData(CalibrationData& data, Common::DVec2 point);
+  static void UpdateCalibrationData(CalibrationData& data, Common::DVec2 point1,
+                                    Common::DVec2 point2);
   static ControlState GetCalibrationDataRadiusAtAngle(const CalibrationData& data, double angle);
 
   const CalibrationData& GetCalibrationData() const;

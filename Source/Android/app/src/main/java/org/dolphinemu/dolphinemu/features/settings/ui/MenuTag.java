@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import androidx.annotation.NonNull;
+
 public enum MenuTag
 {
   CONFIG("config"),
@@ -46,6 +48,7 @@ public enum MenuTag
     this.subType = subtype;
   }
 
+  @NonNull
   @Override
   public String toString()
   {

@@ -239,7 +239,8 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     if (!g_dx_context->GetTextureUploadBuffer().ReserveMemory(
             upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT))
     {
-      WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
+      WARN_LOG_FMT(VIDEO,
+                   "Executing command list while waiting for space in texture upload buffer");
       Renderer::GetInstance()->ExecuteCommandList(false);
       if (!g_dx_context->GetTextureUploadBuffer().ReserveMemory(
               upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT))

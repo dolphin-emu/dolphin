@@ -1373,16 +1373,17 @@ bool GCMemcard::Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbit
 {
   if (!card_data)
     return false;
-  memset(card_data, 0xFF, BLOCK_SIZE * 3);
-  memset(card_data + BLOCK_SIZE * 3, 0, BLOCK_SIZE * 2);
 
-  *((Header*)card_data) =
-      Header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
+  Header header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
+  Directory dir;
+  BlockAlloc bat(size_mbits);
 
-  *((Directory*)(card_data + BLOCK_SIZE)) = Directory();
-  *((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
-  *((BlockAlloc*)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(size_mbits);
-  *((BlockAlloc*)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(size_mbits);
+  std::memcpy(&card_data[BLOCK_SIZE * 0], &header, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 1], &dir, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 2], &dir, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 3], &bat, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 4], &bat, BLOCK_SIZE);
+
   return true;
 }
 
@@ -1567,11 +1568,9 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 siz
   }
   data->m_sram_bias = rtc_bias;
   data->m_sram_language = sram_language;
-  // TODO: determine the purpose of m_unknown_2
+  // TODO: determine the purpose of m_dtv_status
   // 1 works for slot A, 0 works for both slot A and slot B
-  std::memset(
-      data->m_unknown_2.data(), 0,
-      data->m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+  data->m_dtv_status = 0;
   data->m_device_id = 0;
 }
 

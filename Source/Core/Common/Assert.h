@@ -9,28 +9,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#ifdef _WIN32
-#define ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                           \
-  do                                                                                               \
-  {                                                                                                \
-    if (!(_a_))                                                                                    \
-    {                                                                                              \
-      if (!PanicYesNo(_fmt_, __VA_ARGS__))                                                         \
-        Crash();                                                                                   \
-    }                                                                                              \
-  } while (0)
-
-#define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
-  do                                                                                               \
-  {                                                                                                \
-    if (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG && !(_a_))                                 \
-    {                                                                                              \
-      ERROR_LOG(_t_, _msg_, __VA_ARGS__);                                                          \
-      if (!PanicYesNo(_msg_, __VA_ARGS__))                                                         \
-        Crash();                                                                                   \
-    }                                                                                              \
-  } while (0)
-#else
 #define ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                           \
   do                                                                                               \
   {                                                                                                \
@@ -44,14 +22,16 @@
 #define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG && !(_a_))                                 \
+    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
     {                                                                                              \
-      ERROR_LOG(_t_, _msg_, ##__VA_ARGS__);                                                        \
-      if (!PanicYesNo(_msg_, ##__VA_ARGS__))                                                       \
-        Crash();                                                                                   \
+      if (!(_a_))                                                                                  \
+      {                                                                                            \
+        ERROR_LOG(_t_, _msg_, ##__VA_ARGS__);                                                      \
+        if (!PanicYesNo(_msg_, ##__VA_ARGS__))                                                     \
+          Crash();                                                                                 \
+      }                                                                                            \
     }                                                                                              \
   } while (0)
-#endif
 
 #define ASSERT(_a_)                                                                                \
   do                                                                                               \
@@ -64,6 +44,6 @@
 #define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                           \
+    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
       ASSERT(_a_);                                                                                 \
   } while (0)

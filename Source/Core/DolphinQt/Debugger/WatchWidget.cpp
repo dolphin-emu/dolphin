@@ -44,7 +44,7 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
   ConnectWidgets();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     UpdateButtonsEnabled();
     if (state != Core::State::Starting)
       Update();
@@ -52,10 +52,10 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &WatchWidget::Update);
 
-  connect(&Settings::Instance(), &Settings::WatchVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled,
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsWatchVisible()); });
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);

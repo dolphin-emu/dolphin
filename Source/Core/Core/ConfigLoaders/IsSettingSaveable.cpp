@@ -16,8 +16,8 @@ namespace ConfigLoaders
 {
 bool IsSettingSaveable(const Config::Location& config_location)
 {
-  for (Config::System system :
-       {Config::System::GFX, Config::System::DualShockUDPClient, Config::System::Logger})
+  for (Config::System system : {Config::System::SYSCONF, Config::System::GFX,
+                                Config::System::DualShockUDPClient, Config::System::Logger})
   {
     if (config_location.system == system)
       return true;
@@ -25,14 +25,15 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
   if (config_location.system == Config::System::Main)
   {
-    for (const char* section : {"NetPlay", "General", "Display", "Network"})
+    for (const std::string& section : {"NetPlay", "General", "Display", "Network", "Analytics",
+                                       "AndroidOverlayButtons", "Android"})
     {
       if (config_location.section == section)
         return true;
     }
   }
 
-  static constexpr std::array<const Config::Location*, 13> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 16> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -46,6 +47,12 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_MEM1_SIZE.location,
       &Config::MAIN_MEM2_SIZE.location,
       &Config::MAIN_GFX_BACKEND.location,
+      &Config::MAIN_ENABLE_SAVESTATES.location,
+
+      // Main.Interface
+
+      &Config::MAIN_USE_PANIC_HANDLERS.location,
+      &Config::MAIN_OSD_MESSAGES.location,
 
       // Main.Interface
 

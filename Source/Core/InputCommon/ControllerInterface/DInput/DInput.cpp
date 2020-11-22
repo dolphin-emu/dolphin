@@ -42,7 +42,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
   }
   else
   {
-    ERROR_LOG(PAD, "GetProperty(DIPROP_PRODUCTNAME) failed.");
+    ERROR_LOG_FMT(PAD, "GetProperty(DIPROP_PRODUCTNAME) failed.");
   }
 
   return result;
@@ -58,7 +58,7 @@ void PopulateDevices(HWND hwnd)
   if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8,
                                 (LPVOID*)&idi8, nullptr)))
   {
-    ERROR_LOG(PAD, "DirectInput8Create failed.");
+    ERROR_LOG_FMT(PAD, "DirectInput8Create failed.");
     return;
   }
 

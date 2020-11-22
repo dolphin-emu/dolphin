@@ -236,3 +236,7 @@ inline bool IsPrintableCharacter(char c)
 {
   return std::isprint(c, std::locale::classic());
 }
+
+#ifdef _WIN32
+std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line);
+#endif

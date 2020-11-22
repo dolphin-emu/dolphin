@@ -4,32 +4,72 @@
 
 #pragma once
 
+#include <ctime>
+#include <memory>
+
 #include "Common/CommonTypes.h"
+
+struct FrameDumpContext;
+class PointerWrap;
 
 class FrameDump
 {
-private:
-  static bool CreateVideoFile();
-  static void CloseVideoFile();
-  static void CheckResolution(int width, int height);
-
 public:
-  struct Frame
+  FrameDump();
+  ~FrameDump();
+
+  // Holds relevant emulation state during a rendered frame for
+  // when it is later asynchronously written.
+  struct FrameState
   {
     u64 ticks = 0;
-    u32 ticks_per_second = 0;
-    bool first_frame = false;
-    int savestate_index = 0;
+    u32 savestate_index = 0;
+    int refresh_rate_num = 0;
+    int refresh_rate_den = 0;
   };
 
-  static bool Start(int w, int h);
-  static void AddFrame(const u8* data, int width, int height, int stride, const Frame& state);
-  static void Stop();
-  static void DoState();
+  struct FrameData
+  {
+    const u8* data;
+    int width;
+    int height;
+    int stride;
+    FrameState state;
+  };
+
+  bool Start(int w, int h);
+  void AddFrame(const FrameData&);
+  void Stop();
+  void DoState(PointerWrap&);
+  bool IsStarted() const;
+  FrameState FetchState(u64 ticks) const;
+
+private:
+  bool IsFirstFrameInCurrentFile() const;
+  bool PrepareEncoding(int w, int h);
+  bool CreateVideoFile();
+  void CloseVideoFile();
+  void CheckForConfigChange(const FrameData&);
+  void ProcessPackets();
 
 #if defined(HAVE_FFMPEG)
-  static Frame FetchState(u64 ticks);
-#else
-  static Frame FetchState(u64 ticks) { return {}; }
+  std::unique_ptr<FrameDumpContext> m_context;
 #endif
+
+  // Used for FetchState:
+  u32 m_savestate_index = 0;
+
+  // Used for filename generation.
+  std::time_t m_start_time = {};
+  u32 m_file_index = 0;
 };
+
+#if !defined(HAVE_FFMPEG)
+inline FrameDump::FrameDump() = default;
+inline FrameDump::~FrameDump() = default;
+
+inline FrameDump::FrameState FrameDump::FetchState(u64 ticks) const
+{
+  return {};
+}
+#endif

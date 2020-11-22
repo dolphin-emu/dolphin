@@ -119,8 +119,7 @@ void LogWidget::UpdateFont()
   case 0:  // Default font
     break;
   case 1:  // Monospace font
-    f = QFont(QStringLiteral("Monospace"));
-    f.setStyleHint(QFont::TypeWriter);
+    f = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
     break;
   case 2:  // Debugger font
     f = Settings::Instance().GetDebugFont();
