@@ -33,6 +33,8 @@ namespace ControllerEmu
 class EmulatedController;
 }
 
+class InputStateLineEdit;
+
 class ControlExpressionSyntaxHighlighter final : public QSyntaxHighlighter
 {
   Q_OBJECT
@@ -74,7 +76,13 @@ private:
   void UpdateOptionList();
   void UpdateDeviceList();
 
-  void UpdateExpression(std::string new_expression);
+  enum class UpdateMode
+  {
+    Normal,
+    Force,
+  };
+
+  void UpdateExpression(std::string new_expression, UpdateMode mode = UpdateMode::Normal);
 
   // Main Layout
   QVBoxLayout* m_main_layout;
@@ -102,7 +110,7 @@ private:
 
   // Textarea
   QPlainTextEdit* m_expression_text;
-  QLineEdit* m_parse_text;
+  InputStateLineEdit* m_parse_text;
 
   // Buttonbox
   QDialogButtonBox* m_button_box;

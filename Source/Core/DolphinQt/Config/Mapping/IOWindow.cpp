@@ -184,13 +184,27 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
 class InputStateDelegate : public QItemDelegate
 {
 public:
-  explicit InputStateDelegate(IOWindow* parent);
+  explicit InputStateDelegate(IOWindow* parent, int column,
+                              std::function<ControlState(int row)> state_evaluator);
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option,
              const QModelIndex& index) const override;
 
 private:
-  IOWindow* m_parent;
+  std::function<ControlState(int row)> m_state_evaluator;
+  int m_column;
+};
+
+class InputStateLineEdit : public QLineEdit
+{
+public:
+  explicit InputStateLineEdit(std::function<ControlState()> state_evaluator);
+  void SetShouldPaintStateIndicator(bool value);
+  void paintEvent(QPaintEvent* event) override;
+
+private:
+  std::function<ControlState()> m_state_evaluator;
+  bool m_should_paint_state_indicator;
 };
 
 IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,
@@ -230,7 +244,10 @@ void IOWindow::CreateMainLayout()
   m_range_slider = new QSlider(Qt::Horizontal);
   m_range_spinbox = new QSpinBox();
 
-  m_parse_text = new QLineEdit();
+  m_parse_text = new InputStateLineEdit([this] {
+    const auto lock = m_controller->GetStateLock();
+    return m_reference->GetState<ControlState>();
+  });
   m_parse_text->setReadOnly(true);
 
   m_expression_text = new QPlainTextEdit();
@@ -308,7 +325,10 @@ void IOWindow::CreateMainLayout()
     m_option_list->setColumnWidth(1, 64);
     m_option_list->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
 
-    m_option_list->setItemDelegate(new InputStateDelegate(this));
+    m_option_list->setItemDelegate(new InputStateDelegate(this, 1, [&](int row) {
+      // Clamp off negative values but allow greater than one in the text display.
+      return std::max(GetSelectedDevice()->Inputs()[row]->GetState(), 0.0);
+    }));
   }
   else
   {
@@ -365,6 +385,10 @@ void IOWindow::CreateMainLayout()
 void IOWindow::ConfigChanged()
 {
   const QSignalBlocker blocker(this);
+  const auto lock = m_controller->GetStateLock();
+
+  // ensure m_parse_text is in the right state
+  UpdateExpression(m_reference->GetExpression(), UpdateMode::Force);
 
   m_expression_text->setPlainText(QString::fromStdString(m_reference->GetExpression()));
   m_expression_text->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor);
@@ -380,6 +404,7 @@ void IOWindow::ConfigChanged()
 void IOWindow::Update()
 {
   m_option_list->viewport()->update();
+  m_parse_text->update();
 }
 
 void IOWindow::ConnectWidgets()
@@ -531,10 +556,10 @@ void IOWindow::UpdateDeviceList()
       QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
 }
 
-void IOWindow::UpdateExpression(std::string new_expression)
+void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)
 {
   const auto lock = m_controller->GetStateLock();
-  if (new_expression == m_reference->GetExpression())
+  if (mode != UpdateMode::Force && new_expression == m_reference->GetExpression())
     return;
 
   const auto error = m_reference->SetExpression(std::move(new_expression));
@@ -542,17 +567,60 @@ void IOWindow::UpdateExpression(std::string new_expression)
   m_controller->UpdateSingleControlReference(g_controller_interface, m_reference);
 
   if (error)
+  {
+    m_parse_text->SetShouldPaintStateIndicator(false);
     m_parse_text->setText(QString::fromStdString(*error));
+  }
   else if (status == ciface::ExpressionParser::ParseStatus::EmptyExpression)
+  {
+    m_parse_text->SetShouldPaintStateIndicator(false);
     m_parse_text->setText(QString());
+  }
   else if (status != ciface::ExpressionParser::ParseStatus::Successful)
+  {
+    m_parse_text->SetShouldPaintStateIndicator(false);
     m_parse_text->setText(tr("Invalid Expression."));
+  }
   else
-    m_parse_text->setText(tr("Success."));
+  {
+    m_parse_text->SetShouldPaintStateIndicator(true);
+    m_parse_text->setText(QString());
+  }
 }
 
-InputStateDelegate::InputStateDelegate(IOWindow* parent) : QItemDelegate(parent), m_parent(parent)
+InputStateDelegate::InputStateDelegate(IOWindow* parent, int column,
+                                       std::function<ControlState(int row)> state_evaluator)
+    : QItemDelegate(parent), m_state_evaluator(std::move(state_evaluator)), m_column(column)
 {
+}
+
+InputStateLineEdit::InputStateLineEdit(std::function<ControlState()> state_evaluator)
+    : m_state_evaluator(std::move(state_evaluator))
+{
+}
+
+static void PaintStateIndicator(QPainter& painter, const QRect& region, ControlState state)
+{
+  const QString state_string = QString::number(state, 'g', 4);
+
+  QRect meter_region = region;
+  meter_region.setWidth(region.width() * std::clamp(state, 0.0, 1.0));
+
+  // Create a temporary indicator object to retreive color constants.
+  MappingIndicator indicator;
+
+  // Normal text.
+  painter.setPen(indicator.GetTextColor());
+  painter.drawText(region, Qt::AlignCenter, state_string);
+
+  // Input state meter.
+  painter.fillRect(meter_region, indicator.GetAdjustedInputColor());
+
+  // Text on top of meter.
+  painter.setPen(indicator.GetAltTextColor());
+  painter.setClipping(true);
+  painter.setClipRect(meter_region);
+  painter.drawText(region, Qt::AlignCenter, state_string);
 }
 
 void InputStateDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
@@ -560,35 +628,26 @@ void InputStateDelegate::paint(QPainter* painter, const QStyleOptionViewItem& op
 {
   QItemDelegate::paint(painter, option, index);
 
-  // Don't do anything special for the first column.
-  if (index.column() == 0)
+  if (index.column() != m_column)
     return;
 
-  // Clamp off negative values but allow greater than one in the text display.
-  const auto state =
-      std::max(m_parent->GetSelectedDevice()->Inputs()[index.row()]->GetState(), 0.0);
-  const auto state_str = QString::number(state, 'g', 4);
-
-  QRect rect = option.rect;
-  rect.setWidth(rect.width() * std::clamp(state, 0.0, 1.0));
-
-  // Create a temporary indicator object to retreive color constants.
-  MappingIndicator indicator;
-
   painter->save();
-
-  // Normal text.
-  painter->setPen(indicator.GetTextColor());
-  painter->drawText(option.rect, Qt::AlignCenter, state_str);
-
-  // Input state meter.
-  painter->fillRect(rect, indicator.GetAdjustedInputColor());
-
-  // Text on top of meter.
-  painter->setPen(indicator.GetAltTextColor());
-  painter->setClipping(true);
-  painter->setClipRect(rect);
-  painter->drawText(option.rect, Qt::AlignCenter, state_str);
-
+  PaintStateIndicator(*painter, option.rect, m_state_evaluator(index.row()));
   painter->restore();
+}
+
+void InputStateLineEdit::SetShouldPaintStateIndicator(bool value)
+{
+  m_should_paint_state_indicator = value;
+}
+
+void InputStateLineEdit::paintEvent(QPaintEvent* event)
+{
+  QLineEdit::paintEvent(event);
+
+  if (!m_should_paint_state_indicator)
+    return;
+
+  QPainter painter(this);
+  PaintStateIndicator(painter, this->rect(), m_state_evaluator());
 }
