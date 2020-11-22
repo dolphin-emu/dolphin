@@ -199,6 +199,8 @@ s32 WiiSocket::Shutdown(u32 how)
       if (shut_write)
         op.Abort(-SO_ENOTCONN);
       break;
+    default:
+      break;
     }
   }
   return ret;

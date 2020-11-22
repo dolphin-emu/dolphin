@@ -1049,10 +1049,10 @@ NetPlayDialog::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
       RunOnObject(this, [this, &sync_identifier, found] {
         for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
         {
-          auto game_file = m_game_list_model.GetGameFile(i);
-          *found = std::min(*found, game_file->CompareSyncIdentifier(sync_identifier));
+          auto file = m_game_list_model.GetGameFile(i);
+          *found = std::min(*found, file->CompareSyncIdentifier(sync_identifier));
           if (*found == NetPlay::SyncIdentifierComparison::SameGame)
-            return game_file;
+            return file;
         }
         return static_cast<std::shared_ptr<const UICommon::GameFile>>(nullptr);
       });
