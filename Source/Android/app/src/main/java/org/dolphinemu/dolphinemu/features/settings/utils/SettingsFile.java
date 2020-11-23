@@ -215,11 +215,6 @@ public final class SettingsFile
   public static void readFile(final String fileName, IniFile ini, SettingsActivityView view)
   {
     readFile(getSettingsFile(fileName), ini, view);
-
-    if (fileName.equals(Settings.FILE_DOLPHIN))
-    {
-      addGcPadSettingsIfTheyDontExist(ini);
-    }
   }
 
   /**
@@ -327,20 +322,5 @@ public final class SettingsFile
                     profile + ".ini";
 
     return new File(wiiConfigPath);
-  }
-
-  private static void addGcPadSettingsIfTheyDontExist(IniFile ini)
-  {
-    IniFile.Section coreSection = ini.getOrCreateSection(Settings.SECTION_INI_CORE);
-
-    for (int i = 0; i < 4; i++)
-    {
-      String key = SettingsFile.KEY_GCPAD_TYPE + i;
-      if (!coreSection.exists(key))
-      {
-        // Set GameCube controller 1 to enabled, all others disabled
-        coreSection.setInt(key, i == 0 ? 6 : 0);
-      }
-    }
   }
 }

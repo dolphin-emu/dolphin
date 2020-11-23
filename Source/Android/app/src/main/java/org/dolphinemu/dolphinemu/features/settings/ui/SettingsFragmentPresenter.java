@@ -225,6 +225,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(R.string.debug_submenu, MenuTag.DEBUG));
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -356,8 +357,6 @@ public final class SettingsFragmentPresenter
             MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
-    sl.add(new RunRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
-            mView.getAdapter()::resetPaths));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -435,16 +434,19 @@ public final class SettingsFragmentPresenter
   {
     for (int i = 0; i < 4; i++)
     {
+      // GameCube controller 1 is set to Emulated by default, all others disabled
+      int defaultValue = i == 0 ? 6 : 0;
+
       LegacyIntSetting gcPadSetting;
       if (mGameID.equals(""))
       {
         gcPadSetting = new LegacyIntSetting(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
-                SettingsFile.KEY_GCPAD_TYPE + i, 0);
+                SettingsFile.KEY_GCPAD_TYPE + i, defaultValue);
       }
       else
       {
         gcPadSetting = new LegacyIntSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-                Settings.SECTION_CONTROLS, SettingsFile.KEY_GCPAD_G_TYPE + i, 0);
+                Settings.SECTION_CONTROLS, SettingsFile.KEY_GCPAD_G_TYPE + i, defaultValue);
       }
       // TODO: This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
       sl.add(new SingleChoiceSetting(gcPadSetting, R.string.controller_0 + i, 0,
@@ -456,16 +458,19 @@ public final class SettingsFragmentPresenter
   {
     for (int i = 0; i < 4; i++)
     {
+      // Wii Remote 1 is set to Emulated by default, all others disabled
+      int defaultValue = i == 0 ? 1 : 0;
+
       LegacyIntSetting wiimoteSetting;
       if (mGameID.equals(""))
       {
         wiimoteSetting = new LegacyIntSetting(Settings.FILE_WIIMOTE,
-                Settings.SECTION_WIIMOTE + (i + 1), SettingsFile.KEY_WIIMOTE_TYPE, 0);
+                Settings.SECTION_WIIMOTE + (i + 1), SettingsFile.KEY_WIIMOTE_TYPE, defaultValue);
       }
       else
       {
         wiimoteSetting = new LegacyIntSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-                Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_G_TYPE + i, 0);
+                Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_G_TYPE + i, defaultValue);
       }
       // TODO: This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
       sl.add(new SingleChoiceSetting(wiimoteSetting, R.string.wiimote_4 + i, 0,
@@ -493,6 +498,7 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(R.string.graphics_enhancements_and_hacks, 0));
     sl.add(new SubmenuSetting(R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(R.string.hacks_submenu, MenuTag.HACKS));
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)

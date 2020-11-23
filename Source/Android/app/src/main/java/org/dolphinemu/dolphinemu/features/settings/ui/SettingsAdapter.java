@@ -160,6 +160,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     notifyDataSetChanged();
   }
 
+  public void clearSetting(SettingsItem item, int position)
+  {
+    item.clear(getSettings());
+    notifyItemChanged(position);
+
+    mView.onSettingChanged();
+  }
+
   public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
   {
     item.setChecked(getSettings(), checked);
@@ -315,21 +323,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 
     mClickedItem = null;
-  }
-
-  public void resetPaths()
-  {
-    Settings settings = mView.getSettings();
-
-    StringSetting.MAIN_DEFAULT_ISO.delete(settings);
-    StringSetting.MAIN_FS_PATH.delete(settings);
-    StringSetting.MAIN_DUMP_PATH.delete(settings);
-    StringSetting.MAIN_LOAD_PATH.delete(settings);
-    StringSetting.MAIN_RESOURCEPACK_PATH.delete(settings);
-    StringSetting.MAIN_SD_PATH.delete(settings);
-
-    notifyItemRangeChanged(0, getItemCount());
-    mView.onSettingChanged();
   }
 
   public void setAllLogTypes(boolean value)

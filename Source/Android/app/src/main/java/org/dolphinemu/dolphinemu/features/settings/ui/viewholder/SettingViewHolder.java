@@ -1,12 +1,14 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
-
+import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
@@ -15,7 +17,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 public abstract class SettingViewHolder extends RecyclerView.ViewHolder
-        implements View.OnClickListener
+        implements View.OnClickListener, View.OnLongClickListener
 {
   private SettingsAdapter mAdapter;
 
@@ -26,6 +28,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
     mAdapter = adapter;
 
     itemView.setOnClickListener(this);
+    itemView.setOnLongClickListener(this);
 
     findViews(itemView);
   }
@@ -72,4 +75,40 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
    * @param clicked The view that was clicked on.
    */
   public abstract void onClick(View clicked);
+
+  @Nullable
+  protected abstract SettingsItem getItem();
+
+  public boolean onLongClick(View clicked)
+  {
+    SettingsItem item = getItem();
+
+    if (item == null || !item.hasSetting())
+      return false;
+
+    if (!item.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return true;
+    }
+
+    Context context = clicked.getContext();
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+            .setMessage(R.string.setting_clear_confirm);
+
+    builder
+            .setPositiveButton(R.string.ok, (dialog, whichButton) ->
+            {
+              getAdapter().clearSetting(item, getAdapterPosition());
+              bind(item);
+              Toast.makeText(context, R.string.setting_cleared, Toast.LENGTH_SHORT).show();
+              dialog.dismiss();
+            })
+            .setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.dismiss());
+
+    builder.show();
+
+    return true;
+  }
 }

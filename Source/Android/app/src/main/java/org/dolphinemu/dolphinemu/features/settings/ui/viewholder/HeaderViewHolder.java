@@ -3,6 +3,8 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -33,5 +35,11 @@ public final class HeaderViewHolder extends SettingViewHolder
   public void onClick(View clicked)
   {
     // no-op
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return null;
   }
 }
