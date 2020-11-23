@@ -889,7 +889,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
   for (int i = 0; i < fileBlocks; ++i)
   {
     if (firstBlock == 0xFFFF)
-      PanicAlert("Fatal Error");
+      PanicAlertFmt("Fatal Error");
     m_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
     if (i == fileBlocks - 1)
       nextBlock = 0xFFFF;

@@ -126,7 +126,7 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
 
   if (!wiimote->Connect(POOL_WIIMOTE_INDEX))
   {
-    ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
+    ERROR_LOG_FMT(WIIMOTE, "Failed to connect real wiimote.");
     return;
   }
 
@@ -147,7 +147,7 @@ void Wiimote::Shutdown()
   ClearReadQueue();
   m_write_reports.Clear();
 
-  NOTICE_LOG(WIIMOTE, "Disconnected real wiimote.");
+  NOTICE_LOG_FMT(WIIMOTE, "Disconnected real wiimote.");
 }
 
 // to be called from CPU thread
@@ -293,7 +293,7 @@ void Wiimote::Read()
   }
   else if (0 == result)
   {
-    ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
+    ERROR_LOG_FMT(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
     DisconnectInternal();
   }
 }
@@ -337,7 +337,7 @@ bool Wiimote::IsBalanceBoard()
   if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
       !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
   {
-    ERROR_LOG(WIIMOTE, "IsBalanceBoard(): Failed to initialise extension.");
+    ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard(): Failed to initialise extension.");
     return false;
   }
 
@@ -374,8 +374,8 @@ bool Wiimote::IsBalanceBoard()
       const auto* reply = reinterpret_cast<InputReportReadDataReply*>(&buf[2]);
       if (Common::swap16(reply->address) != 0x00fe)
       {
-        ERROR_LOG(WIIMOTE, "IsBalanceBoard(): Received unexpected data reply for address %X",
-                  Common::swap16(reply->address));
+        ERROR_LOG_FMT(WIIMOTE, "IsBalanceBoard(): Received unexpected data reply for address {:X}",
+                      Common::swap16(reply->address));
         return false;
       }
       // A Balance Board ext can be identified by checking for 0x0402.
@@ -386,7 +386,8 @@ bool Wiimote::IsBalanceBoard()
       const auto* ack = reinterpret_cast<InputReportAck*>(&buf[2]);
       if (ack->rpt_id == OutputReportID::ReadData && ack->error_code != ErrorCode::Success)
       {
-        WARN_LOG(WIIMOTE, "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
+        WARN_LOG_FMT(WIIMOTE,
+                     "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
         return false;
       }
     }
@@ -578,12 +579,12 @@ void WiimoteScanner::PoolThreadFunc()
     {
       if (!it->wiimote->IsConnected())
       {
-        INFO_LOG(WIIMOTE, "Removing disconnected wiimote pool entry.");
+        INFO_LOG_FMT(WIIMOTE, "Removing disconnected wiimote pool entry.");
         it = s_wiimote_pool.erase(it);
       }
       else if (it->IsExpired())
       {
-        INFO_LOG(WIIMOTE, "Removing expired wiimote pool entry.");
+        INFO_LOG_FMT(WIIMOTE, "Removing expired wiimote pool entry.");
         it = s_wiimote_pool.erase(it);
       }
       else
@@ -610,7 +611,7 @@ void WiimoteScanner::ThreadFunc()
 
   Common::SetCurrentThreadName("Wiimote Scanning Thread");
 
-  NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
+  NOTICE_LOG_FMT(WIIMOTE, "Wiimote scanning thread has started.");
 
   // Create and destroy scanner backends here to ensure all operations stay on the same thread. The
   // HIDAPI backend on macOS has an error condition when IOHIDManagerCreate and IOHIDManagerClose
@@ -696,7 +697,7 @@ void WiimoteScanner::ThreadFunc()
 
   pool_thread.join();
 
-  NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
+  NOTICE_LOG_FMT(WIIMOTE, "Wiimote scanning thread has stopped.");
 }
 
 bool Wiimote::Connect(int index)
@@ -752,13 +753,13 @@ void Wiimote::ThreadFunc()
   {
     if (m_need_prepare.TestAndClear() && !PrepareOnThread())
     {
-      ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.",
-                m_index + 1);
+      ERROR_LOG_FMT(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote {}.",
+                    m_index + 1);
       break;
     }
     if (!Write())
     {
-      ERROR_LOG(WIIMOTE, "Wiimote::Write failed.  Disconnecting Wiimote %d.", m_index + 1);
+      ERROR_LOG_FMT(WIIMOTE, "Wiimote::Write failed.  Disconnecting Wiimote {}.", m_index + 1);
       break;
     }
     Read();
@@ -826,7 +827,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
   if (g_real_wiimotes_initialized)
     return;
 
-  NOTICE_LOG(WIIMOTE, "WiimoteReal::Initialize");
+  NOTICE_LOG_FMT(WIIMOTE, "WiimoteReal::Initialize");
 
   g_real_wiimotes_initialized = true;
 }
@@ -845,7 +846,7 @@ void Shutdown()
   g_real_wiimotes_initialized = false;
   s_wiimote_scanner.StopThread();
 
-  NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
+  NOTICE_LOG_FMT(WIIMOTE, "WiimoteReal::Shutdown");
 
   std::lock_guard lk(g_wiimotes_mutex);
   for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
@@ -878,7 +879,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
 
   if (!wm->Connect(i))
   {
-    ERROR_LOG(WIIMOTE, "Failed to connect real wiimote.");
+    ERROR_LOG_FMT(WIIMOTE, "Failed to connect real wiimote.");
     return false;
   }
 
@@ -894,7 +895,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
     WiimoteCommon::UpdateSource(i);
   });
 
-  NOTICE_LOG(WIIMOTE, "Connected real wiimote to slot %i.", i + 1);
+  NOTICE_LOG_FMT(WIIMOTE, "Connected real wiimote to slot {}.", i + 1);
 
   return true;
 }
@@ -904,7 +905,7 @@ static void TryToConnectBalanceBoard(std::unique_ptr<Wiimote> wm)
   if (TryToConnectWiimoteToSlot(wm, WIIMOTE_BALANCE_BOARD))
     return;
 
-  NOTICE_LOG(WIIMOTE, "No open slot for real balance board.");
+  NOTICE_LOG_FMT(WIIMOTE, "No open slot for real balance board.");
 }
 
 static void HandleWiimoteDisconnect(int index)

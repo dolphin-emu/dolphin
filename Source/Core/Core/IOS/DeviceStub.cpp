@@ -10,20 +10,20 @@ namespace IOS::HLE::Device
 {
 IPCCommandResult Stub::Open(const OpenRequest& request)
 {
-  WARN_LOG(IOS, "%s faking Open()", m_name.c_str());
+  WARN_LOG_FMT(IOS, "{} faking Open()", m_name);
   m_is_active = true;
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult Stub::IOCtl(const IOCtlRequest& request)
 {
-  WARN_LOG(IOS, "%s faking IOCtl()", m_name.c_str());
+  WARN_LOG_FMT(IOS, "{} faking IOCtl()", m_name);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult Stub::IOCtlV(const IOCtlVRequest& request)
 {
-  WARN_LOG(IOS, "%s faking IOCtlV()", m_name.c_str());
+  WARN_LOG_FMT(IOS, "{} faking IOCtlV()", m_name);
   return GetDefaultReply(IPC_SUCCESS);
 }
 }  // namespace IOS::HLE::Device

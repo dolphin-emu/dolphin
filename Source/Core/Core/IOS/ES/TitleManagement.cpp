@@ -63,14 +63,15 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vect
   {
     if (device_id != ticket_device_id)
     {
-      WARN_LOG(IOS_ES, "Device ID mismatch: ticket %08x, device %08x", ticket_device_id, device_id);
+      WARN_LOG_FMT(IOS_ES, "Device ID mismatch: ticket {:08x}, device {:08x}", ticket_device_id,
+                   device_id);
       return ES_DEVICE_ID_MISMATCH;
     }
     const ReturnCode ret = ticket.Unpersonalise(m_ios.GetIOSC());
     if (ret < 0)
     {
-      ERROR_LOG(IOS_ES, "ImportTicket: Failed to unpersonalise ticket for %016" PRIx64 " (%d)",
-                ticket.GetTitleId(), ret);
+      ERROR_LOG_FMT(IOS_ES, "ImportTicket: Failed to unpersonalise ticket for {:016x} ({})",
+                    ticket.GetTitleId(), ret);
       return ret;
     }
   }
@@ -87,7 +88,7 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vect
   if (write_ret != IPC_SUCCESS)
     return write_ret;
 
-  INFO_LOG(IOS_ES, "ImportTicket: Imported ticket for title %016" PRIx64, ticket.GetTitleId());
+  INFO_LOG_FMT(IOS_ES, "ImportTicket: Imported ticket for title {:016x}", ticket.GetTitleId());
   return IPC_SUCCESS;
 }
 
@@ -137,7 +138,7 @@ static void ResetTitleImportContext(ES::Context* context, IOSC& iosc)
 
 ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
 {
-  INFO_LOG(IOS_ES, "ImportTmd");
+  INFO_LOG_FMT(IOS_ES, "ImportTmd");
 
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
@@ -155,13 +156,13 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
                         context.title_import_export.tmd, cert_store);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG(IOS_ES, "ImportTmd: VerifyContainer failed with error %d", ret);
+    ERROR_LOG_FMT(IOS_ES, "ImportTmd: VerifyContainer failed with error {}", ret);
     return ret;
   }
 
   if (!InitImport(context.title_import_export.tmd))
   {
-    ERROR_LOG(IOS_ES, "ImportTmd: Failed to initialise title import");
+    ERROR_LOG_FMT(IOS_ES, "ImportTmd: Failed to initialise title import");
     return ES_EIO;
   }
 
@@ -169,11 +170,11 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
       InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG(IOS_ES, "ImportTmd: InitBackupKey failed with error %d", ret);
+    ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}", ret);
     return ret;
   }
 
-  INFO_LOG(IOS_ES, "ImportTmd: All checks passed, marking context as valid");
+  INFO_LOG_FMT(IOS_ES, "ImportTmd: All checks passed, marking context as valid");
   context.title_import_export.valid = true;
   return IPC_SUCCESS;
 }
@@ -211,12 +212,12 @@ static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& 
 ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                                const std::vector<u8>& cert_chain, VerifySignature verify_signature)
 {
-  INFO_LOG(IOS_ES, "ImportTitleInit");
+  INFO_LOG_FMT(IOS_ES, "ImportTitleInit");
   ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd.SetBytes(tmd_bytes);
   if (!context.title_import_export.tmd.IsValid())
   {
-    ERROR_LOG(IOS_ES, "Invalid TMD while adding title (size = %zd)", tmd_bytes.size());
+    ERROR_LOG_FMT(IOS_ES, "Invalid TMD while adding title (size = {})", tmd_bytes.size());
     return ES_EINVAL;
   }
 
@@ -281,25 +282,23 @@ ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id
 {
   if (context.title_import_export.content.valid)
   {
-    ERROR_LOG(IOS_ES, "Trying to add content when we haven't finished adding "
-                      "another content. Unsupported.");
+    ERROR_LOG_FMT(IOS_ES, "Trying to add content when we haven't finished adding "
+                          "another content. Unsupported.");
     return ES_EINVAL;
   }
   context.title_import_export.content = {};
   context.title_import_export.content.id = content_id;
 
-  INFO_LOG(IOS_ES, "ImportContentBegin: title %016" PRIx64 ", content ID %08x", title_id,
-           context.title_import_export.content.id);
+  INFO_LOG_FMT(IOS_ES, "ImportContentBegin: title {:016x}, content ID {:08x}", title_id,
+               context.title_import_export.content.id);
 
   if (!context.title_import_export.valid)
     return ES_EINVAL;
 
   if (title_id != context.title_import_export.tmd.GetTitleId())
   {
-    ERROR_LOG(IOS_ES,
-              "ImportContentBegin: title id %016" PRIx64 " != "
-              "TMD title id %016" PRIx64 ", ignoring",
-              title_id, context.title_import_export.tmd.GetTitleId());
+    ERROR_LOG_FMT(IOS_ES, "ImportContentBegin: title id {:016x} != TMD title id {:016x}, ignoring",
+                  title_id, context.title_import_export.tmd.GetTitleId());
     return ES_EINVAL;
   }
 
@@ -334,7 +333,7 @@ IPCCommandResult ES::ImportContentBegin(Context& context, const IOCtlVRequest& r
 
 ReturnCode ES::ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size)
 {
-  INFO_LOG(IOS_ES, "ImportContentData: content fd %08x, size %d", content_fd, data_size);
+  INFO_LOG_FMT(IOS_ES, "ImportContentData: content fd {:08x}, size {}", content_fd, data_size);
   context.title_import_export.content.buffer.insert(
       context.title_import_export.content.buffer.end(), data, data + data_size);
   return IPC_SUCCESS;
@@ -365,7 +364,7 @@ static std::string GetImportContentPath(u64 title_id, u32 content_id)
 
 ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
 {
-  INFO_LOG(IOS_ES, "ImportContentEnd: content fd %08x", content_fd);
+  INFO_LOG_FMT(IOS_ES, "ImportContentEnd: content fd {:08x}", content_fd);
 
   if (!context.title_import_export.valid || !context.title_import_export.content.valid)
     return ES_EINVAL;
@@ -383,7 +382,8 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
                                                   &content_info);
   if (!CheckIfContentHashMatches(decrypted_data, content_info))
   {
-    ERROR_LOG(IOS_ES, "ImportContentEnd: Hash for content %08x doesn't match", content_info.id);
+    ERROR_LOG_FMT(IOS_ES, "ImportContentEnd: Hash for content {:08x} doesn't match",
+                  content_info.id);
     return ES_HASH_MISMATCH;
   }
 
@@ -408,7 +408,7 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
     const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, content_modes);
     if (!file || !file->Write(decrypted_data.data(), content_info.size))
     {
-      ERROR_LOG(IOS_ES, "ImportContentEnd: Failed to write to %s", temp_path.c_str());
+      ERROR_LOG_FMT(IOS_ES, "ImportContentEnd: Failed to write to {}", temp_path);
       return ES_EIO;
     }
   }
@@ -417,7 +417,7 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   if (rename_result != FS::ResultCode::Success)
   {
     fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
-    ERROR_LOG(IOS_ES, "ImportContentEnd: Failed to move content to %s", content_path.c_str());
+    ERROR_LOG_FMT(IOS_ES, "ImportContentEnd: Failed to move content to {}", content_path);
     return FS::ConvertResult(rename_result);
   }
 
@@ -457,7 +457,8 @@ ReturnCode ES::ImportTitleDone(Context& context)
 {
   if (!context.title_import_export.valid || context.title_import_export.content.valid)
   {
-    ERROR_LOG(IOS_ES, "ImportTitleDone: No title import, or a content import is still in progress");
+    ERROR_LOG_FMT(IOS_ES,
+                  "ImportTitleDone: No title import, or a content import is still in progress");
     return ES_EINVAL;
   }
 
@@ -466,23 +467,23 @@ ReturnCode ES::ImportTitleDone(Context& context)
   if (title_id - 0x100000001LL <= 0x100 &&
       !HasAllRequiredContents(m_ios, context.title_import_export.tmd))
   {
-    ERROR_LOG(IOS_ES, "ImportTitleDone: Some required contents are missing");
+    ERROR_LOG_FMT(IOS_ES, "ImportTitleDone: Some required contents are missing");
     return ES_EINVAL;
   }
 
   if (!WriteImportTMD(context.title_import_export.tmd))
   {
-    ERROR_LOG(IOS_ES, "ImportTitleDone: Failed to write import TMD");
+    ERROR_LOG_FMT(IOS_ES, "ImportTitleDone: Failed to write import TMD");
     return ES_EIO;
   }
 
   if (!FinishImport(context.title_import_export.tmd))
   {
-    ERROR_LOG(IOS_ES, "ImportTitleDone: Failed to finalise title import");
+    ERROR_LOG_FMT(IOS_ES, "ImportTitleDone: Failed to finalise title import");
     return ES_EIO;
   }
 
-  INFO_LOG(IOS_ES, "ImportTitleDone: title %016" PRIx64, title_id);
+  INFO_LOG_FMT(IOS_ES, "ImportTitleDone: title {:016x}", title_id);
   ResetTitleImportContext(&context, m_ios.GetIOSC());
   return IPC_SUCCESS;
 }
@@ -506,7 +507,7 @@ ReturnCode ES::ImportTitleCancel(Context& context)
   {
     const u64 title_id = context.title_import_export.tmd.GetTitleId();
     FinishStaleImport(title_id);
-    INFO_LOG(IOS_ES, "ImportTitleCancel: title %016" PRIx64, title_id);
+    INFO_LOG_FMT(IOS_ES, "ImportTitleCancel: title {:016x}", title_id);
   }
 
   ResetTitleImportContext(&context, m_ios.GetIOSC());
@@ -696,7 +697,7 @@ ReturnCode ES::ExportContentBegin(Context& context, u64 title_id, u32 content_id
   if (!context.title_import_export.valid ||
       context.title_import_export.tmd.GetTitleId() != title_id)
   {
-    ERROR_LOG(IOS_ES, "Tried to use ExportContentBegin with an invalid title export context.");
+    ERROR_LOG_FMT(IOS_ES, "Tried to use ExportContentBegin with an invalid title export context.");
     return ES_EINVAL;
   }
 

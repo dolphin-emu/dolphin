@@ -24,7 +24,7 @@ WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
   m_device_id = hci_get_route(nullptr);
   if (m_device_id < 0)
   {
-    NOTICE_LOG(WIIMOTE, "Bluetooth not found.");
+    NOTICE_LOG_FMT(WIIMOTE, "Bluetooth not found.");
     return;
   }
 
@@ -32,7 +32,7 @@ WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
   m_device_sock = hci_open_dev(m_device_id);
   if (m_device_sock < 0)
   {
-    ERROR_LOG(WIIMOTE, "Unable to open Bluetooth.");
+    ERROR_LOG_FMT(WIIMOTE, "Unable to open Bluetooth.");
     return;
   }
 }
@@ -66,26 +66,26 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
       hci_inquiry(m_device_id, wait_len, max_infos, lap, &scan_infos_ptr, IREQ_CACHE_FLUSH);
   if (found_devices < 0)
   {
-    ERROR_LOG(WIIMOTE, "Error searching for Bluetooth devices.");
+    ERROR_LOG_FMT(WIIMOTE, "Error searching for Bluetooth devices.");
     return;
   }
 
-  DEBUG_LOG(WIIMOTE, "Found %i Bluetooth device(s).", found_devices);
+  DEBUG_LOG_FMT(WIIMOTE, "Found {} Bluetooth device(s).", found_devices);
 
   // Display discovered devices
   for (int i = 0; i < found_devices; ++i)
   {
-    NOTICE_LOG(WIIMOTE, "found a device...");
+    NOTICE_LOG_FMT(WIIMOTE, "found a device...");
 
     // BT names are a maximum of 248 bytes apparently
     char name[255] = {};
     if (hci_read_remote_name(m_device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 1000) < 0)
     {
-      ERROR_LOG(WIIMOTE, "name request failed");
+      ERROR_LOG_FMT(WIIMOTE, "name request failed");
       continue;
     }
 
-    NOTICE_LOG(WIIMOTE, "device name %s", name);
+    NOTICE_LOG_FMT(WIIMOTE, "device name {}", name);
     if (!IsValidDeviceName(name))
       continue;
 
@@ -100,12 +100,12 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
     if (IsBalanceBoardName(name))
     {
       found_board = wm;
-      NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
+      NOTICE_LOG_FMT(WIIMOTE, "Found balance board ({}).", bdaddr_str);
     }
     else
     {
       found_wiimotes.push_back(wm);
-      NOTICE_LOG(WIIMOTE, "Found Wiimote (%s).", bdaddr_str);
+      NOTICE_LOG_FMT(WIIMOTE, "Found Wiimote ({}).", bdaddr_str);
     }
   }
 }
@@ -120,7 +120,7 @@ WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : m_bdaddr(bdaddr)
   int fds[2];
   if (pipe(fds))
   {
-    ERROR_LOG(WIIMOTE, "pipe failed");
+    ERROR_LOG_FMT(WIIMOTE, "pipe failed");
     abort();
   }
   m_wakeup_pipe_w = fds[1];
@@ -152,7 +152,7 @@ bool WiimoteLinux::ConnectInternal()
       // If opening channel fails sleep and try again
       if (retry == 3)
       {
-        WARN_LOG(WIIMOTE, "Unable to connect control channel of Wiimote: %s", strerror(errno));
+        WARN_LOG_FMT(WIIMOTE, "Unable to connect control channel of Wiimote: {}", strerror(errno));
         close(m_cmd_sock);
         m_cmd_sock = -1;
         return false;
@@ -163,7 +163,7 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open control socket to Wiimote: %s", strerror(errno));
+    WARN_LOG_FMT(WIIMOTE, "Unable to open control socket to Wiimote: {}", strerror(errno));
     return false;
   }
 
@@ -177,7 +177,8 @@ bool WiimoteLinux::ConnectInternal()
       // If opening channel fails sleep and try again
       if (retry == 3)
       {
-        WARN_LOG(WIIMOTE, "Unable to connect interrupt channel of Wiimote: %s", strerror(errno));
+        WARN_LOG_FMT(WIIMOTE, "Unable to connect interrupt channel of Wiimote: {}",
+                     strerror(errno));
         close(m_int_sock);
         close(m_cmd_sock);
         m_int_sock = m_cmd_sock = -1;
@@ -189,7 +190,7 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open interrupt socket to Wiimote: %s", strerror(errno));
+    WARN_LOG_FMT(WIIMOTE, "Unable to open interrupt socket to Wiimote: {}", strerror(errno));
     close(m_cmd_sock);
     m_int_sock = m_cmd_sock = -1;
     return false;
@@ -217,7 +218,7 @@ void WiimoteLinux::IOWakeup()
   char c = 0;
   if (write(m_wakeup_pipe_w, &c, 1) != 1)
   {
-    ERROR_LOG(WIIMOTE, "Unable to write to wakeup pipe.");
+    ERROR_LOG_FMT(WIIMOTE, "Unable to write to wakeup pipe.");
   }
 }
 
@@ -238,7 +239,7 @@ int WiimoteLinux::IORead(u8* buf)
 
   if (poll(pollfds.data(), pollfds.size(), -1) == -1)
   {
-    ERROR_LOG(WIIMOTE, "Unable to poll Wiimote %i input socket.", m_index + 1);
+    ERROR_LOG_FMT(WIIMOTE, "Unable to poll Wiimote {} input socket.", m_index + 1);
     return -1;
   }
 
@@ -247,7 +248,7 @@ int WiimoteLinux::IORead(u8* buf)
     char c;
     if (read(m_wakeup_pipe_r, &c, 1) != 1)
     {
-      ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
+      ERROR_LOG_FMT(WIIMOTE, "Unable to read from wakeup pipe.");
     }
     return -1;
   }
@@ -260,15 +261,15 @@ int WiimoteLinux::IORead(u8* buf)
   if (r == -1)
   {
     // Error reading data
-    ERROR_LOG(WIIMOTE, "Receiving data from Wiimote %i.", m_index + 1);
+    ERROR_LOG_FMT(WIIMOTE, "Receiving data from Wiimote {}.", m_index + 1);
 
     if (errno == ENOTCONN)
     {
       // This can happen if the Bluetooth dongle is disconnected
-      ERROR_LOG(WIIMOTE,
-                "Bluetooth appears to be disconnected.  "
-                "Wiimote %i will be disconnected.",
-                m_index + 1);
+      ERROR_LOG_FMT(WIIMOTE,
+                    "Bluetooth appears to be disconnected.  "
+                    "Wiimote {} will be disconnected.",
+                    m_index + 1);
     }
 
     r = 0;
