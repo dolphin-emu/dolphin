@@ -183,11 +183,11 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "\n");
   out.Write("// To use color 1, the vertex descriptor must have color 0 and 1.\n"
             "// If color 1 is present but not color 0, it is used for lighting channel 0.\n"
-            "bool use_color_1 = ((components & {0}) == {0}); // VB_HAS_COL0 | VB_HAS_COL1\n",
+            "bool use_color_1 = ((components & {0}u) == {0}u); // VB_HAS_COL0 | VB_HAS_COL1\n",
             VB_HAS_COL0 | VB_HAS_COL1);
 
-  out.Write("for (uint color = 0; color < {}; color++) {{\n", NUM_XF_COLOR_CHANNELS);
-  out.Write("  if ((color == 0 || use_color_1) && (components & ({} << color)) != 0) {{\n",
+  out.Write("for (uint color = 0u; color < {}u; color++) {{\n", NUM_XF_COLOR_CHANNELS);
+  out.Write("  if ((color == 0u || use_color_1) && (components & ({}u << color)) != 0u) {{\n",
             VB_HAS_COL0);
   out.Write("    float4 color_value;\n"
             "    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
@@ -196,7 +196,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "      vertex_color_0 = rawcolor0;\n"
             "    else\n"
             "      vertex_color_1 = rawcolor1;\n"
-            "  }} else if (color == 0 && (components & {}) != 0) {{\n",
+            "  }} else if (color == 0u && (components & {}u) != 0u) {{\n",
             VB_HAS_COL1);
   out.Write("    // Use color1 for channel 0 if color0 is not present.\n"
             "    vertex_color_0 = rawcolor1;\n"
