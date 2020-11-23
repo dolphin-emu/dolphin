@@ -193,7 +193,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    g_gpio_out.m_hex = val & gpio_owner.m_hex;
                    if (g_gpio_out[GPIO::DO_EJECT])
                    {
-                     INFO_LOG(WII_IPC, "Ejecting disc due to GPIO write");
+                     INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
                      DVDInterface::EjectDisc(DVDInterface::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
