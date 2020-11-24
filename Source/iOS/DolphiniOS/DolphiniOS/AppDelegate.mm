@@ -350,9 +350,9 @@
 #endif
 #else
 #ifndef NONJAILBROKEN
-      dict_key = @"patreon";
+      dict_key = @"public_beta";
 #else
-      dict_key = @"patreon_njb";
+      dict_key = @"public_beta_njb";
 #endif
 #endif
     
