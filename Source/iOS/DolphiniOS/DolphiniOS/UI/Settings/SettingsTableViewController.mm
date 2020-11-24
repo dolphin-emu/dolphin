@@ -26,7 +26,7 @@
   [version_flags addObject:@"Debug"];
 #endif
 #ifdef PATREON
-  [version_flags addObject:@"Patreon"];
+  [version_flags addObject:@"Public Beta"];
 #endif
 #ifdef NONJAILBROKEN
   [version_flags addObject:@"NJB"];
