@@ -264,6 +264,9 @@ void VideoBackendBase::PopulateBackendInfoFromUI()
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
+#ifdef IS_PLAYBACK
+  VideoCommon_DoState(p);
+#else
   if (!SConfig::GetInstance().bCPUThread)
   {
     VideoCommon_DoState(p);
@@ -278,6 +281,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
   // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
   // a state. The next GP burst will wake it up again.
   Fifo::GpuMaySleep();
+#endif
 }
 
 void VideoBackendBase::InitializeShared()
