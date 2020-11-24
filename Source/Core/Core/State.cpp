@@ -25,8 +25,6 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
-#include "Common/Logging/Log.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -242,7 +240,6 @@ void SaveToBuffer(std::vector<u8>& buffer)
 {
   Core::RunOnCPUThread(
       [&] {
-        INFO_LOG(SLIPPI, "at start of save to buffer call");
         u8* ptr = nullptr;
         PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
@@ -252,7 +249,6 @@ void SaveToBuffer(std::vector<u8>& buffer)
         ptr = &buffer[0];
         p.SetMode(PointerWrap::MODE_WRITE);
         DoState(p);
-        INFO_LOG(SLIPPI, "at end of save to buffer call");
       },
       true);
 }

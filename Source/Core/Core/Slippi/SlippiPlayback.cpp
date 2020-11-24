@@ -118,6 +118,9 @@ void SlippiPlaybackStatus::processInitialState()
 {
   INFO_LOG(SLIPPI, "saving iState");
   State::SaveToBuffer(iState);
+  // The initial save to cState causes a stutter of about 5-10 frames
+  // Doing it here to get it out of the way and prevent stutters later
+  // Subsequent calls to SaveToBuffer for cState take ~1 frame
   State::SaveToBuffer(cState);
   SConfig::GetInstance().bHideCursor = false;
 };
@@ -267,12 +270,7 @@ void SlippiPlaybackStatus::loadState(s32 closestStateFrame)
     std::string stateString;
     decoder.Decode((char*)iState.data(), iState.size(), futureDiffs[closestStateFrame].get(), &stateString);
     std::vector<u8> stateToLoad(stateString.begin(), stateString.end());
-    if (stateToLoad.size() == 0) {
-      std::cout << "wtf break" << std::endl;
-    }
-    else {
-      State::LoadFromBuffer(stateToLoad);
-    }
+    State::LoadFromBuffer(stateToLoad);
   }
 }
 
