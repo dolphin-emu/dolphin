@@ -118,6 +118,7 @@ void SlippiPlaybackStatus::processInitialState()
 {
   INFO_LOG(SLIPPI, "saving iState");
   State::SaveToBuffer(iState);
+  State::SaveToBuffer(cState);
   SConfig::GetInstance().bHideCursor = false;
 };
 
@@ -266,7 +267,12 @@ void SlippiPlaybackStatus::loadState(s32 closestStateFrame)
     std::string stateString;
     decoder.Decode((char*)iState.data(), iState.size(), futureDiffs[closestStateFrame].get(), &stateString);
     std::vector<u8> stateToLoad(stateString.begin(), stateString.end());
-    State::LoadFromBuffer(stateToLoad);
+    if (stateToLoad.size() == 0) {
+      std::cout << "wtf break" << std::endl;
+    }
+    else {
+      State::LoadFromBuffer(stateToLoad);
+    }
   }
 }
 

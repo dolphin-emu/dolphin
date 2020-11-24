@@ -25,6 +25,8 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Common/Logging/Log.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -192,8 +194,8 @@ static void DoState(PointerWrap& p)
 
   // Movie must be done before the video backend, because the window is redrawn in the video backend
   // state load, and the frame number must be up-to-date.
-  Movie::DoState(p);
-  p.DoMarker("Movie");
+  // Movie::DoState(p);
+  // p.DoMarker("Movie");
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
@@ -214,9 +216,9 @@ static void DoState(PointerWrap& p)
   Gecko::DoState(p);
   p.DoMarker("Gecko");
 
-#if defined(HAVE_FFMPEG)
-  FrameDump::DoState();
-#endif
+//#if defined(HAVE_FFMPEG)
+//  FrameDump::DoState();
+//#endif
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
@@ -240,16 +242,17 @@ void SaveToBuffer(std::vector<u8>& buffer)
 {
   Core::RunOnCPUThread(
       [&] {
+        INFO_LOG(SLIPPI, "at start of save to buffer call");
         u8* ptr = nullptr;
         PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
         DoState(p);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
         buffer.resize(buffer_size);
-
         ptr = &buffer[0];
         p.SetMode(PointerWrap::MODE_WRITE);
         DoState(p);
+        INFO_LOG(SLIPPI, "at end of save to buffer call");
       },
       true);
 }
