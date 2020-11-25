@@ -473,7 +473,7 @@ static void ImHere()
     if (!f)
       f.Open("log64.txt", "w");
 
-    fprintf(f.GetHandle(), "%08x\n", PC);
+    f.WriteString(fmt::format("{0:08x}\n", PC));
   }
   if (been_here.find(PC) != been_here.end())
   {

@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
@@ -438,21 +440,21 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   }
 
   // Write .text section
-  fprintf(f.GetHandle(), ".text section layout\n");
+  f.WriteString(".text section layout\n");
   for (const auto& symbol : function_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol->address, symbol->size, symbol->address,
-            0, symbol->name.c_str());
+    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
+                              symbol->address, 0, symbol->name));
   }
 
   // Write .data section
-  fprintf(f.GetHandle(), "\n.data section layout\n");
+  f.WriteString("\n.data section layout\n");
   for (const auto& symbol : data_symbols)
   {
     // Write symbol address, size, virtual address, alignment, name
-    fprintf(f.GetHandle(), "%08x %08x %08x %i %s\n", symbol->address, symbol->size, symbol->address,
-            0, symbol->name.c_str());
+    f.WriteString(fmt::format("{0:08x} {1:08x} {2:08x} {3} {4}\n", symbol->address, symbol->size,
+                              symbol->address, 0, symbol->name));
   }
 
   return true;
@@ -471,7 +473,7 @@ bool PPCSymbolDB::SaveCodeMap(const std::string& filename) const
     return false;
 
   // Write ".text" at the top
-  fprintf(f.GetHandle(), ".text\n");
+  f.WriteString(".text\n");
 
   u32 next_address = 0;
   for (const auto& function : m_functions)
@@ -482,20 +484,20 @@ bool PPCSymbolDB::SaveCodeMap(const std::string& filename) const
     if (symbol.address + symbol.size <= next_address)
     {
       // At least write the symbol name and address
-      fprintf(f.GetHandle(), "// %08x beginning of %s\n", symbol.address, symbol.name.c_str());
+      f.WriteString(fmt::format("// {0:08x} beginning of {1}\n", symbol.address, symbol.name));
       continue;
     }
 
     // Write the symbol full name
-    fprintf(f.GetHandle(), "\n%s:\n", symbol.name.c_str());
+    f.WriteString(fmt::format("\n{0}:\n", symbol.name));
     next_address = symbol.address + symbol.size;
 
     // Write the code
     for (u32 address = symbol.address; address < next_address; address += 4)
     {
       const std::string disasm = debugger->Disassemble(address);
-      fprintf(f.GetHandle(), "%08x %-*.*s %s\n", address, SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT,
-              symbol.name.c_str(), disasm.c_str());
+      f.WriteString(fmt::format("{0:08x} {1:<{2}.{3}} {4}\n", address, symbol.name,
+                                SYMBOL_NAME_LIMIT, SYMBOL_NAME_LIMIT, disasm));
     }
   }
   return true;
