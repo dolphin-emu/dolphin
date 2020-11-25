@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -242,11 +243,11 @@ FifoPlayer& FifoPlayer::GetInstance()
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
-  m_CyclesPerFrame = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
-                     VideoInterface::GetTargetRefreshRateDenominator() /
-                     VideoInterface::GetTargetRefreshRateNumerator();
-  m_ElapsedCycles = 0;
-  m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
+  const u64 cycles_per_frame = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+                               VideoInterface::GetTargetRefreshRateDenominator() /
+                               VideoInterface::GetTargetRefreshRateNumerator();
+  const u64 frame_start = Common::AlignDown(CoreTiming::GetTicks(), cycles_per_frame);
+  const u64 frame_end = frame_start + cycles_per_frame;
 
   // Determine start and end objects
   u32 numObjects = (u32)(info.objectStarts.size());
@@ -299,8 +300,9 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
 
   FlushWGP();
 
-  // Sleep while the GPU is active
-  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
+  // Sleep until the GPU is inactive and the scheduled amount of time has passed
+  while (CPU::GetState() != CPU::State::PowerDown &&
+         (!IsIdleSet() || CoreTiming::GetTicks() < frame_end))
   {
     CoreTiming::Idle();
     CoreTiming::Advance();
@@ -381,17 +383,18 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
 
     u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
+    const u32 previous_written = written;
+
     while (written < burstEnd)
       GPFifo::FastWrite8(data[written++]);
 
     GPFifo::Write8(data[written++]);
 
     // Advance core timing
-    u32 elapsedCycles = u32(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
-    u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
-    m_ElapsedCycles = elapsedCycles;
+    constexpr u32 CYCLES_PER_WRITE = 20;
+    const u32 cycles_used = (previous_written - written) * CYCLES_PER_WRITE;
 
-    PowerPC::ppcState.downcount -= cyclesUsed;
+    PowerPC::ppcState.downcount -= cycles_used;
     CoreTiming::Advance();
   }
 }

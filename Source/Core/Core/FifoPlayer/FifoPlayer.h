@@ -149,10 +149,6 @@ private:
 
   bool m_EarlyMemoryUpdates = false;
 
-  u64 m_CyclesPerFrame = 0;
-  u32 m_ElapsedCycles = 0;
-  u32 m_FrameFifoSize = 0;
-
   CallbackFunc m_FileLoadedCb = nullptr;
   CallbackFunc m_FrameWrittenCb = nullptr;
 
