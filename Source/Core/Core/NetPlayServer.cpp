@@ -1079,8 +1079,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     break;
 
     default:
-      PanicAlertT(
-          "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking player!",
+      PanicAlertFmtT(
+          "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking player!",
           sub_id, player.pid);
       return 1;
     }
@@ -1415,7 +1415,7 @@ bool NetPlayServer::SyncSaveData()
   const auto game = m_dialog->FindGameFile(m_selected_game_identifier);
   if (game == nullptr)
   {
-    PanicAlertT("Selected game doesn't exist in game list!");
+    PanicAlertFmtT("Selected game doesn't exist in game list!");
     return false;
   }
 

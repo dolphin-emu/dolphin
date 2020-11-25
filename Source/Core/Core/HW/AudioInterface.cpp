@@ -284,8 +284,9 @@ static void IncreaseSampleCount(const u32 amount)
 
     if ((s_interrupt_timing - old_sample_counter) <= (s_sample_counter - old_sample_counter))
     {
-      DEBUG_LOG(AUDIO_INTERFACE, "GenerateAudioInterrupt %08x:%08x @ %08x s_control.AIINTVLD=%d",
-                s_sample_counter, s_interrupt_timing, PowerPC::ppcState.pc, s_control.AIINTVLD);
+      DEBUG_LOG_FMT(AUDIO_INTERFACE,
+                    "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} s_control.AIINTVLD={}",
+                    s_sample_counter, s_interrupt_timing, PowerPC::ppcState.pc, s_control.AIINTVLD);
       GenerateAudioInterrupt();
     }
   }

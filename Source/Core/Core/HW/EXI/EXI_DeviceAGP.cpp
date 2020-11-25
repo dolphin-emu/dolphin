@@ -259,7 +259,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
     m_current_cmd = 0;
     break;
   }
-  DEBUG_LOG(EXPANSIONINTERFACE, "AGP read %x", uData);
+  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "AGP read {:x}", uData);
   return uData;
 }
 
