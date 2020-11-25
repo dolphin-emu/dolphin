@@ -157,7 +157,7 @@ void PrintInstructionRunCounts()
     if (inst.second == 0)
       break;
 
-    DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
+    DEBUG_LOG_FMT(POWERPC, "{} : {}", inst.first, inst.second);
   }
 }
 

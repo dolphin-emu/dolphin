@@ -109,10 +109,10 @@ void HashSignatureDB::List() const
 {
   for (const auto& entry : m_database)
   {
-    DEBUG_LOG(SYMBOLS, "%s : %i bytes, hash = %08x", entry.second.name.c_str(), entry.second.size,
-              entry.first);
+    DEBUG_LOG_FMT(SYMBOLS, "{} : {} bytes, hash = {:08x}", entry.second.name, entry.second.size,
+                  entry.first);
   }
-  INFO_LOG(SYMBOLS, "%zu functions known in current database.", m_database.size());
+  INFO_LOG_FMT(SYMBOLS, "{} functions known in current database.", m_database.size());
 }
 
 void HashSignatureDB::Clear()
@@ -130,13 +130,13 @@ void HashSignatureDB::Apply(PPCSymbolDB* symbol_db) const
       function->Rename(entry.second.name);
       if (entry.second.size == static_cast<unsigned int>(function->size))
       {
-        INFO_LOG(SYMBOLS, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(),
-                 function->address, function->size);
+        INFO_LOG_FMT(SYMBOLS, "Found {} at {:08x} (size: {:08x})!", entry.second.name,
+                     function->address, function->size);
       }
       else
       {
-        ERROR_LOG(SYMBOLS, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
-                  entry.second.name.c_str(), function->address, function->size, entry.second.size);
+        ERROR_LOG_FMT(SYMBOLS, "Wrong size! Found {} at {:08x} (size: {:08x} instead of {:08x})!",
+                      entry.second.name, function->address, function->size, entry.second.size);
       }
     }
   }
