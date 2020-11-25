@@ -36,37 +36,37 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
     break;
 
   case IOCTLV_NCD_GETCONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
     config.WriteToMem(request.io_vectors.at(0).address);
     common_vector = 1;
     break;
 
   case IOCTLV_NCD_SETCONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETCONFIG");
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETCONFIG");
     config.ReadFromMem(request.in_vectors.at(0).address);
     break;
 
   case IOCTLV_NCD_READCONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
     config.ReadConfig(m_ios.GetFS().get());
     config.WriteToMem(request.io_vectors.at(0).address);
     break;
 
   case IOCTLV_NCD_WRITECONFIG:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
     config.ReadFromMem(request.in_vectors.at(0).address);
     config.WriteConfig(m_ios.GetFS().get());
     break;
 
   case IOCTLV_NCD_GETLINKSTATUS:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
     // Always connected
     Memory::Write_U32(Net::ConnectionSettings::LINK_WIRED, request.io_vectors.at(0).address + 4);
     break;
 
   case IOCTLV_NCD_GETWIRELESSMACADDRESS:
   {
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
 
     const Common::MACAddress address = IOS::Net::GetMACAddress();
     Memory::CopyToEmu(request.io_vectors.at(1).address, address.data(), address.size());
@@ -74,7 +74,7 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
   }
 
   default:
-    INFO_LOG(IOS_NET, "NET_NCD_MANAGE IOCtlV: %#x", request.request);
+    INFO_LOG_FMT(IOS_NET, "NET_NCD_MANAGE IOCtlV: {:#x}", request.request);
     break;
   }
 

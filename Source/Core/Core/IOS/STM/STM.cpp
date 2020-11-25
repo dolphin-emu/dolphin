@@ -23,7 +23,7 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
   {
   case IOCTL_STM_IDLE:
   case IOCTL_STM_SHUTDOWN:
-    NOTICE_LOG(IOS_STM, "IOCTL_STM_IDLE or IOCTL_STM_SHUTDOWN received, shutting down");
+    NOTICE_LOG_FMT(IOS_STM, "IOCTL_STM_IDLE or IOCTL_STM_SHUTDOWN received, shutting down");
     Core::QueueHostJob(&Core::Stop, false);
     break;
 
@@ -39,20 +39,20 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_STM_HOTRESET:
-    INFO_LOG(IOS_STM, "%s - IOCtl:", GetDeviceName().c_str());
-    INFO_LOG(IOS_STM, "    IOCTL_STM_HOTRESET");
+    INFO_LOG_FMT(IOS_STM, "{} - IOCtl:", GetDeviceName());
+    INFO_LOG_FMT(IOS_STM, "    IOCTL_STM_HOTRESET");
     break;
 
   case IOCTL_STM_VIDIMMING:  // (Input: 20 bytes, Output: 20 bytes)
-    INFO_LOG(IOS_STM, "%s - IOCtl:", GetDeviceName().c_str());
-    INFO_LOG(IOS_STM, "    IOCTL_STM_VIDIMMING");
+    INFO_LOG_FMT(IOS_STM, "{} - IOCtl:", GetDeviceName());
+    INFO_LOG_FMT(IOS_STM, "    IOCTL_STM_VIDIMMING");
     // Memory::Write_U32(1, buffer_out);
     // return_value = 1;
     break;
 
   case IOCTL_STM_LEDMODE:  // (Input: 20 bytes, Output: 20 bytes)
-    INFO_LOG(IOS_STM, "%s - IOCtl:", GetDeviceName().c_str());
-    INFO_LOG(IOS_STM, "    IOCTL_STM_LEDMODE");
+    INFO_LOG_FMT(IOS_STM, "{} - IOCtl:", GetDeviceName());
+    INFO_LOG_FMT(IOS_STM, "    IOCTL_STM_LEDMODE");
     break;
 
   default:

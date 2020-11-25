@@ -45,6 +45,7 @@ typedef struct pollfd pollfd_t;
 #include <cstdio>
 #include <list>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -229,7 +230,7 @@ public:
     s64 timeout;
   };
 
-  static s32 GetNetErrorCode(s32 ret, const char* caller, bool isRW);
+  static s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
   static char* DecodeError(s32 ErrorCode);
 
   static WiiSockMan& GetInstance()
@@ -260,8 +261,8 @@ public:
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
-      ERROR_LOG(IOS_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, request.address,
-                type);
+      ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
+                    request.address, type);
       GetIOS()->EnqueueIPCReply(request, -SO_EBADF);
     }
     else

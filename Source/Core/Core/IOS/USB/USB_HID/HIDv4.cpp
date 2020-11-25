@@ -192,7 +192,7 @@ void USB_HIDv4::TriggerDeviceChangeReply()
       const std::vector<u8> device_section = GetDeviceEntry(*device.second.get());
       if (offset + device_section.size() > m_devicechange_hook_request->buffer_out_size - 1)
       {
-        WARN_LOG(IOS_USB, "Too many devices connected, skipping");
+        WARN_LOG_FMT(IOS_USB, "Too many devices connected, skipping");
         break;
       }
       Memory::CopyToEmu(dest + offset, device_section.data(), device_section.size());

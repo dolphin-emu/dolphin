@@ -181,7 +181,7 @@ ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ec
     return ret;
   }
 
-  INFO_LOG(IOS_ES, "VerifySign: all checks passed");
+  INFO_LOG_FMT(IOS_ES, "VerifySign: all checks passed");
   return IPC_SUCCESS;
 }
 
