@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -66,6 +67,8 @@ public:
   {
     return WriteArray(reinterpret_cast<const char*>(data), length);
   }
+
+  bool WriteString(std::string_view str) { return WriteBytes(str.data(), str.size()); }
 
   bool IsOpen() const { return nullptr != m_file; }
   // m_good is set to false when a read, write or other function fails
