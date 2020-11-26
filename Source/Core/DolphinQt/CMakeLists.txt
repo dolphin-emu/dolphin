@@ -285,6 +285,10 @@ add_executable(dolphin-emu
   TAS/IRWidget.h
   Updater.cpp
   Updater.h
+  Scripting/ScriptingWidget.cpp
+  Scripting/ScriptingWidget.h
+  Scripting/ScriptsListModel.cpp
+  Scripting/ScriptsListModel.h
 )
 
 if (NOT WIN32)

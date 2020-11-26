@@ -105,6 +105,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblzma", "..\Externals\lib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zstd", "..\Externals\zstd\zstd.vcxproj", "{1BEA10F3-80CE-4BC4-9331-5769372CDF99}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Scripting", "Core\Scripting\Scripting.vcxproj", "{83794107-D372-4804-B463-E2719B50FB6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -489,6 +491,10 @@ Global
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99}.Release|ARM64.Build.0 = Release|ARM64
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99}.Release|x64.ActiveCfg = Release|x64
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99}.Release|x64.Build.0 = Release|x64
+		{83794107-D372-4804-B463-E2719B50FB6B}.Debug|x64.ActiveCfg = Debug|x64
+		{83794107-D372-4804-B463-E2719B50FB6B}.Debug|x64.Build.0 = Debug|x64
+		{83794107-D372-4804-B463-E2719B50FB6B}.Release|x64.ActiveCfg = Release|x64
+		{83794107-D372-4804-B463-E2719B50FB6B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -535,6 +541,7 @@ Global
 		{1D8C51D2-FFA4-418E-B183-9F42B6A6717E} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{055A775F-B4F5-4970-9240-F6CF7661F37B} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{83794107-D372-4804-B463-E2719B50FB6B} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {64B0A343-3B94-4522-9C24-6937FE5EFB22}

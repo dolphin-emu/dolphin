@@ -14,6 +14,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
     <Import Project="$(VSPropsDir)PCHUse.props" />
+    <Import Project="$(VSPropsDir)PyEmbed.props" />
     <Import Project="$(VSPropsDir)QtCompile.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -30,12 +31,14 @@
       <AdditionalIncludeDirectories>$(ProjectDir)GameList;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)NetPlay;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Scripting;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)Settings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;rpcrt4.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ExternalsDir)python\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -159,6 +162,8 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="Scripting/ScriptingWidget.cpp" />
+    <ClCompile Include="Scripting/ScriptsListModel.cpp" />
     <ClCompile Include="SearchBar.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
@@ -308,6 +313,7 @@
     <QtMoc Include="QtUtils\UTF8CodePointCountValidator.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
+    <QtMoc Include="Scripting/ScriptingWidget.h" />
     <QtMoc Include="SearchBar.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
@@ -351,6 +357,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)InputCommon\InputCommon.vcxproj">
       <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Scripting\Scripting.vcxproj">
+      <Project>{83794107-D372-4804-B463-E2719B50FB6B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
       <Project>{604C8368-F34A-4D55-82C8-CC92A0C13254}</Project>

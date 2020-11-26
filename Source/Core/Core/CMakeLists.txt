@@ -3,6 +3,14 @@ add_library(core
   ActionReplay.h
   Analytics.cpp
   Analytics.h
+  API/Controller.cpp
+  API/Controller.h
+  API/Events.cpp
+  API/Events.h
+  API/Memory.cpp
+  API/Memory.h
+  API/Gui.cpp
+  API/Gui.h
   ARDecrypt.cpp
   ARDecrypt.h
   BootManager.cpp
@@ -558,6 +566,7 @@ PUBLIC
   ${MBEDTLS_LIBRARIES}
   pugixml
   RangeSet::RangeSet
+  scripting
   sfml-network
   sfml-system
   videonull
@@ -565,6 +574,7 @@ PUBLIC
   videosoftware
 
 PRIVATE
+  imgui # TODO imgui shouldn't be here
   fmt::fmt
   ${LZO}
   ZLIB::ZLIB

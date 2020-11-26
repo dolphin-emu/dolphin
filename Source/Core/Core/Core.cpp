@@ -36,6 +36,7 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/API/Events.h"
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -866,6 +867,7 @@ void Callback_FramePresented()
 {
   s_drawn_frame++;
   s_stop_frame_step.store(true);
+  API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
 }
 
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries

@@ -469,6 +469,20 @@ bool Settings::IsJITVisible() const
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
+void Settings::SetScriptingVisible(bool enabled)
+{
+  if (IsScriptingVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showscripting"), enabled);
+
+  emit ScriptingVisibilityChanged(enabled);
+}
+
+bool Settings::IsScriptingVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showscripting")).toBool();
+}
+
 void Settings::RefreshWidgetVisibility()
 {
   emit DebugModeToggled(IsDebugModeEnabled());

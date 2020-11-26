@@ -172,6 +172,9 @@
     <Filter Include="PowerPC\JitArm64">
       <UniqueIdentifier>{9e91e72c-e432-4e02-8e03-c45c2b6f6957}</UniqueIdentifier>
     </Filter>
+    <Filter Include="API">
+      <UniqueIdentifier>{91afe1ab-893a-4cea-850a-014e1d219c21}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -1005,6 +1008,18 @@
     <ClCompile Include="HW\EXI\BBA\TAP_Win32.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
     </ClCompile>
+    <ClCompile Include="API\Events.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
+    <ClCompile Include="API\Memory.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
+    <ClCompile Include="API\Gui.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
+    <ClCompile Include="API\Controller.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1765,6 +1780,18 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
     </ClInclude>
     <ClInclude Include="SyncIdentifier.h" />
+    <ClInclude Include="API\Events.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Memory.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Gui.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Controller.h">
+      <Filter>API</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

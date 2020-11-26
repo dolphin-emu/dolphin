@@ -37,6 +37,7 @@
 
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+#include "Scripting/ScriptingEngine.h"
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
@@ -218,6 +219,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
     game_specified = true;
   }
+  std::optional<std::string> script_filepath;
+  if (options.is_set("script"))
+  {
+    script_filepath = static_cast<const char*>(options.get("script"));
+  }
 
   int retval;
 
@@ -245,7 +251,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   {
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
-    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie")),
+                   script_filepath};
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();

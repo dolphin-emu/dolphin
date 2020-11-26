@@ -9,6 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "WiimoteCommon/WiimoteReport.h"
 
 class InputConfig;
 class PointerWrap;
@@ -98,6 +99,9 @@ ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
 
 bool NetPlay_GetButtonPress(int wiimote, bool pressed);
+
+WiimoteCommon::ButtonData GetButtonData(int wiimote_num);
+
 }  // namespace Wiimote
 
 namespace WiimoteReal
