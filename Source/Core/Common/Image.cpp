@@ -4,6 +4,7 @@
 
 #include "Common/Image.h"
 
+#include <string>
 #include <vector>
 
 #include <png.h>
@@ -34,6 +35,33 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
 
   *width_out = png.width;
   *height_out = png.height;
+
+  return true;
+}
+
+bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
+             u32 height, int stride)
+{
+  png_image png = {};
+  png.version = PNG_IMAGE_VERSION;
+  png.width = width;
+  png.height = height;
+
+  switch (format)
+  {
+  case ImageByteFormat::RGB:
+    png.format = PNG_FORMAT_RGB;
+    break;
+  case ImageByteFormat::RGBA:
+    png.format = PNG_FORMAT_RGBA;
+    break;
+  default:
+    return false;
+  }
+
+  png_image_write_to_file(&png, path.c_str(), 0, input, stride, nullptr);
+  if (png.warning_or_error & PNG_IMAGE_ERROR)
+    return false;
 
   return true;
 }
