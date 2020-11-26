@@ -16,24 +16,6 @@
 
 namespace
 {
-template <int N>
-void LOG_TEX();
-
-template <>
-void LOG_TEX<1>()
-{
-  // warning: mapping buffer should be disabled to use this
-  // PRIM_LOG("tex: %f, ", ((float*)g_vertex_manager_write_ptr)[-1]);
-}
-
-template <>
-void LOG_TEX<2>()
-{
-  // warning: mapping buffer should be disabled to use this
-  // PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2],
-  // ((float*)g_vertex_manager_write_ptr)[-1]);
-}
-
 void TexCoord_Read_Dummy(VertexLoader* loader)
 {
   loader->m_tcIndex++;
@@ -63,7 +45,6 @@ void TexCoord_ReadDirect(VertexLoader* loader)
 
   g_vertex_manager_write_ptr = dst.GetPointer();
   g_video_buffer_read_ptr = src.GetPointer();
-  LOG_TEX<N>();
 
   ++loader->m_tcIndex;
 }
@@ -84,7 +65,6 @@ void TexCoord_ReadIndex(VertexLoader* loader)
     dst.Write(TCScale(Common::FromBigEndian(data[i]), scale));
 
   g_vertex_manager_write_ptr = dst.GetPointer();
-  LOG_TEX<N>();
   ++loader->m_tcIndex;
 }
 

@@ -44,11 +44,6 @@ void AXWiiUCode::HandleCommandList()
 
   u32 pb_addr = 0;
 
-  // WARN_LOG(DSPHLE, "Command list:");
-  // for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-  //     WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
-  // WARN_LOG(DSPHLE, "-------------");
-
   u32 curr_idx = 0;
   bool end = false;
   while (!end)

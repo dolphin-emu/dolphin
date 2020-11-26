@@ -38,11 +38,6 @@ void Wiimote::HandleReportMode(const OutputReportMode& dr)
   // even on REPORT_CORE and continuous off when the buttons haven't changed.
   // But.. it is sent after the ACK
 
-  // DEBUG_LOG(WIIMOTE, "Set data report mode");
-  // DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
-  // DEBUG_LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
-  // DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
-
   m_reporting_continuous = dr.continuous;
   m_reporting_mode = dr.mode;
 
