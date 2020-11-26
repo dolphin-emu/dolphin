@@ -235,7 +235,12 @@ namespace OSD
     bool value_changed = false;
     bool isActive = g.ActiveId == id;
     static bool isHeld = false;
-    const bool hovered = ImGui::ItemHoverable(bb, id);
+
+    auto hover_bb = ImRect(
+      ImVec2(5.0f, ImGui::GetWindowHeight() - 95.0f),
+      ImVec2(ImGui::GetWindowWidth() - 5.0f, bb.Min.y));
+
+    const bool hovered = ImGui::ItemHoverable(hover_bb, id);
 
     if (!isHeld && isActive) {
       ImGui::ClearActiveID();
@@ -301,17 +306,6 @@ namespace OSD
     }
     const float new_grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, new_grab_t);
     const float curr_grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, curr_grab_t);
-    ImRect new_grab_bb;
-    ImRect curr_grab_bb;
-    if (axis == ImGuiAxis_X) {
-      new_grab_bb = ImRect(ImVec2(new_grab_pos, bb.Min.y), ImVec2(new_grab_pos, bb.Max.y));
-      curr_grab_bb = ImRect(ImVec2(curr_grab_pos, bb.Min.y), ImVec2(curr_grab_pos, bb.Max.y));
-    }
-    else
-    {
-      new_grab_bb = ImRect(ImVec2(bb.Min.x, new_grab_pos), ImVec2(bb.Max.x, new_grab_pos));
-      curr_grab_bb = ImRect(ImVec2(bb.Min.x, curr_grab_pos), ImVec2(bb.Max.x, curr_grab_pos));
-    }
 
     // Draw all the things
 
@@ -322,25 +316,26 @@ namespace OSD
     window->DrawList->AddRectFilled(ImVec2(0, ImGui::GetWindowHeight() - 36), ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.75f * style.Alpha)));
 
     // Grey background line
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 8), ImVec2(bb.Max.x, bb.Min.y - 8), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 8);
 
     // Whiter, more opaque line up to mouse position
     if (hovered && !isHeld)
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 4);
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 8), ImVec2(new_grab_pos, bb.Min.y - 8), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 8);
 
     if (hovered || isHeld)
-      window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
+      window->DrawList->AddText(ImVec2(new_grab_pos - valuesize.x / 2, bb.Min.y - 30), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
 
     // Colored line, circle indicator, and text
     if (isHeld) {
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), 4);
-      window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 8), ImVec2(new_grab_pos, bb.Min.y - 8), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), 8);
+      window->DrawList->AddCircleFilled(ImVec2(new_grab_pos, bb.Min.y - 6), 12, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
     }
 
     // Progress bar
-    if (!isHeld)
+    if (!isHeld) {
       frame = (g_playbackStatus->targetFrameNum == INT_MAX) ? g_playbackStatus->currentPlaybackFrame : g_playbackStatus->targetFrameNum;
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 8), ImVec2(curr_grab_pos, bb.Min.y - 8), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 8);
+    }
 
     return value_changed;
   }
@@ -438,15 +433,6 @@ namespace OSD
     }
 
     const float grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, grab_t);
-    ImRect grab_bb;
-    if (axis == ImGuiAxis_X)
-    {
-      grab_bb = ImRect(ImVec2(grab_pos, bb.Min.y), ImVec2(grab_pos, bb.Max.y));
-    }
-    else
-    {
-      grab_bb = ImRect(ImVec2(bb.Min.x, grab_pos), ImVec2(bb.Max.x, grab_pos));
-    }
 
     // Grey background line
     window->DrawList->AddLine(
@@ -454,11 +440,11 @@ namespace OSD
       ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
 
     // Colored line and circle indicator
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + 5), ImVec2(grab_bb.Min.x, bb.Min.y + 5), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.8f * style.Alpha)), 4);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + 5), ImVec2(grab_pos, bb.Min.y + 5), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.8f * style.Alpha)), 4);
 
     if (isHeld)
       window->DrawList->AddCircleFilled(
-        ImVec2(grab_bb.Min.x, grab_bb.Min.y + 5), 6,
+        ImVec2(grab_pos, bb.Min.y + 5), 6,
         ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.8f * style.Alpha)));
 
     return value_changed;
@@ -474,7 +460,9 @@ namespace OSD
     const float w = ImGui::GetWindowWidth() - 10;
 
     const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true) * 1.0f;
-    const ImRect frame_bb(window->DC.CursorPos + ImVec2(5, 0), window->DC.CursorPos + ImVec2(w, label_size.y));
+    const ImRect frame_bb(
+      ImVec2(0.0f, ImGui::GetWindowHeight() - 70.0f),
+      ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()));
 
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
     if (hovered)
@@ -540,7 +528,6 @@ namespace OSD
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 44));
       if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE, g_playbackStatus->lastFrame, 1.0, "%d")) {
         Host_PlaybackSeek();
       }
