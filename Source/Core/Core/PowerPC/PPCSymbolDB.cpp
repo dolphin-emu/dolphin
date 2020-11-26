@@ -75,8 +75,8 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
       // Do not truncate symbol when a size is expected
       if (size != 0 && tf.size != size)
       {
-        WARN_LOG(SYMBOLS, "Analysed symbol (%s) size mismatch, %u expected but %u computed",
-                 name.c_str(), size, tf.size);
+        WARN_LOG_FMT(SYMBOLS, "Analysed symbol ({}) size mismatch, {} expected but {} computed",
+                     name, size, tf.size);
         tf.size = size;
       }
       m_checksum_to_function[tf.hash].insert(&m_functions[startAddr]);
@@ -153,18 +153,18 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
   const auto iter = m_functions.find(funcAddr);
   if (iter == m_functions.end())
   {
-    WARN_LOG(SYMBOLS, "Symbol does not exist");
+    WARN_LOG_FMT(SYMBOLS, "Symbol does not exist");
     return;
   }
 
   const Common::Symbol& f = iter->second;
-  DEBUG_LOG(SYMBOLS, "The function %s at %08x calls:", f.name.c_str(), f.address);
+  DEBUG_LOG_FMT(SYMBOLS, "The function {} at {:08x} calls:", f.name, f.address);
   for (const Common::SCall& call : f.calls)
   {
     const auto n = m_functions.find(call.function);
     if (n != m_functions.end())
     {
-      DEBUG_LOG(SYMBOLS, "* %08x : %s", call.call_address, n->second.name.c_str());
+      DEBUG_LOG_FMT(SYMBOLS, "* {:08x} : {}", call.call_address, n->second.name);
     }
   }
 }
@@ -176,13 +176,13 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
     return;
 
   const Common::Symbol& f = iter->second;
-  DEBUG_LOG(SYMBOLS, "The function %s at %08x is called by:", f.name.c_str(), f.address);
+  DEBUG_LOG_FMT(SYMBOLS, "The function {} at {:08x} is called by:", f.name, f.address);
   for (const Common::SCall& caller : f.callers)
   {
     const auto n = m_functions.find(caller.function);
     if (n != m_functions.end())
     {
-      DEBUG_LOG(SYMBOLS, "* %08x : %s", caller.call_address, n->second.name.c_str());
+      DEBUG_LOG_FMT(SYMBOLS, "* {:08x} : {}", caller.call_address, n->second.name);
     }
   }
 }
@@ -416,7 +416,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
   }
 
   Index();
-  NOTICE_LOG(SYMBOLS, "%d symbols loaded, %d symbols ignored.", good_count, bad_count);
+  NOTICE_LOG_FMT(SYMBOLS, "{} symbols loaded, {} symbols ignored.", good_count, bad_count);
   return true;
 }
 

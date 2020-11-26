@@ -132,11 +132,11 @@ static void Trace(UGeckoInstruction& inst)
   }
 
   const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
-  DEBUG_LOG(POWERPC,
-            "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016" PRIx64 " FPSCR: %08x MSR: %08x LR: "
-            "%08x %s %08x %s",
-            PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
-            PowerPC::ppcState.spr[8], regs.c_str(), inst.hex, ppc_inst.c_str());
+  DEBUG_LOG_FMT(POWERPC,
+                "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
+                "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
+                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
+                PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -285,25 +285,25 @@ void Interpreter::Run()
           if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
           {
 #ifdef SHOW_HISTORY
-            NOTICE_LOG(POWERPC, "----------------------------");
-            NOTICE_LOG(POWERPC, "Blocks:");
-            for (int j = 0; j < PCBlockVec.size(); j++)
-              NOTICE_LOG(POWERPC, "PC: 0x%08x", PCBlockVec.at(j));
-            NOTICE_LOG(POWERPC, "----------------------------");
-            NOTICE_LOG(POWERPC, "Steps:");
-            for (int j = 0; j < PCVec.size(); j++)
+            NOTICE_LOG_FMT(POWERPC, "----------------------------");
+            NOTICE_LOG_FMT(POWERPC, "Blocks:");
+            for (const int entry : PCBlockVec)
+              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", entry);
+            NOTICE_LOG_FMT(POWERPC, "----------------------------");
+            NOTICE_LOG_FMT(POWERPC, "Steps:");
+            for (size_t j = 0; j < PCVec.size(); j++)
             {
               // Write space
               if (j > 0)
               {
-                if (PCVec.at(j) != PCVec.at(j - 1) + 4)
-                  NOTICE_LOG(POWERPC, "");
+                if (PCVec[j] != PCVec[(j - 1) + 4]
+                  NOTICE_LOG_FMT(POWERPC, "");
               }
 
-              NOTICE_LOG(POWERPC, "PC: 0x%08x", PCVec.at(j));
+              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", PCVec[j]);
             }
 #endif
-            INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
+            INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
             CPU::Break();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);
@@ -338,15 +338,16 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
   const u32 opcode = PowerPC::HostRead_U32(last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
-  NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
+  NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
   Dolphin_Debugger::PrintCallstack();
-  NOTICE_LOG(POWERPC,
-             "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-             inst.hex, PC, last_pc, LR);
+  NOTICE_LOG_FMT(
+      POWERPC,
+      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
+      inst.hex, PC, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
-    NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
-               rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
+    NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i, rGPR[i],
+                   i + 1, rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",

@@ -100,12 +100,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
       break;
 
     default:
-      PanicAlert("Invalid instruction");
+      PanicAlertFmt("Invalid instruction");
     }
     break;
 
   default:
-    PanicAlert("Invalid instruction");
+    PanicAlertFmt("Invalid instruction");
   }
 
   // PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find
@@ -150,7 +150,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
   }
   else if (update && ((a == 0) || (d == a)))
   {
-    PanicAlert("Invalid instruction");
+    PanicAlertFmt("Invalid instruction");
   }
   else
   {
@@ -360,7 +360,7 @@ void Jit64::stX(UGeckoInstruction inst)
   bool update = (inst.OPCD & 1) && offset;
 
   if (!a && update)
-    PanicAlert("Invalid stX");
+    PanicAlertFmt("Invalid stX");
 
   int accessSize;
   switch (inst.OPCD & ~1)
@@ -452,7 +452,7 @@ void Jit64::stXx(UGeckoInstruction inst)
     accessSize = 8;
     break;
   default:
-    PanicAlert("stXx: invalid access size");
+    PanicAlertFmt("stXx: invalid access size");
     accessSize = 0;
     break;
   }

@@ -41,7 +41,7 @@ ARM64Reg Arm64RegCache::GetReg()
   // Holy cow, how did you run out of registers?
   // We can't return anything reasonable in this case. Return INVALID_REG and watch the failure
   // happen
-  WARN_LOG(DYNA_REC, "All available registers are locked dumb dumb");
+  WARN_LOG_FMT(DYNA_REC, "All available registers are locked dumb dumb");
   return INVALID_REG;
 }
 
@@ -278,7 +278,7 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
   }
   break;
   default:
-    ERROR_LOG(DYNA_REC, "Invalid OpArg Type!");
+    ERROR_LOG_FMT(DYNA_REC, "Invalid OpArg Type!");
     break;
   }
   // We've got an issue if we end up here

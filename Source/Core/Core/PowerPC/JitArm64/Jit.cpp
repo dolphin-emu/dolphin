@@ -78,7 +78,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
   // We can't handle any fault from other threads.
   if (!Core::IsCPUThread())
   {
-    ERROR_LOG(DYNA_REC, "Exception handler - Not on CPU thread");
+    ERROR_LOG_FMT(DYNA_REC, "Exception handler - Not on CPU thread");
     DoBacktrace(access_address, ctx);
     return false;
   }
@@ -97,7 +97,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 
   if (!success)
   {
-    ERROR_LOG(DYNA_REC, "Exception handler - Unhandled fault");
+    ERROR_LOG_FMT(DYNA_REC, "Exception handler - Unhandled fault");
     DoBacktrace(access_address, ctx);
   }
   return success;
@@ -108,7 +108,7 @@ bool JitArm64::HandleStackFault()
   if (!m_enable_blr_optimization)
     return false;
 
-  ERROR_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+  ERROR_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
   m_enable_blr_optimization = false;
 #ifndef _WIN32
   Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
@@ -228,8 +228,8 @@ void JitArm64::DoNothing(UGeckoInstruction inst)
 
 void JitArm64::Break(UGeckoInstruction inst)
 {
-  WARN_LOG(DYNA_REC, "Breaking! %08x - Fix me ;)", inst.hex);
-  exit(0);
+  WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst.hex);
+  std::exit(0);
 }
 
 void JitArm64::Cleanup()
@@ -505,8 +505,8 @@ void JitArm64::DumpCode(const u8* start, const u8* end)
 {
   std::string output;
   for (const u8* code = start; code < end; code += sizeof(u32))
-    output += StringFromFormat("%08x", Common::swap32(code));
-  WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
+    output += fmt::format("{:08x}", Common::swap32(code));
+  WARN_LOG_FMT(DYNA_REC, "Code dump from {} to {}:\n{}", fmt::ptr(start), fmt::ptr(end), output);
 }
 
 void JitArm64::BeginTimeProfile(JitBlock* b)
@@ -593,7 +593,7 @@ void JitArm64::Jit(u32)
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
-    WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
 
@@ -607,7 +607,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (em_address == 0)
   {
     Core::SetState(Core::State::Paused);
-    WARN_LOG(DYNA_REC, "ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
+    WARN_LOG_FMT(DYNA_REC, "ERROR: Compiling at 0. LR={:08x} CTR={:08x}", LR, CTR);
   }
 
   js.isLastInstruction = false;

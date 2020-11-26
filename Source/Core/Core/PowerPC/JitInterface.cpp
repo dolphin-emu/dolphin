@@ -71,9 +71,9 @@ CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
     break;
 
   default:
-    PanicAlertT("The selected CPU emulation core (%d) is not available. "
-                "Please select a different CPU emulation core in the settings.",
-                static_cast<int>(core));
+    PanicAlertFmtT("The selected CPU emulation core ({0}) is not available. "
+                   "Please select a different CPU emulation core in the settings.",
+                   core);
     g_jit = nullptr;
     return nullptr;
   }
@@ -102,7 +102,7 @@ void WriteProfileResults(const std::string& filename)
   File::IOFile f(filename, "w");
   if (!f)
   {
-    PanicAlert("Failed to open %s", filename.c_str());
+    PanicAlertFmt("Failed to open {}", filename);
     return;
   }
   f.WriteString("origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime("

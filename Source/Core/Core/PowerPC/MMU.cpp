@@ -122,17 +122,17 @@ static u32 EFB_Read(const u32 addr)
 
   if (addr & 0x00800000)
   {
-    ERROR_LOG(MEMMAP, "Unimplemented Z+Color EFB read @ 0x%08x", addr);
+    ERROR_LOG_FMT(MEMMAP, "Unimplemented Z+Color EFB read @ {:#010x}", addr);
   }
   else if (addr & 0x00400000)
   {
     var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekZ, x, y, 0);
-    DEBUG_LOG(MEMMAP, "EFB Z Read @ %u, %u\t= 0x%08x", x, y, var);
+    DEBUG_LOG_FMT(MEMMAP, "EFB Z Read @ {}, {}\t= {:#010x}", x, y, var);
   }
   else
   {
     var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekColor, x, y, 0);
-    DEBUG_LOG(MEMMAP, "EFB Color Read @ %u, %u\t= 0x%08x", x, y, var);
+    DEBUG_LOG_FMT(MEMMAP, "EFB Color Read @ {}, {}\t= {:#010x}", x, y, var);
   }
 
   return var;
@@ -147,17 +147,17 @@ static void EFB_Write(u32 data, u32 addr)
   {
     // It's possible to do a z-tested write to EFB by writing a 64bit value to this address range.
     // Not much is known, but let's at least get some loging.
-    ERROR_LOG(MEMMAP, "Unimplemented Z+Color EFB write. %08x @ 0x%08x", data, addr);
+    ERROR_LOG_FMT(MEMMAP, "Unimplemented Z+Color EFB write. {:08x} @ {:#010x}", data, addr);
   }
   else if (addr & 0x00400000)
   {
     g_video_backend->Video_AccessEFB(EFBAccessType::PokeZ, x, y, data);
-    DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %u, %u", data, x, y);
+    DEBUG_LOG_FMT(MEMMAP, "EFB Z Write {:08x} @ {}, {}", data, x, y);
   }
   else
   {
     g_video_backend->Video_AccessEFB(EFBAccessType::PokeColor, x, y, data);
-    DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %u, %u", data, x, y);
+    DEBUG_LOG_FMT(MEMMAP, "EFB Color Write {:08x} @ {}, {}", data, x, y);
   }
 }
 
@@ -250,7 +250,7 @@ static T ReadFromHardware(u32 em_address)
       return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
   }
 
-  PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
+  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
   return 0;
 }
 
@@ -368,8 +368,7 @@ static void WriteToHardware(u32 em_address, const T data)
     }
   }
 
-  PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
-  return;
+  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
 }
 // =====================
 
@@ -942,8 +941,8 @@ static void GenerateDSIException(u32 effective_address, bool write)
   // DSI exceptions are only supported in MMU mode.
   if (!SConfig::GetInstance().bMMU)
   {
-    PanicAlert("Invalid %s 0x%08x, PC = 0x%08x ", write ? "write to" : "read from",
-               effective_address, PC);
+    PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
+                  effective_address, PC);
     return;
   }
 
@@ -963,7 +962,7 @@ static void GenerateISIException(u32 effective_address)
   NPC = effective_address;
 
   PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
-  WARN_LOG(POWERPC, "ISI exception at 0x%08x", PC);
+  WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", PC);
 }
 
 void SDRUpdated()
@@ -1179,7 +1178,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       // With a valid BAT, the simplest way to match is
       // (input & ~BL_mask) == BEPI. For now, assume it's
       // implemented this way for invalid BATs as well.
-      WARN_LOG(POWERPC, "Bad BAT setup: BEPI overlaps BL");
+      WARN_LOG_FMT(POWERPC, "Bad BAT setup: BEPI overlaps BL");
       continue;
     }
     if ((batl.BRPN & batu.BL) != 0)
@@ -1187,7 +1186,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       // With a valid BAT, the simplest way to translate is
       // (input & BL_mask) | BRPN_address. For now, assume it's
       // implemented this way for invalid BATs as well.
-      WARN_LOG(POWERPC, "Bad BAT setup: BPRN overlaps BL");
+      WARN_LOG_FMT(POWERPC, "Bad BAT setup: BPRN overlaps BL");
     }
     if (!Common::IsValidLowMask((u32)batu.BL))
     {
@@ -1195,7 +1194,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       // (input & ~BL_mask) for matching and (input & BL_mask) for
       // translation. For now, assume it's implemented this way for
       // invalid BATs as well.
-      WARN_LOG(POWERPC, "Bad BAT setup: invalid mask in BL");
+      WARN_LOG_FMT(POWERPC, "Bad BAT setup: invalid mask in BL");
     }
     for (u32 j = 0; j <= batu.BL; ++j)
     {

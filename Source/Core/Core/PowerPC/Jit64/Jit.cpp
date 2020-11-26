@@ -195,7 +195,8 @@ bool Jit64::HandleStackFault()
   if (!m_enable_blr_optimization || !Core::IsCPUThread())
     return false;
 
-  WARN_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+  WARN_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+
   m_enable_blr_optimization = false;
 #ifndef _WIN32
   // Windows does this automatically.
@@ -248,7 +249,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
   auto it = m_back_patch_info.find(codePtr);
   if (it == m_back_patch_info.end())
   {
-    PanicAlert("BackPatch: no register use entry for address %p", codePtr);
+    PanicAlertFmt("BackPatch: no register use entry for address {}", fmt::ptr(codePtr));
     return false;
   }
 
@@ -481,7 +482,7 @@ static void ImHere()
     if ((been_here.find(PC)->second) & 1023)
       return;
   }
-  INFO_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
+  INFO_LOG_FMT(DYNA_REC, "I'm here - PC = {:08x} , LR = {:08x}", PC, LR);
   been_here[PC] = 1;
 }
 
@@ -728,9 +729,10 @@ void Jit64::Trace()
   }
 #endif
 
-  DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x FPSCR: %08x MSR: %08x LR: %08x %s %s",
-            PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs.c_str(),
-            fregs.c_str());
+  DEBUG_LOG_FMT(DYNA_REC,
+                "JIT64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
+                "MSR: {:08x} LR: {:08x} {} {}",
+                PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
 void Jit64::Jit(u32 em_address)
@@ -754,7 +756,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   {
     if (!SConfig::GetInstance().bJITNoBlockCache)
     {
-      WARN_LOG(POWERPC, "flushing trampoline code cache, please report if this happens a lot");
+      WARN_LOG_FMT(POWERPC, "flushing trampoline code cache, please report if this happens a lot");
     }
     ClearCache();
   }
@@ -805,7 +807,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
-    WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
 
@@ -843,33 +845,34 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   {
     // Code generation failed due to not enough free space in either the near or far code regions.
     // Clear the entire JIT cache and retry.
-    WARN_LOG(POWERPC, "flushing code caches, please report if this happens a lot");
+    WARN_LOG_FMT(POWERPC, "flushing code caches, please report if this happens a lot");
     ClearCache();
     Jit(em_address, false);
     return;
   }
 
-  PanicAlertT("JIT failed to find code space after a cache clear. This should never happen. Please "
-              "report this incident on the bug tracker. Dolphin will now exit.");
-  exit(-1);
+  PanicAlertFmtT(
+      "JIT failed to find code space after a cache clear. This should never happen. Please "
+      "report this incident on the bug tracker. Dolphin will now exit.");
+  std::exit(-1);
 }
 
 bool Jit64::SetEmitterStateToFreeCodeRegion()
 {
   // Find the largest free memory blocks and set code emitters to point at them.
   // If we can't find a free block return false instead, which will trigger a JIT cache clear.
-  auto free_near = m_free_ranges_near.by_size_begin();
+  const auto free_near = m_free_ranges_near.by_size_begin();
   if (free_near == m_free_ranges_near.by_size_end())
   {
-    WARN_LOG(POWERPC, "Failed to find free memory region in near code region.");
+    WARN_LOG_FMT(POWERPC, "Failed to find free memory region in near code region.");
     return false;
   }
   SetCodePtr(free_near.from(), free_near.to());
 
-  auto free_far = m_free_ranges_far.by_size_begin();
+  const auto free_far = m_free_ranges_far.by_size_begin();
   if (free_far == m_free_ranges_far.by_size_end())
   {
-    WARN_LOG(POWERPC, "Failed to find free memory region in far code region.");
+    WARN_LOG_FMT(POWERPC, "Failed to find free memory region in far code region.");
     return false;
   }
   m_far_code.SetCodePtr(free_far.from(), free_far.to());
@@ -1163,8 +1166,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())
     {
-      std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
-      NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
+      const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
+      NOTICE_LOG_FMT(DYNA_REC, "Unflushed register: {}", ppc_inst);
     }
 #endif
     i += js.skipInstructions;
@@ -1181,9 +1184,9 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (HasWriteFailed() || m_far_code.HasWriteFailed())
   {
     if (HasWriteFailed())
-      WARN_LOG(POWERPC, "JIT ran out of space in near code region during code generation.");
+      WARN_LOG_FMT(POWERPC, "JIT ran out of space in near code region during code generation.");
     if (m_far_code.HasWriteFailed())
-      WARN_LOG(POWERPC, "JIT ran out of space in far code region during code generation.");
+      WARN_LOG_FMT(POWERPC, "JIT ran out of space in far code region during code generation.");
 
     return false;
   }
@@ -1282,7 +1285,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
   {
     const PPCAnalyst::CodeOp& op = code_buffer[i];
     const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-    DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %08x %s\n", op.address, disasm.c_str());
+    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", op.address, disasm);
   }
 
   disassembler x64disasm;
@@ -1295,7 +1298,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
   {
     char sptr[1000] = "";
     disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, reinterpret_cast<u8*>(disasmPtr), sptr);
-    DEBUG_LOG(DYNA_REC, "IR_X86 x86: %s", sptr);
+    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 x86: {}", sptr);
   }
 
   if (b->codeSize <= 250)
@@ -1308,6 +1311,6 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
       ss.fill('0');
       ss << static_cast<u32>(*(normalEntry + i));
     }
-    DEBUG_LOG(DYNA_REC, "IR_X86 bin: %s\n\n\n", ss.str().c_str());
+    DEBUG_LOG_FMT(DYNA_REC, "IR_X86 bin: {}\n\n\n", ss.str());
   }
 }
