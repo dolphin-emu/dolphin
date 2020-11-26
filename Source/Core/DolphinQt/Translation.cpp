@@ -150,24 +150,24 @@ public:
 
     if (!file)
     {
-      WARN_LOG(COMMON, "Error reading MO file '%s'", filename.c_str());
+      WARN_LOG_FMT(COMMON, "Error reading MO file '{}'", filename);
       m_data = {};
       return;
     }
 
-    u32 magic = ReadU32(&m_data[0]);
+    const u32 magic = ReadU32(&m_data[0]);
     if (magic != MO_MAGIC_NUMBER)
     {
-      ERROR_LOG(COMMON, "MO file '%s' has bad magic number %x\n", filename.c_str(), magic);
+      ERROR_LOG_FMT(COMMON, "MO file '{}' has bad magic number {:x}\n", filename, magic);
       m_data = {};
       return;
     }
 
-    u16 version_major = ReadU16(&m_data[4]);
+    const u16 version_major = ReadU16(&m_data[4]);
     if (version_major > 1)
     {
-      ERROR_LOG(COMMON, "MO file '%s' has unsupported version number %i", filename.c_str(),
-                version_major);
+      ERROR_LOG_FMT(COMMON, "MO file '{}' has unsupported version number {}", filename,
+                    version_major);
       m_data = {};
       return;
     }
@@ -300,7 +300,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     }
     translator->deleteLater();
   }
-  ERROR_LOG(COMMON, "No suitable translation file found");
+  ERROR_LOG_FMT(COMMON, "No suitable translation file found");
   return false;
 }
 

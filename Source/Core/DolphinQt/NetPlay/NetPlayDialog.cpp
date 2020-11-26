@@ -427,7 +427,7 @@ void NetPlayDialog::OnStart()
   const auto game = FindGameFile(m_current_game_identifier);
   if (!game)
   {
-    PanicAlertT("Selected game doesn't exist in game list!");
+    PanicAlertFmtT("Selected game doesn't exist in game list!");
     return;
   }
 
@@ -876,7 +876,7 @@ void NetPlayDialog::OnMsgStartGame()
       if (auto game = FindGameFile(m_current_game_identifier))
         client->StartGame(game->GetFilePath());
       else
-        PanicAlertT("Selected game doesn't exist in game list!");
+        PanicAlertFmtT("Selected game doesn't exist in game list!");
     }
     UpdateDiscordPresence();
   });
@@ -1099,7 +1099,7 @@ void NetPlayDialog::LoadSettings()
   }
   else
   {
-    WARN_LOG(NETPLAY, "Unknown network mode '%s', using 'fixeddelay'", network_mode.c_str());
+    WARN_LOG_FMT(NETPLAY, "Unknown network mode '{}', using 'fixeddelay'", network_mode);
     m_fixed_delay_action->setChecked(true);
   }
 }
