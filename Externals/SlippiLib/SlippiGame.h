@@ -16,6 +16,7 @@ namespace Slippi {
   const uint8_t EVENT_POST_FRAME_UPDATE = 0x38;
   const uint8_t EVENT_GAME_END = 0x39;
   const uint8_t EVENT_FRAME_START = 0x3A;
+  const uint8_t EVENT_FRAME_END = 0x3C;
   const uint8_t EVENT_GECKO_LIST = 0x3D;
 
   const uint8_t GAME_INFO_HEADER_SIZE = 78;
@@ -100,6 +101,7 @@ namespace Slippi {
     bool areSettingsLoaded = false;
 
     int32_t frameCount; // Current/last frame count
+    int32_t lastFinalizedFrame = -124;
 
     //From OnGameEnd event
     uint8_t winCondition;
@@ -122,8 +124,10 @@ namespace Slippi {
     bool AreSettingsLoaded();
     bool DoesFrameExist(int32_t frame);
     std::array<uint8_t, 4> GetVersion();
+    std::string GetVersionString();
     FrameData* GetFrame(int32_t frame);
     FrameData* GetFrameAt(uint32_t pos);
+    int32_t GetLastFinalizedFrame();
     int32_t GetLatestIndex();
     GameSettings* GetSettings();
     bool DoesPlayerExist(int8_t port);

@@ -270,6 +270,15 @@ namespace Slippi {
     }
   }
 
+  void handleFrameEnd(Game* game, uint32_t maxSize) {
+    int idx = 0;
+
+    int32_t frameCount = readWord(data, idx, maxSize, 0);
+    int32_t lastFinalizedFrame = readWord(data, idx, maxSize, frameCount);
+
+    game->lastFinalizedFrame = lastFinalizedFrame;
+  }
+
   void handleGameEnd(Game* game, uint32_t maxSize) {
     int idx = 0;
 
@@ -459,6 +468,9 @@ namespace Slippi {
       case EVENT_POST_FRAME_UPDATE:
         handlePostFrameUpdate(game.get(), payloadSize);
         break;
+      case EVENT_FRAME_END:
+        handleFrameEnd(game.get(), payloadSize);
+        break;
       case EVENT_GAME_END:
         handleGameEnd(game.get(), payloadSize);
         isProcessingComplete = true;
@@ -530,6 +542,14 @@ namespace Slippi {
     return game->version;
   }
 
+  std::string SlippiGame::GetVersionString()
+  {
+    char version[30];
+    sprintf(version, "%d.%d.%d", game->version[0], game->version[1], game->version[2]);
+
+    return std::string(version);
+  }
+
   FrameData* SlippiGame::GetFrame(int32_t frame) {
     // Get the frame we want
     return game->framesByIndex.at(frame);
@@ -542,6 +562,11 @@ namespace Slippi {
 
     // Get the frame we want
     return game->frames[pos].get();
+  }
+
+  int32_t SlippiGame::GetLastFinalizedFrame() {
+    processData();
+    return game->lastFinalizedFrame;
   }
 
   int32_t SlippiGame::GetLatestIndex() {

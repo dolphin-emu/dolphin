@@ -1132,9 +1132,20 @@ bool CEXISlippi::checkFrameFullyFetched(s32 frameIndex)
 
   Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
 
+  version::Semver200_version lastFinalizedVersion("3.7.0");
+  version::Semver200_version currentVersion(m_current_game->GetVersionString());
+
+  bool frameIsFinalized = true;
+  if (currentVersion >= lastFinalizedVersion)
+  {
+    // If latest finalized frame should exist, check it as well. This will prevent us
+    // from loading a non-committed frame when mirroring a rollback game
+    frameIsFinalized = m_current_game->GetLastFinalizedFrame() >= frameIndex;
+  }
+
   // This flag is set to true after a post frame update has been received. At that point
   // we know we have received all of the input data for the frame
-  return frame->inputsFullyFetched;
+  return frame->inputsFullyFetched && frameIsFinalized;
 }
 
 void CEXISlippi::prepareFrameData(u8* payload)
@@ -1175,9 +1186,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
   // (this is the last frame, in that case)
   auto isFrameFound = m_current_game->DoesFrameExist(frameIndex);
   g_playbackStatus->lastFrame = m_current_game->GetLatestIndex();
-  auto isNextFrameFound = g_playbackStatus->lastFrame > frameIndex;
   auto isFrameComplete = checkFrameFullyFetched(frameIndex);
-  auto isFrameReady = isFrameFound && (isProcessingComplete || isNextFrameFound || isFrameComplete);
+  auto isFrameReady = isFrameFound && (isProcessingComplete || isFrameComplete);
 
   // If there is a startFrame configured, manage the fast-forward flag
   if (watchSettings.startFrame > Slippi::GAME_FIRST_FRAME)
