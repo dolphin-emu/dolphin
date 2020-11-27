@@ -79,11 +79,6 @@ void NetIPTop::DoState(PointerWrap& p)
   WiiSockMan::GetInstance().DoState(p);
 }
 
-static constexpr u32 inet_addr(u8 a, u8 b, u8 c, u8 d)
-{
-  return (static_cast<u32>(a) << 24) | (static_cast<u32>(b) << 16) | (static_cast<u32>(c) << 8) | d;
-}
-
 static int inet_pton(const char* src, unsigned char* dst)
 {
   int saw_digit = 0;
@@ -165,11 +160,12 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
   return optname;
 }
 
+// u32 values are in little endian (i.e. 0x0100007f means 127.0.0.1)
 struct DefaultInterface
 {
-  u32 inet;       ///< IPv4 address
-  u32 netmask;    ///< IPv4 subnet mask
-  u32 broadcast;  ///< IPv4 broadcast address
+  u32 inet;       // IPv4 address
+  u32 netmask;    // IPv4 subnet mask
+  u32 broadcast;  // IPv4 broadcast address
 };
 
 static std::optional<DefaultInterface> GetSystemDefaultInterface()
@@ -233,7 +229,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
     addr.sin_family = AF_INET;
     // The address and port are irrelevant -- no packet is actually sent. These just need to be set
     // to a valid IP and port.
-    addr.sin_addr.s_addr = inet_addr(8, 8, 8, 8);
+    addr.sin_addr.s_addr = inet_addr("8.8.8.8");
     addr.sin_port = htons(53);
     if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == -1)
       return {};
@@ -270,8 +266,10 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
 
 static DefaultInterface GetSystemDefaultInterfaceOrFallback()
 {
-  static constexpr DefaultInterface FALLBACK_VALUES{
-      inet_addr(10, 0, 1, 30), inet_addr(255, 255, 255, 0), inet_addr(10, 0, 255, 255)};
+  static const u32 FALLBACK_IP = inet_addr("10.0.1.30");
+  static const u32 FALLBACK_NETMASK = inet_addr("255.255.255.0");
+  static const u32 FALLBACK_GATEWAY = inet_addr("10.0.255.255");
+  static const DefaultInterface FALLBACK_VALUES{FALLBACK_IP, FALLBACK_NETMASK, FALLBACK_GATEWAY};
   return GetSystemDefaultInterface().value_or(FALLBACK_VALUES);
 }
 
