@@ -178,6 +178,25 @@ LayerType GetActiveLayerForConfig(const Location& config)
   return LayerType::Base;
 }
 
+std::optional<std::string> GetAsString(const Location& config)
+{
+  std::optional<std::string> result;
+  ReadLock lock(s_layers_rw_lock);
+
+  for (auto layer : SEARCH_ORDER)
+  {
+    const auto it = s_layers.find(layer);
+    if (it != s_layers.end())
+    {
+      result = it->second->Get<std::string>(config);
+      if (result.has_value())
+        break;
+    }
+  }
+
+  return result;
+}
+
 ConfigChangeCallbackGuard::ConfigChangeCallbackGuard()
 {
   ++s_callback_guards;
