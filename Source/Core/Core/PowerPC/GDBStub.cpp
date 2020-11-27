@@ -735,7 +735,7 @@ void gdb_handle_exception()
       break;
     case 'k':
       gdb_deinit();
-      INFO_LOG(GDB_STUB, "killed by gdb");
+      INFO_LOG_FMT(GDB_STUB, "killed by gdb");
       return;
     case 'g':
       gdb_read_registers();

@@ -184,8 +184,8 @@ void ConvertDialog::OnFormatChanged()
       constexpr int FALLBACK_BLOCK_SIZE = 0x4000;
       if (!block_size_ok(FALLBACK_BLOCK_SIZE))
       {
-        ERROR_LOG(MASTER_LOG, "Failed to find a block size which does not cause problems "
-                              "when decompressing using an old version of Dolphin");
+        ERROR_LOG_FMT(MASTER_LOG, "Failed to find a block size which does not cause problems "
+                                  "when decompressing using an old version of Dolphin");
       }
       AddToBlockSizeComboBox(FALLBACK_BLOCK_SIZE);
     }
