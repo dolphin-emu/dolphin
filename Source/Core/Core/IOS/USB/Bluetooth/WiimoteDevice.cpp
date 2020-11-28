@@ -611,7 +611,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
     break;
 
     default:
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown Option: {:#04x}", options->type);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown Option: 0x%02x", options->type);
       break;
     }
 
