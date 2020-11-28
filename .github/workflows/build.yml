@@ -169,4 +169,4 @@ jobs:
         s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
         s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
         s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Beta-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
-        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB-Beta-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Beta-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Beta-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}

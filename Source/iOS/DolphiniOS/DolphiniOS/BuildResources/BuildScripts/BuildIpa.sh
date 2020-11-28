@@ -12,7 +12,6 @@ ENTITLEMENTS_FILE="$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlemen
 ENTITLEMENTS_FILE_UNI="$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_NJB_Universal.plist"
 BUNDLE_ID="me.oatmealdome.DolphiniOS-njb"
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
-UNIVERSAL_NAME="DolphiniOS-NJB-Universal.ipa"
 
 if [ -n "$IS_CI" ]; then
   CODESIGN_ARGS+=" --keychain $1"
@@ -21,7 +20,6 @@ fi
 if [ $BUILD_FOR_PATREON == "YES" ]; then
   BUNDLE_ID="me.oatmealdome.DolphiniOS-njb-patreon-beta"
   APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Payload/DiOSPatreon.app
-  UNIVERSAL_NAME="DolphiniOS-NJB-Beta-Universal.ipa"
 fi
 
 # As recommended by saurik, don't copy dot files
@@ -58,7 +56,7 @@ codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE_UNI $APPLICATION_DESTI
 codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE_UNI $APPLICATION_DESTINATION_PATH/Frameworks/*
 
 # Create universal IPA
-zip -r ../$UNIVERSAL_NAME .
+zip -r ../DolphiniOS-NJB-Universal.ipa .
 
 if [ -n "$IS_CI" ]; then
   echo "$2=$EXPORT_PATH" >> $GITHUB_ENV
