@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/Config/Config.h"
+#include "DiscIO/Enums.h"
 
 namespace PowerPC
 {
@@ -88,6 +89,7 @@ extern const Info<u32> MAIN_CUSTOM_RTC_VALUE;
 extern const Info<bool> MAIN_AUTO_DISC_CHANGE;
 extern const Info<bool> MAIN_ALLOW_SD_WRITES;
 extern const Info<bool> MAIN_ENABLE_SAVESTATES;
+extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
 
 // Main.DSP
 
