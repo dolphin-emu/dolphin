@@ -31,6 +31,7 @@
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
@@ -929,18 +930,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
 
 DiscIO::Region SConfig::GetFallbackRegion()
 {
-  // Fall back to the system menu region, if possible.
-  IOS::HLE::Kernel ios;
-  const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
-  if (system_menu_tmd.IsValid())
-  {
-    const DiscIO::Region region = system_menu_tmd.GetRegion();
-    if (region != DiscIO::Region::Unknown)
-      return region;
-  }
-
-  // Fall back to PAL.
-  return DiscIO::Region::PAL;
+  return Config::Get(Config::MAIN_FALLBACK_REGION);
 }
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
