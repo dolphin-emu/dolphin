@@ -96,7 +96,7 @@ bool OpenALStream::Init()
 {
   if (!palcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
   {
-    PanicAlertT("OpenAL: can't find sound devices");
+    PanicAlertFmtT("OpenAL: can't find sound devices");
     return false;
   }
 
@@ -106,7 +106,7 @@ bool OpenALStream::Init()
   ALCdevice* device = palcOpenDevice(default_device_dame);
   if (!device)
   {
-    PanicAlertT("OpenAL: can't open device %s", default_device_dame);
+    PanicAlertFmtT("OpenAL: can't open device {0}", default_device_dame);
     return false;
   }
 
@@ -114,7 +114,7 @@ bool OpenALStream::Init()
   if (!context)
   {
     palcCloseDevice(device);
-    PanicAlertT("OpenAL: can't create context for device %s", default_device_dame);
+    PanicAlertFmtT("OpenAL: can't create context for device {0}", default_device_dame);
     return false;
   }
 
