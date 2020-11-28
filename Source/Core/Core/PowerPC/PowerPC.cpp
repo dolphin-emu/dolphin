@@ -594,8 +594,12 @@ void CheckExternalExceptions()
     else
     {
       DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+
+      // TODO: Re-enable this on ARM64 after fixing https://bugs.dolphin-emu.org/issues/12327
+#ifndef _M_ARM_64
       ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
                     exceptions);
+#endif
     }
   }
 }
