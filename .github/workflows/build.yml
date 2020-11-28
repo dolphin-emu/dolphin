@@ -86,7 +86,7 @@ jobs:
         BUCKET_ROOT_PATH: "s3://dios-archive/builds"
       run: |
         s3cmd put ${{ env.JB_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
-        s3cmd put ${{ env.JB_PATREON_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-Patreon-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.JB_PATREON_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-Beta-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
   
   build-njb:
     runs-on: macos-10.15
@@ -168,5 +168,5 @@ jobs:
       run: |
         s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
         s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
-        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Patreon-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
-        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB-Patreon-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Patreon-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Beta-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB-Beta-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Beta-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
