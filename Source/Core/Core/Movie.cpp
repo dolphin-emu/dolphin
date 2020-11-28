@@ -227,7 +227,7 @@ void Init(const BootParameters& boot)
     ReadHeader();
     std::thread md5thread(CheckMD5);
     md5thread.detach();
-    if (tmpHeader.GetGameID() == SConfig::GetInstance().GetGameID())
+    if (strncmp(tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
       PanicAlertFmtT("The recorded game ({0}) is not the same as the selected game ({1})",
                      tmpHeader.GetGameID(), SConfig::GetInstance().GetGameID());
