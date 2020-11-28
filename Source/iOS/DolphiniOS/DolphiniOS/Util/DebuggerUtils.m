@@ -31,7 +31,7 @@ bool WaitUntilProcessDebugged(int timeout)
   int time_left = timeout;
   bool is_debugged = false;
   
-  while (time_left <= 0)
+  while (time_left > 0)
   {
     is_debugged = IsProcessDebugged();
     if (is_debugged)
