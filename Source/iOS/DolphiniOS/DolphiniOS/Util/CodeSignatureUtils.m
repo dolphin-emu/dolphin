@@ -157,10 +157,17 @@ bool HasValidCodeSignature()
     return false;
   }
   
+  NSError* ent_error;
   id entitlements = [NSPropertyListSerialization propertyListWithData:entitlementsData
                                                            options:NSPropertyListImmutable
                                                             format:nil
-                                                             error:nil];
+                                                             error:&ent_error];
+  
+  if (ent_error)
+  {
+    NSString* error_str = [NSString stringWithFormat:@"Entitlement data parsing failed with error \"%@\".", [ent_error localizedDescription]];
+    SetJitAcquisitionErrorMessage((char*)FoundationToCString(error_str));
+  }
   
   if (![[entitlements objectForKey:@"get-task-allow"] boolValue])
   {
