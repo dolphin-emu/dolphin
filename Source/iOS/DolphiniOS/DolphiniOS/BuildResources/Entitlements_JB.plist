@@ -13,6 +13,7 @@
 	<key>com.apple.security.exception.files.absolute-path.read-write</key>
 	<array>
 		<string>/private/var/mobile/Documents/DolphiniOS/</string>
+		<string>/private/var/run/</string>
 		<string>/Library/LaunchDaemons/</string>
 		<string>/usr/lib/</string>
 		<string>/var/run/</string>
