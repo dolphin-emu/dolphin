@@ -45,4 +45,9 @@ jclass GetContentHandlerClass();
 jmethodID GetContentHandlerOpenFd();
 jmethodID GetContentHandlerDelete();
 
+jclass GetNetworkHelperClass();
+jmethodID GetNetworkHelperGetNetworkIpAddress();
+jmethodID GetNetworkHelperGetNetworkPrefixLength();
+jmethodID GetNetworkHelperGetNetworkGateway();
+
 }  // namespace IDCache

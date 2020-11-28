@@ -45,6 +45,11 @@ static jclass s_content_handler_class;
 static jmethodID s_content_handler_open_fd;
 static jmethodID s_content_handler_delete;
 
+static jclass s_network_helper_class;
+static jmethodID s_network_helper_get_network_ip_address;
+static jmethodID s_network_helper_get_network_prefix_length;
+static jmethodID s_network_helper_get_network_gateway;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -205,6 +210,25 @@ jmethodID GetContentHandlerDelete()
   return s_content_handler_delete;
 }
 
+jclass GetNetworkHelperClass()
+{
+  return s_network_helper_class;
+}
+
+jmethodID GetNetworkHelperGetNetworkIpAddress()
+{
+  return s_network_helper_get_network_ip_address;
+}
+
+jmethodID GetNetworkHelperGetNetworkPrefixLength()
+{
+  return s_network_helper_get_network_prefix_length;
+}
+
+jmethodID GetNetworkHelperGetNetworkGateway()
+{
+  return s_network_helper_get_network_gateway;
+}
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -283,6 +307,16 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_content_handler_delete =
       env->GetStaticMethodID(s_content_handler_class, "delete", "(Ljava/lang/String;)Z");
 
+  const jclass network_helper_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");
+  s_network_helper_class = reinterpret_cast<jclass>(env->NewGlobalRef(network_helper_class));
+  s_network_helper_get_network_ip_address =
+      env->GetStaticMethodID(s_network_helper_class, "GetNetworkIpAddress", "()I");
+  s_network_helper_get_network_prefix_length =
+      env->GetStaticMethodID(s_network_helper_class, "GetNetworkPrefixLength", "()I");
+  s_network_helper_get_network_gateway =
+      env->GetStaticMethodID(s_network_helper_class, "GetNetworkGateway", "()I");
+
   return JNI_VERSION;
 }
 
@@ -301,6 +335,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_ini_file_section_class);
   env->DeleteGlobalRef(s_compress_cb_class);
   env->DeleteGlobalRef(s_content_handler_class);
+  env->DeleteGlobalRef(s_network_helper_class);
 }
 
 #ifdef __cplusplus
