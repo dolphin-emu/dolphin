@@ -20,7 +20,7 @@
 #ifdef IS_PLAYBACK
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
-#define BUTTON_WIDTH 54.0f
+#define BUTTON_WIDTH (0.018 * ImGui::GetWindowWidth())
 #endif
 
 
@@ -163,6 +163,11 @@ namespace OSD
 
   bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags = 0)
   {
+
+    ImGui::GetWindowDrawList()->AddRectFilled(
+      ImGui::GetCurrentWindow()->DC.CursorPos,
+      ImVec2(ImGui::GetCurrentWindow()->DC.CursorPos.x + size_arg.x, ImGui::GetCurrentWindow()->DC.CursorPos.y + size_arg.y),
+      ImGui::ColorConvertFloat4ToU32(ImVec4(128.0f, 128.0f, 128.0f, 0.9f)));
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
       return false;
@@ -238,8 +243,8 @@ namespace OSD
     static bool isHeld = false;
 
     auto hover_bb = ImRect(
-      ImVec2(5.0f, ImGui::GetWindowHeight() - 95.0f),
-      ImVec2(ImGui::GetWindowWidth() - 5.0f, bb.Min.y));
+      ImVec2(ImGui::GetWindowWidth() * 0.0025f, ImGui::GetWindowHeight() * 0.9525f),
+      ImVec2(ImGui::GetWindowWidth() * 0.9975f, bb.Min.y));
 
     const bool hovered = ImGui::ItemHoverable(hover_bb, id);
 
@@ -317,25 +322,26 @@ namespace OSD
     window->DrawList->AddRectFilled(ImVec2(0, bb.Min.y), ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.75f * style.Alpha)));
 
     // Grey background line
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(bb.Max.x, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 8);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImVec2(bb.Max.x, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), ImGui::GetWindowHeight() * 0.004f);
 
     // Whiter, more opaque line up to mouse position
     if (hovered && !isHeld)
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(new_grab_pos, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 8);
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImVec2(new_grab_pos, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), ImGui::GetWindowHeight() * 0.004f);
 
+    // Time text
     if (hovered || isHeld)
-      window->DrawList->AddText(ImVec2(new_grab_pos - valuesize.x / 2, bb.Min.y - 30), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
+      window->DrawList->AddText(ImVec2(new_grab_pos - valuesize.x / 2, bb.Min.y - ImGui::GetWindowHeight() * 0.025f), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
 
-    // Colored line, circle indicator, and text
+    // Colored line and circle indicator
     if (isHeld) {
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(new_grab_pos, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), 8);
-      window->DrawList->AddCircleFilled(ImVec2(new_grab_pos, bb.Min.y - 2.0f), 12.0f, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImVec2(new_grab_pos, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), ImGui::GetWindowHeight() * 0.004f);
+      window->DrawList->AddCircleFilled(ImVec2(new_grab_pos, bb.Min.y - ImGui::GetWindowHeight() * 0.001f), ImGui::GetWindowHeight() * 0.006f, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
     }
 
     // Progress bar
     if (!isHeld) {
       frame = (g_playbackStatus->targetFrameNum == INT_MAX) ? g_playbackStatus->currentPlaybackFrame : g_playbackStatus->targetFrameNum;
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(curr_grab_pos, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 8);
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImVec2(curr_grab_pos, bb.Min.y - ImGui::GetWindowHeight() * 0.002f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), ImGui::GetWindowHeight() * 0.004f);
     }
 
     return value_changed;
@@ -437,15 +443,15 @@ namespace OSD
 
     // Grey background line
     window->DrawList->AddLine(
-      ImVec2(bb.Min.x, bb.Max.y - 5.0f), ImVec2(bb.Max.x, bb.Max.y - 5.0f),
-      ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 8);
+      ImVec2(bb.Min.x, bb.Max.y - ImGui::GetWindowHeight() * 0.0025f), ImVec2(bb.Max.x, bb.Max.y - ImGui::GetWindowHeight() * 0.0025f),
+      ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), ImGui::GetWindowHeight() * 0.004f);
 
     // Colored line and circle indicator
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 5.0f), ImVec2(grab_pos, bb.Max.y - 5.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 8);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - ImGui::GetWindowHeight() * 0.0025f), ImVec2(grab_pos, bb.Max.y - ImGui::GetWindowHeight() * 0.0025f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), ImGui::GetWindowHeight() * 0.004f);
 
     if (isHeld)
       window->DrawList->AddCircleFilled(
-        ImVec2(grab_pos, bb.Max.y - 5.0f), 12,
+        ImVec2(grab_pos, bb.Max.y - ImGui::GetWindowHeight() * 0.0025f), ImGui::GetWindowHeight() * 0.006f,
         ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)));
 
     return value_changed;
@@ -458,11 +464,10 @@ namespace OSD
       return false;
 
     const ImGuiID id = window->GetID(label);
-    const float w = ImGui::GetWindowWidth() - 10;
 
     const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true) * 1.0f;
     const ImRect frame_bb(
-      ImVec2(0.0f, ImGui::GetWindowHeight() - 70.0f),
+      ImVec2(0.0f, ImGui::GetWindowHeight() * 0.965f),
       ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()));
 
     if (!format)
@@ -482,7 +487,7 @@ namespace OSD
       return false;
 
     const ImGuiID id = window->GetID(label);
-    const ImRect frame_bb(ImVec2(BUTTON_WIDTH * 5, ImGui::GetWindowHeight() - 50.0f), ImVec2(BUTTON_WIDTH * 5 + 80.0f, ImGui::GetWindowHeight() - 32.0f));
+    const ImRect frame_bb(ImVec2(BUTTON_WIDTH * 5, ImGui::GetWindowHeight() * 0.975f), ImVec2(BUTTON_WIDTH * 5 + 0.04 * ImGui::GetWindowWidth(), ImGui::GetWindowHeight() * 0.985f));
 
     const bool value_changed =
       VolumeBarBehavior(frame_bb, id, v, v_min, v_max, power, ImGuiSliderFlags_None, color);
@@ -521,10 +526,10 @@ namespace OSD
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-#define LABEL_BOX_TOP (ImGui::GetWindowHeight() - 150.0f)
-#define LABEL_BOX_BOTTOM (ImGui::GetWindowHeight() - 96.0f)
-#define LABEL_TEXT_HEIGHT (ImGui::GetWindowHeight() - 140.0f)
-      ImGui::SetWindowFontScale(0.25f);
+#define LABEL_BOX_TOP (ImGui::GetWindowHeight() * 0.925f)
+#define LABEL_BOX_BOTTOM (ImGui::GetWindowHeight() * 0.952f)
+#define LABEL_TEXT_HEIGHT (ImGui::GetWindowHeight() * 0.93f)
+      ImGui::SetWindowFontScale(ImGui::GetWindowWidth() / 12300.0f);
 
       if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE, g_playbackStatus->lastFrame, 1.0, "%d")) {
         Host_PlaybackSeek();
@@ -532,7 +537,7 @@ namespace OSD
 
       style.Alpha = (showHelp || ImGui::GetHoveredID()) ? 1 : std::max(0.0001f, 1.0f - (diff / 1000.0f));
 
-      ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() * 0.9735f));
       ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
       //if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, BUTTON_WIDTH))) {
       //  INFO_LOG(SLIPPI, "playing");
@@ -546,15 +551,15 @@ namespace OSD
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(5.0f, LABEL_BOX_TOP),
-          ImVec2(400.0f, LABEL_BOX_BOTTOM),
+          ImVec2(ImGui::GetWindowWidth() * 0.0025f, LABEL_BOX_TOP),
+          ImVec2(ImGui::GetWindowWidth() * 0.135f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(15.0f, LABEL_TEXT_HEIGHT));
+        ImGui::SetCursorPos(ImVec2(0.005f * ImGui::GetWindowWidth(), LABEL_TEXT_HEIGHT));
         ImGui::Text("Jump Back (Shift + Left Arrow)");
       }
 
       // Step back
-      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH, ImGui::GetWindowHeight() * 0.9735f));
       if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
@@ -563,15 +568,15 @@ namespace OSD
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(54.0f, LABEL_BOX_TOP),
-          ImVec2(450.0f, LABEL_BOX_BOTTOM),
+          ImVec2(ImGui::GetWindowWidth() * 0.0025f + 2 * BUTTON_WIDTH, LABEL_BOX_TOP),
+          ImVec2(ImGui::GetWindowWidth() * 0.135f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
         ImGui::SetCursorPos(ImVec2(64.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("Step Back (Left Arrow)");
       }
 
       // Step forward
-      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 2, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 2, ImGui::GetWindowHeight() * 0.9735f));
       if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
@@ -588,7 +593,7 @@ namespace OSD
       }
 
       // Jump forward
-      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 3, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 3, ImGui::GetWindowHeight() * 0.9735f));
       if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
@@ -609,7 +614,7 @@ namespace OSD
       static bool isVolumeVisible = false;
       int* volume = &SConfig::GetInstance().m_Volume;
       static int prev;
-      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 4, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 4, ImGui::GetWindowHeight() * 0.9735f));
       if (ButtonCustom(*volume == 0 ? ICON_FA_VOLUME_OFF : ICON_FA_VOLUME_UP, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (*volume == 0) {
           *volume = prev == 0 ? 30 : prev; // todo: find good default value
@@ -626,7 +631,7 @@ namespace OSD
       }
 
       // Help
-      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - BUTTON_WIDTH * 2, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - BUTTON_WIDTH * 2, ImGui::GetWindowHeight() * 0.9735f));
       if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         showHelp = !showHelp;
       }
@@ -660,7 +665,7 @@ namespace OSD
       }
 
       // Fullscreen
-      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - BUTTON_WIDTH, ImGui::GetWindowHeight() - 62.0f));
+      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - BUTTON_WIDTH, ImGui::GetWindowHeight() * 0.9735f));
       if (ButtonCustom(ICON_FA_EXPAND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         Host_Fullscreen();
       }
@@ -676,7 +681,7 @@ namespace OSD
       ImGui::PopStyleVar();
 
       // Time text
-      ImGui::SetCursorPos(ImVec2(380.0f, ImGui::GetWindowHeight() - 50.0f));
+      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() * 0.14f, ImGui::GetWindowHeight() * 0.975f));
       auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
       auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
       auto timeString = playbackTime + " / " + endTime;
