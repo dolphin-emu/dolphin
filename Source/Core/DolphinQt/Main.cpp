@@ -22,6 +22,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Slippi/SlippiSpectate.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -158,6 +159,11 @@ int main(int argc, char* argv[])
   {
     save_state_path = static_cast<const char*>(options.get("save_state"));
   }
+
+  // for now, only initialize the server for non playback instances
+#ifndef IS_PLAYBACK
+  SlippiSpectateServer::getInstance().endGame();
+#endif
 
   std::unique_ptr<BootParameters> boot;
   bool game_specified = false;
