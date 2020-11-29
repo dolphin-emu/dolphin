@@ -650,6 +650,7 @@ public final class SettingsFragmentPresenter
   private void addDebugSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new HeaderSetting(R.string.debug_warning, 0));
+    sl.add(new InvertedCheckBoxSetting(BooleanSetting.MAIN_FASTMEM, R.string.debug_fastmem, 0));
 
     sl.add(new HeaderSetting(R.string.debug_jit_header, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_JIT_OFF, R.string.debug_jitoff, 0));
