@@ -20,6 +20,7 @@
 #ifdef IS_PLAYBACK
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#define BUTTON_WIDTH 54.0f
 #endif
 
 
@@ -235,7 +236,12 @@ namespace OSD
     bool value_changed = false;
     bool isActive = g.ActiveId == id;
     static bool isHeld = false;
-    const bool hovered = ImGui::ItemHoverable(bb, id);
+
+    auto hover_bb = ImRect(
+      ImVec2(5.0f, ImGui::GetWindowHeight() - 95.0f),
+      ImVec2(ImGui::GetWindowWidth() - 5.0f, bb.Min.y));
+
+    const bool hovered = ImGui::ItemHoverable(hover_bb, id);
 
     if (!isHeld && isActive) {
       ImGui::ClearActiveID();
@@ -301,17 +307,6 @@ namespace OSD
     }
     const float new_grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, new_grab_t);
     const float curr_grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, curr_grab_t);
-    ImRect new_grab_bb;
-    ImRect curr_grab_bb;
-    if (axis == ImGuiAxis_X) {
-      new_grab_bb = ImRect(ImVec2(new_grab_pos, bb.Min.y), ImVec2(new_grab_pos, bb.Max.y));
-      curr_grab_bb = ImRect(ImVec2(curr_grab_pos, bb.Min.y), ImVec2(curr_grab_pos, bb.Max.y));
-    }
-    else
-    {
-      new_grab_bb = ImRect(ImVec2(bb.Min.x, new_grab_pos), ImVec2(bb.Max.x, new_grab_pos));
-      curr_grab_bb = ImRect(ImVec2(bb.Min.x, curr_grab_pos), ImVec2(bb.Max.x, curr_grab_pos));
-    }
 
     // Draw all the things
 
@@ -319,28 +314,29 @@ namespace OSD
     if (isHeld)
       window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.6f)));
 
-    window->DrawList->AddRectFilled(ImVec2(0, ImGui::GetWindowHeight() - 36), ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.75f * style.Alpha)));
+    window->DrawList->AddRectFilled(ImVec2(0, bb.Min.y), ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.75f * style.Alpha)));
 
     // Grey background line
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(bb.Max.x, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 8);
 
     // Whiter, more opaque line up to mouse position
     if (hovered && !isHeld)
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 4);
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(new_grab_pos, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 8);
 
     if (hovered || isHeld)
-      window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
+      window->DrawList->AddText(ImVec2(new_grab_pos - valuesize.x / 2, bb.Min.y - 30), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
 
     // Colored line, circle indicator, and text
     if (isHeld) {
-      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), 4);
-      window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(new_grab_pos, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), 8);
+      window->DrawList->AddCircleFilled(ImVec2(new_grab_pos, bb.Min.y - 2.0f), 12.0f, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
     }
 
     // Progress bar
-    if (!isHeld)
+    if (!isHeld) {
       frame = (g_playbackStatus->targetFrameNum == INT_MAX) ? g_playbackStatus->currentPlaybackFrame : g_playbackStatus->targetFrameNum;
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
+      window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y - 4.0f), ImVec2(curr_grab_pos, bb.Min.y - 4.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 8);
+    }
 
     return value_changed;
   }
@@ -438,28 +434,19 @@ namespace OSD
     }
 
     const float grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, grab_t);
-    ImRect grab_bb;
-    if (axis == ImGuiAxis_X)
-    {
-      grab_bb = ImRect(ImVec2(grab_pos, bb.Min.y), ImVec2(grab_pos, bb.Max.y));
-    }
-    else
-    {
-      grab_bb = ImRect(ImVec2(bb.Min.x, grab_pos), ImVec2(bb.Max.x, grab_pos));
-    }
 
     // Grey background line
     window->DrawList->AddLine(
-      ImVec2(bb.Min.x, bb.Min.y + 5), ImVec2(bb.Max.x, bb.Min.y + 5),
-      ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
+      ImVec2(bb.Min.x, bb.Max.y - 5.0f), ImVec2(bb.Max.x, bb.Max.y - 5.0f),
+      ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 8);
 
     // Colored line and circle indicator
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + 5), ImVec2(grab_bb.Min.x, bb.Min.y + 5), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.8f * style.Alpha)), 4);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 5.0f), ImVec2(grab_pos, bb.Max.y - 5.0f), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 8);
 
     if (isHeld)
       window->DrawList->AddCircleFilled(
-        ImVec2(grab_bb.Min.x, grab_bb.Min.y + 5), 6,
-        ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.8f * style.Alpha)));
+        ImVec2(grab_pos, bb.Max.y - 5.0f), 12,
+        ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)));
 
     return value_changed;
   }
@@ -474,11 +461,9 @@ namespace OSD
     const float w = ImGui::GetWindowWidth() - 10;
 
     const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true) * 1.0f;
-    const ImRect frame_bb(window->DC.CursorPos + ImVec2(5, 0), window->DC.CursorPos + ImVec2(w, label_size.y));
-
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
-    if (hovered)
-      ImGui::SetHoveredID(id);
+    const ImRect frame_bb(
+      ImVec2(0.0f, ImGui::GetWindowHeight() - 70.0f),
+      ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()));
 
     if (!format)
       format = "%d";
@@ -497,12 +482,8 @@ namespace OSD
       return false;
 
     const ImGuiID id = window->GetID(label);
-    const ImRect frame_bb(window->DC.CursorPos + ImVec2(0, -6), window->DC.CursorPos + ImVec2(50, 5));
+    const ImRect frame_bb(ImVec2(BUTTON_WIDTH * 5, ImGui::GetWindowHeight() - 50.0f), ImVec2(BUTTON_WIDTH * 5 + 80.0f, ImGui::GetWindowHeight() - 32.0f));
 
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
-    if (hovered) {
-      ImGui::SetHoveredID(id);
-    }
     const bool value_changed =
       VolumeBarBehavior(frame_bb, id, v, v_min, v_max, power, ImGuiSliderFlags_None, color);
 
@@ -540,20 +521,24 @@ namespace OSD
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 44));
+#define LABEL_BOX_TOP (ImGui::GetWindowHeight() - 150.0f)
+#define LABEL_BOX_BOTTOM (ImGui::GetWindowHeight() - 96.0f)
+#define LABEL_TEXT_HEIGHT (ImGui::GetWindowHeight() - 140.0f)
+      ImGui::SetWindowFontScale(0.25f);
+
       if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE, g_playbackStatus->lastFrame, 1.0, "%d")) {
         Host_PlaybackSeek();
       }
 
       style.Alpha = (showHelp || ImGui::GetHoveredID()) ? 1 : std::max(0.0001f, 1.0f - (diff / 1000.0f));
 
-      ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
+      ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 62.0f));
       ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
-      //if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, 32.0f))) {
+      //if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, BUTTON_WIDTH))) {
       //  INFO_LOG(SLIPPI, "playing");
       //}
       //ImGui::SameLine(0.0f, 5.0f);
-      if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(32.0f, 32.0f))) {
+      if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
           Host_PlaybackSeek();
@@ -561,16 +546,16 @@ namespace OSD
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(6.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(175.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImVec2(5.0f, LABEL_BOX_TOP),
+          ImVec2(400.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(8.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::SetCursorPos(ImVec2(15.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("Jump Back (Shift + Left Arrow)");
       }
 
       // Step back
-      ImGui::SetCursorPos(ImVec2(32.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(32.0f, 32.0f))) {
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH, ImGui::GetWindowHeight() - 62.0f));
+      if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
           Host_PlaybackSeek();
@@ -578,16 +563,16 @@ namespace OSD
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(6.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(131.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImVec2(54.0f, LABEL_BOX_TOP),
+          ImVec2(450.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(8.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::SetCursorPos(ImVec2(64.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("Step Back (Left Arrow)");
       }
 
       // Step forward
-      ImGui::SetCursorPos(ImVec2(64.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(32.0f, 32.0f))) {
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 2, ImGui::GetWindowHeight() - 62.0f));
+      if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
           Host_PlaybackSeek();
@@ -595,16 +580,16 @@ namespace OSD
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(12.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(162.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImVec2(108.0f, LABEL_BOX_TOP),
+          ImVec2(600.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(14.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::SetCursorPos(ImVec2(118.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("Step Forward (Right Arrow)");
       }
 
       // Jump forward
-      ImGui::SetCursorPos(ImVec2(96.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(32.0f, 32.0f))) {
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 3, ImGui::GetWindowHeight() - 62.0f));
+      if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
           Host_PlaybackSeek();
@@ -612,10 +597,10 @@ namespace OSD
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(30.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(222.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImVec2(162.0f, LABEL_BOX_TOP),
+          ImVec2(662.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(32.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::SetCursorPos(ImVec2(172.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("Jump Forward (Shift + Right Arrow)");
       }
 
@@ -624,8 +609,8 @@ namespace OSD
       static bool isVolumeVisible = false;
       int* volume = &SConfig::GetInstance().m_Volume;
       static int prev;
-      ImGui::SetCursorPos(ImVec2(128.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(*volume == 0 ? ICON_FA_VOLUME_OFF : ICON_FA_VOLUME_UP, ImVec2(32.0f, 32.0f))) {
+      ImGui::SetCursorPos(ImVec2(BUTTON_WIDTH * 4, ImGui::GetWindowHeight() - 62.0f));
+      if (ButtonCustom(*volume == 0 ? ICON_FA_VOLUME_OFF : ICON_FA_VOLUME_UP, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         if (*volume == 0) {
           *volume = prev == 0 ? 30 : prev; // todo: find good default value
         }
@@ -636,63 +621,62 @@ namespace OSD
         AudioCommon::UpdateSoundStream();
       }
 
-      ImGui::SetCursorPos(ImVec2(160.0f, ImGui::GetWindowHeight() - 15));
       if (VolumeBar("SlippiVolume", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), volume, 0, 100, 1.0)) {
         AudioCommon::UpdateSoundStream();
       }
 
       // Help
-      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 64.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(32.0f, 32.0f))) {
+      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - BUTTON_WIDTH * 2, ImGui::GetWindowHeight() - 62.0f));
+      if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         showHelp = !showHelp;
       }
       if (showHelp) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(ImGui::GetWindowWidth() - 300.0f, ImGui::GetWindowHeight() - 200.0f),
-          ImVec2(ImGui::GetWindowWidth() - 50.0f, ImGui::GetWindowHeight() - 40.0f),
+          ImVec2(ImGui::GetWindowWidth() - 600.0f, ImGui::GetWindowHeight() - 416.0f),
+          ImVec2(ImGui::GetWindowWidth() - 50.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 190.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 386.0f));
         ImGui::Text("Play/Pause: Spacebar");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 170.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 346.0f));
         ImGui::Text("Step Back (5s): Left Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 150.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 306.0f));
         ImGui::Text("Step Forward (5s): Right Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 130.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 266.0f));
         ImGui::Text("Jump Back (20s): Shift + Left Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 110.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 226.0f));
         ImGui::Text("Jump Forward (20s): Shift + Right Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 90.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 186.0f));
         ImGui::Text("Frame Advance: Period");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 70.0f));
-        ImGui::Text("Big jumps/seeks may take several seconds.");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 580.0f, ImGui::GetWindowHeight() - 146.0f));
+        ImGui::Text("Big jumps may take several seconds.");
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(ImGui::GetWindowWidth() - 75.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(ImGui::GetWindowWidth() - 16.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImVec2(ImGui::GetWindowWidth() - 150.0f, LABEL_BOX_TOP),
+          ImVec2(ImGui::GetWindowWidth() - 54.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 73.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 140.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("View Help");
       }
 
       // Fullscreen
-      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 32.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(ICON_FA_EXPAND, ImVec2(32.0f, 32.0f))) {
+      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - BUTTON_WIDTH, ImGui::GetWindowHeight() - 62.0f));
+      if (ButtonCustom(ICON_FA_EXPAND, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH))) {
         Host_Fullscreen();
       }
       if (ImGui::IsItemHovered()) {
         ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(ImGui::GetWindowWidth() - 172.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(ImGui::GetWindowWidth() - 6.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImVec2(ImGui::GetWindowWidth() - 500.0f, LABEL_BOX_TOP),
+          ImVec2(ImGui::GetWindowWidth() - 5.0f, LABEL_BOX_BOTTOM),
           ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 170.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 490.0f, LABEL_TEXT_HEIGHT));
         ImGui::Text("Toggle Fullscreen (Alt + Enter)");
       }
 
       ImGui::PopStyleVar();
 
       // Time text
-      ImGui::SetCursorPos(ImVec2(220.0f, ImGui::GetWindowHeight() - 23.5f));
+      ImGui::SetCursorPos(ImVec2(380.0f, ImGui::GetWindowHeight() - 50.0f));
       auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
       auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
       auto timeString = playbackTime + " / " + endTime;
