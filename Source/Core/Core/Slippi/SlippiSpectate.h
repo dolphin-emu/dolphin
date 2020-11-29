@@ -70,7 +70,7 @@ private:
   std::atomic<bool> m_stop_socket_thread;
 
   // ONLY ACCESSED FROM SERVER THREAD
-  bool m_in_game;
+  bool m_in_game = false;
   std::map<u16, std::shared_ptr<SlippiSocket>> m_sockets;
   std::string m_event_concat = "";
   std::vector<std::string> m_event_buffer;
@@ -82,12 +82,12 @@ private:
   u64 m_cursor_offset = 0;
   //  How many menu events have we sent so far? (Reset between matches)
   //    Is used to know when a client hasn't been sent a menu event
-  u64 m_menu_cursor;
+  u64 m_menu_cursor = 0;
 
   std::thread m_socketThread;
 
-  SlippiSpectateServer() = default;
-  ~SlippiSpectateServer() = default;
+  SlippiSpectateServer();
+  ~SlippiSpectateServer();
   SlippiSpectateServer(SlippiSpectateServer const&) = delete;
   SlippiSpectateServer& operator=(const SlippiSpectateServer&) = delete;
   SlippiSpectateServer(SlippiSpectateServer&&) = delete;
