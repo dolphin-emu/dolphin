@@ -283,6 +283,8 @@
     <string name="log_enable_all_confirmation">Are you sure you want to enable all log types?</string>
     <string name="log_disable_all">Disable all Log Types</string>
     <string name="log_disable_all_confirmation">Are you sure you want to disable all log types?</string>
+    <string name="log_clear">Clear Log file</string>
+    <string name="log_clear_confirmation">Are you sure you want to clear the log file?</string>
     <string name="log_types">Log Types</string>
 
     <!-- Debug -->
