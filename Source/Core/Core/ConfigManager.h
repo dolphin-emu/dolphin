@@ -147,6 +147,9 @@ struct SConfig
   bool m_is_mios = false;
 
   // Slippi
+  // enable Slippi Networking output
+  bool m_enableSpectator;
+  int m_spectator_local_port;
   std::string m_strSlippiInput;
   int m_slippiOnlineDelay = 2;
   bool m_slippiEnableSeek = true;

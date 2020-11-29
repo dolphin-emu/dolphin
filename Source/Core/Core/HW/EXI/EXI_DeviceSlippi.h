@@ -16,6 +16,7 @@
 #include "Core/Slippi/SlippiPlayback.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/Slippi/SlippiSavestate.h"
+#include "Core/Slippi/SlippiSpectate.h"
 #include "Core/Slippi/SlippiUser.h"
 
 #define ROLLBACK_MAX_FRAMES 7
@@ -46,6 +47,8 @@ namespace ExpansionInterface
       CMD_RECEIVE_GAME_INFO = 0x36,
       CMD_RECEIVE_POST_FRAME_UPDATE = 0x38,
       CMD_RECEIVE_GAME_END = 0x39,
+      CMD_FRAME_BOOKEND = 0x3C,
+      CMD_MENU_FRAME = 0x3E,
 
       // Playback
       CMD_PREPARE_REPLAY = 0x75,

@@ -479,8 +479,8 @@ add_library(core
   Slippi/SlippiReplayComm.h
   Slippi/SlippiSavestate.cpp
   Slippi/SlippiSavestate.h
-  
-  
+  Slippi/SlippiSpectate.cpp
+  Slippi/SlippiSpectate.h  
   Slippi/SlippiUser.cpp
   Slippi/SlippiUser.h
 )

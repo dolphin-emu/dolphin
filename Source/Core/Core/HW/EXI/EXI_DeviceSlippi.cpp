@@ -96,7 +96,6 @@ void appendHalfToBuffer(std::vector<u8>* buf, u16 word)
 CEXISlippi::CEXISlippi()
 {
   INFO_LOG(SLIPPI, "EXI SLIPPI Constructor called.");
-
   user = std::make_unique<SlippiUser>();
   g_playbackStatus = std::make_unique<SlippiPlaybackStatus>();
   matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
@@ -197,6 +196,9 @@ CEXISlippi::~CEXISlippi()
   {
     m_fileWriteThread.join();
   }
+
+  SlippiSpectateServer::getInstance().write(&empty[0], 0);
+  SlippiSpectateServer::getInstance().endGame();
 
   localSelections.Reset();
 
@@ -2125,6 +2127,14 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     configureCommands(&memPtr[1], receiveCommandsLen);
     writeToFileAsync(&memPtr[0], receiveCommandsLen + 1, "create");
     bufLoc += receiveCommandsLen + 1;
+    // g_needInputForFrame = true;
+    SlippiSpectateServer::getInstance().startGame();
+    SlippiSpectateServer::getInstance().write(&memPtr[0], receiveCommandsLen + 1);
+  }
+
+  if (byte == CMD_MENU_FRAME)
+  {
+    SlippiSpectateServer::getInstance().write(&memPtr[0], _uSize);
   }
 
   INFO_LOG(EXPANSIONINTERFACE, "EXI SLIPPI DMAWrite: addr: 0x%08x size: %d, bufLoc:[%02x %02x %02x %02x %02x]",
@@ -2146,6 +2156,8 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     {
     case CMD_RECEIVE_GAME_END:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "close");
+      SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
+      SlippiSpectateServer::getInstance().endGame();
       break;
     case CMD_PREPARE_REPLAY:
       // log.open("log.txt");
@@ -2153,6 +2165,11 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_READ_FRAME:
       prepareFrameData(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_FRAME_BOOKEND:
+      // g_needInputForFrame = true;
+      writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
+      SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
       break;
     case CMD_IS_STOCK_STEAL:
       prepareIsStockSteal(&memPtr[bufLoc + 1]);
@@ -2208,6 +2225,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
+      SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
       break;
     }
 
