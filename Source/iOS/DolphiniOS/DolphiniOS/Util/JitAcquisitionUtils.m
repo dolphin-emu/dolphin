@@ -12,6 +12,7 @@
 
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
+static bool s_has_jit_with_psychicpaper = false;
 static bool s_is_arm64e = false;
 static DOLJitError s_acquisition_error = DOLJitErrorNone;
 static char s_acquisition_error_message[256];
@@ -132,6 +133,7 @@ void AcquireJit()
     if (CanEnableFastmem() && GetFastmemType() == DOLFastmemTypeProper)
     {
       s_has_jit = true;
+      s_has_jit_with_psychicpaper = true;
     }
     else
     {
@@ -191,6 +193,11 @@ bool HasJit()
 bool HasJitWithPTrace()
 {
   return s_has_jit_with_ptrace;
+}
+
+bool HasJitWithPsychicpaper()
+{
+  return s_has_jit_with_psychicpaper;
 }
 
 DOLJitError GetJitAcqusitionError()

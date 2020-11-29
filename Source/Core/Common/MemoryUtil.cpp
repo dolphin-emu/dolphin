@@ -34,6 +34,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef IPHONEOS
+extern "C" bool HasJitWithPsychicpaper(void);
+#endif
+
 namespace Common
 {
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
@@ -56,7 +60,15 @@ void* AllocateExecutableMemory(size_t size)
   protection |= PROT_EXEC;
 #endif
 
-  void* ptr = mmap(nullptr, size, protection, MAP_ANON | MAP_PRIVATE, -1, 0);
+  int flags = MAP_ANON | MAP_PRIVATE;
+#ifdef IPHONEOS
+  if (HasJitWithPsychicpaper())
+  {
+    flags |= MAP_JIT;
+  }
+#endif
+
+  void* ptr = mmap(nullptr, size, protection, flags, -1, 0);
 
   if (ptr == MAP_FAILED)
     ptr = nullptr;

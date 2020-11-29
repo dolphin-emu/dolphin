@@ -23,6 +23,7 @@ typedef NS_ENUM(NSUInteger, DOLJitError)
 void AcquireJit(void);
 bool HasJit(void);
 bool HasJitWithPTrace(void);
+bool HasJitWithPsychicpaper(void);
 DOLJitError GetJitAcqusitionError(void);
 char* GetJitAcquisitionErrorMessage(void);
 void SetJitAcquisitionErrorMessage(char* error);
