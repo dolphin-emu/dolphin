@@ -20,11 +20,12 @@
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsInteger.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-AdvancedWidget::AdvancedWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
+AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadSettings();
@@ -128,7 +129,7 @@ void AdvancedWidget::CreateWidgets()
   misc_box->setLayout(misc_layout);
 
   m_enable_cropping = new GraphicsBool(tr("Crop"), Config::GFX_CROP);
-  m_enable_prog_scan = new QCheckBox(tr("Enable Progressive Scan"));
+  m_enable_prog_scan = new ToolTipCheckBox(tr("Enable Progressive Scan"));
   m_backend_multithreading =
       new GraphicsBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
 
@@ -209,111 +210,138 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
 void AdvancedWidget::AddDescriptions()
 {
   static const char TR_WIREFRAME_DESCRIPTION[] =
-      QT_TR_NOOP("Renders the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_STATS_DESCRIPTION[] =
-      QT_TR_NOOP("Shows various rendering statistics.\n\nIf unsure, leave this unchecked.");
-  static const char TR_TEXTURE_FORMAT_DESCRIPTION[] = QT_TR_NOOP(
-      "Modifies textures to show the format they're encoded in.\n\nMay require an emulation "
-      "reset to apply.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
+                 "leave this unchecked.</dolphin_emphasis>");
+  static const char TR_TEXTURE_FORMAT_DESCRIPTION[] =
+      QT_TR_NOOP("Modifies textures to show the format they're encoded in.<br><br>May require "
+                 "an emulation "
+                 "reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
-                 "debugging graphical issues.\n\nIf unsure, leave this unchecked.");
+                 "debugging graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
-                 "User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
-                 "this unchecked.");
+                 "User/Dump/Textures/<game_id>/.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump mipmapped game textures to "
       "User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary "
-      "Mipmap Detection' is enabled in Enhancements.\n\nIf unsure, leave "
-      "this checked.");
+      "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
+      "this checked.</dolphin_emphasis>");
   static const char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump base game textures to "
       "User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary "
-      "Mipmap Detection' is enabled in Enhancements.\n\nIf unsure, leave "
-      "this checked.");
+      "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
+      "this checked.</dolphin_emphasis>");
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Loads custom textures from User/Load/Textures/<game_id>/ and "
-                 "User/Load/DynamicInputTextures/<game_id>/.\n\nIf unsure, leave this "
-                 "unchecked.");
+                 "User/Load/DynamicInputTextures/<game_id>/.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Caches custom textures to system RAM on startup.\n\nThis can require exponentially "
-      "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
-  static const char TR_DUMP_EFB_DESCRIPTION[] = QT_TR_NOOP(
-      "Dumps the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this "
-      "unchecked.");
+      "Caches custom textures to system RAM on startup.<br><br>This can require exponentially "
+      "more RAM but fixes possible stuttering.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
+  static const char TR_DUMP_EFB_DESCRIPTION[] =
+      QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br "
+                 "/><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
-                 "upscaling.\n\nIf unsure, leave this unchecked.");
+                 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
       "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than "
-      "the size of the window it is displayed within.\n\nIf the aspect ratio is widescreen, the "
-      "output image will be scaled horizontally to preserve the vertical resolution.\n\nIf "
-      "unsure, leave this unchecked.");
+      "the size of the window it is displayed within.<br><br>If the aspect ratio is "
+      "widescreen, the "
+      "output image will be scaled horizontally to preserve the vertical resolution.<br><br "
+      "/><dolphin_emphasis>If "
+      "unsure, leave this unchecked.</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
   static const char TR_FREE_LOOK_DESCRIPTION[] = QT_TR_NOOP(
       "Allows manipulation of the in-game camera. Move the mouse while holding the right button "
-      "to pan or middle button to roll.\n\nUse the WASD keys while holding SHIFT to move the "
+      "to pan or middle button to roll.<br><br>Use the WASD keys while holding SHIFT to move "
+      "the "
       "camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
-      "to reset the camera or SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked. ");
+      "to reset the camera or SHIFT+F to reset the speed.<br><br><dolphin_emphasis>If unsure, "
+      "leave this unchecked.</dolphin_emphasis>");
   static const char TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION[] = QT_TR_NOOP(
-      "Changes the in-game camera type during freelook.\n\n"
+      "Changes the in-game camera type during freelook.<br><br>"
       "Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero "
-      "gravity. This is the most powerful freelook option but is the most challenging to use.\n"
+      "gravity. This is the most powerful freelook option but is the most challenging to use.<br "
+      "/><br>"
       "First Person: Controls the free camera similarly to a first person video game. The camera "
-      "can rotate and travel, but roll is impossible. Easy to use, but limiting.\n"
+      "can rotate and travel, but roll is impossible. Easy to use, but limiting.<br><br>"
       "Orbital: Rotates the free camera around the original camera. Has no lateral movement, only "
       "rotation and you may zoom up to the camera's origin point.");
-  static const char TR_CROPPING_DESCRIPTION[] =
-      QT_TR_NOOP("Crops the picture from its native aspect ratio to 4:3 or "
-                 "16:9.\n\nIf unsure, leave this unchecked.");
+  static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
+      "Crops the picture from its native aspect ratio to 4:3 or "
+      "16:9.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software. Most games don't have "
-      "any issue with this.\n\nIf unsure, leave this unchecked.");
+      "any issue with this.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
   static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
       QT_TR_NOOP("Enables multithreaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
-                 "two CPU cores. Currently, this is limited to the Vulkan backend.\n\nIf unsure, "
-                 "leave this checked.");
+                 "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br "
+                 "/><dolphin_emphasis>If unsure, "
+                 "leave this checked.</dolphin_emphasis>");
   static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "
-      "\n\nMay improve performance in some games which rely on CPU EFB Access at the cost "
-      "of stability.\n\nIf unsure, leave this unchecked.");
+      "<br><br>May improve performance in some games which rely on CPU EFB Access at the cost "
+      "of stability.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
       "using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, "
       "but slightly increases input latency, makes movement less smooth and slightly decreases "
-      "performance.\n\nIf unsure, leave this unchecked.");
+      "performance.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
 #endif
 
-  AddDescription(m_enable_wireframe, TR_WIREFRAME_DESCRIPTION);
-  AddDescription(m_show_statistics, TR_SHOW_STATS_DESCRIPTION);
-  AddDescription(m_enable_format_overlay, TR_TEXTURE_FORMAT_DESCRIPTION);
-  AddDescription(m_enable_api_validation, TR_VALIDATION_LAYER_DESCRIPTION);
-  AddDescription(m_dump_textures, TR_DUMP_TEXTURE_DESCRIPTION);
-  AddDescription(m_dump_mip_textures, TR_DUMP_MIP_TEXTURE_DESCRIPTION);
-  AddDescription(m_dump_base_textures, TR_DUMP_BASE_TEXTURE_DESCRIPTION);
-  AddDescription(m_load_custom_textures, TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION);
-  AddDescription(m_prefetch_custom_textures, TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION);
-  AddDescription(m_dump_efb_target, TR_DUMP_EFB_DESCRIPTION);
-  AddDescription(m_disable_vram_copies, TR_DISABLE_VRAM_COPIES_DESCRIPTION);
-  AddDescription(m_use_fullres_framedumps, TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION);
+  m_enable_wireframe->SetDescription(QString::fromStdString(TR_WIREFRAME_DESCRIPTION));
+  m_show_statistics->SetDescription(QString::fromStdString(TR_SHOW_STATS_DESCRIPTION));
+  m_enable_format_overlay->SetDescription(QString::fromStdString(TR_TEXTURE_FORMAT_DESCRIPTION));
+  m_enable_api_validation->SetDescription(QString::fromStdString(TR_VALIDATION_LAYER_DESCRIPTION));
+  m_dump_textures->SetDescription(QString::fromStdString(TR_DUMP_TEXTURE_DESCRIPTION));
+  m_dump_mip_textures->SetDescription(QString::fromStdString(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
+  m_dump_base_textures->SetDescription(QString::fromStdString(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
+  m_load_custom_textures->SetDescription(
+      QString::fromStdString(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
+  m_prefetch_custom_textures->SetDescription(
+      QString::fromStdString(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
+  m_dump_efb_target->SetDescription(QString::fromStdString(TR_DUMP_EFB_DESCRIPTION));
+  m_disable_vram_copies->SetDescription(QString::fromStdString(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
+  m_use_fullres_framedumps->SetDescription(
+      QString::fromStdString(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
 #ifdef HAVE_FFMPEG
-  AddDescription(m_dump_use_ffv1, TR_USE_FFV1_DESCRIPTION);
+  m_dump_use_ffv1->SetDescription(QString::fromStdString(TR_USE_FFV1_DESCRIPTION));
 #endif
-  AddDescription(m_enable_cropping, TR_CROPPING_DESCRIPTION);
-  AddDescription(m_enable_prog_scan, TR_PROGRESSIVE_SCAN_DESCRIPTION);
-  AddDescription(m_enable_freelook, TR_FREE_LOOK_DESCRIPTION);
-  AddDescription(m_freelook_control_type, TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION);
-  AddDescription(m_backend_multithreading, TR_BACKEND_MULTITHREADING_DESCRIPTION);
+  m_enable_cropping->SetDescription(QString::fromStdString(TR_CROPPING_DESCRIPTION));
+  m_enable_prog_scan->SetDescription(QString::fromStdString(TR_PROGRESSIVE_SCAN_DESCRIPTION));
+  m_enable_freelook->SetDescription(QString::fromStdString(TR_FREE_LOOK_DESCRIPTION));
+  m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
+  m_freelook_control_type->SetDescription(
+      QString::fromStdString(TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION));
+  m_backend_multithreading->SetDescription(
+      QString::fromStdString(TR_BACKEND_MULTITHREADING_DESCRIPTION));
 #ifdef _WIN32
-  AddDescription(m_borderless_fullscreen, TR_BORDERLESS_FULLSCREEN_DESCRIPTION);
+  m_borderless_fullscreen->SetDescription(
+      QString::fromStdString(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
-  AddDescription(m_defer_efb_access_invalidation, TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION);
+  m_defer_efb_access_invalidation->SetDescription(
+      QString::fromStdString(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
 }

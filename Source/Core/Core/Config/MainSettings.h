@@ -132,6 +132,7 @@ extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
 
 // Main.Interface
 
+extern const Info<bool> MAIN_USE_HIGH_CONTRAST_TOOLTIPS;
 extern const Info<bool> MAIN_USE_PANIC_HANDLERS;
 extern const Info<bool> MAIN_OSD_MESSAGES;
 extern const Info<bool> MAIN_SKIP_NKIT_WARNING;

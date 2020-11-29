@@ -11,7 +11,7 @@
 #include "DolphinQt/Settings.h"
 
 GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
-    : QSlider(Qt::Horizontal), m_setting(setting)
+    : ToolTipSlider(Qt::Horizontal), m_setting(setting)
 {
   setMinimum(minimum);
   setMaximum(maximum);
