@@ -167,6 +167,8 @@ bool HasValidCodeSignature()
   {
     NSString* error_str = [NSString stringWithFormat:@"Entitlement data parsing failed with error \"%@\".", [ent_error localizedDescription]];
     SetJitAcquisitionErrorMessage((char*)FoundationToCString(error_str));
+    
+    return false;
   }
   
   if (![[entitlements objectForKey:@"get-task-allow"] boolValue])
