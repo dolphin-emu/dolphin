@@ -39,8 +39,13 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceVie
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.Log;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -337,6 +342,22 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     notifyItemRangeChanged(0, getItemCount());
     mView.onSettingChanged();
+  }
+
+  public static void clearLog()
+  {
+    // Don't delete the log in case it is being monitored by another app.
+    File log = new File(DirectoryInitialization.getUserDirectory() + "/Logs/dolphin.log");
+
+    try
+    {
+      RandomAccessFile raf = new RandomAccessFile(log, "rw");
+      raf.setLength(0);
+    }
+    catch (IOException e)
+    {
+      Log.error("[SettingsAdapter] Failed to clear log file: " + e.getMessage());
+    }
   }
 
   private void handleMenuTag(MenuTag menuTag, int value)

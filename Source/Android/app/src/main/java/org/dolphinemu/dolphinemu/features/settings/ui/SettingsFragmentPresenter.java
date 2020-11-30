@@ -638,6 +638,8 @@ public final class SettingsFragmentPresenter
             () -> mView.getAdapter().setAllLogTypes(true)));
     sl.add(new RunRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation, 0,
             () -> mView.getAdapter().setAllLogTypes(false)));
+    sl.add(new RunRunnable(R.string.log_clear, 0, R.string.log_clear_confirmation, 0,
+            SettingsAdapter::clearLog));
 
     sl.add(new HeaderSetting(R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
