@@ -375,6 +375,8 @@ public final class NativeLibrary
    */
   public static native void ReportStartToAnalytics();
 
+  public static native void GenerateNewStatisticsId();
+
   /**
    * Begins emulation.
    */

@@ -469,6 +469,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartT
   DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GenerateNewStatisticsId(JNIEnv*,
+                                                                                            jclass)
+{
+  DolphinAnalytics::Instance().GenerateNewIdentity();
+}
+
 // Returns the scale factor for imgui rendering.
 // Based on the scaledDensity of the device's display metrics.
 static float GetRenderSurfaceScale(JNIEnv* env)

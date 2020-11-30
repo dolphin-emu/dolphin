@@ -238,6 +238,8 @@ public final class SettingsFragmentPresenter
     sl.add(new PercentSliderSetting(FloatSetting.MAIN_EMULATION_SPEED, R.string.speed_limit, 0, 0,
             200, "%"));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics, 0));
+    sl.add(new RunRunnable(R.string.analytics_new_id, 0, R.string.analytics_new_id_confirmation, 0,
+            NativeLibrary::GenerateNewStatisticsId));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ENABLE_SAVESTATES, R.string.enable_save_states,
             R.string.enable_save_states_description));
   }
