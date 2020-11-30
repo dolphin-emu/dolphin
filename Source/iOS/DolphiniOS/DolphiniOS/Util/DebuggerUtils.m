@@ -116,7 +116,7 @@ bool SetProcessDebuggedWithJailbreakd()
   }
   
   // Load the function
-  typedef void (*entitle_now_ptr)(pid_t pid, uint32_t flags);
+  typedef int (*entitle_now_ptr)(pid_t pid, uint32_t flags);
   entitle_now_ptr ptr = (entitle_now_ptr)dlsym(dylib_handle, "jb_oneshot_entitle_now");
   
   if (!ptr)
@@ -127,11 +127,18 @@ bool SetProcessDebuggedWithJailbreakd()
   }
   
   // Go!
-  ptr(getpid(), FLAG_PLATFORMIZE);
+  int ret = ptr(getpid(), FLAG_PLATFORMIZE);
+  if (ret)
+  {
+    char error[128];
+    sprintf(error, "jb_oneshot_entitle_now failed with error code %d.", ret);
+    
+    SetJitAcquisitionErrorMessage(error);
+  }
   
   dlclose(dylib_handle);
   
-  return true;
+  return !ret;
 }
 
 bool SetProcessDebuggedWithPTrace()
