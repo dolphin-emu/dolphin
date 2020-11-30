@@ -41,7 +41,7 @@ bool WaitUntilProcessDebugged(int timeout)
     
     time_left--;
     
-    usleep(1000000 * timeout);
+    usleep(1000000);
   }
   
   return is_debugged;
