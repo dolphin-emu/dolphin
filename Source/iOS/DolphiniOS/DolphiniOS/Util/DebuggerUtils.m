@@ -127,21 +127,11 @@ bool SetProcessDebuggedWithJailbreakd()
   }
   
   // Go!
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
-  {
-    ptr(getpid(), FLAG_PLATFORMIZE);
-  });
-
-  // Wait until CS_DEBUGGED is set
-  bool success = WaitUntilProcessDebugged(5);
-  if (!success)
-  {
-    SetJitAcquisitionErrorMessage("jb_oneshot_entitle_now timed out");
-  }
+  ptr(getpid(), FLAG_PLATFORMIZE);
   
   dlclose(dylib_handle);
   
-  return success;
+  return true;
 }
 
 bool SetProcessDebuggedWithPTrace()
