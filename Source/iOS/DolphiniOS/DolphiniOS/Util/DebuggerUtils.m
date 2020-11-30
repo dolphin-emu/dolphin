@@ -127,18 +127,11 @@ bool SetProcessDebuggedWithJailbreakd()
   }
   
   // Go!
-  int ret = ptr(getpid(), FLAG_PLATFORMIZE);
-  if (ret)
-  {
-    char error[128];
-    sprintf(error, "jb_oneshot_entitle_now failed with error code %d.", ret);
-    
-    SetJitAcquisitionErrorMessage(error);
-  }
+  ptr(getpid(), FLAG_PLATFORMIZE);
   
   dlclose(dylib_handle);
   
-  return !ret;
+  return true;
 }
 
 bool SetProcessDebuggedWithPTrace()
