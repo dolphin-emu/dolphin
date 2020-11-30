@@ -276,44 +276,39 @@ void GeneralWidget::AddDescriptions()
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_backend_combo->SetTitle(tr("Backend"));
-  m_backend_combo->SetDescription(QString::fromStdString(TR_BACKEND_DESCRIPTION));
+  m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
 
   m_adapter_combo->SetTitle(tr("Adapter"));
-  m_adapter_combo->SetDescription(QString::fromStdString(TR_ADAPTER_DESCRIPTION));
+  m_adapter_combo->SetDescription(tr(TR_ADAPTER_DESCRIPTION));
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
-  m_aspect_combo->SetDescription(QString::fromStdString(TR_ASPECT_RATIO_DESCRIPTION));
+  m_aspect_combo->SetDescription(tr(TR_ASPECT_RATIO_DESCRIPTION));
 
-  m_enable_vsync->SetDescription(QString::fromStdString(TR_VSYNC_DESCRIPTION));
+  m_enable_vsync->SetDescription(tr(TR_VSYNC_DESCRIPTION));
 
-  m_enable_fullscreen->SetDescription(QString::fromStdString(TR_FULLSCREEN_DESCRIPTION));
+  m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
 
-  m_show_fps->SetDescription(QString::fromStdString(TR_SHOW_FPS_DESCRIPTION));
+  m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
 
-  m_show_ping->SetDescription(QString::fromStdString(TR_SHOW_NETPLAY_PING_DESCRIPTION));
+  m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
 
-  m_log_render_time->SetDescription(QString::fromStdString(TR_LOG_RENDERTIME_DESCRIPTION));
+  m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
 
-  m_autoadjust_window_size->SetDescription(QString::fromStdString(TR_AUTOSIZE_DESCRIPTION));
+  m_autoadjust_window_size->SetDescription(tr(TR_AUTOSIZE_DESCRIPTION));
 
-  m_show_messages->SetDescription(QString::fromStdString(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
+  m_show_messages->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
 
-  m_render_main_window->SetDescription(QString::fromStdString(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
+  m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
 
-  m_shader_compilation_mode[0]->SetDescription(
-      QString::fromStdString(TR_SHADER_COMPILE_SYNC_DESCRIPTION));
+  m_shader_compilation_mode[0]->SetDescription(tr(TR_SHADER_COMPILE_SYNC_DESCRIPTION));
 
-  m_shader_compilation_mode[1]->SetDescription(
-      QString::fromStdString(TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION));
+  m_shader_compilation_mode[1]->SetDescription(tr(TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION));
 
-  m_shader_compilation_mode[2]->SetDescription(
-      QString::fromStdString(TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION));
+  m_shader_compilation_mode[2]->SetDescription(tr(TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION));
 
-  m_shader_compilation_mode[3]->SetDescription(
-      QString::fromStdString(TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION));
+  m_shader_compilation_mode[3]->SetDescription(tr(TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION));
 
-  m_wait_for_shaders->SetDescription(
-      QString::fromStdString(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
+  m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
 }
 
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
