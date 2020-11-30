@@ -180,12 +180,12 @@ void SoftwareRendererWidget::AddDescriptions()
       "this unchecked.</dolphin_emphasis>");
 
   m_backend_combo->SetTitle(tr("Backend"));
-  m_backend_combo->SetDescription(QString::fromStdString(TR_BACKEND_DESCRIPTION));
-  m_show_statistics->SetDescription(QString::fromStdString(TR_SHOW_STATISTICS_DESCRIPTION));
-  m_dump_textures->SetDescription(QString::fromStdString(TR_DUMP_TEXTURES_DESCRIPTION));
-  m_dump_objects->SetDescription(QString::fromStdString(TR_DUMP_OBJECTS_DESCRIPTION));
-  m_dump_tev_stages->SetDescription(QString::fromStdString(TR_DUMP_TEV_STAGES_DESCRIPTION));
-  m_dump_tev_fetches->SetDescription(QString::fromStdString(TR_DUMP_TEV_FETCHES_DESCRIPTION));
+  m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
+  m_show_statistics->SetDescription(tr(TR_SHOW_STATISTICS_DESCRIPTION));
+  m_dump_textures->SetDescription(tr(TR_DUMP_TEXTURES_DESCRIPTION));
+  m_dump_objects->SetDescription(tr(TR_DUMP_OBJECTS_DESCRIPTION));
+  m_dump_tev_stages->SetDescription(tr(TR_DUMP_TEV_STAGES_DESCRIPTION));
+  m_dump_tev_fetches->SetDescription(tr(TR_DUMP_TEV_FETCHES_DESCRIPTION));
 }
 
 void SoftwareRendererWidget::OnEmulationStateChanged(bool running)

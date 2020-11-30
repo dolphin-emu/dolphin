@@ -278,23 +278,20 @@ void HacksWidget::AddDescriptions()
       "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
 
-  m_skip_efb_cpu->SetDescription(QString::fromStdString(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
-  m_ignore_format_changes->SetDescription(
-      QString::fromStdString(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
-  m_store_efb_copies->SetDescription(QString::fromStdString(TR_STORE_EFB_TO_TEXTURE_DESCRIPTION));
-  m_defer_efb_copies->SetDescription(QString::fromStdString(TR_DEFER_EFB_COPIES_DESCRIPTION));
+  m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
+  m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
+  m_store_efb_copies->SetDescription(tr(TR_STORE_EFB_TO_TEXTURE_DESCRIPTION));
+  m_defer_efb_copies->SetDescription(tr(TR_DEFER_EFB_COPIES_DESCRIPTION));
   m_accuracy->SetTitle(tr("Texture Cache Accuracy"));
-  m_accuracy->SetDescription(QString::fromStdString(TR_ACCUARCY_DESCRIPTION));
-  m_store_xfb_copies->SetDescription(QString::fromStdString(TR_STORE_XFB_TO_TEXTURE_DESCRIPTION));
-  m_immediate_xfb->SetDescription(QString::fromStdString(TR_IMMEDIATE_XFB_DESCRIPTION));
-  m_skip_duplicate_xfbs->SetDescription(QString::fromStdString(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));
-  m_gpu_texture_decoding->SetDescription(QString::fromStdString(TR_GPU_DECODING_DESCRIPTION));
-  m_fast_depth_calculation->SetDescription(QString::fromStdString(TR_FAST_DEPTH_CALC_DESCRIPTION));
-  m_disable_bounding_box->SetDescription(
-      QString::fromStdString(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
-  m_save_texture_cache_state->SetDescription(
-      QString::fromStdString(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
-  m_vertex_rounding->SetDescription(QString::fromStdString(TR_VERTEX_ROUNDING_DESCRIPTION));
+  m_accuracy->SetDescription(tr(TR_ACCUARCY_DESCRIPTION));
+  m_store_xfb_copies->SetDescription(tr(TR_STORE_XFB_TO_TEXTURE_DESCRIPTION));
+  m_immediate_xfb->SetDescription(tr(TR_IMMEDIATE_XFB_DESCRIPTION));
+  m_skip_duplicate_xfbs->SetDescription(tr(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));
+  m_gpu_texture_decoding->SetDescription(tr(TR_GPU_DECODING_DESCRIPTION));
+  m_fast_depth_calculation->SetDescription(tr(TR_FAST_DEPTH_CALC_DESCRIPTION));
+  m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
+  m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
+  m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()

@@ -312,36 +312,29 @@ void AdvancedWidget::AddDescriptions()
       "unchecked.</dolphin_emphasis>");
 #endif
 
-  m_enable_wireframe->SetDescription(QString::fromStdString(TR_WIREFRAME_DESCRIPTION));
-  m_show_statistics->SetDescription(QString::fromStdString(TR_SHOW_STATS_DESCRIPTION));
-  m_enable_format_overlay->SetDescription(QString::fromStdString(TR_TEXTURE_FORMAT_DESCRIPTION));
-  m_enable_api_validation->SetDescription(QString::fromStdString(TR_VALIDATION_LAYER_DESCRIPTION));
-  m_dump_textures->SetDescription(QString::fromStdString(TR_DUMP_TEXTURE_DESCRIPTION));
-  m_dump_mip_textures->SetDescription(QString::fromStdString(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
-  m_dump_base_textures->SetDescription(QString::fromStdString(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
-  m_load_custom_textures->SetDescription(
-      QString::fromStdString(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
-  m_prefetch_custom_textures->SetDescription(
-      QString::fromStdString(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
-  m_dump_efb_target->SetDescription(QString::fromStdString(TR_DUMP_EFB_DESCRIPTION));
-  m_disable_vram_copies->SetDescription(QString::fromStdString(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
-  m_use_fullres_framedumps->SetDescription(
-      QString::fromStdString(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
+  m_enable_wireframe->SetDescription(tr(TR_WIREFRAME_DESCRIPTION));
+  m_show_statistics->SetDescription(tr(TR_SHOW_STATS_DESCRIPTION));
+  m_enable_format_overlay->SetDescription(tr(TR_TEXTURE_FORMAT_DESCRIPTION));
+  m_enable_api_validation->SetDescription(tr(TR_VALIDATION_LAYER_DESCRIPTION));
+  m_dump_textures->SetDescription(tr(TR_DUMP_TEXTURE_DESCRIPTION));
+  m_dump_mip_textures->SetDescription(tr(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
+  m_dump_base_textures->SetDescription(tr(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
+  m_load_custom_textures->SetDescription(tr(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
+  m_prefetch_custom_textures->SetDescription(tr(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
+  m_dump_efb_target->SetDescription(tr(TR_DUMP_EFB_DESCRIPTION));
+  m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
+  m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
 #ifdef HAVE_FFMPEG
-  m_dump_use_ffv1->SetDescription(QString::fromStdString(TR_USE_FFV1_DESCRIPTION));
+  m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif
-  m_enable_cropping->SetDescription(QString::fromStdString(TR_CROPPING_DESCRIPTION));
-  m_enable_prog_scan->SetDescription(QString::fromStdString(TR_PROGRESSIVE_SCAN_DESCRIPTION));
-  m_enable_freelook->SetDescription(QString::fromStdString(TR_FREE_LOOK_DESCRIPTION));
+  m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
+  m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
+  m_enable_freelook->SetDescription(tr(TR_FREE_LOOK_DESCRIPTION));
   m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
-  m_freelook_control_type->SetDescription(
-      QString::fromStdString(TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION));
-  m_backend_multithreading->SetDescription(
-      QString::fromStdString(TR_BACKEND_MULTITHREADING_DESCRIPTION));
+  m_freelook_control_type->SetDescription(tr(TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION));
+  m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
 #ifdef _WIN32
-  m_borderless_fullscreen->SetDescription(
-      QString::fromStdString(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
+  m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
-  m_defer_efb_access_invalidation->SetDescription(
-      QString::fromStdString(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
+  m_defer_efb_access_invalidation->SetDescription(tr(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
 }

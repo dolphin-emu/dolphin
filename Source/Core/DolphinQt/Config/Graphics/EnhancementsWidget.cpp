@@ -374,45 +374,43 @@ void EnhancementsWidget::AddDescriptions()
       "checked.</dolphin_emphasis>");
 
   m_ir_combo->SetTitle(tr("Internal Resolution"));
-  m_ir_combo->SetDescription(QString::fromStdString(TR_INTERNAL_RESOLUTION_DESCRIPTION));
+  m_ir_combo->SetDescription(tr(TR_INTERNAL_RESOLUTION_DESCRIPTION));
 
   m_aa_combo->SetTitle(tr("Anti-Aliasing"));
-  m_aa_combo->SetDescription(QString::fromStdString(TR_ANTIALIAS_DESCRIPTION));
+  m_aa_combo->SetDescription(tr(TR_ANTIALIAS_DESCRIPTION));
 
   m_af_combo->SetTitle(tr("Anisotropic Filtering"));
-  m_af_combo->SetDescription(QString::fromStdString(TR_ANISOTROPIC_FILTERING_DESCRIPTION));
+  m_af_combo->SetDescription(tr(TR_ANISOTROPIC_FILTERING_DESCRIPTION));
 
   m_pp_effect->SetTitle(tr("Post-Processing Effect"));
-  m_pp_effect->SetDescription(QString::fromStdString(TR_POSTPROCESSING_DESCRIPTION));
+  m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
 
-  m_scaled_efb_copy->SetDescription(QString::fromStdString(TR_SCALED_EFB_COPY_DESCRIPTION));
+  m_scaled_efb_copy->SetDescription(tr(TR_SCALED_EFB_COPY_DESCRIPTION));
 
-  m_per_pixel_lighting->SetDescription(QString::fromStdString(TR_PER_PIXEL_LIGHTING_DESCRIPTION));
+  m_per_pixel_lighting->SetDescription(tr(TR_PER_PIXEL_LIGHTING_DESCRIPTION));
 
-  m_widescreen_hack->SetDescription(QString::fromStdString(TR_WIDESCREEN_HACK_DESCRIPTION));
+  m_widescreen_hack->SetDescription(tr(TR_WIDESCREEN_HACK_DESCRIPTION));
 
-  m_disable_fog->SetDescription(QString::fromStdString(TR_REMOVE_FOG_DESCRIPTION));
+  m_disable_fog->SetDescription(tr(TR_REMOVE_FOG_DESCRIPTION));
 
-  m_force_24bit_color->SetDescription(QString::fromStdString(TR_FORCE_24BIT_DESCRIPTION));
+  m_force_24bit_color->SetDescription(tr(TR_FORCE_24BIT_DESCRIPTION));
 
-  m_force_texture_filtering->SetDescription(
-      QString::fromStdString(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
+  m_force_texture_filtering->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
 
-  m_disable_copy_filter->SetDescription(QString::fromStdString(TR_DISABLE_COPY_FILTER_DESCRIPTION));
+  m_disable_copy_filter->SetDescription(tr(TR_DISABLE_COPY_FILTER_DESCRIPTION));
 
-  m_arbitrary_mipmap_detection->SetDescription(
-      QString::fromStdString(TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION));
+  m_arbitrary_mipmap_detection->SetDescription(tr(TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION));
 
   m_3d_mode->SetTitle(tr("Stereoscopic 3D Mode"));
-  m_3d_mode->SetDescription(QString::fromStdString(TR_3D_MODE_DESCRIPTION));
+  m_3d_mode->SetDescription(tr(TR_3D_MODE_DESCRIPTION));
 
   m_3d_depth->SetTitle(tr("Depth"));
-  m_3d_depth->SetDescription(QString::fromStdString(TR_3D_DEPTH_DESCRIPTION));
+  m_3d_depth->SetDescription(tr(TR_3D_DEPTH_DESCRIPTION));
 
   m_3d_convergence->SetTitle(tr("Convergence"));
-  m_3d_convergence->SetDescription(QString::fromStdString(TR_3D_CONVERGENCE_DESCRIPTION));
+  m_3d_convergence->SetDescription(tr(TR_3D_CONVERGENCE_DESCRIPTION));
 
-  m_3d_swap_eyes->SetDescription(QString::fromStdString(TR_3D_SWAP_EYES_DESCRIPTION));
+  m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
 }
 
 void EnhancementsWidget::ConfigurePostProcessingShader()
