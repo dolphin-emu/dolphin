@@ -126,7 +126,7 @@ u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 
   case AbstractTextureFormat::D32F_S8:
     return static_cast<size_t>(row_length) * 8;
   default:
-    PanicAlert("Unhandled texture format.");
+    PanicAlertFmt("Unhandled texture format.");
     return 0;
   }
 }
@@ -153,7 +153,7 @@ u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::D32F_S8:
     return 8;
   default:
-    PanicAlert("Unhandled texture format.");
+    PanicAlertFmt("Unhandled texture format.");
     return 0;
   }
 }

@@ -15,12 +15,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
-#define CHECK(cond, Message, ...)                                                                  \
-  if (!(cond))                                                                                     \
-  {                                                                                                \
-    PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__, __VA_ARGS__); \
-  }
-
 namespace DX11
 {
 using Microsoft::WRL::ComPtr;

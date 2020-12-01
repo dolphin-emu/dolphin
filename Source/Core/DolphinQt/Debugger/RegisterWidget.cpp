@@ -41,10 +41,10 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
 
-  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsRegistersVisible());
   });
 }
@@ -101,6 +101,7 @@ void RegisterWidget::ConnectWidgets()
   connect(m_table, &QTableWidget::customContextMenuRequested, this,
           &RegisterWidget::ShowContextMenu);
   connect(m_table, &QTableWidget::itemChanged, this, &RegisterWidget::OnItemChanged);
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &QWidget::setFont);
 }
 
 void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
@@ -242,7 +243,10 @@ void RegisterWidget::PopulateTable()
         [i](u64 value) { rPS(i).SetPS1(value); });
   }
 
-  for (int i = 0; i < 8; i++)
+  // The IBAT and DBAT registers have a large gap between
+  // registers 3 and 4 so we can't just use SPR_IBAT0U or
+  // SPR_DBAT0U as low-index the entire way
+  for (int i = 0; i < 4; i++)
   {
     // IBAT registers
     AddRegister(
@@ -252,6 +256,14 @@ void RegisterWidget::PopulateTable()
                  PowerPC::ppcState.spr[SPR_IBAT0L + i * 2];
         },
         nullptr);
+    AddRegister(
+        i + 4, 5, RegisterType::ibat, "IBAT" + std::to_string(4 + i),
+        [i] {
+          return (static_cast<u64>(PowerPC::ppcState.spr[SPR_IBAT4U + i * 2]) << 32) +
+                 PowerPC::ppcState.spr[SPR_IBAT4L + i * 2];
+        },
+        nullptr);
+
     // DBAT registers
     AddRegister(
         i + 8, 5, RegisterType::dbat, "DBAT" + std::to_string(i),
@@ -260,6 +272,17 @@ void RegisterWidget::PopulateTable()
                  PowerPC::ppcState.spr[SPR_DBAT0L + i * 2];
         },
         nullptr);
+    AddRegister(
+        i + 12, 5, RegisterType::dbat, "DBAT" + std::to_string(4 + i),
+        [i] {
+          return (static_cast<u64>(PowerPC::ppcState.spr[SPR_DBAT4U + i * 2]) << 32) +
+                 PowerPC::ppcState.spr[SPR_DBAT4L + i * 2];
+        },
+        nullptr);
+  }
+
+  for (int i = 0; i < 8; i++)
+  {
     // Graphics quantization registers
     AddRegister(
         i + 16, 7, RegisterType::gqr, "GQR" + std::to_string(i),

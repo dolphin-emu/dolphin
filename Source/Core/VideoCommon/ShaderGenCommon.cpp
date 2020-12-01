@@ -91,20 +91,20 @@ static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string
                                std::string_view type, std::string_view name, int var_index,
                                std::string_view semantic = {}, int semantic_index = -1)
 {
-  object.WriteFmt("\t{} {} {}", qualifier, type, name);
+  object.Write("\t{} {} {}", qualifier, type, name);
 
   if (var_index != -1)
-    object.WriteFmt("{}", var_index);
+    object.Write("{}", var_index);
 
   if (api_type == APIType::D3D && !semantic.empty())
   {
     if (semantic_index != -1)
-      object.WriteFmt(" : {}{}", semantic, semantic_index);
+      object.Write(" : {}{}", semantic, semantic_index);
     else
-      object.WriteFmt(" : {}", semantic);
+      object.Write(" : {}", semantic);
   }
 
-  object.WriteFmt(";\n");
+  object.Write(";\n");
 }
 
 void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
@@ -138,26 +138,26 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
 void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
                            const ShaderHostConfig& host_config)
 {
-  object.WriteFmt("\t{}.pos = {}.pos;\n", a, b);
-  object.WriteFmt("\t{}.colors_0 = {}.colors_0;\n", a, b);
-  object.WriteFmt("\t{}.colors_1 = {}.colors_1;\n", a, b);
+  object.Write("\t{}.pos = {}.pos;\n", a, b);
+  object.Write("\t{}.colors_0 = {}.colors_0;\n", a, b);
+  object.Write("\t{}.colors_1 = {}.colors_1;\n", a, b);
 
   for (unsigned int i = 0; i < texgens; ++i)
-    object.WriteFmt("\t{}.tex{} = {}.tex{};\n", a, i, b, i);
+    object.Write("\t{}.tex{} = {}.tex{};\n", a, i, b, i);
 
   if (!host_config.fast_depth_calc)
-    object.WriteFmt("\t{}.clipPos = {}.clipPos;\n", a, b);
+    object.Write("\t{}.clipPos = {}.clipPos;\n", a, b);
 
   if (host_config.per_pixel_lighting)
   {
-    object.WriteFmt("\t{}.Normal = {}.Normal;\n", a, b);
-    object.WriteFmt("\t{}.WorldPos = {}.WorldPos;\n", a, b);
+    object.Write("\t{}.Normal = {}.Normal;\n", a, b);
+    object.Write("\t{}.WorldPos = {}.WorldPos;\n", a, b);
   }
 
   if (host_config.backend_geometry_shaders)
   {
-    object.WriteFmt("\t{}.clipDist0 = {}.clipDist0;\n", a, b);
-    object.WriteFmt("\t{}.clipDist1 = {}.clipDist1;\n", a, b);
+    object.Write("\t{}.clipDist0 = {}.clipDist0;\n", a, b);
+    object.Write("\t{}.clipDist1 = {}.clipDist1;\n", a, b);
   }
 }
 

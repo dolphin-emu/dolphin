@@ -18,7 +18,10 @@ namespace IOS::HLE::Device
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
-USB_HIDv5::~USB_HIDv5() = default;
+USB_HIDv5::~USB_HIDv5()
+{
+  m_scan_thread.Stop();
+}
 
 IPCCommandResult USB_HIDv5::IOCtl(const IOCtlRequest& request)
 {

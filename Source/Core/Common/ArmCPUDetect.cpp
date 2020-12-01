@@ -9,7 +9,9 @@
 #include <thread>
 
 #ifndef _WIN32
+#ifndef __FreeBSD__
 #include <asm/hwcap.h>
+#endif
 #include <sys/auxv.h>
 #include <unistd.h>
 #endif
@@ -87,7 +89,12 @@ void CPUInfo::Detect()
   num_cores = sysconf(_SC_NPROCESSORS_CONF);
   strncpy(cpu_string, GetCPUString().c_str(), sizeof(cpu_string));
 
+#ifdef __FreeBSD__
+  u_long hwcaps = 0;
+  elf_aux_info(AT_HWCAP, &hwcaps, sizeof(u_long));
+#else
   unsigned long hwcaps = getauxval(AT_HWCAP);
+#endif
   bFP = hwcaps & HWCAP_FP;
   bASIMD = hwcaps & HWCAP_ASIMD;
   bAES = hwcaps & HWCAP_AES;

@@ -8,10 +8,9 @@ import java.io.FileOutputStream;
 
 public final class CoverHelper
 {
-  private static String baseUrl = "https://art.gametdb.com/wii/cover/%s/%s.png";
-
   public static String buildGameTDBUrl(GameFile game, String region)
   {
+    String baseUrl = "https://art.gametdb.com/wii/cover/%s/%s.png";
     return String.format(baseUrl, region, game.getGameTdbId());
   }
 
@@ -69,9 +68,8 @@ public final class CoverHelper
       cover.compress(Bitmap.CompressFormat.PNG, 100, out);
       out.close();
     }
-    catch (Exception e)
+    catch (Exception ignored)
     {
-      // Do nothing
     }
   }
 }

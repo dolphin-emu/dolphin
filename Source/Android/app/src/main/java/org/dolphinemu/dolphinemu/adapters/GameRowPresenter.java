@@ -2,15 +2,14 @@ package org.dolphinemu.dolphinemu.adapters;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-
-import androidx.appcompat.app.AlertDialog;
-import androidx.leanback.widget.ImageCardView;
-import androidx.leanback.widget.Presenter;
-import androidx.fragment.app.FragmentActivity;
-import androidx.core.content.ContextCompat;
-
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+import androidx.leanback.widget.ImageCardView;
+import androidx.leanback.widget.Presenter;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
@@ -101,9 +100,7 @@ public final class GameRowPresenter extends Presenter
         return true;
       }
 
-      GamePropertiesDialog fragment =
-              GamePropertiesDialog.newInstance(holder.gameFile.getPath(), gameId,
-                      holder.gameFile.getPlatform());
+      GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile);
       ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
               .add(fragment, GamePropertiesDialog.TAG).commit();
 

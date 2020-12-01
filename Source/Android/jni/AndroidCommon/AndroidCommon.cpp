@@ -5,25 +5,29 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <jni.h>
 
+#include "Common/StringUtil.h"
+#include "jni/AndroidCommon/IDCache.h"
+
 std::string GetJString(JNIEnv* env, jstring jstr)
 {
-  std::string result = "";
-  if (!jstr)
-    return result;
-
-  const char* s = env->GetStringUTFChars(jstr, nullptr);
-  result = s;
-  env->ReleaseStringUTFChars(jstr, s);
-  return result;
+  const jchar* jchars = env->GetStringChars(jstr, nullptr);
+  const jsize length = env->GetStringLength(jstr);
+  const std::u16string_view string_view(reinterpret_cast<const char16_t*>(jchars), length);
+  const std::string converted_string = UTF16ToUTF8(string_view);
+  env->ReleaseStringChars(jstr, jchars);
+  return converted_string;
 }
 
 jstring ToJString(JNIEnv* env, const std::string& str)
 {
-  return env->NewStringUTF(str.c_str());
+  const std::u16string converted_string = UTF8ToUTF16(str);
+  return env->NewString(reinterpret_cast<const jchar*>(converted_string.data()),
+                        converted_string.size());
 }
 
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
@@ -36,4 +40,49 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
     result.push_back(GetJString(env, (jstring)env->GetObjectArrayElement(array, i)));
 
   return result;
+}
+
+int OpenAndroidContent(const std::string& uri, const std::string& mode)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  const jint fd = env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
+                                           IDCache::GetContentHandlerOpenFd(), ToJString(env, uri),
+                                           ToJString(env, mode));
+
+  // We can get an IllegalArgumentException when passing an invalid mode
+  if (env->ExceptionCheck())
+  {
+    env->ExceptionDescribe();
+    abort();
+  }
+
+  return fd;
+}
+
+bool DeleteAndroidContent(const std::string& uri)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticBooleanMethod(IDCache::GetContentHandlerClass(),
+                                      IDCache::GetContentHandlerDelete(), ToJString(env, uri));
+}
+
+int GetNetworkIpAddress()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
+                                  IDCache::GetNetworkHelperGetNetworkIpAddress());
+}
+
+int GetNetworkPrefixLength()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
+                                  IDCache::GetNetworkHelperGetNetworkPrefixLength());
+}
+
+int GetNetworkGateway()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
+                                  IDCache::GetNetworkHelperGetNetworkGateway());
 }

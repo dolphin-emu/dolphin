@@ -32,17 +32,6 @@
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
-static bool CompressCB(const std::string& text, float percent, void* ptr)
-{
-  if (ptr == nullptr)
-    return false;
-
-  auto* progress_dialog = static_cast<ParallelProgressDialog*>(ptr);
-
-  progress_dialog->SetValue(percent * 100);
-  return !progress_dialog->WasCanceled();
-}
-
 ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> files,
                              QWidget* parent)
     : QDialog(parent), m_files(std::move(files))
@@ -84,7 +73,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
   grid_layout->addWidget(m_scrub, 4, 1);
 
-  QPushButton* convert_button = new QPushButton(tr("Convert"));
+  QPushButton* convert_button = new QPushButton(tr("Convert..."));
 
   QVBoxLayout* options_layout = new QVBoxLayout;
   options_layout->addLayout(grid_layout);
@@ -195,8 +184,8 @@ void ConvertDialog::OnFormatChanged()
       constexpr int FALLBACK_BLOCK_SIZE = 0x4000;
       if (!block_size_ok(FALLBACK_BLOCK_SIZE))
       {
-        ERROR_LOG(MASTER_LOG, "Failed to find a block size which does not cause problems "
-                              "when decompressing using an old version of Dolphin");
+        ERROR_LOG_FMT(MASTER_LOG, "Failed to find a block size which does not cause problems "
+                                  "when decompressing using an old version of Dolphin");
       }
       AddToBlockSizeComboBox(FALLBACK_BLOCK_SIZE);
     }
@@ -463,15 +452,19 @@ void ConvertDialog::Convert()
     }
     else
     {
+      const auto callback = [&progress_dialog](const std::string& text, float percent) {
+        progress_dialog.SetValue(percent * 100);
+        return !progress_dialog.WasCanceled();
+      };
+
       std::future<bool> success;
 
       switch (format)
       {
       case DiscIO::BlobType::PLAIN:
         success = std::async(std::launch::async, [&] {
-          const bool good =
-              DiscIO::ConvertToPlain(blob_reader.get(), original_path, dst_path.toStdString(),
-                                     &CompressCB, &progress_dialog);
+          const bool good = DiscIO::ConvertToPlain(blob_reader.get(), original_path,
+                                                   dst_path.toStdString(), callback);
           progress_dialog.Reset();
           return good;
         });
@@ -479,10 +472,9 @@ void ConvertDialog::Convert()
 
       case DiscIO::BlobType::GCZ:
         success = std::async(std::launch::async, [&] {
-          const bool good =
-              DiscIO::ConvertToGCZ(blob_reader.get(), original_path, dst_path.toStdString(),
-                                   file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
-                                   block_size, &CompressCB, &progress_dialog);
+          const bool good = DiscIO::ConvertToGCZ(
+              blob_reader.get(), original_path, dst_path.toStdString(),
+              file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
           progress_dialog.Reset();
           return good;
         });
@@ -491,10 +483,10 @@ void ConvertDialog::Convert()
       case DiscIO::BlobType::WIA:
       case DiscIO::BlobType::RVZ:
         success = std::async(std::launch::async, [&] {
-          const bool good = DiscIO::ConvertToWIAOrRVZ(
-              blob_reader.get(), original_path, dst_path.toStdString(),
-              format == DiscIO::BlobType::RVZ, compression, compression_level, block_size,
-              &CompressCB, &progress_dialog);
+          const bool good =
+              DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
+                                        format == DiscIO::BlobType::RVZ, compression,
+                                        compression_level, block_size, callback);
           progress_dialog.Reset();
           return good;
         });

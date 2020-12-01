@@ -14,9 +14,9 @@ void Init();
 void Shutdown();
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-void EnableScreenSaver(unsigned long win, bool enable);
+void InhibitScreenSaver(unsigned long win, bool enable);
 #else
-void EnableScreenSaver(bool enable);
+void InhibitScreenSaver(bool enable);
 #endif
 
 // Calls std::locale::global, selecting a fallback locale if the

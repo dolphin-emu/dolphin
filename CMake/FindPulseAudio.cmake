@@ -6,7 +6,7 @@
 #
 # vim: expandtab sw=4 ts=4 sts=4:
 
-include(FindPkgConfig)
+find_package(PkgConfig QUIET)
 pkg_check_modules (PulseAudio_PKG QUIET libpulse)
 
 find_path(PulseAudio_INCLUDE_DIR NAMES pulse/pulseaudio.h

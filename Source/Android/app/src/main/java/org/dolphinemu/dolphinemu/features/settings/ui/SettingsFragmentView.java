@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.fragment.app.FragmentActivity;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 
@@ -23,18 +22,9 @@ public interface SettingsFragmentView
   void onSettingsFileLoaded(Settings settings);
 
   /**
-   * Pass a settings HashMap to the containing activity, so that it can
-   * share the HashMap with other SettingsFragments; useful so that rotations
-   * do not require an additional load operation.
+   * Pass an ArrayList of settings to the View so that it can be displayed on screen.
    *
-   * @param settings An ArrayList containing all the settings HashMaps.
-   */
-  void passSettingsToActivity(Settings settings);
-
-  /**
-   * Pass an ArrayList to the View so that it can be displayed on screen.
-   *
-   * @param settingsList The result of converting the HashMap to an ArrayList
+   * @param settingsList The settings to display
    */
   void showSettingsList(ArrayList<SettingsItem> settingsList);
 
@@ -48,6 +38,11 @@ public interface SettingsFragmentView
    * @return The Fragment's containing activity.
    */
   FragmentActivity getActivity();
+
+  /**
+   * @return The Fragment's SettingsAdapter.
+   */
+  SettingsAdapter getAdapter();
 
   /**
    * Tell the Fragment to tell the containing Activity to show a new
@@ -65,18 +60,14 @@ public interface SettingsFragmentView
   void showToastMessage(String message);
 
   /**
-   * Have the fragment add a setting to the HashMap.
-   *
-   * @param setting The (possibly previously missing) new setting.
+   * @return The backing settings store.
    */
-  void putSetting(Setting setting);
+  Settings getSettings();
 
   /**
    * Have the fragment tell the containing Activity that a setting was modified.
-   *
-   * @param key Key of the modified setting, potentially null for multiple settings.
    */
-  void onSettingChanged(String key);
+  void onSettingChanged();
 
   /**
    * Have the fragment tell the containing Activity that a GCPad's setting was modified.

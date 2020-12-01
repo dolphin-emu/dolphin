@@ -28,6 +28,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
@@ -228,8 +229,8 @@ void Init(const BootParameters& boot)
     md5thread.detach();
     if (strncmp(tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
-      PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)",
-                  tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str());
+      PanicAlertFmtT("The recorded game ({0}) is not the same as the selected game ({1})",
+                     tmpHeader.GetGameID(), SConfig::GetInstance().GetGameID());
       EndPlayInput(false);
     }
   }
@@ -369,9 +370,9 @@ void SignalDiscChange(const std::string& new_path)
     constexpr size_t maximum_length = sizeof(DTMHeader::discChange);
     if (filename.length() > maximum_length)
     {
-      PanicAlertT("The disc change to \"%s\" could not be saved in the .dtm file.\n"
-                  "The filename of the disc image must not be longer than 40 characters.",
-                  filename.c_str());
+      PanicAlertFmtT("The disc change to \"{0}\" could not be saved in the .dtm file.\n"
+                     "The filename of the disc image must not be longer than 40 characters.",
+                     filename);
     }
     s_discChange = filename;
     s_bDiscChange = true;
@@ -884,7 +885,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 
   if (!IsMovieHeader(tmpHeader.filetype))
   {
-    PanicAlertT("Invalid recording file");
+    PanicAlertFmtT("Invalid recording file");
     return false;
   }
 
@@ -941,7 +942,7 @@ void LoadInput(const std::string& movie_path)
   File::IOFile t_record;
   if (!t_record.Open(movie_path, "r+b"))
   {
-    PanicAlertT("Failed to read %s", movie_path.c_str());
+    PanicAlertFmtT("Failed to read {0}", movie_path);
     EndPlayInput(false);
     return;
   }
@@ -950,7 +951,7 @@ void LoadInput(const std::string& movie_path)
 
   if (!IsMovieHeader(tmpHeader.filetype))
   {
-    PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", movie_path.c_str());
+    PanicAlertFmtT("Savestate movie {0} is corrupted, movie recording stopping...", movie_path);
     EndPlayInput(false);
     return;
   }
@@ -973,10 +974,10 @@ void LoadInput(const std::string& movie_path)
   // This can only happen if the user manually deletes data from the dtm.
   if (s_currentByte > totalSavedBytes)
   {
-    PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save "
-                "(byte %u < %u) (frame %u < %u). You should load another save before continuing.",
-                (u32)totalSavedBytes + 256, (u32)s_currentByte + 256, (u32)tmpHeader.frameCount,
-                (u32)s_currentFrame);
+    PanicAlertFmtT(
+        "Warning: You loaded a save whose movie ends before the current frame in the save "
+        "(byte {0} < {1}) (frame {2} < {3}). You should load another save before continuing.",
+        totalSavedBytes + 256, s_currentByte + 256, tmpHeader.frameCount, s_currentFrame);
     afterEnd = true;
   }
 
@@ -998,11 +999,11 @@ void LoadInput(const std::string& movie_path)
     else if (s_currentByte > s_temp_input.size())
     {
       afterEnd = true;
-      PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u "
-                  "> %zu) (input %u > %u). You should load another save before continuing, or load "
-                  "this state with read-only mode off.",
-                  (u32)s_currentByte + 256, s_temp_input.size() + 256, (u32)s_currentInputCount,
-                  (u32)s_totalInputCount);
+      PanicAlertFmtT(
+          "Warning: You loaded a save that's after the end of the current movie. (byte {0} "
+          "> {1}) (input {2} > {3}). You should load another save before continuing, or load "
+          "this state with read-only mode off.",
+          s_currentByte + 256, s_temp_input.size() + 256, s_currentInputCount, s_totalInputCount);
     }
     else if (s_currentByte > 0 && !s_temp_input.empty())
     {
@@ -1024,10 +1025,10 @@ void LoadInput(const std::string& movie_path)
           const size_t byte_offset = static_cast<size_t>(mismatch_index) + sizeof(DTMHeader);
 
           // TODO: more detail
-          PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). "
-                      "You should load another save before continuing, or load this state with "
-                      "read-only mode off. Otherwise you'll probably get a desync.",
-                      byte_offset, byte_offset);
+          PanicAlertFmtT("Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). "
+                         "You should load another save before continuing, or load this state with "
+                         "read-only mode off. Otherwise you'll probably get a desync.",
+                         byte_offset, byte_offset);
 
           std::copy(movInput.begin(), movInput.end(), s_temp_input.begin());
         }
@@ -1040,33 +1041,32 @@ void LoadInput(const std::string& movie_path)
           ControllerState movPadState;
           memcpy(&movPadState, &s_temp_input[frame * sizeof(ControllerState)],
                  sizeof(ControllerState));
-          PanicAlertT(
-              "Warning: You loaded a save whose movie mismatches on frame %td. You should load "
+          PanicAlertFmtT(
+              "Warning: You loaded a save whose movie mismatches on frame {0}. You should load "
               "another save before continuing, or load this state with read-only mode off. "
               "Otherwise you'll probably get a desync.\n\n"
-              "More information: The current movie is %d frames long and the savestate's movie "
-              "is %d frames long.\n\n"
-              "On frame %td, the current movie presses:\n"
-              "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
-              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d"
+              "More information: The current movie is {1} frames long and the savestate's movie "
+              "is {2} frames long.\n\n"
+              "On frame {3}, the current movie presses:\n"
+              "Start={4}, A={5}, B={6}, X={7}, Y={8}, Z={9}, DUp={10}, DDown={11}, DLeft={12}, "
+              "DRight={13}, L={14}, R={15}, LT={16}, RT={17}, AnalogX={18}, AnalogY={19}, CX={20}, "
+              "CY={21}, Connected={22}"
               "\n\n"
-              "On frame %td, the savestate's movie presses:\n"
-              "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
-              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d",
-              frame, (int)s_totalFrames, (int)tmpHeader.frameCount, frame, (int)curPadState.Start,
-              (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y,
-              (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown,
-              (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L,
-              (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR,
-              (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY,
-              (int)curPadState.CStickX, (int)curPadState.CStickY, (int)curPadState.is_connected,
-              frame, (int)movPadState.Start, (int)movPadState.A, (int)movPadState.B,
-              (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp,
-              (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight,
-              (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL,
-              (int)movPadState.TriggerR, (int)movPadState.AnalogStickX,
-              (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY,
-              (int)curPadState.is_connected);
+              "On frame {23}, the savestate's movie presses:\n"
+              "Start={24}, A={25}, B={26}, X={27}, Y={28}, Z={29}, DUp={30}, DDown={31}, "
+              "DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
+              "AnalogY={39}, CX={40}, CY={41}, Connected={42}",
+              frame, s_totalFrames, tmpHeader.frameCount, frame, curPadState.Start, curPadState.A,
+              curPadState.B, curPadState.X, curPadState.Y, curPadState.Z, curPadState.DPadUp,
+              curPadState.DPadDown, curPadState.DPadLeft, curPadState.DPadRight, curPadState.L,
+              curPadState.R, curPadState.TriggerL, curPadState.TriggerR, curPadState.AnalogStickX,
+              curPadState.AnalogStickY, curPadState.CStickX, curPadState.CStickY,
+              curPadState.is_connected, frame, movPadState.Start, movPadState.A, movPadState.B,
+              movPadState.X, movPadState.Y, movPadState.Z, movPadState.DPadUp, movPadState.DPadDown,
+              movPadState.DPadLeft, movPadState.DPadRight, movPadState.L, movPadState.R,
+              movPadState.TriggerL, movPadState.TriggerR, movPadState.AnalogStickX,
+              movPadState.AnalogStickY, movPadState.CStickX, movPadState.CStickY,
+              curPadState.is_connected);
         }
       }
     }
@@ -1122,8 +1122,8 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 
   if (s_currentByte + sizeof(ControllerState) > s_temp_input.size())
   {
-    PanicAlertT("Premature movie end in PlayController. %u + %zu > %zu", (u32)s_currentByte,
-                sizeof(ControllerState), s_temp_input.size());
+    PanicAlertFmtT("Premature movie end in PlayController. {0} + {1} > {2}", s_currentByte,
+                   sizeof(ControllerState), s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return;
   }
@@ -1187,7 +1187,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
       if (!DVDInterface::AutoChangeDisc())
       {
         CPU::Break();
-        PanicAlertT("Change the disc to %s", s_discChange.c_str());
+        PanicAlertFmtT("Change the disc to {0}", s_discChange);
       }
     });
   }
@@ -1208,8 +1208,8 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
 
   if (s_currentByte > s_temp_input.size())
   {
-    PanicAlertT("Premature movie end in PlayWiimote. %u > %zu", (u32)s_currentByte,
-                s_temp_input.size());
+    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} > {1}", s_currentByte,
+                   s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return false;
   }
@@ -1219,12 +1219,12 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
 
   if (size != sizeInMovie)
   {
-    PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s",
-                (u32)sizeInMovie, (u32)size, (u32)s_currentByte,
-                (s_controllers & 0xF) ?
-                    " Try re-creating the recording with all GameCube controllers "
-                    "disabled (in Configure > GameCube > Device Settings)." :
-                    "");
+    PanicAlertFmtT(
+        "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte {2}.){3}",
+        sizeInMovie, size, s_currentByte,
+        (s_controllers & 0xF) ? " Try re-creating the recording with all GameCube controllers "
+                                "disabled (in Configure > GameCube > Device Settings)." :
+                                "");
     EndPlayInput(!s_bReadOnly);
     return false;
   }
@@ -1233,8 +1233,8 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
 
   if (s_currentByte + size > s_temp_input.size())
   {
-    PanicAlertT("Premature movie end in PlayWiimote. %u + %d > %zu", (u32)s_currentByte, size,
-                s_temp_input.size());
+    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", s_currentByte, size,
+                   s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return false;
   }

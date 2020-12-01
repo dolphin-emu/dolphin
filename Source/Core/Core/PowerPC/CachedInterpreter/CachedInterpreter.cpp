@@ -101,7 +101,7 @@ void CachedInterpreter::ExecuteOneBlock()
       break;
 
     default:
-      ERROR_LOG(POWERPC, "Unknown CachedInterpreter Instruction: %d", static_cast<int>(code->type));
+      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}", code->type);
       break;
     }
   }
@@ -192,9 +192,9 @@ static bool CheckIdle(u32 idle_pc)
 
 bool CachedInterpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [&](u32 function, HLE::HookType type) {
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
     m_code.emplace_back(WritePC, address);
-    m_code.emplace_back(Interpreter::HLEFunction, function);
+    m_code.emplace_back(Interpreter::HLEFunction, hook_index);
 
     if (type != HLE::HookType::Replace)
       return false;
@@ -220,7 +220,7 @@ void CachedInterpreter::Jit(u32 address)
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
-    WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
 

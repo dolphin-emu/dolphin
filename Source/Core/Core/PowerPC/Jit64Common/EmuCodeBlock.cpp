@@ -80,13 +80,16 @@ void EmuCodeBlock::MemoryExceptionCheck()
 void EmuCodeBlock::SwitchToFarCode()
 {
   m_near_code = GetWritableCodePtr();
-  SetCodePtr(m_far_code.GetWritableCodePtr());
+  m_near_code_end = GetWritableCodeEnd();
+  m_near_code_write_failed = HasWriteFailed();
+  SetCodePtr(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd(),
+             m_far_code.HasWriteFailed());
 }
 
 void EmuCodeBlock::SwitchToNearCode()
 {
-  m_far_code.SetCodePtr(GetWritableCodePtr());
-  SetCodePtr(m_near_code);
+  m_far_code.SetCodePtr(GetWritableCodePtr(), GetWritableCodeEnd(), HasWriteFailed());
+  SetCodePtr(m_near_code, m_near_code_end, m_near_code_write_failed);
 }
 
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,

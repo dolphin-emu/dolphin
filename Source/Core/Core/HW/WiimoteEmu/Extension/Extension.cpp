@@ -49,11 +49,6 @@ void None::Update()
   // Nothing needed.
 }
 
-bool None::IsButtonPressed() const
-{
-  return false;
-}
-
 void None::Reset()
 {
   // Nothing needed.

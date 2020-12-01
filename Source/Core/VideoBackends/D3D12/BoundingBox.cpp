@@ -148,7 +148,7 @@ void BoundingBox::Flush()
     const u32 copy_size = (end - start) * sizeof(ValueType);
     if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(ValueType)))
     {
-      WARN_LOG(VIDEO, "Executing command list while waiting for space in bbox stream buffer");
+      WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in bbox stream buffer");
       Renderer::GetInstance()->ExecuteCommandList(false);
       if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(ValueType)))
       {

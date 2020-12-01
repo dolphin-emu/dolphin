@@ -13,6 +13,8 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Slippi/SlippiPlayback.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -108,7 +110,7 @@ void AddMessage(std::string message, u32 ms, u32 rgba)
 
 void DrawMessages()
 {
-  const bool draw_messages = SConfig::GetInstance().bOnScreenDisplayMessages;
+  const bool draw_messages = Config::Get(Config::MAIN_OSD_MESSAGES);
   const u32 now = Common::Timer::GetTimeMs();
   const float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x;
   float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y;

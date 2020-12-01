@@ -41,13 +41,13 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
   // Init extension support.
   if (!GLExtensions::Init(m_gl_context.get()))
   {
-    ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
+    ERROR_LOG_FMT(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
     return false;
   }
   else if (GLExtensions::Version() < 310)
   {
-    ERROR_LOG(VIDEO, "OpenGL Version %d detected, but at least 3.1 is required.",
-              GLExtensions::Version());
+    ERROR_LOG_FMT(VIDEO, "OpenGL Version {} detected, but at least 3.1 is required.",
+                  GLExtensions::Version());
     return false;
   }
 

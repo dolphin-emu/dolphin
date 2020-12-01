@@ -119,12 +119,12 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
   auto it = UCODE_FLAGS.find(crc);
   if (it == UCODE_FLAGS.end())
-    PanicAlert("No flags definition found for Zelda CRC %08x", crc);
+    PanicAlertFmt("No flags definition found for Zelda CRC {:08x}", crc);
 
   m_flags = it->second;
   m_renderer.SetFlags(m_flags);
 
-  INFO_LOG(DSPHLE, "Zelda UCode loaded, crc=%08x, flags=%08x", crc, m_flags);
+  INFO_LOG_FMT(DSPHLE, "Zelda UCode loaded, crc={:08x}, flags={:08x}", crc, m_flags);
 }
 
 ZeldaUCode::~ZeldaUCode()
@@ -202,7 +202,7 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
     {
       if ((mail >> 16) != 0xCDD1)
       {
-        PanicAlert("Rendering end mail without prefix CDD1: %08x", mail);
+        PanicAlertFmt("Rendering end mail without prefix CDD1: {:08x}", mail);
       }
 
       switch (mail & 0xFFFF)
@@ -210,13 +210,13 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       case 1:
         m_cmd_can_execute = true;
         RunPendingCommands();
-        NOTICE_LOG(DSPHLE, "UCode being replaced.");
+        NOTICE_LOG_FMT(DSPHLE, "UCode being replaced.");
         m_upload_setup_in_progress = true;
         SetMailState(MailState::WAITING);
         break;
 
       case 2:
-        NOTICE_LOG(DSPHLE, "UCode being rebooted to ROM.");
+        NOTICE_LOG_FMT(DSPHLE, "UCode being rebooted to ROM.");
         SetMailState(MailState::HALTED);
         m_dsphle->SetUCode(UCODE_ROM);
         break;
@@ -227,9 +227,10 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
         break;
 
       default:
-        NOTICE_LOG(DSPHLE, "Unknown end rendering action. Halting.");
+        NOTICE_LOG_FMT(DSPHLE, "Unknown end rendering action. Halting.");
+        [[fallthrough]];
       case 0:
-        NOTICE_LOG(DSPHLE, "UCode asked to halt. Stopping any processing.");
+        NOTICE_LOG_FMT(DSPHLE, "UCode asked to halt. Stopping any processing.");
         SetMailState(MailState::HALTED);
         break;
       }
@@ -242,8 +243,8 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       }
       else
       {
-        NOTICE_LOG(DSPHLE, "Sync mail (%08x) received when rendering was not active. Halting.",
-                   mail);
+        NOTICE_LOG_FMT(DSPHLE,
+                       "Sync mail ({:08x}) received when rendering was not active. Halting.", mail);
         SetMailState(MailState::HALTED);
       }
     }
@@ -290,7 +291,7 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
     break;
 
   case MailState::HALTED:
-    WARN_LOG(DSPHLE, "Received mail %08x while we're halted.", mail);
+    WARN_LOG_FMT(DSPHLE, "Received mail {:08x} while we're halted.", mail);
     break;
   }
 }
@@ -302,8 +303,8 @@ void ZeldaUCode::HandleMailLight(u32 mail)
   switch (m_mail_current_state)
   {
   case MailState::WAITING:
-    if (!(mail & 0x80000000))
-      PanicAlert("Mail received in waiting state has MSB=0: %08x", mail);
+    if ((mail & 0x80000000) == 0)
+      PanicAlertFmt("Mail received in waiting state has MSB=0: {:08x}", mail);
 
     // Start of a command. We have to hardcode the number of mails required
     // for each command - the alternative is to rewrite command handling as
@@ -336,7 +337,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
       break;
 
     default:
-      PanicAlert("Received unknown command in light protocol: %08x", mail);
+      PanicAlertFmt("Received unknown command in light protocol: {:08x}", mail);
       break;
     }
     if (m_mail_expected_cmd_mails)
@@ -362,7 +363,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
 
   case MailState::RENDERING:
     if (mail != 0)
-      PanicAlert("Sync mail is not zero: %08x", mail);
+      PanicAlertFmt("Sync mail is not zero: {:08x}", mail);
 
     // No per-voice syncing in the light protocol.
     m_sync_max_voice_id = 0xFFFFFFFF;
@@ -372,14 +373,13 @@ void ZeldaUCode::HandleMailLight(u32 mail)
     break;
 
   case MailState::HALTED:
-    WARN_LOG(DSPHLE, "Received mail %08x while we're halted.", mail);
+    WARN_LOG_FMT(DSPHLE, "Received mail {:08x} while we're halted.", mail);
     break;
   }
 }
 
 void ZeldaUCode::SetMailState(MailState new_state)
 {
-  // WARN_LOG(DSPHLE, "MailState %d -> %d", m_mail_current_state, new_state);
   m_mail_current_state = new_state;
 }
 
@@ -387,7 +387,7 @@ u32 ZeldaUCode::Read32()
 {
   if (m_read_offset == m_write_offset)
   {
-    ERROR_LOG(DSPHLE, "Reading too many command params");
+    ERROR_LOG_FMT(DSPHLE, "Reading too many command params");
     return 0;
   }
 
@@ -413,13 +413,13 @@ void ZeldaUCode::RunPendingCommands()
 
   while (m_pending_commands_count)
   {
-    u32 cmd_mail = Read32();
-    if (!(cmd_mail & 0x80000000))
+    const u32 cmd_mail = Read32();
+    if ((cmd_mail & 0x80000000) == 0)
       continue;
 
-    u32 command = (cmd_mail >> 24) & 0x7f;
-    u32 sync = cmd_mail >> 16;
-    u32 extra_data = cmd_mail & 0xFFFF;
+    const u32 command = (cmd_mail >> 24) & 0x7f;
+    const u32 sync = cmd_mail >> 16;
+    const u32 extra_data = cmd_mail & 0xFFFF;
 
     m_pending_commands_count--;
 
@@ -431,7 +431,7 @@ void ZeldaUCode::RunPendingCommands()
     case 0x0F:
       // NOP commands. Log anyway in case we encounter a new version
       // where these are not NOPs anymore.
-      NOTICE_LOG(DSPHLE, "Received a NOP command: %d", command);
+      NOTICE_LOG_FMT(DSPHLE, "Received a NOP command: {}", command);
       SendCommandAck(CommandAck::STANDARD, sync);
       break;
 
@@ -440,7 +440,7 @@ void ZeldaUCode::RunPendingCommands()
       // since it's going directly back to the dispatcher with no ack.
       if (m_flags & LIGHT_PROTOCOL)
       {
-        PanicAlert("Received a 03 command on light protocol.");
+        PanicAlertFmt("Received a 03 command on light protocol.");
         break;
       }
       SendCommandAck(CommandAck::STANDARD, sync);
@@ -457,7 +457,7 @@ void ZeldaUCode::RunPendingCommands()
       //
       // TODO: These are not crashes on light protocol, however I've never seen
       // them used so far.
-      NOTICE_LOG(DSPHLE, "Received a crashy command: %d", command);
+      NOTICE_LOG_FMT(DSPHLE, "Received a crashy command: {}", command);
       SetMailState(MailState::HALTED);
       return;
 
@@ -547,12 +547,12 @@ void ZeldaUCode::RunPendingCommands()
       else if (m_flags & WEIRD_CMD_0C)
       {
         // TODO
-        NOTICE_LOG(DSPHLE, "Received an unhandled 0C command, params: %08x %08x", Read32(),
-                   Read32());
+        NOTICE_LOG_FMT(DSPHLE, "Received an unhandled 0C command, params: {:08x} {:08x}", Read32(),
+                       Read32());
       }
       else
       {
-        WARN_LOG(DSPHLE, "Received a NOP 0C command. Flags=%08x", m_flags);
+        WARN_LOG_FMT(DSPHLE, "Received a NOP 0C command. Flags={:08x}", m_flags);
       }
       SendCommandAck(CommandAck::STANDARD, sync);
       break;
@@ -561,12 +561,12 @@ void ZeldaUCode::RunPendingCommands()
     case 0x0D:
       if (m_flags & NO_CMD_0D)
       {
-        WARN_LOG(DSPHLE, "Received a 0D command which is NOP'd on this UCode.");
+        WARN_LOG_FMT(DSPHLE, "Received a 0D command which is NOP'd on this UCode.");
         SendCommandAck(CommandAck::STANDARD, sync);
         break;
       }
 
-      WARN_LOG(DSPHLE, "CMD0D: %08x", Read32());
+      WARN_LOG_FMT(DSPHLE, "CMD0D: {:08x}", Read32());
       SendCommandAck(CommandAck::STANDARD, sync);
       break;
 
@@ -574,14 +574,14 @@ void ZeldaUCode::RunPendingCommands()
     // because the Wii does not have an ARAM, so it simulates it with MRAM
     // and DMAs.
     case 0x0E:
-      if (!(m_flags & NO_ARAM))
-        PanicAlert("Setting base ARAM addr on non Wii DAC.");
+      if ((m_flags & NO_ARAM) == 0)
+        PanicAlertFmt("Setting base ARAM addr on non Wii DAC.");
       m_renderer.SetARAMBaseAddr(Read32());
       SendCommandAck(CommandAck::STANDARD, sync);
       break;
 
     default:
-      NOTICE_LOG(DSPHLE, "Received a non-existing command (%d), halting.", command);
+      NOTICE_LOG_FMT(DSPHLE, "Received a non-existing command ({}), halting.", command);
       SetMailState(MailState::HALTED);
       return;
     }
@@ -621,7 +621,7 @@ void ZeldaUCode::RenderAudio()
 {
   if (!RenderingInProgress())
   {
-    WARN_LOG(DSPHLE, "Trying to render audio while no rendering should be happening.");
+    WARN_LOG_FMT(DSPHLE, "Trying to render audio while no rendering should be happening.");
     return;
   }
 
@@ -980,7 +980,7 @@ void ZeldaAudioRenderer::PrepareFrame()
 // uses this AFAICT. PanicAlert to help me find places that use this.
 #ifdef STRICT_ZELDA_HLE
   if (!(m_flags & LIGHT_PROTOCOL) && (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0))
-    PanicAlert("Zelda HLE using back mixing buffers");
+    PanicAlertFmt("Zelda HLE using back mixing buffers");
 #endif
 
   // Add reverb data from previous frame.
@@ -1027,7 +1027,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
   if (!m_reverb_pb_base_addr)
   {
 #ifdef STRICT_ZELDA_HLE
-    PanicAlert("Trying to apply reverb without available parameters.");
+    PanicAlertFmt("Trying to apply reverb without available parameters.");
 #endif
     return;
   }
@@ -1102,7 +1102,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
         if (!dest_buffer)
         {
 #ifdef STRICT_ZELDA_HLE
-          PanicAlert("RPB mixing to an unknown buffer: %04x", dest.buffer_id);
+          PanicAlertFmt("RPB mixing to an unknown buffer: {:04x}", dest.buffer_id);
 #endif
           continue;
         }
@@ -1212,8 +1212,8 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> shift_factor;
 
     // Apply master volume to each quadrant.
-    for (size_t i = 0; i < 4; ++i)
-      quadrant_volumes[i] = (quadrant_volumes[i] * vpb.dolby_volume_current) >> shift_factor;
+    for (s16& quadrant_volume : quadrant_volumes)
+      quadrant_volume = (quadrant_volume * vpb.dolby_volume_current) >> shift_factor;
 
     // Compute reverb volume and ramp deltas.
     s16 reverb_volumes[4], reverb_volume_deltas[4];
@@ -1292,7 +1292,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       if (!dst_buffer)
       {
 #ifdef STRICT_ZELDA_HLE
-        PanicAlert("Mixing to an unmapped buffer: %04x", vpb.channels[i].id);
+        PanicAlertFmt("Mixing to an unmapped buffer: {:04x}", vpb.channels[i].id);
 #endif
         continue;
       }
@@ -1400,9 +1400,9 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     u32 mask = (1 << shift) - 1;
 
     u32 pos = vpb->current_pos_frac << shift;
-    for (size_t i = 0; i < buffer->size(); ++i)
+    for (s16& sample : *buffer)
     {
-      (*buffer)[i] = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
+      sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
       pos += vpb->resampling_ratio;
     }
     vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
@@ -1412,9 +1412,9 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   case VPB::SRC_SAW_WAVE:
   {
     u32 pos = vpb->current_pos_frac;
-    for (size_t i = 0; i < buffer->size(); ++i)
+    for (s16& sample : *buffer)
     {
-      (*buffer)[i] = pos & 0xFFFF;
+      sample = pos & 0xFFFF;
       pos += (vpb->resampling_ratio) >> 1;
     }
     vpb->current_pos_frac = pos & 0xFFFF;
@@ -1480,7 +1480,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     break;
 
   default:
-    PanicAlert("Using an unknown/unimplemented sample source: %04x", vpb->samples_source_type);
+    PanicAlertFmt("Using an unknown/unimplemented sample source: {:04x}", vpb->samples_source_type);
     buffer->fill(0);
     return;
   }
@@ -1758,10 +1758,9 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
     }
 
     s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
-    for (size_t i = 0; i < 16; ++i)
+    for (s16 nibble : nibbles)
     {
-      s32 sample =
-          delta * nibbles[i] + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
+      s32 sample = delta * nibble + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
       sample >>= 11;
       sample = std::clamp(sample, -0x8000, 0x7fff);
       *dst++ = (s16)sample;

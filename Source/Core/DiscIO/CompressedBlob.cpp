@@ -8,13 +8,13 @@
 #endif
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
 #include <zlib.h>
 
 #include "Common/Assert.h"
@@ -24,7 +24,6 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
@@ -84,7 +83,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
   else if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
   else
-    PanicAlert("GetBlockCompressedSize - illegal block number %i", (int)block_num);
+    PanicAlertFmt("{} - illegal block number {}", __func__, block_num);
   return 0;
 }
 
@@ -97,7 +96,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   if (offset & (1ULL << 63))
   {
     if (comp_block_size != m_header.block_size)
-      PanicAlert("Uncompressed block with wrong size");
+      PanicAlertFmt("Uncompressed block with wrong size");
     uncompressed = true;
     offset &= ~(1ULL << 63);
   }
@@ -108,18 +107,20 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   m_file.Seek(offset, SEEK_SET);
   if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
   {
-    PanicAlertT("The disc image \"%s\" is truncated, some of the data is missing.",
-                m_file_name.c_str());
+    PanicAlertFmtT("The disc image \"{0}\" is truncated, some of the data is missing.",
+                   m_file_name);
     m_file.Clear();
     return false;
   }
 
   // First, check hash.
-  u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
   if (block_hash != m_hashes[block_num])
-    PanicAlertT("The disc image \"%s\" is corrupt.\n"
-                "Hash of block %" PRIu64 " is %08x instead of %08x.",
-                m_file_name.c_str(), block_num, block_hash, m_hashes[block_num]);
+  {
+    PanicAlertFmtT("The disc image \"{0}\" is corrupt.\n"
+                   "Hash of block {1} is {2:08x} instead of {3:08x}.",
+                   m_file_name, block_num, block_hash, m_hashes[block_num]);
+  }
 
   if (uncompressed)
   {
@@ -132,7 +133,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     z.avail_in = comp_block_size;
     if (z.avail_in > m_header.block_size)
     {
-      PanicAlert("We have a problem");
+      PanicAlertFmt("We have a problem");
     }
     z.next_out = out_ptr;
     z.avail_out = m_header.block_size;
@@ -143,12 +144,12 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     {
       // this seem to fire wrongly from time to time
       // to be sure, don't use compressed isos :P
-      PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
+      PanicAlertFmt("Failure reading block {} - out of data and not at end.", block_num);
     }
     inflateEnd(&z);
     if (uncomp_size != m_header.block_size)
     {
-      PanicAlert("Wrong block size");
+      PanicAlertFmt("Wrong block size");
       return false;
     }
   }
@@ -206,7 +207,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 
   if (retval != Z_OK)
   {
-    ERROR_LOG(DISCIO, "Deflate failed");
+    ERROR_LOG_FMT(DISCIO, "Deflate failed");
     return ConversionResultCode::InternalError;
   }
 
@@ -238,7 +239,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 
 static ConversionResultCode Output(OutputParameters parameters, File::IOFile* outfile,
                                    u64* position, std::vector<u64>* offsets, int progress_monitor,
-                                   u32 num_blocks, CompressCB callback, void* arg)
+                                   u32 num_blocks, CompressCB callback)
 {
   u64 offset = *position;
   if (!parameters.compressed)
@@ -255,13 +256,12 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
     const int ratio =
         parameters.inpos == 0 ? 0 : static_cast<int>(100 * *position / parameters.inpos);
 
-    const std::string text =
-        StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
-                         parameters.block_number, num_blocks, ratio);
+    const std::string text = Common::FmtFormatT("{0} of {1} blocks. Compression ratio {2}%",
+                                                parameters.block_number, num_blocks, ratio);
 
     const float completion = static_cast<float>(parameters.block_number) / num_blocks;
 
-    if (!callback(text, completion, arg))
+    if (!callback(text, completion))
       return ConversionResultCode::Canceled;
   }
 
@@ -270,21 +270,22 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
                   const std::string& outfile_path, u32 sub_type, int block_size,
-                  CompressCB callback, void* arg)
+                  CompressCB callback)
 {
   ASSERT(infile->IsDataSizeAccurate());
 
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
   {
-    PanicAlertT("Failed to open the output file \"%s\".\n"
-                "Check that you have permissions to write the target folder and that the media can "
-                "be written.",
-                outfile_path.c_str());
+    PanicAlertFmtT(
+        "Failed to open the output file \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
     return false;
   }
 
-  callback(Common::GetStringT("Files opened, ready to compress."), 0, arg);
+  callback(Common::GetStringT("Files opened, ready to compress."), 0);
 
   CompressedBlobHeader header;
   header.magic_cookie = GCZ_MAGIC;
@@ -317,7 +318,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
 
   const auto output = [&](OutputParameters parameters) {
     return Output(std::move(parameters), &outfile, &position, &offsets, progress_monitor,
-                  header.num_blocks, callback, arg);
+                  header.num_blocks, callback);
   };
 
   MultithreadedCompressor<CompressThreadState, CompressParameters, OutputParameters> compressor(
@@ -364,17 +365,17 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
     outfile.WriteArray(offsets.data(), header.num_blocks);
     outfile.WriteArray(hashes.data(), header.num_blocks);
 
-    callback(Common::GetStringT("Done compressing disc image."), 1.0f, arg);
+    callback(Common::GetStringT("Done compressing disc image."), 1.0f);
   }
 
   if (result == ConversionResultCode::ReadFailed)
-    PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
 
   if (result == ConversionResultCode::WriteFailed)
   {
-    PanicAlertT("Failed to write the output file \"%s\".\n"
-                "Check that you have enough space available on the target drive.",
-                outfile_path.c_str());
+    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
+                   "Check that you have enough space available on the target drive.",
+                   outfile_path);
   }
 
   return result == ConversionResultCode::Success;

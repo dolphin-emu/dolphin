@@ -7,10 +7,13 @@
 #include <cstdio>
 #include <memory>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
@@ -108,11 +111,22 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&Fifo_CPUWritePointer, 0xFFFFFFE0));
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
-                 MMIO::ComplexWrite<u32>(
-                     [](u32, u32 val) { WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", val); }));
+                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                   WARN_LOG_FMT(PROCESSORINTERFACE, "Fifo reset ({:08x})", val);
+                 }));
 
-  mmio->Register(base | PI_RESET_CODE, MMIO::DirectRead<u32>(&m_ResetCode),
-                 MMIO::DirectWrite<u32>(&m_ResetCode));
+  mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](u32) {
+                   DEBUG_LOG_FMT(PROCESSORINTERFACE, "Read PI_RESET_CODE: {:08x}", m_ResetCode);
+                   return m_ResetCode;
+                 }),
+                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                   m_ResetCode = val;
+                   INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: {:08x}", m_ResetCode);
+                   if (!SConfig::GetInstance().bWii && ~m_ResetCode & 0x4)
+                   {
+                     DVDInterface::ResetDrive(true);
+                   }
+                 }));
 
   mmio->Register(base | PI_FLIPPER_REV, MMIO::DirectRead<u32>(&m_FlipperRev),
                  MMIO::InvalidWrite<u32>());
@@ -182,13 +196,14 @@ void SetInterrupt(u32 cause_mask, bool set)
 
   if (set && !(m_InterruptCause & cause_mask))
   {
-    DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(cause_mask));
+    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Setting Interrupt {} (set)",
+                  Debug_GetInterruptName(cause_mask));
   }
 
   if (!set && (m_InterruptCause & cause_mask))
   {
-    DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)",
-              Debug_GetInterruptName(cause_mask));
+    DEBUG_LOG_FMT(PROCESSORINTERFACE, "Setting Interrupt {} (clear)",
+                  Debug_GetInterruptName(cause_mask));
   }
 
   if (set)

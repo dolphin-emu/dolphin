@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -430,8 +429,8 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
   u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
   if (index >= HLE::IOSC::COMMON_KEY_HANDLES.size())
   {
-    PanicAlert("Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
-               GetTitleId(), index);
+    PanicAlertFmt("Bad common key index for title {:016x}: {} -- using common key 0", GetTitleId(),
+                  index);
     index = 0;
   }
   auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
@@ -621,7 +620,7 @@ UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
   {
     while (true)
     {
-      const std::pair<u32, u64> entry = ReadUidSysEntry(*file);
+      std::pair<u32, u64> entry = ReadUidSysEntry(*file);
       if (!entry.first && !entry.second)
         break;
 
@@ -654,7 +653,7 @@ u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
   const u32 current_uid = GetUIDFromTitle(title_id);
   if (current_uid)
   {
-    INFO_LOG(IOS_ES, "Title %016" PRIx64 " already exists in uid.sys", title_id);
+    INFO_LOG_FMT(IOS_ES, "Title {:016x} already exists in uid.sys", title_id);
     return current_uid;
   }
 
@@ -671,7 +670,7 @@ u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
   if (!file || !file->Seek(0, HLE::FS::SeekMode::End) || !file->Write(&swapped_title_id, 1) ||
       !file->Write(&swapped_uid, 1))
   {
-    ERROR_LOG(IOS_ES, "Failed to write to /sys/uid.sys");
+    ERROR_LOG_FMT(IOS_ES, "Failed to write to /sys/uid.sys");
     return 0;
   }
 
@@ -766,7 +765,7 @@ std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)
       return certs;
 
     processed += cert_reader.GetBytes().size();
-    const std::string name = cert_reader.GetName();
+    std::string name = cert_reader.GetName();
     certs.emplace(std::move(name), std::move(cert_reader));
   }
   return certs;

@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QStringList>
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -157,7 +158,7 @@ private:
 
   void NetPlayInit();
   bool NetPlayJoin();
-  bool NetPlayHost(const QString& game_id);
+  bool NetPlayHost(const UICommon::GameFile& game);
   void NetPlayQuit();
 
   void OnBootGameCubeIPL(DiscIO::Region region);
@@ -181,7 +182,7 @@ private:
 
   QStringList PromptFileNames();
 
-  void EnableScreenSaver(bool enable);
+  void UpdateScreenSaverInhibition();
 
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -203,6 +204,7 @@ private:
   bool m_stop_requested = false;
   bool m_exit_requested = false;
   bool m_fullscreen_requested = false;
+  bool m_is_screensaver_inhibited = false;
   int m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 

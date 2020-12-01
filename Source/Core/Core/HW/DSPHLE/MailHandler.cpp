@@ -37,7 +37,7 @@ void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
     }
   }
   m_Mails.emplace(mail, false);
-  DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", mail);
+  DEBUG_LOG_FMT(DSP_MAIL, "DSP writes {:#010x}", mail);
 }
 
 u16 CMailHandler::ReadDSPMailboxHigh()
@@ -121,7 +121,7 @@ void CMailHandler::DoState(PointerWrap& p)
       temp.emplace(value, interrupt);
     }
     if (!m_Mails.empty())
-      PanicAlert("CMailHandler::DoState - WTF?");
+      PanicAlertFmt("CMailHandler::DoState - WTF?");
 
     // Restore queue.
     for (int i = 0; i < sz; i++)

@@ -51,7 +51,8 @@ int TexDecoder_GetTexelSizeInNibbles(TextureFormat format)
   case TextureFormat::XFB:
     return 4;
   default:
-    PanicAlert("Invalid Texture Format (0x%X)! (GetTexelSizeInNibbles)", static_cast<int>(format));
+    PanicAlertFmt("Invalid Texture Format ({:#X})! (GetTexelSizeInNibbles)",
+                  static_cast<int>(format));
     return 1;
   }
 }
@@ -90,7 +91,8 @@ int TexDecoder_GetBlockWidthInTexels(TextureFormat format)
   case TextureFormat::XFB:
     return 16;
   default:
-    PanicAlert("Invalid Texture Format (0x%X)! (GetBlockWidthInTexels)", static_cast<int>(format));
+    PanicAlertFmt("Invalid Texture Format ({:#X})! (GetBlockWidthInTexels)",
+                  static_cast<int>(format));
     return 8;
   }
 }
@@ -124,7 +126,8 @@ int TexDecoder_GetBlockHeightInTexels(TextureFormat format)
   case TextureFormat::XFB:
     return 1;
   default:
-    PanicAlert("Invalid Texture Format (0x%X)! (GetBlockHeightInTexels)", static_cast<int>(format));
+    PanicAlertFmt("Invalid Texture Format ({:#X})! (GetBlockHeightInTexels)",
+                  static_cast<int>(format));
     return 4;
   }
 }
@@ -158,8 +161,8 @@ int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return 16;
   default:
-    PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEFBCopyBlockWidthInTexels)",
-               static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEFBCopyBlockWidthInTexels)",
+                  static_cast<int>(format));
     return 8;
   }
 }
@@ -193,8 +196,8 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return 1;
   default:
-    PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEFBCopyBlockHeightInTexels)",
-               static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEFBCopyBlockHeightInTexels)",
+                  static_cast<int>(format));
     return 4;
   }
 }
@@ -245,7 +248,8 @@ TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return TextureFormat::XFB;
   default:
-    PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEFBCopyBaseFormat)", static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEFBCopyBaseFormat)",
+                  static_cast<int>(format));
     return static_cast<TextureFormat>(format);
   }
 }

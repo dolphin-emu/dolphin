@@ -3,6 +3,8 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -20,7 +22,7 @@ public final class HeaderViewHolder extends SettingViewHolder
   @Override
   protected void findViews(View root)
   {
-    mHeaderName = (TextView) root.findViewById(R.id.text_header_name);
+    mHeaderName = root.findViewById(R.id.text_header_name);
   }
 
   @Override
@@ -33,5 +35,11 @@ public final class HeaderViewHolder extends SettingViewHolder
   public void onClick(View clicked)
   {
     // no-op
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return null;
   }
 }

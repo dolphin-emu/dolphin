@@ -1,3 +1,1 @@
-MoltenVK/macOS/dynamic/libMoltenVK.dylib from vulkansdk-macos-1.2.131.2, renamed to libvulkan.dylib
-
-Downloaded from: https://sdk.lunarg.com/sdk/download/1.2.131.2/mac/vulkansdk-macos-1.2.131.2.tar.gz
+MoltenVK from https://github.com/KhronosGroup/MoltenVK, commit b9b78def172074872bfbb1015ccf75eeec554ae2

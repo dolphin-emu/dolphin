@@ -25,4 +25,9 @@ public interface PlatformGamesView
    * To be called when the game file cache is updated.
    */
   void showGames();
+
+  /**
+   * Re-fetches game metadata from the game file cache.
+   */
+  void refetchMetadata();
 }

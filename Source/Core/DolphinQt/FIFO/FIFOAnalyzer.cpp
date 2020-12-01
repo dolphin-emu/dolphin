@@ -45,7 +45,7 @@ FIFOAnalyzer::FIFOAnalyzer()
   m_detail_list->setFont(Settings::Instance().GetDebugFont());
   m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
 
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, [this] {
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, [this] {
     m_detail_list->setFont(Settings::Instance().GetDebugFont());
     m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
   });

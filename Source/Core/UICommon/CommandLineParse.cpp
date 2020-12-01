@@ -45,7 +45,7 @@ public:
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+      std::optional<Config::System> system = Config::GetSystemFromName(system_str);
       if (system)
       {
         m_values.emplace_back(

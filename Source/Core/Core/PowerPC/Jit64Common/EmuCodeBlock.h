@@ -131,7 +131,11 @@ protected:
   Jit64& m_jit;
   ConstantPool m_const_pool;
   FarCodeCache m_far_code;
-  u8* m_near_code;  // Backed up when we switch to far code.
+
+  // Backed up when we switch to far code.
+  u8* m_near_code;
+  u8* m_near_code_end;
+  bool m_near_code_write_failed;
 
   std::unordered_map<u8*, TrampolineInfo> m_back_patch_info;
   std::unordered_map<u8*, u8*> m_exception_handler_at_loc;

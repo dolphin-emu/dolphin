@@ -16,7 +16,7 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/UISettings.h"
 
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/PathPane.h"
@@ -127,9 +127,9 @@ QGroupBox* PathPane::MakeGameFolderBox()
   m_path_list = new QListWidget;
   m_path_list->insertItems(0, Settings::Instance().GetPaths());
   m_path_list->setSpacing(1);
-  connect(&Settings::Instance(), &Settings::PathAdded,
+  connect(&Settings::Instance(), &Settings::PathAdded, this,
           [this](const QString& dir) { m_path_list->addItem(dir); });
-  connect(&Settings::Instance(), &Settings::PathRemoved, [this](const QString& dir) {
+  connect(&Settings::Instance(), &Settings::PathRemoved, this, [this](const QString& dir) {
     auto items = m_path_list->findItems(dir, Qt::MatchExactly);
     for (auto& item : items)
       delete item;
@@ -148,7 +148,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   m_remove_path->setEnabled(false);
 
   auto* recursive_checkbox = new QCheckBox(tr("Search Subfolders"));
-  recursive_checkbox->setChecked(SConfig::GetInstance().m_RecursiveISOFolder);
+  recursive_checkbox->setChecked(Config::Get(Config::MAIN_RECURSIVE_ISO_PATHS));
 
   auto* auto_checkbox = new QCheckBox(tr("Check for Game List Changes in the Background"));
   auto_checkbox->setChecked(Settings::Instance().IsAutoRefreshEnabled());
@@ -160,7 +160,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   vlayout->addWidget(auto_checkbox);
 
   connect(recursive_checkbox, &QCheckBox::toggled, [](bool checked) {
-    SConfig::GetInstance().m_RecursiveISOFolder = checked;
+    Config::SetBase(Config::MAIN_RECURSIVE_ISO_PATHS, checked);
     Settings::Instance().RefreshGameList();
   });
 
@@ -182,7 +182,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_game_edit = new QLineEdit(Settings::Instance().GetDefaultGame());
   connect(m_game_edit, &QLineEdit::editingFinished,
           [this] { Settings::Instance().SetDefaultGame(m_game_edit->text()); });
-  connect(&Settings::Instance(), &Settings::DefaultGameChanged,
+  connect(&Settings::Instance(), &Settings::DefaultGameChanged, this,
           [this](const QString& path) { m_game_edit->setText(path); });
   QPushButton* game_open = new QPushButton(QStringLiteral("..."));
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);

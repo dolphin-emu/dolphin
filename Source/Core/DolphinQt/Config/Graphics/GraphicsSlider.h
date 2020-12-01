@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <QSlider>
+#include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 
 namespace Config
 {
@@ -12,7 +12,7 @@ template <typename T>
 struct Info;
 }
 
-class GraphicsSlider : public QSlider
+class GraphicsSlider : public ToolTipSlider
 {
   Q_OBJECT
 public:

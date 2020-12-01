@@ -26,7 +26,7 @@
 namespace ExpansionInterface
 {
 #define NOTIMPLEMENTED(Name)                                                                       \
-  NOTICE_LOG(SP1, "CEXIETHERNET::%s not implemented for your UNIX", Name);
+  NOTICE_LOG_FMT(SP1, "CEXIETHERNET::{} not implemented for your UNIX", Name);
 
 bool CEXIETHERNET::TAPNetworkInterface::Activate()
 {
@@ -39,7 +39,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
 
   if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
   {
-    ERROR_LOG(SP1, "Couldn't open /dev/net/tun, unable to init BBA");
+    ERROR_LOG_FMT(SP1, "Couldn't open /dev/net/tun, unable to init BBA");
     return false;
   }
 
@@ -59,7 +59,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
       {
         close(fd);
         fd = -1;
-        ERROR_LOG(SP1, "TUNSETIFF failed: Interface=%s err=%d", ifr.ifr_name, err);
+        ERROR_LOG_FMT(SP1, "TUNSETIFF failed: Interface={} err={}", ifr.ifr_name, err);
         return false;
       }
     }
@@ -70,7 +70,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   }
   ioctl(fd, TUNSETNOCSUM, 1);
 
-  INFO_LOG(SP1, "BBA initialized with associated tap %s", ifr.ifr_name);
+  INFO_LOG_FMT(SP1, "BBA initialized with associated tap {}", ifr.ifr_name);
   return RecvInit();
 #else
   NOTIMPLEMENTED("Activate");
@@ -105,12 +105,13 @@ bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
 #ifdef __linux__
-  DEBUG_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
+  DEBUG_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
   int writtenBytes = write(fd, frame, size);
   if ((u32)writtenBytes != size)
   {
-    ERROR_LOG(SP1, "SendFrame(): expected to write %d bytes, instead wrote %d", size, writtenBytes);
+    ERROR_LOG_FMT(SP1, "SendFrame(): expected to write {} bytes, instead wrote {}", size,
+                  writtenBytes);
     return false;
   }
   else
@@ -142,12 +143,12 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
     int readBytes = read(self->fd, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE);
     if (readBytes < 0)
     {
-      ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
+      ERROR_LOG_FMT(SP1, "Failed to read from BBA, err={}", readBytes);
     }
     else if (self->readEnabled.IsSet())
     {
-      DEBUG_LOG(SP1, "Read data: %s",
-                ArrayToString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10).c_str());
+      DEBUG_LOG_FMT(SP1, "Read data: {}",
+                    ArrayToString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10));
       self->m_eth_ref->mRecvBufferLength = readBytes;
       self->m_eth_ref->RecvHandlePacket();
     }

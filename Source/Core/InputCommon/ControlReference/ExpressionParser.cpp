@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <regex>
 #include <string>
@@ -20,6 +23,55 @@
 namespace ciface::ExpressionParser
 {
 using namespace ciface::Core;
+
+class ControlExpression;
+
+class HotkeySuppressions
+{
+public:
+  using Modifiers = std::vector<std::unique_ptr<ControlExpression>>;
+
+  struct InvokingDeleter
+  {
+    template <typename T>
+    void operator()(T* func)
+    {
+      (*func)();
+    }
+  };
+
+  using Suppressor = std::unique_ptr<std::function<void()>, InvokingDeleter>;
+
+  bool IsSuppressed(Device::Input* input) const
+  {
+    // Input is suppressed if it exists in the map at all.
+    return m_suppressions.lower_bound({input, nullptr}) !=
+           m_suppressions.lower_bound({input + 1, nullptr});
+  }
+
+  bool IsSuppressedIgnoringModifiers(Device::Input* input, const Modifiers& ignore_modifiers) const;
+
+  // Suppresses each input + modifier pair.
+  // The returned object removes the suppression on destruction.
+  Suppressor MakeSuppressor(const Modifiers* modifiers,
+                            const std::unique_ptr<ControlExpression>* final_input);
+
+private:
+  using Suppression = std::pair<Device::Input*, Device::Input*>;
+  using SuppressionLevel = u16;
+
+  void RemoveSuppression(Device::Input* modifier, Device::Input* final_input)
+  {
+    auto it = m_suppressions.find({final_input, modifier});
+    if ((--it->second) == 0)
+      m_suppressions.erase(it);
+  }
+
+  // Holds counts of suppressions for each input/modifier pair.
+  std::map<Suppression, SuppressionLevel> m_suppressions;
+};
+
+static HotkeySuppressions s_hotkey_suppressions;
 
 Token::Token(TokenType type_) : type(type_)
 {
@@ -112,6 +164,8 @@ Token Lexer::NextToken()
     return Token(TOK_LPAREN);
   case ')':
     return Token(TOK_RPAREN);
+  case '@':
+    return Token(TOK_HOTKEY);
   case '&':
     return Token(TOK_AND);
   case '|':
@@ -196,7 +250,16 @@ public:
   std::shared_ptr<Device> m_device;
 
   explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
+
   ControlState GetValue() const override
+  {
+    if (s_hotkey_suppressions.IsSuppressed(input))
+      return 0;
+    else
+      return GetValueIgnoringSuppression();
+  }
+
+  ControlState GetValueIgnoringSuppression() const
   {
     if (!input)
       return 0.0;
@@ -222,11 +285,45 @@ public:
     output = env.FindOutput(qualifier);
   }
 
+  Device::Input* GetInput() const { return input; };
+
 private:
   ControlQualifier qualifier;
   Device::Input* input = nullptr;
   Device::Output* output = nullptr;
 };
+
+bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
+                                                       const Modifiers& ignore_modifiers) const
+{
+  // Input is suppressed if it exists in the map with a modifier that we aren't ignoring.
+  auto it = m_suppressions.lower_bound({input, nullptr});
+  auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
+
+  // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
+  const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2) {
+    return i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1);
+  };
+
+  return std::any_of(it, it_end, [&](auto& s) {
+    return std::none_of(begin(ignore_modifiers), end(ignore_modifiers),
+                        [&](auto& m) { return is_same_modifier(m->GetInput(), s.first.second); });
+  });
+}
+
+HotkeySuppressions::Suppressor
+HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
+                                   const std::unique_ptr<ControlExpression>* final_input)
+{
+  for (auto& modifier : *modifiers)
+    ++m_suppressions[{(*final_input)->GetInput(), modifier->GetInput()}];
+
+  return Suppressor(std::make_unique<std::function<void()>>([this, modifiers, final_input]() {
+                      for (auto& modifier : *modifiers)
+                        RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
+                    }).release(),
+                    InvokingDeleter{});
+}
 
 class BinaryExpression : public Expression
 {
@@ -372,6 +469,90 @@ public:
 protected:
   const std::string m_name;
   ControlState* m_value_ptr{};
+};
+
+class HotkeyExpression : public Expression
+{
+public:
+  HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
+      : m_modifiers(std::move(inputs))
+  {
+    m_final_input = std::move(m_modifiers.back());
+    m_modifiers.pop_back();
+  }
+
+  ControlState GetValue() const override
+  {
+    const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
+                                               [](const std::unique_ptr<ControlExpression>& input) {
+                                                 return input->GetValue() > CONDITION_THRESHOLD;
+                                               });
+
+    const auto final_input_state = m_final_input->GetValueIgnoringSuppression();
+
+    if (modifiers_pressed)
+    {
+      // Ignore suppression of our own modifiers. This also allows superset modifiers to function.
+      const bool is_suppressed = s_hotkey_suppressions.IsSuppressedIgnoringModifiers(
+          m_final_input->GetInput(), m_modifiers);
+
+      if (final_input_state < CONDITION_THRESHOLD)
+        m_is_blocked = false;
+
+      // If some other hotkey suppressed us, require a release of final input to be ready again.
+      if (is_suppressed)
+        m_is_blocked = true;
+
+      if (m_is_blocked)
+        return 0;
+
+      EnableSuppression();
+
+      // Our modifiers are active. Pass through the final input.
+      return final_input_state;
+    }
+    else
+    {
+      m_suppressor = {};
+      m_is_blocked = final_input_state > CONDITION_THRESHOLD;
+    }
+
+    return 0;
+  }
+
+  void SetValue(ControlState) override {}
+
+  int CountNumControls() const override
+  {
+    int result = 0;
+    for (auto& input : m_modifiers)
+      result += input->CountNumControls();
+    return result + m_final_input->CountNumControls();
+  }
+
+  void UpdateReferences(ControlEnvironment& env) override
+  {
+    for (auto& input : m_modifiers)
+      input->UpdateReferences(env);
+
+    m_final_input->UpdateReferences(env);
+
+    // We must update our suppression with valid pointers.
+    if (m_suppressor)
+      EnableSuppression();
+  }
+
+private:
+  void EnableSuppression() const
+  {
+    if (!m_suppressor)
+      m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
+  }
+
+  HotkeySuppressions::Modifiers m_modifiers;
+  std::unique_ptr<ControlExpression> m_final_input;
+  mutable HotkeySuppressions::Suppressor m_suppressor;
+  mutable bool m_is_blocked = false;
 };
 
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
@@ -600,6 +781,10 @@ private:
     {
       return ParseParens();
     }
+    case TOK_HOTKEY:
+    {
+      return ParseHotkeys();
+    }
     case TOK_SUB:
     {
       // An atom was expected but we got a subtraction symbol.
@@ -682,6 +867,39 @@ private:
     }
 
     return result;
+  }
+
+  ParseResult ParseHotkeys()
+  {
+    Token tok = Chew();
+    if (tok.type != TOK_LPAREN)
+      return ParseResult::MakeErrorResult(tok, _trans("Expected opening paren."));
+
+    std::vector<std::unique_ptr<ControlExpression>> inputs;
+
+    while (true)
+    {
+      tok = Chew();
+
+      if (tok.type != TOK_CONTROL && tok.type != TOK_BAREWORD)
+        return ParseResult::MakeErrorResult(tok, _trans("Expected name of input."));
+
+      ControlQualifier cq;
+      cq.FromString(tok.data);
+      inputs.emplace_back(std::make_unique<ControlExpression>(std::move(cq)));
+
+      tok = Chew();
+
+      if (tok.type == TOK_ADD)
+        continue;
+
+      if (tok.type == TOK_RPAREN)
+        break;
+
+      return ParseResult::MakeErrorResult(tok, _trans("Expected + or closing paren."));
+    }
+
+    return ParseResult::MakeSuccessfulResult(std::make_unique<HotkeyExpression>(std::move(inputs)));
   }
 
   ParseResult ParseToplevel() { return ParseBinary(); }
