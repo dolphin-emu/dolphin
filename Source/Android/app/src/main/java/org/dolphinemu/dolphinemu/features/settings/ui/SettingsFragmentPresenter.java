@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.LegacyIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
@@ -793,8 +793,8 @@ public final class SettingsFragmentPresenter
     }
     else
     {
-      extension = new WiimoteProfileSetting(mGameID, wiimoteNumber - 4, Settings.SECTION_PROFILE,
-              SettingsFile.KEY_WIIMOTE_EXTENSION, defaultExtension);
+      extension = new WiimoteProfileStringSetting(mGameID, wiimoteNumber - 4,
+              Settings.SECTION_PROFILE, SettingsFile.KEY_WIIMOTE_EXTENSION, defaultExtension);
     }
 
     sl.add(new StringSingleChoiceSetting(extension, R.string.wiimote_extensions, 0,
