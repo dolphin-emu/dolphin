@@ -158,6 +158,8 @@
     <string name="lock_emulation_landscape_desc">Some touch controls will require additional tweaking if played in portrait</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
+    <string name="analytics_new_id">Generate a New Statistics Identity</string>
+    <string name="analytics_new_id_confirmation">Are you sure you want to generate a new statistics identity?</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
