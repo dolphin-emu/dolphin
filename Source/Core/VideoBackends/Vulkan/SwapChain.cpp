@@ -182,7 +182,7 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  PanicAlert("Failed to find a suitable format for swap chain buffers.");
+  PanicAlertFmt("Failed to find a suitable format for swap chain buffers.");
   return false;
 }
 
@@ -398,7 +398,7 @@ bool SwapChain::SetupSwapChainImages()
       m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
   if (load_render_pass == VK_NULL_HANDLE || clear_render_pass == VK_NULL_HANDLE)
   {
-    PanicAlert("Failed to get swap chain render passes.");
+    PanicAlertFmt("Failed to get swap chain render passes.");
     return false;
   }
 
@@ -469,7 +469,7 @@ bool SwapChain::ResizeSwapChain()
   DestroySwapChainImages();
   if (!CreateSwapChain() || !SetupSwapChainImages())
   {
-    PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
+    PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
   }
 
@@ -482,7 +482,7 @@ bool SwapChain::RecreateSwapChain()
   DestroySwapChain();
   if (!CreateSwapChain() || !SetupSwapChainImages())
   {
-    PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
+    PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
   }
 
@@ -557,7 +557,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   }
   if (!present_supported)
   {
-    PanicAlert("Recreated surface does not support presenting.");
+    PanicAlertFmt("Recreated surface does not support presenting.");
     return false;
   }
 

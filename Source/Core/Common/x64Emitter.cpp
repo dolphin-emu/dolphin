@@ -1028,14 +1028,14 @@ void XEmitter::TZCNT(int bits, X64Reg dest, const OpArg& src)
 {
   CheckFlags();
   if (!cpu_info.bBMI1)
-    PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
   WriteBitSearchType(bits, dest, src, 0xBC, true);
 }
 void XEmitter::LZCNT(int bits, X64Reg dest, const OpArg& src)
 {
   CheckFlags();
   if (!cpu_info.bLZCNT)
-    PanicAlert("Trying to use LZCNT on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use LZCNT on a system that doesn't support it. Bad programmer.");
   WriteBitSearchType(bits, dest, src, 0xBD, true);
 }
 
@@ -1880,7 +1880,7 @@ void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, con
                           int W, int extrabytes)
 {
   if (!cpu_info.bAVX)
-    PanicAlert("Trying to use AVX on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
 
@@ -1888,14 +1888,17 @@ void XEmitter::WriteAVXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, co
                            X64Reg regOp3, int W)
 {
   if (!cpu_info.bAVX)
-    PanicAlert("Trying to use AVX on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use AVX on a system that doesn't support it. Bad programmer.");
   WriteVEXOp4(opPrefix, op, regOp1, regOp2, arg, regOp3, W);
 }
 
 void XEmitter::WriteFMA3Op(u8 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, int W)
 {
   if (!cpu_info.bFMA)
-    PanicAlert("Trying to use FMA3 on a system that doesn't support it. Computer is v. f'n madd.");
+  {
+    PanicAlertFmt(
+        "Trying to use FMA3 on a system that doesn't support it. Computer is v. f'n madd.");
+  }
   WriteVEXOp(0x66, 0x3800 | op, regOp1, regOp2, arg, W);
 }
 
@@ -1903,7 +1906,10 @@ void XEmitter::WriteFMA4Op(u8 op, X64Reg dest, X64Reg regOp1, X64Reg regOp2, con
                            int W)
 {
   if (!cpu_info.bFMA4)
-    PanicAlert("Trying to use FMA4 on a system that doesn't support it. Computer is v. f'n madd.");
+  {
+    PanicAlertFmt(
+        "Trying to use FMA4 on a system that doesn't support it. Computer is v. f'n madd.");
+  }
   WriteVEXOp4(0x66, 0x3A00 | op, dest, regOp1, arg, regOp2, W);
 }
 
@@ -1911,10 +1917,10 @@ void XEmitter::WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg r
                           const OpArg& arg, int extrabytes)
 {
   if (arg.IsImm())
-    PanicAlert("BMI1/2 instructions don't support immediate operands.");
+    PanicAlertFmt("BMI1/2 instructions don't support immediate operands.");
   if (size != 32 && size != 64)
-    PanicAlert("BMI1/2 instructions only support 32-bit and 64-bit modes!");
-  int W = size == 64;
+    PanicAlertFmt("BMI1/2 instructions only support 32-bit and 64-bit modes!");
+  const int W = size == 64;
   WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, extrabytes);
 }
 
@@ -1923,7 +1929,7 @@ void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg 
 {
   CheckFlags();
   if (!cpu_info.bBMI1)
-    PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
   WriteBMIOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
 }
 
@@ -1931,7 +1937,7 @@ void XEmitter::WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg 
                            const OpArg& arg, int extrabytes)
 {
   if (!cpu_info.bBMI2)
-    PanicAlert("Trying to use BMI2 on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use BMI2 on a system that doesn't support it. Bad programmer.");
   WriteBMIOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
 }
 
@@ -2580,7 +2586,7 @@ void XEmitter::PSLLDQ(X64Reg reg, int shift)
 void XEmitter::PSRAW(X64Reg reg, int shift)
 {
   if (reg > 7)
-    PanicAlert("The PSRAW-emitter does not support regs above 7");
+    PanicAlertFmt("The PSRAW-emitter does not support regs above 7");
   Write8(0x66);
   Write8(0x0f);
   Write8(0x71);
@@ -2592,7 +2598,7 @@ void XEmitter::PSRAW(X64Reg reg, int shift)
 void XEmitter::PSRAD(X64Reg reg, int shift)
 {
   if (reg > 7)
-    PanicAlert("The PSRAD-emitter does not support regs above 7");
+    PanicAlertFmt("The PSRAD-emitter does not support regs above 7");
   Write8(0x66);
   Write8(0x0f);
   Write8(0x72);
@@ -2603,14 +2609,14 @@ void XEmitter::PSRAD(X64Reg reg, int shift)
 void XEmitter::WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, const OpArg& arg, int extrabytes)
 {
   if (!cpu_info.bSSSE3)
-    PanicAlert("Trying to use SSSE3 on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use SSSE3 on a system that doesn't support it. Bad programmer.");
   WriteSSEOp(opPrefix, op, regOp, arg, extrabytes);
 }
 
 void XEmitter::WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, const OpArg& arg, int extrabytes)
 {
   if (!cpu_info.bSSE4_1)
-    PanicAlert("Trying to use SSE4.1 on a system that doesn't support it. Bad programmer.");
+    PanicAlertFmt("Trying to use SSE4.1 on a system that doesn't support it. Bad programmer.");
   WriteSSEOp(opPrefix, op, regOp, arg, extrabytes);
 }
 

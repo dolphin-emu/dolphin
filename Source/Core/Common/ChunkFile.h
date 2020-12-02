@@ -267,9 +267,10 @@ public:
 
     if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
     {
-      PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting "
-                  "savestate load...",
-                  prevName.c_str(), cookie, cookie, arbitraryNumber, arbitraryNumber);
+      PanicAlertFmtT(
+          "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:#x}). Aborting "
+          "savestate load...",
+          prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
       mode = PointerWrap::MODE_MEASURE;
     }
   }

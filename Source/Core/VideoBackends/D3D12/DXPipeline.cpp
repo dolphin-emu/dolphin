@@ -171,7 +171,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
     desc.pRootSignature = g_dx_context->GetUtilityRootSignature();
     break;
   default:
-    PanicAlert("Unknown pipeline layout.");
+    PanicAlertFmt("Unknown pipeline layout.");
     return nullptr;
   }
 

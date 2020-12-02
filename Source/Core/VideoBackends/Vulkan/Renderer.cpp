@@ -67,7 +67,7 @@ bool Renderer::Initialize()
   m_bounding_box = std::make_unique<BoundingBox>();
   if (!m_bounding_box->Initialize())
   {
-    PanicAlert("Failed to initialize bounding box.");
+    PanicAlertFmt("Failed to initialize bounding box.");
     return false;
   }
 
@@ -317,7 +317,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     res = m_swap_chain->AcquireNextImage();
   }
   if (res != VK_SUCCESS)
-    PanicAlert("Failed to grab image from swap chain");
+    PanicAlertFmt("Failed to grab image from swap chain");
 
   // Transition from undefined (or present src, but it can be substituted) to
   // color attachment ready for writing. These transitions must occur outside
@@ -385,7 +385,7 @@ void Renderer::CheckForSurfaceChange()
 
   // Recreate the surface. If this fails we're in trouble.
   if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
-    PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
+    PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
   m_new_surface_handle = nullptr;
 
   // Handle case where the dimensions are now different.

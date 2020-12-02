@@ -45,8 +45,8 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config)
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create %ux%ux%u D3D backing texture", config.width, config.height,
-               config.layers);
+    PanicAlertFmt("Failed to create {}x{}x{} D3D backing texture", config.width, config.height,
+                  config.layers);
     return nullptr;
   }
 
@@ -92,8 +92,8 @@ bool DXTexture::CreateSRV()
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create %ux%ux%u D3D SRV", m_config.width, m_config.height,
-               m_config.layers);
+    PanicAlertFmt("Failed to create {}x{}x{} D3D SRV", m_config.width, m_config.height,
+                  m_config.layers);
     return false;
   }
 
@@ -109,8 +109,8 @@ bool DXTexture::CreateUAV()
   HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create %ux%ux%u D3D UAV", m_config.width, m_config.height,
-               m_config.layers);
+    PanicAlertFmt("Failed to create {}x{}x{} D3D UAV", m_config.width, m_config.height,
+                  m_config.layers);
     return false;
   }
 

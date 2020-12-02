@@ -143,7 +143,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   std::unique_ptr<SwapChain> swap_chain;
   if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
   {
-    PanicAlertT("Failed to create D3D swap chain");
+    PanicAlertFmtT("Failed to create D3D swap chain");
     ShutdownShared();
     D3D::Destroy();
     return false;

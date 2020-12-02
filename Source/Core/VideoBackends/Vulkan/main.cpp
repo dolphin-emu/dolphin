@@ -65,14 +65,14 @@ void VideoBackend::InitBackendInfo()
     }
     else
     {
-      PanicAlert("Failed to create Vulkan instance.");
+      PanicAlertFmt("Failed to create Vulkan instance.");
     }
 
     UnloadVulkanLibrary();
   }
   else
   {
-    PanicAlert("Failed to load Vulkan library.");
+    PanicAlertFmt("Failed to load Vulkan library.");
   }
 }
 
@@ -98,7 +98,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   if (!LoadVulkanLibrary())
   {
-    PanicAlert("Failed to load Vulkan library.");
+    PanicAlertFmt("Failed to load Vulkan library.");
     return false;
   }
 
@@ -118,7 +118,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       VulkanContext::CreateVulkanInstance(wsi.type, enable_debug_reports, enable_validation_layer);
   if (instance == VK_NULL_HANDLE)
   {
-    PanicAlert("Failed to create Vulkan instance.");
+    PanicAlertFmt("Failed to create Vulkan instance.");
     UnloadVulkanLibrary();
     return false;
   }
@@ -126,7 +126,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   // Load instance function pointers.
   if (!LoadVulkanInstanceFunctions(instance))
   {
-    PanicAlert("Failed to load Vulkan instance functions.");
+    PanicAlertFmt("Failed to load Vulkan instance functions.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
     return false;
@@ -137,7 +137,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
   if (gpu_list.empty())
   {
-    PanicAlert("No Vulkan physical devices available.");
+    PanicAlertFmt("No Vulkan physical devices available.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
     return false;
@@ -154,7 +154,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     surface = SwapChain::CreateVulkanSurface(instance, wsi);
     if (surface == VK_NULL_HANDLE)
     {
-      PanicAlert("Failed to create Vulkan surface.");
+      PanicAlertFmt("Failed to create Vulkan surface.");
       vkDestroyInstance(instance, nullptr);
       UnloadVulkanLibrary();
       return false;
@@ -175,7 +175,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
                                            enable_debug_reports, enable_validation_layer);
   if (!g_vulkan_context)
   {
-    PanicAlert("Failed to create Vulkan device");
+    PanicAlertFmt("Failed to create Vulkan device");
     UnloadVulkanLibrary();
     return false;
   }
@@ -197,7 +197,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
   if (!g_command_buffer_mgr->Initialize())
   {
-    PanicAlert("Failed to create Vulkan command buffers");
+    PanicAlertFmt("Failed to create Vulkan command buffers");
     Shutdown();
     return false;
   }
@@ -206,7 +206,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_object_cache = std::make_unique<ObjectCache>();
   if (!g_object_cache->Initialize())
   {
-    PanicAlert("Failed to initialize Vulkan object cache.");
+    PanicAlertFmt("Failed to initialize Vulkan object cache.");
     Shutdown();
     return false;
   }
@@ -218,7 +218,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     swap_chain = SwapChain::Create(wsi, surface, g_ActiveConfig.bVSyncActive);
     if (!swap_chain)
     {
-      PanicAlert("Failed to create Vulkan swap chain.");
+      PanicAlertFmt("Failed to create Vulkan swap chain.");
       Shutdown();
       return false;
     }
@@ -226,7 +226,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   if (!StateTracker::CreateInstance())
   {
-    PanicAlert("Failed to create state tracker");
+    PanicAlertFmt("Failed to create state tracker");
     Shutdown();
     return false;
   }
@@ -243,7 +243,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize() || !PerfQuery::GetInstance()->Initialize())
   {
-    PanicAlert("Failed to initialize renderer classes");
+    PanicAlertFmt("Failed to initialize renderer classes");
     Shutdown();
     return false;
   }
@@ -351,7 +351,7 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   // the user that this is an unsupported configuration, but permit them to continue.
   if (!IsRunningOnMojaveOrHigher())
   {
-    PanicAlertT(
+    PanicAlertFmtT(
         "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. "
         "For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please "
         "do not report any issues encountered unless they also occur on 10.14+.");

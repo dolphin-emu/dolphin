@@ -152,7 +152,7 @@ void BoundingBox::Flush()
       Renderer::GetInstance()->ExecuteCommandList(false);
       if (!m_upload_buffer.ReserveMemory(copy_size, sizeof(ValueType)))
       {
-        PanicAlert("Failed to allocate bbox stream buffer space");
+        PanicAlertFmt("Failed to allocate bbox stream buffer space");
         return;
       }
     }

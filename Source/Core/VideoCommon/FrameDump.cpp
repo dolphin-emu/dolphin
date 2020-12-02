@@ -95,7 +95,7 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   if (File::Exists(path))
   {
     if (SConfig::GetInstance().m_DumpFramesSilent ||
-        AskYesNoT("Delete the existing file '%s'?", path.c_str()))
+        AskYesNoFmtT("Delete the existing file '{0}'?", path))
     {
       File::Delete(path);
     }
