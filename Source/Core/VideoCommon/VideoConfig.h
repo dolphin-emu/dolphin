@@ -103,6 +103,8 @@ struct VideoConfig final
 
   // Utility
   bool bDumpTextures;
+  bool bDumpMipmapTextures;
+  bool bDumpBaseTextures;
   bool bHiresTextures;
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;

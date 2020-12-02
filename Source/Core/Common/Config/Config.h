@@ -39,6 +39,8 @@ std::optional<System> GetSystemFromName(const std::string& system);
 const std::string& GetLayerName(LayerType layer);
 LayerType GetActiveLayerForConfig(const Location&);
 
+std::optional<std::string> GetAsString(const Location&);
+
 template <typename T>
 T Get(LayerType layer, const Info<T>& info)
 {
@@ -50,7 +52,11 @@ T Get(LayerType layer, const Info<T>& info)
 template <typename T>
 T Get(const Info<T>& info)
 {
-  return GetLayer(GetActiveLayerForConfig(info.location))->Get(info);
+  const std::optional<std::string> str = GetAsString(info.location);
+  if (!str)
+    return info.default_value;
+
+  return detail::TryParse<T>(*str).value_or(info.default_value);
 }
 
 template <typename T>

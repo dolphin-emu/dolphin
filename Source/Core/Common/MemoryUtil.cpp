@@ -75,7 +75,7 @@ void* AllocateAlignedMemory(size_t size, size_t alignment)
 #else
   void* ptr = nullptr;
   if (posix_memalign(&ptr, alignment, size) != 0)
-    ERROR_LOG(MEMMAP, "Failed to allocate aligned memory");
+    ERROR_LOG_FMT(MEMMAP, "Failed to allocate aligned memory");
 #endif
 
   if (ptr == nullptr)

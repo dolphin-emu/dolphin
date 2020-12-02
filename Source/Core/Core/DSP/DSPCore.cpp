@@ -77,9 +77,9 @@ static bool VerifyRoms()
 
   if (rom_idx < 0)
   {
-    if (AskYesNoT("Your DSP ROMs have incorrect hashes.\n"
-                  "Would you like to stop now to fix the problem?\n"
-                  "If you select \"No\", audio might be garbled."))
+    if (AskYesNoFmtT("Your DSP ROMs have incorrect hashes.\n"
+                     "Would you like to stop now to fix the problem?\n"
+                     "If you select \"No\", audio might be garbled."))
       return false;
   }
 
@@ -145,9 +145,9 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
   memset(&g_dsp.r, 0, sizeof(g_dsp.r));
 
-  std::fill(std::begin(g_dsp.reg_stack_ptr), std::end(g_dsp.reg_stack_ptr), 0);
+  std::fill(std::begin(g_dsp.reg_stack_ptrs), std::end(g_dsp.reg_stack_ptrs), 0);
 
-  for (auto& stack : g_dsp.reg_stack)
+  for (auto& stack : g_dsp.reg_stacks)
     std::fill(std::begin(stack), std::end(stack), 0);
 
   // Fill IRAM with HALT opcodes.
@@ -254,7 +254,7 @@ void DSPCore_CheckExceptions()
       else
       {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-        ERROR_LOG(DSPLLE, "Firing exception %d failed", i);
+        ERROR_LOG_FMT(DSPLLE, "Firing exception {} failed", i);
 #endif
       }
     }

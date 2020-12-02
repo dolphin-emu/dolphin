@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include <QRadioButton>
+#include "DolphinQt/Config/ToolTipControls/ToolTipRadioButton.h"
 
 #include "Common/Config/Config.h"
 
-class GraphicsRadioInt : public QRadioButton
+class GraphicsRadioInt : public ToolTipRadioButton
 {
   Q_OBJECT
 public:

@@ -388,20 +388,11 @@ Renderer::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
   return std::make_tuple(left_rc, right_rc);
 }
 
-void Renderer::SaveScreenshot(std::string filename, bool wait_for_completion)
+void Renderer::SaveScreenshot(std::string filename)
 {
-  // We must not hold the lock while waiting for the screenshot to complete.
-  {
-    std::lock_guard<std::mutex> lk(m_screenshot_lock);
-    m_screenshot_name = std::move(filename);
-    m_screenshot_request.Set();
-  }
-
-  if (wait_for_completion)
-  {
-    // This is currently only used by Android, and it was using a wait time of 2 seconds.
-    m_screenshot_completed.WaitFor(std::chrono::seconds(2));
-  }
+  std::lock_guard<std::mutex> lk(m_screenshot_lock);
+  m_screenshot_name = std::move(filename);
+  m_screenshot_request.Set();
 }
 
 void Renderer::CheckForConfigChanges()
@@ -923,7 +914,7 @@ bool Renderer::InitializeImGui()
 {
   if (!ImGui::CreateContext())
   {
-    PanicAlert("Creating ImGui context failed");
+    PanicAlertFmt("Creating ImGui context failed");
     return false;
   }
 
@@ -951,7 +942,7 @@ bool Renderer::InitializeImGui()
   m_imgui_vertex_format = CreateNativeVertexFormat(vdecl);
   if (!m_imgui_vertex_format)
   {
-    PanicAlert("Failed to create imgui vertex format");
+    PanicAlertFmt("Failed to create imgui vertex format");
     return false;
   }
 
@@ -967,7 +958,7 @@ bool Renderer::InitializeImGui()
     std::unique_ptr<AbstractTexture> font_tex = CreateTexture(font_tex_config);
     if (!font_tex)
     {
-      PanicAlert("Failed to create imgui texture");
+      PanicAlertFmt("Failed to create imgui texture");
       return false;
     }
     font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
@@ -994,7 +985,7 @@ bool Renderer::RecompileImGuiPipeline()
       CreateShaderFromSource(ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader());
   if (!vertex_shader || !pixel_shader)
   {
-    PanicAlert("Failed to compile imgui shaders");
+    PanicAlertFmt("Failed to compile imgui shaders");
     return false;
   }
 
@@ -1006,7 +997,7 @@ bool Renderer::RecompileImGuiPipeline()
         ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1));
     if (!geometry_shader)
     {
-      PanicAlert("Failed to compile imgui geometry shader");
+      PanicAlertFmt("Failed to compile imgui geometry shader");
       return false;
     }
   }
@@ -1032,7 +1023,7 @@ bool Renderer::RecompileImGuiPipeline()
   m_imgui_pipeline = CreatePipeline(pconfig);
   if (!m_imgui_pipeline)
   {
-    PanicAlert("Failed to create imgui pipeline");
+    PanicAlertFmt("Failed to create imgui pipeline");
     return false;
   }
 
@@ -1168,6 +1159,11 @@ void Renderer::EndUIFrame()
   }
 
   BeginImGuiFrame();
+}
+
+void Renderer::ForceReloadTextures()
+{
+  m_force_reload_textures.Set();
 }
 
 // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
@@ -1340,9 +1336,17 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       // state changes the specialized shader will not take over.
       g_vertex_manager->InvalidatePipelineObject();
 
-      // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-      // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
-      g_texture_cache->FlushEFBCopies();
+      if (m_force_reload_textures.TestAndClear())
+      {
+        g_texture_cache->ForceReload();
+      }
+      else
+      {
+        // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+        // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+        // copies.
+        g_texture_cache->FlushEFBCopies();
+      }
 
       if (!is_duplicate_frame)
       {
@@ -1434,17 +1438,13 @@ void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
     copy_rect = src_texture->GetRect();
   }
 
-  // Index 0 was just sent to FFMPEG dump. Swap with the second texture.
-  if (m_frame_dump_readback_textures[0])
-    std::swap(m_frame_dump_readback_textures[0], m_frame_dump_readback_textures[1]);
-
   if (!CheckFrameDumpReadbackTexture(target_width, target_height))
     return;
 
-  m_frame_dump_readback_textures[0]->CopyFromTexture(src_texture, copy_rect, 0, 0,
-                                                     m_frame_dump_readback_textures[0]->GetRect());
-  m_last_frame_state = FrameDump::FetchState(ticks);
-  m_last_frame_exported = true;
+  m_frame_dump_readback_texture->CopyFromTexture(src_texture, copy_rect, 0, 0,
+                                                 m_frame_dump_readback_texture->GetRect());
+  m_last_frame_state = m_frame_dump.FetchState(ticks);
+  m_frame_dump_needs_flush = true;
 }
 
 bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
@@ -1465,7 +1465,7 @@ bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
                                   AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget));
   if (!m_frame_dump_render_texture)
   {
-    PanicAlert("Failed to allocate frame dump render texture");
+    PanicAlertFmt("Failed to allocate frame dump render texture");
     return false;
   }
   m_frame_dump_render_framebuffer = CreateFramebuffer(m_frame_dump_render_texture.get(), nullptr);
@@ -1475,7 +1475,7 @@ bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
 
 bool Renderer::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height)
 {
-  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_textures[0];
+  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_texture;
   if (rbtex && rbtex->GetWidth() == target_width && rbtex->GetHeight() == target_height)
     return true;
 
@@ -1491,24 +1491,28 @@ bool Renderer::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height
 
 void Renderer::FlushFrameDump()
 {
-  if (!m_last_frame_exported)
+  if (!m_frame_dump_needs_flush)
     return;
 
-  // Ensure the previously-queued frame was encoded.
+  // Ensure dumping thread is done with output texture before swapping.
   FinishFrameData();
 
+  std::swap(m_frame_dump_output_texture, m_frame_dump_readback_texture);
+
   // Queue encoding of the last frame dumped.
-  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_textures[0];
-  rbtex->Flush();
-  if (rbtex->Map())
+  auto& output = m_frame_dump_output_texture;
+  output->Flush();
+  if (output->Map())
   {
-    DumpFrameData(reinterpret_cast<u8*>(rbtex->GetMappedPointer()), rbtex->GetConfig().width,
-                  rbtex->GetConfig().height, static_cast<int>(rbtex->GetMappedStride()),
-                  m_last_frame_state);
-    rbtex->Unmap();
+    DumpFrameData(reinterpret_cast<u8*>(output->GetMappedPointer()), output->GetConfig().width,
+                  output->GetConfig().height, static_cast<int>(output->GetMappedStride()));
+  }
+  else
+  {
+    ERROR_LOG_FMT(VIDEO, "Failed to map texture for dumping.");
   }
 
-  m_last_frame_exported = false;
+  m_frame_dump_needs_flush = false;
 
   // Shutdown frame dumping if it is no longer active.
   if (!IsFrameDumping())
@@ -1533,21 +1537,21 @@ void Renderer::ShutdownFrameDumping()
     m_frame_dump_thread.join();
   m_frame_dump_render_framebuffer.reset();
   m_frame_dump_render_texture.reset();
-  for (auto& tex : m_frame_dump_readback_textures)
-    tex.reset();
+
+  m_frame_dump_readback_texture.reset();
+  m_frame_dump_output_texture.reset();
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride,
-                             const FrameDump::Frame& state)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride)
 {
-  m_frame_dump_config = FrameDumpConfig{data, w, h, stride, state};
+  m_frame_dump_data = FrameDump::FrameData{data, w, h, stride, m_last_frame_state};
 
   if (!m_frame_dump_thread_running.IsSet())
   {
     if (m_frame_dump_thread.joinable())
       m_frame_dump_thread.join();
     m_frame_dump_thread_running.Set();
-    m_frame_dump_thread = std::thread(&Renderer::RunFrameDumps, this);
+    m_frame_dump_thread = std::thread(&Renderer::FrameDumpThreadFunc, this);
   }
 
   // Wake worker thread up.
@@ -1562,11 +1566,14 @@ void Renderer::FinishFrameData()
 
   m_frame_dump_done.Wait();
   m_frame_dump_frame_running = false;
+
+  m_frame_dump_output_texture->Unmap();
 }
 
-void Renderer::RunFrameDumps()
+void Renderer::FrameDumpThreadFunc()
 {
   Common::SetCurrentThreadName("FrameDumping");
+
   bool dump_to_ffmpeg = !g_ActiveConfig.bDumpFramesAsImages;
   bool frame_dump_started = false;
 
@@ -1574,8 +1581,8 @@ void Renderer::RunFrameDumps()
 #if !defined(HAVE_FFMPEG)
   if (dump_to_ffmpeg)
   {
-    WARN_LOG(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
-                    "Frames will be saved as PNG images instead.");
+    WARN_LOG_FMT(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
+                        "Frames will be saved as PNG images instead.");
     dump_to_ffmpeg = false;
   }
 #endif
@@ -1586,14 +1593,14 @@ void Renderer::RunFrameDumps()
     if (!m_frame_dump_thread_running.IsSet())
       break;
 
-    auto config = m_frame_dump_config;
+    auto frame = m_frame_dump_data;
 
     // Save screenshot
     if (m_screenshot_request.TestAndClear())
     {
       std::lock_guard<std::mutex> lk(m_screenshot_lock);
 
-      if (TextureToPng(config.data, config.stride, m_screenshot_name, config.width, config.height,
+      if (TextureToPng(frame.data, frame.stride, m_screenshot_name, frame.width, frame.height,
                        false))
         OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
 
@@ -1607,9 +1614,9 @@ void Renderer::RunFrameDumps()
       if (!frame_dump_started)
       {
         if (dump_to_ffmpeg)
-          frame_dump_started = StartFrameDumpToFFMPEG(config);
+          frame_dump_started = StartFrameDumpToFFMPEG(frame);
         else
-          frame_dump_started = StartFrameDumpToImage(config);
+          frame_dump_started = StartFrameDumpToImage(frame);
 
         // Stop frame dumping if we fail to start.
         if (!frame_dump_started)
@@ -1620,9 +1627,9 @@ void Renderer::RunFrameDumps()
       if (frame_dump_started)
       {
         if (dump_to_ffmpeg)
-          DumpFrameToFFMPEG(config);
+          DumpFrameToFFMPEG(frame);
         else
-          DumpFrameToImage(config);
+          DumpFrameToImage(frame);
       }
     }
 
@@ -1639,29 +1646,29 @@ void Renderer::RunFrameDumps()
 
 #if defined(HAVE_FFMPEG)
 
-bool Renderer::StartFrameDumpToFFMPEG(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData& frame)
 {
-  return FrameDump::Start(config.width, config.height);
+  return m_frame_dump.Start(frame.width, frame.height);
 }
 
-void Renderer::DumpFrameToFFMPEG(const FrameDumpConfig& config)
+void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData& frame)
 {
-  FrameDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
+  m_frame_dump.AddFrame(frame);
 }
 
 void Renderer::StopFrameDumpToFFMPEG()
 {
-  FrameDump::Stop();
+  m_frame_dump.Stop();
 }
 
 #else
 
-bool Renderer::StartFrameDumpToFFMPEG(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData&)
 {
   return false;
 }
 
-void Renderer::DumpFrameToFFMPEG(const FrameDumpConfig& config)
+void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData&)
 {
 }
 
@@ -1677,7 +1684,7 @@ std::string Renderer::GetFrameDumpNextImageFileName() const
                      m_frame_dump_image_counter);
 }
 
-bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToImage(const FrameDump::FrameData&)
 {
   m_frame_dump_image_counter = 1;
   if (!SConfig::GetInstance().m_DumpFramesSilent)
@@ -1688,7 +1695,7 @@ bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
     std::string filename = GetFrameDumpNextImageFileName();
     if (File::Exists(filename))
     {
-      if (!AskYesNoT("Frame dump image(s) '%s' already exists. Overwrite?", filename.c_str()))
+      if (!AskYesNoFmtT("Frame dump image(s) '{0}' already exists. Overwrite?", filename))
         return false;
     }
   }
@@ -1696,10 +1703,10 @@ bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
   return true;
 }
 
-void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
+void Renderer::DumpFrameToImage(const FrameDump::FrameData& frame)
 {
   std::string filename = GetFrameDumpNextImageFileName();
-  TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
+  TextureToPng(frame.data, frame.stride, filename, frame.width, frame.height, false);
   m_frame_dump_image_counter++;
 }
 
@@ -1743,6 +1750,10 @@ void Renderer::DoState(PointerWrap& p)
     // And actually display it.
     Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height, m_last_xfb_ticks);
   }
+
+#if defined(HAVE_FFMPEG)
+  m_frame_dump.DoState(p);
+#endif
 }
 
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()

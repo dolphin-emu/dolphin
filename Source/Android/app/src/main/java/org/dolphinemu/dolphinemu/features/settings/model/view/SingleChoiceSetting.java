@@ -1,31 +1,32 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class SingleChoiceSetting extends SettingsItem
 {
-  private int mDefaultValue;
+  private AbstractIntSetting mSetting;
 
   private int mChoicesId;
   private int mValuesId;
   private MenuTag menuTag;
 
-  public SingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          int choicesId, int valuesId, int defaultValue, Setting setting, MenuTag menuTag)
+  public SingleChoiceSetting(AbstractIntSetting setting, int titleId, int descriptionId,
+          int choicesId, int valuesId, MenuTag menuTag)
   {
-    super(key, section, setting, titleId, descriptionId);
+    super(titleId, descriptionId);
+    mSetting = setting;
     mValuesId = valuesId;
     mChoicesId = choicesId;
-    mDefaultValue = defaultValue;
     this.menuTag = menuTag;
   }
 
-  public SingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          int choicesId, int valuesId, int defaultValue, Setting setting)
+  public SingleChoiceSetting(AbstractIntSetting setting, int titleId, int descriptionId,
+          int choicesId, int valuesId)
   {
-    this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
+    this(setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
   public int getChoicesId()
@@ -38,17 +39,9 @@ public final class SingleChoiceSetting extends SettingsItem
     return mValuesId;
   }
 
-  public int getSelectedValue()
+  public int getSelectedValue(Settings settings)
   {
-    if (getSetting() != null)
-    {
-      IntSetting setting = (IntSetting) getSetting();
-      return setting.getValue();
-    }
-    else
-    {
-      return mDefaultValue;
-    }
+    return mSetting.getInt(settings);
   }
 
   public MenuTag getMenuTag()
@@ -56,32 +49,20 @@ public final class SingleChoiceSetting extends SettingsItem
     return menuTag;
   }
 
-  /**
-   * Write a value to the backing int. If that int was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the int.
-   * @return null if overwritten successfully otherwise; a newly created IntSetting.
-   */
-  public IntSetting setSelectedValue(int selection)
+  public void setSelectedValue(Settings settings, int selection)
   {
-    if (getSetting() == null)
-    {
-      IntSetting setting = new IntSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      IntSetting setting = (IntSetting) getSetting();
-      setting.setValue(selection);
-      return null;
-    }
+    mSetting.setInt(settings, selection);
   }
 
   @Override
   public int getType()
   {
     return TYPE_SINGLE_CHOICE;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

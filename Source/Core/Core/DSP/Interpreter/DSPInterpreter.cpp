@@ -42,7 +42,7 @@ void WriteCR(u16 val)
   // reset
   if (val & 1)
   {
-    INFO_LOG(DSPLLE, "DSP_CONTROL RESET");
+    INFO_LOG_FMT(DSPLLE, "DSP_CONTROL RESET");
     DSPCore_Reset();
     val &= ~1;
   }
@@ -51,7 +51,7 @@ void WriteCR(u16 val)
   {
     // HAX!
     // OSInitAudioSystem ucode should send this mail - not DSP core itself
-    INFO_LOG(DSPLLE, "DSP_CONTROL INIT");
+    INFO_LOG_FMT(DSPLLE, "DSP_CONTROL INIT");
     g_init_hax = true;
     val |= 0x800;
   }
@@ -233,6 +233,6 @@ void nop(const UDSPInstruction opc)
   if (opc == 0)
     return;
 
-  ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
+  ERROR_LOG_FMT(DSPLLE, "LLE: Unrecognized opcode {:#06x}", opc);
 }
 }  // namespace DSP::Interpreter

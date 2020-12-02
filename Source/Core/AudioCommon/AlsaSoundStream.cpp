@@ -64,7 +64,7 @@ void AlsaSound::SoundLoop()
       }
       else if (rc < 0)
       {
-        ERROR_LOG(AUDIO, "writei fail: %s", snd_strerror(rc));
+        ERROR_LOG_FMT(AUDIO, "writei fail: {}", snd_strerror(rc));
       }
     }
     if (m_thread_status.load() == ALSAThreadStatus::PAUSED)
@@ -107,7 +107,7 @@ bool AlsaSound::AlsaInit()
   err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Audio open error: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Audio open error: {}", snd_strerror(err));
     return false;
   }
 
@@ -116,21 +116,21 @@ bool AlsaSound::AlsaInit()
   err = snd_pcm_hw_params_any(handle, hwparams);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Broken configuration for this PCM: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Broken configuration for this PCM: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_hw_params_set_access(handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Access type not available: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Access type not available: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_hw_params_set_format(handle, hwparams, SND_PCM_FORMAT_S16_LE);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Sample format not available: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Sample format not available: {}", snd_strerror(err));
     return false;
   }
 
@@ -138,14 +138,14 @@ bool AlsaSound::AlsaInit()
   err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &sample_rate, &dir);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Rate not available: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Rate not available: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_hw_params_set_channels(handle, hwparams, CHANNEL_COUNT);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Channels count not available: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Channels count not available: {}", snd_strerror(err));
     return false;
   }
 
@@ -153,7 +153,7 @@ bool AlsaSound::AlsaInit()
   err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, &dir);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Cannot set maximum periods per buffer: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Cannot set maximum periods per buffer: {}", snd_strerror(err));
     return false;
   }
 
@@ -161,28 +161,28 @@ bool AlsaSound::AlsaInit()
   err = snd_pcm_hw_params_set_buffer_size_max(handle, hwparams, &buffer_size_max);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Cannot set maximum buffer size: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Cannot set maximum buffer size: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_hw_params(handle, hwparams);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Unable to install hw params: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Unable to install hw params: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Cannot get buffer size: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Cannot get buffer size: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_hw_params_get_periods_max(hwparams, &periods, &dir);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Cannot get periods: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Cannot get periods: {}", snd_strerror(err));
     return false;
   }
 
@@ -195,41 +195,41 @@ bool AlsaSound::AlsaInit()
   // it is probably a bad idea to try to send more than one buffer of data
   if ((unsigned int)frames_to_deliver > buffer_size)
     frames_to_deliver = buffer_size;
-  NOTICE_LOG(AUDIO,
-             "ALSA gave us a %ld sample \"hardware\" buffer with %d periods. Will send %d "
-             "samples per fragments.",
-             buffer_size, periods, frames_to_deliver);
+  NOTICE_LOG_FMT(AUDIO,
+                 "ALSA gave us a {} sample \"hardware\" buffer with {} periods. Will send {} "
+                 "samples per fragments.",
+                 buffer_size, periods, frames_to_deliver);
 
   snd_pcm_sw_params_alloca(&swparams);
 
   err = snd_pcm_sw_params_current(handle, swparams);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "cannot init sw params: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "cannot init sw params: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_sw_params_set_start_threshold(handle, swparams, 0U);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "cannot set start thresh: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "cannot set start thresh: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_sw_params(handle, swparams);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "cannot set sw params: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "cannot set sw params: {}", snd_strerror(err));
     return false;
   }
 
   err = snd_pcm_prepare(handle);
   if (err < 0)
   {
-    ERROR_LOG(AUDIO, "Unable to prepare: %s", snd_strerror(err));
+    ERROR_LOG_FMT(AUDIO, "Unable to prepare: {}", snd_strerror(err));
     return false;
   }
-  NOTICE_LOG(AUDIO, "ALSA successfully initialized.");
+  NOTICE_LOG_FMT(AUDIO, "ALSA successfully initialized.");
   return true;
 }
 

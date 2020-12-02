@@ -22,6 +22,7 @@
 #include "Common/SPSCQueue.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
+#include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
 
 namespace UICommon
@@ -42,7 +43,8 @@ public:
   virtual void Update() = 0;
   virtual void AppendChat(const std::string& msg) = 0;
 
-  virtual void OnMsgChangeGame(const std::string& filename) = 0;
+  virtual void OnMsgChangeGame(const SyncIdentifier& sync_identifier,
+                               const std::string& netplay_name) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
   virtual void OnMsgPowerButton() = 0;
@@ -59,9 +61,10 @@ public:
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
 
   virtual bool IsRecording() = 0;
-  virtual std::string FindGame(const std::string& game) = 0;
-  virtual std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) = 0;
-  virtual void ShowMD5Dialog(const std::string& file_identifier) = 0;
+  virtual std::shared_ptr<const UICommon::GameFile>
+  FindGameFile(const SyncIdentifier& sync_identifier,
+               SyncIdentifierComparison* found = nullptr) = 0;
+  virtual void ShowMD5Dialog(const std::string& title) = 0;
   virtual void SetMD5Progress(int pid, int progress) = 0;
   virtual void SetMD5Result(int pid, const std::string& result) = 0;
   virtual void AbortMD5() = 0;
@@ -75,13 +78,6 @@ public:
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
 };
 
-enum class PlayerGameStatus
-{
-  Unknown,
-  Ok,
-  NotFound
-};
-
 class Player
 {
 public:
@@ -89,7 +85,7 @@ public:
   std::string name;
   std::string revision;
   u32 ping;
-  PlayerGameStatus game_status;
+  SyncIdentifierComparison game_status;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -122,7 +118,7 @@ public:
   std::string GetCurrentGolfer();
 
   // Send and receive pads values
-  bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
+  bool WiimoteUpdate(int _number, u8* data, std::size_t size, u8 reporting_mode);
   bool GetNetPads(int pad_nb, bool from_vi, GCPadStatus* pad_status);
 
   u64 GetInitialRTCValue() const;
@@ -149,6 +145,8 @@ public:
 
   void AdjustPadBufferSize(unsigned int size);
 
+  static SyncIdentifier GetSDCardIdentifier();
+
 protected:
   struct AsyncQueueEntry
   {
@@ -169,7 +167,7 @@ protected:
   Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
 
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
-  std::array<Common::SPSCQueue<NetWiimote>, 4> m_wiimote_buffer;
+  std::array<Common::SPSCQueue<WiimoteInput>, 4> m_wiimote_buffer;
 
   std::array<GCPadStatus, 4> m_last_pad_status{};
   std::array<bool, 4> m_first_pad_status_received{};
@@ -182,7 +180,7 @@ protected:
   ENetPeer* m_server = nullptr;
   std::thread m_thread;
 
-  std::string m_selected_game;
+  SyncIdentifier m_selected_game;
   Common::Flag m_is_running{false};
   Common::Flag m_do_loop{true};
 
@@ -232,12 +230,12 @@ private:
 
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
-  void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
+  void SendWiimoteState(int in_game_pad, const WiimoteInput& nw);
   unsigned int OnData(sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
-  void ComputeMD5(const std::string& file_identifier);
+  void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
 

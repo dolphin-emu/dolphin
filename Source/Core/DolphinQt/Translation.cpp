@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <string>
 
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -149,24 +150,24 @@ public:
 
     if (!file)
     {
-      WARN_LOG(COMMON, "Error reading MO file '%s'", filename.c_str());
+      WARN_LOG_FMT(COMMON, "Error reading MO file '{}'", filename);
       m_data = {};
       return;
     }
 
-    u32 magic = ReadU32(&m_data[0]);
+    const u32 magic = ReadU32(&m_data[0]);
     if (magic != MO_MAGIC_NUMBER)
     {
-      ERROR_LOG(COMMON, "MO file '%s' has bad magic number %x\n", filename.c_str(), magic);
+      ERROR_LOG_FMT(COMMON, "MO file '{}' has bad magic number {:x}\n", filename, magic);
       m_data = {};
       return;
     }
 
-    u16 version_major = ReadU16(&m_data[4]);
+    const u16 version_major = ReadU16(&m_data[4]);
     if (version_major > 1)
     {
-      ERROR_LOG(COMMON, "MO file '%s' has unsupported version number %i", filename.c_str(),
-                version_major);
+      ERROR_LOG_FMT(COMMON, "MO file '{}' has unsupported version number {}", filename,
+                    version_major);
       m_data = {};
       return;
     }
@@ -185,7 +186,7 @@ public:
                                  [](const char* a, const char* b) { return strcmp(a, b) < 0; });
 
     if (iter == end || strcmp(*iter, original_string) != 0)
-      return original_string;
+      return nullptr;
 
     u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
     return &m_data[offset];
@@ -213,7 +214,21 @@ public:
   QString translate(const char* context, const char* source_text,
                     const char* disambiguation = nullptr, int n = -1) const override
   {
-    return QString::fromUtf8(m_mo_file.Translate(source_text));
+    const char* translated_text;
+
+    if (disambiguation)
+    {
+      std::string combined_string = disambiguation;
+      combined_string += '\4';
+      combined_string += source_text;
+      translated_text = m_mo_file.Translate(combined_string.c_str());
+    }
+    else
+    {
+      translated_text = m_mo_file.Translate(source_text);
+    }
+
+    return QString::fromUtf8(translated_text ? translated_text : source_text);
   }
 
 private:
@@ -285,7 +300,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     }
     translator->deleteLater();
   }
-  ERROR_LOG(COMMON, "No suitable translation file found");
+  ERROR_LOG_FMT(COMMON, "No suitable translation file found");
   return false;
 }
 

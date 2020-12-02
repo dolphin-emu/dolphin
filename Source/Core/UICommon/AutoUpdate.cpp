@@ -164,24 +164,24 @@ void AutoUpdateChecker::CheckForUpdate()
   auto resp = req.Get(url);
   if (!resp)
   {
-    ERROR_LOG(COMMON, "Auto-update request failed");
+    ERROR_LOG_FMT(COMMON, "Auto-update request failed");
     return;
   }
-  std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
-  INFO_LOG(COMMON, "Auto-update JSON response: %s", contents.c_str());
+  const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
+  INFO_LOG_FMT(COMMON, "Auto-update JSON response: {}", contents);
 
   picojson::value json;
-  std::string err = picojson::parse(json, contents);
+  const std::string err = picojson::parse(json, contents);
   if (!err.empty())
   {
-    ERROR_LOG(COMMON, "Invalid JSON received from auto-update service: %s", err.c_str());
+    ERROR_LOG_FMT(COMMON, "Invalid JSON received from auto-update service: {}", err);
     return;
   }
   picojson::object obj = json.get<picojson::object>();
 
   if (obj["status"].get<std::string>() != "outdated")
   {
-    INFO_LOG(COMMON, "Auto-update status: we are up to date.");
+    INFO_LOG_FMT(COMMON, "Auto-update status: we are up to date.");
     return;
   }
 
@@ -229,15 +229,14 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
 #endif
 
   // Run the updater!
-  std::string command_line = MakeUpdaterCommandLine(updater_flags);
-
-  INFO_LOG(COMMON, "Updater command line: %s", command_line.c_str());
+  const std::string command_line = MakeUpdaterCommandLine(updater_flags);
+  INFO_LOG_FMT(COMMON, "Updater command line: {}", command_line);
 
 #ifdef _WIN32
   STARTUPINFO sinfo = {sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
-  if (CreateProcessW(UTF8ToUTF16(reloc_updater_path).c_str(), UTF8ToUTF16(command_line).data(),
+  if (CreateProcessW(UTF8ToWString(reloc_updater_path).c_str(), UTF8ToWString(command_line).data(),
                      nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
   {
     CloseHandle(pinfo.hThread);
@@ -245,12 +244,12 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   }
   else
   {
-    ERROR_LOG(COMMON, "Could not start updater process: error=%d", GetLastError());
+    ERROR_LOG_FMT(COMMON, "Could not start updater process: error={}", GetLastError());
   }
 #else
   if (popen(command_line.c_str(), "r") == nullptr)
   {
-    ERROR_LOG(COMMON, "Could not start updater process: error=%d", errno);
+    ERROR_LOG_FMT(COMMON, "Could not start updater process: error={}", errno);
   }
 #endif
 

@@ -22,6 +22,8 @@
       <value>
         <package name="android" withSubpackages="true" static="false" />
         <emptyLine />
+        <package name="androidx" withSubpackages="true" static="false" />
+        <emptyLine />
         <package name="com" withSubpackages="true" static="false" />
         <emptyLine />
         <package name="junit" withSubpackages="true" static="false" />

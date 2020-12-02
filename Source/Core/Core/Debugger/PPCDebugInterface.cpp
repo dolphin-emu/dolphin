@@ -11,10 +11,10 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
-#include "Common/Debug/OSThread.h"
 #include "Common/GekkoDisassembler.h"
 
 #include "Core/Core.h"
+#include "Core/Debugger/OSThread.h"
 #include "Core/HW/DSP.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -172,19 +172,18 @@ Common::Debug::Threads PPCDebugInterface::GetThreads() const
   constexpr u32 ACTIVE_QUEUE_HEAD_ADDR = 0x800000dc;
   if (!PowerPC::HostIsRAMAddress(ACTIVE_QUEUE_HEAD_ADDR))
     return threads;
-  u32 addr = PowerPC::HostRead_U32(ACTIVE_QUEUE_HEAD_ADDR);
-  if (!PowerPC::HostIsRAMAddress(addr))
+  const u32 active_queue_head = PowerPC::HostRead_U32(ACTIVE_QUEUE_HEAD_ADDR);
+  if (!PowerPC::HostIsRAMAddress(active_queue_head))
     return threads;
 
-  auto active_thread = std::make_unique<Common::Debug::OSThreadView>(addr);
+  auto active_thread = std::make_unique<Core::Debug::OSThreadView>(active_queue_head);
   if (!active_thread->IsValid())
     return threads;
-  addr = active_thread->Data().thread_link.prev;
 
   const auto insert_threads = [&threads](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::HostIsRAMAddress(addr))
     {
-      auto thread = std::make_unique<Common::Debug::OSThreadView>(addr);
+      auto thread = std::make_unique<Core::Debug::OSThreadView>(addr);
       if (!thread->IsValid())
         break;
       addr = get_next_addr(*thread);
@@ -192,11 +191,13 @@ Common::Debug::Threads PPCDebugInterface::GetThreads() const
     }
   };
 
-  insert_threads(addr, [](const auto& thread) { return thread.Data().thread_link.prev; });
+  const u32 prev_addr = active_thread->Data().thread_link.prev;
+  insert_threads(prev_addr, [](const auto& thread) { return thread.Data().thread_link.prev; });
   std::reverse(threads.begin(), threads.end());
-  addr = active_thread->Data().thread_link.next;
+
+  const u32 next_addr = active_thread->Data().thread_link.next;
   threads.emplace_back(std::move(active_thread));
-  insert_threads(addr, [](const auto& thread) { return thread.Data().thread_link.next; });
+  insert_threads(next_addr, [](const auto& thread) { return thread.Data().thread_link.next; });
 
   return threads;
 }

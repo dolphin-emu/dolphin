@@ -18,7 +18,10 @@ namespace IOS::HLE::Device
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
-USB_VEN::~USB_VEN() = default;
+USB_VEN::~USB_VEN()
+{
+  m_scan_thread.Stop();
+}
 
 IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {

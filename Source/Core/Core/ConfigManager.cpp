@@ -31,6 +31,7 @@
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
@@ -80,7 +81,7 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-  NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  NOTICE_LOG_FMT(BOOT, "Saving settings to {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
 
@@ -93,7 +94,6 @@ void SConfig::SaveSettings()
   SaveDSPSettings(ini);
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
-  SaveAnalyticsSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
@@ -128,7 +128,6 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
     general->Set(fmt::format("ISOPath{}", i), m_ISOFolder[i]);
   }
 
-  general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
   general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
@@ -144,8 +143,6 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("UsePanicHandlers", bUsePanicHandlers);
-  interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
@@ -307,15 +304,6 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
   fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
-void SConfig::SaveAnalyticsSettings(IniFile& ini)
-{
-  IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
-
-  analytics->Set("ID", m_analytics_id);
-  analytics->Set("Enabled", m_analytics_enabled);
-  analytics->Set("PermissionAsked", m_analytics_permission_asked);
-}
-
 void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
@@ -368,7 +356,7 @@ void SConfig::LoadSettings()
 {
   Config::Load();
 
-  INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -381,7 +369,6 @@ void SConfig::LoadSettings()
   LoadDSPSettings(ini);
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
-  LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
   LoadAutoUpdateSettings(ini);
@@ -414,7 +401,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
     }
   }
 
-  general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
   general->Get("WirelessMac", &m_WirelessMac);
 }
 
@@ -423,8 +409,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, false);
-  interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
-  interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, true);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
@@ -605,15 +589,6 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
   fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
 }
 
-void SConfig::LoadAnalyticsSettings(IniFile& ini)
-{
-  IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
-
-  analytics->Get("ID", &m_analytics_id, "");
-  analytics->Get("Enabled", &m_analytics_enabled, false);
-  analytics->Get("PermissionAsked", &m_analytics_permission_asked, true);
-}
-
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
@@ -734,14 +709,16 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 
   if (game_id == "00000000")
   {
+    m_title_name.clear();
     m_title_description.clear();
     return;
   }
 
   const Core::TitleDatabase title_database;
   const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
-  NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
+  NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
@@ -798,12 +775,6 @@ void SConfig::LoadDefaults()
   iLatency = 20;
   m_audio_stretch = false;
   m_audio_stretch_max_latency = 80;
-  bUsePanicHandlers = true;
-  bOnScreenDisplayMessages = true;
-
-  m_analytics_id = "";
-  m_analytics_enabled = false;
-  m_analytics_permission_asked = false;
 
   bLoopFifoReplay = true;
 
@@ -878,10 +849,10 @@ struct SetGameMetadata
   SetGameMetadata(SConfig* config_, DiscIO::Region* region_) : config(config_), region(region_) {}
   bool operator()(const BootParameters::Disc& disc) const
   {
-    config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
+    *region = disc.volume->GetRegion();
     config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc;
     config->m_disc_booted_from_game_list = true;
-    *region = disc.volume->GetRegion();
+    config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
     return true;
   }
 
@@ -890,12 +861,14 @@ struct SetGameMetadata
     if (!executable.reader->IsValid())
       return false;
 
-    config->bWii = executable.reader->IsWii();
-
     *region = DiscIO::Region::Unknown;
+    config->bWii = executable.reader->IsWii();
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
+
+    Host_TitleChanged();
+
     return true;
   }
 
@@ -903,19 +876,20 @@ struct SetGameMetadata
   {
     if (!wad.GetTMD().IsValid())
     {
-      PanicAlertT("This WAD is not valid.");
+      PanicAlertFmtT("This WAD is not valid.");
       return false;
     }
     if (!IOS::ES::IsChannel(wad.GetTMD().GetTitleId()))
     {
-      PanicAlertT("This WAD is not bootable.");
+      PanicAlertFmtT("This WAD is not bootable.");
       return false;
     }
 
     const IOS::ES::TMDReader& tmd = wad.GetTMD();
-    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
-    config->bWii = true;
     *region = tmd.GetRegion();
+    config->bWii = true;
+    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
+
     return true;
   }
 
@@ -925,19 +899,23 @@ struct SetGameMetadata
     const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
     if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
     {
-      PanicAlertT("This title cannot be booted.");
+      PanicAlertFmtT("This title cannot be booted.");
       return false;
     }
-    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
-    config->bWii = true;
+
     *region = tmd.GetRegion();
+    config->bWii = true;
+    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
+
     return true;
   }
 
   bool operator()(const BootParameters::IPL& ipl) const
   {
-    config->bWii = false;
     *region = ipl.region;
+    config->bWii = false;
+    Host_TitleChanged();
+
     return true;
   }
 
@@ -947,8 +925,10 @@ struct SetGameMetadata
     if (!dff_file)
       return false;
 
-    config->bWii = dff_file->GetIsWii();
     *region = DiscIO::Region::NTSC_U;
+    config->bWii = dff_file->GetIsWii();
+    Host_TitleChanged();
+
     return true;
   }
 
@@ -978,18 +958,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
 
 DiscIO::Region SConfig::GetFallbackRegion()
 {
-  // Fall back to the system menu region, if possible.
-  IOS::HLE::Kernel ios;
-  const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
-  if (system_menu_tmd.IsValid())
-  {
-    const DiscIO::Region region = system_menu_tmd.GetRegion();
-    if (region != DiscIO::Region::Unknown)
-      return region;
-  }
-
-  // Fall back to PAL.
-  return DiscIO::Region::PAL;
+  return Config::Get(Config::MAIN_FALLBACK_REGION);
 }
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const

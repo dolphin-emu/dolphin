@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <QCheckBox>
-#include <QRadioButton>
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipRadioButton.h"
 
 namespace Config
 {
@@ -13,7 +13,7 @@ template <typename T>
 struct Info;
 }
 
-class GraphicsBool : public QCheckBox
+class GraphicsBool : public ToolTipCheckBox
 {
   Q_OBJECT
 public:
@@ -26,7 +26,7 @@ private:
   bool m_reverse;
 };
 
-class GraphicsBoolEx : public QRadioButton
+class GraphicsBoolEx : public ToolTipRadioButton
 {
   Q_OBJECT
 public:

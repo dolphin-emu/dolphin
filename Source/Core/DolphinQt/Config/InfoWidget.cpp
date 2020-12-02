@@ -54,10 +54,9 @@ QGroupBox* InfoWidget::CreateFileDetails()
   }
   else
   {
-    const QString file_format =
-        QStringLiteral("%1 (%2)")
-            .arg(QString::fromStdString(DiscIO::GetName(m_game.GetBlobType(), true)))
-            .arg(QString::fromStdString(file_size));
+    const QString file_format = QStringLiteral("%1 (%2)")
+                                    .arg(QString::fromStdString(m_game.GetFileFormatName()))
+                                    .arg(QString::fromStdString(file_size));
     layout->addRow(tr("File Format:"), CreateValueDisplay(file_format));
 
     QString compression = QString::fromStdString(m_game.GetCompressionMethod());
@@ -93,7 +92,7 @@ QGroupBox* InfoWidget::CreateGameDetails()
   QLineEdit* internal_name =
       CreateValueDisplay(is_disc_based ? tr("%1 (Disc %2, Revision %3)")
                                              .arg(game_name.isEmpty() ? UNKNOWN_NAME : game_name)
-                                             .arg(m_game.GetDiscNumber())
+                                             .arg(m_game.GetDiscNumber() + 1)
                                              .arg(m_game.GetRevision()) :
                                          tr("%1 (Revision %3)")
                                              .arg(game_name.isEmpty() ? UNKNOWN_NAME : game_name)

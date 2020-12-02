@@ -62,7 +62,7 @@ namespace OGL
 {
 std::string VideoBackend::GetName() const
 {
-  return "OGL";
+  return NAME;
 }
 
 std::string VideoBackend::GetDisplayName() const

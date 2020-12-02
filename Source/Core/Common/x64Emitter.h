@@ -329,8 +329,18 @@ class XEmitter
 {
   friend struct OpArg;  // for Write8 etc
 private:
+  // Pointer to memory where code will be emitted to.
   u8* code = nullptr;
+
+  // Pointer past the end of the memory region we're allowed to emit to.
+  // Writes that would reach this memory are refused and will set the m_write_failed flag instead.
+  u8* m_code_end = nullptr;
+
   bool flags_locked = false;
+
+  // Set to true when a write request happens that would write past m_code_end.
+  // Must be cleared with SetCodePtr() afterwards.
+  bool m_write_failed = false;
 
   void CheckFlags();
 
@@ -378,9 +388,9 @@ protected:
 
 public:
   XEmitter() = default;
-  explicit XEmitter(u8* code_ptr) : code{code_ptr} {}
+  explicit XEmitter(u8* code_ptr, u8* code_end) : code(code_ptr), m_code_end(code_end) {}
   virtual ~XEmitter() = default;
-  void SetCodePtr(u8* ptr);
+  void SetCodePtr(u8* ptr, u8* end, bool write_failed = false);
   void ReserveCodeSpace(int bytes);
   u8* AlignCodeTo(size_t alignment);
   u8* AlignCode4();
@@ -388,9 +398,16 @@ public:
   u8* AlignCodePage();
   const u8* GetCodePtr() const;
   u8* GetWritableCodePtr();
+  const u8* GetCodeEnd() const;
+  u8* GetWritableCodeEnd();
 
   void LockFlags() { flags_locked = true; }
   void UnlockFlags() { flags_locked = false; }
+
+  // Should be checked after a block of code has been generated to see if the code has been
+  // successfully written to memory. Do not call the generated code when this returns true!
+  bool HasWriteFailed() const { return m_write_failed; }
+
   // Looking for one of these? It's BANNED!! Some instructions are slow on modern CPU
   // INC, DEC, LOOP, LOOPNE, LOOPE, ENTER, LEAVE, XCHG, XLAT, REP MOVSB/MOVSD, REP SCASD + other
   // string instr.,

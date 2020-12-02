@@ -98,7 +98,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   };
   for (const auto& directory : directories)
   {
-    const fs::path directory_path = StringToPath(directory);
+    fs::path directory_path = StringToPath(directory);
     if (fs::is_directory(directory_path))  // Can't create iterators for non-existant directories
     {
       if (recursive)
@@ -125,9 +125,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // std::filesystem uses the OS separator.
   constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
   static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
-  if (os_separator != DIR_SEP_CHR)
+  if constexpr (os_separator != DIR_SEP_CHR)
+  {
     for (auto& path : result)
       std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+  }
 
   return result;
 }

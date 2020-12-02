@@ -204,9 +204,10 @@ static int s_wakeup_eventfd;
 // sysfs is not stable, so this is probably the easiest way to get a name for a node.
 static std::map<std::string, std::weak_ptr<evdevDevice>> s_devnode_objects;
 
-static std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id)
+static std::shared_ptr<evdevDevice>
+FindDeviceWithUniqueIDAndPhysicalLocation(const char* unique_id, const char* physical_location)
 {
-  if (!unique_id)
+  if (!unique_id || !physical_location)
     return nullptr;
 
   for (auto& [node, dev] : s_devnode_objects)
@@ -214,9 +215,13 @@ static std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id
     if (const auto device = dev.lock())
     {
       const auto* dev_uniq = device->GetUniqueID();
+      const auto* dev_phys = device->GetPhysicalLocation();
 
-      if (dev_uniq && std::strcmp(dev_uniq, unique_id) == 0)
+      if (dev_uniq && dev_phys && std::strcmp(dev_uniq, unique_id) == 0 &&
+          std::strcmp(dev_phys, physical_location) == 0)
+      {
         return device;
+      }
     }
   }
 
@@ -244,10 +249,12 @@ static void AddDeviceNode(const char* devnode)
   }
 
   const auto uniq = libevdev_get_uniq(dev);
-  auto evdev_device = FindDeviceWithUniqueID(uniq);
+  const auto phys = libevdev_get_phys(dev);
+  auto evdev_device = FindDeviceWithUniqueIDAndPhysicalLocation(uniq, phys);
   if (evdev_device)
   {
-    NOTICE_LOG(SERIALINTERFACE, "evdev combining devices with unique id: %s", uniq);
+    NOTICE_LOG_FMT(SERIALINTERFACE,
+                   "evdev combining devices with unique id: {}, physical location: {}", uniq, phys);
 
     evdev_device->AddNode(devnode, fd, dev);
 
@@ -275,7 +282,7 @@ static void AddDeviceNode(const char* devnode)
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("evdev Hotplug Thread");
-  NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread started");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "evdev hotplug thread started");
 
   udev* const udev = udev_new();
   Common::ScopeGuard udev_guard([udev] { udev_unref(udev); });
@@ -330,7 +337,7 @@ static void HotplugThreadFunc()
       AddDeviceNode(devnode);
     }
   }
-  NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "evdev hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -587,6 +594,14 @@ const char* evdevDevice::GetUniqueID() const
     return nullptr;
 
   return uniq;
+}
+
+const char* evdevDevice::GetPhysicalLocation() const
+{
+  if (m_nodes.empty())
+    return nullptr;
+
+  return libevdev_get_phys(m_nodes.front().device);
 }
 
 evdevDevice::~evdevDevice()

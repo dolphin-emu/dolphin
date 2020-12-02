@@ -74,8 +74,8 @@ void DoState(PointerWrap& p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void ClearX1();
-void GenerateAck(u32 _Address);
-void GenerateReply(u32 _Address);
+void GenerateAck(u32 address);
+void GenerateReply(u32 address);
 
 bool IsReady();
 }  // namespace IOS

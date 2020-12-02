@@ -6,6 +6,7 @@
 #include <thread>
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/Thread.h"
 
 namespace VideoCommon
 {
@@ -121,7 +122,7 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
     void* thread_param = nullptr;
     if (!WorkerThreadInitMainThread(&thread_param))
     {
-      WARN_LOG(VIDEO, "Failed to initialize shader compiler worker thread.");
+      WARN_LOG_FMT(VIDEO, "Failed to initialize shader compiler worker thread.");
       break;
     }
 
@@ -132,7 +133,7 @@ bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
 
     if (!m_worker_thread_start_result.load())
     {
-      WARN_LOG(VIDEO, "Failed to start shader compiler worker thread.");
+      WARN_LOG_FMT(VIDEO, "Failed to start shader compiler worker thread.");
       thr.join();
       break;
     }
@@ -192,10 +193,12 @@ void AsyncShaderCompiler::WorkerThreadExit(void* param)
 
 void AsyncShaderCompiler::WorkerThreadEntryPoint(void* param)
 {
+  Common::SetCurrentThreadName("AsyncShaderCompiler Worker");
+
   // Initialize worker thread with backend-specific method.
   if (!WorkerThreadInitWorkerThread(param))
   {
-    WARN_LOG(VIDEO, "Failed to initialize shader compiler worker.");
+    WARN_LOG_FMT(VIDEO, "Failed to initialize shader compiler worker.");
     m_worker_thread_start_result.store(false);
     m_init_event.Set();
     return;

@@ -67,7 +67,7 @@ bool LoadVulkanLibrary()
 #define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
   if (!s_vulkan_module.GetSymbol(#name, &name) && required)                                        \
   {                                                                                                \
-    ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", #name);                 \
+    ERROR_LOG_FMT(VIDEO, "Vulkan: Failed to load required module function {}", #name);             \
     ResetVulkanLibraryFunctionPointers();                                                          \
     s_vulkan_module.Close();                                                                       \
     return false;                                                                                  \
@@ -92,7 +92,7 @@ bool LoadVulkanInstanceFunctions(VkInstance instance)
     *func_ptr = vkGetInstanceProcAddr(instance, name);
     if (!(*func_ptr) && is_required)
     {
-      ERROR_LOG(VIDEO, "Vulkan: Failed to load required instance function %s", name);
+      ERROR_LOG_FMT(VIDEO, "Vulkan: Failed to load required instance function {}", name);
       required_functions_missing = true;
     }
   };
@@ -112,7 +112,7 @@ bool LoadVulkanDeviceFunctions(VkDevice device)
     *func_ptr = vkGetDeviceProcAddr(device, name);
     if (!(*func_ptr) && is_required)
     {
-      ERROR_LOG(VIDEO, "Vulkan: Failed to load required device function %s", name);
+      ERROR_LOG_FMT(VIDEO, "Vulkan: Failed to load required device function {}", name);
       required_functions_missing = true;
     }
   };
@@ -213,11 +213,10 @@ void LogVulkanResult(int level, const char* func_name, VkResult res, const char*
   std::string real_msg = StringFromFormatV(msg, ap);
   va_end(ap);
 
-  real_msg = StringFromFormat("(%s) %s (%d: %s)", func_name, real_msg.c_str(),
-                              static_cast<int>(res), VkResultToString(res));
+  real_msg = fmt::format("({}) {} ({}: {})", func_name, real_msg, static_cast<int>(res),
+                         VkResultToString(res));
 
-  GENERIC_LOG(Common::Log::VIDEO, static_cast<Common::Log::LOG_LEVELS>(level), "%s",
-              real_msg.c_str());
+  GENERIC_LOG_FMT(Common::Log::VIDEO, static_cast<Common::Log::LOG_LEVELS>(level), "{}", real_msg);
 }
 
 }  // namespace Vulkan

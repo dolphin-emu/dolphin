@@ -16,26 +16,6 @@
 #include "UpdaterCommon/UI.h"
 #include "UpdaterCommon/UpdaterCommon.h"
 
-namespace
-{
-std::vector<std::string> CommandLineToUtf8Argv(PCWSTR command_line)
-{
-  int nargs;
-  LPWSTR* tokenized = CommandLineToArgvW(command_line, &nargs);
-  if (!tokenized)
-    return {};
-
-  std::vector<std::string> argv(nargs);
-  for (int i = 0; i < nargs; ++i)
-  {
-    argv[i] = UTF16ToUTF8(tokenized[i]);
-  }
-
-  LocalFree(tokenized);
-  return argv;
-}
-};  // namespace
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
   if (lstrlenW(pCmdLine) == 0)

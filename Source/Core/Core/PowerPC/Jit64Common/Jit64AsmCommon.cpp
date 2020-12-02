@@ -77,8 +77,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
   else
   {
     // We want bits 0, 1
-    MOVAPD(XMM1, R(XMM0));
-    PAND(XMM1, MConst(double_top_two_bits));
+    avx_op(&XEmitter::VPAND, &XEmitter::PAND, XMM1, R(XMM0), MConst(double_top_two_bits));
     PSRLQ(XMM1, 32);
 
     // And 5 through to 34

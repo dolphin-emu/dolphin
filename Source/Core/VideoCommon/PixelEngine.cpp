@@ -221,7 +221,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    m_Control.PEToken = 0;   // this flag is write only
                    m_Control.PEFinish = 0;  // this flag is write only
 
-                   DEBUG_LOG(PIXELENGINE, "(w16) CTRL_REGISTER: 0x%04x", val);
+                   DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
                    UpdateInterrupts();
                  }));
 
@@ -294,7 +294,7 @@ static void RaiseEvent()
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetToken(const u16 token, const bool interrupt)
 {
-  DEBUG_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", token);
+  DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: {:04x})", token);
 
   std::lock_guard<std::mutex> lk(s_token_finish_mutex);
 
@@ -308,7 +308,7 @@ void SetToken(const u16 token, const bool interrupt)
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
-  DEBUG_LOG(PIXELENGINE, "VIDEO Set Finish");
+  DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Set Finish");
 
   std::lock_guard<std::mutex> lk(s_token_finish_mutex);
 

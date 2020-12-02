@@ -157,7 +157,7 @@ void PrintInstructionRunCounts()
     if (inst.second == 0)
       break;
 
-    DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
+    DEBUG_LOG_FMT(POWERPC, "{} : {}", inst.first, inst.second);
   }
 }
 
@@ -171,8 +171,8 @@ void LogCompiledInstructions()
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount > 0)
     {
-      fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname, pInst->compileCount,
-              pInst->runCount, pInst->lastUse);
+      f.WriteString(fmt::format("{0}\t{1}\t{2}\t{3:08x}\n", pInst->opname, pInst->compileCount,
+                                pInst->runCount, pInst->lastUse));
     }
   }
 
@@ -182,8 +182,8 @@ void LogCompiledInstructions()
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount == 0)
     {
-      fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname, pInst->compileCount,
-              pInst->runCount);
+      f.WriteString(
+          fmt::format("{0}\t{1}\t{2}\n", pInst->opname, pInst->compileCount, pInst->runCount));
     }
   }
 
@@ -191,7 +191,7 @@ void LogCompiledInstructions()
   f.Open(fmt::format("{}" OP_TO_LOG "_at{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (auto& rsplocation : rsplocations)
   {
-    fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);
+    f.WriteString(fmt::format(OP_TO_LOG ": {0:08x}\n", rsplocation));
   }
 #endif
 

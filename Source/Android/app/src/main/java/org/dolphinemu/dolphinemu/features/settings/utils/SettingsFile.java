@@ -2,123 +2,20 @@ package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import androidx.annotation.NonNull;
 
-import android.text.TextUtils;
-
-import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.BiMap;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
  */
 public final class SettingsFile
 {
-  public static final String FILE_NAME_DOLPHIN = "Dolphin";
-  public static final String FILE_NAME_GFX = "GFX";
-  public static final String FILE_NAME_GCPAD = "GCPadNew";
-  public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
-
-  public static final String KEY_DSP_ENGINE = "DSPEngine";
-  public static final String KEY_LAST_PLATFORM_TAB = "LastPlatformTab";
-
-  public static final String KEY_CPU_CORE = "CPUCore";
-  public static final String KEY_DUAL_CORE = "CPUThread";
-  public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
-  public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
-  public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
-  public static final String KEY_VIDEO_BACKEND = "GFXBackend";
-
-  public static final String KEY_DSP_HLE = "DSPHLE";
-  public static final String KEY_DSP_ENABLE_JIT = "EnableJIT";
-  public static final String KEY_AUDIO_STRETCH = "AudioStretch";
-  public static final String KEY_AUDIO_VOLUME = "Volume";
-
-  public static final String KEY_AUTO_DISC_CHANGE = "AutoDiscChange";
-  public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
-  public static final String KEY_OVERRIDE_REGION_SETTINGS = "OverrideRegionSettings";
-  public static final String KEY_SLOT_A_DEVICE = "SlotA";
-  public static final String KEY_SLOT_B_DEVICE = "SlotB";
-  public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
-  public static final String KEY_RECURSIVE_ISO_PATHS = "RecursiveISOPaths";
-  public static final String KEY_DEFAULT_ISO = "DefaultISO";
-  public static final String KEY_NAND_ROOT_PATH = "NANDRootPath";
-  public static final String KEY_DUMP_PATH = "DumpPath";
-  public static final String KEY_LOAD_PATH = "LoadPath";
-  public static final String KEY_RESOURCE_PACK_PATH = "ResourcePackPath";
-  public static final String KEY_WII_SD_CARD_PATH = "WiiSDCardPath";
-
-  public static final String KEY_ANALYTICS_ENABLED = "Enabled";
-  public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";
-
-  public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
-  public static final String KEY_OSD_MESSAGES = "OnScreenDisplayMessages";
-
-  public static final String KEY_SHOW_FPS = "ShowFPS";
-  public static final String KEY_INTERNAL_RES = "InternalResolution";
-  public static final String KEY_FSAA = "MSAA";
-  public static final String KEY_ANISOTROPY = "MaxAnisotropy";
-  public static final String KEY_POST_SHADER = "PostProcessingShader";
-  public static final String KEY_SCALED_EFB = "EFBScaledCopy";
-  public static final String KEY_PER_PIXEL = "EnablePixelLighting";
-  public static final String KEY_FORCE_FILTERING = "ForceFiltering";
-  public static final String KEY_DISABLE_FOG = "DisableFog";
-  public static final String KEY_DISABLE_COPY_FILTER = "DisableCopyFilter";
-  public static final String KEY_ARBITRARY_MIPMAP_DETECTION = "ArbitraryMipmapDetection";
-  public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
-  public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
-  public static final String KEY_BACKEND_MULTITHREADING = "BackendMultithreading";
-
-  public static final String KEY_STEREO_MODE = "StereoMode";
-  public static final String KEY_STEREO_DEPTH = "StereoDepth";
-  public static final String KEY_STEREO_CONV = "StereoConvergencePercentage";
-  public static final String KEY_STEREO_SWAP = "StereoSwapEyes";
-
-  public static final String KEY_SKIP_EFB = "EFBAccessEnable";
-  public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
-  public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
-  public static final String KEY_DEFER_EFB_COPIES = "DeferEFBCopies";
-  public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
-  public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
-  public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";
-  public static final String KEY_IMMEDIATE_XFB = "ImmediateXFBEnable";
-  public static final String KEY_SKIP_DUPLICATE_XFBS = "SkipDuplicateXFBs";
-  public static final String KEY_FAST_DEPTH = "FastDepthCalc";
-  public static final String KEY_ASPECT_RATIO = "AspectRatio";
-  public static final String KEY_SHADER_COMPILATION_MODE = "ShaderCompilationMode";
-  public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
-
-  public static final String KEY_DEBUG_JITOFF = "JitOff";
-  public static final String KEY_DEBUG_JITLOADSTOREOFF = "JitLoadStoreOff";
-  public static final String KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF = "JitLoadStoreFloatingOff";
-  public static final String KEY_DEBUG_JITLOADSTOREPAIREDOFF = "JitLoadStorePairedOff";
-  public static final String KEY_DEBUG_JITFLOATINGPOINTOFF = "JitFloatingPointOff";
-  public static final String KEY_DEBUG_JITINTEGEROFF = "JitIntegerOff";
-  public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
-  public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
-  public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
-  public static final String KEY_DEBUG_JITREGISTERCACHEOFF = "JitRegisterCacheOff";
-
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
@@ -281,14 +178,6 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT = "TurntableCrossLeft_";
   public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT = "TurntableCrossRight_";
 
-  public static final String KEY_WII_SD_CARD = "WiiSDCard";
-  public static final String KEY_WII_SD_CARD_ALLOW_WRITES = "WiiSDCardAllowWrites";
-  public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
-  public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
-
-  // Internal only, not actually found in settings file.
-  public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
-
   private static BiMap<String, String> sectionsMap = new BiMap<>();
 
   static
@@ -306,244 +195,78 @@ public final class SettingsFile
   }
 
   /**
-   * Reads a given .ini file from disk and returns it as a HashMap of Settings, themselves
-   * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
-   * failed.
+   * Reads a given .ini file from disk and returns it.
+   * If unsuccessful, outputs an error telling why it failed.
    *
-   * @param ini  The ini file to load the settings from
+   * @param file The ini file to load the settings from
+   * @param ini  The object to load into
    * @param view The current view.
    */
-  static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame,
-          SettingsActivityView view)
+  static void readFile(final File file, IniFile ini, SettingsActivityView view)
   {
-    HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
-
-    BufferedReader reader = null;
-
-    try
+    if (!ini.load(file, true))
     {
-      reader = new BufferedReader(new FileReader(ini));
-
-      SettingSection current = null;
-      for (String line; (line = reader.readLine()) != null; )
-      {
-        if (line.startsWith("[") && line.endsWith("]"))
-        {
-          current = sectionFromLine(line, isCustomGame);
-          sections.put(current.getName(), current);
-        }
-        else if ((current != null))
-        {
-          Setting setting = settingFromLine(current, line);
-          if (setting != null)
-          {
-            current.putSetting(setting);
-          }
-        }
-      }
-    }
-    catch (FileNotFoundException e)
-    {
-      Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
+      Log.error("[SettingsFile] Error reading from: " + file.getAbsolutePath());
       if (view != null)
         view.onSettingsFileNotFound();
     }
-    catch (IOException e)
-    {
-      Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath() + e.getMessage());
-      if (view != null)
-        view.onSettingsFileNotFound();
-    }
-    finally
-    {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        }
-        catch (IOException e)
-        {
-          Log.error("[SettingsFile] Error closing: " + ini.getAbsolutePath() + e.getMessage());
-        }
-      }
-    }
-
-    return sections;
   }
 
-  public static HashMap<String, SettingSection> readFile(final String fileName,
-          SettingsActivityView view)
+  public static void readFile(final String fileName, IniFile ini, SettingsActivityView view)
   {
-    HashMap<String, SettingSection> sections = readFile(getSettingsFile(fileName), false, view);
-
-    if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
-    {
-      addGcPadSettingsIfTheyDontExist(sections);
-    }
-
-    return sections;
+    readFile(getSettingsFile(fileName), ini, view);
   }
 
   /**
-   * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
-   * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
-   * failed.
+   * Reads a given .ini file from disk and returns it.
+   * If unsuccessful, outputs an error telling why it failed.
    *
-   * @param gameId the id of the game to load it's settings.
+   * @param gameId the id of the game to load settings for.
+   * @param ini    The object to load into
    * @param view   The current view.
    */
-  public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId,
+  public static void readCustomGameSettings(final String gameId, IniFile ini,
           SettingsActivityView view)
   {
-    return readFile(getCustomGameSettingsFile(gameId), true, view);
+    readFile(getCustomGameSettingsFile(gameId), ini, view);
   }
 
-  public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId,
+  public static void readGenericGameSettings(final String gameId, IniFile ini,
           SettingsActivityView view)
   {
-    return readFile(getGenericGameSettingsFile(gameId), true, view);
+    readFile(getGenericGameSettingsFile(gameId), ini, view);
   }
 
-  public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(
-          final String gameId, SettingsActivityView view)
+  public static void readGenericGameSettingsForAllRegions(final String gameId,
+          IniFile ini, SettingsActivityView view)
   {
-    return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
-  }
-
-  public static HashMap<String, SettingSection> readWiimoteProfile(final String gameId,
-          final String padId)
-  {
-    String profile = gameId + "_Wii" + padId;
-    return readFile(getWiiProfile(profile, padId), true, null);
+    readFile(getGenericGameSettingsForAllRegions(gameId), ini, view);
   }
 
   /**
-   * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
-   * telling why it failed.
+   * Saves a given .ini file on disk.
+   * If unsuccessful, outputs an error telling why it failed.
    *
    * @param fileName The target filename without a path or extension.
-   * @param sections The HashMap containing the Settings we want to serialize.
+   * @param ini      The IniFile we want to serialize.
    * @param view     The current view.
    */
-  public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections,
-          SettingsActivityView view)
+  public static void saveFile(final String fileName, IniFile ini, SettingsActivityView view)
   {
-    File ini = getSettingsFile(fileName);
-
-    PrintWriter writer = null;
-    try
+    if (!ini.save(getSettingsFile(fileName)))
     {
-      writer = new PrintWriter(ini, "UTF-8");
-
-      Set<String> keySet = sections.keySet();
-      Set<String> sortedKeySet = new TreeSet<>(keySet);
-
-      for (String key : sortedKeySet)
-      {
-        SettingSection section = sections.get(key);
-        writeSection(writer, section);
-      }
-    }
-    catch (FileNotFoundException e)
-    {
-      Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
+      Log.error("[SettingsFile] Error saving to: " + fileName + ".ini");
       if (view != null)
-        view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " +
-              e.getMessage());
-      if (view != null)
-        view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
-    }
-    finally
-    {
-      if (writer != null)
-      {
-        writer.close();
-      }
+        view.showToastMessage("Error saving " + fileName + ".ini");
     }
   }
 
-  public static void saveCustomGameSettings(final String gameId,
-          final HashMap<String, SettingSection> sections)
+  public static void saveCustomGameSettings(final String gameId, IniFile ini)
   {
-    Set<String> sortedSections = new TreeSet<>(sections.keySet());
-
-    NativeLibrary.NewGameIniFile();
-    for (String sectionKey : sortedSections)
-    {
-      SettingSection section = sections.get(sectionKey);
-      HashMap<String, Setting> settings = section.getSettings();
-      Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
-
-      // Profile options(wii extension) are not saved, only used to properly display values
-      if (sectionKey.contains(Settings.SECTION_PROFILE))
-      {
-        continue;
-      }
-
-      for (String settingKey : sortedKeySet)
-      {
-        Setting setting = settings.get(settingKey);
-        // Special case. Extension gets saved into a controller profile
-        if (settingKey.contains(SettingsFile.KEY_WIIMOTE_EXTENSION))
-        {
-          String padId =
-                  setting.getKey()
-                          .substring(setting.getKey().length() - 1, setting.getKey().length());
-          saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, setting.getValueAsString(),
-                  padId);
-        }
-        else
-        {
-          NativeLibrary.SetUserSetting(gameId, mapSectionNameFromIni(section.getName()),
-                  setting.getKey(), setting.getValueAsString());
-        }
-      }
-    }
-    NativeLibrary.SaveGameIniFile(gameId);
+    ini.save(getCustomGameSettingsFile(gameId));
   }
 
-  /**
-   * Saves the wiimote setting in a profile and enables that profile.
-   *
-   * @param gameId
-   * @param key
-   * @param value
-   * @param padId
-   */
-  private static void saveCustomWiimoteSetting(final String gameId, final String key,
-          final String value,
-          final String padId)
-  {
-    String profile = gameId + "_Wii" + padId;
-    String wiiConfigPath =
-            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
-                    profile + ".ini";
-    File wiiProfile = new File(wiiConfigPath);
-    // If it doesn't exist, create it
-    if (!wiiProfile.exists())
-    {
-      String defautlWiiProfilePath =
-              DirectoryInitialization.getUserDirectory() +
-                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
-      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
-
-      NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
-              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
-    }
-
-    NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key, value);
-
-    // Enable the profile
-    NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
-            KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
-  }
-
-  private static String mapSectionNameFromIni(String generalSectionName)
+  public static String mapSectionNameFromIni(String generalSectionName)
   {
     if (sectionsMap.getForward(generalSectionName) != null)
     {
@@ -553,7 +276,7 @@ public final class SettingsFile
     return generalSectionName;
   }
 
-  private static String mapSectionNameToIni(String generalSectionName)
+  public static String mapSectionNameToIni(String generalSectionName)
   {
     if (sectionsMap.getBackward(generalSectionName) != null)
     {
@@ -564,7 +287,7 @@ public final class SettingsFile
   }
 
   @NonNull
-  private static File getSettingsFile(String fileName)
+  public static File getSettingsFile(String fileName)
   {
     return new File(
             DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
@@ -586,152 +309,18 @@ public final class SettingsFile
                     gameId + ".ini");
   }
 
-  private static File getCustomGameSettingsFile(String gameId)
+  public static File getCustomGameSettingsFile(String gameId)
   {
-
     return new File(
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
   }
 
-  private static File getWiiProfile(String profile, String padId)
+  public static File getWiiProfile(String profile)
   {
     String wiiConfigPath =
             DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
                     profile + ".ini";
 
     return new File(wiiConfigPath);
-  }
-
-  private static SettingSection sectionFromLine(String line, boolean isCustomGame)
-  {
-    String sectionName = line.substring(1, line.length() - 1);
-    if (isCustomGame)
-    {
-      sectionName = mapSectionNameToIni(sectionName);
-    }
-    return new SettingSection(sectionName);
-  }
-
-  private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
-  {
-    SettingSection coreSection = sections.get(Settings.SECTION_INI_CORE);
-
-    for (int i = 0; i < 4; i++)
-    {
-      String key = SettingsFile.KEY_GCPAD_TYPE + i;
-      if (coreSection.getSetting(key) == null)
-      {
-        // Set GameCube controller 1 to enabled, all others disabled
-        Setting gcPadSetting = new IntSetting(key, Settings.SECTION_INI_CORE, i == 0 ? 6 : 0);
-        coreSection.putSetting(gcPadSetting);
-      }
-    }
-
-    sections.put(Settings.SECTION_INI_CORE, coreSection);
-  }
-
-  public static void firstAnalyticsAdd(boolean enabled)
-  {
-    HashMap<String, SettingSection> dolphinSections =
-            readFile(SettingsFile.FILE_NAME_DOLPHIN, null);
-    SettingSection analyticsSection = dolphinSections.get(Settings.SECTION_ANALYTICS);
-
-    Setting analyticsEnabled = new StringSetting(KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS,
-            enabled ? "True" : "False");
-    Setting analyticsFirstAsk =
-            new StringSetting(KEY_ANALYTICS_PERMISSION_ASKED, Settings.SECTION_ANALYTICS, "True");
-
-    analyticsSection.putSetting(analyticsFirstAsk);
-    analyticsSection.putSetting(analyticsEnabled);
-
-    dolphinSections.put(Settings.SECTION_ANALYTICS, analyticsSection);
-
-    TreeMap<String, SettingSection> saveSection = new TreeMap<>(dolphinSections);
-    saveFile(SettingsFile.FILE_NAME_DOLPHIN, saveSection, null);
-  }
-
-  /**
-   * For a line of text, determines what type of data is being represented, and returns
-   * a Setting object containing this data.
-   *
-   * @param current The section currently being parsed by the consuming method.
-   * @param line    The line of text being parsed.
-   * @return A typed Setting containing the key/value contained in the line.
-   */
-  private static Setting settingFromLine(SettingSection current, String line)
-  {
-    String[] splitLine = line.split("=");
-
-    if (splitLine.length != 2)
-    {
-      Log.warning("Skipping invalid config line \"" + line + "\"");
-      return null;
-    }
-
-    String key = splitLine[0].trim();
-    String value = splitLine[1].trim();
-
-    try
-    {
-      int valueAsInt = Integer.valueOf(value);
-
-      return new IntSetting(key, current.getName(), valueAsInt);
-    }
-    catch (NumberFormatException ex)
-    {
-    }
-
-    try
-    {
-      float valueAsFloat = Float.valueOf(value);
-
-      return new FloatSetting(key, current.getName(), valueAsFloat);
-    }
-    catch (NumberFormatException ex)
-    {
-    }
-
-    switch (value)
-    {
-      case "True":
-        return new BooleanSetting(key, current.getName(), true);
-      case "False":
-        return new BooleanSetting(key, current.getName(), false);
-      default:
-        return new StringSetting(key, current.getName(), value);
-    }
-  }
-
-  /**
-   * Writes the contents of a Section HashMap to disk.
-   *
-   * @param writer  A PrintWriter pointed at a file on disk.
-   * @param section A section containing settings to be written to the file.
-   */
-  private static void writeSection(PrintWriter writer, SettingSection section)
-  {
-    // Write the section header.
-    String header = sectionAsString(section);
-    writer.println(header);
-
-    // Write this section's values.
-    HashMap<String, Setting> settings = section.getSettings();
-    Set<String> keySet = settings.keySet();
-    Set<String> sortedKeySet = new TreeSet<>(keySet);
-
-    for (String key : sortedKeySet)
-    {
-      Setting setting = settings.get(key);
-      String valueAsString = setting.getValueAsString();
-      if (!TextUtils.isEmpty(valueAsString))
-      {
-        writer.println(setting.getKey() + " = " + valueAsString);
-      }
-    }
-  }
-
-  private static String sectionAsString(SettingSection section)
-  {
-    return "[" + section.getName() + "]";
   }
 }

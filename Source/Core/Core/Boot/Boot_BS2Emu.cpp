@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
@@ -97,9 +98,9 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   const std::optional<u32> entry = volume.ReadSwapped<u32>(offset + 0x10, partition);
   const std::optional<u32> size = volume.ReadSwapped<u32>(offset + 0x14, partition);
   const std::optional<u32> trailer = volume.ReadSwapped<u32>(offset + 0x18, partition);
-  if (!entry || !size || !trailer || *entry == (u32)-1 || *size + *trailer == (u32)-1)
+  if (!entry || !size || !trailer || *entry == UINT32_MAX || *size + *trailer == UINT32_MAX)
   {
-    INFO_LOG(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
+    INFO_LOG_FMT(BOOT, "Invalid apploader. Your disc image is probably corrupted.");
     return false;
   }
   DVDRead(volume, offset + 0x20, 0x01200000, *size + *trailer, partition);
@@ -107,7 +108,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   // TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
   // Call iAppLoaderEntry.
-  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderEntry");
+  DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderEntry");
   const u32 iAppLoaderFuncAddr = is_wii ? 0x80004000 : 0x80003100;
   PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
   PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
@@ -118,7 +119,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
 
   // iAppLoaderInit
-  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
+  DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderInit");
   HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
@@ -126,7 +127,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   // iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
   // To give you an idea about where the stuff is located on the disc take a look at yagcd
   // ch 13.
-  DEBUG_LOG(MASTER_LOG, "Call iAppLoaderMain");
+  DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderMain");
 
   PowerPC::ppcState.gpr[3] = 0x81300004;
   PowerPC::ppcState.gpr[4] = 0x81300008;
@@ -140,13 +141,13 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   // iAppLoaderMain returns 0 when there are no more sections to copy.
   while (PowerPC::ppcState.gpr[3] != 0x00)
   {
-    u32 iRamAddress = PowerPC::Read_U32(0x81300004);
-    u32 iLength = PowerPC::Read_U32(0x81300008);
-    u32 iDVDOffset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
+    const u32 ram_address = PowerPC::Read_U32(0x81300004);
+    const u32 length = PowerPC::Read_U32(0x81300008);
+    const u32 dvd_offset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
 
-    INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
-             iRamAddress, iLength);
-    DVDRead(volume, iDVDOffset, iRamAddress, iLength, partition);
+    INFO_LOG_FMT(MASTER_LOG, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
+                 ram_address, length);
+    DVDRead(volume, dvd_offset, ram_address, length, partition);
 
     PowerPC::ppcState.gpr[3] = 0x81300004;
     PowerPC::ppcState.gpr[4] = 0x81300008;
@@ -156,7 +157,7 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   }
 
   // iAppLoaderClose
-  DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
+  DEBUG_LOG_FMT(MASTER_LOG, "call iAppLoaderClose");
   RunFunction(iAppLoaderClose);
   HLE::UnPatch("AppLoaderReport");
 
@@ -205,7 +206,7 @@ void CBoot::SetupGCMemory()
 // execute the apploader, function by function, using the above utility.
 bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
 {
-  INFO_LOG(BOOT, "Faking GC BS2...");
+  INFO_LOG_FMT(BOOT, "Faking GC BS2...");
 
   SetupMSR();
   SetupBAT(/*is_wii*/ false);
@@ -330,11 +331,11 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
       serno = "123456789";
     else
       serno = Common::SettingsHandler::GenerateSerialNumber();
-    INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
+    INFO_LOG_FMT(BOOT, "No previous serial number found, generated one instead: {}", serno);
   }
   else
   {
-    INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
+    INFO_LOG_FMT(BOOT, "Using serial number: {}", serno);
   }
 
   gen.AddSetting("AREA", region_setting.area);
@@ -351,14 +352,14 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
                                                    settings_file_path, {rw_mode, rw_mode, rw_mode});
   if (!settings_file || !settings_file->Write(gen.GetBytes().data(), gen.GetBytes().size()))
   {
-    PanicAlertT("SetupWiiMemory: Can't create setting.txt file");
+    PanicAlertFmtT("SetupWiiMemory: Can't create setting.txt file");
     return false;
   }
 
   // Write the 256 byte setting.txt to memory.
   Memory::CopyToEmu(0x3800, gen.GetBytes().data(), gen.GetBytes().size());
 
-  INFO_LOG(BOOT, "Setup Wii Memory...");
+  INFO_LOG_FMT(BOOT, "Setup Wii Memory...");
 
   /*
   Set hardcoded global variables to Wii memory. These are partly collected from
@@ -438,7 +439,7 @@ static void WriteEmptyPlayRecord()
 // execute the apploader
 bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
 {
-  INFO_LOG(BOOT, "Faking Wii BS2...");
+  INFO_LOG_FMT(BOOT, "Faking Wii BS2...");
   if (volume.GetVolumeType() != DiscIO::Platform::WiiDisc)
     return false;
 

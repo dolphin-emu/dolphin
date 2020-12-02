@@ -86,11 +86,10 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
     std::string buf;
     if (!disasm.DisassembleOpcode(ptr, &addr, buf))
     {
-      ERROR_LOG(DSPLLE, "disasm failed at %04x", addr);
+      ERROR_LOG_FMT(DSPLLE, "disasm failed at {:04x}", addr);
       break;
     }
 
-    // NOTICE_LOG(DSPLLE, "Added %04x %i %s", addr, line_counter, buf.c_str());
     lines.push_back(buf);
     line_counter++;
   }

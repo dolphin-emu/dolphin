@@ -1470,7 +1470,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     break;
 
   case 30:
-    switch (in & 0x1c)
+    switch ((in >> 2) & 0x7)
     {
     case 0:
       rld(in, "icl", 0);  // rldicl

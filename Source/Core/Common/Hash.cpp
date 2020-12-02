@@ -95,11 +95,11 @@ u32 HashAdler32(const u8* data, size_t len)
 
 // Stupid hash - but can't go back now :)
 // Don't use for new things. At least it's reasonably fast.
-u32 HashEctor(const u8* ptr, int length)
+u32 HashEctor(const u8* ptr, size_t length)
 {
   u32 crc = 0;
 
-  for (int i = 0; i < length; i++)
+  for (size_t i = 0; i < length; i++)
   {
     crc ^= ptr[i];
     crc = (crc << 3) | (crc >> 29);

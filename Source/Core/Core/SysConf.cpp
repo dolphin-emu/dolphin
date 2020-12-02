@@ -60,7 +60,7 @@ void SysConf::Load()
                                    "/shared2/sys/SYSCONF", IOS::HLE::FS::Mode::Read);
   if (!file || file->GetStatus()->size != SYSCONF_SIZE || !LoadFromFile(*file))
   {
-    WARN_LOG(CORE, "No valid SYSCONF detected. Creating a new one.");
+    WARN_LOG_FMT(CORE, "No valid SYSCONF detected. Creating a new one.");
     InsertDefaultEntries();
   }
 }
@@ -118,8 +118,8 @@ bool SysConf::LoadFromFile(const IOS::HLE::FS::FileHandle& file)
       data.resize(GetNonArrayEntrySize(type));
       break;
     default:
-      ERROR_LOG(CORE, "Unknown entry type %d in SYSCONF for %s (offset %u)", static_cast<u8>(type),
-                name.c_str(), offset);
+      ERROR_LOG_FMT(CORE, "Unknown entry type {} in SYSCONF for {} (offset {})",
+                    static_cast<u8>(type), name, offset);
       return false;
     }
 

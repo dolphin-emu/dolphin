@@ -92,6 +92,7 @@ public:
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
+  std::array<u8, 20> GetSyncHash() const override;
 
   // The in parameter can either contain all the data to begin with,
   // or read_function can write data into the in parameter when called.

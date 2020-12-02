@@ -229,7 +229,7 @@ void MenuBar::AddToolsMenu()
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
-  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
 
@@ -267,7 +267,7 @@ void MenuBar::AddToolsMenu()
 
   m_boot_sysmenu->setEnabled(false);
 
-  connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
+  connect(&Settings::Instance(), &Settings::NANDRefresh, this, [this] { UpdateToolsMenu(false); });
 
   m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
   m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
@@ -506,7 +506,13 @@ void MenuBar::AddViewMenu()
   AddShowRegionsMenu(view_menu);
 
   view_menu->addSeparator();
-  view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
+  QAction* const purge_action =
+      view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
+  purge_action->setEnabled(false);
+  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, purge_action,
+          [purge_action] { purge_action->setEnabled(false); });
+  connect(&Settings::Instance(), &Settings::GameListRefreshStarted, purge_action,
+          [purge_action] { purge_action->setEnabled(true); });
   view_menu->addSeparator();
   view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 }
@@ -695,20 +701,29 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
       {tr("Show World"), &SConfig::GetInstance().m_ListWorld},
       {tr("Show Unknown"), &SConfig::GetInstance().m_ListUnknown}};
 
-  QActionGroup* region_group = new QActionGroup(this);
-  QMenu* region_menu = view_menu->addMenu(tr("Show Regions"));
-  region_group->setExclusive(false);
+  QMenu* const region_menu = view_menu->addMenu(tr("Show Regions"));
+  const QAction* const show_all_regions = region_menu->addAction(tr("Show All"));
+  const QAction* const hide_all_regions = region_menu->addAction(tr("Hide All"));
+  region_menu->addSeparator();
 
   for (const auto& key : region_map.keys())
   {
-    bool* config = region_map[key];
-    QAction* action = region_group->addAction(region_menu->addAction(key));
-    action->setCheckable(true);
-    action->setChecked(*config);
-    connect(action, &QAction::toggled, [this, config, key](bool value) {
-      *config = value;
-      emit GameListRegionVisibilityToggled(key, value);
-    });
+    bool* const config = region_map[key];
+    QAction* const menu_item = region_menu->addAction(key);
+    menu_item->setCheckable(true);
+    menu_item->setChecked(*config);
+
+    const auto set_visibility = [this, config, key, menu_item](bool visibility) {
+      menu_item->setChecked(visibility);
+      *config = visibility;
+      emit GameListRegionVisibilityToggled(key, visibility);
+    };
+    const auto set_visible = std::bind(set_visibility, true);
+    const auto set_hidden = std::bind(set_visibility, false);
+
+    connect(menu_item, &QAction::toggled, set_visibility);
+    connect(show_all_regions, &QAction::triggered, menu_item, set_visible);
+    connect(hide_all_regions, &QAction::triggered, menu_item, set_hidden);
   }
 }
 
@@ -1586,10 +1601,10 @@ void MenuBar::SearchInstruction()
         QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));
     if (op == ins_name)
     {
-      NOTICE_LOG(POWERPC, "Found %s at %08x", op.toStdString().c_str(), addr);
+      NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);
       found = true;
     }
   }
   if (!found)
-    NOTICE_LOG(POWERPC, "Opcode %s not found", op.toStdString().c_str());
+    NOTICE_LOG_FMT(POWERPC, "Opcode {} not found", op.toStdString());
 }

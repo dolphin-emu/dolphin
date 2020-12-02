@@ -35,6 +35,7 @@ typedef CONTEXT SContext;
 #define CTX_RIP Rip
 #elif _M_ARM64
 #define CTX_REG(x) X[x]
+#define CTX_LR X[30]
 #define CTX_SP Sp
 #define CTX_PC Pc
 #else
@@ -115,6 +116,7 @@ typedef mcontext_t SContext;
 #define CTX_RIP gregs[REG_RIP]
 #elif _M_ARM_64
 #define CTX_REG(x) regs[x]
+#define CTX_LR regs[30]
 #define CTX_SP sp
 #define CTX_PC pc
 #else
@@ -189,6 +191,11 @@ typedef mcontext_t SContext;
 #define CTX_R14 mc_r14
 #define CTX_R15 mc_r15
 #define CTX_RIP mc_rip
+#elif _M_ARM_64
+#define CTX_REG(x) mc_gpregs.gp_x[x]
+#define CTX_LR mc_gpregs.gp_lr
+#define CTX_SP mc_gpregs.gp_sp
+#define CTX_PC mc_gpregs.gp_elr
 #else
 #error No context definition for architecture
 #endif

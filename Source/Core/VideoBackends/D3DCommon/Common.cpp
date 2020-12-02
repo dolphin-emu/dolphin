@@ -110,7 +110,7 @@ std::vector<std::string> GetAdapterNames()
     std::string name;
     DXGI_ADAPTER_DESC desc;
     if (SUCCEEDED(adapter->GetDesc(&desc)))
-      name = UTF16ToUTF8(desc.Description);
+      name = WStringToUTF8(desc.Description);
 
     adapters.push_back(std::move(name));
   }

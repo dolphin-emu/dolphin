@@ -2,15 +2,14 @@ package org.dolphinemu.dolphinemu.adapters;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -122,6 +121,14 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   }
 
   /**
+   * Re-fetches game metadata from the game file cache.
+   */
+  public void refetchMetadata()
+  {
+    notifyItemRangeChanged(0, getItemCount());
+  }
+
+  /**
    * Launches the game that was clicked on.
    *
    * @param view The card representing the game the user wants to play.
@@ -131,7 +138,8 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     GameViewHolder holder = (GameViewHolder) view.getTag();
 
-    EmulationActivity.launch((FragmentActivity) view.getContext(), holder.gameFile);
+    String[] paths = GameFileCacheService.findSecondDiscAndGetPaths(holder.gameFile);
+    EmulationActivity.launch((FragmentActivity) view.getContext(), paths);
   }
 
   /**
@@ -157,11 +165,10 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
       return true;
     }
 
-    GamePropertiesDialog fragment =
-            GamePropertiesDialog
-                    .newInstance(holder.gameFile.getPath(), gameId, holder.gameFile.getPlatform());
+    GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile);
     ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
             .add(fragment, GamePropertiesDialog.TAG).commit();
+
     return true;
   }
 

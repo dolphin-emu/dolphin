@@ -107,13 +107,16 @@ bool PlatformWin32::Init()
     ProcessEvents();
   }
 
+  if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
+    SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+
   UpdateWindowPosition();
   return true;
 }
 
 void PlatformWin32::SetTitle(const std::string& string)
 {
-  SetWindowTextW(m_hwnd, UTF8ToUTF16(string).c_str());
+  SetWindowTextW(m_hwnd, UTF8ToWString(string).c_str());
 }
 
 void PlatformWin32::MainLoop()

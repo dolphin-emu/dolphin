@@ -36,6 +36,84 @@ auto MatrixMultiply(const std::array<T, N * M>& a, const std::array<T, M * P>& b
 
 namespace Common
 {
+Quaternion Quaternion::Identity()
+{
+  return Quaternion(1, 0, 0, 0);
+}
+
+Quaternion Quaternion::RotateX(float rad)
+{
+  return Rotate(rad, Vec3(1, 0, 0));
+}
+
+Quaternion Quaternion::RotateY(float rad)
+{
+  return Rotate(rad, Vec3(0, 1, 0));
+}
+
+Quaternion Quaternion::RotateZ(float rad)
+{
+  return Rotate(rad, Vec3(0, 0, 1));
+}
+
+Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
+{
+  const auto sin_angle_2 = std::sin(rad / 2);
+
+  return Quaternion(std::cos(rad / 2), axis.x * sin_angle_2, axis.y * sin_angle_2,
+                    axis.z * sin_angle_2);
+}
+
+Quaternion::Quaternion(float w, float x, float y, float z) : data(x, y, z, w)
+{
+}
+
+float Quaternion::Norm() const
+{
+  return data.Dot(data);
+}
+
+Quaternion Quaternion::Normalized() const
+{
+  Quaternion result(*this);
+  result.data /= Norm();
+  return result;
+}
+
+Quaternion Quaternion::Conjugate() const
+{
+  return Quaternion(data.w, -1 * data.x, -1 * data.y, -1 * data.z);
+}
+
+Quaternion Quaternion::Inverted() const
+{
+  return Normalized().Conjugate();
+}
+
+Quaternion& Quaternion::operator*=(const Quaternion& rhs)
+{
+  auto& a = data;
+  auto& b = rhs.data;
+
+  data = Vec4{a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+              a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+              a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+              // W
+              a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z};
+  return *this;
+}
+
+Quaternion operator*(Quaternion lhs, const Quaternion& rhs)
+{
+  return lhs *= rhs;
+}
+
+Vec3 operator*(const Quaternion& lhs, const Vec3& rhs)
+{
+  const auto result = lhs * Quaternion(0, rhs.x, rhs.y, rhs.z) * lhs.Conjugate();
+  return Vec3(result.data.x, result.data.y, result.data.z);
+}
+
 Matrix33 Matrix33::Identity()
 {
   Matrix33 mtx = {};
@@ -45,14 +123,12 @@ Matrix33 Matrix33::Identity()
   return mtx;
 }
 
-Matrix33 Matrix33::FromQuaternion(float qx, float qy, float qz, float qw)
+Matrix33 Matrix33::FromQuaternion(const Quaternion& q)
 {
-  // Normalize.
-  const float n = 1.0f / sqrt(qx * qx + qy * qy + qz * qz + qw * qw);
-  qx *= n;
-  qy *= n;
-  qz *= n;
-  qw *= n;
+  const auto qx = q.data.x;
+  const auto qy = q.data.y;
+  const auto qz = q.data.z;
+  const auto qw = q.data.w;
 
   return {
       1 - 2 * qy * qy - 2 * qz * qz, 2 * qx * qy - 2 * qz * qw,     2 * qx * qz + 2 * qy * qw,
