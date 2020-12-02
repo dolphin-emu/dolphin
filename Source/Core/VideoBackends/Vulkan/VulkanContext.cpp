@@ -779,7 +779,7 @@ u32 VulkanContext::GetUploadMemoryType(u32 bits, bool* is_coherent)
     return type_index.value();
 
   // Shouldn't happen, there should be at least one host-visible heap.
-  PanicAlert("Unable to get memory type for upload.");
+  PanicAlertFmt("Unable to get memory type for upload.");
   return 0;
 }
 
@@ -821,7 +821,7 @@ u32 VulkanContext::GetReadbackMemoryType(u32 bits, bool* is_coherent)
     return type_index.value();
 
   // We should have at least one host visible memory type...
-  PanicAlert("Unable to get memory type for upload.");
+  PanicAlertFmt("Unable to get memory type for upload.");
   return 0;
 }
 

@@ -63,7 +63,7 @@ bool DescriptorHeapManager::Allocate(DescriptorHandle* handle)
     return true;
   }
 
-  PanicAlert("Out of fixed descriptors");
+  PanicAlertFmt("Out of fixed descriptors");
   return false;
 }
 

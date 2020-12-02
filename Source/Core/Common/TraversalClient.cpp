@@ -77,7 +77,7 @@ void TraversalClient::ConnectToClient(const std::string& host)
 {
   if (host.size() > sizeof(TraversalHostId))
   {
-    PanicAlert("host too long");
+    PanicAlertFmt("Host too long");
     return;
   }
   TraversalPacket packet = {};

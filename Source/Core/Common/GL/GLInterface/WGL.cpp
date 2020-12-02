@@ -277,27 +277,27 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   m_dc = GetDC(m_window_handle);
   if (!m_dc)
   {
-    PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
+    PanicAlertFmt("(1) Can't create an OpenGL Device context. Fail.");
     return false;
   }
 
-  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
-  if (!pixel_format)
+  const int pixel_format = ChoosePixelFormat(m_dc, &pfd);
+  if (pixel_format == 0)
   {
-    PanicAlert("(2) Can't find a suitable PixelFormat.");
+    PanicAlertFmt("(2) Can't find a suitable PixelFormat.");
     return false;
   }
 
   if (!SetPixelFormat(m_dc, pixel_format, &pfd))
   {
-    PanicAlert("(3) Can't set the PixelFormat.");
+    PanicAlertFmt("(3) Can't set the PixelFormat.");
     return false;
   }
 
   m_rc = wglCreateContext(m_dc);
   if (!m_rc)
   {
-    PanicAlert("(4) Can't create an OpenGL rendering context.");
+    PanicAlertFmt("(4) Can't create an OpenGL rendering context.");
     return false;
   }
 
@@ -310,7 +310,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     // This is because we need an active context to use wglCreateContextAttribsARB.
     if (!wglMakeCurrent(m_dc, m_rc))
     {
-      PanicAlert("(5) Can't make dummy WGL context current.");
+      PanicAlertFmt("(5) Can't make dummy WGL context current.");
       return false;
     }
 
@@ -324,7 +324,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     // context. If we didn't get a core context, the caller expects that the context is not current.
     if (!wglMakeCurrent(m_dc, nullptr))
     {
-      PanicAlert("(6) Failed to switch out temporary context");
+      PanicAlertFmt("(6) Failed to switch out temporary context");
       return false;
     }
 

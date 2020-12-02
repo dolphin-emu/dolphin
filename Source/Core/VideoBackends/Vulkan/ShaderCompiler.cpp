@@ -169,7 +169,7 @@ static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
     stream << "Dolphin Version: " + Common::scm_rev_str + "\n";
     stream << "Video Backend: " + g_video_backend->GetDisplayName();
 
-    PanicAlert("%s (written to %s)", msg, filename.c_str());
+    PanicAlertFmt("{} (written to {})", msg, filename);
   };
 
   if (!shader->parse(GetCompilerResourceLimits(), default_version, profile, false, true, messages,
@@ -250,7 +250,7 @@ bool InitializeGlslang()
 
   if (!glslang::InitializeProcess())
   {
-    PanicAlert("Failed to initialize glslang shader compiler");
+    PanicAlertFmt("Failed to initialize glslang shader compiler");
     return false;
   }
 

@@ -70,7 +70,7 @@ bool VertexManager::Initialize()
       StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE);
   if (!m_vertex_stream_buffer || !m_index_stream_buffer || !m_uniform_stream_buffer)
   {
-    PanicAlert("Failed to allocate streaming buffers");
+    PanicAlertFmt("Failed to allocate streaming buffers");
     return false;
   }
 
@@ -96,7 +96,7 @@ bool VertexManager::Initialize()
       StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, texel_buffer_size);
   if (!m_texel_stream_buffer)
   {
-    PanicAlert("Failed to allocate streaming texel buffer");
+    PanicAlertFmt("Failed to allocate streaming texel buffer");
     return false;
   }
 
@@ -112,7 +112,7 @@ bool VertexManager::Initialize()
     if ((m_texel_buffer_views[it.first] = CreateTexelBufferView(m_texel_stream_buffer->GetBuffer(),
                                                                 it.second)) == VK_NULL_HANDLE)
     {
-      PanicAlert("Failed to create texel buffer view");
+      PanicAlertFmt("Failed to create texel buffer view");
       return false;
     }
   }
@@ -161,7 +161,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
 
     // If we still failed, that means the allocation was too large and will never succeed, so panic
     if (!has_vbuffer_allocation || !has_ibuffer_allocation)
-      PanicAlert("Failed to allocate space in streaming buffers for pending draw");
+      PanicAlertFmt("Failed to allocate space in streaming buffers for pending draw");
   }
 
   // Update pointers
@@ -277,7 +277,7 @@ void VertexManager::UploadAllConstants()
   // We should only be here if the buffer was full and a command buffer was submitted anyway.
   if (!m_uniform_stream_buffer->ReserveMemory(allocation_size, ub_alignment))
   {
-    PanicAlert("Failed to allocate space for constants in streaming buffer");
+    PanicAlertFmt("Failed to allocate space for constants in streaming buffer");
     return;
   }
 
@@ -344,7 +344,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
     Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
     if (!m_texel_stream_buffer->ReserveMemory(data_size, elem_size))
     {
-      PanicAlert("Failed to allocate %u bytes from texel buffer", data_size);
+      PanicAlertFmt("Failed to allocate {} bytes from texel buffer", data_size);
       return false;
     }
   }
@@ -374,7 +374,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
     Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
     if (!m_texel_stream_buffer->ReserveMemory(reserve_size, elem_size))
     {
-      PanicAlert("Failed to allocate %u bytes from texel buffer", reserve_size);
+      PanicAlertFmt("Failed to allocate {} bytes from texel buffer", reserve_size);
       return false;
     }
   }

@@ -55,7 +55,7 @@ bool ObjectCache::Initialize()
       StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
   {
-    PanicAlert("Failed to create texture upload buffer");
+    PanicAlertFmt("Failed to create texture upload buffer");
     return false;
   }
 

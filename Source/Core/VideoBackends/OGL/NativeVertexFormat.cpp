@@ -48,11 +48,11 @@ static void SetPointer(u32 attrib, u32 stride, const AttributeFormat& format)
 GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
     : NativeVertexFormat(vtx_decl)
 {
-  u32 vertex_stride = vtx_decl.stride;
+  const u32 vertex_stride = vtx_decl.stride;
 
   // We will not allow vertex components causing uneven strides.
   if (vertex_stride & 3)
-    PanicAlert("Uneven vertex stride: %i", vertex_stride);
+    PanicAlertFmt("Uneven vertex stride: {}", vertex_stride);
 
   VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
 

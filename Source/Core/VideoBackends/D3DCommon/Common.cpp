@@ -33,15 +33,15 @@ bool LoadLibraries()
 
   if (!s_dxgi_library.Open("dxgi.dll"))
   {
-    PanicAlertT("Failed to load dxgi.dll");
+    PanicAlertFmtT("Failed to load dxgi.dll");
     return false;
   }
 
   if (!s_d3dcompiler_library.Open(D3DCOMPILER_DLL_A))
   {
-    PanicAlertT("Failed to load %s. If you are using Windows 7, try installing the "
-                "KB4019990 update package.",
-                D3DCOMPILER_DLL_A);
+    PanicAlertFmtT("Failed to load {0}. If you are using Windows 7, try installing the "
+                   "KB4019990 update package.",
+                   D3DCOMPILER_DLL_A);
     s_dxgi_library.Close();
     return false;
   }
@@ -50,7 +50,7 @@ bool LoadLibraries()
   if (!s_d3dcompiler_library.GetSymbol("D3DCompile", &d3d_compile) ||
       !s_dxgi_library.GetSymbol("CreateDXGIFactory", &create_dxgi_factory))
   {
-    PanicAlertT("Failed to find one or more D3D symbols");
+    PanicAlertFmtT("Failed to find one or more D3D symbols");
     s_d3dcompiler_library.Close();
     s_dxgi_library.Close();
     return false;
@@ -88,7 +88,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
   HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
-    PanicAlert("CreateDXGIFactory() failed with HRESULT %08X", hr);
+    PanicAlertFmt("CreateDXGIFactory() failed with HRESULT {:08X}", hr);
     return nullptr;
   }
 
@@ -147,7 +147,7 @@ DXGI_FORMAT GetDXGIFormatForAbstractFormat(AbstractTextureFormat format, bool ty
   case AbstractTextureFormat::D32F_S8:
     return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
   default:
-    PanicAlert("Unhandled texture format.");
+    PanicAlertFmt("Unhandled texture format.");
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   }
 }
@@ -180,7 +180,7 @@ DXGI_FORMAT GetSRVFormatForAbstractFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::D32F_S8:
     return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
   default:
-    PanicAlert("Unhandled SRV format");
+    PanicAlertFmt("Unhandled SRV format");
     return DXGI_FORMAT_UNKNOWN;
   }
 }
@@ -198,7 +198,7 @@ DXGI_FORMAT GetRTVFormatForAbstractFormat(AbstractTextureFormat format, bool int
   case AbstractTextureFormat::R32F:
     return DXGI_FORMAT_R32_FLOAT;
   default:
-    PanicAlert("Unhandled RTV format");
+    PanicAlertFmt("Unhandled RTV format");
     return DXGI_FORMAT_UNKNOWN;
   }
 }
@@ -215,7 +215,7 @@ DXGI_FORMAT GetDSVFormatForAbstractFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::D32F_S8:
     return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
   default:
-    PanicAlert("Unhandled DSV format");
+    PanicAlertFmt("Unhandled DSV format");
     return DXGI_FORMAT_UNKNOWN;
   }
 }

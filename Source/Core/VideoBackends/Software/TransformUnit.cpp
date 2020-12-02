@@ -260,7 +260,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
     break;
   }
   default:
-    PanicAlert("LightColor");
+    PanicAlertFmt("LightColor");
   }
 
   return attn;

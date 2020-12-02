@@ -145,7 +145,7 @@ u8* MemArena::FindMemoryBase()
   u8* base = static_cast<u8*>(VirtualAlloc(nullptr, memory_size, MEM_RESERVE, PAGE_READWRITE));
   if (!base)
   {
-    PanicAlert("Failed to map enough memory space: %s", GetLastErrorString().c_str());
+    PanicAlertFmt("Failed to map enough memory space: {}", GetLastErrorString());
     return nullptr;
   }
   VirtualFree(base, 0, MEM_RELEASE);
@@ -162,7 +162,7 @@ u8* MemArena::FindMemoryBase()
   void* base = mmap(nullptr, memory_size, PROT_NONE, flags, -1, 0);
   if (base == MAP_FAILED)
   {
-    PanicAlert("Failed to map enough memory space: %s", LastStrerrorString().c_str());
+    PanicAlertFmt("Failed to map enough memory space: {}", LastStrerrorString());
     return nullptr;
   }
   munmap(base, memory_size);

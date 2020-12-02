@@ -357,8 +357,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     {
       // We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
       // It's also compatible with the gles3 one.
-      PanicAlert("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
-                 "GPU: Does your video card support OpenGL 3.0?");
+      PanicAlertFmtT("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
+                     "GPU: Does your video card support OpenGL 3.0?");
       bSuccess = false;
     }
 
@@ -366,8 +366,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     {
       // This extension is used to replace lots of pointer setting function.
       // Also gles3 requires to use it.
-      PanicAlert("GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
-                 "GPU: Does your video card support OpenGL 3.0?");
+      PanicAlertFmtT("GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
+                     "GPU: Does your video card support OpenGL 3.0?");
       bSuccess = false;
     }
 
@@ -375,8 +375,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     {
       // ogl3 buffer mapping for better streaming support.
       // The ogl2 one also isn't in gles3.
-      PanicAlert("GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
-                 "GPU: Does your video card support OpenGL 3.0?");
+      PanicAlertFmtT("GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
+                     "GPU: Does your video card support OpenGL 3.0?");
       bSuccess = false;
     }
 
@@ -384,13 +384,13 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     {
       // ubo allow us to keep the current constants on shader switches
       // we also can stream them much nicer and pack into it whatever we want to
-      PanicAlert("GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
-                 "GPU: Does your video card support OpenGL 3.1?");
+      PanicAlertFmtT("GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
+                     "GPU: Does your video card support OpenGL 3.1?");
       bSuccess = false;
     }
     else if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UBO))
     {
-      PanicAlert(
+      PanicAlertFmtT(
           "Buggy GPU driver detected.\n"
           "Please either install the closed-source GPU driver or update your Mesa 3D version.");
       bSuccess = false;
@@ -400,8 +400,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     {
       // Our sampler cache uses this extension. It could easyly be workaround and it's by far the
       // highest requirement, but it seems that no driver lacks support for it.
-      PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
-                 "GPU: Does your video card support OpenGL 3.3?");
+      PanicAlertFmtT("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
+                     "GPU: Does your video card support OpenGL 3.3?");
       bSuccess = false;
     }
 
@@ -588,10 +588,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   {
     if (GLExtensions::Version() < 300)
     {
-      PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
-                 "GPU: Does your video card support OpenGL 3.0?\n"
-                 "GPU: Your driver supports GLSL %s",
-                 (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+      PanicAlertFmtT("GPU: OGL ERROR: Need at least GLSL 1.30\n"
+                     "GPU: Does your video card support OpenGL 3.0?\n"
+                     "GPU: Your driver supports GLSL {0}",
+                     reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
       bSuccess = false;
     }
     else if (GLExtensions::Version() == 300)
@@ -718,10 +718,11 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // MSAA on default framebuffer isn't working because of glBlitFramebuffer.
     // It also isn't useful as we don't render anything to the default framebuffer.
     // We also try to get a non-msaa fb, so this only happens when forced by the driver.
-    PanicAlertT("The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to "
-                "turn this off in the graphics driver's settings in order for Dolphin to work.\n\n"
-                "(MSAA with %d samples found on default framebuffer)",
-                samples);
+    PanicAlertFmtT(
+        "The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to "
+        "turn this off in the graphics driver's settings in order for Dolphin to work.\n\n"
+        "(MSAA with {0} samples found on default framebuffer)",
+        samples);
     bSuccess = false;
   }
 

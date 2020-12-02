@@ -504,7 +504,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     AlphaBump = AlphaBump & 0xf8;
     break;
   default:
-    PanicAlert("Tev::Indirect");
+    PanicAlertFmt("Tev::Indirect");
     return;
   }
 

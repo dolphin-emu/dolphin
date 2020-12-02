@@ -20,7 +20,7 @@ std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
   std::unique_ptr<SWOGLWindow> window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
   if (!window->Initialize(wsi))
   {
-    PanicAlert("Failed to create OpenGL window");
+    PanicAlertFmt("Failed to create OpenGL window");
     return nullptr;
   }
 

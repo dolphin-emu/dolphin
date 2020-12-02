@@ -42,7 +42,7 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
   case AbstractTextureFormat::D32F_S8:
     return GL_DEPTH32F_STENCIL8;
   default:
-    PanicAlert("Unhandled texture format.");
+    PanicAlertFmt("Unhandled texture format.");
     return storage ? GL_RGBA8 : GL_RGBA;
   }
 }
@@ -216,12 +216,15 @@ void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8
                       size_t buffer_size)
 {
   if (level >= m_config.levels)
-    PanicAlert("Texture only has %d levels, can't update level %d", m_config.levels, level);
-  if (width != std::max(1u, m_config.width >> level) ||
-      height != std::max(1u, m_config.height >> level))
-    PanicAlert("size of level %d must be %dx%d, but %dx%d requested", level,
-               std::max(1u, m_config.width >> level), std::max(1u, m_config.height >> level), width,
-               height);
+    PanicAlertFmt("Texture only has {} levels, can't update level {}", m_config.levels, level);
+
+  const auto expected_width = std::max(1U, m_config.width >> level);
+  const auto expected_height = std::max(1U, m_config.height >> level);
+  if (width != expected_width || height != expected_height)
+  {
+    PanicAlertFmt("Size of level {} must be {}x{}, but {}x{} requested", level, expected_width,
+                  expected_height, width, height);
+  }
 
   const GLenum target = GetGLTarget();
   glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);

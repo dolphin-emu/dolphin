@@ -72,7 +72,7 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
   DXGI_FORMAT retval = d3d_format_lookup[(int)t + 5 * (size - 1) + 5 * 4 * (int)integer];
   if (retval == DXGI_FORMAT_UNKNOWN)
   {
-    PanicAlert("VarToD3D: Invalid type/size combo %i , %i, %i", (int)t, size, (int)integer);
+    PanicAlertFmt("VarToD3D: Invalid type/size combo {}, {}, {}", t, size, integer);
   }
   return retval;
 }
