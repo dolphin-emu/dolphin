@@ -154,7 +154,6 @@ struct SConfig
   bool m_slippiReplayMonthFolders = false;
   std::string m_strSlippiReplayDir;
   bool bBootDefaultISO = false; //move maybe
-  bool m_InterfaceSeekbar; // move maybe
 
   // Interface settings
   bool bConfirmStop = false;

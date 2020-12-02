@@ -88,6 +88,7 @@ public:
 
   std::string GetSlippiInputFile() const;
   void SetSlippiInputFile(std::string path);
+  void SetSlippiSeekbarEnabled(bool enabled);
   bool IsSDCardInserted() const;
   void SetSDCardInserted(bool inserted);
   bool IsUSBKeyboardConnected() const;

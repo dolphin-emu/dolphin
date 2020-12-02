@@ -568,9 +568,15 @@ std::string Settings::GetSlippiInputFile() const
 {
   return SConfig::GetInstance().m_strSlippiInput;
 }
+
 void Settings::SetSlippiInputFile(std::string path)
 {
   SConfig::GetInstance().m_strSlippiInput = path;
+}
+
+void Settings::SetSlippiSeekbarEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_slippiEnableSeek = enabled;
 }
 
 bool Settings::IsSDCardInserted() const

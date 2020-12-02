@@ -142,6 +142,11 @@ int main(int argc, char* argv[])
   Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
   Settings::Instance().SetSlippiInputFile(static_cast<const char*>(options.get("slippi_input")));
 
+#ifdef IS_PLAYBACK
+  if (options.is_set("hide-seekbar"))
+    Settings::Instance().SetSlippiSeekbarEnabled(false);
+#endif
+
   // Hook up alerts from core
   Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
 
