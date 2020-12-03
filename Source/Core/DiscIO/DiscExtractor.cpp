@@ -130,8 +130,10 @@ void ExportDirectory(const Volume& volume, const Partition& partition, const Fil
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
 {
-  const std::string export_root =
-      export_folder + (directory.IsDirectory() ? "/" + directory.GetName() + "/" : "/");
+  std::string export_root = export_folder + '/';
+  if (directory.IsDirectory() && !directory.IsRoot())
+    export_root += directory.GetName() + '/';
+
   File::CreateFullPath(export_root);
 
   for (const FileInfo& file_info : directory)
@@ -154,7 +156,8 @@ void ExportDirectory(const Volume& volume, const Partition& partition, const Fil
     }
     else if (recursive)
     {
-      ExportDirectory(volume, partition, file_info, recursive, path, export_path, update_progress);
+      ExportDirectory(volume, partition, file_info, recursive, filesystem_path, export_root,
+                      update_progress);
     }
   }
 }
