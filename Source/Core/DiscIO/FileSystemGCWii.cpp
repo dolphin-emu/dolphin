@@ -96,6 +96,11 @@ u64 FileInfoGCWii::GetOffset() const
   return static_cast<u64>(Get(EntryProperty::FILE_OFFSET)) << m_offset_shift;
 }
 
+bool FileInfoGCWii::IsRoot() const
+{
+  return m_index == 0;
+}
+
 bool FileInfoGCWii::IsDirectory() const
 {
   return (Get(EntryProperty::NAME_OFFSET) & 0xFF000000) != 0;
