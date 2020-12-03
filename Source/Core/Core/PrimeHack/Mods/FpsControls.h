@@ -23,6 +23,7 @@ namespace prime {
     // -----Active Mod Functions-----
     // ------------------------------
     void calculate_pitch_delta();
+    void calculate_pitch_locked();
     float calculate_yaw_vel();
     void handle_beam_visor_switch(std::array<int, 4> const &beams,
                                   std::array<std::tuple<int, int>, 4> const& visors);
@@ -77,6 +78,8 @@ namespace prime {
         u32 lockon_address;
         u32 tweak_player_address;
         u32 cplayer_address;
+        u32 object_list_ptr_address;
+        u32 camera_uid_address;
       } mp1_static;
 
       struct {

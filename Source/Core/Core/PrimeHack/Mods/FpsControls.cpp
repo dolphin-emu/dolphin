@@ -74,6 +74,22 @@ namespace prime {
     pitch = std::clamp(pitch, -1.52f, 1.52f);
   }
 
+  void FpsControls::calculate_pitch_locked() {
+    // Calculate the pitch based on the XF matrix to allow us to write out the pitch
+    // even while locked onto a target, the pitch will be written to match the lock
+    // angle throughout the entire lock-on. The very first frame when the lock is
+    // released (and before this mod has run again) the game will still render the
+    // correct angle. If we stop writing the angle during lock-on then a 1-frame snap
+    // occurs immediately after releasing the lock, due to the mod running after the
+    // frame has already been rendered.
+    const u32 camera_ptr = read32(mp1_static.object_list_ptr_address);
+    const u32 camera_offset = (((read32(mp1_static.camera_uid_address) + 10) >> 16) & 0x3ff) << 3;
+    const u32 camera_tf_addr = read32(camera_ptr + camera_offset + 4) + 0x2c;
+    Transform camera_tf(camera_tf_addr);
+    pitch = asin(camera_tf.fwd().z);
+    pitch = std::clamp(pitch, -1.52f, 1.52f);
+  }
+
   float FpsControls::calculate_yaw_vel() {
     return GetHorizontalAxis() * GetSensitivity() * (InvertedX() ? 1.f : -1.f);;
   }
@@ -136,17 +152,26 @@ namespace prime {
     handle_beam_visor_switch(prime_one_beams, prime_one_visors);
 
     // Allows freelook in grapple, otherwise we are orbiting (locked on) to something
-    if (read32(mp1_static.orbit_state_address) != ORBIT_STATE_GRAPPLE &&
-      read8(mp1_static.lockon_address)) {
+    bool locked = (read32(mp1_static.orbit_state_address) != ORBIT_STATE_GRAPPLE &&
+                   read8(mp1_static.lockon_address));
+    
+    if (locked) {
       write32(0, mp1_static.yaw_vel_address);
-      return;
+      calculate_pitch_locked();
+    } else {
+      calculate_pitch_delta();
     }
 
     // I write to two locations here to control the pitch, the rate of turning
     // has been unlocked already
-    calculate_pitch_delta();
     writef32(pitch, mp1_static.pitch_address);
     writef32(pitch, mp1_static.pitch_goal_address);
+    if (locked) {
+      // TODO: Not sure if the rest should run while locked on
+      //       so I am retaining old behaviour by returning
+      return;
+    }
+
     // Max pitch angle, as abs val (any higher = gimbal lock)
     writef32(1.52f, mp1_static.tweak_player_address + 0x134);
 
@@ -1060,6 +1085,8 @@ namespace prime {
       mp1_static.lockon_address = 0x804c00b3;
       mp1_static.tweak_player_address = 0x804ddff8;
       mp1_static.cplayer_address = 0x804d3c20;
+      mp1_static.object_list_ptr_address = 0x804bfc30;
+      mp1_static.camera_uid_address = 0x804c4a08;
       powerups_ptr_address = 0x804bfcd4;
     }
     else if (region == Region::PAL) {
@@ -1083,6 +1110,8 @@ namespace prime {
       mp1_static.lockon_address = 0x804c3ff3;
       mp1_static.tweak_player_address = 0x804e1f38;
       mp1_static.cplayer_address = 0x804d7b60;
+      mp1_static.object_list_ptr_address = 0x804c3b70;
+      mp1_static.camera_uid_address = 0x804c8948;
       powerups_ptr_address = 0x804c3c14;
     }
     // If I add NTSC JP
