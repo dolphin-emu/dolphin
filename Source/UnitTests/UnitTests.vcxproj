@@ -68,6 +68,7 @@
     <ClCompile Include="Core\IOS\FS\FileSystemTest.cpp" />
     <ClCompile Include="Core\MMIOTest.cpp" />
     <ClCompile Include="Core\PageFaultTest.cpp" />
+    <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
     <ClCompile Include="StubHost.cpp" />
   </ItemGroup>
