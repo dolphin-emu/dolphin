@@ -257,6 +257,13 @@ bool DeleteDir(const std::string& filename)
 {
   INFO_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
 
+  // Return true because we care about the directory not being there, not the actual delete.
+  if (!File::Exists(filename))
+  {
+    WARN_LOG_FMT(COMMON, "DeleteDir: {} does not exist", filename);
+    return true;
+  }
+
   // check if a directory
   if (!IsDirectory(filename))
   {
