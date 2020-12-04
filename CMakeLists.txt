@@ -307,6 +307,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   # Objective-C++ because fmt tries try to use throw because __EXCEPTIONS is defined.
   add_compile_options("$<$<COMPILE_LANGUAGE:OBJC>:-fno-objc-exceptions>")
   add_compile_options("$<$<COMPILE_LANGUAGE:OBJCXX>:-fno-objc-exceptions>")
+  dolphin_compile_definitions(FMT_EXCEPTIONS=0)
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
