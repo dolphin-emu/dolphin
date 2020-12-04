@@ -83,7 +83,7 @@ bool Noclip::has_control_mp3()
   Game game = GetHackManager()->get_active_game();
   Region region = GetHackManager()->get_active_region();
   u32 state_mgr_ptr_offset = 0x28;
-  if (game == Game::PRIME_3_WII && region == Region::NTSC)
+  if (game == Game::PRIME_3_WII && region == Region::NTSC_U)
     state_mgr_ptr_offset += 4;
   u32 state_mgr = read32(mp3_static.state_mgr_ptr_address + state_mgr_ptr_offset);
   if (!mem_check(state_mgr))
@@ -273,7 +273,7 @@ void Noclip::run_mod_mp3(bool has_control)
   Game game = GetHackManager()->get_active_game();
   Region region = GetHackManager()->get_active_region();
   u32 offset = 0x28;
-  if (game == Game::PRIME_3_WII && region == Region::NTSC)
+  if (game == Game::PRIME_3_WII && region == Region::NTSC_U)
     offset += 4;
   u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + offset) + 0x2184);
   if (!mem_check(cplayer_address))
@@ -318,7 +318,7 @@ void Noclip::init_mod(Game game, Region region)
   switch (game)
   {
   case Game::PRIME_1:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       noclip_code_mp1(0x804d3c20, 0x800053a4, 0x8000bb80);
       code_changes.emplace_back(0x80196ab4, 0x60000000);
@@ -333,6 +333,22 @@ void Noclip::init_mod(Game game, Region region)
       mp1_static.cplayer_address = 0x804d3c20;
       mp1_static.object_list_ptr_address = 0x804bfc30;
       mp1_static.camera_uid_address = 0x804c4a08;
+    }
+    else if (region == Region::NTSC_J)
+    {
+      noclip_code_mp1(0x804de278, 0x800053a4, 0x8000bb80);
+      code_changes.emplace_back(0x80197634, 0x60000000);
+      code_changes.emplace_back(0x8019763c, 0x60000000);
+      code_changes.emplace_back(0x80197644, 0x60000000);
+      code_changes.emplace_back(0x80197658, 0xd0410084);
+      code_changes.emplace_back(0x8019765c, 0xd0210094);
+      code_changes.emplace_back(0x80197660, 0xd00100a4);
+      code_changes.emplace_back(0x80197664, 0x481b11c1);
+
+      mp1_static.control_flag_address = 0x805aecb8;
+      mp1_static.cplayer_address = 0x804d3ea0;
+      mp1_static.object_list_ptr_address = 0x804bfeb0;
+      mp1_static.camera_uid_address = 0x804c4c88;
     }
     else if (region == Region::PAL)
     {
@@ -355,7 +371,7 @@ void Noclip::init_mod(Game game, Region region)
     }
     break;
   case Game::PRIME_1_GCN:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       noclip_code_mp1_gc(0x8046b97c, 0x805afd00, 0x80052e90);
       // For whatever reason CPlayer::Teleport calls SetTransform then SetTranslation
@@ -396,7 +412,7 @@ void Noclip::init_mod(Game game, Region region)
     }
     break;
   case Game::PRIME_2:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       noclip_code_mp2(0x804e87dc, 0x800053a4, 0x8000d694);
       code_changes.emplace_back(0x80160d68, 0x60000000);
@@ -435,7 +451,7 @@ void Noclip::init_mod(Game game, Region region)
     }
     break;
   case Game::PRIME_2_GCN:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       noclip_code_mp2_gc(0x803dcbdc, 0x80420000, 0x8004abc8);
       code_changes.emplace_back(0x801865d8, 0x60000000);
@@ -466,7 +482,7 @@ void Noclip::init_mod(Game game, Region region)
     }
     break;
   case Game::PRIME_3:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       noclip_code_mp3(0x805c6c40, 0x80004380, 0x8000bbfc);
       code_changes.emplace_back(0x801784ac, 0x60000000);
@@ -499,7 +515,7 @@ void Noclip::init_mod(Game game, Region region)
     }
     break;
   case Game::PRIME_3_WII:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       noclip_code_mp3(0x805c4f6c, 0x80004380, 0x8000bee8);
       code_changes.emplace_back(0x8017c054, 0x60000000);
@@ -658,7 +674,7 @@ void Noclip::on_state_change(ModState old_state)
     {
       switch (GetHackManager()->get_active_region())
       {
-      case Region::NTSC:
+      case Region::NTSC_U:
       {
         const u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + 0x2c) + 0x2184);
         if (mem_check(cplayer_address))
@@ -727,7 +743,7 @@ void Noclip::on_state_change(ModState old_state)
     {
       switch (GetHackManager()->get_active_region())
       {
-      case Region::NTSC:
+      case Region::NTSC_U:
       {
         const u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + 0x2c) + 0x2184);
         if (mem_check(cplayer_address))

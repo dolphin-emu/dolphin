@@ -24,7 +24,7 @@ void SpringballButton::run_mod(Game game, Region region) {
   case Game::PRIME_3_WII:
     switch (region)
     {
-    case Region::NTSC:
+    case Region::NTSC_U:
       actual_cplayer_address = read32(read32(cplayer_address) + 0x2184);
       springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
       DevInfo("CPlayer", "%08X", cplayer_address);
@@ -44,7 +44,7 @@ void SpringballButton::run_mod(Game game, Region region) {
 void SpringballButton::init_mod(Game game, Region region) {
   switch (game) {
   case Game::PRIME_1:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x804d3c20;
       springball_code(0x801476d0);
     }
@@ -52,9 +52,13 @@ void SpringballButton::init_mod(Game game, Region region) {
       cplayer_address = 0x804d7b60;
       springball_code(0x80147820);
     }
+    else { // region == Region::NTSC_J
+      cplayer_address = 0x804d3ea0;
+      springball_code(0x80147cd0);
+    }
     break;
   case Game::PRIME_2:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x804e87dc;
       springball_code(0x8010bd98);
     }
@@ -64,7 +68,7 @@ void SpringballButton::init_mod(Game game, Region region) {
     }
     break;
   case Game::PRIME_3:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x805c6c6c;
       springball_code(0x801077d4);
     }
@@ -74,7 +78,7 @@ void SpringballButton::init_mod(Game game, Region region) {
     }
     break;
   case Game::PRIME_3_WII:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x805c4f98;
       springball_code(0x8010c984);
     }
@@ -100,7 +104,7 @@ void SpringballButton::springball_code(u32 start_point) {
 
 void SpringballButton::springball_check(u32 ball_address, u32 movement_address) {
   if (CheckSpringBallCtl())
-  {             
+  {
     u32 ball_state = read32(ball_address);
     u32 movement_state = read32(movement_address);
 
