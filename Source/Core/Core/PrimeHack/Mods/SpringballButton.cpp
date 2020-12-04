@@ -22,9 +22,19 @@ void SpringballButton::run_mod(Game game, Region region) {
     DevInfo("CPlayer", "%08X", cplayer_address);
     break;
   case Game::PRIME_3_WII:
-    actual_cplayer_address = read32(read32(cplayer_address) + 0x2184);
-    springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
-    DevInfo("CPlayer", "%08X", cplayer_address);
+    switch (region)
+    {
+    case Region::NTSC:
+      actual_cplayer_address = read32(read32(cplayer_address) + 0x2184);
+      springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
+      DevInfo("CPlayer", "%08X", cplayer_address);
+      break;
+    case Region::PAL:
+      actual_cplayer_address = read32(read32(read32(cplayer_address) + 0x04) + 0x2184);
+      springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
+      DevInfo("CPlayer", "%08X", cplayer_address);
+      break;
+    }
     break;
   default:
     break;
@@ -68,10 +78,10 @@ void SpringballButton::init_mod(Game game, Region region) {
       cplayer_address = 0x805c4f98;
       springball_code(0x8010c984);
     }
-    /*else if (region == Region::PAL) {
-      cplayer_address = 0x805ca0ec;
-      springball_code(0x80107120);
-    }*/
+    else if (region == Region::PAL) {
+      cplayer_address = 0x805c759c;
+      springball_code(0x8010ced4);
+    }
     break;
   default:
     break;

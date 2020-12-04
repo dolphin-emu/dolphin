@@ -64,9 +64,10 @@ public:
       {
         add_return_one(0x800bb930);
       }
-      /*else if (region == Region::PAL) {
-        add_return_one(0x800bb930);
-      }*/
+      else if (region == Region::PAL)
+      {
+        add_return_one(0x800bbd24);
+      }
       break;
     }
     initialized = true;

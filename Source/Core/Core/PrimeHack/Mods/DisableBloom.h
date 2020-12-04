@@ -39,10 +39,10 @@ public:
       {
         code_changes.emplace_back(0x80486880, 0x4e800020);
       }
-      /*else if (region == Region::PAL)
+      else if (region == Region::PAL)
       {
-        code_changes.emplace_back(0x804849e8, 0x4e800020);
-      }*/
+        code_changes.emplace_back(0x804885a4, 0x4e800020);
+      }
       break;
     default:
       break;

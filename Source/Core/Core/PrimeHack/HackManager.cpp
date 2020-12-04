@@ -87,10 +87,10 @@ void HackManager::run_active_mods() {
       active_game = Game::PRIME_3_WII;
       active_region = Region::NTSC;
     }
-    /*else if (region_code == FOURCC('R', 'M', '3', 'P')) {
+    else if (region_code == FOURCC('R', 'M', '3', 'P')) {
       active_game = Game::PRIME_3_WII;
       active_region = Region::PAL;
-    }*/
+    }
     else {
       active_game = Game::INVALID_GAME;
       active_region = Region::INVALID_REGION;

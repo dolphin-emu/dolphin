@@ -19,10 +19,10 @@ enum class Game : int {
   PRIME_1 = 1,
   PRIME_2 = 2,
   PRIME_3 = 3,
-  PRIME_1_GCN = 4,
-  PRIME_2_GCN = 5,
-  PRIME_3_WII = 6,
-  MAX_VAL = PRIME_3_WII,
+  PRIME_3_WII = 4,
+  PRIME_1_GCN = 5,
+  PRIME_2_GCN = 6,
+  MAX_VAL = PRIME_2_GCN,
 };
 
 enum class Region : int {

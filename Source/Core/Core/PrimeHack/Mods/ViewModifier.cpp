@@ -313,7 +313,7 @@ namespace prime {
       mp3_static.culling_address = 0x8031490c;
     }
     else if (region == Region::PAL) {
-      mp3_static.camera_ptr_address = 0x805ca0e8;
+      mp3_static.camera_ptr_address = 0x805c7598;
       mp3_static.tweakgun_address = 0x806730fc;
       mp3_static.culling_address = 0x80314038;
     }
@@ -326,11 +326,11 @@ namespace prime {
       mp3_static.tweakgun_address = 0x8067d78c;
       mp3_static.culling_address = 0x80316a1c;
     }
-    /*else if (region == Region::PAL) {
-      mp3_static.camera_ptr_address = 0x805ca0e8;
-      mp3_static.tweakgun_address = 0x806730fc;
-      mp3_static.culling_address = 0x80314038;
-    }*/
+    else if (region == Region::PAL) {
+      mp3_static.camera_ptr_address = 0x805c7598;
+      mp3_static.tweakgun_address = 0x8067fdac;
+      mp3_static.culling_address = 0x80318170;
+    }
     else {}
   }
 }  // namespace prime
