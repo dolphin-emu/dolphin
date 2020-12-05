@@ -81,6 +81,12 @@ public:
     s32 ipc_fd = -1;
   };
 
+  enum class CheckContentHashes : bool
+  {
+    Yes = true,
+    No = false,
+  };
+
   IOS::ES::TMDReader FindImportTMD(u64 title_id) const;
   IOS::ES::TMDReader FindInstalledTMD(u64 title_id) const;
   IOS::ES::TicketReader FindSignedTicket(u64 title_id) const;
@@ -92,7 +98,9 @@ public:
   // Get titles for which there is a ticket (in /ticket).
   std::vector<u64> GetTitlesWithTickets() const;
 
-  std::vector<IOS::ES::Content> GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd) const;
+  std::vector<IOS::ES::Content>
+  GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd,
+                           CheckContentHashes check_content_hashes = CheckContentHashes::No) const;
   u32 GetSharedContentsCount() const;
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
