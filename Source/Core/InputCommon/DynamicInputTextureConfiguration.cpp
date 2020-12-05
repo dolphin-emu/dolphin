@@ -300,24 +300,44 @@ bool DynamicInputTextureConfiguration::GenerateTexture(
     }
   }
 
-  // Load image copy
-  auto base_image = LoadImage(m_base_path + texture_data.m_image_name);
-  bool dirty = false;
+  // Two copies of the loaded texture
+  // The first one is used as a fallback if a key or device isn't mapped
+  // the second one is used as the final image to write to the textures directory
+  const auto original_image = LoadImage(m_base_path + texture_data.m_image_name);
+  auto image_to_write = original_image;
 
+  bool dirty = false;
   for (auto& [emulated_key, rects] : emulated_controls_iter->second)
   {
-    std::string host_key = "";
-    sec->Get(emulated_key, &host_key);
+    // TODO: Remove this line when we move to C++20
+    auto& rects_ref = rects;
+    auto apply_original = [&] {
+      for (const auto& rect : rects_ref)
+      {
+        CopyImageRegion(*original_image, *image_to_write, rect, rect);
+        dirty = true;
+      }
+    };
 
     if (!device_found)
     {
       // If we get here, that means the controller is set to a
       // device not exposed to the pack
+      // We still apply the original image, in case the user
+      // switched devices and wants to see the changes
+      apply_original();
       continue;
     }
 
+    std::string host_key;
+    sec->Get(emulated_key, &host_key);
+
     const auto input_image_iter = host_devices_iter->second.find(host_key);
-    if (input_image_iter != host_devices_iter->second.end())
+    if (input_image_iter == host_devices_iter->second.end())
+    {
+      apply_original();
+    }
+    else
     {
       const auto host_key_image = LoadImage(m_base_path + input_image_iter->second);
 
@@ -339,7 +359,7 @@ bool DynamicInputTextureConfiguration::GenerateTexture(
               Resize(ResizeMode::Nearest, *host_key_image, rect.GetWidth(), rect.GetHeight());
         }
 
-        CopyImageRegion(pixel_data, *base_image, Rect{0, 0, rect.GetWidth(), rect.GetHeight()},
+        CopyImageRegion(pixel_data, *image_to_write, Rect{0, 0, rect.GetWidth(), rect.GetHeight()},
                         rect);
         dirty = true;
       }
@@ -355,7 +375,7 @@ bool DynamicInputTextureConfiguration::GenerateTexture(
     {
       File::CreateDir(hi_res_folder);
     }
-    WriteImage(hi_res_folder + DIR_SEP + texture_data.m_hires_texture_name, *base_image);
+    WriteImage(hi_res_folder + DIR_SEP + texture_data.m_hires_texture_name, *image_to_write);
 
     const auto game_id_folder = hi_res_folder + DIR_SEP + "gameids";
     if (!File::IsDirectory(game_id_folder))
