@@ -57,7 +57,7 @@ public:
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
   void ConfigChanged();
-  // Emitted at 30hz for real-time indicators to be updated.
+  // Emitted at INDICATOR_UPDATE_FREQ(Hz) for real-time indicators to be updated.
   void Update();
   void Save();
 

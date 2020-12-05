@@ -9,6 +9,7 @@
 
 #include <QString>
 #include <QWidget>
+#include <QFormLayout>
 
 constexpr int WIDGET_MAX_WIDTH = 112;
 
@@ -28,7 +29,8 @@ class EmulatedController;
 class NumericSettingBase;
 }  // namespace ControllerEmu
 
-constexpr int INDICATOR_UPDATE_FREQ = 30;
+// For smoother UI, this should be based on the current monitor refresh rate
+constexpr int INDICATOR_UPDATE_FREQ = 60;
 
 class MappingWidget : public QWidget
 {
@@ -51,10 +53,16 @@ signals:
 protected:
   int GetPort() const;
 
+  void RefreshSettingsEnabled();
+
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:
-  MappingWindow* m_parent;
+  MappingWindow* const m_parent;
+
+  std::vector<std::tuple<const ControllerEmu::NumericSettingBase*, QFormLayout::TakeRowResult,
+                         const ControllerEmu::ControlGroup*>>
+      m_edit_condition_numeric_settings;
 };
