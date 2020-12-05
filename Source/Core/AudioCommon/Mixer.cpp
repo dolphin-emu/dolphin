@@ -637,13 +637,13 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
   // The simplest solution sounds like finding a way of noticing that and setting
   // the max number of samples ever required as the minimum latency of the surround
   // so that we'd never run out of samples (when we are asked for more than usual,
-  // we'd ignore the last samples away). Unfortunately there is no simple solution,
+  // we'd ignore the last samples away). Unfortunately there is no easy solution,
   // being constrained to blocks and unable to stretch.
 
   // Our latency might have increased
   m_scratch_buffer.reserve(num_samples * NC);
 
-  // TODO: we could have special path here which mixes samples directly in float, given that the
+  // TODO: we could have a special path here which mixes samples directly in float, given that the
   // cubic interpolation spits out floats.
 
   // Time stretching can be applied before decoding 5.1, it should be fine theoretically.

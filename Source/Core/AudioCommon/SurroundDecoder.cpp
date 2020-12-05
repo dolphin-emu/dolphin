@@ -15,7 +15,6 @@
 
 namespace AudioCommon
 {
-//To align backend latency and this one (and explain it in UI)
 // Quality (higher quality also means more latency). Needs to be a multiple of 2
 static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
 {
@@ -35,7 +34,7 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
   }
   u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
   frame_block = (frame_block / 2) * 2;
-  // Assert because FreeSurround would crash anyway, this can only be triggered by code changes
+  // Assert because FreeSurround would crash anyway, this can't be triggered as of now
   assert(frame_block > 1);
   return frame_block;
 }

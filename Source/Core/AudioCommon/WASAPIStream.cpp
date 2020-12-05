@@ -601,8 +601,8 @@ bool WASAPIStream::SetRunning(bool running)
     // We can't move all of this between Init() and the destructor as if we paused the game, WASAPI
     // would keep exclusive access of the device. I've also tried to move all of this in SoundLoop()
     // (m_thread), but m_need_data_event failed to trigger.
-    // Let's just hope it works fine without it, at worse it will cause a small leak, but this
-    // has always been the case.
+    // Let's just hope it works fine without it, at worse it will cause a small memory leak, but
+    // this has always been the case.
     // We don't need IAudioClient3, it doesn't add anything for exclusive mode.
     result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
                               reinterpret_cast<LPVOID*>(&m_audio_client));
@@ -659,8 +659,8 @@ bool WASAPIStream::SetRunning(bool running)
       result = m_audio_client->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, stream_flags, device_period,
                                           device_period, &m_format.Format, nullptr);
     }
-    // TODO: just like we fallback here above if we don't support surround, we should add support
-    // for more devices (e.g. bitrate, channels, format) by falling back as well
+    // TODO: just like we do above, fallback here if we don't support surround. We should also
+    // add support for more devices (e.g. bitrate, channels, format) by falling back as well
 
     if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {

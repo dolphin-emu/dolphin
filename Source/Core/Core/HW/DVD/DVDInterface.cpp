@@ -249,7 +249,7 @@ static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8
     s_adpcm_decoder.DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
     for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
     {
-      // TODO: Fix the mixer so it can accept non-byte-swapped samples.
+      // TODO: Fix the mixer so it can accept non-byte-swapped samples
       s16* sample = &(*temp_pcm)[samples_processed * 2 + i];
       *sample = Common::swap16(*sample);
     }
