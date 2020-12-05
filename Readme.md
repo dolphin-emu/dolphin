@@ -53,7 +53,7 @@ pod install
 Open the Xcode project: `open DolphiniOS.xcworkspace/` (Make sure to open the xcworkspace!)
 
 * Click the Project in the Navigator Pane and choose "Signing & Capabilities" for the DolphiniOS target
-* Change the Team to your Developer ID
+* Change the Team to your Developer ID (Only change the Team to the scheme you want to avoid running out of App IDs on free accounts)
 * Edit the Scheme (or create a new one), and choose the build configuration (JB/Non-JB) you want for building/archiving 
 
 🚀 Build and Run! 
