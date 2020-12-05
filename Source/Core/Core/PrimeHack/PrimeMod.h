@@ -27,8 +27,9 @@ enum class Game : int {
 
 enum class Region : int {
   INVALID_REGION = -1,
-  NTSC = 0,
-  PAL = 1,
+  NTSC_U = 0,
+  NTSC_J = 1,
+  PAL = 2,
   MAX_VAL = PAL,
 };
 

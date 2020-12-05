@@ -30,7 +30,7 @@ namespace prime {
     void mp3_handle_cursor(bool lock);
 
     void run_mod_menu(Region region);
-    void run_mod_mp1();
+    void run_mod_mp1(Region region);
     void run_mod_mp2(Region region);
     void run_mod_mp3();
     void run_mod_mp1_gc();
@@ -48,6 +48,7 @@ namespace prime {
     void add_strafe_code_mp1_ntsc();
     void add_strafe_code_mp1_pal();
 
+    void init_mod_menu(Region region);
     void init_mod_mp1(Region region);
     void init_mod_mp2(Region region);
     void init_mod_mp3(Region region);
