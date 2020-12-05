@@ -1290,7 +1290,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
         if (IsFrameDumping())
-          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
+          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks, m_frame_count);
 
         // Begin new frame
         m_frame_count++;
@@ -1380,7 +1380,8 @@ bool Renderer::IsFrameDumping() const
 }
 
 void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
-                                const MathUtil::Rectangle<int>& src_rect, u64 ticks)
+                                const MathUtil::Rectangle<int>& src_rect, u64 ticks,
+                                int frame_number)
 {
   int source_width = src_rect.GetWidth();
   int source_height = src_rect.GetHeight();
@@ -1414,7 +1415,7 @@ void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
 
   m_frame_dump_readback_texture->CopyFromTexture(src_texture, copy_rect, 0, 0,
                                                  m_frame_dump_readback_texture->GetRect());
-  m_last_frame_state = m_frame_dump.FetchState(ticks);
+  m_last_frame_state = m_frame_dump.FetchState(ticks, frame_number);
   m_frame_dump_needs_flush = true;
 }
 
@@ -1619,7 +1620,11 @@ void Renderer::FrameDumpThreadFunc()
 
 bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData& frame)
 {
-  return m_frame_dump.Start(frame.width, frame.height);
+  // If dumping started at boot, the start time must be set to the boot time to maintain audio sync.
+  // TODO: Perhaps we should care about this when starting dumping in the middle of emulation too,
+  // but it's less important there since the first frame to dump usually gets delivered quickly.
+  const u64 start_ticks = frame.state.frame_number == 0 ? 0 : frame.state.ticks;
+  return m_frame_dump.Start(frame.width, frame.height, start_ticks);
 }
 
 void Renderer::DumpFrameToFFMPEG(const FrameDump::FrameData& frame)
