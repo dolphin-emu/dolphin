@@ -222,8 +222,8 @@ unsigned long GetMaxSupportedLatency()
 
 unsigned long GetUserTargetLatency()
 {
-  // iLatency is not unsigned
-  unsigned long target_latency = std::max(SConfig::GetInstance().iLatency, 0);
+  // iAudioBackendLatency is not unsigned
+  unsigned long target_latency = std::max(SConfig::GetInstance().iAudioBackendLatency, 0);
   return std::min(target_latency, AudioCommon::GetMaxSupportedLatency());
 }
 

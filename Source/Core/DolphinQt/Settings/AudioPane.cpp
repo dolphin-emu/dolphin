@@ -113,7 +113,6 @@ void AudioPane::CreateWidgets()
   // Unfortunately this creates an empty space if added to the widget. We should find a better way
   m_use_os_sample_rate->setHidden(true);
 
-  //To specify that latency increases by at least half the block size. Align latencies for better results
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
          "emulation engines only.\nAutomatically disabled if not supported by your audio device."
@@ -183,7 +182,7 @@ void AudioPane::CreateWidgets()
   QSize min_size = m_emu_speed_tolerance_indicator->minimumSize();
   min_size.setWidth(45);
   // Avoid the slider in line with this resizing because of text length changes.
-  // it would be best to do it dynamically based on the translation
+  // It would be best to do it dynamically based on the translation
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   mixer_box->setLayout(mixer_layout);
@@ -301,7 +300,7 @@ void AudioPane::LoadSettings()
   if (m_latency_control_supported)
   {
     m_ignore_save_settings = true;
-    m_latency_spin->setValue(SConfig::GetInstance().iLatency);
+    m_latency_spin->setValue(SConfig::GetInstance().iAudioBackendLatency);
     m_ignore_save_settings = false;
   }
 
@@ -415,9 +414,10 @@ void AudioPane::SaveSettings()
   }
 
   // Latency
-  if (m_latency_control_supported && SConfig::GetInstance().iLatency != m_latency_spin->value())
+  if (m_latency_control_supported &&
+      SConfig::GetInstance().iAudioBackendLatency != m_latency_spin->value())
   {
-    SConfig::GetInstance().iLatency = m_latency_spin->value();
+    SConfig::GetInstance().iAudioBackendLatency = m_latency_spin->value();
     backend_setting_changed = true;
   }
 

@@ -220,7 +220,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideRegionSettings", bOverrideRegionSettings);
   core->Set("DPL2Decoder", bDPL2Decoder);
-  core->Set("AudioLatency", iLatency);
+  core->Set("AudioBackendLatency", iAudioBackendLatency);
   core->Set("UseOSMixerSampleRate", &bUseOSMixerSampleRate);
   core->Set("AudioStretch", m_audio_stretch);
   core->Set("AudioEmuSpeedTolerance", &m_audio_emu_speed_tolerance);
@@ -481,7 +481,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
             DiscIO::ToGameCubeLanguage(Config::GetDefaultLanguage()));
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
-  core->Get("AudioLatency", &iLatency, 20);
+  core->Get("AudioBackendLatency", &iAudioBackendLatency, 20);
   core->Get("UseOSMixerSampleRate", &bUseOSMixerSampleRate, false);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioEmuSpeedTolerance", &m_audio_emu_speed_tolerance, 20);
@@ -767,7 +767,7 @@ void SConfig::LoadDefaults()
   bOverrideRegionSettings = false;
   bWii = false;
   bDPL2Decoder = false;
-  iLatency = 20;
+  iAudioBackendLatency = 20;
   m_audio_stretch = false;
   m_audio_emu_speed_tolerance = 20;
   bUsePanicHandlers = true;

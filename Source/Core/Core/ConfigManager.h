@@ -126,7 +126,7 @@ struct SConfig
 
   bool bDPL2Decoder = false;
   // Don't access directly, use AudioInterface::GetUserTargetLatency()
-  int iLatency = 20;
+  int iAudioBackendLatency = 20;
   bool bUseOSMixerSampleRate = false;
   bool m_audio_stretch = false;
   int m_audio_emu_speed_tolerance = 20;
