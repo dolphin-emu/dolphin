@@ -53,6 +53,7 @@ void AudioPane::CreateWidgets()
   auto* dsp_box = new QGroupBox(tr("DSP Emulation Engine"));
   auto* dsp_layout = new QVBoxLayout;
 
+  dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   dsp_box->setLayout(dsp_layout);
   m_dsp_hle = new QRadioButton(tr("DSP HLE (fast)"));
   m_dsp_lle = new QRadioButton(tr("DSP LLE Recompiler"));
@@ -84,10 +85,22 @@ void AudioPane::CreateWidgets()
 
   auto* backend_box = new QGroupBox(tr("Backend Settings"));
   auto* backend_layout = new QFormLayout;
+
+  backend_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   backend_box->setLayout(backend_layout);
   m_backend_label = new QLabel(tr("Audio Backend:"));
   m_backend_combo = new QComboBox();
-  m_dolby_pro_logic = new QCheckBox(tr("Dolby Pro Logic II Decoder"));
+  m_dolby_pro_logic = new QCheckBox(tr("Dolby Pro Logic II (5.1)"));
+
+  m_dolby_pro_logic->setToolTip(
+      tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
+         "emulation engines only.\nAutomatically disabled if not supported by your audio device."
+         "\nYou need to enable surround from the game settings in GC games or in the menu settings "
+         "on Wii."
+         "\nThe emulation will still output 2.0, but the encoder will extract information for 5.1."
+         "\nIf you align your backend latency to the DPLII block size,"
+         "\nthe added latency will be half the DPLII block size."
+         "\nIf unsure, leave off."));
 
   if (m_latency_control_supported)
   {
@@ -103,48 +116,15 @@ void AudioPane::CreateWidgets()
   m_use_os_sample_rate = new QCheckBox(tr("Use OS Mixer sample rate"));
 
   m_use_os_sample_rate->setToolTip(
-      tr("Directly mixes at the current OS mixer sample rate as opposed to %1"
-         "Hz.\nThis will make resampling from 32kHz sources more accurate, possibly improving"
+      tr("Directly mixes at the current OS mixer sample rate as opposed to %1 "
+         "Hz.\nThis will make resampling from 32 kHz sources more accurate, possibly improving"
          " audio\n"
          "quality at the cost of performance. It won't follow changes to your OS setting."
          "\nIf unsure, leave off.")
           .arg(AudioCommon::GetDefaultSampleRate()));
 
-  // Unfortunately this creates an empty space if added to the widget. We should find a better way
+  // Unfortunately this creates an empty space when added to the layout. We should find a better way
   m_use_os_sample_rate->setHidden(true);
-
-  m_dolby_pro_logic->setToolTip(
-      tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
-         "emulation engines only.\nAutomatically disabled if not supported by your audio device."
-         "\nYou need to enable surround from the game settings in GC games or in the menu settings "
-         "on Wii."
-         "\nThe emulation will still output 2.0, but the encoder will extract information for 5.1."
-         "\nIf you align your backend latency to the DPLII block size,"
-         "\nthe added latency will be half the DPLII block size."
-         "\nIf unsure, leave off."));
-
-  auto* dolby_quality_layout = new QHBoxLayout;
-
-  m_dolby_quality_label = new QLabel(tr("Decoding Quality:"));
-
-  m_dolby_quality_slider = new QSlider(Qt::Horizontal);
-  m_dolby_quality_slider->setMinimum(0);
-  m_dolby_quality_slider->setMaximum(3);
-  m_dolby_quality_slider->setPageStep(1);
-  m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
-  m_dolby_quality_slider->setToolTip(
-      tr("Quality of the DPLII decoder. Also increases audio latency"));
-  m_dolby_quality_slider->setTracking(true);
-
-  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Normal));
-  m_dolby_quality_highest_label =
-      new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Extreme));
-  m_dolby_quality_latency_label =
-      new QLabel(GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality::Extreme));
-
-  dolby_quality_layout->addWidget(m_dolby_quality_low_label);
-  dolby_quality_layout->addWidget(m_dolby_quality_slider);
-  dolby_quality_layout->addWidget(m_dolby_quality_highest_label);
 
   backend_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
   backend_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -160,32 +140,31 @@ void AudioPane::CreateWidgets()
 
   m_wasapi_device_combo->setToolTip(tr("Some devices might not work with WASAPI Exclusive mode"));
   m_wasapi_device_sample_rate_combo->setToolTip(
-      tr("Output (and mix) sample rate.\nAnything above 48kHz will have very minimal "
+      tr("Output (and mix) sample rate.\nAnything above 48 kHz will have very minimal "
          "improvements to quality at the cost of performance."));
 
   backend_layout->addRow(m_wasapi_device_label, m_wasapi_device_combo);
   backend_layout->addRow(m_wasapi_device_sample_rate_label, m_wasapi_device_sample_rate_combo);
 #endif
-  backend_layout->addWidget(m_use_os_sample_rate);
+  backend_layout->addRow(m_use_os_sample_rate);
 
   backend_layout->addRow(m_dolby_pro_logic);
-  backend_layout->addRow(m_dolby_quality_label);
-  backend_layout->addRow(dolby_quality_layout);
-  backend_layout->addRow(m_dolby_quality_latency_label);
 
   auto* mixer_box = new QGroupBox(tr("Mixer Settings"));
   auto* mixer_layout = new QGridLayout;
+
+  mixer_layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  mixer_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  mixer_box->setLayout(mixer_layout);
   m_stretching_enable = new QCheckBox(tr("Audio Stretching"));
   m_emu_speed_tolerance_slider = new QSlider(Qt::Horizontal);
   m_emu_speed_tolerance_indicator = new QLabel();
-  m_emu_speed_tolerance_indicator->setAlignment(Qt::AlignRight);
   QSize min_size = m_emu_speed_tolerance_indicator->minimumSize();
   min_size.setWidth(45);
   // Avoid the slider in line with this resizing because of text length changes.
   // It would be best to do it dynamically based on the translation
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
-  mixer_box->setLayout(mixer_layout);
   //To review: maybe have a set of 4 or 5 options to keep it simpler
 
   m_stretching_enable->setToolTip(tr(
@@ -200,21 +179,42 @@ void AudioPane::CreateWidgets()
          "too high (>40), sound will play old samples backwards when we slow down or stutter."
          "\nif set too low (<10), sound might lose quality if you have frequent small stutters."
          "\nSet 0 to have it on all the times. Slide all the way left to disable."));
-  
+
+  m_dolby_quality_label = new QLabel(tr("DPLII Decoding Quality:"));
+
+  m_dolby_quality_slider = new QSlider(Qt::Horizontal);
+  m_dolby_quality_slider->setMinimum(0);
+  m_dolby_quality_slider->setMaximum(3);
+  m_dolby_quality_slider->setPageStep(1);
+  m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
+  m_dolby_quality_slider->setToolTip(
+      tr("Quality of the DPLII decoder. Also increases audio latency"));
+  m_dolby_quality_slider->setTracking(true);
+
+  m_dolby_quality_latency_label = new QLabel();
+
+  min_size = m_dolby_quality_latency_label->minimumSize();
+  min_size.setWidth(143);
+  // Avoid the slider in line with this resizing because of text length changes.
+  // It would be best to do it dynamically based on the translation
+  m_dolby_quality_latency_label->setMinimumSize(min_size);
+
   mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
   mixer_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
   mixer_layout->addWidget(m_emu_speed_tolerance_slider, 1, 1);
   mixer_layout->addWidget(m_emu_speed_tolerance_indicator, 1, 2);
+  mixer_layout->addWidget(m_dolby_quality_label, 2, 0);
+  mixer_layout->addWidget(m_dolby_quality_slider, 2, 1);
+  mixer_layout->addWidget(m_dolby_quality_latency_label, 2, 2);
 
-  m_main_layout = new QGridLayout;
-
+  QGridLayout* m_main_layout = new QGridLayout;
   m_main_layout->setRowStretch(0, 0);
+  m_main_layout->setAlignment(Qt::AlignTop);
 
-  dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  m_main_layout->addWidget(dsp_box, 0, 0);
+  m_main_layout->addWidget(dsp_box, 0, 0, Qt::AlignTop);
   m_main_layout->addWidget(volume_box, 0, 1, -1, 1);
-  m_main_layout->addWidget(backend_box, 1, 0);
-  m_main_layout->addWidget(mixer_box, 2, 0);
+  m_main_layout->addWidget(backend_box, 1, 0, Qt::AlignTop);
+  m_main_layout->addWidget(mixer_box, 2, 0, Qt::AlignTop);
 
   setLayout(m_main_layout);
 }
@@ -290,7 +290,7 @@ void AudioPane::LoadSettings()
   m_dolby_quality_slider->setValue(int(Config::Get(Config::MAIN_DPL2_QUALITY)));
   m_ignore_save_settings = false;
   m_dolby_quality_latency_label->setText(
-      GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
+      GetDPL2QualityAndLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
   if (AudioCommon::SupportsDPL2Decoder(current) && !m_dsp_hle->isChecked())
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
@@ -405,7 +405,7 @@ void AudioPane::SaveSettings()
     Config::SetBase(Config::MAIN_DPL2_QUALITY,
                     static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()));
     m_dolby_quality_latency_label->setText(
-        GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
+        GetDPL2QualityAndLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
     backend_setting_changed = true;  // Not a mistake
   }
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
@@ -467,7 +467,7 @@ void AudioPane::SaveSettings()
   if (m_wasapi_device_sample_rate_combo->currentIndex() > 0 && canSelectDeviceSampleRate)
   {
     QString qs = m_wasapi_device_sample_rate_combo->currentText();
-    qs.chop(2);  // Remove "Hz" from the end
+    qs.chop(3);  // Remove " Hz" from the end
     deviceSampleRate = qs.toStdString();
   }
 
@@ -554,12 +554,12 @@ void AudioPane::OnWASAPIDeviceChanged()
     m_wasapi_device_sample_rate_label->setEnabled(true);
 
     m_wasapi_device_sample_rate_combo->addItem(
-        tr("Default Dolphin Sample Rate (%1Hz)").arg(AudioCommon::GetDefaultSampleRate()));
+        tr("Default Dolphin Sample Rate (%1 Hz)").arg(AudioCommon::GetDefaultSampleRate()));
 
     for (const auto deviceSampleRate : WASAPIStream::GetSelectedDeviceSampleRates())
     {
       m_wasapi_device_sample_rate_combo->addItem(
-          QString::number(deviceSampleRate).append(tr("Hz")));
+          QString::number(deviceSampleRate).append(tr(" Hz")));
     }
   }
   else
@@ -569,17 +569,17 @@ void AudioPane::OnWASAPIDeviceChanged()
     if (m_running)
     {
       std::string sample_rate_text;
-      sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + "Hz";
-      if (sample_rate_text == "0Hz")
+      sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + " Hz";
+      if (sample_rate_text == "0 Hz")
       {
-        sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate()) + "Hz";
+        sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate()) + " Hz";
       }
       m_wasapi_device_sample_rate_combo->addItem(tr(sample_rate_text.c_str()));
     }
     else
     {
       m_wasapi_device_sample_rate_combo->addItem(
-          tr("Select a Device (%1Hz)").arg(AudioCommon::GetDefaultSampleRate()));
+          tr("Select a Device (%1 Hz)").arg(AudioCommon::GetDefaultSampleRate()));
     }
   }
 
@@ -596,7 +596,7 @@ void AudioPane::LoadWASAPIDeviceSampleRate()
   }
   else
   {
-    std::string sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + "Hz";
+    std::string sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + " Hz";
     m_wasapi_device_sample_rate_combo->setCurrentText(QString::fromStdString(sample_rate_text));
     // Saved sample rate not found, reset it
     if (m_wasapi_device_combo->currentIndex() < 1)
@@ -676,35 +676,19 @@ void AudioPane::CheckNeedForLatencyControl()
       std::any_of(backends.cbegin(), backends.cend(), AudioCommon::SupportsLatencyControl);
 }
 
-QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
+QString AudioPane::GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
   case AudioCommon::DPL2Quality::Low:
-    return tr("Low");
+    return tr("Low (Block Size: %1 ms)").arg(10);
   case AudioCommon::DPL2Quality::High:
-    return tr("High");
+    return tr("High (Block Size: %1 ms)").arg(40);
   case AudioCommon::DPL2Quality::Extreme:
-    return tr("Extreme");
+    return tr("Extreme (Block Size: %1 ms)").arg(80);
   case AudioCommon::DPL2Quality::Normal:
   default:
-    return tr("Normal");
-  }
-}
-
-QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const
-{
-  switch (value)
-  {
-  case AudioCommon::DPL2Quality::Low:
-    return tr("Block Size: 10ms");
-  case AudioCommon::DPL2Quality::High:
-    return tr("Block Size: 40ms");
-  case AudioCommon::DPL2Quality::Extreme:
-    return tr("Block Size: 80ms");
-  case AudioCommon::DPL2Quality::Normal:
-  default:
-    return tr("Block Size: 20ms");
+    return tr("Normal (Block Size: %1 ms)").arg(20);
   }
 }
 
@@ -712,7 +696,5 @@ void AudioPane::EnableDolbyQualityWidgets(bool enabled) const
 {
   m_dolby_quality_label->setEnabled(enabled);
   m_dolby_quality_slider->setEnabled(enabled);
-  m_dolby_quality_low_label->setEnabled(enabled);
-  m_dolby_quality_highest_label->setEnabled(enabled);
   m_dolby_quality_latency_label->setEnabled(enabled);
 }

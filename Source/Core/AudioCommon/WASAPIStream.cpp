@@ -69,7 +69,7 @@ public:
       std::string message =
           "WASAPI failed to start, the current audio device likely does not support 2.0 16-bit " +
           std::to_string(m_WASAPI_stream->GetMixer()->GetSampleRate()) +
-          "Hz PCM audio."
+          " Hz PCM audio."
           "\nWASAPI exclusive mode (event driven) won't work";
 
       ERROR_LOG(AUDIO, message.c_str());
@@ -641,7 +641,7 @@ bool WASAPIStream::SetRunning(bool running)
     if (m_surround && result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
       WARN_LOG(AUDIO,
-               "WASAPI: Your current audio device doesn't support 5.1 16-bit %uHz"
+               "WASAPI: Your current audio device doesn't support 5.1 16-bit %u Hz"
                " PCM audio. Will fallback to 2.0 16-bit",
                GetMixer()->GetSampleRate());
 
@@ -665,7 +665,7 @@ bool WASAPIStream::SetRunning(bool running)
     if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
       WARN_LOG(AUDIO,
-               "WASAPI: Your current audio device doesn't support 2.0 16-bit %uHz"
+               "WASAPI: Your current audio device doesn't support 2.0 16-bit %u Hz"
                " PCM audio. Exclusive mode (event driven) won't work",
                GetMixer()->GetSampleRate());
 

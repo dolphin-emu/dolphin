@@ -45,14 +45,11 @@ private:
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;
 
-  QString GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const;
-  QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const;
+  QString GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value) const;
   void EnableDolbyQualityWidgets(bool enabled) const;
 
   bool m_running;
   bool m_ignore_save_settings;
-
-  QGridLayout* m_main_layout;
 
   // DSP Engine
   QRadioButton* m_dsp_hle;
@@ -69,8 +66,6 @@ private:
   QCheckBox* m_dolby_pro_logic;
   QLabel* m_dolby_quality_label;
   QSlider* m_dolby_quality_slider;
-  QLabel* m_dolby_quality_low_label;
-  QLabel* m_dolby_quality_highest_label;
   QLabel* m_dolby_quality_latency_label;
   QLabel* m_latency_label;
   QSpinBox* m_latency_spin;
