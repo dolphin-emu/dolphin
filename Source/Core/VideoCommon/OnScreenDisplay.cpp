@@ -177,11 +177,17 @@ static std::string GetTimeForFrame(s32 currFrame)
   return std::string(currTime);
 }
 
-bool showHelp = false;
+bool show_help = false;
+bool show_settings = false;
 u32 idle_tick = Common::Timer::GetTimeMs();
 ImVec2 prev_mouse(0, 0);
 
-bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags = 0)
+bool ButtonCustom(
+  const char* label,
+  const ImVec2& size_arg,
+  ImU32 fill = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+  ImU32 hover_fill = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+  ImGuiButtonFlags flags = 0)
 {
   // ImGui::GetWindowDrawList()->AddRectFilled(
   //  ImGui::GetCurrentWindow()->DC.CursorPos,
@@ -221,9 +227,10 @@ bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags fl
     ImGui::MarkItemEdited(id);
 
   // Render
-  const ImU32 col = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+  auto color = hovered ? hover_fill : fill;
+
   ImGui::RenderNavHighlight(bb, id);
-  ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+  ImGui::RenderFrame(bb.Min, bb.Max, color, true, style.FrameRounding);
 
   if (hovered || held)
     ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL,
@@ -611,7 +618,7 @@ void DrawSlippiPlaybackControls()
 #define LABEL_TEXT_HEIGHT (height - scaled_height * 0.07f)
 #define BUTTON_WIDTH (0.027f * scaled_height)
 
-    ImGui::SetWindowFontScale(scaled_height / 8000.0f);
+    ImGui::SetWindowFontScale(scaled_height / 2000.0f);
 
     if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE,
                 g_playbackStatus->lastFrame, 1.0, "%d"))
@@ -620,7 +627,7 @@ void DrawSlippiPlaybackControls()
     }
 
     style.Alpha =
-        (showHelp || ImGui::GetHoveredID()) ? 1 : std::max(0.0001f, 1.0f - (diff / 1000.0f));
+        (show_help || ImGui::GetHoveredID()) ? 1 : std::max(0.0001f, 1.0f - (diff / 1000.0f));
 
     ImGui::SetCursorPos(ImVec2(0.0f, height - scaled_height * 0.0265f));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
@@ -733,49 +740,122 @@ void DrawSlippiPlaybackControls()
     }
 
     // Help
-    ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
+    ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 3, height - scaled_height * 0.0265f));
     if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
     {
-      showHelp = !showHelp;
+      show_help = !show_help;
+      show_settings = false;
     }
-    if (showHelp)
+    if (show_help)
     {
       ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(width - BUTTON_WIDTH * 10.0f, height - scaled_height * 0.21f),
-          ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM),
-          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
+        ImVec2(width - BUTTON_WIDTH * 10.0f, height - scaled_height * 0.21f),
+        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
       auto divide =
-          (height - scaled_height * 0.2f - LABEL_BOX_BOTTOM - 0.01f * scaled_height) / 7.0f;
+        (height - scaled_height * 0.2f - LABEL_BOX_BOTTOM - 0.01f * scaled_height) / 7.0f;
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 7.0f));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 7.0f));
       ImGui::Text("Play/Pause: Spacebar");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 6.0f));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 6.0f));
       ImGui::Text("Step Back (5s): Left Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 5.0f));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 5.0f));
       ImGui::Text("Step Forward (5s): Right Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 4.0f));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 4.0f));
       ImGui::Text("Jump Back (20s): Shift + Left Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 3.0f));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 3.0f));
       ImGui::Text("Jump Forward (20s): Shift + Right Arrow");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 2.0f));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide * 2.0f));
       ImGui::Text("Frame Advance: Period");
       ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 10.0f + scaled_height * 0.005f,
-                                 LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide));
+        LABEL_BOX_BOTTOM + 0.005f * scaled_height + divide));
       ImGui::Text("Big jumps may take several seconds.");
     }
-    if (ImGui::IsItemHovered())
+    if (ImGui::IsItemHovered() && !show_help)
     {
       ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(width - scaled_height * 0.095f, LABEL_BOX_TOP),
-          ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
-          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
+        ImVec2(width - scaled_height * 0.095f, LABEL_BOX_TOP),
+        ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
       ImGui::SetCursorPos(ImVec2(width - (scaled_height * 0.09f), LABEL_TEXT_HEIGHT));
       ImGui::Text("View Help");
+    }
+
+    // Settings
+    ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 2, height - scaled_height * 0.0265f));
+    if (ButtonCustom(ICON_FA_COG, ImVec2(BUTTON_WIDTH, BUTTON_WIDTH)))
+    {
+      show_settings = !show_settings;
+      show_help = false;
+    }
+    if (show_settings)
+    {
+      //bool show_speed_options = false;
+      auto option_height = (scaled_height * 0.05f) / 2.0f;
+
+      ImGui::GetWindowDrawList()->AddRectFilled(
+          ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 4.0f),
+          ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM),
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
+
+      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f + 0.005 * scaled_height, LABEL_BOX_BOTTOM - option_height * 4.0f + 0.005 * scaled_height));
+      ImGui::Text("Playback Speed");
+      auto quarter_speed = ImRect(
+        ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 3.0f),
+        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM - option_height * 2.0));
+      auto half_speed = ImRect(
+        ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 2.0f),
+        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM - option_height));
+      auto normal_speed = ImRect(
+        ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height),
+        ImVec2(width - BUTTON_WIDTH, LABEL_BOX_BOTTOM));
+
+      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 3.0f));
+      if (ButtonCustom(
+        "0.25",
+        ImVec2(quarter_speed.GetWidth(), quarter_speed.GetHeight()),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))
+      ))
+      {
+        SConfig::GetInstance().m_EmulationSpeed = 0.25f;
+      }
+
+      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 2.0f));
+      if (ButtonCustom(
+        "0.5",
+        ImVec2(half_speed.GetWidth(), half_speed.GetHeight()),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))
+      ))
+      {
+        SConfig::GetInstance().m_EmulationSpeed = 0.5f;
+      }
+
+      ImGui::SetCursorPos(ImVec2(width - BUTTON_WIDTH * 5.0f, LABEL_BOX_BOTTOM - option_height * 1.0f));
+      if (ButtonCustom(
+        "Normal",
+        ImVec2(normal_speed.GetWidth(), normal_speed.GetHeight()),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f)),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(255.0f, 255.0f, 255.0f, 0.3f * style.Alpha))
+      ))
+      {
+        SConfig::GetInstance().m_EmulationSpeed = 1.0f;
+      }
+    }
+    if (ImGui::IsItemHovered() && !show_settings)
+    {
+      ImGui::GetWindowDrawList()->AddRectFilled(
+        ImVec2(width - scaled_height * 0.087f, LABEL_BOX_TOP),
+        ImVec2(width - (scaled_height * 0.005f + BUTTON_WIDTH), LABEL_BOX_BOTTOM),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
+      ImGui::SetCursorPos(ImVec2(width - (scaled_height * 0.082f), LABEL_TEXT_HEIGHT));
+      ImGui::Text("Settings");
     }
 
     // Fullscreen

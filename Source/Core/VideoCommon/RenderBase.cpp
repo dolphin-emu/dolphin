@@ -921,10 +921,10 @@ bool Renderer::InitializeImGui()
 #ifdef IS_PLAYBACK
   ImFontConfig config;
   config.MergeMode = true;
-  ImGui::GetIO().Fonts->AddFontFromFileTTF((File::GetSysDirectory() + "Resources/Roboto-Medium.ttf").c_str(), 112.0f, 0, ImGui::GetIO().Fonts->GetGlyphRangesDefault());
+  ImGui::GetIO().Fonts->AddFontFromFileTTF((File::GetSysDirectory() + "Resources/Roboto-Medium.ttf").c_str(), 28.0f, 0, ImGui::GetIO().Fonts->GetGlyphRangesDefault());
   static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
   ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
-  ImGui::GetIO().Fonts->AddFontFromFileTTF((File::GetSysDirectory() + "Resources/" + FONT_ICON_FILE_NAME_FA).c_str(), 128.0f, &icons_config, icons_ranges);
+  ImGui::GetIO().Fonts->AddFontFromFileTTF((File::GetSysDirectory() + "Resources/" + FONT_ICON_FILE_NAME_FA).c_str(), 32.0f, &icons_config, icons_ranges);
 #endif
 
   // Don't create an ini file. TODO: Do we want this in the future?
@@ -1269,11 +1269,10 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 #ifdef IS_PLAYBACK
         if (SConfig::GetInstance().m_slippiEnableSeek && g_replayComm->getSettings().rollbackDisplayMethod == "off" && g_playbackStatus->inSlippiPlayback)
           OSD::DrawSlippiPlaybackControls();
-#endif
-
+#else 
         DrawDebugText();
         OSD::DrawMessages();
-
+#endif
         ImGui::Render();
       }
 
