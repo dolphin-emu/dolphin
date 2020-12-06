@@ -5,6 +5,7 @@
 #include "DolphinQt/Settings/AudioPane.h"
 
 #include <cassert>
+#include <cmath>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -57,6 +58,8 @@ void AudioPane::CreateWidgets()
   auto* dsp_box = new QGroupBox(tr("DSP Emulation Engine"));
   auto* dsp_layout = new QVBoxLayout;
 
+  QFontMetrics font_metrics(font());
+
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   dsp_box->setLayout(dsp_layout);
   m_dsp_hle = new QRadioButton(tr("DSP HLE (fast)"));
@@ -82,7 +85,7 @@ void AudioPane::CreateWidgets()
   m_volume_slider->setToolTip(tr("Using this is preferred over the OS mixer volume"));
 
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-  m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(tr("%1 %").arg(100)).width());
+  m_volume_indicator->setFixedWidth(font_metrics.boundingRect(tr("%1 %").arg(100)).width());
 
   volume_layout->addWidget(m_volume_slider, 0, Qt::AlignHCenter);
   volume_layout->addWidget(m_volume_indicator, 0, Qt::AlignHCenter);
@@ -165,9 +168,9 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_slider = new QSlider(Qt::Horizontal);
   m_emu_speed_tolerance_indicator = new QLabel();
   QSize min_size = m_emu_speed_tolerance_indicator->minimumSize();
-  min_size.setWidth(45);
-  // Avoid the slider in line with this resizing because of text length changes.
-  // It would be best to do it dynamically based on the translation
+  min_size.setWidth(
+      std::max(std::max(font_metrics.width(tr("Disabled")), font_metrics.width(tr("None"))),
+               font_metrics.width(tr("%1 ms").arg(125))));
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   //To review: maybe have a set of 4 or 5 options to keep it simpler
@@ -187,9 +190,11 @@ void AudioPane::CreateWidgets()
 
   m_dolby_quality_label = new QLabel(tr("DPLII Decoding Quality:"));
 
+  int max_dolby_quality = int(AudioCommon::DPL2Quality::Extreme);
+
   m_dolby_quality_slider = new QSlider(Qt::Horizontal);
   m_dolby_quality_slider->setMinimum(0);
-  m_dolby_quality_slider->setMaximum(3);
+  m_dolby_quality_slider->setMaximum(max_dolby_quality);
   m_dolby_quality_slider->setPageStep(1);
   m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
   m_dolby_quality_slider->setToolTip(
@@ -199,9 +204,13 @@ void AudioPane::CreateWidgets()
   m_dolby_quality_latency_label = new QLabel();
 
   min_size = m_dolby_quality_latency_label->minimumSize();
-  min_size.setWidth(143);
-  // Avoid the slider in line with this resizing because of text length changes.
-  // It would be best to do it dynamically based on the translation
+  int max_width = 0;
+  for (int i = 0; i <= max_dolby_quality; ++i)
+  {
+    max_width = std::max(max_width, font_metrics.width(GetDPL2QualityAndLatencyLabel(
+                                        AudioCommon::DPL2Quality(max_dolby_quality))));
+  }
+  min_size.setWidth(max_width);
   m_dolby_quality_latency_label->setMinimumSize(min_size);
 
   mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
