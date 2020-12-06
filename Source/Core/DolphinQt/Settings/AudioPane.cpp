@@ -31,6 +31,10 @@
 #include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
 
+#ifdef _WIN32
+#define WASAPI_DEFAULT_DEVICE_NAME "default"
+#endif
+
 AudioPane::AudioPane()
 {
   m_running = false;
@@ -325,7 +329,7 @@ void AudioPane::LoadSettings()
 
 #ifdef _WIN32
   m_ignore_save_settings = true;
-  if (SConfig::GetInstance().sWASAPIDevice == "default")
+  if (SConfig::GetInstance().sWASAPIDevice == WASAPI_DEFAULT_DEVICE_NAME)
   {
     m_wasapi_device_combo->setCurrentIndex(0);
   }
@@ -336,7 +340,7 @@ void AudioPane::LoadSettings()
     // Saved device not found, reset it
     if (m_wasapi_device_combo->currentIndex() < 1)
     {
-      SConfig::GetInstance().sWASAPIDevice = "default";
+      SConfig::GetInstance().sWASAPIDevice = WASAPI_DEFAULT_DEVICE_NAME;
     }
   }
   LoadWASAPIDeviceSampleRate();
@@ -443,7 +447,7 @@ void AudioPane::SaveSettings()
 #ifdef _WIN32
   // If left at default, Dolphin will automatically
   // pick a device and sample rate
-  std::string device = "default";
+  std::string device = WASAPI_DEFAULT_DEVICE_NAME;
 
   if (m_wasapi_device_combo->currentIndex() > 0)
     device = m_wasapi_device_combo->currentText().toStdString();
@@ -464,7 +468,8 @@ void AudioPane::SaveSettings()
 
   std::string deviceSampleRate = "0";
 
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
+  bool canSelectDeviceSampleRate =
+      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
   if (m_wasapi_device_sample_rate_combo->currentIndex() > 0 && canSelectDeviceSampleRate)
   {
     QString qs = m_wasapi_device_sample_rate_combo->currentText();
@@ -548,7 +553,8 @@ void AudioPane::OnWASAPIDeviceChanged()
   // Don't allow users to select a sample rate for the default device,
   // even though that would be possible, the default device can change
   // at any time so it wouldn't make sense
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
+  bool canSelectDeviceSampleRate =
+      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
   if (canSelectDeviceSampleRate)
   {
     m_wasapi_device_sample_rate_combo->setEnabled(true);
@@ -569,13 +575,13 @@ void AudioPane::OnWASAPIDeviceChanged()
     m_wasapi_device_sample_rate_label->setEnabled(false);
     if (m_running)
     {
-      std::string sample_rate_text;
-      sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + " Hz";
-      if (sample_rate_text == "0 Hz")
+      std::string sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate;
+      if (sample_rate_text == "0")
       {
-        sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate()) + " Hz";
+        sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate());
       }
-      m_wasapi_device_sample_rate_combo->addItem(tr(sample_rate_text.c_str()));
+      m_wasapi_device_sample_rate_combo->addItem(
+          tr("%1 Hz").arg(QString::fromStdString(sample_rate_text)));
     }
     else
     {
@@ -589,7 +595,8 @@ void AudioPane::OnWASAPIDeviceChanged()
 
 void AudioPane::LoadWASAPIDeviceSampleRate()
 {
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
+  bool canSelectDeviceSampleRate =
+      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
   if (SConfig::GetInstance().sWASAPIDeviceSampleRate == "0" || !canSelectDeviceSampleRate)
   {
     m_wasapi_device_sample_rate_combo->setCurrentIndex(0);
@@ -647,7 +654,8 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_wasapi_device_label->setEnabled(supports_current_emulation_state);
   m_wasapi_device_combo->setEnabled(supports_current_emulation_state);
   bool canSelectDeviceSampleRate =
-      SConfig::GetInstance().sWASAPIDevice != "default" && supports_current_emulation_state;
+      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME &&
+      supports_current_emulation_state;
   m_wasapi_device_sample_rate_label->setEnabled(canSelectDeviceSampleRate);
   m_wasapi_device_sample_rate_combo->setEnabled(canSelectDeviceSampleRate);
   bool is_wasapi = backend == BACKEND_WASAPI;
