@@ -65,7 +65,7 @@ void SurroundDecoder::InitAndSetSampleRate(u32 sample_rate)
     // (quality would be the same), though we've decided to prioritize low latency over performance,
     // so it's better to have a block size aligned (or being a multiple/dividend) of the backend
     // latency. We could write some code and UI setting to align the backend latency to the DPLII
-    // one but it would be straight forward as some backends don't support custom latency.
+    // one but it wouldn't be straight forward as some backends don't support custom latency.
     // If this turned out to be too intensive on slower CPUs, we could reconsider it.
     m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
 
