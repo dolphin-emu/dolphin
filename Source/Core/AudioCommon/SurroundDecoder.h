@@ -28,8 +28,8 @@ public:
 
   static constexpr u32 STEREO_CHANNELS = 2;
   static constexpr u32 SURROUND_CHANNELS = 6;
-  // Max supported samples rate is about 192kHz at highest block quality (~40ms)
-  static constexpr u32 MAX_BLOCKS_SIZE = 7680;
+  // Max supported samples rate is about 192kHz at highest block quality (~80ms)
+  static constexpr u32 MAX_BLOCKS_SIZE = 15360;
   static constexpr u32 MAX_BLOCKS_BUFFERED = 8;
 
 private:

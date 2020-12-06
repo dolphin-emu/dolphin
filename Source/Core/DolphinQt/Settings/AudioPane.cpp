@@ -129,7 +129,7 @@ void AudioPane::CreateWidgets()
 
   m_dolby_quality_slider = new QSlider(Qt::Horizontal);
   m_dolby_quality_slider->setMinimum(0);
-  m_dolby_quality_slider->setMaximum(2);
+  m_dolby_quality_slider->setMaximum(3);
   m_dolby_quality_slider->setPageStep(1);
   m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
   m_dolby_quality_slider->setToolTip(
@@ -680,6 +680,8 @@ QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
+  case AudioCommon::DPL2Quality::Low:
+    return tr("Low");
   case AudioCommon::DPL2Quality::High:
     return tr("High");
   case AudioCommon::DPL2Quality::Extreme:
@@ -694,13 +696,15 @@ QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value
 {
   switch (value)
   {
+  case AudioCommon::DPL2Quality::Low:
+    return tr("Block Size: 10ms");
   case AudioCommon::DPL2Quality::High:
-    return tr("Block Size: 20ms");
-  case AudioCommon::DPL2Quality::Extreme:
     return tr("Block Size: 40ms");
+  case AudioCommon::DPL2Quality::Extreme:
+    return tr("Block Size: 80ms");
   case AudioCommon::DPL2Quality::Normal:
   default:
-    return tr("Block Size: 10ms");
+    return tr("Block Size: 20ms");
   }
 }
 

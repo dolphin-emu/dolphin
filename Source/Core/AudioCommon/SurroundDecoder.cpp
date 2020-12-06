@@ -21,16 +21,19 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
   u32 frame_block_time;  // ms
   switch (quality)
   {
-  case DPL2Quality::High:
-    frame_block_time = 20;
+  case DPL2Quality::Low:
+    frame_block_time = 10;
     break;
-  // FreeSurround said to not go over 20ms, so this is overkill already
-  case DPL2Quality::Extreme:
+  // FreeSurround said to not go over 20ms, so this might be overkill already
+  case DPL2Quality::High:
     frame_block_time = 40;
+    break;
+  case DPL2Quality::Extreme:
+    frame_block_time = 80;
     break;
   case DPL2Quality::Normal:
   default:
-    frame_block_time = 10;
+    frame_block_time = 20;
   }
   u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
   frame_block = (frame_block / 2) * 2;
@@ -58,6 +61,12 @@ void SurroundDecoder::InitAndSetSampleRate(u32 sample_rate)
   {
     m_frame_block_size = frame_block_size;
     m_sample_rate = sample_rate;
+    // If we passed in a block size that is a power of 2, decoding performance would be better,
+    // (quality would be the same), though we've decided to prioritize low latency over performance,
+    // so it's better to have a block size aligned (or being a multiple/dividend) of the backend
+    // latency. We could write some code and UI setting to align the backend latency to the DPLII
+    // one but it would be straight forward as some backends don't support custom latency.
+    // If this turned out to be too intensive on slower CPUs, we could reconsider it.
     m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
 
     // Increase m_decoded_fifo size if this becomes common occurrence
