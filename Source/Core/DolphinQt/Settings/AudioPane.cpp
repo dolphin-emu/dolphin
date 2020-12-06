@@ -108,6 +108,7 @@ void AudioPane::CreateWidgets()
     m_latency_spin = new QSpinBox();
     m_latency_spin->setMinimum(0);
     m_latency_spin->setMaximum(std::min((int)AudioCommon::GetMaxSupportedLatency(), 200));
+    m_latency_spin->setSuffix(tr(" ms"));
     m_latency_spin->setToolTip(
         tr("Target latency (in ms). Higher values may reduce audio"
            " crackling.\nCertain backends only. Values above 20ms are not suggested."));
