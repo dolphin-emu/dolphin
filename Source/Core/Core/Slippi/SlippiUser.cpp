@@ -190,6 +190,7 @@ void SlippiUser::UpdateApp()
   WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
   RunSystemCommand(command);
 #elif defined(__APPLE__)
+  CriticalAlertT("Automatic updates are not available for macOS; please get the latest update from slippi.gg/netplay.");
 #else
   const char* appimage_path = getenv("APPIMAGE");
   const char* appmount_path = getenv("APPDIR");
@@ -203,6 +204,8 @@ void SlippiUser::UpdateApp()
   std::string command = mount_path + "/usr/bin/appimageupdatetool " + path;
   WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
   RunSystemCommand(command);
+  CriticalAlertT("Restart Dolphin to finish the update. If there was an issue, please head over to the Slippi "
+    "Discord for support.");
 #endif
 }
 

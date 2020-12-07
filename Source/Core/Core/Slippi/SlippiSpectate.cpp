@@ -147,7 +147,7 @@ void SlippiSpectateServer::popEvents()
 
 		if (sendEvents.count(command))
 		{
-			u32 cursor = static_cast<u32>(m_event_buffer.size() + m_cursor_offset);
+			u32 cursor = (u32)(m_event_buffer.size() + m_cursor_offset);
 			game_event["payload"] = base64::Base64::Encode(m_event_concat);
 			game_event["type"] = "game_event";
 			game_event["cursor"] = cursor;

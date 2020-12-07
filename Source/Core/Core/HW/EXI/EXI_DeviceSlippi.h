@@ -142,7 +142,6 @@ namespace ExpansionInterface
     void closeFile();
     std::string generateFileName();
     bool checkFrameFullyFetched(s32 frameIndex);
-    bool shouldFFWFrame(s32 frameIndex);
 
     // std::ofstream log;
 
@@ -151,6 +150,7 @@ namespace ExpansionInterface
 
     // online play stuff
     u16 getRandomStage();
+    bool isDisconnected();
     void handleOnlineInputs(u8* payload);
     void prepareOpponentInputs(u8* payload);
     void handleSendInputs(u8* payload);

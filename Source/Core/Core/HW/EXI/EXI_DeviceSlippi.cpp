@@ -542,7 +542,7 @@ void CEXISlippi::createNewFile()
     PanicAlertT("Could not create .slp replay file [%s].\n\n"
       "The replay folder's path might be invalid, or you might "
       "not have permission to write to it.\n\n"
-      "You can change the replay folder in Config > GameCube > "
+      "You can change the replay folder in Config > Slippi > "
       "Slippi Replay Settings.",
       filepath.c_str());
   }
@@ -686,6 +686,9 @@ void CEXISlippi::prepareGameInfo(u8* payload)
 
   // Write PS Frozen byte
   m_read_queue.push_back(settings->isFrozenPS);
+
+  // Write should resync setting
+  m_read_queue.push_back(replayCommSettings.shouldResync ? 1 : 0);
 
   // Return the size of the gecko code list
   prepareGeckoList();
@@ -1008,6 +1011,7 @@ void CEXISlippi::prepareGeckoList()
       {0x80185050, true}, // Online/Menus/VSScreen/HideStageDisplay/PreventEarlyR3Overwrite.asm
       {0x80184b1c, true}, // Online/Menus/VSScreen/HideStageText/SkipStageNumberShow.asm
       {0x801A45BC, true}, // Online/Slippi Online Scene/main.asm
+      {0x801a45b8, true}, // Online/Slippi Online Scene/main.asm (https://bit.ly/3kxohf4)
       {0x801BFA20, true}, // Online/Slippi Online Scene/boot.asm
   };
 
@@ -1397,12 +1401,27 @@ void CEXISlippi::prepareIsFileReady()
   m_read_queue.push_back(1);
 }
 
+bool CEXISlippi::isDisconnected()
+{
+  if (!slippi_netplay)
+    return true;
+
+  auto status = slippi_netplay->GetSlippiConnectStatus();
+  return status != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED || isConnectionStalled;
+}
+
 static int tempTestCount = 0;
 void CEXISlippi::handleOnlineInputs(u8* payload)
 {
   m_read_queue.clear();
 
   int32_t frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
+
+  if (isDisconnected())
+  {
+    m_read_queue.push_back(3); // Indicate we disconnected
+    return;
+  }
 
   if (frame == 1)
   {
@@ -1564,6 +1583,9 @@ void CEXISlippi::prepareOpponentInputs(u8* payload)
 
 void CEXISlippi::handleCaptureSavestate(u8* payload)
 {
+  if (isDisconnected())
+    return;
+
   s32 frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 
   u64 startTime = Common::Timer::GetTimeUs();
@@ -2006,12 +2028,9 @@ void CEXISlippi::handleLogOutRequest()
 
 void CEXISlippi::handleUpdateAppRequest()
 {
-#ifdef __APPLE__
-  CriticalAlertT(
-    "Automatic updates are not available for macOS, please get the latest update from slippi.gg/netplay.");
-#else
   Host_LowerWindow();
   user->UpdateApp();
+#ifdef _WIN32
   Host_Exit();
 #endif
 }
