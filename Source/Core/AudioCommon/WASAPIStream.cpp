@@ -348,7 +348,9 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return device_sample_rates;
 
-  if (SConfig::GetInstance().sWASAPIDevice == DEFAULT_DEVICE_NAME)
+  bool using_default_device = SConfig::GetInstance().sWASAPIDevice == DEFAULT_DEVICE_NAME;
+
+  if (using_default_device)
   {
     result = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
   }
@@ -434,8 +436,10 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
 
   if (device_sample_rates.size() == 0)
   {
-    HandleWinAPI("Found no supported device formats, will default to " +
-                     std::to_string(AudioCommon::GetDefaultSampleRate()) +
+    unsigned long sample_rate = using_default_device ? AudioCommon::GetOSMixerSampleRate() :
+                                                       AudioCommon::GetDefaultSampleRate();
+    HandleWinAPI("Found no supported device formats, will try with " +
+                     std::to_string(sample_rate) +
                      " whether supported or not",
                  result);
   }

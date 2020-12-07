@@ -8,7 +8,6 @@
 #include <cmath>
 
 #include <QCheckBox>
-#include <QComboBox>
 #include <QFontMetrics>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -20,6 +19,7 @@
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include <QTimer>
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Enums.h"
@@ -36,6 +36,15 @@
 #define WASAPI_DEFAULT_DEVICE_NAME "default"
 #define WASAPI_INVALID_SAMPLE_RATE "0"
 #endif
+
+void ClickEventComboBox::showPopup()
+{
+  if (m_audio_pane)
+  {
+    m_audio_pane->OnCustomShowPopup(this);
+  }
+  QComboBox::showPopup();
+}
 
 AudioPane::AudioPane()
 {
@@ -55,6 +64,27 @@ AudioPane::AudioPane()
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
+
+  m_timer = new QTimer(this);
+}
+
+void AudioPane::showEvent(QShowEvent* event)
+{
+  // Start updating the DPLII settings every second (we have no simple safe way to bind or listen
+  // for events in the backend so we just refresh as the game is running to see if DPLII
+  // was enabled successfully)
+  connect(m_timer, &QTimer::timeout, this, &AudioPane::RefreshDolbyWidgets);
+  RefreshDolbyWidgets();
+  m_timer->start(1000);
+
+  QWidget::showEvent(event);
+}
+void AudioPane::hideEvent(QHideEvent* event)
+{
+  disconnect(m_timer, &QTimer::timeout, this, &AudioPane::RefreshDolbyWidgets);
+  m_timer->stop();
+
+  QWidget::hideEvent(event);
 }
 
 void AudioPane::CreateWidgets()
@@ -125,6 +155,8 @@ void AudioPane::CreateWidgets()
            " crackling.\nCertain backends only. Values above 20ms are not suggested."));
   }
 
+  // TODO: implement this in other Operative Systems,
+  // as of now this is only supported on (all) Windows backends
   m_use_os_sample_rate = new QCheckBox(tr("Use OS Mixer sample rate"));
 
   m_use_os_sample_rate->setToolTip(
@@ -148,7 +180,8 @@ void AudioPane::CreateWidgets()
 #ifdef _WIN32
   m_wasapi_device_label = new QLabel(tr("Device:"));
   m_wasapi_device_sample_rate_label = new QLabel(tr("Device Sample Rate:"));
-  m_wasapi_device_combo = new QComboBox;
+  m_wasapi_device_combo = new ClickEventComboBox;
+  m_wasapi_device_combo->m_audio_pane = this;
   m_wasapi_device_sample_rate_combo = new QComboBox;
 
   m_wasapi_device_combo->setToolTip(tr("Some devices might not work with WASAPI Exclusive mode"));
@@ -283,13 +316,13 @@ void AudioPane::LoadSettings()
 
   // Backend
   m_ignore_save_settings = true;
-  const auto current = SConfig::GetInstance().sBackend;
+  const auto current_backend = SConfig::GetInstance().sBackend;
   bool selection_set = false;
   m_backend_combo->clear();
   for (const auto& backend : AudioCommon::GetSoundBackends())
   {
     m_backend_combo->addItem(tr(backend.c_str()), QVariant(QString::fromStdString(backend)));
-    if (backend == current)
+    if (backend == current_backend)
     {
       m_backend_combo->setCurrentIndex(m_backend_combo->count() - 1);
       selection_set = true;
@@ -311,7 +344,7 @@ void AudioPane::LoadSettings()
   m_ignore_save_settings = false;
   m_dolby_quality_latency_label->setText(
       GetDPL2QualityAndLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  if (AudioCommon::SupportsDPL2Decoder(current) && !m_dsp_hle->isChecked())
+  if (AudioCommon::SupportsDPL2Decoder(current_backend) && !m_dsp_hle->isChecked())
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
   }
@@ -340,27 +373,11 @@ void AudioPane::LoadSettings()
     m_emu_speed_tolerance_indicator->setText(
         tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));
 
-  m_ignore_save_settings = false;
-
 #ifdef _WIN32
-  m_ignore_save_settings = true;
-  if (SConfig::GetInstance().sWASAPIDevice == WASAPI_DEFAULT_DEVICE_NAME)
-  {
-    m_wasapi_device_combo->setCurrentIndex(0);
-  }
-  else
-  {
-    m_wasapi_device_combo->setCurrentText(
-        QString::fromStdString(SConfig::GetInstance().sWASAPIDevice));
-    // Saved device not found, reset it
-    if (m_wasapi_device_combo->currentIndex() < 1)
-    {
-      SConfig::GetInstance().sWASAPIDevice = WASAPI_DEFAULT_DEVICE_NAME;
-    }
-  }
+  LoadWASAPIDevice();
   LoadWASAPIDeviceSampleRate();
-  m_ignore_save_settings = false;
 #endif
+  m_ignore_save_settings = false;
 
   // Call this again to "clamp" values that might not have been accepted
   SaveSettings();
@@ -393,13 +410,13 @@ void AudioPane::SaveSettings()
   Config::SetBaseOrCurrent(Config::MAIN_DSP_JIT, m_dsp_lle->isChecked());
 
   // Backend
-  const auto selection =
+  const auto selected_backend =
       m_backend_combo->itemData(m_backend_combo->currentIndex()).toString().toStdString();
   auto& backend = SConfig::GetInstance().sBackend;
 
-  if (selection != backend)
+  if (selected_backend != backend)
   {
-    backend = selection;
+    backend = selected_backend;
     OnBackendChanged();
   }
 
@@ -416,6 +433,10 @@ void AudioPane::SaveSettings()
   if (SConfig::GetInstance().bDPL2Decoder != m_dolby_pro_logic->isChecked())
   {
     SConfig::GetInstance().bDPL2Decoder = m_dolby_pro_logic->isChecked();
+    if (!m_dolby_pro_logic->isChecked())
+    {
+      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
+    }
     backend_setting_changed = true;
     surround_enabled_changed = true;
   }
@@ -428,7 +449,10 @@ void AudioPane::SaveSettings()
         GetDPL2QualityAndLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
     backend_setting_changed = true;  // Not a mistake
   }
-  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
+  // If we have disabled surround while the game is running, disable all its settings immediately,
+  // don't wait for the timer
+  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() &&
+      (!m_running || (surround_enabled_changed && !m_dolby_pro_logic->isChecked())))
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
   }
@@ -467,17 +491,23 @@ void AudioPane::SaveSettings()
   if (m_wasapi_device_combo->currentIndex() > 0)
     device = m_wasapi_device_combo->currentText().toStdString();
 
-  if (SConfig::GetInstance().sWASAPIDevice != device)
+  bool device_changed = SConfig::GetInstance().sWASAPIDevice != device;
+
+  // Force OnWASAPIDeviceChanged() to be called if we have the default device to update some labels
+  if (device_changed || device == WASAPI_DEFAULT_DEVICE_NAME)
   {
-    assert(device != "");
+    assert(device != ""); //To turn into a log and delete the include WARN_LOG(AUDIO, "WASAPI: Device names called \"%s\" are not supported", DEFAULT_DEVICE_NAME);
     SConfig::GetInstance().sWASAPIDevice = device;
 
     bool is_wasapi = backend == BACKEND_WASAPI;
     if (is_wasapi)
     {
       OnWASAPIDeviceChanged();
-      LoadWASAPIDeviceSampleRate();
-      backend_setting_changed = true;
+      if (device_changed)
+      {
+        LoadWASAPIDeviceSampleRate();
+        backend_setting_changed = true;
+      }
     }
   }
 
@@ -525,8 +555,6 @@ void AudioPane::OnBackendChanged()
   m_wasapi_device_combo->setHidden(!is_wasapi);
   m_wasapi_device_sample_rate_combo->setHidden(!is_wasapi);
 
-  // TODO: implement this in other Operative Systems,
-  // as of now this is only supported on (all) Windows backends
   m_use_os_sample_rate->setHidden(is_wasapi);
 
   if (is_wasapi)
@@ -536,7 +564,6 @@ void AudioPane::OnBackendChanged()
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
 
-    // TODO: The UI isn't updated when any device changes or the user changes any settings
     for (const auto device : WASAPIStream::GetAvailableDevices())
       m_wasapi_device_combo->addItem(QString::fromStdString(device));
 
@@ -577,6 +604,7 @@ void AudioPane::OnWASAPIDeviceChanged()
           QString::number(device_sample_rate).append(tr(" Hz")));
     }
 
+    // For clarity, add the default sample rate as a special, first, setting
     if (m_wasapi_device_supports_default_sample_rate)
     {
       m_wasapi_device_sample_rate_combo->insertItem(
@@ -587,24 +615,30 @@ void AudioPane::OnWASAPIDeviceChanged()
   {
     m_wasapi_device_sample_rate_combo->setEnabled(false);
     m_wasapi_device_sample_rate_label->setEnabled(false);
-    if (m_running)
-    {
-      std::string sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate;
-      if (sample_rate_text == WASAPI_INVALID_SAMPLE_RATE)
-      {
-        sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate());
-      }
-      m_wasapi_device_sample_rate_combo->addItem(
-          tr("%1 Hz").arg(QString::fromStdString(sample_rate_text)));
-    }
-    else
-    {
-      m_wasapi_device_sample_rate_combo->addItem(
-          tr("Select a Device (%1 Hz)").arg(AudioCommon::GetOSMixerSampleRate()));
-    }
+    m_wasapi_device_sample_rate_combo->addItem(
+        tr("Select a Device (%1 Hz)").arg(AudioCommon::GetOSMixerSampleRate()));
   }
 
   m_ignore_save_settings = false;
+}
+
+void AudioPane::LoadWASAPIDevice()
+{
+  if (SConfig::GetInstance().sWASAPIDevice == WASAPI_DEFAULT_DEVICE_NAME)
+  {
+    m_wasapi_device_combo->setCurrentIndex(0);
+  }
+  else
+  {
+    QString device = QString::fromStdString(SConfig::GetInstance().sWASAPIDevice);
+    m_wasapi_device_combo->setCurrentText(device);
+    // Saved device not found, reset it (don't reset the saved sample rate)
+    if (m_wasapi_device_combo->currentText() != device)
+    {
+      m_wasapi_device_combo->setCurrentIndex(0);
+      SConfig::GetInstance().sWASAPIDevice = WASAPI_DEFAULT_DEVICE_NAME;
+    }
+  }
 }
 
 void AudioPane::LoadWASAPIDeviceSampleRate()
@@ -669,11 +703,11 @@ void AudioPane::OnEmulationStateChanged(bool running)
 
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {
-    // TODO: If the audio device turned out unable to support surround, add the text "failed" in the
-    // label and gray it out, so users can try to enable it again or disable surround from the game
     bool enable_dolby_pro_logic = supports_current_emulation_state;
     m_dolby_pro_logic->setEnabled(enable_dolby_pro_logic);
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
+    if (!m_running)
+      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
   }
   if (m_latency_control_supported &&
       AudioCommon::SupportsLatencyControl(SConfig::GetInstance().sBackend))
@@ -711,6 +745,36 @@ void AudioPane::OnVolumeChanged(int volume)
   m_volume_indicator->setText(tr("%1 %").arg(volume));
 }
 
+void AudioPane::OnCustomShowPopup(QWidget* widget)
+{
+#ifdef _WIN32
+  if (widget == m_wasapi_device_combo)
+  {
+    m_ignore_save_settings = true;
+
+    m_wasapi_device_combo->clear();
+    m_wasapi_device_combo->addItem(tr("Default Device"));
+
+    for (const auto device : WASAPIStream::GetAvailableDevices())
+      m_wasapi_device_combo->addItem(QString::fromStdString(device));
+
+    std::string device = SConfig::GetInstance().sWASAPIDevice;
+
+    LoadWASAPIDevice();
+
+    m_ignore_save_settings = false;
+
+    if (device != SConfig::GetInstance().sWASAPIDevice)
+    {
+      // Restore it so that saving will trigger OnWASAPIDeviceChanged() again
+      SConfig::GetInstance().sWASAPIDevice = device;
+
+      SaveSettings();
+    }
+  }
+#endif
+}
+
 void AudioPane::CheckNeedForLatencyControl()
 {
   std::vector<std::string> backends = AudioCommon::GetSoundBackends();
@@ -732,6 +796,25 @@ QString AudioPane::GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value)
   case AudioCommon::DPL2Quality::Normal:
   default:
     return tr("Normal (Block Size: %1 ms)").arg(20);
+  }
+}
+
+void AudioPane::RefreshDolbyWidgets()
+{
+  const auto backend = SConfig::GetInstance().sBackend;
+  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() && m_running &&
+      AudioCommon::BackendSupportsRuntimeSettingsChanges())
+  {
+    bool surround_enabled = AudioCommon::IsSurroundEnabled();
+    if (!surround_enabled && SConfig::GetInstance().bDPL2Decoder)
+    {
+      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1) (FAILED)"));
+    }
+    else
+    {
+      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
+    }
+    EnableDolbyQualityWidgets(surround_enabled);
   }
 }
 

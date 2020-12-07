@@ -28,6 +28,8 @@ public:
   virtual void SoundLoop() {}
   virtual void Update() {}
   virtual bool SupportsRuntimeSettingsChanges() const { return false; }
+  // No need to implement this if SupportsRuntimeSettingsChanges() returns false
+  virtual bool IsSurroundEnabled() const { return false; }
   virtual void OnSettingsChanged() {}
   // Can be called by the main thread or the emulator/video thread,
   // never concurrently. Only call this through AudioCommons

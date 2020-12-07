@@ -41,6 +41,7 @@ public:
   bool IsUsingDefaultDevice() const { return m_using_default_device; }
 
   bool SupportsRuntimeSettingsChanges() const override { return true; }
+  bool IsSurroundEnabled() const override { return m_surround; }
   void OnSettingsChanged() override { m_should_restart = true; }
 
   static bool IsValid() { return true; }

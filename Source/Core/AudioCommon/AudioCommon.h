@@ -32,6 +32,7 @@ bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);
 bool BackendSupportsRuntimeSettingsChanges();
+bool IsSurroundEnabled();
 // Default "Dolphin" output and internal mixer sample rate
 unsigned long GetDefaultSampleRate();
 // Returns the min buffer time length it can hold (in ms), our backends can't have a latency

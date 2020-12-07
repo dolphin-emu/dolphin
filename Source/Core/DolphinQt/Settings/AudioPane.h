@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <QComboBox>
 #include <QWidget>
 
 namespace AudioCommon
@@ -12,7 +13,6 @@ enum class DPL2Quality;
 }
 
 class QCheckBox;
-class QComboBox;
 class QLabel;
 class QGridLayout;
 class QRadioButton;
@@ -20,11 +20,27 @@ class QSlider;
 class QSpinBox;
 class SettingsWindow;
 
+class ClickEventComboBox : public QComboBox
+{
+  Q_OBJECT
+public:
+  class AudioPane* m_audio_pane = nullptr;
+
+private:
+  virtual void showPopup() override;
+};
+
 class AudioPane final : public QWidget
 {
   Q_OBJECT
 public:
   explicit AudioPane();
+
+  void OnCustomShowPopup(QWidget* widget);
+
+protected:
+  virtual void showEvent(QShowEvent* event) override;
+  virtual void hideEvent(QHideEvent* event) override;
 
 private:
   void CreateWidgets();
@@ -37,6 +53,7 @@ private:
   void OnBackendChanged();
 #ifdef _WIN32
   void OnWASAPIDeviceChanged();
+  void LoadWASAPIDevice();
   void LoadWASAPIDeviceSampleRate();
   std::string GetWASAPIDeviceSampleRate() const;
 #endif
@@ -47,10 +64,12 @@ private:
   bool m_latency_control_supported;
 
   QString GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value) const;
+  void RefreshDolbyWidgets();
   void EnableDolbyQualityWidgets(bool enabled) const;
 
   bool m_running;
   bool m_ignore_save_settings;
+  QTimer* m_timer;
 
   // DSP Engine
   QRadioButton* m_dsp_hle;
@@ -74,7 +93,7 @@ private:
 #ifdef _WIN32
   QLabel* m_wasapi_device_label;
   QLabel* m_wasapi_device_sample_rate_label;
-  QComboBox* m_wasapi_device_combo;
+  ClickEventComboBox* m_wasapi_device_combo;
   QComboBox* m_wasapi_device_sample_rate_combo;
   bool m_wasapi_device_supports_default_sample_rate;
 #endif

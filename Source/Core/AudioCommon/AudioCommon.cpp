@@ -210,6 +210,16 @@ bool BackendSupportsRuntimeSettingsChanges()
   return false;
 }
 
+bool IsSurroundEnabled()
+{
+  std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
+  if (g_sound_stream)
+  {
+    return g_sound_stream->IsSurroundEnabled();
+  }
+  return SConfig::GetInstance().bDPL2Decoder;
+}
+
 unsigned long GetDefaultSampleRate()
 {
   return 48000ul;
@@ -217,6 +227,7 @@ unsigned long GetDefaultSampleRate()
 
 unsigned long GetMaxSupportedLatency()
 {
+  // On the right we have the highest sample rate supported by the emulation
   return (Mixer::MAX_SAMPLES * 1000) / (54000000.0 / 1124.0);
 }
 

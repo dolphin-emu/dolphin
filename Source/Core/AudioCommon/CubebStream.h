@@ -23,6 +23,7 @@ public:
   void SetVolume(int) override;
 
   bool SupportsRuntimeSettingsChanges() const override { return true; }
+  bool IsSurroundEnabled() const override { return !m_stereo; }
   void OnSettingsChanged() override
   {
     m_settings_changed = true;
