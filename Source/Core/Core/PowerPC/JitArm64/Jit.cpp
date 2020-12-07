@@ -299,8 +299,8 @@ void JitArm64::FreeStack()
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)
 {
   Cleanup();
-  DoDownCount();
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   LK &= m_enable_blr_optimization;
 
@@ -341,8 +341,8 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     MOV(DISPATCHER_PC, dest);
 
   Cleanup();
-  DoDownCount();
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   LK &= m_enable_blr_optimization;
 
@@ -427,9 +427,9 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
 
   SetJumpTarget(no_match);
 
-  DoDownCount();
-
   ResetStack();
+
+  DoDownCount();
 
   B(dispatcher);
 }
@@ -437,7 +437,6 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
 void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
 {
   Cleanup();
-  DoDownCount();
 
   LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
   MOVI2R(DISPATCHER_PC, destination);
@@ -455,6 +454,7 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
   SetJumpTarget(no_exceptions);
 
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   B(dispatcher);
 }
@@ -465,7 +465,6 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
     MOV(DISPATCHER_PC, dest);
 
   Cleanup();
-  DoDownCount();
 
   LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
   FixupBranch no_exceptions = CBZ(W30);
@@ -482,6 +481,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
   SetJumpTarget(no_exceptions);
 
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   B(dispatcher);
 }
@@ -658,7 +658,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       MOVI2R(W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       MOVP2R(X1, &JitInterface::CompileExceptionCheck);
       BLR(X1);
-      B(dispatcher);
+      B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
       js.assumeNoPairedQuantize = true;
