@@ -37,6 +37,7 @@ add_library(core
   PatchEngine.h
   State.cpp
   State.h
+  SyncIdentifier.h
   SysConf.cpp
   SysConf.h
   TitleDatabase.cpp
@@ -79,6 +80,8 @@ add_library(core
   Debugger/Dump.cpp
   Debugger/Dump.h
   Debugger/GCELF.h
+  Debugger/OSThread.cpp
+  Debugger/OSThread.h
   Debugger/PPCDebugInterface.cpp
   Debugger/PPCDebugInterface.h
   Debugger/RSO.cpp
@@ -228,6 +231,8 @@ add_library(core
   HW/GCMemcard/GCMemcardDirectory.h
   HW/GCMemcard/GCMemcardRaw.cpp
   HW/GCMemcard/GCMemcardRaw.h
+  HW/GCMemcard/GCMemcardUtils.cpp
+  HW/GCMemcard/GCMemcardUtils.h
   HW/GCPad.cpp
   HW/GCPad.h
   HW/GCPadEmu.cpp
@@ -572,12 +577,12 @@ PUBLIC
   inputcommon
   ${MBEDTLS_LIBRARIES}
   pugixml
+  RangeSet::RangeSet
   sfml-network
   sfml-system
   videonull
   videoogl
   videosoftware
-  videovulkan
   semver
   SlippiLib
   vcdcom
@@ -603,6 +608,11 @@ if (APPLE)
     ${IOB_LIBRARY}
     ${IOK_LIBRARY}
   )
+elseif (ANDROID)
+  target_link_libraries(core
+  PRIVATE
+    androidcommon
+  )
 endif()
 
 if(LIBUSB_FOUND)
@@ -614,6 +624,10 @@ if(LIBUSB_FOUND)
     IOS/USB/Bluetooth/BTReal.cpp
     IOS/USB/Bluetooth/BTReal.h
   )
+endif()
+
+if(ENABLE_VULKAN)
+  target_link_libraries(core PUBLIC videovulkan)
 endif()
 
 if(WIN32)
@@ -658,7 +672,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   option(ENABLE_BLUEZ "Enables bluetooth support" ON)
   if(ENABLE_BLUEZ)
     find_package(BlueZ)
-    if(BLUEZ_FOUND)
+    if(BlueZ_FOUND)
       message(STATUS "BlueZ found, enabling bluetooth support")
       target_sources(core PRIVATE
         HW/WiimoteReal/IOLinux.cpp

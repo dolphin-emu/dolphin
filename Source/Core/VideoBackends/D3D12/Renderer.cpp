@@ -653,8 +653,8 @@ void Renderer::UpdateDescriptorTables()
   const bool uav_update_failed = (m_dirty_bits & DirtyState_PS_UAV) && !UpdateUAVDescriptorTable();
   if (texture_update_failed || sampler_update_failed || uav_update_failed)
   {
-    WARN_LOG(VIDEO, "Executing command list while waiting for temporary %s",
-             texture_update_failed ? "descriptors" : "samplers");
+    WARN_LOG_FMT(VIDEO, "Executing command list while waiting for temporary {}",
+                 texture_update_failed ? "descriptors" : "samplers");
     ExecuteCommandList(false);
     SetRootSignatures();
     SetDescriptorHeaps();

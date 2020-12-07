@@ -110,12 +110,9 @@ bool WantsDeterminism();
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state);
 State GetState();
-void WaitUntilDoneBooting();
 
-void SaveScreenShot(bool wait_for_completion = false);
-void SaveScreenShot(std::string_view name, bool wait_for_completion = false);
-
-void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data, u32 size);
+void SaveScreenShot();
+void SaveScreenShot(std::string_view name);
 
 // This displays messages in a user-visible way.
 void DisplayMessage(std::string message, int time_in_ms);

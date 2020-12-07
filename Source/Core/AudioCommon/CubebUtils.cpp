@@ -18,19 +18,19 @@ static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
 {
-  if (!Common::Log::LogManager::GetInstance())
+  auto* instance = Common::Log::LogManager::GetInstance();
+  if (instance == nullptr)
     return;
 
   va_list args;
   va_start(args, format);
-
   const char* filename = va_arg(args, const char*) + s_path_cutoff_point;
-  int lineno = va_arg(args, int);
-  std::string adapted_format(StripSpaces(format + strlen("%s:%d:")));
-
-  Common::Log::LogManager::GetInstance()->LogWithFullPath(
-      Common::Log::LNOTICE, Common::Log::AUDIO, filename, lineno, adapted_format.c_str(), args);
+  const int lineno = va_arg(args, int);
+  const std::string adapted_format(StripSpaces(format + strlen("%s:%d:")));
+  const std::string message = StringFromFormatV(adapted_format.c_str(), args);
   va_end(args);
+
+  instance->Log(Common::Log::LNOTICE, Common::Log::AUDIO, filename, lineno, message.c_str());
 }
 
 static void DestroyContext(cubeb* ctx)
@@ -38,7 +38,7 @@ static void DestroyContext(cubeb* ctx)
   cubeb_destroy(ctx);
   if (cubeb_set_log_callback(CUBEB_LOG_DISABLED, nullptr) != CUBEB_OK)
   {
-    ERROR_LOG(AUDIO, "Error removing cubeb log callback");
+    ERROR_LOG_FMT(AUDIO, "Error removing cubeb log callback");
   }
 }
 
@@ -59,16 +59,16 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   }
   if (cubeb_set_log_callback(CUBEB_LOG_NORMAL, LogCallback) != CUBEB_OK)
   {
-    ERROR_LOG(AUDIO, "Error setting cubeb log callback");
+    ERROR_LOG_FMT(AUDIO, "Error setting cubeb log callback");
   }
 
   cubeb* ctx;
   if (cubeb_init(&ctx, "Dolphin", nullptr) != CUBEB_OK)
   {
-    ERROR_LOG(AUDIO, "Error initializing cubeb library");
+    ERROR_LOG_FMT(AUDIO, "Error initializing cubeb library");
     return nullptr;
   }
-  INFO_LOG(AUDIO, "Cubeb initialized using %s backend", cubeb_get_backend_id(ctx));
+  INFO_LOG_FMT(AUDIO, "Cubeb initialized using {} backend", cubeb_get_backend_id(ctx));
 
   weak = shared = {ctx, DestroyContext};
   return shared;

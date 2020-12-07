@@ -76,15 +76,14 @@ void CEXIAgp::LoadRom()
   std::string path;
   std::string filename;
   std::string ext;
-  std::string gbapath;
   SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
                           SConfig::GetInstance().m_strGbaCartB,
             &path, &filename, &ext);
-  gbapath = path + filename;
+  const std::string gbapath = path + filename;
   LoadFileToROM(gbapath + ext);
-  INFO_LOG(EXPANSIONINTERFACE, "Loaded GBA rom: %s card: %d", gbapath.c_str(), m_slot);
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "Loaded GBA rom: {} card: {}", gbapath, m_slot);
   LoadFileToEEPROM(gbapath + ".sav");
-  INFO_LOG(EXPANSIONINTERFACE, "Loaded GBA sav: %s card: %d", gbapath.c_str(), m_slot);
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "Loaded GBA sav: {} card: {}", gbapath, m_slot);
 }
 
 void CEXIAgp::LoadFileToROM(const std::string& filename)
@@ -260,7 +259,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
     m_current_cmd = 0;
     break;
   }
-  DEBUG_LOG(EXPANSIONINTERFACE, "AGP read %x", uData);
+  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "AGP read {:x}", uData);
   return uData;
 }
 
@@ -272,7 +271,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 
   u8 HashCmd;
   u64 Mask;
-  DEBUG_LOG(EXPANSIONINTERFACE, "AGP command %x", _uData);
+  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "AGP command {:x}", _uData);
   switch (m_current_cmd)
   {
   case 0xAE020000:  // set up 24 bit address for read 2 bytes

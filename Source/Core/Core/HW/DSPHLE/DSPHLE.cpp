@@ -60,7 +60,7 @@ void DSPHLE::SendMailToDSP(u32 mail)
 {
   if (m_ucode != nullptr)
   {
-    DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", mail);
+    DEBUG_LOG_FMT(DSP_MAIL, "CPU writes {:#010x}", mail);
     m_ucode->HandleMail(mail);
   }
 }
@@ -166,7 +166,7 @@ void DSPHLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   }
   else
   {
-    PanicAlert("CPU can't write %08x to DSP mailbox", value);
+    PanicAlertFmt("CPU can't write {:08x} to DSP mailbox", value);
   }
 }
 
@@ -181,7 +181,7 @@ void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
   }
   else
   {
-    PanicAlert("CPU can't write %08x to DSP mailbox", value);
+    PanicAlertFmt("CPU can't write {:08x} to DSP mailbox", value);
   }
 }
 

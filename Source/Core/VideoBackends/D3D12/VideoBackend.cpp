@@ -27,7 +27,7 @@ namespace DX12
 {
 std::string VideoBackend::GetName() const
 {
-  return "D3D12";
+  return NAME;
 }
 
 std::string VideoBackend::GetDisplayName() const

@@ -51,8 +51,7 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   File::IOFile fp(filename, "wb");
   if (!fp.IsOpen())
   {
-    PanicAlertT("Screenshot failed: Could not open file \"%s\" (error %d)", filename.c_str(),
-                errno);
+    PanicAlertFmtT("Screenshot failed: Could not open file \"{0}\" (error {1})", filename, errno);
     goto finalise;
   }
 
@@ -60,7 +59,7 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
   if (png_ptr == nullptr)
   {
-    PanicAlert("Screenshot failed: Could not allocate write struct");
+    PanicAlertFmt("Screenshot failed: Could not allocate write struct");
     goto finalise;
   }
 
@@ -68,7 +67,7 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   info_ptr = png_create_info_struct(png_ptr);
   if (info_ptr == nullptr)
   {
-    PanicAlert("Screenshot failed: Could not allocate info struct");
+    PanicAlertFmt("Screenshot failed: Could not allocate info struct");
     goto finalise;
   }
 
@@ -82,7 +81,7 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   // would need to be volatile).
   if (setjmp(png_jmpbuf(png_ptr)))
   {
-    PanicAlert("Screenshot failed: Error during PNG creation");
+    PanicAlertFmt("Screenshot failed: Error during PNG creation");
     goto finalise;
   }
 

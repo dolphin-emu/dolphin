@@ -105,19 +105,19 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
   switch (severity)
   {
   case GL_DEBUG_SEVERITY_HIGH_ARB:
-    ERROR_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    ERROR_LOG_FMT(HOST_GPU, "id: {:x}, source: {}, type: {} - {}", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_MEDIUM_ARB:
-    WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    WARN_LOG_FMT(HOST_GPU, "id: {:x}, source: {}, type: {} - {}", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_LOW_ARB:
-    DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    DEBUG_LOG_FMT(HOST_GPU, "id: {:x}, source: {}, type: {} - {}", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_NOTIFICATION:
-    DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    DEBUG_LOG_FMT(HOST_GPU, "id: {:x}, source: {}, type: {} - {}", id, s_source, s_type, message);
     break;
   default:
-    ERROR_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    ERROR_LOG_FMT(HOST_GPU, "id: {:x}, source: {}, type: {} - {}", id, s_source, s_type, message);
     break;
   }
 }
@@ -307,7 +307,7 @@ static void InitDriverInfo()
     version = 100 * major + minor;
     if (change >= change_scale)
     {
-      ERROR_LOG(VIDEO, "Version changeID overflow - change:%d scale:%f", change, change_scale);
+      ERROR_LOG_FMT(VIDEO, "Version changeID overflow - change:{} scale:{}", change, change_scale);
     }
     else
     {
@@ -426,7 +426,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsFragmentStoresAndAtomics =
       GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
-  g_Config.backend_info.bSupportsBBox = g_Config.backend_info.bSupportsFragmentStoresAndAtomics;
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
                                         GLExtensions::Supports("GL_ARB_sample_shading");
@@ -655,6 +654,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     glEnable(GL_PROGRAM_POINT_SIZE);
   }
 
+  g_Config.backend_info.bSupportsBBox = g_Config.backend_info.bSupportsFragmentStoresAndAtomics;
+
   // Either method can do early-z tests. See PixelShaderGen for details.
   g_Config.backend_info.bSupportsEarlyZ =
       g_ogl_config.bSupportsImageLoadStore || g_ogl_config.bSupportsConservativeDepth;
@@ -734,33 +735,34 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 
-  OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", g_ogl_config.gl_vendor,
-                                   g_ogl_config.gl_renderer, g_ogl_config.gl_version),
+  OSD::AddMessage(fmt::format("Video Info: {}, {}, {}", g_ogl_config.gl_vendor,
+                              g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
 
   if (!g_ogl_config.bSupportsGLBufferStorage && !g_ogl_config.bSupportsGLPinnedMemory)
   {
-    OSD::AddMessage(StringFromFormat("Your OpenGL driver does not support %s_buffer_storage.",
-                                     m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
+    OSD::AddMessage(fmt::format("Your OpenGL driver does not support {}_buffer_storage.",
+                                m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
                     60000);
     OSD::AddMessage("This device's performance will be terrible.", 60000);
     OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
   }
 
-  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
-           g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
-           g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
-           g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
-           g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
-           supports_glsl_cache ? "" : "ShaderCache ",
-           g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
-           g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
-           g_ogl_config.bSupportsGLSync ? "" : "Sync ", g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-           g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
-           g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
-           g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
-           g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
-           g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+  WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+               g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
+               g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
+               g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
+               g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
+               supports_glsl_cache ? "" : "ShaderCache ",
+               g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
+               g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
+               g_ogl_config.bSupportsGLSync ? "" : "Sync ",
+               g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
+               g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
+               g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
+               g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
+               g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
+               g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
 
   // Handle VSync on/off
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))

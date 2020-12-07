@@ -63,7 +63,7 @@ void InitSRAM()
   {
     if (!file.ReadArray(&g_SRAM, 1))
     {
-      ERROR_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: Could not read all of SRAM");
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "EXI IPL-DEV: Could not read all of SRAM");
       g_SRAM = sram_dump;
     }
   }

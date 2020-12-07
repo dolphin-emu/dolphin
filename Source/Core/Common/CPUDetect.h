@@ -42,8 +42,7 @@ struct CPUInfo
   bool bAVX2 = false;
   bool bBMI1 = false;
   bool bBMI2 = false;
-  // PDEP and PEXT are ridiculously slow on AMD Zen, so we have this flag to avoid using them there
-  // Zen 2 is also affected by this issue
+  // PDEP and PEXT are ridiculously slow on AMD Zen1, Zen1+ and Zen2 (Family 23)
   bool bFastBMI2 = false;
   bool bFMA = false;
   bool bFMA4 = false;
@@ -57,7 +56,7 @@ struct CPUInfo
   bool bLAHFSAHF64 = false;
   bool bLongMode = false;
   bool bAtom = false;
-  bool bZen = false;
+  bool bZen1p2 = false;
 
   // ARMv8 specific
   bool bFP = false;

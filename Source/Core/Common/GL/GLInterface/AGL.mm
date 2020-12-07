@@ -30,7 +30,7 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
   NSWindow* window = [view window];
   if (window == nil)
   {
-    ERROR_LOG(VIDEO, "failed to get NSWindow");
+    ERROR_LOG_FMT(VIDEO, "failed to get NSWindow");
     return false;
   }
 
@@ -83,14 +83,14 @@ bool GLContextAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   m_pixel_format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
   if (m_pixel_format == nil)
   {
-    ERROR_LOG(VIDEO, "failed to create pixel format");
+    ERROR_LOG_FMT(VIDEO, "failed to create pixel format");
     return false;
   }
 
   m_context = [[NSOpenGLContext alloc] initWithFormat:m_pixel_format shareContext:nil];
   if (m_context == nil)
   {
-    ERROR_LOG(VIDEO, "failed to create context");
+    ERROR_LOG_FMT(VIDEO, "failed to create context");
     return false;
   }
 
@@ -112,7 +112,7 @@ std::unique_ptr<GLContext> GLContextAGL::CreateSharedContext()
                                                                 shareContext:m_context];
   if (new_agl_context == nil)
   {
-    ERROR_LOG(VIDEO, "failed to create shared context");
+    ERROR_LOG_FMT(VIDEO, "failed to create shared context");
     return nullptr;
   }
 

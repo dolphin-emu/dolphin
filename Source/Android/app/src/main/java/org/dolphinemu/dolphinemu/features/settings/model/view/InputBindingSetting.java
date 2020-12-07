@@ -6,29 +6,34 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class InputBindingSetting extends SettingsItem
 {
-  private String gameId;
+  private String mFile;
+  private String mSection;
+  private String mKey;
 
-  public InputBindingSetting(String key, String section, int titleId, Setting setting,
-          String gameId)
+  private String mGameId;
+
+  public InputBindingSetting(String file, String section, String key, int titleId, String gameId)
   {
-    super(key, section, setting, titleId, 0);
-    this.gameId = gameId;
+    super(titleId, 0);
+    mFile = file;
+    mSection = section;
+    mKey = key;
+    mGameId = gameId;
   }
 
-  public String getValue()
+  public String getKey()
   {
-    if (getSetting() == null)
-    {
-      return "";
-    }
+    return mKey;
+  }
 
-    StringSetting setting = (StringSetting) getSetting();
-    return setting.getValue();
+  public String getValue(Settings settings)
+  {
+    return settings.getSection(mFile, mSection).getString(mKey, "");
   }
 
   /**
@@ -37,12 +42,12 @@ public class InputBindingSetting extends SettingsItem
    *
    * @param keyEvent KeyEvent of this key press.
    */
-  public void onKeyInput(KeyEvent keyEvent)
+  public void onKeyInput(Settings settings, KeyEvent keyEvent)
   {
     InputDevice device = keyEvent.getDevice();
     String bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
     String uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
-    setValue(bindStr, uiString);
+    setValue(settings, bindStr, uiString);
   }
 
   /**
@@ -53,48 +58,30 @@ public class InputBindingSetting extends SettingsItem
    * @param motionRange MotionRange of the movement
    * @param axisDir     Either '-' or '+'
    */
-  public void onMotionInput(InputDevice device, InputDevice.MotionRange motionRange,
-          char axisDir)
+  public void onMotionInput(Settings settings, InputDevice device,
+          InputDevice.MotionRange motionRange, char axisDir)
   {
     String bindStr =
             "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + axisDir;
     String uiString = device.getName() + ": Axis " + motionRange.getAxis() + axisDir;
-    setValue(bindStr, uiString);
+    setValue(settings, bindStr, uiString);
   }
 
-  /**
-   * Write a value to the backing string. If that string was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param bind The input that will be bound
-   * @return null if overwritten successfully; otherwise, a newly created StringSetting.
-   */
-  public StringSetting setValue(String bind, String ui)
+  public void setValue(Settings settings, String bind, String ui)
   {
     SharedPreferences
             preferences =
             PreferenceManager.getDefaultSharedPreferences(DolphinApplication.getAppContext());
     SharedPreferences.Editor editor = preferences.edit();
-    editor.putString(getKey() + gameId, ui);
+    editor.putString(mKey + mGameId, ui);
     editor.apply();
 
-    if (getSetting() == null)
-    {
-      StringSetting setting = new StringSetting(getKey(), getSection(), bind);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      StringSetting setting = (StringSetting) getSetting();
-      setting.setValue(bind);
-      return null;
-    }
+    settings.getSection(mFile, mSection).setString(mKey, bind);
   }
 
-  public void clearValue()
+  public void clearValue(Settings settings)
   {
-    setValue("", "");
+    setValue(settings, "", "");
   }
 
   @Override
@@ -105,6 +92,12 @@ public class InputBindingSetting extends SettingsItem
 
   public String getGameId()
   {
-    return gameId;
+    return mGameId;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return null;
   }
 }

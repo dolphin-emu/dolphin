@@ -131,7 +131,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
       break;
 
     default:
-      ERROR_LOG(DSPLLE, "Unknown parameter type: %x", opc.params[j].type);
+      ERROR_LOG_FMT(DSPLLE, "Unknown parameter type: {:x}", opc.params[j].type);
       break;
     }
   }

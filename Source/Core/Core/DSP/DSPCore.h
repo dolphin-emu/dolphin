@@ -275,7 +275,7 @@ struct SDSP
   // Bits are defined in a struct in DSP.cpp.
   u16 cr;
 
-  u8 reg_stack_ptr[4];
+  u8 reg_stack_ptrs[4];
   u8 exceptions;  // pending exceptions
   volatile bool external_interrupt_waiting;
   bool reset_dspjit_codespace;
@@ -286,7 +286,7 @@ struct SDSP
   // The real DSP has different depths for the different stacks, but it would
   // be strange if any ucode relied on stack overflows since on the DSP, when
   // the stack overflows, you're screwed.
-  u16 reg_stack[4][DSP_STACK_DEPTH];
+  u16 reg_stacks[4][DSP_STACK_DEPTH];
 
   // For debugging.
   u32 iram_crc;
@@ -306,9 +306,6 @@ struct SDSP
   u16* dram;
   u16* irom;
   u16* coef;
-
-  // This one doesn't really belong here.
-  u8* cpu_ram;
 };
 
 extern SDSP g_dsp;

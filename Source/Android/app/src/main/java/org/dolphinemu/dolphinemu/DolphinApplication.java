@@ -7,7 +7,6 @@ import android.hardware.usb.UsbManager;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
-import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.VolleyUtil;
 
 public class DolphinApplication extends Application
@@ -25,7 +24,7 @@ public class DolphinApplication extends Application
     Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
     Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
-    if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
+    if (DirectoryInitialization.shouldStart(getApplicationContext()))
       DirectoryInitialization.start(getApplicationContext());
   }
 

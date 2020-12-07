@@ -540,7 +540,11 @@ public:
   }
 
   virtual ~ARM64XEmitter() {}
-  void SetCodePtr(u8* ptr);
+
+  // 'end' and 'write_failed' are unused in the ARM code emitter at the moment.
+  // They're just here for interface compatibility with the x64 code emitter.
+  void SetCodePtr(u8* ptr, u8* end, bool write_failed = false);
+
   void SetCodePtrUnsafe(u8* ptr);
   void ReserveCodeSpace(u32 bytes);
   u8* AlignCode16();

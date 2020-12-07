@@ -33,7 +33,6 @@
 
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/GeckoCodeWidget.h"
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Settings.h"
 
 constexpr u32 MAX_RESULTS = 50;
@@ -152,7 +151,8 @@ static bool Compare(T mem_value, T value, CompareType op)
   }
 }
 
-CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
+CheatsManager::CheatsManager(const GameListModel& game_list_model, QWidget* parent)
+    : QDialog(parent), m_game_list_model(game_list_model)
 {
   setWindowTitle(tr("Cheats Manager"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -175,11 +175,9 @@ void CheatsManager::OnStateChanged(Core::State state)
   if (state != Core::State::Running && state != Core::State::Paused)
     return;
 
-  auto* model = Settings::Instance().GetGameListModel();
-
-  for (int i = 0; i < model->rowCount(QModelIndex()); i++)
+  for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
   {
-    auto file = model->GetGameFile(i);
+    auto file = m_game_list_model.GetGameFile(i);
 
     if (file->GetGameID() == SConfig::GetInstance().GetGameID())
     {

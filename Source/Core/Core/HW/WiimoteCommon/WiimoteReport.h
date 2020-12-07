@@ -89,7 +89,8 @@ struct OutputReportLeds
 
   u8 rumble : 1;
   u8 ack : 1;
-  u8 : 2;
+  // This field must be named to work around a msvc bug.
+  u8 _padding : 2;
   u8 leds : 4;
 };
 static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");
@@ -166,7 +167,7 @@ static_assert(sizeof(OutputReportSpeakerData) == 21, "Wrong size");
 // FYI: Also contains LSB of accel data:
 union ButtonData
 {
-  static constexpr u16 BUTTON_MASK = ~0x6060;
+  static constexpr u16 BUTTON_MASK = ~0x60e0;
 
   u16 hex;
 

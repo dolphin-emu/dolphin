@@ -374,7 +374,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   {
     if (func.second.address == 4)
     {
-      WARN_LOG(SYMBOLS, "Weird function");
+      WARN_LOG_FMT(SYMBOLS, "Weird function");
       continue;
     }
     AnalyzeFunction2(&(func.second));
@@ -424,12 +424,12 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   else
     unniceSize /= numUnNice;
 
-  INFO_LOG(SYMBOLS,
-           "Functions analyzed. %i leafs, %i nice, %i unnice."
-           "%i timer, %i rfi. %i are branchless leafs.",
-           numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
-  INFO_LOG(SYMBOLS, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize,
-           unniceSize);
+  INFO_LOG_FMT(SYMBOLS,
+               "Functions analyzed. {} leafs, {} nice, {} unnice."
+               "{} timer, {} rfi. {} are branchless leafs.",
+               numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
+  INFO_LOG_FMT(SYMBOLS, "Average size: {} (leaf), {} (nice), {}(unnice)", leafSize, niceSize,
+               unniceSize);
 }
 
 static bool isCmp(const CodeOp& a)

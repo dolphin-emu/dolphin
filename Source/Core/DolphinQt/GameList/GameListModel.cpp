@@ -63,13 +63,13 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_PLATFORM:
     if (role == Qt::DecorationRole)
       return Resources::GetPlatform(game.GetPlatform());
-    if (role == Qt::InitialSortOrderRole)
+    if (role == SORT_ROLE)
       return static_cast<int>(game.GetPlatform());
     break;
   case COL_COUNTRY:
     if (role == Qt::DecorationRole)
       return Resources::GetCountry(game.GetCountry());
-    if (role == Qt::InitialSortOrderRole)
+    if (role == SORT_ROLE)
       return static_cast<int>(game.GetCountry());
     break;
   case COL_BANNER:
@@ -88,7 +88,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     }
     break;
   case COL_TITLE:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       QString name = QString::fromStdString(game.GetName(m_title_database));
 
@@ -103,7 +103,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       }
 
       // For natural sorting, pad all numbers to the same length.
-      if (Qt::InitialSortOrderRole == role)
+      if (SORT_ROLE == role)
       {
         constexpr int MAX_NUMBER_LENGTH = 10;
 
@@ -120,11 +120,11 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     }
     break;
   case COL_ID:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
       return QString::fromStdString(game.GetGameID());
     break;
   case COL_DESCRIPTION:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       return QString::fromStdString(
                  game.GetDescription(UICommon::GameFile::Variant::LongAndPossiblyCustom))
@@ -132,18 +132,18 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     }
     break;
   case COL_MAKER:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       return QString::fromStdString(
           game.GetMaker(UICommon::GameFile::Variant::LongAndPossiblyCustom));
     }
     break;
   case COL_FILE_NAME:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
       return QString::fromStdString(game.GetFileName());
     break;
   case COL_FILE_PATH:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       QString file_path = QDir::toNativeSeparators(
           QFileInfo(QString::fromStdString(game.GetFilePath())).absolutePath());
@@ -163,33 +163,28 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
 
       return QString::fromStdString(str);
     }
-    if (role == Qt::InitialSortOrderRole)
+    if (role == SORT_ROLE)
       return static_cast<quint64>(game.GetFileSize());
     break;
   case COL_FILE_FORMAT:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-    {
-      if (game.ShouldShowFileFormatDetails())
-        return QString::fromStdString(DiscIO::GetName(game.GetBlobType(), true));
-      else
-        return {};
-    }
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
+      return QString::fromStdString(game.GetFileFormatName());
     break;
   case COL_BLOCK_SIZE:
     if (role == Qt::DisplayRole)
       return QString::fromStdString(UICommon::FormatSize(game.GetBlockSize()));
-    if (role == Qt::InitialSortOrderRole)
+    if (role == SORT_ROLE)
       return static_cast<quint64>(game.GetBlockSize());
     break;
   case COL_COMPRESSION:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       const QString compression = QString::fromStdString(game.GetCompressionMethod());
       return compression.isEmpty() ? tr("No Compression") : compression;
     }
     break;
   case COL_TAGS:
-    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       auto tags = GetGameTags(game.GetFilePath());
       tags.sort();
@@ -318,14 +313,9 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) 
   return m_games[index];
 }
 
-QString GameListModel::GetPath(int index) const
+std::string GameListModel::GetNetPlayName(const UICommon::GameFile& game) const
 {
-  return QString::fromStdString(m_games[index]->GetFilePath());
-}
-
-QString GameListModel::GetUniqueIdentifier(int index) const
-{
-  return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
+  return game.GetNetPlayName(m_title_database);
 }
 
 void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/label_format"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/convert_format"
+        app:layout_constraintTop_toTopOf="@id/spinner_format"
+        app:layout_constraintBottom_toBottomOf="@id/spinner_format"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/label_block_size"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/convert_block_size"
+        app:layout_constraintTop_toTopOf="@id/spinner_block_size"
+        app:layout_constraintBottom_toBottomOf="@id/spinner_block_size"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/label_compression"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/convert_compression"
+        app:layout_constraintTop_toTopOf="@id/spinner_compression"
+        app:layout_constraintBottom_toBottomOf="@id/spinner_compression"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/label_compression_level"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/convert_compression_level"
+        app:layout_constraintTop_toTopOf="@id/spinner_compression_level"
+        app:layout_constraintBottom_toBottomOf="@id/spinner_compression_level"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/label_remove_junk_data"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/convert_remove_junk_data"
+        app:layout_constraintTop_toTopOf="@id/checkbox_remove_junk_data"
+        app:layout_constraintBottom_toBottomOf="@id/checkbox_remove_junk_data"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/label_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="label_format,label_block_size,label_compression,label_compression_level" />
+
+    <Spinner
+        android:id="@+id/spinner_format"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+        android:id="@+id/spinner_block_size"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:gravity="end"
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinner_format" />
+
+    <Spinner
+        android:id="@+id/spinner_compression"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:gravity="end"
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinner_block_size" />
+
+    <Spinner
+        android:id="@+id/spinner_compression_level"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:gravity="end"
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinner_compression" />
+
+    <CheckBox
+        android:id="@+id/checkbox_remove_junk_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@id/label_remove_junk_data"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spinner_compression_level" />
+
+    <Button
+        android:id="@+id/button_convert"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/convert_convert"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkbox_remove_junk_data" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

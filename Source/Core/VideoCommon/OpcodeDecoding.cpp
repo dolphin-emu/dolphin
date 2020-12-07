@@ -111,7 +111,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
 
     case GX_UNKNOWN_RESET:
       total_cycles += 6;  // Datel software uses this command
-      DEBUG_LOG(VIDEO, "GX Reset?: %08x", cmd_byte);
+      DEBUG_LOG_FMT(VIDEO, "GX Reset?: {:08x}", cmd_byte);
       break;
 
     case GX_LOAD_CP_REG:
@@ -187,7 +187,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       if (in_display_list)
       {
         total_cycles += 6;
-        INFO_LOG(VIDEO, "recursive display list detected");
+        INFO_LOG_FMT(VIDEO, "recursive display list detected");
       }
       else
       {
@@ -202,12 +202,12 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     case GX_CMD_UNKNOWN_METRICS:  // zelda 4 swords calls it and checks the metrics registers after
                                   // that
       total_cycles += 6;
-      DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
+      DEBUG_LOG_FMT(VIDEO, "GX 0x44: {:08x}", cmd_byte);
       break;
 
     case GX_CMD_INVL_VC:  // Invalidate Vertex Cache
       total_cycles += 6;
-      DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
+      DEBUG_LOG_FMT(VIDEO, "Invalidate (vertex cache?)");
       break;
 
     case GX_LOAD_BP_REG:
@@ -257,8 +257,8 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       {
         if (!s_is_fifo_error_seen)
           CommandProcessor::HandleUnknownOpcode(cmd_byte, opcode_start, is_preprocess);
-        ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte,
-                  opcode_start, is_preprocess ? "yes" : "no");
+        ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode({:#04x} @ {}, preprocessing = {})", cmd_byte,
+                      fmt::ptr(opcode_start), is_preprocess ? "yes" : "no");
         s_is_fifo_error_seen = true;
         total_cycles += 1;
       }

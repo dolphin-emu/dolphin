@@ -199,7 +199,7 @@ public:
   float EFBToScaledYf(float y) const;
 
   // Random utilities
-  void SaveScreenshot(std::string filename, bool wait_for_completion);
+  void SaveScreenshot(std::string filename);
   void DrawDebugText();
 
   virtual void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
@@ -258,6 +258,9 @@ public:
   // change in the future.
   void BeginUIFrame();
   void EndUIFrame();
+
+  // Will forcibly reload all textures on the next swap
+  void ForceReloadTextures();
 
 protected:
   // Bitmask containing information about which configuration has changed for the backend.
@@ -338,7 +341,6 @@ protected:
   u64 m_imgui_last_frame_time;
 
 private:
-  void RunFrameDumps();
   std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
@@ -348,28 +350,37 @@ private:
   int m_last_window_request_width = 0;
   int m_last_window_request_height = 0;
 
-  // frame dumping
+  // frame dumping:
+  FrameDump m_frame_dump;
   std::thread m_frame_dump_thread;
-  Common::Event m_frame_dump_start;
-  Common::Event m_frame_dump_done;
   Common::Flag m_frame_dump_thread_running;
-  u32 m_frame_dump_image_counter = 0;
-  bool m_frame_dump_frame_running = false;
-  struct FrameDumpConfig
-  {
-    const u8* data;
-    int width;
-    int height;
-    int stride;
-    FrameDump::Frame state;
-  } m_frame_dump_config;
+
+  // Used to kick frame dump thread.
+  Common::Event m_frame_dump_start;
+
+  // Set by frame dump thread on frame completion.
+  Common::Event m_frame_dump_done;
+
+  // Holds emulation state during the last swap when dumping.
+  FrameDump::FrameState m_last_frame_state;
+
+  // Communication of frame between video and dump threads.
+  FrameDump::FrameData m_frame_dump_data;
 
   // Texture used for screenshot/frame dumping
   std::unique_ptr<AbstractTexture> m_frame_dump_render_texture;
   std::unique_ptr<AbstractFramebuffer> m_frame_dump_render_framebuffer;
-  std::array<std::unique_ptr<AbstractStagingTexture>, 2> m_frame_dump_readback_textures;
-  FrameDump::Frame m_last_frame_state;
-  bool m_last_frame_exported = false;
+
+  // Double buffer:
+  std::unique_ptr<AbstractStagingTexture> m_frame_dump_readback_texture;
+  std::unique_ptr<AbstractStagingTexture> m_frame_dump_output_texture;
+  // Set when readback texture holds a frame that needs to be dumped.
+  bool m_frame_dump_needs_flush = false;
+  // Set when thread is processing output texture.
+  bool m_frame_dump_frame_running = false;
+
+  // Used to generate screenshot names.
+  u32 m_frame_dump_image_counter = 0;
 
   // Tracking of XFB textures so we don't render duplicate frames.
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
@@ -380,12 +391,14 @@ private:
   u32 m_last_xfb_height = 0;
 
   // NOTE: The methods below are called on the framedumping thread.
-  bool StartFrameDumpToFFMPEG(const FrameDumpConfig& config);
-  void DumpFrameToFFMPEG(const FrameDumpConfig& config);
+  void FrameDumpThreadFunc();
+  bool StartFrameDumpToFFMPEG(const FrameDump::FrameData&);
+  void DumpFrameToFFMPEG(const FrameDump::FrameData&);
   void StopFrameDumpToFFMPEG();
   std::string GetFrameDumpNextImageFileName() const;
-  bool StartFrameDumpToImage(const FrameDumpConfig& config);
-  void DumpFrameToImage(const FrameDumpConfig& config);
+  bool StartFrameDumpToImage(const FrameDump::FrameData&);
+  void DumpFrameToImage(const FrameDump::FrameData&);
+
   void ShutdownFrameDumping();
 
   bool IsFrameDumping() const;
@@ -401,7 +414,7 @@ private:
                         const MathUtil::Rectangle<int>& src_rect, u64 ticks);
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
-  void DumpFrameData(const u8* data, int w, int h, int stride, const FrameDump::Frame& state);
+  void DumpFrameData(const u8* data, int w, int h, int stride);
 
   // Ensures all rendered frames are queued for encoding.
   void FlushFrameDump();
@@ -410,6 +423,8 @@ private:
   void FinishFrameData();
 
   std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
+
+  Common::Flag m_force_reload_textures;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

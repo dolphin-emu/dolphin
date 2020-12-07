@@ -2,18 +2,18 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 
@@ -48,6 +48,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.GCPAD_TYPE, R.string.grid_menu_gcpad_settings);
     titles.put(MenuTag.GRAPHICS, R.string.grid_menu_graphics_settings);
     titles.put(MenuTag.HACKS, R.string.hacks_submenu);
+    titles.put(MenuTag.CONFIG_LOG, R.string.log_submenu);
     titles.put(MenuTag.DEBUG, R.string.debug_submenu);
     titles.put(MenuTag.ENHANCEMENTS, R.string.enhancements_submenu);
     titles.put(MenuTag.STEREOSCOPY, R.string.stereoscopy_submenu);
@@ -83,12 +84,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void onAttach(Context context)
+  public void onAttach(@NonNull Context context)
   {
     super.onAttach(context);
 
     mActivity = (SettingsActivityView) context;
-    mPresenter.onAttach();
   }
 
   @Override
@@ -115,7 +115,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
     Bundle args = getArguments();
     MenuTag menuTag = (MenuTag) args.getSerializable(ARGUMENT_MENU_TAG);
@@ -157,16 +157,6 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void passSettingsToActivity(
-          org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-  {
-    if (mActivity != null)
-    {
-      mActivity.setSettings(settings);
-    }
-  }
-
-  @Override
   public void showSettingsList(ArrayList<SettingsItem> settingsList)
   {
     mAdapter.setSettings(settingsList);
@@ -176,6 +166,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   public void loadDefaultSettings()
   {
     mPresenter.loadDefaultSettings();
+  }
+
+  @Override
+  public SettingsAdapter getAdapter()
+  {
+    return mAdapter;
   }
 
   @Override
@@ -191,15 +187,15 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void putSetting(Setting setting)
+  public Settings getSettings()
   {
-    mPresenter.putSetting(setting);
+    return mPresenter.getSettings();
   }
 
   @Override
-  public void onSettingChanged(String key)
+  public void onSettingChanged()
   {
-    mActivity.onSettingChanged(key);
+    mActivity.onSettingChanged();
   }
 
   @Override

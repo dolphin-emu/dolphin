@@ -253,7 +253,7 @@ void JitArm64::boolX(UGeckoInstruction inst)
     }
     else
     {
-      PanicAlert("WTF!");
+      PanicAlertFmt("WTF!");
     }
   }
   else
@@ -295,7 +295,7 @@ void JitArm64::boolX(UGeckoInstruction inst)
     }
     else
     {
-      PanicAlert("WTF!");
+      PanicAlertFmt("WTF!");
     }
     if (inst.Rc)
       ComputeRC0(gpr.R(a));

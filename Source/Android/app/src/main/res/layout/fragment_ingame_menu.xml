@@ -4,6 +4,7 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:paddingBottom="16dp"
               android:background="@color/dolphin_blue_dark"
               tools:layout_width="250dp">
 
@@ -14,18 +15,42 @@
         tools:text="The Legend of Zelda: The Wind Waker"
         android:textColor="@android:color/white"
         android:textSize="20sp"
-        android:layout_margin="32dp"/>
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="16dp"/>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:fadeScrollbars="false">
 
         <LinearLayout
             android:id="@+id/layout_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <Button
+                android:id="@+id/menu_settings_core"
+                android:text="@string/grid_menu_config"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_settings_graphics"
+                android:text="@string/grid_menu_graphics_settings"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_pause_emulation"
+                android:text="@string/pause_emulation"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_unpause_emulation"
+                android:text="@string/unpause_emulation"
+                style="@style/InGameMenuOption"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_take_screenshot"
@@ -57,8 +82,18 @@
                 android:visibility="gone"/>
 
             <Button
+                android:id="@+id/menu_overlay_controls"
+                android:text="@string/emulation_overlay_controls"
+                style="@style/InGameMenuOption"/>
+
+            <Button
                 android:id="@+id/menu_refresh_wiimotes"
                 android:text="@string/emulation_refresh_wiimotes"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_screen_orientation"
+                android:text="@string/emulation_screen_orientation"
                 style="@style/InGameMenuOption"/>
 
             <Button
@@ -66,13 +101,21 @@
                 android:text="@string/emulation_change_disc"
                 style="@style/InGameMenuOption"/>
 
-            <Button
-                android:id="@+id/menu_exit"
-                android:text="@string/emulation_exit"
-                style="@style/InGameMenuOption"/>
-
         </LinearLayout>
 
     </ScrollView>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#FFFFFF"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/menu_exit"
+        android:text="@string/emulation_exit"
+        style="@style/InGameMenuOption"/>
 
 </LinearLayout>

@@ -17,10 +17,13 @@ namespace DSP::Host
 {
 u8 ReadHostMemory(u32 addr);
 void WriteHostMemory(u8 value, u32 addr);
+void DMAToDSP(u16* dst, u32 addr, u32 size);
+void DMAFromDSP(const u16* src, u32 addr, u32 size);
 void OSD_AddMessage(std::string str, u32 ms);
 bool OnThread();
 bool IsWiiHost();
 void InterruptRequest();
-void CodeLoaded(const u8* ptr, int size);
+void CodeLoaded(u32 addr, size_t size);
+void CodeLoaded(const u8* ptr, size_t size);
 void UpdateDebugger();
 }  // namespace DSP::Host

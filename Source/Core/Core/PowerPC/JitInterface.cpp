@@ -16,6 +16,8 @@
 #include "Common/PerformanceCounter.h"
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -69,9 +71,9 @@ CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
     break;
 
   default:
-    PanicAlertT("The selected CPU emulation core (%d) is not available. "
-                "Please select a different CPU emulation core in the settings.",
-                static_cast<int>(core));
+    PanicAlertFmtT("The selected CPU emulation core ({0}) is not available. "
+                   "Please select a different CPU emulation core in the settings.",
+                   core);
     g_jit = nullptr;
     return nullptr;
   }
@@ -100,20 +102,22 @@ void WriteProfileResults(const std::string& filename)
   File::IOFile f(filename, "w");
   if (!f)
   {
-    PanicAlert("Failed to open %s", filename.c_str());
+    PanicAlertFmt("Failed to open {}", filename);
     return;
   }
-  fprintf(f.GetHandle(), "origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAlli"
-                         "nBlkTime(ms)\tblkCodeSize\n");
+  f.WriteString("origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime("
+                "ms)\tblkCodeSize\n");
   for (auto& stat : prof_stats.block_stats)
   {
     std::string name = g_symbolDB.GetDescription(stat.addr);
     double percent = 100.0 * (double)stat.cost / (double)prof_stats.cost_sum;
     double timePercent = 100.0 * (double)stat.tick_counter / (double)prof_stats.timecost_sum;
-    fprintf(f.GetHandle(),
-            "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n", stat.addr,
-            name.c_str(), stat.run_count, stat.cost, stat.tick_counter, percent, timePercent,
-            (double)stat.tick_counter * 1000.0 / (double)prof_stats.countsPerSec, stat.block_size);
+    f.WriteString(fmt::format("{0:08x}\t{1}\t{2}\t{3}\t{4}\t{5:.2f}\t{6:.2f}\t{7:.2f}\t{8}\n",
+                              stat.addr, name, stat.run_count, stat.cost, stat.tick_counter,
+                              percent, timePercent,
+                              static_cast<double>(stat.tick_counter) * 1000.0 /
+                                  static_cast<double>(prof_stats.countsPerSec),
+                              stat.block_size));
   }
 }
 

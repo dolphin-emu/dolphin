@@ -52,7 +52,6 @@ public:
   Guitar();
 
   void Update() override;
-  bool IsButtonPressed() const override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(GuitarGroup group);

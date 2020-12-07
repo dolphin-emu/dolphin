@@ -27,9 +27,6 @@ public final class FileBrowserHelper
   public static final HashSet<String> RAW_EXTENSION = new HashSet<>(Collections.singletonList(
           "raw"));
 
-  public static final HashSet<String> WAD_EXTENSION = new HashSet<>(Collections.singletonList(
-          "wad"));
-
   public static void openDirectoryPicker(FragmentActivity activity, HashSet<String> extensions)
   {
     Intent i = new Intent(activity, CustomFilePickerActivity.class);

@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -66,13 +67,13 @@ bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& t
 bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
 {
   if (code1.size() != code2.size())
-    printf("Size difference! 1=%zu 2=%zu\n", code1.size(), code2.size());
+    WARN_LOG_FMT(AUDIO, "Size difference! 1={} 2={}\n", code1.size(), code2.size());
   u32 count_equal = 0;
-  const int min_size = std::min<int>((int)code1.size(), (int)code2.size());
+  const u16 min_size = static_cast<u16>(std::min(code1.size(), code2.size()));
 
   AssemblerSettings settings;
   DSPDisassembler disassembler(settings);
-  for (int i = 0; i < min_size; i++)
+  for (u16 i = 0; i < min_size; i++)
   {
     if (code1[i] == code2[i])
     {
@@ -85,23 +86,23 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
       disassembler.DisassembleOpcode(&code1[0], &pc, line1);
       pc = i;
       disassembler.DisassembleOpcode(&code2[0], &pc, line2);
-      printf("!! %04x : %04x vs %04x - %s  vs  %s\n", i, code1[i], code2[i], line1.c_str(),
-             line2.c_str());
+      WARN_LOG_FMT(AUDIO, "!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i],
+                   line1, line2);
     }
   }
   if (code2.size() != code1.size())
   {
-    printf("Extra code words:\n");
+    DEBUG_LOG_FMT(AUDIO, "Extra code words:\n");
     const std::vector<u16>& longest = code1.size() > code2.size() ? code1 : code2;
-    for (int i = min_size; i < (int)longest.size(); i++)
+    for (u16 i = min_size; i < longest.size(); i++)
     {
       u16 pc = i;
       std::string line;
       disassembler.DisassembleOpcode(&longest[0], &pc, line);
-      printf("!! %s\n", line.c_str());
+      DEBUG_LOG_FMT(AUDIO, "!! {}\n", line);
     }
   }
-  printf("Equal instruction words: %i / %i\n", count_equal, min_size);
+  DEBUG_LOG_FMT(AUDIO, "Equal instruction words: {} / {}\n", count_equal, min_size);
   return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
@@ -146,7 +147,7 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
   return File::WriteStringToFile(filename, buffer);
 }
 
-bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
+bool DumpDSPCode(const u8* code_be, size_t size_in_bytes, u32 crc)
 {
   const std::string root_name =
       File::GetUserPath(D_DUMPDSP_IDX) + fmt::format("DSP_UC_{:08X}", crc);
@@ -155,7 +156,7 @@ bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 
   if (!File::IOFile(binary_file, "wb").WriteBytes(code_be, size_in_bytes))
   {
-    PanicAlert("Can't dump UCode to file '%s'!!", binary_file.c_str());
+    PanicAlertFmt("Can't dump UCode to file '{}'!!", binary_file);
     return false;
   }
 

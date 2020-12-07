@@ -99,7 +99,7 @@ public:
   {
     // NOTE: AdvanceFrame() will get stuck forever in Dual Core because the FIFO
     //   is disabled by CPU::EnableStepping(true) so the frame never gets displayed.
-    PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
+    PanicAlertFmtT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 
   const char* GetName() const override { return "FifoPlayer"; }
@@ -242,7 +242,9 @@ FifoPlayer& FifoPlayer::GetInstance()
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
   // Core timing information
-  m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::GetTargetRefreshRate();
+  m_CyclesPerFrame = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+                     VideoInterface::GetTargetRefreshRateDenominator() /
+                     VideoInterface::GetTargetRefreshRateNumerator();
   m_ElapsedCycles = 0;
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 

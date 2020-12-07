@@ -38,7 +38,9 @@ public:
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
   std::string GetExpression() const;
-  void SetExpression(std::string expr);
+
+  // Returns a human-readable error description when the given expression is invalid.
+  std::optional<std::string> SetExpression(std::string expr);
 
   ControlState range;
 

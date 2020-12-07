@@ -23,7 +23,7 @@ PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(png PUBLIC z)
+target_link_libraries(png PUBLIC ZLIB::ZLIB)
 
 if(NOT MSVC)
   target_compile_options(png

@@ -96,7 +96,7 @@ void WiiPane::ConnectLayout()
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged,
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 }
 
@@ -134,6 +134,7 @@ void WiiPane::CreateMisc()
   m_sound_mode_choice = new QComboBox();
   m_sound_mode_choice->addItem(tr("Mono"));
   m_sound_mode_choice->addItem(tr("Stereo"));
+  // i18n: Surround audio (Dolby Pro Logic II)
   m_sound_mode_choice->addItem(tr("Surround"));
 
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
@@ -278,10 +279,9 @@ void WiiPane::OnUSBWhitelistAddButton()
 void WiiPane::OnUSBWhitelistRemoveButton()
 {
   QString device = m_whitelist_usb_list->currentItem()->text().left(9);
-  QString vid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[0]);
-  QString pid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[1]);
+  QStringList split = device.split(QString::fromStdString(":"));
+  QString vid = QString(split[0]);
+  QString pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
   SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});

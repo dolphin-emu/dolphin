@@ -71,10 +71,14 @@ private:
 
   void RefreshDevices();
 
+  void OnSelectProfile(int index);
+  void OnProfileTextChanged(const QString& text);
   void OnDeleteProfilePressed();
   void OnLoadProfilePressed();
   void OnSaveProfilePressed();
   void UpdateProfileIndex();
+  void UpdateProfileButtonState();
+  void PopulateProfileSelection();
 
   void OnDefaultFieldsPressed();
   void OnClearFieldsPressed();

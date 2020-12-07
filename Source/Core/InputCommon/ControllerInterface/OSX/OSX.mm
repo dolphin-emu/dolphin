@@ -178,11 +178,11 @@ void Init(void* window)
 
   HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
   if (!HIDManager)
-    ERROR_LOG(SERIALINTERFACE, "Failed to create HID Manager reference");
+    ERROR_LOG_FMT(SERIALINTERFACE, "Failed to create HID Manager reference");
 
   IOHIDManagerSetDeviceMatching(HIDManager, nullptr);
   if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
-    ERROR_LOG(SERIALINTERFACE, "Failed to open HID Manager");
+    ERROR_LOG_FMT(SERIALINTERFACE, "Failed to open HID Manager");
 
   // Callbacks for acquisition or loss of a matching device
   IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatchingCallback, nullptr);
@@ -198,7 +198,7 @@ void Init(void* window)
   // Enable hotplugging
   s_hotplug_thread = std::thread([] {
     Common::SetCurrentThreadName("IOHIDManager Hotplug Thread");
-    NOTICE_LOG(SERIALINTERFACE, "IOHIDManager hotplug thread started");
+    NOTICE_LOG_FMT(SERIALINTERFACE, "IOHIDManager hotplug thread started");
 
     IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
     s_stopper.AddToRunLoop(CFRunLoopGetCurrent(), OurRunLoop);
@@ -206,7 +206,7 @@ void Init(void* window)
     s_stopper.RemoveFromRunLoop(CFRunLoopGetCurrent(), OurRunLoop);
     IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
 
-    NOTICE_LOG(SERIALINTERFACE, "IOHIDManager hotplug thread stopped");
+    NOTICE_LOG_FMT(SERIALINTERFACE, "IOHIDManager hotplug thread stopped");
   });
 }
 

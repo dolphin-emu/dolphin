@@ -215,8 +215,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
 
   if (header.fileId != FILE_ID || header.min_loader_version > VERSION_NUMBER)
   {
-    CriticalAlertT(
-        "The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)",
+    CriticalAlertFmtT(
+        "The DFF's minimum loader version ({0}) exceeds the version of this FIFO Player ({1})",
         header.min_loader_version, VERSION_NUMBER);
     file.Close();
     return nullptr;
@@ -257,13 +257,13 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   if (header.mem1_size != Memory::GetRamSizeReal() ||
       header.mem2_size != Memory::GetExRamSizeReal())
   {
-    CriticalAlertT("Emulated memory size mismatch!\n"
-                   "Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)\n"
-                   "DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)",
-                   Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000,
-                   Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000,
-                   header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
-                   header.mem2_size / 0x100000);
+    CriticalAlertFmtT("Emulated memory size mismatch!\n"
+                      "Current: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
+                      "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)",
+                      Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000,
+                      Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000,
+                      header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
+                      header.mem2_size / 0x100000);
     file.Close();
     return nullptr;
   }

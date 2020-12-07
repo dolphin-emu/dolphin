@@ -4,23 +4,24 @@
 
 #pragma once
 
+#include <string_view>
 #include "Common/CommonTypes.h"
 
 class ShaderCode;
 
-#define LIGHT_COL "%s[%d].color.%s"
+#define LIGHT_COL "{}[{}].color.{}"
 #define LIGHT_COL_PARAMS(index, swizzle) (I_LIGHTS), (index), (swizzle)
 
-#define LIGHT_COSATT "%s[%d].cosatt"
+#define LIGHT_COSATT "{}[{}].cosatt"
 #define LIGHT_COSATT_PARAMS(index) (I_LIGHTS), (index)
 
-#define LIGHT_DISTATT "%s[%d].distatt"
+#define LIGHT_DISTATT "{}[{}].distatt"
 #define LIGHT_DISTATT_PARAMS(index) (I_LIGHTS), (index)
 
-#define LIGHT_POS "%s[%d].pos"
+#define LIGHT_POS "{}[{}].pos"
 #define LIGHT_POS_PARAMS(index) (I_LIGHTS), (index)
 
-#define LIGHT_DIR "%s[%d].dir"
+#define LIGHT_DIR "{}[{}].dir"
 #define LIGHT_DIR_PARAMS(index) (I_LIGHTS), (index)
 
 /**
@@ -36,14 +37,14 @@ struct LightingUidData
   u32 light_mask : 32;     // 4x8 bits
 };
 
-static const char s_lighting_struct[] = "struct Light {\n"
-                                        "\tint4 color;\n"
-                                        "\tfloat4 cosatt;\n"
-                                        "\tfloat4 distatt;\n"
-                                        "\tfloat4 pos;\n"
-                                        "\tfloat4 dir;\n"
-                                        "};\n";
+constexpr inline char s_lighting_struct[] = "struct Light {\n"
+                                            "\tint4 color;\n"
+                                            "\tfloat4 cosatt;\n"
+                                            "\tfloat4 distatt;\n"
+                                            "\tfloat4 pos;\n"
+                                            "\tfloat4 dir;\n"
+                                            "};\n";
 
-void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
-                                const char* inColorName, const char* dest);
+void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
+                                std::string_view in_color_name, std::string_view dest);
 void GetLightingShaderUid(LightingUidData& uid_data);

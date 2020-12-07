@@ -75,7 +75,7 @@ void SaveToSYSCONF(Config::LayerType layer)
     idle_entry->bytes = std::vector<u8>(2);
   else
     idle_entry->bytes[0] = 0;
-  NOTICE_LOG(CORE, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
+  NOTICE_LOG_FMT(CORE, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
 
   IOS::HLE::RestoreBTInfoSection(&sysconf);
   sysconf.Save();
@@ -143,8 +143,8 @@ public:
       auto ini = inis.find(location.system);
       if (ini == inis.end())
       {
-        ERROR_LOG(COMMON, "Config can't map system '%s' to an INI file!",
-                  Config::GetSystemName(location.system).c_str());
+        ERROR_LOG_FMT(COMMON, "Config can't map system '{}' to an INI file!",
+                      Config::GetSystemName(location.system));
         continue;
       }
 

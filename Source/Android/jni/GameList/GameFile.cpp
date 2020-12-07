@@ -42,45 +42,6 @@ extern "C" {
 #endif
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_finalize(JNIEnv* env,
-                                                                              jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getPlatform(JNIEnv* env,
-                                                                                 jobject obj);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getTitle(JNIEnv* env,
-                                                                                 jobject obj);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDescription(JNIEnv* env,
-                                                                                       jobject obj);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getCompany(JNIEnv* env,
-                                                                                   jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getCountry(JNIEnv* env,
-                                                                                jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRegion(JNIEnv* env,
-                                                                               jobject obj);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getPath(JNIEnv* env,
-                                                                                jobject obj);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getGameId(JNIEnv* env,
-                                                                                  jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDiscNumber(JNIEnv* env,
-                                                                                   jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRevision(JNIEnv* env,
-                                                                                 jobject obj);
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobTypeString(JNIEnv* env, jobject obj);
-JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlockSize(JNIEnv* env,
-                                                                                   jobject obj);
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_model_GameFile_getCompressionMethod(JNIEnv* env, jobject obj);
-JNIEXPORT jboolean JNICALL
-Java_org_dolphinemu_dolphinemu_model_GameFile_shouldShowFileFormatDetails(JNIEnv* env, jobject obj);
-JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSize(JNIEnv* env,
-                                                                                  jobject obj);
-JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,
-                                                                                    jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerWidth(JNIEnv* env,
-                                                                                    jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHeight(JNIEnv* env,
-                                                                                     jobject obj);
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_finalize(JNIEnv* env,
                                                                               jobject obj)
 {
   delete GetPointer(env, obj);
@@ -154,10 +115,16 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRevision
   return GetRef(env, obj)->GetRevision();
 }
 
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobTypeString(JNIEnv* env, jobject obj)
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobType(JNIEnv* env,
+                                                                                 jobject obj)
 {
-  return ToJString(env, DiscIO::GetName(GetRef(env, obj)->GetBlobType(), true));
+  return static_cast<jint>(GetRef(env, obj)->GetBlobType());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_getFileFormatName(JNIEnv* env, jobject obj)
+{
+  return ToJString(env, GetRef(env, obj)->GetFileFormatName());
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlockSize(JNIEnv* env,
@@ -175,7 +142,13 @@ Java_org_dolphinemu_dolphinemu_model_GameFile_getCompressionMethod(JNIEnv* env, 
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFile_shouldShowFileFormatDetails(JNIEnv* env, jobject obj)
 {
-  return GetRef(env, obj)->ShouldShowFileFormatDetails();
+  return static_cast<jboolean>(GetRef(env, obj)->ShouldShowFileFormatDetails());
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_shouldAllowConversion(JNIEnv* env, jobject obj)
+{
+  return static_cast<jboolean>(GetRef(env, obj)->ShouldAllowConversion());
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSize(JNIEnv* env,
@@ -184,11 +157,17 @@ JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSiz
   return GetRef(env, obj)->GetFileSize();
 }
 
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_isDatelDisc(JNIEnv* env,
+                                                                                     jobject obj)
+{
+  return static_cast<jboolean>(GetRef(env, obj)->IsDatelDisc());
+}
+
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,
                                                                                     jobject obj)
 {
   const std::vector<u32>& buffer = GetRef(env, obj)->GetBannerImage().buffer;
-  const jsize size = static_cast<jsize>(buffer.size());
+  const auto size = static_cast<jsize>(buffer.size());
   const jintArray out_array = env->NewIntArray(size);
   if (!out_array)
     return nullptr;
@@ -208,8 +187,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
   return static_cast<jint>(GetRef(env, obj)->GetBannerImage().height);
 }
 
-JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JNIEnv* env,
-                                                                              jobject obj,
+JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JNIEnv* env, jclass,
                                                                               jstring path)
 {
   auto game_file = std::make_shared<UICommon::GameFile>(GetJString(env, path));

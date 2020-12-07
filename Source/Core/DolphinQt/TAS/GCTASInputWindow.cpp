@@ -34,9 +34,9 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   m_triggers_box = new QGroupBox(tr("Triggers"));
 
   auto* l_trigger_layout =
-      CreateSliderValuePairLayout(tr("Left"), m_l_trigger_value, 255, Qt::Key_N, m_triggers_box);
-  auto* r_trigger_layout =
-      CreateSliderValuePairLayout(tr("Right"), m_r_trigger_value, 255, Qt::Key_M, m_triggers_box);
+      CreateSliderValuePairLayout(tr("Left"), m_l_trigger_value, 0, 255, Qt::Key_N, m_triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), m_r_trigger_value, 0, 255,
+                                                       Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);

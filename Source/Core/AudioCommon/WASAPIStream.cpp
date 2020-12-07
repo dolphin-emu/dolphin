@@ -60,12 +60,12 @@ bool WASAPIStream::isValid()
   return true;
 }
 
-static bool HandleWinAPI(std::string message, HRESULT result)
+static bool HandleWinAPI(std::string_view message, HRESULT result)
 {
   if (result != S_OK)
   {
     _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
+    std::string error = TStrToUTF8(err.ErrorMessage());
 
     switch (result)
     {
@@ -74,7 +74,7 @@ static bool HandleWinAPI(std::string message, HRESULT result)
       break;
     }
 
-    ERROR_LOG(AUDIO, "WASAPI: %s: %s", message.c_str(), error.c_str());
+    ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {}", message, error);
   }
 
   return result == S_OK;
@@ -236,8 +236,8 @@ bool WASAPIStream::SetRunning(bool running)
 
       if (!device)
       {
-        ERROR_LOG(AUDIO, "Can't find device '%s', falling back to default",
-                  SConfig::GetInstance().sWASAPIDevice.c_str());
+        ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
+                      SConfig::GetInstance().sWASAPIDevice);
         result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
       }
     }
@@ -261,7 +261,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
 
-    INFO_LOG(AUDIO, "Using audio endpoint '%s'", TStrToUTF8(device_name.pwszVal).c_str());
+    INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", TStrToUTF8(device_name.pwszVal));
 
     PropVariantClear(&device_name);
 
@@ -280,7 +280,7 @@ bool WASAPIStream::SetRunning(bool running)
     result = m_audio_client->GetDevicePeriod(nullptr, &device_period);
 
     device_period += SConfig::GetInstance().iLatency * (10000 / m_format.Format.nChannels);
-    INFO_LOG(AUDIO, "Audio period set to %d", device_period);
+    INFO_LOG_FMT(AUDIO, "Audio period set to {}", device_period);
 
     if (!HandleWinAPI("Failed to obtain device period", result))
     {
@@ -384,7 +384,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     device->Release();
 
-    INFO_LOG(AUDIO, "WASAPI: Successfully initialized!");
+    INFO_LOG_FMT(AUDIO, "WASAPI: Successfully initialized!");
 
     m_running = true;
     m_thread = std::thread([this] { SoundLoop(); });

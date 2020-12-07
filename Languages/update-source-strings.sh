@@ -4,13 +4,34 @@
 # the source code.
 
 cd "$(dirname "$0")/.."
+
+# Scan the source code for strings and put them in dolphin-emu.pot
 SRCDIR=Source
 find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
-	xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT \
-	--keyword=PanicAlertT --keyword=PanicYesNoT --keyword=AskYesNoT --keyword=CriticalAlertT \
-	--keyword=GetStringT --keyword=_trans --keyword=tr --keyword=QT_TR_NOOP \
-	--add-comments=i18n -p ./Languages/po -o dolphin-emu.pot -f - --package-name="Dolphin Emulator" \
-	--from-code=utf-8
+	xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
+	--keyword=_ \
+	--keyword=wxTRANSLATE \
+	--keyword=AskYesNoT \
+	--keyword=AskYesNoFmtT \
+	--keyword=CriticalAlertT \
+	--keyword=CriticalAlertFmtT \
+	--keyword=PanicAlertT \
+	--keyword=PanicAlertFmtT \
+	--keyword=PanicYesNoT \
+	--keyword=PanicYesNoFmtT \
+	--keyword=SuccessAlertT \
+	--keyword=SuccessAlertFmtT \
+	--keyword=GetStringT \
+	--keyword=_trans \
+	--keyword=tr:1,1t \
+	--keyword=tr:1,2c \
+	--keyword=QT_TR_NOOP \
+	--keyword=FmtFormatT \
+	--add-comments=i18n --from-code=utf-8 -f -
+
+# Copy strings from qt-strings.pot to dolphin-emu.pot
+xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
+  -j ./Languages/po/qt-strings.pot
 
 sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" Languages/po/dolphin-emu.pot
 sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2003-2013/" Languages/po/dolphin-emu.pot

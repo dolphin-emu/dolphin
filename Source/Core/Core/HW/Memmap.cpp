@@ -299,7 +299,7 @@ void Init()
 
     if (!*region.out_pointer)
     {
-      PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
+      PanicAlertFmt("MemoryMap_Setup: Failed finding a memory base.");
       exit(0);
     }
   }
@@ -311,7 +311,7 @@ void Init()
 
   Clear();
 
-  INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
+  INFO_LOG_FMT(MEMMAP, "Memory system initialized. RAM at {}", fmt::ptr(m_pRAM));
   m_IsInitialized = true;
 }
 
@@ -379,7 +379,7 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
           void* mapped_pointer = g_arena.CreateView(position, mapped_size, base);
           if (!mapped_pointer)
           {
-            PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
+            PanicAlertFmt("MemoryMap_Setup: Failed finding a memory base.");
             exit(0);
           }
           logical_mapped_entries.push_back({mapped_pointer, mapped_size});
@@ -418,7 +418,7 @@ void Shutdown()
   }
   g_arena.ReleaseSHMSegment();
   mmio_mapping.reset();
-  INFO_LOG(MEMMAP, "Memory system shut down.");
+  INFO_LOG_FMT(MEMMAP, "Memory system shut down.");
 }
 
 void ShutdownFastmemArena()
@@ -482,7 +482,7 @@ void CopyFromEmu(void* data, u32 address, size_t size)
   void* pointer = GetPointerForRange(address, size);
   if (!pointer)
   {
-    PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
+    PanicAlertFmt("Invalid range in CopyFromEmu. {:x} bytes from {:#010x}", size, address);
     return;
   }
   memcpy(data, pointer, size);
@@ -496,7 +496,7 @@ void CopyToEmu(u32 address, const void* data, size_t size)
   void* pointer = GetPointerForRange(address, size);
   if (!pointer)
   {
-    PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
+    PanicAlertFmt("Invalid range in CopyToEmu. {:x} bytes to {:#010x}", size, address);
     return;
   }
   memcpy(pointer, data, size);
@@ -510,7 +510,7 @@ void Memset(u32 address, u8 value, size_t size)
   void* pointer = GetPointerForRange(address, size);
   if (!pointer)
   {
-    PanicAlert("Invalid range in Memset. %zx bytes at 0x%08x", size, address);
+    PanicAlertFmt("Invalid range in Memset. {:x} bytes at {:#010x}", size, address);
     return;
   }
   memset(pointer, value, size);
@@ -547,8 +547,7 @@ u8* GetPointer(u32 address)
       return m_pEXRAM + (address & GetExRamMask());
   }
 
-  PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
-
+  PanicAlertFmt("Unknown Pointer {:#010x} PC {:#010x} LR {:#010x}", address, PC, LR);
   return nullptr;
 }
 

@@ -45,7 +45,7 @@ public:
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+      std::optional<Config::System> system = Config::GetSystemFromName(system_str);
       if (system)
       {
         m_values.emplace_back(
@@ -123,6 +123,9 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
     .metavar("<file>")
     .type("string")
     .help("Path to Slippi replay config file (default: Slippi/playback.txt)");
+  parser->add_option("-hs", "--hide-seekbar")
+    .action("store_true")
+    .help("Disable and hide seekbar during playback");
 
   return parser;
 }

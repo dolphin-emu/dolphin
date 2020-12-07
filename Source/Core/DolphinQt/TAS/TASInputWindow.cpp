@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt/TAS/TASInputWindow.h"
+
 #include <cmath>
 
 #include <QCheckBox>
@@ -20,7 +22,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
-#include "DolphinQt/TAS/TASInputWindow.h"
+#include "DolphinQt/TAS/TASSlider.h"
 
 #include "InputCommon/GCPadStatus.h"
 
@@ -79,21 +81,26 @@ QGroupBox* TASInputWindow::CreateStickInputs(QString name, QSpinBox*& x_value, Q
                         .arg(name, x_shortcut_key_sequence.toString(QKeySequence::NativeText),
                              y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
+  const int x_default = static_cast<int>(std::round(max_x / 2.));
+  const int y_default = static_cast<int>(std::round(max_y / 2.));
+
   auto* x_layout = new QHBoxLayout;
-  x_value = CreateSliderValuePair(x_layout, max_x, x_shortcut_key_sequence, Qt::Horizontal, box);
+  x_value = CreateSliderValuePair(x_layout, x_default, max_x, x_shortcut_key_sequence,
+                                  Qt::Horizontal, box);
 
   auto* y_layout = new QVBoxLayout;
-  y_value = CreateSliderValuePair(y_layout, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
+  y_value =
+      CreateSliderValuePair(y_layout, y_default, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
   y_value->setMaximumWidth(60);
 
   auto* visual = new StickWidget(this, max_x, max_y);
+  visual->SetX(x_default);
+  visual->SetY(y_default);
+
   connect(x_value, qOverload<int>(&QSpinBox::valueChanged), visual, &StickWidget::SetX);
   connect(y_value, qOverload<int>(&QSpinBox::valueChanged), visual, &StickWidget::SetY);
   connect(visual, &StickWidget::ChangedX, x_value, &QSpinBox::setValue);
   connect(visual, &StickWidget::ChangedY, y_value, &QSpinBox::setValue);
-
-  x_value->setValue(static_cast<int>(std::round(max_x / 2.)));
-  y_value->setValue(static_cast<int>(std::round(max_y / 2.)));
 
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
@@ -109,8 +116,8 @@ QGroupBox* TASInputWindow::CreateStickInputs(QString name, QSpinBox*& x_value, Q
   return box;
 }
 
-QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*& value, u16 max,
-                                                        Qt::Key shortcut_key,
+QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*& value,
+                                                        int default_, u16 max, Qt::Key shortcut_key,
                                                         QWidget* shortcut_widget, bool invert)
 {
   const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT + shortcut_key);
@@ -121,27 +128,29 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*&
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  value = CreateSliderValuePair(layout, max, shortcut_key_sequence, Qt::Horizontal, shortcut_widget,
-                                invert);
+  value = CreateSliderValuePair(layout, default_, max, shortcut_key_sequence, Qt::Horizontal,
+                                shortcut_widget, invert);
 
   return layout;
 }
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
-QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, u16 max,
+QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
                                                 QKeySequence shortcut_key_sequence,
                                                 Qt::Orientation orientation,
                                                 QWidget* shortcut_widget, bool invert)
 {
   auto* value = new QSpinBox();
   value->setRange(0, 99999);
+  value->setValue(default_);
   connect(value, qOverload<int>(&QSpinBox::valueChanged), [value, max](int i) {
     if (i > max)
       value->setValue(max);
   });
-  auto* slider = new QSlider(orientation);
+  auto* slider = new TASSlider(default_, orientation);
   slider->setRange(0, max);
+  slider->setValue(default_);
   slider->setFocusPolicy(Qt::ClickFocus);
   slider->setInvertedAppearance(invert);
 

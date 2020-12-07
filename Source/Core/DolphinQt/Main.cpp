@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
+#include <string>
+#include <vector>
+
 #include <Windows.h>
 #include <cstdio>
 #endif
@@ -15,12 +18,13 @@
 #include <QPushButton>
 #include <QWidget>
 
+#include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Slippi/SlippiSpectate.h"
 
@@ -97,11 +101,18 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
   return false;
 }
 
-// N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
-// /SubSystem:Windows
+#ifndef _WIN32
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
+#else
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+{
+  std::vector<std::string> utf8_args = CommandLineToUtf8Argv(GetCommandLineW());
+  const int utf8_argc = static_cast<int>(utf8_args.size());
+  std::vector<char*> utf8_argv(utf8_args.size());
+  for (size_t i = 0; i < utf8_args.size(); ++i)
+    utf8_argv[i] = utf8_args[i].data();
+
   const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
   HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
   if (console_attached && stdout_handle)
@@ -111,8 +122,25 @@ int main(int argc, char* argv[])
   }
 #endif
 
+#ifdef __APPLE__
+  // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
+  // the application is launched for the first time. This is to set the "ProcessSerialNumber",
+  // something used by the legacy Process Manager from Carbon. optparse will fail if it finds
+  // this as it isn't a valid Dolphin command line option, so pretend like it doesn't exist
+  // if found.
+  if (strncmp(argv[argc - 1], "-psn", 4) == 0)
+  {
+    argc--;
+  }
+#endif
+
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const optparse::Values& options =
+#ifdef _WIN32
+      CommandLineParse::ParseArguments(parser.get(), utf8_argc, utf8_argv.data());
+#else
+      CommandLineParse::ParseArguments(parser.get(), argc, argv);
+#endif
   const std::vector<std::string> args = parser->args();
 
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -121,7 +149,11 @@ int main(int argc, char* argv[])
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
+#ifdef _WIN32
+  QApplication app(__argc, __argv);
+#else
   QApplication app(argc, argv);
+#endif
 
 #ifdef _WIN32
   // On Windows, Qt 5's default system font (MS Shell Dlg 2) is outdated.
@@ -142,6 +174,11 @@ int main(int argc, char* argv[])
   Resources::Init();
   Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
   Settings::Instance().SetSlippiInputFile(static_cast<const char*>(options.get("slippi_input")));
+
+#ifdef IS_PLAYBACK
+  if (options.is_set("hide-seekbar"))
+    Settings::Instance().SetSlippiSeekbarEnabled(false);
+#endif
 
   // Hook up alerts from core
   Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
@@ -227,7 +264,7 @@ int main(int argc, char* argv[])
     win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-    if (!SConfig::GetInstance().m_analytics_permission_asked)
+    if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
     {
       ModalMessageBox analytics_prompt(&win);
 
@@ -249,7 +286,7 @@ int main(int argc, char* argv[])
 
       const int answer = analytics_prompt.exec();
 
-      SConfig::GetInstance().m_analytics_permission_asked = true;
+      Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
       Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
       DolphinAnalytics::Instance().ReloadConfig();

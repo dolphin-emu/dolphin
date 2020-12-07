@@ -401,7 +401,7 @@ void Jit64::DoMergedBranch()
   }
   else
   {
-    PanicAlert("WTF invalid branch");
+    PanicAlertFmt("WTF invalid branch");
   }
 }
 
@@ -516,7 +516,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
   default:
     signedCompare = false;  // silence compiler warning
-    PanicAlert("cmpXX");
+    PanicAlertFmt("cmpXX");
   }
 
   if (gpr.IsImm(a) && comparand.IsImm())
@@ -689,7 +689,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
     else
     {
-      PanicAlert("WTF!");
+      PanicAlertFmt("WTF!");
     }
   }
   else if ((a == s) || (a == b))
@@ -763,7 +763,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
     else
     {
-      PanicAlert("WTF");
+      PanicAlertFmt("WTF");
     }
   }
   else
@@ -829,7 +829,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
     else
     {
-      PanicAlert("WTF!");
+      PanicAlertFmt("WTF!");
     }
   }
   if (inst.Rc)

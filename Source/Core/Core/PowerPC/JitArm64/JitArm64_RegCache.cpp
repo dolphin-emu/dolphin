@@ -41,7 +41,7 @@ ARM64Reg Arm64RegCache::GetReg()
   // Holy cow, how did you run out of registers?
   // We can't return anything reasonable in this case. Return INVALID_REG and watch the failure
   // happen
-  WARN_LOG(DYNA_REC, "All available registers are locked dumb dumb");
+  WARN_LOG_FMT(DYNA_REC, "All available registers are locked dumb dumb");
   return INVALID_REG;
 }
 
@@ -239,20 +239,7 @@ void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state)
 
 void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
-  BitSet32 to_flush;
-  for (size_t i = 0; i < GUEST_GPR_COUNT; ++i)
-  {
-    bool flush = true;
-    if (m_guest_registers[i].GetType() == REG_REG)
-    {
-      // Has to be flushed if it isn't in a callee saved register
-      ARM64Reg host_reg = m_guest_registers[i].GetReg();
-      flush = IsCalleeSaved(host_reg) ? flush : true;
-    }
-
-    to_flush[i] = flush;
-  }
-  FlushRegisters(to_flush, mode == FLUSH_MAINTAIN_STATE);
+  FlushRegisters(BitSet32(~0U), mode == FLUSH_MAINTAIN_STATE);
   FlushCRRegisters(BitSet32(~0U), mode == FLUSH_MAINTAIN_STATE);
 }
 
@@ -291,7 +278,7 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
   }
   break;
   default:
-    ERROR_LOG(DYNA_REC, "Invalid OpArg Type!");
+    ERROR_LOG_FMT(DYNA_REC, "Invalid OpArg Type!");
     break;
   }
   // We've got an issue if we end up here

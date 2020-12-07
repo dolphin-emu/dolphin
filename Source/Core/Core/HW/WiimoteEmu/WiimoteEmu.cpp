@@ -72,7 +72,6 @@ void Wiimote::Reset()
   SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
-  m_reporting_channel = 0;
   m_reporting_mode = InputReportID::ReportCore;
   m_reporting_continuous = false;
 
@@ -83,7 +82,7 @@ void Wiimote::Reset()
   if (m_eeprom_dirty)
   {
     // Write out existing EEPROM
-    INFO_LOG(WIIMOTE, "Wrote EEPROM for %s", GetName().c_str());
+    INFO_LOG_FMT(WIIMOTE, "Wrote EEPROM for {}", GetName());
     std::ofstream file;
     File::OpenFStream(file, eeprom_file, std::ios::binary | std::ios::out);
     file.write(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
@@ -218,6 +217,27 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                           new ControllerEmu::IMUGyroscope("IMUGyroscope", _trans("Gyroscope")));
   groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
 
+  const auto fov_default =
+      Common::DVec2(CameraLogic::CAMERA_FOV_X, CameraLogic::CAMERA_FOV_Y) / MathUtil::TAU * 360;
+
+  m_imu_ir->AddSetting(&m_fov_x_setting,
+                       // i18n: FOV stands for "Field of view".
+                       {_trans("Horizontal FOV"),
+                        // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+                        _trans("°"),
+                        // i18n: Refers to emulated wii remote camera properties.
+                        _trans("Camera field of view (affects sensitivity of pointing).")},
+                       fov_default.x, 0.01, 180);
+
+  m_imu_ir->AddSetting(&m_fov_y_setting,
+                       // i18n: FOV stands for "Field of view".
+                       {_trans("Vertical FOV"),
+                        // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+                        _trans("°"),
+                        // i18n: Refers to emulated wii remote camera properties.
+                        _trans("Camera field of view (affects sensitivity of pointing).")},
+                       fov_default.y, 0.01, 180);
+
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
@@ -287,7 +307,7 @@ std::string Wiimote::GetName() const
   return fmt::format("Wiimote{}", 1 + m_index);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
 {
   switch (group)
   {
@@ -323,52 +343,52 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
   }
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group) const
 {
   return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[ExtensionNumber::NUNCHUK].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group) const
 {
   return static_cast<Classic*>(m_attachments->GetAttachmentList()[ExtensionNumber::CLASSIC].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group) const
 {
   return static_cast<Guitar*>(m_attachments->GetAttachmentList()[ExtensionNumber::GUITAR].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group) const
 {
   return static_cast<Drums*>(m_attachments->GetAttachmentList()[ExtensionNumber::DRUMS].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group) const
 {
   return static_cast<Turntable*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::TURNTABLE].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group) const
 {
   return static_cast<UDrawTablet*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::UDRAW_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const
 {
   return static_cast<DrawsomeTablet*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::DRAWSOME_TABLET].get())
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group)
+ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 {
   return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
       ->GetGroup(group);
@@ -385,7 +405,7 @@ bool Wiimote::ProcessExtensionPortEvent()
   // FYI: This happens even during a read request which continues after the status report is sent.
   m_reporting_mode = InputReportID::ReportDisabled;
 
-  DEBUG_LOG(WIIMOTE, "Sending status report due to extension status change.");
+  DEBUG_LOG_FMT(WIIMOTE, "Sending status report due to extension status change.");
 
   HandleRequestStatus(OutputReportRequestStatus{});
 
@@ -404,10 +424,6 @@ void Wiimote::UpdateButtonsStatus()
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void Wiimote::Update()
 {
-  // Check if connected.
-  if (0 == m_reporting_channel)
-    return;
-
   const auto lock = GetStateLock();
 
   // Hotkey / settings modifier
@@ -510,7 +526,9 @@ void Wiimote::SendDataReport()
     {
       // Note: Camera logic currently contains no changing state so we can just update it here.
       // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation());
+      m_camera_logic.Update(GetTotalTransformation(),
+                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
+                                360 * float(MathUtil::TAU));
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
@@ -567,7 +585,7 @@ void Wiimote::SendDataReport()
   Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
 
   // Send the report:
-  CallbackInterruptChannel(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
+  InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
 
   // The interleaved reporting modes toggle back and forth:
   if (InputReportID::ReportInterleave1 == m_reporting_mode)
@@ -576,104 +594,14 @@ void Wiimote::SendDataReport()
     m_reporting_mode = InputReportID::ReportInterleave1;
 }
 
-void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
-{
-  // Check for custom communication
-  if (channel_id == ::Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL)
-  {
-    // Wii Remote disconnected.
-    Reset();
-
-    return;
-  }
-
-  if (!size)
-  {
-    ERROR_LOG(WIIMOTE, "ControlChannel: zero sized data");
-    return;
-  }
-
-  m_reporting_channel = channel_id;
-
-  const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
-
-  DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
-            hidp.type, hidp.param);
-
-  switch (hidp.type)
-  {
-  case HID_TYPE_HANDSHAKE:
-    PanicAlert("HID_TYPE_HANDSHAKE - %s", (hidp.param == HID_PARAM_INPUT) ? "INPUT" : "OUPUT");
-    break;
-
-  case HID_TYPE_SET_REPORT:
-    if (HID_PARAM_INPUT == hidp.param)
-    {
-      PanicAlert("HID_TYPE_SET_REPORT - INPUT");
-    }
-    else
-    {
-      // AyuanX: My experiment shows Control Channel is never used
-      // shuffle2: but lwbt uses this, so we'll do what we must :)
-      HIDOutputReport(hidp.data, size - HIDPacket::HEADER_SIZE);
-
-      // TODO: Should this be above the previous?
-      u8 handshake = HID_HANDSHAKE_SUCCESS;
-      CallbackInterruptChannel(&handshake, sizeof(handshake));
-    }
-    break;
-
-  case HID_TYPE_DATA:
-    PanicAlert("HID_TYPE_DATA - %s", (hidp.param == HID_PARAM_INPUT) ? "INPUT" : "OUTPUT");
-    break;
-
-  default:
-    PanicAlert("HidControlChannel: Unknown type %x and param %x", hidp.type, hidp.param);
-    break;
-  }
-}
-
-void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
-{
-  if (!size)
-  {
-    ERROR_LOG(WIIMOTE, "InterruptChannel: zero sized data");
-    return;
-  }
-
-  m_reporting_channel = channel_id;
-
-  const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
-
-  switch (hidp.type)
-  {
-  case HID_TYPE_DATA:
-    switch (hidp.param)
-    {
-    case HID_PARAM_OUTPUT:
-      HIDOutputReport(hidp.data, size - HIDPacket::HEADER_SIZE);
-      break;
-
-    default:
-      PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp.param);
-      break;
-    }
-    break;
-
-  default:
-    PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp.type, hidp.param);
-    break;
-  }
-}
-
-bool Wiimote::CheckForButtonPress()
+bool Wiimote::IsButtonPressed()
 {
   u16 buttons = 0;
   const auto lock = GetStateLock();
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  return (buttons != 0 || GetActiveExtension()->IsButtonPressed());
+  return buttons != 0;
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
@@ -698,9 +626,9 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(5, "E");    // +
 
 #ifdef _WIN32
-  m_buttons->SetControlExpression(6, "!LMENU & RETURN");  // Home
+  m_buttons->SetControlExpression(6, "RETURN");  // Home
 #else
-  m_buttons->SetControlExpression(6, "!`Alt_L` & Return");  // Home
+  m_buttons->SetControlExpression(6, "Return");    // Home
 #endif
 
   // Shake
@@ -720,10 +648,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_dpad->SetControlExpression(2, "LEFT");   // Left
   m_dpad->SetControlExpression(3, "RIGHT");  // Right
 #elif __APPLE__
-  m_dpad->SetControlExpression(0, "Up Arrow");              // Up
-  m_dpad->SetControlExpression(1, "Down Arrow");            // Down
-  m_dpad->SetControlExpression(2, "Left Arrow");            // Left
-  m_dpad->SetControlExpression(3, "Right Arrow");           // Right
+  m_dpad->SetControlExpression(0, "Up Arrow");     // Up
+  m_dpad->SetControlExpression(1, "Down Arrow");   // Down
+  m_dpad->SetControlExpression(2, "Left Arrow");   // Left
+  m_dpad->SetControlExpression(3, "Right Arrow");  // Right
 #else
   m_dpad->SetControlExpression(0, "Up");     // Up
   m_dpad->SetControlExpression(1, "Down");   // Down
@@ -799,7 +727,7 @@ void Wiimote::StepDynamics()
                    1.f / ::Wiimote::UPDATE_FREQ);
 }
 
-Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration)
+Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const
 {
   Common::Vec3 accel = GetOrientation() * GetTransformation().Transform(
                                               m_swing_state.acceleration + extra_acceleration, 0);
@@ -810,7 +738,7 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration)
   return accel;
 }
 
-Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity)
+Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) const
 {
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
                              m_point_state.angular_velocity + extra_angular_velocity);
@@ -829,34 +757,33 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
          Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
 }
 
-Common::Matrix33 Wiimote::GetOrientation() const
+Common::Quaternion Wiimote::GetOrientation() const
 {
-  return Common::Matrix33::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
-         Common::Matrix33::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
+  return Common::Quaternion::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
+         Common::Quaternion::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
 }
 
-Common::Vec3 Wiimote::GetTotalAcceleration()
+Common::Vec3 Wiimote::GetTotalAcceleration() const
 {
-  auto accel = m_imu_accelerometer->GetState();
-  if (accel.has_value())
-    return GetAcceleration(accel.value());
-  else
-    return GetAcceleration();
+  if (const auto accel = m_imu_accelerometer->GetState())
+    return GetAcceleration(*accel);
+
+  return GetAcceleration();
 }
 
-Common::Vec3 Wiimote::GetTotalAngularVelocity()
+Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 {
-  auto ang_vel = m_imu_gyroscope->GetState();
-  if (ang_vel.has_value())
-    return GetAngularVelocity(ang_vel.value());
-  else
-    return GetAngularVelocity();
+  if (const auto ang_vel = m_imu_gyroscope->GetState())
+    return GetAngularVelocity(*ang_vel);
+
+  return GetAngularVelocity();
 }
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(m_imu_cursor_state.rotation *
-                           Common::Matrix33::RotateX(m_imu_cursor_state.recentered_pitch));
+  return GetTransformation(Common::Matrix33::FromQuaternion(
+      m_imu_cursor_state.rotation *
+      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
 }
 
 }  // namespace WiimoteEmu

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -57,12 +57,10 @@ public:
 private:
   TGCFileReader(File::IOFile file);
 
-  bool InternalRead(u64 offset, u64 nbytes, u8* out_ptr);
-
   File::IOFile m_file;
   u64 m_size;
 
-  s64 m_file_area_shift;
+  std::vector<u8> m_fst;
 
   // Stored as big endian in memory, regardless of the host endianness
   TGCHeader m_header = {};

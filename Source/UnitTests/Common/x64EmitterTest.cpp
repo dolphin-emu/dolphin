@@ -93,6 +93,7 @@ protected:
     emitter.reset(new X64CodeBlock());
     emitter->AllocCodeSpace(4096);
     code_buffer = emitter->GetWritableCodePtr();
+    code_buffer_end = emitter->GetWritableCodeEnd();
 
     disasm.reset(new disassembler);
     disasm->set_syntax_intel();
@@ -158,12 +159,13 @@ protected:
     EXPECT_EQ(expected_norm, disasmed_norm);
 
     // Reset code buffer afterwards.
-    emitter->SetCodePtr(code_buffer);
+    emitter->SetCodePtr(code_buffer, code_buffer_end);
   }
 
   std::unique_ptr<X64CodeBlock> emitter;
   std::unique_ptr<disassembler> disasm;
   u8* code_buffer;
+  u8* code_buffer_end;
 };
 
 #define TEST_INSTR_NO_OPERANDS(Name, ExpectedDisasm)                                               \

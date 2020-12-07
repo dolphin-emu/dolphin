@@ -86,6 +86,197 @@ private:
   ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
 };
 
+// usage: cos(expression)
+class CosExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::cos(GetArg(0).GetValue()); }
+};
+
+// usage: tan(expression)
+class TanExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::tan(GetArg(0).GetValue()); }
+};
+
+// usage: asin(expression)
+class ASinExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::asin(GetArg(0).GetValue()); }
+};
+
+// usage: acos(expression)
+class ACosExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::acos(GetArg(0).GetValue()); }
+};
+
+// usage: atan(expression)
+class ATanExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::atan(GetArg(0).GetValue()); }
+};
+
+// usage: atan2(y, x)
+class ATan2Expression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 2)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"y, x"};
+  }
+
+  ControlState GetValue() const override
+  {
+    return std::atan2(GetArg(0).GetValue(), GetArg(1).GetValue());
+  }
+};
+
+// usage: sqrt(expression)
+class SqrtExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
+  }
+
+  ControlState GetValue() const override { return std::sqrt(GetArg(0).GetValue()); }
+};
+
+// usage: pow(base, exponent)
+class PowExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 2)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"base, exponent"};
+  }
+
+  ControlState GetValue() const override
+  {
+    return std::pow(GetArg(0).GetValue(), GetArg(1).GetValue());
+  }
+};
+
+// usage: min(a, b)
+class MinExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 2)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"a, b"};
+  }
+
+  ControlState GetValue() const override
+  {
+    return std::min(GetArg(0).GetValue(), GetArg(1).GetValue());
+  }
+};
+
+// usage: max(a, b)
+class MaxExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 2)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"a, b"};
+  }
+
+  ControlState GetValue() const override
+  {
+    return std::max(GetArg(0).GetValue(), GetArg(1).GetValue());
+  }
+};
+
+// usage: clamp(value, min, max)
+class ClampExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 3)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"value, min, max"};
+  }
+
+  ControlState GetValue() const override
+  {
+    return std::clamp(GetArg(0).GetValue(), GetArg(1).GetValue(), GetArg(2).GetValue());
+  }
+};
+
 // usage: timer(seconds)
 class TimerExpression : public FunctionExpression
 {
@@ -453,6 +644,28 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
     return std::make_unique<IfExpression>();
   if (name == "sin")
     return std::make_unique<SinExpression>();
+  if (name == "cos")
+    return std::make_unique<CosExpression>();
+  if (name == "tan")
+    return std::make_unique<TanExpression>();
+  if (name == "asin")
+    return std::make_unique<ASinExpression>();
+  if (name == "acos")
+    return std::make_unique<ACosExpression>();
+  if (name == "atan")
+    return std::make_unique<ATanExpression>();
+  if (name == "atan2")
+    return std::make_unique<ATan2Expression>();
+  if (name == "sqrt")
+    return std::make_unique<SqrtExpression>();
+  if (name == "pow")
+    return std::make_unique<PowExpression>();
+  if (name == "min")
+    return std::make_unique<MinExpression>();
+  if (name == "max")
+    return std::make_unique<MaxExpression>();
+  if (name == "clamp")
+    return std::make_unique<ClampExpression>();
   if (name == "timer")
     return std::make_unique<TimerExpression>();
   if (name == "toggle")

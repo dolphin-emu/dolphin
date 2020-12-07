@@ -33,6 +33,11 @@ class OctagonAnalogStick : public AnalogStick
 public:
   OctagonAnalogStick(const char* name, ControlState gate_radius);
   OctagonAnalogStick(const char* name, const char* ui_name, ControlState gate_radius);
+
+  ControlState GetVirtualNotchSize() const override;
+
+private:
+  SettingValue<double> m_virtual_notch_setting;
 };
 
 }  // namespace ControllerEmu
