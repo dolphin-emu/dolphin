@@ -658,7 +658,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       MOVI2R(W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       MOVP2R(X1, &JitInterface::CompileExceptionCheck);
       BLR(X1);
-      B(dispatcher);
+      B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
       js.assumeNoPairedQuantize = true;
