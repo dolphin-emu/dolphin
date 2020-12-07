@@ -534,6 +534,8 @@ void SConfig::LoadSlippiSettings(IniFile& ini)
 {
   IniFile::Section* slippi = ini.GetOrCreateSection("Slippi");
 
+  slippi->Get("EnableSpectator", &m_enableSpectator, true);
+  slippi->Get("SpectatorLocalPort", &m_spectator_local_port, 51441);
   slippi->Get("PlaybackControls", &m_slippiEnableSeek, true);
   slippi->Get("OnlineDelay", &m_slippiOnlineDelay, 2);
   slippi->Get("SaveReplays", &m_slippiSaveReplays, true);

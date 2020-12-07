@@ -582,4 +582,8 @@ namespace Slippi {
   bool SlippiGame::DoesPlayerExist(int8_t port) {
     return game->settings.players.find(port) != game->settings.players.end();
   }
+
+  uint8_t SlippiGame::GetGameEndMethod() {
+    return game->winCondition;
+  }
 }

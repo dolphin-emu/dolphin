@@ -47,7 +47,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" OFF)
 
 # Enable Playback build for Slippi for watching replays
-option(SLIPPI_PLAYBACK "Enable Playback changes" ON)
+option(SLIPPI_PLAYBACK "Enable Playback changes" OFF)
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 

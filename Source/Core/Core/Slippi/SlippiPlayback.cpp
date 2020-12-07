@@ -122,7 +122,9 @@ void SlippiPlaybackStatus::processInitialState()
   // Doing it here to get it out of the way and prevent stutters later
   // Subsequent calls to SaveToBuffer for cState take ~1 frame
   State::SaveToBuffer(cState);
-  SConfig::GetInstance().bHideCursor = false;
+  if (SConfig::GetInstance().m_slippiEnableSeek) {
+    SConfig::GetInstance().bHideCursor = false;
+  }
 };
 
 void SlippiPlaybackStatus::SavestateThread()

@@ -47,14 +47,9 @@ public:
 
   u32 rngOffset = 0;
 
-  std::string playerName = "";
-  std::string connectCode = "";
-
   void Merge(SlippiPlayerSelections& s)
   {
     this->rngOffset = s.rngOffset;
-    this->playerName = s.playerName;
-    this->connectCode = s.connectCode;
 
     if (s.isStageSelected)
     {
@@ -80,7 +75,6 @@ public:
     isStageSelected = false;
 
     rngOffset = 0;
-    playerName.clear();
   }
 };
 
@@ -127,7 +121,6 @@ public:
   std::unique_ptr<SlippiRemotePadOutput> GetSlippiRemotePad(int32_t curFrame);
   SlippiMatchInfo* GetMatchInfo();
   u64 GetSlippiPing();
-  std::string GetOpponentName();
   int32_t GetSlippiLatestRemoteFrame();
   s32 CalcTimeOffsetUs();
 
@@ -141,8 +134,6 @@ protected:
   } m_crit;
 
   std::queue<std::unique_ptr<sf::Packet>> m_async_queue;
-
-  std::string oppName = "";
 
   ENetHost* m_client = nullptr;
   ENetPeer* m_server = nullptr;

@@ -424,19 +424,17 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
     // Get display names and connection codes from slippi netplay client
     if (slippi_netplay)
     {
-      auto matchInfo = slippi_netplay->GetMatchInfo();
+			auto userInfo = user->GetUserInfo();
+			auto oppInfo = matchmaking->GetOpponent();
 
-      SlippiPlayerSelections lps = matchInfo->localPlayerSelections;
-      SlippiPlayerSelections rps = matchInfo->remotePlayerSelections;
+			auto isDecider = slippi_netplay->IsDecider();
+			int local_port = isDecider ? 0 : 1;
+			int remote_port = isDecider ? 1 : 0;
 
-      auto isDecider = slippi_netplay->IsDecider();
-      int local_port = isDecider ? 0 : 1;
-      int remote_port = isDecider ? 1 : 0;
-
-      slippi_names[local_port] = lps.playerName;
-      slippi_connect_codes[local_port] = lps.connectCode;
-      slippi_names[remote_port] = rps.playerName;
-      slippi_connect_codes[remote_port] = rps.connectCode;
+			slippi_names[local_port] = userInfo.displayName;
+			slippi_connect_codes[local_port] = userInfo.connectCode;
+			slippi_names[remote_port] = oppInfo.displayName;
+			slippi_connect_codes[remote_port] = oppInfo.connectCode;
     }
   }
 
@@ -1728,7 +1726,9 @@ void CEXISlippi::prepareOnlineMatchState()
   u8 localPlayerIndex = 0;
   u8 remotePlayerIndex = 1;
 
-  std::string oppName = "";
+  auto opponent = matchmaking->GetOpponent();
+  std::string oppName = opponent.displayName;
+  auto userInfo = user->GetUserInfo();
 
   if (mmState == SlippiMatchmaking::ProcessState::CONNECTION_SUCCESS)
   {
@@ -1762,8 +1762,6 @@ void CEXISlippi::prepareOnlineMatchState()
       auto isDecider = slippi_netplay->IsDecider();
       localPlayerIndex = isDecider ? 0 : 1;
       remotePlayerIndex = isDecider ? 1 : 0;
-
-      oppName = slippi_netplay->GetOpponentName();
     }
     else
     {
@@ -1802,7 +1800,7 @@ void CEXISlippi::prepareOnlineMatchState()
 #ifdef LOCAL_TESTING
     rps.characterId = 0x2;
     rps.characterColor = 2;
-    rps.playerName = std::string("Player");
+    oppName = std::string("Player");
 #endif
 
     // Check if someone is picking dumb characters in non-direct
@@ -1858,8 +1856,8 @@ void CEXISlippi::prepareOnlineMatchState()
     WARN_LOG(SLIPPI_ONLINE, "P1 Char: 0x%X, P2 Char: 0x%X", onlineMatchBlock[0x60], onlineMatchBlock[0x84]);
 
     // Set player names
-    p1Name = isDecider ? lps.playerName : rps.playerName;
-    p2Name = isDecider ? rps.playerName : lps.playerName;
+    p1Name = isDecider ? userInfo.displayName : oppName;
+    p2Name = isDecider ? oppName : userInfo.displayName;
 
     // Turn pause on in direct, off in everything else
     u8* gameBitField3 = (u8*)& onlineMatchBlock[2];
@@ -1935,22 +1933,6 @@ void CEXISlippi::setMatchSelections(u8* payload)
   }
 
   s.rngOffset = generator() % 0xFFFF;
-
-  // Get user name from file
-  std::string displayName = user->GetUserInfo().displayName;
-
-  // Just let the max length to transfer to opponent be potentially 16 worst-case utf-8 chars
-  // This string will get converted to the game format later
-  int maxLenth = MAX_NAME_LENGTH * 4 + 4;
-  if (displayName.length() > maxLenth)
-  {
-    displayName.resize(maxLenth);
-  }
-
-  s.playerName = displayName;
-
-  // Get user connect code from file
-  s.connectCode = user->GetUserInfo().connectCode;
 
   // Merge these selections
   localSelections.Merge(s);

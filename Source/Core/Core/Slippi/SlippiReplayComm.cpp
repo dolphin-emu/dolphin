@@ -195,7 +195,7 @@ void SlippiReplayComm::loadFile()
   commFileSettings.isRealTimeMode = res.value("isRealTimeMode", false);
   commFileSettings.rollbackDisplayMethod = res.value("rollbackDisplayMethod", "off");
 
-  if (isFirstLoad)
+  if (commFileSettings.mode == "queue")
   {
     auto queue = res["queue"];
     if (queue.is_array())
@@ -214,8 +214,7 @@ void SlippiReplayComm::loadFile()
 
         commFileSettings.queue.push(w);
       };
+      queueWasEmpty = false;
     }
-
-    isFirstLoad = false;
   }
 }
