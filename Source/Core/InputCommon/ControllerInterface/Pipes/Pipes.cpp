@@ -162,6 +162,10 @@ void PipeDevice::UpdateInput()
   // then dequeue a command off the front of m_buf and parse it.
   char buf[32];
   s32 bytes_read = readFromPipe(m_fd, buf, sizeof buf);
+  if (bytes_read == 0) {
+    // Pipe died, so just quit out
+    return;
+  }
   while (bytes_read > 0)
   {
     m_buf.append(buf, bytes_read);

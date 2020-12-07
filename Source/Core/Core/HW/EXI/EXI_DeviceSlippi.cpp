@@ -956,6 +956,8 @@ void CEXISlippi::prepareGeckoList()
       {0x80376200, true}, // Binary/LagReduction/PD+VB.bin
       {0x801A5018, true}, // Binary/LagReduction/PD+VB.bin
       {0x80218D68, true}, // Binary/LagReduction/PD+VB.bin
+      {0x8016E9AC, true}, // Binary/Force2PCenterHud.bin
+      {0x80030E44, true}, // Binary/DisableScreenShake.bin
 
       {0x800055f0, true}, // Common/EXITransferBuffer.asm
       {0x800055f8, true}, // Common/GetIsFollower.asm
@@ -986,7 +988,6 @@ void CEXISlippi::prepareGeckoList()
       {0x800C0148, true}, // External/FlashRedFailedLCancel/ChangeColor.asm
       {0x8008D690, true}, // External/FlashRedFailedLCancel/TriggerColor.asm
 
-      {0x8006A880, true}, // Online/Core/BrawlOffscreenDamage.asm
       {0x801A4DB4, true}, // Online/Core/ForceEngineOnRollback.asm
       {0x8016D310, true}, // Online/Core/HandleLRAS.asm
       {0x8034DED8, true}, // Online/Core/HandleRumble.asm
@@ -1013,6 +1014,10 @@ void CEXISlippi::prepareGeckoList()
       {0x801A45BC, true}, // Online/Slippi Online Scene/main.asm
       {0x801a45b8, true}, // Online/Slippi Online Scene/main.asm (https://bit.ly/3kxohf4)
       {0x801BFA20, true}, // Online/Slippi Online Scene/boot.asm
+      {0x800cc818, true}, // External/GreenDuringWait/fall.asm
+      {0x8008a478, true}, // External/GreenDuringWait/wait.asm
+
+      {0x802f6690, true}, // HUD Transparency v1.1
   };
 
   std::unordered_map<u32, bool> blacklist;
@@ -1583,8 +1588,10 @@ void CEXISlippi::prepareOpponentInputs(u8* payload)
 
 void CEXISlippi::handleCaptureSavestate(u8* payload)
 {
+#ifndef IS_PLAYBACK
   if (isDisconnected())
     return;
+#endif
 
   s32 frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 
@@ -2106,6 +2113,15 @@ void CEXISlippi::handleConnectionCleanup()
   ERROR_LOG(SLIPPI_ONLINE, "Connection cleanup completed...");
 }
 
+void CEXISlippi::prepareNewSeed()
+{
+  m_read_queue.clear();
+
+  u32 newSeed = generator() % 0xFFFFFFFF;
+
+  appendWordToBuffer(&m_read_queue, newSeed);
+}
+
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   u8* memPtr = Memory::GetPointer(_uAddr);
@@ -2136,6 +2152,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
   if (byte == CMD_MENU_FRAME)
   {
     SlippiSpectateServer::getInstance().write(&memPtr[0], _uSize);
+    // g_needInputForFrame = true;
   }
 
   INFO_LOG(EXPANSIONINTERFACE, "EXI SLIPPI DMAWrite: addr: 0x%08x size: %d, bufLoc:[%02x %02x %02x %02x %02x]",
@@ -2223,6 +2240,9 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_UPDATE:
       handleUpdateAppRequest();
+      break;
+    case CMD_GET_NEW_SEED:
+      prepareNewSeed();
       break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");

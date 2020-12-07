@@ -210,12 +210,14 @@ int main(int argc, char* argv[])
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
 
+#ifdef IS_PLAYBACK
   std::optional<std::string> slippi_input_path;
   if (options.is_set("slippi_input"))
   {
     slippi_input_path = static_cast<const char*>(options.get("slippi_input"));
     SConfig::GetInstance().m_strSlippiInput = slippi_input_path.value();
   }
+#endif
 
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
