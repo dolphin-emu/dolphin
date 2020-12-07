@@ -38,8 +38,9 @@ private:
 #ifdef _WIN32
   void OnWASAPIDeviceChanged();
   void LoadWASAPIDeviceSampleRate();
+  std::string GetWASAPIDeviceSampleRate() const;
 #endif
-  void OnDspChanged();
+  void OnDSPChanged();
   void OnVolumeChanged(int volume);
 
   void CheckNeedForLatencyControl();
@@ -75,6 +76,7 @@ private:
   QLabel* m_wasapi_device_sample_rate_label;
   QComboBox* m_wasapi_device_combo;
   QComboBox* m_wasapi_device_sample_rate_combo;
+  bool m_wasapi_device_supports_default_sample_rate;
 #endif
 
   // Audio Stretching

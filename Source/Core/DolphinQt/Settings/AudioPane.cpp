@@ -34,12 +34,16 @@
 
 #ifdef _WIN32
 #define WASAPI_DEFAULT_DEVICE_NAME "default"
+#define WASAPI_INVALID_SAMPLE_RATE "0"
 #endif
 
 AudioPane::AudioPane()
 {
   m_running = false;
   m_ignore_save_settings = false;
+#ifdef _WIN32
+  m_wasapi_device_supports_default_sample_rate = false;
+#endif
 
   CheckNeedForLatencyControl();
   CreateWidgets();
@@ -124,10 +128,11 @@ void AudioPane::CreateWidgets()
   m_use_os_sample_rate = new QCheckBox(tr("Use OS Mixer sample rate"));
 
   m_use_os_sample_rate->setToolTip(
-      tr("Directly mixes at the current OS mixer sample rate as opposed to %1 "
-         "Hz.\nThis will make resampling from 32 kHz sources more accurate, possibly improving"
+      tr("Directly mixes and outputs at the current OS mixer sample rate (as opposed to %1 "
+         "Hz).\nThis will make resampling from 32 kHz sources more accurate, possibly improving"
          " audio\n"
-         "quality at the cost of performance. It won't follow changes to your OS setting."
+         "quality at the cost of performance. It won't follow changes to your OS setting after "
+         "start."
          "\nIf unsure, leave off.")
           .arg(AudioCommon::GetDefaultSampleRate()));
 
@@ -173,7 +178,8 @@ void AudioPane::CreateWidgets()
                font_metrics.width(tr("%1 ms").arg(125))));
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
-  //To review: maybe have a set of 4 or 5 options to keep it simpler
+  //To review: maybe have a set of 4 or 5 options to keep it simpler (low, high, ...).
+  //To add descrpition to m_emu_speed_tolerance_label explaining that it's the time the emulation need to be offsetted by to start using the current speed
 
   m_stretching_enable->setToolTip(tr(
       "Enables stretching of the audio (pitch correction) to match the emulation speed.\nIt might "
@@ -379,7 +385,7 @@ void AudioPane::SaveSettings()
   if (SConfig::GetInstance().bDSPHLE != m_dsp_hle->isChecked() ||
       SConfig::GetInstance().m_DSPEnableJIT != m_dsp_lle->isChecked())
   {
-    OnDspChanged();
+    OnDSPChanged();
   }
   SConfig::GetInstance().bDSPHLE = m_dsp_hle->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_DSP_HLE, m_dsp_hle->isChecked());
@@ -475,20 +481,10 @@ void AudioPane::SaveSettings()
     }
   }
 
-  std::string deviceSampleRate = "0";
-
-  bool canSelectDeviceSampleRate =
-      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
-  if (m_wasapi_device_sample_rate_combo->currentIndex() > 0 && canSelectDeviceSampleRate)
+  std::string device_sample_rate = GetWASAPIDeviceSampleRate();
+  if (SConfig::GetInstance().sWASAPIDeviceSampleRate != device_sample_rate)
   {
-    QString qs = m_wasapi_device_sample_rate_combo->currentText();
-    qs.chop(3);  // Remove " Hz" from the end
-    deviceSampleRate = qs.toStdString();
-  }
-
-  if (SConfig::GetInstance().sWASAPIDeviceSampleRate != deviceSampleRate)
-  {
-    SConfig::GetInstance().sWASAPIDeviceSampleRate = deviceSampleRate;
+    SConfig::GetInstance().sWASAPIDeviceSampleRate = device_sample_rate;
     backend_setting_changed = true;
   }
 #endif
@@ -497,7 +493,7 @@ void AudioPane::SaveSettings()
                                          surround_enabled_changed);
 }
 
-void AudioPane::OnDspChanged()
+void AudioPane::OnDSPChanged()
 {
   const auto backend = SConfig::GetInstance().sBackend;
 
@@ -540,6 +536,7 @@ void AudioPane::OnBackendChanged()
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
 
+    // TODO: The UI isn't updated when any device changes or the user changes any settings
     for (const auto device : WASAPIStream::GetAvailableDevices())
       m_wasapi_device_combo->addItem(QString::fromStdString(device));
 
@@ -559,23 +556,31 @@ void AudioPane::OnWASAPIDeviceChanged()
   m_ignore_save_settings = true;
 
   m_wasapi_device_sample_rate_combo->clear();
+  m_wasapi_device_supports_default_sample_rate = false;
   // Don't allow users to select a sample rate for the default device,
   // even though that would be possible, the default device can change
   // at any time so it wouldn't make sense
-  bool canSelectDeviceSampleRate =
+  bool can_select_device_sample_rate =
       SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
-  if (canSelectDeviceSampleRate)
+  if (can_select_device_sample_rate)
   {
     m_wasapi_device_sample_rate_combo->setEnabled(true);
     m_wasapi_device_sample_rate_label->setEnabled(true);
 
-    m_wasapi_device_sample_rate_combo->addItem(
-        tr("Default Dolphin Sample Rate (%1 Hz)").arg(AudioCommon::GetDefaultSampleRate()));
-
-    for (const auto deviceSampleRate : WASAPIStream::GetSelectedDeviceSampleRates())
+    for (const auto device_sample_rate : WASAPIStream::GetSelectedDeviceSampleRates())
     {
+      if (device_sample_rate == AudioCommon::GetDefaultSampleRate())
+      {
+        m_wasapi_device_supports_default_sample_rate = true;
+      }
       m_wasapi_device_sample_rate_combo->addItem(
-          QString::number(deviceSampleRate).append(tr(" Hz")));
+          QString::number(device_sample_rate).append(tr(" Hz")));
+    }
+
+    if (m_wasapi_device_supports_default_sample_rate)
+    {
+      m_wasapi_device_sample_rate_combo->insertItem(
+          0, tr("Default Dolphin Sample Rate (%1 Hz)").arg(AudioCommon::GetDefaultSampleRate()));
     }
   }
   else
@@ -585,7 +590,7 @@ void AudioPane::OnWASAPIDeviceChanged()
     if (m_running)
     {
       std::string sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate;
-      if (sample_rate_text == "0")
+      if (sample_rate_text == WASAPI_INVALID_SAMPLE_RATE)
       {
         sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate());
       }
@@ -595,7 +600,7 @@ void AudioPane::OnWASAPIDeviceChanged()
     else
     {
       m_wasapi_device_sample_rate_combo->addItem(
-          tr("Select a Device (%1 Hz)").arg(AudioCommon::GetDefaultSampleRate()));
+          tr("Select a Device (%1 Hz)").arg(AudioCommon::GetOSMixerSampleRate()));
     }
   }
 
@@ -604,23 +609,43 @@ void AudioPane::OnWASAPIDeviceChanged()
 
 void AudioPane::LoadWASAPIDeviceSampleRate()
 {
-  bool canSelectDeviceSampleRate =
+  bool can_select_device_sample_rate =
       SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
-  if (SConfig::GetInstance().sWASAPIDeviceSampleRate == "0" || !canSelectDeviceSampleRate)
+  if (SConfig::GetInstance().sWASAPIDeviceSampleRate == WASAPI_INVALID_SAMPLE_RATE ||
+      !can_select_device_sample_rate)
   {
+    // Even if we had specified a custom device thay didn't support Dolphin's default sample rate,
+    // we pre-select the highest possible sample rate from the list and leave users the choice
     m_wasapi_device_sample_rate_combo->setCurrentIndex(0);
-    SConfig::GetInstance().sWASAPIDeviceSampleRate = "0";
+    SConfig::GetInstance().sWASAPIDeviceSampleRate = GetWASAPIDeviceSampleRate();
   }
   else
   {
-    std::string sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + " Hz";
-    m_wasapi_device_sample_rate_combo->setCurrentText(QString::fromStdString(sample_rate_text));
+    QString device_sample_rate =
+        tr("%1 Hz").arg(QString::fromStdString(SConfig::GetInstance().sWASAPIDeviceSampleRate));
+    m_wasapi_device_sample_rate_combo->setCurrentText(device_sample_rate);
     // Saved sample rate not found, reset it
-    if (m_wasapi_device_combo->currentIndex() < 1)
+    if (m_wasapi_device_sample_rate_combo->currentText() != device_sample_rate)
     {
-      SConfig::GetInstance().sWASAPIDeviceSampleRate = "0";
+      m_wasapi_device_sample_rate_combo->setCurrentIndex(0);
+      SConfig::GetInstance().sWASAPIDeviceSampleRate = GetWASAPIDeviceSampleRate();
     }
   }
+}
+
+std::string AudioPane::GetWASAPIDeviceSampleRate() const
+{
+  bool can_select_device_sample_rate =
+      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
+  if ((!m_wasapi_device_supports_default_sample_rate ||
+       m_wasapi_device_sample_rate_combo->currentIndex() > 0) &&
+      can_select_device_sample_rate)
+  {
+    QString device_sample_rate = m_wasapi_device_sample_rate_combo->currentText();
+    device_sample_rate.chop(tr(" Hz").length());  // Remove " Hz" from the end
+    return device_sample_rate.toStdString();
+  }
+  return WASAPI_INVALID_SAMPLE_RATE;
 }
 #endif
 
@@ -645,7 +670,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {
     // TODO: If the audio device turned out unable to support surround, add the text "failed" in the
-    // UI name, so the user can try to enable it again or disable surround from the game.
+    // label and gray it out, so users can try to enable it again or disable surround from the game
     bool enable_dolby_pro_logic = supports_current_emulation_state;
     m_dolby_pro_logic->setEnabled(enable_dolby_pro_logic);
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
@@ -662,11 +687,11 @@ void AudioPane::OnEmulationStateChanged(bool running)
 #ifdef _WIN32
   m_wasapi_device_label->setEnabled(supports_current_emulation_state);
   m_wasapi_device_combo->setEnabled(supports_current_emulation_state);
-  bool canSelectDeviceSampleRate =
+  bool can_select_device_sample_rate =
       SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME &&
       supports_current_emulation_state;
-  m_wasapi_device_sample_rate_label->setEnabled(canSelectDeviceSampleRate);
-  m_wasapi_device_sample_rate_combo->setEnabled(canSelectDeviceSampleRate);
+  m_wasapi_device_sample_rate_label->setEnabled(can_select_device_sample_rate);
+  m_wasapi_device_sample_rate_combo->setEnabled(can_select_device_sample_rate);
   bool is_wasapi = backend == BACKEND_WASAPI;
   if (is_wasapi)
   {

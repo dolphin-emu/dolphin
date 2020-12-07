@@ -385,9 +385,10 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
     return device_sample_rates;
   }
 
-  // Anything below 48kHz should not be used, but I've added 44.1kHz in case
-  // a device doesn't support 48kHz. Any new value can be added here
-  unsigned long worst_to_best_sample_rates[5] = {44100, 48000, 96000, 192000, 384000};
+  // Anything below 48kHz should not be used, but I've added 44.1kHz and 32kHz in case
+  // a device doesn't support 48kHz. Any new value can be added here.
+  // Unfortunately there is no easy way to get the list of supported formats.
+  unsigned long worst_to_best_sample_rates[6] = {32000, 44100, 48000, 96000, 192000, 384000};
   s32 i = ARRAYSIZE(worst_to_best_sample_rates) - 1;
 
   WAVEFORMATEXTENSIBLE format;
@@ -431,10 +432,13 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
     --i;
   }
 
-  HandleWinAPI("Found no supported device formats, will default to " +
-                   std::to_string(AudioCommon::GetDefaultSampleRate()) +
-                   " whether supported or not",
-               result);
+  if (device_sample_rates.size() == 0)
+  {
+    HandleWinAPI("Found no supported device formats, will default to " +
+                     std::to_string(AudioCommon::GetDefaultSampleRate()) +
+                     " whether supported or not",
+                 result);
+  }
 
   device->Release();
   audio_client->Release();
@@ -493,14 +497,18 @@ bool WASAPIStream::SetRunning(bool running)
 
   if (running)
   {
-    unsigned long sample_rate = AudioCommon::GetDefaultSampleRate();
+    bool using_default_device = SConfig::GetInstance().sWASAPIDevice == DEFAULT_DEVICE_NAME;
+    // Start from the current OS selected Mixer sample rate if we are the default device. This is
+    // because the default device might not support Dolphin's default sample rate, thus WASAPI would
+    // fail to start
+    unsigned long sample_rate = using_default_device ? AudioCommon::GetOSMixerSampleRate() :
+                                                       AudioCommon::GetDefaultSampleRate();
 
     // Make sure the selected mode is still supported (ignored if we are using the default device)
     char* pEnd = nullptr;
     unsigned long user_preferred_sample_rate =
         std::strtoull(SConfig::GetInstance().sWASAPIDeviceSampleRate.c_str(), &pEnd, 10);
-    if (SConfig::GetInstance().sWASAPIDevice != DEFAULT_DEVICE_NAME && pEnd != nullptr &&
-        user_preferred_sample_rate != 0)
+    if (!using_default_device && pEnd != nullptr && user_preferred_sample_rate != 0)
     {
       std::vector<unsigned long> selected_device_sample_rates =
           WASAPIStream::GetSelectedDeviceSampleRates();
@@ -659,8 +667,8 @@ bool WASAPIStream::SetRunning(bool running)
       result = m_audio_client->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, stream_flags, device_period,
                                           device_period, &m_format.Format, nullptr);
     }
-    // TODO: just like we do above, fallback here if we don't support surround. We should also
-    // add support for more devices (e.g. bitrate, channels, format) by falling back as well
+    // TODO: just like we do above, we should add support for more devices
+    // (e.g. bitrate, channels, format) by falling back and trying again
 
     if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
