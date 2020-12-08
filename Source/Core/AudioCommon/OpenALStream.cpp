@@ -120,6 +120,8 @@ bool OpenALStream::Init()
     return false;
   }
 
+  m_use_surround = SConfig::GetInstance().ShouldUseDPL2Decoder();
+
   m_mixer->UpdateSettings(SConfig::GetInstance().bUseOSMixerSampleRate ?
                               AudioCommon::GetOSMixerSampleRate() :
                               AudioCommon::GetDefaultSampleRate());
@@ -223,15 +225,14 @@ void OpenALStream::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - openal");
 
-  bool float32_capable = palIsExtensionPresent("AL_EXT_float32") != 0;
-  bool surround_capable = palIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
-  bool use_surround = SConfig::GetInstance().ShouldUseDPL2Decoder() && surround_capable;
-
+  bool float32_capable = palIsExtensionPresent("AL_EXT_float32");
   // As there is no extension to check for 32-bit fixed point support
   // and we know that only a X-Fi with hardware OpenAL supports it,
   // we just check if one is being used.
   bool fixed32_capable = IsCreativeXFi();
 
+  // TODO: there is no reason for OpenAL to not have SupportsRuntimeSettingsChanges() as true
+  // as everything can be changed the loop below, though being deprecated I didn't bother
   u32 frequency = m_mixer->GetSampleRate();
 
   // Can't have zero samples per buffer
@@ -298,7 +299,7 @@ void OpenALStream::SoundLoop()
 
     unsigned int min_frames = frames_per_buffer;
 
-    if (use_surround)
+    if (m_use_surround)
     {
       std::array<float, OAL_MAX_FRAMES * SURROUND_CHANNELS> dpl2;
       u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
@@ -352,9 +353,9 @@ void OpenALStream::SoundLoop()
       if (err == AL_INVALID_ENUM)
       {
         // 5.1 is not supported by the host, fallback to stereo in the next audio frame
-        WARN_LOG_FMT(
-            AUDIO, "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
-        use_surround = false;
+        WARN_LOG_FMT(AUDIO, "Unable to set 5.1 surround mode, falling back to 2.0. Updating OpenAL "
+                        "Soft might fix this issue.");
+        m_use_surround = false;
       }
     }
     else

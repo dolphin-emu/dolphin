@@ -22,6 +22,7 @@ public:
 
   bool Init() override;
   bool SetRunning(bool running) override { return running; }
+  bool IsSurroundEnabled() const override { return !m_stereo; }
   static bool IsValid() { return true; }
   void StateCallback(pa_context* c);
   void WriteCallback(pa_stream* s, size_t length);

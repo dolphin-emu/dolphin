@@ -23,6 +23,8 @@ public:
   void SetVolume(int) override;
 
   bool SupportsRuntimeSettingsChanges() const override { return true; }
+  // Cubeb will accept a 6.0 channels stream even if our device does not support it
+  // by just downmixing it (thus making it partially pointless)
   bool IsSurroundEnabled() const override { return !m_stereo; }
   void OnSettingsChanged() override
   {

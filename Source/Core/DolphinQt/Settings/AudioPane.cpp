@@ -135,10 +135,12 @@ void AudioPane::CreateWidgets()
 
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
-         "emulation engines only.\nAutomatically disabled if not supported by your audio device."
-         "\nYou need to enable surround from the game settings in GC games or in the menu settings "
+         "emulation engines only.\n"
+         "You need to enable surround from the game settings in GC games or in the menu settings "
          "on Wii."
          "\nThe emulation will still output 2.0, but the encoder will extract information for 5.1."
+         "\nSome backends will notify when failed to enable it,"
+         "\nwhile some other will just downmix it to stereo if not supported."
          "\nIf you align your backend latency to the DPLII block size,"
          "\nthe added latency will be half the DPLII block size."
          "\nIf unsure, leave off."));
@@ -161,10 +163,8 @@ void AudioPane::CreateWidgets()
 
   m_use_os_sample_rate->setToolTip(
       tr("Directly mixes and outputs at the current OS mixer sample rate (as opposed to %1 "
-         "Hz).\nThis will make resampling from 32 kHz sources more accurate, possibly improving"
-         " audio\n"
-         "quality at the cost of performance. It won't follow changes to your OS setting after "
-         "start."
+         "Hz).\nIt avoids any additional resamplings, possibly improving quality and performance."
+         "\nIt won't follow changes to your OS setting after starting the emulation."
          "\nIf unsure, leave off.")
           .arg(AudioCommon::GetDefaultSampleRate()));
 
@@ -748,6 +748,7 @@ void AudioPane::OnVolumeChanged(int volume)
 void AudioPane::OnCustomShowPopup(QWidget* widget)
 {
 #ifdef _WIN32
+  // Refresh the WASAPI devices every time we try to select them
   if (widget == m_wasapi_device_combo)
   {
     m_ignore_save_settings = true;
@@ -802,19 +803,21 @@ QString AudioPane::GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value)
 void AudioPane::RefreshDolbyWidgets()
 {
   const auto backend = SConfig::GetInstance().sBackend;
-  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() && m_running &&
-      AudioCommon::BackendSupportsRuntimeSettingsChanges())
+  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() && m_running)
   {
     bool surround_enabled = AudioCommon::IsSurroundEnabled();
     if (!surround_enabled && SConfig::GetInstance().bDPL2Decoder)
     {
+      // This message will likely only appear if the audio backend has failed to
+      // initialize because of 5.1, if it fails before that, it won't disable surround
       m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1) (FAILED)"));
     }
     else
     {
       m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
     }
-    EnableDolbyQualityWidgets(surround_enabled);
+    EnableDolbyQualityWidgets(surround_enabled &&
+                              AudioCommon::BackendSupportsRuntimeSettingsChanges());
   }
 }
 

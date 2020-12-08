@@ -217,7 +217,7 @@ bool IsSurroundEnabled()
   {
     return g_sound_stream->IsSurroundEnabled();
   }
-  return SConfig::GetInstance().bDPL2Decoder;
+  return SConfig::GetInstance().ShouldUseDPL2Decoder();
 }
 
 unsigned long GetDefaultSampleRate()

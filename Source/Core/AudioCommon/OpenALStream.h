@@ -63,6 +63,7 @@ public:
   void Update() override;
 
   static bool IsValid();
+  bool IsSurroundEnabled() const override { return m_use_surround; }
 
 private:
   std::thread m_thread;
@@ -72,6 +73,7 @@ private:
   std::array<ALuint, OAL_BUFFERS> m_buffers;
   ALuint m_source;
   ALfloat m_volume;
+  bool m_use_surround;
 
 #endif  // _WIN32
 };

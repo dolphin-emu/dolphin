@@ -38,7 +38,7 @@ PulseAudio::~PulseAudio()
   m_thread.join();
 }
 
-// Called on audio thread.
+// Called on audio thread
 void PulseAudio::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - pulse");
@@ -126,11 +126,44 @@ bool PulseAudio::PulseInit()
   m_pa_error = pa_stream_connect_playback(m_pa_s, nullptr, &m_pa_ba, flags, nullptr, nullptr);
   if (m_pa_error < 0)
   {
-    ERROR_LOG_FMT(AUDIO, "PulseAudio failed to initialize: {}", pa_strerror(m_pa_error));
-    return false;
+    pa_stream_disconnect(m_pa_s);
+    pa_stream_unref(m_pa_s);
+    m_pa_s = nullptr;
+
+    if (m_stereo)
+    {
+      ERROR_LOG_FMT(AUDIO, "PulseAudio failed to initialize (6.0, falling back to 2.0): {}", pa_strerror(m_pa_error));
+      m_stereo = false;
+
+      m_channels = m_stereo ? 2 : 6;
+      ss.format = PA_SAMPLE_S16LE;
+      m_bytespersample = sizeof(s16);
+      ss.channels = m_channels;
+      m_pa_ba.tlength = BUFFER_SAMPLES * m_channels * m_bytespersample;
+      channel_map_p = nullptr;
+      assert(pa_sample_spec_valid(&ss));
+
+      m_pa_s = pa_stream_new(m_pa_ctx, "Playback", &ss, channel_map_p);
+      pa_stream_set_write_callback(m_pa_s, WriteCallback, this);
+      pa_stream_set_underflow_callback(m_pa_s, UnderflowCallback, this);
+
+      m_pa_error = pa_stream_connect_playback(m_pa_s, nullptr, &m_pa_ba, flags, nullptr, nullptr);
+      if (m_pa_error < 0)
+      {
+        pa_stream_disconnect(m_pa_s);
+        pa_stream_unref(m_pa_s);
+        m_pa_s = nullptr;
+      }
+    }
+
+    if (m_pa_error < 0)
+    {
+      ERROR_LOG_FMT(AUDIO, "PulseAudio failed to initialize (2.0): {}", pa_strerror(m_pa_error));
+      return false;
+    }
   }
 
-  INFO_LOG_FMT(AUDIO, "Pulse successfully initialized");
+  INFO_LOG_FMT(AUDIO, "PulseAudio successfully initialized");
   return true;
 }
 
@@ -139,6 +172,9 @@ void PulseAudio::PulseShutdown()
   pa_context_disconnect(m_pa_ctx);
   pa_context_unref(m_pa_ctx);
   pa_mainloop_free(m_pa_ml);
+  m_pa_ml = nullptr;
+  m_pa_mlapi = nullptr;
+  m_pa_ctx = nullptr;
 }
 
 void PulseAudio::StateCallback(pa_context* c)
@@ -157,7 +193,8 @@ void PulseAudio::StateCallback(pa_context* c)
     break;
   }
 }
-// on underflow, increase pulseaudio latency in ~10ms steps
+
+// On underflow, increase pulseaudio latency in ~10ms steps
 void PulseAudio::UnderflowCallback(pa_stream* s)
 {
   m_pa_ba.tlength += BUFFER_SAMPLES * m_channels * m_bytespersample;
