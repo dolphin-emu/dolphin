@@ -33,7 +33,7 @@ constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 
 constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
 constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
-constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
+constexpr size_t GUARD_SIZE = 64 * 1024;  // two guards - bottom (permanent) and middle (see above)
 constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
 
 JitArm64::JitArm64() : m_float_emit(this)
@@ -275,9 +275,9 @@ void JitArm64::AllocStack()
     return;
   }
 
-  m_stack_pointer = m_stack_base + GUARD_OFFSET;
+  m_stack_pointer = m_stack_base + STACK_SIZE;
   Common::ReadProtectMemory(m_stack_base, GUARD_SIZE);
-  Common::ReadProtectMemory(m_stack_pointer, GUARD_SIZE);
+  Common::ReadProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
 #else
   // For windows we just keep using the system stack and reserve a large amount of memory at the end
   // of the stack.
