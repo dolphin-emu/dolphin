@@ -1174,6 +1174,12 @@ namespace prime {
       code_changes.emplace_back(0x8000e73c, 0x60000000);
       code_changes.emplace_back(0x8000f810, 0x48000244);
       code_changes.emplace_back(0x8045c488, 0x4f800000);
+      // When attached to a grapple point and spinning around it
+      // the player's yaw is adjusted, this ensures only position is updated
+      // Grapple point yaw fix
+      code_changes.emplace_back(0x8017a18c, 0x7fa3eb78);
+      code_changes.emplace_back(0x8017a190, 0x3881006c);
+      code_changes.emplace_back(0x8017a194, 0x4bed8cf9);
 
       add_strafe_code_mp1_ntsc();
 
@@ -1192,6 +1198,10 @@ namespace prime {
       code_changes.emplace_back(0x8000EC64, 0x60000000);
       code_changes.emplace_back(0x8000FD20, 0x4800022C);
       code_changes.emplace_back(0x803e43b4, 0x4f800000);
+      // Grapple point yaw fix
+      code_changes.emplace_back(0x8016fc54, 0x7fa3eb78);
+      code_changes.emplace_back(0x8016fc58, 0x38810064); // 6c-8 = 64
+      code_changes.emplace_back(0x8016fc5c, 0x4bee4345); // bl 80053fa0
 
       add_strafe_code_mp1_pal();
 
@@ -1268,6 +1278,9 @@ namespace prime {
       code_changes.emplace_back(0x801af450, 0x48000a34);
       code_changes.emplace_back(0x8018846c, 0xc022a5b0);
       code_changes.emplace_back(0x80188104, 0x4800000c);
+      // Grapple point yaw fix
+      code_changes.emplace_back(0x8011d9c4, 0x389d0054);
+      code_changes.emplace_back(0x8011d9c8, 0x4bf2d1fd);
 
       mp2_gc_static.state_mgr_address = 0x803db6e0;
       mp2_gc_static.player_tweak_offset = 0x6e3c;
@@ -1282,6 +1295,9 @@ namespace prime {
       code_changes.emplace_back(0x801af75c, 0x48000a34);
       code_changes.emplace_back(0x80188754, 0xc022d16c);
       code_changes.emplace_back(0x801883ec, 0x4800000c);
+      // Grapple point yaw fix
+      code_changes.emplace_back(0x8011dbf8, 0x389d0054);
+      code_changes.emplace_back(0x8011dbfc, 0x4bf2d145);  // bl 8004ad40
 
       mp2_gc_static.state_mgr_address = 0x803dc900;
       mp2_gc_static.player_tweak_offset = 0x6e34;
