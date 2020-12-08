@@ -190,9 +190,9 @@ namespace prime {
   }
 
   void FpsControls::run_mod_mp1_gc() {
-    if (read32(mp1_gc_static.orbit_state_address) != ORBIT_STATE_GRAPPLE &&
-      read8(mp1_gc_static.orbit_state_address)) {
-      write32(0, mp1_gc_static.yaw_vel_address);
+    const u32 orbit_state = read32(mp1_gc_static.orbit_state_address);
+    if (orbit_state != ORBIT_STATE_GRAPPLE &&
+      orbit_state != 0) {
       return;
     }
 
@@ -205,7 +205,7 @@ namespace prime {
       // Actual angular velocity Z address amazing
       writef32(calculate_yaw_vel() / 200.f, mp1_gc_static.yaw_vel_address);
     }
-
+    
     for (int i = 0; i < 8; i++) {
       writef32(100000000.f, mp1_gc_static.angvel_max_address + i * 4);
       writef32(1.f, mp1_gc_static.angvel_max_address + i * 4 - 32);
@@ -283,7 +283,6 @@ namespace prime {
     const u32 orbit_state = read32(cplayer_address + 0x3a4);
     if (orbit_state != ORBIT_STATE_GRAPPLE &&
       orbit_state != 0) {
-      write32(0, cplayer_address + 0x1bc);
       return;
     }
 
@@ -1196,12 +1195,12 @@ namespace prime {
 
       add_strafe_code_mp1_pal();
 
-      mp1_gc_static.yaw_vel_address = 0x803F38A4 + 0x15C;
-      mp1_gc_static.pitch_address = 0x803F38A4 + 0x3fC;
+      mp1_gc_static.yaw_vel_address = 0x803F38B4 + 0x14C;
+      mp1_gc_static.pitch_address = 0x803F38B4 + 0x3ec;
       mp1_gc_static.angvel_max_address = 0x803E4134 + 0x84;
-      mp1_gc_static.orbit_state_address = 0x803F38A4 + 0x304;
+      mp1_gc_static.orbit_state_address = 0x803F38B4 + 0x304;
       mp1_gc_static.tweak_player_address = 0x803E4134;
-      mp1_gc_static.cplayer_address = 0x803F38A4;
+      mp1_gc_static.cplayer_address = 0x803F38B4;
     }
     else {}
   }
