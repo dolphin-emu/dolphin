@@ -130,10 +130,10 @@ bool PulseAudio::PulseInit()
     pa_stream_unref(m_pa_s);
     m_pa_s = nullptr;
 
-    if (m_stereo)
+    if (!m_stereo)
     {
       ERROR_LOG_FMT(AUDIO, "PulseAudio failed to initialize (6.0, falling back to 2.0): {}", pa_strerror(m_pa_error));
-      m_stereo = false;
+      m_stereo = true;
 
       m_channels = m_stereo ? 2 : 6;
       ss.format = PA_SAMPLE_S16LE;
