@@ -149,7 +149,8 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
   const u64 title_id = wad.GetTMD().GetTitleId();
 
   // Skip the install if the WAD is already installed.
-  const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(wad.GetTMD());
+  const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(
+      wad.GetTMD(), IOS::HLE::Device::ES::CheckContentHashes::Yes);
   if (wad.GetTMD().GetContents() == installed_contents)
   {
     // Clear the "temporary title ID" flag in case the user tries to permanently install a title
