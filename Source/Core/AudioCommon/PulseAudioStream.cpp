@@ -120,7 +120,7 @@ bool PulseAudio::PulseInit()
   m_pa_ba.tlength =
       BUFFER_SAMPLES * m_channels *
       m_bytespersample;  // designed latency, only change this flag for low latency output
-  // TODO: review this, audio stretching and DPLII won't work correctly if the latency is dynamic
+  // TODO: review this, audio stretching and DPLII won't work correctly if latency is dynamic
   pa_stream_flags flags = pa_stream_flags(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY |
                                           PA_STREAM_AUTO_TIMING_UPDATE);
   m_pa_error = pa_stream_connect_playback(m_pa_s, nullptr, &m_pa_ba, flags, nullptr, nullptr);
@@ -132,7 +132,8 @@ bool PulseAudio::PulseInit()
 
     if (!m_stereo)
     {
-      ERROR_LOG_FMT(AUDIO, "PulseAudio failed to initialize (6.0, falling back to 2.0): {}", pa_strerror(m_pa_error));
+      ERROR_LOG_FMT(AUDIO, "PulseAudio failed to initialize (6.0, falling back to 2.0): {}",
+                pa_strerror(m_pa_error));
       m_stereo = true;
 
       m_channels = m_stereo ? 2 : 6;
