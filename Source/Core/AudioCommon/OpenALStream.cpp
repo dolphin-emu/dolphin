@@ -223,7 +223,7 @@ static bool IsCreativeXFi()
 
 void OpenALStream::SoundLoop()
 {
-  Common::SetCurrentThreadName("Audio thread - openal");
+  Common::SetCurrentThreadName("Audio thread - OpenAL");
 
   bool float32_capable = palIsExtensionPresent("AL_EXT_float32");
   // As there is no extension to check for 32-bit fixed point support

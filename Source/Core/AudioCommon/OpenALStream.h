@@ -54,7 +54,7 @@ class OpenALStream final : public SoundStream
 {
 #ifdef _WIN32
 public:
-  OpenALStream() : m_source(0) {}
+  OpenALStream() : m_source(0), m_use_surround(false) {}
   ~OpenALStream() override;
   bool Init() override;
   void SoundLoop() override;
@@ -74,6 +74,5 @@ private:
   ALuint m_source;
   ALfloat m_volume;
   bool m_use_surround;
-
 #endif  // _WIN32
 };

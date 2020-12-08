@@ -481,6 +481,7 @@ bool WASAPIStream::Init()
   result = m_enumerator->RegisterEndpointNotificationCallback(m_notification_client);
   if (FAILED(result))
   {
+    // We can continue without this
     m_notification_client->Release();
     m_notification_client = nullptr;
   }

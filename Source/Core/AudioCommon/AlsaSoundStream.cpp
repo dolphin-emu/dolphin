@@ -34,6 +34,7 @@ bool AlsaSound::Init()
   m_thread_status.store(ALSAThreadStatus::PAUSED);
   if (!AlsaInit())
   {
+    AlsaShutdown();
     m_thread_status.store(ALSAThreadStatus::STOPPED);
     return false;
   }
