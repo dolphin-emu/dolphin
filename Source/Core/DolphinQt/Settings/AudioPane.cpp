@@ -4,7 +4,6 @@
 
 #include "DolphinQt/Settings/AudioPane.h"
 
-#include <cassert>
 #include <cmath>
 
 #include <QCheckBox>
@@ -25,17 +24,14 @@
 #include "AudioCommon/Enums.h"
 #include "AudioCommon/WASAPIStream.h"
 
+#include "Common/Logging/Log.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/SettingsWindow.h"
 #include "DolphinQt/Settings.h"
-
-#ifdef _WIN32
-#define WASAPI_DEFAULT_DEVICE_NAME "default"
-#define WASAPI_INVALID_SAMPLE_RATE "0"
-#endif
 
 void ClickEventComboBox::showPopup()
 {
@@ -485,20 +481,21 @@ void AudioPane::SaveSettings()
         tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));
 
 #ifdef _WIN32
-  // If left at default, Dolphin will automatically
-  // pick a device and sample rate
-  std::string device = WASAPI_DEFAULT_DEVICE_NAME;
+  // If left at default, Dolphin will automatically pick a device and sample rate
+  std::string device_id = "";
+  bool default_device = m_wasapi_device_combo->currentIndex() <= 0;
 
-  if (m_wasapi_device_combo->currentIndex() > 0)
-    device = m_wasapi_device_combo->currentText().toStdString();
+  if (!default_device)
+    device_id = m_wasapi_devices_ids[m_wasapi_device_combo->currentIndex() - 1];
 
-  bool device_changed = SConfig::GetInstance().sWASAPIDevice != device;
+  bool device_changed = SConfig::GetInstance().sWASAPIDeviceID != device_id;
 
   // Force OnWASAPIDeviceChanged() to be called if we have the default device to update some labels
-  if (device_changed || device == WASAPI_DEFAULT_DEVICE_NAME)
+  if (device_changed || default_device)
   {
-    assert(device != ""); //To turn into a log and delete the include WARN_LOG(AUDIO, "WASAPI: Device names called \"%s\" are not supported", DEFAULT_DEVICE_NAME);
-    SConfig::GetInstance().sWASAPIDevice = device;
+    SConfig::GetInstance().sWASAPIDeviceID = device_id;
+    SConfig::GetInstance().sWASAPIDeviceName =
+        default_device ? "" : m_wasapi_device_combo->currentText().toStdString();
 
     bool is_wasapi = backend == BACKEND_WASAPI;
     if (is_wasapi)
@@ -562,11 +559,15 @@ void AudioPane::OnBackendChanged()
   {
     m_ignore_save_settings = true;
 
+    m_wasapi_devices_ids.clear();
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
 
     for (const auto device : WASAPIStream::GetAvailableDevices())
-      m_wasapi_device_combo->addItem(QString::fromStdString(device));
+    {
+      m_wasapi_devices_ids.emplace_back(device.first);
+      m_wasapi_device_combo->addItem(QString::fromStdString(device.second));
+    }
 
     OnWASAPIDeviceChanged();
 
@@ -588,8 +589,7 @@ void AudioPane::OnWASAPIDeviceChanged()
   // Don't allow users to select a sample rate for the default device,
   // even though that would be possible, the default device can change
   // at any time so it wouldn't make sense
-  bool can_select_device_sample_rate =
-      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
+  bool can_select_device_sample_rate = !SConfig::GetInstance().sWASAPIDeviceID.empty();
   if (can_select_device_sample_rate)
   {
     m_wasapi_device_sample_rate_combo->setEnabled(true);
@@ -625,28 +625,50 @@ void AudioPane::OnWASAPIDeviceChanged()
 
 void AudioPane::LoadWASAPIDevice()
 {
-  if (SConfig::GetInstance().sWASAPIDevice == WASAPI_DEFAULT_DEVICE_NAME)
+  if (SConfig::GetInstance().sWASAPIDeviceID.empty() &&
+      SConfig::GetInstance().sWASAPIDeviceName.empty())
   {
     m_wasapi_device_combo->setCurrentIndex(0);
   }
   else
   {
-    QString device = QString::fromStdString(SConfig::GetInstance().sWASAPIDevice);
-    m_wasapi_device_combo->setCurrentText(device);
-    // Saved device not found, reset it (don't reset the saved sample rate)
-    if (m_wasapi_device_combo->currentText() != device)
+    bool try_with_name = true;
+    s32 i = 0;
+    std::vector<std::string>::iterator it = std::find(m_wasapi_devices_ids.begin(), m_wasapi_devices_ids.end(),
+              SConfig::GetInstance().sWASAPIDeviceID);
+    if (it != m_wasapi_devices_ids.end())
     {
-      m_wasapi_device_combo->setCurrentIndex(0);
-      SConfig::GetInstance().sWASAPIDevice = WASAPI_DEFAULT_DEVICE_NAME;
+      i = std::distance(m_wasapi_devices_ids.begin(), it) + 1;
+    }
+    if (i > 0)
+    {
+      try_with_name = false;
+      m_wasapi_device_combo->setCurrentIndex(i);
+      if (m_wasapi_device_combo->currentIndex() != i)
+      {
+        try_with_name = true;
+      }
+    }
+
+    if (try_with_name)
+    {
+      QString device = QString::fromStdString(SConfig::GetInstance().sWASAPIDeviceName);
+      m_wasapi_device_combo->setCurrentText(device);
+      // Saved device not found, reset it (don't reset the saved sample rate)
+      if (m_wasapi_device_combo->currentText() != device)
+      {
+        m_wasapi_device_combo->setCurrentIndex(0);
+        SConfig::GetInstance().sWASAPIDeviceID = "";
+        SConfig::GetInstance().sWASAPIDeviceName = "";
+      }
     }
   }
 }
 
 void AudioPane::LoadWASAPIDeviceSampleRate()
 {
-  bool can_select_device_sample_rate =
-      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
-  if (SConfig::GetInstance().sWASAPIDeviceSampleRate == WASAPI_INVALID_SAMPLE_RATE ||
+  bool can_select_device_sample_rate = !SConfig::GetInstance().sWASAPIDeviceID.empty();
+  if (SConfig::GetInstance().sWASAPIDeviceSampleRate.empty() ||
       !can_select_device_sample_rate)
   {
     // Even if we had specified a custom device thay didn't support Dolphin's default sample rate,
@@ -670,8 +692,7 @@ void AudioPane::LoadWASAPIDeviceSampleRate()
 
 std::string AudioPane::GetWASAPIDeviceSampleRate() const
 {
-  bool can_select_device_sample_rate =
-      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME;
+  bool can_select_device_sample_rate = !SConfig::GetInstance().sWASAPIDeviceID.empty();
   if ((!m_wasapi_device_supports_default_sample_rate ||
        m_wasapi_device_sample_rate_combo->currentIndex() > 0) &&
       can_select_device_sample_rate)
@@ -680,7 +701,7 @@ std::string AudioPane::GetWASAPIDeviceSampleRate() const
     device_sample_rate.chop(tr(" Hz").length());  // Remove " Hz" from the end
     return device_sample_rate.toStdString();
   }
-  return WASAPI_INVALID_SAMPLE_RATE;
+  return "";
 }
 #endif
 
@@ -723,8 +744,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_wasapi_device_label->setEnabled(supports_current_emulation_state);
   m_wasapi_device_combo->setEnabled(supports_current_emulation_state);
   bool can_select_device_sample_rate =
-      SConfig::GetInstance().sWASAPIDevice != WASAPI_DEFAULT_DEVICE_NAME &&
-      supports_current_emulation_state;
+      !SConfig::GetInstance().sWASAPIDeviceID.empty() && supports_current_emulation_state;
   m_wasapi_device_sample_rate_label->setEnabled(can_select_device_sample_rate);
   m_wasapi_device_sample_rate_combo->setEnabled(can_select_device_sample_rate);
   bool is_wasapi = backend == BACKEND_WASAPI;
@@ -754,22 +774,26 @@ void AudioPane::OnCustomShowPopup(QWidget* widget)
   {
     m_ignore_save_settings = true;
 
+    m_wasapi_devices_ids.clear();
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
 
     for (const auto device : WASAPIStream::GetAvailableDevices())
-      m_wasapi_device_combo->addItem(QString::fromStdString(device));
+    {
+      m_wasapi_devices_ids.emplace_back(device.first);
+      m_wasapi_device_combo->addItem(QString::fromStdString(device.second));
+    }
 
-    std::string device = SConfig::GetInstance().sWASAPIDevice;
+    std::string device_id = SConfig::GetInstance().sWASAPIDeviceID;
 
     LoadWASAPIDevice();
 
     m_ignore_save_settings = false;
 
-    if (device != SConfig::GetInstance().sWASAPIDevice)
+    if (device_id != SConfig::GetInstance().sWASAPIDeviceID)
     {
-      // Restore it so that saving will trigger OnWASAPIDeviceChanged() again
-      SConfig::GetInstance().sWASAPIDevice = device;
+      // Restore it so that SaveSettings() will trigger OnWASAPIDeviceChanged()
+      SConfig::GetInstance().sWASAPIDeviceID = device_id;
 
       SaveSettings();
     }

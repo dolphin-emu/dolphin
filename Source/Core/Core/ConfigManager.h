@@ -308,7 +308,8 @@ struct SConfig
 
 #ifdef _WIN32
   // WSAPI settings
-  std::string sWASAPIDevice;
+  std::string sWASAPIDeviceName;
+  std::string sWASAPIDeviceID;
   std::string sWASAPIDeviceSampleRate;
 #endif
 

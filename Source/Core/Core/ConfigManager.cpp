@@ -280,7 +280,8 @@ void SConfig::SaveDSPSettings(IniFile& ini)
   dsp->Set("CaptureLog", m_DSPCaptureLog);
 
 #ifdef _WIN32
-  dsp->Set("WASAPIDevice", sWASAPIDevice);
+  dsp->Set("WASAPIDeviceName", sWASAPIDeviceName);
+  dsp->Set("WASAPIDeviceID", sWASAPIDeviceID);
   dsp->Set("WASAPIDeviceSampleRate", sWASAPIDeviceSampleRate);
 #endif
 }
@@ -553,8 +554,9 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 
 #ifdef _WIN32
-  dsp->Get("WASAPIDevice", &sWASAPIDevice, "default");
-  dsp->Get("WASAPIDeviceSampleRate", &sWASAPIDeviceSampleRate, "0");
+  dsp->Get("WASAPIDeviceName", &sWASAPIDeviceName, "");
+  dsp->Get("WASAPIDeviceID", &sWASAPIDeviceID, "");
+  dsp->Get("WASAPIDeviceSampleRate", &sWASAPIDeviceSampleRate, "");
 #endif
 
   m_IsMuted = false;

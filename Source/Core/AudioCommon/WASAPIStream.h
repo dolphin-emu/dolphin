@@ -45,8 +45,11 @@ public:
   void OnSettingsChanged() override { m_should_restart = true; }
 
   static bool IsValid() { return true; }
-  static std::vector<std::string> GetAvailableDevices();
+  // Returns the IDs and Names of all the devices
+  static std::vector<std::pair<std::string, std::string>> GetAvailableDevices();
+  // Returns the first device found with the (friendly) name we passed in
   static IMMDevice* GetDeviceByName(const std::string& name);
+  static IMMDevice* GetDeviceByID(const std::string& id);
   // Returns the user selected device supported sample rates at 16 bit and 2 channels,
   // so it ignores 24 bit or support for 5 channels. If we are starting up WASAPI with DPL2 on,
   // it will try these sample rates anyway, or fallback to the dolphin default one,

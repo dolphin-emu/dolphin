@@ -25,9 +25,6 @@
 
 #define STEREO_CHANNELS 2
 #define SURROUND_CHANNELS 6
-// Name that the config string we read from will have if it wants the default device/endpoint to be
-// used. This is better than an empty string as some devices might theoretically not have a name
-#define DEFAULT_DEVICE_NAME "default"
 
 // Helper to avoid having to call CoUninitialize() on multiple return cases
 class AutoCoInit
@@ -197,7 +194,7 @@ WASAPIStream::~WASAPIStream()
   }
 }
 
-std::vector<std::string> WASAPIStream::GetAvailableDevices()
+std::vector<std::pair<std::string, std::string>> WASAPIStream::GetAvailableDevices()
 {
   AutoCoInit aci;
   if (!aci.Succeeded())
@@ -212,7 +209,7 @@ std::vector<std::string> WASAPIStream::GetAvailableDevices()
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return {};
 
-  std::vector<std::string> device_names;
+  std::vector<std::pair<std::string, std::string>> device_ids_and_names;
   IMMDeviceCollection* devices;
   result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
 
@@ -228,39 +225,51 @@ std::vector<std::string> WASAPIStream::GetAvailableDevices()
   for (u32 i = 0; i < count; ++i)
   {
     IMMDevice* device;
-    devices->Item(i, &device);
+    result = devices->Item(i, &device);
     if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
       continue;
 
     IPropertyStore* device_properties;
-
     result = device->OpenPropertyStore(STGM_READ, &device_properties);
 
     if (!HandleWinAPI("Failed to get IPropertyStore", result))
+    {
+      device->Release();
       continue;
+    }
 
     PROPVARIANT device_name;
     PropVariantInit(&device_name);
+    result = device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
 
-    device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
-
-    device_names.push_back(TStrToUTF8(device_name.pwszVal));
-
-    if (device_names.back() == DEFAULT_DEVICE_NAME)
+    if (!HandleWinAPI("Failed to get Device Name", result))
     {
-      WARN_LOG(AUDIO, "WASAPI: Device names called \"%s\" are not supported", DEFAULT_DEVICE_NAME);
+      device_properties->Release();
+      device_properties = nullptr;
+      device->Release();
+      continue;
+    }
+
+    wchar_t* device_id = nullptr;
+    result = device->GetId(&device_id);
+
+    if (HandleWinAPI("Failed to get Device ID", result))
+    {
+      device_ids_and_names.push_back(
+          std::make_pair(TStrToUTF8(device_id), TStrToUTF8(device_name.pwszVal)));
+      CoTaskMemFree(device_id);
     }
 
     PropVariantClear(&device_name);
-
     device_properties->Release();
     device_properties = nullptr;
+    device->Release();
   }
 
   devices->Release();
   enumerator->Release();
 
-  return device_names;
+  return device_ids_and_names;
 }
 
 IMMDevice* WASAPIStream::GetDeviceByName(const std::string& name)
@@ -284,8 +293,10 @@ IMMDevice* WASAPIStream::GetDeviceByName(const std::string& name)
   if (!HandleWinAPI("Failed to get available devices", result))
   {
     enumerator->Release();
-    return {};
+    return nullptr;
   }
+
+  IMMDevice* found_device = nullptr;
 
   UINT count;
   devices->GetCount(&count);
@@ -293,40 +304,115 @@ IMMDevice* WASAPIStream::GetDeviceByName(const std::string& name)
   for (u32 i = 0; i < count; ++i)
   {
     IMMDevice* device;
-    devices->Item(i, &device);
+    result = devices->Item(i, &device);
     if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
       continue;
 
     IPropertyStore* device_properties;
-
     result = device->OpenPropertyStore(STGM_READ, &device_properties);
 
     if (!HandleWinAPI("Failed to get IPropertyStore", result))
+    {
+      device->Release();
       continue;
+    }
 
     PROPVARIANT device_name;
     PropVariantInit(&device_name);
+    result = device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
 
-    device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
-
-    device_properties->Release();
-    device_properties = nullptr;
+    if (!HandleWinAPI("Failed to get Device Name", result))
+    {
+      device_properties->Release();
+      device_properties = nullptr;
+      device->Release();
+    }
 
     if (TStrToUTF8(device_name.pwszVal) == name)
     {
       PropVariantClear(&device_name);
-      devices->Release();
-      enumerator->Release();
-      return device;
+      device_properties->Release();
+      device_properties = nullptr;
+      found_device = device;
+      break;
     }
-
-    PropVariantClear(&device_name);
+    else
+    {
+      PropVariantClear(&device_name);
+      device_properties->Release();
+      device_properties = nullptr;
+      device->Release();
+    }
   }
 
   devices->Release();
   enumerator->Release();
 
-  return nullptr;
+  return found_device;
+}
+
+IMMDevice* WASAPIStream::GetDeviceByID(const std::string& id)
+{
+  AutoCoInit aci;
+  if (!aci.Succeeded())
+    return nullptr;
+
+  IMMDeviceEnumerator* enumerator = nullptr;
+
+  HRESULT result =
+      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                       __uuidof(IMMDeviceEnumerator), reinterpret_cast<LPVOID*>(&enumerator));
+
+  if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
+    return nullptr;
+
+  IMMDeviceCollection* devices;
+  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
+
+  if (!HandleWinAPI("Failed to get available devices", result))
+  {
+    enumerator->Release();
+    return {};
+  }
+
+  IMMDevice* found_device = nullptr;
+
+  UINT count;
+  devices->GetCount(&count);
+
+  for (u32 i = 0; i < count; ++i)
+  {
+    IMMDevice* device;
+    result = devices->Item(i, &device);
+    if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
+      continue;
+
+    wchar_t* device_id = nullptr;
+    result = device->GetId(&device_id);
+
+    if (!HandleWinAPI("Failed to get Device ID", result))
+    {
+      device->Release();
+      continue;
+    }
+
+    if (TStrToUTF8(device_id) == id)
+    {
+      CoTaskMemFree(device_id);
+      found_device = device;
+      break;
+    }
+    else
+    {
+      CoTaskMemFree(device_id);
+      device->Release();
+    }
+  }
+
+  devices->Release();
+  enumerator->Release();
+
+  return found_device;
 }
 
 std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
@@ -348,7 +434,7 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return device_sample_rates;
 
-  bool using_default_device = SConfig::GetInstance().sWASAPIDevice == DEFAULT_DEVICE_NAME;
+  bool using_default_device = SConfig::GetInstance().sWASAPIDeviceID.empty();
 
   if (using_default_device)
   {
@@ -356,14 +442,18 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
   }
   else
   {
-    device = GetDeviceByName(SConfig::GetInstance().sWASAPIDevice);
+    device = GetDeviceByID(SConfig::GetInstance().sWASAPIDeviceID);
     result = S_OK;
 
     if (!device)
     {
-      ERROR_LOG(AUDIO, "WASAPI: Can't find device '%s', falling back to default",
-                SConfig::GetInstance().sWASAPIDevice.c_str());
-      result = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+      device = GetDeviceByName(SConfig::GetInstance().sWASAPIDeviceName);
+      if (!device)
+      {
+        ERROR_LOG(AUDIO, "WASAPI: Can't find device '%s', falling back to default",
+                  SConfig::GetInstance().sWASAPIDeviceName.c_str());
+        result = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+      }
     }
   }
 
@@ -502,7 +592,7 @@ bool WASAPIStream::SetRunning(bool running)
 
   if (running)
   {
-    bool using_default_device = SConfig::GetInstance().sWASAPIDevice == DEFAULT_DEVICE_NAME;
+    bool using_default_device = SConfig::GetInstance().sWASAPIDeviceID.empty();
     // Start from the current OS selected Mixer sample rate if we are the default device. This is
     // because the default device might not support Dolphin's default sample rate, thus WASAPI would
     // fail to start
@@ -560,29 +650,34 @@ bool WASAPIStream::SetRunning(bool running)
 
     HRESULT result;
 
-    if (SConfig::GetInstance().sWASAPIDevice == DEFAULT_DEVICE_NAME)
+    if (SConfig::GetInstance().sWASAPIDeviceID.empty())
     {
       result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
       m_using_default_device = true;
     }
     else
     {
-      device = GetDeviceByName(SConfig::GetInstance().sWASAPIDevice);
+      device = GetDeviceByID(SConfig::GetInstance().sWASAPIDeviceID);
       result = S_OK;
       m_using_default_device = false;
 
-      // Whether this is the first time WASAPI starts running or not,
-      // we will fallback on the default device if the custom one is not found.
-      // This might happen if the device got removed (WASAPI would trigger m_should_restart).
-      // An alternative would be to NOT fallback on the default device if a custom one
-      // is specified, especially in case the specified one was previously available but then
-      // just got disconnected, but overall, this should be fine
       if (!device)
       {
-        ERROR_LOG(AUDIO, "WASAPI: Can't find device '%s', falling back to default",
-                  SConfig::GetInstance().sWASAPIDevice.c_str());
-        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
-        m_using_default_device = true;
+        device = GetDeviceByName(SConfig::GetInstance().sWASAPIDeviceName);
+
+        // Whether this is the first time WASAPI starts running or not,
+        // we will fallback on the default device if the custom one is not found.
+        // This might happen if the device got removed (WASAPI would trigger m_should_restart).
+        // An alternative would be to NOT fallback on the default device if a custom one
+        // is specified, especially in case the specified one was previously available but then
+        // just got disconnected, but overall, this should be fine
+        if (!device)
+        {
+          ERROR_LOG(AUDIO, "WASAPI: Can't find device '%s', falling back to default",
+                    SConfig::GetInstance().sWASAPIDeviceName.c_str());
+          result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+          m_using_default_device = true;
+        }
       }
     }
 

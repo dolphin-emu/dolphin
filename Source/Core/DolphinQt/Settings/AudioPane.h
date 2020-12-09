@@ -95,6 +95,7 @@ private:
   QLabel* m_wasapi_device_sample_rate_label;
   ClickEventComboBox* m_wasapi_device_combo;
   QComboBox* m_wasapi_device_sample_rate_combo;
+  std::vector<std::string> m_wasapi_devices_ids;
   bool m_wasapi_device_supports_default_sample_rate;
 #endif
 
