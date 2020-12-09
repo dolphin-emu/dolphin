@@ -192,10 +192,11 @@ private:
   // Start at the most common sample rate and pushed samples num per batch
   AudioSpeedCounter m_dma_speed{0.425, 32000, 560};
 
-  u32 m_sample_rate; // Only changed by main or emulation thread when the backend is not running
+  u32 m_sample_rate;  // Only changed by main or emulation thread when the backend is not running
   bool m_stretching = false;
   std::atomic<bool> m_surround_changed{false};
   bool m_was_surround = false;
+  bool m_update_surround_latency = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
 

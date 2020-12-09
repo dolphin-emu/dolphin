@@ -141,8 +141,7 @@ void AudioPane::CreateWidgets()
          "\nThe emulation will still output 2.0, but the encoder will extract information for 5.1."
          "\nSome backends will notify when failed to enable it,"
          "\nwhile some other will just downmix it to stereo if not supported."
-         "\nIf you align your backend latency to the DPLII block size,"
-         "\nthe added latency will be half the DPLII block size."
+         "\nIt will add a latency on top of the backend one."
          "\nIf unsure, leave off."));
 
   if (m_latency_control_supported)
@@ -237,7 +236,9 @@ void AudioPane::CreateWidgets()
   m_dolby_quality_slider->setPageStep(1);
   m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
   m_dolby_quality_slider->setToolTip(
-      tr("Quality of the DPLII decoder. Also increases audio latency"));
+      tr("Quality of the DPLII decoder. Also increases audio latency.\nThe selected preset will be "
+         "used to find the best compromise between quality and latency."));
+
   m_dolby_quality_slider->setTracking(true);
 
   m_dolby_quality_latency_label = new QLabel();
@@ -789,14 +790,14 @@ QString AudioPane::GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value)
   switch (value)
   {
   case AudioCommon::DPL2Quality::Low:
-    return tr("Low (Block Size: %1 ms)").arg(10);
+    return tr("Low (Block Size: ~%1 ms)").arg(10);
   case AudioCommon::DPL2Quality::High:
-    return tr("High (Block Size: %1 ms)").arg(40);
+    return tr("High (Block Size: ~%1 ms)").arg(50);
   case AudioCommon::DPL2Quality::Extreme:
-    return tr("Extreme (Block Size: %1 ms)").arg(80);
+    return tr("Extreme (Block Size: ~%1 ms)").arg(80);
   case AudioCommon::DPL2Quality::Normal:
   default:
-    return tr("Normal (Block Size: %1 ms)").arg(20);
+    return tr("Normal (Block Size: ~%1 ms)").arg(30);
   }
 }
 

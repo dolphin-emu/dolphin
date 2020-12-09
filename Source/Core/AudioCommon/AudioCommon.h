@@ -40,7 +40,7 @@ unsigned long GetDefaultSampleRate();
 // and DVD sample rate, but let's theorize the worse case (GC 48kHz mode: ~48043Hz).
 // Of course we shouldn't use anything above half of what this returns
 unsigned long GetMaxSupportedLatency();
-// Returns the user preferred backend latency.
+// Returns the user preferred backend latency in ms.
 // Can return 0 and is clamped by GetMaxSupportedLatency()
 unsigned long GetUserTargetLatency();
 // Returns the OS mixer sample rate (based on the currently used audio device)

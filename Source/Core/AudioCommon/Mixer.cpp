@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
@@ -24,7 +25,7 @@
 
 Mixer::Mixer(u32 sample_rate)
     : m_sample_rate(sample_rate), m_stretcher(sample_rate),
-      m_surround_decoder(sample_rate)
+      m_surround_decoder(sample_rate, AudioCommon::GetUserTargetLatency() * sample_rate / 1000)
 {
   m_scratch_buffer.reserve(MAX_SAMPLES * NC);
   m_dma_speed.Start(true);
@@ -90,7 +91,11 @@ void Mixer::UpdateSettings(u32 sample_rate)
     else
       m_surround_decoder.Clear();
   }
-  m_surround_decoder.InitAndSetSampleRate(m_sample_rate);
+  m_surround_decoder.Init(m_sample_rate);
+  // Latency might have change but we don't know the new value yet, wait for a Mix() call
+  // from the audio thread to update the surround decoder settings (in the meantime,
+  // it will just be guessed)
+  m_update_surround_latency = true;
   m_last_mix_time = Common::Timer::GetTimeUs();
 }
 
@@ -428,7 +433,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
 
     // What we likely want to do is check the emulation speed difference between the target speed and the averaged emulation speed,
     // but then use the last frame emulation speed for more accuracy (and clamping it to the target speed)
-    static double FallbackDelta = 0.0; //0.005 or before 0.1 //To review and rename both
+    static double FallbackDelta = 0.0;  //0.005 or before 0.1 //To review and rename both
     static double FallbackDelta2 = 0.001;
     // Only do if we are actually going slower, if we are going faster, it's likely to be a slight incorrection of the actual speed (because it's averaged).
     // Given that we ignore the frames where we went faster, overall we will consume less audio samples that what we have received, causing less padding.
@@ -643,8 +648,18 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
   // Our latency might have increased
   m_scratch_buffer.reserve(num_samples * NC);
 
+  // Update the surround decoder with the new latency every time there is a change
+  // or the first time.
+  // Latency might be dynamic so we don't want to keep adjusting the surround decoder
+  // latency optimizations, but we can't easily know the audio backend latency upfront
+  if (m_update_surround_latency && num_samples != 0)
+  {
+    m_update_surround_latency = false;
+    m_surround_decoder.Init(m_sample_rate, num_samples);
+  }
+
   // TODO: we could have a special path here which mixes samples directly in float, given that the
-  // cubic interpolation spits out floats.
+  // cubic interpolation spits out floats
 
   // Time stretching can be applied before decoding 5.1, it should be fine theoretically.
   // Mix() may also use m_scratch_buffer internally, but is safe because we alternate reads
