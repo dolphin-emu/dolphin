@@ -13,6 +13,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/CheatCodes.h"
 
 namespace Gecko
 {
@@ -190,24 +191,7 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
       gcodes.push_back(gcode);
     }
 
-    ini->GetLines("Gecko_Enabled", &lines, false);
-
-    for (const std::string& line : lines)
-    {
-      if (line.empty() || line[0] != '$')
-      {
-        continue;
-      }
-
-      for (GeckoCode& ogcode : gcodes)
-      {
-        // Exclude the initial '$' from the comparison.
-        if (line.compare(1, std::string::npos, ogcode.name) == 0)
-        {
-          ogcode.enabled = true;
-        }
-      }
-    }
+    ReadEnabledAndDisabled(*ini, "Gecko", &gcodes);
   }
 
   return gcodes;

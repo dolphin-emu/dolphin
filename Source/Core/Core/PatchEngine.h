@@ -33,7 +33,7 @@ struct Patch
 {
   std::string name;
   std::vector<PatchEntry> entries;
-  bool active = false;
+  bool enabled = false;
   bool user_defined = false;  // False if this code is shipped with Dolphin.
 };
 

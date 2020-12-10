@@ -34,7 +34,7 @@ NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
   if (m_patch.entries.empty())
   {
     AddEntry();
-    m_patch.active = true;
+    m_patch.enabled = true;
   }
 }
 

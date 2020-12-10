@@ -65,7 +65,7 @@ void PatchesWidget::ConnectWidgets()
 
 void PatchesWidget::OnItemChanged(QListWidgetItem* item)
 {
-  m_patches[m_list->row(item)].active = (item->checkState() == Qt::Checked);
+  m_patches[m_list->row(item)].enabled = (item->checkState() == Qt::Checked);
   SavePatches();
 }
 
@@ -132,7 +132,7 @@ void PatchesWidget::SavePatches()
 
   for (const auto& patch : m_patches)
   {
-    if (patch.active)
+    if (patch.enabled)
       lines_enabled.push_back("$" + patch.name);
 
     if (!patch.user_defined)
@@ -164,7 +164,7 @@ void PatchesWidget::Update()
   {
     auto* item = new QListWidgetItem(QString::fromStdString(patch.name));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(patch.active ? Qt::Checked : Qt::Unchecked);
+    item->setCheckState(patch.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, patch.user_defined);
 
     m_list->addItem(item);
