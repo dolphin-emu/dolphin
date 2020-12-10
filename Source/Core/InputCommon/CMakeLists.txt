@@ -1,7 +1,6 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(input DInputMouseAbsolute.cpp DInputMouseAbsolute.h)
-else()
-    # TODO add Mac support
+elseif(X11_FOUND)
     set(input XInput2Mouse.cpp XInput2Mouse.h)
 endif()
 
