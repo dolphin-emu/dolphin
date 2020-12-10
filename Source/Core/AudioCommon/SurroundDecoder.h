@@ -22,8 +22,11 @@ public:
   ~SurroundDecoder();
   // Can be used to re-initialize as well. num_samples is the latency, can be left 0 to guess it
   void Init(u32 sample_rate, u32 num_samples = 0);
+  // Receive and decode samples
   void PushSamples(const s16* in, u32 num_samples);
   void GetDecodedSamples(float* out, u32 num_samples);
+  // Gives us back some of the samples which are still being computed, to not miss samples when
+  // DPLII is disabled
   u32 ReturnSamples(s16* out, u32 num_samples, bool& has_finished);
   bool CanReturnSamples() const;
   void Clear();
@@ -42,7 +45,8 @@ private:
   u32 m_frame_block_size = 0;
 
   std::unique_ptr<DPL2FSDecoder> m_fsdecoder;
-  FixedSizeQueue<float, MAX_BLOCKS_SIZE * SURROUND_CHANNELS> m_float_conversion_buffer;
+  FixedSizeQueue<float, MAX_BLOCKS_SIZE * STEREO_CHANNELS> m_float_conversion_buffer;
+  // This can end up being quite big, we could make a ptr and only allocate it when DPLII is used
   FixedSizeQueue<float, MAX_BLOCKS_SIZE * SURROUND_CHANNELS * MAX_BLOCKS_BUFFERED> m_decoded_fifo;
   float m_last_decoded_samples[SURROUND_CHANNELS];
 };

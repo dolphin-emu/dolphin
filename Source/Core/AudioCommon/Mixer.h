@@ -195,7 +195,7 @@ private:
   u32 m_sample_rate;  // Only changed by main or emulation thread when the backend is not running
   bool m_stretching = false;
   std::atomic<bool> m_surround_changed{false};
-  bool m_was_surround = false;
+  bool m_disabling_surround = false;
   bool m_update_surround_latency = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;

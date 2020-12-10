@@ -24,8 +24,6 @@
 #include "AudioCommon/Enums.h"
 #include "AudioCommon/WASAPIStream.h"
 
-#include "Common/Logging/Log.h"
-
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -207,7 +205,8 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   //To review: maybe have a set of 4 or 5 options to keep it simpler (low, high, ...).
-  //To add descrpition to m_emu_speed_tolerance_label explaining that it's the time the emulation need to be offsetted by to start using the current speed
+  //Also add descrpition to m_emu_speed_tolerance_label explaining that it's the time
+  //the emulation need to be offsetted by to start using the current speed
 
   m_stretching_enable->setToolTip(tr(
       "Enables stretching of the audio (pitch correction) to match the emulation speed.\nIt might "
@@ -232,7 +231,8 @@ void AudioPane::CreateWidgets()
   m_dolby_quality_slider->setPageStep(1);
   m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
   m_dolby_quality_slider->setToolTip(
-      tr("Quality of the DPLII decoder. Also increases audio latency.\nThe selected preset will be "
+      tr("Quality of the DPLII decoder. Also increases audio latency by about half the block "
+         "time.\nThe selected preset will be "
          "used to find the best compromise between quality and latency."));
 
   m_dolby_quality_slider->setTracking(true);
@@ -814,7 +814,7 @@ QString AudioPane::GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value)
   switch (value)
   {
   case AudioCommon::DPL2Quality::Low:
-    return tr("Low (Block Size: ~%1 ms)").arg(10);
+    return tr("Low (Block Size: ~%1 ms)").arg(12);
   case AudioCommon::DPL2Quality::High:
     return tr("High (Block Size: ~%1 ms)").arg(50);
   case AudioCommon::DPL2Quality::Extreme:

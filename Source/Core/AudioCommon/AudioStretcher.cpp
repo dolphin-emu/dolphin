@@ -94,7 +94,7 @@ void AudioStretcher::SetSampleRate(u32 sample_rate)
   m_sound_touch.setSampleRate(m_sample_rate);
 }
 
-// Returns the samples of "processed" samples waiting to be read
+// Returns the latency of "processed" samples waiting to be read
 double AudioStretcher::GetProcessedLatency() const
 {
   return m_sound_touch.numSamples() / double(m_sample_rate);

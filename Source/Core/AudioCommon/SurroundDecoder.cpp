@@ -12,7 +12,6 @@
 #include "Common/MathUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#pragma optimize("", off) //To delete
 
 namespace AudioCommon
 {
@@ -20,18 +19,22 @@ static bool IsInteger(double value)
 {
   return std::floor(value) == std::ceil(value);
 }
-// Quality (higher quality also means more latency). Needs to be a multiple of 2.
+
+// Quality (higher quality also means more latency).
 // We set a range for the quality in which we try to find a latency that is a multiple of our
-// own mixer latency, to keep them in sync, which decreases the final latency, but also
-// try to find a block size which is a power of 2 to improve performance.
+// own backend latency, to keep them in sync, which decreases the final latency (if they are aligned
+// the added latency is half the block size), or prioritize performance and make it a pow of 2.
 static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate,
                                        u32 block_size_aid_latency_in_samples)
 {
-  u32 frame_block_time_min, frame_block_time_max;  // Ranges in ms
+  u32 frame_block_time_min, frame_block_time_max;
+  // Ranges in ms. Make sure the average of min and max is an integer,
+  // it's better if they are even as well
   switch (quality)
   {
   case DPL2Quality::Low:
-    frame_block_time_min = 10; // Going lower than 10 would probably sound too bad
+    // This already sounds terrible, don't go any lower
+    frame_block_time_min = 6;
     frame_block_time_max = 20;
     break;
   case DPL2Quality::High:
@@ -45,11 +48,12 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate,
   case DPL2Quality::Normal:
   default:
     // FreeSurround said to not go over 20ms, so this might be overkill already but that's likely a
-    // mistake
+    // mistake, the difference can be told
     frame_block_time_min = 20;
     frame_block_time_max = 40;
   }
 
+  //To review: this is all useless, added latency is always half of the DPLII block size... right?
   // Try to find a multiple or dividend of the backend latency to align them
   double frame_block_time_average = (frame_block_time_min + frame_block_time_max) * 0.5;
   double backend_latency = double(block_size_aid_latency_in_samples * 1000) / sample_rate;
@@ -58,41 +62,47 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate,
   bool is_multiple_or_dividend = IsInteger(ratio) || IsInteger(ratio_inverted);
 
   // if is_multiple_or_dividend, already accept frame_block_time_average
-  double latency_aligned_frame_block_time =
+  double best_frame_block_time =
       is_multiple_or_dividend ? frame_block_time_average : backend_latency;
-  while (latency_aligned_frame_block_time < frame_block_time_min)
+  while (best_frame_block_time < frame_block_time_min)
   {
-    latency_aligned_frame_block_time += backend_latency;
+    best_frame_block_time += backend_latency;
   }
-  double dividend = 2.0;
-  while (latency_aligned_frame_block_time > frame_block_time_max)
+  while (best_frame_block_time > frame_block_time_max)
   {
-    latency_aligned_frame_block_time = backend_latency / dividend;
-    dividend *= 2.0;
-    if (latency_aligned_frame_block_time < frame_block_time_min)
+    // Theoretically even a DPLII latency of 3/4 the backend latency
+    // would improve syncing, but it's too complicated to put in
+    best_frame_block_time *= 0.5;
+    if (best_frame_block_time < frame_block_time_min)
     {
-      // We really don't want to go over the min (or the max) so fallback to the pre-selected quality average
-      latency_aligned_frame_block_time = frame_block_time_average;
+      // We really don't want to go over the min (or the max) so fallback to quality average
+      best_frame_block_time = frame_block_time_average;
     }
   }
 
-  double frame_block_time = latency_aligned_frame_block_time;
-  u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
+  // If sample_rate*frame_block_time is not a multiple of 1000 or the result isn't a multiple of 2
+  // (this needs to return a multiple of 2), we can't align the latencies so fallback to using pow 2
+  double frame_block_double = sample_rate * best_frame_block_time / 1000.0;
+  u32 frame_block = std::round(frame_block_double);
+  bool use_power_of_2 = !IsInteger(frame_block_double) || (frame_block != ((frame_block / 2) * 2));
 
   // If we are prioritizing performance over latency, try to make the block size a power of 2
-  if (Config::Get(Config::MAIN_DPL2_PERFORMANCE_OVER_LATENCY))
+  if (use_power_of_2 || Config::Get(Config::MAIN_DPL2_PERFORMANCE_OVER_LATENCY))
   {
+    // Recalculate the new block size based on the preset middle point
+    frame_block = std::round(sample_rate * frame_block_time_average / 1000.0);
     frame_block = MathUtil::NearestPowerOf2(frame_block);
+
+    // Find the actual used frame_block_time to see if it's within the accepted ranges
+    double frame_block_time = frame_block * 1000 / sample_rate;
+    if (frame_block_time > frame_block_time_max || frame_block_time < frame_block_time_min)
+    {
+      frame_block = std::round(sample_rate * frame_block_time_average / 1000.0);
+    }
   }
 
-  // Find the actual used frame_block_time to see if within the accepted ranges
-  frame_block_time = frame_block * 1000 / sample_rate;
-  if (frame_block_time > frame_block_time_max || frame_block_time < frame_block_time_min)
-  {
-    // Recalculate the new block size based on the middle point
-    frame_block = std::round(sample_rate * latency_aligned_frame_block_time / 1000.0);
-    frame_block = (frame_block / 2) * 2;
-  }
+  frame_block = (frame_block / 2) * 2;
+
   // Assert because FreeSurround would crash anyway, this can't be triggered as of now
   assert(frame_block > 1);
   return frame_block;
@@ -111,17 +121,18 @@ void SurroundDecoder::Init(u32 sample_rate, u32 num_samples)
   // Guess the new block size aid latency if it hasn't been provided
   double old_latency = double(m_block_size_aid_latency_in_samples) / m_sample_rate;
   u32 new_latency_in_samples = sample_rate * old_latency;
+  if (num_samples != 0)
+    new_latency_in_samples = num_samples;
 
-  u32 frame_block_size =
-      DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY), sample_rate,
-                                  num_samples == 0 ? new_latency_in_samples : num_samples);
+  u32 frame_block_size = DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY),
+                                                     sample_rate, new_latency_in_samples);
 
   // Re-init. It should keep the samples in the buffer (and filling the rest with 0) while just
   // updating the settings
   if (m_sample_rate != sample_rate || m_frame_block_size != frame_block_size)
   {
     m_sample_rate = sample_rate;
-    m_block_size_aid_latency_in_samples = num_samples;
+    m_block_size_aid_latency_in_samples = new_latency_in_samples;
     m_frame_block_size = frame_block_size;
     // If we passed in a block size that is a power of 2, decoding performance would be better,
     // (quality would be the same), though we've decided to prioritize low latency over performance,
@@ -149,7 +160,6 @@ void SurroundDecoder::Clear()
   m_float_conversion_buffer.clear();
 }
 
-// Receive and decode samples
 void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
 {
   u32 read_samples = 0;
@@ -187,7 +197,7 @@ void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
       // TODO: modify FreeSurround to have the same channel mapping for performance (see channel_id)
       // Add to ring buffer and fix channel mapping.
       // If, at maxed out settings, your backend latency is 8 times higher than the block size, this
-      // will overwrite older samples. Avoid adding a check/warning for now as it's very unlikely
+      // will overwrite older samples. Avoid adding a check/warning for now as it's very unlikely.
       // FreeSurround:
       // FL | FC | FR | BL | BR | LFE
       // Most backends:
@@ -243,17 +253,15 @@ u32 SurroundDecoder::ReturnSamples(s16* out, u32 num_samples, bool& has_finished
 {
   const u32 readable_samples =
       std::min(u32(m_float_conversion_buffer.size()), num_samples * STEREO_CHANNELS);
-  for (size_t i = 0, k = 0; i < readable_samples; ++i)
+  for (size_t i = 0; i < readable_samples; ++i)
   {
-    out[k] =
+    out[i] =
         s16(std::clamp(s32(m_float_conversion_buffer[i] * s32(-std::numeric_limits<s16>::min())),
                        s32(std::numeric_limits<s16>::min()), s32(std::numeric_limits<s16>::max())));
-    ++k;
   }
   m_float_conversion_buffer.erase(readable_samples);
   has_finished = (m_float_conversion_buffer.size() == 0);
-  // We could also return a part of the samples kept for future overlap in m_decoded_fifo
-  // and the already converted ones in m_decoded_fifo, but it's not worth it
+  // We could also return (and "unconvert") the samples within the m_fsdecoder but it's not worth it
   return readable_samples / STEREO_CHANNELS;
 }
 

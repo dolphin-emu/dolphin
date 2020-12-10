@@ -83,16 +83,22 @@ void Mixer::UpdateSettings(u32 sample_rate)
   if (m_surround_changed)
   {
     m_surround_changed = false;
-    // The cases here deal with the fact whether it was on or off
-    if (m_surround_decoder.CanReturnSamples() && !m_was_surround)
-      m_was_surround = true;
-    else if (m_was_surround)
-      m_was_surround = false;
+    // The cases here deal with the fact whether it was on or off.
+    // Given that we play the remaining DPLII samples when turning it off,
+    // it's important to clear its buffer completely so that when turned on
+    // again, it will be still latency aligned with the backend
+    if (m_surround_decoder.CanReturnSamples() && !m_disabling_surround)
+    {
+      m_disabling_surround = true;
+    }
     else
+    {
+      m_disabling_surround = false;
       m_surround_decoder.Clear();
+    }
   }
   m_surround_decoder.Init(m_sample_rate);
-  // Latency might have change but we don't know the new value yet, wait for a Mix() call
+  // Latency might have changed but we don't know the new value yet, wait for a Mix() call
   // from the audio thread to update the surround decoder settings (in the meantime,
   // it will just be guessed)
   m_update_surround_latency = true;
@@ -385,6 +391,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     memset(samples, 0, num_samples * NC * sizeof(samples[0]));
     return 0;
   }
+  u32 original_num_samples = num_samples;
 
   bool stretching = SConfig::GetInstance().m_audio_stretch;
 
@@ -415,7 +422,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
       m_behind_target_speed = false;
     }
   }
-  // actual_speed varies by about 0.5% every audio frame so we need to go back and forth and then when we have lost enough,
+  // Actual_speed varies by about 0.5% every audio frame so we need to go back and forth and then when we have lost enough,
   // we will start using the average actual speed. To come back at full emulation speed, we check for how long we had been
   // running at full speed, we don't wait for m_time_behind_target_speed to come back to 0 because that will never happen,
   // what's lost is lost (though recovery could still happen if for some reason we had cycles imprecisions within a frame???)
@@ -531,7 +538,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
                          m_stretching_latency_catching_up_direction);
   }
 
-  if (m_was_surround)
+  if (m_disabling_surround)
   {
     bool has_finished;
     // As for stretching below, this won't follow the new rate but is still better
@@ -542,7 +549,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
 
     if (has_finished)
     {
-      m_was_surround = false;
+      m_disabling_surround = false;
       m_surround_decoder.Clear();
     }
   }
@@ -628,30 +635,21 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     m_wiimote_speaker_mixer[3].Mix(samples, num_samples, false);
   }
 
-  return num_samples;
+  return original_num_samples;
 }
 
 u32 Mixer::MixSurround(float* samples, u32 num_samples)
 {
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(samples[0]));
   
-  // TODO: some backends might ask for a constantly changing number of samples,
-  // possibly only the ones that do some kind of internal mixing (when your device
-  // doesn't actually support 5.1), like cubeb or PulseAudio, but it might
-  // only happen if they notice they failed to keep up sync.
-  // The simplest solution sounds like finding a way of noticing that and setting
-  // the max number of samples ever required as the minimum latency of the surround
-  // so that we'd never run out of samples (when we are asked for more than usual,
-  // we'd ignore the last samples away). Unfortunately there is no easy solution,
-  // being constrained to blocks and unable to stretch.
-
   // Our latency might have increased
   m_scratch_buffer.reserve(num_samples * NC);
 
-  // Update the surround decoder with the new latency every time there is a change
-  // or the first time.
-  // Latency might be dynamic so we don't want to keep adjusting the surround decoder
-  // latency optimizations, but we can't easily know the audio backend latency upfront
+  // Update the surround decoder with the new latency every time there is a setting change
+  // (or the first time) as there is no easy way to know it upfront.
+  // Some backends might dynamically adjust latency when the thread fails to keep up,
+  // unfortunately that case would break DPLII latency sync but there isn't much we can do,
+  // if we keep adjusting it's block size, we'd hear cracking on the spot so...
   if (m_update_surround_latency && num_samples != 0)
   {
     m_update_surround_latency = false;
@@ -666,6 +664,10 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
   // and writes.
   u32 mixed_samples = Mix(m_scratch_buffer.data(), num_samples);
 
+  // To keep the backend latency aligned with the DPLII decoder latency,
+  // we push in samples even if they have padded silence at the end. The alternative would be to
+  // only pass in the actual samples processed by the emulation, which would avoid breaking the
+  // decoder state but it would break the latency alignment.
   m_surround_decoder.PushSamples(m_scratch_buffer.data(), mixed_samples);
   // Don't get any surround sample if the mixer return 0 as we are likely paused
   m_surround_decoder.GetDecodedSamples(samples, mixed_samples);
