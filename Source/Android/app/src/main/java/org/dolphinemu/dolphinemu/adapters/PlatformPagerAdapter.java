@@ -7,6 +7,7 @@ import android.text.SpannableString;
 import android.text.style.ImageSpan;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -17,7 +18,7 @@ import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment;
 
 public class PlatformPagerAdapter extends FragmentPagerAdapter
 {
-  private Context mContext;
+  private final Context mContext;
 
   private final static int[] TAB_ICONS =
           {
@@ -52,14 +53,23 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
     // Apparently a workaround for TabLayout not supporting icons.
     // TODO: This workaround will eventually not be necessary; switch to more legit methods when that is the case
     // TODO: Also remove additional hax from styles.xml
-    Drawable drawable = mContext.getResources().getDrawable(TAB_ICONS[position]);
-    drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+    Drawable drawable = ResourcesCompat
+            .getDrawable(mContext.getResources(), TAB_ICONS[position], null);
 
-    ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
+    if (drawable != null)
+    {
+      drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
 
-    SpannableString sb = new SpannableString(" ");
-    sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+      ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
 
-    return sb;
+      SpannableString sb = new SpannableString(" ");
+      sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+      return sb;
+    }
+    else
+    {
+      throw new IllegalStateException("[PlatformPagerAdapter]: Drawable is null");
+    }
   }
 }

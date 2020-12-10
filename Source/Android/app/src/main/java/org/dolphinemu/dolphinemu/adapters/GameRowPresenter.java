@@ -49,8 +49,8 @@ public final class GameRowPresenter extends Presenter
     Context context = holder.cardParent.getContext();
     GameFile gameFile = (GameFile) item;
 
-    holder.imageScreenshot.setImageDrawable(null);
-    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
+    holder.imageGameCover.setImageDrawable(null);
+    PicassoUtils.loadGameCover(holder.imageGameCover, gameFile);
 
     holder.cardParent.setTitleText(gameFile.getTitle());
 

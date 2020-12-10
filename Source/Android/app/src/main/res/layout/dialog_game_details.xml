@@ -42,7 +42,8 @@
             android:layout_marginBottom="16dp"
             tools:src="@drawable/no_banner"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_description" />
+            app:layout_constraintTop_toBottomOf="@id/text_description"
+            android:contentDescription="@string/banner" />
 
         <View
             android:id="@+id/divider_1"

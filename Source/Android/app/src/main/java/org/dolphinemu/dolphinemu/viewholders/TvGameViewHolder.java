@@ -16,7 +16,7 @@ public final class TvGameViewHolder extends Presenter.ViewHolder
 {
   public ImageCardView cardParent;
 
-  public ImageView imageScreenshot;
+  public ImageView imageGameCover;
 
   public GameFile gameFile;
 
@@ -27,6 +27,6 @@ public final class TvGameViewHolder extends Presenter.ViewHolder
     itemView.setTag(this);
 
     cardParent = (ImageCardView) itemView;
-    imageScreenshot = cardParent.getMainImageView();
+    imageGameCover = cardParent.getMainImageView();
   }
 }

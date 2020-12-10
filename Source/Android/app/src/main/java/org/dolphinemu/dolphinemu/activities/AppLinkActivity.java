@@ -32,16 +32,22 @@ public class AppLinkActivity extends FragmentActivity
   protected void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    Intent intent = getIntent();
-    Uri uri = intent.getData();
+    Uri uri = getIntent().getData();
 
-    Log.v(TAG, uri.toString());
-
-    if (uri.getPathSegments().isEmpty())
+    if (uri != null)
     {
-      Log.e(TAG, "Invalid uri " + uri);
-      finish();
-      return;
+      Log.v(TAG, uri.toString());
+
+      if (uri.getPathSegments().isEmpty())
+      {
+        Log.e(TAG, "Invalid uri " + uri);
+        finish();
+        return;
+      }
+    }
+    else
+    {
+      throw new IllegalStateException("Could not get data uri.");
     }
 
     AppLinkHelper.AppLinkAction action = AppLinkHelper.extractAction(uri);

@@ -705,9 +705,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public void refreshControls()
   {
     // Remove all the overlay buttons from the HashSet.
-    overlayButtons.removeAll(overlayButtons);
-    overlayDpads.removeAll(overlayDpads);
-    overlayJoysticks.removeAll(overlayJoysticks);
+    overlayButtons.clear();
+    overlayDpads.clear();
+    overlayJoysticks.clear();
 
     String orientation =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?

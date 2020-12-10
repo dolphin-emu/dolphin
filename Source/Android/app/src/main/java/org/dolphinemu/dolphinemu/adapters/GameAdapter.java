@@ -71,7 +71,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     Context context = holder.itemView.getContext();
     GameFile gameFile = mGameFiles.get(position);
-    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
+    PicassoUtils.loadGameCover(holder.imageGameCover, gameFile);
 
     holder.textGameTitle.setText(gameFile.getTitle());
 

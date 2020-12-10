@@ -6,13 +6,16 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -30,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A service that spawns its own thread in order to copy several binary and shader files
  * from the Dolphin APK to the external file system.
  */
-public final class DirectoryInitialization
+public final class DirectoryInitialization extends Service
 {
   public static final String BROADCAST_ACTION =
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
@@ -43,6 +46,13 @@ public final class DirectoryInitialization
   private static String userPath;
   private static String internalPath;
   private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
+
+  @Nullable
+  @Override
+  public IBinder onBind(Intent intent)
+  {
+    return null;
+  }
 
   public enum DirectoryInitializationState
   {

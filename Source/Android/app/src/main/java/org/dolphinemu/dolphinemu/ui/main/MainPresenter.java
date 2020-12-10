@@ -69,42 +69,50 @@ public final class MainPresenter
 
   public boolean handleOptionSelection(int itemId, Context context)
   {
-    switch (itemId)
+    if (itemId == R.id.menu_settings_core)
     {
-      case R.id.menu_settings_core:
-        mView.launchSettingsActivity(MenuTag.CONFIG);
-        return true;
-
-      case R.id.menu_settings_graphics:
-        mView.launchSettingsActivity(MenuTag.GRAPHICS);
-        return true;
-
-      case R.id.menu_settings_gcpad:
-        mView.launchSettingsActivity(MenuTag.GCPAD_TYPE);
-        return true;
-
-      case R.id.menu_settings_wiimote:
-        mView.launchSettingsActivity(MenuTag.WIIMOTE);
-        return true;
-
-      case R.id.menu_refresh:
-        GameFileCacheService.startRescan(context);
-        return true;
-
-      case R.id.button_add_directory:
-        mView.launchFileListActivity();
-        return true;
-
-      case R.id.menu_open_file:
-        mView.launchOpenFileActivity();
-        return true;
-
-      case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().run(context, true, mView::launchInstallWAD);
-        return true;
+      mView.launchSettingsActivity(MenuTag.CONFIG);
+      return true;
     }
-
-    return false;
+    else if (itemId == R.id.menu_settings_graphics)
+    {
+      mView.launchSettingsActivity(MenuTag.GRAPHICS);
+      return true;
+    }
+    else if (itemId == R.id.menu_settings_gcpad)
+    {
+      mView.launchSettingsActivity(MenuTag.GCPAD_TYPE);
+      return true;
+    }
+    else if (itemId == R.id.menu_settings_wiimote)
+    {
+      mView.launchSettingsActivity(MenuTag.WIIMOTE);
+      return true;
+    }
+    else if (itemId == R.id.menu_refresh)
+    {
+      GameFileCacheService.startRescan(context);
+      return true;
+    }
+    else if (itemId == R.id.button_add_directory)
+    {
+      mView.launchFileListActivity();
+      return true;
+    }
+    else if (itemId == R.id.menu_open_file)
+    {
+      mView.launchOpenFileActivity();
+      return true;
+    }
+    else if (itemId == R.id.menu_install_wad)
+    {
+      new AfterDirectoryInitializationRunner().run(context, true, mView::launchInstallWAD);
+      return true;
+    }
+    else
+    {
+      return false;
+    }
   }
 
   public void addDirIfNeeded(Context context)

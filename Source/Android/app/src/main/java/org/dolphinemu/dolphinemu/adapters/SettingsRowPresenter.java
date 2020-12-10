@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.adapters;
 import android.content.res.Resources;
 import android.view.ViewGroup;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.Presenter;
 
@@ -37,7 +38,8 @@ public final class SettingsRowPresenter extends Presenter
     holder.itemId = settingsItem.getItemId();
 
     holder.cardParent.setTitleText(resources.getString(settingsItem.getLabelId()));
-    holder.cardParent.setMainImage(resources.getDrawable(settingsItem.getIconId(), null));
+    holder.cardParent
+            .setMainImage(ResourcesCompat.getDrawable(resources, settingsItem.getIconId(), null));
   }
 
   public void onUnbindViewHolder(Presenter.ViewHolder viewHolder)
