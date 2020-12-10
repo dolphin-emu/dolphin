@@ -92,11 +92,6 @@
                 style="@style/InGameMenuOption"/>
 
             <Button
-                android:id="@+id/menu_screen_orientation"
-                android:text="@string/emulation_screen_orientation"
-                style="@style/InGameMenuOption"/>
-
-            <Button
                 android:id="@+id/menu_change_disc"
                 android:text="@string/emulation_change_disc"
                 style="@style/InGameMenuOption"/>

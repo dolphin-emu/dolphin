@@ -1,8 +1,10 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
@@ -246,6 +248,17 @@ public final class SettingsFragmentPresenter
 
   private void addInterfaceSettings(ArrayList<SettingsItem> sl)
   {
+    // Hide the orientation setting if the device only supports one orientation. Old devices which
+    // support both portrait and landscape may report support for neither, so we use ==, not &&.
+    PackageManager packageManager = DolphinApplication.getAppContext().getPackageManager();
+    if (packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_PORTRAIT) ==
+            packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_LANDSCAPE))
+    {
+      sl.add(new SingleChoiceSetting(IntSetting.MAIN_EMULATION_ORIENTATION,
+              R.string.emulation_screen_orientation, 0, R.array.orientationEntries,
+              R.array.orientationValues));
+    }
+
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_USE_PANIC_HANDLERS, R.string.panic_handlers,
             R.string.panic_handlers_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
