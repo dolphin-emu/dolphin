@@ -35,6 +35,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
@@ -169,13 +170,38 @@ public final class EmulationActivity extends AppCompatActivity
     if (sIgnoreLaunchRequests)
       return;
 
+    new AfterDirectoryInitializationRunner().run(activity, true, () ->
+    {
+      if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
+      {
+        launchWithoutChecks(activity, filePaths);
+      }
+      else
+      {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
+        builder.setMessage(R.string.unavailable_paths);
+        builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
+                SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS));
+        builder.setNeutralButton(R.string.continue_anyway, (dialogInterface, i) ->
+                launchWithoutChecks(activity, filePaths));
+        builder.show();
+      }
+    });
+  }
+
+  private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths)
+  {
     sIgnoreLaunchRequests = true;
 
     Intent launcher = new Intent(activity, EmulationActivity.class);
     launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
 
-    new AfterDirectoryInitializationRunner().run(activity, true,
-            () -> activity.startActivity(launcher));
+    activity.startActivity(launcher);
   }
 
   public static void stopIgnoringLaunchRequests()

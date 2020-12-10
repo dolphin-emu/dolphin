@@ -1,23 +1,29 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.CustomFilePickerActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class FileBrowserHelper
 {
@@ -26,6 +32,9 @@ public final class FileBrowserHelper
 
   public static final HashSet<String> RAW_EXTENSION = new HashSet<>(Collections.singletonList(
           "raw"));
+
+  public static final HashSet<String> WAD_EXTENSION = new HashSet<>(Collections.singletonList(
+          "wad"));
 
   public static void openDirectoryPicker(FragmentActivity activity, HashSet<String> extensions)
   {
@@ -84,5 +93,84 @@ public final class FileBrowserHelper
     }
 
     return null;
+  }
+
+  public static boolean isPathEmptyOrValid(StringSetting path)
+  {
+    return isPathEmptyOrValid(path.getStringGlobal());
+  }
+
+  public static boolean isPathEmptyOrValid(String path)
+  {
+    return !path.startsWith("content://") || ContentHandler.exists(path);
+  }
+
+  public static void runAfterExtensionCheck(Context context, Uri uri, Set<String> validExtensions,
+          Runnable runnable)
+  {
+    String extension = null;
+
+    String path = uri.getLastPathSegment();
+    if (path != null)
+      extension = getExtension(new File(path).getName());
+
+    if (extension == null)
+      extension = getExtension(ContentHandler.getDisplayName(uri));
+
+    if (extension != null && validExtensions.contains(extension))
+    {
+      runnable.run();
+      return;
+    }
+
+    String message;
+    if (extension == null)
+    {
+      message = context.getString(R.string.no_file_extension);
+    }
+    else
+    {
+      int messageId = validExtensions.size() == 1 ?
+              R.string.wrong_file_extension_single : R.string.wrong_file_extension_multiple;
+
+      ArrayList<String> extensionsList = new ArrayList<>(validExtensions);
+      Collections.sort(extensionsList);
+
+      message = context.getString(messageId, extension, join(", ", extensionsList));
+    }
+
+    new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+            .setMessage(message)
+            .setPositiveButton(R.string.yes, (dialogInterface, i) -> runnable.run())
+            .setNegativeButton(R.string.no, null)
+            .setCancelable(false)
+            .show();
+  }
+
+  @Nullable
+  private static String getExtension(@Nullable String fileName)
+  {
+    if (fileName == null)
+      return null;
+
+    int dotIndex = fileName.lastIndexOf(".");
+    return dotIndex != -1 ? fileName.substring(dotIndex + 1) : null;
+  }
+
+  // TODO: Replace this with String.join once we can use Java 8
+  private static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements)
+  {
+    StringBuilder sb = new StringBuilder();
+
+    boolean first = true;
+    for (CharSequence element : elements)
+    {
+      if (!first)
+        sb.append(delimiter);
+      first = false;
+      sb.append(element);
+    }
+
+    return sb.toString();
   }
 }

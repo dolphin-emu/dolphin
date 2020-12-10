@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
@@ -170,9 +172,31 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
-      String path = FileBrowserHelper.getSelectedPath(result);
-      getFragment().getAdapter().onFilePickerConfirmation(path);
+      if (requestCode == MainPresenter.REQUEST_SD_FILE)
+      {
+        Uri uri = canonicalizeIfPossible(result.getData());
+        int takeFlags = result.getFlags() &
+                (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+        FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.RAW_EXTENSION, () ->
+        {
+          getContentResolver().takePersistableUriPermission(uri, takeFlags);
+          getFragment().getAdapter().onFilePickerConfirmation(uri.toString());
+        });
+      }
+      else
+      {
+        String path = FileBrowserHelper.getSelectedPath(result);
+        getFragment().getAdapter().onFilePickerConfirmation(path);
+      }
     }
+  }
+
+  @NonNull
+  private Uri canonicalizeIfPossible(@NonNull Uri uri)
+  {
+    Uri canonicalizedUri = getContentResolver().canonicalize(uri);
+    return canonicalizedUri != null ? canonicalizedUri : uri;
   }
 
   @Override

@@ -229,7 +229,9 @@ public final class TvMainActivity extends FragmentActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
-          mPresenter.installWAD(result.getData().toString());
+          FileBrowserHelper.runAfterExtensionCheck(this, result.getData(),
+                  FileBrowserHelper.WAD_EXTENSION,
+                  () -> mPresenter.installWAD(result.getData().toString()));
           break;
       }
     }
