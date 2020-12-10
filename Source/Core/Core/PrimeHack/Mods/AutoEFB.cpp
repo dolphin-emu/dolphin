@@ -12,7 +12,7 @@ void AutoEFB::run_mod(Game game, Region region) {
     return;
   }
 
-  bool should_use;
+  bool should_use = false;
 
   if (game == Game::PRIME_2) {
     const u32 visor_base = read32(read32(cplayer_ptr_address) + 0x12ec);
@@ -23,8 +23,16 @@ void AutoEFB::run_mod(Game game, Region region) {
     should_use = read32(visor_base + 0x34) != 1u;
   }
   else if (game == Game::PRIME_3_WII) {
-    const u32 visor_base = read32(read32(read32(cplayer_ptr_address) + 0x2184) + 0x35a0);
-    should_use = read32(visor_base + 0x34) != 1u;
+    if (region == Region::NTSC_U)
+    {
+      const u32 visor_base = read32(read32(read32(cplayer_ptr_address) + 0x2184) + 0x35a0);
+      should_use = read32(visor_base + 0x34) != 1u;
+    }
+    else if (region == Region::PAL)
+    {
+      const u32 visor_base = read32(read32(read32(read32(cplayer_ptr_address) + 4) + 0x2184) + 0x35a0);
+      should_use = read32(visor_base + 0x34) != 1u;
+    }
   }
   else { // if (game == Game::PRIME_2_GCN)
     should_use = !read32(read32(cplayer_ptr_address) + 0x3d0);
@@ -38,7 +46,7 @@ void AutoEFB::run_mod(Game game, Region region) {
 void AutoEFB::init_mod(Game game, Region region) {
   switch (game) {
   case Game::PRIME_2:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_ptr_address = 0x804e87dc;
     }
     else if (region == Region::PAL) {
@@ -46,7 +54,7 @@ void AutoEFB::init_mod(Game game, Region region) {
     }
     break;
   case Game::PRIME_2_GCN:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_ptr_address = 0x803dcbdc;
     }
     else if (region == Region::PAL) {
@@ -54,7 +62,7 @@ void AutoEFB::init_mod(Game game, Region region) {
     }
     break;
   case Game::PRIME_3:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_ptr_address = 0x805c6c6c;
     }
     else if (region == Region::PAL) {
@@ -62,14 +70,14 @@ void AutoEFB::init_mod(Game game, Region region) {
     }
     break;
   case Game::PRIME_3_WII:
-    if (region == Region::NTSC)
+    if (region == Region::NTSC_U)
     {
       cplayer_ptr_address = 0x805c4f98;
     }
-    /*else if (region == Region::PAL)
+    else if (region == Region::PAL)
     {
-      cplayer_ptr_address = 0x805ca0ec;
-    }*/
+      cplayer_ptr_address = 0x805c759c;
+    }
     break;
   default:
     break;

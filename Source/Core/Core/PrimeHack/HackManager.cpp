@@ -23,7 +23,11 @@ void HackManager::run_active_mods() {
   {
   case 0x38000018:
     active_game = Game::MENU;
-    active_region = Region::NTSC;
+    active_region = Region::NTSC_U;
+    break;
+  case 0x806ddaec:
+    active_game = Game::MENU;
+    active_region = Region::NTSC_J;
     break;
   case 0x7c0000d0:
     active_game = Game::MENU;
@@ -31,7 +35,11 @@ void HackManager::run_active_mods() {
     break;
   case 0x4e800020:
     active_game = Game::PRIME_1;
-    active_region = Region::NTSC;
+    active_region = Region::NTSC_U;
+    break;
+  case 0x53687566:
+    active_game = Game::PRIME_1;
+    active_region = Region::NTSC_J;
     break;
   case 0x7c962378:
     active_game = Game::PRIME_1;
@@ -39,7 +47,7 @@ void HackManager::run_active_mods() {
     break;
   case 0x4bff64e1:
     active_game = Game::PRIME_2;
-    active_region = Region::NTSC;
+    active_region = Region::NTSC_U;
     break;
   case 0x80830000:
     active_game = Game::PRIME_2;
@@ -48,7 +56,7 @@ void HackManager::run_active_mods() {
   case 0x80010070:
     if (PowerPC::HostRead_U32(0x80576ae8) == 0x7d415378) {
       active_game = Game::PRIME_3;
-      active_region = Region::NTSC;
+      active_region = Region::NTSC_U;
     }
     else {
       active_game = Game::INVALID_GAME;
@@ -69,7 +77,7 @@ void HackManager::run_active_mods() {
     u32 region_code = PowerPC::HostRead_U32(0x80000000);
     if (region_code == FOURCC('G', 'M', '8', 'E')) {
       active_game = Game::PRIME_1_GCN;
-      active_region = Region::NTSC;
+      active_region = Region::NTSC_U;
     }
     else if (region_code == FOURCC('G', 'M', '8', 'P')) {
       active_game = Game::PRIME_1_GCN;
@@ -77,7 +85,7 @@ void HackManager::run_active_mods() {
     }
     else if (region_code == FOURCC('G', '2', 'M', 'E')) {
       active_game = Game::PRIME_2_GCN;
-      active_region = Region::NTSC;
+      active_region = Region::NTSC_U;
     }
     else if (region_code == FOURCC('G', '2', 'M', 'P')) {
       active_game = Game::PRIME_2_GCN;
@@ -85,12 +93,12 @@ void HackManager::run_active_mods() {
     }
     else if (region_code == FOURCC('R', 'M', '3', 'E')) {
       active_game = Game::PRIME_3_WII;
-      active_region = Region::NTSC;
+      active_region = Region::NTSC_U;
     }
-    /*else if (region_code == FOURCC('R', 'M', '3', 'P')) {
+    else if (region_code == FOURCC('R', 'M', '3', 'P')) {
       active_game = Game::PRIME_3_WII;
       active_region = Region::PAL;
-    }*/
+    }
     else {
       active_game = Game::INVALID_GAME;
       active_region = Region::INVALID_REGION;

@@ -11,15 +11,18 @@ public:
   void init_mod(Game game, Region region) override {
     switch (game) {
     case Game::PRIME_1:
-      if (region == Region::NTSC) {
+      if (region == Region::NTSC_U) {
         code_changes.emplace_back(0x80290edc, 0x4e800020);
       }
       else if (region == Region::PAL) {
         code_changes.emplace_back(0x80291258, 0x4e800020);
       }
+      else { // region == Region::NTSC_J
+        code_changes.emplace_back(0x802919bc, 0x4e800020);
+      }
       break;
     case Game::PRIME_2:
-      if (region == Region::NTSC) {
+      if (region == Region::NTSC_U) {
         code_changes.emplace_back(0x80292204, 0x4e800020);
       }
       else if (region == Region::PAL) {
@@ -27,7 +30,7 @@ public:
       }
       break;
     case Game::PRIME_3:
-      if (region == Region::NTSC) {
+      if (region == Region::NTSC_U) {
         code_changes.emplace_back(0x804852cc, 0x4e800020);
       }
       else if (region == Region::PAL) {
@@ -35,14 +38,14 @@ public:
       }
       break;
     case Game::PRIME_3_WII:
-      if (region == Region::NTSC)
+      if (region == Region::NTSC_U)
       {
         code_changes.emplace_back(0x80486880, 0x4e800020);
       }
-      /*else if (region == Region::PAL)
+      else if (region == Region::PAL)
       {
-        code_changes.emplace_back(0x804849e8, 0x4e800020);
-      }*/
+        code_changes.emplace_back(0x804885a4, 0x4e800020);
+      }
       break;
     default:
       break;

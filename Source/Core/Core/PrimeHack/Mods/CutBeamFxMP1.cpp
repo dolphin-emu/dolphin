@@ -11,17 +11,26 @@ void CutBeamFxMP1::init_mod(Game game, Region region) {
   u32 gunfx_offset;
   u32 transform_ctor_offset;
   u32 advance_particles_offset;
-  if (region == Region::NTSC) {
-    gunfx_offset = 0xfffffd68; // 0x8018c410 - 0x8018c6a8;
-    transform_ctor_offset = 0xac; // 0x80348d2c - 0x80348c80;
-    advance_particles_offset = 0xfffffeb0; // 0x80139870 - 0x801399c0;
+  if (region == Region::NTSC_U)
+  {
+    gunfx_offset = 0xfffffd68;              // 0x8018c410 - 0x8018c6a8;
+    transform_ctor_offset = 0xac;           // 0x80348d2c - 0x80348c80;
+    advance_particles_offset = 0xfffffeb0;  // 0x80139870 - 0x801399c0;
   }
-  else if (region == Region::PAL) {
+  else if (region == Region::NTSC_J)
+  {
+    gunfx_offset = 0x8e8;                   // 0x8018cf90 - 0x8018c6a8;
+    transform_ctor_offset = 0xfffffb70;     // 0x803487f0 - 0x80348c80;
+    advance_particles_offset = 0x4b0;       // 0x80139e70 - 0x801399c0;
+  }
+  else if (region == Region::PAL)
+  {
     gunfx_offset = 0;
     transform_ctor_offset = 0;
     advance_particles_offset = 0;
   }
-  else {
+  else
+  {
     return;
   }
   

@@ -228,7 +228,7 @@ namespace prime {
   }
 
   void ViewModifier::init_mod_mp1(Region region) {
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       mp1_static.camera_ptr_address = 0x804bfc30;
       mp1_static.active_camera_offset_address = 0x804c4a08;
       mp1_static.global_fov1_address = 0x805c0e38;
@@ -244,12 +244,19 @@ namespace prime {
       mp1_static.gun_pos_address = 0x804e1a24;
       mp1_static.culling_address = 0x802c8024;
     }
-    else {}
+    else if (region == Region::NTSC_J) {
+      mp1_static.camera_ptr_address = 0x804bfeb0;
+      mp1_static.active_camera_offset_address = 0x804c4c88;
+      mp1_static.global_fov1_address = 0x80641138;
+      mp1_static.global_fov2_address = 0x8064113c;
+      mp1_static.gun_pos_address = 0x804d398c;
+      mp1_static.culling_address = 0x802c7a3c;
+    }
 
   }
 
   void ViewModifier::init_mod_mp1_gc(Region region) {
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       mp1_gc_static.camera_mgr_address = 0x8045c5b4;
       mp1_gc_static.object_list_address = 0x8045a9b8;
       mp1_gc_static.global_fov1_table_off = -0x7ff0;
@@ -271,7 +278,7 @@ namespace prime {
   }
 
   void ViewModifier::init_mod_mp2(Region region) {
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       mp2_static.camera_ptr_address = 0x804e7af8;
       mp2_static.camera_offset_address = 0x804eb9ac;
       mp2_static.tweakgun_ptr_address = 0x805cb274;
@@ -289,7 +296,7 @@ namespace prime {
   }
 
   void ViewModifier::init_mod_mp2_gc(Region region) {
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       code_changes.emplace_back(0x801b0b38, 0x60000000);
 
       mp2_gc_static.state_mgr_address = 0x803db6e0;
@@ -307,13 +314,13 @@ namespace prime {
   }
 
   void ViewModifier::init_mod_mp3(Region region) {
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       mp3_static.camera_ptr_address = 0x805c6c68;
       mp3_static.tweakgun_address = 0x8066f87c;
       mp3_static.culling_address = 0x8031490c;
     }
     else if (region == Region::PAL) {
-      mp3_static.camera_ptr_address = 0x805ca0e8;
+      mp3_static.camera_ptr_address = 0x805c7598;
       mp3_static.tweakgun_address = 0x806730fc;
       mp3_static.culling_address = 0x80314038;
     }
@@ -321,16 +328,16 @@ namespace prime {
   }
   
   void ViewModifier::init_mod_mp3_wii(Region region) {
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       mp3_static.camera_ptr_address = 0x805c4f94;
       mp3_static.tweakgun_address = 0x8067d78c;
       mp3_static.culling_address = 0x80316a1c;
     }
-    /*else if (region == Region::PAL) {
-      mp3_static.camera_ptr_address = 0x805ca0e8;
-      mp3_static.tweakgun_address = 0x806730fc;
-      mp3_static.culling_address = 0x80314038;
-    }*/
+    else if (region == Region::PAL) {
+      mp3_static.camera_ptr_address = 0x805c7598;
+      mp3_static.tweakgun_address = 0x8067fdac;
+      mp3_static.culling_address = 0x80318170;
+    }
     else {}
   }
 }  // namespace prime
