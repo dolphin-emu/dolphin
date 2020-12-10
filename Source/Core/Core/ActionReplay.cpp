@@ -266,6 +266,12 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
 
     ReadEnabledAndDisabled(*ini, "ActionReplay", &codes);
+
+    if (ini == &global_ini)
+    {
+      for (ARCode& code : codes)
+        code.default_enabled = code.enabled;
+    }
   }
 
   return codes;
@@ -275,21 +281,27 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
+  std::vector<std::string> disabled_lines;
+
   for (const ActionReplay::ARCode& code : codes)
   {
     if (code.enabled)
-      enabled_lines.emplace_back("$" + code.name);
+      enabled_lines.emplace_back('$' + code.name);
+    else if (code.default_enabled)
+      disabled_lines.emplace_back('$' + code.name);
 
     if (code.user_defined)
     {
-      lines.emplace_back("$" + code.name);
+      lines.emplace_back('$' + code.name);
       for (const ActionReplay::AREntry& op : code.ops)
       {
         lines.emplace_back(fmt::format("{:08X} {:08X}", op.cmd_addr, op.value));
       }
     }
   }
+
   local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
+  local_ini->SetLines("ActionReplay_Disabled", disabled_lines);
   local_ini->SetLines("ActionReplay", lines);
 }
 

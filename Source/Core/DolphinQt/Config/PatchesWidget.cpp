@@ -129,21 +129,24 @@ void PatchesWidget::SavePatches()
 {
   std::vector<std::string> lines;
   std::vector<std::string> lines_enabled;
+  std::vector<std::string> lines_disabled;
 
   for (const auto& patch : m_patches)
   {
     if (patch.enabled)
-      lines_enabled.push_back("$" + patch.name);
+      lines_enabled.emplace_back('$' + patch.name);
+    else if (patch.default_enabled)
+      lines_disabled.emplace_back('$' + patch.name);
 
     if (!patch.user_defined)
       continue;
 
-    lines.push_back("$" + patch.name);
+    lines.emplace_back('$' + patch.name);
 
     for (const auto& entry : patch.entries)
     {
-      lines.push_back(StringFromFormat("0x%08X:%s:0x%08X", entry.address,
-                                       PatchEngine::PatchTypeAsString(entry.type), entry.value));
+      lines.emplace_back(StringFromFormat("0x%08X:%s:0x%08X", entry.address,
+                                          PatchEngine::PatchTypeAsString(entry.type), entry.value));
     }
   }
 
@@ -151,6 +154,7 @@ void PatchesWidget::SavePatches()
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
   game_ini_local.SetLines("OnFrame_Enabled", lines_enabled);
+  game_ini_local.SetLines("OnFrame_Disabled", lines_disabled);
   game_ini_local.SetLines("OnFrame", lines);
 
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");

@@ -29,6 +29,7 @@ struct ARCode
   std::string name;
   std::vector<AREntry> ops;
   bool enabled = false;
+  bool default_enabled = false;
   bool user_defined = false;
 };
 

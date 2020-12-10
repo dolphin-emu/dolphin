@@ -192,6 +192,12 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
     }
 
     ReadEnabledAndDisabled(*ini, "Gecko", &gcodes);
+
+    if (ini == &globalIni)
+    {
+      for (GeckoCode& code : gcodes)
+        code.default_enabled = code.enabled;
+    }
   }
 
   return gcodes;
@@ -210,12 +216,8 @@ static std::string MakeGeckoCodeTitle(const GeckoCode& code)
 }
 
 // used by the SaveGeckoCodes function
-static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& enabledLines,
-                          const GeckoCode& gcode)
+static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
 {
-  if (gcode.enabled)
-    enabledLines.push_back('$' + gcode.name);
-
   if (!gcode.user_defined)
     return;
 
@@ -235,14 +237,21 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 {
   std::vector<std::string> lines;
-  std::vector<std::string> enabledLines;
+  std::vector<std::string> enabled_lines;
+  std::vector<std::string> disabled_lines;
 
   for (const GeckoCode& geckoCode : gcodes)
   {
-    SaveGeckoCode(lines, enabledLines, geckoCode);
+    if (geckoCode.enabled)
+      enabled_lines.emplace_back('$' + geckoCode.name);
+    else if (geckoCode.default_enabled)
+      disabled_lines.emplace_back('$' + geckoCode.name);
+
+    SaveGeckoCode(lines, geckoCode);
   }
 
   inifile.SetLines("Gecko", lines);
-  inifile.SetLines("Gecko_Enabled", enabledLines);
+  inifile.SetLines("Gecko_Enabled", enabled_lines);
+  inifile.SetLines("Gecko_Disabled", disabled_lines);
 }
 }  // namespace Gecko
