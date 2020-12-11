@@ -135,7 +135,7 @@ bool IsFile(const std::string& path)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename)
+bool Delete(const std::string& filename, IfAbsentBehavior behavior)
 {
   INFO_LOG_FMT(COMMON, "Delete: file {}", filename);
 
@@ -154,7 +154,10 @@ bool Delete(const std::string& filename)
   // Return true because we care about the file not being there, not the actual delete.
   if (!file_info.Exists())
   {
-    WARN_LOG_FMT(COMMON, "Delete: {} does not exist", filename);
+    if (behavior == IfAbsentBehavior::ConsoleWarning)
+    {
+      WARN_LOG_FMT(COMMON, "Delete: {} does not exist", filename);
+    }
     return true;
   }
 
@@ -253,9 +256,19 @@ bool CreateFullPath(const std::string& fullPath)
 }
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string& filename)
+bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
 {
   INFO_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
+
+  // Return true because we care about the directory not being there, not the actual delete.
+  if (!File::Exists(filename))
+  {
+    if (behavior == IfAbsentBehavior::ConsoleWarning)
+    {
+      WARN_LOG_FMT(COMMON, "DeleteDir: {} does not exist", filename);
+    }
+    return true;
+  }
 
   // check if a directory
   if (!IsDirectory(filename))

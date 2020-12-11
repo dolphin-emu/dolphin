@@ -136,12 +136,20 @@ bool CreateDir(const std::string& filename);
 // Creates the full path of fullPath returns true on success
 bool CreateFullPath(const std::string& fullPath);
 
+enum class IfAbsentBehavior
+{
+  ConsoleWarning,
+  NoConsoleWarning
+};
+
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename);
+bool Delete(const std::string& filename,
+            IfAbsentBehavior behavior = IfAbsentBehavior::ConsoleWarning);
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string& filename);
+bool DeleteDir(const std::string& filename,
+               IfAbsentBehavior behavior = IfAbsentBehavior::ConsoleWarning);
 
 // renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string& srcFilename, const std::string& destFilename);
