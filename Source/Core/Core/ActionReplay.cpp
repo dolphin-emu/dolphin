@@ -26,7 +26,6 @@
 #include <iterator>
 #include <mutex>
 #include <string>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -39,6 +38,7 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/ARDecrypt.h"
+#include "Core/CheatCodes.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
 
@@ -120,7 +120,7 @@ void ApplyCodes(const std::vector<ARCode>& codes)
   s_disable_logging = false;
   s_active_codes.clear();
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-               [](const ARCode& code) { return code.active; });
+               [](const ARCode& code) { return code.enabled; });
   s_active_codes.shrink_to_fit();
 }
 
@@ -136,7 +136,7 @@ void UpdateSyncedCodes(const std::vector<ARCode>& codes)
   s_synced_codes.clear();
   s_synced_codes.reserve(codes.size());
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
-               [](const ARCode& code) { return code.active; });
+               [](const ARCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
@@ -148,7 +148,7 @@ std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
     s_disable_logging = false;
     s_active_codes.clear();
     std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-                 [](const ARCode& code) { return code.active; });
+                 [](const ARCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -160,7 +160,7 @@ void AddCode(ARCode code)
   if (!SConfig::GetInstance().bEnableCheats)
     return;
 
-  if (code.active)
+  if (code.enabled)
   {
     std::lock_guard<std::mutex> guard(s_lock);
     s_disable_logging = false;
@@ -177,20 +177,6 @@ void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
 {
   std::vector<ARCode> codes;
-
-  std::unordered_set<std::string> enabled_names;
-  {
-    std::vector<std::string> enabled_lines;
-    local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
-    for (const std::string& line : enabled_lines)
-    {
-      if (!line.empty() && line[0] == '$')
-      {
-        std::string name = line.substr(1, line.size() - 1);
-        enabled_names.insert(name);
-      }
-    }
-  }
 
   const IniFile* inis[2] = {&global_ini, &local_ini};
   for (const IniFile* ini : inis)
@@ -225,7 +211,6 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         }
 
         current_code.name = line.substr(1, line.size() - 1);
-        current_code.active = enabled_names.find(current_code.name) != enabled_names.end();
         current_code.user_defined = (ini == &local_ini);
       }
       else
@@ -279,6 +264,14 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       DecryptARCode(encrypted_lines, &current_code.ops);
       codes.push_back(current_code);
     }
+
+    ReadEnabledAndDisabled(*ini, "ActionReplay", &codes);
+
+    if (ini == &global_ini)
+    {
+      for (ARCode& code : codes)
+        code.default_enabled = code.enabled;
+    }
   }
 
   return codes;
@@ -288,21 +281,27 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
+  std::vector<std::string> disabled_lines;
+
   for (const ActionReplay::ARCode& code : codes)
   {
-    if (code.active)
-      enabled_lines.emplace_back("$" + code.name);
+    if (code.enabled)
+      enabled_lines.emplace_back('$' + code.name);
+    else if (code.default_enabled)
+      disabled_lines.emplace_back('$' + code.name);
 
     if (code.user_defined)
     {
-      lines.emplace_back("$" + code.name);
+      lines.emplace_back('$' + code.name);
       for (const ActionReplay::AREntry& op : code.ops)
       {
         lines.emplace_back(fmt::format("{:08X} {:08X}", op.cmd_addr, op.value));
       }
     }
   }
+
   local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
+  local_ini->SetLines("ActionReplay_Disabled", disabled_lines);
   local_ini->SetLines("ActionReplay", lines);
 }
 

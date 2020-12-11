@@ -1765,6 +1765,7 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
     </ClInclude>
     <ClInclude Include="SyncIdentifier.h" />
+    <ClInclude Include="CheatCodes.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
