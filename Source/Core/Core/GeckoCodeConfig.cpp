@@ -242,10 +242,8 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 
   for (const GeckoCode& geckoCode : gcodes)
   {
-    if (geckoCode.enabled)
-      enabled_lines.emplace_back('$' + geckoCode.name);
-    else if (geckoCode.default_enabled)
-      disabled_lines.emplace_back('$' + geckoCode.name);
+    if (geckoCode.enabled != geckoCode.default_enabled)
+      (geckoCode.enabled ? enabled_lines : disabled_lines).emplace_back('$' + geckoCode.name);
 
     SaveGeckoCode(lines, geckoCode);
   }
