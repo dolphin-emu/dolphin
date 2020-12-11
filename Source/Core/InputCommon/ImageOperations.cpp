@@ -8,8 +8,8 @@
 #include <cmath>
 #include <limits>
 #include <stack>
-
-#include <png.h>
+#include <string>
+#include <vector>
 
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -73,112 +73,27 @@ std::optional<ImagePixelData> LoadImage(const std::string& path)
   return image;
 }
 
-// For Visual Studio, ignore the error caused by the 'setjmp' call
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4611)
-#endif
-
 bool WriteImage(const std::string& path, const ImagePixelData& image)
 {
-  bool success = false;
-  char title[] = "Dynamic Input Texture";
-  char title_key[] = "Title";
-  png_structp png_ptr = nullptr;
-  png_infop info_ptr = nullptr;
   std::vector<u8> buffer;
+  buffer.reserve(image.width * image.height * 4);
 
-  // Open file for writing (binary mode)
-  File::IOFile fp(path, "wb");
-  if (!fp.IsOpen())
-  {
-    goto finalise;
-  }
-
-  // Initialize write structure
-  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-  if (png_ptr == nullptr)
-  {
-    goto finalise;
-  }
-
-  // Initialize info structure
-  info_ptr = png_create_info_struct(png_ptr);
-  if (info_ptr == nullptr)
-  {
-    goto finalise;
-  }
-
-  // Classical libpng error handling uses longjmp to do C-style unwind.
-  // Modern libpng does support a user callback, but it's required to operate
-  // in the same way (just gives a chance to do stuff before the longjmp).
-  // Instead of futzing with it, we use gotos specifically so the compiler
-  // will still generate proper destructor calls for us (hopefully).
-  // We also do not use any local variables outside the region longjmp may
-  // have been called from if they were modified inside that region (they
-  // would need to be volatile).
-  if (setjmp(png_jmpbuf(png_ptr)))
-  {
-    goto finalise;
-  }
-
-  // Begin region which may call longjmp
-
-  png_init_io(png_ptr, fp.GetHandle());
-
-  // Write header (8 bit color depth)
-  png_set_IHDR(png_ptr, info_ptr, image.width, image.height, 8, PNG_COLOR_TYPE_RGB_ALPHA,
-               PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-
-  png_text title_text;
-  title_text.compression = PNG_TEXT_COMPRESSION_NONE;
-  title_text.key = title_key;
-  title_text.text = title;
-  png_set_text(png_ptr, info_ptr, &title_text, 1);
-
-  png_write_info(png_ptr, info_ptr);
-
-  buffer.resize(image.width * 4);
-
-  // Write image data
   for (u32 y = 0; y < image.height; ++y)
   {
-    for (u32 x = 0; x < image.width; x++)
+    for (u32 x = 0; x < image.width; ++x)
     {
       const auto index = x + y * image.width;
       const auto pixel = image.pixels[index];
-
-      const auto buffer_index = 4 * x;
-      buffer[buffer_index] = pixel.r;
-      buffer[buffer_index + 1] = pixel.g;
-      buffer[buffer_index + 2] = pixel.b;
-      buffer[buffer_index + 3] = pixel.a;
+      buffer.push_back(pixel.r);
+      buffer.push_back(pixel.g);
+      buffer.push_back(pixel.b);
+      buffer.push_back(pixel.a);
     }
-
-    // The old API uses u8* instead of const u8*. It doesn't write
-    // to this pointer, but to fit the API, we have to drop the const qualifier.
-    png_write_row(png_ptr, const_cast<u8*>(buffer.data()));
   }
 
-  // End write
-  png_write_end(png_ptr, nullptr);
-
-  // End region which may call longjmp
-
-  success = true;
-
-finalise:
-  if (info_ptr != nullptr)
-    png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
-  if (png_ptr != nullptr)
-    png_destroy_write_struct(&png_ptr, nullptr);
-
-  return success;
+  return Common::SavePNG(path, buffer.data(), Common::ImageByteFormat::RGBA, image.width,
+                         image.height);
 }
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 ImagePixelData Resize(ResizeMode mode, const ImagePixelData& src, u32 new_width, u32 new_height)
 {
