@@ -133,10 +133,8 @@ void PatchesWidget::SavePatches()
 
   for (const auto& patch : m_patches)
   {
-    if (patch.enabled)
-      lines_enabled.emplace_back('$' + patch.name);
-    else if (patch.default_enabled)
-      lines_disabled.emplace_back('$' + patch.name);
+    if (patch.enabled != patch.default_enabled)
+      (patch.enabled ? lines_enabled : lines_disabled).emplace_back('$' + patch.name);
 
     if (!patch.user_defined)
       continue;

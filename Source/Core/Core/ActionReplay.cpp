@@ -285,10 +285,8 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
 
   for (const ActionReplay::ARCode& code : codes)
   {
-    if (code.enabled)
-      enabled_lines.emplace_back('$' + code.name);
-    else if (code.default_enabled)
-      disabled_lines.emplace_back('$' + code.name);
+    if (code.enabled != code.default_enabled)
+      (code.enabled ? enabled_lines : disabled_lines).emplace_back('$' + code.name);
 
     if (code.user_defined)
     {
