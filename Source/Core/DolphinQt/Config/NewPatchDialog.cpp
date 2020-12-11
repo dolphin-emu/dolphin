@@ -164,15 +164,22 @@ QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
             value->setPalette(palette);
           });
 
-  connect(remove, &QPushButton::clicked, [this, box, entry] {
+  connect(remove, &QPushButton::clicked, [this, box, offset, value, entry] {
     if (m_patch.entries.size() > 1)
     {
       box->setVisible(false);
       m_entry_layout->removeWidget(box);
       box->deleteLater();
+
       m_patch.entries.erase(
           std::find_if(m_patch.entries.begin(), m_patch.entries.end(),
                        [entry](const PatchEngine::PatchEntry& e) { return PatchEq(e, entry); }));
+
+      const auto it =
+          std::remove_if(m_edits.begin(), m_edits.end(), [offset, value](QLineEdit* line_edit) {
+            return line_edit == offset || line_edit == value;
+          });
+      m_edits.erase(it, m_edits.end());
     }
   });
 
