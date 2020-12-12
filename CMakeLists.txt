@@ -20,7 +20,7 @@ set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   option(ENABLE_X11 "Enables X11 Support" ON)
 endif()
-if(NOT WIN32 AND NOT APPLE)
+if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
   option(ENABLE_EGL "Enables EGL OpenGL Interface" ON)
 endif()
 
