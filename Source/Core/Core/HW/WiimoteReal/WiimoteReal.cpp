@@ -411,11 +411,16 @@ bool Wiimote::GetNextReport(Report* report)
 // Returns the next report that should be sent
 Report& Wiimote::ProcessReadQueue(bool repeat_last_data_report)
 {
-  if (!GetNextReport(&m_last_input_report) &&
-      !(IsDataReport(m_last_input_report) && repeat_last_data_report))
-  {
-    // If we didn't get a new report and it's not a data report to repeat, it's irrelevant.
+  // If we're not repeating data reports or had a non-data report, any old report is irrelevant.
+  if (!repeat_last_data_report || !IsDataReport(m_last_input_report))
     m_last_input_report.clear();
+
+  // Step through the read queue.
+  while (GetNextReport(&m_last_input_report))
+  {
+    // Stop on a non-data report.
+    if (!IsDataReport(m_last_input_report))
+      break;
   }
 
   return m_last_input_report;
