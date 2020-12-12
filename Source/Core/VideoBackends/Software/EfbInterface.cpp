@@ -634,17 +634,13 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
     src_ptr += memory_stride;
   }
 
-  auto dest_rect =
-      MathUtil::Rectangle<int>{source_rect.left, source_rect.top, source_rect.right,
-                               static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)};
+  const int src_width = source_rect.GetWidth();
+  const int src_height = source_rect.GetHeight();
+  const int dst_width = src_width;
+  const int dst_height = src_height * y_scale;
 
-  const std::size_t destination_size = dest_rect.GetWidth() * dest_rect.GetHeight() * 2;
-  static std::vector<yuv422_packed> destination;
-  destination.resize(dest_rect.GetWidth() * dest_rect.GetHeight());
-
-  SW::CopyRegion(source.data(), source_rect, destination.data(), dest_rect);
-
-  memcpy(xfb_in_ram, destination.data(), destination_size);
+  SW::CopyRegion(source.data(), src_width, src_height, reinterpret_cast<yuv422_packed*>(xfb_in_ram),
+                 dst_width, dst_height);
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)
