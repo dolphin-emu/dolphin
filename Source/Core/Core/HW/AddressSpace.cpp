@@ -374,9 +374,13 @@ static SmallBlockAccessors s_fake_address_space_accessors;
 static CompositeAddressSpaceAccessors s_physical_address_space_accessors_gcn;
 static CompositeAddressSpaceAccessors s_physical_address_space_accessors_wii;
 static NullAccessors s_null_accessors;
+static bool s_initialized = false;
 
 Accessors* GetAccessors(Type address_space)
 {
+  if (!s_initialized)
+    return &s_null_accessors;
+
   // default to effective
   switch (address_space)
   {
@@ -420,6 +424,12 @@ void Init()
   s_physical_address_space_accessors_gcn = {{0x00000000, &s_mem1_address_space_accessors}};
   s_physical_address_space_accessors_wii = {{0x00000000, &s_mem1_address_space_accessors},
                                             {0x10000000, &s_mem2_address_space_accessors}};
+  s_initialized = true;
+}
+
+void Shutdown()
+{
+  s_initialized = false;
 }
 
 }  // namespace AddressSpace
