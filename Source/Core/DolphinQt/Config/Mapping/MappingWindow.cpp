@@ -273,6 +273,17 @@ void MappingWindow::OnLoadProfilePressed()
   ini.Load(profile_path.toStdString());
 
   m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
+
+  // If additional devices with the same name are connected, use them for ports 2,3,4.
+  if (m_port != 0)
+  {
+    auto potential_default_device = m_controller->GetDefaultDevice();
+    potential_default_device.cid += m_port;
+
+    if (g_controller_interface.HasConnectedDevice(potential_default_device))
+      m_controller->SetDefaultDevice(potential_default_device);
+  }
+
   m_controller->UpdateReferences(g_controller_interface);
 
   const auto lock = GetController()->GetStateLock();
