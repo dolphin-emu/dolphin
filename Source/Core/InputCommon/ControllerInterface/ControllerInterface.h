@@ -50,6 +50,7 @@ public:
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
   void RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback);
+  void PlatformPopulateDevices(std::function<void()> callback);
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 
