@@ -60,7 +60,7 @@ std::optional<std::string> VideoSoftware::GetWarningMessage() const
                 "really want to enable software rendering? If unsure, select 'No'.");
 }
 
-void VideoSoftware::InitBackendInfo()
+bool VideoSoftware::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
   g_Config.backend_info.MaxTextureSize = 16384;
@@ -87,6 +87,7 @@ void VideoSoftware::InitBackendInfo()
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
+  return true;
 }
 
 bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)

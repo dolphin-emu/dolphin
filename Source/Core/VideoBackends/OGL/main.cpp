@@ -73,7 +73,7 @@ std::string VideoBackend::GetDisplayName() const
     return _trans("OpenGL");
 }
 
-void VideoBackend::InitBackendInfo()
+bool VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::OpenGL;
   g_Config.backend_info.MaxTextureSize = 16384;
@@ -114,6 +114,7 @@ void VideoBackend::InitBackendInfo()
 
   // aamodes - 1 is to stay consistent with D3D (means no AA)
   g_Config.backend_info.AAModes = {1, 2, 4, 8};
+  return true;
 }
 
 bool VideoBackend::InitializeGLExtensions(GLContext* context)

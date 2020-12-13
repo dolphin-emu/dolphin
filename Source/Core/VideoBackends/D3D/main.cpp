@@ -62,13 +62,14 @@ std::optional<std::string> VideoBackend::GetWarningMessage() const
   return result;
 }
 
-void VideoBackend::InitBackendInfo()
+bool VideoBackend::InitBackendInfo()
 {
   if (!D3DCommon::LoadLibraries())
-    return;
+    return false;
 
   FillBackendInfo();
   D3DCommon::UnloadLibraries();
+  return true;
 }
 
 void VideoBackend::FillBackendInfo()
