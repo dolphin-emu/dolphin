@@ -9,7 +9,7 @@
 namespace Config
 {
 template <typename T>
-struct Info;
+class Info;
 }
 
 class GraphicsInteger : public ToolTipSpinBox

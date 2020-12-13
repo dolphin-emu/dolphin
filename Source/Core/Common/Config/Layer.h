@@ -45,7 +45,7 @@ inline std::optional<std::string> TryParse(const std::string& str_value)
 }  // namespace detail
 
 template <typename T>
-struct Info;
+class Info;
 
 class Layer;
 using LayerMap = std::map<Location, std::optional<std::string>>;
@@ -105,7 +105,7 @@ public:
   template <typename T>
   T Get(const Info<T>& config_info) const
   {
-    return Get<T>(config_info.location).value_or(config_info.default_value);
+    return Get<T>(config_info.GetLocation()).value_or(config_info.GetDefaultValue());
   }
 
   template <typename T>
@@ -120,7 +120,7 @@ public:
   template <typename T>
   void Set(const Info<T>& config_info, const std::common_type_t<T>& value)
   {
-    Set(config_info.location, value);
+    Set(config_info.GetLocation(), value);
   }
 
   template <typename T>

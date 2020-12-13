@@ -10,7 +10,7 @@
 namespace Config
 {
 template <typename T>
-struct Info;
+class Info;
 }
 
 class GraphicsBool : public ToolTipCheckBox

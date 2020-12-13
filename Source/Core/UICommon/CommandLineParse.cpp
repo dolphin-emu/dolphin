@@ -26,15 +26,18 @@ public:
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (!video_backend.empty())
-      m_values.emplace_back(Config::MAIN_GFX_BACKEND.location, video_backend);
+      m_values.emplace_back(Config::MAIN_GFX_BACKEND.GetLocation(), video_backend);
 
     if (!audio_backend.empty())
-      m_values.emplace_back(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE"));
+    {
+      m_values.emplace_back(Config::MAIN_DSP_HLE.GetLocation(),
+                            ValueToString(audio_backend == "HLE"));
+    }
 
     // Batch mode hides the main window, and render to main hides the render window. To avoid a
     // situation where we would have no window at all, disable render to main when using batch mode.
     if (batch)
-      m_values.emplace_back(Config::MAIN_RENDER_TO_MAIN.location, ValueToString(false));
+      m_values.emplace_back(Config::MAIN_RENDER_TO_MAIN.GetLocation(), ValueToString(false));
 
     // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
