@@ -1983,6 +1983,11 @@ void Jit64::srawx(UGeckoInstruction inst)
       FinalizeCarry(CC_NZ);
     }
   }
+  else if (gpr.IsImm(s) && gpr.Imm32(s) == 0)
+  {
+    gpr.SetImmediate32(a, 0);
+    FinalizeCarry(false);
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
