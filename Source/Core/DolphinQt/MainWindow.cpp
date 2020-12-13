@@ -55,6 +55,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 
 #include "DiscIO/NANDImporter.h"
@@ -1453,7 +1454,11 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
   if (event->type() == QEvent::Close)
   {
     if (RequestStop() && object == this)
+    {
       m_exit_requested = true;
+      // If shutting down the emulator, we want to ignore breakpoints.
+      PowerPC::debug_interface.ClearAllBreakpoints();
+    }
 
     static_cast<QCloseEvent*>(event)->ignore();
     return true;
