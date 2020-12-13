@@ -1892,6 +1892,12 @@ void Jit64::slwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC(a);
   }
+  else if (gpr.IsImm(s) && gpr.Imm32(s) == 0)
+  {
+    gpr.SetImmediate32(a, 0);
+    if (inst.Rc)
+      ComputeRC(a);
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
