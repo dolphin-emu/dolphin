@@ -38,6 +38,10 @@ public:
       {
         add_return_one(0x800bc4d0);
       }
+      else if (region == Region::NTSC_J)
+      {
+        add_return_one(0x800bbb68);
+      }
       else if (region == Region::PAL)
       {
         add_return_one(0x800bdb9c);

@@ -429,6 +429,23 @@ void Noclip::init_mod(Game game, Region region)
       mp2_static.control_flag_address = 0x805373f8;
       mp2_static.load_state_address = 0x804e8824;
     }
+    else if (region == Region::NTSC_J)
+    {
+      noclip_code_mp2(0x804e8fcc, 0x800053a4, 0x8000d694);
+      code_changes.emplace_back(0x80160330, 0x60000000);
+      code_changes.emplace_back(0x80160338, 0x60000000);
+      code_changes.emplace_back(0x80160340, 0x60000000);
+      code_changes.emplace_back(0x80160348, 0xd0410084);
+      code_changes.emplace_back(0x8016034c, 0xd0210094);
+      code_changes.emplace_back(0x80160350, 0xd00100a4);
+      code_changes.emplace_back(0x80160354, 0x4bead525);
+
+      mp2_static.cplayer_ptr_address = 0x804e8fcc;
+      mp2_static.object_list_ptr_address = 0x804e82e8;
+      mp2_static.camera_uid_address = 0x804ec158;
+      mp2_static.control_flag_address = 0x80537bb8;
+      mp2_static.load_state_address = 0x804e9014;
+    }
     else if (region == Region::PAL)
     {
       noclip_code_mp2(0x804efc2c, 0x800053a4, 0x8000d694);

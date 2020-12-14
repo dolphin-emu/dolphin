@@ -285,6 +285,13 @@ namespace prime {
       mp2_static.culling_address = 0x802c8114;
       mp2_static.load_state_address = 0x804e8824;
     }
+    else if (region == Region::NTSC_J) {
+      mp2_static.camera_ptr_address = 0x804e9cb0;
+      mp2_static.camera_offset_address = 0x804ec19c;
+      mp2_static.tweakgun_ptr_address = 0x805cba54;
+      mp2_static.culling_address = 0x802c6a28;
+      mp2_static.load_state_address = 0x804e9014;
+    }
     else if (region == Region::PAL) {
       mp2_static.camera_ptr_address = 0x804eef48;
       mp2_static.camera_offset_address = 0x804f2f4c;

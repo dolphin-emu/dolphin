@@ -49,6 +49,9 @@ void AutoEFB::init_mod(Game game, Region region) {
     if (region == Region::NTSC_U) {
       cplayer_ptr_address = 0x804e87dc;
     }
+    else if (region == Region::NTSC_J) {
+      cplayer_ptr_address = 0x804e8fcc;
+    }
     else if (region == Region::PAL) {
       cplayer_ptr_address = 0x804efc2c;
     }

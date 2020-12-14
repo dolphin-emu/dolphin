@@ -62,6 +62,10 @@ void SpringballButton::init_mod(Game game, Region region) {
       cplayer_address = 0x804e87dc;
       springball_code(0x8010bd98);
     }
+    else if (region == Region::NTSC_J) {
+      cplayer_address = 0x804e8fcc;
+      springball_code(0x8010b368);
+    }
     else if (region == Region::PAL) {
       cplayer_address = 0x804efc2c;
       springball_code(0x8010d440);
