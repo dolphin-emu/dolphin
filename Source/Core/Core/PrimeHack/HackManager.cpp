@@ -26,7 +26,11 @@ void HackManager::run_active_mods() {
     active_region = Region::NTSC_U;
     break;
   case 0x806ddaec:
-    active_game = Game::MENU;
+    active_game = Game::MENU_PRIME_1;
+    active_region = Region::NTSC_J;
+    break;
+  case 0x801e0000:
+    active_game = Game::MENU_PRIME_2;
     active_region = Region::NTSC_J;
     break;
   case 0x7c0000d0:
@@ -48,6 +52,10 @@ void HackManager::run_active_mods() {
   case 0x4bff64e1:
     active_game = Game::PRIME_2;
     active_region = Region::NTSC_U;
+    break;
+  case 0x936daabc:
+    active_game = Game::PRIME_2;
+    active_region = Region::NTSC_J;
     break;
   case 0x80830000:
     active_game = Game::PRIME_2;

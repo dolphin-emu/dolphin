@@ -25,6 +25,9 @@ public:
       if (region == Region::NTSC_U) {
         code_changes.emplace_back(0x80292204, 0x4e800020);
       }
+      else if (region == Region::NTSC_J) {
+        code_changes.emplace_back(0x8029137c, 0x4e800020);
+      }
       else if (region == Region::PAL) {
         code_changes.emplace_back(0x80294a40, 0x4e800020);
       }

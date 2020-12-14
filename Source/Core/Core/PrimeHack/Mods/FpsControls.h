@@ -29,7 +29,7 @@ namespace prime {
                                   std::array<std::tuple<int, int>, 4> const& visors);
     void mp3_handle_cursor(bool lock);
 
-    void run_mod_menu(Region region);
+    void run_mod_menu(Game game, Region region);
     void run_mod_mp1(Region region);
     void run_mod_mp2(Region region);
     void run_mod_mp3();
@@ -48,7 +48,7 @@ namespace prime {
     void add_strafe_code_mp1_ntsc();
     void add_strafe_code_mp1_pal();
 
-    void init_mod_menu(Region region);
+    void init_mod_menu(Game game, Region region);
     void init_mod_mp1(Region region);
     void init_mod_mp2(Region region);
     void init_mod_mp3(Region region);

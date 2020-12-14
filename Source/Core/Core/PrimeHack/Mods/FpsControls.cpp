@@ -41,7 +41,9 @@ namespace prime {
   void FpsControls::run_mod(Game game, Region region) {
     switch (game) {
     case Game::MENU:
-      run_mod_menu(region);
+    case Game::MENU_PRIME_1:
+    case Game::MENU_PRIME_2:
+      run_mod_menu(game, region);
       break;
     case Game::PRIME_1:
       run_mod_mp1(region);
@@ -138,12 +140,17 @@ namespace prime {
     DevInfo("Powerups_Base", "%08X", powerups_array_base);
   }
 
-  void FpsControls::run_mod_menu(Region region) {
+  void FpsControls::run_mod_menu(Game game, Region region) {
     if (region == Region::NTSC_U) {
       handle_cursor(0x80913c9c, 0x80913d5c, 0.95f, 0.90f);
     }
     else if (region == Region::NTSC_J) {
-      handle_cursor(0x805a7da8, 0x805a7dac, 0.95f, 0.90f);
+      if (game == Game::MENU_PRIME_1) {
+        handle_cursor(0x805a7da8, 0x805a7dac, 0.95f, 0.90f);
+      }
+      if (game == Game::MENU_PRIME_2) {
+        handle_cursor(0x805a7ba8, 0x805a7bac, 0.95f, 0.90f);
+      }
     }
     else if (region == Region::PAL) {
       u32 cursor_address = PowerPC::HostRead_U32(0x80621ffc);
@@ -247,6 +254,9 @@ namespace prime {
     u32 tweak_player_address = 0;
     if (region == Region::NTSC_U) {
       tweak_player_address = read32(read32(GPR(13) - 0x6410));
+    }
+    else if (region == Region::NTSC_J) {
+      tweak_player_address = read32(read32(GPR(13) - 0x63f8));
     }
     else if (region == Region::PAL) {
       tweak_player_address = read32(read32(GPR(13) - 0x6368));
@@ -466,8 +476,9 @@ namespace prime {
 
   void FpsControls::init_mod(Game game, Region region) {
     switch (game) {
-    case Game::MENU:
-      init_mod_menu(region);
+    case Game::MENU_PRIME_1:
+    case Game::MENU_PRIME_2:
+      init_mod_menu(game, region);
       break;
     case Game::PRIME_1:
       init_mod_mp1(region);
@@ -1060,15 +1071,26 @@ namespace prime {
     code_changes.emplace_back(0x80471cfc, 0x41480000);
   }
 
-  void FpsControls::init_mod_menu(Region region)
+  void FpsControls::init_mod_menu(Game game, Region region)
   {
     if (region == Region::NTSC_J)
     {
-      // prevent wiimote pointer feedback to move the cursor
-      code_changes.emplace_back(0x80487160, 0x60000000);
-      code_changes.emplace_back(0x80487164, 0x60000000);
-      // Prevent recentering the cursor on Y axis
-      code_changes.emplace_back(0x80487098, 0x60000000);
+      if (game == Game::MENU_PRIME_1)
+      {
+        // prevent wiimote pointer feedback to move the cursor
+        code_changes.emplace_back(0x80487160, 0x60000000);
+        code_changes.emplace_back(0x80487164, 0x60000000);
+        // Prevent recentering the cursor on Y axis
+        code_changes.emplace_back(0x80487098, 0x60000000);
+      }
+      if (game == Game::MENU_PRIME_2)
+      {
+        // prevent wiimote pointer feedback to move the cursor
+        code_changes.emplace_back(0x80486fe8, 0x60000000);
+        code_changes.emplace_back(0x80486fec, 0x60000000);
+        // Prevent recentering the cursor on Y axis
+        code_changes.emplace_back(0x80486f20, 0x60000000);
+      }
     }
   }
 
@@ -1255,6 +1277,27 @@ namespace prime {
       mp2_static.cplayer_ptr_address = 0x804efc2c;
       mp2_static.load_state_address = 0x804efc74;
       mp2_static.lockon_address = 0x804efd9f;
+    }
+    else if (region == Region::NTSC_J) {
+      code_changes.emplace_back(0x8008c944, 0xc0430184);
+      code_changes.emplace_back(0x8008c998, 0x60000000);
+      code_changes.emplace_back(0x80147578, 0x60000000);      
+      code_changes.emplace_back(0x801475a0, 0x60000000);
+      code_changes.emplace_back(0x8013511c, 0x60000000);
+      code_changes.emplace_back(0x8008b7c4, 0x60000000);
+      code_changes.emplace_back(0x8008b794, 0x60000000);
+      code_changes.emplace_back(0x80303ec8, 0xd23f009c);
+      code_changes.emplace_back(0x80169388, 0x60000000);
+      code_changes.emplace_back(0x8014331c, 0x48000050);
+
+      // Remove Beams/Visors Menu
+      code_changes.emplace_back(0x8006f928, 0x48000044);
+      add_beam_change_code_mp2(0x8018c0d4);
+
+      // Unsure about those
+      mp2_static.cplayer_ptr_address = 0x804e8fcc;
+      mp2_static.load_state_address = 0x804e9014;
+      mp2_static.lockon_address = 0x804e913f;
     }
     else {}
 
