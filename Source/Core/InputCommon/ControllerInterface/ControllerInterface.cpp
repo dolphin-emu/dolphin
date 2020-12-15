@@ -140,6 +140,19 @@ void ControllerInterface::RefreshDevices()
   InvokeDevicesChangedCallbacks();
 }
 
+void ControllerInterface::PlatformPopulateDevices(std::function<void()> callback)
+{
+  if (!m_is_init)
+    return;
+
+  m_is_populating_devices = true;
+
+  callback();
+
+  m_is_populating_devices = false;
+  InvokeDevicesChangedCallbacks();
+}
+
 // Remove all devices and call library cleanup functions
 void ControllerInterface::Shutdown()
 {
