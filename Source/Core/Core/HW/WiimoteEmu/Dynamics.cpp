@@ -120,9 +120,19 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
   const ControlState roll = target.x * MathUtil::PI;
   const ControlState pitch = target.y * MathUtil::PI;
 
+  const auto target_angle = Common::Vec3(pitch, -roll, 0);
+
+  // For each axis, wrap around current angle if target is farther than 180 degrees.
+  for (std::size_t i = 0; i != target_angle.data.size(); ++i)
+  {
+    auto& angle = state->angle.data[i];
+    if (std::abs(angle - target_angle.data[i]) > float(MathUtil::PI))
+      angle -= std::copysign(MathUtil::TAU, angle);
+  }
+
   const auto max_accel = std::pow(tilt_group->GetMaxRotationalVelocity(), 2) / MathUtil::TAU;
 
-  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), max_accel, time_elapsed);
+  ApproachAngleWithAccel(state, target_angle, max_accel, time_elapsed);
 }
 
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
