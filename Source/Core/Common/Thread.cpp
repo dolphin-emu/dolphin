@@ -18,6 +18,8 @@
 #include <mach/mach.h>
 #elif defined BSD4_4 || defined __FreeBSD__ || defined __OpenBSD__
 #include <pthread_np.h>
+#elif defined __NetBSD__
+#include <sched.h>
 #elif defined __HAIKU__
 #include <OS.h>
 #endif
@@ -119,7 +121,9 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
 #ifdef __APPLE__
   thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (integer_t*)&mask, 1);
-#elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__) && !(defined ANDROID)
+#elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__ || defined __NetBSD__) &&        \
+    !(defined ANDROID)
+#ifndef __NetBSD__
 #ifdef __FreeBSD__
   cpuset_t cpu_set;
 #else
@@ -132,6 +136,16 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
       CPU_SET(i, &cpu_set);
 
   pthread_setaffinity_np(thread, sizeof(cpu_set), &cpu_set);
+#else
+  cpuset_t* cpu_set = cpuset_create();
+
+  for (int i = 0; i != sizeof(mask) * 8; ++i)
+    if ((mask >> i) & 1)
+      cpuset_set(i, cpu_set);
+
+  pthread_setaffinity_np(thread, cpuset_size(cpu_set), cpu_set);
+  cpuset_destroy(cpu_set);
+#endif
 #endif
 }
 
@@ -156,6 +170,8 @@ void SetCurrentThreadName(const char* name)
   pthread_setname_np(name);
 #elif defined __FreeBSD__ || defined __OpenBSD__
   pthread_set_name_np(pthread_self(), name);
+#elif defined(__NetBSD__)
+  pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name));
 #elif defined __HAIKU__
   rename_thread(find_thread(nullptr), name);
 #else

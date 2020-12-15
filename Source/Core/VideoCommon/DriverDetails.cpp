@@ -35,6 +35,8 @@ constexpr u32 m_os = OS_ALL | OS_LINUX;
 constexpr u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
 constexpr u32 m_os = OS_ALL | OS_OPENBSD;
+#elif __NetBSD__
+constexpr u32 m_os = OS_ALL | OS_NETBSD;
 #endif
 
 static API m_api = API_OPENGL;
