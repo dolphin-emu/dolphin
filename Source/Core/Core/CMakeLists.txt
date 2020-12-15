@@ -623,6 +623,7 @@ if(WIN32)
 elseif(APPLE)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Apple.cpp
+    HW/EXI/BBA/TAPServer_Apple.cpp
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
     HW/WiimoteReal/IOdarwin.h
     HW/WiimoteReal/IOdarwin_private.h
