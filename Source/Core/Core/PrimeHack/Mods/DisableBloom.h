@@ -40,7 +40,7 @@ public:
         code_changes.emplace_back(0x804849e8, 0x4e800020);
       }
       break;
-    case Game::PRIME_3_WII:
+    case Game::PRIME_3_STANDALONE:
       if (region == Region::NTSC_U)
       {
         code_changes.emplace_back(0x80486880, 0x4e800020);

@@ -22,7 +22,7 @@ void Noclip::run_mod(Game game, Region region)
   case Game::PRIME_3:
     run_mod_mp3(has_control_mp3());
     break;
-  case Game::PRIME_3_WII:
+  case Game::PRIME_3_STANDALONE:
     run_mod_mp3(has_control_mp3());
     break;
   default:
@@ -83,7 +83,7 @@ bool Noclip::has_control_mp3()
   Game game = GetHackManager()->get_active_game();
   Region region = GetHackManager()->get_active_region();
   u32 state_mgr_ptr_offset = 0x28;
-  if (game == Game::PRIME_3_WII && region == Region::NTSC_U)
+  if (game == Game::PRIME_3_STANDALONE && region == Region::NTSC_U)
     state_mgr_ptr_offset += 4;
   u32 state_mgr = read32(mp3_static.state_mgr_ptr_address + state_mgr_ptr_offset);
   if (!mem_check(state_mgr))
@@ -273,7 +273,7 @@ void Noclip::run_mod_mp3(bool has_control)
   Game game = GetHackManager()->get_active_game();
   Region region = GetHackManager()->get_active_region();
   u32 offset = 0x28;
-  if (game == Game::PRIME_3_WII && region == Region::NTSC_U)
+  if (game == Game::PRIME_3_STANDALONE && region == Region::NTSC_U)
     offset += 4;
   u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + offset) + 0x2184);
   if (!mem_check(cplayer_address))
@@ -531,7 +531,7 @@ void Noclip::init_mod(Game game, Region region)
     {
     }
     break;
-  case Game::PRIME_3_WII:
+  case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U)
     {
       noclip_code_mp3(0x805c4f6c, 0x80004380, 0x8000bee8);
@@ -687,7 +687,7 @@ void Noclip::on_state_change(ModState old_state)
       }
     }
     break;
-    case Game::PRIME_3_WII:
+    case Game::PRIME_3_STANDALONE:
     {
       switch (GetHackManager()->get_active_region())
       {
@@ -756,7 +756,7 @@ void Noclip::on_state_change(ModState old_state)
       }
       break;
     }
-    case Game::PRIME_3_WII:
+    case Game::PRIME_3_STANDALONE:
     {
       switch (GetHackManager()->get_active_region())
       {

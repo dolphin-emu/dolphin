@@ -52,7 +52,7 @@ namespace prime {
       run_mod_mp2(region);
       break;
     case Game::PRIME_3:
-      run_mod_mp3();
+      run_mod_mp3(game, region);
       break;
     case Game::PRIME_1_GCN:
       run_mod_mp1_gc();
@@ -60,8 +60,8 @@ namespace prime {
     case Game::PRIME_2_GCN:
       run_mod_mp2_gc();
       break;
-    case Game::PRIME_3_WII:
-      run_mod_mp3();
+    case Game::PRIME_3_STANDALONE:
+      run_mod_mp3(game, region);
       break;
     default:
       break;
@@ -334,90 +334,84 @@ namespace prime {
   }
 
   // this game is
-  void FpsControls::run_mod_mp3() {
-    Game active_game = GetHackManager()->get_active_game();
-    Region active_region = GetHackManager()->get_active_region();
+  void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     u32 cplayer_address = 0;
 
     // Handles menu screen cursor
-    if (read8(mp3_static.cursor_dlg_enabled_address))
-    {
+    if (read8(mp3_static.cursor_dlg_enabled_address)) {
       mp3_handle_cursor(false);
       return;
     }
 
-    if (active_game == Game::PRIME_3_WII && active_region == Region::NTSC_U)
+    if (active_game == Game::PRIME_3_STANDALONE && active_region == Region::NTSC_U) {
       cplayer_address = read32(read32(mp3_static.cplayer_ptr_address) + 0x2184);
-    else
+    } else {
       cplayer_address = read32(read32(read32(mp3_static.cplayer_ptr_address) + 0x04) + 0x2184);
+    }
 
-    if (!mem_check(cplayer_address))
+    if (!mem_check(cplayer_address)) {
       return;
+    }
 
     // HACK ooo
-    if (active_game == Game::PRIME_3)
+    if (active_game == Game::PRIME_3) {
       powerups_ptr_address = cplayer_address + 0x35a8;
-    else
+    } else {
       powerups_ptr_address = cplayer_address + 0x35a0;
+    }
     handle_beam_visor_switch({}, prime_three_visors);
 
     // Handle Interactable Entities
     bool lock_camera = false;
 
     u32 obj_list_iterator = 0;
-    if (active_game == Game::PRIME_3 && active_region == Region::NTSC_U)
+    if (active_game == Game::PRIME_3_STANDALONE && active_region == Region::NTSC_U) {
       obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address) + 0x1018) + 4;
-    else
+    } else {
       obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address - 4) + 0x1018) + 4;
+    }
     const u32 base = obj_list_iterator;
 
-    while (true) {
-      u32 obj = read32(obj_list_iterator);
-      u32 flags = read32(obj + 0x38);
+    for (int i = 0; i < 1024; i++) {
+      u32 entity = read32(obj_list_iterator);
+      u32 entity_flags = read32(entity + 0x38);
 
       bool should_process = false;
-      if (flags & 0x20000000) {
-        should_process = ((flags >> 8) & 0x2000) == 0;
+      if (entity_flags & 0x20000000) {
+        should_process = ((entity_flags >> 8) & 0x2000) == 0;
       }
-      should_process |= ((flags >> 8) & 0x1000) != 0;
+      should_process |= ((entity_flags >> 8) & 0x1000) != 0;
 
       if (should_process) {
-        u32 vt = read32(obj);
-        u32 vtf = read32(vt + 0xc);
+        u32 vf_table = read32(entity);
+        u32 vft_func = read32(vf_table + 0xc);
 
-        if (vtf == mp3_static.motion_vtf_address) { // ensure Accept is this function
-          u32 st = read32(obj + 0x14c);
+        // Accept function for this specific object type ("RTTI" checking)
+        if (vft_func == mp3_static.motion_vtf_address) {
+          u32 puzzle_state = read32(entity + 0x14c);
 
           if (ImprovedMotionControls()) {
-            if (st == 3) {
-              float step = readf32(obj + 0x154);
+            if (puzzle_state == 3) {
+              float step = readf32(entity + 0x154);
 
-              if (CheckForward())
+              if (CheckForward()) {
                 step += 0.05f;
-              if (CheckBack())
+              }
+              if (CheckBack()) {
                 step -= 0.05f;
+              }
 
-              writef32(std::clamp(step, 0.f, 1.f), obj + 0x154);
+              writef32(std::clamp(step, 0.f, 1.f), puzzle_state + 0x154);
             }
           }
 
           if (LockCameraInPuzzles()) {
             // if object is active
-            if (st > 0) {
+            if (puzzle_state > 0) {
               lock_camera = true;
             }
           }   
         }
-
-        // context sensitive func 1 80eaab34
-        //if (vtf == 0x802e0de4) {
-        //  if (read32(obj + 0x204) == 1) { // Rotary puzzle
-        //    writef32(1.f, obj + 0x1fc);
-        //    write32(2, obj + 0x204);
-
-        //    //DevInfo("Rotatory Puzzle", "%x", obj);
-        //  }
-        //}
       }
 
       u16 next_id = read16(obj_list_iterator + 6);
@@ -428,8 +422,9 @@ namespace prime {
       obj_list_iterator = (base + next_id * 8);
     }
 
-    if (lock_camera)
+    if (lock_camera) {
       return;
+    }
 
     u32 boss_name_str = read32(read32(read32(read32(mp3_static.boss_info_address) + 0x6e0) + 0x24) + 0x150);
     bool is_boss_metaridley = is_string_ridley(boss_name_str);
@@ -442,8 +437,7 @@ namespace prime {
       }
       mp3_handle_cursor(false);
       return;
-    }
-    else {
+    } else {
       if (fighting_ridley) {
         fighting_ridley = false;
         set_state(ModState::ENABLED);
@@ -460,15 +454,17 @@ namespace prime {
     // Gun damping uses its own TOC value, so screw it (I checked the binary)
     u32 rtoc_gun_damp = GPR(2) - mp3_static.gun_lag_toc_offset;
     write32(0, rtoc_gun_damp);
-    if (active_game == Game::PRIME_3)
+    if (active_game == Game::PRIME_3) {
       writef32(pitch, cplayer_address + 0x784);
-    else
+    } else {
       writef32(pitch, cplayer_address + 0x77c);
+    }
 
     u32 ball_state = read32(cplayer_address + 0x358);
 
-    if (ball_state == 0)
+    if (ball_state == 0) {
       writef32(calculate_yaw_vel(), cplayer_address + 0x174);
+    }
 
     // Nothing new here
     write32(0, cplayer_address + 0x174 + 0x18);
@@ -495,8 +491,8 @@ namespace prime {
     case Game::PRIME_3:
       init_mod_mp3(region);
       break;
-    case Game::PRIME_3_WII:
-      init_mod_mp3_wii(region);
+    case Game::PRIME_3_STANDALONE:
+      init_mod_mp3_standalone(region);
       break;
     }
     initialized = true;
@@ -544,59 +540,35 @@ namespace prime {
 
   void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
     Game active_game = GetHackManager()->get_active_game();
-    if (region == Region::NTSC_U)
-    {
-      if (active_game == Game::PRIME_3)
-      {
-        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
-        code_changes.emplace_back(start_point + 0x04,
-                                  0x38636c40);  // addi r3, r3, 0x6c40  ; load 0x805c6c40 into r3
-                                                // ; (indirect pointer to player camera control)
+    if (region == Region::NTSC_U) {
+      if (active_game == Game::PRIME_3) {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c
+        code_changes.emplace_back(start_point + 0x04, 0x38636c40);  // addi r3, r3, 0x6c40
+      } else {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c
+        code_changes.emplace_back(start_point + 0x04, 0x38634f6c);  // addi r3, r3, 0x4f6c
       }
-      else
-      {
-        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
-        code_changes.emplace_back(start_point + 0x04,
-                                  0x38634f6c);  // addi r3, r3, 0x4f6c  ; load 0x805c4f6c into r3, same reason as Trilogy NTSC
-      }
-    }
-    else if (region == Region::PAL)
-    {
-      if (active_game == Game::PRIME_3)
-      {
-        code_changes.emplace_back(start_point + 0x00, 0x3c60805d);  // lis  r3, 0x805d      ;
-        code_changes.emplace_back(start_point + 0x04,
-                                  0x3863a0c0);  // subi r3, r3, 0x5f40  ; load 0x805ca0c0 into r3, same reason as Trilogy NTSC
-      }
-      else
-      {
-        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
-        code_changes.emplace_back(start_point + 0x04,
-                                  0x38637570);  // addi r3, r3, 0x7570  ; load 0x805c7570 into r3, same reason as Trilogy NTSC
+    } else if (region == Region::PAL) {
+      if (active_game == Game::PRIME_3) {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805d);  // lis  r3, 0x805d
+        code_changes.emplace_back(start_point + 0x04, 0x3863a0c0);  // subi r3, r3, 0x5f40
+      } else {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c
+        code_changes.emplace_back(start_point + 0x04, 0x38637570);  // addi r3, r3, 0x7570
       }
     }
-    code_changes.emplace_back(start_point + 0x08, 0x8063002c);  // lwz  r3, 0x2c(r3)      ; deref player camera control base address into r3
-    if (active_game == Game::PRIME_3_WII && region == Region::NTSC_U)
-      code_changes.emplace_back(start_point + 0x0c, 0x60000000);  // nop                  ; doesn't apply with non trilogy mp3 ntsc
-    else
-      code_changes.emplace_back(start_point + 0x0c, 0x80630004);  // lwz  r3, 0x04(r3)    ; the point at which the function which was hooked
-    code_changes.emplace_back(start_point + 0x10, 0x80632184);  // lwz  r3, 0x2184(r3)    ; should have r31 equal to the
-                                                                // ; object which is being modified
-    code_changes.emplace_back(start_point + 0x14, 0x7c03f800);  // cmpw r3, r31           ; if r31 is player camera control (in r3)
-    if (active_game != Game::PRIME_3_WII && region != Region::NTSC_U)
-      code_changes.emplace_back(start_point + 0x18, 0x4d820020);  // beqlr                ; then DON'T store the value of
-                                                                  // ; r6 into 0x78+(player camera control)
-    else // can't jump to LR since the function is not called but jumped to instead
-      code_changes.emplace_back(start_point + 0x18, 0x418255b0);  // beq 8000ae48         ; then DON'T store the value of
-                                                                  // ; r6 into 0x78+(player camera control)
-    code_changes.emplace_back(start_point + 0x1c, 0x7fe3fb78);    // mr   r3, r31           ; otherwise do it
-    code_changes.emplace_back(start_point + 0x20, 0x90c30078);    // stw  r6, 0x78(r3)      ; this is the normal action
-                                                                  // ; which was overwritten by a bl to this mini-function
-    if (active_game != Game::PRIME_3_WII && region != Region::NTSC_U)
-      code_changes.emplace_back(start_point + 0x24, 0x4e800020);  // blr                    ; LR wasn't changed, so we're
-                                                                  // ; safe here (same case as beqlr)
-    else // not sure why but it won't call this function and rather jump to it
-      code_changes.emplace_back(start_point + 0x24, 0x480055A4);  // b 8000ae48
+    code_changes.emplace_back(start_point + 0x08, 0x8063002c);  // lwz  r3, 0x2c(r3)
+    if (active_game == Game::PRIME_3_STANDALONE && region == Region::NTSC_U) {
+      code_changes.emplace_back(start_point + 0x0c, 0x60000000);  // nop
+    } else {
+      code_changes.emplace_back(start_point + 0x0c, 0x80630004);  // lwz  r3, 0x04(r3)
+    }
+    code_changes.emplace_back(start_point + 0x10, 0x80632184);  // lwz  r3, 0x2184(r3)
+    code_changes.emplace_back(start_point + 0x14, 0x7c03f800);  // cmpw r3, r31
+    code_changes.emplace_back(start_point + 0x18, 0x4d820020);  // beqlr
+    code_changes.emplace_back(start_point + 0x1c, 0x7fe3fb78);  // mr   r3, r31
+    code_changes.emplace_back(start_point + 0x20, 0x90c30078);  // stw  r6, 0x78(r3)
+    code_changes.emplace_back(start_point + 0x24, 0x4e800020);  // blr
   }
 
   // Truly cursed
@@ -1073,18 +1045,15 @@ namespace prime {
 
   void FpsControls::init_mod_menu(Game game, Region region)
   {
-    if (region == Region::NTSC_J)
-    {
-      if (game == Game::MENU_PRIME_1)
-      {
+    if (region == Region::NTSC_J) {
+      if (game == Game::MENU_PRIME_1) {
         // prevent wiimote pointer feedback to move the cursor
         code_changes.emplace_back(0x80487160, 0x60000000);
         code_changes.emplace_back(0x80487164, 0x60000000);
         // Prevent recentering the cursor on Y axis
         code_changes.emplace_back(0x80487098, 0x60000000);
       }
-      if (game == Game::MENU_PRIME_2)
-      {
+      if (game == Game::MENU_PRIME_2) {
         // prevent wiimote pointer feedback to move the cursor
         code_changes.emplace_back(0x80486fe8, 0x60000000);
         code_changes.emplace_back(0x80486fec, 0x60000000);
@@ -1126,8 +1095,7 @@ namespace prime {
       mp1_static.object_list_ptr_address = 0x804bfc30;
       mp1_static.camera_uid_address = 0x804c4a08;
       powerups_ptr_address = 0x804bfcd4;
-    }
-    else if (region == Region::PAL) {
+    } else if (region == Region::PAL) {
       // Same as NTSC but slightly offset
       code_changes.emplace_back(0x80099068, 0xec010072);
       code_changes.emplace_back(0x800992c4, 0x60000000);
@@ -1151,8 +1119,7 @@ namespace prime {
       mp1_static.object_list_ptr_address = 0x804c3b70;
       mp1_static.camera_uid_address = 0x804c8948;
       powerups_ptr_address = 0x804c3c14;
-    }
-    else { // region == Region::NTSC-J
+    } else { // region == Region::NTSC-J
       // Same as NTSC but slightly offset
       code_changes.emplace_back(0x80099060, 0xec010072);
       code_changes.emplace_back(0x800992b4, 0x60000000);
@@ -1211,8 +1178,7 @@ namespace prime {
       mp1_gc_static.orbit_state_address = 0x8046b97c + 0x304;
       mp1_gc_static.tweak_player_address = 0x8045c208;
       mp1_gc_static.cplayer_address = 0x8046B97C;
-    }
-    else if (region == Region::PAL) {
+    } else if (region == Region::PAL) {
       code_changes.emplace_back(0x8000FB4C, 0x48000048);  
       code_changes.emplace_back(0x8000EA60, 0x60000000);
       code_changes.emplace_back(0x80017878, 0x4e800020);
@@ -1233,8 +1199,7 @@ namespace prime {
       mp1_gc_static.orbit_state_address = 0x803F38B4 + 0x304;
       mp1_gc_static.tweak_player_address = 0x803E4134;
       mp1_gc_static.cplayer_address = 0x803F38B4;
-    }
-    else {}
+    } else {}
   }
 
   void FpsControls::init_mod_mp2(Region region) {
@@ -1257,9 +1222,8 @@ namespace prime {
       mp2_static.cplayer_ptr_address = 0x804e87dc;
       mp2_static.load_state_address = 0x804e8824;
       mp2_static.lockon_address = 0x804e894f;
-    }
-    else if (region == Region::PAL) {
-      code_changes.emplace_back(0x8008e30C, 0xc0430184);
+    } else if (region == Region::PAL) {
+      code_changes.emplace_back(0x8008e30c, 0xc0430184);
       code_changes.emplace_back(0x8008e360, 0x60000000);
       code_changes.emplace_back(0x801496e4, 0x60000000);
       code_changes.emplace_back(0x8014970c, 0x60000000);
@@ -1271,14 +1235,13 @@ namespace prime {
       code_changes.emplace_back(0x80145474, 0x48000050);
 
       // Remove Beams/Visors Menu
-      code_changes.emplace_back(0x800710D0, 0x48000044);
+      code_changes.emplace_back(0x800710d0, 0x48000044);
       add_beam_change_code_mp2(0x8018e41c);
 
       mp2_static.cplayer_ptr_address = 0x804efc2c;
       mp2_static.load_state_address = 0x804efc74;
       mp2_static.lockon_address = 0x804efd9f;
-    }
-    else if (region == Region::NTSC_J) {
+    } else if (region == Region::NTSC_J) {
       code_changes.emplace_back(0x8008c944, 0xc0430184);
       code_changes.emplace_back(0x8008c998, 0x60000000);
       code_changes.emplace_back(0x80147578, 0x60000000);      
@@ -1298,8 +1261,7 @@ namespace prime {
       mp2_static.cplayer_ptr_address = 0x804e8fcc;
       mp2_static.load_state_address = 0x804e9014;
       mp2_static.lockon_address = 0x804e913f;
-    }
-    else {}
+    } else {}
 
     active_visor_offset = 0x34;
     powerups_size = 12;
@@ -1327,8 +1289,7 @@ namespace prime {
 
       mp2_gc_static.state_mgr_address = 0x803db6e0;
       mp2_gc_static.player_tweak_offset = 0x6e3c;
-    }
-    else if (region == Region::PAL) {
+    } else if (region == Region::PAL) {
       code_changes.emplace_back(0x801b03c0, 0x48000050);
       code_changes.emplace_back(0x801af264, 0x60000000);
       code_changes.emplace_back(0x80015f74, 0x4e800020);
@@ -1344,14 +1305,11 @@ namespace prime {
 
       mp2_gc_static.state_mgr_address = 0x803dc900;
       mp2_gc_static.player_tweak_offset = 0x6e34;
-    }
-    else {}
+    } else {}
   }
 
-  void FpsControls::init_mod_mp3(Region region)
-  {
-    if (region == Region::NTSC_U)
-    {
+  void FpsControls::init_mod_mp3(Region region) {
+    if (region == Region::NTSC_U) {
       code_changes.emplace_back(0x80080ac0, 0xec010072);
       code_changes.emplace_back(0x8014e094, 0x60000000);
       code_changes.emplace_back(0x8014e06c, 0x60000000);
@@ -1375,9 +1333,7 @@ namespace prime {
       mp3_static.lockon_address = 0x805c6db7;
       mp3_static.gun_lag_toc_offset = 0x5ff0;
       mp3_static.motion_vtf_address = 0x802e0dac;
-    }
-    else if (region == Region::PAL)
-    {
+    } else if (region == Region::PAL) {
       code_changes.emplace_back(0x80080ab8, 0xec010072);
       code_changes.emplace_back(0x8014d9e0, 0x60000000);
       code_changes.emplace_back(0x8014d9b8, 0x60000000);
@@ -1401,10 +1357,7 @@ namespace prime {
       mp3_static.lockon_address = 0x805ca237;
       mp3_static.gun_lag_toc_offset = 0x6000;
       mp3_static.motion_vtf_address = 0x802e0a88;
-    }
-    else
-    {
-    }
+    } else {}
 
     active_visor_offset = 0x34;
     powerups_size = 12;
@@ -1412,16 +1365,15 @@ namespace prime {
     has_beams = false;
   }
 
-  void FpsControls::init_mod_mp3_wii(Region region)
+  void FpsControls::init_mod_mp3_standalone(Region region)
   {
-    if (region == Region::NTSC_U)
-    {
+    if (region == Region::NTSC_U) {
       code_changes.emplace_back(0x80080be8, 0xec010072);
       code_changes.emplace_back(0x801521f0, 0x60000000);
       code_changes.emplace_back(0x801521c8, 0x60000000);
       code_changes.emplace_back(0x80139108, 0x60000000);
       code_changes.emplace_back(0x80138750, 0x60000000);
-      code_changes.emplace_back(0x8000ae44, 0x4bffaa3c);
+      code_changes.emplace_back(0x8000ae44, 0x4bffaa3d);
       code_changes.emplace_back(0x80080e6c, 0x60000000);
       code_changes.emplace_back(0x8007fef0, 0x480000e4);
       code_changes.emplace_back(0x80183288, 0x60000000);
@@ -1439,15 +1391,13 @@ namespace prime {
       mp3_static.lockon_address = 0x805c50e4;
       mp3_static.gun_lag_toc_offset = 0x5ff0;
       mp3_static.motion_vtf_address = 0x802e2508;
-    }
-    else if (region == Region::PAL)
-    {
+    } else if (region == Region::PAL) {
       code_changes.emplace_back(0x80080e84, 0xec010072);
       code_changes.emplace_back(0x80152d50, 0x60000000);
       code_changes.emplace_back(0x80152d28, 0x60000000);
       code_changes.emplace_back(0x80139860, 0x60000000);
       code_changes.emplace_back(0x80138ea8, 0x60000000);
-      code_changes.emplace_back(0x8000ae44, 0x4bffaa3c);
+      code_changes.emplace_back(0x8000ae44, 0x4bffaa3d);
       code_changes.emplace_back(0x80081108, 0x60000000);
       code_changes.emplace_back(0x8008018c, 0x480000e4);
       code_changes.emplace_back(0x80183dc8, 0x60000000);
@@ -1465,12 +1415,11 @@ namespace prime {
       mp3_static.lockon_address = 0x805c76e7;
       mp3_static.gun_lag_toc_offset = 0x6000;
       mp3_static.motion_vtf_address = 0x802e3be4;
-    }
-    else { }
+    } else {}
 
     active_visor_offset = 0x34;
     powerups_size = 12;
     powerups_offset = 0x58;
     has_beams = false;
   }
-  }
+}

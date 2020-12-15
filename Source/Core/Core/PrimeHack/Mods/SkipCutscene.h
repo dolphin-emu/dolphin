@@ -67,7 +67,7 @@ public:
         add_return_one(0x800b9f30);
       }
       break;
-    case Game::PRIME_3_WII:
+    case Game::PRIME_3_STANDALONE:
       if (region == Region::NTSC_U)
       {
         add_return_one(0x800bb930);

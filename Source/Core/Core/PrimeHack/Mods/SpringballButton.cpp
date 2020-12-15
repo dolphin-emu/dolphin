@@ -21,7 +21,7 @@ void SpringballButton::run_mod(Game game, Region region) {
     springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
     DevInfo("CPlayer", "%08X", cplayer_address);
     break;
-  case Game::PRIME_3_WII:
+  case Game::PRIME_3_STANDALONE:
     switch (region)
     {
     case Region::NTSC_U:
@@ -81,7 +81,7 @@ void SpringballButton::init_mod(Game game, Region region) {
       springball_code(0x80107120);
     }
     break;
-  case Game::PRIME_3_WII:
+  case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U) {
       cplayer_address = 0x805c4f98;
       springball_code(0x8010c984);

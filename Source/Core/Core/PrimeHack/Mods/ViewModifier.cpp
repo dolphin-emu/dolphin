@@ -18,7 +18,7 @@ namespace prime {
       run_mod_mp2_gc();
       break;
     case Game::PRIME_3:
-    case Game::PRIME_3_WII:
+    case Game::PRIME_3_STANDALONE:
       run_mod_mp3();
       break;
     default:
@@ -220,7 +220,7 @@ namespace prime {
     case Game::PRIME_3:
       init_mod_mp3(region);
       break;
-    case Game::PRIME_3_WII:
+    case Game::PRIME_3_STANDALONE:
       init_mod_mp3_wii(region);
       break;
     }

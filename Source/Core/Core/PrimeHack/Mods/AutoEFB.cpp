@@ -6,7 +6,7 @@ namespace prime {
 void AutoEFB::run_mod(Game game, Region region) {
   if (game != Game::PRIME_2 &&
       game != Game::PRIME_3 &&
-      game != Game::PRIME_3_WII &&
+      game != Game::PRIME_3_STANDALONE &&
       game != Game::PRIME_2_GCN)
   {
     return;
@@ -22,7 +22,7 @@ void AutoEFB::run_mod(Game game, Region region) {
     const u32 visor_base = read32(read32(read32(read32(cplayer_ptr_address) + 4) + 0x2184) + 0x35a8);
     should_use = read32(visor_base + 0x34) != 1u;
   }
-  else if (game == Game::PRIME_3_WII) {
+  else if (game == Game::PRIME_3_STANDALONE) {
     if (region == Region::NTSC_U)
     {
       const u32 visor_base = read32(read32(read32(cplayer_ptr_address) + 0x2184) + 0x35a0);
@@ -72,7 +72,7 @@ void AutoEFB::init_mod(Game game, Region region) {
       cplayer_ptr_address = 0x805ca0ec;
     }
     break;
-  case Game::PRIME_3_WII:
+  case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U)
     {
       cplayer_ptr_address = 0x805c4f98;
