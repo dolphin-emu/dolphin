@@ -33,9 +33,8 @@ enum TEXIDevices : int
   EXIDEVICE_MEMORYCARDFOLDER,
   EXIDEVICE_AGP,
   EXIDEVICE_ETHXLINK,
-#if defined(__APPLE__)
+  // Only used on Apple devices.
   EXIDEVICE_ETHTAPSERVER,
-#endif
   EXIDEVICE_NONE = 0xFF
 };
 
