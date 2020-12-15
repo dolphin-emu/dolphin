@@ -59,6 +59,8 @@ enum class GameQuirk
   // are used by games and the system menu respectively.
   USES_UNCOMMON_WD_MODE,
 
+  USES_WD_UNIMPLEMENTED_IOCTL,
+
   COUNT,
 };
 

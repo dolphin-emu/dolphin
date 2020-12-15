@@ -377,7 +377,8 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_GAMEINFO:
   case IOCTLV_WD_CHANGE_VTSF:
   default:
-    request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LINFO);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
+    request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LWARNING);
   }
 
   return GetDefaultReply(IPC_SUCCESS);
