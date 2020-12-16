@@ -141,7 +141,7 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
 {
   switch (event->button())
   {
-  case Qt::MouseButton::MidButton:
+  case Qt::MouseButton::MiddleButton:
     Clear();
     return;
   case Qt::MouseButton::RightButton:
