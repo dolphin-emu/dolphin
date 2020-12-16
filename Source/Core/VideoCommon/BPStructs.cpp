@@ -43,7 +43,7 @@ static const float s_gammaLUT[] = {1.0f, 1.7f, 2.2f, 1.0f};
 
 void BPInit()
 {
-  memset(&bpmem, 0, sizeof(bpmem));
+  memset(reinterpret_cast<u8*>(&bpmem), 0, sizeof(bpmem));
   bpmem.bpMask = 0xFFFFFF;
 }
 
