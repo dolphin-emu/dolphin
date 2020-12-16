@@ -14,6 +14,7 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
+#include "Core/PowerPC/Expression.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -40,11 +41,14 @@ void NewBreakpointDialog::CreateWidgets()
   type_group->addButton(m_instruction_bp);
   m_instruction_box = new QGroupBox;
   m_instruction_address = new QLineEdit;
+  m_instruction_condition = new QLineEdit;
 
-  auto* instruction_layout = new QHBoxLayout;
+  auto* instruction_layout = new QGridLayout;
   m_instruction_box->setLayout(instruction_layout);
-  instruction_layout->addWidget(new QLabel(tr("Address:")));
-  instruction_layout->addWidget(m_instruction_address);
+  instruction_layout->addWidget(new QLabel(tr("Address:")), 0, 0);
+  instruction_layout->addWidget(m_instruction_address, 0, 1);
+  instruction_layout->addWidget(new QLabel(tr("Condition:")), 1, 0);
+  instruction_layout->addWidget(m_instruction_condition, 1, 1);
 
   // Memory BP
   m_memory_bp = new QRadioButton(tr("Memory Breakpoint"));
@@ -174,7 +178,15 @@ void NewBreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, false, do_break, do_log);
+    const QString condition = m_instruction_condition->text().trimmed();
+
+    if (!condition.isEmpty() && !Expression::TryParse(condition.toUtf8().constData()))
+    {
+      invalid_input(tr("Condition"));
+      return;
+    }
+
+    m_parent->AddBP(address, false, do_break, do_log, condition);
   }
   else
   {
