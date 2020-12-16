@@ -22,6 +22,7 @@ struct TBreakPoint
   bool is_temporary = false;
   bool log_on_hit = false;
   bool break_on_hit = false;
+  std::string condition;
 };
 
 struct TMemCheck
@@ -62,7 +63,7 @@ public:
   bool IsBreakPointLogOnHit(u32 address) const;
 
   // Add BreakPoint
-  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit);
+  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit, std::string condition);
   void Add(u32 address, bool temp = false);
   void Add(const TBreakPoint& bp);
 

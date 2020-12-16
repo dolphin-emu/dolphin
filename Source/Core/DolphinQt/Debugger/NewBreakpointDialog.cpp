@@ -37,11 +37,14 @@ void NewBreakpointDialog::CreateWidgets()
   m_instruction_bp->setChecked(true);
   m_instruction_box = new QGroupBox;
   m_instruction_address = new QLineEdit;
+  m_instruction_condition = new QLineEdit;
 
-  auto* instruction_layout = new QHBoxLayout;
+  auto* instruction_layout = new QGridLayout;
   m_instruction_box->setLayout(instruction_layout);
-  instruction_layout->addWidget(new QLabel(tr("Address:")));
-  instruction_layout->addWidget(m_instruction_address);
+  instruction_layout->addWidget(new QLabel(tr("Address:")), 0, 0);
+  instruction_layout->addWidget(m_instruction_address, 0, 1);
+  instruction_layout->addWidget(new QLabel(tr("Condition:")), 1, 0);
+  instruction_layout->addWidget(m_instruction_condition, 1, 1);
 
   // Memory BP
   m_memory_bp = new QRadioButton(tr("Memory Breakpoint"));
@@ -165,7 +168,7 @@ void NewBreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, false, do_break, do_log);
+    m_parent->AddBP(address, false, do_break, do_log, m_instruction_condition->text());
   }
   else
   {

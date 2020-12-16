@@ -35,6 +35,7 @@ private:
   QRadioButton* m_instruction_bp;
   QGroupBox* m_instruction_box;
   QLineEdit* m_instruction_address;
+  QLineEdit* m_instruction_condition;
 
   // Memory BPs
   QRadioButton* m_memory_bp;

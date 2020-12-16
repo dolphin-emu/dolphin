@@ -5,10 +5,18 @@
 #include "Core/PowerPC/BreakPoints.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include <expr.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
@@ -16,6 +24,73 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
+
+struct ExprDeleter
+{
+  void operator()(expr* expression) const { expr_destroy(expression, nullptr); }
+};
+
+using ExprPointer = std::unique_ptr<expr, ExprDeleter>;
+
+class ExprVarList
+{
+public:
+  ExprVarList() = default;
+  ExprVarList(const ExprVarList&) = delete;
+  ExprVarList& operator=(const ExprVarList&) = delete;
+
+  ExprVarList(ExprVarList&& other) noexcept : m_vars{std::exchange(other.m_vars, {})} {}
+
+  ExprVarList& operator=(ExprVarList&& other) noexcept
+  {
+    std::swap(m_vars, other.m_vars);
+    return *this;
+  }
+
+  ~ExprVarList() { expr_destroy(nullptr, &m_vars); }
+
+  expr_var* GetHead() { return m_vars.head; }
+  expr_var_list* GetAddress() { return &m_vars; }
+
+private:
+  expr_var_list m_vars = {};
+};
+
+static std::optional<int> ParseGPR(const char* name)
+{
+  if (std::strlen(name) >= 2 && name[0] == 'r' && std::isdigit(name[1]))
+  {
+    char* end = nullptr;
+    int index = std::strtol(&name[1], &end, 10);
+    if (index < 32 && *end == '\0')
+      return index;
+  }
+  return {};
+}
+
+static double EvaluateExpression(const std::string& expression_string)
+{
+  ExprVarList vars;
+  ExprPointer expression{expr_create(expression_string.c_str(), expression_string.length(),
+                                     vars.GetAddress(), nullptr)};
+  if (!expression)
+    return false;
+
+  for (auto* v = vars.GetHead(); v != nullptr; v = v->next)
+  {
+    auto index = ParseGPR(v->name);
+    if (index)
+      v->value = GPR(*index);
+  }
+
+  return expr_eval(expression.get());
+}
+
+static bool EvaluateCondition(const std::string& condition)
+{
+  return condition.empty() || EvaluateExpression(condition) != 0;
+}
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -33,7 +108,7 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
 bool BreakPoints::IsBreakPointBreakOnHit(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
-    return bp.address == address && bp.break_on_hit;
+    return bp.address == address && bp.break_on_hit && EvaluateCondition(bp.condition);
   });
 }
 
@@ -88,10 +163,11 @@ void BreakPoints::Add(const TBreakPoint& bp)
 
 void BreakPoints::Add(u32 address, bool temp)
 {
-  BreakPoints::Add(address, temp, true, false);
+  BreakPoints::Add(address, temp, true, false, {});
 }
 
-void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit)
+void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
+                      std::string condition)
 {
   // Only add new addresses
   if (IsAddressBreakPoint(address))
@@ -103,6 +179,7 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
   bp.break_on_hit = break_on_hit;
   bp.log_on_hit = log_on_hit;
   bp.address = address;
+  bp.condition = std::move(condition);
 
   m_breakpoints.push_back(bp);
 
