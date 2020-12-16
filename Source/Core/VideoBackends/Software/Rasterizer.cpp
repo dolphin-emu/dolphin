@@ -228,12 +228,9 @@ static void BuildBlock(s32 blockX, s32 blockY)
       for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
       {
         float projection = invW;
-        if (xfmem.texMtxInfo[i].projection)
-        {
-          float q = TexSlopes[i][2].GetValue(dx, dy) * invW;
-          if (q != 0.0f)
-            projection = invW / q;
-        }
+        float q = TexSlopes[i][2].GetValue(dx, dy) * invW;
+        if (q != 0.0f)
+          projection = invW / q;
 
         pixel.Uv[i][0] = TexSlopes[i][0].GetValue(dx, dy) * projection;
         pixel.Uv[i][1] = TexSlopes[i][1].GetValue(dx, dy) * projection;
