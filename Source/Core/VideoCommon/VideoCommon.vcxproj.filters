@@ -95,9 +95,6 @@
     <ClCompile Include="HiresTextures.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="ImageWrite.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
     <ClCompile Include="IndexGenerator.cpp">
       <Filter>Util</Filter>
     </ClCompile>
@@ -288,9 +285,6 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="HiresTextures.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageWrite.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="IndexGenerator.h">

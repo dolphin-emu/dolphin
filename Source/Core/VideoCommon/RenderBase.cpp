@@ -29,9 +29,9 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Profiler.h"
@@ -64,7 +64,6 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/FreeLookCamera.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -90,6 +89,12 @@ std::unique_ptr<Renderer> g_renderer;
 static float AspectToWidescreen(float aspect)
 {
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
+}
+
+static bool DumpFrameToPNG(const FrameDump::FrameData& frame, const std::string& file_name)
+{
+  return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
+                                            frame.stride);
 }
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
@@ -1572,8 +1577,7 @@ void Renderer::FrameDumpThreadFunc()
     {
       std::lock_guard<std::mutex> lk(m_screenshot_lock);
 
-      if (TextureToPng(frame.data, frame.stride, m_screenshot_name, frame.width, frame.height,
-                       false))
+      if (DumpFrameToPNG(frame, m_screenshot_name))
         OSD::AddMessage("Screenshot saved to " + m_screenshot_name);
 
       // Reset settings
@@ -1681,8 +1685,7 @@ bool Renderer::StartFrameDumpToImage(const FrameDump::FrameData&)
 
 void Renderer::DumpFrameToImage(const FrameDump::FrameData& frame)
 {
-  std::string filename = GetFrameDumpNextImageFileName();
-  TextureToPng(frame.data, frame.stride, filename, frame.width, frame.height, false);
+  DumpFrameToPNG(frame, GetFrameDumpNextImageFileName());
   m_frame_dump_image_counter++;
 }
 

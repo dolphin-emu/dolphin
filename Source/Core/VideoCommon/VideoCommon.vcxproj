@@ -48,7 +48,6 @@
     <ClCompile Include="FreeLookCamera.cpp" />
     <ClCompile Include="HiresTextures.cpp" />
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
-    <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="NetPlayChatUI.cpp" />
     <ClCompile Include="NetPlayGolfUI.cpp" />
@@ -132,7 +131,6 @@
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />
-    <ClInclude Include="ImageWrite.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="LightingShaderGen.h" />
     <ClInclude Include="LookUpTables.h" />
