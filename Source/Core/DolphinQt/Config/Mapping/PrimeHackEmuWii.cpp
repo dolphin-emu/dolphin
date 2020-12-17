@@ -147,7 +147,17 @@ void PrimeHackEmuWii::LoadSettings()
   auto* modes = static_cast<ControllerEmu::PrimeHackModes*>(
     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
 
-  bool checked = modes->GetSelectedDevice() == 0;
+  bool checked;
+
+// Do not allow mouse mode on platforms with input APIs we do not support.
+#if defined CIFACE_USE_WIN32 || defined CIFACE_USE_XLIB
+  checked = modes->GetSelectedDevice() == 0;
+#else
+  checked = 1;
+  m_radio_button->setEnabled(false);
+  m_radio_controller->setEnabled(false);
+#endif
+
   m_radio_button->setChecked(checked);
   m_radio_controller->setChecked(!checked);
   controller_box->setEnabled(!checked);

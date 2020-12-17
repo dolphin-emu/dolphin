@@ -5,14 +5,18 @@
 namespace prime {
 class SkipCutscene : public PrimeMod {
 public:
-  void run_mod(Game game, Region region) override {}
+  void run_mod(Game game, Region region) override { }
   void init_mod(Game game, Region region) override {
     switch (game)
     {
     case Game::PRIME_1:
-      if (region == Region::NTSC)
+      if (region == Region::NTSC_U)
       {
         add_return_one(0x800cf054);
+      }
+      else if (region == Region::NTSC_J)
+      {
+        add_return_one(0x800cf3e4);
       }
       else if (region == Region::PAL)
       {
@@ -20,7 +24,7 @@ public:
       }
       break;
     case Game::PRIME_1_GCN:
-      if (region == Region::NTSC)
+      if (region == Region::NTSC_U)
       {
         add_return_one(0x801d5528);
       }
@@ -30,9 +34,13 @@ public:
       }
       break;
     case Game::PRIME_2:
-      if (region == Region::NTSC)
+      if (region == Region::NTSC_U)
       {
         add_return_one(0x800bc4d0);
+      }
+      else if (region == Region::NTSC_J)
+      {
+        add_return_one(0x800bbb68);
       }
       else if (region == Region::PAL)
       {
@@ -40,7 +48,7 @@ public:
       }
       break;
     case Game::PRIME_2_GCN:
-      if (region == Region::NTSC)
+      if (region == Region::NTSC_U)
       {
         add_return_one(0x80142340);
       }
@@ -50,7 +58,7 @@ public:
       }
       break;
     case Game::PRIME_3:
-      if (region == Region::NTSC)
+      if (region == Region::NTSC_U)
       {
         add_return_one(0x800b9f30);
       }
@@ -59,14 +67,15 @@ public:
         add_return_one(0x800b9f30);
       }
       break;
-    case Game::PRIME_3_WII:
-      if (region == Region::NTSC)
+    case Game::PRIME_3_STANDALONE:
+      if (region == Region::NTSC_U)
       {
         add_return_one(0x800bb930);
       }
-      /*else if (region == Region::PAL) {
-        add_return_one(0x800bb930);
-      }*/
+      else if (region == Region::PAL)
+      {
+        add_return_one(0x800bbd24);
+      }
       break;
     }
     initialized = true;

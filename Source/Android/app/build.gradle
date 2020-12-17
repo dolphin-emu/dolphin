@@ -43,9 +43,9 @@ android {
     // Define build types, which are orthogonal to product flavors.
     buildTypes {
         // Signed by release key, allowing for upload to Play Store.
-        release {
-            signingConfig signingConfigs.release
-        }
+        //release {
+        //    signingConfig signingConfigs.release
+        //}
 
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.

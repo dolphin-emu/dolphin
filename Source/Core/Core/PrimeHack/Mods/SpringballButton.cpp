@@ -21,10 +21,20 @@ void SpringballButton::run_mod(Game game, Region region) {
     springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
     DevInfo("CPlayer", "%08X", cplayer_address);
     break;
-  case Game::PRIME_3_WII:
-    actual_cplayer_address = read32(read32(cplayer_address) + 0x2184);
-    springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
-    DevInfo("CPlayer", "%08X", cplayer_address);
+  case Game::PRIME_3_STANDALONE:
+    switch (region)
+    {
+    case Region::NTSC_U:
+      actual_cplayer_address = read32(read32(cplayer_address) + 0x2184);
+      springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
+      DevInfo("CPlayer", "%08X", cplayer_address);
+      break;
+    case Region::PAL:
+      actual_cplayer_address = read32(read32(read32(cplayer_address) + 0x04) + 0x2184);
+      springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
+      DevInfo("CPlayer", "%08X", cplayer_address);
+      break;
+    }
     break;
   default:
     break;
@@ -34,7 +44,7 @@ void SpringballButton::run_mod(Game game, Region region) {
 void SpringballButton::init_mod(Game game, Region region) {
   switch (game) {
   case Game::PRIME_1:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x804d3c20;
       springball_code(0x801476d0);
     }
@@ -42,11 +52,19 @@ void SpringballButton::init_mod(Game game, Region region) {
       cplayer_address = 0x804d7b60;
       springball_code(0x80147820);
     }
+    else { // region == Region::NTSC_J
+      cplayer_address = 0x804d3ea0;
+      springball_code(0x80147cd0);
+    }
     break;
   case Game::PRIME_2:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x804e87dc;
       springball_code(0x8010bd98);
+    }
+    else if (region == Region::NTSC_J) {
+      cplayer_address = 0x804e8fcc;
+      springball_code(0x8010b368);
     }
     else if (region == Region::PAL) {
       cplayer_address = 0x804efc2c;
@@ -54,7 +72,7 @@ void SpringballButton::init_mod(Game game, Region region) {
     }
     break;
   case Game::PRIME_3:
-    if (region == Region::NTSC) {
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x805c6c6c;
       springball_code(0x801077d4);
     }
@@ -63,15 +81,15 @@ void SpringballButton::init_mod(Game game, Region region) {
       springball_code(0x80107120);
     }
     break;
-  case Game::PRIME_3_WII:
-    if (region == Region::NTSC) {
+  case Game::PRIME_3_STANDALONE:
+    if (region == Region::NTSC_U) {
       cplayer_address = 0x805c4f98;
       springball_code(0x8010c984);
     }
-    /*else if (region == Region::PAL) {
-      cplayer_address = 0x805ca0ec;
-      springball_code(0x80107120);
-    }*/
+    else if (region == Region::PAL) {
+      cplayer_address = 0x805c759c;
+      springball_code(0x8010ced4);
+    }
     break;
   default:
     break;
@@ -90,7 +108,7 @@ void SpringballButton::springball_code(u32 start_point) {
 
 void SpringballButton::springball_check(u32 ball_address, u32 movement_address) {
   if (CheckSpringBallCtl())
-  {             
+  {
     u32 ball_state = read32(ball_address);
     u32 movement_state = read32(movement_address);
 

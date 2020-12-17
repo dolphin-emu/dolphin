@@ -16,19 +16,24 @@ struct CodeChange {
 enum class Game : int {
   INVALID_GAME = -1,
   MENU = 0,
-  PRIME_1 = 1,
-  PRIME_2 = 2,
-  PRIME_3 = 3,
-  PRIME_1_GCN = 4,
-  PRIME_2_GCN = 5,
-  PRIME_3_WII = 6,
-  MAX_VAL = PRIME_3_WII,
+  /* New Play Controls only */
+  MENU_PRIME_1 = 1,
+  MENU_PRIME_2 = 2,
+  /* */
+  PRIME_1 = 3,
+  PRIME_2 = 4,
+  PRIME_3 = 5,
+  PRIME_3_STANDALONE = 6,
+  PRIME_1_GCN = 7,
+  PRIME_2_GCN = 8,
+  MAX_VAL = PRIME_2_GCN,
 };
 
 enum class Region : int {
   INVALID_REGION = -1,
-  NTSC = 0,
-  PAL = 1,
+  NTSC_U = 0,
+  NTSC_J = 1,
+  PAL = 2,
   MAX_VAL = PAL,
 };
 
