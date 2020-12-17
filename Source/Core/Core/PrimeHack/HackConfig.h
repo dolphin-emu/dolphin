@@ -8,7 +8,7 @@
 
 // Naming scheme will match dolphin as this place acts as an interface between the hack & dolphin proper
 namespace prime {
-void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_device_source);
+void InitializeHack();
 
 bool CheckBeamCtl(int beam_num);
 bool CheckVisorCtl(int visor_num);
@@ -54,9 +54,6 @@ bool GetCulling();
 
 double GetHorizontalAxis();
 double GetVerticalAxis();
-
-std::string const& GetCtlDeviceName();
-std::string const& GetCtlDeviceSource();
 
 HackManager *GetHackManager();
 }

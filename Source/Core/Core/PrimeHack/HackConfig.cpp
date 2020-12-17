@@ -32,14 +32,13 @@ float sensitivity;
 float cursor_sensitivity;
 float camera_fov;
 
-std::string device_name, device_source;
 bool inverted_x = false;
 bool inverted_y = false;
 HackManager hack_mgr;
 bool is_running = false;
 }
 
-void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_device_source) {
+void InitializeHack() {
   if (is_running) return; is_running = true;
 
   // Create all mods
@@ -52,9 +51,6 @@ void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_d
   hack_mgr.add_mod("skip_cutscene", std::make_unique<SkipCutscene>());
   hack_mgr.add_mod("springball_button", std::make_unique<SpringballButton>());
   hack_mgr.add_mod("fov_modifier", std::make_unique<ViewModifier>());
-
-  device_name = mkb_device_name;
-  device_source = mkb_device_source;
 
   // enable NO mods!!!
   if (!SConfig::GetInstance().bEnablePrimeHack) {
@@ -246,14 +242,6 @@ double GetVerticalAxis() {
   } 
 
   return static_cast<double>(g_mouse_input->GetDeltaVerticalAxis());
-}
-
-std::string const& GetCtlDeviceName() {
-  return device_name;
-}
-
-std::string const& GetCtlDeviceSource() {
-  return device_source;
 }
 
 bool GetCulling() {
