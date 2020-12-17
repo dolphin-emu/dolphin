@@ -7,25 +7,17 @@
 #include <QApplication>
 #include <QFontMetrics>
 #include <QMouseEvent>
-#include <QRegExp>
 #include <QString>
-
-#include "Common/Thread.h"
-#include "Core/Core.h"
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
-#include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Device.h"
 
 constexpr int SLIDER_TICK_COUNT = 100;
 
@@ -149,7 +141,7 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
 {
   switch (event->button())
   {
-  case Qt::MouseButton::MidButton:
+  case Qt::MouseButton::MiddleButton:
     Clear();
     return;
   case Qt::MouseButton::RightButton:

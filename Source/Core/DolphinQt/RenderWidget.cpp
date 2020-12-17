@@ -247,7 +247,7 @@ void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
     // Camera Pitch and Yaw:
     g_freelook_camera.Rotate(Common::Vec3{mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f});
   }
-  else if (event->buttons() & Qt::MidButton)
+  else if (event->buttons() & Qt::MiddleButton)
   {
     // Camera Roll:
     g_freelook_camera.Rotate({0.f, 0.f, mouse_move.x() / 200.f});
