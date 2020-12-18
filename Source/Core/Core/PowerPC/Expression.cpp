@@ -14,7 +14,82 @@
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+
+template <typename T>
+static T HostRead(u32 address);
+
+template <typename T>
+static void HostWrite(T var, u32 address);
+
+template <>
+u8 HostRead(u32 address)
+{
+  return PowerPC::HostRead_U8(address);
+}
+
+template <>
+u16 HostRead(u32 address)
+{
+  return PowerPC::HostRead_U16(address);
+}
+
+template <>
+u32 HostRead(u32 address)
+{
+  return PowerPC::HostRead_U32(address);
+}
+
+template <>
+u64 HostRead(u32 address)
+{
+  return PowerPC::HostRead_U64(address);
+}
+
+template <>
+void HostWrite(u8 var, u32 address)
+{
+  PowerPC::HostWrite_U8(var, address);
+}
+
+template <>
+void HostWrite(u16 var, u32 address)
+{
+  PowerPC::HostWrite_U16(var, address);
+}
+
+template <>
+void HostWrite(u32 var, u32 address)
+{
+  PowerPC::HostWrite_U32(var, address);
+}
+
+template <>
+void HostWrite(u64 var, u32 address)
+{
+  PowerPC::HostWrite_U64(var, address);
+}
+
+template <typename T, typename U = T>
+static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
+{
+  if (vec_len(args) != 1)
+    return 0;
+  const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
+  return Common::BitCast<T>(HostRead<U>(address));
+}
+
+template <typename T, typename U = T>
+static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
+{
+  if (vec_len(args) != 2)
+    return 0;
+  const T var = static_cast<T>(expr_eval(&vec_nth(args, 0)));
+  const u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
+  HostWrite<U>(Common::BitCast<U>(var), address);
+  return var;
+}
 
 template <typename T, typename U = T>
 static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
@@ -24,7 +99,22 @@ static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
   return Common::BitCast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
 }
 
-static std::array<expr_func, 8> g_expr_funcs{{
+static std::array<expr_func, 21> g_expr_funcs{{
+    // For internal storage and comparisons, everything is auto-converted to Double.
+    // If u64 ints are added, this could produce incorrect results.
+    {"read_u8", HostReadFunc<u8>},
+    {"read_s8", HostReadFunc<s8, u8>},
+    {"read_u16", HostReadFunc<u16>},
+    {"read_s16", HostReadFunc<s16, u16>},
+    {"read_u32", HostReadFunc<u32>},
+    {"read_s32", HostReadFunc<s32, u32>},
+    {"read_f32", HostReadFunc<float, u32>},
+    {"read_f64", HostReadFunc<double, u64>},
+    {"write_u8", HostWriteFunc<u8>},
+    {"write_u16", HostWriteFunc<u16>},
+    {"write_u32", HostWriteFunc<u32>},
+    {"write_f32", HostWriteFunc<float, u32>},
+    {"write_f64", HostWriteFunc<double, u64>},
     {"u8", CastFunc<u8>},
     {"s8", CastFunc<s8, u8>},
     {"u16", CastFunc<u16>},
