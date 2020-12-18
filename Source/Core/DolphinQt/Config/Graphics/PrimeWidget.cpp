@@ -59,6 +59,19 @@ void PrimeWidget::CreateWidgets()
   graphics_layout->addWidget(m_toggle_arm_position, 4, 0);
   graphics_layout->addWidget(m_toggle_culling, 5, 0);
 
+  m_fov_axis = new GraphicsSlider(1, 170, Config::FOV);
+  m_fov_axis->setMinimum(1);
+  m_fov_axis->setMaximum(170);
+  m_fov_axis->setPageStep(1);
+
+  fov_counter = new GraphicsInteger(1, 170, Config::FOV);
+  fov_counter->setMaximumWidth(50);
+
+  graphics_layout->addItem(new QSpacerItem(1, 5), 6, 0);
+  graphics_layout->addWidget(new QLabel(tr("Field of View")), 7, 0);
+  graphics_layout->addWidget(m_fov_axis, 7, 1);
+  graphics_layout->addWidget(fov_counter, 7, 2);
+
   // Viewmodel Position
   auto* viewmodel_box = new QGroupBox(tr("Viewmodel Position"));
   auto* viewmodel_layout = new QGridLayout();
@@ -185,6 +198,10 @@ void PrimeWidget::AddDescriptions()
     QT_TR_NOOP("Modifies the arm position on the Z axis. This is back and forward.");
   static const char TR_MOTION_LOCK[] =
     QT_TR_NOOP("Automatically locks the camera in all motion puzzles and buttons.");
+  static const char TR_FOV[] =
+    QT_TR_NOOP("Modifies the Field of View. The Prime games are not designed to go beyond 101 FOV (94 in Prime 3), so if you do PrimeHack has to "
+               "disable culling and modify the znear values in the game. The higher the FOV, the more glitches you may encounter."
+                "\n\nGenerally the best FOV values are between 75 and 100.");
 
   AddDescription(m_autoefb, TR_AUTO_EFB);
   AddDescription(m_motions_lock, TR_MOTION_LOCK);
@@ -197,4 +214,6 @@ void PrimeWidget::AddDescriptions()
   AddDescription(m_x_axis, TR_X_AXIS);
   AddDescription(m_x_axis, TR_Y_AXIS);
   AddDescription(m_x_axis, TR_Z_AXIS);
+  AddDescription(m_fov_axis, TR_FOV);
+  AddDescription(fov_counter, TR_FOV);
 }

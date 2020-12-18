@@ -33,7 +33,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     }
   }
 
-  static constexpr std::array<const Config::Location*, 25> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 26> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -72,6 +72,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::ARMPOSITION_FORWARDBACK.location,
       &Config::TOGGLE_CULLING.location,
       &Config::DISABLE_BLOOM.location,
+      &Config::FOV.location,
       &Config::ENABLE_SECONDARY_GUNFX.location,
   };
 

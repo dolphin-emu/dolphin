@@ -32,6 +32,9 @@ private:
   QCheckBox* m_toggle_culling;
   QCheckBox* m_toggle_secondaryFX;
 
+  QSpinBox* fov_counter;
+  QSlider* m_fov_axis;
+
   QSpinBox* x_counter;
   QSpinBox* y_counter;
   QSpinBox* z_counter;

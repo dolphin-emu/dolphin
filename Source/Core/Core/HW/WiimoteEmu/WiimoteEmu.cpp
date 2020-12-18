@@ -327,10 +327,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
       &m_primehack_cursor_sensitivity,
       {"Cursor Sensitivity", nullptr, nullptr, _trans("Cursor Sensitivity")}, 15, 1, 100);
 
-  m_primehack_camera->AddSetting(&m_primehack_fieldofview,
-                                 {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60,
-                                 1, 170);
-
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_primehack_stick =
     new ControllerEmu::OctagonAnalogStick(_trans("Camera Control"), gate_radius));
@@ -707,11 +703,11 @@ bool Wiimote::PrimeControllerMode()
   return m_primehack_modes->GetSelectedDevice() == 1;
 }
 
-std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()
+std::tuple<double, double, bool, bool> Wiimote::GetPrimeSettings()
 {
   std::tuple t =
       std::make_tuple(m_primehack_camera_sensitivity.GetValue(),
-                      m_primehack_cursor_sensitivity.GetValue(), m_primehack_fieldofview.GetValue(),
+                      m_primehack_cursor_sensitivity.GetValue(),
                       m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue());
 
   return t;

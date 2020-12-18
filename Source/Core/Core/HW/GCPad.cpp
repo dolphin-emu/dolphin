@@ -98,7 +98,7 @@ std::tuple<double, double> GetPrimeStickXY()
   return gcpad->GetPrimeStickXY();
 }
 
-std::tuple<double, double, double, bool, bool> PrimeSettings()
+std::tuple<double, double, bool, bool> PrimeSettings()
 {
   GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));
 

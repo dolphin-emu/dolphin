@@ -45,7 +45,6 @@ void SetSensitivity(float sensitivity);
 float GetCursorSensitivity();
 void SetCursorSensitivity(float sensitivity);
 float GetFov();
-void SetFov(float fov);
 bool InvertedY();
 void SetInvertedY(bool inverted);
 bool InvertedX();

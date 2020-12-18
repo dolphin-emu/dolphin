@@ -115,7 +115,7 @@ bool PrimeUseController();
 
 std::tuple<double, double> GetPrimeStickXY();
 
-std::tuple<double, double, double, bool, bool> PrimeSettings();
+std::tuple<double, double, bool, bool> PrimeSettings();
 
 
 bool NetPlay_GetButtonPress(int wiimote, bool pressed);

@@ -149,7 +149,7 @@ public:
 
   std::tuple<double, double> GetPrimeStickXY();
 
-  std::tuple <double, double, double, bool, bool> GetPrimeSettings();
+  std::tuple <double, double, bool, bool> GetPrimeSettings();
 
   void Reset();
 
@@ -297,7 +297,6 @@ private:
   ControllerEmu::SettingValue<double> m_primehack_horizontal_sensitivity;
   ControllerEmu::SettingValue<double> m_primehack_vertical_sensitivity;
 
-  ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
 
