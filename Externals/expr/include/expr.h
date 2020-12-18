@@ -160,10 +160,10 @@ static int expr_prec(enum expr_type a, enum expr_type b) {
   return (left && prec[a] >= prec[b]) || (prec[a] > prec[b]);
 }
 
-#define isfirstvarchr(c)                                                       \
-  (((unsigned char)c >= '@' && c != '^' && c != '|') || c == '$')
-#define isvarchr(c)                                                            \
-  (((unsigned char)c >= '@' && c != '^' && c != '|') || c == '$' ||            \
+#define isfirstvarchr(c)                                                        \
+  (((unsigned char)c >= '@' && c != '^' && c != '|' && c != '~') || c == '$')
+#define isvarchr(c)                                                             \
+  (((unsigned char)c >= '@' && c != '^' && c != '|' && c != '~') || c == '$' || \
    c == '#' || (c >= '0' && c <= '9'))
 
 static struct {
@@ -172,7 +172,7 @@ static struct {
 } OPS[] = {
     {"-u", OP_UNARY_MINUS},
     {"!u", OP_UNARY_LOGICAL_NOT},
-    {"^u", OP_UNARY_BITWISE_NOT},
+    {"~u", OP_UNARY_BITWISE_NOT},
     {"**", OP_POWER},
     {"*", OP_MULTIPLY},
     {"/", OP_DIVIDE},
@@ -199,7 +199,7 @@ static struct {
        them at the end */
     {"-", OP_UNARY_MINUS},
     {"!", OP_UNARY_LOGICAL_NOT},
-    {"^", OP_UNARY_BITWISE_NOT},
+    {"~", OP_UNARY_BITWISE_NOT},
 };
 
 static enum expr_type expr_op(const char *s, size_t len, int unary) {
@@ -212,30 +212,24 @@ static enum expr_type expr_op(const char *s, size_t len, int unary) {
   return OP_UNKNOWN;
 }
 
-static double expr_parse_number(const char *s, size_t len) {
+static double expr_parse_number(const char* s, size_t len) {
   double num = 0;
-  unsigned int frac = 0;
-  unsigned int digits = 0;
-  for (unsigned int i = 0; i < len; i++) {
-    if (s[i] == '.' && frac == 0) {
-      frac++;
-      continue;
-    }
-    if (isdigit(s[i])) {
-      digits++;
-      if (frac > 0) {
-        frac++;
-      }
-      num = num * 10 + (s[i] - '0');
-    } else {
+  char buf[32];
+  char* sz = buf;
+  char* end = NULL;
+  if (len >= sizeof(buf)) {
+    sz = (char*)calloc(1, len + 1);
+    if (sz == NULL) {
       return NAN;
     }
   }
-  while (frac > 1) {
-    num = num / 10;
-    frac--;
+  strncpy(sz, s, len);
+  sz[len] = '\0';
+  num = strtod(sz, &end);
+  if (sz != buf) {
+    free(sz);
   }
-  return (digits > 0 ? num : NAN);
+  return (end == sz + len ? num : NAN);
 }
 
 /*
@@ -446,9 +440,23 @@ static int expr_next_token(const char *s, size_t len, int *flags) {
       return -1; // unexpected number
     }
     *flags = EXPR_TOP | EXPR_TCLOSE;
-    while ((c == '.' || isdigit(c)) && i < len) {
+    if (c == '0') {
       i++;
-      c = s[i];
+      if (i < len && (s[i] == 'x' || s[i] == 'X')) {
+        i++;
+        for (; i < len && isxdigit(s[i]); i++)
+          ;
+        return i;
+      }
+    }
+    for (; i < len && (s[i] == '.' || isdigit(s[i])); i++)
+      ;
+    if (i < len && (s[i] == 'e' || s[i] == 'E')) {
+      i++;
+      if (i < len && (s[i] == '+' || s[i] == '-'))
+        i++;
+      for (; i < len && isdigit(s[i]); i++)
+        ;
     }
     return i;
   } else if (isfirstvarchr(c)) {
@@ -626,8 +634,8 @@ static struct expr *expr_create(const char *s, size_t len,
         case '-':
           tok = "-u";
           break;
-        case '^':
-          tok = "^u";
+        case '~':
+          tok = "~u";
           break;
         case '!':
           tok = "!u";
