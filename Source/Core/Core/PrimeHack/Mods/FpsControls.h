@@ -111,7 +111,6 @@ private:
       u32 boss_info_address;
       u32 lockon_address;
       u32 gun_lag_toc_offset;
-      u32 motion_vtf_address;
     } mp3_static;
   };
 

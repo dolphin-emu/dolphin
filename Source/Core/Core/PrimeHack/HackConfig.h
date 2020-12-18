@@ -52,6 +52,9 @@ bool InvertedX();
 void SetInvertedX(bool inverted);
 bool GetCulling();
 
+void SetLockCamera(bool lock);
+bool GetLockCamera();
+
 double GetHorizontalAxis();
 double GetVerticalAxis();
 

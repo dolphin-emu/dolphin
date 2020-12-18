@@ -1031,6 +1031,9 @@
     <ClCompile Include="PrimeHack\Mods\ViewModifier.cpp">
       <Filter>PrimeHack\Mods</Filter>
     </ClCompile>
+    <ClCompile Include="PrimeHack\Mods\ContextSensitiveControls.cpp">
+      <Filter>PrimeHack\Mods</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1821,6 +1824,9 @@
       <Filter>PrimeHack\Mods</Filter>
     </ClInclude>
     <ClInclude Include="PrimeHack\Mods\ViewModifier.h">
+      <Filter>PrimeHack\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Mods\ContextSensitiveControls.h">
       <Filter>PrimeHack\Mods</Filter>
     </ClInclude>
   </ItemGroup>

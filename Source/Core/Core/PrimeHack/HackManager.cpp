@@ -134,7 +134,7 @@ void HackManager::run_active_mods() {
           mod.second->apply_instruction_changes();
       }
     }
-      
+
     last_game = active_game;
     last_region = active_region;
     for (auto& mod : mods) {
@@ -155,6 +155,17 @@ void HackManager::update_mod_states()
   set_mod_enabled("noclip", GetNoclip());
   set_mod_enabled("invulnerability", GetInvulnerability());
   set_mod_enabled("skip_cutscene", GetSkipCutscene());
+  
+  if (ImprovedMotionControls()) {
+    enable_mod("context_sensitive_controls");
+  }
+  else {
+    auto result = mods.find("context_sensitive_controls");
+    if (result == mods.end()) {
+      return;
+    }
+    result->second->set_state(ModState::CODE_DISABLED);
+  }
 }
 
 void HackManager::add_mod(std::string const &name, std::unique_ptr<PrimeMod> mod) {

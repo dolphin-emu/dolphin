@@ -15,6 +15,7 @@
 #include "Core/PrimeHack/Mods/SkipCutscene.h"
 #include "Core/PrimeHack/Mods/SpringballButton.h"
 #include "Core/PrimeHack/Mods/ViewModifier.h"
+#include "Core/PrimeHack/Mods/ContextSensitiveControls.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -24,7 +25,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/VideoConfig.h"
-
 
 namespace prime {
 namespace {
@@ -36,6 +36,7 @@ bool inverted_x = false;
 bool inverted_y = false;
 HackManager hack_mgr;
 bool is_running = false;
+bool lock_camera = false;
 }
 
 void InitializeHack() {
@@ -51,6 +52,7 @@ void InitializeHack() {
   hack_mgr.add_mod("skip_cutscene", std::make_unique<SkipCutscene>());
   hack_mgr.add_mod("springball_button", std::make_unique<SpringballButton>());
   hack_mgr.add_mod("fov_modifier", std::make_unique<ViewModifier>());
+  hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
 
   // enable NO mods!!!
   if (!SConfig::GetInstance().bEnablePrimeHack) {
@@ -61,6 +63,7 @@ void InitializeHack() {
   hack_mgr.enable_mod("fps_controls");
   hack_mgr.enable_mod("springball_button");
   hack_mgr.enable_mod("skip_cutscene");
+  hack_mgr.enable_mod("context_sensitive_controls");
 }
 
 bool CheckBeamCtl(int beam_num) {
@@ -246,6 +249,14 @@ double GetVerticalAxis() {
 
 bool GetCulling() {
   return Config::Get(Config::TOGGLE_CULLING);
+}
+
+void SetLockCamera(bool lock) {
+  lock_camera = lock;
+}
+
+bool GetLockCamera() {
+  return lock_camera;
 }
 
 HackManager* GetHackManager() {

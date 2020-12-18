@@ -373,6 +373,7 @@
     <ClCompile Include="PrimeHack\Mods\AutoEFB.cpp" />
     <ClCompile Include="PrimeHack\Mods\CutBeamFxMP1.cpp" />
     <ClCompile Include="PrimeHack\Mods\FpsControls.cpp" />
+    <ClCompile Include="PrimeHack\Mods\ContextSensitiveControls.cpp" />
     <ClCompile Include="PrimeHack\Mods\Noclip.cpp" />
     <ClCompile Include="PrimeHack\Mods\SpringballButton.cpp" />
     <ClCompile Include="PrimeHack\Mods\ViewModifier.cpp" />
@@ -688,6 +689,7 @@
     <ClInclude Include="PrimeHack\Mods\CutBeamFxMP1.h" />
     <ClInclude Include="PrimeHack\Mods\DisableBloom.h" />
     <ClInclude Include="PrimeHack\Mods\FpsControls.h" />
+    <ClInclude Include="PrimeHack\Mods\ContextSensitiveControls.h" />
     <ClInclude Include="PrimeHack\Mods\Invulnerability.h" />
     <ClInclude Include="PrimeHack\Mods\Noclip.h" />
     <ClInclude Include="PrimeHack\Mods\SkipCutscene.h" />
