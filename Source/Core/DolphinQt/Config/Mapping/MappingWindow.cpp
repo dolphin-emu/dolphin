@@ -175,16 +175,6 @@ void MappingWindow::ConnectWidgets()
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
   connect(this, &QDialog::rejected, [this] { emit Save(); });
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-  connect(m_tab_widget, &QTabWidget::currentChanged, this, [=] {
-    if (m_tab_widget->currentIndex() == m_tab_widget->indexOf(m_primehack_tab))
-    {
-      if (!Settings::Instance().GetPrimeEnabled())
-      {
-        ModalMessageBox::warning(this, tr("PrimeHack Settings"), tr("PrimeHack has not been enabled. None of the controls or settings in the PrimeHack tab will work until it is enabled in the Config window."));
-      }
-    }
-    });
 }
 
 void MappingWindow::UpdateProfileIndex()
@@ -435,6 +425,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   {
     widget = new HotkeyGeneral(this);
     AddWidget(tr("General"), widget);
+    AddWidget(tr("PrimeHack"), new HotkeyPrimeHack(this));
     // i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
     // Frame advance is an example of a typical TAS tool.
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
@@ -448,7 +439,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));
-    AddWidget(tr("PrimeHack"), new HotkeyPrimeHack(this));
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }
