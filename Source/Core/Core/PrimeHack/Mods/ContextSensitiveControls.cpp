@@ -108,10 +108,18 @@ void ContextSensitiveControls::init_mod(Game game, Region region) {
     break;
   case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U) {
+      code_changes.emplace_back(0x801fb544, 0x3D808000);
+      code_changes.emplace_back(0x801fb54c, 0x618C4170);
+      code_changes.emplace_back(0x801fb554, 0xC02C0000);
+
       cplayer_ptr_address = 0x805c4f98;
       motion_vtf_address = 0x802e2508;
     }
     else if (region == Region::PAL) {
+      code_changes.emplace_back(0x801fc5a8, 0x3D808000);
+      code_changes.emplace_back(0x801fc5b0, 0x618C4170);
+      code_changes.emplace_back(0x801fc5b8, 0xC02C0000);
+
       cplayer_ptr_address = 0x805c759c;
       motion_vtf_address = 0x802e3be4;
     }
