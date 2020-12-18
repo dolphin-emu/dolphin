@@ -52,16 +52,6 @@ void GraphicsWindow::CreateMainLayout()
   m_tab_widget = new QTabWidget();
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
-  connect(m_tab_widget, &QTabWidget::currentChanged, this, [=] {
-    if (m_tab_widget->currentIndex() == 4)
-    {
-      if (!Settings::Instance().GetPrimeEnabled())
-      {
-        ModalMessageBox::warning(this, tr("PrimeHack Settings"), tr("PrimeHack has not been enabled. None of the settings in the PrimeHack Misc tab will work until it is enabled in the Config window."));
-      }
-    }
-  });
-
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   description_box->setLayout(description_layout);

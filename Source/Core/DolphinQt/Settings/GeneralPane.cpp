@@ -130,8 +130,8 @@ void GeneralPane::CreateBasic()
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
   basic_group_layout->addWidget(m_checkbox_cheats);
 
-  m_checkbox_primehack = new QCheckBox(tr("Toggle PrimeHack"));
-  m_checkbox_primehack->setToolTip(QString::fromStdString("Toggle PrimeHack on or off."));
+  m_checkbox_primehack = new QCheckBox(tr("Toggle PrimeHack Controls"));
+  m_checkbox_primehack->setToolTip(QString::fromStdString("Toggle PrimeHack controls on or off. PrimeHack GFX will still work."));
 
   basic_group_layout->addWidget(m_checkbox_primehack);
 

@@ -54,15 +54,17 @@ void InitializeHack() {
   hack_mgr.add_mod("fov_modifier", std::make_unique<ViewModifier>());
   hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
 
-  // enable NO mods!!!
+  hack_mgr.enable_mod("skip_cutscene");
+  hack_mgr.enable_mod("fov_modifier");
+
+  // Enable no PrimeHack control mods
   if (!SConfig::GetInstance().bEnablePrimeHack) {
     return;
   }
 
-  hack_mgr.enable_mod("fov_modifier");
+
   hack_mgr.enable_mod("fps_controls");
   hack_mgr.enable_mod("springball_button");
-  hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("context_sensitive_controls");
 }
 
