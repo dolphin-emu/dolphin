@@ -328,6 +328,9 @@
     <ClCompile Include="PowerPC\BreakPoints.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Expression.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClCompile>
@@ -1408,6 +1411,9 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\CPUCoreBase.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Expression.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Gekko.h">

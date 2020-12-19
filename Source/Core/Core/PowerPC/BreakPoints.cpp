@@ -5,182 +5,18 @@
 #include "Core/PowerPC/BreakPoints.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cstddef>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include <optional>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include <expr.h>
-
-#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PowerPC.h"
-
-struct ExprDeleter
-{
-  void operator()(expr* expression) const { expr_destroy(expression, nullptr); }
-};
-
-using ExprPointer = std::unique_ptr<expr, ExprDeleter>;
-
-class ExprVarList
-{
-public:
-  ExprVarList() = default;
-  ExprVarList(const ExprVarList&) = delete;
-  ExprVarList& operator=(const ExprVarList&) = delete;
-
-  ExprVarList(ExprVarList&& other) noexcept : m_vars{std::exchange(other.m_vars, {})} {}
-
-  ExprVarList& operator=(ExprVarList&& other) noexcept
-  {
-    std::swap(m_vars, other.m_vars);
-    return *this;
-  }
-
-  ~ExprVarList() { expr_destroy(nullptr, &m_vars); }
-
-  expr_var* GetHead() { return m_vars.head; }
-  expr_var_list* GetAddress() { return &m_vars; }
-
-private:
-  expr_var_list m_vars = {};
-};
-
-static std::optional<int> ParseGPR(const char* name)
-{
-  if (std::strlen(name) >= 2 && name[0] == 'r' && std::isdigit(name[1]))
-  {
-    char* end = nullptr;
-    int index = std::strtol(&name[1], &end, 10);
-    if (index < 32 && *end == '\0')
-      return index;
-  }
-  return {};
-}
-
-template <typename T>
-static T HostRead(u32 address);
-
-template <typename T>
-static void HostWrite(T var, u32 address);
-
-template <>
-u8 HostRead(u32 address)
-{
-  return PowerPC::HostRead_U8(address);
-}
-
-template <>
-u16 HostRead(u32 address)
-{
-  return PowerPC::HostRead_U16(address);
-}
-
-template <>
-u32 HostRead(u32 address)
-{
-  return PowerPC::HostRead_U32(address);
-}
-
-template <>
-u64 HostRead(u32 address)
-{
-  return PowerPC::HostRead_U64(address);
-}
-
-template <>
-void HostWrite(u8 var, u32 address)
-{
-  PowerPC::HostWrite_U8(var, address);
-}
-
-template <>
-void HostWrite(u16 var, u32 address)
-{
-  PowerPC::HostWrite_U16(var, address);
-}
-
-template <>
-void HostWrite(u32 var, u32 address)
-{
-  PowerPC::HostWrite_U32(var, address);
-}
-
-template <>
-void HostWrite(u64 var, u32 address)
-{
-  PowerPC::HostWrite_U64(var, address);
-}
-
-template <typename T, typename U = T>
-double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
-{
-  if (vec_len(args) != 1)
-    return 0;
-  u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 0)));
-  return Common::BitCast<T>(HostRead<U>(address));
-}
-
-template <typename T, typename U = T>
-double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
-{
-  if (vec_len(args) != 2)
-    return 0;
-  T var = static_cast<T>(expr_eval(&vec_nth(args, 0)));
-  u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
-  HostWrite<U>(Common::BitCast<U>(var), address);
-  return var;
-}
-
-static expr_func g_expr_funcs[] = {{"read_u8", HostReadFunc<u8>},
-                                   {"read_s8", HostReadFunc<s8, u8>},
-                                   {"read_u16", HostReadFunc<u16>},
-                                   {"read_s16", HostReadFunc<s16, u16>},
-                                   {"read_u32", HostReadFunc<u32>},
-                                   {"read_s32", HostReadFunc<s32, u32>},
-                                   {"read_f32", HostReadFunc<float, u32>},
-                                   {"read_f64", HostReadFunc<double, u64>},
-                                   {"write_u8", HostWriteFunc<u8>},
-                                   {"write_u16", HostWriteFunc<u16>},
-                                   {"write_u32", HostWriteFunc<u32>},
-                                   {"write_f32", HostWriteFunc<float, u32>},
-                                   {"write_f64", HostWriteFunc<double, u64>},
-                                   {}};
-
-static double EvaluateExpression(const std::string& expression_string)
-{
-  ExprVarList vars;
-  ExprPointer expression{expr_create(expression_string.c_str(), expression_string.length(),
-                                     vars.GetAddress(), g_expr_funcs)};
-  if (!expression)
-    return false;
-
-  for (auto* v = vars.GetHead(); v != nullptr; v = v->next)
-  {
-    auto index = ParseGPR(v->name);
-    if (index)
-      v->value = GPR(*index);
-  }
-
-  return expr_eval(expression.get());
-}
-
-static bool EvaluateCondition(const std::string& condition)
-{
-  return condition.empty() || EvaluateExpression(condition) != 0;
-}
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -223,8 +59,8 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
         ss << "l";
       if (bp.break_on_hit)
         ss << "b";
-      if (!bp.condition.empty())
-        ss << "c " << bp.condition;
+      if (bp.condition)
+        ss << "c " << bp.condition->GetText();
       bp_strings.emplace_back(ss.str());
     }
   }
@@ -250,21 +86,23 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     if (flags.find('c') != std::string::npos)
     {
       ss >> std::ws;
-      std::getline(ss, bp.condition);
+      std::string condition;
+      std::getline(ss, condition);
+      bp.condition = Expression::TryParse(condition);
     }
     bp.is_temporary = false;
-    Add(bp);
+    Add(std::move(bp));
   }
 }
 
-void BreakPoints::Add(const TBreakPoint& bp)
+void BreakPoints::Add(TBreakPoint bp)
 {
   if (IsAddressBreakPoint(bp.address))
     return;
 
-  m_breakpoints.push_back(bp);
-
   JitInterface::InvalidateICache(bp.address, 4, true);
+
+  m_breakpoints.emplace_back(std::move(bp));
 }
 
 void BreakPoints::Add(u32 address, bool temp)
@@ -273,7 +111,7 @@ void BreakPoints::Add(u32 address, bool temp)
 }
 
 void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
-                      std::string condition)
+                      std::optional<Expression> condition)
 {
   // Only add new addresses
   if (IsAddressBreakPoint(address))
@@ -287,7 +125,7 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
   bp.address = address;
   bp.condition = std::move(condition);
 
-  m_breakpoints.push_back(bp);
+  m_breakpoints.emplace_back(std::move(bp));
 
   JitInterface::InvalidateICache(address, 4, true);
 }
