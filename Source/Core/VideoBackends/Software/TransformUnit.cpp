@@ -147,8 +147,6 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
   }
   else  // texinfo.projection == XF_TEXPROJ_STQ
   {
-    ASSERT(!specialCase);
-
     if (texinfo.inputform == XF_TEXINPUT_AB11)
       MultiplyVec2Mat34(src, mat, *dst);
     else
