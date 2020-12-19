@@ -86,7 +86,7 @@ void HostWrite(u64 var, u32 address)
 }
 
 template <typename T, typename U = T>
-double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
+static double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 1)
     return 0;
@@ -95,7 +95,7 @@ double HostReadFunc(expr_func* f, vec_expr_t* args, void* c)
 }
 
 template <typename T, typename U = T>
-double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
+static double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
 {
   if (vec_len(args) != 2)
     return 0;
@@ -103,6 +103,14 @@ double HostWriteFunc(expr_func* f, vec_expr_t* args, void* c)
   u32 address = static_cast<u32>(expr_eval(&vec_nth(args, 1)));
   HostWrite<U>(Common::BitCast<U>(var), address);
   return var;
+}
+
+template <typename T, typename U = T>
+static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
+{
+  if (vec_len(args) != 1)
+    return 0;
+  return Common::BitCast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
 }
 
 static expr_func g_expr_funcs[] = {{"read_u8", HostReadFunc<u8>},
@@ -118,6 +126,12 @@ static expr_func g_expr_funcs[] = {{"read_u8", HostReadFunc<u8>},
                                    {"write_u32", HostWriteFunc<u32>},
                                    {"write_f32", HostWriteFunc<float, u32>},
                                    {"write_f64", HostWriteFunc<double, u64>},
+                                   {"u8", CastFunc<u8>},
+                                   {"s8", CastFunc<s8, u8>},
+                                   {"u16", CastFunc<u16>},
+                                   {"s16", CastFunc<s16, u16>},
+                                   {"u32", CastFunc<u32>},
+                                   {"s32", CastFunc<s32, u32>},
                                    {}};
 
 void ExprDeleter::operator()(expr* expression) const
