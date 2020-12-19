@@ -115,7 +115,7 @@ void GameList::MakeListView()
   connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
           [this](const QItemSelection&, const QItemSelection&) {
-            emit SelectionChanged(GetSelectedGame());
+            emit GameSelectionChanged(GetSelectedGame());
           });
 
   QHeaderView* hor_header = m_list->horizontalHeader();
@@ -255,7 +255,7 @@ void GameList::MakeGridView()
   connect(m_grid, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_grid->selectionModel(), &QItemSelectionModel::selectionChanged,
           [this](const QItemSelection&, const QItemSelection&) {
-            emit SelectionChanged(GetSelectedGame());
+            emit GameSelectionChanged(GetSelectedGame());
           });
 }
 
@@ -265,7 +265,7 @@ void GameList::ShowHeaderContextMenu(const QPoint& pos)
   if (!menu_bar)
     return;
 
-  QMenu* const list_columns_menu = menu_bar->GetListColumnsMenu();
+  QMenu* const list_columns_menu = menu_bar->GetGameListColumnsSubMenu();
   if (!list_columns_menu)
     return;
 

@@ -74,8 +74,8 @@ public:
   bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
-  void ReadOnlyModeChanged(bool read_only);
-  void RecordingStatusChanged(bool recording);
+  void INRECSReadOnlyModeChanged(bool read_only);
+  void INRECSStatusChanged(bool recording);
 
 private:
   void Open();
@@ -100,9 +100,9 @@ private:
   void StateSaveUndo();
   void StateSaveOldest();
   void SetStateSlot(int slot);
-  void BootWiiSystemMenu();
+  void OnBootWiiSystemMenu();
 
-  void PerformOnlineUpdate(const std::string& region);
+  void OnPerformOnlineUpdate(const std::string& region);
 
   void SetFullScreenResolution(bool fullscreen);
 
@@ -162,20 +162,20 @@ private:
   void NetPlayQuit();
 
   void OnBootGameCubeIPL(DiscIO::Region region);
-  void OnImportNANDBackup();
+  void OnImportMergeSecondaryNAND();
   void OnConnectWiiRemote(int id);
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   void OnSignal();
 #endif
 
-  void OnPlayRecording();
-  void OnStartRecording();
-  void OnStopRecording();
-  void OnExportRecording();
+  void OnINRECSPlayRecordedInputTrack();
+  void OnINRECSStartRecording();
+  void OnINRECSStopRecording();
+  void OnINRECSExportRecording();
   void OnActivateChat();
   void OnRequestGolfControl();
-  void ShowTASInput();
+  void OnINRECSShowTASInputConfig();
 
   void ChangeDisc();
   void EjectDisc();

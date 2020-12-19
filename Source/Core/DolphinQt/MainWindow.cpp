@@ -234,7 +234,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
     if (!movie_path.empty())
     {
       if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
-        emit RecordingStatusChanged(true);
+        emit INRECSStatusChanged(true);
     }
   }
 
@@ -462,15 +462,15 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::FullScreen);
   connect(m_menu_bar, &MenuBar::FrameAdvance, this, &MainWindow::FrameAdvance);
   connect(m_menu_bar, &MenuBar::Screenshot, this, &MainWindow::ScreenShot);
-  connect(m_menu_bar, &MenuBar::StateLoad, this, &MainWindow::StateLoad);
-  connect(m_menu_bar, &MenuBar::StateSave, this, &MainWindow::StateSave);
+  connect(m_menu_bar, &MenuBar::StateLoadFile, this, &MainWindow::StateLoad);
+  connect(m_menu_bar, &MenuBar::StateSaveFile, this, &MainWindow::StateSave);
   connect(m_menu_bar, &MenuBar::StateLoadSlot, this, &MainWindow::StateLoadSlot);
   connect(m_menu_bar, &MenuBar::StateSaveSlot, this, &MainWindow::StateSaveSlot);
   connect(m_menu_bar, &MenuBar::StateLoadSlotAt, this, &MainWindow::StateLoadSlotAt);
   connect(m_menu_bar, &MenuBar::StateSaveSlotAt, this, &MainWindow::StateSaveSlotAt);
   connect(m_menu_bar, &MenuBar::StateLoadUndo, this, &MainWindow::StateLoadUndo);
   connect(m_menu_bar, &MenuBar::StateSaveUndo, this, &MainWindow::StateSaveUndo);
-  connect(m_menu_bar, &MenuBar::StateSaveOldest, this, &MainWindow::StateSaveOldest);
+  connect(m_menu_bar, &MenuBar::StateSaveSlotOldest, this, &MainWindow::StateSaveOldest);
   connect(m_menu_bar, &MenuBar::SetStateSlot, this, &MainWindow::SetStateSlot);
 
   // Options
@@ -481,25 +481,26 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
-  connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
           &MainWindow::ShowResourcePackManager);
   connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
-  connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
-  connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
-  connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
-  connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
+  connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
-  connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+  connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
+  connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
+  connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::OnBootWiiSystemMenu);
+  connect(m_menu_bar, &MenuBar::ImportMergeSecondaryNAND, this,
+          &MainWindow::OnImportMergeSecondaryNAND);
+  connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::OnPerformOnlineUpdate);
+  connect(m_menu_bar, &MenuBar::INRECSPlayRecordedInputTrack, this,
+          &MainWindow::OnINRECSPlayRecordedInputTrack);
+  connect(m_menu_bar, &MenuBar::INRECSStartRecording, this, &MainWindow::OnINRECSStartRecording);
+  connect(m_menu_bar, &MenuBar::INRECSStopRecording, this, &MainWindow::OnINRECSStopRecording);
+  connect(m_menu_bar, &MenuBar::INRECSExportRecording, this, &MainWindow::OnINRECSExportRecording);
+  connect(m_menu_bar, &MenuBar::INRECSShowTASInputConfig, this,
+          &MainWindow::OnINRECSShowTASInputConfig);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
-
-  // Movie
-  connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
-  connect(m_menu_bar, &MenuBar::StartRecording, this, &MainWindow::OnStartRecording);
-  connect(m_menu_bar, &MenuBar::StopRecording, this, &MainWindow::OnStopRecording);
-  connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
-  connect(m_menu_bar, &MenuBar::ShowTASInput, this, &MainWindow::ShowTASInput);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
@@ -517,9 +518,10 @@ void MainWindow::ConnectMenuBar()
 
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
 
-  connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
-  connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
-  connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
+  connect(m_game_list, &GameList::GameSelectionChanged, m_menu_bar, &MenuBar::GameSelectionChanged);
+  connect(this, &MainWindow::INRECSReadOnlyModeChanged, m_menu_bar,
+          &MenuBar::INRECSReadOnlyModeChanged);
+  connect(this, &MainWindow::INRECSStatusChanged, m_menu_bar, &MenuBar::INRECSStatusChanged);
 
   // Symbols
   connect(m_menu_bar, &MenuBar::NotifySymbolsUpdated, [this] {
@@ -563,15 +565,15 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::SetStateSlotHotkey, this,
           &MainWindow::SetStateSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
-          &MainWindow::OnStartRecording);
+          &MainWindow::OnINRECSStartRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
-          &MainWindow::OnExportRecording);
+          &MainWindow::OnINRECSExportRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
           &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
     bool read_only = !Movie::IsReadOnly();
     Movie::SetReadOnly(read_only);
-    emit ReadOnlyModeChanged(read_only);
+    emit INRECSReadOnlyModeChanged(read_only);
   });
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
@@ -837,7 +839,7 @@ bool MainWindow::RequestStop()
     }
   }
 
-  OnStopRecording();
+  OnINRECSStopRecording();
   // TODO: Add Debugger shutdown
 
   if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
@@ -1262,14 +1264,14 @@ void MainWindow::SetStateSlot(int slot)
                        2500);
 }
 
-void MainWindow::PerformOnlineUpdate(const std::string& region)
+void MainWindow::OnPerformOnlineUpdate(const std::string& region)
 {
   WiiUpdate::PerformOnlineUpdate(region, this);
   // Since the update may have installed a newer system menu, trigger a refresh.
   Settings::Instance().NANDRefresh();
 }
 
-void MainWindow::BootWiiSystemMenu()
+void MainWindow::OnBootWiiSystemMenu()
 {
   StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
@@ -1525,20 +1527,20 @@ void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
   StartGame(std::make_unique<BootParameters>(BootParameters::IPL{region}));
 }
 
-void MainWindow::OnImportNANDBackup()
+void MainWindow::OnImportMergeSecondaryNAND()
 {
   auto response = ModalMessageBox::question(
       this, tr("Question"),
-      tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
+      tr("Merging another NAND into your currently selected NAND will overwrite any channels "
          "and savegames that already exist. This process is not reversible, so it is "
-         "recommended that you keep backups of both NANDs. Are you sure you want to "
-         "continue?"));
+         "recommended that you create backups of both NANDs before proceeding.\n\n Are you sure "
+         "you want to continue now?"));
 
   if (response == QMessageBox::No)
     return;
 
   QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("BootMii NAND backup file (*.bin);;"
+                                              tr("BootMii NAND Backup dump file (*.bin);;"
                                                  "All Files (*)"));
 
   if (file.isEmpty())
@@ -1547,7 +1549,7 @@ void MainWindow::OnImportNANDBackup()
   ParallelProgressDialog dialog(this);
   dialog.GetRaw()->setMinimum(0);
   dialog.GetRaw()->setMaximum(0);
-  dialog.GetRaw()->setLabelText(tr("Importing NAND backup"));
+  dialog.GetRaw()->setLabelText(tr("Merging secondary NAND"));
   dialog.GetRaw()->setCancelButton(nullptr);
 
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -1557,7 +1559,7 @@ void MainWindow::OnImportNANDBackup()
         file.toStdString(),
         [&dialog, beginning] {
           dialog.SetLabelText(
-              tr("Importing NAND backup\n Time elapsed: %1s")
+              tr("Merging secondary NAND\n Time elapsed: %1s")
                   .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
         },
         [this] {
@@ -1579,10 +1581,10 @@ void MainWindow::OnImportNANDBackup()
 
   result.wait();
 
-  m_menu_bar->UpdateToolsMenu(Core::IsRunning());
+  m_menu_bar->UpdateMenu_Tools(Core::IsRunning());
 }
 
-void MainWindow::OnPlayRecording()
+void MainWindow::OnINRECSPlayRecordedInputTrack()
 {
   QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
@@ -1594,19 +1596,19 @@ void MainWindow::OnPlayRecording()
   {
     // let's make the read-only flag consistent at the start of a movie.
     Movie::SetReadOnly(true);
-    emit ReadOnlyModeChanged(true);
+    emit INRECSReadOnlyModeChanged(true);
   }
 
   std::optional<std::string> savestate_path;
   if (Movie::PlayInput(dtm_file.toStdString(), &savestate_path))
   {
-    emit RecordingStatusChanged(true);
+    emit INRECSStatusChanged(true);
 
     Play(savestate_path);
   }
 }
 
-void MainWindow::OnStartRecording()
+void MainWindow::OnINRECSStartRecording()
 {
   if ((!Core::IsRunningAndStarted() && Core::IsRunning()) || Movie::IsRecordingInput() ||
       Movie::IsPlayingInput())
@@ -1616,7 +1618,7 @@ void MainWindow::OnStartRecording()
   {
     // The user just chose to record a movie, so that should take precedence
     Movie::SetReadOnly(false);
-    emit ReadOnlyModeChanged(true);
+    emit INRECSReadOnlyModeChanged(true);
   }
 
   int controllers = 0;
@@ -1632,23 +1634,23 @@ void MainWindow::OnStartRecording()
 
   if (Movie::BeginRecordingInput(controllers))
   {
-    emit RecordingStatusChanged(true);
+    emit INRECSStatusChanged(true);
 
     if (!Core::IsRunning())
       Play();
   }
 }
 
-void MainWindow::OnStopRecording()
+void MainWindow::OnINRECSStopRecording()
 {
   if (Movie::IsRecordingInput())
-    OnExportRecording();
+    OnINRECSExportRecording();
   if (Movie::IsMovieActive())
     Movie::EndPlayInput(false);
-  emit RecordingStatusChanged(false);
+  emit INRECSStatusChanged(false);
 }
 
-void MainWindow::OnExportRecording()
+void MainWindow::OnINRECSExportRecording()
 {
   bool was_paused = Core::GetState() == Core::State::Paused;
 
@@ -1678,7 +1680,7 @@ void MainWindow::OnRequestGolfControl()
     client->RequestGolfControl();
 }
 
-void MainWindow::ShowTASInput()
+void MainWindow::OnINRECSShowTASInputConfig()
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {

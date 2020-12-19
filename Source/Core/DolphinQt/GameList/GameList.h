@@ -52,7 +52,7 @@ public:
 signals:
   void GameSelected();
   void NetPlayHost(const UICommon::GameFile& game);
-  void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
+  void GameSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OpenGeneralSettings();
 
 private:
