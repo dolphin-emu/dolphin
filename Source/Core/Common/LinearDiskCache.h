@@ -76,6 +76,7 @@ public:
       std::unique_ptr<V[]> value = nullptr;
       u32 value_size = 0;
       u32 entry_number = 0;
+      u64 last_valid_value_start = m_file.Tell();
 
       while (m_file.ReadArray(&value_size, 1))
       {
@@ -90,6 +91,7 @@ public:
         if (m_file.ReadArray(&key, 1) && m_file.ReadArray(value.get(), value_size) &&
             m_file.ReadArray(&entry_number, 1) && entry_number == m_num_entries + 1)
         {
+          last_valid_value_start = m_file.Tell();
           reader.Read(key, value.get(), value_size);
         }
         else
@@ -100,6 +102,7 @@ public:
         m_num_entries++;
       }
       m_file.Clear();
+      m_file.Seek(last_valid_value_start, SEEK_SET);
 
       return m_num_entries;
     }
