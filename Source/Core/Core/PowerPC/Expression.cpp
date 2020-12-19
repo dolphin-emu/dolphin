@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/Expression.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <optional>
 #include <string>
@@ -11,7 +12,27 @@
 
 #include <expr.h>
 
+#include "Common/BitUtils.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/PowerPC.h"
+
+template <typename T, typename U = T>
+static double CastFunc(expr_func* f, vec_expr_t* args, void* c)
+{
+  if (vec_len(args) != 1)
+    return 0;
+  return Common::BitCast<T>(static_cast<U>(expr_eval(&vec_nth(args, 0))));
+}
+
+static std::array<expr_func, 8> g_expr_funcs{{
+    {"u8", CastFunc<u8>},
+    {"s8", CastFunc<s8, u8>},
+    {"u16", CastFunc<u16>},
+    {"s16", CastFunc<s16, u16>},
+    {"u32", CastFunc<u32>},
+    {"s32", CastFunc<s32, u32>},
+    {},
+}};
 
 void ExprDeleter::operator()(expr* expression) const
 {
@@ -69,7 +90,7 @@ Expression::Expression(std::string_view text, ExprPointer ex, ExprVarListPointer
 std::optional<Expression> Expression::TryParse(std::string_view text)
 {
   ExprVarListPointer vars{new expr_var_list{}};
-  ExprPointer ex{expr_create(text.data(), text.length(), vars.get(), nullptr)};
+  ExprPointer ex{expr_create(text.data(), text.length(), vars.get(), g_expr_funcs.data())};
   if (!ex)
     return std::nullopt;
 
