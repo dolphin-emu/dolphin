@@ -14,6 +14,7 @@ extern "C" {
 #include <ctype.h> /* for isspace */
 #include <limits.h>
 #include <math.h> /* for pow */
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -288,13 +289,13 @@ static struct expr_var *expr_get_var(struct expr_var_list *vars, const char *s,
   return v;
 }
 
-static int to_int(double x) {
+static int64_t to_int(double x) {
   if (isnan(x)) {
     return 0;
   } else if (isinf(x) != 0) {
-    return INT_MAX * isinf(x);
+    return INT64_MAX * isinf(x);
   } else {
-    return (int)x;
+    return (int64_t)x;
   }
 }
 
