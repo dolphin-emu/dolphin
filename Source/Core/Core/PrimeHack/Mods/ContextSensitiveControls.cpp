@@ -56,8 +56,8 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
         }
 
         if (LockCameraInPuzzles()) {
-          // if object is active
-          if (puzzle_state > 0) {
+          // if object is active and isn't the ship radio at the start of the game.
+          if (puzzle_state > 0 && read32(entity + 0xC) != 0x0c180263) {
             SetLockCamera(true);
           }
         }  
