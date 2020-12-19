@@ -14,6 +14,7 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
+#include "Core/PowerPC/Expression.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -168,7 +169,15 @@ void NewBreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, false, do_break, do_log, m_instruction_condition->text());
+    QString condition = m_instruction_condition->text().trimmed();
+
+    if (!condition.isEmpty() && !Expression::TryParse(condition.toUtf8().constData()))
+    {
+      invalid_input(tr("Condition"));
+      return;
+    }
+
+    m_parent->AddBP(address, false, do_break, do_log, condition);
   }
   else
   {
