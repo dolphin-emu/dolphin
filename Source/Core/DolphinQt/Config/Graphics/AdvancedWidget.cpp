@@ -226,21 +226,22 @@ void AdvancedWidget::AddDescriptions()
                  "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
-                 "User/Dump/Textures/<game_id>/.<br><br><dolphin_emphasis>If unsure, leave "
+                 "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump mipmapped game textures to "
-      "User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary "
+      "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary mipmapped textures if "
+      "'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
   static const char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump base game textures to "
-      "User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary "
+      "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Loads custom textures from User/Load/Textures/<game_id>/ and "
-                 "User/Load/DynamicInputTextures/<game_id>/.<br><br><dolphin_emphasis>If "
+      QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
+                 "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
                  "unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
