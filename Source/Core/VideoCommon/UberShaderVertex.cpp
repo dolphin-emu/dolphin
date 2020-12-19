@@ -514,7 +514,13 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "    float4 P1 = " I_POSTTRANSFORMMATRICES "[(base_index + 1u) & 0x3fu];\n"
             "    float4 P2 = " I_POSTTRANSFORMMATRICES "[(base_index + 2u) & 0x3fu];\n"
             "\n");
-  out.Write("    if ({} != 0u)\n", BitfieldExtract("postMtxInfo", PostMtxInfo().normalize));
+  // Special case for verticies if they only contain position and tex coord 0 with XF_TEXPROJ_ST:
+  // normalization is not performed even if specified.
+  // There is no VB_HAS_POS constant as all verticies have positions, so only UV0 must be checked.
+  // https://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
+  out.Write("    if ({} != 0u && !((components == {}u /* VB_HAS_UV0 */) && ({} != 0u)))\n",
+            BitfieldExtract("postMtxInfo", PostMtxInfo().normalize), VB_HAS_UV0,
+            BitfieldExtract("texMtxInfo", TexMtxInfo().projection), XF_TEXPROJ_ST);
   out.Write("      output_tex.xyz = normalize(output_tex.xyz);\n"
             "\n"
             "    // multiply by postmatrix\n"

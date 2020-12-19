@@ -413,7 +413,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
                 "float4 P2 = " I_POSTTRANSFORMMATRICES "[{}];\n",
                 postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
 
-      if (postInfo.normalize)
+      // Special case for verticies if they only contain position and tex coord 0.
+      // There is no VB_HAS_POS constant as all verticies have positions, so only UV0 must be
+      // checked. The special case also only applies to XF_TEXPROJ_ST.
+      // https://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
+      const bool special_case = (uid_data->components == VB_HAS_UV0) &&
+                                (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_ST);
+      if (postInfo.normalize && !special_case)
         out.Write("o.tex{}.xyz = normalize(o.tex{}.xyz);\n", i, i);
 
       // multiply by postmatrix

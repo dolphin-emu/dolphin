@@ -109,7 +109,7 @@ void TransformNormal(const InputVertexData* src, bool nbt, OutputVertexData* dst
   }
 }
 
-static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bool specialCase,
+static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bool specialCaseIfST,
                                      const InputVertexData* srcVertex, OutputVertexData* dstVertex)
 {
   Vec3 src;
@@ -140,7 +140,7 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
 
   if (texinfo.projection == XF_TEXPROJ_ST)
   {
-    if (texinfo.inputform == XF_TEXINPUT_AB11 || specialCase)
+    if (texinfo.inputform == XF_TEXINPUT_AB11)
       MultiplyVec2Mat24(src, mat, *dst);
     else
       MultiplyVec3Mat24(src, mat, *dst);
@@ -161,27 +161,15 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
     const PostMtxInfo& postInfo = xfmem.postMtxInfo[coordNum];
     const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
-    if (specialCase)
-    {
-      // no normalization
-      // q of input is 1
-      // q of output is unknown
-      tempCoord.x = dst->x;
-      tempCoord.y = dst->y;
-
-      dst->x = postMat[0] * tempCoord.x + postMat[1] * tempCoord.y + postMat[2] + postMat[3];
-      dst->y = postMat[4] * tempCoord.x + postMat[5] * tempCoord.y + postMat[6] + postMat[7];
-      dst->z = 1.0f;
-    }
+    // Special case for verticies if they only contain position and tex coord 0 with XF_TEXPROJ_ST:
+    // normalization is not performed even if specified.
+    // https://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
+    if (postInfo.normalize && !(specialCaseIfST && texinfo.projection == XF_TEXPROJ_ST))
+      tempCoord = dst->Normalized();
     else
-    {
-      if (postInfo.normalize)
-        tempCoord = dst->Normalized();
-      else
-        tempCoord = *dst;
+      tempCoord = *dst;
 
-      MultiplyVec3Mat34(tempCoord, postMat, *dst);
-    }
+    MultiplyVec3Mat34(tempCoord, postMat, *dst);
   }
 
   // When q is 0, the GameCube appears to have a special case
@@ -404,7 +392,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
   }
 }
 
-void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst, bool specialCase)
+void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst, bool specialCaseIfST)
 {
   for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
   {
@@ -413,7 +401,7 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst, bool s
     switch (texinfo.texgentype)
     {
     case XF_TEXGEN_REGULAR:
-      TransformTexCoordRegular(texinfo, coordNum, specialCase, src, dst);
+      TransformTexCoordRegular(texinfo, coordNum, specialCaseIfST, src, dst);
       break;
     case XF_TEXGEN_EMBOSS_MAP:
     {
