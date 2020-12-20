@@ -83,4 +83,29 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     return false;
   return outfile.WriteBytes(buffer.data(), size);
 }
+
+bool ConvertRGBAToRGBAndSavePNG(const std::string& path, const u8* input, u32 width, u32 height,
+                                int stride)
+{
+  const std::vector<u8> data = RGBAToRGB(input, width, height, stride);
+  return SavePNG(path, data.data(), ImageByteFormat::RGB, width, height);
+}
+
+std::vector<u8> RGBAToRGB(const u8* input, u32 width, u32 height, int row_stride)
+{
+  std::vector<u8> buffer;
+  buffer.reserve(width * height * 3);
+
+  for (u32 y = 0; y < height; ++y)
+  {
+    const u8* pos = input + y * row_stride;
+    for (u32 x = 0; x < width; ++x)
+    {
+      buffer.push_back(pos[x * 4]);
+      buffer.push_back(pos[x * 4 + 1]);
+      buffer.push_back(pos[x * 4 + 2]);
+    }
+  }
+  return buffer;
+}
 }  // namespace Common

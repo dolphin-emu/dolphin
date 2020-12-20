@@ -931,7 +931,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
   // was. Determine when exactly this happens and if this is neccessary for anything.
 
-  memset(&(UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
+  memset(reinterpret_cast<u8*>(&UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   UpdateDirectory(UpdatedDir);
 
@@ -1623,7 +1623,7 @@ std::pair<u32, u32> Header::CalculateSerial() const
 
 DEntry::DEntry()
 {
-  memset(this, 0xFF, DENTRY_SIZE);
+  memset(reinterpret_cast<u8*>(this), 0xFF, DENTRY_SIZE);
 }
 
 std::string DEntry::GCI_FileName() const
@@ -1678,7 +1678,7 @@ GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
 
 Directory::Directory()
 {
-  memset(this, 0xFF, BLOCK_SIZE);
+  memset(reinterpret_cast<u8*>(this), 0xFF, BLOCK_SIZE);
   m_update_counter = 0;
   m_checksum = Common::swap16(0xF003);
   m_checksum_inv = 0;
