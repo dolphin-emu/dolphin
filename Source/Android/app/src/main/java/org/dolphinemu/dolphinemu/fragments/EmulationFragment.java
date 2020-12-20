@@ -1,9 +1,8 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -18,6 +17,8 @@ import androidx.fragment.app.Fragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -26,8 +27,6 @@ import java.io.File;
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
   private static final String KEY_GAMEPATHS = "gamepaths";
-
-  private SharedPreferences mPreferences;
 
   private InputOverlay mInputOverlay;
 
@@ -72,8 +71,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     // So this fragment doesn't restart on configuration changes; i.e. rotation.
     setRetainInstance(true);
 
-    mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
     String[] gamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
     mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath());
   }
@@ -97,6 +94,18 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       doneButton.setOnClickListener(v -> stopConfiguringControls());
     }
 
+    if (mInputOverlay != null)
+    {
+      contents.post(() ->
+      {
+        int overlayX = mInputOverlay.getLeft();
+        int overlayY = mInputOverlay.getTop();
+        mInputOverlay.setSurfacePosition(new Rect(
+                surfaceView.getLeft() - overlayX, surfaceView.getTop() - overlayY,
+                surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
+      });
+    }
+
     // The new Surface created here will get passed to the native code via onSurfaceChanged.
 
     return contents;
@@ -112,7 +121,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   @Override
   public void onPause()
   {
-    if (mEmulationState.isRunning())
+    if (mEmulationState.isRunning() && !NativeLibrary.IsShowingAlertMessage())
       mEmulationState.pause();
     super.onPause();
   }
@@ -124,36 +133,31 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     super.onDetach();
   }
 
-  public void toggleInputOverlayVisibility()
+  public void toggleInputOverlayVisibility(Settings settings)
   {
-    SharedPreferences.Editor editor = mPreferences.edit();
+    BooleanSetting.MAIN_SHOW_INPUT_OVERLAY
+            .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean(settings));
 
-    // If the overlay is currently set to INVISIBLE
-    if (!mPreferences.getBoolean("showInputOverlay", false))
-    {
-      editor.putBoolean("showInputOverlay", true);
-    }
-    else
-    {
-      editor.putBoolean("showInputOverlay", false);
-    }
-    editor.commit();
-    mInputOverlay.refreshControls();
+    if (mInputOverlay != null)
+      mInputOverlay.refreshControls();
   }
 
   public void initInputPointer()
   {
-    mInputOverlay.initTouchPointer();
+    if (mInputOverlay != null)
+      mInputOverlay.initTouchPointer();
   }
 
   public void refreshInputOverlay()
   {
-    mInputOverlay.refreshControls();
+    if (mInputOverlay != null)
+      mInputOverlay.refreshControls();
   }
 
   public void resetInputOverlay()
   {
-    mInputOverlay.resetButtonPlacement();
+    if (mInputOverlay != null)
+      mInputOverlay.resetButtonPlacement();
   }
 
   @Override
@@ -183,19 +187,25 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   public void startConfiguringControls()
   {
-    getView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
-    mInputOverlay.setIsInEditMode(true);
+    if (mInputOverlay != null)
+    {
+      requireView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
+      mInputOverlay.setIsInEditMode(true);
+    }
   }
 
   public void stopConfiguringControls()
   {
-    getView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
-    mInputOverlay.setIsInEditMode(false);
+    if (mInputOverlay != null)
+    {
+      requireView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
+      mInputOverlay.setIsInEditMode(false);
+    }
   }
 
   public boolean isConfiguringControls()
   {
-    return mInputOverlay.isInEditMode();
+    return mInputOverlay != null && mInputOverlay.isInEditMode();
   }
 
   private static class EmulationState
@@ -323,16 +333,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         mSurface = null;
         Log.debug("[EmulationFragment] Surface destroyed.");
 
-        if (state != State.STOPPED)
-        {
-          // In order to avoid dereferencing nullptr, we must not destroy the surface while booting
-          // the core, so wait here if necessary. An easy (but not 100% consistent) way to reach
-          // this method while the core is booting is by having landscape orientation lock enabled
-          // and starting emulation while the phone is in portrait mode, leading to the activity
-          // being recreated very soon after NativeLibrary.Run has been called.
-          NativeLibrary.WaitUntilDoneBooting();
-        }
-
         NativeLibrary.SurfaceDestroyed();
       }
     }
@@ -362,7 +362,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       else if (state == State.PAUSED)
       {
         NativeLibrary.SurfaceChanged(mSurface);
-        if (!EmulationActivity.getHasUserPausedEmulation())
+        if (!EmulationActivity.getHasUserPausedEmulation() &&
+                !NativeLibrary.IsShowingAlertMessage())
         {
           Log.debug("[EmulationFragment] Resuming emulation.");
           NativeLibrary.UnPauseEmulation();

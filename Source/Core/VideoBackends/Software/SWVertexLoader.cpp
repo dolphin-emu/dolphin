@@ -18,6 +18,7 @@
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -69,9 +70,6 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     const u16 index = m_cpu_index_buffer[i];
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
 
-    // Super Mario Sunshine requires those to be zero for those debug boxes.
-    m_vertex.color = {};
-
     // parse the videocommon format to our own struct format (m_vertex)
     SetFormat(g_main_cp_state.last_id, primitiveType);
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
@@ -110,7 +108,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
       xfmem.MatrixIndexB.Tex6MtxIdx != g_main_cp_state.matrix_index_b.Tex6MtxIdx ||
       xfmem.MatrixIndexB.Tex7MtxIdx != g_main_cp_state.matrix_index_b.Tex7MtxIdx)
   {
-    ERROR_LOG(VIDEO, "Matrix indices don't match");
+    ERROR_LOG_FMT(VIDEO, "Matrix indices don't match");
   }
 
   m_vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;
@@ -184,6 +182,39 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
   }
 }
 
+static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
+                                 const PortableVertexDeclaration& vdec)
+{
+  const auto set_default_color = [](u8* color, int i) {
+    // The default alpha channel seems to depend on the number of components in the vertex format.
+    const auto& g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
+    const u32 color_elements = i == 0 ? g0.Color0Elements : g0.Color1Elements;
+    color[0] = color_elements == 0 ? 255 : 0;
+    color[1] = 255;
+    color[2] = 255;
+    color[3] = 255;
+  };
+
+  if (vdec.colors[0].enable)
+  {
+    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are present.
+    ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[0], 0, 4, true);
+    if (vdec.colors[1].enable)
+      ReadVertexAttribute<u8>(dst->color[1].data(), src, vdec.colors[1], 0, 4, true);
+    else
+      set_default_color(dst->color[1].data(), 1);
+  }
+  else
+  {
+    // If only one of the color attributes is enabled, it is directed to color 0.
+    if (vdec.colors[1].enable)
+      ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[1], 0, 4, true);
+    else
+      set_default_color(dst->color[0].data(), 0);
+    set_default_color(dst->color[1].data(), 1);
+  }
+}
+
 void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int index)
 {
   DataReader src(m_cpu_vertex_buffer.data(),
@@ -197,10 +228,7 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
     ReadVertexAttribute<float>(&m_vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
   }
 
-  for (std::size_t i = 0; i < m_vertex.color.size(); i++)
-  {
-    ReadVertexAttribute<u8>(m_vertex.color[i].data(), src, vdec.colors[i], 0, 4, true);
-  }
+  ParseColorAttributes(&m_vertex, src, vdec);
 
   for (std::size_t i = 0; i < m_vertex.texCoords.size(); i++)
   {

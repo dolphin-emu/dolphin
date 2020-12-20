@@ -32,6 +32,7 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity implements MainView
@@ -41,6 +42,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   private MainPresenter mPresenter = new MainPresenter(this, this);
 
   private BrowseSupportFragment mBrowseFragment;
+
+  private ArrayList<ArrayObjectAdapter> mGameRows = new ArrayList<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -71,6 +74,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     }
 
     mPresenter.addDirIfNeeded(this);
+
+    // In case the user changed a setting that affects how games are displayed,
+    // such as system language, cover downloading...
+    refetchMetadata();
 
     if (sShouldRescanLibrary)
     {
@@ -135,7 +142,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
                 TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
                 // Start the emulation activity and send the path of the clicked ISO to it.
-                EmulationActivity.launch(TvMainActivity.this, holder.gameFile);
+                String[] paths = GameFileCacheService.findSecondDiscAndGetPaths(holder.gameFile);
+                EmulationActivity.launch(TvMainActivity.this, paths);
               }
             });
   }
@@ -172,8 +180,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchInstallWAD()
   {
-    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
-            FileBrowserHelper.WAD_EXTENSION);
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("*/*");
+    startActivityForResult(intent, MainPresenter.REQUEST_WAD_FILE);
   }
 
   @Override
@@ -183,6 +193,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     TvUtil.updateAllChannels(getApplicationContext());
 
     buildRowsAdapter();
+  }
+
+  private void refetchMetadata()
+  {
+    for (ArrayObjectAdapter row : mGameRows)
+    {
+      row.notifyArrayItemRangeChanged(0, row.size());
+    }
   }
 
   /**
@@ -207,11 +225,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:
-          EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+          EmulationActivity.launch(this, FileBrowserHelper.getSelectedFiles(result));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
-          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
+          mPresenter.installWAD(result.getData().toString());
           break;
       }
     }
@@ -225,6 +243,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
           @NonNull int[] grantResults)
   {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
     if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
       if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -234,19 +254,15 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       }
       else
       {
-        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                .show();
+        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_LONG).show();
       }
-    }
-    else
-    {
-      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
   private void buildRowsAdapter()
   {
     ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+    mGameRows.clear();
 
     if (PermissionsHandler.hasWriteAccess(this))
     {
@@ -280,6 +296,9 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     // Create an adapter for this row.
     ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
     row.addAll(0, gameFiles);
+
+    // Keep a reference to the row in case we need to refresh it.
+    mGameRows.add(row);
 
     // Create a header for this row.
     HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());

@@ -31,6 +31,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/Image.h"
 #include "Common/IniFile.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -51,6 +52,17 @@ namespace UICommon
 namespace
 {
 const std::string EMPTY_STRING;
+
+bool UseGameCovers()
+{
+#ifdef ANDROID
+  // Android has its own code for handling covers, written completely in Java.
+  // It's best if we disable the C++ cover code on Android to avoid duplicated data and such.
+  return false;
+#else
+  return Config::Get(Config::MAIN_USE_GAME_COVERS);
+#endif
+}
 }  // Anonymous namespace
 
 DiscIO::Language GameFile::GetConfigLanguage() const
@@ -124,6 +136,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_volume_size = volume->GetSize();
       m_volume_size_is_accurate = volume->IsSizeAccurate();
       m_is_datel_disc = volume->IsDatelDisc();
+      m_is_nkit = volume->IsNKit();
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
@@ -146,6 +159,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_file_size = m_volume_size = File::GetSize(m_file_path);
     m_volume_size_is_accurate = true;
     m_is_datel_disc = false;
+    m_is_nkit = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
@@ -166,7 +180,7 @@ bool GameFile::IsValid() const
 
 bool GameFile::CustomCoverChanged()
 {
-  if (!m_custom_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_custom_cover.buffer.empty() || !UseGameCovers())
     return false;
 
   std::string path, name;
@@ -193,7 +207,7 @@ bool GameFile::CustomCoverChanged()
 
 void GameFile::DownloadDefaultCover()
 {
-  if (!m_default_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
@@ -259,7 +273,7 @@ void GameFile::DownloadDefaultCover()
 
 bool GameFile::DefaultCoverChanged()
 {
-  if (!m_default_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return false;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
@@ -308,6 +322,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_volume_size);
   p.Do(m_volume_size_is_accurate);
   p.Do(m_is_datel_disc);
+  p.Do(m_is_nkit);
 
   p.Do(m_short_names);
   p.Do(m_long_names);
@@ -659,6 +674,7 @@ std::string GameFile::GetFileFormatName() const
   {
   case DiscIO::Platform::WiiWAD:
     return "WAD";
+
   case DiscIO::Platform::ELFOrDOL:
   {
     std::string extension = GetExtension();
@@ -667,8 +683,14 @@ std::string GameFile::GetFileFormatName() const
     // substr removes the dot
     return extension.substr(std::min<size_t>(1, extension.size()));
   }
+
   default:
-    return DiscIO::GetName(m_blob_type, true);
+  {
+    std::string name = DiscIO::GetName(m_blob_type, true);
+    if (m_is_nkit)
+      name = Common::FmtFormatT("{0} (NKit)", name);
+    return name;
+  }
   }
 }
 

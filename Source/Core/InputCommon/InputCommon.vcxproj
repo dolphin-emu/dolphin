@@ -51,11 +51,14 @@
     <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
-    <ClCompile Include="DInputMouseAbsolute.cpp" />
+    <ClCompile Include="DynamicInputTextureConfiguration.cpp" />
+    <ClCompile Include="DynamicInputTextureManager.cpp" />
     <ClCompile Include="GCAdapter.cpp" />
-    <ClCompile Include="GenericMouse.cpp" />
+    <ClCompile Include="ImageOperations.cpp" />
     <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="InputProfile.cpp" />
+    <ClCompile Include="DInputMouseAbsolute.cpp" />
+    <ClCompile Include="GenericMouse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu\ControlGroup\IMUAccelerometer.h" />
@@ -95,12 +98,15 @@
     <ClInclude Include="ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
-    <ClInclude Include="DInputMouseAbsolute.h" />
+    <ClInclude Include="DynamicInputTextureConfiguration.h" />
+    <ClInclude Include="DynamicInputTextureManager.h" />
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
-    <ClInclude Include="GenericMouse.h" />
+    <ClInclude Include="ImageOperations.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="InputProfile.h" />
+    <ClInclude Include="DInputMouseAbsolute.h" />
+    <ClInclude Include="GenericMouse.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

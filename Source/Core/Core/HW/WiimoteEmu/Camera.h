@@ -112,7 +112,7 @@ public:
 
   void Reset();
   void DoState(PointerWrap& p);
-  void Update(const Common::Matrix44& transform);
+  void Update(const Common::Matrix44& transform, Common::Vec2 field_of_view);
   void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;

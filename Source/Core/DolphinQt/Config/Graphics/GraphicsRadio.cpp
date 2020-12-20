@@ -12,7 +12,7 @@
 
 GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::Info<int>& setting,
                                    int value)
-    : QRadioButton(label), m_setting(setting), m_value(value)
+    : ToolTipRadioButton(label), m_setting(setting), m_value(value)
 {
   setChecked(Config::Get(m_setting) == m_value);
   connect(this, &QRadioButton::toggled, this, &GraphicsRadioInt::Update);

@@ -121,6 +121,14 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   }
 
   /**
+   * Re-fetches game metadata from the game file cache.
+   */
+  public void refetchMetadata()
+  {
+    notifyItemRangeChanged(0, getItemCount());
+  }
+
+  /**
    * Launches the game that was clicked on.
    *
    * @param view The card representing the game the user wants to play.
@@ -130,7 +138,8 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     GameViewHolder holder = (GameViewHolder) view.getTag();
 
-    EmulationActivity.launch((FragmentActivity) view.getContext(), holder.gameFile);
+    String[] paths = GameFileCacheService.findSecondDiscAndGetPaths(holder.gameFile);
+    EmulationActivity.launch((FragmentActivity) view.getContext(), paths);
   }
 
   /**

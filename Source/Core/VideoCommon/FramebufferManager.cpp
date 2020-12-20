@@ -43,38 +43,38 @@ bool FramebufferManager::Initialize()
 {
   if (!CreateEFBFramebuffer())
   {
-    PanicAlert("Failed to create EFB framebuffer");
+    PanicAlertFmt("Failed to create EFB framebuffer");
     return false;
   }
 
   m_efb_cache_tile_size = static_cast<u32>(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
   if (!CreateReadbackFramebuffer())
   {
-    PanicAlert("Failed to create EFB readback framebuffer");
+    PanicAlertFmt("Failed to create EFB readback framebuffer");
     return false;
   }
 
   if (!CompileReadbackPipelines())
   {
-    PanicAlert("Failed to compile EFB readback pipelines");
+    PanicAlertFmt("Failed to compile EFB readback pipelines");
     return false;
   }
 
   if (!CompileConversionPipelines())
   {
-    PanicAlert("Failed to compile EFB conversion pipelines");
+    PanicAlertFmt("Failed to compile EFB conversion pipelines");
     return false;
   }
 
   if (!CompileClearPipelines())
   {
-    PanicAlert("Failed to compile EFB clear pipelines");
+    PanicAlertFmt("Failed to compile EFB clear pipelines");
     return false;
   }
 
   if (!CompilePokePipelines())
   {
-    PanicAlert("Failed to compile EFB poke pipelines");
+    PanicAlertFmt("Failed to compile EFB poke pipelines");
     return false;
   }
 
@@ -89,7 +89,7 @@ void FramebufferManager::RecreateEFBFramebuffer()
   DestroyReadbackFramebuffer();
   DestroyEFBFramebuffer();
   if (!CreateEFBFramebuffer() || !CreateReadbackFramebuffer())
-    PanicAlert("Failed to recreate EFB framebuffer");
+    PanicAlertFmt("Failed to recreate EFB framebuffer");
 }
 
 void FramebufferManager::RecompileShaders()
@@ -101,7 +101,7 @@ void FramebufferManager::RecompileShaders()
   if (!CompileReadbackPipelines() || !CompileConversionPipelines() || !CompileClearPipelines() ||
       !CompilePokePipelines())
   {
-    PanicAlert("Failed to recompile EFB pipelines");
+    PanicAlertFmt("Failed to recompile EFB pipelines");
   }
 }
 
@@ -415,7 +415,7 @@ void FramebufferManager::SetEFBCacheTileSize(u32 size)
   m_efb_cache_tile_size = size;
   DestroyReadbackFramebuffer();
   if (!CreateReadbackFramebuffer())
-    PanicAlert("Failed to create EFB readback framebuffers");
+    PanicAlertFmt("Failed to create EFB readback framebuffers");
 }
 
 void FramebufferManager::InvalidatePeekCache(bool forced)
@@ -939,7 +939,7 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
   if (!color_tex || !depth_tex ||
       color_tex->texture->GetLayers() != m_efb_color_texture->GetLayers())
   {
-    WARN_LOG(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
+    WARN_LOG_FMT(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
     g_renderer->SetAndClearFramebuffer(
         m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
         g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);

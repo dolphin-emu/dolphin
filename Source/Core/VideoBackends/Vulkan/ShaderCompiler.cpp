@@ -169,7 +169,7 @@ static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
     stream << "Dolphin Version: " + Common::scm_rev_str + "\n";
     stream << "Video Backend: " + g_video_backend->GetDisplayName();
 
-    PanicAlert("%s (written to %s)", msg, filename.c_str());
+    PanicAlertFmt("{} (written to {})", msg, filename);
   };
 
   if (!shader->parse(GetCompilerResourceLimits(), default_version, profile, false, true, messages,
@@ -203,16 +203,16 @@ static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
   // Temporary: skip if it contains "Warning, version 450 is not yet complete; most version-specific
   // features are present, but some are missing."
   if (strlen(shader->getInfoLog()) > 108)
-    WARN_LOG(VIDEO, "Shader info log: %s", shader->getInfoLog());
+    WARN_LOG_FMT(VIDEO, "Shader info log: {}", shader->getInfoLog());
   if (strlen(shader->getInfoDebugLog()) > 0)
-    WARN_LOG(VIDEO, "Shader debug info log: %s", shader->getInfoDebugLog());
+    WARN_LOG_FMT(VIDEO, "Shader debug info log: {}", shader->getInfoDebugLog());
   if (strlen(program->getInfoLog()) > 25)
-    WARN_LOG(VIDEO, "Program info log: %s", program->getInfoLog());
+    WARN_LOG_FMT(VIDEO, "Program info log: {}", program->getInfoLog());
   if (strlen(program->getInfoDebugLog()) > 0)
-    WARN_LOG(VIDEO, "Program debug info log: %s", program->getInfoDebugLog());
-  std::string spv_messages = logger.getAllMessages();
+    WARN_LOG_FMT(VIDEO, "Program debug info log: {}", program->getInfoDebugLog());
+  const std::string spv_messages = logger.getAllMessages();
   if (!spv_messages.empty())
-    WARN_LOG(VIDEO, "SPIR-V conversion messages: %s", spv_messages.c_str());
+    WARN_LOG_FMT(VIDEO, "SPIR-V conversion messages: {}", spv_messages);
 
   // Dump source code of shaders out to file if enabled.
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
@@ -250,7 +250,7 @@ bool InitializeGlslang()
 
   if (!glslang::InitializeProcess())
   {
-    PanicAlert("Failed to initialize glslang shader compiler");
+    PanicAlertFmt("Failed to initialize glslang shader compiler");
     return false;
   }
 

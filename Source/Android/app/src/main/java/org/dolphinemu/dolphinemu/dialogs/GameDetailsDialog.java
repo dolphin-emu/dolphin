@@ -90,7 +90,7 @@ public final class GameDetailsDialog extends DialogFragment
       long blockSize = gameFile.getBlockSize();
       String compression = gameFile.getCompressionMethod();
 
-      textFileFormat.setText(String.format("%1$s (%2$s)", gameFile.getBlobTypeString(), fileSize));
+      textFileFormat.setText(String.format("%1$s (%2$s)", gameFile.getFileFormatName(), fileSize));
 
       if (compression.isEmpty())
       {

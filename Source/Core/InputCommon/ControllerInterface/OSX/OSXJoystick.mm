@@ -109,8 +109,8 @@ void Joystick::AddElements(CFArrayRef elements, std::set<IOHIDElementCookie>& co
         break;
       }
 
-      NOTICE_LOG(SERIALINTERFACE, "Unknown IOHIDElement, ignoring (Usage: %x, Type: %x)\n", usage,
-                 IOHIDElementGetType(e));
+      NOTICE_LOG_FMT(SERIALINTERFACE, "Unknown IOHIDElement, ignoring (Usage: {:x}, Type: {:x})",
+                     usage, IOHIDElementGetType(e));
 
       break;
     }

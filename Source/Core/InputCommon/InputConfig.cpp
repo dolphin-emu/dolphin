@@ -41,6 +41,8 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string ir_values[3];
 #endif
 
+  m_dynamic_input_tex_config_manager.Load();
+
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
     std::string type;
@@ -60,10 +62,12 @@ bool InputConfig::LoadConfig(bool isGC)
 
     for (int i = 0; i < 4; i++)
     {
-      if (control_section->Exists(type + "Profile" + std::string(num[i])))
+      const auto profile_name = fmt::format("{}Profile{}", type, num[i]);
+
+      if (control_section->Exists(profile_name))
       {
         std::string profile_setting;
-        if (control_section->Get(type + "Profile" + std::string(num[i]), &profile_setting))
+        if (control_section->Get(profile_name, &profile_setting))
         {
           auto profiles = InputProfile::GetProfilesFromSetting(
               profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
@@ -71,7 +75,7 @@ bool InputConfig::LoadConfig(bool isGC)
           if (profiles.empty())
           {
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("No profiles found for game setting '%s'", profile_setting.c_str());
+            PanicAlertFmtT("No profiles found for game setting '{0}'", profile_setting);
             continue;
           }
 
@@ -192,6 +196,11 @@ void InputConfig::RegisterHotplugCallback()
 void InputConfig::UnregisterHotplugCallback()
 {
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+}
+
+void InputConfig::OnControllerCreated(ControllerEmu::EmulatedController& controller)
+{
+  controller.SetDynamicInputTextureManager(&m_dynamic_input_tex_config_manager);
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

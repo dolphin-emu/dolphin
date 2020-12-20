@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <fmt/format.h>
+
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -50,7 +52,7 @@ bool CSVSignatureDB::Load(const std::string& file_path)
     }
     else
     {
-      WARN_LOG(SYMBOLS, "CSV database failed to parse line %zu", i);
+      WARN_LOG_FMT(SYMBOLS, "CSV database failed to parse line {}", i);
     }
   }
 
@@ -63,18 +65,18 @@ bool CSVSignatureDB::Save(const std::string& file_path) const
 
   if (!f)
   {
-    ERROR_LOG(SYMBOLS, "CSV database save failed");
+    ERROR_LOG_FMT(SYMBOLS, "CSV database save failed");
     return false;
   }
   for (const auto& func : m_database)
   {
     // The object name/location are unused for the time being.
     // To be implemented.
-    fprintf(f.GetHandle(), "%08x\t%08x\t%s\t%s\t%s\n", func.first, func.second.size,
-            func.second.name.c_str(), func.second.object_location.c_str(),
-            func.second.object_name.c_str());
+    f.WriteString(fmt::format("{0:08x}\t{1:08x}\t{2}\t{3}\t{4}\n", func.first, func.second.size,
+                              func.second.name, func.second.object_location,
+                              func.second.object_name));
   }
 
-  INFO_LOG(SYMBOLS, "CSV database save successful");
+  INFO_LOG_FMT(SYMBOLS, "CSV database save successful");
   return true;
 }

@@ -10,6 +10,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
 
@@ -54,7 +55,7 @@ bool ObjectCache::Initialize()
       StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
   {
-    PanicAlert("Failed to create texture upload buffer");
+    PanicAlertFmt("Failed to create texture upload buffer");
     return false;
   }
 
@@ -542,7 +543,7 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
 {
   if (data_length < sizeof(VK_PIPELINE_CACHE_HEADER))
   {
-    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Invalid header");
+    ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Invalid header");
     return false;
   }
 
@@ -550,36 +551,36 @@ bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
   std::memcpy(&header, data, sizeof(header));
   if (header.header_length < sizeof(VK_PIPELINE_CACHE_HEADER))
   {
-    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Invalid header length");
+    ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Invalid header length");
     return false;
   }
 
   if (header.header_version != VK_PIPELINE_CACHE_HEADER_VERSION_ONE)
   {
-    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Invalid header version");
+    ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Invalid header version");
     return false;
   }
 
   if (header.vendor_id != g_vulkan_context->GetDeviceProperties().vendorID)
   {
-    ERROR_LOG(VIDEO,
-              "Pipeline cache failed validation: Incorrect vendor ID (file: 0x%X, device: 0x%X)",
-              header.vendor_id, g_vulkan_context->GetDeviceProperties().vendorID);
+    ERROR_LOG_FMT(
+        VIDEO, "Pipeline cache failed validation: Incorrect vendor ID (file: {:#X}, device: {:#X})",
+        header.vendor_id, g_vulkan_context->GetDeviceProperties().vendorID);
     return false;
   }
 
   if (header.device_id != g_vulkan_context->GetDeviceProperties().deviceID)
   {
-    ERROR_LOG(VIDEO,
-              "Pipeline cache failed validation: Incorrect device ID (file: 0x%X, device: 0x%X)",
-              header.device_id, g_vulkan_context->GetDeviceProperties().deviceID);
+    ERROR_LOG_FMT(
+        VIDEO, "Pipeline cache failed validation: Incorrect device ID (file: {:#X}, device: {:#X})",
+        header.device_id, g_vulkan_context->GetDeviceProperties().deviceID);
     return false;
   }
 
   if (std::memcmp(header.uuid, g_vulkan_context->GetDeviceProperties().pipelineCacheUUID,
                   VK_UUID_SIZE) != 0)
   {
-    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Incorrect UUID");
+    ERROR_LOG_FMT(VIDEO, "Pipeline cache failed validation: Incorrect UUID");
     return false;
   }
 

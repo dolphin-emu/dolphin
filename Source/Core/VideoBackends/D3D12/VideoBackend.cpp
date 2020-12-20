@@ -100,7 +100,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   if (!DXContext::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
   {
-    PanicAlert("Failed to create D3D12 context");
+    PanicAlertFmtT("Failed to create D3D12 context");
     return false;
   }
 
@@ -109,7 +109,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   if (!g_dx_context->CreateGlobalResources())
   {
-    PanicAlert("Failed to create D3D12 global resources");
+    PanicAlertFmtT("Failed to create D3D12 global resources");
     DXContext::Destroy();
     ShutdownShared();
     return false;
@@ -118,7 +118,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   std::unique_ptr<SwapChain> swap_chain;
   if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
   {
-    PanicAlertT("Failed to create D3D swap chain");
+    PanicAlertFmtT("Failed to create D3D swap chain");
     DXContext::Destroy();
     ShutdownShared();
     return false;
@@ -136,7 +136,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize() || !PerfQuery::GetInstance()->Initialize())
   {
-    PanicAlert("Failed to initialize renderer classes");
+    PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();
     return false;
   }

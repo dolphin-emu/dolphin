@@ -29,6 +29,15 @@ ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupT
 {
 }
 
+void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg)
+{
+  AddSetting(value,
+             {_trans("Virtual Notches"),
+              // i18n: The degrees symbol.
+              _trans("°"), _trans("Snap the thumbstick position to the nearest octagonal axis.")},
+             0, 0, max_virtual_notch_deg);
+}
+
 void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone)
 {
   AddSetting(value,

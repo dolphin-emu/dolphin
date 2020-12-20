@@ -72,8 +72,8 @@ bool StreamBuffer::ReserveMemory(u32 num_bytes, u32 alignment)
   // Check for sane allocations
   if (required_bytes > m_size)
   {
-    PanicAlert("Attempting to allocate %u bytes from a %u byte stream buffer",
-               static_cast<uint32_t>(num_bytes), static_cast<uint32_t>(m_size));
+    PanicAlertFmt("Attempting to allocate {} bytes from a {} byte stream buffer", num_bytes,
+                  m_size);
 
     return false;
   }

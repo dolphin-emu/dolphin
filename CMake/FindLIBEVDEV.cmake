@@ -27,7 +27,7 @@ set(LIBEVDEV_LIBRARIES ${LIBEVDEV_LIBRARY} )
 set(LIBEVDEV_INCLUDE_DIRS ${LIBEVDEV_INCLUDE_DIR} )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(libevdev  DEFAULT_MSG
+find_package_handle_standard_args(LIBEVDEV  DEFAULT_MSG
                                   LIBEVDEV_LIBRARY LIBEVDEV_INCLUDE_DIR)
 
 mark_as_advanced(LIBEVDEV_INCLUDE_DIR LIBEVDEV_LIBRARY )

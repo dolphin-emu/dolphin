@@ -29,7 +29,10 @@ WiiEncryptionCache::EncryptGroup(u64 offset, u64 partition_data_offset,
 {
   // Only allocate memory if this function actually ends up getting called
   if (!m_cache)
+  {
     m_cache = std::make_unique<std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>>();
+    m_cached_offset = std::numeric_limits<u64>::max();
+  }
 
   ASSERT(offset % VolumeWii::GROUP_TOTAL_SIZE == 0);
   const u64 group_offset_in_partition =

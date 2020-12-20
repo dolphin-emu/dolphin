@@ -11,7 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Debug/Threads.h"
 
-namespace Common::Debug
+namespace Core::Debug
 {
 template <class C>
 struct OSQueue
@@ -132,7 +132,7 @@ public:
 
   const OSThread& Data() const;
 
-  PartialContext GetContext() const override;
+  Common::Debug::PartialContext GetContext() const override;
   u32 GetAddress() const override;
   u16 GetState() const override;
   bool IsSuspended() const override;
@@ -151,4 +151,4 @@ private:
   OSThread m_thread;
 };
 
-}  // namespace Common::Debug
+}  // namespace Core::Debug

@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
@@ -14,8 +15,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.LegacyIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.ConfirmRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
@@ -24,6 +25,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InvertedCheckBoxSe
 import org.dolphinemu.dolphinemu.features.settings.model.view.LogCheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.PercentSliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
@@ -33,7 +35,6 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -224,7 +225,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(R.string.debug_submenu, MenuTag.DEBUG));
-    sl.add(new HeaderSetting(R.string.gametdb_thanks, 0));
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -237,6 +238,8 @@ public final class SettingsFragmentPresenter
     sl.add(new PercentSliderSetting(FloatSetting.MAIN_EMULATION_SPEED, R.string.speed_limit, 0, 0,
             200, "%"));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics, 0));
+    sl.add(new RunRunnable(R.string.analytics_new_id, 0, R.string.analytics_new_id_confirmation, 0,
+            NativeLibrary::GenerateNewStatisticsId));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ENABLE_SAVESTATES, R.string.enable_save_states,
             R.string.enable_save_states_description));
   }
@@ -247,6 +250,8 @@ public final class SettingsFragmentPresenter
             R.string.panic_handlers_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
             R.string.osd_messages_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.MAIN_USE_GAME_COVERS, R.string.download_game_covers,
+            0));
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)
@@ -354,8 +359,6 @@ public final class SettingsFragmentPresenter
             MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
-    sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
-            mView.getAdapter()::resetPaths));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -433,16 +436,19 @@ public final class SettingsFragmentPresenter
   {
     for (int i = 0; i < 4; i++)
     {
+      // GameCube controller 1 is set to Emulated by default, all others disabled
+      int defaultValue = i == 0 ? 6 : 0;
+
       LegacyIntSetting gcPadSetting;
       if (mGameID.equals(""))
       {
         gcPadSetting = new LegacyIntSetting(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
-                SettingsFile.KEY_GCPAD_TYPE + i, 0);
+                SettingsFile.KEY_GCPAD_TYPE + i, defaultValue);
       }
       else
       {
         gcPadSetting = new LegacyIntSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-                Settings.SECTION_CONTROLS, SettingsFile.KEY_GCPAD_G_TYPE + i, 0);
+                Settings.SECTION_CONTROLS, SettingsFile.KEY_GCPAD_G_TYPE + i, defaultValue);
       }
       // TODO: This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
       sl.add(new SingleChoiceSetting(gcPadSetting, R.string.controller_0 + i, 0,
@@ -454,16 +460,19 @@ public final class SettingsFragmentPresenter
   {
     for (int i = 0; i < 4; i++)
     {
+      // Wii Remote 1 is set to Emulated by default, all others disabled
+      int defaultValue = i == 0 ? 1 : 0;
+
       LegacyIntSetting wiimoteSetting;
       if (mGameID.equals(""))
       {
         wiimoteSetting = new LegacyIntSetting(Settings.FILE_WIIMOTE,
-                Settings.SECTION_WIIMOTE + (i + 1), SettingsFile.KEY_WIIMOTE_TYPE, 0);
+                Settings.SECTION_WIIMOTE + (i + 1), SettingsFile.KEY_WIIMOTE_TYPE, defaultValue);
       }
       else
       {
         wiimoteSetting = new LegacyIntSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-                Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_G_TYPE + i, 0);
+                Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_G_TYPE + i, defaultValue);
       }
       // TODO: This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
       sl.add(new SingleChoiceSetting(wiimoteSetting, R.string.wiimote_4 + i, 0,
@@ -491,6 +500,7 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(R.string.graphics_enhancements_and_hacks, 0));
     sl.add(new SubmenuSetting(R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(R.string.hacks_submenu, MenuTag.HACKS));
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -626,10 +636,12 @@ public final class SettingsFragmentPresenter
             R.string.enable_logging_description));
     sl.add(new SingleChoiceSetting(IntSetting.LOGGER_VERBOSITY, R.string.log_verbosity, 0,
             getLogVerbosityEntries(), getLogVerbosityValues()));
-    sl.add(new ConfirmRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
+    sl.add(new RunRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
             () -> mView.getAdapter().setAllLogTypes(true)));
-    sl.add(new ConfirmRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation,
-            0, () -> mView.getAdapter().setAllLogTypes(false)));
+    sl.add(new RunRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation, 0,
+            () -> mView.getAdapter().setAllLogTypes(false)));
+    sl.add(new RunRunnable(R.string.log_clear, 0, R.string.log_clear_confirmation, 0,
+            SettingsAdapter::clearLog));
 
     sl.add(new HeaderSetting(R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
@@ -642,6 +654,7 @@ public final class SettingsFragmentPresenter
   private void addDebugSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new HeaderSetting(R.string.debug_warning, 0));
+    sl.add(new InvertedCheckBoxSetting(BooleanSetting.MAIN_FASTMEM, R.string.debug_fastmem, 0));
 
     sl.add(new HeaderSetting(R.string.debug_jit_header, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_JIT_OFF, R.string.debug_jitoff, 0));
@@ -754,22 +767,21 @@ public final class SettingsFragmentPresenter
   private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
     // Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
-    // But game game specific extension settings are saved in their own profile. These profiles
+    // But game specific extension settings are saved in their own profile. These profiles
     // do not have any way to specify the controller that is loaded outside of knowing the filename
     // of the profile that was loaded.
-    LegacyStringSetting extension;
+    AbstractStringSetting extension;
+    final String defaultExtension = "None";
     if (mGameID.isEmpty())
     {
       extension = new LegacyStringSetting(Settings.FILE_WIIMOTE,
               Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.KEY_WIIMOTE_EXTENSION,
-              getExtensionValue(wiimoteNumber - 3));
+              defaultExtension);
     }
     else
     {
-      mSettings.loadWiimoteProfile(mGameID, wiimoteNumber - 4);
-      extension = new LegacyStringSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-              Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
-              getExtensionValue(wiimoteNumber - 4));
+      extension = new WiimoteProfileSetting(mGameID, wiimoteNumber - 4, Settings.SECTION_PROFILE,
+              SettingsFile.KEY_WIIMOTE_EXTENSION, defaultExtension);
     }
 
     sl.add(new StringSingleChoiceSetting(extension, R.string.wiimote_extensions, 0,
@@ -1186,22 +1198,6 @@ public final class SettingsFragmentPresenter
                 R.string.generic_right, mGameID));
         break;
     }
-  }
-
-  private String getExtensionValue(int wiimoteNumber)
-  {
-    IniFile.Section section;
-    if (mGameID.equals("")) // Main settings
-    {
-      section = mSettings.getSection(Settings.FILE_WIIMOTE,
-              Settings.SECTION_WIIMOTE + wiimoteNumber);
-    }
-    else // Game settings
-    {
-      section = mSettings.getSection(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-              Settings.SECTION_PROFILE);
-    }
-    return section.getString(SettingsFile.KEY_WIIMOTE_EXTENSION, "None");
   }
 
   private static int getLogVerbosityEntries()

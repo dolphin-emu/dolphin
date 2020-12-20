@@ -10,6 +10,8 @@
 #include <QObject>
 #include <QSettings>
 
+#include "DiscIO/Enums.h"
+
 namespace Core
 {
 enum class State;
@@ -26,7 +28,6 @@ class NetPlayClient;
 class NetPlayServer;
 }  // namespace NetPlay
 
-class GameListModel;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
@@ -73,6 +74,7 @@ public:
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
   void RefreshGameList();
+  void NotifyRefreshGameListStarted();
   void NotifyRefreshGameListComplete();
   void RefreshMetadata();
   void NotifyMetadataRefreshComplete();
@@ -142,12 +144,14 @@ public:
   QString GetAutoUpdateTrack() const;
   void SetAutoUpdateTrack(const QString& mode);
 
+  // Fallback Region
+  DiscIO::Region GetFallbackRegion() const;
+  void SetFallbackRegion(const DiscIO::Region& region);
+
   // Analytics
   bool IsAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool enabled);
 
-  // Other
-  GameListModel* GetGameListModel() const;
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
@@ -156,6 +160,7 @@ signals:
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
   void GameListRefreshRequested();
+  void GameListRefreshStarted();
   void GameListRefreshCompleted();
   void TitleDBReloadRequested();
   void MetadataRefreshRequested();
@@ -182,6 +187,7 @@ signals:
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);
+  void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
   void DevicesChanged();
   void SDCardInsertionChanged(bool inserted);

@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
@@ -60,5 +62,11 @@ public class RumbleBindingViewHolder extends SettingViewHolder
     getAdapter().onInputBindingClick(mItem, getAdapterPosition());
 
     setStyle(mTextSettingName, mItem);
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 }

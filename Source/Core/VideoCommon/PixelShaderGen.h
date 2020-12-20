@@ -17,8 +17,7 @@ struct pixel_shader_uid_data
 
   u32 num_values;  // TODO: Shouldn't be a u32
   u32 NumValues() const { return num_values; }
-  u32 components : 2;
-  u32 pad0 : 2;
+  u32 pad0 : 4;
   u32 useDstAlpha : 1;
   u32 Pretest : 2;
   u32 nIndirectStagesUsed : 4;
@@ -164,10 +163,10 @@ struct pixel_shader_uid_data
 
 using PixelShaderUid = ShaderUid<pixel_shader_uid_data>;
 
-ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
+ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data);
-void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type, u32 num_texgens,
                                   const ShaderHostConfig& host_config, bool bounding_box);
-void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
+void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid);
 PixelShaderUid GetPixelShaderUid();

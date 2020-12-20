@@ -25,15 +25,15 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
   if (config_location.system == Config::System::Main)
   {
-    for (const std::string& section :
-         {"NetPlay", "General", "Display", "Network", "Analytics", "Android"})
+    for (const std::string& section : {"NetPlay", "General", "Display", "Network", "Analytics",
+                                       "AndroidOverlayButtons", "Android"})
     {
       if (config_location.section == section)
         return true;
     }
   }
 
-  static constexpr std::array<const Config::Location*, 26> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 27> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -48,6 +48,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_MEM2_SIZE.location,
       &Config::MAIN_GFX_BACKEND.location,
       &Config::MAIN_ENABLE_SAVESTATES.location,
+      &Config::MAIN_FALLBACK_REGION.location,
 
       // Main.Interface
 

@@ -165,7 +165,7 @@ u16* AddQuads(u16* index_ptr, u32 num_verts, u32 index)
 template <bool pr>
 u16* AddQuads_nonstandard(u16* index_ptr, u32 num_verts, u32 index)
 {
-  WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
+  WARN_LOG_FMT(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
   return AddQuads<pr>(index_ptr, num_verts, index);
 }
 

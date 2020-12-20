@@ -1,0 +1,84 @@
+# This file contains strings which are defined in Qt's source code
+# and may be accessed in applications which use Qt. Extracted from Qt 5.15.1.
+msgid ""
+msgstr ""
+
+#: qtbase/src/gui/kernel/qguiapplication.cpp:234
+msgctxt ""
+"Translate this string to the string 'LTR' in left-to-right languages or to "
+"'RTL' in right-to-left languages (such as Hebrew and Arabic) to get proper "
+"widget layout."
+msgid "QT_LAYOUT_DIRECTION"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:708
+msgid "OK"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:710
+msgid "Save"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:712
+msgid "Save All"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:714
+msgid "Open"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:716
+msgid "&Yes"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:718
+msgid "Yes to &All"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:720
+msgid "&No"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:722
+msgid "N&o to All"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:724
+msgid "Abort"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:726
+msgid "Retry"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:728
+msgid "Ignore"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:730
+msgid "Close"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:732
+msgid "Cancel"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:734
+msgid "Discard"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:736
+msgid "Help"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:738
+msgid "Apply"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:740
+msgid "Reset"
+msgstr ""
+
+#: qtbase/src/gui/kernel/qplatformtheme.cpp:742
+msgid "Restore Defaults"
+msgstr ""

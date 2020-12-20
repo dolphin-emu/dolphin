@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,7 +19,13 @@ public enum IntSetting implements AbstractIntSetting
 
   MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
 
+  MAIN_CONTROL_SCALE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlScale", 50),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
+  MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
+
+  MAIN_DOUBLE_TAP_BUTTON(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "DoubleTapButton",
+          InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A)),
 
   SYSCONF_LANGUAGE(Settings.FILE_SYSCONF, "IPL", "LNG", 0x01),
   SYSCONF_SOUND_MODE(Settings.FILE_SYSCONF, "IPL", "SND", 0x01),
@@ -97,7 +104,7 @@ public enum IntSetting implements AbstractIntSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -110,7 +117,7 @@ public enum IntSetting implements AbstractIntSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getInt(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
+      return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
     }
     else
     {
@@ -123,11 +130,16 @@ public enum IntSetting implements AbstractIntSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setInt(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+      NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {
       settings.getSection(mFile, mSection).setInt(mKey, newValue);
     }
+  }
+
+  public int getIntGlobal()
+  {
+    return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 }

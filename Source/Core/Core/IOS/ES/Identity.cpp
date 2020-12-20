@@ -23,7 +23,7 @@ namespace IOS::HLE::Device
 ReturnCode ES::GetDeviceId(u32* device_id) const
 {
   *device_id = m_ios.GetIOSC().GetDeviceId();
-  INFO_LOG(IOS_ES, "GetDeviceId: %08X", *device_id);
+  INFO_LOG_FMT(IOS_ES, "GetDeviceId: {:08X}", *device_id);
   return IPC_SUCCESS;
 }
 
@@ -83,7 +83,7 @@ IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
   // IOS70 has this to let system menu 4.2 check if the console is region changed. it returns
   // -1017
   // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
-  INFO_LOG(IOS_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
+  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
   return GetDefaultReply(ES_EINVAL);
 }
 
@@ -92,7 +92,7 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0x180)
     return GetDefaultReply(ES_EINVAL);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
+  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETDEVICECERT");
 
   const IOS::CertECC cert = m_ios.GetIOSC().GetDeviceCertificate();
   Memory::CopyToEmu(request.io_vectors[0].address, &cert, sizeof(cert));
@@ -104,7 +104,7 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 2))
     return GetDefaultReply(ES_EINVAL);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_SIGN");
+  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_SIGN");
   u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].address);
   u8* data = Memory::GetPointer(request.in_vectors[0].address);
   u32 data_size = request.in_vectors[0].size;
@@ -148,14 +148,14 @@ ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ec
                         certs_bytes, ng_cert);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG(IOS_ES, "VerifySign: VerifyContainer(ng) failed with error %d", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: VerifyContainer(ng) failed with error {}", ret);
     return ret;
   }
 
   ret = iosc.VerifyPublicKeySign(ap.GetSha1(), ng_cert, ap.GetSignatureData(), PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(ap) failed with error %d", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(ap) failed with error {}", ret);
     return ret;
   }
 
@@ -168,7 +168,7 @@ ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ec
   ret = iosc.ImportPublicKey(ap_cert, ap.GetPublicKey().data(), nullptr, PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG(IOS_ES, "VerifySign: IOSC_ImportPublicKey(ap) failed with error %d", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_ImportPublicKey(ap) failed with error {}", ret);
     return ret;
   }
 
@@ -177,11 +177,11 @@ ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ec
   ret = iosc.VerifyPublicKeySign(sha1, ap_cert, ecc_signature, PID_ES);
   if (ret != IPC_SUCCESS)
   {
-    ERROR_LOG(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(data) failed with error %d", ret);
+    ERROR_LOG_FMT(IOS_ES, "VerifySign: IOSC_VerifyPublicKeySign(data) failed with error {}", ret);
     return ret;
   }
 
-  INFO_LOG(IOS_ES, "VerifySign: all checks passed");
+  INFO_LOG_FMT(IOS_ES, "VerifySign: all checks passed");
   return IPC_SUCCESS;
 }
 

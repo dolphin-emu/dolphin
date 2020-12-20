@@ -110,7 +110,6 @@ bool WantsDeterminism();
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state);
 State GetState();
-void WaitUntilDoneBooting();
 
 void SaveScreenShot();
 void SaveScreenShot(std::string_view name);

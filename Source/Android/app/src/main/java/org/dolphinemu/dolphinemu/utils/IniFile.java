@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import androidx.annotation.Keep;
+
 import java.io.File;
 
 // An in-memory copy of an INI file
@@ -7,10 +9,13 @@ public class IniFile
 {
   // This class is non-static to ensure that the IniFile parent does not get garbage collected
   // while a section still is accessible. (The finalizer of IniFile deletes the native sections.)
+  @SuppressWarnings("InnerClassMayBeStatic")
   public class Section
   {
-    private long mPointer;  // Do not rename or move without editing the native code
+    @Keep
+    private long mPointer;
 
+    @Keep
     private Section(long pointer)
     {
       mPointer = pointer;
@@ -37,7 +42,8 @@ public class IniFile
     public native void setFloat(String key, float newFloat);
   }
 
-  private long mPointer;  // Do not rename or move without editing the native code
+  @Keep
+  private long mPointer;
 
   public IniFile()
   {

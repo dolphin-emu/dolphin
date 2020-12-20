@@ -158,7 +158,8 @@
     <string name="lock_emulation_landscape_desc">Some touch controls will require additional tweaking if played in portrait</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
-    <string name="gametdb_thanks">Thanks to GameTDB.com for providing GameCube and Wii covers!</string>
+    <string name="analytics_new_id">Generate a New Statistics Identity</string>
+    <string name="analytics_new_id_confirmation">Are you sure you want to generate a new statistics identity?</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -166,6 +167,7 @@
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
+    <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
 
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
@@ -183,8 +185,6 @@
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
     <string name="SD_card_path">SD Card Path</string>
-    <string name="reset_paths">Reset Paths to Default Settings</string>
-    <string name="reset_paths_confirmation">Are you sure you want to reset Paths to default settings?</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>
@@ -285,11 +285,14 @@
     <string name="log_enable_all_confirmation">Are you sure you want to enable all log types?</string>
     <string name="log_disable_all">Disable all Log Types</string>
     <string name="log_disable_all_confirmation">Are you sure you want to disable all log types?</string>
+    <string name="log_clear">Clear Log file</string>
+    <string name="log_clear_confirmation">Are you sure you want to clear the log file?</string>
     <string name="log_types">Log Types</string>
 
     <!-- Debug -->
     <string name="debug_submenu">Debug</string>
-    <string name="debug_warning">Warning: These settings will slow emulation</string>
+    <string name="debug_warning">Warning: Debug settings will slow emulation</string>
+    <string name="debug_fastmem">Disable Fastmem</string>
     <string name="debug_jit_header">Jit</string>
     <string name="debug_jitoff">Jit Disabled</string>
     <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
@@ -380,12 +383,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
     <string name="emulation_exit">Exit Emulation</string>
-    <string name="emulation_slot1">Slot 1</string>
-    <string name="emulation_slot2">Slot 2</string>
-    <string name="emulation_slot3">Slot 3</string>
-    <string name="emulation_slot4">Slot 4</string>
-    <string name="emulation_slot5">Slot 5</string>
-    <string name="emulation_slot6">Slot 6</string>
+    <string name="emulation_state_slot">Slot %1$d\n\n%2$s</string>
+    <string name="emulation_state_slot_empty">Slot %1$d\n\nEmpty</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wii Remotes</string>
@@ -422,6 +421,9 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
     <string name="load_settings">Loading Settings...</string>
     <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
+    <string name="setting_clear_info">Long press a setting to clear it.</string>
+    <string name="setting_clear_confirm">Do you want to restore this setting to its default value?</string>
+    <string name="setting_cleared">Setting cleared</string>
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
@@ -435,8 +437,10 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>
     <string name="vertical_offset">Vertical Offset</string>
+    <string name="default_values">Default Values</string>
     <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
+    <string name="ignore_warning_alert_messages">Ignore for this session</string>
 
 </resources>

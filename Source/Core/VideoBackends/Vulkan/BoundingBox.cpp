@@ -34,7 +34,7 @@ bool BoundingBox::Initialize()
 {
   if (!g_ActiveConfig.backend_info.bSupportsBBox)
   {
-    WARN_LOG(VIDEO, "Vulkan: Bounding box is unsupported by your device.");
+    WARN_LOG_FMT(VIDEO, "Vulkan: Bounding box is unsupported by your device.");
     return true;
   }
 

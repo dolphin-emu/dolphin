@@ -139,6 +139,6 @@ public class AppLinkActivity extends FragmentActivity
       mAfterDirectoryInitializationRunner.cancel();
       mAfterDirectoryInitializationRunner = null;
     }
-    EmulationActivity.launch(this, game);
+    EmulationActivity.launch(this, GameFileCacheService.findSecondDiscAndGetPaths(game));
   }
 }

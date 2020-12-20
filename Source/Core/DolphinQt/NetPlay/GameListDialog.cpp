@@ -10,11 +10,10 @@
 #include <QListWidget>
 #include <QVBoxLayout>
 
-#include "DolphinQt/GameList/GameListModel.h"
-#include "DolphinQt/Settings.h"
 #include "UICommon/GameFile.h"
 
-GameListDialog::GameListDialog(QWidget* parent) : QDialog(parent)
+GameListDialog::GameListDialog(const GameListModel& game_list_model, QWidget* parent)
+    : QDialog(parent), m_game_list_model(game_list_model)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowTitle(tr("Select a game"));
@@ -47,16 +46,14 @@ void GameListDialog::ConnectWidgets()
 
 void GameListDialog::PopulateGameList()
 {
-  auto* game_list_model = Settings::Instance().GetGameListModel();
-
   m_game_list->clear();
 
-  for (int i = 0; i < game_list_model->rowCount(QModelIndex()); i++)
+  for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
   {
-    std::shared_ptr<const UICommon::GameFile> game = game_list_model->GetGameFile(i);
+    std::shared_ptr<const UICommon::GameFile> game = m_game_list_model.GetGameFile(i);
 
     auto* item =
-        new QListWidgetItem(QString::fromStdString(game_list_model->GetNetPlayName(*game)));
+        new QListWidgetItem(QString::fromStdString(m_game_list_model.GetNetPlayName(*game)));
     item->setData(Qt::UserRole, QVariant::fromValue(std::move(game)));
     m_game_list->addItem(item);
   }

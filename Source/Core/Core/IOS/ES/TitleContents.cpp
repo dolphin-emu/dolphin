@@ -4,7 +4,6 @@
 
 #include "Core/IOS/ES/ES.h"
 
-#include <cinttypes>
 #include <utility>
 #include <vector>
 
@@ -40,7 +39,7 @@ s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
     entry.m_content = content;
     entry.m_title_id = title_id;
     entry.m_uid = uid;
-    INFO_LOG(IOS_ES, "OpenContent: title ID %016" PRIx64 ", UID 0x%x, CFD %zu", title_id, uid, i);
+    INFO_LOG_FMT(IOS_ES, "OpenContent: title ID {:016x}, UID {:#x}, CFD {}", title_id, uid, i);
     return static_cast<s32>(i);
   }
 
@@ -125,7 +124,7 @@ ReturnCode ES::CloseContent(u32 cfd, u32 uid)
 
   m_ios.GetFS()->Close(entry.m_fd);
   entry = {};
-  INFO_LOG(IOS_ES, "CloseContent: CFD %u", cfd);
+  INFO_LOG_FMT(IOS_ES, "CloseContent: CFD {}", cfd);
   return IPC_SUCCESS;
 }
 

@@ -25,14 +25,14 @@ static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
   if (loader->m_counter < 3)
     VertexLoaderManager::position_matrix_index[loader->m_counter + 1] = posmtx;
   DataWrite<u32>(posmtx);
-  PRIM_LOG("posmtx: %d, ", posmtx);
+  PRIM_LOG("posmtx: {}, ", posmtx);
 }
 
 static void TexMtx_ReadDirect_UByte(VertexLoader* loader)
 {
   loader->m_curtexmtx[loader->m_texmtxread] = DataRead<u8>() & 0x3f;
 
-  PRIM_LOG("texmtx%d: %d, ", loader->m_texmtxread, loader->m_curtexmtx[loader->m_texmtxread]);
+  PRIM_LOG("texmtx{}: {}, ", loader->m_texmtxread, loader->m_curtexmtx[loader->m_texmtxread]);
   loader->m_texmtxread++;
 }
 
@@ -184,9 +184,9 @@ void VertexLoader::CompileVertexTranslator()
 
     if (pFunc == nullptr)
     {
-      PanicAlert("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!",
-                 (u32)m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements,
-                 m_VtxAttr.NormalIndex3);
+      PanicAlertFmt("VertexLoader_Normal::GetFunction({} {} {} {}) returned zero!",
+                    m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements,
+                    m_VtxAttr.NormalIndex3);
     }
     WriteCall(pFunc);
 

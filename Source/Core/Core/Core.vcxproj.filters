@@ -172,12 +172,6 @@
     <Filter Include="PowerPC\JitArm64">
       <UniqueIdentifier>{9e91e72c-e432-4e02-8e03-c45c2b6f6957}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PrimeHack">
-      <UniqueIdentifier>{d785099b-1aa1-47a8-afcb-b2b0c7505cb3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PrimeHack\Mods">
-      <UniqueIdentifier>{130ec601-7d18-4bb3-a5b1-554d63cdd771}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -221,6 +215,9 @@
       <Filter>Debugger</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\Dump.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\OSThread.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
@@ -467,6 +464,9 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\EXI\EXI_DeviceMic.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\Sram.cpp">
@@ -999,8 +999,9 @@
     <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI\BBA\TAP_Win32.cpp" />
-    <ClCompile Include="HW\EXI\BBA\XLINK_KAI_BBA.cpp" />
+    <ClCompile Include="HW\EXI\BBA\XLINK_KAI_BBA.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
+    </ClCompile>
     <ClCompile Include="PrimeHack\HackConfig.cpp">
       <Filter>PrimeHack</Filter>
     </ClCompile>
@@ -1080,6 +1081,9 @@
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\GCELF.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\OSThread.h">
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\PPCDebugInterface.h">
@@ -1274,6 +1278,9 @@
     <ClInclude Include="HW\EXI\EXI_DeviceMic.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
+    <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
+    </ClInclude>
     <ClInclude Include="HW\Sram.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
@@ -1290,6 +1297,9 @@
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcard\GCMemcardUtils.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCPadEmu.h">
@@ -1781,8 +1791,9 @@
     <ClInclude Include="PowerPC\JitArmCommon\BackPatch.h">
       <Filter>PowerPC\JitArmCommon</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI\BBA\TAP_Win32.h" />
-    <ClInclude Include="HW\GCMemcard\GCMemcardUtils.h" />
+    <ClInclude Include="HW\EXI\BBA\TAP_Win32.h">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
+    </ClInclude>
     <ClInclude Include="SyncIdentifier.h" />
     <ClInclude Include="PrimeHack\HackConfig.h">
       <Filter>PrimeHack</Filter>

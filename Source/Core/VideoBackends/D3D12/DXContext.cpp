@@ -99,7 +99,7 @@ bool DXContext::Create(u32 adapter_index, bool enable_debug_layer)
       !s_d3d12_library.GetSymbol("D3D12GetDebugInterface", &s_d3d12_get_debug_interface) ||
       !s_d3d12_library.GetSymbol("D3D12SerializeRootSignature", &s_d3d12_serialize_root_signature))
   {
-    PanicAlertT("d3d12.dll could not be loaded.");
+    PanicAlertFmtT("d3d12.dll could not be loaded.");
     s_d3d12_library.Close();
     return false;
   }
@@ -152,7 +152,7 @@ bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
   HRESULT hr = m_dxgi_factory->EnumAdapters(adapter_index, &adapter);
   if (FAILED(hr))
   {
-    ERROR_LOG(VIDEO, "Adapter %u not found, using default", adapter_index);
+    ERROR_LOG_FMT(VIDEO, "Adapter {} not found, using default", adapter_index);
     adapter = nullptr;
   }
 
@@ -166,7 +166,7 @@ bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
     }
     else
     {
-      ERROR_LOG(VIDEO, "Debug layer requested but not available.");
+      ERROR_LOG_FMT(VIDEO, "Debug layer requested but not available.");
       enable_debug_layer = false;
     }
   }
@@ -253,7 +253,7 @@ bool DXContext::CreateDescriptorHeaps()
 
   if (!m_descriptor_heap_manager.Allocate(&m_null_srv_descriptor))
   {
-    PanicAlert("Failed to allocate null descriptor");
+    PanicAlertFmt("Failed to allocate null descriptor");
     return false;
   }
 
@@ -303,8 +303,8 @@ static bool BuildRootSignature(ID3D12Device* device, ID3D12RootSignature** sig_p
                                                 &root_signature_blob, &root_signature_error_blob);
   if (FAILED(hr))
   {
-    PanicAlert("Failed to serialize root signature: %s",
-               static_cast<const char*>(root_signature_error_blob->GetBufferPointer()));
+    PanicAlertFmt("Failed to serialize root signature: {}",
+                  static_cast<const char*>(root_signature_error_blob->GetBufferPointer()));
     return false;
   }
 
@@ -400,7 +400,7 @@ bool DXContext::CreateTextureUploadBuffer()
 {
   if (!m_texture_upload_buffer.AllocateBuffer(TEXTURE_UPLOAD_BUFFER_SIZE))
   {
-    PanicAlert("Failed to create texture upload buffer");
+    PanicAlertFmt("Failed to create texture upload buffer");
     return false;
   }
 
@@ -425,7 +425,7 @@ bool DXContext::CreateCommandLists()
                                      nullptr, IID_PPV_ARGS(res.command_list.GetAddressOf()));
     if (FAILED(hr))
     {
-      PanicAlert("Failed to create command list.");
+      PanicAlertFmt("Failed to create command list.");
       return false;
     }
 
@@ -508,7 +508,7 @@ void DXContext::RecreateGXRootSignature()
 {
   m_gx_root_signature.Reset();
   if (!CreateGXRootSignature())
-    PanicAlert("Failed to re-create GX root signature.");
+    PanicAlertFmt("Failed to re-create GX root signature.");
 }
 
 void DXContext::DestroyPendingResources(CommandListResources& cmdlist)

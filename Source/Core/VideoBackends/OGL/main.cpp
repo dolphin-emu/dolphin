@@ -123,15 +123,15 @@ bool VideoBackend::InitializeGLExtensions(GLContext* context)
   {
     // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
     // extensions
-    PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
+    PanicAlertFmtT("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
     return false;
   }
 
   if (GLExtensions::Version() < 300)
   {
     // integer vertex attributes require a gl3 only function
-    PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
-               "GPU: Does your video card support OpenGL 3?");
+    PanicAlertFmtT("GPU: OGL ERROR: Need OpenGL version 3.\n"
+                   "GPU: Does your video card support OpenGL 3?");
     return false;
   }
 
@@ -147,9 +147,9 @@ bool VideoBackend::FillBackendInfo()
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
   if (numvertexattribs < 16)
   {
-    PanicAlert("GPU: OGL ERROR: Number of attributes %d not enough.\n"
-               "GPU: Does your video card support OpenGL 2.x?",
-               numvertexattribs);
+    PanicAlertFmtT("GPU: OGL ERROR: Number of attributes {0} not enough.\n"
+                   "GPU: Does your video card support OpenGL 2.x?",
+                   numvertexattribs);
     return false;
   }
 
@@ -159,7 +159,7 @@ bool VideoBackend::FillBackendInfo()
   g_Config.backend_info.MaxTextureSize = static_cast<u32>(max_texture_size);
   if (max_texture_size < 1024)
   {
-    PanicAlert("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.", max_texture_size);
+    PanicAlertFmtT("GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024.", max_texture_size);
     return false;
   }
 
@@ -193,7 +193,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize())
   {
-    PanicAlert("Failed to initialize renderer classes");
+    PanicAlertFmtT("Failed to initialize renderer classes");
     Shutdown();
     return false;
   }

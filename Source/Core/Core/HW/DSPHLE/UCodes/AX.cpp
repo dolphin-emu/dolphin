@@ -26,7 +26,7 @@ namespace DSP::HLE
 {
 AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc), m_cmdlist_size(0)
 {
-  INFO_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
+  INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 }
 
 AXUCode::~AXUCode()
@@ -64,7 +64,7 @@ void AXUCode::LoadResamplingCoefficients()
   if (fidx >= filenames.size())
     return;
 
-  INFO_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
+  INFO_LOG_FMT(DSPHLE, "Loading polyphase resampling coeffs from {}", filename);
 
   File::IOFile fp(filename, "rb");
   fp.ReadBytes(m_coeffs, 0x1000);
@@ -106,10 +106,10 @@ void AXUCode::HandleCommandList()
   u32 pb_addr = 0;
 
 #if 0
-	INFO_LOG(DSPHLE, "Command list:");
+	INFO_LOG_FMT(DSPHLE, "Command list:");
 	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-		INFO_LOG(DSPHLE, "%04x", m_cmdlist[i]);
-	INFO_LOG(DSPHLE, "-------------");
+		INFO_LOG_FMT(DSPHLE, "{:04x}", m_cmdlist[i]);
+	INFO_LOG_FMT(DSPHLE, "-------------");
 #endif
 
   u32 curr_idx = 0;
@@ -272,7 +272,7 @@ void AXUCode::HandleCommandList()
     }
 
     default:
-      ERROR_LOG(DSPHLE, "Unknown command in AX command list: %04x", cmd);
+      ERROR_LOG_FMT(DSPHLE, "Unknown command in AX command list: {:04x}", cmd);
       end = true;
       break;
     }
@@ -661,7 +661,7 @@ void AXUCode::HandleMail(u32 mail)
   }
   else
   {
-    ERROR_LOG(DSPHLE, "Unknown mail sent to AX::HandleMail: %08x", mail);
+    ERROR_LOG_FMT(DSPHLE, "Unknown mail sent to AX::HandleMail: {:08x}", mail);
   }
 
   next_is_cmdlist = set_next_is_cmdlist;
@@ -671,7 +671,7 @@ void AXUCode::CopyCmdList(u32 addr, u16 size)
 {
   if (size >= std::size(m_cmdlist))
   {
-    ERROR_LOG(DSPHLE, "Command list at %08x is too large: size=%d", addr, size);
+    ERROR_LOG_FMT(DSPHLE, "Command list at {:08x} is too large: size={}", addr, size);
     return;
   }
 

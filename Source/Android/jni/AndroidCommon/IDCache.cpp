@@ -13,7 +13,9 @@ static JavaVM* s_java_vm;
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
 static jmethodID s_do_rumble;
-static jmethodID s_get_update_touch_pointer;
+static jmethodID s_update_touch_pointer;
+static jmethodID s_on_title_changed;
+static jmethodID s_finish_emulation_activity;
 
 static jclass s_game_file_class;
 static jfieldID s_game_file_pointer;
@@ -42,6 +44,11 @@ static jmethodID s_compress_cb_run;
 static jclass s_content_handler_class;
 static jmethodID s_content_handler_open_fd;
 static jmethodID s_content_handler_delete;
+
+static jclass s_network_helper_class;
+static jmethodID s_network_helper_get_network_ip_address;
+static jmethodID s_network_helper_get_network_prefix_length;
+static jmethodID s_network_helper_get_network_gateway;
 
 namespace IDCache
 {
@@ -85,7 +92,17 @@ jmethodID GetDoRumble()
 
 jmethodID GetUpdateTouchPointer()
 {
-  return s_get_update_touch_pointer;
+  return s_update_touch_pointer;
+}
+
+jmethodID GetOnTitleChanged()
+{
+  return s_on_title_changed;
+}
+
+jmethodID GetFinishEmulationActivity()
+{
+  return s_finish_emulation_activity;
 }
 
 jclass GetAnalyticsClass()
@@ -193,6 +210,25 @@ jmethodID GetContentHandlerDelete()
   return s_content_handler_delete;
 }
 
+jclass GetNetworkHelperClass()
+{
+  return s_network_helper_class;
+}
+
+jmethodID GetNetworkHelperGetNetworkIpAddress()
+{
+  return s_network_helper_get_network_ip_address;
+}
+
+jmethodID GetNetworkHelperGetNetworkPrefixLength()
+{
+  return s_network_helper_get_network_prefix_length;
+}
+
+jmethodID GetNetworkHelperGetNetworkGateway()
+{
+  return s_network_helper_get_network_gateway;
+}
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -210,10 +246,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   const jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
   s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
-                                               "(Ljava/lang/String;Ljava/lang/String;Z)Z");
+                                               "(Ljava/lang/String;Ljava/lang/String;ZZZ)Z");
   s_do_rumble = env->GetStaticMethodID(s_native_library_class, "rumble", "(ID)V");
-  s_get_update_touch_pointer =
+  s_update_touch_pointer =
       env->GetStaticMethodID(s_native_library_class, "updateTouchPointer", "()V");
+  s_on_title_changed = env->GetStaticMethodID(s_native_library_class, "onTitleChanged", "()V");
+  s_finish_emulation_activity =
+      env->GetStaticMethodID(s_native_library_class, "finishEmulationActivity", "()V");
   env->DeleteLocalRef(native_library_class);
 
   const jclass game_file_class = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");
@@ -268,6 +307,16 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_content_handler_delete =
       env->GetStaticMethodID(s_content_handler_class, "delete", "(Ljava/lang/String;)Z");
 
+  const jclass network_helper_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");
+  s_network_helper_class = reinterpret_cast<jclass>(env->NewGlobalRef(network_helper_class));
+  s_network_helper_get_network_ip_address =
+      env->GetStaticMethodID(s_network_helper_class, "GetNetworkIpAddress", "()I");
+  s_network_helper_get_network_prefix_length =
+      env->GetStaticMethodID(s_network_helper_class, "GetNetworkPrefixLength", "()I");
+  s_network_helper_get_network_gateway =
+      env->GetStaticMethodID(s_network_helper_class, "GetNetworkGateway", "()I");
+
   return JNI_VERSION;
 }
 
@@ -286,6 +335,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_ini_file_section_class);
   env->DeleteGlobalRef(s_compress_cb_class);
   env->DeleteGlobalRef(s_content_handler_class);
+  env->DeleteGlobalRef(s_network_helper_class);
 }
 
 #ifdef __cplusplus

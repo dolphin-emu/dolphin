@@ -4,6 +4,9 @@ android {
     compileSdkVersion 30
 
     compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -76,6 +79,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.9'
+
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.exifinterface:exifinterface:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'

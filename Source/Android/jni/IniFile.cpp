@@ -232,13 +232,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_finalize(JNI
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_newIniFile(JNIEnv* env,
-                                                                                jobject obj)
+                                                                                jobject)
 {
   return reinterpret_cast<jlong>(new IniFile);
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_copyIniFile(JNIEnv* env,
-                                                                                 jobject obj,
+                                                                                 jobject,
                                                                                  jobject other)
 {
   return reinterpret_cast<jlong>(new IniFile(*GetIniFilePointer(env, other)));

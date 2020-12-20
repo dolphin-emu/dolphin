@@ -116,7 +116,7 @@ private:
   virtual bool ConnectInternal() = 0;
   virtual void DisconnectInternal() = 0;
 
-  Report& ProcessReadQueue();
+  Report& ProcessReadQueue(bool repeat_last_data_report);
   void ClearReadQueue();
   void WriteReport(Report rpt);
 

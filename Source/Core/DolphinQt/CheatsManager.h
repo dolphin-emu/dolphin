@@ -11,6 +11,7 @@
 #include <QDialog>
 
 #include "Common/CommonTypes.h"
+#include "DolphinQt/GameList/GameListModel.h"
 
 class ARCodeWidget;
 class QComboBox;
@@ -39,7 +40,7 @@ class CheatsManager : public QDialog
 {
   Q_OBJECT
 public:
-  explicit CheatsManager(QWidget* parent = nullptr);
+  explicit CheatsManager(const GameListModel& game_list_model, QWidget* parent = nullptr);
   ~CheatsManager();
 
 private:
@@ -61,6 +62,7 @@ private:
   void OnMatchContextMenu();
   void OnWatchItemChanged(QTableWidgetItem* item);
 
+  const GameListModel& m_game_list_model;
   std::vector<Result> m_results;
   std::vector<Result> m_watch;
   std::shared_ptr<const UICommon::GameFile> m_game_file;

@@ -23,6 +23,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
@@ -32,7 +33,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent)
-    : GraphicsWidget(parent), m_xrr_config(xrr_config)
+    : m_xrr_config(xrr_config)
 {
   CreateWidgets();
   LoadSettings();
@@ -54,19 +55,21 @@ void GeneralWidget::CreateWidgets()
   auto* m_video_box = new QGroupBox(tr("Basic"));
   m_video_layout = new QGridLayout();
 
-  m_backend_combo = new QComboBox();
+  m_backend_combo = new ToolTipComboBox();
   m_aspect_combo =
       new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
                          Config::GFX_ASPECT_RATIO);
-  m_adapter_combo = new QComboBox;
+  m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
   m_enable_fullscreen = new GraphicsBool(tr("Use Fullscreen"), Config::MAIN_FULLSCREEN);
 
   m_video_box->setLayout(m_video_layout);
 
-  for (auto& backend : g_available_video_backends)
+  for (auto& backend : VideoBackendBase::GetAvailableBackends())
+  {
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()),
                              QVariant(QString::fromStdString(backend->GetName())));
+  }
 
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   m_video_layout->addWidget(m_backend_combo, 0, 1);
@@ -159,8 +162,8 @@ void GeneralWidget::SaveSettings()
   const auto current_backend = m_backend_combo->currentData().toString().toStdString();
   if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
   {
-    auto warningMessage =
-        g_available_video_backends[m_backend_combo->currentIndex()]->GetWarningMessage();
+    auto warningMessage = VideoBackendBase::GetAvailableBackends()[m_backend_combo->currentIndex()]
+                              ->GetWarningMessage();
     if (warningMessage)
     {
       ModalMessageBox confirm_sw(this);
@@ -195,89 +198,117 @@ void GeneralWidget::AddDescriptions()
 // We need QObject::tr
 #if defined(_WIN32)
   static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects which graphics API to use internally.\n\nThe software renderer is extremely "
+      "Selects which graphics API to use internally.<br><br>The software renderer is extremely "
       "slow and only useful for debugging, so either OpenGL, Direct3D, or Vulkan are "
       "recommended. Different games and different GPUs will behave differently on each "
       "backend, so for the best emulation experience it is recommended to try each and "
-      "select the backend that is least problematic.\n\nIf unsure, select OpenGL.");
+      "select the backend that is least problematic.<br><br><dolphin_emphasis>If unsure, "
+      "select OpenGL.</dolphin_emphasis>");
 #else
   static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects which graphics API to use internally.\n\nThe software renderer is extremely "
+      "Selects which graphics API to use internally.<br><br>The software renderer is extremely "
       "slow and only useful for debugging, so any of the other backends are "
-      "recommended.\n\nIf unsure, select OpenGL.");
+      "recommended.<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>");
 #endif
   static const char TR_ADAPTER_DESCRIPTION[] =
-      QT_TR_NOOP("Selects a hardware adapter to use.\n\nIf unsure, select the first one.");
+      QT_TR_NOOP("Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
+                 "select the first one.</dolphin_emphasis>");
   static const char TR_FULLSCREEN_DESCRIPTION[] =
-      QT_TR_NOOP("Uses the entire screen for rendering.\n\nIf disabled, a "
-                 "render window will be created instead.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Uses the entire screen for rendering.<br><br>If disabled, a "
+                 "render window will be created instead.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_AUTOSIZE_DESCRIPTION[] =
-      QT_TR_NOOP("Automatically adjusts the window size to the internal resolution.\n\nIf unsure, "
-                 "leave this unchecked.");
-
+      QT_TR_NOOP("Automatically adjusts the window size to the internal resolution.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_RENDER_TO_MAINWINDOW_DESCRIPTION[] =
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
-                 "a separate render window.\n\nIf unsure, leave this unchecked.");
+                 "a separate render window.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
   static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects which aspect ratio to use when rendering.\n\nAuto: Uses the native aspect "
-      "ratio\nForce 16:9: Mimics an analog TV with a widescreen aspect ratio.\nForce 4:3: "
-      "Mimics a standard 4:3 analog TV.\nStretch to Window: Stretches the picture to the "
-      "window size.\n\nIf unsure, select Auto.");
-  static const char TR_VSYNC_DESCRIPTION[] =
-      QT_TR_NOOP("Waits for vertical blanks in order to prevent tearing.\n\nDecreases performance "
-                 "if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
+      "Selects which aspect ratio to use when rendering.<br><br>Auto: Uses the native aspect "
+      "ratio<br>Force 16:9: Mimics an analog TV with a widescreen aspect ratio.<br>Force 4:3: "
+      "Mimics a standard 4:3 analog TV.<br>Stretch to Window: Stretches the picture to the "
+      "window size.<br><br><dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>");
+  static const char TR_VSYNC_DESCRIPTION[] = QT_TR_NOOP(
+      "Waits for vertical blanks in order to prevent tearing.<br><br>Decreases performance "
+      "if emulation speed is below 100%.<br><br><dolphin_emphasis>If unsure, leave "
+      "this "
+      "unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
-                 "emulation speed.\n\nIf unsure, leave this unchecked.");
-  static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the player's maximum ping while playing on "
-                 "NetPlay.\n\nIf unsure, leave this unchecked.");
-  static const char TR_LOG_RENDERTIME_DESCRIPTION[] =
-      QT_TR_NOOP("Logs the render time of every frame to User/Logs/render_time.txt.\n\nUse this "
-                 "feature when to measure the performance of Dolphin.\n\nIf "
-                 "unsure, leave this unchecked.");
+                 "emulation speed.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] = QT_TR_NOOP(
+      "Shows the player's maximum ping while playing on "
+      "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
+      "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
+      "feature when to measure the performance of Dolphin.<br><br><dolphin_emphasis>If "
+      "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
       QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
-                 "while playing NetPlay.\n\nIf unsure, leave this unchecked.");
+                 "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
+                 "this unchecked.</dolphin_emphasis>");
   static const char TR_SHADER_COMPILE_SYNC_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
-                 "compilation, but GPU demands are low.\n\nRecommended for low-end hardware. "
-                 "\n\nIf unsure, select this mode.");
+                 "compilation, but GPU demands are low.<br><br>Recommended for low-end hardware. "
+                 "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>");
   static const char TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will always be used. Provides a near stutter-free experience at the cost of "
-      "high GPU performance requirements.\n\nOnly recommended for high-end systems.");
-  static const char TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION[] =
-      QT_TR_NOOP("Ubershaders will be used to prevent stuttering during shader compilation, but "
-                 "specialized shaders will be used when they will not cause stuttering.\n\nIn the "
-                 "best case it eliminates shader compilation stuttering while having minimal "
-                 "performance impact, but results depend on video driver behavior.");
+      "high GPU performance requirements.<br><br><dolphin_emphasis>Only recommended "
+      "for high-end systems.</dolphin_emphasis>");
+  static const char TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
+      "Ubershaders will be used to prevent stuttering during shader compilation, but "
+      "specialized shaders will be used when they will not cause stuttering.<br><br>In the "
+      "best case it eliminates shader compilation stuttering while having minimal "
+      "performance impact, but results depend on video driver behavior.");
   static const char TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION[] = QT_TR_NOOP(
       "Prevents shader compilation stuttering by not rendering waiting objects. Can work in "
       "scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken "
-      "effects.\n\nNot recommended, only use if the other options give poor results.");
+      "effects.<br><br><dolphin_emphasis>Not recommended, only use if the other "
+      "options give poor results.</dolphin_emphasis>");
   static const char TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION[] =
       QT_TR_NOOP("Waits for all shaders to finish compiling before starting a game. Enabling this "
                  "option may reduce stuttering or hitching for a short time after the game is "
                  "started, at the cost of a longer delay before the game starts. For systems with "
                  "two or fewer cores, it is recommended to enable this option, as a large shader "
-                 "queue may reduce frame rates.\n\nOtherwise, if unsure, leave this unchecked.");
+                 "queue may reduce frame rates.<br><br><dolphin_emphasis>Otherwise, if "
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
 
-  AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
-  AddDescription(m_adapter_combo, TR_ADAPTER_DESCRIPTION);
-  AddDescription(m_aspect_combo, TR_ASPECT_RATIO_DESCRIPTION);
-  AddDescription(m_enable_vsync, TR_VSYNC_DESCRIPTION);
-  AddDescription(m_enable_fullscreen, TR_FULLSCREEN_DESCRIPTION);
-  AddDescription(m_show_fps, TR_SHOW_FPS_DESCRIPTION);
-  AddDescription(m_show_ping, TR_SHOW_NETPLAY_PING_DESCRIPTION);
-  AddDescription(m_log_render_time, TR_LOG_RENDERTIME_DESCRIPTION);
-  AddDescription(m_autoadjust_window_size, TR_AUTOSIZE_DESCRIPTION);
-  AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);
-  AddDescription(m_render_main_window, TR_RENDER_TO_MAINWINDOW_DESCRIPTION);
-  AddDescription(m_shader_compilation_mode[0], TR_SHADER_COMPILE_SYNC_DESCRIPTION);
-  AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION);
-  AddDescription(m_shader_compilation_mode[2], TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION);
-  AddDescription(m_shader_compilation_mode[3], TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION);
-  AddDescription(m_wait_for_shaders, TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION);
+  m_backend_combo->SetTitle(tr("Backend"));
+  m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
+
+  m_adapter_combo->SetTitle(tr("Adapter"));
+  m_adapter_combo->SetDescription(tr(TR_ADAPTER_DESCRIPTION));
+
+  m_aspect_combo->SetTitle(tr("Aspect Ratio"));
+  m_aspect_combo->SetDescription(tr(TR_ASPECT_RATIO_DESCRIPTION));
+
+  m_enable_vsync->SetDescription(tr(TR_VSYNC_DESCRIPTION));
+
+  m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
+
+  m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
+
+  m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
+
+  m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
+
+  m_autoadjust_window_size->SetDescription(tr(TR_AUTOSIZE_DESCRIPTION));
+
+  m_show_messages->SetDescription(tr(TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION));
+
+  m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
+
+  m_shader_compilation_mode[0]->SetDescription(tr(TR_SHADER_COMPILE_SYNC_DESCRIPTION));
+
+  m_shader_compilation_mode[1]->SetDescription(tr(TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION));
+
+  m_shader_compilation_mode[2]->SetDescription(tr(TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION));
+
+  m_shader_compilation_mode[3]->SetDescription(tr(TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION));
+
+  m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
 }
 
 void GeneralWidget::OnBackendChanged(const QString& backend_name)

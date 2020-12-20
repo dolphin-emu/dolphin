@@ -24,6 +24,7 @@ public class Settings implements Closeable
   public static final String FILE_WIIMOTE = "WiimoteNew";
 
   public static final String SECTION_INI_ANDROID = "Android";
+  public static final String SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons";
   public static final String SECTION_INI_GENERAL = "General";
   public static final String SECTION_INI_CORE = "Core";
   public static final String SECTION_INI_INTERFACE = "Interface";
@@ -86,7 +87,7 @@ public class Settings implements Closeable
     return !TextUtils.isEmpty(mGameId);
   }
 
-  public int getActiveLayer()
+  public int getWriteLayer()
   {
     return isGameSpecific() ? NativeConfig.LAYER_LOCAL_GAME : NativeConfig.LAYER_BASE_OR_CURRENT;
   }
@@ -132,11 +133,6 @@ public class Settings implements Closeable
     IniFile ini = new IniFile();
     SettingsFile.readCustomGameSettings(gameId, ini, view);
     mIniFiles.put(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, ini);
-  }
-
-  public void loadWiimoteProfile(String gameId, int padId)
-  {
-    SettingsFile.readWiimoteProfile(gameId, getGameSpecificFile(), padId);
   }
 
   public void loadSettings(String gameId, int revision, SettingsActivityView view)

@@ -2,20 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Debug/OSThread.h"
+#include "Core/Debugger/OSThread.h"
 
 #include <algorithm>
 #include <fmt/format.h>
 
 #include "Core/PowerPC/MMU.h"
 
+namespace Core::Debug
+{
 // Context offsets based on the following functions:
 //  - OSSaveContext
 //  - OSSaveFPUContext
 //  - OSDumpContext
 //  - OSClearContext
 //  - OSExceptionVector
-void Common::Debug::OSContext::Read(u32 addr)
+void OSContext::Read(u32 addr)
 {
   for (std::size_t i = 0; i < gpr.size(); i++)
     gpr[i] = PowerPC::HostRead_U32(addr + u32(i * sizeof(int)));
@@ -41,7 +43,7 @@ void Common::Debug::OSContext::Read(u32 addr)
 //  - OSInitMutex
 //  - OSLockMutex
 //  - __OSUnlockAllMutex
-void Common::Debug::OSMutex::Read(u32 addr)
+void OSMutex::Read(u32 addr)
 {
   thread_queue.head = PowerPC::HostRead_U32(addr);
   thread_queue.tail = PowerPC::HostRead_U32(addr + 0x4);
@@ -63,7 +65,7 @@ void Common::Debug::OSMutex::Read(u32 addr)
 //  - __OSThreadInit
 //  - OSSetThreadSpecific
 //  - SOInit (for errno)
-void Common::Debug::OSThread::Read(u32 addr)
+void OSThread::Read(u32 addr)
 {
   context.Read(addr);
   state = PowerPC::HostRead_U16(addr + 0x2c8);
@@ -94,25 +96,25 @@ void Common::Debug::OSThread::Read(u32 addr)
   specific[1] = PowerPC::HostRead_U32(addr + 0x314);
 }
 
-bool Common::Debug::OSThread::IsValid() const
+bool OSThread::IsValid() const
 {
   return PowerPC::HostIsRAMAddress(stack_end) && PowerPC::HostRead_U32(stack_end) == STACK_MAGIC;
 }
 
-Common::Debug::OSThreadView::OSThreadView(u32 addr)
+OSThreadView::OSThreadView(u32 addr)
 {
   m_address = addr;
   m_thread.Read(addr);
 }
 
-const Common::Debug::OSThread& Common::Debug::OSThreadView::Data() const
+const OSThread& OSThreadView::Data() const
 {
   return m_thread;
 }
 
-Common::Debug::PartialContext Common::Debug::OSThreadView::GetContext() const
+Common::Debug::PartialContext OSThreadView::GetContext() const
 {
-  PartialContext context;
+  Common::Debug::PartialContext context;
 
   if (!IsValid())
     return context;
@@ -134,57 +136,57 @@ Common::Debug::PartialContext Common::Debug::OSThreadView::GetContext() const
   return context;
 }
 
-u32 Common::Debug::OSThreadView::GetAddress() const
+u32 OSThreadView::GetAddress() const
 {
   return m_address;
 }
 
-u16 Common::Debug::OSThreadView::GetState() const
+u16 OSThreadView::GetState() const
 {
   return m_thread.state;
 }
 
-bool Common::Debug::OSThreadView::IsSuspended() const
+bool OSThreadView::IsSuspended() const
 {
   return m_thread.suspend > 0;
 }
 
-bool Common::Debug::OSThreadView::IsDetached() const
+bool OSThreadView::IsDetached() const
 {
   return m_thread.is_detached != 0;
 }
 
-s32 Common::Debug::OSThreadView::GetBasePriority() const
+s32 OSThreadView::GetBasePriority() const
 {
   return m_thread.base_priority;
 }
 
-s32 Common::Debug::OSThreadView::GetEffectivePriority() const
+s32 OSThreadView::GetEffectivePriority() const
 {
   return m_thread.effective_priority;
 }
 
-u32 Common::Debug::OSThreadView::GetStackStart() const
+u32 OSThreadView::GetStackStart() const
 {
   return m_thread.stack_addr;
 }
 
-u32 Common::Debug::OSThreadView::GetStackEnd() const
+u32 OSThreadView::GetStackEnd() const
 {
   return m_thread.stack_end;
 }
 
-std::size_t Common::Debug::OSThreadView::GetStackSize() const
+std::size_t OSThreadView::GetStackSize() const
 {
   return GetStackStart() - GetStackEnd();
 }
 
-s32 Common::Debug::OSThreadView::GetErrno() const
+s32 OSThreadView::GetErrno() const
 {
   return m_thread.error;
 }
 
-std::string Common::Debug::OSThreadView::GetSpecific() const
+std::string OSThreadView::GetSpecific() const
 {
   std::string specific;
 
@@ -198,7 +200,9 @@ std::string Common::Debug::OSThreadView::GetSpecific() const
   return specific;
 }
 
-bool Common::Debug::OSThreadView::IsValid() const
+bool OSThreadView::IsValid() const
 {
   return m_thread.IsValid();
 }
+
+}  // namespace Core::Debug

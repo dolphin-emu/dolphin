@@ -162,10 +162,10 @@ GLContextWGL::~GLContextWGL()
   if (m_rc)
   {
     if (wglGetCurrentContext() == m_rc && !wglMakeCurrent(m_dc, nullptr))
-      NOTICE_LOG(VIDEO, "Could not release drawing context.");
+      NOTICE_LOG_FMT(VIDEO, "Could not release drawing context.");
 
     if (!wglDeleteContext(m_rc))
-      ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
+      ERROR_LOG_FMT(VIDEO, "Attempt to release rendering context failed.");
 
     m_rc = nullptr;
   }
@@ -183,7 +183,7 @@ GLContextWGL::~GLContextWGL()
     else
     {
       if (!ReleaseDC(m_window_handle, m_dc))
-        ERROR_LOG(VIDEO, "Attempt to release device context failed.");
+        ERROR_LOG_FMT(VIDEO, "Attempt to release device context failed.");
 
       m_dc = nullptr;
     }
@@ -198,9 +198,14 @@ bool GLContextWGL::IsHeadless() const
 void GLContextWGL::SwapInterval(int interval)
 {
   if (wglSwapIntervalEXT)
+  {
     wglSwapIntervalEXT(interval);
+  }
   else
-    ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+  {
+    ERROR_LOG_FMT(VIDEO,
+                  "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+  }
 }
 void GLContextWGL::Swap()
 {
@@ -272,27 +277,27 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   m_dc = GetDC(m_window_handle);
   if (!m_dc)
   {
-    PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
+    PanicAlertFmt("(1) Can't create an OpenGL Device context. Fail.");
     return false;
   }
 
-  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
-  if (!pixel_format)
+  const int pixel_format = ChoosePixelFormat(m_dc, &pfd);
+  if (pixel_format == 0)
   {
-    PanicAlert("(2) Can't find a suitable PixelFormat.");
+    PanicAlertFmt("(2) Can't find a suitable PixelFormat.");
     return false;
   }
 
   if (!SetPixelFormat(m_dc, pixel_format, &pfd))
   {
-    PanicAlert("(3) Can't set the PixelFormat.");
+    PanicAlertFmt("(3) Can't set the PixelFormat.");
     return false;
   }
 
   m_rc = wglCreateContext(m_dc);
   if (!m_rc)
   {
-    PanicAlert("(4) Can't create an OpenGL rendering context.");
+    PanicAlertFmt("(4) Can't create an OpenGL rendering context.");
     return false;
   }
 
@@ -305,7 +310,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     // This is because we need an active context to use wglCreateContextAttribsARB.
     if (!wglMakeCurrent(m_dc, m_rc))
     {
-      PanicAlert("(5) Can't make dummy WGL context current.");
+      PanicAlertFmt("(5) Can't make dummy WGL context current.");
       return false;
     }
 
@@ -319,7 +324,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     // context. If we didn't get a core context, the caller expects that the context is not current.
     if (!wglMakeCurrent(m_dc, nullptr))
     {
-      PanicAlert("(6) Failed to switch out temporary context");
+      PanicAlertFmt("(6) Failed to switch out temporary context");
       return false;
     }
 
@@ -331,7 +336,7 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
     }
     else
     {
-      WARN_LOG(VIDEO, "Failed to create a core OpenGL context. Using fallback context.");
+      WARN_LOG_FMT(VIDEO, "Failed to create a core OpenGL context. Using fallback context.");
     }
   }
 
@@ -367,7 +372,7 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
 {
   if (!wglCreateContextAttribsARB)
   {
-    WARN_LOG(VIDEO, "Missing WGL_ARB_create_context extension");
+    WARN_LOG_FMT(VIDEO, "Missing WGL_ARB_create_context extension");
     return nullptr;
   }
 
@@ -400,18 +405,18 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
       {
         if (!wglShareLists(share_context, core_context))
         {
-          ERROR_LOG(VIDEO, "wglShareLists failed");
+          ERROR_LOG_FMT(VIDEO, "wglShareLists failed");
           wglDeleteContext(core_context);
           return nullptr;
         }
       }
 
-      INFO_LOG(VIDEO, "WGL: Created a GL %d.%d core context", version.first, version.second);
+      INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
       return core_context;
     }
   }
 
-  WARN_LOG(VIDEO, "Unable to create a core OpenGL context of an acceptable version");
+  WARN_LOG_FMT(VIDEO, "Unable to create a core OpenGL context of an acceptable version");
   return nullptr;
 }
 
@@ -421,7 +426,7 @@ bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE*
   if (!wglChoosePixelFormatARB || !wglCreatePbufferARB || !wglGetPbufferDCARB ||
       !wglReleasePbufferDCARB || !wglDestroyPbufferARB)
   {
-    ERROR_LOG(VIDEO, "Missing WGL_ARB_pbuffer extension");
+    ERROR_LOG_FMT(VIDEO, "Missing WGL_ARB_pbuffer extension");
     return false;
   }
 
@@ -448,7 +453,7 @@ bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE*
   if (!wglChoosePixelFormatARB(onscreen_dc, pf_iattribs.data(), pf_fattribs.data(), 1,
                                &pixel_format, &num_pixel_formats))
   {
-    ERROR_LOG(VIDEO, "Failed to obtain a compatible pbuffer pixel format");
+    ERROR_LOG_FMT(VIDEO, "Failed to obtain a compatible pbuffer pixel format");
     return false;
   }
 
@@ -458,14 +463,14 @@ bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE*
       wglCreatePbufferARB(onscreen_dc, pixel_format, width, height, pb_attribs.data());
   if (!pbuffer)
   {
-    ERROR_LOG(VIDEO, "Failed to create pbuffer");
+    ERROR_LOG_FMT(VIDEO, "Failed to create pbuffer");
     return false;
   }
 
   HDC dc = wglGetPbufferDCARB(pbuffer);
   if (!dc)
   {
-    ERROR_LOG(VIDEO, "Failed to get drawing context from pbuffer");
+    ERROR_LOG_FMT(VIDEO, "Failed to get drawing context from pbuffer");
     wglDestroyPbufferARB(pbuffer);
     return false;
   }

@@ -43,7 +43,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   if (!s_d3d11_library.Open("d3d11.dll") ||
       !s_d3d11_library.GetSymbol("D3D11CreateDevice", &d3d11_create_device))
   {
-    PanicAlertT("Failed to load d3d11.dll");
+    PanicAlertFmtT("Failed to load d3d11.dll");
     s_d3d11_library.Close();
     return false;
   }
@@ -57,7 +57,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   dxgi_factory = D3DCommon::CreateDXGIFactory(enable_debug_layer);
   if (!dxgi_factory)
   {
-    PanicAlertT("Failed to create DXGI factory");
+    PanicAlertFmtT("Failed to create DXGI factory");
     D3DCommon::UnloadLibraries();
     s_d3d11_library.Close();
     return false;
@@ -67,7 +67,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   HRESULT hr = dxgi_factory->EnumAdapters(adapter_index, adapter.GetAddressOf());
   if (FAILED(hr))
   {
-    WARN_LOG(VIDEO, "Adapter %u not found, using default", adapter_index);
+    WARN_LOG_FMT(VIDEO, "Adapter {} not found, using default", adapter_index);
     adapter = nullptr;
   }
 
@@ -99,7 +99,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
     }
     else
     {
-      WARN_LOG(VIDEO, "Debug layer requested but not available.");
+      WARN_LOG_FMT(VIDEO, "Debug layer requested but not available.");
     }
   }
 
@@ -113,7 +113,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
 
   if (FAILED(hr))
   {
-    PanicAlertT(
+    PanicAlertFmtT(
         "Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0");
     dxgi_factory.Reset();
     D3DCommon::UnloadLibraries();
@@ -124,7 +124,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   hr = device.As(&device1);
   if (FAILED(hr))
   {
-    WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
+    WARN_LOG_FMT(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
   }
 
   stateman = std::make_unique<StateManager>();
@@ -156,9 +156,9 @@ void Destroy()
   }
 
   if (remaining_references)
-    ERROR_LOG(VIDEO, "Unreleased references: %i.", remaining_references);
+    ERROR_LOG_FMT(VIDEO, "Unreleased references: {}.", remaining_references);
   else
-    NOTICE_LOG(VIDEO, "Successfully released all device references!");
+    NOTICE_LOG_FMT(VIDEO, "Successfully released all device references!");
 
   dxgi_factory.Reset();
   D3DCommon::UnloadLibraries();

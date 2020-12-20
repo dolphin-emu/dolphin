@@ -51,7 +51,7 @@ static std::thread s_prefetcher;
 
 void HiresTexture::Init()
 {
-  Update();
+  // Note: Update is not called here so that we handle dynamic textures on startup more gracefully
 }
 
 void HiresTexture::Shutdown()
@@ -76,8 +76,7 @@ void HiresTexture::Update()
 
   if (!g_ActiveConfig.bHiresTextures)
   {
-    s_textureMap.clear();
-    s_textureCache.clear();
+    Clear();
     return;
   }
 
@@ -87,7 +86,8 @@ void HiresTexture::Update()
   }
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::set<std::string> texture_directories = GetTextureDirectories(game_id);
+  const std::set<std::string> texture_directories =
+      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
   const std::vector<std::string> extensions{".png", ".dds"};
 
   for (const auto& texture_directory : texture_directories)
@@ -119,8 +119,8 @@ void HiresTexture::Update()
 
     if (failed_insert)
     {
-      ERROR_LOG(VIDEO, "One or more textures at path '%s' were already inserted",
-                texture_directory.c_str());
+      ERROR_LOG_FMT(VIDEO, "One or more textures at path '{}' were already inserted",
+                    texture_directory);
     }
   }
 
@@ -143,6 +143,12 @@ void HiresTexture::Update()
     s_textureCacheAbortLoading.Clear();
     s_prefetcher = std::thread(Prefetch);
   }
+}
+
+void HiresTexture::Clear()
+{
+  s_textureMap.clear();
+  s_textureCache.clear();
 }
 
 void HiresTexture::Prefetch()
@@ -365,7 +371,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
       if (!LoadTexture(level, buffer))
       {
-        ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+        ERROR_LOG_FMT(VIDEO, "Custom texture {} failed to load", filename);
         break;
       }
     }
@@ -381,19 +387,19 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   const Level& first_mip = ret->m_levels[0];
   if (first_mip.width * height != first_mip.height * width)
   {
-    ERROR_LOG(VIDEO,
-              "Invalid custom texture size %ux%u for texture %s. The aspect differs "
-              "from the native size %ux%u.",
-              first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
+    ERROR_LOG_FMT(VIDEO,
+                  "Invalid custom texture size {}x{} for texture {}. The aspect differs "
+                  "from the native size {}x{}.",
+                  first_mip.width, first_mip.height, first_mip_file.path, width, height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
   if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
   {
-    ERROR_LOG(VIDEO,
-              "Invalid custom texture size %ux%u for texture %s. Please use an integer "
-              "upscaling factor based on the native size %ux%u.",
-              first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
+    ERROR_LOG_FMT(VIDEO,
+                  "Invalid custom texture size {}x{} for texture {}. Please use an integer "
+                  "upscaling factor based on the native size {}x{}.",
+                  first_mip.width, first_mip.height, first_mip_file.path, width, height);
   }
 
   // Verify that each mip level is the correct size (divide by 2 each time).
@@ -410,16 +416,16 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       if (current_mip_width == level.width && current_mip_height == level.height)
         continue;
 
-      ERROR_LOG(VIDEO,
-                "Invalid custom texture size %dx%d for texture %s. Mipmap level %u must be %dx%d.",
-                level.width, level.height, first_mip_file.path.c_str(), mip_level,
-                current_mip_width, current_mip_height);
+      ERROR_LOG_FMT(
+          VIDEO, "Invalid custom texture size {}x{} for texture {}. Mipmap level {} must be {}x{}.",
+          level.width, level.height, first_mip_file.path, mip_level, current_mip_width,
+          current_mip_height);
     }
     else
     {
       // It is invalid to have more than a single 1x1 mipmap.
-      ERROR_LOG(VIDEO, "Custom texture %s has too many 1x1 mipmaps. Skipping extra levels.",
-                first_mip_file.path.c_str());
+      ERROR_LOG_FMT(VIDEO, "Custom texture {} has too many 1x1 mipmaps. Skipping extra levels.",
+                    first_mip_file.path);
     }
 
     // Drop this mip level and any others after it.
@@ -431,8 +437,8 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   if (std::any_of(ret->m_levels.begin(), ret->m_levels.end(),
                   [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
   {
-    ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
-              first_mip_file.path.c_str());
+    ERROR_LOG_FMT(VIDEO, "Custom texture {} has inconsistent formats across mip levels.",
+                  first_mip_file.path);
 
     return nullptr;
   }
@@ -454,10 +460,11 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
   return true;
 }
 
-std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& game_id)
+std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
+                                                      const std::string& game_id)
 {
   std::set<std::string> result;
-  const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+  const std::string texture_directory = root_directory + game_id;
 
   if (File::Exists(texture_directory))
   {
@@ -466,8 +473,7 @@ std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& gam
   else
   {
     // If there's no directory with the region-specific ID, look for a 3-character region-free one
-    const std::string region_free_directory =
-        File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+    const std::string region_free_directory = root_directory + game_id.substr(0, 3);
 
     if (File::Exists(region_free_directory))
     {
@@ -482,7 +488,6 @@ std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& gam
   };
 
   // Look for any other directories that might be specific to the given gameid
-  const auto root_directory = File::GetUserPath(D_HIRESTEXTURES_IDX);
   const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
   for (const auto& file : files)
   {
@@ -490,8 +495,8 @@ std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& gam
     {
       // The following code is used to calculate the top directory
       // of a found gameid.txt file
-      // ex:  <dolphin dir>/Load/Textures/My folder/gameids/<gameid>.txt
-      // would insert "<dolphin dir>/Load/Textures/My folder"
+      // ex:  <root directory>/My folder/gameids/<gameid>.txt
+      // would insert "<root directory>/My folder"
       const auto directory_path = file.substr(root_directory.size());
       const std::size_t first_path_separator_position = directory_path.find_first_of(DIR_SEP_CHR);
       result.insert(root_directory + directory_path.substr(0, first_path_separator_position));

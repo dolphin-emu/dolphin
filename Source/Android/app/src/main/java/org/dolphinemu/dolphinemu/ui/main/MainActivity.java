@@ -87,6 +87,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     mPresenter.addDirIfNeeded(this);
 
+    // In case the user changed a setting that affects how games are displayed,
+    // such as system language, cover downloading...
+    refetchMetadata();
+
     if (sShouldRescanLibrary)
     {
       GameFileCacheService.startRescan(this);
@@ -171,8 +175,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
   @Override
   public void launchInstallWAD()
   {
-    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
-            FileBrowserHelper.WAD_EXTENSION);
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("*/*");
+    startActivityForResult(intent, MainPresenter.REQUEST_WAD_FILE);
   }
 
   /**
@@ -195,11 +201,11 @@ public final class MainActivity extends AppCompatActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:
-          EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+          EmulationActivity.launch(this, FileBrowserHelper.getSelectedFiles(result));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
-          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
+          mPresenter.installWAD(result.getData().toString());
           break;
       }
     }
@@ -213,6 +219,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
           @NonNull int[] grantResults)
   {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
     if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
       if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -223,12 +231,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
       }
       else
       {
-        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_LONG).show();
       }
-    }
-    else
-    {
-      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
@@ -252,6 +256,18 @@ public final class MainActivity extends AppCompatActivity implements MainView
       if (fragment != null)
       {
         fragment.showGames();
+      }
+    }
+  }
+
+  private void refetchMetadata()
+  {
+    for (Platform platform : Platform.values())
+    {
+      PlatformGamesView fragment = getPlatformGamesView(platform);
+      if (fragment != null)
+      {
+        fragment.refetchMetadata();
       }
     }
   }
@@ -291,11 +307,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
       }
     });
 
-    try (Settings settings = new Settings())
-    {
-      settings.loadSettings(null);
-      mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt(settings));
-    }
+    mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
 
     showGames();
     GameFileCacheService.startLoad(this);

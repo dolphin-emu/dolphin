@@ -19,13 +19,14 @@
 #include "DolphinQt/Config/Graphics/GraphicsInteger.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 #include "Core/PrimeHack/HackConfig.h"
 #include <Core/Core.h>
 
-PrimeWidget::PrimeWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
+PrimeWidget::PrimeWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   //LoadSettings();
@@ -203,17 +204,17 @@ void PrimeWidget::AddDescriptions()
                "disable culling and modify the znear values in the game. The higher the FOV, the more glitches you may encounter."
                 "\n\nGenerally the best FOV values are between 75 and 100.");
 
-  AddDescription(m_autoefb, TR_AUTO_EFB);
-  AddDescription(m_motions_lock, TR_MOTION_LOCK);
-  AddDescription(m_toggle_secondaryFX, TR_GUNEFFECTS);
-  AddDescription(m_disable_bloom, TR_BLOOM);
-  AddDescription(m_toggle_culling, TR_TOGGLE_CULL);
-  AddDescription(m_toggle_arm_position, TR_TOGGLE_ARM_POSITION);
-  AddDescription(m_manual_arm_position, TR_MANUAL_POSITION);
-  AddDescription(m_auto_arm_position, TR_AUTO_POSITION);
-  AddDescription(m_x_axis, TR_X_AXIS);
-  AddDescription(m_x_axis, TR_Y_AXIS);
-  AddDescription(m_x_axis, TR_Z_AXIS);
-  AddDescription(m_fov_axis, TR_FOV);
-  AddDescription(fov_counter, TR_FOV);
+  m_autoefb->SetDescription(tr(TR_AUTO_EFB));
+  m_motions_lock->SetDescription(tr(TR_MOTION_LOCK));
+  m_toggle_secondaryFX->SetDescription(tr(TR_GUNEFFECTS));
+  m_disable_bloom->SetDescription(tr(TR_BLOOM));
+  m_toggle_culling->SetDescription(tr(TR_TOGGLE_CULL));
+  m_toggle_arm_position->SetDescription(tr(TR_TOGGLE_ARM_POSITION));
+  m_manual_arm_position->SetDescription(tr(TR_MANUAL_POSITION));
+  m_auto_arm_position->SetDescription(tr(TR_AUTO_POSITION));
+  m_x_axis->SetDescription(tr(TR_X_AXIS));
+  m_x_axis->SetDescription(tr(TR_Y_AXIS));
+  m_x_axis->SetDescription(tr(TR_Z_AXIS));
+  m_fov_axis->SetDescription(tr(TR_FOV));
+  fov_counter->SetDescription(tr(TR_FOV));
 }

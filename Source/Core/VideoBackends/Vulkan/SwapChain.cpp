@@ -182,7 +182,7 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  PanicAlert("Failed to find a suitable format for swap chain buffers.");
+  PanicAlertFmt("Failed to find a suitable format for swap chain buffers.");
   return false;
 }
 
@@ -283,7 +283,7 @@ bool SwapChain::CreateSwapChain()
   VkImageUsageFlags image_usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
   if (!(surface_capabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
   {
-    ERROR_LOG(VIDEO, "Vulkan: Swap chain does not support usage as color attachment");
+    ERROR_LOG_FMT(VIDEO, "Vulkan: Swap chain does not support usage as color attachment");
     return false;
   }
 
@@ -341,7 +341,7 @@ bool SwapChain::CreateSwapChain()
     if (res != VK_SUCCESS)
     {
       // Try without exclusive fullscreen.
-      WARN_LOG(VIDEO, "Failed to create exclusive fullscreen swapchain, trying without.");
+      WARN_LOG_FMT(VIDEO, "Failed to create exclusive fullscreen swapchain, trying without.");
       swap_chain_info.pNext = nullptr;
       g_Config.backend_info.bSupportsExclusiveFullscreen = false;
       g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = false;
@@ -398,7 +398,7 @@ bool SwapChain::SetupSwapChainImages()
       m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
   if (load_render_pass == VK_NULL_HANDLE || clear_render_pass == VK_NULL_HANDLE)
   {
-    PanicAlert("Failed to get swap chain render passes.");
+    PanicAlertFmt("Failed to get swap chain render passes.");
     return false;
   }
 
@@ -469,7 +469,7 @@ bool SwapChain::ResizeSwapChain()
   DestroySwapChainImages();
   if (!CreateSwapChain() || !SetupSwapChainImages())
   {
-    PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
+    PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
   }
 
@@ -482,7 +482,7 @@ bool SwapChain::RecreateSwapChain()
   DestroySwapChain();
   if (!CreateSwapChain() || !SetupSwapChainImages())
   {
-    PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
+    PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
   }
 
@@ -514,7 +514,7 @@ bool SwapChain::SetFullscreenState(bool state)
       return false;
     }
 
-    INFO_LOG(VIDEO, "Exclusive fullscreen acquired.");
+    INFO_LOG_FMT(VIDEO, "Exclusive fullscreen acquired.");
   }
   else
   {
@@ -522,7 +522,7 @@ bool SwapChain::SetFullscreenState(bool state)
     if (res != VK_SUCCESS)
       LOG_VULKAN_ERROR(res, "vkReleaseFullScreenExclusiveModeEXT failed:");
 
-    INFO_LOG(VIDEO, "Exclusive fullscreen released.");
+    INFO_LOG_FMT(VIDEO, "Exclusive fullscreen released.");
   }
 
   m_current_fullscreen_state = state;
@@ -557,7 +557,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   }
   if (!present_supported)
   {
-    PanicAlert("Recreated surface does not support presenting.");
+    PanicAlertFmt("Recreated surface does not support presenting.");
     return false;
   }
 

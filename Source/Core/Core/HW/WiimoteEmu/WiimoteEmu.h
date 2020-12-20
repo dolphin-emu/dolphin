@@ -184,7 +184,7 @@ private:
   GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
-  Common::Matrix33 GetOrientation() const;
+  Common::Quaternion GetOrientation() const;
 
   Common::Vec3 GetTotalAcceleration() const;
   Common::Vec3 GetTotalAngularVelocity() const;
@@ -292,6 +292,8 @@ private:
   ControllerEmu::SettingValue<bool> m_upright_setting;
   ControllerEmu::SettingValue<double> m_battery_setting;
   ControllerEmu::SettingValue<bool> m_motion_plus_setting;
+  ControllerEmu::SettingValue<double> m_fov_x_setting;
+  ControllerEmu::SettingValue<double> m_fov_y_setting;
 
   ControllerEmu::SettingValue<double> m_primehack_camera_sensitivity;
   ControllerEmu::SettingValue<double> m_primehack_cursor_sensitivity;

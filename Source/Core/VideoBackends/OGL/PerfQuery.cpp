@@ -104,7 +104,7 @@ void PerfQueryGL::EnableQuery(PerfQueryGroup type)
   if (m_query_buffer.size() == m_query_count)
   {
     FlushOne();
-    // ERROR_LOG(VIDEO, "Flushed query buffer early!");
+    // ERROR_LOG_FMT(VIDEO, "Flushed query buffer early!");
   }
 
   // start query
@@ -198,7 +198,7 @@ void PerfQueryGLESNV::EnableQuery(PerfQueryGroup type)
   if (m_query_buffer.size() == m_query_count)
   {
     FlushOne();
-    // ERROR_LOG(VIDEO, "Flushed query buffer early!");
+    // ERROR_LOG_FMT(VIDEO, "Flushed query buffer early!");
   }
 
   // start query

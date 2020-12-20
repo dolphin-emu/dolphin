@@ -15,7 +15,7 @@
 #include "VideoCommon/VertexLoaderUtils.h"
 
 // warning: mapping buffer should be disabled to use this
-#define LOG_NORM()  // PRIM_LOG("norm: %f %f %f, ", ((float*)g_vertex_manager_write_ptr)[-3],
+#define LOG_NORM()  // PRIM_LOG("norm: {} {} {}, ", ((float*)g_vertex_manager_write_ptr)[-3],
                     // ((float*)g_vertex_manager_write_ptr)[-2],
                     // ((float*)g_vertex_manager_write_ptr)[-1]);
 

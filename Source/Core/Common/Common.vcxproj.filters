@@ -48,6 +48,7 @@
     <ClInclude Include="FixedSizeQueue.h" />
     <ClInclude Include="Flag.h" />
     <ClInclude Include="FloatUtils.h" />
+    <ClInclude Include="FormatUtil.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
@@ -273,9 +274,6 @@
     <ClInclude Include="Debug\MemoryPatches.h">
       <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="Debug\OSThread.h">
-      <Filter>Debug</Filter>
-    </ClInclude>
     <ClInclude Include="Debug\Threads.h">
       <Filter>Debug</Filter>
     </ClInclude>
@@ -363,9 +361,6 @@
     </ClCompile>
     <ClCompile Include="QoSSession.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp">
-      <Filter>Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Debug\OSThread.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
     <ClCompile Include="GL\GLContext.cpp">

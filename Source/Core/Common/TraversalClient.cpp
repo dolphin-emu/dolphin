@@ -77,7 +77,7 @@ void TraversalClient::ConnectToClient(const std::string& host)
 {
   if (host.size() > sizeof(TraversalHostId))
   {
-    PanicAlert("host too long");
+    PanicAlertFmt("Host too long");
     return;
   }
   TraversalPacket packet = {};
@@ -93,7 +93,7 @@ bool TraversalClient::TestPacket(u8* data, size_t size, ENetAddress* from)
   {
     if (size < sizeof(TraversalPacket))
     {
-      ERROR_LOG(NETPLAY, "Received too-short traversal packet.");
+      ERROR_LOG_FMT(NETPLAY, "Received too-short traversal packet.");
     }
     else
     {
@@ -194,7 +194,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     break;
   }
   default:
-    WARN_LOG(NETPLAY, "Received unknown packet with type %d", packet->type);
+    WARN_LOG_FMT(NETPLAY, "Received unknown packet with type {}", packet->type);
     break;
   }
   if (packet->type != TraversalPacketAck)

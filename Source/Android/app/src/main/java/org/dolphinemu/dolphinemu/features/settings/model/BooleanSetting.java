@@ -9,6 +9,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   // These entries have the same names and order as in C++, just for consistency.
 
   MAIN_DSP_HLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "DSPHLE", true),
+  MAIN_FASTMEM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Fastmem", true),
   MAIN_CPU_THREAD(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "CPUThread", true),
   MAIN_OVERRIDE_REGION_SETTINGS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
           "OverrideRegionSettings", false),
@@ -38,6 +39,88 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   MAIN_RECURSIVE_ISO_PATHS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
           "RecursiveISOPaths", false),
+  MAIN_USE_GAME_COVERS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
+          "UseGameCovers", true),
+
+  MAIN_JOYSTICK_REL_CENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "JoystickRelCenter", true),
+  MAIN_PHONE_RUMBLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "PhoneRumble", true),
+  MAIN_SHOW_INPUT_OVERLAY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "ShowInputOverlay", true),
+
+  MAIN_BUTTON_TOGGLE_GC_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCButtonA", true),
+  MAIN_BUTTON_TOGGLE_GC_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCButtonB", true),
+  MAIN_BUTTON_TOGGLE_GC_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCButtonX", true),
+  MAIN_BUTTON_TOGGLE_GC_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCButtonY", true),
+  MAIN_BUTTON_TOGGLE_GC_4(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCButtonZ", true),
+  MAIN_BUTTON_TOGGLE_GC_5(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCButtonStart", true),
+  MAIN_BUTTON_TOGGLE_GC_6(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCTriggerL", true),
+  MAIN_BUTTON_TOGGLE_GC_7(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCTriggerR", true),
+  MAIN_BUTTON_TOGGLE_GC_8(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCDPad", true),
+  MAIN_BUTTON_TOGGLE_GC_9(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCStickMain", true),
+  MAIN_BUTTON_TOGGLE_GC_10(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleGCStickC", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonA", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonB", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonX", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonY", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_4(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonPlus", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_5(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonMinus", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_6(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonHome", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_7(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicTriggerL", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_8(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicTriggerR", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_9(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonZL", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_10(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicButtonZR", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_11(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicDPad", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_12(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicStickLeft", true),
+  MAIN_BUTTON_TOGGLE_CLASSIC_13(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleClassicStickRight", true),
+  MAIN_BUTTON_TOGGLE_WII_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButtonA", true),
+  MAIN_BUTTON_TOGGLE_WII_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButtonB", true),
+  MAIN_BUTTON_TOGGLE_WII_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButton1", true),
+  MAIN_BUTTON_TOGGLE_WII_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButton2", true),
+  MAIN_BUTTON_TOGGLE_WII_4(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButtonPlus", true),
+  MAIN_BUTTON_TOGGLE_WII_5(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButtonMinus", true),
+  MAIN_BUTTON_TOGGLE_WII_6(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteButtonHome", true),
+  MAIN_BUTTON_TOGGLE_WII_7(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleWiimoteDPad", true),
+  MAIN_BUTTON_TOGGLE_WII_8(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleNunchukC", true),
+  MAIN_BUTTON_TOGGLE_WII_9(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleNunchukZ", true),
+  MAIN_BUTTON_TOGGLE_WII_10(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
+          "ButtonToggleNunchukStick", true),
 
   SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),
   SYSCONF_WIDESCREEN(Settings.FILE_SYSCONF, "IPL", "AR", true),
@@ -157,7 +240,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -170,7 +253,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getBoolean(settings.getActiveLayer(), mFile, mSection, mKey,
+      return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey,
               mDefaultValue);
     }
     else
@@ -184,11 +267,16 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setBoolean(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+      NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {
       settings.getSection(mFile, mSection).setBoolean(mKey, newValue);
     }
+  }
+
+  public boolean getBooleanGlobal()
+  {
+    return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 }

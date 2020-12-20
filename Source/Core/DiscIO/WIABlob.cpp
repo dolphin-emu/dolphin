@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstring>
 #include <limits>
 #include <map>
@@ -16,6 +15,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <fmt/format.h>
 #include <mbedtls/sha1.h>
 #include <zstd.h>
 
@@ -27,7 +27,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
@@ -104,8 +103,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
 
   if (version < file_version_compatible || version_read_compatible > file_version)
   {
-    ERROR_LOG(DISCIO, "Unsupported version %s in %s", VersionToString(file_version).c_str(),
-              path.c_str());
+    ERROR_LOG_FMT(DISCIO, "Unsupported version {} in {}", VersionToString(file_version), path);
     return false;
   }
 
@@ -117,7 +115,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
 
   if (Common::swap64(m_header_1.wia_file_size) != m_file.GetSize())
   {
-    ERROR_LOG(DISCIO, "File size is incorrect for %s", path.c_str());
+    ERROR_LOG_FMT(DISCIO, "File size is incorrect for {}", path);
     return false;
   }
 
@@ -156,7 +154,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
   if (m_compression_type > (RVZ ? WIARVZCompressionType::Zstd : WIARVZCompressionType::LZMA2) ||
       (RVZ && m_compression_type == WIARVZCompressionType::Purge))
   {
-    ERROR_LOG(DISCIO, "Unsupported compression type %u in %s", compression_type, path.c_str());
+    ERROR_LOG_FMT(DISCIO, "Unsupported compression type {} in {}", compression_type, path);
     return false;
   }
 
@@ -617,9 +615,9 @@ std::string WIARVZFileReader<RVZ>::VersionToString(u32 version)
   const u8 d = version & 0xff;
 
   if (d == 0 || d == 0xff)
-    return StringFromFormat("%u.%02x.%02x", a, b, c);
+    return fmt::format("{}.{:02x}.{:02x}", a, b, c);
   else
-    return StringFromFormat("%u.%02x.%02x.beta%u", a, b, c, d);
+    return fmt::format("{}.{:02x}.{:02x}.beta{}", a, b, c, d);
 }
 
 template <bool RVZ>
@@ -785,7 +783,7 @@ bool WIARVZFileReader<RVZ>::Chunk::HandleExceptions(const u8* data, size_t bytes
   {
     if (sizeof(u16) + *bytes_used > bytes_allocated)
     {
-      ERROR_LOG(DISCIO, "More hash exceptions than expected");
+      ERROR_LOG_FMT(DISCIO, "More hash exceptions than expected");
       return false;
     }
     if (sizeof(u16) + *bytes_used > bytes_written)
@@ -799,7 +797,7 @@ bool WIARVZFileReader<RVZ>::Chunk::HandleExceptions(const u8* data, size_t bytes
 
     if (exception_list_size + *bytes_used > bytes_allocated)
     {
-      ERROR_LOG(DISCIO, "More hash exceptions than expected");
+      ERROR_LOG_FMT(DISCIO, "More hash exceptions than expected");
       return false;
     }
     if (exception_list_size + *bytes_used > bytes_written)
@@ -950,17 +948,17 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
 
     if (partition.offset < last_partition_end_offset)
     {
-      WARN_LOG(DISCIO, "Overlapping partitions at %" PRIx64, partition.offset);
+      WARN_LOG_FMT(DISCIO, "Overlapping partitions at {:x}", partition.offset);
       continue;
     }
 
-    if (volume->ReadSwapped<u32>(partition.offset, PARTITION_NONE) != u32(0x10001))
+    if (volume->ReadSwapped<u32>(partition.offset, PARTITION_NONE) != 0x10001U)
     {
       // This looks more like garbage data than an actual partition.
       // The values of data_offset and data_size will very likely also be garbage.
       // Some WBFS writing programs scrub the SSBB Masterpiece partitions without
       // removing them from the partition table, causing this problem.
-      WARN_LOG(DISCIO, "Invalid partition at %" PRIx64, partition.offset);
+      WARN_LOG_FMT(DISCIO, "Invalid partition at {:x}", partition.offset);
       continue;
     }
 
@@ -977,19 +975,19 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
 
     if (data_start % VolumeWii::BLOCK_TOTAL_SIZE != 0)
     {
-      WARN_LOG(DISCIO, "Misaligned partition at %" PRIx64, partition.offset);
+      WARN_LOG_FMT(DISCIO, "Misaligned partition at {:x}", partition.offset);
       continue;
     }
 
     if (*data_size < VolumeWii::BLOCK_TOTAL_SIZE)
     {
-      WARN_LOG(DISCIO, "Very small partition at %" PRIx64, partition.offset);
+      WARN_LOG_FMT(DISCIO, "Very small partition at {:x}", partition.offset);
       continue;
     }
 
     if (data_end > iso_size)
     {
-      WARN_LOG(DISCIO, "Too large partition at %" PRIx64, partition.offset);
+      WARN_LOG_FMT(DISCIO, "Too large partition at {:x}", partition.offset);
       *data_size = iso_size - *data_offset - partition.offset;
     }
 
@@ -1040,7 +1038,7 @@ std::optional<std::vector<u8>> WIARVZFileReader<RVZ>::Compress(Compressor* compr
 {
   if (compressor)
   {
-    if (!compressor->Start() || !compressor->Compress(data, size) || !compressor->End())
+    if (!compressor->Start(size) || !compressor->Compress(data, size) || !compressor->End())
       return std::nullopt;
 
     data = compressor->GetData();
@@ -1564,7 +1562,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
     if (state->compressor)
     {
-      if (!state->compressor->Start())
+      if (!state->compressor->Start(entry.exception_lists.size() + entry.main_data.size()))
         return ConversionResultCode::InternalError;
     }
 
@@ -1694,9 +1692,8 @@ ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u
   if (bytes_read != 0)
     ratio = static_cast<int>(100 * bytes_written / bytes_read);
 
-  const std::string text =
-      StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
-                       groups_written, total_groups, ratio);
+  const std::string text = Common::FmtFormatT("{0} of {1} blocks. Compression ratio {2}%",
+                                              groups_written, total_groups, ratio);
 
   const float completion = static_cast<float>(bytes_read) / iso_size;
 
@@ -1712,7 +1709,8 @@ bool WIARVZFileReader<RVZ>::WriteHeader(File::IOFile* file, const u8* data, size
   // is past the upper bound, we are already at the end of the file, so we don't need to do anything
   if (*bytes_written <= upper_bound && *bytes_written + size > upper_bound)
   {
-    WARN_LOG(DISCIO, "Headers did not fit in the allocated space. Writing to end of file instead");
+    WARN_LOG_FMT(DISCIO,
+                 "Headers did not fit in the allocated space. Writing to end of file instead");
     if (!file->Seek(0, SEEK_END))
       return false;
     *bytes_written = file->Tell();
@@ -2034,10 +2032,11 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
   {
-    PanicAlertT("Failed to open the output file \"%s\".\n"
-                "Check that you have permissions to write the target folder and that the media can "
-                "be written.",
-                outfile_path.c_str());
+    PanicAlertFmtT(
+        "Failed to open the output file \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
     return false;
   }
 
@@ -2049,13 +2048,13 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
               chunk_size, callback);
 
   if (result == ConversionResultCode::ReadFailed)
-    PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
 
   if (result == ConversionResultCode::WriteFailed)
   {
-    PanicAlertT("Failed to write the output file \"%s\".\n"
-                "Check that you have enough space available on the target drive.",
-                outfile_path.c_str());
+    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
+                   "Check that you have enough space available on the target drive.",
+                   outfile_path);
   }
 
   if (result != ConversionResultCode::Success)

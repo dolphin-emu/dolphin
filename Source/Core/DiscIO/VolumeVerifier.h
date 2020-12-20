@@ -153,7 +153,7 @@ private:
   bool ShouldHaveInstallPartition() const;
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
-  void CheckDiscSize(const std::vector<Partition>& partitions);
+  void CheckVolumeSize();
   u64 GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const;
   u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();

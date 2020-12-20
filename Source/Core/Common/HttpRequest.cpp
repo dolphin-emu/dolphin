@@ -210,7 +210,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   const CURLcode res = curl_easy_perform(m_curl.get());
   if (res != CURLE_OK)
   {
-    ERROR_LOG(COMMON, "Failed to %s %s: %s", type, url.c_str(), m_error_string.c_str());
+    ERROR_LOG_FMT(COMMON, "Failed to {} {}: {}", type, url, m_error_string);
     return {};
   }
 
@@ -221,8 +221,16 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
   if (response_code != 200)
   {
-    ERROR_LOG(COMMON, "Failed to %s %s: server replied with code %li and body\n\x1b[0m%.*s", type,
-              url.c_str(), response_code, static_cast<int>(buffer.size()), buffer.data());
+    if (buffer.empty())
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {}", type, url,
+                    response_code);
+    }
+    else
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
+                    type, url, response_code, buffer.data(), static_cast<int>(buffer.size()));
+    }
     return {};
   }
 

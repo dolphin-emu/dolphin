@@ -67,7 +67,7 @@ bool Renderer::Initialize()
   m_bounding_box = std::make_unique<BoundingBox>();
   if (!m_bounding_box->Initialize())
   {
-    PanicAlert("Failed to initialize bounding box.");
+    PanicAlertFmt("Failed to initialize bounding box.");
     return false;
   }
 
@@ -300,24 +300,24 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     if (res == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
     {
       // The present keeps returning exclusive mode lost unless we re-create the swap chain.
-      INFO_LOG(VIDEO, "Lost exclusive fullscreen.");
+      INFO_LOG_FMT(VIDEO, "Lost exclusive fullscreen.");
       m_swap_chain->RecreateSwapChain();
     }
     else if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
     {
-      INFO_LOG(VIDEO, "Resizing swap chain due to suboptimal/out-of-date");
+      INFO_LOG_FMT(VIDEO, "Resizing swap chain due to suboptimal/out-of-date");
       m_swap_chain->ResizeSwapChain();
     }
     else
     {
-      ERROR_LOG(VIDEO, "Unknown present error 0x%08X, please report.", res);
+      ERROR_LOG_FMT(VIDEO, "Unknown present error {:#010X}, please report.", res);
       m_swap_chain->RecreateSwapChain();
     }
 
     res = m_swap_chain->AcquireNextImage();
   }
   if (res != VK_SUCCESS)
-    PanicAlert("Failed to grab image from swap chain");
+    PanicAlertFmt("Failed to grab image from swap chain");
 
   // Transition from undefined (or present src, but it can be substituted) to
   // color attachment ready for writing. These transitions must occur outside
@@ -385,7 +385,7 @@ void Renderer::CheckForSurfaceChange()
 
   // Recreate the surface. If this fails we're in trouble.
   if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
-    PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
+    PanicAlertFmt("Failed to recreate Vulkan surface. Cannot continue.");
   m_new_surface_handle = nullptr;
 
   // Handle case where the dimensions are now different.
@@ -401,7 +401,7 @@ void Renderer::CheckForSurfaceResize()
   // CheckForSurfaceChange should handle this case.
   if (!m_swap_chain)
   {
-    WARN_LOG(VIDEO, "Surface resize event received without active surface, ignoring");
+    WARN_LOG_FMT(VIDEO, "Surface resize event received without active surface, ignoring");
     return;
   }
 
@@ -527,7 +527,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
     {
       if (StateTracker::GetInstance()->InRenderPass())
       {
-        WARN_LOG(VIDEO, "Transitioning image in render pass in Renderer::SetTexture()");
+        WARN_LOG_FMT(VIDEO, "Transitioning image in render pass in Renderer::SetTexture()");
         StateTracker::GetInstance()->EndRenderPass();
       }
 
@@ -553,7 +553,7 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   VkSampler sampler = g_object_cache->GetSampler(state);
   if (sampler == VK_NULL_HANDLE)
   {
-    ERROR_LOG(VIDEO, "Failed to create sampler");
+    ERROR_LOG_FMT(VIDEO, "Failed to create sampler");
     sampler = g_object_cache->GetPointSampler();
   }
 

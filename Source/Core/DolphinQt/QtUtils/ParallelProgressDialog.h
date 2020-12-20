@@ -28,7 +28,7 @@ public:
   // All of the following can be called from any thread
   void Cancel() { emit CancelSignal(); }
   void Reset() { emit ResetSignal(); }
-  void SetCancelButtonText(const QString& text) { emit SetCancelButtonText(text); }
+  void SetCancelButtonText(const QString& text) { emit SetCancelButtonTextSignal(text); }
   void SetLabelText(const QString& text) { emit SetLabelTextSignal(text); }
   void SetMaximum(int maximum) { emit SetMaximumSignal(maximum); }
   void SetMinimum(int minimum) { emit SetMinimumSignal(minimum); }

@@ -5,6 +5,12 @@ elseif(X11_FOUND)
 endif()
 
 add_library(inputcommon
+  DynamicInputTextureConfiguration.cpp
+  DynamicInputTextureConfiguration.h
+  DynamicInputTextureManager.cpp
+  DynamicInputTextureManager.h
+  ImageOperations.cpp
+  ImageOperations.h
   InputConfig.cpp
   InputConfig.h
   GenericMouse.cpp
@@ -76,6 +82,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
+  png
 )
 
 if(WIN32)

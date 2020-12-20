@@ -2,7 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cinttypes>
+#include "DiscIO/VolumeGC.h"
+
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -26,7 +27,6 @@
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {
@@ -159,7 +159,7 @@ VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
                                  reinterpret_cast<u8*>(&banner_file), sizeof(GCBanner));
   if (file_size < 4)
   {
-    WARN_LOG(DISCIO, "Could not read opening.bnr.");
+    WARN_LOG_FMT(DISCIO, "Could not read opening.bnr.");
     return {};  // Return early so that we don't access the uninitialized banner_file.id
   }
 
@@ -176,7 +176,8 @@ VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
   }
   else
   {
-    WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0" PRIx64, banner_file.id, file_size);
+    WARN_LOG_FMT(DISCIO, "Invalid opening.bnr. Type: {:#0x} Size: {:#0x}", banner_file.id,
+                 file_size);
     return {};
   }
 

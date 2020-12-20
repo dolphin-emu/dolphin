@@ -8,14 +8,14 @@
 
 namespace IDCache
 {
-static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
-
 JNIEnv* GetEnvForThread();
 
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
 jmethodID GetDoRumble();
 jmethodID GetUpdateTouchPointer();
+jmethodID GetOnTitleChanged();
+jmethodID GetFinishEmulationActivity();
 
 jclass GetAnalyticsClass();
 jmethodID GetSendAnalyticsReport();
@@ -44,5 +44,10 @@ jmethodID GetCompressCallbackRun();
 jclass GetContentHandlerClass();
 jmethodID GetContentHandlerOpenFd();
 jmethodID GetContentHandlerDelete();
+
+jclass GetNetworkHelperClass();
+jmethodID GetNetworkHelperGetNetworkIpAddress();
+jmethodID GetNetworkHelperGetNetworkPrefixLength();
+jmethodID GetNetworkHelperGetNetworkGateway();
 
 }  // namespace IDCache

@@ -248,7 +248,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
     pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
     break;
   default:
-    PanicAlert("Unknown pipeline layout.");
+    PanicAlertFmt("Unknown pipeline layout.");
     return nullptr;
   }
 

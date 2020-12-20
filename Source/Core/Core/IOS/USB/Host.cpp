@@ -164,9 +164,9 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 {
   for (const auto& hook : hooks)
   {
-    INFO_LOG(IOS_USB, "%s - %s device: %04x:%04x", GetDeviceName().c_str(),
-             hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
-             hook.first->GetPid());
+    INFO_LOG_FMT(IOS_USB, "{} - {} device: {:04x}:{:04x}", GetDeviceName(),
+                 hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
+                 hook.first->GetPid());
     OnDeviceChange(hook.second, hook.first);
   }
   if (!hooks.empty())
@@ -223,8 +223,8 @@ IPCCommandResult USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u3
   if (ret == IPC_SUCCESS)
     return GetNoReply();
 
-  ERROR_LOG(IOS_USB, "[%04x:%04x] Failed to submit transfer (request %u): %s", device->GetVid(),
-            device->GetPid(), request, device->GetErrorName(ret).c_str());
+  ERROR_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Failed to submit transfer (request {}): {}",
+                device->GetVid(), device->GetPid(), request, device->GetErrorName(ret));
   return GetDefaultReply(ret <= 0 ? ret : IPC_EINVAL);
 }
 }  // namespace IOS::HLE::Device

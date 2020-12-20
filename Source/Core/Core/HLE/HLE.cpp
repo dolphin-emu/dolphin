@@ -121,7 +121,7 @@ void PatchFunctions()
         s_hooked_addresses[addr] = i;
         PowerPC::ppcState.iCache.Invalidate(addr);
       }
-      INFO_LOG(OSHLE, "Patching %s %08x", os_patches[i].name, symbol->address);
+      INFO_LOG_FMT(OSHLE, "Patching {} {:08x}", os_patches[i].name, symbol->address);
     }
   }
 }
@@ -147,7 +147,7 @@ void Execute(u32 current_pc, u32 hook_index)
   }
   else
   {
-    PanicAlert("HLE system tried to call an undefined HLE function %i.", hook_index);
+    PanicAlertFmt("HLE system tried to call an undefined HLE function {}.", hook_index);
   }
 }
 

@@ -4,12 +4,15 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.DocumentsContract;
 
+import androidx.annotation.Keep;
+
 import org.dolphinemu.dolphinemu.DolphinApplication;
 
 import java.io.FileNotFoundException;
 
 public class ContentHandler
 {
+  @Keep
   public static int openFd(String uri, String mode)
   {
     try
@@ -23,6 +26,7 @@ public class ContentHandler
     }
   }
 
+  @Keep
   public static boolean delete(String uri)
   {
     try

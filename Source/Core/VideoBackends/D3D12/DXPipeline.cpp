@@ -171,7 +171,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
     desc.pRootSignature = g_dx_context->GetUtilityRootSignature();
     break;
   default:
-    PanicAlert("Unknown pipeline layout.");
+    PanicAlertFmt("Unknown pipeline layout.");
     return nullptr;
   }
 
@@ -210,8 +210,8 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
   if (FAILED(hr))
   {
-    WARN_LOG(VIDEO, "CreateGraphicsPipelineState() %sfailed with HRESULT %08X",
-             cache_data ? "with cache data " : "", hr);
+    WARN_LOG_FMT(VIDEO, "CreateGraphicsPipelineState() {}failed with HRESULT {:08X}",
+                 cache_data ? "with cache data " : "", hr);
     return nullptr;
   }
 
@@ -227,7 +227,7 @@ AbstractPipeline::CacheData DXPipeline::GetCacheData() const
   HRESULT hr = m_pipeline->GetCachedBlob(&blob);
   if (FAILED(hr))
   {
-    WARN_LOG(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed with HRESULT %08X", hr);
+    WARN_LOG_FMT(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed with HRESULT {:08X}", hr);
     return {};
   }
 

@@ -145,7 +145,7 @@ void Init()
 
 void Reset()
 {
-  INFO_LOG(WII_IPC, "Resetting ...");
+  INFO_LOG_FMT(WII_IPC, "Resetting ...");
   InitState();
 }
 
@@ -193,7 +193,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    g_gpio_out.m_hex = val & gpio_owner.m_hex;
                    if (g_gpio_out[GPIO::DO_EJECT])
                    {
-                     INFO_LOG(WII_IPC, "Ejecting disc due to GPIO write");
+                     INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
                      DVDInterface::EjectDisc(DVDInterface::EjectCause::Software);
                    }
                    // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
@@ -238,22 +238,22 @@ void ClearX1()
   ctrl.X1 = 0;
 }
 
-void GenerateAck(u32 _Address)
+void GenerateAck(u32 address)
 {
   ctrl.Y2 = 1;
-  DEBUG_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]", ppc_msg, _Address, ctrl.Y1,
-            ctrl.Y2, ctrl.X1);
+  DEBUG_LOG_FMT(WII_IPC, "GenerateAck: {:08x} | {:08x} [R:{} A:{} E:{}]", ppc_msg, address, ctrl.Y1,
+                ctrl.Y2, ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y2 is seen in the control register.
   CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
 }
 
-void GenerateReply(u32 _Address)
+void GenerateReply(u32 address)
 {
-  arm_msg = _Address;
+  arm_msg = address;
   ctrl.Y1 = 1;
-  DEBUG_LOG(WII_IPC, "GenerateReply: %08x | %08x [R:%i A:%i E:%i]", ppc_msg, _Address, ctrl.Y1,
-            ctrl.Y2, ctrl.X1);
+  DEBUG_LOG_FMT(WII_IPC, "GenerateReply: {:08x} | {:08x} [R:{} A:{} E:{}]", ppc_msg, address,
+                ctrl.Y1, ctrl.Y2, ctrl.X1);
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y1 is seen in the control register.
   CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);

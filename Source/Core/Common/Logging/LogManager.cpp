@@ -64,11 +64,34 @@ private:
 
 void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, const char* fmt, ...)
 {
+  auto* instance = LogManager::GetInstance();
+  if (instance == nullptr)
+    return;
+
+  if (!instance->IsEnabled(type, level))
+    return;
+
   va_list args;
   va_start(args, fmt);
-  if (LogManager::GetInstance())
-    LogManager::GetInstance()->Log(level, type, file, line, fmt, args);
+  char message[MAX_MSGLEN];
+  CharArrayFromFormatV(message, MAX_MSGLEN, fmt, args);
   va_end(args);
+
+  instance->Log(level, type, file, line, message);
+}
+
+void GenericLogFmtImpl(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
+                       fmt::string_view format, const fmt::format_args& args)
+{
+  auto* instance = LogManager::GetInstance();
+  if (instance == nullptr)
+    return;
+
+  if (!instance->IsEnabled(type, level))
+    return;
+
+  const auto message = fmt::vformat(format, args);
+  instance->Log(level, type, file, line, message.c_str());
 }
 
 static size_t DeterminePathCutOffPoint()
@@ -110,6 +133,7 @@ LogManager::LogManager()
   m_log[DYNA_REC] = {"JIT", "JIT Dynamic Recompiler"};
   m_log[EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[FILEMON] = {"FileMon", "File Monitor"};
+  m_log[FRAMEDUMP] = {"FRAMEDUMP", "FrameDump"};
   m_log[GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[GPFIFO] = {"GP", "GatherPipe FIFO"};
   m_log[HOST_GPU] = {"Host GPU", "Host GPU"};
@@ -196,27 +220,26 @@ void LogManager::SaveSettings()
 }
 
 void LogManager::Log(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
-                     const char* format, va_list args)
-{
-  return LogWithFullPath(level, type, file + m_path_cutoff_point, line, format, args);
-}
-
-void LogManager::LogWithFullPath(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
-                                 const char* format, va_list args)
+                     const char* message)
 {
   if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
 
-  char temp[MAX_MSGLEN];
-  CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
+  LogWithFullPath(level, type, file + m_path_cutoff_point, line, message);
+}
 
+void LogManager::LogWithFullPath(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
+                                 const char* message)
+{
   const std::string msg =
       fmt::format("{} {}:{} {}[{}]: {}\n", Common::Timer::GetTimeFormatted(), file, line,
-                  LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), temp);
+                  LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), message);
 
-  for (auto listener_id : m_listener_ids)
+  for (const auto listener_id : m_listener_ids)
+  {
     if (m_listeners[listener_id])
       m_listeners[listener_id]->Log(level, msg.c_str());
+  }
 }
 
 LOG_LEVELS LogManager::GetLogLevel() const

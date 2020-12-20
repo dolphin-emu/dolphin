@@ -14,6 +14,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -295,17 +296,18 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   if (s_com_csr.TSTART)
   {
-    u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
-    u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
-    std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
+    const u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
+    const u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
+    const std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
-    std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
+    const std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
+    const u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
 
-    DEBUG_LOG(SERIALINTERFACE,
-              "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u  "
-              "actual_response_length: %u",
-              s_com_csr.CHANNEL, request_length, expected_response_length, actual_response_length);
+    DEBUG_LOG_FMT(SERIALINTERFACE,
+                  "RunSIBuffer  chan: {}  request_length: {}  expected_response_length: {}  "
+                  "actual_response_length: {}",
+                  s_com_csr.CHANNEL, request_length, expected_response_length,
+                  actual_response_length);
     if (expected_response_length != actual_response_length)
     {
       std::ostringstream ss;
@@ -313,10 +315,10 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
       {
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
       }
-      DEBUG_LOG(
+      DEBUG_LOG_FMT(
           SERIALINTERFACE,
-          "RunSIBuffer: expected_response_length(%u) != actual_response_length(%u): request: %s",
-          expected_response_length, actual_response_length, ss.str().c_str());
+          "RunSIBuffer: expected_response_length({}) != actual_response_length({}): request: {}",
+          expected_response_length, actual_response_length, ss.str());
     }
 
     // TODO:

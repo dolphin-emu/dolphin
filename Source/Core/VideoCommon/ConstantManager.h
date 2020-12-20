@@ -58,7 +58,7 @@ struct VertexShaderConstants
   u32 components;           // .x
   u32 xfmem_dualTexInfo;    // .y
   u32 xfmem_numColorChans;  // .z
-  u32 pad1;                 // .w
+  u32 color_chan_alpha;     // .w
 
   std::array<float4, 6> posnormalmatrix;
   std::array<float4, 4> projection;

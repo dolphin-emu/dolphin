@@ -12,6 +12,10 @@ class QLabel;
 class QRadioButton;
 class QSlider;
 class QSpinBox;
+class GraphicsBool;
+class GraphicsSlider;
+class GraphicsInteger;
+class GraphicsRadioInt;
 
 class PrimeWidget final : public GraphicsWidget
 {
@@ -26,26 +30,26 @@ private:
   void ArmPositionModeChanged(bool mode);
 
   // Misc
-  QCheckBox* m_disable_bloom;
-  QCheckBox* m_motions_lock;
-  QCheckBox* m_autoefb;
-  QCheckBox* m_toggle_culling;
-  QCheckBox* m_toggle_secondaryFX;
+  GraphicsBool* m_disable_bloom;
+  GraphicsBool* m_motions_lock;
+  GraphicsBool* m_autoefb;
+  GraphicsBool* m_toggle_culling;
+  GraphicsBool* m_toggle_secondaryFX;
 
-  QSpinBox* fov_counter;
-  QSlider* m_fov_axis;
+  GraphicsInteger* fov_counter;
+  GraphicsSlider* m_fov_axis;
 
-  QSpinBox* x_counter;
-  QSpinBox* y_counter;
-  QSpinBox* z_counter;
+  GraphicsInteger* x_counter;
+  GraphicsInteger* y_counter;
+  GraphicsInteger* z_counter;
 
-  QSlider* m_x_axis;
-  QSlider* m_y_axis;
-  QSlider* m_z_axis;
+  GraphicsSlider* m_x_axis;
+  GraphicsSlider* m_y_axis;
+  GraphicsSlider* m_z_axis;
 
-  QCheckBox* m_toggle_arm_position;
-  QRadioButton* m_auto_arm_position;
-  QRadioButton* m_manual_arm_position;
+  GraphicsBool* m_toggle_arm_position;
+  GraphicsRadioInt* m_auto_arm_position;
+  GraphicsRadioInt* m_manual_arm_position;
 
   void CreateWidgets();
   void ConnectWidgets();

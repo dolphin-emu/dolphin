@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,18 +29,23 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.ConfirmRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RumbleBindingViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.Log;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,12 +54,13 @@ import java.util.Map;
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
-  private SettingsFragmentView mView;
-  private Context mContext;
+  private final SettingsFragmentView mView;
+  private final Context mContext;
   private ArrayList<SettingsItem> mSettings;
 
   private SettingsItem mClickedItem;
   private int mClickedPosition;
+  private int mSeekbarMinValue;
   private int mSeekbarProgress;
 
   private AlertDialog mDialog;
@@ -110,9 +115,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
         return new FilePickerViewHolder(view, this);
 
-      case SettingsItem.TYPE_CONFIRM_RUNNABLE:
+      case SettingsItem.TYPE_RUN_RUNNABLE:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new ConfirmRunnableViewHolder(view, this, mContext, mView);
+        return new RunRunnableViewHolder(view, this, mContext);
 
       default:
         throw new IllegalArgumentException("Invalid view type: " + viewType);
@@ -158,6 +163,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mSettings = settings;
     notifyDataSetChanged();
+  }
+
+  public void clearSetting(SettingsItem item, int position)
+  {
+    item.clear(getSettings());
+    notifyItemChanged(position);
+
+    mView.onSettingChanged();
   }
 
   public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
@@ -220,6 +233,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mClickedItem = item;
     mClickedPosition = position;
+    mSeekbarMinValue = item.getMin();
     mSeekbarProgress = item.getSelectedValue(getSettings());
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
             R.style.DolphinDialogBase);
@@ -240,12 +254,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     SeekBar seekbar = view.findViewById(R.id.seekbar);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-    {
-      seekbar.setMin(item.getMin());
-    }
-    seekbar.setMax(item.getMax());
-    seekbar.setProgress(mSeekbarProgress);
+    // TODO: Once we require API 26, uncomment this line and remove the mSeekbarMinValue variable
+    //seekbar.setMin(item.getMin());
+
+    seekbar.setMax(item.getMax() - mSeekbarMinValue);
+    seekbar.setProgress(mSeekbarProgress - mSeekbarMinValue);
     seekbar.setKeyProgressIncrement(5);
 
     seekbar.setOnSeekBarChangeListener(this);
@@ -297,9 +310,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       case MainPresenter.REQUEST_GAME_FILE:
         extensions = FileBrowserHelper.GAME_EXTENSIONS;
         break;
-      case MainPresenter.REQUEST_WAD_FILE:
-        extensions = FileBrowserHelper.WAD_EXTENSION;
-        break;
       default:
         throw new InvalidParameterException("Unhandled request code");
     }
@@ -320,20 +330,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = null;
   }
 
-  public void resetPaths()
-  {
-    Settings settings = mView.getSettings();
-
-    StringSetting.MAIN_DEFAULT_ISO.delete(settings);
-    StringSetting.MAIN_FS_PATH.delete(settings);
-    StringSetting.MAIN_DUMP_PATH.delete(settings);
-    StringSetting.MAIN_LOAD_PATH.delete(settings);
-    StringSetting.MAIN_RESOURCEPACK_PATH.delete(settings);
-    StringSetting.MAIN_SD_PATH.delete(settings);
-
-    mView.onSettingChanged();
-  }
-
   public void setAllLogTypes(boolean value)
   {
     Settings settings = mView.getSettings();
@@ -344,7 +340,24 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
               false).setBoolean(settings, value);
     }
 
+    notifyItemRangeChanged(0, getItemCount());
     mView.onSettingChanged();
+  }
+
+  public static void clearLog()
+  {
+    // Don't delete the log in case it is being monitored by another app.
+    File log = new File(DirectoryInitialization.getUserDirectory() + "/Logs/dolphin.log");
+
+    try
+    {
+      RandomAccessFile raf = new RandomAccessFile(log, "rw");
+      raf.setLength(0);
+    }
+    catch (IOException e)
+    {
+      Log.error("[SettingsAdapter] Failed to clear log file: " + e.getMessage());
+    }
   }
 
   private void handleMenuTag(MenuTag menuTag, int value)
@@ -417,16 +430,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
         mView.onSettingChanged();
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      {
-        sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
-      }
-      else
-      {
-        sliderSetting
-                .setSelectedValue(getSettings(),
-                        Math.max(mSeekbarProgress, sliderSetting.getMin()));
-      }
+      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
 
       closeDialog();
     }
@@ -436,16 +440,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
         mView.onSettingChanged();
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      {
-        sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
-      }
-      else
-      {
-        sliderSetting
-                .setSelectedValue(getSettings(),
-                        Math.max(mSeekbarProgress, sliderSetting.getMin()));
-      }
+      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
 
       closeDialog();
     }
@@ -471,7 +466,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   @Override
   public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
   {
-    mSeekbarProgress = progress;
+    mSeekbarProgress = progress + mSeekbarMinValue;
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
   }
 

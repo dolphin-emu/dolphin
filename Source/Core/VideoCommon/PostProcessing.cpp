@@ -72,7 +72,7 @@ void PostProcessingConfiguration::LoadShader(const std::string& shader)
 
   if (!File::ReadFileToString(path, code))
   {
-    ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
+    ERROR_LOG_FMT(VIDEO, "Post-processing shader not found: {}", path);
     LoadDefaultShader();
     return;
   }
@@ -640,7 +640,7 @@ bool PostProcessing::CompileVertexShader()
   m_vertex_shader = g_renderer->CreateShaderFromSource(ShaderStage::Vertex, ss.str());
   if (!m_vertex_shader)
   {
-    PanicAlert("Failed to compile post-processing vertex shader");
+    PanicAlertFmt("Failed to compile post-processing vertex shader");
     return false;
   }
 
@@ -729,7 +729,7 @@ bool PostProcessing::CompilePixelShader()
       ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter());
   if (!m_pixel_shader)
   {
-    PanicAlert("Failed to compile post-processing shader %s", m_config.GetShader().c_str());
+    PanicAlertFmt("Failed to compile post-processing shader {}", m_config.GetShader());
 
     // Use default shader.
     m_config.LoadDefaultShader();
