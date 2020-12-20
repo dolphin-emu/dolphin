@@ -169,7 +169,7 @@ void NewBreakpointDialog::accept()
       return;
     }
 
-    QString condition = m_instruction_condition->text().trimmed();
+    const QString condition = m_instruction_condition->text().trimmed();
 
     if (!condition.isEmpty() && !Expression::TryParse(condition.toUtf8().constData()))
     {

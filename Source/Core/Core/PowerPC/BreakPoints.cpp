@@ -52,7 +52,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
     if (!bp.is_temporary)
     {
       std::ostringstream ss;
-      ss << "$" << fmt::format("{:08x}", bp.address) << " ";
+      ss << fmt::format("${:08x} ", bp.address);
       if (bp.is_enabled)
         ss << "n";
       if (bp.log_on_hit)

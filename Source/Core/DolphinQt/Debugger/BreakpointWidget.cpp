@@ -330,8 +330,9 @@ void BreakpointWidget::AddBP(u32 addr)
 void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit,
                              const QString& condition)
 {
-  PowerPC::breakpoints.Add(addr, temp, break_on_hit, log_on_hit,
-                           Expression::TryParse(condition.toUtf8().constData()));
+  PowerPC::breakpoints.Add(
+      addr, temp, break_on_hit, log_on_hit,
+      !condition.isEmpty() ? Expression::TryParse(condition.toUtf8().constData()) : std::nullopt);
 
   Update();
 }

@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 struct expr;
 struct expr_var_list;
@@ -36,11 +37,35 @@ public:
   std::string GetText() const;
 
 private:
+  enum class SynchronizeDirection
+  {
+    From,
+    To,
+  };
+
+  enum class VarBindingType
+  {
+    Zero,
+    GPR,
+    FPR,
+    SPR,
+    PCtr,
+  };
+
+  struct VarBinding
+  {
+    VarBindingType type = VarBindingType::Zero;
+    int index = -1;
+  };
+
   Expression(std::string_view text, ExprPointer ex, ExprVarListPointer vars);
+
+  void SynchronizeBindings(SynchronizeDirection dir) const;
 
   std::string m_text;
   ExprPointer m_expr;
   ExprVarListPointer m_vars;
+  std::vector<VarBinding> m_binds;
 };
 
 inline bool EvaluateCondition(const std::optional<Expression>& condition)
