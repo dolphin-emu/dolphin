@@ -253,6 +253,13 @@ bool CheckSpringBall()
     return wiimote->CheckSpringBallCtrl();
 }
 
+std::tuple<bool, bool> GetBVMenuOptions()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetBVMenuOptions();
+}
+
 bool CheckImprovedMotions()
 {
     WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
@@ -288,7 +295,7 @@ std::tuple<double, double> GetPrimeStickXY()
     return wiimote->GetPrimeStickXY();
 }
 
-std::tuple<double, double, bool, bool> PrimeSettings()
+std::tuple<double, double, bool, bool, bool> PrimeSettings()
 {
     WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 

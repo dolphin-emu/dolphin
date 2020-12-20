@@ -298,6 +298,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_primehack_beams->controls.emplace_back(
     new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Beam"), "Previous Beam"));
 
+  m_primehack_beams->AddSetting(
+    &m_primehack_beam_menu, {"Enable Beam Menu", nullptr, nullptr, _trans("Enable Beam Menu")}, false);
+
   groups.emplace_back(m_primehack_visors = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   for (const char* prime_button : prime_visors)
   {
@@ -311,6 +314,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_primehack_visors->controls.emplace_back(
     new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Visor"), "Previous Visor"));
 
+  m_primehack_visors->AddSetting(
+    &m_primehack_visor_menu, {"Enable Visor Menu", nullptr, nullptr, _trans("Enable Visor Menu")}, false);
+
   groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
 
   m_primehack_camera->AddSetting(
@@ -318,6 +324,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   m_primehack_camera->AddSetting(
     &m_primehack_invert_y, {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_movereticle, {"Control Reticle When Locked-On", nullptr, nullptr, _trans("Control Reticle When Locked-On")}, false);
 
   m_primehack_camera->AddSetting(
       &m_primehack_camera_sensitivity,
@@ -698,17 +707,23 @@ std::tuple<double, double> Wiimote::GetPrimeStickXY()
   return std::make_tuple(stick_state.x * m_primehack_horizontal_sensitivity.GetValue(), stick_state.y * -m_primehack_vertical_sensitivity.GetValue());
 }
 
+std::tuple<bool, bool> Wiimote::GetBVMenuOptions()
+{
+  return std::make_tuple(m_primehack_beam_menu.GetValue(), m_primehack_visor_menu.GetValue());
+}
+
 bool Wiimote::PrimeControllerMode()
 {
   return m_primehack_modes->GetSelectedDevice() == 1;
 }
 
-std::tuple<double, double, bool, bool> Wiimote::GetPrimeSettings()
+std::tuple<double, double, bool, bool, bool> Wiimote::GetPrimeSettings()
 {
   std::tuple t =
       std::make_tuple(m_primehack_camera_sensitivity.GetValue(),
                       m_primehack_cursor_sensitivity.GetValue(),
-                      m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue());
+                      m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue(),
+                      m_primehack_movereticle.GetValue());
 
   return t;
 }

@@ -51,11 +51,16 @@ bool InvertedX();
 void SetInvertedX(bool inverted);
 bool GetCulling();
 
+bool HandleReticleLockOn();
+void SetReticleLock(bool lock);
+
 void SetLockCamera(bool lock);
 bool GetLockCamera();
 
 double GetHorizontalAxis();
 double GetVerticalAxis();
+
+std::tuple<bool, bool> GetMenuOptions();
 
 HackManager *GetHackManager();
 }

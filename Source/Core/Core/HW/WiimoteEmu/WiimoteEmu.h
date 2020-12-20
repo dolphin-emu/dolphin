@@ -146,10 +146,11 @@ public:
   bool CheckSpringBallCtrl();
   bool CheckImprovedMotions();
   bool PrimeControllerMode();
+  std::tuple<bool, bool> GetBVMenuOptions();
 
   std::tuple<double, double> GetPrimeStickXY();
 
-  std::tuple <double, double, bool, bool> GetPrimeSettings();
+  std::tuple <double, double, bool, bool, bool> GetPrimeSettings();
 
   void Reset();
 
@@ -300,7 +301,11 @@ private:
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
 
+  ControllerEmu::SettingValue<bool> m_primehack_beam_menu;
+  ControllerEmu::SettingValue<bool> m_primehack_visor_menu;
+
   ControllerEmu::SettingValue<bool> m_primehack_improved_motions;
+  ControllerEmu::SettingValue<bool> m_primehack_movereticle;
 
   static constexpr u8 STICK_GATE_RADIUS = 0x60;
   static constexpr u8 STICK_CENTER = 0x80;

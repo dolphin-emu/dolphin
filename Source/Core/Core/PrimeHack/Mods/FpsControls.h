@@ -36,6 +36,8 @@ private:
   void run_mod_mp1_gc();
   void run_mod_mp2_gc();
 
+  void CheckBeamVisorSetting(Game game, Region region);
+
   // ------------------------
   // -----Init Functions-----
   // ------------------------
@@ -81,6 +83,9 @@ private:
       u32 cplayer_address;
       u32 object_list_ptr_address;
       u32 camera_uid_address;
+      u32 beamvisor_menu_address;
+      u32 cursor_base_address;
+      u32 cursor_offset;
     } mp1_static;
 
     struct {
@@ -96,6 +101,9 @@ private:
       u32 cplayer_ptr_address;
       u32 load_state_address;
       u32 lockon_address;
+      u32 beamvisor_menu_address;
+      u32 cursor_base_address;
+      u32 cursor_offset;
     } mp2_static;
 
     struct {
@@ -111,6 +119,7 @@ private:
       u32 boss_info_address;
       u32 lockon_address;
       u32 gun_lag_toc_offset;
+      u32 beamvisor_menu_address;
     } mp3_static;
   };
 

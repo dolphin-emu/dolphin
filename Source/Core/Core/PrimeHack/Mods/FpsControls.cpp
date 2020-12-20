@@ -162,26 +162,41 @@ void FpsControls::run_mod_menu(Game game, Region region) {
 
 void FpsControls::run_mod_mp1(Region region) {
   handle_beam_visor_switch(prime_one_beams, prime_one_visors);
+  CheckBeamVisorSetting(Game::PRIME_1, region);
+
+  bool beamvisor_menu = false;
+
+  // No NTSC-J support for this yet.
+  if (region != Region::NTSC_J)
+    beamvisor_menu = read32(read32(mp1_static.beamvisor_menu_address) + 0x1a8 + 0x184) == 1;
+
 
   // Allows freelook in grapple, otherwise we are orbiting (locked on) to something
   bool locked = (read32(mp1_static.orbit_state_address) != ORBIT_STATE_GRAPPLE &&
-                  read8(mp1_static.lockon_address));
-    
+    read8(mp1_static.lockon_address) || beamvisor_menu);
+
   if (locked) {
     write32(0, mp1_static.yaw_vel_address);
     calculate_pitch_locked();
+
+    // No NTSC-J support for this yet.
+    if (region != Region::NTSC_J) {
+      u32 cursor_base = read32(read32(mp1_static.cursor_base_address) + mp1_static.cursor_offset);
+
+      if (HandleReticleLockOn()) {
+        handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
+      }
+      else if (beamvisor_menu) { // If we unlock the reticle anyway, no reason to perform this.
+        u32 mode = read32(read32(mp1_static.beamvisor_menu_address) + 0x1a8 + 0x18C);
+
+        // if the menu id is not null
+        if (mode != 0xFFFFFFFF) {
+          handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
+        }
+      }
+    }
   } else {
     calculate_pitch_delta();
-  }
-
-  // I write to two locations here to control the pitch, the rate of turning
-  // has been unlocked already
-  writef32(pitch, mp1_static.pitch_address);
-  writef32(pitch, mp1_static.pitch_goal_address);
-  if (locked) {
-    // TODO: Not sure if the rest should run while locked on
-    //       so I am retaining old behaviour by returning
-    return;
   }
 
   // Max pitch angle, as abs val (any higher = gimbal lock)
@@ -222,6 +237,8 @@ void FpsControls::run_mod_mp1_gc() {
 }
 
 void FpsControls::run_mod_mp2(Region region) {
+  CheckBeamVisorSetting(Game::PRIME_2, region);
+
   // VERY similar to mp1, this time CPlayer isn't TOneStatic (presumably because
   // of multiplayer mode in the GCN version?)
   u32 cplayer_address = read32(mp2_static.cplayer_ptr_address);
@@ -237,11 +254,36 @@ void FpsControls::run_mod_mp2(Region region) {
   powerups_ptr_address = cplayer_address + 0x12ec;
   handle_beam_visor_switch(prime_two_beams, prime_two_visors);
 
+  bool beamvisor_menu = false;
+
+  // No NTSC-J support for this yet.
+  if (region != Region::NTSC_J)
+    beamvisor_menu = read32(read32(mp2_static.beamvisor_menu_address) + 0x1bc + 0x184) == 1;
+
   if (read32(cplayer_address + 0x390) != ORBIT_STATE_GRAPPLE &&
-    read32(mp2_static.lockon_address)) {
+    read32(mp2_static.lockon_address) || beamvisor_menu) {
     // Angular velocity (not really, but momentum) is being messed with like mp1
     // just being accessed relative to cplayer
     write32(0, cplayer_address + 0x178);
+    //calculate_pitch_locked(); - Not yet implemented
+
+    // No NTSC-J support for this yet.
+    if (region != Region::NTSC_J) {
+      u32 cursor_base = read32(read32(mp2_static.cursor_base_address) + mp2_static.cursor_offset);
+
+      if (HandleReticleLockOn()) {
+        handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
+      }
+      else if (beamvisor_menu) { // If we unlock the reticle anyway, no reason to perform this.
+        u32 mode = read32(read32(mp2_static.beamvisor_menu_address) + 0x1bc + 0x190);
+
+        // if the menu id is not null
+        if (mode != 0xFFFFFFFF) {
+          handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
+        }
+      }
+    }
+
     return;
   }
 
@@ -337,6 +379,8 @@ void FpsControls::mp3_handle_cursor(bool lock) {
 
 // this game is
 void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
+  CheckBeamVisorSetting(active_game, active_region);
+
   u32 cplayer_address = 0;
 
   // Handles menu screen cursor
@@ -382,8 +426,24 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     mp3_handle_cursor(true);
   }
 
-  if (!read8(cplayer_address + 0x378) && read8(mp3_static.lockon_address)) {
+  bool beamvisor_menu = false;
+
+  // No NTSC-J support for this yet.
+  if (active_region != Region::NTSC_J)
+    beamvisor_menu = read32(read32(mp3_static.beamvisor_menu_address) + 0x16c + 0x194) == 3;
+
+  if (!read8(cplayer_address + 0x378) && read8(mp3_static.lockon_address) || beamvisor_menu) {
     write32(0, cplayer_address + 0x174);
+    write32(0, cplayer_address + 0x174);
+    //calculate_pitch_locked(); - Not yet implemented
+
+    // No NTSC-J support for this yet.
+    if (active_region != Region::NTSC_J) {
+      if (HandleReticleLockOn() || beamvisor_menu) {
+        mp3_handle_cursor(false);
+      }
+    }
+
     return;
   }
 
@@ -430,6 +490,77 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
 
   // Nothing new here
   write32(0, cplayer_address + 0x174 + 0x18);
+}
+
+void FpsControls::CheckBeamVisorSetting(Game game, Region region)
+{
+  if (region == Region::NTSC_J || game == Game::PRIME_3_STANDALONE)
+    return;
+
+  bool beam,visor;
+  std::tie<bool, bool>(beam, visor) = GetMenuOptions();
+  u32 beam_address = 0, visor_address  = 0,
+    beam_value = 0, visor_value = 0;
+
+  switch (game) {
+  case Game::PRIME_1: {
+    if (region == Region::NTSC_U) {
+      beam_value = beam ?  0x4BFFFCBD: 0x60000000;
+      visor_value = visor ? 0x4BFFFCD5 : 0x60000000;
+      beam_address = 0x80075F24;
+      visor_address = 0x80075F0C;
+    }
+    else if (region == Region::PAL) {
+      beam_value = beam ?  0x4BFFFCD5: 0x60000000;
+      visor_value = visor ? 0x4BFFFCBD : 0x60000000;
+      beam_address = 0x80075F74;
+      visor_address = 0x80075F8C;
+    }
+    else {} // NTSC-J
+    break;
+  }
+  case Game::PRIME_2: {
+    if (region == Region::NTSC_U) {
+      beam_value = beam ?  0x4BFFFC7D: 0x60000000;
+      visor_value = visor ? 0x4BFFFC99 : 0x60000000;
+      beam_address = 0x8006FDE0;
+      visor_address = 0x8006FDC4;
+    }
+    else if (region == Region::PAL) {
+      beam_value = beam ?  0x4BFFFC7D: 0x60000000;
+      visor_value = visor ? 0x4BFFFC99 : 0x60000000;
+      beam_address = 0x80071358;
+      visor_address = 0x8007133C;
+    }
+    else {} // NTSC-J
+    break;
+  }
+  case Game::PRIME_3: {
+    // NTSC and PAL are the same here. Seriously, I double checked.
+    visor_value = visor ? 0x41820018 : 0x48000018;
+    visor_address = 0x800614EC;
+    break;
+  }
+  case Game::PRIME_3_STANDALONE: {
+    if (region == Region::NTSC_U) {
+
+    }
+    else if (region == Region::PAL) {
+
+    }
+    else {} // NSTC-J
+  }
+  }
+
+  if (game != Game::PRIME_3 && game != Game::PRIME_3_STANDALONE) {
+    if (read32(beam_address) != beam_value) {
+      write_invalidate(beam_address, beam_value);
+    }
+  }
+
+  if (read32(visor_address) != visor_value) {
+    write_invalidate(visor_address, visor_value);
+  }
 }
 
 void FpsControls::init_mod(Game game, Region region) {
@@ -1042,8 +1173,6 @@ void FpsControls::init_mod_mp1(Region region) {
     code_changes.emplace_back(0x802fb5b4, 0xd23f009c);
     code_changes.emplace_back(0x8019fbcc, 0x60000000);
 
-    // Disable Beams/Visor Menu, conditional -> unconditional branch
-    code_changes.emplace_back(0x80075cd0, 0x48000044);
     add_beam_change_code_mp1(0x8018e544);
 
     mp1_static.yaw_vel_address = 0x804d3d38;
@@ -1056,6 +1185,9 @@ void FpsControls::init_mod_mp1(Region region) {
     mp1_static.cplayer_address = 0x804d3c20;
     mp1_static.object_list_ptr_address = 0x804bfc30;
     mp1_static.camera_uid_address = 0x804c4a08;
+    mp1_static.beamvisor_menu_address = 0x805c28b0;
+    mp1_static.cursor_base_address = 0x805c28a8;
+    mp1_static.cursor_offset = 0xC54;
     powerups_ptr_address = 0x804bfcd4;
   } else if (region == Region::PAL) {
     // Same as NTSC but slightly offset
@@ -1067,7 +1199,6 @@ void FpsControls::init_mod_mp1(Region region) {
     code_changes.emplace_back(0x802fb84c, 0xd23f009c);
     code_changes.emplace_back(0x8019fe64, 0x60000000);
 
-    code_changes.emplace_back(0x80075d38, 0x48000044);
     add_beam_change_code_mp1(0x8018e7dc);
 
     mp1_static.yaw_vel_address = 0x804d7c78;
@@ -1080,6 +1211,9 @@ void FpsControls::init_mod_mp1(Region region) {
     mp1_static.cplayer_address = 0x804d7b60;
     mp1_static.object_list_ptr_address = 0x804c3b70;
     mp1_static.camera_uid_address = 0x804c8948;
+    mp1_static.beamvisor_menu_address = 0x805C6C34;
+    mp1_static.cursor_base_address = 0x805C6C2C;
+    mp1_static.cursor_offset = 0xD04;
     powerups_ptr_address = 0x804c3c14;
   } else { // region == Region::NTSC-J
     // Same as NTSC but slightly offset
@@ -1177,13 +1311,14 @@ void FpsControls::init_mod_mp2(Region region) {
     code_changes.emplace_back(0x80169dbc, 0x60000000);
     code_changes.emplace_back(0x80143d00, 0x48000050);
 
-    // Remove Beams/Visors Menu
-    code_changes.emplace_back(0x8006fb58, 0x48000044);
     add_beam_change_code_mp2(0x8018cc88);
 
     mp2_static.cplayer_ptr_address = 0x804e87dc;
     mp2_static.load_state_address = 0x804e8824;
     mp2_static.lockon_address = 0x804e894f;
+    mp2_static.cursor_base_address = 0x805CB2C8;
+    mp2_static.cursor_offset = 0xC54;
+    mp2_static.beamvisor_menu_address = 0x805CB314;
   } else if (region == Region::PAL) {
     code_changes.emplace_back(0x8008e30c, 0xc0430184);
     code_changes.emplace_back(0x8008e360, 0x60000000);
@@ -1196,13 +1331,14 @@ void FpsControls::init_mod_mp2(Region region) {
     code_changes.emplace_back(0x8016b534, 0x60000000);
     code_changes.emplace_back(0x80145474, 0x48000050);
 
-    // Remove Beams/Visors Menu
-    code_changes.emplace_back(0x800710d0, 0x48000044);
     add_beam_change_code_mp2(0x8018e41c);
 
     mp2_static.cplayer_ptr_address = 0x804efc2c;
     mp2_static.load_state_address = 0x804efc74;
     mp2_static.lockon_address = 0x804efd9f;
+    mp2_static.cursor_base_address = 0x805D2D30;
+    mp2_static.cursor_offset = 0xd04;
+    mp2_static.beamvisor_menu_address = 0x805D2D80;
   } else if (region == Region::NTSC_J) {
     code_changes.emplace_back(0x8008c944, 0xc0430184);
     code_changes.emplace_back(0x8008c998, 0x60000000);
@@ -1294,6 +1430,7 @@ void FpsControls::init_mod_mp3(Region region) {
     mp3_static.boss_info_address = 0x8066e1ec;
     mp3_static.lockon_address = 0x805c6db7;
     mp3_static.gun_lag_toc_offset = 0x5ff0;
+    mp3_static.beamvisor_menu_address = 0x8066FCFC;
   } else if (region == Region::PAL) {
     code_changes.emplace_back(0x80080ab8, 0xec010072);
     code_changes.emplace_back(0x8014d9e0, 0x60000000);
@@ -1317,6 +1454,7 @@ void FpsControls::init_mod_mp3(Region region) {
     mp3_static.boss_info_address = 0x80671a6c;
     mp3_static.lockon_address = 0x805ca237;
     mp3_static.gun_lag_toc_offset = 0x6000;
+    mp3_static.beamvisor_menu_address = 0x8067357C;
   } else {}
 
   active_visor_offset = 0x34;
