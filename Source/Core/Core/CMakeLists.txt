@@ -41,6 +41,8 @@ add_library(core
   SyncIdentifier.h
   SysConf.cpp
   SysConf.h
+  System.cpp
+  System.h
   TitleDatabase.cpp
   TitleDatabase.h
   WiiRoot.cpp
