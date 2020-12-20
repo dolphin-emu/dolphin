@@ -52,7 +52,7 @@
 #include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/Uids.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -1521,8 +1521,8 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   if (m_dialog->IsRecording())
   {
-    if (Movie::IsReadOnly())
-      Movie::SetReadOnly(false);
+    if (InputRecorder::IsReadOnly())
+      InputRecorder::SetReadOnly(false);
 
     u8 controllers_mask = 0;
     for (unsigned int i = 0; i < 4; ++i)
@@ -1532,7 +1532,7 @@ bool NetPlayClient::StartGame(const std::string& path)
       if (m_wiimote_map[i] > 0)
         controllers_mask |= (1 << (i + 4));
     }
-    Movie::BeginRecordingInput(controllers_mask);
+    InputRecorder::BeginRecordingInput(controllers_mask);
   }
 
   for (unsigned int i = 0; i < 4; ++i)
@@ -1926,14 +1926,14 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
 
   m_pad_buffer[pad_nb].Pop(*pad_status);
 
-  if (Movie::IsRecordingInput())
+  if (InputRecorder::IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, pad_nb);
-    Movie::InputUpdate();
+    InputRecorder::RecordInput(pad_status, pad_nb);
+    InputRecorder::InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, pad_nb);
+    InputRecorder::CheckPadStatus(pad_status, pad_nb);
   }
 
   return true;

@@ -24,7 +24,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 
 #include "DiscIO/Enums.h"
 
@@ -830,11 +830,11 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
-  // Movie's frame counter should be updated before actually rendering the frame,
+  // Input Recorder's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
   if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
-    Movie::FrameUpdate();
+    InputRecorder::FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment

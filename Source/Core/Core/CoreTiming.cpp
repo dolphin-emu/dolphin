@@ -261,7 +261,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     {
       ERROR_LOG_FMT(POWERPC,
                     "Someone scheduled an off-thread \"{}\" event while netplay or "
-                    "movie play/record was active.  This is likely to cause a desync.",
+                    "input play/record was active.  This is likely to cause a desync.",
                     *event_type->name);
     }
 

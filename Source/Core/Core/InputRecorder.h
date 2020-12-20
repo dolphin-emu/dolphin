@@ -28,9 +28,9 @@ namespace WiimoteEmu
 class EncryptionKey;
 }
 
-// Per-(video )Movie actions
+// Per input track actions
 
-namespace Movie
+namespace InputRecorder
 {
 // Enumerations and structs
 enum PlayMode
@@ -60,17 +60,17 @@ struct ControllerState
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
-// When making changes to the DTM format, keep in mind that there are programs other
-// than Dolphin that parse DTM files. The format is expected to be relatively stable.
+// When making changes to the DIT format, keep in mind that there are programs other
+// than Dolphin that parse DIT files. The format is expected to be relatively stable.
 #pragma pack(push, 1)
-struct DTMHeader
+struct DITHeader
 {
   std::string_view GetGameID() const
   {
     return {gameID.data(), strnlen(gameID.data(), gameID.size())};
   }
 
-  std::array<u8, 4> filetype;  // Unique Identifier (always "DTM"0x1A)
+  std::array<u8, 4> filetype;  // Unique Identifier (always "DTM"0x1A) // INREC-TODO
 
   std::array<char, 6> gameID;  // The Game ID
   bool bWii;                   // Wii game
@@ -108,7 +108,7 @@ struct DTMHeader
   bool bImmediateXFB;
   bool bSkipXFBCopyToRam;
   u8 memcards;      // Memcards inserted (from least to most significant, the bits are slot A and B)
-  bool bClearSave;  // Create a new memory card when playing back a movie if true
+  bool bClearSave;  // Create a new memory card when playing back an input track if true
   u8 bongos;        // Bongos plugged in (from least to most significant, the bits are ports 1-4)
   bool bSyncGPU;
   bool bNetPlay;
@@ -124,7 +124,7 @@ struct DTMHeader
   u64 tickCount;                 // Number of ticks in the recording
   std::array<u8, 11> reserved2;  // Make heading 256 bytes, just because we can
 };
-static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
+static_assert(sizeof(DITHeader) == 256, "DITHeader should be 256 bytes");
 
 #pragma pack(pop)
 
@@ -138,8 +138,8 @@ bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
 bool IsJustStartingRecordingInputFromSaveState();
 bool IsJustStartingPlayingInputFromSaveState();
-bool IsPlayingInput();
-bool IsMovieActive();
+bool IsPlayingInputTrack();
+bool IsInputRecorderActive();
 bool IsReadOnly();
 u64 GetRecordingStartTime();
 
@@ -172,14 +172,14 @@ bool BeginRecordingInput(int controllers);
 void RecordInput(const GCPadStatus* PadStatus, int controllerID);
 void RecordWiimote(int wiimote, const u8* data, u8 size);
 
-bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
-void LoadInput(const std::string& movie_path);
+bool PlayInputTrack(const std::string& inputtrack_path, std::optional<std::string>* savestate_path);
+void LoadInputTrack(const std::string& inputtrack_path);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
                  const WiimoteEmu::EncryptionKey& key);
 void EndPlayInput(bool cont);
-void SaveRecording(const std::string& filename);
+void SaveRecordedInputTrack(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
 void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
@@ -199,4 +199,4 @@ void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(WiimoteCommon::DataReportBuilder& rpt, int controllerID, int ext,
                        const WiimoteEmu::EncryptionKey& key);
-}  // namespace Movie
+}  // namespace InputRecorder

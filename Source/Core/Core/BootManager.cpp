@@ -42,7 +42,7 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
@@ -320,8 +320,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
-  // Movie settings
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+  // Input Recorder settings
+  if (InputRecorder::IsPlayingInputTrack() && InputRecorder::IsConfigSaved())
   {
     // TODO: remove this once ConfigManager starts using OnionConfig.
     StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
@@ -334,16 +334,17 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       StartUp.SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
     for (int i = 0; i < 2; ++i)
     {
-      if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+      if (InputRecorder::IsUsingMemcard(i) && InputRecorder::IsStartingFromClearSave() &&
+          !StartUp.bWii)
       {
         const auto raw_path =
-            File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", (i == 0) ? 'A' : 'B');
+            File::GetUserPath(D_GCUSER_IDX) + fmt::format("InputTrack{}.raw", (i == 0) ? 'A' : 'B');
         if (File::Exists(raw_path))
           File::Delete(raw_path);
 
-        const auto movie_path = File::GetUserPath(D_GCUSER_IDX) + "Movie";
-        if (File::Exists(movie_path))
-          File::DeleteDirRecursively(movie_path);
+        const auto inputtrack_path = File::GetUserPath(D_GCUSER_IDX) + "InputTrack";
+        if (File::Exists(inputtrack_path))
+          File::DeleteDirRecursively(inputtrack_path);
       }
     }
   }
@@ -458,7 +459,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 // a bad idea to just always overwrite it with the settings from the base layer.
 //
 // Conversely, we also shouldn't just accept any changes to SYSCONF, as it may cause
-// temporary settings (from Movie, Netplay, game INIs, etc.) to stick around.
+// temporary settings (from Input Recorder, Netplay, game INIs, etc.) to stick around.
 //
 // To avoid inconveniences in most cases, we accept changes that aren't being overriden by a
 // non-base layer, and restore only the overriden settings.
@@ -489,7 +490,7 @@ void RestoreConfig()
   Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
   RestoreSYSCONF();
   Config::ClearCurrentRunLayer();
-  Config::RemoveLayer(Config::LayerType::Movie);
+  Config::RemoveLayer(Config::LayerType::InputRecorder);
   Config::RemoveLayer(Config::LayerType::Netplay);
   Config::RemoveLayer(Config::LayerType::GlobalGame);
   Config::RemoveLayer(Config::LayerType::LocalGame);

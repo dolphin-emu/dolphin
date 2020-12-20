@@ -10,7 +10,7 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -28,8 +28,8 @@ static bool IsVSyncActive(bool enabled)
 
 void UpdateActiveConfig()
 {
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
-    Movie::SetGraphicsConfig();
+  if (InputRecorder::IsPlayingInputTrack() && InputRecorder::IsConfigSaved())
+    InputRecorder::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
   g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
 }

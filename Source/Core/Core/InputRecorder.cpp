@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 
 #include <algorithm>
 #include <array>
@@ -37,7 +37,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/ConfigLoaders/MovieConfigLoader.h"
+#include "Core/ConfigLoaders/InputRecorderConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -70,10 +70,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-// The chunk to allocate movie data in multiples of.
-#define DTM_BASE_LENGTH (1024)
+// The chunk to allocate input data in multiples of.
+#define DIT_BASE_LENGTH (1024)
 
-namespace Movie
+namespace InputRecorder
 {
 using namespace WiimoteCommon;
 using namespace WiimoteEmu;
@@ -84,7 +84,7 @@ static PlayMode s_playMode = MODE_NONE;
 
 static u8 s_controllers = 0;
 static ControllerState s_padState;
-static DTMHeader tmpHeader;
+static DITHeader tmpHeader;
 static std::vector<u8> s_temp_input;
 static u64 s_currentByte = 0;
 static u64 s_currentFrame = 0, s_totalFrames = 0;  // VI
@@ -118,7 +118,7 @@ static WiiManipFunction s_wii_manip_func;
 static std::string s_current_file_name;
 
 static void GetSettings();
-static bool IsMovieHeader(const std::array<u8, 4>& magic)
+static bool IsInputTrackHeader(const std::array<u8, 4>& magic)
 {
   return magic[0] == 'D' && magic[1] == 'T' && magic[2] == 'M' && magic[3] == 0x1A;
 }
@@ -130,7 +130,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
   if (revision.size() % 2 == 0 && std::all_of(revision.begin(), revision.end(), ::isxdigit))
   {
     // The revision string normally contains a git commit hash,
-    // which is 40 hexadecimal digits long. In DTM files, each pair of
+    // which is 40 hexadecimal digits long. In DIT files, each pair of
     // hexadecimal digits is stored as one byte, for a total of 20 bytes.
     size_t bytes_to_write = std::min(revision.size() / 2, revision_bytes.size());
     unsigned int temp;
@@ -144,7 +144,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
   {
     // If the revision string for some reason doesn't only contain hexadecimal digit
     // pairs, we instead copy the string with no conversion. This probably doesn't match
-    // the intended design of the DTM format, but it's the most sensible fallback.
+    // the intended design of the DIT format, but it's the most sensible fallback.
     size_t bytes_to_write = std::min(revision.size(), revision_bytes.size());
     std::copy_n(std::begin(revision), bytes_to_write, std::begin(revision_bytes));
   }
@@ -155,7 +155,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
 // NOTE: GPU Thread
 std::string GetInputDisplay()
 {
-  if (!IsMovieActive())
+  if (!IsInputRecorderActive())
   {
     s_controllers = 0;
     for (int i = 0; i < 4; ++i)
@@ -210,8 +210,8 @@ void FrameUpdate()
 static void CheckMD5();
 static void GetMD5();
 
-// called when game is booting up, even if no movie is active,
-// but potentially after BeginRecordingInput or PlayInput has been called.
+// called when game is booting up, even if input recorder isn't active,
+// but potentially after BeginRecordingInput or PlayInputTrack has been called.
 // NOTE: EmuThread
 void Init(const BootParameters& boot)
 {
@@ -222,7 +222,7 @@ void Init(const BootParameters& boot)
 
   s_bPolled = false;
   s_bSaveConfig = false;
-  if (IsPlayingInput())
+  if (IsPlayingInputTrack())
   {
     ReadHeader();
     std::thread md5thread(CheckMD5);
@@ -248,7 +248,7 @@ void Init(const BootParameters& boot)
   for (auto& disp : s_InputDisplay)
     disp.clear();
 
-  if (!IsMovieActive())
+  if (!IsInputRecorderActive())
   {
     s_bRecordingFromSaveState = false;
     s_rerecords = 0;
@@ -303,15 +303,15 @@ bool IsJustStartingRecordingInputFromSaveState()
 
 bool IsJustStartingPlayingInputFromSaveState()
 {
-  return IsRecordingInputFromSaveState() && s_currentFrame == 1 && IsPlayingInput();
+  return IsRecordingInputFromSaveState() && s_currentFrame == 1 && IsPlayingInputTrack();
 }
 
-bool IsPlayingInput()
+bool IsPlayingInputTrack()
 {
   return (s_playMode == MODE_PLAYING);
 }
 
-bool IsMovieActive()
+bool IsInputRecorderActive()
 {
   return s_playMode != MODE_NONE;
 }
@@ -363,16 +363,17 @@ void SetClearSave(bool enabled)
 
 void SignalDiscChange(const std::string& new_path)
 {
-  if (Movie::IsRecordingInput())
+  if (InputRecorder::IsRecordingInput())
   {
     size_t size_of_path_without_filename = new_path.find_last_of("/\\") + 1;
     std::string filename = new_path.substr(size_of_path_without_filename);
-    constexpr size_t maximum_length = sizeof(DTMHeader::discChange);
+    constexpr size_t maximum_length = sizeof(DITHeader::discChange);
     if (filename.length() > maximum_length)
     {
-      PanicAlertFmtT("The disc change to \"{0}\" could not be saved in the .dtm file.\n"
-                     "The filename of the disc image must not be longer than 40 characters.",
-                     filename);
+      PanicAlertFmtT(
+          "The disc change to \"{0}\" could not be saved in the .dtm file.\n"  // INREC-TODO
+          "The filename of the disc image must not be longer than 40 characters.",
+          filename);
     }
     s_discChange = filename;
     s_bDiscChange = true;
@@ -521,7 +522,7 @@ bool BeginRecordingInput(int controllers)
 
     if (Core::IsRunningAndStarted())
     {
-      const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+      const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";  // INREC-TODO
       if (File::Exists(save_path))
         File::Delete(save_path);
 
@@ -541,7 +542,7 @@ bool BeginRecordingInput(int controllers)
     }
 
     s_playMode = MODE_RECORDING;
-    s_author = SConfig::GetInstance().m_strMovieAuthor;
+    s_author = SConfig::GetInstance().m_strInputTrackAuthor;
     s_temp_input.clear();
 
     s_currentByte = 0;
@@ -550,7 +551,7 @@ bool BeginRecordingInput(int controllers)
       Core::UpdateWantDeterminism();
   });
 
-  Core::DisplayMessage("Starting movie recording", 2000);
+  Core::DisplayMessage("Starting input recording", 2000);
   return true;
 }
 
@@ -853,7 +854,7 @@ void ReadHeader()
   if (tmpHeader.bSaveConfig)
   {
     s_bSaveConfig = true;
-    Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&tmpHeader));
+    Config::AddLayer(ConfigLoaders::GenerateInputRecorderConfigLoader(&tmpHeader));
     SConfig::GetInstance().bJITFollowBranch = tmpHeader.bFollowBranch;
     s_bClearSave = tmpHeader.bClearSave;
     s_memcards = tmpHeader.memcards;
@@ -874,16 +875,16 @@ void ReadHeader()
 }
 
 // NOTE: Host Thread
-bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path)
+bool PlayInputTrack(const std::string& inputtrack_path, std::optional<std::string>* savestate_path)
 {
   if (s_playMode != MODE_NONE)
     return false;
 
-  File::IOFile recording_file(movie_path, "rb");
+  File::IOFile recording_file(inputtrack_path, "rb");
   if (!recording_file.ReadArray(&tmpHeader, 1))
     return false;
 
-  if (!IsMovieHeader(tmpHeader.filetype))
+  if (!IsInputTrackHeader(tmpHeader.filetype))
   {
     PanicAlertFmtT("Invalid recording file");
     return false;
@@ -913,11 +914,11 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   // Load savestate (and skip to frame data)
   if (tmpHeader.bFromSaveState && savestate_path)
   {
-    const std::string savestate_path_temp = movie_path + ".sav";
+    const std::string savestate_path_temp = inputtrack_path + ".sav";
     if (File::Exists(savestate_path_temp))
       *savestate_path = savestate_path_temp;
     s_bRecordingFromSaveState = true;
-    Movie::LoadInput(movie_path);
+    InputRecorder::LoadInputTrack(inputtrack_path);
   }
 
   return true;
@@ -925,33 +926,34 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 
 void DoState(PointerWrap& p)
 {
-  // many of these could be useful to save even when no movie is active,
-  // and the data is tiny, so let's just save it regardless of movie state.
+  // many of these could be useful to save even when input recorder isn't active,
+  // and the data is tiny, so let's just save it regardless of input track state.
   p.Do(s_currentFrame);
   p.Do(s_currentByte);
   p.Do(s_currentLagCount);
   p.Do(s_currentInputCount);
   p.Do(s_bPolled);
   p.Do(s_tickCountAtLastInput);
-  // other variables (such as s_totalBytes and s_totalFrames) are set in LoadInput
+  // other variables (such as s_totalBytes and s_totalFrames) are set in LoadInputTrack
 }
 
 // NOTE: Host Thread
-void LoadInput(const std::string& movie_path)
+void LoadInputTrack(const std::string& inputtrack_path)
 {
   File::IOFile t_record;
-  if (!t_record.Open(movie_path, "r+b"))
+  if (!t_record.Open(inputtrack_path, "r+b"))
   {
-    PanicAlertFmtT("Failed to read {0}", movie_path);
+    PanicAlertFmtT("Failed to read {0}", inputtrack_path);
     EndPlayInput(false);
     return;
   }
 
   t_record.ReadArray(&tmpHeader, 1);
 
-  if (!IsMovieHeader(tmpHeader.filetype))
+  if (!IsInputTrackHeader(tmpHeader.filetype))
   {
-    PanicAlertFmtT("Savestate movie {0} is corrupted, movie recording stopping...", movie_path);
+    PanicAlertFmtT("Savestate input track {0} is corrupted, stopping recording input...",
+                   inputtrack_path);
     EndPlayInput(false);
     return;
   }
@@ -971,11 +973,12 @@ void LoadInput(const std::string& movie_path)
   u64 totalSavedBytes = t_record.GetSize() - 256;
 
   bool afterEnd = false;
-  // This can only happen if the user manually deletes data from the dtm.
+  // This can only happen if the user manually deletes data from the input track file (.dtm) //
+  // INREC-TODO
   if (s_currentByte > totalSavedBytes)
   {
     PanicAlertFmtT(
-        "Warning: You loaded a save whose movie ends before the current frame in the save "
+        "Warning: You loaded a save whose input track ends before the current frame in the save "
         "(byte {0} < {1}) (frame {2} < {3}). You should load another save before continuing.",
         totalSavedBytes + 256, s_currentByte + 256, tmpHeader.frameCount, s_currentFrame);
     afterEnd = true;
@@ -1000,14 +1003,14 @@ void LoadInput(const std::string& movie_path)
     {
       afterEnd = true;
       PanicAlertFmtT(
-          "Warning: You loaded a save that's after the end of the current movie. (byte {0} "
+          "Warning: You loaded a save that's after the end of the current input track. (byte {0} "
           "> {1}) (input {2} > {3}). You should load another save before continuing, or load "
           "this state with read-only mode off.",
           s_currentByte + 256, s_temp_input.size() + 256, s_currentInputCount, s_totalInputCount);
     }
     else if (s_currentByte > 0 && !s_temp_input.empty())
     {
-      // verify identical from movie start to the save's current frame
+      // verify identical from input track start to the save's current frame
       std::vector<u8> movInput(s_currentByte);
       t_record.ReadArray(movInput.data(), movInput.size());
 
@@ -1022,13 +1025,14 @@ void LoadInput(const std::string& movie_path)
         // believe us.
         if (IsUsingWiimote(0))
         {
-          const size_t byte_offset = static_cast<size_t>(mismatch_index) + sizeof(DTMHeader);
+          const size_t byte_offset = static_cast<size_t>(mismatch_index) + sizeof(DITHeader);
 
           // TODO: more detail
-          PanicAlertFmtT("Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). "
-                         "You should load another save before continuing, or load this state with "
-                         "read-only mode off. Otherwise you'll probably get a desync.",
-                         byte_offset, byte_offset);
+          PanicAlertFmtT(
+              "Warning: You loaded a save whose input track mismatches on byte {0} ({1:#x}). "
+              "You should load another save before continuing, or load this state with "
+              "read-only mode off. Otherwise you'll probably get a desync.",
+              byte_offset, byte_offset);
 
           std::copy(movInput.begin(), movInput.end(), s_temp_input.begin());
         }
@@ -1042,17 +1046,19 @@ void LoadInput(const std::string& movie_path)
           memcpy(&movPadState, &s_temp_input[frame * sizeof(ControllerState)],
                  sizeof(ControllerState));
           PanicAlertFmtT(
-              "Warning: You loaded a save whose movie mismatches on frame {0}. You should load "
+              "Warning: You loaded a save whose input track mismatches on frame {0}. You should "
+              "load "
               "another save before continuing, or load this state with read-only mode off. "
               "Otherwise you'll probably get a desync.\n\n"
-              "More information: The current movie is {1} frames long and the savestate's movie "
+              "More information: The current input track is {1} frames long and the savestate's "
+              "input track "
               "is {2} frames long.\n\n"
-              "On frame {3}, the current movie presses:\n"
+              "On frame {3}, the current input track presses:\n"
               "Start={4}, A={5}, B={6}, X={7}, Y={8}, Z={9}, DUp={10}, DDown={11}, DLeft={12}, "
               "DRight={13}, L={14}, R={15}, LT={16}, RT={17}, AnalogX={18}, AnalogY={19}, CX={20}, "
               "CY={21}, Connected={22}"
               "\n\n"
-              "On frame {23}, the savestate's movie presses:\n"
+              "On frame {23}, the savestate's input track presses:\n"
               "Start={24}, A={25}, B={26}, X={27}, Y={28}, Z={29}, DUp={30}, DDown={31}, "
               "DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
               "AnalogY={39}, CX={40}, CY={41}, Connected={42}",
@@ -1117,12 +1123,12 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
   // Correct playback is entirely dependent on the emulator polling the controllers
   // in the same order done during recording
-  if (!IsPlayingInput() || !IsUsingPad(controllerID) || s_temp_input.empty())
+  if (!IsPlayingInputTrack() || !IsUsingPad(controllerID) || s_temp_input.empty())
     return;
 
   if (s_currentByte + sizeof(ControllerState) > s_temp_input.size())
   {
-    PanicAlertFmtT("Premature movie end in PlayController. {0} + {1} > {2}", s_currentByte,
+    PanicAlertFmtT("Premature input track end in PlayController. {0} + {1} > {2}", s_currentByte,
                    sizeof(ControllerState), s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return;
@@ -1203,25 +1209,25 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
                  const EncryptionKey& key)
 {
-  if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || s_temp_input.empty())
+  if (!IsPlayingInputTrack() || !IsUsingWiimote(wiimote) || s_temp_input.empty())
     return false;
 
   if (s_currentByte > s_temp_input.size())
   {
-    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} > {1}", s_currentByte,
+    PanicAlertFmtT("Premature input track end in PlayWiimote. {0} > {1}", s_currentByte,
                    s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return false;
   }
 
   const u8 size = rpt.GetDataSize();
-  const u8 sizeInMovie = s_temp_input[s_currentByte];
+  const u8 sizeInInputTrack = s_temp_input[s_currentByte];
 
-  if (size != sizeInMovie)
+  if (size != sizeInInputTrack)
   {
     PanicAlertFmtT(
         "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte {2}.){3}",
-        sizeInMovie, size, s_currentByte,
+        sizeInInputTrack, size, s_currentByte,
         (s_controllers & 0xF) ? " Try re-creating the recording with all GameCube controllers "
                                 "disabled (in Configure > GameCube > Device Settings)." :
                                 "");
@@ -1233,7 +1239,7 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
 
   if (s_currentByte + size > s_temp_input.size())
   {
-    PanicAlertFmtT("Premature movie end in PlayWiimote. {0} + {1} > {2}", s_currentByte, size,
+    PanicAlertFmtT("Premature input track end in PlayWiimote. {0} + {1} > {2}", s_currentByte, size,
                    s_temp_input.size());
     EndPlayInput(!s_bReadOnly);
     return false;
@@ -1253,11 +1259,11 @@ void EndPlayInput(bool cont)
 {
   if (cont)
   {
-    // If !IsMovieActive(), changing s_playMode requires calling UpdateWantDeterminism
-    ASSERT(IsMovieActive());
+    // If !IsInputRecorderActive(), changing s_playMode requires calling UpdateWantDeterminism
+    ASSERT(IsInputRecorderActive());
 
     s_playMode = MODE_RECORDING;
-    Core::DisplayMessage("Reached movie end. Resuming recording.", 2000);
+    Core::DisplayMessage("Reached input track end. Resuming recording.", 2000);
   }
   else if (s_playMode != MODE_NONE)
   {
@@ -1268,29 +1274,26 @@ void EndPlayInput(bool cont)
     s_rerecords = 0;
     s_currentByte = 0;
     s_playMode = MODE_NONE;
-    Core::DisplayMessage("Movie End.", 2000);
+    Core::DisplayMessage("Input Track End.", 2000);
     s_bRecordingFromSaveState = false;
-    // we don't clear these things because otherwise we can't resume playback if we load a movie
-    // state later
-    // s_totalFrames = s_totalBytes = 0;
-    // delete tmpInput;
-    // tmpInput = nullptr;
+    // we don't clear these things because otherwise we can't resume playback if we load an input
+    // track state later s_totalFrames = s_totalBytes = 0; delete tmpInput; tmpInput = nullptr;
 
     Core::QueueHostJob([=] {
       Core::UpdateWantDeterminism();
-      if (was_running && !SConfig::GetInstance().m_PauseMovie)
+      if (was_running && !SConfig::GetInstance().m_PauseAtInputTrackEnd)  // INREC-TODO
         CPU::EnableStepping(false);
     });
   }
 }
 
 // NOTE: Save State + Host Thread
-void SaveRecording(const std::string& filename)
+void SaveRecordedInputTrack(const std::string& filename)
 {
   File::IOFile save_record(filename, "wb");
   // Create the real header now and write it
-  DTMHeader header;
-  memset(&header, 0, sizeof(DTMHeader));
+  DITHeader header;
+  memset(&header, 0, sizeof(DITHeader));
 
   header.filetype[0] = 'D';
   header.filetype[1] = 'T';
@@ -1309,7 +1312,7 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
-  ConfigLoaders::SaveToDTM(&header);
+  ConfigLoaders::SaveToDIT(&header);
   header.memcards = s_memcards;
   header.bClearSave = s_bClearSave;
   header.bNetPlay = s_bNetPlay;
@@ -1333,11 +1336,12 @@ void SaveRecording(const std::string& filename)
   if (success && s_bRecordingFromSaveState)
   {
     std::string stateFilename = filename + ".sav";
-    success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
+    success =
+        File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);  // INREC-TODO
   }
 
   if (success)
-    Core::DisplayMessage(fmt::format("DTM {} saved", filename), 2000);
+    Core::DisplayMessage(fmt::format("DIT {} saved", filename), 2000);
   else
     Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
 }
@@ -1398,7 +1402,7 @@ void GetSettings()
   {
     const auto gci_folder_has_saves = [](int card_index) {
       const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
-          card_index, ExpansionInterface::AllowMovieFolder::No);
+          card_index, ExpansionInterface::AllowInputRecorderFolder::No);
       const u64 number_of_saves = File::ScanDirectoryTree(path, false).size;
       return number_of_saves > 0;
     };
@@ -1494,4 +1498,4 @@ void Shutdown()
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
 }
-}  // namespace Movie
+}  // namespace InputRecorder

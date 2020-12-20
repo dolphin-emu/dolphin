@@ -182,7 +182,7 @@ USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers_, PressedKeyDat
 {
 }
 
-// TODO: support in netplay/movies.
+// TODO: support in netplay/input recorder.
 
 USB_KBD::USB_KBD(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {

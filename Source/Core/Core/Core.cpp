@@ -55,8 +55,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
+#include "Core/InputRecorder.h"
 #include "Core/MemTools.h"
-#include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
@@ -502,8 +502,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     g_controller_interface.Shutdown();
   }};
 
-  Movie::Init(*boot);
-  Common::ScopeGuard movie_guard{&Movie::Shutdown};
+  InputRecorder::Init(*boot);
+  Common::ScopeGuard inrec_guard{&InputRecorder::Shutdown};
 
   HW::Init();
 
@@ -910,16 +910,17 @@ void UpdateTitle()
                   g_video_backend->GetDisplayName(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
   std::string SFPS;
-  if (Movie::IsPlayingInput())
+  if (InputRecorder::IsPlayingInputTrack())
   {
     SFPS = fmt::format("Input: {}/{} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
-                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount(),
-                       Movie::GetCurrentFrame(), FPS, VPS, Speed);
+                       InputRecorder::GetCurrentInputCount(), InputRecorder::GetTotalInputCount(),
+                       InputRecorder::GetCurrentFrame(), FPS, VPS, Speed);
   }
-  else if (Movie::IsRecordingInput())
+  else if (InputRecorder::IsRecordingInput())
   {
     SFPS = fmt::format("Input: {} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
-                       Movie::GetCurrentInputCount(), Movie::GetCurrentFrame(), FPS, VPS, Speed);
+                       InputRecorder::GetCurrentInputCount(), InputRecorder::GetCurrentFrame(), FPS,
+                       VPS, Speed);
   }
   else
   {
@@ -992,7 +993,7 @@ void UpdateWantDeterminism(bool initial)
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
+  bool new_want_determinism = InputRecorder::IsInputRecorderActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");

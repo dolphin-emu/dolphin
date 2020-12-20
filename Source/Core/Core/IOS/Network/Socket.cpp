@@ -980,7 +980,7 @@ void WiiSockMan::AddPollCommand(const PollCommand& cmd)
 
 void WiiSockMan::UpdateWantDeterminism(bool want)
 {
-  // If we switched into movie recording, kill existing sockets.
+  // If we switched into input recording/playing, kill existing sockets.
   if (want)
     Clean();
 }

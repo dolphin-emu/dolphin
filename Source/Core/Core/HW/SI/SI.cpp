@@ -22,7 +22,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayProto.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -377,15 +377,15 @@ void Init()
     s_channel[i].in_lo.hex = 0;
     s_channel[i].has_recent_device_change = false;
 
-    if (Movie::IsMovieActive())
+    if (InputRecorder::IsInputRecorderActive())
     {
       s_desired_device_types[i] = SIDEVICE_NONE;
 
-      if (Movie::IsUsingPad(i))
+      if (InputRecorder::IsUsingPad(i))
       {
         SIDevices current = SConfig::GetInstance().m_SIDevice[i];
-        // GC pad-compatible devices can be used for both playing and recording
-        if (Movie::IsUsingBongo(i))
+        // GC pad-compatible devices can be used for both playing and recording input
+        if (InputRecorder::IsUsingBongo(i))
           s_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
         else if (SIDevice_IsGCController(current))
           s_desired_device_types[i] = current;

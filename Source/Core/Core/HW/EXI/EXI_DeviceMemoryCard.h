@@ -22,7 +22,7 @@ struct HeaderData;
 
 namespace ExpansionInterface
 {
-enum class AllowMovieFolder
+enum class AllowInputRecorderFolder
 {
   Yes,
   No,
@@ -49,7 +49,7 @@ public:
   static void Shutdown();
 
   static std::pair<std::string /* path */, bool /* migrate */>
-  GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
+  GetGCIFolderPath(int card_index, AllowInputRecorderFolder allow_inputrecorder_folder);
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);

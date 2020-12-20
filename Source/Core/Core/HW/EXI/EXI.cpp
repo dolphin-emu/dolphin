@@ -20,7 +20,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 
 #include "DiscIO/Enums.h"
 
@@ -42,9 +42,9 @@ namespace
 void AddMemoryCards(int i)
 {
   TEXIDevices memorycard_device;
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+  if (InputRecorder::IsPlayingInputTrack() && InputRecorder::IsConfigSaved())
   {
-    if (Movie::IsUsingMemcard(i))
+    if (InputRecorder::IsUsingMemcard(i))
     {
       if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARDFOLDER)
         memorycard_device = EXIDEVICE_MEMORYCARDFOLDER;

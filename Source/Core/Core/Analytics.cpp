@@ -28,7 +28,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
@@ -393,7 +393,7 @@ void DolphinAnalytics::MakePerGameBuilder()
 
   // NetPlay / recording.
   builder.AddData("netplay", NetPlay::IsNetPlayRunning());
-  builder.AddData("movie", Movie::IsMovieActive());
+  builder.AddData("movie", InputRecorder::IsInputRecorderActive());  // INREC-TODO
 
   // Controller information
   // We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind

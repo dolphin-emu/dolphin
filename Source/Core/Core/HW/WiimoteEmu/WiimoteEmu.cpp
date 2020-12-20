@@ -22,7 +22,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayClient.h"
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
@@ -434,7 +434,7 @@ void Wiimote::Update()
   StepDynamics();
 
   // Update buttons in the status struct which is sent in 99% of input reports.
-  // FYI: Movies only sync button updates in data reports.
+  // FYI: Input Recorder only syncs button updates in data reports.
   if (!Core::WantsDeterminism())
   {
     UpdateButtonsStatus();
@@ -475,7 +475,7 @@ void Wiimote::Update()
 
 void Wiimote::SendDataReport()
 {
-  Movie::SetPolledDevice();
+  InputRecorder::SetPolledDevice();
 
   if (InputReportID::ReportDisabled == m_reporting_mode)
   {
@@ -492,10 +492,11 @@ void Wiimote::SendDataReport()
 
   DataReportBuilder rpt_builder(m_reporting_mode);
 
-  if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey()))
+  if (InputRecorder::IsPlayingInputTrack() &&
+      InputRecorder::PlayWiimote(m_index, rpt_builder, m_active_extension,
+                                 GetExtensionEncryptionKey()))
   {
-    // Update buttons in status struct from movie:
+    // Update buttons in status struct from input track:
     rpt_builder.GetCoreData(&m_status.buttons);
   }
   else
@@ -570,7 +571,8 @@ void Wiimote::SendDataReport()
       }
     }
 
-    Movie::CallWiiInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
+    InputRecorder::CallWiiInputManip(rpt_builder, m_index, m_active_extension,
+                                     GetExtensionEncryptionKey());
   }
 
   if (NetPlay::IsNetPlayRunning())
@@ -582,7 +584,8 @@ void Wiimote::SendDataReport()
     rpt_builder.GetCoreData(&m_status.buttons);
   }
 
-  Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
+  InputRecorder::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension,
+                                    GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());

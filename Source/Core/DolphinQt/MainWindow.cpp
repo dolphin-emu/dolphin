@@ -51,7 +51,7 @@
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
@@ -194,7 +194,7 @@ static std::vector<std::string> StringListToStdVector(QStringList list)
 }
 
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
-                       const std::string& movie_path)
+                       const std::string& inputtrack_path)
     : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
@@ -231,10 +231,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   {
     m_pending_boot = std::move(boot_parameters);
 
-    if (!movie_path.empty())
+    if (!inputtrack_path.empty())
     {
-      if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
-        emit RecordingStatusChanged(true);
+      if (InputRecorder::PlayInputTrack(inputtrack_path, &m_pending_boot->savestate_path))
+        emit InputRecorderStatusChanged(true);
     }
   }
 
@@ -380,12 +380,12 @@ void MainWindow::CreateComponents()
     m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
 
-  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
+  InputRecorder::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
     m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
   });
 
-  Movie::SetWiiInputManip([this](WiimoteCommon::DataReportBuilder& rpt, int controller_id, int ext,
-                                 const WiimoteEmu::EncryptionKey& key) {
+  InputRecorder::SetWiiInputManip([this](WiimoteCommon::DataReportBuilder& rpt, int controller_id,
+                                         int ext, const WiimoteEmu::EncryptionKey& key) {
     m_wii_tas_input_windows[controller_id]->GetValues(rpt, ext, key);
   });
 
@@ -494,12 +494,13 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
-  // Movie
-  connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
-  connect(m_menu_bar, &MenuBar::StartRecording, this, &MainWindow::OnStartRecording);
-  connect(m_menu_bar, &MenuBar::StopRecording, this, &MainWindow::OnStopRecording);
-  connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
-  connect(m_menu_bar, &MenuBar::ShowTASInput, this, &MainWindow::ShowTASInput);
+  // Input Recorder
+  connect(m_menu_bar, &MenuBar::PlayRecordedInputTrack, this,
+          &MainWindow::OnPlayRecordedInputTrack);
+  connect(m_menu_bar, &MenuBar::StartRecordingInput, this, &MainWindow::OnStartRecordingInput);
+  connect(m_menu_bar, &MenuBar::StopInputRecorder, this, &MainWindow::OnStopInputRecorder);
+  connect(m_menu_bar, &MenuBar::SaveRecordedInput, this, &MainWindow::OnSaveRecordedInput);
+  connect(m_menu_bar, &MenuBar::ShowTASInputConfig, this, &MainWindow::ShowTASInputConfig);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
@@ -518,8 +519,10 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
 
   connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
-  connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
-  connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
+  connect(this, &MainWindow::InputRecorderReadOnlyModeChanged, m_menu_bar,
+          &MenuBar::InputRecorderReadOnlyModeChanged);
+  connect(this, &MainWindow::InputRecorderStatusChanged, m_menu_bar,
+          &MenuBar::InputRecorderStatusChanged);
 
   // Symbols
   connect(m_menu_bar, &MenuBar::NotifySymbolsUpdated, [this] {
@@ -563,15 +566,15 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::SetStateSlotHotkey, this,
           &MainWindow::SetStateSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
-          &MainWindow::OnStartRecording);
+          &MainWindow::OnStartRecordingInput);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
-          &MainWindow::OnExportRecording);
+          &MainWindow::OnSaveRecordedInput);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
           &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
-    bool read_only = !Movie::IsReadOnly();
-    Movie::SetReadOnly(read_only);
-    emit ReadOnlyModeChanged(read_only);
+    bool read_only = !InputRecorder::IsReadOnly();
+    InputRecorder::SetReadOnly(read_only);
+    emit InputRecorderReadOnlyModeChanged(read_only);
   });
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
@@ -837,7 +840,7 @@ bool MainWindow::RequestStop()
     }
   }
 
-  OnStopRecording();
+  OnStopInputRecorder();
   // TODO: Add Debugger shutdown
 
   if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
@@ -871,8 +874,8 @@ void MainWindow::ForceStop()
 
 void MainWindow::Reset()
 {
-  if (Movie::IsRecordingInput())
-    Movie::SetReset(true);
+  if (InputRecorder::IsRecordingInput())
+    InputRecorder::SetReset(true);
   ProcessorInterface::ResetButton_Tap();
 }
 
@@ -1582,41 +1585,42 @@ void MainWindow::OnImportNANDBackup()
   m_menu_bar->UpdateToolsMenu(Core::IsRunning());
 }
 
-void MainWindow::OnPlayRecording()
+void MainWindow::OnPlayRecordedInputTrack()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
+  QString dit_file =
+      QFileDialog::getOpenFileName(this, tr("Select the Input Track File"), QString(),
+                                   tr("Dolphin Input Track (*.dtm)"));  // INREC-TODO
 
-  if (dtm_file.isEmpty())
+  if (dit_file.isEmpty())
     return;
 
-  if (!Movie::IsReadOnly())
+  if (!InputRecorder::IsReadOnly())
   {
-    // let's make the read-only flag consistent at the start of a movie.
-    Movie::SetReadOnly(true);
-    emit ReadOnlyModeChanged(true);
+    // let's make the read-only flag consistent at the start of the input track.
+    InputRecorder::SetReadOnly(true);
+    emit InputRecorderReadOnlyModeChanged(true);
   }
 
   std::optional<std::string> savestate_path;
-  if (Movie::PlayInput(dtm_file.toStdString(), &savestate_path))
+  if (InputRecorder::PlayInputTrack(dit_file.toStdString(), &savestate_path))
   {
-    emit RecordingStatusChanged(true);
+    emit InputRecorderStatusChanged(true);
 
     Play(savestate_path);
   }
 }
 
-void MainWindow::OnStartRecording()
+void MainWindow::OnStartRecordingInput()
 {
-  if ((!Core::IsRunningAndStarted() && Core::IsRunning()) || Movie::IsRecordingInput() ||
-      Movie::IsPlayingInput())
+  if ((!Core::IsRunningAndStarted() && Core::IsRunning()) || InputRecorder::IsRecordingInput() ||
+      InputRecorder::IsPlayingInputTrack())
     return;
 
-  if (Movie::IsReadOnly())
+  if (InputRecorder::IsReadOnly())
   {
-    // The user just chose to record a movie, so that should take precedence
-    Movie::SetReadOnly(false);
-    emit ReadOnlyModeChanged(true);
+    // The user just chose to record input, so that should take precedence
+    InputRecorder::SetReadOnly(false);
+    emit InputRecorderReadOnlyModeChanged(true);
   }
 
   int controllers = 0;
@@ -1630,36 +1634,37 @@ void MainWindow::OnStartRecording()
       controllers |= (1 << (i + 4));
   }
 
-  if (Movie::BeginRecordingInput(controllers))
+  if (InputRecorder::BeginRecordingInput(controllers))
   {
-    emit RecordingStatusChanged(true);
+    emit InputRecorderStatusChanged(true);
 
     if (!Core::IsRunning())
       Play();
   }
 }
 
-void MainWindow::OnStopRecording()
+void MainWindow::OnStopInputRecorder()
 {
-  if (Movie::IsRecordingInput())
-    OnExportRecording();
-  if (Movie::IsMovieActive())
-    Movie::EndPlayInput(false);
-  emit RecordingStatusChanged(false);
+  if (InputRecorder::IsRecordingInput())
+    OnSaveRecordedInput();
+  if (InputRecorder::IsInputRecorderActive())
+    InputRecorder::EndPlayInput(false);
+  emit InputRecorderStatusChanged(false);
 }
 
-void MainWindow::OnExportRecording()
+void MainWindow::OnSaveRecordedInput()
 {
   bool was_paused = Core::GetState() == Core::State::Paused;
 
   if (!was_paused)
     Core::SetState(Core::State::Paused);
 
-  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
+  QString dit_file =
+      QFileDialog::getSaveFileName(this, tr("Select the Input Track File"), QString(),
+                                   tr("Dolphin Input Track (*.dtm)"));  // INREC-TODO
 
-  if (!dtm_file.isEmpty())
-    Movie::SaveRecording(dtm_file.toStdString());
+  if (!dit_file.isEmpty())
+    InputRecorder::SaveRecordedInputTrack(dit_file.toStdString());
 
   if (!was_paused)
     Core::SetState(Core::State::Running);
@@ -1678,7 +1683,7 @@ void MainWindow::OnRequestGolfControl()
     client->RequestGolfControl();
 }
 
-void MainWindow::ShowTASInput()
+void MainWindow::ShowTASInputConfig()
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {

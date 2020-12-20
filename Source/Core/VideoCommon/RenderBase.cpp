@@ -48,7 +48,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -516,9 +516,9 @@ void Renderer::DrawDebugText()
     ImGui::End();
   }
 
-  const bool show_movie_window =
+  const bool show_inputrecorder_window =
       config.m_ShowFrameCount | config.m_ShowLag | config.m_ShowInputDisplay | config.m_ShowRTC;
-  if (show_movie_window)
+  if (show_inputrecorder_window)
   {
     // Position under the FPS display.
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
@@ -527,23 +527,23 @@ void Renderer::DrawDebugText()
     ImGui::SetNextWindowSizeConstraints(
         ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
         ImGui::GetIO().DisplaySize);
-    if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
+    if (ImGui::Begin("Input Recorder", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
       if (config.m_ShowFrameCount)
       {
-        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
+        ImGui::Text("Frame: %" PRIu64, InputRecorder::GetCurrentFrame());
       }
-      if (Movie::IsPlayingInput())
+      if (InputRecorder::IsPlayingInputTrack())
       {
-        ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
-                    Movie::GetTotalInputCount());
+        ImGui::Text("Input: %" PRIu64 " / %" PRIu64, InputRecorder::GetCurrentInputCount(),
+                    InputRecorder::GetTotalInputCount());
       }
       if (SConfig::GetInstance().m_ShowLag)
-        ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
+        ImGui::Text("Lag: %" PRIu64 "\n", InputRecorder::GetCurrentLagCount());
       if (SConfig::GetInstance().m_ShowInputDisplay)
-        ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());
+        ImGui::TextUnformatted(InputRecorder::GetInputDisplay().c_str());
       if (SConfig::GetInstance().m_ShowRTC)
-        ImGui::TextUnformatted(Movie::GetRTCDisplay().c_str());
+        ImGui::TextUnformatted(InputRecorder::GetRTCDisplay().c_str());
     }
     ImGui::End();
   }

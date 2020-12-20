@@ -28,8 +28,8 @@ add_library(core
   LibusbUtils.h
   MemTools.cpp
   MemTools.h
-  Movie.cpp
-  Movie.h
+  InputRecorder.cpp
+  InputRecorder.h
   NetPlayClient.cpp
   NetPlayClient.h
   NetPlayServer.cpp
@@ -74,8 +74,8 @@ add_library(core
   ConfigLoaders/GameConfigLoader.h
   ConfigLoaders/IsSettingSaveable.cpp
   ConfigLoaders/IsSettingSaveable.h
-  ConfigLoaders/MovieConfigLoader.cpp
-  ConfigLoaders/MovieConfigLoader.h
+  ConfigLoaders/InputRecorderConfigLoader.cpp
+  ConfigLoaders/InputRecorderConfigLoader.h
   ConfigLoaders/NetPlayConfigLoader.cpp
   ConfigLoaders/NetPlayConfigLoader.h
   Debugger/Debugger_SymbolMap.cpp

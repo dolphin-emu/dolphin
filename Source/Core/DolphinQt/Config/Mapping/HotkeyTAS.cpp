@@ -21,7 +21,7 @@ void HotkeyTAS::CreateMainLayout()
   m_main_layout->addWidget(
       CreateGroupBox(tr("Frame Advance"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_FRAME_ADVANCE)));
   m_main_layout->addWidget(
-      CreateGroupBox(tr("Movie"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_MOVIE)));
+      CreateGroupBox(tr("Input Recorder"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_INPUT_RECORDER)));
 
   setLayout(m_main_layout);
 }

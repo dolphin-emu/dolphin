@@ -301,5 +301,5 @@ void SysConf::InsertDefaultEntries()
   AddEntry({Entry::Type::Long, "NET.CTPC", std::vector<u8>(4)});
   AddEntry({Entry::Type::Byte, "WWW.RST", {0}});
 
-  AddEntry({Entry::Type::ByteBool, "MPLS.MOVIE", {1}});
+  AddEntry({Entry::Type::ByteBool, "MPLS.MOVIE", {1}});  // INREC-TODO
 }

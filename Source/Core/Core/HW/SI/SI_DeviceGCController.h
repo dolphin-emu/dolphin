@@ -107,7 +107,7 @@ public:
   static void Rumble(int pad_num, ControlState strength);
 
 protected:
-  void HandleMoviePadStatus(GCPadStatus* pad_status);
+  void HandleInputRecorderPadStatus(GCPadStatus* pad_status);
   void SetOrigin(const GCPadStatus& pad_status);
 };
 

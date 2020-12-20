@@ -16,7 +16,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -113,27 +113,27 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleInputRecorderPadStatus(GCPadStatus* pad_status)
 {
-  Movie::CallGCInputManip(pad_status, m_device_number);
+  InputRecorder::CallGCInputManip(pad_status, m_device_number);
 
-  Movie::SetPolledDevice();
+  InputRecorder::SetPolledDevice();
   if (NetPlay_GetInput(m_device_number, pad_status))
   {
   }
-  else if (Movie::IsPlayingInput())
+  else if (InputRecorder::IsPlayingInputTrack())
   {
-    Movie::PlayController(pad_status, m_device_number);
-    Movie::InputUpdate();
+    InputRecorder::PlayController(pad_status, m_device_number);
+    InputRecorder::InputUpdate();
   }
-  else if (Movie::IsRecordingInput())
+  else if (InputRecorder::IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, m_device_number);
-    Movie::InputUpdate();
+    InputRecorder::RecordInput(pad_status, m_device_number);
+    InputRecorder::InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, m_device_number);
+    InputRecorder::CheckPadStatus(pad_status, m_device_number);
   }
 }
 
@@ -148,7 +148,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
     pad_status = Pad::GetStatus(m_device_number);
   }
 
-  HandleMoviePadStatus(&pad_status);
+  HandleInputRecorderPadStatus(&pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.

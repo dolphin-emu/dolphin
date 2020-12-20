@@ -89,7 +89,7 @@ void SConfig::SaveSettings()
   SaveInterfaceSettings(ini);
   SaveGameListSettings(ini);
   SaveCoreSettings(ini);
-  SaveMovieSettings(ini);
+  SaveInputRecorderSettings(ini);
   SaveDSPSettings(ini);
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
@@ -249,16 +249,16 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CustomRTCValue", m_customRTCValue);
 }
 
-void SConfig::SaveMovieSettings(IniFile& ini)
+void SConfig::SaveInputRecorderSettings(IniFile& ini)
 {
-  IniFile::Section* movie = ini.GetOrCreateSection("Movie");
+  IniFile::Section* inputrec = ini.GetOrCreateSection("Movie");  // INREC-TODO
 
-  movie->Set("PauseMovie", m_PauseMovie);
-  movie->Set("Author", m_strMovieAuthor);
-  movie->Set("DumpFrames", m_DumpFrames);
-  movie->Set("DumpFramesSilent", m_DumpFramesSilent);
-  movie->Set("ShowInputDisplay", m_ShowInputDisplay);
-  movie->Set("ShowRTC", m_ShowRTC);
+  inputrec->Set("PauseMovie", m_PauseAtInputTrackEnd);  // INREC-TODO
+  inputrec->Set("Author", m_strInputTrackAuthor);       // INREC-TODO
+  inputrec->Set("DumpFrames", m_DumpFrames);
+  inputrec->Set("DumpFramesSilent", m_DumpFramesSilent);
+  inputrec->Set("ShowInputDisplay", m_ShowInputDisplay);
+  inputrec->Set("ShowRTC", m_ShowRTC);
 }
 
 void SConfig::SaveDSPSettings(IniFile& ini)
@@ -352,7 +352,7 @@ void SConfig::LoadSettings()
   LoadInterfaceSettings(ini);
   LoadGameListSettings(ini);
   LoadCoreSettings(ini);
-  LoadMovieSettings(ini);
+  LoadInputRecorderSettings(ini);
   LoadDSPSettings(ini);
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
@@ -517,16 +517,16 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
 }
 
-void SConfig::LoadMovieSettings(IniFile& ini)
+void SConfig::LoadInputRecorderSettings(IniFile& ini)
 {
-  IniFile::Section* movie = ini.GetOrCreateSection("Movie");
+  IniFile::Section* inputrec = ini.GetOrCreateSection("Movie");  // INREC-TODO
 
-  movie->Get("PauseMovie", &m_PauseMovie, false);
-  movie->Get("Author", &m_strMovieAuthor, "");
-  movie->Get("DumpFrames", &m_DumpFrames, false);
-  movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
-  movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
-  movie->Get("ShowRTC", &m_ShowRTC, false);
+  inputrec->Get("PauseMovie", &m_PauseAtInputTrackEnd, false);  // INREC-TODO
+  inputrec->Get("Author", &m_strInputTrackAuthor, "");          // INREC-TODO
+  inputrec->Get("DumpFrames", &m_DumpFrames, false);
+  inputrec->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
+  inputrec->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
+  inputrec->Get("ShowRTC", &m_ShowRTC, false);
 }
 
 void SConfig::LoadDSPSettings(IniFile& ini)

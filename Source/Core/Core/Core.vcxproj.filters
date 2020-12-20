@@ -181,7 +181,7 @@
     <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="LibusbUtils.cpp" />
     <ClCompile Include="MemTools.cpp" />
-    <ClCompile Include="Movie.cpp" />
+    <ClCompile Include="InputRecorder.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
@@ -867,7 +867,7 @@
     <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp">
+    <ClCompile Include="ConfigLoaders\InputRecorderConfigLoader.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp">
@@ -1016,7 +1016,7 @@
     <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="LibusbUtils.h" />
     <ClInclude Include="MemTools.h" />
-    <ClInclude Include="Movie.h" />
+    <ClInclude Include="InputRecorder.h" />
     <ClInclude Include="NetPlayClient.h" />
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
@@ -1660,7 +1660,7 @@
     <ClInclude Include="ConfigLoaders\GameConfigLoader.h">
       <Filter>ConfigLoader</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h">
+    <ClInclude Include="ConfigLoaders\InputRecorderConfigLoader.h">
       <Filter>ConfigLoader</Filter>
     </ClInclude>
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h">

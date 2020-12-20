@@ -33,7 +33,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "DiscIO/Enums.h"
 
 namespace ExpansionInterface
@@ -150,7 +150,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
 }
 
 std::pair<std::string /* path */, bool /* migrate */>
-CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder)
+CEXIMemoryCard::GetGCIFolderPath(int card_index,
+                                 AllowInputRecorderFolder allow_inputrecorder_folder)
 {
   std::string path_override =
       Config::Get(card_index == 0 ? Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE :
@@ -161,18 +162,18 @@ CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_fo
 
   std::string path = File::GetUserPath(D_GCUSER_IDX);
 
-  const bool use_movie_folder = allow_movie_folder == AllowMovieFolder::Yes &&
-                                Movie::IsPlayingInput() && Movie::IsConfigSaved() &&
-                                Movie::IsUsingMemcard(card_index) &&
-                                Movie::IsStartingFromClearSave();
+  const bool use_inputrecorder_folder =
+      allow_inputrecorder_folder == AllowInputRecorderFolder::Yes &&
+      InputRecorder::IsPlayingInputTrack() && InputRecorder::IsConfigSaved() &&
+      InputRecorder::IsUsingMemcard(card_index) && InputRecorder::IsStartingFromClearSave();
 
-  if (use_movie_folder)
-    path += "Movie" DIR_SEP;
+  if (use_inputrecorder_folder)
+    path += "InputTracks" DIR_SEP;
 
   const DiscIO::Region region = SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region);
   path = path + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
          fmt::format("Card {}", char('A' + card_index));
-  return {std::move(path), !use_movie_folder};
+  return {std::move(path), !use_inputrecorder_folder};
 }
 
 void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
@@ -187,7 +188,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 
   // TODO(C++20): Use structured bindings when we can use C++20 and refer to structured bindings
   // in lambda captures
-  const auto folder_path_pair = GetGCIFolderPath(m_card_index, AllowMovieFolder::Yes);
+  const auto folder_path_pair = GetGCIFolderPath(m_card_index, AllowInputRecorderFolder::Yes);
   const std::string& dir_path = folder_path_pair.first;
   const bool migrate = folder_path_pair.second;
 
@@ -228,9 +229,10 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
   const bool is_slot_a = m_card_index == 0;
   std::string filename = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
                                      Config::Get(Config::MAIN_MEMCARD_B_PATH);
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(m_card_index) &&
-      Movie::IsStartingFromClearSave())
-    filename = File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", is_slot_a ? 'A' : 'B');
+  if (InputRecorder::IsPlayingInputTrack() && InputRecorder::IsConfigSaved() &&
+      InputRecorder::IsUsingMemcard(m_card_index) && InputRecorder::IsStartingFromClearSave())
+    filename =
+        File::GetUserPath(D_GCUSER_IDX) + fmt::format("InputTrack{}.raw", is_slot_a ? 'A' : 'B');
 
   const std::string region_dir =
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
@@ -503,11 +505,11 @@ void CEXIMemoryCard::TransferByte(u8& byte)
 
 void CEXIMemoryCard::DoState(PointerWrap& p)
 {
-  // for movie sync, we need to save/load memory card contents (and other data) in savestates.
-  // otherwise, we'll assume the user wants to keep their memcards and saves separate,
+  // for recorded input sync, we need to save/load memory card contents (and other data) in
+  // savestates. otherwise, we'll assume the user wants to keep their memcards and saves separate,
   // unless we're loading (in which case we let the savestate contents decide, in order to stay
   // aligned with them).
-  bool storeContents = (Movie::IsMovieActive());
+  bool storeContents = (InputRecorder::IsInputRecorderActive());
   p.Do(storeContents);
 
   if (storeContents)

@@ -101,16 +101,16 @@ signals:
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
 
-  // Movie
-  void PlayRecording();
-  void StartRecording();
-  void StopRecording();
-  void ExportRecording();
-  void ShowTASInput();
+  // Input Recorder
+  void PlayRecordedInputTrack();
+  void StartRecordingInput();
+  void StopInputRecorder();
+  void SaveRecordedInput();
+  void ShowTASInputConfig();
 
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
-  void RecordingStatusChanged(bool recording);
-  void ReadOnlyModeChanged(bool read_only);
+  void InputRecorderStatusChanged(bool recording);
+  void InputRecorderReadOnlyModeChanged(bool read_only);
 
   // Synbols
   void NotifySymbolsUpdated();
@@ -135,7 +135,7 @@ private:
   void AddOptionsMenu();
   void AddToolsMenu();
   void AddHelpMenu();
-  void AddMovieMenu();
+  void AddInputRecorderMenu(QMenu* tools_menu);
   void AddJITMenu();
   void AddSymbolsMenu();
 
@@ -172,8 +172,8 @@ private:
   void SearchInstruction();
 
   void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
-  void OnRecordingStatusChanged(bool recording);
-  void OnReadOnlyModeChanged(bool read_only);
+  void OnInputRecorderStatusChanged(bool recording);
+  void OnInputRecorderReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
 
   QString GetSignatureSelector() const;
@@ -217,12 +217,12 @@ private:
   QMenu* m_state_load_slots_menu;
   QMenu* m_state_save_slots_menu;
 
-  // Movie
-  QAction* m_recording_export;
-  QAction* m_recording_play;
-  QAction* m_recording_start;
-  QAction* m_recording_stop;
-  QAction* m_recording_read_only;
+  // Input Recorder
+  QAction* m_inputrecorder_save;
+  QAction* m_inputrecorder_load;
+  QAction* m_inputrecorder_start;
+  QAction* m_inputrecorder_stop;
+  QAction* m_inputrecorder_read_only;
 
   // Options
   QAction* m_boot_to_pause;

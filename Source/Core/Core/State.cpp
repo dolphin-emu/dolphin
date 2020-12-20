@@ -33,7 +33,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -190,10 +190,10 @@ static void DoState(PointerWrap& p)
     return;
   }
 
-  // Movie must be done before the video backend, because the window is redrawn in the video backend
-  // state load, and the frame number must be up-to-date.
-  Movie::DoState(p);
-  p.DoMarker("Movie");
+  // Input recording must be done before the video backend, because the window is redrawn in the
+  // video backend state load, and the frame number must be up-to-date.
+  InputRecorder::DoState(p);
+  p.DoMarker("InputRecorder");
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
@@ -334,19 +334,21 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   {
     if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
       File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"));
-    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
-      File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));
+    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))  // INREC-TODO
+      File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));  // INREC-TODO
 
     if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
       Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
-    else if (File::Exists(filename + ".dtm"))
-      File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
+    else if (File::Exists(filename + ".dtm"))  // INREC-TODO
+      File::Rename(filename + ".dtm",
+                   File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");  // INREC-TODO
   }
 
-  if ((Movie::IsMovieActive()) && !Movie::IsJustStartingRecordingInputFromSaveState())
-    Movie::SaveRecording(filename + ".dtm");
-  else if (!Movie::IsMovieActive())
-    File::Delete(filename + ".dtm");
+  if ((InputRecorder::IsInputRecorderActive()) &&
+      !InputRecorder::IsJustStartingRecordingInputFromSaveState())
+    InputRecorder::SaveRecordedInputTrack(filename + ".dtm");  // INREC-TODO
+  else if (!InputRecorder::IsInputRecorderActive())
+    File::Delete(filename + ".dtm");  // INREC-TODO
 
   File::IOFile f(filename, "wb");
   if (!f)
@@ -574,14 +576,15 @@ void LoadAs(const std::string& filename)
   Core::RunOnCPUThread(
       [&] {
         // Save temp buffer for undo load state
-        if (!Movie::IsJustStartingRecordingInputFromSaveState())
+        if (!InputRecorder::IsJustStartingRecordingInputFromSaveState())
         {
           std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
           SaveToBuffer(g_undo_load_buffer);
-          if (Movie::IsMovieActive())
-            Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-          else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
-            File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+          if (InputRecorder::IsInputRecorderActive())
+            InputRecorder::SaveRecordedInputTrack(File::GetUserPath(D_STATESAVES_IDX) +
+                                                  "undo.dtm");                      // INREC-TODO
+          else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))  // INREC-TODO
+            File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");         // INREC-TODO
         }
 
         bool loaded = false;
@@ -607,11 +610,11 @@ void LoadAs(const std::string& filename)
           if (loadedSuccessfully)
           {
             Core::DisplayMessage(fmt::format("Loaded state from {}", filename), 2000);
-            if (File::Exists(filename + ".dtm"))
-              Movie::LoadInput(filename + ".dtm");
-            else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
-                     !Movie::IsJustStartingPlayingInputFromSaveState())
-              Movie::EndPlayInput(false);
+            if (File::Exists(filename + ".dtm"))                 // INREC-TODO
+              InputRecorder::LoadInputTrack(filename + ".dtm");  // INREC-TODO
+            else if (!InputRecorder::IsJustStartingRecordingInputFromSaveState() &&
+                     !InputRecorder::IsJustStartingPlayingInputFromSaveState())
+              InputRecorder::EndPlayInput(false);
           }
           else
           {
@@ -719,15 +722,18 @@ void UndoLoadState()
   std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
   if (!g_undo_load_buffer.empty())
   {
-    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))
+    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") ||
+        (!InputRecorder::IsInputRecorderActive()))  // INREC-TODO
     {
       LoadFromBuffer(g_undo_load_buffer);
-      if (Movie::IsMovieActive())
-        Movie::LoadInput(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+      if (InputRecorder::IsInputRecorderActive())
+        InputRecorder::LoadInputTrack(File::GetUserPath(D_STATESAVES_IDX) +
+                                      "undo.dtm");  // INREC-TODO
     }
     else
     {
-      PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      PanicAlertFmtT(
+          "No undo.dtm found, aborting undo load state to prevent input track desyncs");  // INREC-TODO
     }
   }
   else

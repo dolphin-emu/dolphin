@@ -15,7 +15,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 
 namespace ExpansionInterface
 {
@@ -262,7 +262,7 @@ void CEXIChannel::DoState(PointerWrap& p)
     }
 
     if (type == EXIDEVICE_MEMORYCARDFOLDER && old_header_data != m_memcard_header_data &&
-        !Movie::IsMovieActive())
+        !InputRecorder::IsInputRecorderActive())
     {
       // We have loaded a savestate that has a GCI folder memcard that is different to the virtual
       // card that is currently active. In order to prevent the game from recognizing this card as a

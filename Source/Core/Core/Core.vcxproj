@@ -33,7 +33,7 @@
     <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp" />
-    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\InputRecorderConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
@@ -233,7 +233,7 @@
     <ClCompile Include="IOS\WFS\WFSI.cpp" />
     <ClCompile Include="IOS\WFS\WFSSRV.cpp" />
     <ClCompile Include="MemTools.cpp" />
-    <ClCompile Include="Movie.cpp" />
+    <ClCompile Include="InputRecorder.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
@@ -393,7 +393,7 @@
     <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\IsSettingSaveable.h" />
-    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\InputRecorderConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Config\UISettings.h" />
@@ -590,7 +590,7 @@
     <ClInclude Include="IOS\WFS\WFSI.h" />
     <ClInclude Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
-    <ClInclude Include="Movie.h" />
+    <ClInclude Include="InputRecorder.h" />
     <ClInclude Include="NetPlayClient.h" />
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />

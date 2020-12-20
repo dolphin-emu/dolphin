@@ -66,7 +66,7 @@ class MainWindow final : public QMainWindow
 
 public:
   explicit MainWindow(std::unique_ptr<BootParameters> boot_parameters,
-                      const std::string& movie_path);
+                      const std::string& inputtrack_path);
   ~MainWindow();
 
   void Show();
@@ -74,8 +74,8 @@ public:
   bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
-  void ReadOnlyModeChanged(bool read_only);
-  void RecordingStatusChanged(bool recording);
+  void InputRecorderReadOnlyModeChanged(bool read_only);
+  void InputRecorderStatusChanged(bool recording);
 
 private:
   void Open();
@@ -169,13 +169,13 @@ private:
   void OnSignal();
 #endif
 
-  void OnPlayRecording();
-  void OnStartRecording();
-  void OnStopRecording();
-  void OnExportRecording();
+  void OnPlayRecordedInputTrack();
+  void OnStartRecordingInput();
+  void OnStopInputRecorder();
+  void OnSaveRecordedInput();
   void OnActivateChat();
   void OnRequestGolfControl();
-  void ShowTASInput();
+  void ShowTASInputConfig();
 
   void ChangeDisc();
   void EjectDisc();

@@ -24,7 +24,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayClient.h"
 #include "Core/SysConf.h"
 
@@ -110,22 +110,23 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
 {
   const u64 title_id = SConfig::GetInstance().GetTitleID();
   const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
-  if (Movie::IsRecordingInput())
+  if (InputRecorder::IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
     {
-      Movie::SetClearSave(true);
+      InputRecorder::SetClearSave(true);
     }
     else
     {
       // TODO: Check for the actual save data
       const std::string path = Common::GetTitleDataPath(title_id) + "/banner.bin";
-      Movie::SetClearSave(!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, path));
+      InputRecorder::SetClearSave(
+          !configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, path));
     }
   }
 
   if ((NetPlay::IsNetPlayRunning() && SConfig::GetInstance().bCopyWiiSaveNetplay) ||
-      (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
+      (InputRecorder::IsInputRecorderActive() && !InputRecorder::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND
     auto* sync_fs = NetPlay::GetWiiSyncFS();

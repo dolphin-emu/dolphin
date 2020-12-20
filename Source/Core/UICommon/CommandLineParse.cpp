@@ -81,7 +81,7 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   parser->usage("usage: %prog [options]... [FILE]...").version(Common::scm_rev_str);
 
   parser->add_option("-u", "--user").action("store").help("User folder path");
-  parser->add_option("-m", "--movie").action("store").help("Play a movie file");
+  parser->add_option("-m", "--inrec-playtrack").action("store").help("Play an input track");
   parser->add_option("-e", "--exec")
       .action("append")
       .metavar("<file>")

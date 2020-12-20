@@ -32,7 +32,7 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -72,7 +72,6 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
   AddFileMenu();
   AddEmulationMenu();
-  AddMovieMenu();
   AddOptionsMenu();
   AddToolsMenu();
   AddViewMenu();
@@ -89,8 +88,9 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
-  connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
-  connect(this, &MenuBar::ReadOnlyModeChanged, this, &MenuBar::OnReadOnlyModeChanged);
+  connect(this, &MenuBar::InputRecorderStatusChanged, this, &MenuBar::OnInputRecorderStatusChanged);
+  connect(this, &MenuBar::InputRecorderReadOnlyModeChanged, this,
+          &MenuBar::OnInputRecorderReadOnlyModeChanged);
 }
 
 void MenuBar::OnEmulationStateChanged(Core::State state)
@@ -116,15 +116,16 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_state_load_menu->setEnabled(running);
   m_state_save_menu->setEnabled(running);
 
-  // Movie
-  m_recording_read_only->setEnabled(running);
+  // Input Recorder
+  m_inputrecorder_read_only->setEnabled(running);
   if (!running)
   {
-    m_recording_stop->setEnabled(false);
-    m_recording_export->setEnabled(false);
+    m_inputrecorder_stop->setEnabled(false);
+    m_inputrecorder_save->setEnabled(false);
   }
-  m_recording_play->setEnabled(m_game_selected && !running);
-  m_recording_start->setEnabled((m_game_selected || running) && !Movie::IsPlayingInput());
+  m_inputrecorder_load->setEnabled(m_game_selected && !running);
+  m_inputrecorder_start->setEnabled((m_game_selected || running) &&
+                                    !InputRecorder::IsPlayingInputTrack());
 
   // Options
   m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
@@ -232,6 +233,8 @@ void MenuBar::AddToolsMenu()
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
+
+  AddInputRecorderMenu(tools_menu);
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
@@ -727,71 +730,80 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
   }
 }
 
-void MenuBar::AddMovieMenu()
+void MenuBar::AddInputRecorderMenu(QMenu* tools_menu)
 {
-  auto* movie_menu = addMenu(tr("&Movie"));
-  m_recording_start =
-      movie_menu->addAction(tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
-  m_recording_play =
-      movie_menu->addAction(tr("P&lay Input Recording..."), this, [this] { emit PlayRecording(); });
-  m_recording_stop = movie_menu->addAction(tr("Stop Playing/Recording Input"), this,
-                                           [this] { emit StopRecording(); });
-  m_recording_export =
-      movie_menu->addAction(tr("Export Recording..."), this, [this] { emit ExportRecording(); });
+  QMenu* inputrec_menu = tools_menu->addMenu(tr("&Input Recorder"));
 
-  m_recording_start->setEnabled(false);
-  m_recording_play->setEnabled(false);
-  m_recording_stop->setEnabled(false);
-  m_recording_export->setEnabled(false);
+  m_inputrecorder_start = inputrec_menu->addAction(tr("Start Re&cording Input"), this,
+                                                   [this] { emit StartRecordingInput(); });
 
-  m_recording_read_only = movie_menu->addAction(tr("&Read-Only Mode"));
-  m_recording_read_only->setCheckable(true);
-  m_recording_read_only->setChecked(Movie::IsReadOnly());
-  connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
+  m_inputrecorder_load = inputrec_menu->addAction(tr("P&lay Recorded Input ..."), this,
+                                                  [this] { emit PlayRecordedInputTrack(); });
 
-  movie_menu->addAction(tr("TAS Input"), this, [this] { emit ShowTASInput(); });
+  m_inputrecorder_stop = inputrec_menu->addAction(tr("Stop Playing/Recording Input"), this,
+                                                  [this] { emit StopInputRecorder(); });
+  m_inputrecorder_save = inputrec_menu->addAction(tr("Save Recorded Input ..."), this,
+                                                  [this] { emit SaveRecordedInput(); });
 
-  movie_menu->addSeparator();
+  m_inputrecorder_start->setEnabled(false);
+  m_inputrecorder_load->setEnabled(false);
+  m_inputrecorder_stop->setEnabled(false);
+  m_inputrecorder_save->setEnabled(false);
 
-  auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
+  inputrec_menu->addSeparator();
+
+  inputrec_menu->addAction(tr("TAS Input Configuration"), this,
+                           [this] { emit ShowTASInputConfig(); });
+
+  inputrec_menu->addSeparator();
+
+  m_inputrecorder_read_only = inputrec_menu->addAction(tr("&Read-Only Mode"));
+  m_inputrecorder_read_only->setCheckable(true);
+  m_inputrecorder_read_only->setChecked(InputRecorder::IsReadOnly());
+  connect(m_inputrecorder_read_only, &QAction::toggled,
+          [](bool value) { InputRecorder::SetReadOnly(value); });
+
+  QAction* pause_at_end = inputrec_menu->addAction(tr("Pause at End of Track"));
   pause_at_end->setCheckable(true);
-  pause_at_end->setChecked(SConfig::GetInstance().m_PauseMovie);
+  pause_at_end->setChecked(SConfig::GetInstance().m_PauseAtInputTrackEnd);
   connect(pause_at_end, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_PauseMovie = value; });
+          [](bool value) { SConfig::GetInstance().m_PauseAtInputTrackEnd = value; });
 
-  auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
+  inputrec_menu->addSeparator();
+
+  QAction* lag_counter = inputrec_menu->addAction(tr("Show Lag Counter"));
   lag_counter->setCheckable(true);
   lag_counter->setChecked(SConfig::GetInstance().m_ShowLag);
   connect(lag_counter, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowLag = value; });
 
-  auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
+  QAction* frame_counter = inputrec_menu->addAction(tr("Show Frame Counter"));
   frame_counter->setCheckable(true);
   frame_counter->setChecked(SConfig::GetInstance().m_ShowFrameCount);
   connect(frame_counter, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowFrameCount = value; });
 
-  auto* input_display = movie_menu->addAction(tr("Show Input Display"));
+  QAction* input_display = inputrec_menu->addAction(tr("Show Input Display"));
   input_display->setCheckable(true);
   input_display->setChecked(SConfig::GetInstance().m_ShowInputDisplay);
   connect(input_display, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowInputDisplay = value; });
 
-  auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
+  QAction* system_clock = inputrec_menu->addAction(tr("Show System Clock"));
   system_clock->setCheckable(true);
   system_clock->setChecked(SConfig::GetInstance().m_ShowRTC);
   connect(system_clock, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowRTC = value; });
 
-  movie_menu->addSeparator();
+  inputrec_menu->addSeparator();
 
-  auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
+  QAction* dump_frames = inputrec_menu->addAction(tr("Dump Frames"));
   dump_frames->setCheckable(true);
   dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
   connect(dump_frames, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
 
-  auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
+  QAction* dump_audio = inputrec_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
   dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
   connect(dump_audio, &QAction::toggled,
@@ -1174,20 +1186,21 @@ void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_
 {
   m_game_selected = !!game_file;
 
-  m_recording_play->setEnabled(m_game_selected && !Core::IsRunning());
-  m_recording_start->setEnabled((m_game_selected || Core::IsRunning()) && !Movie::IsPlayingInput());
+  m_inputrecorder_load->setEnabled(m_game_selected && !Core::IsRunning());
+  m_inputrecorder_start->setEnabled((m_game_selected || Core::IsRunning()) &&
+                                    !InputRecorder::IsPlayingInputTrack());
 }
 
-void MenuBar::OnRecordingStatusChanged(bool recording)
+void MenuBar::OnInputRecorderStatusChanged(bool recording)
 {
-  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning()));
-  m_recording_stop->setEnabled(recording);
-  m_recording_export->setEnabled(recording);
+  m_inputrecorder_start->setEnabled(!recording && (m_game_selected || Core::IsRunning()));
+  m_inputrecorder_stop->setEnabled(recording);
+  m_inputrecorder_save->setEnabled(recording);
 }
 
-void MenuBar::OnReadOnlyModeChanged(bool read_only)
+void MenuBar::OnInputRecorderReadOnlyModeChanged(bool read_only)
 {
-  m_recording_read_only->setChecked(read_only);
+  m_inputrecorder_read_only->setChecked(read_only);
 }
 
 void MenuBar::ChangeDebugFont()

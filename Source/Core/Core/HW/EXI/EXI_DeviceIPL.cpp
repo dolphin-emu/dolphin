@@ -27,7 +27,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 #include "Core/NetPlayProto.h"
 
 #include "DiscIO/Enums.h"
@@ -402,9 +402,9 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
 {
   u64 ltime = 0;
 
-  if (Movie::IsMovieActive())
+  if (InputRecorder::IsInputRecorderActive())
   {
-    ltime = Movie::GetRecordingStartTime();
+    ltime = InputRecorder::GetRecordingStartTime();
 
     // let's keep time moving forward, regardless of what it starts at
     ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();

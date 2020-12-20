@@ -33,7 +33,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/DI/DI.h"
 #include "Core/IOS/IOS.h"
-#include "Core/Movie.h"
+#include "Core/InputRecorder.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -523,7 +523,7 @@ void ChangeDisc(const std::string& new_path)
 
   s_disc_path_to_insert = new_path;
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
-  Movie::SignalDiscChange(new_path);
+  InputRecorder::SignalDiscChange(new_path);
 
   for (size_t i = 0; i < s_auto_disc_change_paths.size(); ++i)
   {
@@ -1124,7 +1124,7 @@ void ExecuteCommand(ReplyType reply_type)
 
     const bool force_eject = eject && !kill;
 
-    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
+    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !InputRecorder::IsPlayingInputTrack() &&
         DVDThread::IsInsertedDiscRunning() && !s_auto_disc_change_paths.empty())
     {
       CoreTiming::ScheduleEvent(force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2,

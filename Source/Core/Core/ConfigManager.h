@@ -273,11 +273,11 @@ struct SConfig
   bool m_showTagsColumn;
 
   std::string m_WirelessMac;
-  bool m_PauseMovie;
+  bool m_PauseAtInputTrackEnd;
   bool m_ShowLag;
   bool m_ShowFrameCount;
   bool m_ShowRTC;
-  std::string m_strMovieAuthor;
+  std::string m_strInputTrackAuthor;
   bool m_DumpFrames;
   bool m_DumpFramesSilent;
   bool m_ShowInputDisplay;
@@ -334,7 +334,7 @@ private:
   void SaveCoreSettings(IniFile& ini);
   void SaveDSPSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
-  void SaveMovieSettings(IniFile& ini);
+  void SaveInputRecorderSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
@@ -347,7 +347,7 @@ private:
   void LoadCoreSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
-  void LoadMovieSettings(IniFile& ini);
+  void LoadInputRecorderSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);

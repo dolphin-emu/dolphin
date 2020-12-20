@@ -13,7 +13,7 @@ enum class LayerType
   Base,
   GlobalGame,
   LocalGame,
-  Movie,
+  InputRecorder,
   Netplay,
   CommandLine,
   CurrentRun,
@@ -36,7 +36,7 @@ enum class System
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{
     LayerType::CurrentRun,
     LayerType::CommandLine,
-    LayerType::Movie,
+    LayerType::InputRecorder,
     LayerType::Netplay,
     LayerType::LocalGame,
     LayerType::GlobalGame,
