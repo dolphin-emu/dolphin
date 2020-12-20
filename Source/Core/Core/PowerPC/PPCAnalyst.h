@@ -45,13 +45,15 @@ struct CodeOp  // 16B
   bool outputFPRF;
   bool outputCA;
   bool canEndBlock;
+  bool canCauseException;
   bool skipLRStack;
   bool skip;  // followed BL-s for example
   // which registers are still needed after this instruction in this block
   BitSet32 fprInUse;
   BitSet32 gprInUse;
-  // just because a register is in use doesn't mean we actually need or want it in an x86 register.
-  BitSet32 gprInReg;
+  // which registers have values which are known to be unused after this instruction
+  BitSet32 gprDiscardable;
+  BitSet32 fprDiscardable;
   // we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
   // an XMM only to move it again to a GPR afterwards.
   BitSet32 fprInXmm;

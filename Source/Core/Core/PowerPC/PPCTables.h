@@ -65,6 +65,7 @@ enum InstructionFlags : u64
   FL_IN_FLOAT_C_BITEXACT = (1ull << 31),  // The output is based on the exact bits in frC.
   FL_IN_FLOAT_AB_BITEXACT = FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT,
   FL_IN_FLOAT_BC_BITEXACT = FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT,
+  FL_PROGRAMEXCEPTION = (1ull << 32),  // May generate a system exception.
 };
 
 enum class OpType
