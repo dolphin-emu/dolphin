@@ -10,6 +10,8 @@
 #include <png.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
+#include "Common/FileUtil.h"
 
 namespace Common
 {
@@ -59,9 +61,17 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     return false;
   }
 
-  png_image_write_to_file(&png, path.c_str(), 0, input, stride, nullptr);
-  if (png.warning_or_error & PNG_IMAGE_ERROR)
+  File::IOFile file;
+  file.Open(path, "wb");
+  if (!file)
     return false;
+  int success = png_image_write_to_stdio(&png, file.GetHandle(), 0, input, stride, nullptr);
+  if (!success || (png.warning_or_error & PNG_IMAGE_ERROR) != 0)
+  {
+    file.Close();
+    File::Delete(path);
+    return false;
+  }
 
   return true;
 }
