@@ -51,6 +51,15 @@ public:
   static std::pair<std::string /* path */, bool /* migrate */>
   GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
 
+  s32 ReadFromMemcard(u32 memcard_offset, s32 length, u8* dest_address) const;
+
+  // After this call all writes to the card are disabled.
+  // This is used to have a 'grace period' after loading a savestate where the emulated software
+  // still sees the memory card but can't write to it anymore.
+  // It is expected that this device is destroyed and possibly recreated soon (within a few emulated
+  // frames) after this method has been called.
+  void DisableWrites();
+
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 size_mb);
@@ -106,6 +115,7 @@ private:
   unsigned int m_address;
   u32 m_memory_card_size;
   std::unique_ptr<MemoryCardBase> m_memory_card;
+  bool m_allow_writes = true;
 
 protected:
   void TransferByte(u8& byte) override;
