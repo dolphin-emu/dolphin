@@ -199,6 +199,15 @@ void FpsControls::run_mod_mp1(Region region) {
     calculate_pitch_delta();
   }
 
+  // I write to two locations here to control the pitch, the rate of turning
+  // has been unlocked already
+  writef32(pitch, mp1_static.pitch_address);
+  writef32(pitch, mp1_static.pitch_goal_address);
+  // Apply recalculated pitch (to fix stutter) and return.
+  if (locked) { 
+    return;
+  }
+
   // Max pitch angle, as abs val (any higher = gimbal lock)
   writef32(1.52f, mp1_static.tweak_player_address + 0x134);
 
@@ -286,8 +295,11 @@ void FpsControls::run_mod_mp2(Region region) {
 
     return;
   }
+  else {
+    calculate_pitch_delta();
+  }
 
-  calculate_pitch_delta();
+
   // Grab the arm cannon address, go to its transform field (NOT the
   // Actor's xf @ 0x30!!)
   u32 arm_cannon_model_matrix = read32(cplayer_address + 0xea8) + 0x3b0;
@@ -433,7 +445,6 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     beamvisor_menu = read32(read32(mp3_static.beamvisor_menu_address) + 0x16c + 0x194) == 3;
 
   if (!read8(cplayer_address + 0x378) && read8(mp3_static.lockon_address) || beamvisor_menu) {
-    write32(0, cplayer_address + 0x174);
     write32(0, cplayer_address + 0x174);
     //calculate_pitch_locked(); - Not yet implemented
 
