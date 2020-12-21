@@ -105,7 +105,6 @@ void FpsControls::handle_beam_visor_switch(std::array<int, 4> const &beams,
   u32 powerups_array_base;
   powerups_array_base = read32(powerups_ptr_address);
 
-
   // We copy out the ownership status of beams and visors to our own array for
   // get_beam_switch and get_visor_switch
   for (int i = 0; i < 4; i++) {
@@ -170,10 +169,11 @@ void FpsControls::run_mod_mp1(Region region) {
   if (region != Region::NTSC_J)
     beamvisor_menu = read32(read32(mp1_static.beamvisor_menu_address) + 0x1a8 + 0x184) == 1;
 
-
   // Allows freelook in grapple, otherwise we are orbiting (locked on) to something
   bool locked = (read32(mp1_static.orbit_state_address) != ORBIT_STATE_GRAPPLE &&
     read8(mp1_static.lockon_address) || beamvisor_menu);
+
+  u32 cursor_base = read32(read32(mp1_static.cursor_base_address) + mp1_static.cursor_offset);
 
   if (locked) {
     write32(0, mp1_static.yaw_vel_address);
@@ -181,8 +181,6 @@ void FpsControls::run_mod_mp1(Region region) {
 
     // No NTSC-J support for this yet.
     if (region != Region::NTSC_J) {
-      u32 cursor_base = read32(read32(mp1_static.cursor_base_address) + mp1_static.cursor_offset);
-
       if (HandleReticleLockOn()) {
         handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
       }
@@ -192,10 +190,19 @@ void FpsControls::run_mod_mp1(Region region) {
         // if the menu id is not null
         if (mode != 0xFFFFFFFF) {
           handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
+          menu_open = true;
         }
       }
     }
   } else {
+    if (menu_open) {
+      set_cursor_pos(0, 0);
+      write32(0, cursor_base + 0x9c);
+      write32(0, cursor_base + 0x15c);
+
+      menu_open = false;
+    }
+
     calculate_pitch_delta();
   }
 
@@ -269,6 +276,8 @@ void FpsControls::run_mod_mp2(Region region) {
   if (region != Region::NTSC_J)
     beamvisor_menu = read32(read32(mp2_static.beamvisor_menu_address) + 0x1bc + 0x184) == 1;
 
+  u32 cursor_base = read32(read32(mp2_static.cursor_base_address) + mp2_static.cursor_offset);
+
   if (read32(cplayer_address + 0x390) != ORBIT_STATE_GRAPPLE &&
     read32(mp2_static.lockon_address) || beamvisor_menu) {
     // Angular velocity (not really, but momentum) is being messed with like mp1
@@ -278,8 +287,6 @@ void FpsControls::run_mod_mp2(Region region) {
 
     // No NTSC-J support for this yet.
     if (region != Region::NTSC_J) {
-      u32 cursor_base = read32(read32(mp2_static.cursor_base_address) + mp2_static.cursor_offset);
-
       if (HandleReticleLockOn()) {
         handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
       }
@@ -289,6 +296,7 @@ void FpsControls::run_mod_mp2(Region region) {
         // if the menu id is not null
         if (mode != 0xFFFFFFFF) {
           handle_cursor(cursor_base + 0x9c, cursor_base + 0x15c, 0.95f, 0.90f);
+          menu_open = true;
         }
       }
     }
@@ -296,6 +304,14 @@ void FpsControls::run_mod_mp2(Region region) {
     return;
   }
   else {
+    if (menu_open) {
+      set_cursor_pos(0, 0);
+      write32(0, cursor_base + 0x9c);
+      write32(0, cursor_base + 0x15c);
+
+      menu_open = false;
+    }
+
     calculate_pitch_delta();
   }
 
@@ -452,10 +468,17 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     if (active_region != Region::NTSC_J) {
       if (HandleReticleLockOn() || beamvisor_menu) {
         mp3_handle_cursor(false);
+        menu_open = true;
       }
     }
 
     return;
+  }
+  else if (menu_open) {
+    mp3_handle_cursor(true);
+    set_cursor_pos(0, 0);
+
+    menu_open = false;
   }
 
   u32 pitch_address;

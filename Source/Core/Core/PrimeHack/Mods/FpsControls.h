@@ -129,5 +129,8 @@ private:
   // For interpolating the camera pitch to centre when in MP3 context sensitive mode.
   float start_pitch;
   int delta = 0;
+
+  // Check when to reset the cursor position
+  bool menu_open = true;
 };
 }
