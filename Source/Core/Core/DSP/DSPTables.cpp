@@ -477,9 +477,6 @@ const std::array<pdlabel_t, 36> regnames =
 }};
 // clang-format on
 
-std::array<u16, WRITEBACK_LOG_SIZE> writeBackLog;
-std::array<int, WRITEBACK_LOG_SIZE> writeBackLogIdx;
-
 const char* pdname(u16 val)
 {
   static char tmpstr[12];  // nasty
@@ -612,10 +609,5 @@ void InitInstructionTable()
     else
       ERROR_LOG_FMT(DSPLLE, "opcode table place {} already in use for {}", i, iter->name);
   }
-
-  writeBackLogIdx.fill(-1);
-
-  // Ensure the interpreter tables are all set up, as JITs also rely on them.
-  Interpreter::InitInstructionTables();
 }
 }  // namespace DSP

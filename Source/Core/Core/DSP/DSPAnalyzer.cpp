@@ -9,7 +9,7 @@
 
 #include "Common/Logging/Log.h"
 
-#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
 
 namespace DSP::Analyzer
@@ -72,7 +72,7 @@ void Reset()
   code_flags.fill(0);
 }
 
-void AnalyzeRange(u16 start_addr, u16 end_addr)
+void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
 {
   // First we run an extremely simplified version of a disassembler to find
   // where all instructions start.
@@ -82,7 +82,7 @@ void AnalyzeRange(u16 start_addr, u16 end_addr)
   u16 last_arithmetic = 0;
   for (u16 addr = start_addr; addr < end_addr;)
   {
-    UDSPInstruction inst = dsp_imem_read(addr);
+    const UDSPInstruction inst = dsp.ReadIMEM(addr);
     const DSPOPCTemplate* opcode = GetOpTemplate(inst);
     if (!opcode)
     {
@@ -94,7 +94,7 @@ void AnalyzeRange(u16 start_addr, u16 end_addr)
     if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100)
     {
       // BLOOP, BLOOPI
-      u16 loop_end = dsp_imem_read(addr + 1);
+      const u16 loop_end = dsp.ReadIMEM(addr + 1);
       code_flags[addr] |= CODE_LOOP_START;
       code_flags[loop_end] |= CODE_LOOP_END;
     }
@@ -139,7 +139,7 @@ void AnalyzeRange(u16 start_addr, u16 end_addr)
           found = true;
         if (idle_skip_sigs[s][i] == 0xFFFF)
           continue;
-        if (idle_skip_sigs[s][i] != dsp_imem_read(static_cast<u16>(addr + i)))
+        if (idle_skip_sigs[s][i] != dsp.ReadIMEM(static_cast<u16>(addr + i)))
           break;
       }
       if (found)
@@ -153,11 +153,11 @@ void AnalyzeRange(u16 start_addr, u16 end_addr)
 }
 }  // Anonymous namespace
 
-void Analyze()
+void Analyze(const SDSP& dsp)
 {
   Reset();
-  AnalyzeRange(0x0000, 0x1000);  // IRAM
-  AnalyzeRange(0x8000, 0x9000);  // IROM
+  AnalyzeRange(dsp, 0x0000, 0x1000);  // IRAM
+  AnalyzeRange(dsp, 0x8000, 0x9000);  // IROM
 }
 
 u8 GetCodeFlags(u16 address)

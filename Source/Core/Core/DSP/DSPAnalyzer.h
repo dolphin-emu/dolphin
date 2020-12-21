@@ -6,6 +6,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
+struct SDSP;
+}
+
 // Basic code analysis.
 namespace DSP::Analyzer
 {
@@ -28,7 +33,7 @@ enum
 // all old analysis away. Luckily the entire address space is only 64K code
 // words and the actual code space 8K instructions in total, so we can do
 // some pretty expensive analysis if necessary.
-void Analyze();
+void Analyze(const SDSP& dsp);
 
 // Retrieves the flags set during analysis for code in memory.
 u8 GetCodeFlags(u16 address);

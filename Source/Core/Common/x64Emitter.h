@@ -1097,6 +1097,13 @@ public:
   }
 
   template <typename FunctionPointer>
+  void ABI_CallFunctionP(FunctionPointer func, const void* param1)
+  {
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
   void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
   {
     MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
@@ -1122,11 +1129,29 @@ public:
     ABI_CallFunction(func);
   }
 
+  // Pass a pointer and register as a parameter.
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPR(FunctionPointer func, const void* ptr, X64Reg reg1)
+  {
+    MOV(64, R(ABI_PARAM2), R(reg1));
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
+    ABI_CallFunction(func);
+  }
+
   // Pass two registers as parameters.
   template <typename FunctionPointer>
   void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
   {
     MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
+    ABI_CallFunction(func);
+  }
+
+  // Pass a pointer and two registers as parameters.
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2)
+  {
+    MOVTwo(64, ABI_PARAM2, reg1, 0, ABI_PARAM3, reg2);
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(ptr)));
     ABI_CallFunction(func);
   }
 

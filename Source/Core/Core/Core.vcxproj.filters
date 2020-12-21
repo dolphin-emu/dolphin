@@ -233,9 +233,6 @@
     <ClCompile Include="DSP\Interpreter\DSPIntBranch.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Interpreter\DSPIntCCUtil.cpp">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClCompile>
     <ClCompile Include="DSP\Interpreter\DSPInterpreter.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
@@ -415,9 +412,6 @@
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\MailHandler.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPLLE\DSPDebugInterface.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
@@ -1070,9 +1064,6 @@
     <ClInclude Include="DSP\Interpreter\DSPInterpreter.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h">
-      <Filter>DSPCore\Interpreter</Filter>
-    </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntTables.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
@@ -1198,9 +1189,6 @@
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\MailHandler.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\DSPLLE\DSPDebugInterface.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPHost.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\LLE</Filter>
@@ -1386,15 +1374,6 @@
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSPEmulator.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="DSP\DSPHWInterface.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="DSP\DSPMemoryMap.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="DSP\DSPStacks.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPTables.h">

@@ -58,7 +58,6 @@
     <ClCompile Include="DSP\DSPTables.cpp" />
     <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp" />
     <ClCompile Include="DSP\Interpreter\DSPIntBranch.cpp" />
-    <ClCompile Include="DSP\Interpreter\DSPIntCCUtil.cpp" />
     <ClCompile Include="DSP\Interpreter\DSPInterpreter.cpp" />
     <ClCompile Include="DSP\Interpreter\DSPIntExtOps.cpp" />
     <ClCompile Include="DSP\Interpreter\DSPIntLoadStore.cpp" />
@@ -107,7 +106,6 @@
     <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp" />
-    <ClCompile Include="HW\DSPLLE\DSPDebugInterface.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLE.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp" />
@@ -420,13 +418,9 @@
     <ClInclude Include="DSP\DSPCore.h" />
     <ClInclude Include="DSP\DSPDisassembler.h" />
     <ClInclude Include="DSP\DSPHost.h" />
-    <ClInclude Include="DSP\DSPHWInterface.h" />
-    <ClInclude Include="DSP\DSPMemoryMap.h" />
-    <ClInclude Include="DSP\DSPStacks.h" />
     <ClInclude Include="DSP\DSPTables.h" />
     <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h" />
     <ClInclude Include="DSP\Interpreter\DSPInterpreter.h" />
-    <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h" />
     <ClInclude Include="DSP\Interpreter\DSPIntTables.h" />
     <ClInclude Include="DSP\Interpreter\DSPIntUtil.h" />
     <ClInclude Include="DSP\Jit\DSPEmitterBase.h" />
@@ -466,7 +460,6 @@
     <ClInclude Include="HW\DSPHLE\UCodes\INIT.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\ROM.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\Zelda.h" />
-    <ClInclude Include="HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLE.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />

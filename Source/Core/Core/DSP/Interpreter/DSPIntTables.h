@@ -8,7 +8,9 @@
 
 namespace DSP::Interpreter
 {
-using InterpreterFunction = void (*)(UDSPInstruction);
+class Interpreter;
+
+using InterpreterFunction = void (Interpreter::*)(UDSPInstruction);
 
 InterpreterFunction GetOp(UDSPInstruction inst);
 InterpreterFunction GetExtOp(UDSPInstruction inst);
