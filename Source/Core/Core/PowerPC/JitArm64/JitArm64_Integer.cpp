@@ -1353,7 +1353,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
     {
       amount &= 0x1F;
       gpr.SetImmediate(a, i >> amount);
-      ComputeCarry(amount != 0 && i < 0 && (i << (32 - amount)));
+      ComputeCarry(amount != 0 && i < 0 && (u32(i) << (32 - amount)));
     }
 
     if (inst.Rc)
