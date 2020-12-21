@@ -631,10 +631,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
     s32 imm = (s32)gpr.GetImm(s);
     gpr.SetImmediate(a, imm >> amount);
 
-    if (amount != 0 && (imm < 0) && (imm << (32 - amount)))
-      ComputeCarry(true);
-    else
-      ComputeCarry(false);
+    ComputeCarry(amount != 0 && (imm < 0) && (u32(imm) << (32 - amount)));
 
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
