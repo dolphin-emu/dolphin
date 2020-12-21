@@ -39,7 +39,7 @@ OpArg FPURegCache::GetDefaultLocation(preg_t preg) const
 
 BitSet32 FPURegCache::GetRegUtilization() const
 {
-  return m_jit.js.op->gprInReg;
+  return m_jit.js.op->fprInXmm;
 }
 
 BitSet32 FPURegCache::CountRegsIn(preg_t preg, u32 lookahead) const
