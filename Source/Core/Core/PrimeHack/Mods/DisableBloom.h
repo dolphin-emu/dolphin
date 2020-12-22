@@ -45,6 +45,10 @@ public:
       {
         code_changes.emplace_back(0x80486880, 0x4e800020);
       }
+      else if (region == Region::NTSC_J)
+      {
+        code_changes.emplace_back(0x8048b34c, 0x4e800020);
+      }
       else if (region == Region::PAL)
       {
         code_changes.emplace_back(0x804885a4, 0x4e800020);

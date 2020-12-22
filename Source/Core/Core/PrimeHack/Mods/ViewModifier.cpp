@@ -89,6 +89,12 @@ void ViewModifier::run_mod_mp1() {
 }
 
 void ViewModifier::run_mod_mp1_gc() {
+  u8 version = read8(0x80000007);
+
+  if (version != 0) {
+    return;
+  }
+
   const u16 camera_uid = read16(mp1_gc_static.camera_mgr_address);
   if (camera_uid == -1) {
     return;
@@ -221,7 +227,7 @@ void ViewModifier::init_mod(Game game, Region region) {
     init_mod_mp3(region);
     break;
   case Game::PRIME_3_STANDALONE:
-    init_mod_mp3_wii(region);
+    init_mod_mp3_standalone(region);
     break;
   }
   initialized = true;
@@ -256,13 +262,17 @@ void ViewModifier::init_mod_mp1(Region region) {
 }
 
 void ViewModifier::init_mod_mp1_gc(Region region) {
+  u8 version = PowerPC::HostRead_U8(0x80000007);
+
   if (region == Region::NTSC_U) {
-    mp1_gc_static.camera_mgr_address = 0x8045c5b4;
-    mp1_gc_static.object_list_address = 0x8045a9b8;
-    mp1_gc_static.global_fov1_table_off = -0x7ff0;
-    mp1_gc_static.global_fov2_table_off = -0x7fec;
-    mp1_gc_static.gun_pos_address = 0x8045bce8;
-    mp1_gc_static.culling_address = 0x80337a24;
+    if (version == 0) {
+      mp1_gc_static.camera_mgr_address = 0x8045c5b4;
+      mp1_gc_static.object_list_address = 0x8045a9b8;
+      mp1_gc_static.global_fov1_table_off = -0x7ff0;
+      mp1_gc_static.global_fov2_table_off = -0x7fec;
+      mp1_gc_static.gun_pos_address = 0x8045bce8;
+      mp1_gc_static.culling_address = 0x80337a24;
+    }
   }
   else if (region == Region::PAL) {
     //statemgr 803e2088
@@ -334,11 +344,16 @@ void ViewModifier::init_mod_mp3(Region region) {
   else {}
 }
   
-void ViewModifier::init_mod_mp3_wii(Region region) {
+void ViewModifier::init_mod_mp3_standalone(Region region) {
   if (region == Region::NTSC_U) {
     mp3_static.camera_ptr_address = 0x805c4f94;
     mp3_static.tweakgun_address = 0x8067d78c;
     mp3_static.culling_address = 0x80316a1c;
+  }
+  else if (region == Region::NTSC_J) {
+    mp3_static.camera_ptr_address = 0x805caa58;
+    mp3_static.tweakgun_address = 0x806835fc;
+    mp3_static.culling_address = 0x8031a4b4;
   }
   else if (region == Region::PAL) {
     mp3_static.camera_ptr_address = 0x805c7598;

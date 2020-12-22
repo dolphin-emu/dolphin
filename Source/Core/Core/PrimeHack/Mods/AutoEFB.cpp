@@ -28,6 +28,11 @@ void AutoEFB::run_mod(Game game, Region region) {
       const u32 visor_base = read32(read32(read32(cplayer_ptr_address) + 0x2184) + 0x35a0);
       should_use = read32(visor_base + 0x34) != 1u;
     }
+    else if (region == Region::NTSC_J)
+    {
+      const u32 visor_base = read32(read32(read32(read32(cplayer_ptr_address) + 4) + 0x2184) + 0x35a8);
+      should_use = read32(visor_base + 0x34) != 1u;
+    }
     else if (region == Region::PAL)
     {
       const u32 visor_base = read32(read32(read32(read32(cplayer_ptr_address) + 4) + 0x2184) + 0x35a0);
@@ -76,6 +81,10 @@ void AutoEFB::init_mod(Game game, Region region) {
     if (region == Region::NTSC_U)
     {
       cplayer_ptr_address = 0x805c4f98;
+    }
+    else if (region == Region::NTSC_J)
+    {
+      cplayer_ptr_address = 0x805caa5c;
     }
     else if (region == Region::PAL)
     {

@@ -61,6 +61,7 @@ private:
   // All 3 of these games have this in common (MP3 just ignores beams)
   u32 active_visor_offset;
   u32 powerups_ptr_address;
+  u32 powerups_ptr_offset;
   u32 powerups_size;
   u32 powerups_offset;
   u32 new_beam_address;
@@ -84,6 +85,7 @@ private:
       u32 object_list_ptr_address;
       u32 camera_uid_address;
       u32 beamvisor_menu_address;
+      u32 beamvisor_menu_offset;
       u32 cursor_base_address;
       u32 cursor_offset;
     } mp1_static;
@@ -102,13 +104,15 @@ private:
       u32 load_state_address;
       u32 lockon_address;
       u32 beamvisor_menu_address;
+      u32 beamvisor_menu_offset;
       u32 cursor_base_address;
       u32 cursor_offset;
+      u32 tweak_player_offset;
     } mp2_static;
 
     struct {
       u32 state_mgr_address;
-      u32 player_tweak_offset;
+      u32 tweak_player_offset;
     } mp2_gc_static;
 
     struct {
@@ -120,6 +124,8 @@ private:
       u32 lockon_address;
       u32 gun_lag_toc_offset;
       u32 beamvisor_menu_address;
+      u32 beamvisor_menu_offset;
+      u32 cplayer_pitch_offset;
     } mp3_static;
   };
 

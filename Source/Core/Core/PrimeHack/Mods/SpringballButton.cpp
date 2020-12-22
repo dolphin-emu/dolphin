@@ -29,6 +29,7 @@ void SpringballButton::run_mod(Game game, Region region) {
       springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
       DevInfo("CPlayer", "%08X", cplayer_address);
       break;
+    case Region::NTSC_J:
     case Region::PAL:
       actual_cplayer_address = read32(read32(read32(cplayer_address) + 0x04) + 0x2184);
       springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
@@ -85,6 +86,10 @@ void SpringballButton::init_mod(Game game, Region region) {
     if (region == Region::NTSC_U) {
       cplayer_address = 0x805c4f98;
       springball_code(0x8010c984);
+    }
+    else if (region == Region::NTSC_J) {
+      cplayer_address = 0x805caa5c;
+      springball_code(0x8010d49c);
     }
     else if (region == Region::PAL) {
       cplayer_address = 0x805c759c;
