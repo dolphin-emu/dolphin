@@ -30,7 +30,7 @@ namespace DSP
 //#define PRECISE_BACKLOG
 
 // Returns false if the hash fails and the user hits "Yes"
-static bool VerifyRoms(const DSPCore& core)
+static bool VerifyRoms(const SDSP& dsp)
 {
   struct DspRomHashes
   {
@@ -59,11 +59,10 @@ static bool VerifyRoms(const DSPCore& core)
       {0x128ea7a2, 0xa4a575f5},
   }};
 
-  const auto& state = core.DSPState();
   const u32 hash_irom =
-      Common::HashAdler32(reinterpret_cast<const u8*>(state.irom), DSP_IROM_BYTE_SIZE);
+      Common::HashAdler32(reinterpret_cast<const u8*>(dsp.irom), DSP_IROM_BYTE_SIZE);
   const u32 hash_drom =
-      Common::HashAdler32(reinterpret_cast<const u8*>(state.coef), DSP_COEF_BYTE_SIZE);
+      Common::HashAdler32(reinterpret_cast<const u8*>(dsp.coef), DSP_COEF_BYTE_SIZE);
   int rom_idx = -1;
 
   for (size_t i = 0; i < known_roms.size(); ++i)
@@ -105,15 +104,15 @@ static bool VerifyRoms(const DSPCore& core)
 class LLEAccelerator final : public Accelerator
 {
 public:
-  explicit LLEAccelerator(DSPCore& core) : m_core{core} {}
+  explicit LLEAccelerator(SDSP& dsp) : m_dsp{dsp} {}
 
 protected:
   u8 ReadMemory(u32 address) override { return Host::ReadHostMemory(address); }
   void WriteMemory(u32 address, u8 value) override { Host::WriteHostMemory(value, address); }
-  void OnEndException() override { m_core.SetException(ExceptionType::AcceleratorOverflow); }
+  void OnEndException() override { m_dsp.SetException(ExceptionType::AcceleratorOverflow); }
 
 private:
-  DSPCore& m_core;
+  SDSP& m_dsp;
 };
 
 SDSP::SDSP(DSPCore& core) : m_dsp_core{core}
@@ -121,6 +120,288 @@ SDSP::SDSP(DSPCore& core) : m_dsp_core{core}
 }
 
 SDSP::~SDSP() = default;
+
+bool SDSP::Initialize(const DSPInitOptions& opts)
+{
+  step_counter = 0;
+  accelerator = std::make_unique<LLEAccelerator>(*this);
+
+  irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
+  iram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IRAM_BYTE_SIZE));
+  dram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_DRAM_BYTE_SIZE));
+  coef = static_cast<u16*>(Common::AllocateMemoryPages(DSP_COEF_BYTE_SIZE));
+
+  std::memcpy(irom, opts.irom_contents.data(), DSP_IROM_BYTE_SIZE);
+  std::memcpy(coef, opts.coef_contents.data(), DSP_COEF_BYTE_SIZE);
+
+  // Try to load real ROM contents.
+  if (!VerifyRoms(*this))
+  {
+    FreeMemoryPages();
+    return false;
+  }
+
+  std::memset(&r, 0, sizeof(r));
+
+  std::fill(std::begin(reg_stack_ptrs), std::end(reg_stack_ptrs), 0);
+
+  for (auto& stack : reg_stacks)
+    std::fill(std::begin(stack), std::end(stack), 0);
+
+  // Fill IRAM with HALT opcodes.
+  std::fill(iram, iram + DSP_IRAM_SIZE, 0x0021);
+
+  // Just zero out DRAM.
+  std::fill(dram, dram + DSP_DRAM_SIZE, 0);
+
+  // Copied from a real console after the custom UCode has been loaded.
+  // These are the indexing wrapping registers.
+  std::fill(std::begin(r.wr), std::end(r.wr), 0xffff);
+
+  r.sr |= SR_INT_ENABLE;
+  r.sr |= SR_EXT_INT_ENABLE;
+
+  cr = 0x804;
+  InitializeIFX();
+  // Mostly keep IRAM write protected. We unprotect only when DMA-ing
+  // in new ucodes.
+  Common::WriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
+  return true;
+}
+
+void SDSP::Reset()
+{
+  pc = DSP_RESET_VECTOR;
+  std::fill(std::begin(r.wr), std::end(r.wr), 0xffff);
+}
+
+void SDSP::Shutdown()
+{
+  FreeMemoryPages();
+}
+
+void SDSP::FreeMemoryPages()
+{
+  Common::FreeMemoryPages(irom, DSP_IROM_BYTE_SIZE);
+  Common::FreeMemoryPages(iram, DSP_IRAM_BYTE_SIZE);
+  Common::FreeMemoryPages(dram, DSP_DRAM_BYTE_SIZE);
+  Common::FreeMemoryPages(coef, DSP_COEF_BYTE_SIZE);
+  irom = nullptr;
+  iram = nullptr;
+  dram = nullptr;
+  coef = nullptr;
+}
+
+void SDSP::SetException(ExceptionType exception)
+{
+  exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
+}
+
+void SDSP::SetExternalInterrupt(bool val)
+{
+  external_interrupt_waiting = val;
+}
+
+void SDSP::CheckExternalInterrupt()
+{
+  if (!IsSRFlagSet(SR_EXT_INT_ENABLE))
+    return;
+
+  // Signal the SPU about new mail
+  SetException(ExceptionType::ExternalInterrupt);
+
+  cr &= ~CR_EXTERNAL_INT;
+}
+
+void SDSP::CheckExceptions()
+{
+  // Early out to skip the loop in the common case.
+  if (exceptions == 0)
+    return;
+
+  for (int i = 7; i > 0; i--)
+  {
+    // Seems exp int are not masked by sr_int_enable
+    if ((exceptions & (1U << i)) != 0)
+    {
+      if (IsSRFlagSet(SR_INT_ENABLE) || i == static_cast<int>(ExceptionType::ExternalInterrupt))
+      {
+        // store pc and sr until RTI
+        StoreStack(StackRegister::Call, pc);
+        StoreStack(StackRegister::Data, r.sr);
+
+        pc = static_cast<u16>(i * 2);
+        exceptions &= ~(1 << i);
+        if (i == 7)
+          r.sr &= ~SR_EXT_INT_ENABLE;
+        else
+          r.sr &= ~SR_INT_ENABLE;
+        break;
+      }
+      else
+      {
+#if defined(_DEBUG) || defined(DEBUGFAST)
+        ERROR_LOG_FMT(DSPLLE, "Firing exception {} failed", i);
+#endif
+      }
+    }
+  }
+}
+
+u16 SDSP::ReadRegister(size_t reg) const
+{
+  switch (reg)
+  {
+  case DSP_REG_AR0:
+  case DSP_REG_AR1:
+  case DSP_REG_AR2:
+  case DSP_REG_AR3:
+    return r.ar[reg - DSP_REG_AR0];
+  case DSP_REG_IX0:
+  case DSP_REG_IX1:
+  case DSP_REG_IX2:
+  case DSP_REG_IX3:
+    return r.ix[reg - DSP_REG_IX0];
+  case DSP_REG_WR0:
+  case DSP_REG_WR1:
+  case DSP_REG_WR2:
+  case DSP_REG_WR3:
+    return r.wr[reg - DSP_REG_WR0];
+  case DSP_REG_ST0:
+  case DSP_REG_ST1:
+  case DSP_REG_ST2:
+  case DSP_REG_ST3:
+    return r.st[reg - DSP_REG_ST0];
+  case DSP_REG_ACH0:
+  case DSP_REG_ACH1:
+    return r.ac[reg - DSP_REG_ACH0].h;
+  case DSP_REG_CR:
+    return r.cr;
+  case DSP_REG_SR:
+    return r.sr;
+  case DSP_REG_PRODL:
+    return r.prod.l;
+  case DSP_REG_PRODM:
+    return r.prod.m;
+  case DSP_REG_PRODH:
+    return r.prod.h;
+  case DSP_REG_PRODM2:
+    return r.prod.m2;
+  case DSP_REG_AXL0:
+  case DSP_REG_AXL1:
+    return r.ax[reg - DSP_REG_AXL0].l;
+  case DSP_REG_AXH0:
+  case DSP_REG_AXH1:
+    return r.ax[reg - DSP_REG_AXH0].h;
+  case DSP_REG_ACL0:
+  case DSP_REG_ACL1:
+    return r.ac[reg - DSP_REG_ACL0].l;
+  case DSP_REG_ACM0:
+  case DSP_REG_ACM1:
+    return r.ac[reg - DSP_REG_ACM0].m;
+  default:
+    ASSERT_MSG(DSP_CORE, 0, "cannot happen");
+    return 0;
+  }
+}
+
+void SDSP::WriteRegister(size_t reg, u16 val)
+{
+  switch (reg)
+  {
+  case DSP_REG_AR0:
+  case DSP_REG_AR1:
+  case DSP_REG_AR2:
+  case DSP_REG_AR3:
+    r.ar[reg - DSP_REG_AR0] = val;
+    break;
+  case DSP_REG_IX0:
+  case DSP_REG_IX1:
+  case DSP_REG_IX2:
+  case DSP_REG_IX3:
+    r.ix[reg - DSP_REG_IX0] = val;
+    break;
+  case DSP_REG_WR0:
+  case DSP_REG_WR1:
+  case DSP_REG_WR2:
+  case DSP_REG_WR3:
+    r.wr[reg - DSP_REG_WR0] = val;
+    break;
+  case DSP_REG_ST0:
+  case DSP_REG_ST1:
+  case DSP_REG_ST2:
+  case DSP_REG_ST3:
+    r.st[reg - DSP_REG_ST0] = val;
+    break;
+  case DSP_REG_ACH0:
+  case DSP_REG_ACH1:
+    r.ac[reg - DSP_REG_ACH0].h = val;
+    break;
+  case DSP_REG_CR:
+    r.cr = val;
+    break;
+  case DSP_REG_SR:
+    r.sr = val;
+    break;
+  case DSP_REG_PRODL:
+    r.prod.l = val;
+    break;
+  case DSP_REG_PRODM:
+    r.prod.m = val;
+    break;
+  case DSP_REG_PRODH:
+    r.prod.h = val;
+    break;
+  case DSP_REG_PRODM2:
+    r.prod.m2 = val;
+    break;
+  case DSP_REG_AXL0:
+  case DSP_REG_AXL1:
+    r.ax[reg - DSP_REG_AXL0].l = val;
+    break;
+  case DSP_REG_AXH0:
+  case DSP_REG_AXH1:
+    r.ax[reg - DSP_REG_AXH0].h = val;
+    break;
+  case DSP_REG_ACL0:
+  case DSP_REG_ACL1:
+    r.ac[reg - DSP_REG_ACL0].l = val;
+    break;
+  case DSP_REG_ACM0:
+  case DSP_REG_ACM1:
+    r.ac[reg - DSP_REG_ACM0].m = val;
+    break;
+  }
+}
+
+void SDSP::DoState(PointerWrap& p)
+{
+  p.Do(r);
+  p.Do(pc);
+  p.Do(cr);
+  p.Do(reg_stack_ptrs);
+  p.Do(exceptions);
+  p.Do(external_interrupt_waiting);
+
+  for (auto& stack : reg_stacks)
+  {
+    p.Do(stack);
+  }
+
+  p.Do(step_counter);
+  p.DoArray(ifx_regs);
+  accelerator->DoState(p);
+  p.Do(mbox[0]);
+  p.Do(mbox[1]);
+  Common::UnWriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
+  p.DoArray(iram, DSP_IRAM_SIZE);
+  Common::WriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
+  // TODO: This uses the wrong endianness (producing bad disassembly)
+  // and a bogus byte count (producing bad hashes)
+  if (p.GetMode() == PointerWrap::MODE_READ)
+    Host::CodeLoaded(m_dsp_core, reinterpret_cast<const u8*>(iram), DSP_IRAM_BYTE_SIZE);
+  p.DoArray(dram, DSP_DRAM_SIZE);
+}
 
 DSPCore::DSPCore()
     : m_dsp{*this}, m_dsp_interpreter{std::make_unique<Interpreter::Interpreter>(*this)}
@@ -131,51 +412,10 @@ DSPCore::~DSPCore() = default;
 
 bool DSPCore::Initialize(const DSPInitOptions& opts)
 {
-  m_dsp.step_counter = 0;
-  m_init_hax = false;
-
-  m_dsp.accelerator = std::make_unique<LLEAccelerator>(*this);
-
-  m_dsp.irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
-  m_dsp.iram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IRAM_BYTE_SIZE));
-  m_dsp.dram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_DRAM_BYTE_SIZE));
-  m_dsp.coef = static_cast<u16*>(Common::AllocateMemoryPages(DSP_COEF_BYTE_SIZE));
-
-  std::memcpy(m_dsp.irom, opts.irom_contents.data(), DSP_IROM_BYTE_SIZE);
-  std::memcpy(m_dsp.coef, opts.coef_contents.data(), DSP_COEF_BYTE_SIZE);
-
-  // Try to load real ROM contents.
-  if (!VerifyRoms(*this))
-  {
-    FreeMemoryPages();
+  if (!m_dsp.Initialize(opts))
     return false;
-  }
 
-  std::memset(&m_dsp.r, 0, sizeof(m_dsp.r));
-
-  std::fill(std::begin(m_dsp.reg_stack_ptrs), std::end(m_dsp.reg_stack_ptrs), 0);
-
-  for (auto& stack : m_dsp.reg_stacks)
-    std::fill(std::begin(stack), std::end(stack), 0);
-
-  // Fill IRAM with HALT opcodes.
-  std::fill(m_dsp.iram, m_dsp.iram + DSP_IRAM_SIZE, 0x0021);
-
-  // Just zero out DRAM.
-  std::fill(m_dsp.dram, m_dsp.dram + DSP_DRAM_SIZE, 0);
-
-  // Copied from a real console after the custom UCode has been loaded.
-  // These are the indexing wrapping registers.
-  std::fill(std::begin(m_dsp.r.wr), std::end(m_dsp.r.wr), 0xffff);
-
-  m_dsp.r.sr |= SR_INT_ENABLE;
-  m_dsp.r.sr |= SR_EXT_INT_ENABLE;
-
-  m_dsp.cr = 0x804;
-  m_dsp.InitializeIFX();
-  // Mostly keep IRAM write protected. We unprotect only when DMA-ing
-  // in new ucodes.
-  Common::WriteProtectMemory(m_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  m_init_hax = false;
 
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CoreType::JIT64)
@@ -195,9 +435,7 @@ void DSPCore::Shutdown()
   m_core_state = State::Stopped;
 
   m_dsp_jit.reset();
-
-  FreeMemoryPages();
-
+  m_dsp.Shutdown();
   m_dsp_cap.reset();
 }
 
@@ -248,10 +486,7 @@ void DSPCore::Step()
 
 void DSPCore::Reset()
 {
-  m_dsp.pc = DSP_RESET_VECTOR;
-
-  std::fill(std::begin(m_dsp.r.wr), std::end(m_dsp.r.wr), 0xffff);
-
+  m_dsp.Reset();
   Analyzer::Analyze(m_dsp);
 }
 
@@ -281,185 +516,32 @@ State DSPCore::GetState() const
 
 void DSPCore::SetException(ExceptionType exception)
 {
-  m_dsp.exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
+  m_dsp.SetException(exception);
 }
 
 void DSPCore::SetExternalInterrupt(bool val)
 {
-  m_dsp.external_interrupt_waiting = val;
+  m_dsp.SetExternalInterrupt(val);
 }
 
 void DSPCore::CheckExternalInterrupt()
 {
-  if (!m_dsp.IsSRFlagSet(SR_EXT_INT_ENABLE))
-    return;
-
-  // Signal the SPU about new mail
-  SetException(ExceptionType::ExternalInterrupt);
-
-  m_dsp.cr &= ~CR_EXTERNAL_INT;
+  m_dsp.CheckExternalInterrupt();
 }
 
 void DSPCore::CheckExceptions()
 {
-  // Early out to skip the loop in the common case.
-  if (m_dsp.exceptions == 0)
-    return;
-
-  for (int i = 7; i > 0; i--)
-  {
-    // Seems exp int are not masked by sr_int_enable
-    if ((m_dsp.exceptions & (1U << i)) != 0)
-    {
-      if (m_dsp.IsSRFlagSet(SR_INT_ENABLE) ||
-          i == static_cast<int>(ExceptionType::ExternalInterrupt))
-      {
-        // store pc and sr until RTI
-        m_dsp.StoreStack(StackRegister::Call, m_dsp.pc);
-        m_dsp.StoreStack(StackRegister::Data, m_dsp.r.sr);
-
-        m_dsp.pc = static_cast<u16>(i * 2);
-        m_dsp.exceptions &= ~(1 << i);
-        if (i == 7)
-          m_dsp.r.sr &= ~SR_EXT_INT_ENABLE;
-        else
-          m_dsp.r.sr &= ~SR_INT_ENABLE;
-        break;
-      }
-      else
-      {
-#if defined(_DEBUG) || defined(DEBUGFAST)
-        ERROR_LOG_FMT(DSPLLE, "Firing exception {} failed", i);
-#endif
-      }
-    }
-  }
+  m_dsp.CheckExceptions();
 }
 
 u16 DSPCore::ReadRegister(size_t reg) const
 {
-  switch (reg)
-  {
-  case DSP_REG_AR0:
-  case DSP_REG_AR1:
-  case DSP_REG_AR2:
-  case DSP_REG_AR3:
-    return m_dsp.r.ar[reg - DSP_REG_AR0];
-  case DSP_REG_IX0:
-  case DSP_REG_IX1:
-  case DSP_REG_IX2:
-  case DSP_REG_IX3:
-    return m_dsp.r.ix[reg - DSP_REG_IX0];
-  case DSP_REG_WR0:
-  case DSP_REG_WR1:
-  case DSP_REG_WR2:
-  case DSP_REG_WR3:
-    return m_dsp.r.wr[reg - DSP_REG_WR0];
-  case DSP_REG_ST0:
-  case DSP_REG_ST1:
-  case DSP_REG_ST2:
-  case DSP_REG_ST3:
-    return m_dsp.r.st[reg - DSP_REG_ST0];
-  case DSP_REG_ACH0:
-  case DSP_REG_ACH1:
-    return m_dsp.r.ac[reg - DSP_REG_ACH0].h;
-  case DSP_REG_CR:
-    return m_dsp.r.cr;
-  case DSP_REG_SR:
-    return m_dsp.r.sr;
-  case DSP_REG_PRODL:
-    return m_dsp.r.prod.l;
-  case DSP_REG_PRODM:
-    return m_dsp.r.prod.m;
-  case DSP_REG_PRODH:
-    return m_dsp.r.prod.h;
-  case DSP_REG_PRODM2:
-    return m_dsp.r.prod.m2;
-  case DSP_REG_AXL0:
-  case DSP_REG_AXL1:
-    return m_dsp.r.ax[reg - DSP_REG_AXL0].l;
-  case DSP_REG_AXH0:
-  case DSP_REG_AXH1:
-    return m_dsp.r.ax[reg - DSP_REG_AXH0].h;
-  case DSP_REG_ACL0:
-  case DSP_REG_ACL1:
-    return m_dsp.r.ac[reg - DSP_REG_ACL0].l;
-  case DSP_REG_ACM0:
-  case DSP_REG_ACM1:
-    return m_dsp.r.ac[reg - DSP_REG_ACM0].m;
-  default:
-    ASSERT_MSG(DSP_CORE, 0, "cannot happen");
-    return 0;
-  }
+  return m_dsp.ReadRegister(reg);
 }
 
 void DSPCore::WriteRegister(size_t reg, u16 val)
 {
-  switch (reg)
-  {
-  case DSP_REG_AR0:
-  case DSP_REG_AR1:
-  case DSP_REG_AR2:
-  case DSP_REG_AR3:
-    m_dsp.r.ar[reg - DSP_REG_AR0] = val;
-    break;
-  case DSP_REG_IX0:
-  case DSP_REG_IX1:
-  case DSP_REG_IX2:
-  case DSP_REG_IX3:
-    m_dsp.r.ix[reg - DSP_REG_IX0] = val;
-    break;
-  case DSP_REG_WR0:
-  case DSP_REG_WR1:
-  case DSP_REG_WR2:
-  case DSP_REG_WR3:
-    m_dsp.r.wr[reg - DSP_REG_WR0] = val;
-    break;
-  case DSP_REG_ST0:
-  case DSP_REG_ST1:
-  case DSP_REG_ST2:
-  case DSP_REG_ST3:
-    m_dsp.r.st[reg - DSP_REG_ST0] = val;
-    break;
-  case DSP_REG_ACH0:
-  case DSP_REG_ACH1:
-    m_dsp.r.ac[reg - DSP_REG_ACH0].h = val;
-    break;
-  case DSP_REG_CR:
-    m_dsp.r.cr = val;
-    break;
-  case DSP_REG_SR:
-    m_dsp.r.sr = val;
-    break;
-  case DSP_REG_PRODL:
-    m_dsp.r.prod.l = val;
-    break;
-  case DSP_REG_PRODM:
-    m_dsp.r.prod.m = val;
-    break;
-  case DSP_REG_PRODH:
-    m_dsp.r.prod.h = val;
-    break;
-  case DSP_REG_PRODM2:
-    m_dsp.r.prod.m2 = val;
-    break;
-  case DSP_REG_AXL0:
-  case DSP_REG_AXL1:
-    m_dsp.r.ax[reg - DSP_REG_AXL0].l = val;
-    break;
-  case DSP_REG_AXH0:
-  case DSP_REG_AXH1:
-    m_dsp.r.ax[reg - DSP_REG_AXH0].h = val;
-    break;
-  case DSP_REG_ACL0:
-  case DSP_REG_ACL1:
-    m_dsp.r.ac[reg - DSP_REG_ACL0].l = val;
-    break;
-  case DSP_REG_ACM0:
-  case DSP_REG_ACM1:
-    m_dsp.r.ac[reg - DSP_REG_ACM0].m = val;
-    break;
-  }
+  m_dsp.WriteRegister(reg, val);
 }
 
 u32 DSPCore::PeekMailbox(Mailbox mailbox) const
@@ -509,46 +591,10 @@ bool DSPCore::IsJITCreated() const
 
 void DSPCore::DoState(PointerWrap& p)
 {
-  p.Do(m_dsp.r);
-  p.Do(m_dsp.pc);
-  p.Do(m_dsp.cr);
-  p.Do(m_dsp.reg_stack_ptrs);
-  p.Do(m_dsp.exceptions);
-  p.Do(m_dsp.external_interrupt_waiting);
-
-  for (auto& stack : m_dsp.reg_stacks)
-  {
-    p.Do(stack);
-  }
-
-  p.Do(m_dsp.step_counter);
-  p.DoArray(m_dsp.ifx_regs);
-  m_dsp.accelerator->DoState(p);
-  p.Do(m_dsp.mbox[0]);
-  p.Do(m_dsp.mbox[1]);
-  Common::UnWriteProtectMemory(m_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  p.DoArray(m_dsp.iram, DSP_IRAM_SIZE);
-  Common::WriteProtectMemory(m_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  // TODO: This uses the wrong endianness (producing bad disassembly)
-  // and a bogus byte count (producing bad hashes)
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    Host::CodeLoaded(*this, reinterpret_cast<const u8*>(m_dsp.iram), DSP_IRAM_BYTE_SIZE);
-  p.DoArray(m_dsp.dram, DSP_DRAM_SIZE);
+  m_dsp.DoState(p);
   p.Do(m_init_hax);
 
   if (m_dsp_jit)
     m_dsp_jit->DoState(p);
-}
-
-void DSPCore::FreeMemoryPages()
-{
-  Common::FreeMemoryPages(m_dsp.irom, DSP_IROM_BYTE_SIZE);
-  Common::FreeMemoryPages(m_dsp.iram, DSP_IRAM_BYTE_SIZE);
-  Common::FreeMemoryPages(m_dsp.dram, DSP_DRAM_BYTE_SIZE);
-  Common::FreeMemoryPages(m_dsp.coef, DSP_COEF_BYTE_SIZE);
-  m_dsp.irom = nullptr;
-  m_dsp.iram = nullptr;
-  m_dsp.dram = nullptr;
-  m_dsp.coef = nullptr;
 }
 }  // namespace DSP

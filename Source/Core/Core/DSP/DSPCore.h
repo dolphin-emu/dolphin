@@ -274,6 +274,30 @@ struct DSP_Regs
   } ac[2];
 };
 
+struct DSPInitOptions
+{
+  // DSP IROM blob, which is where the DSP boots from. Embedded into the DSP.
+  std::array<u16, DSP_IROM_SIZE> irom_contents;
+
+  // DSP DROM blob, which contains resampling coefficients.
+  std::array<u16, DSP_COEF_SIZE> coef_contents;
+
+  // Core used to emulate the DSP.
+  // Default: JIT64.
+  enum class CoreType
+  {
+    Interpreter,
+    JIT64,
+  };
+  CoreType core_type = CoreType::JIT64;
+
+  // Optional capture logger used to log internal DSP data transfers.
+  // Default: dummy implementation, does nothing.
+  DSPCaptureLogger* capture_logger;
+
+  DSPInitOptions() : capture_logger(new DefaultDSPCaptureLogger()) {}
+};
+
 // All the state of the DSP should be in this struct. Any DSP state that is not filled on init
 // should be moved here.
 struct SDSP
@@ -286,6 +310,15 @@ struct SDSP
 
   SDSP(SDSP&&) = delete;
   SDSP& operator=(SDSP&&) = delete;
+
+  // Initializes overall state.
+  bool Initialize(const DSPInitOptions& opts);
+
+  // Shuts down any necessary DSP state.
+  void Shutdown();
+
+  // Resets DSP state as if the reset exception vector has been taken.
+  void Reset();
 
   // Initializes the IFX registers.
   void InitializeIFX();
@@ -335,11 +368,33 @@ struct SDSP
   // Whether or not the given flag is set in the SR register.
   bool IsSRFlagSet(u16 flag) const { return (r.sr & flag) != 0; }
 
+  // Indicates that a particular exception has occurred
+  // and sets a flag in the pending exception register.
+  void SetException(ExceptionType exception);
+
+  // Checks if any exceptions occurred an updates the DSP state as appropriate.
+  void CheckExceptions();
+
+  // Notify that an external interrupt is pending (used by thread mode)
+  void SetExternalInterrupt(bool val);
+
+  // Coming from the CPU
+  void CheckExternalInterrupt();
+
   // Stores a value into the specified stack
   void StoreStack(StackRegister stack_reg, u16 val);
 
   // Pops a value off of the specified stack
   u16 PopStack(StackRegister stack_reg);
+
+  // Reads the current value from a particular register.
+  u16 ReadRegister(size_t reg) const;
+
+  // Writes a value to a given register.
+  void WriteRegister(size_t reg, u16 val);
+
+  // Saves and loads any necessary state.
+  void DoState(PointerWrap& p);
 
   DSP_Regs r{};
   u16 pc = 0;
@@ -383,6 +438,8 @@ struct SDSP
   u16* coef = nullptr;
 
 private:
+  void FreeMemoryPages();
+
   void DoDMA();
   const u8* DDMAIn(u16 dsp_addr, u32 addr, u32 size);
   const u8* DDMAOut(u16 dsp_addr, u32 addr, u32 size);
@@ -392,30 +449,6 @@ private:
   u16 ReadIFXImpl(u16 address);
 
   DSPCore& m_dsp_core;
-};
-
-struct DSPInitOptions
-{
-  // DSP IROM blob, which is where the DSP boots from. Embedded into the DSP.
-  std::array<u16, DSP_IROM_SIZE> irom_contents;
-
-  // DSP DROM blob, which contains resampling coefficients.
-  std::array<u16, DSP_COEF_SIZE> coef_contents;
-
-  // Core used to emulate the DSP.
-  // Default: JIT64.
-  enum class CoreType
-  {
-    Interpreter,
-    JIT64,
-  };
-  CoreType core_type = CoreType::JIT64;
-
-  // Optional capture logger used to log internal DSP data transfers.
-  // Default: dummy implementation, does nothing.
-  DSPCaptureLogger* capture_logger;
-
-  DSPInitOptions() : capture_logger(new DefaultDSPCaptureLogger()) {}
 };
 
 enum class State
@@ -527,8 +560,6 @@ public:
   void SetInitHax(bool value) { m_init_hax = value; }
 
 private:
-  void FreeMemoryPages();
-
   SDSP m_dsp;
   DSPBreakpoints m_dsp_breakpoints;
   State m_core_state = State::Stopped;
