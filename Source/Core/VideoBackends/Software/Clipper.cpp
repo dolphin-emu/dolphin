@@ -331,18 +331,36 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   }
 }
 
-static void CopyVertex(OutputVertexData* dst, const OutputVertexData* src, float dx, float dy,
-                       unsigned int sOffset)
+constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
+    0, 1 / 16.f, 1 / 8.f, 1 / 4.f, 1 / 2.f, 1, 1, 1,
+};
+
+static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, int px, int py,
+                           bool apply_line_offset)
 {
-  dst->screenPosition.x = src->screenPosition.x + dx;
-  dst->screenPosition.y = src->screenPosition.y + dy;
+  const float line_half_width = bpmem.lineptwidth.linesize / 12.0f;
+
+  dst->projectedPosition = src->projectedPosition;
+  dst->screenPosition.x = src->screenPosition.x + px * line_half_width;
+  dst->screenPosition.y = src->screenPosition.y + py * line_half_width;
   dst->screenPosition.z = src->screenPosition.z;
 
   dst->normal = src->normal;
   dst->color = src->color;
 
-  // todo - s offset
   dst->texCoords = src->texCoords;
+
+  if (apply_line_offset && LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff] != 0)
+  {
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    {
+      if (bpmem.texcoords[coord_num].s.line_offset)
+      {
+        dst->texCoords[coord_num].x += (bpmem.texcoords[coord_num].s.scale_minus_1 + 1) *
+                                       LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+      }
+    }
+  }
 }
 
 void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
@@ -365,37 +383,33 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
     PerspectiveDivide(v0);
     PerspectiveDivide(v1);
 
-    float dx = v1->screenPosition.x - v0->screenPosition.x;
-    float dy = v1->screenPosition.y - v0->screenPosition.y;
+    const float dx = v1->screenPosition.x - v0->screenPosition.x;
+    const float dy = v1->screenPosition.y - v0->screenPosition.y;
 
-    float screenDx = 0;
-    float screenDy = 0;
+    int px = 0;
+    int py = 0;
 
+    // GameCube/Wii's line drawing algorithm is a little quirky. It does not
+    // use the correct line caps. Instead, the line caps are vertical or
+    // horizontal depending the slope of the line.
+    // FIXME: What does real hardware do when line is at a 45-degree angle?
+
+    // Note that py or px are set positive or negative to ensure that the triangles are drawn ccw.
     if (fabsf(dx) > fabsf(dy))
-    {
-      if (dx > 0)
-        screenDy = bpmem.lineptwidth.linesize / -12.0f;
-      else
-        screenDy = bpmem.lineptwidth.linesize / 12.0f;
-    }
+      py = (dx > 0) ? -1 : 1;
     else
-    {
-      if (dy > 0)
-        screenDx = bpmem.lineptwidth.linesize / 12.0f;
-      else
-        screenDx = bpmem.lineptwidth.linesize / -12.0f;
-    }
+      px = (dy > 0) ? 1 : -1;
 
     OutputVertexData triangle[3];
 
-    CopyVertex(&triangle[0], v0, screenDx, screenDy, 0);
-    CopyVertex(&triangle[1], v1, screenDx, screenDy, 0);
-    CopyVertex(&triangle[2], v1, -screenDx, -screenDy, bpmem.lineptwidth.lineoff);
+    CopyLineVertex(&triangle[0], v0, px, py, false);
+    CopyLineVertex(&triangle[1], v1, px, py, false);
+    CopyLineVertex(&triangle[2], v1, -px, -py, true);
 
     // ccw winding
     Rasterizer::DrawTriangleFrontFace(&triangle[2], &triangle[1], &triangle[0]);
 
-    CopyVertex(&triangle[1], v0, -screenDx, -screenDy, bpmem.lineptwidth.lineoff);
+    CopyLineVertex(&triangle[1], v0, -px, -py, true);
 
     Rasterizer::DrawTriangleFrontFace(&triangle[0], &triangle[1], &triangle[2]);
   }
