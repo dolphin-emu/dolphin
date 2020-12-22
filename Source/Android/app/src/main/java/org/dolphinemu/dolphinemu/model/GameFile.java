@@ -4,6 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.Keep;
 
+import java.io.File;
+
 public class GameFile
 {
   @Keep
@@ -66,7 +68,16 @@ public class GameFile
 
   public String getCoverPath(Context context)
   {
-    return context.getExternalCacheDir().getPath() + "/GameCovers/" + getGameTdbId() + ".png";
+    File externalCacheDir = context.getExternalCacheDir();
+
+    if (externalCacheDir != null)
+    {
+      return externalCacheDir.getPath() + "/GameCovers/" + getGameTdbId() + ".png";
+    }
+    else
+    {
+      throw new IllegalStateException("[GameFile] externalCacheDir is null");
+    }
   }
 
   public String getCustomCoverPath()

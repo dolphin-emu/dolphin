@@ -46,6 +46,7 @@
         app:borderWidth="0dp"
         app:layout_anchor="@+id/pager_platforms"
         app:layout_anchorGravity="bottom|right|end"
-        app:rippleColor="?android:colorPrimaryDark" />
+        app:rippleColor="?android:colorPrimaryDark"
+        android:contentDescription="@string/add_directory_button" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

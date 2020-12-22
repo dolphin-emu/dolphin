@@ -15,12 +15,12 @@
         android:orientation="vertical">
 
         <ImageView
-            android:id="@+id/image_game_screen"
+            android:id="@+id/image_game_cover"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            tools:src="@drawable/placeholder_screenshot"
-            tools:scaleType="centerCrop"/>
+            tools:scaleType="centerCrop"
+            android:contentDescription="@string/placeholder_game_cover"/>
 
         <TextView
             android:id="@+id/text_game_title"

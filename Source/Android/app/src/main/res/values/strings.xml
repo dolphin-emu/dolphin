@@ -440,6 +440,12 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="wrong_file_extension_multiple">The selected file has the file name extension \"%1$s\", but one of these extensions was expected: %2$s\n\nContinue anyway?</string>
     <string name="unavailable_paths">Dolphin does not have permission to access one or more configured paths. Would you like to fix this before starting?</string>
 
+    <!-- Content Descriptions-->
+    <string name="add_directory_button">Add Directory Button</string>
+    <string name="banner">Banner</string>
+    <string name="dolphin_icon">Dolphin Icon</string>
+    <string name="placeholder_game_cover">Placeholder Game Cover</string>
+
     <!-- Misc -->
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>

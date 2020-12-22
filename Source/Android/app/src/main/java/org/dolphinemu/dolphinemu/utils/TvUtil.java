@@ -22,6 +22,7 @@ import android.util.Log;
 
 import androidx.annotation.AnyRes;
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.tvprovider.media.tv.Channel;
 import androidx.tvprovider.media.tv.TvContractCompat;
 
@@ -55,15 +56,16 @@ public class TvUtil
 
   public static int getNumberOfChannels(Context context)
   {
-    Cursor cursor =
-            context.getContentResolver()
-                    .query(
-                            TvContractCompat.Channels.CONTENT_URI,
-                            CHANNELS_PROJECTION,
-                            null,
-                            null,
-                            null);
-    return cursor != null ? cursor.getCount() : 0;
+    try (Cursor cursor = context.getContentResolver()
+            .query(
+                    TvContractCompat.Channels.CONTENT_URI,
+                    CHANNELS_PROJECTION,
+                    null,
+                    null,
+                    null))
+    {
+      return cursor != null ? cursor.getCount() : 0;
+    }
   }
 
   public static List<Channel> getAllChannels(Context context)
@@ -135,7 +137,7 @@ public class TvUtil
   @NonNull
   public static Bitmap convertToBitmap(Context context, int resourceId)
   {
-    Drawable drawable = context.getDrawable(resourceId);
+    Drawable drawable = ResourcesCompat.getDrawable(context.getResources(), resourceId, null);
     if (drawable instanceof VectorDrawable)
     {
       Bitmap bitmap =
@@ -175,8 +177,12 @@ public class TvUtil
     }
     catch (Exception e)
     {
+      String message = e.getMessage();
+
       Log.e(TAG, "Failed to create banner");
-      Log.e(TAG, e.getMessage());
+
+      if (message != null)
+        Log.e(TAG, message);
     }
 
     return contentUri;

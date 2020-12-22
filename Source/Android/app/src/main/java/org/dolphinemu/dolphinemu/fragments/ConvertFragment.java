@@ -34,7 +34,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   {
     private int mValuesId = -1;
     private int mCurrentPosition = -1;
-    private ArrayList<Runnable> mCallbacks = new ArrayList<>();
+    private final ArrayList<Runnable> mCallbacks = new ArrayList<>();
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id)
@@ -109,10 +109,10 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   private static final int COMPRESSION_LZMA2 = 4;
   private static final int COMPRESSION_ZSTD = 5;
 
-  private SpinnerValue mFormat = new SpinnerValue();
-  private SpinnerValue mBlockSize = new SpinnerValue();
-  private SpinnerValue mCompression = new SpinnerValue();
-  private SpinnerValue mCompressionLevel = new SpinnerValue();
+  private final SpinnerValue mFormat = new SpinnerValue();
+  private final SpinnerValue mBlockSize = new SpinnerValue();
+  private final SpinnerValue mCompression = new SpinnerValue();
+  private final SpinnerValue mCompressionLevel = new SpinnerValue();
 
   private GameFile gameFile;
 
@@ -395,6 +395,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   {
     if (requestCode == REQUEST_CODE_SAVE_FILE && resultCode == Activity.RESULT_OK)
     {
+      //noinspection ConstantConditions
       convert(data.getData().toString());
     }
   }

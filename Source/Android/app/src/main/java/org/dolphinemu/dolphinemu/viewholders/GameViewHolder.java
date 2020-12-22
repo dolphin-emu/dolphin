@@ -15,7 +15,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
  */
 public class GameViewHolder extends RecyclerView.ViewHolder
 {
-  public ImageView imageScreenshot;
+  public ImageView imageGameCover;
   public TextView textGameTitle;
   public TextView textGameCaption;
 
@@ -27,7 +27,7 @@ public class GameViewHolder extends RecyclerView.ViewHolder
 
     itemView.setTag(this);
 
-    imageScreenshot = itemView.findViewById(R.id.image_game_screen);
+    imageGameCover = itemView.findViewById(R.id.image_game_cover);
     textGameTitle = itemView.findViewById(R.id.text_game_title);
     textGameCaption = itemView.findViewById(R.id.text_game_caption);
   }
