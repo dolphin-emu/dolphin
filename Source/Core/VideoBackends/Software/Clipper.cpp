@@ -415,6 +415,53 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
   }
 }
 
+static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, bool px, bool py)
+{
+  const float point_radius = bpmem.lineptwidth.pointsize / 12.0f;
+
+  dst->projectedPosition = src->projectedPosition;
+  dst->screenPosition.x = src->screenPosition.x + (px ? 1 : -1) * point_radius;
+  dst->screenPosition.y = src->screenPosition.y + (py ? 1 : -1) * point_radius;
+  dst->screenPosition.z = src->screenPosition.z;
+
+  dst->normal = src->normal;
+  dst->color = src->color;
+
+  dst->texCoords = src->texCoords;
+
+  const float point_offset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+  if (point_offset != 0)
+  {
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    {
+      const auto coord_info = bpmem.texcoords[coord_num];
+      if (coord_info.s.point_offset)
+      {
+        if (px)
+          dst->texCoords[coord_num].x += (coord_info.s.scale_minus_1 + 1) * point_offset;
+        if (py)
+          dst->texCoords[coord_num].y += (coord_info.t.scale_minus_1 + 1) * point_offset;
+      }
+    }
+  }
+}
+
+void ProcessPoint(OutputVertexData* center)
+{
+  // TODO: This isn't actually doing any clipping
+  PerspectiveDivide(center);
+
+  OutputVertexData ll, lr, ul, ur;
+
+  CopyPointVertex(&ll, center, false, false);
+  CopyPointVertex(&lr, center, true, false);
+  CopyPointVertex(&ur, center, true, true);
+  CopyPointVertex(&ul, center, false, true);
+
+  Rasterizer::DrawTriangleFrontFace(&ll, &ul, &lr);
+  Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
+}
+
 bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
               bool& backface)
 {
