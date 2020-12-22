@@ -115,6 +115,14 @@ void ContextSensitiveControls::init_mod(Game game, Region region) {
       cplayer_ptr_address = 0x805c4f98;
       motion_vtf_address = 0x802e2508;
     }
+    else if (region == Region::NTSC_J) {
+      code_changes.emplace_back(0x801fdb5c, 0x3D808000);
+      code_changes.emplace_back(0x801fdb64, 0x618C4170);
+      code_changes.emplace_back(0x801fdb6c, 0xC02C0000);
+
+      cplayer_ptr_address = 0x805caa5c;
+      motion_vtf_address = 0x802e5ed8;
+    }
     else if (region == Region::PAL) {
       code_changes.emplace_back(0x801fc5a8, 0x3D808000);
       code_changes.emplace_back(0x801fc5b0, 0x618C4170);
