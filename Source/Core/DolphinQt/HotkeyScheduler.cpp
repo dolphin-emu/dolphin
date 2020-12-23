@@ -613,8 +613,17 @@ void HotkeyScheduler::Run()
 
         OSD::AddMessage(StringFromFormat("Skippable Cutscenes: %s", new_value ? "Enabled" : "Disabled"));
       }
+
+      if (IsHotkey(HK_RESTORE_DASHING))
+      {
+        const bool new_value = !SConfig::GetInstance().bPrimeRestoreDashing;
+        SConfig::GetInstance().bPrimeRestoreDashing = new_value;
+
+        OSD::AddMessage(StringFromFormat("Restore Dashing: %s", new_value ? "Enabled" : "Disabled"));
+      }
     }
     else {
+      SConfig::GetInstance().bPrimeRestoreDashing = false;
       SConfig::GetInstance().bPrimeSkipCutscene = false;
       SConfig::GetInstance().bPrimeInvulnerability = false;
       SConfig::GetInstance().bPrimeNoclip = false;

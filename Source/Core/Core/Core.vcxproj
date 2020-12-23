@@ -694,6 +694,7 @@
     <ClInclude Include="PrimeHack\Mods\ContextSensitiveControls.h" />
     <ClInclude Include="PrimeHack\Mods\Invulnerability.h" />
     <ClInclude Include="PrimeHack\Mods\Noclip.h" />
+    <ClInclude Include="PrimeHack\Mods\RestoreDashing.h" />
     <ClInclude Include="PrimeHack\Mods\SkipCutscene.h" />
     <ClInclude Include="PrimeHack\Mods\SpringballButton.h" />
     <ClInclude Include="PrimeHack\Mods\ViewModifier.h" />

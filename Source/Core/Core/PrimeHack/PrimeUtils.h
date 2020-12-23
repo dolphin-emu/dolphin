@@ -44,7 +44,7 @@ void set_cursor_pos(float x, float y);
 
 void DevInfo(const char* name, const char* format, ...);
 void DevInfoMatrix(const char* name, const Transform& t);
-std::tuple<u32, u32, u32> GetCheatsTime();
+std::tuple<u32, u32, u32, u32> GetCheatsTime();
 void AddCheatsTime(int index, u32 time);
 
 std::string GetDevInfo();
