@@ -244,6 +244,16 @@ void JitArm64::Cleanup()
     BLR(X0);
     SetJumpTarget(exit);
   }
+
+  // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+  if (MMCR0.Hex || MMCR1.Hex)
+  {
+    MOVP2R(X30, &PowerPC::UpdatePerformanceMonitor);
+    MOVI2R(X0, js.downcountAmount);
+    MOVI2R(X1, js.numLoadStoreInst);
+    MOVI2R(X2, js.numFloatingPointInst);
+    BLR(X30);
+  }
 }
 
 void JitArm64::DoDownCount()
@@ -620,6 +630,8 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.skipInstructions = 0;
   js.curBlock = b;
   js.carryFlagSet = false;
+  js.numLoadStoreInst = 0;
+  js.numFloatingPointInst = 0;
 
   u8* const start = GetWritableCodePtr();
   b->checkedEntry = start;
@@ -807,6 +819,12 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       // If we have a register that will never be used again, flush it.
       gpr.StoreRegisters(~op.gprInUse);
       fpr.StoreRegisters(~op.fprInUse);
+
+      if (opinfo->flags & FL_LOADSTORE)
+        ++js.numLoadStoreInst;
+
+      if (opinfo->flags & FL_USE_FPU)
+        ++js.numFloatingPointInst;
     }
 
     i += js.skipInstructions;
