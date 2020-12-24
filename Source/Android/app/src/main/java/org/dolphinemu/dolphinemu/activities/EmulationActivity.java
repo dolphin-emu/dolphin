@@ -99,7 +99,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
           MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
-          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS_CORE, MENU_ACTION_SETTINGS_GRAPHICS})
+          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
   public @interface MenuAction
   {
   }
@@ -137,8 +137,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_PAUSE_EMULATION = 30;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 31;
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 32;
-  public static final int MENU_ACTION_SETTINGS_CORE = 33;
-  public static final int MENU_ACTION_SETTINGS_GRAPHICS = 34;
+  public static final int MENU_ACTION_SETTINGS = 33;
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -656,12 +655,8 @@ public final class EmulationActivity extends AppCompatActivity
         showMotionControlsOptions();
         break;
 
-      case MENU_ACTION_SETTINGS_CORE:
-        SettingsActivity.launch(this, MenuTag.CONFIG);
-        break;
-
-      case MENU_ACTION_SETTINGS_GRAPHICS:
-        SettingsActivity.launch(this, MenuTag.GRAPHICS);
+      case MENU_ACTION_SETTINGS:
+        SettingsActivity.launch(this, MenuTag.SETTINGS);
         break;
 
       case MENU_ACTION_EXIT:

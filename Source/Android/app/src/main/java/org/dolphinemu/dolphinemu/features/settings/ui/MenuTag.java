@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 public enum MenuTag
 {
+  SETTINGS("settings"),
   CONFIG("config"),
   CONFIG_GENERAL("config_general"),
   CONFIG_INTERFACE("config_interface"),
