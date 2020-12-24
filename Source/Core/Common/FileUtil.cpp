@@ -866,6 +866,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
+    s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
     s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
     s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
     s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;

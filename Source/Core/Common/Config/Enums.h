@@ -31,6 +31,7 @@ enum class System
   Logger,
   Debugger,
   DualShockUDPClient,
+  FreeLook,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{

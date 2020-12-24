@@ -15,10 +15,12 @@
 #include "Common/Config/Config.h"
 #include "Common/Thread.h"
 
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookManager.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
@@ -30,7 +32,6 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -537,57 +538,15 @@ void HotkeyScheduler::Run()
       Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE,
                          std::min(stereo_convergence + 5, Config::GFX_STEREO_CONVERGENCE_MAXIMUM));
 
-    // Freelook
-    static float fl_speed = 1.0;
-
+    // Free Look
     if (IsHotkey(HK_FREELOOK_TOGGLE))
     {
-      const bool new_value = !Config::Get(Config::GFX_FREE_LOOK);
-      Config::SetCurrent(Config::GFX_FREE_LOOK, new_value);
-      OSD::AddMessage(StringFromFormat("Freelook: %s", new_value ? "Enabled" : "Disabled"));
+      const bool new_value = !Config::Get(Config::FREE_LOOK_ENABLED);
+      Config::SetCurrent(Config::FREE_LOOK_ENABLED, new_value);
+      OSD::AddMessage(StringFromFormat("Free Look: %s", new_value ? "Enabled" : "Disabled"));
     }
 
-    if (IsHotkey(HK_FREELOOK_DECREASE_SPEED, true))
-      fl_speed /= 1.1f;
-
-    if (IsHotkey(HK_FREELOOK_INCREASE_SPEED, true))
-      fl_speed *= 1.1f;
-
-    if (IsHotkey(HK_FREELOOK_RESET_SPEED, true))
-      fl_speed = 1.0;
-
-    if (IsHotkey(HK_FREELOOK_UP, true))
-      g_freelook_camera.MoveVertical(-fl_speed);
-
-    if (IsHotkey(HK_FREELOOK_DOWN, true))
-      g_freelook_camera.MoveVertical(fl_speed);
-
-    if (IsHotkey(HK_FREELOOK_LEFT, true))
-      g_freelook_camera.MoveHorizontal(fl_speed);
-
-    if (IsHotkey(HK_FREELOOK_RIGHT, true))
-      g_freelook_camera.MoveHorizontal(-fl_speed);
-
-    if (IsHotkey(HK_FREELOOK_ZOOM_IN, true))
-      g_freelook_camera.Zoom(fl_speed);
-
-    if (IsHotkey(HK_FREELOOK_ZOOM_OUT, true))
-      g_freelook_camera.Zoom(-fl_speed);
-
-    if (IsHotkey(HK_FREELOOK_INCREASE_FOV_X, true))
-      g_freelook_camera.IncreaseFovX(g_freelook_camera.GetFovStepSize());
-
-    if (IsHotkey(HK_FREELOOK_DECREASE_FOV_X, true))
-      g_freelook_camera.IncreaseFovX(-1.0f * g_freelook_camera.GetFovStepSize());
-
-    if (IsHotkey(HK_FREELOOK_INCREASE_FOV_Y, true))
-      g_freelook_camera.IncreaseFovY(g_freelook_camera.GetFovStepSize());
-
-    if (IsHotkey(HK_FREELOOK_DECREASE_FOV_Y, true))
-      g_freelook_camera.IncreaseFovY(-1.0f * g_freelook_camera.GetFovStepSize());
-
-    if (IsHotkey(HK_FREELOOK_RESET, true))
-      g_freelook_camera.Reset();
+    FreeLook::UpdateInput();
 
     // Savestates
     for (u32 i = 0; i < State::NUM_STATES; i++)

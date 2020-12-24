@@ -528,6 +528,7 @@ void MenuBar::AddOptionsMenu()
   m_controllers_action =
       options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+  options_menu->addAction(tr("&Free Look Settings"), this, &MenuBar::ConfigureFreelook);
 
   options_menu->addSeparator();
 

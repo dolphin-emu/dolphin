@@ -71,6 +71,10 @@ add_executable(dolphin-emu
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
   Config/FilesystemWidget.h
+  Config/FreeLookWidget.cpp
+  Config/FreeLookWidget.h
+  Config/FreeLookWindow.cpp
+  Config/FreeLookWindow.h
   Config/GameConfigEdit.cpp
   Config/GameConfigEdit.h
   Config/GameConfigHighlighter.cpp
@@ -112,6 +116,8 @@ add_executable(dolphin-emu
   Config/LogConfigWidget.h
   Config/LogWidget.cpp
   Config/LogWidget.h
+  Config/Mapping/FreeLookGeneral.cpp
+  Config/Mapping/FreeLookGeneral.h
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCKeyboardEmu.h
   Config/Mapping/GCMicrophone.cpp

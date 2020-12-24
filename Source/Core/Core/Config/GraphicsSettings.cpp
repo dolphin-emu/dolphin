@@ -42,9 +42,6 @@ const Info<bool> GFX_CACHE_HIRES_TEXTURES{{System::GFX, "Settings", "CacheHiresT
 const Info<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"}, false};
 const Info<bool> GFX_DUMP_XFB_TARGET{{System::GFX, "Settings", "DumpXFBTarget"}, false};
 const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES{{System::GFX, "Settings", "DumpFramesAsImages"}, false};
-const Info<bool> GFX_FREE_LOOK{{System::GFX, "Settings", "FreeLook"}, false};
-const Info<FreelookControlType> GFX_FREE_LOOK_CONTROL_TYPE{
-    {System::GFX, "Settings", "FreeLookControlType"}, FreelookControlType::SixAxis};
 const Info<bool> GFX_USE_FFV1{{System::GFX, "Settings", "UseFFV1"}, false};
 const Info<std::string> GFX_DUMP_FORMAT{{System::GFX, "Settings", "DumpFormat"}, "avi"};
 const Info<std::string> GFX_DUMP_CODEC{{System::GFX, "Settings", "DumpCodec"}, ""};

@@ -24,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 139> s_hotkey_labels{{
+constexpr std::array<const char*, 125> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -117,21 +117,7 @@ constexpr std::array<const char*, 139> s_hotkey_labels{{
     // i18n: IR stands for internal resolution
     _trans("Decrease IR"),
 
-    _trans("Freelook Decrease Speed"),
-    _trans("Freelook Increase Speed"),
-    _trans("Freelook Reset Speed"),
-    _trans("Freelook Move Up"),
-    _trans("Freelook Move Down"),
-    _trans("Freelook Move Left"),
-    _trans("Freelook Move Right"),
-    _trans("Freelook Zoom In"),
-    _trans("Freelook Zoom Out"),
-    _trans("Freelook Reset"),
     _trans("Freelook Toggle"),
-    _trans("Freelook Increase Field of View X"),
-    _trans("Freelook Decrease Field of View X"),
-    _trans("Freelook Increase Field of View Y"),
-    _trans("Freelook Decrease Field of View Y"),
 
     _trans("Toggle 3D Side-by-Side"),
     _trans("Toggle 3D Top-Bottom"),
@@ -339,7 +325,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Controller Profile 4"), HK_NEXT_WIIMOTE_PROFILE_4, HK_PREV_GAME_WIIMOTE_PROFILE_4},
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
-     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_DECREASE_FOV_Y},
+     {_trans("Freelook"), HK_FREELOOK_TOGGLE, HK_FREELOOK_TOGGLE},
      // i18n: Stereoscopic 3D
      {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_ANAGLYPH},
      // i18n: Stereoscopic 3D
@@ -445,22 +431,6 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 #else
   set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
 #endif
-
-  // Freelook
-  set_key_expression(HK_FREELOOK_DECREASE_SPEED, hotkey_string({"Shift", "`1`"}));
-  set_key_expression(HK_FREELOOK_INCREASE_SPEED, hotkey_string({"Shift", "`2`"}));
-  set_key_expression(HK_FREELOOK_RESET_SPEED, hotkey_string({"Shift", "F"}));
-  set_key_expression(HK_FREELOOK_UP, hotkey_string({"Shift", "E"}));
-  set_key_expression(HK_FREELOOK_DOWN, hotkey_string({"Shift", "Q"}));
-  set_key_expression(HK_FREELOOK_LEFT, hotkey_string({"Shift", "A"}));
-  set_key_expression(HK_FREELOOK_RIGHT, hotkey_string({"Shift", "D"}));
-  set_key_expression(HK_FREELOOK_ZOOM_IN, hotkey_string({"Shift", "W"}));
-  set_key_expression(HK_FREELOOK_ZOOM_OUT, hotkey_string({"Shift", "S"}));
-  set_key_expression(HK_FREELOOK_RESET, hotkey_string({"Shift", "R"}));
-  set_key_expression(HK_FREELOOK_INCREASE_FOV_X, hotkey_string({"Shift", "`Axis Z+`"}));
-  set_key_expression(HK_FREELOOK_DECREASE_FOV_X, hotkey_string({"Shift", "`Axis Z-`"}));
-  set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, hotkey_string({"Shift", "`Axis Z+`"}));
-  set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, hotkey_string({"Shift", "`Axis Z-`"}));
 
   // Savestates
   for (int i = 0; i < 8; i++)

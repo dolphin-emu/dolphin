@@ -8,7 +8,7 @@
 #include <optional>
 
 #include "Common/Matrix.h"
-#include "VideoCommon/VideoConfig.h"
+#include "Core/FreeLookConfig.h"
 
 class PointerWrap;
 
@@ -29,7 +29,7 @@ public:
   virtual void MoveVertical(float amt) = 0;
   virtual void MoveHorizontal(float amt) = 0;
 
-  virtual void Zoom(float amt) = 0;
+  virtual void MoveForward(float amt) = 0;
 
   virtual void Rotate(const Common::Vec3& amt) = 0;
 
@@ -41,14 +41,13 @@ public:
 class FreeLookCamera
 {
 public:
-  void SetControlType(FreelookControlType type);
+  void SetControlType(FreeLook::ControlType type);
   Common::Matrix44 GetView();
   Common::Vec2 GetFieldOfView() const;
 
   void MoveVertical(float amt);
   void MoveHorizontal(float amt);
-
-  void Zoom(float amt);
+  void MoveForward(float amt);
 
   void Rotate(const Common::Vec3& amt);
 
@@ -63,14 +62,22 @@ public:
   bool IsDirty() const;
   void SetClean();
 
+  void ModifySpeed(float multiplier);
+  void ResetSpeed();
+  float GetSpeed() const;
+
+  bool IsActive() const;
+
 private:
   bool m_dirty = false;
   float m_fov_x = 1.0f;
   float m_fov_y = 1.0f;
-  std::optional<FreelookControlType> m_current_type;
+  std::optional<FreeLook::ControlType> m_current_type;
   std::unique_ptr<CameraController> m_camera_controller;
 
   float m_fov_step_size = 0.025f;
+  float m_speed = 1.0f;
+  bool m_enabled = true;
 };
 
 extern FreeLookCamera g_freelook_camera;

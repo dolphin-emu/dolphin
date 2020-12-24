@@ -41,6 +41,7 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
@@ -62,6 +63,7 @@
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/CheatsManager.h"
 #include "DolphinQt/Config/ControllersWindow.h"
+#include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/LogConfigWidget.h"
 #include "DolphinQt/Config/LogWidget.h"
@@ -302,6 +304,7 @@ void MainWindow::InitControllers()
   Pad::Initialize();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  FreeLook::Initialize();
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
 
@@ -315,6 +318,9 @@ void MainWindow::InitControllers()
 
   Keyboard::LoadConfig();
   Keyboard::GetConfig()->SaveConfig();
+
+  FreeLook::LoadInputConfig();
+  FreeLook::GetInputConfig()->SaveConfig();
 }
 
 void MainWindow::ShutdownControllers()
@@ -325,6 +331,7 @@ void MainWindow::ShutdownControllers()
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
+  FreeLook::Shutdown();
   g_controller_interface.Shutdown();
 
   m_hotkey_scheduler->deleteLater();
@@ -479,6 +486,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureAudio, this, &MainWindow::ShowAudioWindow);
   connect(m_menu_bar, &MenuBar::ConfigureControllers, this, &MainWindow::ShowControllersWindow);
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
+  connect(m_menu_bar, &MenuBar::ConfigureFreelook, this, &MainWindow::ShowFreeLookWindow);
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
@@ -1099,6 +1107,19 @@ void MainWindow::ShowControllersWindow()
   m_controllers_window->show();
   m_controllers_window->raise();
   m_controllers_window->activateWindow();
+}
+
+void MainWindow::ShowFreeLookWindow()
+{
+  if (!m_freelook_window)
+  {
+    m_freelook_window = new FreeLookWindow(this);
+    InstallHotkeyFilter(m_freelook_window);
+  }
+
+  m_freelook_window->show();
+  m_freelook_window->raise();
+  m_freelook_window->activateWindow();
 }
 
 void MainWindow::ShowSettingsWindow()

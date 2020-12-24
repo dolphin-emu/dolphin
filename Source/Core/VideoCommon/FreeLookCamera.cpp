@@ -12,25 +12,24 @@
 #include "Common/MathUtil.h"
 
 #include "Common/ChunkFile.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 FreeLookCamera g_freelook_camera;
 
 namespace
 {
-std::string to_string(FreelookControlType type)
+std::string to_string(FreeLook::ControlType type)
 {
   switch (type)
   {
-  case FreelookControlType::SixAxis:
+  case FreeLook::ControlType::SixAxis:
     return "Six Axis";
-  case FreelookControlType::FPS:
+  case FreeLook::ControlType::FPS:
     return "First Person";
-  case FreelookControlType::Orbital:
+  case FreeLook::ControlType::Orbital:
     return "Orbital";
   }
 
@@ -54,7 +53,7 @@ public:
     m_mat = Common::Matrix44::Translate(Common::Vec3{amt, 0, 0}) * m_mat;
   }
 
-  void Zoom(float amt) override
+  void MoveForward(float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
   }
@@ -97,7 +96,7 @@ public:
     m_position += right * amt;
   }
 
-  void Zoom(float amt) override
+  void MoveForward(float amt) override
   {
     Common::Vec3 forward{m_rotate_mat.data[8], m_rotate_mat.data[9], m_rotate_mat.data[10]};
     m_position += forward * amt;
@@ -150,7 +149,7 @@ public:
 
   void MoveHorizontal(float) override {}
 
-  void Zoom(float amt) override
+  void MoveForward(float amt) override
   {
     m_distance += -1 * amt;
     m_distance = std::clamp(m_distance, 0.0f, m_distance);
@@ -176,22 +175,22 @@ private:
 };
 }  // namespace
 
-void FreeLookCamera::SetControlType(FreelookControlType type)
+void FreeLookCamera::SetControlType(FreeLook::ControlType type)
 {
   if (m_current_type && *m_current_type == type)
   {
     return;
   }
 
-  if (type == FreelookControlType::SixAxis)
+  if (type == FreeLook::ControlType::SixAxis)
   {
     m_camera_controller = std::make_unique<SixAxisController>();
   }
-  else if (type == FreelookControlType::Orbital)
+  else if (type == FreeLook::ControlType::Orbital)
   {
     m_camera_controller = std::make_unique<OrbitalController>();
   }
-  else
+  else if (type == FreeLook::ControlType::FPS)
   {
     m_camera_controller = std::make_unique<FPSController>();
   }
@@ -221,9 +220,9 @@ void FreeLookCamera::MoveHorizontal(float amt)
   m_dirty = true;
 }
 
-void FreeLookCamera::Zoom(float amt)
+void FreeLookCamera::MoveForward(float amt)
 {
-  m_camera_controller->Zoom(amt);
+  m_camera_controller->MoveForward(amt);
   m_dirty = true;
 }
 
@@ -258,10 +257,26 @@ void FreeLookCamera::Reset()
   m_dirty = true;
 }
 
+void FreeLookCamera::ModifySpeed(float multiplier)
+{
+  m_speed *= multiplier;
+}
+
+void FreeLookCamera::ResetSpeed()
+{
+  m_speed = 1.0f;
+}
+
+float FreeLookCamera::GetSpeed() const
+{
+  return m_speed;
+}
+
 void FreeLookCamera::DoState(PointerWrap& p)
 {
   if (p.mode == PointerWrap::MODE_WRITE || p.mode == PointerWrap::MODE_MEASURE)
   {
+    p.Do(m_speed);
     p.Do(m_current_type);
     p.Do(m_fov_x);
     p.Do(m_fov_y);
@@ -273,6 +288,7 @@ void FreeLookCamera::DoState(PointerWrap& p)
   else
   {
     const auto old_type = m_current_type;
+    p.Do(m_speed);
     p.Do(m_current_type);
     p.Do(m_fov_x);
     p.Do(m_fov_y);
@@ -302,4 +318,9 @@ bool FreeLookCamera::IsDirty() const
 void FreeLookCamera::SetClean()
 {
   m_dirty = false;
+}
+
+bool FreeLookCamera::IsActive() const
+{
+  return FreeLook::GetActiveConfig().enabled;
 }

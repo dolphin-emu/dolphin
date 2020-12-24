@@ -55,6 +55,8 @@
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\FreeLookWidget.cpp" />
+    <ClCompile Include="Config\FreeLookWindow.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />
     <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
@@ -75,6 +77,7 @@
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
+    <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
@@ -223,6 +226,8 @@
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\FreeLookWidget.h" />
+    <QtMoc Include="Config\FreeLookWindow.h" />
     <QtMoc Include="Config\GameConfigHighlighter.h" />
     <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
@@ -243,6 +248,7 @@
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
+    <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
     <QtMoc Include="Config\Mapping\GCMicrophone.h" />
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />

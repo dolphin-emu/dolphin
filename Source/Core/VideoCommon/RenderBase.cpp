@@ -45,6 +45,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/FreeLookConfig.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
@@ -105,6 +106,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
                                                                                    MAX_XFB_HEIGHT}
 {
   UpdateActiveConfig();
+  FreeLook::UpdateActiveConfig();
   UpdateDrawRectangle();
   CalculateTargetSize();
 
@@ -402,11 +404,9 @@ void Renderer::CheckForConfigChanges()
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
 
   UpdateActiveConfig();
+  FreeLook::UpdateActiveConfig();
 
-  if (g_ActiveConfig.bFreeLook)
-  {
-    g_freelook_camera.SetControlType(g_ActiveConfig.iFreelookControlType);
-  }
+  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);

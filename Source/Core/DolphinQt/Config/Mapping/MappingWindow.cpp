@@ -21,6 +21,7 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
@@ -82,7 +83,7 @@ void MappingWindow::CreateDevicesLayout()
   m_devices_combo = new QComboBox();
   m_devices_refresh = new QPushButton(tr("Refresh"));
 
-  m_devices_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+  m_devices_combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   m_devices_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   m_devices_layout->addWidget(m_devices_combo);
@@ -428,6 +429,13 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }
+  case Type::MAPPING_FREELOOK:
+  {
+    widget = new FreeLookGeneral(this);
+    AddWidget(tr("General"), widget);
+    setWindowTitle(tr("Free Look Controller %1").arg(GetPort() + 1));
+  }
+  break;
   default:
     return;
   }
