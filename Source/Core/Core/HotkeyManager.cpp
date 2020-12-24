@@ -454,20 +454,20 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Freelook
-  set_key_expression(HK_FREELOOK_DECREASE_SPEED, hotkey_string({"Shift", "`1`"}));
-  set_key_expression(HK_FREELOOK_INCREASE_SPEED, hotkey_string({"Shift", "`2`"}));
-  set_key_expression(HK_FREELOOK_RESET_SPEED, hotkey_string({"Shift", "F"}));
-  set_key_expression(HK_FREELOOK_UP, hotkey_string({"Shift", "E"}));
-  set_key_expression(HK_FREELOOK_DOWN, hotkey_string({"Shift", "Q"}));
-  set_key_expression(HK_FREELOOK_LEFT, hotkey_string({"Shift", "A"}));
-  set_key_expression(HK_FREELOOK_RIGHT, hotkey_string({"Shift", "D"}));
-  set_key_expression(HK_FREELOOK_ZOOM_IN, hotkey_string({"Shift", "W"}));
-  set_key_expression(HK_FREELOOK_ZOOM_OUT, hotkey_string({"Shift", "S"}));
-  set_key_expression(HK_FREELOOK_RESET, hotkey_string({"Shift", "R"}));
-  set_key_expression(HK_FREELOOK_INCREASE_FOV_X, hotkey_string({"Shift", "`Axis Z+`"}));
-  set_key_expression(HK_FREELOOK_DECREASE_FOV_X, hotkey_string({"Shift", "`Axis Z-`"}));
-  set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, hotkey_string({"Shift", "`Axis Z+`"}));
-  set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, hotkey_string({"Shift", "`Axis Z-`"}));
+  set_key_expression(HK_FREELOOK_DECREASE_SPEED, "((!Ctrl) & (!Alt)) & Shift & `1`");
+  set_key_expression(HK_FREELOOK_INCREASE_SPEED, "((!Ctrl) & (!Alt)) & Shift & `2`");
+  set_key_expression(HK_FREELOOK_RESET_SPEED, "((!Ctrl) & (!Alt)) & Shift & F");
+  set_key_expression(HK_FREELOOK_UP, "((!Ctrl) & (!Alt)) & Shift & E");
+  set_key_expression(HK_FREELOOK_DOWN, "((!Ctrl) & (!Alt)) & Shift & Q");
+  set_key_expression(HK_FREELOOK_LEFT, "((!Ctrl) & (!Alt)) & Shift & A");
+  set_key_expression(HK_FREELOOK_RIGHT, "((!Ctrl) & (!Alt)) & Shift & D");
+  set_key_expression(HK_FREELOOK_ZOOM_IN, "((!Ctrl) & (!Alt)) & Shift & W");
+  set_key_expression(HK_FREELOOK_ZOOM_OUT, "((!Ctrl) & (!Alt)) & Shift & S");
+  set_key_expression(HK_FREELOOK_RESET, "((!Ctrl) & (!Alt)) & Shift & R");
+  set_key_expression(HK_FREELOOK_INCREASE_FOV_X, "((!Ctrl) & (!Alt)) & Shift & `Axis Z+`");
+  set_key_expression(HK_FREELOOK_DECREASE_FOV_X, "((!Ctrl) & (!Alt)) & Shift & `Axis Z-`");
+  set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, "((!Ctrl) & (!Alt)) & Shift & `Axis Z+`");
+  set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, "((!Ctrl) & (!Alt)) & Shift & `Axis Z-`");
 
   // Savestates
   for (int i = 0; i < 8; i++)
@@ -478,4 +478,35 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   }
   set_key_expression(HK_UNDO_LOAD_STATE, "F12");
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
+}
+
+// stupid moronic stupid dumbass overriding WASD when holding shift ass motherf%$*ers
+void HotkeyManager::ResetStupid()
+{
+  if (m_keys[FindGroupByID(HK_FREELOOK_ZOOM_IN)]
+    ->controls[GetIndexForGroup(FindGroupByID(HK_FREELOOK_ZOOM_IN), HK_FREELOOK_ZOOM_IN)]
+    ->control_ref->GetExpression() == "@(Shift+W)") {
+    auto set_key_expression = [this](int index, const std::string& expression) {
+      m_keys[FindGroupByID(index)]
+        ->controls[GetIndexForGroup(FindGroupByID(index), index)]
+        ->control_ref->SetExpression(expression);
+    };
+
+    set_key_expression(HK_FREELOOK_DECREASE_SPEED, "((!Ctrl) & (!Alt)) & Shift & `1`");
+    set_key_expression(HK_FREELOOK_INCREASE_SPEED, "((!Ctrl) & (!Alt)) & Shift & `2`");
+
+    set_key_expression(HK_FREELOOK_RESET_SPEED, "((!Ctrl) & (!Alt)) & Shift & F");
+    set_key_expression(HK_FREELOOK_UP, "((!Ctrl) & (!Alt)) & Shift & E");
+    set_key_expression(HK_FREELOOK_DOWN, "((!Ctrl) & (!Alt)) & Shift & Q");
+    set_key_expression(HK_FREELOOK_LEFT, "((!Ctrl) & (!Alt)) & Shift & A");
+    set_key_expression(HK_FREELOOK_RIGHT, "((!Ctrl) & (!Alt)) & Shift & D");
+    set_key_expression(HK_FREELOOK_ZOOM_IN, "((!Ctrl) & (!Alt)) & Shift & W");
+    set_key_expression(HK_FREELOOK_ZOOM_OUT, "((!Ctrl) & (!Alt)) & Shift & S");
+    set_key_expression(HK_FREELOOK_RESET, "((!Ctrl) & (!Alt)) & Shift & R");
+
+    set_key_expression(HK_FREELOOK_INCREASE_FOV_X, "((!Ctrl) & (!Alt)) & Shift & `Axis Z+`");
+    set_key_expression(HK_FREELOOK_DECREASE_FOV_X, "((!Ctrl) & (!Alt)) & Shift & `Axis Z-`");
+    set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, "((!Ctrl) & (!Alt)) & Shift & `Axis Z+`");
+    set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, "((!Ctrl) & (!Alt)) & Shift & `Axis Z-`");
+  }
 }

@@ -19,6 +19,7 @@
 #include "InputCommon/InputProfile.h"
 
 #include "Core/PrimeHack/HackConfig.h"
+#include "Core/HotkeyManager.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
@@ -133,12 +134,20 @@ bool InputConfig::LoadConfig(bool isGC)
       }
 #endif
       controller->LoadConfig(&config);
+
+      if (controller->GetName() == "Hotkeys") {
+        if (HotkeyManager* m = static_cast<HotkeyManager*>(controller.get())) {
+          m->ResetStupid();
+        }
+      }
+      
       // Update refs
       controller->UpdateReferences(g_controller_interface);
-
+      
       // Next profile
       n++;
     }
+
     return true;
   }
   else
