@@ -200,7 +200,7 @@ public class Settings implements Closeable
         SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
       }
 
-      NativeConfig.save(NativeConfig.LAYER_BASE_OR_CURRENT);
+      NativeConfig.save(NativeConfig.LAYER_BASE);
 
       if (!NativeLibrary.IsRunning())
       {
