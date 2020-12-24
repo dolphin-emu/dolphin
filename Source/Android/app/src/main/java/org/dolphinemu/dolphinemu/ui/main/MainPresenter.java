@@ -71,20 +71,8 @@ public final class MainPresenter
   {
     switch (itemId)
     {
-      case R.id.menu_settings_core:
-        mView.launchSettingsActivity(MenuTag.CONFIG);
-        return true;
-
-      case R.id.menu_settings_graphics:
-        mView.launchSettingsActivity(MenuTag.GRAPHICS);
-        return true;
-
-      case R.id.menu_settings_gcpad:
-        mView.launchSettingsActivity(MenuTag.GCPAD_TYPE);
-        return true;
-
-      case R.id.menu_settings_wiimote:
-        mView.launchSettingsActivity(MenuTag.WIIMOTE);
+      case R.id.menu_settings:
+        mView.launchSettingsActivity(MenuTag.SETTINGS);
         return true;
 
       case R.id.menu_refresh:

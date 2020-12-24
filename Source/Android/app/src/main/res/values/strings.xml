@@ -121,6 +121,12 @@
     <string name="turntable_effect_dial">Dial</string>
     <string name="turntable_crossfade">Crossfade</string>
 
+    <!-- Main Preference Fragment -->
+    <string name="config">Config</string>
+    <string name="graphics_settings">Graphics Settings</string>
+    <string name="gcpad_settings">GameCube Input</string>
+    <string name="wiimote_settings">Wii Input</string>
+
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
     <string name="dual_core">Dual Core</string>
@@ -319,10 +325,7 @@
 
     <!-- Game Grid Screen-->
     <string name="add_directory_title">Add Folder to Library</string>
-    <string name="grid_menu_config">Config</string>
-    <string name="grid_menu_graphics_settings">Graphics Settings</string>
-    <string name="grid_menu_gcpad_settings">GameCube Input</string>
-    <string name="grid_menu_wiimote_settings">Wii Input</string>
+    <string name="grid_menu_settings">Settings</string>
     <string name="grid_menu_refresh">Refresh Library</string>
     <string name="grid_menu_open_file">Open File</string>
     <string name="grid_menu_install_wad">Install WAD</string>

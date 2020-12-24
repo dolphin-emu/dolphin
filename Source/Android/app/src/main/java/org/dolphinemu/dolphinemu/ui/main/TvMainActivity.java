@@ -313,21 +313,9 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   {
     ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
 
-    rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
-            R.drawable.ic_settings_core_tv,
-            R.string.grid_menu_config));
-
-    rowItems.add(new TvSettingsItem(R.id.menu_settings_graphics,
-            R.drawable.ic_settings_graphics_tv,
-            R.string.grid_menu_graphics_settings));
-
-    rowItems.add(new TvSettingsItem(R.id.menu_settings_gcpad,
-            R.drawable.ic_settings_gcpad,
-            R.string.grid_menu_gcpad_settings));
-
-    rowItems.add(new TvSettingsItem(R.id.menu_settings_wiimote,
-            R.drawable.ic_settings_wiimote,
-            R.string.grid_menu_wiimote_settings));
+    rowItems.add(new TvSettingsItem(R.id.menu_settings,
+            R.drawable.ic_settings_tv,
+            R.string.grid_menu_settings));
 
     rowItems.add(new TvSettingsItem(R.id.button_add_directory,
             R.drawable.ic_add_tv,

@@ -48,9 +48,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
             .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
-    buttonsActionsMap.append(R.id.menu_settings_core, EmulationActivity.MENU_ACTION_SETTINGS_CORE);
-    buttonsActionsMap.append(R.id.menu_settings_graphics,
-            EmulationActivity.MENU_ACTION_SETTINGS_GRAPHICS);
+    buttonsActionsMap.append(R.id.menu_settings, EmulationActivity.MENU_ACTION_SETTINGS);
   }
 
   public static MenuFragment newInstance()
