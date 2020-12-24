@@ -293,7 +293,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 
   // Triggers
   m_triggers->SetControlExpression(0, "Shift");  // L
-  m_triggers->SetControlExpression(2, "Shift");  // R
+  m_triggers->SetControlExpression(2, "Shift");
 }
 
 bool GCPad::GetMicButton() const
