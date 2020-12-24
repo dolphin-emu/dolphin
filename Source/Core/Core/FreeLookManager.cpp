@@ -11,6 +11,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/FreeLookConfig.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/InputConfig.h"
 
@@ -146,8 +147,15 @@ ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) c
 
 void FreeLookController::Update()
 {
+  const bool prev_input_gate = ControlReference::GetInputGate();
+
   if (!g_freelook_camera.IsActive())
-    return;
+  {
+    // We must GetState even when inactive in case hotkey @() expressions were pressed during
+    // deactivation, otherwise they will never release their button suppressions.
+    // Turning the input gate off will block all input and release any hotkeys.
+    ControlReference::SetInputGate(false);
+  }
 
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
     g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed());
@@ -190,6 +198,8 @@ void FreeLookController::Update()
 
   if (m_other_buttons->controls[OtherButtons::ResetView]->GetState<bool>())
     g_freelook_camera.Reset();
+
+  ControlReference::SetInputGate(prev_input_gate);
 }
 
 namespace FreeLook
