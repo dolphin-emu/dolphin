@@ -3,8 +3,9 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 public class NativeConfig
 {
   public static final int LAYER_BASE_OR_CURRENT = 0;
-  public static final int LAYER_LOCAL_GAME = 1;
-  public static final int LAYER_ACTIVE = 2;
+  public static final int LAYER_BASE = 1;
+  public static final int LAYER_LOCAL_GAME = 2;
+  public static final int LAYER_ACTIVE = 3;
 
   public static native boolean isSettingSaveable(String file, String section, String key);
 
