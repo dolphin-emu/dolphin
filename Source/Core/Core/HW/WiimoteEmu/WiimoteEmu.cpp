@@ -767,11 +767,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(3, "GRAVE");
 
   // +-
-  m_buttons->SetControlExpression(4, "LEFT");
-  m_buttons->SetControlExpression(5, "RIGHT | R");
-
-  // Shake (Only used in Prime 3, may need revision)
-  m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
+  m_buttons->SetControlExpression(4, "E");
+  m_buttons->SetControlExpression(5, "R");
 
   // DPad
   // Missiles
@@ -791,16 +788,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_imu_gyroscope->SetControlExpression(4, "Gyro Yaw Left");
   m_imu_gyroscope->SetControlExpression(5, "Gyro Yaw Right");
 
-  // Enable Nunchuk:
-  // Motion puzzle controls
-  m_tilt->SetControlExpression(0, "LSHIFT & W");   // Push
-  m_tilt->SetControlExpression(1, "LSHIFT & S");   // Pull
-  m_tilt->SetControlExpression(2, "LSHIFT & A");   // Rotate left
-  m_tilt->SetControlExpression(3, "LSHIFT & D");   // Rotate right
-  m_swing->SetControlExpression(4, "LSHIFT & W");  // Thrust forward
-  m_swing->SetControlExpression(5, "LSHIFT & S");  // Pull back
-
-                                                    // Enable Nunchuk
+  // Enable Nunchuk
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
@@ -809,18 +797,18 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_beams->SetControlExpression(1, "`2` & !E");
   m_primehack_beams->SetControlExpression(2, "`3` & !E");
   m_primehack_beams->SetControlExpression(3, "`4` & !E");
-  m_primehack_beams->SetControlExpression(4, "!LSHIFT & `Axis Z+`"); // Next beam
-  m_primehack_beams->SetControlExpression(5, "!LSHIFT & `Axis Z-`"); // Previous beam
+  m_primehack_beams->SetControlExpression(4, "!E & `Axis Z+`"); // Next beam
+  m_primehack_beams->SetControlExpression(5, "!E & `Axis Z-`"); // Previous beam
 
                                                                     // Visors (Combination keys strongly recommended)
   m_primehack_visors->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
   m_primehack_visors->SetControlExpression(1, "E & `1`");
   m_primehack_visors->SetControlExpression(2, "E & `2`");
   m_primehack_visors->SetControlExpression(3, "E & `3`");
-  m_primehack_visors->SetControlExpression(4, "LSHIFT & `Axis Z+`"); // Next visor
-  m_primehack_visors->SetControlExpression(5, "LSHIFT & `Axis Z-`"); // Previous visor
+  m_primehack_visors->SetControlExpression(4, "E & `Axis Z+`"); // Next visor
+  m_primehack_visors->SetControlExpression(5, "E & `Axis Z-`"); // Previous visor
                                                                     // Misc. Defaults
-  m_primehack_misc->SetControlExpression(0, "LMENU"); // Spring Ball
+  m_primehack_misc->SetControlExpression(0, "Alt"); // Spring Ball
 }
 
 Extension* Wiimote::GetNoneExtension() const

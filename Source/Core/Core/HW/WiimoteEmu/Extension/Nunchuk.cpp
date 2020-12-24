@@ -200,18 +200,10 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   // Because our defaults use keyboard input, set calibration shape to a square.
   m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
-#ifdef _WIN32
   // Morph Ball
-  m_buttons->SetControlExpression(0, "C");
+  m_buttons->SetControlExpression(0, "LCONTROL");
   // Lock/Sacn/Spider Ball
-  m_buttons->SetControlExpression(1, "`Click 1`");
-#elif __APPLE__
-  m_buttons->SetControlExpression(0, "Left Control");  // C
-  m_buttons->SetControlExpression(1, "Left Shift");    // Z
-#else
-  m_buttons->SetControlExpression(0, "Control_L");  // C
-  m_buttons->SetControlExpression(1, "Shift_L");    // Z
-#endif
+  m_buttons->SetControlExpression(1, "`Shift");
 
   // Shake (Only used in Prime 3, may need revision
   m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
