@@ -90,7 +90,7 @@ bool OutputReference::IsInput() const
 //
 ControlState InputReference::State(const ControlState ignore)
 {
-  if (m_parsed_expression && GetInputGate())
+  if (m_parsed_expression)
     return m_parsed_expression->GetValue() * range;
   return 0.0;
 }

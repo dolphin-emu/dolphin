@@ -17,6 +17,7 @@
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControlReference/FunctionExpression.h"
 
@@ -261,7 +262,7 @@ public:
 
   ControlState GetValueIgnoringSuppression() const
   {
-    if (!input)
+    if (!input || !ControlReference::GetInputGate())
       return 0.0;
 
     // Note: Inputs may return negative values in situations where opposing directions are
