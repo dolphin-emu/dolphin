@@ -38,7 +38,7 @@ void HLE_OSPanic()
   StringPopBackIf(&msg, '\n');
 
   PanicAlertFmt("OSPanic: {}: {}", error, msg);
-  ERROR_LOG_FMT(OSREPORT, "{:08x}->{:08x}| OSPanic: {}: {}", LR, PC, error, msg);
+  ERROR_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| OSPanic: {}: {}", LR, PC, error, msg);
 
   NPC = LR;
 }
@@ -82,7 +82,7 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
 
   NPC = LR;
 
-  NOTICE_LOG_FMT(OSREPORT, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
 }
 
 // Generalized function for printing formatted string using parameter list.
@@ -105,22 +105,22 @@ void HLE_write_console()
   {
     const u32 size = PowerPC::Read_U32(GPR(5));
     if (size > report_message.size())
-      WARN_LOG_FMT(OSREPORT, "__write_console uses an invalid size of {:#010x}", size);
+      WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses an invalid size of {:#010x}", size);
     else if (size == 0)
-      WARN_LOG_FMT(OSREPORT, "__write_console uses a size of zero");
+      WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses a size of zero");
     else
       report_message = report_message.substr(0, size);
   }
   else
   {
-    ERROR_LOG_FMT(OSREPORT, "__write_console uses an unreachable size pointer");
+    ERROR_LOG_FMT(OSREPORT_HLE, "__write_console uses an unreachable size pointer");
   }
 
   StringPopBackIf(&report_message, '\n');
 
   NPC = LR;
 
-  NOTICE_LOG_FMT(OSREPORT, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
@@ -133,7 +133,7 @@ void HLE_LogDPrint(ParameterType parameter_type)
 
   std::string report_message = GetStringVA(4, parameter_type);
   StringPopBackIf(&report_message, '\n');
-  NOTICE_LOG_FMT(OSREPORT, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
 }
 
 // Log dprintf message
@@ -173,7 +173,7 @@ void HLE_LogFPrint(ParameterType parameter_type)
 
   std::string report_message = GetStringVA(4, parameter_type);
   StringPopBackIf(&report_message, '\n');
-  NOTICE_LOG_FMT(OSREPORT, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
+  NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
 }
 
 // Log fprintf message
