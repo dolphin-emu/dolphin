@@ -3,7 +3,6 @@
 
 #include "Core/PrimeHack/PrimeUtils.h"
 
-#pragma optimize("", off)
 namespace prime {
 namespace {  
 const std::array<int, 4> prime_one_beams = {0, 2, 1, 3};
