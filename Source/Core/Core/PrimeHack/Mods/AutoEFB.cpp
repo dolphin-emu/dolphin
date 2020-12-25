@@ -48,7 +48,7 @@ void AutoEFB::run_mod(Game game, Region region) {
   }
 }
 
-void AutoEFB::init_mod(Game game, Region region) {
+bool AutoEFB::init_mod(Game game, Region region) {
   switch (game) {
   case Game::PRIME_2:
     if (region == Region::NTSC_U) {
@@ -94,7 +94,8 @@ void AutoEFB::init_mod(Game game, Region region) {
   default:
     break;
   }
-  initialized = true;
+  
+  return true;
 }
 
 }

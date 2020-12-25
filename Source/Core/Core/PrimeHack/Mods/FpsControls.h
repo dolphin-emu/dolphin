@@ -16,14 +16,14 @@ namespace prime {
 class FpsControls : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override;
-  void init_mod(Game game, Region region) override;
+  bool init_mod(Game game, Region region) override;
 
 private:
   // ------------------------------
   // -----Active Mod Functions-----
   // ------------------------------
   void calculate_pitch_delta();
-  void calculate_pitch_locked();
+  void calculate_pitch_locked(Game game, Region region);
   float calculate_yaw_vel();
   void handle_beam_visor_switch(std::array<int, 4> const &beams,
                                 std::array<std::tuple<int, int>, 4> const& visors);
@@ -36,7 +36,7 @@ private:
   void run_mod_mp1_gc();
   void run_mod_mp2_gc();
 
-  void CheckBeamVisorSetting(Game game, Region region);
+  void CheckBeamVisorSetting(Game game);
 
   // ------------------------
   // -----Init Functions-----
@@ -97,6 +97,8 @@ private:
       u32 orbit_state_address;
       u32 tweak_player_address;
       u32 cplayer_address;
+      u32 camera_uid_address;
+      u32 state_mgr_address;
     } mp1_gc_static;
 
     struct {
@@ -108,6 +110,8 @@ private:
       u32 cursor_base_address;
       u32 cursor_offset;
       u32 tweak_player_offset;
+      u32 object_list_ptr_address;
+      u32 camera_uid_address;
     } mp2_static;
 
     struct {
@@ -126,6 +130,8 @@ private:
       u32 beamvisor_menu_address;
       u32 beamvisor_menu_offset;
       u32 cplayer_pitch_offset;
+      u32 cam_uid_ptr_address;
+      u32 state_mgr_ptr_address;
     } mp3_static;
   };
 

@@ -16,7 +16,7 @@ namespace prime {
 class ViewModifier : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override;
-  void init_mod(Game game, Region region) override;
+  bool init_mod(Game game, Region region) override;
 
 private:
   void disable_culling(u32 start_point);

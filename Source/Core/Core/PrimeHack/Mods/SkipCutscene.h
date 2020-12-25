@@ -6,7 +6,7 @@ namespace prime {
 class SkipCutscene : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override { }
-  void init_mod(Game game, Region region) override {
+  bool init_mod(Game game, Region region) override {
     u8 version = read8(0x80000007);
 
     switch (game)
@@ -89,13 +89,13 @@ public:
       }
       break;
     }
-    initialized = true;
+    return true;
   }
 
 private:
   void add_return_one(u32 start_point) {
-    code_changes.emplace_back(start_point + 0x00, 0x38600001);
-    code_changes.emplace_back(start_point + 0x04, 0x4e800020);
+    add_code_change(start_point + 0x00, 0x38600001);
+    add_code_change(start_point + 0x04, 0x4e800020);
   }
 };
 }

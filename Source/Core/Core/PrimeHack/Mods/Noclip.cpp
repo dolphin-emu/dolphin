@@ -256,19 +256,16 @@ void Noclip::run_mod_mp2_gc(bool has_control)
     return;
   }
   u32 object_list_address = read32(mp2_gc_static.state_mgr_address + 0x810);
-  if (!mem_check(object_list_address))
-  {
+  if (!mem_check(object_list_address)) {
     return;
   }
   const u32 camera_mgr = read32(mp2_gc_static.state_mgr_address + 0x151c);
-  if (!mem_check(camera_mgr))
-  {
+  if (!mem_check(camera_mgr)) {
     return;
   }
 
   const u16 camera_uid = read16(camera_mgr + 0x14);
-  if (camera_uid == 0xffff)
-  {
+  if (camera_uid == 0xffff) {
     return;
   }
   const u32 camera_offset = (camera_uid & 0x3ff) << 3;
@@ -322,24 +319,22 @@ void Noclip::run_mod_mp3(bool has_control)
   player_vec.write_to(cplayer_address + 0x6c);
 }
 
-void Noclip::init_mod(Game game, Region region)
+bool Noclip::init_mod(Game game, Region region)
 {
   u8 version = read8(0x80000007);
-
-  initialized = true;
   switch (game)
   {
   case Game::PRIME_1:
     if (region == Region::NTSC_U)
     {
       noclip_code_mp1(0x804d3c20, 0x800053a4, 0x8000bb80);
-      code_changes.emplace_back(0x80196ab4, 0x60000000);
-      code_changes.emplace_back(0x80196abc, 0x60000000);
-      code_changes.emplace_back(0x80196ac4, 0x60000000);
-      code_changes.emplace_back(0x80196ad8, 0xd0410084);
-      code_changes.emplace_back(0x80196adc, 0xd0210094);
-      code_changes.emplace_back(0x80196ae0, 0xd00100a4);
-      code_changes.emplace_back(0x80196ae4, 0x481b227d);
+      add_code_change(0x80196ab4, 0x60000000);
+      add_code_change(0x80196abc, 0x60000000);
+      add_code_change(0x80196ac4, 0x60000000);
+      add_code_change(0x80196ad8, 0xd0410084);
+      add_code_change(0x80196adc, 0xd0210094);
+      add_code_change(0x80196ae0, 0xd00100a4);
+      add_code_change(0x80196ae4, 0x481b227d);
 
       mp1_static.control_flag_address = 0x8052e9b8;
       mp1_static.cplayer_address = 0x804d3c20;
@@ -349,13 +344,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::NTSC_J)
     {
       noclip_code_mp1(0x804de278, 0x800053a4, 0x8000bb80);
-      code_changes.emplace_back(0x80197634, 0x60000000);
-      code_changes.emplace_back(0x8019763c, 0x60000000);
-      code_changes.emplace_back(0x80197644, 0x60000000);
-      code_changes.emplace_back(0x80197658, 0xd0410084);
-      code_changes.emplace_back(0x8019765c, 0xd0210094);
-      code_changes.emplace_back(0x80197660, 0xd00100a4);
-      code_changes.emplace_back(0x80197664, 0x481b11c1);
+      add_code_change(0x80197634, 0x60000000);
+      add_code_change(0x8019763c, 0x60000000);
+      add_code_change(0x80197644, 0x60000000);
+      add_code_change(0x80197658, 0xd0410084);
+      add_code_change(0x8019765c, 0xd0210094);
+      add_code_change(0x80197660, 0xd00100a4);
+      add_code_change(0x80197664, 0x481b11c1);
 
       mp1_static.control_flag_address = 0x805aecb8;
       mp1_static.cplayer_address = 0x804d3ea0;
@@ -365,13 +360,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::PAL)
     {
       noclip_code_mp1(0x804d7b60, 0x800053a4, 0x8000bb80);
-      code_changes.emplace_back(0x80196d4c, 0x60000000);
-      code_changes.emplace_back(0x80196d54, 0x60000000);
-      code_changes.emplace_back(0x80196d5c, 0x60000000);
-      code_changes.emplace_back(0x80196d70, 0xd0410084);
-      code_changes.emplace_back(0x80196d74, 0xd0210094);
-      code_changes.emplace_back(0x80196d78, 0xd00100a4);
-      code_changes.emplace_back(0x80196d7c, 0x481b1f39);
+      add_code_change(0x80196d4c, 0x60000000);
+      add_code_change(0x80196d54, 0x60000000);
+      add_code_change(0x80196d5c, 0x60000000);
+      add_code_change(0x80196d70, 0xd0410084);
+      add_code_change(0x80196d74, 0xd0210094);
+      add_code_change(0x80196d78, 0xd00100a4);
+      add_code_change(0x80196d7c, 0x481b1f39);
 
       mp1_static.control_flag_address = 0x80532b38;
       mp1_static.cplayer_address = 0x804d7b60;
@@ -392,13 +387,13 @@ void Noclip::init_mod(Game game, Region region)
         // used in SetTransform and remove the call to SetTranslation, now Teleport works
         // when SetTranslation is ignoring the player
         // This is handled above in mp1 trilogy as well
-        code_changes.emplace_back(0x80285128, 0x60000000);
-        code_changes.emplace_back(0x80285138, 0x60000000);
-        code_changes.emplace_back(0x80285140, 0x60000000);
-        code_changes.emplace_back(0x80285168, 0xd0010078);
-        code_changes.emplace_back(0x8028516c, 0xd0210088);
-        code_changes.emplace_back(0x80285170, 0xd0410098);
-        code_changes.emplace_back(0x80285174, 0x4808d9cd);
+        add_code_change(0x80285128, 0x60000000);
+        add_code_change(0x80285138, 0x60000000);
+        add_code_change(0x80285140, 0x60000000);
+        add_code_change(0x80285168, 0xd0010078);
+        add_code_change(0x8028516c, 0xd0210088);
+        add_code_change(0x80285170, 0xd0410098);
+        add_code_change(0x80285174, 0x4808d9cd);
 
         mp1_gc_static.cplayer_address = 0x8046b97c;
         mp1_gc_static.state_mgr_address = 0x8045a1a8;
@@ -409,13 +404,13 @@ void Noclip::init_mod(Game game, Region region)
     {
       noclip_code_mp1_gc(0x803f38a4, 0x80471d00, 0x80053fa4);
 
-      code_changes.emplace_back(0x802724ac, 0x60000000);
-      code_changes.emplace_back(0x802724bc, 0x60000000);
-      code_changes.emplace_back(0x802724c4, 0x60000000);
-      code_changes.emplace_back(0x802724ec, 0xd0010078);
-      code_changes.emplace_back(0x802724f0, 0xd0210088);
-      code_changes.emplace_back(0x802724f4, 0xd0410098);
-      code_changes.emplace_back(0x802724f8, 0x48089419);
+      add_code_change(0x802724ac, 0x60000000);
+      add_code_change(0x802724bc, 0x60000000);
+      add_code_change(0x802724c4, 0x60000000);
+      add_code_change(0x802724ec, 0xd0010078);
+      add_code_change(0x802724f0, 0xd0210088);
+      add_code_change(0x802724f4, 0xd0410098);
+      add_code_change(0x802724f8, 0x48089419);
 
       mp1_gc_static.cplayer_address = 0x803f38a4;
       mp1_gc_static.state_mgr_address = 0x803e2088;
@@ -429,13 +424,13 @@ void Noclip::init_mod(Game game, Region region)
     if (region == Region::NTSC_U)
     {
       noclip_code_mp2(0x804e87dc, 0x800053a4, 0x8000d694);
-      code_changes.emplace_back(0x80160d68, 0x60000000);
-      code_changes.emplace_back(0x80160d70, 0x60000000);
-      code_changes.emplace_back(0x80160d78, 0x60000000);
-      code_changes.emplace_back(0x80160d80, 0xd0410084);
-      code_changes.emplace_back(0x80160d84, 0xd0210094);
-      code_changes.emplace_back(0x80160d88, 0xd00100a4);
-      code_changes.emplace_back(0x80160d8c, 0x4bead525);
+      add_code_change(0x80160d68, 0x60000000);
+      add_code_change(0x80160d70, 0x60000000);
+      add_code_change(0x80160d78, 0x60000000);
+      add_code_change(0x80160d80, 0xd0410084);
+      add_code_change(0x80160d84, 0xd0210094);
+      add_code_change(0x80160d88, 0xd00100a4);
+      add_code_change(0x80160d8c, 0x4bead525);
 
       mp2_static.cplayer_ptr_address = 0x804e87dc;
       mp2_static.object_list_ptr_address = 0x804e7af8;
@@ -446,13 +441,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::NTSC_J)
     {
       noclip_code_mp2(0x804e8fcc, 0x800053a4, 0x8000d694);
-      code_changes.emplace_back(0x80160330, 0x60000000);
-      code_changes.emplace_back(0x80160338, 0x60000000);
-      code_changes.emplace_back(0x80160340, 0x60000000);
-      code_changes.emplace_back(0x80160348, 0xd0410084);
-      code_changes.emplace_back(0x8016034c, 0xd0210094);
-      code_changes.emplace_back(0x80160350, 0xd00100a4);
-      code_changes.emplace_back(0x80160354, 0x4bead525);
+      add_code_change(0x80160330, 0x60000000);
+      add_code_change(0x80160338, 0x60000000);
+      add_code_change(0x80160340, 0x60000000);
+      add_code_change(0x80160348, 0xd0410084);
+      add_code_change(0x8016034c, 0xd0210094);
+      add_code_change(0x80160350, 0xd00100a4);
+      add_code_change(0x80160354, 0x4bead525);
 
       mp2_static.cplayer_ptr_address = 0x804e8fcc;
       mp2_static.object_list_ptr_address = 0x804e82e8;
@@ -463,13 +458,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::PAL)
     {
       noclip_code_mp2(0x804efc2c, 0x800053a4, 0x8000d694);
-      code_changes.emplace_back(0x801624e0, 0x60000000);
-      code_changes.emplace_back(0x801624e8, 0x60000000);
-      code_changes.emplace_back(0x801624f0, 0x60000000);
-      code_changes.emplace_back(0x801624f8, 0xd0410084);
-      code_changes.emplace_back(0x801624fc, 0xd0210094);
-      code_changes.emplace_back(0x80162500, 0xd00100a4);
-      code_changes.emplace_back(0x80162504, 0x4beabdad);
+      add_code_change(0x801624e0, 0x60000000);
+      add_code_change(0x801624e8, 0x60000000);
+      add_code_change(0x801624f0, 0x60000000);
+      add_code_change(0x801624f8, 0xd0410084);
+      add_code_change(0x801624fc, 0xd0210094);
+      add_code_change(0x80162500, 0xd00100a4);
+      add_code_change(0x80162504, 0x4beabdad);
 
       mp2_static.cplayer_ptr_address = 0x804efc2c;
       mp2_static.object_list_ptr_address = 0x804eef48;
@@ -485,26 +480,26 @@ void Noclip::init_mod(Game game, Region region)
     if (region == Region::NTSC_U)
     {
       noclip_code_mp2_gc(0x803dcbdc, 0x80420000, 0x8004abc8);
-      code_changes.emplace_back(0x801865d8, 0x60000000);
-      code_changes.emplace_back(0x801865e0, 0x60000000);
-      code_changes.emplace_back(0x801865e8, 0x60000000);
-      code_changes.emplace_back(0x801865f0, 0xd0410098);
-      code_changes.emplace_back(0x801865f4, 0xd0210088);
-      code_changes.emplace_back(0x801865f8, 0xd0010078);
-      code_changes.emplace_back(0x801865fc, 0x4bec395d);
+      add_code_change(0x801865d8, 0x60000000);
+      add_code_change(0x801865e0, 0x60000000);
+      add_code_change(0x801865e8, 0x60000000);
+      add_code_change(0x801865f0, 0xd0410098);
+      add_code_change(0x801865f4, 0xd0210088);
+      add_code_change(0x801865f8, 0xd0010078);
+      add_code_change(0x801865fc, 0x4bec395d);
 
       mp2_gc_static.state_mgr_address = 0x803db6e0;
     }
     else if (region == Region::PAL)
     {
       noclip_code_mp2_gc(0x803dddfc, 0x80420000, 0x8004ad44);
-      code_changes.emplace_back(0x801868bc, 0x60000000);
-      code_changes.emplace_back(0x801868c4, 0x60000000);
-      code_changes.emplace_back(0x801868cc, 0x60000000);
-      code_changes.emplace_back(0x801868d4, 0xd0410098);
-      code_changes.emplace_back(0x801868d8, 0xd0210088);
-      code_changes.emplace_back(0x801868dc, 0xd0010078);
-      code_changes.emplace_back(0x801868e0, 0x4bec37e9);
+      add_code_change(0x801868bc, 0x60000000);
+      add_code_change(0x801868c4, 0x60000000);
+      add_code_change(0x801868cc, 0x60000000);
+      add_code_change(0x801868d4, 0xd0410098);
+      add_code_change(0x801868d8, 0xd0210088);
+      add_code_change(0x801868dc, 0xd0010078);
+      add_code_change(0x801868e0, 0x4bec37e9);
 
       mp2_gc_static.state_mgr_address = 0x803dc900;
     }
@@ -516,13 +511,13 @@ void Noclip::init_mod(Game game, Region region)
     if (region == Region::NTSC_U)
     {
       noclip_code_mp3(0x805c6c40, 0x80004380, 0x8000bbfc);
-      code_changes.emplace_back(0x801784ac, 0x60000000);
-      code_changes.emplace_back(0x801784b4, 0x60000000);
-      code_changes.emplace_back(0x801784bc, 0x60000000);
-      code_changes.emplace_back(0x801784c4, 0xd0410084);
-      code_changes.emplace_back(0x801784c8, 0xd0210094);
-      code_changes.emplace_back(0x801784cc, 0xd00100a4);
-      code_changes.emplace_back(0x801784d0, 0x4be938a1);
+      add_code_change(0x801784ac, 0x60000000);
+      add_code_change(0x801784b4, 0x60000000);
+      add_code_change(0x801784bc, 0x60000000);
+      add_code_change(0x801784c4, 0xd0410084);
+      add_code_change(0x801784c8, 0xd0210094);
+      add_code_change(0x801784cc, 0xd00100a4);
+      add_code_change(0x801784d0, 0x4be938a1);
 
       mp3_static.state_mgr_ptr_address = 0x805c6c40;
       mp3_static.cam_uid_ptr_address = 0x805c6c78;
@@ -530,13 +525,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::PAL)
     {
       noclip_code_mp3(0x805ca0c0, 0x80004380, 0x8000bbfc);
-      code_changes.emplace_back(0x80177df8, 0x60000000);
-      code_changes.emplace_back(0x80177e00, 0x60000000);
-      code_changes.emplace_back(0x80177e08, 0x60000000);
-      code_changes.emplace_back(0x80177e10, 0xd0410084);
-      code_changes.emplace_back(0x80177e14, 0xd0210094);
-      code_changes.emplace_back(0x80177e18, 0xd00100a4);
-      code_changes.emplace_back(0x80177e1c, 0x4be93f55);
+      add_code_change(0x80177df8, 0x60000000);
+      add_code_change(0x80177e00, 0x60000000);
+      add_code_change(0x80177e08, 0x60000000);
+      add_code_change(0x80177e10, 0xd0410084);
+      add_code_change(0x80177e14, 0xd0210094);
+      add_code_change(0x80177e18, 0xd00100a4);
+      add_code_change(0x80177e1c, 0x4be93f55);
 
       mp3_static.state_mgr_ptr_address = 0x805ca0c0;
       mp3_static.cam_uid_ptr_address = 0x805ca0f8;
@@ -549,13 +544,13 @@ void Noclip::init_mod(Game game, Region region)
     if (region == Region::NTSC_U)
     {
       noclip_code_mp3(0x805c4f6c, 0x80004380, 0x8000bee8);
-      code_changes.emplace_back(0x8017c054, 0x60000000);
-      code_changes.emplace_back(0x8017c05c, 0x60000000);
-      code_changes.emplace_back(0x8017c064, 0x60000000);
-      code_changes.emplace_back(0x8017c06c, 0xd0410084);
-      code_changes.emplace_back(0x8017c070, 0xd0210094);
-      code_changes.emplace_back(0x8017c074, 0xd00100a4);
-      code_changes.emplace_back(0x8017c078, 0x4be938a1);
+      add_code_change(0x8017c054, 0x60000000);
+      add_code_change(0x8017c05c, 0x60000000);
+      add_code_change(0x8017c064, 0x60000000);
+      add_code_change(0x8017c06c, 0xd0410084);
+      add_code_change(0x8017c070, 0xd0210094);
+      add_code_change(0x8017c074, 0xd00100a4);
+      add_code_change(0x8017c078, 0x4be938a1);
 
       mp3_static.state_mgr_ptr_address = 0x805c4f6c;
       mp3_static.cam_uid_ptr_address = 0x805c4fa4;
@@ -563,13 +558,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::NTSC_J)
     {
       noclip_code_mp3(0x805caa30, 0x80004380, 0x8000bee8);
-      code_changes.emplace_back(0x8017dd54, 0x60000000);
-      code_changes.emplace_back(0x8017dd5c, 0x60000000);
-      code_changes.emplace_back(0x8017dd64, 0x60000000);
-      code_changes.emplace_back(0x8017dd6c, 0xd0410084);
-      code_changes.emplace_back(0x8017dd70, 0xd0210094);
-      code_changes.emplace_back(0x8017dd74, 0xd00100a4);
-      code_changes.emplace_back(0x8017dd78, 0x4be938a1);
+      add_code_change(0x8017dd54, 0x60000000);
+      add_code_change(0x8017dd5c, 0x60000000);
+      add_code_change(0x8017dd64, 0x60000000);
+      add_code_change(0x8017dd6c, 0xd0410084);
+      add_code_change(0x8017dd70, 0xd0210094);
+      add_code_change(0x8017dd74, 0xd00100a4);
+      add_code_change(0x8017dd78, 0x4be938a1);
 
       mp3_static.state_mgr_ptr_address = 0x805caa30;
       mp3_static.cam_uid_ptr_address = 0x805caa68;
@@ -577,13 +572,13 @@ void Noclip::init_mod(Game game, Region region)
     else if (region == Region::PAL)
     {
       noclip_code_mp3(0x805c7570, 0x80004380, 0x8000bee8);
-      code_changes.emplace_back(0x8017cb48, 0x60000000);
-      code_changes.emplace_back(0x8017cb50, 0x60000000);
-      code_changes.emplace_back(0x8017cb58, 0x60000000);
-      code_changes.emplace_back(0x8017cb60, 0xd0410084);
-      code_changes.emplace_back(0x8017cb74, 0xd0210094);
-      code_changes.emplace_back(0x8017cb78, 0xd00100a4);
-      code_changes.emplace_back(0x8017cb7c, 0x4be938a1);
+      add_code_change(0x8017cb48, 0x60000000);
+      add_code_change(0x8017cb50, 0x60000000);
+      add_code_change(0x8017cb58, 0x60000000);
+      add_code_change(0x8017cb60, 0xd0410084);
+      add_code_change(0x8017cb74, 0xd0210094);
+      add_code_change(0x8017cb78, 0xd00100a4);
+      add_code_change(0x8017cb7c, 0x4be938a1);
 
       mp3_static.state_mgr_ptr_address = 0x805c7570;
       mp3_static.cam_uid_ptr_address = 0x805c75a8;
@@ -595,75 +590,76 @@ void Noclip::init_mod(Game game, Region region)
   default:
     break;
   }
+  return true;
 }
 
 void Noclip::noclip_code_mp1(u32 cplayer_address, u32 start_point, u32 return_location)
 {
   u32 return_delta = return_location - (start_point + 0x14);
   u32 start_delta = start_point - (return_location - 4);
-  code_changes.emplace_back(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
-  code_changes.emplace_back(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
-  code_changes.emplace_back(start_point + 0x08, 0x7c032800);
-  code_changes.emplace_back(start_point + 0x0c, 0x4d820020);
-  code_changes.emplace_back(start_point + 0x10, 0x800300e8);
-  code_changes.emplace_back(start_point + 0x14, 0x48000000 | (return_delta & 0x3fffffc));
-  code_changes.emplace_back(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
+  add_code_change(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
+  add_code_change(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
+  add_code_change(start_point + 0x08, 0x7c032800);
+  add_code_change(start_point + 0x0c, 0x4d820020);
+  add_code_change(start_point + 0x10, 0x800300e8);
+  add_code_change(start_point + 0x14, 0x48000000 | (return_delta & 0x3fffffc));
+  add_code_change(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
 }
 
 void Noclip::noclip_code_mp1_gc(u32 cplayer_address, u32 start_point, u32 return_location)
 {
   u32 return_delta = return_location - (start_point + 0x14);
   u32 start_delta = start_point - (return_location - 4);
-  code_changes.emplace_back(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
-  code_changes.emplace_back(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
-  code_changes.emplace_back(start_point + 0x08, 0x7c032800);
-  code_changes.emplace_back(start_point + 0x0c, 0x4d820020);
-  code_changes.emplace_back(start_point + 0x10, 0xc0040000);
-  code_changes.emplace_back(start_point + 0x14, 0x48000000 | (return_delta & 0x3fffffc));
-  code_changes.emplace_back(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
+  add_code_change(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
+  add_code_change(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
+  add_code_change(start_point + 0x08, 0x7c032800);
+  add_code_change(start_point + 0x0c, 0x4d820020);
+  add_code_change(start_point + 0x10, 0xc0040000);
+  add_code_change(start_point + 0x14, 0x48000000 | (return_delta & 0x3fffffc));
+  add_code_change(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
 }
 
 void Noclip::noclip_code_mp2(u32 cplayer_address, u32 start_point, u32 return_location)
 {
   u32 return_delta = return_location - (start_point + 0x18);
   u32 start_delta = start_point - (return_location - 4);
-  code_changes.emplace_back(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
-  code_changes.emplace_back(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
-  code_changes.emplace_back(start_point + 0x08, 0x80a50000);
-  code_changes.emplace_back(start_point + 0x0c, 0x7c032800);
-  code_changes.emplace_back(start_point + 0x10, 0x4d820020);
-  code_changes.emplace_back(start_point + 0x14, 0xc0040000);
-  code_changes.emplace_back(start_point + 0x18, 0x48000000 | (return_delta & 0x3fffffc));
-  code_changes.emplace_back(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
+  add_code_change(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
+  add_code_change(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
+  add_code_change(start_point + 0x08, 0x80a50000);
+  add_code_change(start_point + 0x0c, 0x7c032800);
+  add_code_change(start_point + 0x10, 0x4d820020);
+  add_code_change(start_point + 0x14, 0xc0040000);
+  add_code_change(start_point + 0x18, 0x48000000 | (return_delta & 0x3fffffc));
+  add_code_change(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
 }
 
 void Noclip::noclip_code_mp2_gc(u32 cplayer_address, u32 start_point, u32 return_location)
 {
   u32 return_delta = return_location - (start_point + 0x18);
   u32 start_delta = start_point - (return_location - 4);
-  code_changes.emplace_back(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
-  code_changes.emplace_back(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
-  code_changes.emplace_back(start_point + 0x08, 0x80a50000);
-  code_changes.emplace_back(start_point + 0x0c, 0x7c032800);
-  code_changes.emplace_back(start_point + 0x10, 0x4d820020);
-  code_changes.emplace_back(start_point + 0x14, 0x9421fff0);
-  code_changes.emplace_back(start_point + 0x18, 0x48000000 | (return_delta & 0x3fffffc));
-  code_changes.emplace_back(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
+  add_code_change(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
+  add_code_change(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
+  add_code_change(start_point + 0x08, 0x80a50000);
+  add_code_change(start_point + 0x0c, 0x7c032800);
+  add_code_change(start_point + 0x10, 0x4d820020);
+  add_code_change(start_point + 0x14, 0x9421fff0);
+  add_code_change(start_point + 0x18, 0x48000000 | (return_delta & 0x3fffffc));
+  add_code_change(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
 }
 
 void Noclip::noclip_code_mp3(u32 cplayer_address, u32 start_point, u32 return_location)
 {
   u32 return_delta = return_location - (start_point + 0x1c);
   u32 start_delta = start_point - (return_location - 4);
-  code_changes.emplace_back(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
-  code_changes.emplace_back(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
-  code_changes.emplace_back(start_point + 0x08, 0x80a50028);
-  code_changes.emplace_back(start_point + 0x0c, 0x80a52184);
-  code_changes.emplace_back(start_point + 0x10, 0x7c032800);
-  code_changes.emplace_back(start_point + 0x14, 0x4d820020);
-  code_changes.emplace_back(start_point + 0x18, 0xc0040000);
-  code_changes.emplace_back(start_point + 0x1c, 0x48000000 | (return_delta & 0x3fffffc));
-  code_changes.emplace_back(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
+  add_code_change(start_point + 0x00, 0x3ca00000 | ((cplayer_address >> 16) & 0xffff));
+  add_code_change(start_point + 0x04, 0x60a50000 | (cplayer_address & 0xffff));
+  add_code_change(start_point + 0x08, 0x80a50028);
+  add_code_change(start_point + 0x0c, 0x80a52184);
+  add_code_change(start_point + 0x10, 0x7c032800);
+  add_code_change(start_point + 0x14, 0x4d820020);
+  add_code_change(start_point + 0x18, 0xc0040000);
+  add_code_change(start_point + 0x1c, 0x48000000 | (return_delta & 0x3fffffc));
+  add_code_change(return_location - 4, 0x48000000 | (start_delta & 0x3fffffc));
 }
 
 void Noclip::on_state_change(ModState old_state)

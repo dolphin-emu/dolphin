@@ -6,6 +6,8 @@
 #include "Core/ConfigManager.h"
 #include "InputCommon/GenericMouse.h"
 
+#pragma optimize("", off)
+
 namespace prime {
 HackManager::HackManager()
   : active_game(Game::INVALID_GAME),
@@ -132,11 +134,14 @@ void HackManager::run_active_mods() {
   if (active_game != Game::INVALID_GAME && active_region != Region::INVALID_REGION) {
     for (auto& mod : mods) {
       if (!mod.second->is_initialized()) {
-        mod.second->init_mod(active_game, active_region);
-        mod.second->save_original_instructions();
+        bool was_init = mod.second->init_mod(active_game, active_region);
+        if (was_init) {
+          mod.second->save_original_instructions();
+          mod.second->mark_initialized();
+        }
       }
       if (mod.second->should_apply_changes()) {
-          mod.second->apply_instruction_changes();
+        mod.second->apply_instruction_changes();
       }
     }
 
@@ -168,6 +173,9 @@ void HackManager::update_mod_states()
     disable_mod("context_sensitive_controls");
 
     return;
+  } else {
+    enable_mod("fps_controls");
+    enable_mod("springball_button");
   }
 
   if (ImprovedMotionControls()) {

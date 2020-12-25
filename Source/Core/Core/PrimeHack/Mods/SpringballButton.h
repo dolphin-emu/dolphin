@@ -6,7 +6,7 @@ namespace prime {
 class SpringballButton : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override;
-  void init_mod(Game game, Region region) override;
+  bool init_mod(Game game, Region region) override;
 
 private:
   void springball_code(u32 start_point);

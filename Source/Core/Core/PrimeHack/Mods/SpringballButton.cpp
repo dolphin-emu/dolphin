@@ -42,7 +42,7 @@ void SpringballButton::run_mod(Game game, Region region) {
   }
 }
 
-void SpringballButton::init_mod(Game game, Region region) {
+bool SpringballButton::init_mod(Game game, Region region) {
   switch (game) {
   case Game::PRIME_1:
     if (region == Region::NTSC_U) {
@@ -99,16 +99,16 @@ void SpringballButton::init_mod(Game game, Region region) {
   default:
     break;
   }
-  initialized = true;
+  return true;
 }
 
 void SpringballButton::springball_code(u32 start_point) {
-  code_changes.emplace_back(start_point + 0x00, 0x3C808000);  // lis r4, 0x8000
-  code_changes.emplace_back(start_point + 0x04, 0x60844164);  // ori r4, r4, 0x4164
-  code_changes.emplace_back(start_point + 0x08, 0x88640000);  // lbz r3, 0(r4)
-  code_changes.emplace_back(start_point + 0x0c, 0x38A00000);  // li r5, 0
-  code_changes.emplace_back(start_point + 0x10, 0x98A40000);  // stb r5, 0(r4)
-  code_changes.emplace_back(start_point + 0x14, 0x2C030000);  // cmpwi r3, 0
+  add_code_change(start_point + 0x00, 0x3C808000);  // lis r4, 0x8000
+  add_code_change(start_point + 0x04, 0x60844164);  // ori r4, r4, 0x4164
+  add_code_change(start_point + 0x08, 0x88640000);  // lbz r3, 0(r4)
+  add_code_change(start_point + 0x0c, 0x38A00000);  // li r5, 0
+  add_code_change(start_point + 0x10, 0x98A40000);  // stb r5, 0(r4)
+  add_code_change(start_point + 0x14, 0x2C030000);  // cmpwi r3, 0
 }
 
 void SpringballButton::springball_check(u32 ball_address, u32 movement_address) {
