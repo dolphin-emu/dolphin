@@ -151,6 +151,7 @@ struct SConfig
   bool bPrimeNoclip = false;
   bool bPrimeInvulnerability = false;
   bool bPrimeSkipCutscene = false;
+  bool bPrimeRestoreDashing = false;
 
   // Interface settings
   bool bConfirmStop = false;

@@ -1837,6 +1837,9 @@
     <ClInclude Include="PrimeHack\HackManager.h">
       <Filter>PrimeHack</Filter>
     </ClInclude>
+    <ClInclude Include="PrimeHack\Mods\RestoreDashing.h">
+      <Filter>PrimeHack\Mods</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -10,6 +10,7 @@
 #include "Core/PrimeHack/Mods/CutBeamFxMP1.h"
 #include "Core/PrimeHack/Mods/DisableBloom.h"
 #include "Core/PrimeHack/Mods/FpsControls.h"
+#include "Core/PrimeHack/Mods/RestoreDashing.h"
 #include "Core/PrimeHack/Mods/Invulnerability.h"
 #include "Core/PrimeHack/Mods/Noclip.h"
 #include "Core/PrimeHack/Mods/SkipCutscene.h"
@@ -51,6 +52,7 @@ void InitializeHack() {
   hack_mgr.add_mod("invulnerability", std::make_unique<Invulnerability>());
   hack_mgr.add_mod("noclip", std::make_unique<Noclip>());
   hack_mgr.add_mod("skip_cutscene", std::make_unique<SkipCutscene>());
+  hack_mgr.add_mod("restore_dashing", std::make_unique<RestoreDashing>());
   hack_mgr.add_mod("springball_button", std::make_unique<SpringballButton>());
   hack_mgr.add_mod("fov_modifier", std::make_unique<ViewModifier>());
   hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
@@ -135,6 +137,10 @@ bool GetInvulnerability() {
 
 bool GetSkipCutscene() {
   return SConfig::GetInstance().bPrimeSkipCutscene;
+}
+
+bool GetRestoreDashing() {
+  return SConfig::GetInstance().bPrimeRestoreDashing;
 }
 
 bool GetEFBTexture() {

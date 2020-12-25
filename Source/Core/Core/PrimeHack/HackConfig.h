@@ -31,6 +31,7 @@ bool GetBloom();
 bool GetNoclip();
 bool GetInvulnerability();
 bool GetSkipCutscene();
+bool GetRestoreDashing();
 
 bool GetEnableSecondaryGunFX();
 

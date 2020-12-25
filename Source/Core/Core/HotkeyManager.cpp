@@ -24,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 143> s_hotkey_labels{{
+constexpr std::array<const char*, 144> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -196,6 +196,7 @@ constexpr std::array<const char*, 143> s_hotkey_labels{{
     _trans("Toggle Noclip"),
     _trans("Toggle Invulnerability"),
     _trans("Toggle Skippable Cutscenes"),
+    _trans("Toggle Dashing Restoration"),
     _trans("Toggle Lock Camera In Motion Puzzles")
 }};
 // clang-format on
@@ -354,7 +355,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Select State"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
      {_trans("Load Last State"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
      {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE},
-     {_trans("PrimeHack Cheats"), HK_NOCLIP_TOGGLE, HK_SKIP_CUTSCENE},
+     {_trans("PrimeHack Cheats"), HK_NOCLIP_TOGGLE, HK_RESTORE_DASHING},
      {_trans("PrimeHack Graphics"), HK_MOTION_LOCK, HK_MOTION_LOCK}}};
 
 HotkeyManager::HotkeyManager()
