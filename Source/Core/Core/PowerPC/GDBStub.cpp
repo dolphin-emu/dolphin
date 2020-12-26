@@ -240,7 +240,7 @@ static void gdb_read_command()
   cmd_len = 0;
   memset(cmd_bfr, 0, sizeof cmd_bfr);
 
-  const u8 c = gdb_read_byte();
+  u8 c = gdb_read_byte();
   if (c == '+')
   {
     // ignore ack
