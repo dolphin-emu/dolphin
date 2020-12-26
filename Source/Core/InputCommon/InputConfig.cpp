@@ -19,7 +19,10 @@
 #include "InputCommon/InputProfile.h"
 
 #include "Core/PrimeHack/HackConfig.h"
+
+#if defined(CIFACE_USE_WIN32)
 #include "Core/HotkeyManager.h"
+#endif
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
@@ -135,11 +138,13 @@ bool InputConfig::LoadConfig(bool isGC)
 #endif
       controller->LoadConfig(&config);
 
+#if defined(CIFACE_USE_WIN32)
       if (controller->GetName() == "Hotkeys") {
         if (HotkeyManager* m = static_cast<HotkeyManager*>(controller.get())) {
           m->ResetStupid();
         }
       }
+#endif
       
       // Update refs
       controller->UpdateReferences(g_controller_interface);

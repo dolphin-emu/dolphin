@@ -18,7 +18,7 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-const std::string primehack_ver = "1.0.2";
+const std::string primehack_ver = "1.0.2a";
 const std::string scm_rev_str = "PrimeHack Release [v"+primehack_ver+"]";
 
 const std::string scm_rev_git_str = SCM_REV_STR;
