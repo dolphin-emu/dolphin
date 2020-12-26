@@ -1,41 +1,54 @@
-variables:
-  GIT_SUBMODULE_STRATEGY: normal
+# DESCRIPTION: GitLab CI/CD for libRetro (NOT FOR GitLab-proper)
 
+##############################################################################
+################################# BOILERPLATE ################################
+##############################################################################
+
+# Core definitions
 .core-defs:
   variables:
     CORENAME: dolphin
     CORE_ARGS: -DLIBRETRO=ON
+    
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
 
 .core-linux-defs:
   extends: .core-defs
   variables:
     CORE_ARGS: -DLIBRETRO=ON -DENABLE_QT=OFF
 
+# Inclusion templates, required for the build to work
 include:
-  - template: Jobs/Code-Quality.gitlab-ci.yml
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/android-cmake.yml'
+  ################################## DESKTOPS ################################
+  # Linux 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-cmake.yml'
+    
+  ################################## CELLULAR ################################
+  # Android
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/android-cmake.yml'
 
+# Stages for building
 stages:
   - build-prepare
   - build-shared
-  - test
 
-#Desktop
+##############################################################################
+#################################### STAGES ##################################
+##############################################################################
+#
+################################### DESKTOPS #################################
+# Linux 64-bit
 libretro-build-linux-x86_64:
   extends:
     - .libretro-linux-cmake-x86_64
     - .core-linux-defs
-
-# Android
+    
+################################### CELLULAR #################################
+# Android ARMv8a
 libretro-build-android-arm64-v8a:
   extends:
     - .libretro-android-cmake-arm64-v8a
-    - .core-defs
-
-libretro-build-android-x86_64:
-  extends:
-    - .libretro-android-cmake-x86_64
     - .core-defs
