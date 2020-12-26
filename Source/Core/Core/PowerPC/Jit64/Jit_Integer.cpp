@@ -194,7 +194,12 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 // flags.
 void Jit64::AndWithMask(X64Reg reg, u32 mask)
 {
-  if (mask == 0xff)
+  if (mask == 0xffffffff)
+    return;
+
+  if (mask == 0)
+    XOR(32, R(reg), R(reg));
+  else if (mask == 0xff)
     MOVZX(32, 8, reg, R(reg));
   else if (mask == 0xffff)
     MOVZX(32, 16, reg, R(reg));
