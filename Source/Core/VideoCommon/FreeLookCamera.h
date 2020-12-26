@@ -41,6 +41,7 @@ public:
 class FreeLookCamera
 {
 public:
+  FreeLookCamera();
   void SetControlType(FreeLook::ControlType type);
   Common::Matrix44 GetView();
   Common::Vec2 GetFieldOfView() const;

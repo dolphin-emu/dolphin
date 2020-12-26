@@ -111,6 +111,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
   CalculateTargetSize();
 
   m_is_game_widescreen = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
+  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 }
 
 Renderer::~Renderer() = default;
