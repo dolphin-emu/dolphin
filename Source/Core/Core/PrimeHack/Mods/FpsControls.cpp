@@ -1550,7 +1550,7 @@ void FpsControls::init_mod_mp3(Region region) {
   } else {}
 
   // Same for both.
-  add_code_change(0x800614ec, 0x60000000, "visor_menu");
+  add_code_change(0x800614d0, 0x60000000, "visor_menu");
 
   active_visor_offset = 0x34;
   powerups_ptr_offset = 0x35a8;
