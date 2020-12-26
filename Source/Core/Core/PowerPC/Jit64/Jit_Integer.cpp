@@ -1683,7 +1683,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
         else
         {
           RotateLeft(32, Ra, Rs, inst.SH);
-          AND(32, Ra, Imm32(mask));
+          AndWithMask(Ra, mask);
         }
         OR(32, Ra, Imm32(maskA));
       }
