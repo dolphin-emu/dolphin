@@ -22,11 +22,11 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
 
   if ((fd = open("/dev/tap0", O_RDWR)) < 0)
   {
-    ERROR_LOG(SP1, "Couldn't open /dev/tap0, unable to init BBA");
+    ERROR_LOG_FMT(SP1, "Couldn't open /dev/tap0, unable to init BBA");
     return false;
   }
 
-  INFO_LOG(SP1, "BBA initialized.");
+  INFO_LOG_FMT(SP1, "BBA initialized.");
   return RecvInit();
 }
 
@@ -48,12 +48,13 @@ bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
-  INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
+  INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, ArrayToString(frame, size, 0x10));
 
-  int writtenBytes = write(fd, frame, size);
-  if ((u32)writtenBytes != size)
+  const int written_bytes = write(fd, frame, size);
+  if (u32(written_bytes) != size)
   {
-    ERROR_LOG(SP1, "SendFrame(): expected to write %d bytes, instead wrote %d", size, writtenBytes);
+    ERROR_LOG_FMT(SP1, "SendFrame(): expected to write {} bytes, instead wrote {}", size,
+                  written_bytes);
     return false;
   }
   else
@@ -77,16 +78,16 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
     if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
       continue;
 
-    int readBytes = read(self->fd, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE);
-    if (readBytes < 0)
+    const int read_bytes = read(self->fd, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE);
+    if (read_bytes < 0)
     {
-      ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
+      ERROR_LOG_FMT(SP1, "Failed to read from BBA, err={}", read_bytes);
     }
     else if (self->readEnabled.IsSet())
     {
-      INFO_LOG(SP1, "Read data: %s",
-               ArrayToString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10).c_str());
-      self->m_eth_ref->mRecvBufferLength = readBytes;
+      INFO_LOG_FMT(SP1, "Read data: {}",
+                   ArrayToString(self->m_eth_ref->mRecvBuffer.get(), read_bytes, 0x10));
+      self->m_eth_ref->mRecvBufferLength = read_bytes;
       self->m_eth_ref->RecvHandlePacket();
     }
   }

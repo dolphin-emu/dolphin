@@ -138,15 +138,6 @@ void Guitar::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = guitar_data;
 }
 
-bool Guitar::IsButtonPressed() const
-{
-  u16 buttons = 0;
-  m_buttons->GetState(&buttons, guitar_button_bitmasks.data());
-  m_frets->GetState(&buttons, guitar_fret_bitmasks.data());
-  m_strum->GetState(&buttons, guitar_strum_bitmasks.data());
-  return buttons != 0;
-}
-
 void Guitar::Reset()
 {
   EncryptedExtension::Reset();

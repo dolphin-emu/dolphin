@@ -55,7 +55,7 @@ public:
     region_size = size;
     total_region_size = size;
     region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size));
-    T::SetCodePtr(region);
+    T::SetCodePtr(region, region + size);
   }
 
   // Always clear code space with breakpoints, so that if someone accidentally executes
@@ -86,7 +86,7 @@ public:
   // Cannot currently be undone. Will write protect the entire code region.
   // Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
   void WriteProtect() { Common::WriteProtectMemory(region, region_size, true); }
-  void ResetCodePtr() { T::SetCodePtr(region); }
+  void ResetCodePtr() { T::SetCodePtr(region, region + region_size); }
   size_t GetSpaceLeft() const
   {
     ASSERT(static_cast<size_t>(T::GetCodePtr() - region) < region_size);

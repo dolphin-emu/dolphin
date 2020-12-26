@@ -61,13 +61,13 @@ void DSPLLE::DoState(PointerWrap& p)
   p.Do(g_dsp.err_pc);
 #endif
   p.Do(g_dsp.cr);
-  p.Do(g_dsp.reg_stack_ptr);
+  p.Do(g_dsp.reg_stack_ptrs);
   p.Do(g_dsp.exceptions);
   p.Do(g_dsp.external_interrupt_waiting);
 
-  for (int i = 0; i < 4; i++)
+  for (auto& stack : g_dsp.reg_stacks)
   {
-    p.Do(g_dsp.reg_stack[i]);
+    p.Do(stack);
   }
 
   p.Do(g_dsp.step_counter);
@@ -78,8 +78,10 @@ void DSPLLE::DoState(PointerWrap& p)
   Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  // TODO: This uses the wrong endianness (producing bad disassembly)
+  // and a bogus byte count (producing bad hashes)
   if (p.GetMode() == PointerWrap::MODE_READ)
-    Host::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+    Host::CodeLoaded(reinterpret_cast<const u8*>(g_dsp.iram), DSP_IRAM_BYTE_SIZE);
   p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
   p.Do(g_init_hax);
   p.Do(m_cycle_count);
@@ -127,8 +129,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
   if (bytes.size() != size_in_bytes)
   {
-    ERROR_LOG(DSPLLE, "%s has a wrong size (%zu, expected %u)", filename.c_str(), bytes.size(),
-              size_in_bytes);
+    ERROR_LOG_FMT(DSPLLE, "{} has a wrong size ({}, expected {})", filename, bytes.size(),
+                  size_in_bytes);
     return false;
   }
 
@@ -186,10 +188,6 @@ bool DSPLLE::Initialize(bool wii, bool dsp_thread)
   m_wii = wii;
   m_is_dsp_on_thread = dsp_thread;
 
-  // DSPLLE directly accesses the fastmem arena.
-  // TODO: The fastmem arena is only supposed to be used by the JIT:
-  // among other issues, its size is only 1GB on 32-bit targets.
-  g_dsp.cpu_ram = Memory::physical_base;
   DSPCore_Reset();
 
   InitInstructionTable();
@@ -266,7 +264,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
     if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
     {
       // the DSP didn't read the previous value
-      WARN_LOG(DSPLLE, "Mailbox isn't empty ... strange");
+      WARN_LOG_FMT(DSPLLE, "Mailbox isn't empty ... strange");
     }
 
 #if PROFILE
@@ -280,7 +278,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   }
   else
   {
-    ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
+    ERROR_LOG_FMT(DSPLLE, "CPU can't write to DSP mailbox");
   }
 }
 
@@ -292,7 +290,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
   }
   else
   {
-    ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
+    ERROR_LOG_FMT(DSPLLE, "CPU can't write to DSP mailbox");
   }
 }
 

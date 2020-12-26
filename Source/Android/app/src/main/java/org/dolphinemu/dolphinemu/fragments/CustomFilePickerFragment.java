@@ -2,16 +2,15 @@ package org.dolphinemu.dolphinemu.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
-import android.view.View;
-import android.widget.TextView;
+import com.nononsenseapps.filepicker.FilePickerFragment;
 
 import org.dolphinemu.dolphinemu.R;
-
-import com.nononsenseapps.filepicker.FilePickerFragment;
 
 import java.io.File;
 import java.util.HashSet;

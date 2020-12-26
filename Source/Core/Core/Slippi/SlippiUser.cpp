@@ -49,7 +49,7 @@ static void system_hidden(const char* cmd)
 static void RunSystemCommand(const std::string& command)
 {
 #ifdef _WIN32
-  _wsystem(UTF8ToUTF16(command).c_str());
+  _wsystem(UTF8ToTStr(command).c_str());
 #else
   system(command.c_str());
 #endif

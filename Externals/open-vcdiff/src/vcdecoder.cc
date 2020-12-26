@@ -324,7 +324,7 @@ class VCDiffStreamingDecoderImpl {
 
   // The default maximum target file size (and target window size) if
   // SetMaximumTargetFileSize() is not called.
-  static const size_t kDefaultMaximumTargetFileSize = 134217728U;  // 128 MB
+  static const size_t kDefaultMaximumTargetFileSize = 268435456U;  // 256 MB
 
   // The largest value that can be passed to SetMaximumTargetWindowSize().
   // Using a larger value will result in an error.

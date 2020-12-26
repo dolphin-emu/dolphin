@@ -56,6 +56,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](http://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/LICENSE)
 - [Qt5](http://qt-project.org/):
    [LGPLv3 and other licenses](http://doc.qt.io/qt-5/licensing.html)
+- [rangeset](https://github.com/AdmiralCurtiss/rangeset)
+   [zlib license](https://github.com/AdmiralCurtiss/rangeset/blob/master/LICENSE)
 - [SDL](https://www.libsdl.org/):
    [zlib license](http://hg.libsdl.org/SDL/file/tip/COPYING.txt)
 - [SFML](http://www.sfml-dev.org/):

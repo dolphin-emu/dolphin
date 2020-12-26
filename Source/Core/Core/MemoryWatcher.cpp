@@ -70,7 +70,11 @@ u32 MemoryWatcher::ChasePointer(const std::string& line)
 {
   u32 value = 0;
   for (u32 offset : m_addresses[line])
+  {
     value = Memory::Read_U32(value + offset);
+    if (!PowerPC::HostIsRAMAddress(value))
+      break;
+  }
   return value;
 }
 

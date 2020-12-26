@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 120;  // Last changed in PR 8904
+constexpr u32 STATE_VERSION = 124;  // Last changed in PR 9097
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -192,8 +192,8 @@ static void DoState(PointerWrap& p)
 
   // Movie must be done before the video backend, because the window is redrawn in the video backend
   // state load, and the frame number must be up-to-date.
-  Movie::DoState(p);
-  p.DoMarker("Movie");
+  // Movie::DoState(p);
+  // p.DoMarker("Movie");
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
@@ -213,10 +213,6 @@ static void DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
-
-#if defined(HAVE_FFMPEG)
-  FrameDump::DoState();
-#endif
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
@@ -246,7 +242,6 @@ void SaveToBuffer(std::vector<u8>& buffer)
         DoState(p);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
         buffer.resize(buffer_size);
-
         ptr = &buffer[0];
         p.SetMode(PointerWrap::MODE_WRITE);
         DoState(p);
@@ -385,7 +380,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
       }
 
       if (lzo1x_1_compress(buffer_data + i, cur_len, out, &out_len, wrkmem) != LZO_E_OK)
-        PanicAlertT("Internal LZO Error - compression failed");
+        PanicAlertFmtT("Internal LZO Error - compression failed");
 
       // The size of the data to write is 'out_len'
       f.WriteArray((lzo_uint32*)&out_len, 1);
@@ -482,6 +477,17 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   return Common::Timer::GetDateTimeFormatted(header.time);
 }
 
+u64 GetUnixTimeOfSlot(int slot)
+{
+  State::StateHeader header;
+  if (!ReadHeader(MakeStateFilename(slot), header))
+    return 0;
+
+  constexpr u64 MS_PER_SEC = 1000;
+  return static_cast<u64>(header.time * MS_PER_SEC) +
+         (Common::Timer::DOUBLE_TIME_OFFSET * MS_PER_SEC);
+}
+
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
   Flush();
@@ -525,9 +531,9 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
       if (res != LZO_E_OK)
       {
         // This doesn't seem to happen anymore.
-        PanicAlertT("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
-                    "Try loading the state again",
-                    res, i, new_len);
+        PanicAlertFmtT("Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
+                       "Try loading the state again",
+                       res, i, new_len);
         return;
       }
 
@@ -536,12 +542,12 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   }
   else  // uncompressed
   {
-    const size_t size = (size_t)(f.GetSize() - sizeof(StateHeader));
+    const auto size = static_cast<size_t>(f.GetSize() - sizeof(StateHeader));
     buffer.resize(size);
 
     if (!f.ReadBytes(&buffer[0], size))
     {
-      PanicAlert("wtf? reading bytes: %zu", size);
+      PanicAlertFmt("Error reading bytes: {0}", size);
       return;
     }
   }
@@ -631,7 +637,7 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 void Init()
 {
   if (lzo_init() != LZO_E_OK)
-    PanicAlertT("Internal LZO Error - lzo_init() failed");
+    PanicAlertFmtT("Internal LZO Error - lzo_init() failed");
 }
 
 void Shutdown()
@@ -720,12 +726,12 @@ void UndoLoadState()
     }
     else
     {
-      PanicAlertT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
     }
   }
   else
   {
-    PanicAlertT("There is nothing to undo!");
+    PanicAlertFmtT("There is nothing to undo!");
   }
 }
 

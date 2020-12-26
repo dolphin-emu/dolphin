@@ -12,7 +12,7 @@
 #if defined(_WIN32)
 #include <windows.h>
 #elif defined(__APPLE__)
-#include <CoreServices/CoreServices.h>
+#include <objc/message.h>
 #elif defined(ANDROID)
 #include <functional>
 #include "Common/AndroidAnalytics.h"
@@ -21,6 +21,7 @@
 #include "Common/Analytics.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -65,7 +66,7 @@ void DolphinAnalytics::ReloadConfig()
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (SConfig::GetInstance().m_analytics_enabled)
+  if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
   {
 #if defined(ANDROID)
     new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
@@ -76,7 +77,7 @@ void DolphinAnalytics::ReloadConfig()
   m_reporter.SetBackend(std::move(new_backend));
 
   // Load the unique ID or generate it if needed.
-  m_unique_id = SConfig::GetInstance().m_analytics_id;
+  m_unique_id = Config::Get(Config::MAIN_ANALYTICS_ID);
   if (m_unique_id.empty())
   {
     GenerateNewIdentity();
@@ -90,8 +91,8 @@ void DolphinAnalytics::GenerateNewIdentity()
   m_unique_id = fmt::format("{:016x}{:016x}", id_high, id_low);
 
   // Save the new id in the configuration.
-  SConfig::GetInstance().m_analytics_id = m_unique_id;
-  SConfig::GetInstance().SaveSettings();
+  Config::SetBase(Config::MAIN_ANALYTICS_ID, m_unique_id);
+  Config::Save();
 }
 
 std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
@@ -268,20 +269,26 @@ void DolphinAnalytics::MakeBaseBuilder()
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 
-  SInt32 osxmajor, osxminor, osxbugfix;
-// Gestalt is deprecated, but the replacement (NSProcessInfo
-// operatingSystemVersion) is only available on OS X 10.10, so we need to use
-// it anyway.  Change this someday when Dolphin depends on 10.10+.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  Gestalt(gestaltSystemVersionMajor, &osxmajor);
-  Gestalt(gestaltSystemVersionMinor, &osxminor);
-  Gestalt(gestaltSystemVersionBugFix, &osxbugfix);
-#pragma GCC diagnostic pop
+  // id processInfo = [NSProcessInfo processInfo]
+  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
+  if (processInfo)
+  {
+    struct OSVersion  // NSOperatingSystemVersion
+    {
+      s64 major_version;  // NSInteger majorVersion
+      s64 minor_version;  // NSInteger minorVersion
+      s64 patch_version;  // NSInteger patchVersion
+    };
 
-  builder.AddData("osx-ver-major", osxmajor);
-  builder.AddData("osx-ver-minor", osxminor);
-  builder.AddData("osx-ver-bugfix", osxbugfix);
+    // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
+    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(objc_msgSend_stret)(
+        processInfo, sel_getUid("operatingSystemVersion"));
+
+    builder.AddData("osx-ver-major", version.major_version);
+    builder.AddData("osx-ver-minor", version.minor_version);
+    builder.AddData("osx-ver-bugfix", version.patch_version);
+  }
 #elif defined(__linux__)
   builder.AddData("os-type", "linux");
 #elif defined(__FreeBSD__)

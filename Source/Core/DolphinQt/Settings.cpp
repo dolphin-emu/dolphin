@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFontDatabase>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -23,7 +24,6 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -145,6 +145,11 @@ void Settings::RemovePath(const QString& qpath)
 void Settings::RefreshGameList()
 {
   emit GameListRefreshRequested();
+}
+
+void Settings::NotifyRefreshGameListStarted()
+{
+  emit GameListRefreshStarted();
 }
 
 void Settings::NotifyRefreshGameListComplete()
@@ -293,12 +298,6 @@ void Settings::SetLogConfigVisible(bool visible)
     GetQSettings().setValue(QStringLiteral("logging/logconfigvisible"), visible);
     emit LogConfigVisibilityChanged(visible);
   }
-}
-
-GameListModel* Settings::GetGameListModel() const
-{
-  static GameListModel* model = new GameListModel;
-  return model;
 }
 
 std::shared_ptr<NetPlay::NetPlayClient> Settings::GetNetPlayClient()
@@ -489,8 +488,7 @@ void Settings::SetDebugFont(QFont font)
 
 QFont Settings::GetDebugFont() const
 {
-  QFont default_font = QFont(QStringLiteral("Monospace"));
-  default_font.setStyleHint(QFont::TypeWriter);
+  QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
@@ -510,19 +508,34 @@ QString Settings::GetAutoUpdateTrack() const
   return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
 }
 
+void Settings::SetFallbackRegion(const DiscIO::Region& region)
+{
+  if (region == GetFallbackRegion())
+    return;
+
+  Config::SetBase(Config::MAIN_FALLBACK_REGION, region);
+
+  emit FallbackRegionChanged(region);
+}
+
+DiscIO::Region Settings::GetFallbackRegion() const
+{
+  return Config::Get(Config::MAIN_FALLBACK_REGION);
+}
+
 void Settings::SetAnalyticsEnabled(bool enabled)
 {
   if (enabled == IsAnalyticsEnabled())
     return;
 
-  SConfig::GetInstance().m_analytics_enabled = enabled;
+  Config::SetBase(Config::MAIN_ANALYTICS_ENABLED, enabled);
 
   emit AnalyticsToggled(enabled);
 }
 
 bool Settings::IsAnalyticsEnabled() const
 {
-  return SConfig::GetInstance().m_analytics_enabled;
+  return Config::Get(Config::MAIN_ANALYTICS_ENABLED);
 }
 
 void Settings::SetToolBarVisible(bool visible)
@@ -568,9 +581,15 @@ std::string Settings::GetSlippiInputFile() const
 {
   return SConfig::GetInstance().m_strSlippiInput;
 }
+
 void Settings::SetSlippiInputFile(std::string path)
 {
   SConfig::GetInstance().m_strSlippiInput = path;
+}
+
+void Settings::SetSlippiSeekbarEnabled(bool enabled)
+{
+  SConfig::GetInstance().m_slippiEnableSeek = enabled;
 }
 
 bool Settings::IsSDCardInserted() const

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <QSpinBox>
+#include "DolphinQt/Config/ToolTipControls/ToolTipSpinBox.h"
 
 namespace Config
 {
@@ -12,7 +12,7 @@ template <typename T>
 struct Info;
 }
 
-class GraphicsInteger : public QSpinBox
+class GraphicsInteger : public ToolTipSpinBox
 {
   Q_OBJECT
 public:

@@ -28,6 +28,7 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
 namespace PowerPC
 {
@@ -208,8 +209,7 @@ static void InitializeCPUCore(CPUCore cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.",
-               static_cast<int>(cpu_core));
+      WARN_LOG_FMT(POWERPC, "CPU core {} not available. Falling back to default.", cpu_core);
       s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;
@@ -472,7 +472,7 @@ void CheckExceptions()
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
-    DEBUG_LOG(POWERPC, "EXCEPTION_ISI");
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ISI");
     ppcState.Exceptions &= ~EXCEPTION_ISI;
   }
   else if (exceptions & EXCEPTION_PROGRAM)
@@ -484,7 +484,7 @@ void CheckExceptions()
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
-    DEBUG_LOG(POWERPC, "EXCEPTION_PROGRAM");
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PROGRAM");
     ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
   }
   else if (exceptions & EXCEPTION_SYSCALL)
@@ -495,7 +495,7 @@ void CheckExceptions()
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
-    DEBUG_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_SYSCALL (PC={:08x})", PC);
     ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
   }
   else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
@@ -507,7 +507,7 @@ void CheckExceptions()
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
-    DEBUG_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
     ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
   }
   else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
@@ -523,7 +523,7 @@ void CheckExceptions()
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
-    DEBUG_LOG(POWERPC, "EXCEPTION_DSI");
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DSI");
     ppcState.Exceptions &= ~EXCEPTION_DSI;
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
@@ -536,7 +536,7 @@ void CheckExceptions()
 
     // TODO crazy amount of DSISR options to check out
 
-    DEBUG_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
+    DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ALIGNMENT");
     ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
   }
 
@@ -564,7 +564,7 @@ void CheckExternalExceptions()
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
-      DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
+      DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
       DEBUG_ASSERT_MSG(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
@@ -577,7 +577,7 @@ void CheckExternalExceptions()
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
-      DEBUG_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+      DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
       ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
     }
     else if (exceptions & EXCEPTION_DECREMENTER)
@@ -588,13 +588,18 @@ void CheckExternalExceptions()
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
-      DEBUG_LOG(POWERPC, "EXCEPTION_DECREMENTER");
+      DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DECREMENTER");
       ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
     }
     else
     {
       DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
-      ERROR_LOG(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", exceptions);
+
+      // TODO: Re-enable this on ARM64 after fixing https://bugs.dolphin-emu.org/issues/12327
+#ifndef _M_ARM_64
+      ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
+                    exceptions);
+#endif
     }
   }
 }
@@ -603,7 +608,16 @@ void CheckBreakPoints()
 {
   if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
   {
-    CPU::Break();
+    if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
+      CPU::Break();
+    if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
+    {
+      NOTICE_LOG_FMT(MEMMAP,
+                     "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
+                     "{:08x}) LR={:08x}",
+                     PC, g_symbolDB.GetDescription(PC), GPR(3), GPR(4), GPR(5), GPR(6), GPR(7),
+                     GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
+    }
     if (PowerPC::breakpoints.IsTempBreakPoint(PC))
       PowerPC::breakpoints.Remove(PC);
   }
@@ -611,7 +625,7 @@ void CheckBreakPoints()
 
 void PowerPCState::SetSR(u32 index, u32 value)
 {
-  DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", pc, index, value);
+  DEBUG_LOG_FMT(POWERPC, "{:08x}: MMU: Segment register {} set to {:08x}", pc, index, value);
   sr[index] = value;
 }
 

@@ -52,6 +52,28 @@ std::string DefaultStringTranslator(const char* text)
 MsgAlertHandler s_msg_handler = DefaultMsgHandler;
 StringTranslator s_str_translator = DefaultStringTranslator;
 bool s_alert_enabled = true;
+
+const char* GetCaption(MsgType style)
+{
+  static const std::string info_caption = s_str_translator(_trans("Information"));
+  static const std::string warn_caption = s_str_translator(_trans("Question"));
+  static const std::string ques_caption = s_str_translator(_trans("Warning"));
+  static const std::string crit_caption = s_str_translator(_trans("Critical"));
+
+  switch (style)
+  {
+  case MsgType::Information:
+    return info_caption.c_str();
+  case MsgType::Question:
+    return ques_caption.c_str();
+  case MsgType::Warning:
+    return warn_caption.c_str();
+  case MsgType::Critical:
+    return crit_caption.c_str();
+  default:
+    return "Unhandled caption";
+  }
+}
 }  // Anonymous namespace
 
 // Select which of these functions that are used for message boxes. If
@@ -83,42 +105,38 @@ std::string GetStringT(const char* string)
 bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 {
   // Read message and write it to the log
-  const char* caption = "";
+  const char* caption = GetCaption(style);
   char buffer[2048];
-
-  static const std::string info_caption = s_str_translator(_trans("Information"));
-  static const std::string warn_caption = s_str_translator(_trans("Question"));
-  static const std::string ques_caption = s_str_translator(_trans("Warning"));
-  static const std::string crit_caption = s_str_translator(_trans("Critical"));
-
-  switch (style)
-  {
-  case MsgType::Information:
-    caption = info_caption.c_str();
-    break;
-  case MsgType::Question:
-    caption = ques_caption.c_str();
-    break;
-  case MsgType::Warning:
-    caption = warn_caption.c_str();
-    break;
-  case MsgType::Critical:
-    caption = crit_caption.c_str();
-    break;
-  }
 
   va_list args;
   va_start(args, format);
   CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
   va_end(args);
 
-  ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
+  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, buffer);
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
   if (s_msg_handler != nullptr &&
       (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
   {
     return s_msg_handler(caption, buffer, yes_no, style);
+  }
+
+  return true;
+}
+
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
+                     const fmt::format_args& args)
+{
+  const char* caption = GetCaption(style);
+  const auto message = fmt::vformat(format, args);
+  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, message);
+
+  // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
+  if (s_msg_handler != nullptr &&
+      (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
+  {
+    return s_msg_handler(caption, message.c_str(), yes_no, style);
   }
 
   return true;

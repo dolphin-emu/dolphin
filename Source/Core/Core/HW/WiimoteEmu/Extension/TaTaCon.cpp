@@ -62,14 +62,6 @@ void TaTaCon::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tatacon_data;
 }
 
-bool TaTaCon::IsButtonPressed() const
-{
-  u8 state = 0;
-  m_center->GetState(&state, center_bitmasks.data());
-  m_rim->GetState(&state, rim_bitmasks.data());
-  return state != 0;
-}
-
 void TaTaCon::Reset()
 {
   m_reg = {};

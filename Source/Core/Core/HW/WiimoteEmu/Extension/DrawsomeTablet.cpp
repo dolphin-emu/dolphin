@@ -92,12 +92,6 @@ void DrawsomeTablet::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-bool DrawsomeTablet::IsButtonPressed() const
-{
-  // Device has no buttons.
-  return false;
-}
-
 ControllerEmu::ControlGroup* DrawsomeTablet::GetGroup(DrawsomeTabletGroup group)
 {
   switch (group)

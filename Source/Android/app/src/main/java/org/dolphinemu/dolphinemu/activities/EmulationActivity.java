@@ -5,18 +5,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
-
-import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
@@ -30,26 +21,40 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
-import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
+import java.io.File;
 import java.lang.annotation.Retention;
 import java.util.List;
 
@@ -61,32 +66,27 @@ public final class EmulationActivity extends AppCompatActivity
   private static final String BACKSTACK_NAME_SUBMENU = "submenu";
   public static final int REQUEST_CHANGE_DISC = 1;
 
-  private View mDecorView;
   private EmulationFragment mEmulationFragment;
 
   private SharedPreferences mPreferences;
   private MotionListener mMotionListener;
-  private ControllerMappingHelper mControllerMappingHelper;
 
   private Settings mSettings;
 
-  private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
 
   private static boolean sIgnoreLaunchRequests = false;
-  private static boolean sIsGameCubeGame;
 
   private boolean activityRecreated;
-  private String mSelectedTitle;
-  private String mSelectedGameId;
-  private int mPlatform;
   private String[] mPaths;
-  private boolean backPressedOnce = false;
+  private boolean mIgnoreWarnings;
+  private static boolean sUserPausedEmulation;
+  private boolean mMenuToastShown;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
-  public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
-  public static final String EXTRA_SELECTED_GAMEID = "SelectedGameId";
-  public static final String EXTRA_PLATFORM = "Platform";
+  public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
+  public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
+  public static final String EXTRA_MENU_TOAST_SHOWN = "MenuToastShown";
 
   @Retention(SOURCE)
   @IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -98,7 +98,9 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-          MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS})
+          MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
+          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS_CORE,
+          MENU_ACTION_SETTINGS_GRAPHICS})
   public @interface MenuAction
   {
   }
@@ -134,9 +136,13 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
   public static final int MENU_ACTION_SCREEN_ORIENTATION = 29;
   public static final int MENU_ACTION_MOTION_CONTROLS = 30;
+  public static final int MENU_ACTION_PAUSE_EMULATION = 31;
+  public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
+  public static final int MENU_ACTION_SETTINGS_CORE = 34;
+  public static final int MENU_ACTION_SETTINGS_GRAPHICS = 35;
 
-
-  private static SparseIntArray buttonsActionsMap = new SparseIntArray();
+  private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
   static
   {
@@ -148,29 +154,6 @@ public final class EmulationActivity extends AppCompatActivity
             .append(R.id.menu_emulation_adjust_scale, EmulationActivity.MENU_ACTION_ADJUST_SCALE);
     buttonsActionsMap.append(R.id.menu_emulation_choose_controller,
             EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
-    buttonsActionsMap
-            .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
-
-    buttonsActionsMap.append(R.id.menu_quicksave, EmulationActivity.MENU_ACTION_QUICK_SAVE);
-    buttonsActionsMap.append(R.id.menu_quickload, EmulationActivity.MENU_ACTION_QUICK_LOAD);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_save_root, EmulationActivity.MENU_ACTION_SAVE_ROOT);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_load_root, EmulationActivity.MENU_ACTION_LOAD_ROOT);
-    buttonsActionsMap.append(R.id.menu_emulation_save_1, EmulationActivity.MENU_ACTION_SAVE_SLOT1);
-    buttonsActionsMap.append(R.id.menu_emulation_save_2, EmulationActivity.MENU_ACTION_SAVE_SLOT2);
-    buttonsActionsMap.append(R.id.menu_emulation_save_3, EmulationActivity.MENU_ACTION_SAVE_SLOT3);
-    buttonsActionsMap.append(R.id.menu_emulation_save_4, EmulationActivity.MENU_ACTION_SAVE_SLOT4);
-    buttonsActionsMap.append(R.id.menu_emulation_save_5, EmulationActivity.MENU_ACTION_SAVE_SLOT5);
-    buttonsActionsMap.append(R.id.menu_emulation_load_1, EmulationActivity.MENU_ACTION_LOAD_SLOT1);
-    buttonsActionsMap.append(R.id.menu_emulation_load_2, EmulationActivity.MENU_ACTION_LOAD_SLOT2);
-    buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
-    buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
-    buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
-    buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
-    buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center,
             EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
@@ -180,38 +163,11 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
-    buttonsActionsMap.append(R.id.menu_screen_orientation,
-            EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_emulation_motion_controls,
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
 
-  private static String[] scanForSecondDisc(GameFile gameFile)
-  {
-    GameFile secondFile = GameFileCacheService.findSecondDisc(gameFile);
-    if (secondFile == null)
-      return new String[]{gameFile.getPath()};
-    else
-      return new String[]{gameFile.getPath(), secondFile.getPath()};
-  }
-
-  public static void launch(FragmentActivity activity, GameFile gameFile)
-  {
-    if (sIgnoreLaunchRequests)
-      return;
-
-    sIgnoreLaunchRequests = true;
-
-    Intent launcher = new Intent(activity, EmulationActivity.class);
-
-    launcher.putExtra(EXTRA_SELECTED_GAMES, scanForSecondDisc(gameFile));
-    launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
-    launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
-    launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    activity.startActivity(launcher);
-  }
-
-  public static void launchFile(FragmentActivity activity, String[] filePaths)
+  public static void launch(FragmentActivity activity, String[] filePaths)
   {
     if (sIgnoreLaunchRequests)
       return;
@@ -221,31 +177,8 @@ public final class EmulationActivity extends AppCompatActivity
     Intent launcher = new Intent(activity, EmulationActivity.class);
     launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
 
-    // Try parsing a GameFile first. This should succeed for disc images.
-    GameFile gameFile = GameFile.parse(filePaths[0]);
-    if (gameFile != null)
-    {
-      // We don't want to pollute the game file cache with this new file,
-      // so we can't just call launch() and let it handle the setup.
-      launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
-      launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
-      launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    }
-    else
-    {
-      // Display the path to the file as the game title in the menu.
-      launcher.putExtra(EXTRA_SELECTED_TITLE, filePaths[0]);
-
-      // Use 00000000 as the game ID. This should match the Desktop version behavior.
-      // TODO: This should really be pulled from the Core.
-      launcher.putExtra(EXTRA_SELECTED_GAMEID, "00000000");
-
-      // GameFile might be a FIFO log. Assume GameCube for the platform. It doesn't really matter
-      // anyway, since this only controls the input, and the FIFO player doesn't take any input.
-      launcher.putExtra(EXTRA_PLATFORM, Platform.GAMECUBE);
-    }
-
-    activity.startActivity(launcher);
+    new AfterDirectoryInitializationRunner().run(activity, true,
+            () -> activity.startActivity(launcher));
   }
 
   public static void stopIgnoringLaunchRequests()
@@ -253,12 +186,30 @@ public final class EmulationActivity extends AppCompatActivity
     sIgnoreLaunchRequests = false;
   }
 
-  public static void clearWiimoteNewIniLinkedPreferences(Context context)
+  public static void updateWiimoteNewIniPreferences(Context context)
   {
-    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-    editor.remove("wiiController");
-    editor.remove("motionControlsEnabled");
-    editor.apply();
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    updateWiimoteNewController(preferences.getInt("wiiController", 3), context);
+
+    updateWiimoteNewImuIr(IntSetting.MAIN_MOTION_CONTROLS.getIntGlobal());
+  }
+
+  private static void updateWiimoteNewController(int value, Context context)
+  {
+    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
+    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+    wiimoteNewIni.setString("Wiimote1", "Extension",
+            context.getResources().getStringArray(R.array.controllersValues)[value]);
+    wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", value == 2);
+    wiimoteNewIni.save(wiimoteNewFile);
+  }
+
+  private static void updateWiimoteNewImuIr(int value)
+  {
+    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
+    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+    wiimoteNewIni.setBoolean("Wiimote1", "IMUIR/Enabled", value != 1);
+    wiimoteNewIni.save(wiimoteNewFile);
   }
 
   @Override
@@ -266,14 +217,23 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
 
+    if (TvUtil.isLeanback(getApplicationContext()))
+    {
+      TvMainActivity.skipRescanningLibrary();
+    }
+    else
+    {
+      MainActivity.skipRescanningLibrary();
+    }
+
     if (savedInstanceState == null)
     {
       // Get params we were passed
       Intent gameToEmulate = getIntent();
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
-      mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
-      mSelectedGameId = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAMEID);
-      mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
+      mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
+      sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
+      mMenuToastShown = false;
       activityRecreated = false;
     }
     else
@@ -289,40 +249,10 @@ public final class EmulationActivity extends AppCompatActivity
 
     updateOrientation();
 
-    // TODO: The accurate way to find out which console we're emulating is to first
-    //       launch emulation and then ask the core which console we're emulating
-    sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
-    mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
-    mControllerMappingHelper = new ControllerMappingHelper();
 
-    int themeId;
-    if (mDeviceHasTouchScreen)
-    {
-      themeId = R.style.DolphinEmulationBase;
-
-      // Get a handle to the Window containing the UI.
-      mDecorView = getWindow().getDecorView();
-      mDecorView.setOnSystemUiVisibilityChangeListener(visibility ->
-      {
-        if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-        {
-          // Go back to immersive fullscreen mode in 3s
-          Handler handler = new Handler(getMainLooper());
-          handler.postDelayed(this::enableFullscreenImmersive, 3000 /* 3s */);
-        }
-      });
-      // Set these options now so that the SurfaceView the game renders into is the right size.
-      enableFullscreenImmersive();
-      Toast.makeText(this, getString(R.string.emulation_touch_button_help), Toast.LENGTH_LONG)
-              .show();
-    }
-    else
-    {
-      themeId = R.style.DolphinEmulationTvBase;
-    }
-
-    setTheme(themeId);
+    // Set these options now so that the SurfaceView the game renders into is the right size.
+    enableFullscreenImmersive();
 
     Rumble.initRumble(this);
 
@@ -339,10 +269,8 @@ public final class EmulationActivity extends AppCompatActivity
               .commit();
     }
 
-    if (mDeviceHasTouchScreen)
-    {
-      setTitle(mSelectedTitle);
-    }
+    if (NativeLibrary.IsGameMetadataValid())
+      setTitle(NativeLibrary.GetCurrentTitleDescription());
   }
 
   @Override
@@ -353,26 +281,36 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.saveTemporaryState();
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
-    outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
-    outState.putString(EXTRA_SELECTED_GAMEID, mSelectedGameId);
-    outState.putInt(EXTRA_PLATFORM, mPlatform);
+    outState.putBoolean(EXTRA_IGNORE_WARNINGS, mIgnoreWarnings);
+    outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
+    outState.putBoolean(EXTRA_MENU_TOAST_SHOWN, mMenuToastShown);
     super.onSaveInstanceState(outState);
   }
 
   protected void restoreState(Bundle savedInstanceState)
   {
     mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
-    mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
-    mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
-    mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
+    mIgnoreWarnings = savedInstanceState.getBoolean(EXTRA_IGNORE_WARNINGS);
+    sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
+    mMenuToastShown = savedInstanceState.getBoolean(EXTRA_MENU_TOAST_SHOWN);
+  }
+
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus)
+  {
+    if (hasFocus)
+    {
+      enableFullscreenImmersive();
+    }
   }
 
   @Override
   protected void onResume()
   {
     super.onResume();
-    if (!sIsGameCubeGame && mPreferences.getInt("motionControlsEnabled", 0) != 2)
-      mMotionListener.enable();
+
+    if (NativeLibrary.IsGameMetadataValid())
+      updateMotionListener();
   }
 
   @Override
@@ -386,66 +324,86 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onStop()
   {
     super.onStop();
+    mSettings.saveSettings(null, null);
+  }
+
+  public void onTitleChanged()
+  {
+    if (!mMenuToastShown)
+    {
+      // The reason why this doesn't run earlier is because we want to be sure the boot succeeded.
+      Toast.makeText(this, R.string.emulation_menu_help, Toast.LENGTH_LONG).show();
+      mMenuToastShown = true;
+    }
+
+    setTitle(NativeLibrary.GetCurrentTitleDescription());
+    updateMotionListener();
+
+    mEmulationFragment.refreshInputOverlay();
+  }
+
+  private void updateMotionListener()
+  {
+    if (NativeLibrary.IsEmulatingWii() && IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings) != 2)
+      mMotionListener.enable();
+    else
+      mMotionListener.disable();
+  }
+
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    mSettings.close();
   }
 
   @Override
   public void onBackPressed()
   {
-    if (!mDeviceHasTouchScreen)
+    if (!closeSubmenu())
     {
-      boolean popResult = getSupportFragmentManager().popBackStackImmediate(
-              BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-      if (!popResult)
-      {
-        toggleMenu();
-      }
+      toggleMenu();
     }
-    else
+  }
+
+  @Override
+  public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
+  {
+    if (keyCode == KeyEvent.KEYCODE_BACK)
     {
-      if (backPressedOnce)
-      {
-        mEmulationFragment.stopEmulation();
-        finish();
-      }
-      else
-      {
-        backPressedOnce = true;
-        Toast.makeText(this, "Press back again to exit", Toast.LENGTH_LONG).show();
-        new Handler().postDelayed(() -> backPressedOnce = false, 3000);
-      }
+      mEmulationFragment.stopEmulation();
+      return true;
     }
+    return super.onKeyLongPress(keyCode, event);
   }
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    switch (requestCode)
+    if (requestCode == REQUEST_CHANGE_DISC)
     {
-      case REQUEST_CHANGE_DISC:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
+      // If the user picked a file, as opposed to just backing out.
+      if (resultCode == MainActivity.RESULT_OK)
+      {
+        String newDiscPath = FileBrowserHelper.getSelectedPath(result);
+        if (!TextUtils.isEmpty(newDiscPath))
         {
-          String newDiscPath = FileBrowserHelper.getSelectedPath(result);
-          if (!TextUtils.isEmpty(newDiscPath))
-          {
-            NativeLibrary.ChangeDisc(newDiscPath);
-          }
+          NativeLibrary.ChangeDisc(newDiscPath);
         }
-        break;
+      }
     }
   }
 
   private void enableFullscreenImmersive()
   {
-    // It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
-    mDecorView.setSystemUiVisibility(
+    getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_FULLSCREEN |
-                    View.SYSTEM_UI_FLAG_IMMERSIVE);
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
   }
 
   private void updateOrientation()
@@ -454,22 +412,31 @@ public final class EmulationActivity extends AppCompatActivity
             ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
   }
 
+  private boolean closeSubmenu()
+  {
+    return getSupportFragmentManager().popBackStackImmediate(BACKSTACK_NAME_SUBMENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+  }
+
+  private boolean closeMenu()
+  {
+    mMenuVisible = false;
+    return getSupportFragmentManager().popBackStackImmediate(BACKSTACK_NAME_MENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+  }
+
   private void toggleMenu()
   {
-    boolean result = getSupportFragmentManager().popBackStackImmediate(
-            BACKSTACK_NAME_MENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    mMenuVisible = false;
-
-    if (!result)
+    if (!closeMenu())
     {
       // Removing the menu failed, so that means it wasn't visible. Add it.
-      Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
+      Fragment fragment = MenuFragment.newInstance();
       getSupportFragmentManager().beginTransaction()
               .setCustomAnimations(
-                      R.animator.menu_slide_in_from_left,
-                      R.animator.menu_slide_out_to_left,
-                      R.animator.menu_slide_in_from_left,
-                      R.animator.menu_slide_out_to_left)
+                      R.animator.menu_slide_in_from_start,
+                      R.animator.menu_slide_out_to_start,
+                      R.animator.menu_slide_in_from_start,
+                      R.animator.menu_slide_out_to_start)
               .add(R.id.frame_menu, fragment)
               .addToBackStack(BACKSTACK_NAME_MENU)
               .commit();
@@ -477,40 +444,26 @@ public final class EmulationActivity extends AppCompatActivity
     }
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu)
+  public void showOverlayControlsMenu(@NonNull View anchor)
   {
-    // Inflate the menu; this adds items to the action bar if it is present.
-    if (sIsGameCubeGame)
-    {
-      getMenuInflater().inflate(R.menu.menu_emulation, menu);
-    }
-    else
-    {
-      getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
-    }
+    PopupMenu popup = new PopupMenu(this, anchor);
+    Menu menu = popup.getMenu();
 
-    BooleanSetting enableSaveStates =
-            (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
-                    .getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
-    if (enableSaveStates != null && enableSaveStates.getValue())
-    {
-      menu.findItem(R.id.menu_quicksave).setVisible(true);
-      menu.findItem(R.id.menu_quickload).setVisible(true);
-      menu.findItem(R.id.menu_emulation_save_root).setVisible(true);
-      menu.findItem(R.id.menu_emulation_load_root).setVisible(true);
-    }
+    boolean wii = NativeLibrary.IsEmulatingWii();
+    int id = wii ? R.menu.menu_overlay_controls_wii : R.menu.menu_overlay_controls_gc;
+    popup.getMenuInflater().inflate(id, menu);
 
     // Populate the checkbox value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
-            .setChecked(mPreferences.getBoolean("joystickRelCenter", true));
+            .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
     menu.findItem(R.id.menu_emulation_rumble)
-            .setChecked(mPreferences.getBoolean("phoneRumble", true));
+            .setChecked(BooleanSetting.MAIN_PHONE_RUMBLE.getBoolean(mSettings));
 
-    return true;
+    popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
+
+    popup.show();
   }
 
-  @SuppressWarnings("WrongConstant")
   @Override
   public boolean onOptionsItemSelected(MenuItem item)
   {
@@ -532,6 +485,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void handleCheckableMenuAction(@MenuAction int menuAction, MenuItem item)
   {
+    //noinspection SwitchIntDef
     switch (menuAction)
     {
       case MENU_ACTION_JOYSTICK_REL_CENTER:
@@ -547,6 +501,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void handleMenuAction(@MenuAction int menuAction)
   {
+    //noinspection SwitchIntDef
     switch (menuAction)
     {
       // Edit the placement of the controls
@@ -562,147 +517,164 @@ public final class EmulationActivity extends AppCompatActivity
       // Enable/Disable specific buttons or the entire input overlay.
       case MENU_ACTION_TOGGLE_CONTROLS:
         toggleControls();
-        return;
+        break;
 
       // Adjust the scale of the overlay controls.
       case MENU_ACTION_ADJUST_SCALE:
         adjustScale();
-        return;
+        break;
 
       // (Wii games only) Change the controller for the input overlay.
       case MENU_ACTION_CHOOSE_CONTROLLER:
         chooseController();
-        return;
+        break;
 
       case MENU_ACTION_REFRESH_WIIMOTES:
         NativeLibrary.RefreshWiimotes();
-        return;
+        break;
+
+      case MENU_ACTION_PAUSE_EMULATION:
+        sUserPausedEmulation = true;
+        NativeLibrary.PauseEmulation();
+        break;
+
+      case MENU_ACTION_UNPAUSE_EMULATION:
+        sUserPausedEmulation = false;
+        NativeLibrary.UnPauseEmulation();
+        break;
 
       // Screenshot capturing
       case MENU_ACTION_TAKE_SCREENSHOT:
         NativeLibrary.SaveScreenShot();
-        return;
+        break;
 
       // Quick save / load
       case MENU_ACTION_QUICK_SAVE:
         NativeLibrary.SaveState(9, false);
-        return;
+        break;
 
       case MENU_ACTION_QUICK_LOAD:
         NativeLibrary.LoadState(9);
-        return;
+        break;
 
-      // TV Menu only
       case MENU_ACTION_SAVE_ROOT:
-        if (!mDeviceHasTouchScreen)
-        {
-          showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
-        }
-        return;
+        showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
+        break;
 
       case MENU_ACTION_LOAD_ROOT:
-        if (!mDeviceHasTouchScreen)
-        {
-          showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
-        }
-        return;
+        showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
+        break;
 
       // Save state slots
       case MENU_ACTION_SAVE_SLOT1:
         NativeLibrary.SaveState(0, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT2:
         NativeLibrary.SaveState(1, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT3:
         NativeLibrary.SaveState(2, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT4:
         NativeLibrary.SaveState(3, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT5:
         NativeLibrary.SaveState(4, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT6:
         NativeLibrary.SaveState(5, false);
-        return;
+        break;
 
       // Load state slots
       case MENU_ACTION_LOAD_SLOT1:
         NativeLibrary.LoadState(0);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT2:
         NativeLibrary.LoadState(1);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT3:
         NativeLibrary.LoadState(2);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT4:
         NativeLibrary.LoadState(3);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT5:
         NativeLibrary.LoadState(4);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT6:
         NativeLibrary.LoadState(5);
-        return;
+        break;
 
       case MENU_ACTION_CHANGE_DISC:
         FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC, false,
                 FileBrowserHelper.GAME_EXTENSIONS);
-        return;
+        break;
 
       case MENU_SET_IR_SENSITIVITY:
         setIRSensitivity();
-        return;
+        break;
 
       case MENU_ACTION_CHOOSE_DOUBLETAP:
         chooseDoubleTapButton();
-        return;
+        break;
 
       case MENU_ACTION_SCREEN_ORIENTATION:
         chooseOrientation();
-        return;
+        break;
 
       case MENU_ACTION_MOTION_CONTROLS:
         showMotionControlsOptions();
-        return;
+        break;
+
+      case MENU_ACTION_SETTINGS_CORE:
+        SettingsActivity.launch(this, MenuTag.CONFIG);
+        break;
+
+      case MENU_ACTION_SETTINGS_GRAPHICS:
+        SettingsActivity.launch(this, MenuTag.GRAPHICS);
+        break;
 
       case MENU_ACTION_EXIT:
-        // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
-        if (TvUtil.isLeanback(getApplicationContext()))
-          toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
         mEmulationFragment.stopEmulation();
-        finish();
-        return;
+        break;
     }
+  }
+
+  public boolean isIgnoringWarnings()
+  {
+    return mIgnoreWarnings;
+  }
+
+  public void setIgnoreWarnings(boolean value)
+  {
+    mIgnoreWarnings = value;
+  }
+
+  public static boolean getHasUserPausedEmulation()
+  {
+    return sUserPausedEmulation;
   }
 
   private void toggleJoystickRelCenter(boolean state)
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    editor.putBoolean("joystickRelCenter", state);
-    editor.commit();
+    BooleanSetting.MAIN_JOYSTICK_REL_CENTER.setBoolean(mSettings, state);
   }
 
   private void toggleRumble(boolean state)
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    editor.putBoolean("phoneRumble", state);
-    editor.apply();
+    BooleanSetting.MAIN_PHONE_RUMBLE.setBoolean(mSettings, state);
     Rumble.setPhoneVibrator(state, this);
   }
-
 
   private void editControlsPlacement()
   {
@@ -712,6 +684,8 @@ public final class EmulationActivity extends AppCompatActivity
     }
     else
     {
+      closeSubmenu();
+      closeMenu();
       mEmulationFragment.startConfiguringControls();
     }
   }
@@ -720,7 +694,7 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   public boolean dispatchKeyEvent(KeyEvent event)
   {
-    if (mMenuVisible)
+    if (mMenuVisible || event.getKeyCode() == KeyEvent.KEYCODE_BACK)
     {
       return super.dispatchKeyEvent(event);
     }
@@ -730,14 +704,6 @@ public final class EmulationActivity extends AppCompatActivity
     switch (event.getAction())
     {
       case KeyEvent.ACTION_DOWN:
-        // Handling the case where the back button is pressed.
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-        {
-          onBackPressed();
-          return true;
-        }
-
-        // Normal key events.
         action = NativeLibrary.ButtonState.PRESSED;
         break;
       case KeyEvent.ACTION_UP:
@@ -752,72 +718,74 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void toggleControls()
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    boolean[] enabledButtons = new boolean[14];
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_toggle_controls);
-    if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0)
+    if (!NativeLibrary.IsEmulatingWii() || mPreferences.getInt("wiiController", 3) == 0)
     {
-      for (int i = 0; i < enabledButtons.length; i++)
+      boolean[] gcEnabledButtons = new boolean[11];
+      String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
+
+      for (int i = 0; i < gcEnabledButtons.length; i++)
       {
-        enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
+        gcEnabledButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).getBoolean(mSettings);
       }
-      builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
-              (dialog, indexSelected, isChecked) -> editor
-                      .putBoolean("buttonToggleGc" + indexSelected, isChecked));
+      builder.setMultiChoiceItems(R.array.gcpadButtons, gcEnabledButtons,
+              (dialog, indexSelected, isChecked) -> BooleanSetting
+                      .valueOf(gcSettingBase + indexSelected).setBoolean(mSettings, isChecked));
     }
     else if (mPreferences.getInt("wiiController", 3) == 4)
     {
-      for (int i = 0; i < enabledButtons.length; i++)
+      boolean[] wiiClassicEnabledButtons = new boolean[14];
+      String classicSettingBase = "MAIN_BUTTON_TOGGLE_CLASSIC_";
+
+      for (int i = 0; i < wiiClassicEnabledButtons.length; i++)
       {
-        enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
+        wiiClassicEnabledButtons[i] =
+                BooleanSetting.valueOf(classicSettingBase + i).getBoolean(mSettings);
       }
-      builder.setMultiChoiceItems(R.array.classicButtons, enabledButtons,
-              (dialog, indexSelected, isChecked) -> editor
-                      .putBoolean("buttonToggleClassic" + indexSelected, isChecked));
+      builder.setMultiChoiceItems(R.array.classicButtons, wiiClassicEnabledButtons,
+              (dialog, indexSelected, isChecked) -> BooleanSetting
+                      .valueOf(classicSettingBase + indexSelected)
+                      .setBoolean(mSettings, isChecked));
     }
     else
     {
-      for (int i = 0; i < enabledButtons.length; i++)
+      boolean[] wiiEnabledButtons = new boolean[11];
+      String wiiSettingBase = "MAIN_BUTTON_TOGGLE_WII_";
+
+      for (int i = 0; i < wiiEnabledButtons.length; i++)
       {
-        enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
+        wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean(mSettings);
       }
       if (mPreferences.getInt("wiiController", 3) == 3)
       {
-        builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
-                (dialog, indexSelected, isChecked) -> editor
-                        .putBoolean("buttonToggleWii" + indexSelected, isChecked));
+        builder.setMultiChoiceItems(R.array.nunchukButtons, wiiEnabledButtons,
+                (dialog, indexSelected, isChecked) -> BooleanSetting
+                        .valueOf(wiiSettingBase + indexSelected).setBoolean(mSettings, isChecked));
       }
       else
       {
-        builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
-                (dialog, indexSelected, isChecked) -> editor
-                        .putBoolean("buttonToggleWii" + indexSelected, isChecked));
+        builder.setMultiChoiceItems(R.array.wiimoteButtons, wiiEnabledButtons,
+                (dialog, indexSelected, isChecked) -> BooleanSetting
+                        .valueOf(wiiSettingBase + indexSelected).setBoolean(mSettings, isChecked));
       }
     }
-    builder.setNeutralButton(getString(R.string.emulation_toggle_all),
-            (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility());
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
-    {
-      editor.apply();
+    builder.setNeutralButton(R.string.emulation_toggle_all,
+            (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility(mSettings));
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            mEmulationFragment.refreshInputOverlay());
 
-      mEmulationFragment.refreshInputOverlay();
-    });
-
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   public void chooseDoubleTapButton()
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
 
     int currentController =
             mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
 
-    int currentValue = mPreferences.getInt("doubleTapButton",
-            InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
+    int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt(mSettings);
 
     int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
             R.array.doubleTapWithClassic : R.array.doubleTap;
@@ -828,17 +796,14 @@ public final class EmulationActivity extends AppCompatActivity
       currentValue = InputOverlay.OVERLAY_WIIMOTE;
     }
 
-    builder.setSingleChoiceItems(buttonList, currentValue, (DialogInterface dialog, int which) ->
-            editor.putInt("doubleTapButton", InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
+    builder.setSingleChoiceItems(buttonList, currentValue,
+            (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON
+                    .setInt(mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
 
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
-    {
-      editor.commit();
-      mEmulationFragment.initInputPointer();
-    });
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            mEmulationFragment.initInputPointer());
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void adjustScale()
@@ -851,7 +816,7 @@ public final class EmulationActivity extends AppCompatActivity
     final TextView units = view.findViewById(R.id.text_units);
 
     seekbar.setMax(150);
-    seekbar.setProgress(mPreferences.getInt("controlScale", 50));
+    seekbar.setProgress(IntSetting.MAIN_CONTROL_SCALE.getInt(mSettings));
     seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
     {
       public void onStartTrackingTouch(SeekBar seekBar)
@@ -876,17 +841,18 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_control_scale);
     builder.setView(view);
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      SharedPreferences.Editor editor = mPreferences.edit();
-      editor.putInt("controlScale", seekbar.getProgress());
-      editor.apply();
-
+      IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, seekbar.getProgress());
+      mEmulationFragment.refreshInputOverlay();
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      IntSetting.MAIN_CONTROL_SCALE.delete(mSettings);
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void chooseController()
@@ -899,46 +865,37 @@ public final class EmulationActivity extends AppCompatActivity
             (dialog, indexSelected) ->
             {
               editor.putInt("wiiController", indexSelected);
-              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
-                      getResources().getStringArray(R.array.controllersValues)[indexSelected]);
-              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1",
-                      "Options/Sideways Wiimote", indexSelected == 2 ? "True" : "False");
+
+              updateWiimoteNewController(indexSelected, this);
               NativeLibrary.ReloadWiimoteConfig();
             });
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       editor.apply();
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void showMotionControlsOptions()
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_motion_controls);
     builder.setSingleChoiceItems(R.array.motionControlsEntries,
-            mPreferences.getInt("motionControlsEnabled", 1),
+            IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings),
             (dialog, indexSelected) ->
             {
-              editor.putInt("motionControlsEnabled", indexSelected);
+              IntSetting.MAIN_MOTION_CONTROLS.setInt(mSettings, indexSelected);
 
-              if (indexSelected != 2)
-                mMotionListener.enable();
-              else
-                mMotionListener.disable();
+              updateMotionListener();
 
-              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "IMUIR/Enabled",
-                      indexSelected != 1 ? "True" : "False");
+              updateWiimoteNewImuIr(indexSelected);
               NativeLibrary.ReloadWiimoteConfig();
             });
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) -> editor.apply());
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void chooseOrientation()
@@ -962,26 +919,28 @@ public final class EmulationActivity extends AppCompatActivity
               int orientation = orientationValues[indexSelected];
               editor.putInt("emulationActivityOrientation", orientation);
             });
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       editor.apply();
       updateOrientation();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void setIRSensitivity()
   {
-    int ir_pitch = Integer.valueOf(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
+    // IR settings always get saved per-game since WiimoteNew.ini is wiped upon reinstall.
+    File file = SettingsFile.getCustomGameSettingsFile(NativeLibrary.GetCurrentGameID());
+    IniFile ini = new IniFile(file);
+
+    int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 20);
 
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
 
-    TextView text_slider_value_pitch = (TextView) view.findViewById(R.id.text_ir_pitch);
-    TextView units = (TextView) view.findViewById(R.id.text_ir_pitch_units);
+    TextView text_slider_value_pitch = view.findViewById(R.id.text_ir_pitch);
+    TextView units = view.findViewById(R.id.text_ir_pitch_units);
     SeekBar seekbar_pitch = view.findViewById(R.id.seekbar_pitch);
 
     text_slider_value_pitch.setText(String.valueOf(ir_pitch));
@@ -1007,11 +966,10 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    int ir_yaw = Integer.valueOf(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId, "15"));
+    int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 25);
 
-    TextView text_slider_value_yaw = (TextView) view.findViewById(R.id.text_ir_yaw);
-    TextView units_yaw = (TextView) view.findViewById(R.id.text_ir_yaw_units);
+    TextView text_slider_value_yaw = view.findViewById(R.id.text_ir_yaw);
+    TextView units_yaw = view.findViewById(R.id.text_ir_yaw_units);
     SeekBar seekbar_yaw = view.findViewById(R.id.seekbar_width);
 
     text_slider_value_yaw.setText(String.valueOf(ir_yaw));
@@ -1038,14 +996,11 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
 
-    int ir_vertical_offset = Integer.valueOf(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
-                    "10"));
+    int ir_vertical_offset =
+            ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET, 10);
 
-    TextView text_slider_value_vertical_offset =
-            (TextView) view.findViewById(R.id.text_ir_vertical_offset);
-    TextView units_vertical_offset =
-            (TextView) view.findViewById(R.id.text_ir_vertical_offset_units);
+    TextView text_slider_value_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset);
+    TextView units_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset_units);
     SeekBar seekbar_vertical_offset = view.findViewById(R.id.seekbar_vertical_offset);
 
     text_slider_value_vertical_offset.setText(String.valueOf(ir_vertical_offset));
@@ -1076,30 +1031,28 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      NativeLibrary.LoadGameIniFile(mSelectedGameId);
-      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_PITCH, text_slider_value_pitch.getText().toString());
-      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_YAW, text_slider_value_yaw.getText().toString());
-      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
+      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,
+              text_slider_value_pitch.getText().toString());
+      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW,
+              text_slider_value_yaw.getText().toString());
+      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
               text_slider_value_vertical_offset.getText().toString());
-      NativeLibrary.SaveGameIniFile(mSelectedGameId);
+      ini.save(file);
 
       NativeLibrary.ReloadWiimoteConfig();
-
-      SharedPreferences.Editor editor = mPreferences.edit();
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId,
-              text_slider_value_pitch.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId,
-              text_slider_value_yaw.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
-              text_slider_value_vertical_offset.getText().toString());
-      editor.apply();
     });
     builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->
     {
       // Do nothing
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET);
+      ini.save(file);
+
+      NativeLibrary.ReloadWiimoteConfig();
     });
     builder.show();
   }
@@ -1109,14 +1062,57 @@ public final class EmulationActivity extends AppCompatActivity
     new AlertDialog.Builder(this, R.style.DolphinDialogBase)
             .setTitle(getString(R.string.emulation_touch_overlay_reset))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->
-            {
-              mEmulationFragment.resetInputOverlay();
-            })
+                    mEmulationFragment.resetInputOverlay())
             .setNegativeButton(R.string.cancel, (dialogInterface, i) ->
             {
             })
-            .create()
             .show();
+  }
+
+  private static boolean areCoordinatesOutside(@Nullable View view, float x, float y)
+  {
+    if (view == null)
+    {
+      return true;
+    }
+
+    Rect viewBounds = new Rect();
+    view.getGlobalVisibleRect(viewBounds);
+    return !viewBounds.contains(Math.round(x), Math.round(y));
+  }
+
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent event)
+  {
+    if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
+    {
+      boolean anyMenuClosed = false;
+
+      Fragment submenu = getSupportFragmentManager().findFragmentById(R.id.frame_submenu);
+      if (submenu != null && areCoordinatesOutside(submenu.getView(), event.getX(), event.getY()))
+      {
+        closeSubmenu();
+        submenu = null;
+        anyMenuClosed = true;
+      }
+
+      if (submenu == null)
+      {
+        Fragment menu = getSupportFragmentManager().findFragmentById(R.id.frame_menu);
+        if (menu != null && areCoordinatesOutside(menu.getView(), event.getX(), event.getY()))
+        {
+          closeMenu();
+          anyMenuClosed = true;
+        }
+      }
+
+      if (anyMenuClosed)
+      {
+        return true;
+      }
+    }
+
+    return super.dispatchTouchEvent(event);
   }
 
   @Override
@@ -1143,7 +1139,7 @@ public final class EmulationActivity extends AppCompatActivity
     {
       int axis = range.getAxis();
       float origValue = event.getAxisValue(axis);
-      float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+      float value = ControllerMappingHelper.scaleAxis(input, axis, origValue);
       // If the input is still in the "flat" area, that means it's really zero.
       // This is used to compensate for imprecision in joysticks.
       if (Math.abs(value) > range.getFlat())
@@ -1168,28 +1164,13 @@ public final class EmulationActivity extends AppCompatActivity
     Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
     getSupportFragmentManager().beginTransaction()
             .setCustomAnimations(
-                    R.animator.menu_slide_in_from_right,
-                    R.animator.menu_slide_out_to_right,
-                    R.animator.menu_slide_in_from_right,
-                    R.animator.menu_slide_out_to_right)
+                    R.animator.menu_slide_in_from_end,
+                    R.animator.menu_slide_out_to_end,
+                    R.animator.menu_slide_in_from_end,
+                    R.animator.menu_slide_out_to_end)
             .replace(R.id.frame_submenu, fragment)
             .addToBackStack(BACKSTACK_NAME_SUBMENU)
             .commit();
-  }
-
-  public boolean deviceHasTouchScreen()
-  {
-    return mDeviceHasTouchScreen;
-  }
-
-  public String getSelectedTitle()
-  {
-    return mSelectedTitle;
-  }
-
-  public static boolean isGameCubeGame()
-  {
-    return sIsGameCubeGame;
   }
 
   public boolean isActivityRecreated()
@@ -1204,7 +1185,6 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void initInputPointer()
   {
-    if (deviceHasTouchScreen())
-      mEmulationFragment.initInputPointer();
+    mEmulationFragment.initInputPointer();
   }
 }

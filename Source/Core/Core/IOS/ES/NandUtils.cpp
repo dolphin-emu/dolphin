@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
-#include <cinttypes>
 #include <functional>
 #include <iterator>
 #include <string>
@@ -75,7 +74,7 @@ static std::vector<u64> GetTitlesInTitleOrImport(FS::FileSystem* fs, const std::
   const auto entries = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, titles_dir);
   if (!entries)
   {
-    ERROR_LOG(IOS_ES, "%s is not a directory", titles_dir.c_str());
+    ERROR_LOG_FMT(IOS_ES, "{} is not a directory", titles_dir);
     return {};
   }
 
@@ -128,7 +127,7 @@ std::vector<u64> ES::GetTitlesWithTickets() const
   const auto entries = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, "/ticket");
   if (!entries)
   {
-    ERROR_LOG(IOS_ES, "/ticket is not a directory");
+    ERROR_LOG_FMT(IOS_ES, "/ticket is not a directory");
     return {};
   }
 
@@ -232,7 +231,7 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
       fs->SetMetadata(PID_KERNEL, content_dir, PID_KERNEL, PID_KERNEL, 0, content_dir_modes);
   if (result1 != FS::ResultCode::Success || result2 != FS::ResultCode::Success)
   {
-    ERROR_LOG(IOS_ES, "Failed to create or set metadata on content dir for %016" PRIx64, title_id);
+    ERROR_LOG_FMT(IOS_ES, "Failed to create or set metadata on content dir for {:016x}", title_id);
     return false;
   }
 
@@ -242,7 +241,7 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
                              fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0,
                                                  data_dir_modes) != FS::ResultCode::Success))
   {
-    ERROR_LOG(IOS_ES, "Failed to create data dir for %016" PRIx64, title_id);
+    ERROR_LOG_FMT(IOS_ES, "Failed to create data dir for {:016x}", title_id);
     return false;
   }
 
@@ -250,7 +249,7 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (fs->SetMetadata(0, data_dir, uid, group_id, 0, data_dir_modes) != FS::ResultCode::Success)
   {
-    ERROR_LOG(IOS_ES, "Failed to set metadata on data dir for %016" PRIx64, title_id);
+    ERROR_LOG_FMT(IOS_ES, "Failed to set metadata on data dir for {:016x}", title_id);
     return false;
   }
 
@@ -268,7 +267,7 @@ bool ES::InitImport(const IOS::ES::TMDReader& tmd)
       fs->CreateFullPath(PID_KERNEL, PID_KERNEL, import_content_dir + '/', 0, content_dir_modes);
   if (result != FS::ResultCode::Success)
   {
-    ERROR_LOG(IOS_ES, "InitImport: Failed to create content dir for %016" PRIx64, tmd.GetTitleId());
+    ERROR_LOG_FMT(IOS_ES, "InitImport: Failed to create content dir for {:016x}", tmd.GetTitleId());
     return false;
   }
 
@@ -282,7 +281,7 @@ bool ES::InitImport(const IOS::ES::TMDReader& tmd)
   const auto rename_result = fs->Rename(PID_KERNEL, PID_KERNEL, content_dir, import_content_dir);
   if (rename_result != FS::ResultCode::Success)
   {
-    ERROR_LOG(IOS_ES, "InitImport: Failed to move content dir for %016" PRIx64, tmd.GetTitleId());
+    ERROR_LOG_FMT(IOS_ES, "InitImport: Failed to move content dir for {:016x}", tmd.GetTitleId());
     return false;
   }
   DeleteDirectoriesIfEmpty(m_ios.GetFS().get(), import_content_dir);
@@ -316,7 +315,7 @@ bool ES::FinishImport(const IOS::ES::TMDReader& tmd)
   if (fs->Rename(PID_KERNEL, PID_KERNEL, import_content_dir, content_dir) !=
       FS::ResultCode::Success)
   {
-    ERROR_LOG(IOS_ES, "FinishImport: Failed to rename import directory to %s", content_dir.c_str());
+    ERROR_LOG_FMT(IOS_ES, "FinishImport: Failed to rename import directory to {}", content_dir);
     return false;
   }
   return true;

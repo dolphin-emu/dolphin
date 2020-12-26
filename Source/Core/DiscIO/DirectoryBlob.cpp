@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstring>
 #include <locale>
 #include <map>
@@ -406,25 +405,33 @@ bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
       .Read(offset, length, buffer);
 }
 
-bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
+const DirectoryBlobPartition* DirectoryBlobReader::GetPartition(u64 offset, u64 size,
+                                                                u64 partition_data_offset) const
 {
-  return m_is_wii;
+  const auto it = m_partitions.find(partition_data_offset);
+  if (it == m_partitions.end())
+    return nullptr;
+
+  if (offset + size > it->second.GetDataSize())
+    return nullptr;
+
+  return &it->second;
+}
+
+bool DirectoryBlobReader::SupportsReadWiiDecrypted(u64 offset, u64 size,
+                                                   u64 partition_data_offset) const
+{
+  return static_cast<bool>(GetPartition(offset, size, partition_data_offset));
 }
 
 bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer,
                                            u64 partition_data_offset)
 {
-  if (!m_is_wii)
+  const DirectoryBlobPartition* partition = GetPartition(offset, size, partition_data_offset);
+  if (!partition)
     return false;
 
-  auto it = m_partitions.find(partition_data_offset);
-  if (it == m_partitions.end())
-    return false;
-
-  if (offset + size > it->second.GetDataSize())
-    return false;
-
-  return it->second.GetContents().Read(offset, size, buffer);
+  return partition->GetContents().Read(offset, size, buffer);
 }
 
 bool DirectoryBlobReader::EncryptPartitionData(u64 offset, u64 size, u8* buffer,
@@ -494,9 +501,9 @@ void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_roo
   const std::string region_bin_path = game_partition_root + "disc/region.bin";
   const size_t bytes_read = ReadFileToVector(region_bin_path, &m_wii_region_data);
   if (bytes_read < 0x4)
-    ERROR_LOG(DISCIO, "Couldn't read region from %s", region_bin_path.c_str());
+    ERROR_LOG_FMT(DISCIO, "Couldn't read region from {}", region_bin_path);
   else if (bytes_read < 0x20)
-    ERROR_LOG(DISCIO, "Couldn't read age ratings from %s", region_bin_path.c_str());
+    ERROR_LOG_FMT(DISCIO, "Couldn't read age ratings from {}", region_bin_path);
 
   constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
   [[maybe_unused]] constexpr u64 WII_REGION_DATA_SIZE = 0x20;
@@ -636,7 +643,7 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
   m_disc_header.resize(DISCHEADER_SIZE);
   const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
   if (ReadFileToVector(boot_bin_path, &m_disc_header) < 0x20)
-    ERROR_LOG(DISCIO, "%s doesn't exist or is too small", boot_bin_path.c_str());
+    ERROR_LOG_FMT(DISCIO, "{} doesn't exist or is too small", boot_bin_path);
 
   m_contents.Add(DISCHEADER_ADDRESS, m_disc_header);
 
@@ -649,7 +656,7 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
     m_is_wii = Common::swap32(&m_disc_header[0x18]) == 0x5d1c9ea3;
     const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == 0xc2339f3d;
     if (m_is_wii == is_gc)
-      ERROR_LOG(DISCIO, "Couldn't detect disc type based on %s", boot_bin_path.c_str());
+      ERROR_LOG_FMT(DISCIO, "Couldn't detect disc type based on {}", boot_bin_path);
   }
 
   m_address_shift = m_is_wii ? 2 : 0;
@@ -667,7 +674,7 @@ void DirectoryBlobPartition::SetBI2()
   const std::string bi2_path = m_root_directory + "sys/bi2.bin";
   const size_t bytes_read = ReadFileToVector(bi2_path, &m_bi2);
   if (!m_is_wii && bytes_read < 0x1C)
-    ERROR_LOG(DISCIO, "Couldn't read region from %s", bi2_path.c_str());
+    ERROR_LOG_FMT(DISCIO, "Couldn't read region from {}", bi2_path);
 
   m_contents.Add(BI2_ADDRESS, m_bi2);
 }
@@ -681,14 +688,14 @@ u64 DirectoryBlobPartition::SetApploader()
   m_apploader.resize(file.GetSize());
   if (m_apploader.size() < 0x20 || !file.ReadBytes(m_apploader.data(), m_apploader.size()))
   {
-    ERROR_LOG(DISCIO, "%s couldn't be accessed or is too small", path.c_str());
+    ERROR_LOG_FMT(DISCIO, "{} couldn't be accessed or is too small", path);
   }
   else
   {
     const size_t apploader_size = 0x20 + Common::swap32(*(u32*)&m_apploader[0x14]) +
                                   Common::swap32(*(u32*)&m_apploader[0x18]);
     if (apploader_size != m_apploader.size())
-      ERROR_LOG(DISCIO, "%s is the wrong size... Is it really an apploader?", path.c_str());
+      ERROR_LOG_FMT(DISCIO, "{} is the wrong size... Is it really an apploader?", path);
     else
       success = true;
   }

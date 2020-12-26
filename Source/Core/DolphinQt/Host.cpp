@@ -188,3 +188,8 @@ void Host_PlaybackSeek()
 {
   Host::GetInstance()->RequestSeek();
 }
+
+void Host_Fullscreen()
+{
+  Host::GetInstance()->RequestFullscreen();
+}

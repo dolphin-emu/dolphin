@@ -30,7 +30,7 @@ void NWC24Config::ReadConfig()
     {
       const s32 config_error = CheckNwc24Config();
       if (config_error)
-        ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
+        ERROR_LOG_FMT(IOS_WC24, "There is an error in the config for for WC24: {}", config_error);
 
       return;
     }
@@ -44,7 +44,7 @@ void NWC24Config::WriteConfig() const
   m_fs->CreateFullPath(PID_KD, PID_KD, CONFIG_PATH, 0, public_modes);
   const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CONFIG_PATH, public_modes);
   if (!file || !file->Write(&m_data, 1))
-    ERROR_LOG(IOS_WC24, "Failed to open or write WC24 config file");
+    ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 config file");
 }
 
 void NWC24Config::ResetConfig()
@@ -93,21 +93,21 @@ s32 NWC24Config::CheckNwc24Config() const
   // 'WcCf' magic
   if (Magic() != 0x57634366)
   {
-    ERROR_LOG(IOS_WC24, "Magic mismatch");
+    ERROR_LOG_FMT(IOS_WC24, "Magic mismatch");
     return -14;
   }
 
   const u32 checksum = CalculateNwc24ConfigChecksum();
-  DEBUG_LOG(IOS_WC24, "Checksum: %X", checksum);
+  DEBUG_LOG_FMT(IOS_WC24, "Checksum: {:X}", checksum);
   if (Checksum() != checksum)
   {
-    ERROR_LOG(IOS_WC24, "Checksum mismatch expected %X and got %X", checksum, Checksum());
+    ERROR_LOG_FMT(IOS_WC24, "Checksum mismatch expected {:X} and got {:X}", checksum, Checksum());
     return -14;
   }
 
   if (IdGen() > 0x1F)
   {
-    ERROR_LOG(IOS_WC24, "Id gen error");
+    ERROR_LOG_FMT(IOS_WC24, "Id gen error");
     return -14;
   }
 

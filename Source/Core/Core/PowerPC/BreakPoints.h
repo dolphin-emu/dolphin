@@ -20,6 +20,8 @@ struct TBreakPoint
   u32 address = 0;
   bool is_enabled = false;
   bool is_temporary = false;
+  bool log_on_hit = false;
+  bool break_on_hit = false;
 };
 
 struct TMemCheck
@@ -56,8 +58,11 @@ public:
   // is address breakpoint
   bool IsAddressBreakPoint(u32 address) const;
   bool IsTempBreakPoint(u32 address) const;
+  bool IsBreakPointBreakOnHit(u32 address) const;
+  bool IsBreakPointLogOnHit(u32 address) const;
 
   // Add BreakPoint
+  void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit);
   void Add(u32 address, bool temp = false);
   void Add(const TBreakPoint& bp);
 

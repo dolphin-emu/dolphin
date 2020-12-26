@@ -86,11 +86,6 @@ struct DeviceEntry
 #pragma pack(pop)
 }  // namespace
 
-USBV5ResourceManager::~USBV5ResourceManager()
-{
-  StopThreads();
-}
-
 void USBV5ResourceManager::DoState(PointerWrap& p)
 {
   p.Do(m_devicechange_first_call);
@@ -174,8 +169,8 @@ IPCCommandResult USBV5ResourceManager::SuspendResume(USBV5Device& device,
 
   // Note: this is unimplemented because there's no easy way to do this in a
   // platform-independant way (libusb does not support power management).
-  INFO_LOG(IOS_USB, "[%04x:%04x %d] Received %s command", host_device->GetVid(),
-           host_device->GetPid(), device.interface_number, resumed == 0 ? "suspend" : "resume");
+  INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Received {} command", host_device->GetVid(),
+               host_device->GetPid(), device.interface_number, resumed == 0 ? "suspend" : "resume");
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -277,7 +272,7 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
 
   m_ios.EnqueueIPCReply(*m_devicechange_hook_request, num_devices, 0, CoreTiming::FromThread::ANY);
   m_devicechange_hook_request.reset();
-  INFO_LOG(IOS_USB, "%d USBv5 device(s), including interfaces", num_devices);
+  INFO_LOG_FMT(IOS_USB, "{} USBv5 device(s), including interfaces", num_devices);
 }
 }  // namespace Device
 }  // namespace IOS::HLE

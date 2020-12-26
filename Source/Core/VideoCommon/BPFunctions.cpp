@@ -5,6 +5,7 @@
 #include "VideoCommon/BPFunctions.h"
 
 #include <algorithm>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -223,12 +224,12 @@ void OnPixelFormatChange()
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  auto old_format = g_renderer->GetPrevPixelFormat();
-  auto new_format = bpmem.zcontrol.pixel_format;
+  const auto old_format = g_renderer->GetPrevPixelFormat();
+  const auto new_format = bpmem.zcontrol.pixel_format;
   g_renderer->StorePixelFormat(new_format);
 
-  DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", static_cast<int>(new_format),
-            static_cast<int>(bpmem.zcontrol.zformat));
+  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", static_cast<int>(new_format),
+                static_cast<int>(bpmem.zcontrol.zformat));
 
   // no need to reinterpret pixel data in these cases
   if (new_format == old_format || old_format == PEControl::INVALID_FMT)
@@ -291,8 +292,8 @@ void OnPixelFormatChange()
     break;
   }
 
-  ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d", static_cast<int>(old_format),
-            static_cast<int>(new_format));
+  ERROR_LOG_FMT(VIDEO, "Unhandled EFB format change: {} to {}", static_cast<int>(old_format),
+                static_cast<int>(new_format));
 }
 
 void SetInterlacingMode(const BPCmd& bp)
@@ -304,21 +305,21 @@ void SetInterlacingMode(const BPCmd& bp)
   {
     // SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
     // just before this cmd
-    const char* action[] = {"don't adjust", "adjust"};
-    DEBUG_LOG(VIDEO, "BPMEM_FIELDMODE texLOD:%s lineaspect:%s", action[bpmem.fieldmode.texLOD],
-              action[bpmem.lineptwidth.lineaspect]);
+    static constexpr std::string_view action[] = {"don't adjust", "adjust"};
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", action[bpmem.fieldmode.texLOD],
+                  action[bpmem.lineptwidth.lineaspect]);
   }
   break;
   case BPMEM_FIELDMASK:
   {
     // Determines if fields will be written to EFB (always computed)
-    const char* action[] = {"skip", "write"};
-    DEBUG_LOG(VIDEO, "BPMEM_FIELDMASK even:%s odd:%s", action[bpmem.fieldmask.even],
-              action[bpmem.fieldmask.odd]);
+    static constexpr std::string_view action[] = {"skip", "write"};
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", action[bpmem.fieldmask.even],
+                  action[bpmem.fieldmask.odd]);
   }
   break;
   default:
-    ERROR_LOG(VIDEO, "SetInterlacingMode default");
+    ERROR_LOG_FMT(VIDEO, "SetInterlacingMode default");
     break;
   }
 }

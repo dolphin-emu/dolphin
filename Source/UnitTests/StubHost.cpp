@@ -58,3 +58,6 @@ void Host_Exit()
 void Host_PlaybackSeek()
 {
 }
+void Host_Fullscreen()
+{
+}

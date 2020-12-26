@@ -26,6 +26,14 @@ public:
   explicit WiiEncryptionCache(BlobReader* blob);
   ~WiiEncryptionCache();
 
+  WiiEncryptionCache(WiiEncryptionCache&&) = default;
+  WiiEncryptionCache& operator=(WiiEncryptionCache&&) = default;
+
+  // It would be possible to write a custom copy constructor and assignment operator
+  // for this class, but there has been no reason to do so.
+  WiiEncryptionCache(const WiiEncryptionCache&) = delete;
+  WiiEncryptionCache& operator=(const WiiEncryptionCache&) = delete;
+
   // Encrypts exactly one group.
   // If the returned pointer is nullptr, reading from the blob failed.
   // If the returned pointer is not nullptr, it is guaranteed to be valid until
@@ -43,7 +51,7 @@ public:
 private:
   BlobReader* m_blob;
   std::unique_ptr<std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>> m_cache;
-  u64 m_cached_offset = std::numeric_limits<u64>::max();
+  u64 m_cached_offset;
 };
 
 }  // namespace DiscIO

@@ -91,13 +91,17 @@ static_assert(sizeof(IRFull) == 9, "Wrong size");
 class CameraLogic : public I2CSlave
 {
 public:
+  // OEM sensor bar distance between LED clusters in meters.
+  static constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
+
   static constexpr int CAMERA_RES_X = 1024;
   static constexpr int CAMERA_RES_Y = 768;
 
-  // Wiibrew claims the camera FOV is about 33 deg by 23 deg.
-  // Unconfirmed but it seems to work well enough.
-  static constexpr int CAMERA_FOV_X_DEG = 33;
-  static constexpr int CAMERA_FOV_Y_DEG = 23;
+  // Jordan: I calculate the FOV at 42 degrees horizontally and having a 4:3 aspect ratio.
+  // This is 31.5 degrees vertically.
+  static constexpr float CAMERA_AR = 4.f / 3;
+  static constexpr float CAMERA_FOV_X = 42 * float(MathUtil::TAU) / 360;
+  static constexpr float CAMERA_FOV_Y = CAMERA_FOV_X / CAMERA_AR;
 
   enum : u8
   {
@@ -108,7 +112,7 @@ public:
 
   void Reset();
   void DoState(PointerWrap& p);
-  void Update(const Common::Matrix44& transform);
+  void Update(const Common::Matrix44& transform, Common::Vec2 field_of_view);
   void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;

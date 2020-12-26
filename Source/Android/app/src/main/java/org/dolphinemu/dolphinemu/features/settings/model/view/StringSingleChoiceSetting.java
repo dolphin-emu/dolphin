@@ -1,22 +1,49 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public class StringSingleChoiceSetting extends SettingsItem
 {
-  private String mDefaultValue;
+  private AbstractStringSetting mSetting;
 
   private String[] mChoicesId;
   private String[] mValuesId;
+  private MenuTag mMenuTag;
 
-  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          String[] choicesId, String[] valuesId, String defaultValue, Setting setting)
+  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+          int descriptionId, String[] choicesId, String[] valuesId, MenuTag menuTag)
   {
-    super(key, section, setting, titleId, descriptionId);
-    mValuesId = valuesId;
+    super(titleId, descriptionId);
+    mSetting = setting;
     mChoicesId = choicesId;
-    mDefaultValue = defaultValue;
+    mValuesId = valuesId;
+    mMenuTag = menuTag;
+  }
+
+  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+          int descriptionId, String[] choicesId, String[] valuesId)
+  {
+    this(setting, titleId, descriptionId, choicesId, valuesId, null);
+  }
+
+  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+          int descriptionId, int choicesId, int valuesId, MenuTag menuTag)
+  {
+    super(titleId, descriptionId);
+    mSetting = setting;
+    mChoicesId = DolphinApplication.getAppContext().getResources().getStringArray(choicesId);
+    mValuesId = DolphinApplication.getAppContext().getResources().getStringArray(valuesId);
+    mMenuTag = menuTag;
+  }
+
+  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+          int descriptionId, int choicesId, int valuesId)
+  {
+    this(setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
   public String[] getChoicesId()
@@ -42,22 +69,14 @@ public class StringSingleChoiceSetting extends SettingsItem
     return "";
   }
 
-  public String getSelectedValue()
+  public String getSelectedValue(Settings settings)
   {
-    if (getSetting() != null)
-    {
-      StringSetting setting = (StringSetting) getSetting();
-      return setting.getValue();
-    }
-    else
-    {
-      return mDefaultValue;
-    }
+    return mSetting.getString(settings);
   }
 
-  public int getSelectValueIndex()
+  public int getSelectValueIndex(Settings settings)
   {
-    String selectedValue = getSelectedValue();
+    String selectedValue = getSelectedValue(settings);
     for (int i = 0; i < mValuesId.length; i++)
     {
       if (mValuesId[i].equals(selectedValue))
@@ -69,33 +88,26 @@ public class StringSingleChoiceSetting extends SettingsItem
     return -1;
   }
 
-  /**
-   * Write a value to the backing int. If that int was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the int.
-   * @return null if overwritten successfully otherwise; a newly created IntSetting.
-   */
-  public StringSetting setSelectedValue(String selection)
+  public MenuTag getMenuTag()
   {
-    if (getSetting() == null)
-    {
-      StringSetting setting = new StringSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      StringSetting setting = (StringSetting) getSetting();
-      setting.setValue(selection);
-      return null;
-    }
+    return mMenuTag;
+  }
+
+  public void setSelectedValue(Settings settings, String selection)
+  {
+    mSetting.setString(settings, selection);
   }
 
   @Override
   public int getType()
   {
     return TYPE_STRING_SINGLE_CHOICE;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }
 

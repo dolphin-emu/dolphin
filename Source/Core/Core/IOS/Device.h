@@ -130,7 +130,7 @@ struct IOCtlRequest final : Request
   u32 buffer_out = 0;
   u32 buffer_out_size = 0;
   explicit IOCtlRequest(u32 address);
-  void Log(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
+  void Log(std::string_view description, Common::Log::LOG_TYPE type = Common::Log::IOS,
            Common::Log::LOG_LEVELS level = Common::Log::LINFO) const;
   void Dump(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
             Common::Log::LOG_LEVELS level = Common::Log::LINFO) const;
@@ -157,7 +157,7 @@ struct IOCtlVRequest final : Request
   const IOVector* GetVector(size_t index) const;
   explicit IOCtlVRequest(u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
-  void Dump(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
+  void Dump(std::string_view description, Common::Log::LOG_TYPE type = Common::Log::IOS,
             Common::Log::LOG_LEVELS level = Common::Log::LINFO) const;
   void DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
                    Common::Log::LOG_LEVELS level = Common::Log::LERROR) const;

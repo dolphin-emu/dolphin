@@ -1,6 +1,6 @@
 # Slippi Mainline
 
-This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are/were on par with master upstream and close to on par with project-slippi/Ishii upstream. 
+This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are nearly even with master upstream and close to on par with project-slippi/Ishii upstream. *Last updated 12/02/2020*
 
 ## How can I contribute?
 
@@ -10,11 +10,11 @@ Read through the list of issues, and comment on one to claim it. You can also cr
 
 ### Other questions
 
-Ping or message @r2dliu in the slippi discord.
+Ping or message @r2dliu in the Slippi Discord. http://discord.gg/pPfEaW5
 
 # Dolphin - A GameCube and Wii Emulator
 
-[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Buildbot](https://dolphin.ci) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
 
 Dolphin is an emulator for running GameCube and Wii games on Windows,
 Linux, macOS, and recent Android devices. It's licensed under the terms
@@ -50,7 +50,14 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
-## Building for Windows
+## Build Process
+
+Dolphin requires [CMake](https://cmake.org/) for all systems. Many libraries are
+bundled with Dolphin and used if they're not installed on your system. CMake
+will inform you if a bundled library is used or if you need to install any
+missing packages yourself.
+
+### Windows
 
 Visual Studio 2019 16.3 or later is a hard requirement.
 Open the folder that contains the base CMakeLists.txt file to build Dolphin on Windows.
@@ -69,13 +76,6 @@ An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
 since the Binary directory contains a working Dolphin distribution.
-
-## Building for Linux and macOS
-
-Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Many libraries are
-bundled with Dolphin and used if they're not installed on your system. CMake
-will inform you if a bundled library is used or if you need to install any
-missing packages yourself.
 
 ### macOS Build Steps:
 
@@ -156,7 +156,7 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is faster but less accurate whereas
-LLE is slower but close to perfect. Note that LLE has two submodes (Interpreter and Recompiler) 
+LLE is slower but close to perfect. Note that LLE has two submodes (Interpreter and Recompiler)
 but they cannot be selected from the command line.
 
 Available video backends are "D3D" and "D3D12" (they are only available on Windows), "OGL", and "Vulkan".

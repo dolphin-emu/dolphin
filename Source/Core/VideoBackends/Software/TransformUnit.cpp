@@ -445,7 +445,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst, bool s
       dst->texCoords[coordNum].z = 1.0f;
       break;
     default:
-      ERROR_LOG(VIDEO, "Bad tex gen type %i", texinfo.texgentype.Value());
+      ERROR_LOG_FMT(VIDEO, "Bad tex gen type {}", texinfo.texgentype.Value());
+      break;
     }
   }
 

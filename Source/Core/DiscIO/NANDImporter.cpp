@@ -6,15 +6,15 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstring>
+
+#include <fmt/format.h>
 
 #include "Common/Crypto/AES.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
 
@@ -59,7 +59,7 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
   const u64 image_size = file.GetSize();
   if (image_size != NAND_BIN_SIZE + NAND_KEYS_SIZE && image_size != NAND_BIN_SIZE)
   {
-    PanicAlertT("This file does not look like a BootMii NAND backup.");
+    PanicAlertFmtT("This file does not look like a BootMii NAND backup.");
     return false;
   }
 
@@ -104,8 +104,8 @@ void NANDImporter::FindSuperblock()
   {
     if (!memcmp(m_nand.data() + pos, "SFFS", 4))
     {
-      u32 version = Common::swap32(&m_nand[pos + 4]);
-      INFO_LOG(DISCIO, "Found superblock at 0x%zx with version 0x%x", pos, version);
+      const u32 version = Common::swap32(&m_nand[pos + 4]);
+      INFO_LOG_FMT(DISCIO, "Found superblock at {:#x} with version {:#x}", pos, version);
       if (superblock == 0 || version > newest_version)
       {
         superblock = pos;
@@ -116,8 +116,9 @@ void NANDImporter::FindSuperblock()
 
   m_nand_fat_offset = superblock + 0xC;
   m_nand_fst_offset = m_nand_fat_offset + 0x10000;
-  INFO_LOG(DISCIO, "Using superblock version 0x%x at position 0x%zx. FAT/FST offset: 0x%zx/0x%zx",
-           newest_version, superblock, m_nand_fat_offset, m_nand_fst_offset);
+  INFO_LOG_FMT(DISCIO,
+               "Using superblock version {:#x} at position {:#x}. FAT/FST offset: {:#x}/{:#x}",
+               newest_version, superblock, m_nand_fat_offset, m_nand_fst_offset);
 }
 
 std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& parent_path)
@@ -132,9 +133,10 @@ std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& 
 
 std::string NANDImporter::FormatDebugString(const NANDFSTEntry& entry)
 {
-  return StringFromFormat("%12.12s 0x%02x 0x%02x 0x%04x 0x%04x 0x%08x 0x%04x 0x%04x 0x%04x 0x%08x",
-                          entry.name, entry.mode, entry.attr, entry.sub, entry.sib, entry.size,
-                          entry.x1, entry.uid, entry.gid, entry.x3);
+  return fmt::format(
+      "{:12.12} {:#04x} {:#04x} {:#06x} {:#06x} {:#010x} {:#06x} {:#06x} {:#06x} {:#010x}",
+      entry.name, entry.mode, entry.attr, entry.sub, entry.sib, entry.size, entry.x1, entry.uid,
+      entry.gid, entry.x3);
 }
 
 void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path)
@@ -151,13 +153,13 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
   else if ((entry.mode & 3) == 2)
     ProcessDirectory(entry, parent_path);
   else
-    ERROR_LOG(DISCIO, "Unknown mode: %s", FormatDebugString(entry).c_str());
+    ERROR_LOG_FMT(DISCIO, "Unknown mode: {}", FormatDebugString(entry));
 }
 
 void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path)
 {
   m_update_callback();
-  INFO_LOG(DISCIO, "Path: %s", FormatDebugString(entry).c_str());
+  INFO_LOG_FMT(DISCIO, "Path: {}", FormatDebugString(entry));
 
   const std::string path = GetPath(entry, parent_path);
   File::CreateDir(path);
@@ -165,7 +167,7 @@ void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string
   if (entry.sub != 0xffff)
     ProcessEntry(entry.sub, path);
 
-  INFO_LOG(DISCIO, "Path: %s", parent_path.c_str() + m_nand_root_length);
+  INFO_LOG_FMT(DISCIO, "Path: {}", parent_path.data() + m_nand_root_length);
 }
 
 void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& parent_path)
@@ -174,7 +176,7 @@ void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& par
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
 
   m_update_callback();
-  INFO_LOG(DISCIO, "File: %s", FormatDebugString(entry).c_str());
+  INFO_LOG_FMT(DISCIO, "File: {}", FormatDebugString(entry));
 
   const std::string path = GetPath(entry, parent_path);
   File::IOFile file(path, "wb");
@@ -204,7 +206,7 @@ bool NANDImporter::ExtractCertificates(const std::string& nand_root)
   std::vector<u8> tmd_bytes(tmd_file.GetSize());
   if (!tmd_file.ReadBytes(tmd_bytes.data(), tmd_bytes.size()))
   {
-    ERROR_LOG(DISCIO, "ExtractCertificates: Could not read IOS13 TMD");
+    ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not read IOS13 TMD");
     return false;
   }
 
@@ -212,25 +214,25 @@ bool NANDImporter::ExtractCertificates(const std::string& nand_root)
   IOS::ES::Content content_metadata;
   if (!tmd.GetContent(tmd.GetBootIndex(), &content_metadata))
   {
-    ERROR_LOG(DISCIO, "ExtractCertificates: Could not get content ID from TMD");
+    ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not get content ID from TMD");
     return false;
   }
 
-  File::IOFile content_file(content_dir + StringFromFormat("%08x.app", content_metadata.id), "rb");
+  File::IOFile content_file(content_dir + fmt::format("{:08x}.app", content_metadata.id), "rb");
   std::vector<u8> content_bytes(content_file.GetSize());
   if (!content_file.ReadBytes(content_bytes.data(), content_bytes.size()))
   {
-    ERROR_LOG(DISCIO, "ExtractCertificates: Could not read IOS13 contents");
+    ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not read IOS13 contents");
     return false;
   }
 
   struct PEMCertificate
   {
-    std::string filename;
+    std::string_view filename;
     std::array<u8, 4> search_bytes;
   };
 
-  std::array<PEMCertificate, 3> certificates = {{
+  static constexpr std::array<PEMCertificate, 3> certificates{{
       {"/clientca.pem", {{0x30, 0x82, 0x03, 0xE9}}},
       {"/clientcakey.pem", {{0x30, 0x82, 0x02, 0x5D}}},
       {"/rootca.pem", {{0x30, 0x82, 0x03, 0x7D}}},
@@ -244,21 +246,21 @@ bool NANDImporter::ExtractCertificates(const std::string& nand_root)
 
     if (search_result == content_bytes.end())
     {
-      ERROR_LOG(DISCIO, "ExtractCertificates: Could not find offset for certficate '%s'",
-                certificate.filename.c_str());
+      ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Could not find offset for certficate '{}'",
+                    certificate.filename);
       return false;
     }
 
-    const std::string pem_file_path = nand_root + certificate.filename;
+    const std::string pem_file_path = nand_root + std::string(certificate.filename);
     const ptrdiff_t certificate_offset = std::distance(content_bytes.begin(), search_result);
     const u16 certificate_size = Common::swap16(&content_bytes[certificate_offset - 2]);
-    INFO_LOG(DISCIO, "ExtractCertificates: '%s' offset: 0x%tx size: 0x%x",
-             certificate.filename.c_str(), certificate_offset, certificate_size);
+    INFO_LOG_FMT(DISCIO, "ExtractCertificates: '{}' offset: {:#x} size: {:#x}",
+                 certificate.filename, certificate_offset, certificate_size);
 
     File::IOFile pem_file(pem_file_path, "wb");
     if (!pem_file.WriteBytes(&content_bytes[certificate_offset], certificate_size))
     {
-      ERROR_LOG(DISCIO, "ExtractCertificates: Unable to write to file %s", pem_file_path.c_str());
+      ERROR_LOG_FMT(DISCIO, "ExtractCertificates: Unable to write to file {}", pem_file_path);
       return false;
     }
   }
@@ -270,6 +272,6 @@ void NANDImporter::ExportKeys(const std::string& nand_root)
   const std::string file_path = nand_root + "/keys.bin";
   File::IOFile file(file_path, "wb");
   if (!file.WriteBytes(m_nand_keys.data(), NAND_KEYS_SIZE))
-    PanicAlertT("Unable to write to file %s", file_path.c_str());
+    PanicAlertFmtT("Unable to write to file {0}", file_path);
 }
 }  // namespace DiscIO

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="game_grid_columns">3</integer>
+    <integer name="loadsave_state_columns">1</integer>
+    <integer name="loadsave_state_rows">6</integer>
 
     <!-- Default GameCube landscape layout -->
     <integer name="BUTTON_A_X">865</integer>

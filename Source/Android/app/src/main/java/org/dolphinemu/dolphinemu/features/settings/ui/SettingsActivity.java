@@ -3,41 +3,50 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
+import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
+  private static final String ARG_REVISION = "revision";
   private static final String FRAGMENT_TAG = "settings";
-  private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
+  private SettingsActivityPresenter mPresenter;
 
   private ProgressDialog dialog;
 
-  public static void launch(Context context, MenuTag menuTag, String gameId)
+  public static void launch(Context context, MenuTag menuTag, String gameId, int revision)
   {
     Intent settings = new Intent(context, SettingsActivity.class);
     settings.putExtra(ARG_MENU_TAG, menuTag);
     settings.putExtra(ARG_GAME_ID, gameId);
+    settings.putExtra(ARG_REVISION, revision);
+    context.startActivity(settings);
+  }
+
+  public static void launch(Context context, MenuTag menuTag)
+  {
+    Intent settings = new Intent(context, SettingsActivity.class);
+    settings.putExtra(ARG_MENU_TAG, menuTag);
+    settings.putExtra(ARG_GAME_ID, "");
+    settings.putExtra(ARG_REVISION, 0);
     context.startActivity(settings);
   }
 
@@ -46,12 +55,24 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onCreate(savedInstanceState);
 
+    if (TvUtil.isLeanback(getApplicationContext()))
+    {
+      TvMainActivity.skipRescanningLibrary();
+    }
+    else
+    {
+      MainActivity.skipRescanningLibrary();
+    }
+
     setContentView(R.layout.activity_settings);
 
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
+    int revision = launcher.getIntExtra(ARG_REVISION, 0);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
-    mPresenter.onCreate(savedInstanceState, menuTag, gameID, getApplicationContext());
+
+    mPresenter = new SettingsActivityPresenter(this, getSettings());
+    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, getApplicationContext());
   }
 
   @Override
@@ -86,27 +107,29 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
   /**
    * If this is called, the user has left the settings screen (potentially through the
-   * home button) and will expect their changes to be persisted. So we kick off an
-   * IntentService which will do so on a background thread.
+   * home button) and will expect their changes to be persisted.
    */
   @Override
   protected void onStop()
   {
     super.onStop();
-
     mPresenter.onStop(isFinishing());
   }
 
   @Override
-  public void onBackPressed()
+  protected void onDestroy()
   {
-    mPresenter.onBackPressed();
+    super.onDestroy();
+    mPresenter.onDestroy();
   }
 
   @Override
   public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack,
           String gameID)
   {
+    if (!addToStack && getFragment() != null)
+      return;
+
     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
     if (addToStack)
@@ -121,7 +144,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       }
 
       transaction.addToBackStack(null);
-      mPresenter.addToStack();
     }
     transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID, extras),
             FRAGMENT_TAG);
@@ -141,45 +163,16 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void startDirectoryInitializationService(DirectoryStateReceiver receiver,
-          IntentFilter filter)
-  {
-    LocalBroadcastManager.getInstance(this).registerReceiver(
-            receiver,
-            filter);
-    DirectoryInitialization.start(this);
-  }
-
-  @Override
-  public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver)
-  {
-    LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
-  }
-
-  @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
 
-    // Save modified non-FilePicker settings beforehand since finish() won't save them.
-    // onStop() must come before handling the resultCode to properly save FilePicker selection.
-    mPresenter.onStop(true);
-
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
-      mPresenter.onFileConfirmed(FileBrowserHelper.getSelectedPath(result));
-
-      // Prevent duplicate Toasts.
-      if (!mPresenter.shouldSave())
-      {
-        Toast.makeText(this, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
-      }
+      String path = FileBrowserHelper.getSelectedPath(result);
+      getFragment().getAdapter().onFilePickerConfirmation(path);
     }
-
-    // TODO: After result of FilePicker, duplicate SettingsActivity appears.
-    //       Finish to avoid this. Is there a better method?
-    finish();
   }
 
   @Override
@@ -202,20 +195,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void showPermissionNeededHint()
-  {
-    Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-            .show();
-  }
-
-  @Override
-  public void showExternalStorageNotMountedHint()
-  {
-    Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
-            .show();
-  }
-
-  @Override
   public void showGameIniJunkDeletionQuestion()
   {
     new AlertDialog.Builder(this, R.style.DolphinDialogBase)
@@ -223,20 +202,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
             .setMessage(getString(R.string.game_ini_junk_question))
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearSettings())
             .setNegativeButton(R.string.no, null)
-            .create()
             .show();
   }
 
   @Override
   public org.dolphinemu.dolphinemu.features.settings.model.Settings getSettings()
   {
-    return mPresenter.getSettings();
-  }
-
-  @Override
-  public void setSettings(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-  {
-    mPresenter.setSettings(settings);
+    return new ViewModelProvider(this).get(SettingsViewModel.class).getSettings();
   }
 
   @Override
@@ -269,15 +241,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void popBackStack()
+  public void onSettingChanged()
   {
-    getSupportFragmentManager().popBackStackImmediate();
-  }
-
-  @Override
-  public void onSettingChanged(String key)
-  {
-    mPresenter.onSettingChanged(key);
+    mPresenter.onSettingChanged();
   }
 
   @Override

@@ -11,7 +11,6 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/Hash.h"
 #include "Common/Intrinsics.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
@@ -55,12 +54,9 @@ void gdsp_mbox_write_l(Mailbox mbx, u16 val)
   g_dsp.mbox[mbx].store(new_value | 0x80000000, std::memory_order_release);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  if (mbx == MAILBOX_DSP)
-    DEBUG_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP),
-              g_dsp.pc);
-  else
-    DEBUG_LOG(DSP_MAIL, "CPU(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU),
-              g_dsp.pc);
+  const char* const type = mbx == MAILBOX_DSP ? "DSP" : "CPU";
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, mbx, gdsp_mbox_peek(mbx),
+                g_dsp.pc);
 #endif
 }
 
@@ -87,12 +83,9 @@ u16 gdsp_mbox_read_l(Mailbox mbx)
   }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  if (mbx == MAILBOX_DSP)
-    DEBUG_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP),
-              g_dsp.pc);
-  else
-    DEBUG_LOG(DSP_MAIL, "CPU(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU),
-              g_dsp.pc);
+  const char* const type = mbx == MAILBOX_DSP ? "DSP" : "CPU";
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, mbx, gdsp_mbox_peek(mbx),
+                g_dsp.pc);
 #endif
 
   return (u16)value;
@@ -105,10 +98,10 @@ void gdsp_ifx_write(u32 addr, u16 val)
   switch (addr & 0xff)
   {
   case DSP_DIRQ:
-    if (val & 0x1)
+    if ((val & 1) != 0)
       Host::InterruptRequest();
     else
-      WARN_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
+      WARN_LOG_FMT(DSPLLE, "Unknown Interrupt Request pc={:#06x} ({:#06x})", g_dsp.pc, val);
     break;
 
   case DSP_DMBH:
@@ -131,16 +124,17 @@ void gdsp_ifx_write(u32 addr, u16 val)
     if (!g_dsp.ifx_regs[DSP_AMDM])
       gdsp_do_dma();
     else
-      NOTICE_LOG(DSPLLE, "Masked DMA skipped");
+      NOTICE_LOG_FMT(DSPLLE, "Masked DMA skipped");
     g_dsp.ifx_regs[DSP_DSCR] &= ~4;
     g_dsp.ifx_regs[DSP_DSBL] = 0;
     break;
 
   case DSP_GAIN:
-    if (val)
+    if (val != 0)
     {
-      DEBUG_LOG(DSPLLE, "Gain Written: 0x%04x", val);
+      DEBUG_LOG_FMT(DSPLLE, "Gain Written: {:#06x}", val);
     }
+    [[fallthrough]];
   case DSP_DSPA:
   case DSP_DSMAH:
   case DSP_DSMAL:
@@ -191,18 +185,21 @@ void gdsp_ifx_write(u32 addr, u16 val)
   default:
     if ((addr & 0xff) >= 0xa0)
     {
-      if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
+      const u32 index = (addr & 0xFF) - 0xa0;
+      const auto& label = pdlabels[index];
+
+      if (label.name && label.description)
       {
-        DEBUG_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+        DEBUG_LOG_FMT(DSPLLE, "{:04x} MW {} ({:04x})", g_dsp.pc, label.name, val);
       }
       else
       {
-        ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
+        ERROR_LOG_FMT(DSPLLE, "{:04x} MW {:04x} ({:04x})", g_dsp.pc, addr, val);
       }
     }
     else
     {
-      ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
+      ERROR_LOG_FMT(DSPLLE, "{:04x} MW {:04x} ({:04x})", g_dsp.pc, addr, val);
     }
     g_dsp.ifx_regs[addr & 0xFF] = val;
     break;
@@ -254,23 +251,29 @@ static u16 _gdsp_ifx_read(u16 addr)
     return g_dsp.accelerator->ReadD3();
 
   default:
+  {
+    const u16 ifx_reg = g_dsp.ifx_regs[addr & 0xFF];
+
     if ((addr & 0xff) >= 0xa0)
     {
-      if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
+      const u32 index = (addr & 0xFF) - 0xa0;
+      const auto& label = pdlabels[index];
+
+      if (label.name && label.description)
       {
-        DEBUG_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name,
-                  g_dsp.ifx_regs[addr & 0xFF]);
+        DEBUG_LOG_FMT(DSPLLE, "{:04x} MR {} ({:04x})", g_dsp.pc, label.name, ifx_reg);
       }
       else
       {
-        ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
+        ERROR_LOG_FMT(DSPLLE, "{:04x} MR {:04x} ({:04x})", g_dsp.pc, addr, ifx_reg);
       }
     }
     else
     {
-      ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
+      ERROR_LOG_FMT(DSPLLE, "{:04x} MR {:04x} ({:04x})", g_dsp.pc, addr, ifx_reg);
     }
-    return g_dsp.ifx_regs[addr & 0xFF];
+    return ifx_reg;
+  }
   }
 }
 
@@ -283,125 +286,63 @@ u16 gdsp_ifx_read(u16 addr)
 
 static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  u16* dst = g_dsp.iram + (dsp_addr / 2);
-
-  const u8* code = &g_dsp.cpu_ram[addr & 0x0fffffff];
-  g_dsp.iram_crc = Common::HashEctor(code, size);
-
   Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  memcpy(dst, code, size);
-  for (size_t i = 0; i < size / 2; i++)
-    dst[i] = Common::swap16(dst[i]);
+  Host::DMAToDSP(g_dsp.iram + dsp_addr / 2, addr, size);
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
-  Host::CodeLoaded(code, size);
-  NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr,
-             g_dsp.iram_crc);
+  Host::CodeLoaded(addr, size);
+  NOTICE_LOG_FMT(DSPLLE, "*** Copy new UCode from {:#010x} to {:#06x} (crc: {:#08x})", addr,
+                 dsp_addr, g_dsp.iram_crc);
 
-  return reinterpret_cast<u8*>(dst);
+  return reinterpret_cast<u8*>(g_dsp.iram) + dsp_addr;
 }
 
 static const u8* gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-  ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2,
-            addr, size);
+  ERROR_LOG_FMT(DSPLLE, "*** idma_out IRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
+                dsp_addr / 2, addr, size);
 
   return nullptr;
 }
 
-#if defined(_M_X86) || defined(_M_X86_64)
-static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
-
-FUNCTION_TARGET_SSSE3
-static void gdsp_ddma_in_SSSE3(u16 dsp_addr, u32 addr, u32 size, u8* dst)
-{
-  for (u32 i = 0; i < size; i += 16)
-  {
-    _mm_storeu_si128(
-        (__m128i*)&dst[dsp_addr + i],
-        _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]),
-                         s_mask));
-  }
-}
-
-FUNCTION_TARGET_SSSE3
-static void gdsp_ddma_out_SSSE3(u16 dsp_addr, u32 addr, u32 size, const u8* src)
-{
-  for (u32 i = 0; i < size; i += 16)
-  {
-    _mm_storeu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF],
-                     _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&src[dsp_addr + i]), s_mask));
-  }
-}
-#endif
-
 // TODO: These should eat clock cycles.
 static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  u8* dst = reinterpret_cast<u8*>(g_dsp.dram);
+  Host::DMAToDSP(g_dsp.dram + dsp_addr / 2, addr, size);
+  DEBUG_LOG_FMT(DSPLLE, "*** ddma_in RAM ({:#010x}) -> DRAM_DSP ({:#06x}) : size ({:#010x})", addr,
+                dsp_addr / 2, size);
 
-#if defined(_M_X86) || defined(_M_X86_64)
-  if (cpu_info.bSSSE3 && !(size % 16))
-  {
-    gdsp_ddma_in_SSSE3(dsp_addr, addr, size, dst);
-  }
-  else
-#endif
-  {
-    for (u32 i = 0; i < size; i += 2)
-    {
-      *(u16*)&dst[dsp_addr + i] =
-          Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]);
-    }
-  }
-  DEBUG_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr,
-            dsp_addr / 2, size);
-
-  return dst + dsp_addr;
+  return reinterpret_cast<u8*>(g_dsp.dram) + dsp_addr;
 }
 
 static const u8* gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-  const u8* src = reinterpret_cast<const u8*>(g_dsp.dram);
+  Host::DMAFromDSP(g_dsp.dram + dsp_addr / 2, addr, size);
+  DEBUG_LOG_FMT(DSPLLE, "*** ddma_out DRAM_DSP ({:#06x}) -> RAM ({:#010x}) : size ({:#010x})",
+                dsp_addr / 2, addr, size);
 
-#ifdef _M_X86
-  if (cpu_info.bSSSE3 && !(size % 16))
-  {
-    gdsp_ddma_out_SSSE3(dsp_addr, addr, size, src);
-  }
-  else
-#endif
-  {
-    for (u32 i = 0; i < size; i += 2)
-    {
-      *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] =
-          Common::swap16(*(const u16*)&src[dsp_addr + i]);
-    }
-  }
-
-  DEBUG_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2,
-            addr, size);
-
-  return src + dsp_addr;
+  return reinterpret_cast<const u8*>(g_dsp.dram) + dsp_addr;
 }
 
 static void gdsp_do_dma()
 {
-  u32 addr = (g_dsp.ifx_regs[DSP_DSMAH] << 16) | g_dsp.ifx_regs[DSP_DSMAL];
-  u16 ctl = g_dsp.ifx_regs[DSP_DSCR];
-  u16 dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
-  u16 len = g_dsp.ifx_regs[DSP_DSBL];
+  const u32 addr = (g_dsp.ifx_regs[DSP_DSMAH] << 16) | g_dsp.ifx_regs[DSP_DSMAL];
+  const u16 ctl = g_dsp.ifx_regs[DSP_DSCR];
+  const u16 dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
+  const u16 len = g_dsp.ifx_regs[DSP_DSBL];
 
   if (len > 0x4000)
   {
-    ERROR_LOG(DSPLLE,
-              "DMA ERROR: PC: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x",
-              g_dsp.pc, ctl, addr, dsp_addr, len);
-    exit(0);
+    ERROR_LOG_FMT(DSPLLE,
+                  "DMA ERROR: PC: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, "
+                  "Size: {:04x}",
+                  g_dsp.pc, ctl, addr, dsp_addr, len);
+    std::exit(0);
   }
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  DEBUG_LOG(DSPLLE, "DMA pc: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x",
-            g_dsp.pc, ctl, addr, dsp_addr, len);
+  DEBUG_LOG_FMT(
+      DSPLLE, "DMA pc: {:04x}, Control: {:04x}, Address: {:08x}, DSP Address: {:04x}, Size: {:04x}",
+      g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 
   const u8* copied_data_ptr = nullptr;

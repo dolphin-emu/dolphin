@@ -57,6 +57,11 @@ static gdb_bp_t bp_r[GDB_MAX_BP];
 static gdb_bp_t bp_w[GDB_MAX_BP];
 static gdb_bp_t bp_a[GDB_MAX_BP];
 
+static const char* CommandBufferAsString()
+{
+  return reinterpret_cast<const char*>(cmd_bfr);
+}
+
 // private helpers
 static u8 hex2char(u8 hex)
 {
@@ -67,7 +72,7 @@ static u8 hex2char(u8 hex)
   else if (hex >= 'A' && hex <= 'F')
     return hex - 'A' + 0xa;
 
-  ERROR_LOG(GDB_STUB, "Invalid nibble: %c (%02x)", hex, hex);
+  ERROR_LOG_FMT(GDB_STUB, "Invalid nibble: {} ({:02x})", static_cast<char>(hex), hex);
   return 0;
 }
 
@@ -82,11 +87,9 @@ static u8 nibble2hex(u8 n)
 
 static void mem2hex(u8* dst, u8* src, u32 len)
 {
-  u8 tmp;
-
   while (len-- > 0)
   {
-    tmp = *src++;
+    const u8 tmp = *src++;
     *dst++ = nibble2hex(tmp >> 4);
     *dst++ = nibble2hex(tmp);
   }
@@ -103,13 +106,12 @@ static void hex2mem(u8* dst, u8* src, u32 len)
 
 static u8 gdb_read_byte()
 {
-  ssize_t res;
   u8 c = '+';
 
-  res = recv(sock, &c, 1, MSG_WAITALL);
+  const ssize_t res = recv(sock, &c, 1, MSG_WAITALL);
   if (res != 1)
   {
-    ERROR_LOG(GDB_STUB, "recv failed : %ld", res);
+    ERROR_LOG_FMT(GDB_STUB, "recv failed : {}", res);
     gdb_deinit();
   }
 
@@ -190,7 +192,7 @@ static void gdb_bp_remove(u32 type, u32 addr, u32 len)
     p = gdb_bp_find(type, addr, len);
     if (p != nullptr)
     {
-      DEBUG_LOG(GDB_STUB, "gdb: removed a breakpoint: %08x bytes at %08x", len, addr);
+      DEBUG_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
       p->active = 0;
       memset(p, 0, sizeof(gdb_bp_t));
     }
@@ -218,32 +220,27 @@ static int gdb_bp_check(u32 addr, u32 type)
 static void gdb_nak()
 {
   const char nak = GDB_STUB_NAK;
-  ssize_t res;
+  const ssize_t res = send(sock, &nak, 1, 0);
 
-  res = send(sock, &nak, 1, 0);
   if (res != 1)
-    ERROR_LOG(GDB_STUB, "send failed");
+    ERROR_LOG_FMT(GDB_STUB, "send failed");
 }
 
 static void gdb_ack()
 {
   const char ack = GDB_STUB_ACK;
-  ssize_t res;
+  const ssize_t res = send(sock, &ack, 1, 0);
 
-  res = send(sock, &ack, 1, 0);
   if (res != 1)
-    ERROR_LOG(GDB_STUB, "send failed");
+    ERROR_LOG_FMT(GDB_STUB, "send failed");
 }
 
 static void gdb_read_command()
 {
-  u8 c;
-  u8 chk_read, chk_calc;
-
   cmd_len = 0;
   memset(cmd_bfr, 0, sizeof cmd_bfr);
 
-  c = gdb_read_byte();
+  const u8 c = gdb_read_byte();
   if (c == '+')
   {
     // ignore ack
@@ -257,7 +254,7 @@ static void gdb_read_command()
   }
   else if (c != GDB_STUB_START)
   {
-    DEBUG_LOG(GDB_STUB, "gdb: read invalid byte %02x", c);
+    DEBUG_LOG_FMT(GDB_STUB, "gdb: read invalid byte {:02x}", c);
     return;
   }
 
@@ -266,29 +263,30 @@ static void gdb_read_command()
     cmd_bfr[cmd_len++] = c;
     if (cmd_len == sizeof cmd_bfr)
     {
-      ERROR_LOG(GDB_STUB, "gdb: cmd_bfr overflow");
+      ERROR_LOG_FMT(GDB_STUB, "gdb: cmd_bfr overflow");
       gdb_nak();
       return;
     }
   }
 
-  chk_read = hex2char(gdb_read_byte()) << 4;
+  u8 chk_read = hex2char(gdb_read_byte()) << 4;
   chk_read |= hex2char(gdb_read_byte());
 
-  chk_calc = gdb_calc_chksum();
+  const u8 chk_calc = gdb_calc_chksum();
 
   if (chk_calc != chk_read)
   {
-    ERROR_LOG(GDB_STUB,
-              "gdb: invalid checksum: calculated %02x and read %02x for $%s# (length: %d)",
-              chk_calc, chk_read, cmd_bfr, cmd_len);
+    ERROR_LOG_FMT(GDB_STUB,
+                  "gdb: invalid checksum: calculated {:02x} and read {:02x} for ${}# (length: {})",
+                  chk_calc, chk_read, CommandBufferAsString(), cmd_len);
     cmd_len = 0;
 
     gdb_nak();
     return;
   }
 
-  DEBUG_LOG(GDB_STUB, "gdb: read command %c with a length of %d: %s", cmd_bfr[0], cmd_len, cmd_bfr);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: read command {} with a length of {}: {}",
+                static_cast<char>(cmd_bfr[0]), cmd_len, CommandBufferAsString());
   gdb_ack();
 }
 
@@ -305,7 +303,7 @@ static int gdb_data_available()
 
   if (select(sock + 1, fds, nullptr, nullptr, &t) < 0)
   {
-    ERROR_LOG(GDB_STUB, "select failed");
+    ERROR_LOG_FMT(GDB_STUB, "select failed");
     return 0;
   }
 
@@ -316,11 +314,6 @@ static int gdb_data_available()
 
 static void gdb_reply(const char* reply)
 {
-  u8 chk;
-  u32 left;
-  u8* ptr;
-  int n;
-
   if (!gdb_active())
     return;
 
@@ -328,28 +321,28 @@ static void gdb_reply(const char* reply)
 
   cmd_len = strlen(reply);
   if (cmd_len + 4 > sizeof cmd_bfr)
-    ERROR_LOG(GDB_STUB, "cmd_bfr overflow in gdb_reply");
+    ERROR_LOG_FMT(GDB_STUB, "cmd_bfr overflow in gdb_reply");
 
   memcpy(cmd_bfr + 1, reply, cmd_len);
 
   cmd_len++;
-  chk = gdb_calc_chksum();
+  const u8 chk = gdb_calc_chksum();
   cmd_len--;
   cmd_bfr[0] = GDB_STUB_START;
   cmd_bfr[cmd_len + 1] = GDB_STUB_END;
   cmd_bfr[cmd_len + 2] = nibble2hex(chk >> 4);
   cmd_bfr[cmd_len + 3] = nibble2hex(chk);
 
-  DEBUG_LOG(GDB_STUB, "gdb: reply (len: %d): %s", cmd_len, cmd_bfr);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: reply (len: {}): {}", cmd_len, CommandBufferAsString());
 
-  ptr = cmd_bfr;
-  left = cmd_len + 4;
+  u8* ptr = cmd_bfr;
+  u32 left = cmd_len + 4;
   while (left > 0)
   {
-    n = send(sock, ptr, left, 0);
+    const int n = send(sock, ptr, left, 0);
     if (n < 0)
     {
-      ERROR_LOG(GDB_STUB, "gdb: send failed");
+      ERROR_LOG_FMT(GDB_STUB, "gdb: send failed");
       return gdb_deinit();
     }
     left -= n;
@@ -359,7 +352,7 @@ static void gdb_reply(const char* reply)
 
 static void gdb_handle_query()
 {
-  DEBUG_LOG(GDB_STUB, "gdb: query '%s'", cmd_bfr + 1);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString() + 1);
 
   if (!strcmp((const char*)(cmd_bfr + 1), "TStatus"))
   {
@@ -574,7 +567,7 @@ static void gdb_read_mem()
   len = 0;
   while (i < cmd_len)
     len = (len << 4) | hex2char(cmd_bfr[i++]);
-  DEBUG_LOG(GDB_STUB, "gdb: read memory: %08x bytes from %08x", len, addr);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: read memory: {:08x} bytes from {:08x}", len, addr);
 
   if (len * 2 > sizeof reply)
     gdb_reply("E01");
@@ -600,7 +593,7 @@ static void gdb_write_mem()
   len = 0;
   while (cmd_bfr[i] != ':')
     len = (len << 4) | hex2char(cmd_bfr[i++]);
-  DEBUG_LOG(GDB_STUB, "gdb: write memory: %08x bytes to %08x", len, addr);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
   u8* dst = Memory::GetPointer(addr);
   if (!dst)
@@ -637,7 +630,8 @@ bool gdb_add_bp(u32 type, u32 addr, u32 len)
   bp->addr = addr;
   bp->len = len;
 
-  DEBUG_LOG(GDB_STUB, "gdb: added %d breakpoint: %08x bytes at %08x", type, bp->len, bp->addr);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, bp->len,
+                bp->addr);
   return true;
 }
 
@@ -741,7 +735,7 @@ void gdb_handle_exception()
       break;
     case 'k':
       gdb_deinit();
-      INFO_LOG(GDB_STUB, "killed by gdb");
+      INFO_LOG_FMT(GDB_STUB, "killed by gdb");
       return;
     case 'g':
       gdb_read_registers();
@@ -825,7 +819,6 @@ void gdb_init(u32 port)
 static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
                              sockaddr* client_addr, socklen_t* client_addrlen)
 {
-  int on;
 #ifdef _WIN32
   WSAStartup(MAKEWORD(2, 2), &InitData);
 #endif
@@ -837,24 +830,24 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
 
   tmpsock = socket(domain, SOCK_STREAM, 0);
   if (tmpsock == -1)
-    ERROR_LOG(GDB_STUB, "Failed to create gdb socket");
+    ERROR_LOG_FMT(GDB_STUB, "Failed to create gdb socket");
 
-  on = 1;
+  int on = 1;
   if (setsockopt(tmpsock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on) < 0)
-    ERROR_LOG(GDB_STUB, "Failed to setsockopt");
+    ERROR_LOG_FMT(GDB_STUB, "Failed to setsockopt");
 
   if (bind(tmpsock, server_addr, server_addrlen) < 0)
-    ERROR_LOG(GDB_STUB, "Failed to bind gdb socket");
+    ERROR_LOG_FMT(GDB_STUB, "Failed to bind gdb socket");
 
   if (listen(tmpsock, 1) < 0)
-    ERROR_LOG(GDB_STUB, "Failed to listen to gdb socket");
+    ERROR_LOG_FMT(GDB_STUB, "Failed to listen to gdb socket");
 
-  INFO_LOG(GDB_STUB, "Waiting for gdb to connect...");
+  INFO_LOG_FMT(GDB_STUB, "Waiting for gdb to connect...");
 
   sock = accept(tmpsock, client_addr, client_addrlen);
   if (sock < 0)
-    ERROR_LOG(GDB_STUB, "Failed to accept gdb client");
-  INFO_LOG(GDB_STUB, "Client connected.");
+    ERROR_LOG_FMT(GDB_STUB, "Failed to accept gdb client");
+  INFO_LOG_FMT(GDB_STUB, "Client connected.");
 
   close(tmpsock);
   tmpsock = -1;
@@ -908,7 +901,7 @@ int gdb_bp_x(u32 addr)
   {
     step_break = 0;
 
-    DEBUG_LOG(GDB_STUB, "Step was successful.");
+    DEBUG_LOG_FMT(GDB_STUB, "Step was successful.");
     return 1;
   }
 

@@ -40,7 +40,8 @@ signals:
   void RequestLowerWindow();
   void RequestExit();
   void RequestSeek();
-  
+  void RequestFullscreen();
+
 private:
   Host();
 

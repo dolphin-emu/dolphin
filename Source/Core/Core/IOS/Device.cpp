@@ -94,21 +94,21 @@ bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t 
          std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
 }
 
-void IOCtlRequest::Log(const std::string& device_name, Common::Log::LOG_TYPE type,
+void IOCtlRequest::Log(std::string_view device_name, Common::Log::LOG_TYPE type,
                        Common::Log::LOG_LEVELS verbosity) const
 {
-  GENERIC_LOG(type, verbosity, "%s (fd %u) - IOCtl 0x%x (in_size=0x%x, out_size=0x%x)",
-              device_name.c_str(), fd, request, buffer_in_size, buffer_out_size);
+  GENERIC_LOG_FMT(type, verbosity, "{} (fd {}) - IOCtl {:#x} (in_size={:#x}, out_size={:#x})",
+                  device_name, fd, request, buffer_in_size, buffer_out_size);
 }
 
 void IOCtlRequest::Dump(const std::string& description, Common::Log::LOG_TYPE type,
                         Common::Log::LOG_LEVELS level) const
 {
   Log("===== " + description, type, level);
-  GENERIC_LOG(type, level, "In buffer\n%s",
-              HexDump(Memory::GetPointer(buffer_in), buffer_in_size).c_str());
-  GENERIC_LOG(type, level, "Out buffer\n%s",
-              HexDump(Memory::GetPointer(buffer_out), buffer_out_size).c_str());
+  GENERIC_LOG_FMT(type, level, "In buffer\n{}",
+                  HexDump(Memory::GetPointer(buffer_in), buffer_in_size));
+  GENERIC_LOG_FMT(type, level, "Out buffer\n{}",
+                  HexDump(Memory::GetPointer(buffer_out), buffer_out_size));
 }
 
 void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
@@ -117,20 +117,22 @@ void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LOG_
   Dump("Unknown IOCtl - " + description, type, level);
 }
 
-void IOCtlVRequest::Dump(const std::string& description, Common::Log::LOG_TYPE type,
+void IOCtlVRequest::Dump(std::string_view description, Common::Log::LOG_TYPE type,
                          Common::Log::LOG_LEVELS level) const
 {
-  GENERIC_LOG(type, level, "===== %s (fd %u) - IOCtlV 0x%x (%zu in, %zu io)", description.c_str(),
-              fd, request, in_vectors.size(), io_vectors.size());
+  GENERIC_LOG_FMT(type, level, "===== {} (fd {}) - IOCtlV {:#x} ({} in, {} io)", description, fd,
+                  request, in_vectors.size(), io_vectors.size());
 
   size_t i = 0;
   for (const auto& vector : in_vectors)
-    GENERIC_LOG(type, level, "in[%zu] (size=0x%x):\n%s", i++, vector.size,
-                HexDump(Memory::GetPointer(vector.address), vector.size).c_str());
+  {
+    GENERIC_LOG_FMT(type, level, "in[{}] (size={:#x}):\n{}", i++, vector.size,
+                    HexDump(Memory::GetPointer(vector.address), vector.size));
+  }
 
   i = 0;
   for (const auto& vector : io_vectors)
-    GENERIC_LOG(type, level, "io[%zu] (size=0x%x)", i++, vector.size);
+    GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, vector.size);
 }
 
 void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
@@ -173,12 +175,15 @@ IPCCommandResult Device::Close(u32 fd)
 
 IPCCommandResult Device::Unsupported(const Request& request)
 {
-  static std::map<IPCCommandType, std::string> names = {{{IPC_CMD_READ, "Read"},
-                                                         {IPC_CMD_WRITE, "Write"},
-                                                         {IPC_CMD_SEEK, "Seek"},
-                                                         {IPC_CMD_IOCTL, "IOCtl"},
-                                                         {IPC_CMD_IOCTLV, "IOCtlV"}}};
-  WARN_LOG(IOS, "%s does not support %s()", m_name.c_str(), names[request.command].c_str());
+  static const std::map<IPCCommandType, std::string_view> names{{
+      {IPC_CMD_READ, "Read"},
+      {IPC_CMD_WRITE, "Write"},
+      {IPC_CMD_SEEK, "Seek"},
+      {IPC_CMD_IOCTL, "IOCtl"},
+      {IPC_CMD_IOCTLV, "IOCtlV"},
+  }};
+
+  WARN_LOG_FMT(IOS, "{} does not support {}()", m_name, names.at(request.command));
   return GetDefaultReply(IPC_EINVAL);
 }
 

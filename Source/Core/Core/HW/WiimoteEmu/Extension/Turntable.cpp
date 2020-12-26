@@ -137,13 +137,6 @@ void Turntable::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tt_data;
 }
 
-bool Turntable::IsButtonPressed() const
-{
-  u16 buttons = 0;
-  m_buttons->GetState(&buttons, turntable_button_bitmasks.data());
-  return buttons != 0;
-}
-
 void Turntable::Reset()
 {
   EncryptedExtension::Reset();

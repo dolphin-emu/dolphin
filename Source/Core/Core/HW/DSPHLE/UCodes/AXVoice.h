@@ -139,28 +139,6 @@ void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
   }
 }
 
-#if 0
-// Dump the value of a PB for debugging
-#define DUMP_U16(field) WARN_LOG(DSPHLE, "    %04x (%s)", pb.field, #field)
-#define DUMP_U32(field) WARN_LOG(DSPHLE, "    %08x (%s)", HILO_TO_32(pb.field), #field)
-void DumpPB(const PB_TYPE& pb)
-{
-	DUMP_U32(next_pb);
-	DUMP_U32(this_pb);
-	DUMP_U16(src_type);
-	DUMP_U16(coef_select);
-#ifdef AX_GC
-	DUMP_U16(mixer_control);
-#else
-	DUMP_U32(mixer_control);
-#endif
-	DUMP_U16(running);
-	DUMP_U16(is_stream);
-
-	// TODO: complete as needed
-}
-#endif
-
 // Simulated accelerator state.
 static PB_TYPE* acc_pb;
 static bool acc_end_reached;

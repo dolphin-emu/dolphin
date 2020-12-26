@@ -126,8 +126,8 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
 
   if (errors && errors->GetBufferSize() > 0)
   {
-    WARN_LOG(VIDEO, "%s compilation succeeded with warnings:\n%s", target,
-             static_cast<const char*>(errors->GetBufferPointer()));
+    WARN_LOG_FMT(VIDEO, "{} compilation succeeded with warnings:\n{}", target,
+                 static_cast<const char*>(errors->GetBufferPointer()));
   }
 
   return CreateByteCode(code->GetBufferPointer(), code->GetBufferSize());

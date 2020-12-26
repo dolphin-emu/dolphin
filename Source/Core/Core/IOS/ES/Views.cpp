@@ -5,7 +5,6 @@
 #include "Core/IOS/ES/ES.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <vector>
@@ -43,7 +42,7 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
+  const u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
   const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
   u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
@@ -51,16 +50,16 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
   if (!IOS::HLE::IsEmulated(TitleID))
   {
     view_count = 0;
-    ERROR_LOG(IOS_ES, "GetViewCount: Dolphin doesn't emulate IOS title %016" PRIx64, TitleID);
+    ERROR_LOG_FMT(IOS_ES, "GetViewCount: Dolphin doesn't emulate IOS title {:016x}", TitleID);
   }
   else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
   {
     view_count = 1;
-    WARN_LOG(IOS_ES, "GetViewCount: Faking IOS title %016" PRIx64 " being present", TitleID);
+    WARN_LOG_FMT(IOS_ES, "GetViewCount: Faking IOS title {:016x} being present", TitleID);
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %016" PRIx64 " (View Count = %u)", TitleID,
-           view_count);
+  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: {:016x} (View Count = {})", TitleID,
+               view_count);
 
   Memory::Write_U32(view_count, request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
@@ -71,14 +70,14 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 1))
     return GetDefaultReply(ES_EINVAL);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
+  const u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
+  const u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
 
   const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
 
   if (!IOS::HLE::IsEmulated(TitleID))
   {
-    ERROR_LOG(IOS_ES, "GetViews: Dolphin doesn't emulate IOS title %016" PRIx64, TitleID);
+    ERROR_LOG_FMT(IOS_ES, "GetViews: Dolphin doesn't emulate IOS title {:016x}", TitleID);
   }
   else if (ticket.IsValid())
   {
@@ -93,11 +92,10 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
   else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
   {
     Memory::Memset(request.io_vectors[0].address, 0, sizeof(IOS::ES::TicketView));
-    WARN_LOG(IOS_ES, "GetViews: Faking IOS title %016" PRIx64 " being present", TitleID);
+    WARN_LOG_FMT(IOS_ES, "GetViews: Faking IOS title {:016x} being present", TitleID);
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %016" PRIx64 " (MaxViews = %i)", TitleID,
-           maxViews);
+  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: {:016x} (MaxViews = {})", TitleID, maxViews);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -147,7 +145,7 @@ ReturnCode ES::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_
     // Currently, we have no support for v1 tickets at all (unlike IOS), so we fake it
     // and return that there is no ticket.
     // TODO: implement GetV1TicketFromView when we gain v1 ticket support.
-    ERROR_LOG(IOS_ES, "GetV1TicketFromView: Unimplemented -- returning -1028");
+    ERROR_LOG_FMT(IOS_ES, "GetV1TicketFromView: Unimplemented -- returning -1028");
     return ES_NO_TICKET;
   }
   if (ticket != nullptr)
@@ -210,8 +208,7 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-
+  const u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   const IOS::ES::TMDReader tmd = FindInstalledTMD(TitleID);
 
   if (!tmd.IsValid())
@@ -220,7 +217,7 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
   const u32 view_size = static_cast<u32>(tmd.GetRawView().size());
   Memory::Write_U32(view_size, request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "GetTMDViewSize: %u bytes for title %016" PRIx64, view_size, TitleID);
+  INFO_LOG_FMT(IOS_ES, "GetTMDViewSize: {} bytes for title {:016x}", view_size, TitleID);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -246,7 +243,7 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
 
-  INFO_LOG(IOS_ES, "GetTMDView: %zu bytes for title %016" PRIx64, raw_view.size(), title_id);
+  INFO_LOG_FMT(IOS_ES, "GetTMDView: {} bytes for title {:016x}", raw_view.size(), title_id);
   return GetDefaultReply(IPC_SUCCESS);
 }
 

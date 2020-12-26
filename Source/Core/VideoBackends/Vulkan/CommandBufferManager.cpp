@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
+#include "Common/Thread.h"
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -185,6 +186,8 @@ bool CommandBufferManager::CreateSubmitThread()
 {
   m_submit_loop = std::make_unique<Common::BlockingLoop>();
   m_submit_thread = std::thread([this]() {
+    Common::SetCurrentThreadName("Vulkan CommandBufferManager SubmitThread");
+
     m_submit_loop->Run([this]() {
       PendingCommandBufferSubmit submit;
       {

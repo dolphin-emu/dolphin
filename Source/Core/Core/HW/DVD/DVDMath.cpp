@@ -151,7 +151,7 @@ double CalculateRotationalLatency(u64 offset, double time, bool wii_disc)
 
   const double result = angle_diff / MAX_ANGLE / rotations_per_second;
 
-  DEBUG_LOG(DVDINTERFACE, "Rotational latency: %lf ms", result * 1000);
+  DEBUG_LOG_FMT(DVDINTERFACE, "Rotational latency: {} ms", result * 1000);
 
   return result;
 }
@@ -183,8 +183,8 @@ double CalculateRawDiscReadTime(u64 offset, u64 length, bool wii_disc)
             GC_DISC_INNER_READ_SPEED;
   }
 
-  DEBUG_LOG(DVDINTERFACE, "Read 0x%" PRIx64 " @ 0x%" PRIx64 " @%lf mm: %lf us, %lf MiB/s", length,
-            offset, physical_offset * 1000, length / speed * 1000 * 1000, speed / 1024 / 1024);
+  DEBUG_LOG_FMT(DVDINTERFACE, "Read {:#x} @ {:#x} @{} mm: {} us, {} MiB/s", length, offset,
+                physical_offset * 1000, length / speed * 1000 * 1000, speed / 1024 / 1024);
 
   return length / speed;
 }

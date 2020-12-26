@@ -33,7 +33,7 @@ static jclass s_adapter_class;
 
 static bool s_detected = false;
 static int s_fd = 0;
-static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
+static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_type = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
 static u8 s_controller_rumble[4];
@@ -64,7 +64,7 @@ static u64 s_last_init = 0;
 static void ScanThreadFunc()
 {
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter scanning thread started");
 
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -78,13 +78,13 @@ static void ScanThreadFunc()
     Common::SleepCurrentThread(1000);
   }
 
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
 
 static void Write()
 {
   Common::SetCurrentThreadName("GC Adapter Write Thread");
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread started");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter write thread started");
 
   JNIEnv* env = IDCache::GetEnvForThread();
   jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
@@ -96,7 +96,7 @@ static void Write()
     if (write_size)
     {
       jbyteArray jrumble_array = env->NewByteArray(5);
-      jbyte* jrumble = env->GetByteArrayElements(jrumble_array, NULL);
+      jbyte* jrumble = env->GetByteArrayElements(jrumble_array, nullptr);
 
       {
         std::lock_guard<std::mutex> lk(s_write_mutex);
@@ -108,7 +108,7 @@ static void Write()
       // Netplay sends invalid data which results in size = 0x00.  Ignore it.
       if (size != write_size && size != 0x00)
       {
-        ERROR_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
+        ERROR_LOG_FMT(SERIALINTERFACE, "error writing rumble (size: {})", size);
         Reset();
       }
     }
@@ -116,20 +116,20 @@ static void Write()
     Common::YieldCPU();
   }
 
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread stopped");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter write thread stopped");
 }
 
 static void Read()
 {
   Common::SetCurrentThreadName("GC Adapter Read Thread");
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread started");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter read thread started");
 
   bool first_read = true;
   JNIEnv* env = IDCache::GetEnvForThread();
 
   jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
   jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
-  jbyteArray* java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
+  auto* java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
 
   // Get function pointers
   jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
@@ -179,7 +179,7 @@ static void Read()
   s_fd = 0;
   s_detected = false;
 
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread stopped");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter read thread stopped");
 }
 
 void Init()
@@ -225,12 +225,11 @@ static void Reset()
   if (s_read_adapter_thread_running.TestAndClear())
     s_read_adapter_thread.join();
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
+  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
 
   s_detected = false;
   s_fd = 0;
-  NOTICE_LOG(SERIALINTERFACE, "GC Adapter detached");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter detached");
 }
 
 void Shutdown()
@@ -260,7 +259,7 @@ GCPadStatus Input(int chan)
     return {};
 
   int payload_size = 0;
-  std::array<u8, 37> controller_payload_copy;
+  std::array<u8, 37> controller_payload_copy{};
 
   {
     std::lock_guard<std::mutex> lk(s_read_mutex);
@@ -271,8 +270,8 @@ GCPadStatus Input(int chan)
   GCPadStatus pad = {};
   if (payload_size != controller_payload_copy.size())
   {
-    ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
-              controller_payload_copy[0]);
+    ERROR_LOG_FMT(SERIALINTERFACE, "error reading payload (size: {}, type: {:02x})", payload_size,
+                  controller_payload_copy[0]);
     Reset();
   }
   else
@@ -282,8 +281,8 @@ GCPadStatus Input(int chan)
     if (type != ControllerTypes::CONTROLLER_NONE &&
         s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
     {
-      ERROR_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1,
-                controller_payload_copy[1 + (9 * chan)]);
+      ERROR_LOG_FMT(SERIALINTERFACE, "New device connected to Port {} of Type: {:02x}", chan + 1,
+                    controller_payload_copy[1 + (9 * chan)]);
       get_origin = true;
     }
 

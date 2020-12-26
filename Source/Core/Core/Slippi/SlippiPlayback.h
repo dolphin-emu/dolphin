@@ -2,19 +2,21 @@
 
 #include <climits>
 #include <future>
-#include <open-vcdiff/src/google/vcdecoder.h>
-#include <open-vcdiff/src/google/vcencoder.h>
-#include <SlippiLib/SlippiGame.h>
 #include <unordered_map>
 #include <vector>
 
+#include <open-vcdiff/src/google/vcdecoder.h>
+#include <open-vcdiff/src/google/vcencoder.h>
+#include <SlippiLib/SlippiGame.h>
+
+#include "Core/ConfigManager.h"
 #include "../../Common/CommonTypes.h"
 
 class SlippiPlaybackStatus
 {
 public:
   SlippiPlaybackStatus();
-  virtual ~SlippiPlaybackStatus();
+  ~SlippiPlaybackStatus();
 
   bool shouldJumpBack = false;
   bool shouldJumpForward = false;
@@ -22,6 +24,9 @@ public:
   volatile bool shouldRunThreads = false;
   bool isHardFFW = false;
   bool isSoftFFW = false;
+  bool origOCEnable = SConfig::GetInstance().m_OCEnable;
+  float origOCFactor = SConfig::GetInstance().m_OCFactor;
+
   s32 lastFFWFrame = INT_MIN;
   s32 currentPlaybackFrame = INT_MIN;
   s32 targetFrameNum = INT_MAX;
@@ -33,7 +38,8 @@ public:
   void resetPlayback(void);
   bool shouldFFWFrame(s32 frameIndex) const;
   void prepareSlippiPlayback(s32& frameIndex);
-  void SeekToFrame();
+  void setHardFFW(bool enable);
+  void seekToFrame();
 
 private:
   void SavestateThread(void);

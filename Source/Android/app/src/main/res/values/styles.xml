@@ -29,21 +29,7 @@
 
     <style name="DolphinDialogBase" parent="Theme.AppCompat.DayNight.Dialog.Alert" />
 
-    <style name="DolphinEmulationBase" parent="Theme.AppCompat.DayNight.DarkActionBar">
-        <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_purple</item>
-        <item name="android:windowTranslucentNavigation">true</item>
-
-        <item name="android:windowBackground">@android:color/black</item>
-
-        <!-- Enable window content transitions -->
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-    </style>
-
-    <style name="DolphinEmulationTvBase" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="DolphinEmulationBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
@@ -92,6 +78,9 @@
 
     <style name="OverlayInGameMenuOption" parent="InGameMenuOption">
         <item name="android:textColor">@color/button_text_color</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_gravity">center</item>
     </style>
 
     <!-- Inherit from a base file picker theme that handles day/night -->

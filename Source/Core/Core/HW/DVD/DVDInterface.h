@@ -51,33 +51,41 @@ enum class DICommand : u8
   UnknownEE = 0xee,
 };
 
-// "low" error codes
-constexpr u32 ERROR_READY = 0x0000000;          // Ready.
-constexpr u32 ERROR_COVER = 0x01000000;         // Cover is opened.
-constexpr u32 ERROR_CHANGE_DISK = 0x02000000;   // Disk change.
-constexpr u32 ERROR_NO_DISK_L = 0x03000000;     // No disk.
-constexpr u32 ERROR_MOTOR_STOP_L = 0x04000000;  // Motor stop.
-constexpr u32 ERROR_NO_DISKID_L = 0x05000000;   // Disk ID not read.
-constexpr u32 LOW_ERROR_MASK = 0xff000000;
+// Disc drive state.
+// Reported in error codes as 0 for Ready, and value-1 for the rest
+// (i.e. Ready and ReadyNoReadsMade are both reported as 0)
+enum class DriveState : u8
+{
+  Ready = 0,
+  ReadyNoReadsMade = 1,
+  CoverOpened = 2,
+  DiscChangeDetected = 3,
+  NoMediumPresent = 4,
+  MotorStopped = 5,
+  DiscIdNotRead = 6
+};
 
-// "high" error codes
-constexpr u32 ERROR_NONE = 0x000000;          // No error.
-constexpr u32 ERROR_MOTOR_STOP_H = 0x020400;  // Motor stopped.
-constexpr u32 ERROR_NO_DISKID_H = 0x020401;   // Disk ID not read.
-constexpr u32 ERROR_NO_DISK_H = 0x023a00;     // Medium not present / Cover opened.
-constexpr u32 ERROR_SEEK_NDONE = 0x030200;    // No seek complete.
-constexpr u32 ERROR_READ = 0x031100;          // Unrecovered read error.
-constexpr u32 ERROR_PROTOCOL = 0x040800;      // Transfer protocol error.
-constexpr u32 ERROR_INV_CMD = 0x052000;       // Invalid command operation code.
-constexpr u32 ERROR_AUDIO_BUF = 0x052001;     // Audio Buffer not set.
-constexpr u32 ERROR_BLOCK_OOB = 0x052100;     // Logical block address out of bounds.
-constexpr u32 ERROR_INV_FIELD = 0x052400;     // Invalid field in command packet.
-constexpr u32 ERROR_INV_AUDIO = 0x052401;     // Invalid audio command.
-constexpr u32 ERROR_INV_PERIOD = 0x052402;    // Configuration out of permitted period.
-constexpr u32 ERROR_END_USR_AREA = 0x056300;  // End of user area encountered on this track.
-constexpr u32 ERROR_MEDIUM = 0x062800;        // Medium may have changed.
-constexpr u32 ERROR_MEDIUM_REQ = 0x0b5a01;    // Operator medium removal request.
-constexpr u32 HIGH_ERROR_MASK = 0x00ffffff;
+// Actual drive error codes, which fill the remaining 3 bytes
+// Numbers more or less match a SCSI sense key (1 nybble) followed by SCSI ASC/ASCQ (2 bytes).
+enum class DriveError : u32
+{
+  None = 0x00000,                  // No error.
+  MotorStopped = 0x20400,          // Motor stopped.
+  NoDiscID = 0x20401,              // Disk ID not read.
+  MediumNotPresent = 0x23a00,      // Medium not present / Cover opened.
+  SeekNotDone = 0x30200,           // No seek complete.
+  ReadError = 0x31100,             // Unrecovered read error.
+  ProtocolError = 0x40800,         // Transfer protocol error.
+  InvalidCommand = 0x52000,        // Invalid command operation code.
+  NoAudioBuf = 0x52001,            // Audio Buffer not set.
+  BlockOOB = 0x52100,              // Logical block address out of bounds.
+  InvalidField = 0x52400,          // Invalid field in command packet.
+  InvalidAudioCommand = 0x52401,   // Invalid audio command.
+  InvalidPeriod = 0x52402,         // Configuration out of permitted period.
+  EndOfUserArea = 0x56300,         // End of user area encountered on this track.
+  MediumChanged = 0x62800,         // Medium may have changed.
+  MediumRemovalRequest = 0xb5a01,  // Operator medium removal request.
+};
 
 enum class DIInterruptType : int
 {
@@ -102,7 +110,7 @@ enum class EjectCause
 };
 
 void Init();
-void Reset(bool spinup = true);
+void ResetDrive(bool spinup);
 void Shutdown();
 void DoState(PointerWrap& p);
 
@@ -130,8 +138,8 @@ void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
 // Exposed for use by emulated BS2; does not perform any checks on drive state
 void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length);
 
-void SetLowError(u32 low_error);
-void SetHighError(u32 high_error);
+void SetDriveState(DriveState state);
+void SetDriveError(DriveError error);
 
 // Used by DVDThread
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,

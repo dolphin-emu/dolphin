@@ -47,3 +47,4 @@ void Host_TitleChanged();
 void Host_LowerWindow();
 void Host_Exit();
 void Host_PlaybackSeek();
+void Host_Fullscreen();

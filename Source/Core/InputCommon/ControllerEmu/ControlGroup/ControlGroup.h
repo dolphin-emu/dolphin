@@ -82,6 +82,8 @@ public:
         std::make_unique<NumericSetting<T>>(value, details, default_value_, min_value, max_value));
   }
 
+  void AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg);
+
   void AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone);
 
   template <typename T>

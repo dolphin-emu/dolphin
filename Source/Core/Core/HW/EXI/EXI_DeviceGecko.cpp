@@ -221,7 +221,7 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
   }
 
   default:
-    ERROR_LOG(EXPANSIONINTERFACE, "Unknown USBGecko command %x", _uData);
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unknown USBGecko command {:x}", _uData);
     break;
   }
 }

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <cstdarg>
 #include <cstring>
 #include <iterator>
 #include <string>
@@ -104,21 +103,9 @@ public:
   ShaderCode() { m_buffer.reserve(16384); }
   const std::string& GetBuffer() const { return m_buffer; }
 
-  // Deprecated: Writes format strings using traditional printf format strings.
-  void Write(const char* fmt, ...)
-#ifdef __GNUC__
-      __attribute__((format(printf, 2, 3)))
-#endif
-  {
-    va_list arglist;
-    va_start(arglist, fmt);
-    m_buffer += StringFromFormatV(fmt, arglist);
-    va_end(arglist);
-  }
-
   // Writes format strings using fmtlib format strings.
   template <typename... Args>
-  void WriteFmt(std::string_view format, Args&&... args)
+  void Write(std::string_view format, Args&&... args)
   {
     fmt::format_to(std::back_inserter(m_buffer), format, std::forward<Args>(args)...);
   }
@@ -242,6 +229,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint    xfmem_dualTexInfo;\n"
                                         "\tuint    xfmem_numColorChans;\n"
+                                        "\tuint    color_chan_alpha;\n"
                                         "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
                                         "\tfloat4 " I_PROJECTION "[4];\n"
                                         "\tint4 " I_MATERIALS "[4];\n"

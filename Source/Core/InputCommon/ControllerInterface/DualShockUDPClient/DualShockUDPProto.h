@@ -45,8 +45,8 @@ enum class DsConnection : u8
 enum class DsModel : u8
 {
   None = 0,
-  DS3 = 1,
-  DS4 = 2,
+  PartialGyro = 1,
+  FullGyro = 2,
   Generic = 3
 };
 
@@ -242,15 +242,16 @@ struct Message
   template <class ToMsgType>
   std::optional<ToMsgType> CheckAndCastTo()
   {
-    u32 crc32_in_header = m_message.header.crc32;
+    const u32 crc32_in_header = m_message.header.crc32;
     // zero out the crc32 in the packet once we got it since that's whats needed for calculation
     m_message.header.crc32 = 0;
-    u32 crc32_calculated = CRC32(&m_message, sizeof(ToMsgType));
+    const u32 crc32_calculated = CRC32(&m_message, sizeof(ToMsgType));
     if (crc32_in_header != crc32_calculated)
     {
-      NOTICE_LOG(SERIALINTERFACE,
-                 "DualShockUDPClient Received message with bad CRC in header: got %u, expected %u",
-                 crc32_in_header, crc32_calculated);
+      NOTICE_LOG_FMT(
+          SERIALINTERFACE,
+          "DualShockUDPClient Received message with bad CRC in header: got {:08x}, expected {:08x}",
+          crc32_in_header, crc32_calculated);
       return std::nullopt;
     }
     if (m_message.header.protocol_version > CEMUHOOK_PROTOCOL_VERSION)

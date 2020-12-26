@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2+
  * Refer to the license.txt file included.
@@ -223,14 +223,14 @@ public final class EGLHelper
   }
 
   // Detects the specific kind of GL modes that are supported
-  private boolean detect()
+  private void detect()
   {
     // Get total number of configs available.
     int[] numConfigs = new int[1];
     if (!mEGL.eglGetConfigs(mDisplay, null, 0, numConfigs))
     {
       Log.error("[EGLHelper] Error retrieving number of EGL configs available.");
-      return false;
+      return;
     }
 
     // Now get all the configurations
@@ -238,7 +238,7 @@ public final class EGLHelper
     if (!mEGL.eglGetConfigs(mDisplay, mEGLConfigs, mEGLConfigs.length, numConfigs))
     {
       Log.error("[EGLHelper] Error retrieving all EGL configs.");
-      return false;
+      return;
     }
 
     for (EGLConfig mEGLConfig : mEGLConfigs)
@@ -258,8 +258,6 @@ public final class EGLHelper
           supportGLES3 = true;
       }
     }
-
-    return true;
   }
 
   // Creates the context and surface.

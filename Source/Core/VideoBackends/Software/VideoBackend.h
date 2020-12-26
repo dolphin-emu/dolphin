@@ -19,5 +19,7 @@ class VideoSoftware : public VideoBackendBase
   std::optional<std::string> GetWarningMessage() const override;
 
   void InitBackendInfo() override;
+
+  static constexpr const char* NAME = "Software Renderer";
 };
 }  // namespace SW

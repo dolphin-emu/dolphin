@@ -1,12 +1,13 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
 {
-  private int mDefaultValue;
+  private AbstractIntSetting mSetting;
 
   private int mChoicesId;
   private int mValuesId;
@@ -14,27 +15,25 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
   private int mDescriptionValuesId;
   private MenuTag menuTag;
 
-  public SingleChoiceSettingDynamicDescriptions(String key, String section, int titleId,
-          int descriptionId,
-          int choicesId, int valuesId, int descriptionChoicesId, int descriptionValuesId,
-          int defaultValue, Setting setting, MenuTag menuTag)
+  public SingleChoiceSettingDynamicDescriptions(AbstractIntSetting setting, int titleId,
+          int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+          int descriptionValuesId, MenuTag menuTag)
   {
-    super(key, section, setting, titleId, descriptionId);
+    super(titleId, descriptionId);
+    mSetting = setting;
     mValuesId = valuesId;
     mChoicesId = choicesId;
     mDescriptionChoicesId = descriptionChoicesId;
     mDescriptionValuesId = descriptionValuesId;
-    mDefaultValue = defaultValue;
     this.menuTag = menuTag;
   }
 
-  public SingleChoiceSettingDynamicDescriptions(String key, String section, int titleId,
-          int descriptionId,
-          int choicesId, int valuesId, int descriptionChoicesId, int descriptionValuesId,
-          int defaultValue, Setting setting)
+  public SingleChoiceSettingDynamicDescriptions(AbstractIntSetting setting, int titleId,
+          int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+          int descriptionValuesId)
   {
-    this(key, section, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
-            descriptionValuesId, defaultValue, setting, null);
+    this(setting, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
+            descriptionValuesId, null);
   }
 
   public int getChoicesId()
@@ -57,17 +56,9 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     return mDescriptionValuesId;
   }
 
-  public int getSelectedValue()
+  public int getSelectedValue(Settings settings)
   {
-    if (getSetting() != null)
-    {
-      IntSetting setting = (IntSetting) getSetting();
-      return setting.getValue();
-    }
-    else
-    {
-      return mDefaultValue;
-    }
+    return mSetting.getInt(settings);
   }
 
   public MenuTag getMenuTag()
@@ -75,32 +66,20 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     return menuTag;
   }
 
-  /**
-   * Write a value to the backing int. If that int was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the int.
-   * @return null if overwritten successfully otherwise; a newly created IntSetting.
-   */
-  public IntSetting setSelectedValue(int selection)
+  public void setSelectedValue(Settings settings, int selection)
   {
-    if (getSetting() == null)
-    {
-      IntSetting setting = new IntSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      IntSetting setting = (IntSetting) getSetting();
-      setting.setValue(selection);
-      return null;
-    }
+    mSetting.setInt(settings, selection);
   }
 
   @Override
   public int getType()
   {
     return TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }
