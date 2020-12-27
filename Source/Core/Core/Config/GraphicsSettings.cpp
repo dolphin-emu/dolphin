@@ -166,6 +166,11 @@ const Info<int> FOV{{System::GFX, "PrimeHack Misc", "Field of View"}, 60};
 const Info<bool> TOGGLE_ARM_REPOSITION{{System::GFX, "PrimeHack Misc", "ToggleArmRePosition"}, true};
 const Info<bool> TOGGLE_CULLING{{System::GFX, "PrimeHack Misc", "ToggleCulling"}, false};
 const Info<bool> ENABLE_SECONDARY_GUNFX{{System::GFX, "PrimeHack Misc", "EnableSecondaryGunFX"}, false};
+const Info<bool> GC_SHOW_CROSSHAIR{ {System::GFX, "PrimeHack Misc", "GC_ShowCrosshair"}, false };
+const Info<int> GC_CROSSHAIR_COLOR_R{ {System::GFX, "PrimeHack Misc", "GC_Crosshair_Color_R"}, 0x4b };
+const Info<int> GC_CROSSHAIR_COLOR_G{ {System::GFX, "PrimeHack Misc", "GC_Crosshair_Color_G"}, 0x7e };
+const Info<int> GC_CROSSHAIR_COLOR_B{ {System::GFX, "PrimeHack Misc", "GC_Crosshair_Color_B"}, 0xa3 };
+const Info<int> GC_CROSSHAIR_COLOR_A{ {System::GFX, "PrimeHack Misc", "GC_Crosshair_Color_A"}, 0x31 };
 
 const Info<int> ARMPOSITION_MODE{{System::GFX, "PrimeHack Misc", "ArmPosition_Mode"}, 0};
 const Info<int> ARMPOSITION_LEFTRIGHT{{System::GFX, "PrimeHack Misc", "ArmPosition_LEFTRIGHT"}, 25};

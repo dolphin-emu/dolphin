@@ -52,6 +52,7 @@ void PrimeWidget::CreateWidgets()
   m_toggle_arm_position = new GraphicsBool(tr("Toggle Viewmodel Adjustment"), Config::TOGGLE_ARM_REPOSITION);
   m_toggle_culling = new GraphicsBool(tr("Disable Culling"), Config::TOGGLE_CULLING);
   m_toggle_secondaryFX = new GraphicsBool(tr("Enable GCN Gun Effects"), Config::ENABLE_SECONDARY_GUNFX);
+  m_toggle_gc_show_crosshair = new GraphicsBool(tr("Show GCN Crosshair"), Config::GC_SHOW_CROSSHAIR);
 
   graphics_layout->addWidget(m_autoefb, 0, 0);
   graphics_layout->addWidget(m_motions_lock, 1, 0);
@@ -59,6 +60,7 @@ void PrimeWidget::CreateWidgets()
   graphics_layout->addWidget(m_disable_bloom, 3, 0);
   graphics_layout->addWidget(m_toggle_arm_position, 4, 0);
   graphics_layout->addWidget(m_toggle_culling, 5, 0);
+  graphics_layout->addWidget(m_toggle_gc_show_crosshair, 6, 0);
 
   m_fov_axis = new GraphicsSlider(1, 170, Config::FOV);
   m_fov_axis->setMinimum(1);
@@ -68,10 +70,64 @@ void PrimeWidget::CreateWidgets()
   fov_counter = new GraphicsInteger(1, 170, Config::FOV);
   fov_counter->setMaximumWidth(50);
 
-  graphics_layout->addItem(new QSpacerItem(1, 5), 6, 0);
-  graphics_layout->addWidget(new QLabel(tr("Field of View")), 7, 0);
-  graphics_layout->addWidget(m_fov_axis, 7, 1);
-  graphics_layout->addWidget(fov_counter, 7, 2);
+  graphics_layout->addItem(new QSpacerItem(1, 5), 7, 0);
+  graphics_layout->addWidget(new QLabel(tr("Field of View")), 8, 0);
+  graphics_layout->addWidget(m_fov_axis, 8, 1);
+  graphics_layout->addWidget(fov_counter, 8, 2);
+
+  // Crosshair Color
+  auto* crosshair_color_box = new QGroupBox(tr("Crosshair Color"));
+  auto* crosshair_color_layout = new QGridLayout();
+
+  crosshair_color_box->setLayout(crosshair_color_layout);
+
+  m_xhair_col_red_axis = new GraphicsSlider(0, 255, Config::GC_CROSSHAIR_COLOR_R);
+  m_xhair_col_red_axis->setMinimum(0);
+  m_xhair_col_red_axis->setMaximum(255);
+  m_xhair_col_red_axis->setPageStep(1);
+
+  xhair_col_red_counter = new GraphicsInteger(0, 255, Config::GC_CROSSHAIR_COLOR_R);
+  xhair_col_red_counter->setMaximumWidth(50);
+
+  crosshair_color_layout->addWidget(new QLabel(tr("Red")), 0, 0);
+  crosshair_color_layout->addWidget(m_xhair_col_red_axis, 0, 1);
+  crosshair_color_layout->addWidget(xhair_col_red_counter, 0, 2);
+
+  m_xhair_col_green_axis = new GraphicsSlider(0, 255, Config::GC_CROSSHAIR_COLOR_G);
+  m_xhair_col_green_axis->setMinimum(0);
+  m_xhair_col_green_axis->setMaximum(255);
+  m_xhair_col_green_axis->setPageStep(1);
+
+  xhair_col_green_counter = new GraphicsInteger(0, 255, Config::GC_CROSSHAIR_COLOR_G);
+  xhair_col_green_counter->setMaximumWidth(50);
+
+  crosshair_color_layout->addWidget(new QLabel(tr("Green")), 1, 0);
+  crosshair_color_layout->addWidget(m_xhair_col_green_axis, 1, 1);
+  crosshair_color_layout->addWidget(xhair_col_green_counter, 1, 2);
+
+  m_xhair_col_blue_axis = new GraphicsSlider(0, 255, Config::GC_CROSSHAIR_COLOR_B);
+  m_xhair_col_blue_axis->setMinimum(0);
+  m_xhair_col_blue_axis->setMaximum(255);
+  m_xhair_col_blue_axis->setPageStep(1);
+
+  xhair_col_blue_counter = new GraphicsInteger(0, 255, Config::GC_CROSSHAIR_COLOR_B);
+  xhair_col_blue_counter->setMaximumWidth(50);
+
+  crosshair_color_layout->addWidget(new QLabel(tr("Blue")), 2, 0);
+  crosshair_color_layout->addWidget(m_xhair_col_blue_axis, 2, 1);
+  crosshair_color_layout->addWidget(xhair_col_blue_counter, 2, 2);
+
+  m_xhair_col_alpha_axis = new GraphicsSlider(0, 255, Config::GC_CROSSHAIR_COLOR_A);
+  m_xhair_col_alpha_axis->setMinimum(0);
+  m_xhair_col_alpha_axis->setMaximum(255);
+  m_xhair_col_alpha_axis->setPageStep(1);
+
+  xhair_col_alpha_counter = new GraphicsInteger(0, 255, Config::GC_CROSSHAIR_COLOR_A);
+  xhair_col_alpha_counter->setMaximumWidth(50);
+
+  crosshair_color_layout->addWidget(new QLabel(tr("Alpha")), 3, 0);
+  crosshair_color_layout->addWidget(m_xhair_col_alpha_axis, 3, 1);
+  crosshair_color_layout->addWidget(xhair_col_alpha_counter, 3, 2);
 
   // Viewmodel Position
   auto* viewmodel_box = new QGroupBox(tr("Viewmodel Position"));
@@ -123,6 +179,7 @@ void PrimeWidget::CreateWidgets()
   viewmodel_layout->addWidget(y_counter, 5, 2);
   
   main_layout->addWidget(graphics_box);
+  main_layout->addWidget(crosshair_color_box);
   main_layout->addWidget(viewmodel_box);
   main_layout->addStretch();
   
@@ -140,8 +197,22 @@ void PrimeWidget::ArmPositionModeChanged(bool mode)
   z_counter->setEnabled(mode);
 }
 
+void PrimeWidget::ToggleShowCrosshair(bool mode)
+{
+  m_xhair_col_red_axis->setEnabled(mode);
+  m_xhair_col_green_axis->setEnabled(mode);
+  m_xhair_col_blue_axis->setEnabled(mode);
+  m_xhair_col_alpha_axis->setEnabled(mode);
+
+  xhair_col_red_counter->setEnabled(mode);
+  xhair_col_green_counter->setEnabled(mode);
+  xhair_col_blue_counter->setEnabled(mode);
+  xhair_col_alpha_counter->setEnabled(mode);
+}
+
 void PrimeWidget::ConnectWidgets()
 {
+  connect(m_toggle_gc_show_crosshair, &GraphicsBool::clicked, this, [=](bool checked) {PrimeWidget::ToggleShowCrosshair(checked); });
   connect(m_auto_arm_position, &QRadioButton::clicked, this, [=](bool checked) {PrimeWidget::ArmPositionModeChanged(!checked);});
   connect(m_manual_arm_position, &QRadioButton::clicked, this, [=](bool checked) {PrimeWidget::ArmPositionModeChanged(checked);});
   connect(m_toggle_arm_position, &QCheckBox::clicked, this,

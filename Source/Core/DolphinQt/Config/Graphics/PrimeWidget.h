@@ -27,6 +27,7 @@ private:
   void LoadSettings() override;
   void SaveSettings() override;
 
+  void ToggleShowCrosshair(bool mode);
   void ArmPositionModeChanged(bool mode);
 
   // Misc
@@ -35,9 +36,19 @@ private:
   GraphicsBool* m_autoefb;
   GraphicsBool* m_toggle_culling;
   GraphicsBool* m_toggle_secondaryFX;
+  GraphicsBool* m_toggle_gc_show_crosshair;
 
   GraphicsInteger* fov_counter;
   GraphicsSlider* m_fov_axis;
+
+  GraphicsInteger* xhair_col_red_counter;
+  GraphicsSlider* m_xhair_col_red_axis;
+  GraphicsInteger* xhair_col_green_counter;
+  GraphicsSlider* m_xhair_col_green_axis;
+  GraphicsInteger* xhair_col_blue_counter;
+  GraphicsSlider* m_xhair_col_blue_axis;
+  GraphicsInteger* xhair_col_alpha_counter;
+  GraphicsSlider* m_xhair_col_alpha_axis;
 
   GraphicsInteger* x_counter;
   GraphicsInteger* y_counter;
