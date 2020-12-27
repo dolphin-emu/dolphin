@@ -175,6 +175,11 @@ private:
 };
 }  // namespace
 
+FreeLookCamera::FreeLookCamera()
+{
+  SetControlType(FreeLook::ControlType::SixAxis);
+}
+
 void FreeLookCamera::SetControlType(FreeLook::ControlType type)
 {
   if (m_current_type && *m_current_type == type)
