@@ -228,7 +228,8 @@ public final class SettingsFragmentPresenter
     if (!NativeLibrary.IsRunning())
     {
       sl.add(new SubmenuSetting(R.string.gcpad_settings, MenuTag.GCPAD_TYPE));
-      sl.add(new SubmenuSetting(R.string.wiimote_settings, MenuTag.WIIMOTE));
+      if (mSettings.isWii())
+        sl.add(new SubmenuSetting(R.string.wiimote_settings, MenuTag.WIIMOTE));
     }
 
     sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
