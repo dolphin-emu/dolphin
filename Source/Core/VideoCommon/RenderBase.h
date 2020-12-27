@@ -220,6 +220,7 @@ public:
 
   // Finish up the current frame, print some stats
   void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+  void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks, float gamma, const MathUtil::Rectangle<int>& srcRect, const CopyFilterCoefficients::Values& filter_coefficients, float y_scale, bool clamp_top, bool clamp_bottom);
 
   void UpdateWidescreenHeuristic();
 

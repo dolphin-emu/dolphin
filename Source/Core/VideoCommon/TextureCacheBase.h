@@ -223,6 +223,8 @@ public:
                           u32 tmem_address_odd = 0);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
+  TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
+    MathUtil::Rectangle<int>* display_rect, float gamma, const MathUtil::Rectangle<int>& src_rect, const CopyFilterCoefficients::Values& copy_filter_coefficients, float y_scale, bool clamp_top, bool clamp_bottom);
 
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,

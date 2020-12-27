@@ -830,6 +830,10 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
+  // Try calling SI Poll every time update is called
+  Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput);
+  SerialInterface::UpdateDevices();
+
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
@@ -862,27 +866,6 @@ void Update(u64 ticks)
 
   if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
     Core::Callback_NewField();
-
-  // If an SI poll is scheduled to happen on this half-line, do it!
-
-  if (s_half_line_of_next_si_poll == s_half_line_count)
-  {
-    Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput);
-    SerialInterface::UpdateDevices();
-    s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
-  }
-
-  // If this half-line is at the actual boundary of either field, schedule an SI poll to happen
-  // some number of half-lines in the future
-
-  if (s_half_line_count == 0)
-  {
-    s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first results start at vsync
-  }
-  if (s_half_line_count == GetHalfLinesPerEvenField())
-  {
-    s_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + num_half_lines_for_si_poll;
-  }
 
   // Move to the next half-line and potentially roll-over the count to zero. If we've reached
   // the beginning of a new full-line, update the timer
