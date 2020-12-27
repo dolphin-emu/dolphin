@@ -26,20 +26,6 @@ namespace
 const int kWRegSizeInBits = 32;
 const int kXRegSizeInBits = 64;
 
-// The below few functions are taken from V8.
-int CountLeadingZeros(uint64_t value, int width)
-{
-  // TODO(jbramley): Optimize this for ARM64 hosts.
-  int count = 0;
-  uint64_t bit_test = 1ULL << (width - 1);
-  while ((count < width) && ((bit_test & value) == 0))
-  {
-    count++;
-    bit_test >>= 1;
-  }
-  return count;
-}
-
 uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
   return value & -(int64_t)value;
@@ -155,8 +141,8 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
     // Compute the repeat distance d, and set up a bitmask covering the basic
     // unit of repetition (i.e. a word with the bottom d bits set). Also, in all
     // of these cases the N bit of the output will be zero.
-    clz_a = CountLeadingZeros(a, kXRegSizeInBits);
-    int clz_c = CountLeadingZeros(c, kXRegSizeInBits);
+    clz_a = Common::CountLeadingZeros(a);
+    int clz_c = Common::CountLeadingZeros(c);
     d = clz_a - clz_c;
     mask = ((UINT64_C(1) << d) - 1);
     out_n = 0;
@@ -182,7 +168,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // of set bits in our word, meaning that we have the trivial case of
       // d == 64 and only one 'repetition'. Set up all the same variables as in
       // the general case above, and set the N bit in the output.
-      clz_a = CountLeadingZeros(a, kXRegSizeInBits);
+      clz_a = Common::CountLeadingZeros(a);
       d = 64;
       mask = ~UINT64_C(0);
       out_n = 1;
@@ -214,7 +200,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       0x5555555555555555UL,
   }};
 
-  int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
+  int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
 
   // Ensure that the index to the multipliers array is within bounds.
   DEBUG_ASSERT((multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
@@ -233,7 +219,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // Count the set bits in our basic stretch. The special case of clz(0) == -1
   // makes the answer come out right for stretches that reach the very top of
   // the word (e.g. numbers like 0xffffc00000000000).
-  int clz_b = (b == 0) ? -1 : CountLeadingZeros(b, kXRegSizeInBits);
+  int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
   int s = clz_a - clz_b;
 
   // Decide how many bits to rotate right by, to put the low bit of that basic

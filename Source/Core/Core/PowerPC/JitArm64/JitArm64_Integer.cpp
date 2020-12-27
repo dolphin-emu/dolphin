@@ -368,11 +368,7 @@ void JitArm64::cntlzwx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
-#ifdef _MSC_VER
-    gpr.SetImmediate(a, _CountLeadingZeros(gpr.GetImm(s)));
-#else
-    gpr.SetImmediate(a, __builtin_clz(gpr.GetImm(s)));
-#endif
+    gpr.SetImmediate(a, Common::CountLeadingZeros(gpr.GetImm(s)));
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }

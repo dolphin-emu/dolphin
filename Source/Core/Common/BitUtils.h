@@ -11,6 +11,10 @@
 #include <initializer_list>
 #include <type_traits>
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
 namespace Common
 {
 ///
@@ -355,6 +359,46 @@ T ExpandValue(T value, size_t left_shift_amount)
 
   return (value << left_shift_amount) |
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
+}
+
+constexpr int CountLeadingZeros(uint64_t value)
+{
+#if defined(__GNUC__)
+  return __builtin_clzll(value);
+#elif defined(_MSC_VER) && defined(_M_ARM_64)
+  return _CountLeadingZeros64(value);
+#elif defined(_MSC_VER) && defined(_M_X86_64)
+  unsigned long index;
+  return _BitScanReverse64(&index, value) ? 63 - index : 64;
+#else
+  int result = 64;
+  while (value)
+  {
+    result--;
+    value >>= 1;
+  }
+  return result;
+#endif
+}
+
+constexpr int CountLeadingZeros(uint32_t value)
+{
+#if defined(__GNUC__)
+  return __builtin_clz(value);
+#elif defined(_MSC_VER) && defined(_M_ARM_64)
+  return _CountLeadingZeros(value);
+#elif defined(_MSC_VER) && defined(_M_X86_64)
+  unsigned long index;
+  return _BitScanReverse(&index, value) ? 31 - index : 32;
+#else
+  int result = 32;
+  while (value)
+  {
+    result--;
+    value >>= 1;
+  }
+  return result;
+#endif
 }
 
 }  // namespace Common
