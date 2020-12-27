@@ -6,9 +6,14 @@
 // do nothing except return default values when required.
 
 #include <string>
+#include <vector>
 
 #include "Core/Host.h"
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  return {};
+}
 void Host_NotifyMapLoaded()
 {
 }
