@@ -300,14 +300,16 @@ static void BPWritten(const BPCmd& bp)
                     destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                     bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
-      //bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      //auto one = std::chrono::high_resolution_clock::now();
-      //g_texture_cache->CopyRenderTargetToTexture(
-      //    destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
-      //    false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
-      //    bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
-      //auto two = std::chrono::high_resolution_clock::now();
-      //WARN_LOG(SLIPPI, "timer: %d", (two - one).count());
+#ifdef IS_PLAYBACK
+      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      auto one = std::chrono::high_resolution_clock::now();
+      g_texture_cache->CopyRenderTargetToTexture(
+          destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
+          false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
+          bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+      auto two = std::chrono::high_resolution_clock::now();
+      WARN_LOG(SLIPPI, "timer: %d", (two - one).count());
+#endif
 
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
@@ -315,7 +317,11 @@ static void BPWritten(const BPCmd& bp)
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
+#ifdef IS_PLAYBACK
         g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks(), s_gammaLUT[PE_copy.gamma], srcRect, bpmem.copyfilter.GetCoefficients(), yScale, bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom);
+#else
+        g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks(), s_gammaLUT[PE_copy.gamma], srcRect, bpmem.copyfilter.GetCoefficients(), yScale, bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom);
+#endif
       }
       else
       {
