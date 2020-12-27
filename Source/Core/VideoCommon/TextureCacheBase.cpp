@@ -2851,7 +2851,7 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
                                            const EFBCopyFilterCoefficients& filter_coefficients)
 {
   // Flush EFB pokes first, as they're expected to be included.
-  //g_framebuffer_manager->FlushEFBPokes();
+  g_framebuffer_manager->FlushEFBPokes();
 
   // Get the pipeline which we will be using. If the compilation failed, this will be null.
   const AbstractPipeline* copy_pipeline =
