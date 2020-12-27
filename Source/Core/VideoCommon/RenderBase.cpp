@@ -1219,6 +1219,147 @@ void Renderer::UpdateWidescreenHeuristic()
   m_was_orthographically_anamorphic = ortho_looks_anamorphic;
 }
 
+void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks, float gamma, const MathUtil::Rectangle<int>& srcRect, const CopyFilterCoefficients::Values& filter_coefficients, float y_scale, bool clamp_top, bool clamp_bottom)
+{
+  if (SConfig::GetInstance().bWii)
+    m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
+
+  // suggested_aspect_mode overrides SYSCONF_WIDESCREEN
+  if (g_ActiveConfig.suggested_aspect_mode == AspectMode::Analog)
+    m_is_game_widescreen = false;
+  else if (g_ActiveConfig.suggested_aspect_mode == AspectMode::AnalogWide)
+    m_is_game_widescreen = true;
+
+  // If widescreen hack is disabled override game's AR if UI is set to 4:3 or 16:9.
+  if (!g_ActiveConfig.bWidescreenHack)
+  {
+    const auto aspect_mode = g_ActiveConfig.aspect_mode;
+    if (aspect_mode == AspectMode::Analog)
+      m_is_game_widescreen = false;
+    else if (aspect_mode == AspectMode::AnalogWide)
+      m_is_game_widescreen = true;
+  }
+
+  if (xfb_addr && fb_width && fb_stride && fb_height)
+  {
+    // Get the current XFB from texture cache
+    MathUtil::Rectangle<int> xfb_rect;
+    const auto* xfb_entry =
+      g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect, gamma, srcRect, filter_coefficients, y_scale, clamp_top, clamp_bottom);
+    if (xfb_entry &&
+      (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || xfb_entry->id != m_last_xfb_id))
+    {
+      const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
+      m_last_xfb_id = xfb_entry->id;
+
+      // Since we use the common pipelines here and draw vertices if a batch is currently being
+      // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
+      // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
+      //g_vertex_manager->Flush();
+
+      // Render any UI elements to the draw list.
+      {
+        auto lock = GetImGuiLock();
+
+#ifdef IS_PLAYBACK
+        if (SConfig::GetInstance().m_slippiEnableSeek && g_replayComm->getSettings().rollbackDisplayMethod == "off" && g_playbackStatus->inSlippiPlayback)
+          OSD::DrawSlippiPlaybackControls();
+#endif
+
+        DrawDebugText();
+        OSD::DrawMessages();
+
+        ImGui::Render();
+      }
+
+      // Render the XFB to the screen.
+      BeginUtilityDrawing();
+      if (!IsHeadless())
+      {
+        BindBackbuffer({ {0.0f, 0.0f, 0.0f, 1.0f} });
+
+        if (!is_duplicate_frame)
+          UpdateWidescreenHeuristic();
+
+        UpdateDrawRectangle();
+
+        // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
+        auto render_target_rc = GetTargetRectangle();
+        auto render_source_rc = xfb_rect;
+        AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
+          m_backbuffer_height);
+        RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
+
+        DrawImGui();
+
+        // Present to the window system.
+        {
+          std::lock_guard<std::mutex> guard(m_swap_mutex);
+          PresentBackbuffer();
+        }
+
+        // Update the window size based on the frame that was just rendered.
+        // Due to depending on guest state, we need to call this every frame.
+        SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
+      }
+
+      if (!is_duplicate_frame)
+      {
+        m_fps_counter.Update();
+
+        if (IsFrameDumping())
+          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
+
+        // Begin new frame
+        m_frame_count++;
+        g_stats.ResetFrame();
+      }
+
+      g_shader_cache->RetrieveAsyncShaders();
+      g_vertex_manager->OnEndFrame();
+      BeginImGuiFrame();
+
+      // We invalidate the pipeline object at the start of the frame.
+      // This is for the rare case where only a single pipeline configuration is used,
+      // and hybrid ubershaders have compiled the specialized shader, but without any
+      // state changes the specialized shader will not take over.
+      g_vertex_manager->InvalidatePipelineObject();
+
+      // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+      // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
+      g_texture_cache->FlushEFBCopies();
+
+      if (!is_duplicate_frame)
+      {
+        // Remove stale EFB/XFB copies.
+        g_texture_cache->Cleanup(m_frame_count);
+        Core::Callback_FramePresented();
+      }
+
+      // Handle any config changes, this gets propogated to the backend.
+      CheckForConfigChanges();
+      g_Config.iSaveTargetId = 0;
+
+      EndUtilityDrawing();
+    }
+    else
+    {
+      Flush();
+    }
+
+    // Update our last xfb values
+    m_last_xfb_addr = xfb_addr;
+    m_last_xfb_ticks = ticks;
+    m_last_xfb_width = fb_width;
+    m_last_xfb_stride = fb_stride;
+    m_last_xfb_height = fb_height;
+  }
+  else
+  {
+    Flush();
+  }
+}
+
 void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (SConfig::GetInstance().bWii)

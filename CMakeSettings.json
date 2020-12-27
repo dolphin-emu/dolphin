@@ -1,4 +1,4 @@
-﻿{
+{
   "configurations": [
     {
       "name": "Release",
@@ -85,7 +85,7 @@
       ]
     },
     {
-      "name": "x64-Release",
+      "name": "RelWDbgInfo",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "buildRoot": "${projectDir}\\out\\build\\${name}",

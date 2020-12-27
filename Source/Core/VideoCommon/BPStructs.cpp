@@ -276,7 +276,9 @@ static void BPWritten(const BPCmd& bp)
     }
     else
     {
+      // Temp hack to get lag reduction code working
       if (destAddr == 0x0) { destAddr = 0x4f0c00; }
+
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
@@ -298,19 +300,22 @@ static void BPWritten(const BPCmd& bp)
                     destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                     bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
-      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(
-          destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
-          false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
-          bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+      //bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      //auto one = std::chrono::high_resolution_clock::now();
+      //g_texture_cache->CopyRenderTargetToTexture(
+      //    destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
+      //    false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
+      //    bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+      //auto two = std::chrono::high_resolution_clock::now();
+      //WARN_LOG(SLIPPI, "timer: %d", (two - one).count());
 
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
-
+      
       if (g_ActiveConfig.bImmediateXFB)
       {
         // below div two to convert from bytes to pixels - it expects width, not stride
-        g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks());
+        g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks(), s_gammaLUT[PE_copy.gamma], srcRect, bpmem.copyfilter.GetCoefficients(), yScale, bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom);
       }
       else
       {
