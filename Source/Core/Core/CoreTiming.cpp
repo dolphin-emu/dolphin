@@ -380,6 +380,7 @@ void Idle()
     Fifo::FlushGpu();
   }
 
+  PowerPC::UpdatePerformanceMonitor(PowerPC::ppcState.downcount, 0, 0);
   s_idled_cycles += DowncountToCycles(PowerPC::ppcState.downcount);
   PowerPC::ppcState.downcount = 0;
 }

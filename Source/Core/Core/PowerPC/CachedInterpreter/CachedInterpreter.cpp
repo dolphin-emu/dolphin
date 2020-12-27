@@ -134,6 +134,17 @@ static void EndBlock(UGeckoInstruction data)
 {
   PC = NPC;
   PowerPC::ppcState.downcount -= data.hex;
+  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
+}
+
+static void UpdateNumLoadStoreInstructions(UGeckoInstruction data)
+{
+  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0);
+}
+
+static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
+{
+  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex);
 }
 
 static void WritePC(UGeckoInstruction data)
@@ -230,6 +241,8 @@ void CachedInterpreter::Jit(u32 address)
   js.firstFPInstructionFound = false;
   js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;
+  js.numLoadStoreInst = 0;
+  js.numFloatingPointInst = 0;
   js.curBlock = b;
 
   b->checkedEntry = GetCodePtr();
@@ -240,6 +253,10 @@ void CachedInterpreter::Jit(u32 address)
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
     js.downcountAmount += op.opinfo->numCycles;
+    if (op.opinfo->flags & FL_LOADSTORE)
+      ++js.numLoadStoreInst;
+    if (op.opinfo->flags & FL_USE_FPU)
+      ++js.numFloatingPointInst;
 
     if (HandleFunctionHooking(op.address))
       break;
@@ -274,13 +291,19 @@ void CachedInterpreter::Jit(u32 address)
       if (idle_loop)
         m_code.emplace_back(CheckIdle, js.blockStart);
       if (endblock)
+      {
         m_code.emplace_back(EndBlock, js.downcountAmount);
+        m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
+        m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
+      }
     }
   }
   if (code_block.m_broken)
   {
     m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
     m_code.emplace_back(EndBlock, js.downcountAmount);
+    m_code.emplace_back(UpdateNumLoadStoreInstructions, js.numLoadStoreInst);
+    m_code.emplace_back(UpdateNumFloatingPointInstructions, js.numFloatingPointInst);
   }
   m_code.emplace_back();
 
