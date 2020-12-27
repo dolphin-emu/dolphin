@@ -1999,6 +1999,8 @@ void CEXISlippi::handleLogInRequest()
   bool logInRes = user->AttemptLogin();
   if (!logInRes)
   {
+    if (Host_RendererIsFullscreen())
+      Host_Fullscreen();
     Host_LowerWindow();
     user->OpenLogInPage();
     user->ListenForLogIn();
