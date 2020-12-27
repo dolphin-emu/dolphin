@@ -76,6 +76,7 @@ private:
   bool bCPUThread;
   bool bJITFollowBranch;
   bool bEnableCheats;
+  bool bBootDefaultISO;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
   bool bAccurateNaNs;
@@ -110,6 +111,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bCPUThread = config.bCPUThread;
   bJITFollowBranch = config.bJITFollowBranch;
   bEnableCheats = config.bEnableCheats;
+  bBootDefaultISO = config.bBootDefaultISO;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
@@ -155,6 +157,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bCPUThread = bCPUThread;
   config->bJITFollowBranch = bJITFollowBranch;
   config->bEnableCheats = bEnableCheats;
+  config->bBootDefaultISO = bBootDefaultISO;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
@@ -265,6 +268,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
+    core_section->Get("BootDefaultISO", &StartUp.bBootDefaultISO, StartUp.bBootDefaultISO);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);

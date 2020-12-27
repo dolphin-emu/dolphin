@@ -43,6 +43,7 @@ private:
   QComboBox* m_combobox_fallback_region;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
+  QCheckBox* m_checkbox_default_boot_iso;
   QCheckBox* m_checkbox_override_region_settings;
   QCheckBox* m_checkbox_auto_disc_change;
 #ifdef USE_DISCORD_PRESENCE

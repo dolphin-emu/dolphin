@@ -95,6 +95,7 @@ public:
   void SetSDCardInserted(bool inserted);
   bool IsUSBKeyboardConnected() const;
   void SetUSBKeyboardConnected(bool connected);
+  bool IsBootDefaultISO() const;
 
   // Graphics
   void SetHideCursor(bool hide_cursor);

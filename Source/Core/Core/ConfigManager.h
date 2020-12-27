@@ -118,6 +118,7 @@ struct SConfig
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
+  bool bBootDefaultISO = true;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 
@@ -155,7 +156,7 @@ struct SConfig
   bool m_slippiSaveReplays = true;
   bool m_slippiReplayMonthFolders = false;
   std::string m_strSlippiReplayDir;
-  bool bBootDefaultISO = false; //move maybe
+  bool m_blockingPipes = false;
 
   // Interface settings
   bool bConfirmStop = false;
