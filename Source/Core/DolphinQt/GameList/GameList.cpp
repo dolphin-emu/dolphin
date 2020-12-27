@@ -62,7 +62,7 @@
 #include <iostream>
 #include "shlobj.h"
 #include <qcoreapplication.h>
-using namespace std;
+//using namespace std;
 
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
@@ -643,14 +643,14 @@ void GameList::OpenGCSaveFolder()
 void GameList::AddShortcutToDesktop()
 {
   const auto game = GetSelectedGame();
-  string game_name = game->GetLongName();
-  string file_path = game->GetFilePath();
-  string file_name = game->GetFileName();
-  wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
+  std::string game_name = game->GetLongName();
+  std::string file_path = game->GetFilePath();
+  std::string file_name = game->GetFileName();
+  std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
   LPCWSTR dolphin_path_convert = dolphin_path.c_str();
 
   // Arguments
-  string args = "-e \"" + file_path + "\"";
+  std::string args = "-e \"" + file_path + "\"";
   std::wstring args_convert = std::wstring(args.begin(), args.end());
 
   // Gets the desktop position with shorcut
@@ -658,8 +658,8 @@ void GameList::AddShortcutToDesktop()
   SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, NULL, &desktop);
   CoTaskMemFree(desktop);
   // Converts desktop path to string
-  wstring ws = wstring(desktop);
-  string desktop_path = string(ws.begin(), ws.end());
+  std::wstring ws = std::wstring(desktop);
+  std::string desktop_path = std::string(ws.begin(), ws.end());
   desktop_path = desktop_path + "\\" + game_name + ".lnk";
   LPCSTR pathLink = desktop_path.c_str();
 
