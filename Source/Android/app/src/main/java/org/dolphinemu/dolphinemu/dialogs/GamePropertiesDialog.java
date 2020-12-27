@@ -50,11 +50,12 @@ public class GamePropertiesDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    String path = requireArguments().getString(ARG_PATH);
-    String gameId = requireArguments().getString(ARG_GAMEID);
-    int revision = requireArguments().getInt(ARG_REVISION);
-    int platform = requireArguments().getInt(ARG_PLATFORM);
-    boolean shouldAllowConversion = requireArguments().getBoolean(ARG_SHOULD_ALLOW_CONVERSION);
+    final String path = requireArguments().getString(ARG_PATH);
+    final String gameId = requireArguments().getString(ARG_GAMEID);
+    final int revision = requireArguments().getInt(ARG_REVISION);
+    final boolean isWii = requireArguments().getInt(ARG_PLATFORM) != Platform.GAMECUBE.toInt();
+    final boolean shouldAllowConversion =
+            requireArguments().getBoolean(ARG_SHOULD_ALLOW_CONVERSION);
 
     AlertDialogItemsBuilder itemsBuilder = new AlertDialogItemsBuilder(requireContext());
 
@@ -72,26 +73,14 @@ public class GamePropertiesDialog extends DialogFragment
     {
       try (Settings settings = new Settings())
       {
-        settings.loadSettings(null);
+        settings.loadSettings();
         StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
         settings.saveSettings(null, getContext());
       }
     });
 
-    itemsBuilder.add(R.string.properties_core_settings, (dialog, i) ->
-            SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId, revision));
-
-    itemsBuilder.add(R.string.properties_gfx_settings, (dialog, i) ->
-            SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId, revision));
-
-    itemsBuilder.add(R.string.properties_gc_controller, (dialog, i) ->
-            SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId, revision));
-
-    if (platform != Platform.GAMECUBE.toInt())
-    {
-      itemsBuilder.add(R.string.properties_wii_controller, (dialog, i) ->
-              SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId, revision));
-    }
+    itemsBuilder.add(R.string.properties_edit_game_settings, (dialog, i) ->
+            SettingsActivity.launch(getContext(), MenuTag.SETTINGS, gameId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettings(gameId));

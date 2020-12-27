@@ -336,10 +336,7 @@
     <string name="properties_details">Details</string>
     <string name="properties_convert">Convert File</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
-    <string name="properties_core_settings">Core Settings</string>
-    <string name="properties_gfx_settings">GFX Settings</string>
-    <string name="properties_gc_controller">GameCube Controller Settings</string>
-    <string name="properties_wii_controller">Wii Controller Settings</string>
+    <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_clear_game_settings">Clear Game Settings</string>
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>

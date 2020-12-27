@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
@@ -29,17 +30,20 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
+  private static final String ARG_IS_WII = "is_wii";
   private static final String FRAGMENT_TAG = "settings";
   private SettingsActivityPresenter mPresenter;
 
   private ProgressDialog dialog;
 
-  public static void launch(Context context, MenuTag menuTag, String gameId, int revision)
+  public static void launch(Context context, MenuTag menuTag, String gameId, int revision,
+          boolean isWii)
   {
     Intent settings = new Intent(context, SettingsActivity.class);
     settings.putExtra(ARG_MENU_TAG, menuTag);
     settings.putExtra(ARG_GAME_ID, gameId);
     settings.putExtra(ARG_REVISION, revision);
+    settings.putExtra(ARG_IS_WII, isWii);
     context.startActivity(settings);
   }
 
@@ -47,8 +51,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     Intent settings = new Intent(context, SettingsActivity.class);
     settings.putExtra(ARG_MENU_TAG, menuTag);
-    settings.putExtra(ARG_GAME_ID, "");
-    settings.putExtra(ARG_REVISION, 0);
+    settings.putExtra(ARG_IS_WII, !NativeLibrary.IsRunning() || NativeLibrary.IsEmulatingWii());
     context.startActivity(settings);
   }
 
@@ -70,11 +73,15 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
+    if (gameID == null)
+      gameID = "";
     int revision = launcher.getIntExtra(ARG_REVISION, 0);
+    boolean isWii = launcher.getBooleanExtra(ARG_IS_WII, true);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
 
     mPresenter = new SettingsActivityPresenter(this, getSettings());
-    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, getApplicationContext());
+    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii,
+            getApplicationContext());
   }
 
   @Override

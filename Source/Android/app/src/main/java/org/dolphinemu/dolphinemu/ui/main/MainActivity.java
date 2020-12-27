@@ -299,7 +299,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
         try (Settings settings = new Settings())
         {
-          settings.loadSettings(null);
+          settings.loadSettings();
 
           IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
 

@@ -54,6 +54,7 @@ public class Settings implements Closeable
 
   private String mGameId;
   private int mRevision;
+  private boolean mIsWii;
 
   private static final String[] configFiles = new String[]{FILE_DOLPHIN, FILE_GFX, FILE_LOGGER,
           FILE_WIIMOTE};
@@ -87,6 +88,11 @@ public class Settings implements Closeable
   public boolean isGameSpecific()
   {
     return !TextUtils.isEmpty(mGameId);
+  }
+
+  public boolean isWii()
+  {
+    return mIsWii;
   }
 
   public IniFile getWiimoteProfile(String profile, int padID)
@@ -143,8 +149,16 @@ public class Settings implements Closeable
     return mIniFiles.isEmpty();
   }
 
-  public void loadSettings(SettingsActivityView view)
+  public void loadSettings()
   {
+    // The value of isWii doesn't matter if we don't have any SettingsActivity
+    loadSettings(null, true);
+  }
+
+  public void loadSettings(SettingsActivityView view, boolean isWii)
+  {
+    mIsWii = isWii;
+
     mIniFiles = new HashMap<>();
 
     if (!isGameSpecific())
@@ -181,11 +195,11 @@ public class Settings implements Closeable
     mIniFiles.put(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, ini);
   }
 
-  public void loadSettings(String gameId, int revision, SettingsActivityView view)
+  public void loadSettings(SettingsActivityView view, String gameId, int revision, boolean isWii)
   {
     mGameId = gameId;
     mRevision = revision;
-    loadSettings(view);
+    loadSettings(view, isWii);
   }
 
   public void saveSettings(SettingsActivityView view, Context context)
