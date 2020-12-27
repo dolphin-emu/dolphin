@@ -53,6 +53,17 @@
 
 #include "UICommon/GameFile.h"
 
+#include "windows.h"
+#include "winnls.h"
+#include "shobjidl.h"
+#include "objbase.h"
+#include "objidl.h"
+#include "shlguid.h"
+#include <iostream>
+#include "shlobj.h"
+#include <qcoreapplication.h>
+using namespace std;
+
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
   m_list_proxy = new ListProxyModel(this);
@@ -382,6 +393,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
+    menu->addAction(tr("Add Shortcut to Desktop"), this, &GameList::AddShortcutToDesktop);
 
     menu->addSeparator();
 
@@ -626,6 +638,60 @@ void GameList::OpenGCSaveFolder()
 
   if (!found)
     ModalMessageBox::information(this, tr("Information"), tr("No save data found."));
+}
+
+void GameList::AddShortcutToDesktop()
+{
+  const auto game = GetSelectedGame();
+  string game_name = game->GetLongName();
+  string file_path = game->GetFilePath();
+  string file_name = game->GetFileName();
+  wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
+  LPCWSTR dolphin_path_convert = dolphin_path.c_str();
+
+  // Arguments
+  string args = "-e \"" + file_path + "\"";
+  std::wstring args_convert = std::wstring(args.begin(), args.end());
+
+  // Gets the desktop position with shorcut
+  WCHAR* desktop = 0;
+  SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, NULL, &desktop);
+  CoTaskMemFree(desktop);
+  // Converts desktop path to string
+  wstring ws = wstring(desktop);
+  string desktop_path = string(ws.begin(), ws.end());
+  desktop_path = desktop_path + "\\" + game_name + ".lnk";
+  LPCSTR pathLink = desktop_path.c_str();
+
+  HRESULT hres;
+  IShellLink* psl;
+
+  CoInitialize(NULL);
+  hres =
+      CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+
+  if (SUCCEEDED(hres))
+  {
+    IPersistFile* ppf;
+    LPCWSTR pszArgs = args_convert.c_str();
+
+    psl->SetPath(dolphin_path_convert);
+    psl->SetArguments(pszArgs);
+
+    hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+
+    if (SUCCEEDED(hres))
+    {
+      WCHAR wsz[MAX_PATH];
+      MultiByteToWideChar(CP_ACP, 0, pathLink, -1, wsz, MAX_PATH);
+      hres = ppf->Save(wsz, TRUE);
+      ppf->Release();
+    }
+    psl->Release();
+  }
+
+  ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
+                               tr("Shortcut successfully added to the desktop"));
 }
 
 void GameList::DeleteFile()
