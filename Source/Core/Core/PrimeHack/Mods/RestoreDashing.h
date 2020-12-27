@@ -21,7 +21,7 @@ namespace prime {
           // restore dashing speed
           add_code_change(0x80194b60, 0x4800001c);
           // stop dash when done dashing
-          add_code_change(0x80192cc0, 0x801f037c); // CPlayer + 0x37c
+          add_code_change(0x80192cc0, 0x881f037c); // CPlayer + 0x37c as u8
         }
         else if (region == Region::PAL) {
           // remove scan visor check
@@ -29,7 +29,7 @@ namespace prime {
           // restore dashing speed
           add_code_change(0x80194df8, 0x4800001c);
           // stop dash when done dashing
-          add_code_change(0x80192f58, 0x801f037c); // CPlayer + 0x37c
+          add_code_change(0x80192f58, 0x881f037c); // CPlayer + 0x37c as u8
         }
         else { // region == Region::NTSC-J
           // remove scan visor check
@@ -37,7 +37,7 @@ namespace prime {
           // restore dashing speed
           add_code_change(0x801956e0, 0x4800001c);
           // stop dash when done dashing
-          add_code_change(0x80193840, 0x801f037c); // CPlayer + 0x37c
+          add_code_change(0x80193840, 0x881f037c); // CPlayer + 0x37c as u8
         }
         break;
       case Game::PRIME_1_GCN:
