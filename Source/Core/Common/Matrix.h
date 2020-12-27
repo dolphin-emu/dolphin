@@ -337,6 +337,10 @@ public:
   static Quaternion RotateY(float rad);
   static Quaternion RotateZ(float rad);
 
+  // Returns a quaternion with rotations about each axis simulatenously (e.g processing gyroscope
+  // input)
+  static Quaternion RotateXYZ(const Vec3& rads);
+
   static Quaternion Rotate(float rad, const Vec3& axis);
 
   Quaternion() = default;
