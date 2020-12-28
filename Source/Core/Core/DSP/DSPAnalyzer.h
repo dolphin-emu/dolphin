@@ -18,17 +18,6 @@ namespace DSP::Analyzer
 // Useful things to detect:
 // * Loop endpoints - so that we can avoid checking for loops every cycle.
 
-enum CodeFlags : u8
-{
-  CODE_NONE = 0,
-  CODE_START_OF_INST = 1,
-  CODE_IDLE_SKIP = 2,
-  CODE_LOOP_START = 4,
-  CODE_LOOP_END = 8,
-  CODE_UPDATE_SR = 16,
-  CODE_CHECK_EXC = 32,
-};
-
 class Analyzer
 {
 public:
@@ -86,6 +75,17 @@ public:
   }
 
 private:
+  enum CodeFlags : u8
+  {
+    CODE_NONE = 0,
+    CODE_START_OF_INST = 1,
+    CODE_IDLE_SKIP = 2,
+    CODE_LOOP_START = 4,
+    CODE_LOOP_END = 8,
+    CODE_UPDATE_SR = 16,
+    CODE_CHECK_EXC = 32,
+  };
+
   // Flushes all analyzed state.
   void Reset();
 
