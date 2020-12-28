@@ -92,6 +92,14 @@ private:
   // Note: start is inclusive, end is exclusive.
   void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr);
 
+  // Finds addresses in the range [start_addr, end_addr) that are the start of an
+  // instruction. During this process other attributes may be detected as well
+  // for relevant instructions (loop start/end, etc).
+  void FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_addr);
+
+  // Finds locations within the range [start_addr, end_addr) that may contain idle skips.
+  void FindIdleSkips(const SDSP& dsp, u16 start_addr, u16 end_addr);
+
   // Retrieves the flags set during analysis for code in memory.
   [[nodiscard]] u8 GetCodeFlags(u16 address) const { return m_code_flags[address]; }
 
