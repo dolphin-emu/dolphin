@@ -867,13 +867,20 @@ void Jit64::subfic(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  int a = inst.RA, d = inst.RD;
+  int a = inst.RA, d = inst.RD, imm = inst.SIMM_16;
+
+  if (gpr.IsImm(a))
+  {
+    u32 i = imm, j = gpr.Imm32(a);
+    gpr.SetImmediate32(d, i - j);
+    FinalizeCarry(j == 0 || (i > j - 1));
+    return;
+  }
 
   RCOpArg Ra = gpr.Use(a, RCMode::Read);
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rd);
 
-  int imm = inst.SIMM_16;
   if (d == a)
   {
     if (imm == 0)
@@ -1727,6 +1734,25 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   {
     gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), gpr.Imm32(b) & 0x1F) & mask);
   }
+  else if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b) & 0x1f;
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
+
+    if (a != s)
+      MOV(32, Ra, Rs);
+
+    if (amount)
+      ROL(32, Ra, Imm8(amount));
+
+    // we need flags if we're merging the branch
+    if (inst.Rc && CheckMergedBranch(0))
+      AND(32, Ra, Imm32(mask));
+    else
+      AndWithMask(Ra, mask);
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
@@ -1793,6 +1819,27 @@ void Jit64::srwx(UGeckoInstruction inst)
     u32 amount = gpr.Imm32(b);
     gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (gpr.Imm32(s) >> (amount & 0x1f)));
   }
+  else if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b);
+    if (amount & 0x20)
+    {
+      gpr.SetImmediate32(a, 0);
+    }
+    else
+    {
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RegCache::Realize(Ra, Rs);
+
+      if (a != s)
+        MOV(32, Ra, Rs);
+
+      amount &= 0x1f;
+      if (amount != 0)
+        SHR(32, Ra, Imm8(amount));
+    }
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
@@ -1823,6 +1870,36 @@ void Jit64::slwx(UGeckoInstruction inst)
   {
     u32 amount = gpr.Imm32(b);
     gpr.SetImmediate32(a, (amount & 0x20) ? 0 : gpr.Imm32(s) << (amount & 0x1f));
+    if (inst.Rc)
+      ComputeRC(a);
+  }
+  else if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b);
+    if (amount & 0x20)
+    {
+      gpr.SetImmediate32(a, 0);
+    }
+    else
+    {
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RegCache::Realize(Ra, Rs);
+
+      if (a != s)
+        MOV(32, Ra, Rs);
+
+      amount &= 0x1f;
+      if (amount != 0)
+        SHL(32, Ra, Imm8(amount));
+    }
+
+    if (inst.Rc)
+      ComputeRC(a);
+  }
+  else if (gpr.IsImm(s) && gpr.Imm32(s) == 0)
+  {
+    gpr.SetImmediate32(a, 0);
     if (inst.Rc)
       ComputeRC(a);
   }
@@ -1860,6 +1937,63 @@ void Jit64::srawx(UGeckoInstruction inst)
   int b = inst.RB;
   int s = inst.RS;
 
+  if (gpr.IsImm(b, s))
+  {
+    s32 i = gpr.SImm32(s), amount = gpr.SImm32(b);
+    if (amount & 0x20)
+    {
+      gpr.SetImmediate32(a, i & 0x80000000 ? 0xFFFFFFFF : 0);
+      FinalizeCarry(i & 0x80000000 ? true : false);
+    }
+    else
+    {
+      amount &= 0x1F;
+      gpr.SetImmediate32(a, i >> amount);
+      FinalizeCarry(amount != 0 && i < 0 && (u32(i) << (32 - amount)));
+    }
+  }
+  else if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
+
+    if (a != s)
+      MOV(32, Ra, Rs);
+
+    bool special = amount & 0x20;
+    amount &= 0x1f;
+
+    if (special)
+    {
+      SAR(32, Ra, Imm8(31));
+      FinalizeCarry(CC_NZ);
+    }
+    else if (amount == 0)
+    {
+      FinalizeCarry(false);
+    }
+    else if (!js.op->wantsCA)
+    {
+      SAR(32, Ra, Imm8(amount));
+      FinalizeCarry(CC_NZ);
+    }
+    else
+    {
+      MOV(32, R(RSCRATCH), Ra);
+      SAR(32, Ra, Imm8(amount));
+      SHL(32, R(RSCRATCH), Imm8(32 - amount));
+      TEST(32, Ra, R(RSCRATCH));
+      FinalizeCarry(CC_NZ);
+    }
+  }
+  else if (gpr.IsImm(s) && gpr.Imm32(s) == 0)
+  {
+    gpr.SetImmediate32(a, 0);
+    FinalizeCarry(false);
+  }
+  else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
@@ -1896,7 +2030,13 @@ void Jit64::srawix(UGeckoInstruction inst)
   int s = inst.RS;
   int amount = inst.SH;
 
-  if (amount != 0)
+  if (gpr.IsImm(s))
+  {
+    s32 imm = gpr.SImm32(s);
+    gpr.SetImmediate32(a, imm >> amount);
+    FinalizeCarry(amount != 0 && imm < 0 && (u32(imm) << (32 - amount)));
+  }
+  else if (amount != 0)
   {
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
     RCOpArg Rs = gpr.Use(s, RCMode::Read);
