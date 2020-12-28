@@ -65,7 +65,9 @@ private:
   void OpenWiki();
   void SetDefaultISO();
   void DeleteFile();
+   #ifdef _WIN32
   void AddShortcutToDesktop();
+   #endif
   void InstallWAD();
   void UninstallWAD();
   void ExportWiiSave();
