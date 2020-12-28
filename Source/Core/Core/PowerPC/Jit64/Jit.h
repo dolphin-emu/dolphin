@@ -103,6 +103,8 @@ public:
   void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
 
   void AndWithMask(Gen::X64Reg reg, u32 mask);
+  void RotateLeft(int bits, Gen::X64Reg regOp, const Gen::OpArg& arg, u8 rotate);
+
   bool CheckMergedBranch(u32 crf) const;
   void DoMergedBranch();
   void DoMergedBranchCondition();

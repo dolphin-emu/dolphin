@@ -207,6 +207,27 @@ void Jit64::AndWithMask(X64Reg reg, u32 mask)
     AND(32, R(reg), Imm32(mask));
 }
 
+void Jit64::RotateLeft(int bits, X64Reg regOp, const OpArg& arg, u8 rotate)
+{
+  const bool is_same_reg = arg.IsSimpleReg(regOp);
+
+  if (cpu_info.bBMI2 && !is_same_reg && rotate != 0)
+  {
+    RORX(bits, regOp, arg, bits - rotate);
+    return;
+  }
+
+  if (!is_same_reg)
+  {
+    MOV(bits, R(regOp), arg);
+  }
+
+  if (rotate != 0)
+  {
+    ROL(bits, R(regOp), Imm8(rotate));
+  }
+}
+
 // Following static functions are used in conjunction with regimmop
 static u32 Add(u32 a, u32 b)
 {
@@ -1582,34 +1603,34 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
       BEXTR(32, Ra, Rs, RSCRATCH);
       needs_sext = false;
     }
-    else
+    else if (left_shift)
     {
       if (a != s)
         MOV(32, Ra, Rs);
 
-      if (left_shift)
+      SHL(32, Ra, Imm8(inst.SH));
+    }
+    else if (right_shift)
+    {
+      if (a != s)
+        MOV(32, Ra, Rs);
+
+      SHR(32, Ra, Imm8(inst.MB));
+      needs_sext = false;
+    }
+    else
+    {
+      RotateLeft(32, Ra, Rs, inst.SH);
+
+      if (!(inst.MB == 0 && inst.ME == 31))
       {
-        SHL(32, Ra, Imm8(inst.SH));
-      }
-      else if (right_shift)
-      {
-        SHR(32, Ra, Imm8(inst.MB));
-        needs_sext = false;
-      }
-      else
-      {
-        if (inst.SH != 0)
-          ROL(32, Ra, Imm8(inst.SH));
-        if (!(inst.MB == 0 && inst.ME == 31))
-        {
-          // we need flags if we're merging the branch
-          if (inst.Rc && CheckMergedBranch(0))
-            AND(32, Ra, Imm32(mask));
-          else
-            AndWithMask(Ra, mask);
-          needs_sext = inst.MB == 0;
-          needs_test = false;
-        }
+        // we need flags if we're merging the branch
+        if (inst.Rc && CheckMergedBranch(0))
+          AND(32, Ra, Imm32(mask));
+        else
+          AndWithMask(Ra, mask);
+        needs_sext = inst.MB == 0;
+        needs_test = false;
       }
     }
 
@@ -1649,10 +1670,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       RCOpArg Rs = gpr.Use(s, RCMode::Read);
       RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
       RegCache::Realize(Rs, Ra);
-      if (a != s)
-        MOV(32, Ra, Rs);
-      if (inst.SH)
-        ROL(32, Ra, Imm8(inst.SH));
+      RotateLeft(32, Ra, Rs, inst.SH);
       needs_test = true;
     }
     else if (gpr.IsImm(s))
@@ -1674,19 +1692,20 @@ void Jit64::rlwimix(UGeckoInstruction inst)
         RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
         RegCache::Realize(Rs, Ra);
 
-        MOV(32, Ra, Rs);
         if (isLeftShift)
         {
+          MOV(32, Ra, Rs);
           SHL(32, Ra, Imm8(inst.SH));
         }
         else if (isRightShift)
         {
+          MOV(32, Ra, Rs);
           SHR(32, Ra, Imm8(32 - inst.SH));
         }
         else
         {
-          ROL(32, Ra, Imm8(inst.SH));
-          AND(32, Ra, Imm32(mask));
+          RotateLeft(32, Ra, Rs, inst.SH);
+          AndWithMask(Ra, mask);
         }
         OR(32, Ra, Imm32(maskA));
       }
@@ -1697,22 +1716,23 @@ void Jit64::rlwimix(UGeckoInstruction inst)
         RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
         RegCache::Realize(Rs, Ra);
 
-        MOV(32, R(RSCRATCH), Rs);
         if (isLeftShift)
         {
+          MOV(32, R(RSCRATCH), Rs);
           SHL(32, R(RSCRATCH), Imm8(inst.SH));
           AndWithMask(Ra, ~mask);
           OR(32, Ra, R(RSCRATCH));
         }
         else if (isRightShift)
         {
+          MOV(32, R(RSCRATCH), Rs);
           SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
           AndWithMask(Ra, ~mask);
           OR(32, Ra, R(RSCRATCH));
         }
         else
         {
-          ROL(32, R(RSCRATCH), Imm8(inst.SH));
+          RotateLeft(32, RSCRATCH, Rs, inst.SH);
           XOR(32, R(RSCRATCH), Ra);
           AndWithMask(RSCRATCH, mask);
           XOR(32, Ra, R(RSCRATCH));
