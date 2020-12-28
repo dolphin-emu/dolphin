@@ -115,7 +115,7 @@ private:
   SDSP& m_dsp;
 };
 
-SDSP::SDSP(DSPCore& core) : m_dsp_core{core}
+SDSP::SDSP(DSPCore& core) : m_dsp_core{core}, m_analyzer{*this}
 {
 }
 
@@ -487,7 +487,7 @@ void DSPCore::Step()
 void DSPCore::Reset()
 {
   m_dsp.Reset();
-  Analyzer::Analyze(m_dsp);
+  m_dsp.GetAnalyzer().Analyze();
 }
 
 void DSPCore::ClearIRAM()

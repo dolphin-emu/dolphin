@@ -82,7 +82,8 @@ void DSPEmitter::WriteBranchExit()
 {
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
-  if (Analyzer::GetCodeFlags(m_start_address) & Analyzer::CODE_IDLE_SKIP)
+  if ((m_dsp_core.DSPState().GetAnalyzer().GetCodeFlags(m_start_address) &
+       Analyzer::CODE_IDLE_SKIP) != 0)
   {
     MOV(16, R(EAX), Imm16(0x1000));
   }

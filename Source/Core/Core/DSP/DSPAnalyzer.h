@@ -66,16 +66,4 @@ private:
   // DSP context for analysis to be run under.
   const SDSP& m_dsp;
 };
-
-// This one should be called every time IRAM changes - which is basically
-// every time that a new ucode gets uploaded, and never else. At that point,
-// we can do as much static analysis as we want - but we should always throw
-// all old analysis away. Luckily the entire address space is only 64K code
-// words and the actual code space 8K instructions in total, so we can do
-// some pretty expensive analysis if necessary.
-void Analyze(const SDSP& dsp);
-
-// Retrieves the flags set during analysis for code in memory.
-u8 GetCodeFlags(u16 address);
-
 }  // namespace DSP::Analyzer

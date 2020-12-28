@@ -14,13 +14,6 @@
 
 namespace DSP::Analyzer
 {
-namespace
-{
-constexpr size_t ISPACE = 65536;
-
-// Holds data about all instructions in RAM.
-std::array<u8, ISPACE> code_flags;
-
 // Good candidates for idle skipping is mail wait loops. If we're time slicing
 // between the main CPU and the DSP, if the DSP runs into one of these, it might
 // as well give up its time slice immediately, after executing once.
@@ -65,14 +58,28 @@ constexpr u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] = {
     {0x00da, 0x0352,  // LR     $AX0.H, @0x0352
      0x8600,          // TSTAXH $AX0.H
      0x0295, 0xFFFF,  // JZ    0x????
-     0, 0}};
+     0, 0},
+};
 
-void Reset()
+Analyzer::Analyzer(const SDSP& dsp) : m_dsp{dsp}
 {
-  code_flags.fill(0);
 }
 
-void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
+Analyzer::~Analyzer() = default;
+
+void Analyzer::Analyze()
+{
+  Reset();
+  AnalyzeRange(0x0000, 0x1000);  // IRAM
+  AnalyzeRange(0x8000, 0x9000);  // IROM
+}
+
+void Analyzer::Reset()
+{
+  m_code_flags.fill(0);
+}
+
+void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
 {
   // First we run an extremely simplified version of a disassembler to find
   // where all instructions start.
@@ -82,27 +89,27 @@ void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
   u16 last_arithmetic = 0;
   for (u16 addr = start_addr; addr < end_addr;)
   {
-    const UDSPInstruction inst = dsp.ReadIMEM(addr);
+    const UDSPInstruction inst = m_dsp.ReadIMEM(addr);
     const DSPOPCTemplate* opcode = GetOpTemplate(inst);
     if (!opcode)
     {
       addr++;
       continue;
     }
-    code_flags[addr] |= CODE_START_OF_INST;
+    m_code_flags[addr] |= CODE_START_OF_INST;
     // Look for loops.
     if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100)
     {
       // BLOOP, BLOOPI
-      const u16 loop_end = dsp.ReadIMEM(addr + 1);
-      code_flags[addr] |= CODE_LOOP_START;
-      code_flags[loop_end] |= CODE_LOOP_END;
+      const u16 loop_end = m_dsp.ReadIMEM(addr + 1);
+      m_code_flags[addr] |= CODE_LOOP_START;
+      m_code_flags[loop_end] |= CODE_LOOP_END;
     }
     else if ((inst & 0xffe0) == 0x0040 || (inst & 0xff00) == 0x1000)
     {
       // LOOP, LOOPI
-      code_flags[addr] |= CODE_LOOP_START;
-      code_flags[static_cast<u16>(addr + 1u)] |= CODE_LOOP_END;
+      m_code_flags[addr] |= CODE_LOOP_START;
+      m_code_flags[static_cast<u16>(addr + 1u)] |= CODE_LOOP_END;
     }
 
     // Mark the last arithmetic/multiplier instruction before a branch.
@@ -114,7 +121,7 @@ void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
 
     if (opcode->branch && !opcode->uncond_branch)
     {
-      code_flags[last_arithmetic] |= CODE_UPDATE_SR;
+      m_code_flags[last_arithmetic] |= CODE_UPDATE_SR;
     }
 
     // If an instruction potentially raises exceptions, mark the following
@@ -122,7 +129,9 @@ void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
     if (opcode->opcode == 0x00c0 || opcode->opcode == 0x1800 || opcode->opcode == 0x1880 ||
         opcode->opcode == 0x1900 || opcode->opcode == 0x1980 || opcode->opcode == 0x2000 ||
         opcode->extended)
-      code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_INT;
+    {
+      m_code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_INT;
+    }
 
     addr += opcode->size;
   }
@@ -139,30 +148,16 @@ void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
           found = true;
         if (idle_skip_sigs[s][i] == 0xFFFF)
           continue;
-        if (idle_skip_sigs[s][i] != dsp.ReadIMEM(static_cast<u16>(addr + i)))
+        if (idle_skip_sigs[s][i] != m_dsp.ReadIMEM(static_cast<u16>(addr + i)))
           break;
       }
       if (found)
       {
         INFO_LOG_FMT(DSPLLE, "Idle skip location found at {:02x} (sigNum:{})", addr, s + 1);
-        code_flags[addr] |= CODE_IDLE_SKIP;
+        m_code_flags[addr] |= CODE_IDLE_SKIP;
       }
     }
   }
   INFO_LOG_FMT(DSPLLE, "Finished analysis.");
 }
-}  // Anonymous namespace
-
-void Analyze(const SDSP& dsp)
-{
-  Reset();
-  AnalyzeRange(dsp, 0x0000, 0x1000);  // IRAM
-  AnalyzeRange(dsp, 0x8000, 0x9000);  // IROM
-}
-
-u8 GetCodeFlags(u16 address)
-{
-  return code_flags[address];
-}
-
 }  // namespace DSP::Analyzer

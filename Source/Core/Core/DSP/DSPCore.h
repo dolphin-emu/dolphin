@@ -12,6 +12,7 @@
 #include <string>
 
 #include "Common/Event.h"
+#include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 
@@ -396,6 +397,10 @@ struct SDSP
   // Saves and loads any necessary state.
   void DoState(PointerWrap& p);
 
+  // DSP static analyzer.
+  Analyzer::Analyzer& GetAnalyzer() { return m_analyzer; }
+  const Analyzer::Analyzer& GetAnalyzer() const { return m_analyzer; }
+
   DSP_Regs r{};
   u16 pc = 0;
 
@@ -449,6 +454,7 @@ private:
   u16 ReadIFXImpl(u16 address);
 
   DSPCore& m_dsp_core;
+  Analyzer::Analyzer m_analyzer;
 };
 
 enum class State
