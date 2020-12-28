@@ -1542,7 +1542,9 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
     const bool left_shift = inst.SH && inst.MB == 0 && inst.ME == 31 - inst.SH;
     const bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
     const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+    const u32 prerotate_mask = Common::RotateRight(mask, inst.SH);
     const bool simple_mask = mask == 0xff || mask == 0xffff;
+    const bool simple_prerotate_mask = prerotate_mask == 0xff || prerotate_mask == 0xffff;
     // In case of a merged branch, track whether or not we've set flags.
     // If not, we need to do a test later to get them.
     bool needs_test = true;
@@ -1564,13 +1566,13 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
       MOVZX(32, mask_size, Ra, Rs.ExtractWithByteOffset(inst.SH ? (32 - inst.SH) >> 3 : 0));
       needs_sext = false;
     }
-    // another optimized special case: byte/word extract plus shift
-    else if (((mask >> inst.SH) << inst.SH) == mask && !left_shift &&
-             ((mask >> inst.SH) == 0xff || (mask >> inst.SH) == 0xffff))
+    // another optimized special case: byte/word extract plus rotate
+    else if (simple_prerotate_mask && !left_shift)
     {
-      MOVZX(32, mask_size, Ra, Rs);
-      SHL(32, Ra, Imm8(inst.SH));
-      needs_sext = inst.SH + mask_size >= 32;
+      MOVZX(32, prerotate_mask == 0xff ? 8 : 16, Ra, Rs);
+      if (inst.SH)
+        ROL(32, Ra, Imm8(inst.SH));
+      needs_sext = (mask & 0x80000000) != 0;
     }
     else
     {
