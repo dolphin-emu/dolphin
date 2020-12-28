@@ -1649,17 +1649,24 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
 
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+
   if (gpr.IsImm(a, s))
   {
-    const u32 mask = MakeRotationMask(inst.MB, inst.ME);
     gpr.SetImmediate32(a,
                        (gpr.Imm32(a) & ~mask) | (Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
     if (inst.Rc)
       ComputeRC(a);
   }
+  else if (gpr.IsImm(s) && mask == 0xFFFFFFFF)
+  {
+    gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), inst.SH));
+
+    if (inst.Rc)
+      ComputeRC(a);
+  }
   else
   {
-    const u32 mask = MakeRotationMask(inst.MB, inst.ME);
     bool needs_test = false;
     if (mask == 0 || (a == s && inst.SH == 0))
     {
