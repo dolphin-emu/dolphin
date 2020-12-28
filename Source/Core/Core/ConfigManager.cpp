@@ -222,6 +222,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
   core->Set("AgpCartAPath", m_strGbaCartA);
   core->Set("AgpCartBPath", m_strGbaCartB);
+  core->Set("BlockingPipes", m_blockingPipes);
   core->Set("SlotA", m_EXIDevice[0]);
   core->Set("SlotB", m_EXIDevice[1]);
   core->Set("SerialPort1", m_EXIDevice[2]);
@@ -492,6 +493,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
+  core->Get("BlockingPipes", &m_blockingPipes, false);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_SLIPPI);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);

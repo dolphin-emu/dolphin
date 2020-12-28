@@ -38,6 +38,7 @@
 //#define CREATE_DIFF_FILES
 extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
 extern std::unique_ptr<SlippiReplayComm> g_replayComm;
+extern bool g_needInputForFrame;
 
 #ifdef LOCAL_TESTING
 bool isLocalConnected = false;
@@ -2146,7 +2147,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     configureCommands(&memPtr[1], receiveCommandsLen);
     writeToFileAsync(&memPtr[0], receiveCommandsLen + 1, "create");
     bufLoc += receiveCommandsLen + 1;
-    // g_needInputForFrame = true;
+    g_needInputForFrame = true;
     SlippiSpectateServer::getInstance().startGame();
     SlippiSpectateServer::getInstance().write(&memPtr[0], receiveCommandsLen + 1);
   }
@@ -2154,7 +2155,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
   if (byte == CMD_MENU_FRAME)
   {
     SlippiSpectateServer::getInstance().write(&memPtr[0], _uSize);
-    // g_needInputForFrame = true;
+    g_needInputForFrame = true;
   }
 
   INFO_LOG(EXPANSIONINTERFACE, "EXI SLIPPI DMAWrite: addr: 0x%08x size: %d, bufLoc:[%02x %02x %02x %02x %02x]",
@@ -2187,7 +2188,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       prepareFrameData(&memPtr[bufLoc + 1]);
       break;
     case CMD_FRAME_BOOKEND:
-      // g_needInputForFrame = true;
+      g_needInputForFrame = true;
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);
       break;
