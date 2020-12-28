@@ -1870,6 +1870,16 @@ void Jit64::srwx(UGeckoInstruction inst)
         SHR(32, Ra, Imm8(amount));
     }
   }
+  else if (cpu_info.bBMI2)
+  {
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCX64Reg Rb = gpr.Bind(b, RCMode::Read);
+    RCX64Reg Rs = gpr.Bind(s, RCMode::Read);
+    RegCache::Realize(Ra, Rb, Rs);
+
+    // Rs must be in register: This is a 64-bit operation, using an OpArg will have invalid results
+    SHRX(64, Ra, Rs, Rb);
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
@@ -1932,6 +1942,25 @@ void Jit64::slwx(UGeckoInstruction inst)
     gpr.SetImmediate32(a, 0);
     if (inst.Rc)
       ComputeRC(a);
+  }
+  else if (cpu_info.bBMI2)
+  {
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCX64Reg Rb = gpr.Bind(b, RCMode::Read);
+    RCOpArg Rs = gpr.UseNoImm(s, RCMode::Read);
+    RegCache::Realize(Ra, Rb, Rs);
+
+    SHLX(64, Ra, Rs, Rb);
+    if (inst.Rc)
+    {
+      AND(32, Ra, Ra);
+      RegCache::Unlock(Ra, Rb, Rs);
+      ComputeRC(a, false);
+    }
+    else
+    {
+      MOVZX(64, 32, Ra, Ra);
+    }
   }
   else
   {
@@ -2022,6 +2051,29 @@ void Jit64::srawx(UGeckoInstruction inst)
   {
     gpr.SetImmediate32(a, 0);
     FinalizeCarry(false);
+  }
+  else if (cpu_info.bBMI2 && a != b)
+  {
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCX64Reg Rb = gpr.Bind(b, RCMode::Read);
+    RCOpArg Rs = gpr.UseNoImm(s, RCMode::Read);
+    RegCache::Realize(Ra, Rb, Rs);
+
+    if (a != s)
+      MOV(32, Ra, Rs);
+    SHL(64, Ra, Imm8(32));
+    SARX(64, Ra, Ra, Rb);
+    if (js.op->wantsCA)
+    {
+      MOV(32, R(RSCRATCH), Ra);
+      SHR(64, Ra, Imm8(32));
+      TEST(32, Ra, R(RSCRATCH));
+    }
+    else
+    {
+      SHR(64, Ra, Imm8(32));
+    }
+    FinalizeCarry(CC_NZ);
   }
   else
   {
