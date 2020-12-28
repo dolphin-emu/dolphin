@@ -27,7 +27,7 @@ public:
   void SetPaused(bool paused);
 
   // Called from audio threads:
-  u32 Mix(s16* samples, u32 num_samples);
+  u32 Mix(s16* samples, u32 num_samples, bool surround = false);
   u32 MixSurround(float* samples, u32 num_samples);
 
   // Called from main thread:
@@ -49,8 +49,6 @@ public:
 
   // Only call when the audio thread (Mix()) is not running
   void UpdateSettings(u32 sample_rate);
-  // Useful to clean the surround buffer when we enable/disable it
-  void SetSurroundChanged() { m_surround_changed = true; }
 
   u32 GetSampleRate() const { return m_sample_rate; }
   double GetCurrentSpeed() const { return m_target_speed; }
@@ -97,7 +95,6 @@ private:
     }
     void DoState(PointerWrap& p);
     void PushSamples(const s16* samples, u32 num_samples);
-    // Returns the actual mixed samples num, pads the rest with the last sample.
     // Executed from sound stream thread
     u32 Mix(s16* samples, u32 num_samples, bool stretching = false);
     void SetInputSampleRate(double sample_rate);
@@ -194,8 +191,6 @@ private:
 
   u32 m_sample_rate;  // Only changed by main or emulation thread when the backend is not running
   bool m_stretching = false;
-  std::atomic<bool> m_surround_changed{false};
-  bool m_disabling_surround = false;
   bool m_update_surround_latency = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;

@@ -7,14 +7,15 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <mmreg.h>
-#endif
 
 #include <atomic>
 #include <string>
 #include <thread>
 #include <vector>
+#endif
 
 #include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
 
 struct IAudioClient;
 struct IAudioRenderClient;
@@ -27,9 +28,11 @@ class AutoCoInit;
 
 class WASAPIStream final : public SoundStream
 {
-#ifdef _WIN32
 public:
-  explicit WASAPIStream();
+  static std::string GetName() { return _trans("WASAPI (Exclusive Mode)"); }
+#ifdef _WIN32
+  static bool IsValid() { return true; }
+  WASAPIStream();
   ~WASAPIStream();
   bool Init() override;
   bool SetRunning(bool running) override;
@@ -40,18 +43,17 @@ public:
   bool ShouldRestart() const { return m_should_restart; }
   bool IsUsingDefaultDevice() const { return m_using_default_device; }
 
+  static bool SupportsSurround() { return true; }
+  static bool SupportsCustomLatency() { return true; }
+  static bool SupportsVolumeChanges() { return true; }
   bool SupportsRuntimeSettingsChanges() const override { return true; }
-  bool IsSurroundEnabled() const override { return m_surround; }
+  AudioCommon::SurroundState GetSurroundState() const override;
   void OnSettingsChanged() override { m_should_restart = true; }
 
-  static bool IsValid() { return true; }
   // Returns the IDs and Names of all the devices
   static std::vector<std::pair<std::string, std::string>> GetAvailableDevices();
-  // Returns the first device found with the (friendly) name we passed in
-  static IMMDevice* GetDeviceByName(const std::string& name);
-  static IMMDevice* GetDeviceByID(const std::string& id);
   // Returns the user selected device supported sample rates at 16 bit and 2 channels,
-  // so it ignores 24 bit or support for 5 channels. If we are starting up WASAPI with DPL2 on,
+  // so it ignores 24 bit or support for 5 channels. If we are starting up WASAPI with DPLII on,
   // it will try these sample rates anyway, or fallback to the dolphin default one,
   // but generally if a device supports a sample rate, it supports it with any bitrate/channels.
   // It doesn't just return any device supported sample rate, just the ones we care for in Dolphin
@@ -59,6 +61,10 @@ public:
 
 private:
   bool SetRestartFromResult(HRESULT result);
+
+  // Returns the first device found with the (friendly) name we passed in
+  static IMMDevice* GetDeviceByName(std::string_view name);
+  static IMMDevice* GetDeviceByID(std::string_view id);
 
   u32 m_frames_in_buffer = 0;
   std::atomic<bool> m_running = false;

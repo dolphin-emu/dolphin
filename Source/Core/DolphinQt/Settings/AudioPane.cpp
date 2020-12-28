@@ -22,7 +22,10 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Enums.h"
+#include "AudioCommon/NullSoundStream.h"
+#ifdef _WIN32
 #include "AudioCommon/WASAPIStream.h"
+#endif
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -109,7 +112,6 @@ void AudioPane::CreateWidgets()
 
   m_volume_slider->setMinimum(0);
   m_volume_slider->setMaximum(100);
-
   m_volume_slider->setToolTip(tr("Using this is preferred over the OS mixer volume"));
 
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
@@ -206,7 +208,7 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   //To review: maybe have a set of 4 or 5 options to keep it simpler (low, high, ...).
   //Also add descrpition to m_emu_speed_tolerance_label explaining that it's the time
-  //the emulation need to be offsetted by to start using the current speed
+  //the emulation need to be offsetted by to start using the current speed. Do the same on android
 
   m_stretching_enable->setToolTip(tr(
       "Enables stretching of the audio (pitch correction) to match the emulation speed.\nIt might "
@@ -233,7 +235,7 @@ void AudioPane::CreateWidgets()
   m_dolby_quality_slider->setToolTip(
       tr("Quality of the DPLII decoder. Also increases audio latency by about half the block "
          "time.\nThe selected preset will be "
-         "used to find the best compromise between quality and latency."));
+         "used to find the best compromise between quality and performance."));
 
   m_dolby_quality_slider->setTracking(true);
 
@@ -300,6 +302,8 @@ void AudioPane::LoadSettings()
 {
   auto& settings = Settings::Instance();
 
+  m_ignore_save_settings = true;
+
   // DSP
   if (SConfig::GetInstance().bDSPHLE)
   {
@@ -312,7 +316,6 @@ void AudioPane::LoadSettings()
   }
 
   // Backend
-  m_ignore_save_settings = true;
   const auto current_backend = SConfig::GetInstance().sBackend;
   bool selection_set = false;
   m_backend_combo->clear();
@@ -324,9 +327,13 @@ void AudioPane::LoadSettings()
       m_backend_combo->setCurrentIndex(m_backend_combo->count() - 1);
       selection_set = true;
     }
+    // Fallback to default if the serialized one isn't valid
+    else if (!selection_set && backend == AudioCommon::GetDefaultSoundBackend())
+    {
+      m_backend_combo->setCurrentIndex(m_backend_combo->count() - 1);
+    }
   }
-  if (!selection_set)
-    m_backend_combo->setCurrentIndex(-1);
+
   m_ignore_save_settings = false;
 
   OnBackendChanged();
@@ -334,14 +341,14 @@ void AudioPane::LoadSettings()
   // Volume
   OnVolumeChanged(settings.GetVolume());
 
+  m_ignore_save_settings = true;
+
   // DPL2
   m_dolby_pro_logic->setChecked(SConfig::GetInstance().bDPL2Decoder);
-  m_ignore_save_settings = true;
   m_dolby_quality_slider->setValue(int(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  m_ignore_save_settings = false;
   m_dolby_quality_latency_label->setText(
       GetDPL2QualityAndLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  if (AudioCommon::SupportsDPL2Decoder(current_backend) && !m_dsp_hle->isChecked())
+  if (AudioCommon::SupportsSurround(current_backend) && !m_dsp_hle->isChecked())
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
   }
@@ -349,12 +356,8 @@ void AudioPane::LoadSettings()
   // Latency
   if (m_latency_control_supported)
   {
-    m_ignore_save_settings = true;
     m_latency_spin->setValue(SConfig::GetInstance().iAudioBackendLatency);
-    m_ignore_save_settings = false;
   }
-
-  m_ignore_save_settings = true;
 
   // Sample rate
   m_use_os_sample_rate->setChecked(SConfig::GetInstance().bUseOSMixerSampleRate);
@@ -392,8 +395,8 @@ void AudioPane::SaveSettings()
   auto& settings = Settings::Instance();
 
   bool volume_changed = false;
-  bool backend_setting_changed = false;
-  bool surround_enabled_changed = false;
+  u32 changed_backend_setting = 0;
+  bool surround_quality_changed = false;
 
   // DSP
   if (SConfig::GetInstance().bDSPHLE != m_dsp_hle->isChecked() ||
@@ -434,8 +437,7 @@ void AudioPane::SaveSettings()
     {
       m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
     }
-    backend_setting_changed = true;
-    surround_enabled_changed = true;
+    ++changed_backend_setting;
   }
   if (Config::Get(Config::MAIN_DPL2_QUALITY) !=
       static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()))
@@ -444,14 +446,8 @@ void AudioPane::SaveSettings()
                     static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()));
     m_dolby_quality_latency_label->setText(
         GetDPL2QualityAndLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-    backend_setting_changed = true;  // Not a mistake
-  }
-  // If we have disabled surround while the game is running, disable all its settings immediately,
-  // don't wait for the timer
-  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() &&
-      (!m_running || (surround_enabled_changed && !m_dolby_pro_logic->isChecked())))
-  {
-    EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
+    ++changed_backend_setting; // Not a mistake
+    surround_quality_changed = true;
   }
 
   // Latency
@@ -459,14 +455,14 @@ void AudioPane::SaveSettings()
       SConfig::GetInstance().iAudioBackendLatency != m_latency_spin->value())
   {
     SConfig::GetInstance().iAudioBackendLatency = m_latency_spin->value();
-    backend_setting_changed = true;
+    ++changed_backend_setting;
   }
 
   // Sample rate
   if (m_use_os_sample_rate->isChecked() != SConfig::GetInstance().bUseOSMixerSampleRate)
   {
     SConfig::GetInstance().bUseOSMixerSampleRate = m_use_os_sample_rate->isChecked();
-    backend_setting_changed = true;
+    ++changed_backend_setting;
   }
 
   // Stretch
@@ -497,14 +493,14 @@ void AudioPane::SaveSettings()
     SConfig::GetInstance().sWASAPIDeviceName =
         default_device ? "" : m_wasapi_device_combo->currentText().toStdString();
 
-    bool is_wasapi = backend == BACKEND_WASAPI;
+    bool is_wasapi = backend == WASAPIStream::GetName();
     if (is_wasapi)
     {
       OnWASAPIDeviceChanged();
       if (device_changed)
       {
         LoadWASAPIDeviceSampleRate();
-        backend_setting_changed = true;
+        ++changed_backend_setting;
       }
     }
   }
@@ -513,41 +509,57 @@ void AudioPane::SaveSettings()
   if (SConfig::GetInstance().sWASAPIDeviceSampleRate != device_sample_rate)
   {
     SConfig::GetInstance().sWASAPIDeviceSampleRate = device_sample_rate;
-    backend_setting_changed = true;
+    bool is_wasapi = backend == WASAPIStream::GetName();
+    if (is_wasapi)
+    {
+      ++changed_backend_setting;
+    }
   }
 #endif
 
-  AudioCommon::UpdateSoundStreamSettings(volume_changed, backend_setting_changed,
-                                         surround_enabled_changed);
+  if (AudioCommon::SupportsSurround(backend) && !m_dsp_hle->isChecked())
+  {
+    // If we changed any backend setting while the game is running, disable the ability to change
+    // the DPLII quality until we have confirmed it has reactivated correctly (with the timer)
+    bool any_non_surround_quality_settings_changed =
+        (s32(changed_backend_setting) - s32(surround_quality_changed)) > 0;
+    bool should_enable = m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked();
+    if (m_running)
+      should_enable = should_enable && !any_non_surround_quality_settings_changed;
+    EnableDolbyQualityWidgets(should_enable);
+  }
+
+  AudioCommon::UpdateSoundStreamSettings(volume_changed, changed_backend_setting > 0);
 }
 
 void AudioPane::OnDSPChanged()
 {
   const auto backend = SConfig::GetInstance().sBackend;
 
-  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
+  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsSurround(backend) &&
                                 !m_dsp_hle->isChecked());
   EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
 }
 
 void AudioPane::OnBackendChanged()
 {
-  const auto backend = SConfig::GetInstance().sBackend;
+  const auto backend = AudioCommon::GetBackendName();
 
-  m_use_os_sample_rate->setEnabled(backend != BACKEND_NULLSOUND);
+  m_use_os_sample_rate->setEnabled(backend != NullSound::GetName());
 
-  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
+  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsSurround(backend) &&
                                 !m_dsp_hle->isChecked());
   EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
 
   if (m_latency_control_supported)
   {
-    m_latency_label->setEnabled(AudioCommon::SupportsLatencyControl(backend));
-    m_latency_spin->setEnabled(AudioCommon::SupportsLatencyControl(backend));
+    bool enable_latency = AudioCommon::SupportsLatencyControl(backend);
+    m_latency_label->setEnabled(enable_latency);
+    m_latency_spin->setEnabled(enable_latency);
   }
 
 #ifdef _WIN32
-  bool is_wasapi = backend == BACKEND_WASAPI;
+  bool is_wasapi = backend == WASAPIStream::GetName();
   m_wasapi_device_label->setHidden(!is_wasapi);
   m_wasapi_device_sample_rate_label->setHidden(!is_wasapi);
   m_wasapi_device_combo->setHidden(!is_wasapi);
@@ -562,21 +574,21 @@ void AudioPane::OnBackendChanged()
     m_wasapi_devices_ids.clear();
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
-
     for (const auto device : WASAPIStream::GetAvailableDevices())
     {
       m_wasapi_devices_ids.emplace_back(device.first);
       m_wasapi_device_combo->addItem(QString::fromStdString(device.second));
     }
 
-    OnWASAPIDeviceChanged();
-
     m_ignore_save_settings = false;
+
+    OnWASAPIDeviceChanged();
   }
 #endif
 
-  m_volume_slider->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
-  m_volume_indicator->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
+  bool enable_volume = AudioCommon::SupportsVolumeChanges(backend);
+  m_volume_slider->setEnabled(enable_volume);
+  m_volume_indicator->setEnabled(enable_volume);
 }
 
 #ifdef _WIN32
@@ -709,7 +721,32 @@ void AudioPane::OnEmulationStateChanged(bool running)
 {
   m_running = running;
 
-  const auto backend = SConfig::GetInstance().sBackend;
+  // If the selected backend failed to initialize, NullSound would have been started instead
+  const auto backend = AudioCommon::GetBackendName();
+  const auto config_backend = SConfig::GetInstance().sBackend;
+
+  if (config_backend != backend)
+  {
+    const auto backend_title = tr(m_backend_combo->itemData(m_backend_combo->currentIndex())
+                                      .toString()
+                                      .toStdString()
+                                      .c_str())
+                                   .append(tr(" (FAILED)"));
+    m_ignore_save_settings = true;
+    m_backend_combo->setItemText(m_backend_combo->currentIndex(), backend_title);
+    m_ignore_save_settings = false;
+    OnBackendChanged();
+  }
+  else
+  {
+    const auto backend_title = tr(m_backend_combo->itemData(m_backend_combo->currentIndex())
+                                      .toString()
+                                      .toStdString()
+                                      .c_str());
+    m_ignore_save_settings = true;
+    m_backend_combo->setItemText(m_backend_combo->currentIndex(), backend_title);
+    m_ignore_save_settings = false;
+  }
 
   bool supports_current_emulation_state =
       !running || AudioCommon::BackendSupportsRuntimeSettingsChanges();
@@ -721,25 +758,22 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_backend_combo->setEnabled(!running);
 
   m_use_os_sample_rate->setEnabled(supports_current_emulation_state &&
-                                   backend != BACKEND_NULLSOUND);
+                                   backend != NullSound::GetName());
 
-  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
+  if (AudioCommon::SupportsSurround(backend) && !m_dsp_hle->isChecked())
   {
-    bool enable_dolby_pro_logic = supports_current_emulation_state;
-    m_dolby_pro_logic->setEnabled(enable_dolby_pro_logic);
-    EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
-    if (!m_running)
-      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
+    m_dolby_pro_logic->setEnabled(supports_current_emulation_state);
   }
-  if (m_latency_control_supported &&
-      AudioCommon::SupportsLatencyControl(SConfig::GetInstance().sBackend))
+  RefreshDolbyWidgets();
+
+  if (m_latency_control_supported)
   {
     bool enable_latency =
         supports_current_emulation_state && AudioCommon::SupportsLatencyControl(backend);
     m_latency_label->setEnabled(enable_latency);
     m_latency_spin->setEnabled(enable_latency);
   }
-
+  
 #ifdef _WIN32
   m_wasapi_device_label->setEnabled(supports_current_emulation_state);
   m_wasapi_device_combo->setEnabled(supports_current_emulation_state);
@@ -747,7 +781,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
       !SConfig::GetInstance().sWASAPIDeviceID.empty() && supports_current_emulation_state;
   m_wasapi_device_sample_rate_label->setEnabled(can_select_device_sample_rate);
   m_wasapi_device_sample_rate_combo->setEnabled(can_select_device_sample_rate);
-  bool is_wasapi = backend == BACKEND_WASAPI;
+  bool is_wasapi = backend == WASAPIStream::GetName();
   if (is_wasapi)
   {
     OnWASAPIDeviceChanged();
@@ -777,7 +811,6 @@ void AudioPane::OnCustomShowPopup(QWidget* widget)
     m_wasapi_devices_ids.clear();
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
-
     for (const auto device : WASAPIStream::GetAvailableDevices())
     {
       m_wasapi_devices_ids.emplace_back(device.first);
@@ -827,22 +860,26 @@ QString AudioPane::GetDPL2QualityAndLatencyLabel(AudioCommon::DPL2Quality value)
 
 void AudioPane::RefreshDolbyWidgets()
 {
-  const auto backend = SConfig::GetInstance().sBackend;
-  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() && m_running)
+  const auto backend = AudioCommon::GetBackendName();
+  if (AudioCommon::SupportsSurround(backend) && !m_dsp_hle->isChecked())
   {
-    bool surround_enabled = AudioCommon::IsSurroundEnabled();
-    if (!surround_enabled && SConfig::GetInstance().bDPL2Decoder)
+    AudioCommon::SurroundState surround_state = AudioCommon::GetSurroundState();
+    bool surround_failed = m_running && surround_state == AudioCommon::SurroundState::Failed &&
+                           SConfig::GetInstance().bDPL2Decoder;
+    if (surround_failed)
     {
       // This message will likely only appear if the audio backend has failed to
       // initialize because of 5.1, if it fails before that, it won't disable surround
-      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1) (FAILED)"));
+      m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)").append(tr(" (FAILED)")));
     }
     else
     {
       m_dolby_pro_logic->setText(tr("Dolby Pro Logic II (5.1)"));
     }
-    EnableDolbyQualityWidgets(surround_enabled &&
-                              AudioCommon::BackendSupportsRuntimeSettingsChanges());
+    bool supports_current_emulation_state =
+        !m_running || AudioCommon::BackendSupportsRuntimeSettingsChanges();
+    EnableDolbyQualityWidgets(!surround_failed && supports_current_emulation_state &&
+                              m_dolby_pro_logic->isChecked());
   }
 }
 

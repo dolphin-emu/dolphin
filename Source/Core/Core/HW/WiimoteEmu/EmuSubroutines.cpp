@@ -20,7 +20,6 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
-#pragma optimize("", off) //To delete
 
 namespace WiimoteEmu
 {

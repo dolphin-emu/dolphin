@@ -13,4 +13,12 @@ enum class DPL2Quality
   High = 2,
   Extreme = 3
 };
+
+enum class SurroundState
+{
+  Disabled,  // Surround is off or unsupported by backend
+  EnabledNotRunning,  // Backend not running, starting or paused
+  Failed,  // Backend tried to activate it but failed
+  Enabled  // Backend is running and has enabled surround successfully
+};
 }  // namespace AudioCommon

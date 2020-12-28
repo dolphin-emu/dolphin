@@ -39,8 +39,6 @@ const Info<bool> MAIN_DPL2_DECODER{{System::Main, "Core", "DPL2Decoder"}, false}
 const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY{{System::Main, "Core", "DPL2Quality"},
                                                        AudioCommon::GetDefaultDPL2Quality()};
 const Info<bool> MAIN_DPL2_BASS_REDIRECTION{{System::Main, "Core", "DPL2BassRedirection"}, false};
-const Info<bool> MAIN_DPL2_PERFORMANCE_OVER_LATENCY{
-    {System::Main, "Core", "DPL2PerformanceOverLatency"}, false};
 const Info<int> MAIN_AUDIO_BACKEND_LATENCY{{System::Main, "Core", "AudioBackendLatency"}, 20};
 const Info<int> MAIN_AUDIO_MIXER_MIN_LATENCY{{System::Main, "Core", "AudioMixerMinLatency"}, 0};
 const Info<int> MAIN_AUDIO_MIXER_MAX_LATENCY{{System::Main, "Core", "AudioMixerMaxLatency"}, 40};

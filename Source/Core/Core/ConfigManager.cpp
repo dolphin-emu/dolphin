@@ -221,9 +221,9 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("OverrideRegionSettings", bOverrideRegionSettings);
   core->Set("DPL2Decoder", bDPL2Decoder);
   core->Set("AudioBackendLatency", iAudioBackendLatency);
-  core->Set("UseOSMixerSampleRate", &bUseOSMixerSampleRate);
+  core->Set("UseOSMixerSampleRate", bUseOSMixerSampleRate);
   core->Set("AudioStretch", m_audio_stretch);
-  core->Set("AudioEmuSpeedTolerance", &m_audio_emu_speed_tolerance);
+  core->Set("AudioEmuSpeedTolerance", m_audio_emu_speed_tolerance);
   core->Set("AgpCartAPath", m_strGbaCartA);
   core->Set("AgpCartBPath", m_strGbaCartB);
   core->Set("SlotA", m_EXIDevice[0]);
@@ -483,7 +483,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
   core->Get("AudioBackendLatency", &iAudioBackendLatency, 20);
-  core->Get("UseOSMixerSampleRate", &bUseOSMixerSampleRate, false);
+  core->Get("UseOSMixerSampleRate", &bUseOSMixerSampleRate, true);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioEmuSpeedTolerance", &m_audio_emu_speed_tolerance, 20);
   core->Get("AgpCartAPath", &m_strGbaCartA);

@@ -16,16 +16,21 @@
 class CubebStream final : public SoundStream
 {
 public:
+  static std::string GetName() { return "Cubeb"; }
+  static bool IsValid() { return true; }
   ~CubebStream() override;
   bool Init() override;
   bool SetRunning(bool running) override;
   void Update() override;
   void SetVolume(int) override;
+  static bool SupportsSurround() { return true; }
+  static bool SupportsCustomLatency();
+  static bool SupportsVolumeChanges() { return true; }
 
   bool SupportsRuntimeSettingsChanges() const override { return true; }
   // Cubeb will accept a 6.0 channels stream even if our device does not support it
   // by just downmixing it (thus making it partially pointless)
-  bool IsSurroundEnabled() const override { return !m_stereo; }
+  AudioCommon::SurroundState GetSurroundState() const override;
   void OnSettingsChanged() override
   {
     m_settings_changed = true;
@@ -36,7 +41,8 @@ private:
   bool CreateStream();
   void DestroyStream();
 
-  bool m_stereo = false;
+  float m_volume = 1.f; 
+  bool m_stereo = true;
   std::shared_ptr<cubeb> m_ctx;
   cubeb_stream* m_stream = nullptr;
 

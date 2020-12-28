@@ -48,15 +48,6 @@ enum SIDevices : int;
 
 struct BootParameters;
 
-// DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No Audio Output")
-#define BACKEND_ALSA "ALSA"
-#define BACKEND_CUBEB "Cubeb"
-#define BACKEND_OPENAL _trans("OpenAL (Deprecated)")
-#define BACKEND_PULSEAUDIO "Pulse"
-#define BACKEND_OPENSLES "OpenSLES"
-#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
-
 enum class GPUDeterminismMode
 {
   Auto,
@@ -127,7 +118,7 @@ struct SConfig
   bool bDPL2Decoder = false;
   // Don't access directly, use AudioInterface::GetUserTargetLatency()
   int iAudioBackendLatency = 20;
-  bool bUseOSMixerSampleRate = false;
+  bool bUseOSMixerSampleRate = true;
   bool m_audio_stretch = false;
   int m_audio_emu_speed_tolerance = 20;
 

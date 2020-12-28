@@ -22,7 +22,6 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/FileUtil.h"
 #endif
-#pragma optimize("", off) //To delete
 
 namespace WiimoteEmu
 {
@@ -56,7 +55,7 @@ static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
 {
   double predictor_delta = (s.step * yamaha_difflookup[nibble]) / 8.0;
   assert(predictor_delta == std::clamp(predictor_delta, -65536.0, 65535.0));
-  predictor_delta = std::clamp(predictor_delta, -65536.0, 65535.0); // Likely useless
+  predictor_delta = std::clamp(predictor_delta, -65536.0, 65535.0);  // Likely useless
   s.predictor += predictor_delta;
   s.predictor = std::clamp(s.predictor, -32768.0, 32767.0);
   s.step = (s.step * yamaha_indexscale[nibble]) / 256.0;

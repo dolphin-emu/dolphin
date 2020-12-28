@@ -172,7 +172,6 @@ static bool HandleWinAPI(std::string message, HRESULT result)
 
 WASAPIStream::WASAPIStream()
 {
-  // Just to avoid moving AutoCoInit to the header file
   m_aci = std::make_unique<AutoCoInit>();
 }
 
@@ -272,7 +271,7 @@ std::vector<std::pair<std::string, std::string>> WASAPIStream::GetAvailableDevic
   return device_ids_and_names;
 }
 
-IMMDevice* WASAPIStream::GetDeviceByName(const std::string& name)
+IMMDevice* WASAPIStream::GetDeviceByName(std::string_view name)
 {
   AutoCoInit aci;
   if (!aci.Succeeded())
@@ -351,7 +350,7 @@ IMMDevice* WASAPIStream::GetDeviceByName(const std::string& name)
   return found_device;
 }
 
-IMMDevice* WASAPIStream::GetDeviceByID(const std::string& id)
+IMMDevice* WASAPIStream::GetDeviceByID(std::string_view id)
 {
   AutoCoInit aci;
   if (!aci.Succeeded())
@@ -581,7 +580,7 @@ bool WASAPIStream::Init()
 
 bool WASAPIStream::SetRunning(bool running)
 {
-  assert(running != m_running);
+  assert(running != m_running);  // Can't happen, but if it did, it's not supported
 
   // Can be called by multiple threads (main and emulation), we need to initialize COM
   AutoCoInit aci;
@@ -617,10 +616,10 @@ bool WASAPIStream::SetRunning(bool running)
       }
     }
 
+    m_surround = SConfig::GetInstance().ShouldUseDPL2Decoder();
     // Recreate the mixer with our preferred sample rate
     GetMixer()->UpdateSettings(sample_rate);
 
-    m_surround = SConfig::GetInstance().ShouldUseDPL2Decoder();
     m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     m_format.Format.nChannels = m_surround ? SURROUND_CHANNELS : STEREO_CHANNELS;
     m_format.Format.nSamplesPerSec = GetMixer()->GetSampleRate();
@@ -682,7 +681,9 @@ bool WASAPIStream::SetRunning(bool running)
     }
 
     if (!HandleWinAPI("Failed to get default endpoint", result))
+    {
       return false;
+    }
 
     // Show a friendly name in the log (no other use)
     IPropertyStore* device_properties;
@@ -754,9 +755,6 @@ bool WASAPIStream::SetRunning(bool running)
                GetMixer()->GetSampleRate());
 
       m_surround = false;
-      // Let the mixer know so it can clean the samples left in the surround decoder
-      GetMixer()->SetSurroundChanged();
-      GetMixer()->UpdateSettings(sample_rate);
 
       m_format.Format.nChannels = STEREO_CHANNELS;
       m_format.Format.nBlockAlign = m_format.Format.nChannels * m_format.Format.wBitsPerSample / 8;
@@ -921,7 +919,6 @@ bool WASAPIStream::SetRunning(bool running)
 
     m_thread.join();
 
-    m_surround = false;
     m_using_default_device = false;
 
     // As long as we don't call SetRunning(false) while m_running was already false,
@@ -963,21 +960,39 @@ void WASAPIStream::Update()
     {
       // We need to pass through AudioCommon as it has a mutex and
       // to make sure s_sound_stream_running is updated
-      if (AudioCommon::SetSoundStreamRunning(false, false))
+      if (AudioCommon::SetSoundStreamRunning(false))
       {
         // m_should_restart is triggered when the device is currently
         // invalidated, and it will stay for a while, so this new call
         // to SetRunning(true) might fail, but if it fails some
         // specific reasons, it will set m_should_restart true again.
         // A Sleep(10) call also seemed to fix the problem but it's hacky.
-        AudioCommon::SetSoundStreamRunning(true, false);
+        AudioCommon::SetSoundStreamRunning(true);
       }
     }
     else
     {
-      AudioCommon::SetSoundStreamRunning(true, false);
+      AudioCommon::SetSoundStreamRunning(true);
     }
   }
+}
+
+AudioCommon::SurroundState WASAPIStream::GetSurroundState() const
+{
+  if (m_running)
+  {
+    if (m_surround)
+    {
+      return AudioCommon::SurroundState::Enabled;
+    }
+    if (SConfig::GetInstance().ShouldUseDPL2Decoder())
+    {
+      return AudioCommon::SurroundState::Failed;
+    }
+  }
+  return SConfig::GetInstance().ShouldUseDPL2Decoder() ?
+             AudioCommon::SurroundState::EnabledNotRunning :
+             AudioCommon::SurroundState::Disabled;
 }
 
 void WASAPIStream::SoundLoop()

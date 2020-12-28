@@ -74,22 +74,23 @@ bool CubebStream::CreateStream()
   if (cubeb_get_min_latency(m_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
     ERROR_LOG_FMT(AUDIO, "Error getting minimum latency");
 
-#ifdef _WIN32
-  // Latency is ignored in Windows, despite being exposed (always 10ms, WASAPI max is 5000ms).
-  // However, it seems to somewhat be used when using its mixer (in case of up mixing
-  // or down mixing the n of channels) and audio thread runs too slow to keep up.
-  const u32 final_latency = minimum_latency;
-#else
-  const u32 target_latency = AudioCommon::GetUserTargetLatency() / 1000.0 * params.rate;
-  const u32 final_latency = std::clamp(target_latency, minimum_latency, 96000u);
-#endif
+  u32 final_latency = minimum_latency;
+  if (SupportsCustomLatency())
+  {
+    const u32 target_latency = AudioCommon::GetUserTargetLatency() / 1000.0 * params.rate;
+    final_latency = std::clamp(target_latency, minimum_latency, 96000u);
+  }
   INFO_LOG(AUDIO, "Latency: %u frames", final_latency);
 
-  // Note that cubeb latency might not be fixed and could dynamically adjust, especially
-  // when using its mixer and the audio thread can't keep up with itself.
-  return cubeb_stream_init(m_ctx.get(), &m_stream, "Dolphin Audio Output", nullptr, nullptr,
-                           nullptr, &params, final_latency, DataCallback, StateCallback,
-                           this) == CUBEB_OK;
+  // Note that cubeb latency might not be fixed and could dynamically adjust when the audio thread
+  // can't keep up with itself, especially when using its internal mixer.
+  if (cubeb_stream_init(m_ctx.get(), &m_stream, "Dolphin Audio Output", nullptr, nullptr, nullptr,
+                        &params, final_latency, DataCallback, StateCallback, this) == CUBEB_OK)
+  {
+    cubeb_stream_set_volume(m_stream, m_volume);
+    return true;
+  }
+  return false;
 }
 
 void CubebStream::DestroyStream()
@@ -104,7 +105,7 @@ void CubebStream::DestroyStream()
 
 bool CubebStream::SetRunning(bool running)
 {
-  assert(running != m_running);
+  assert(running != m_running);  // Can't happen, but if it did, it's not fully supported
 
   m_should_restart = false;
   if (m_settings_changed && running)
@@ -169,7 +170,32 @@ void CubebStream::Update()
   }
 }
 
+AudioCommon::SurroundState CubebStream::GetSurroundState() const
+{
+  if (m_stream)
+  {
+    return m_stereo ? AudioCommon::SurroundState::Disabled : AudioCommon::SurroundState::Enabled;
+  }
+  return SConfig::GetInstance().ShouldUseDPL2Decoder() ?
+             AudioCommon::SurroundState::EnabledNotRunning :
+             AudioCommon::SurroundState::Disabled;
+}
+
+bool CubebStream::SupportsCustomLatency()
+{
+#ifdef _WIN32
+  // Latency is ignored in Windows, despite being exposed (always 10ms, WASAPI max is 5000ms).
+  // However, it seems to somewhat be used when using its internal mixer (in case of up mixing
+  // or down mixing the n of channels) and the audio thread runs too slow to keep up.
+  return false;
+#else
+  // TODO: test whether cubeb supports latency on Mac OS X and Linux (different internal backends)
+  return true;
+#endif
+}
+
 void CubebStream::SetVolume(int volume)
 {
-  cubeb_stream_set_volume(m_stream, volume / 100.0f);
+  m_volume = volume / 100.f;
+  cubeb_stream_set_volume(m_stream, m_volume);
 }

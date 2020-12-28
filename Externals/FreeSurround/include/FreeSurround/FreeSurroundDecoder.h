@@ -31,25 +31,26 @@ typedef std::complex<double> cplx;
 // right). The ordering here also determines the ordering of interleaved
 // samples in the output signal.
 
+// Dolphin: channels mapping modified to be the same as most audio backends
 typedef enum channel_id {
   ci_none = 0,
   ci_front_left = 1 << 1,
-  ci_front_center_left = 1 << 2,
-  ci_front_center = 1 << 3,
-  ci_front_center_right = 1 << 4,
-  ci_front_right = 1 << 5,
+  ci_front_right = 1 << 2,
+  ci_front_center_left = 1 << 3,
+  ci_front_center = 1 << 4,
+  ci_front_center_right = 1 << 5,
   ci_side_front_left = 1 << 6,
   ci_side_front_right = 1 << 7,
   ci_side_center_left = 1 << 8,
   ci_side_center_right = 1 << 9,
   ci_side_back_left = 1 << 10,
   ci_side_back_right = 1 << 11,
-  ci_back_left = 1 << 12,
-  ci_back_center_left = 1 << 13,
-  ci_back_center = 1 << 14,
-  ci_back_center_right = 1 << 15,
-  ci_back_right = 1 << 16,
-  ci_lfe = 1 << 31
+  ci_lfe = 1 << 12,
+  ci_back_left = 1 << 13,
+  ci_back_center_left = 1 << 14,
+  ci_back_center = 1 << 15,
+  ci_back_center_right = 1 << 16,
+  ci_back_right = 1 << 31
 } channel_id;
 
 // The supported output channel setups. A channel setup is defined by the set
@@ -112,7 +113,8 @@ public:
   void set_bass_redirection(bool v);
 
   // number of samples currently held in the buffer
-  unsigned int buffered();
+  unsigned int buffered() const;
+  float* input_buffer();
 
 private:
   // constants

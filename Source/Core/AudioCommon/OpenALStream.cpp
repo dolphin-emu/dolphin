@@ -163,10 +163,6 @@ void OpenALStream::SetVolume(int volume)
     palSourcef(m_source, AL_GAIN, m_volume);
 }
 
-void OpenALStream::Update()
-{
-}
-
 bool OpenALStream::SetRunning(bool running)
 {
   if (running)
@@ -178,6 +174,24 @@ bool OpenALStream::SetRunning(bool running)
     palSourceStop(m_source);
   }
   return true;
+}
+
+AudioCommon::SurroundState OpenALStream::GetSurroundState() const
+{
+  if (m_run_thread.IsSet())
+  {
+    if (m_use_surround)
+    {
+      return AudioCommon::SurroundState::Enabled;
+    }
+    if (SConfig::GetInstance().ShouldUseDPL2Decoder())
+    {
+      return AudioCommon::SurroundState::Failed;
+    }
+  }
+  return SConfig::GetInstance().ShouldUseDPL2Decoder() ?
+             AudioCommon::SurroundState::EnabledNotRunning :
+             AudioCommon::SurroundState::Disabled;
 }
 
 static ALenum CheckALError(const char* desc)
@@ -231,20 +245,14 @@ void OpenALStream::SoundLoop()
   // we just check if one is being used.
   bool fixed32_capable = IsCreativeXFi();
 
-  // TODO: there is no reason for OpenAL to not have SupportsRuntimeSettingsChanges() as true
-  // as everything can be changed the loop below, though being deprecated I didn't bother
   u32 frequency = m_mixer->GetSampleRate();
 
   // Can't have zero samples per buffer
   unsigned int target_latency = std::max(AudioCommon::GetUserTargetLatency(), 1ul);
 
-  u32 frames_per_buffer;
-  frames_per_buffer = frequency / 1000 * target_latency / OAL_BUFFERS;
-
+  u32 frames_per_buffer = frequency / 1000 * target_latency / OAL_BUFFERS;
   if (frames_per_buffer > OAL_MAX_FRAMES)
-  {
     frames_per_buffer = OAL_MAX_FRAMES;
-  }
 
   INFO_LOG_FMT(AUDIO, "Using {} buffers, each with {} audio frames for a total of {}.", OAL_BUFFERS,
                frames_per_buffer, frames_per_buffer * OAL_BUFFERS);
@@ -297,14 +305,14 @@ void OpenALStream::SoundLoop()
       num_buffers_queued -= num_buffers_processed;
     }
 
-    unsigned int min_frames = frames_per_buffer;
+    const unsigned int min_frames = frames_per_buffer;
 
     if (m_use_surround)
     {
       std::array<float, OAL_MAX_FRAMES * SURROUND_CHANNELS> dpl2;
       u32 rendered_frames = m_mixer->MixSurround(dpl2.data(), min_frames);
 
-      if (rendered_frames < min_frames)
+      if (!rendered_frames)
         continue;
 
       if (float32_capable)
@@ -362,6 +370,7 @@ void OpenALStream::SoundLoop()
     {
       u32 rendered_frames = m_mixer->Mix(m_realtime_buffer.data(), min_frames);
 
+      // If we haven't mixed enough samples, it will stretch the sound
       if (!rendered_frames)
         continue;
 

@@ -51,19 +51,18 @@ u32 AudioStretcher::GetStretchedSamples(s16* out, u32 num_out, bool pad)
     m_last_stretched_sample[1] = out[samples_received * 2 - 1];
   }
 
-  if (!pad)
+  if (pad)
   {
-    return samples_received;
+    // Perform padding if we've run out of samples
+    for (u32 i = samples_received; i < num_out; ++i)
+    {
+      out[i * 2 + 0] = m_last_stretched_sample[0];
+      out[i * 2 + 1] = m_last_stretched_sample[1];
+    }
   }
 
-  // Perform padding if we've run out of samples
-  for (u32 i = samples_received; i < num_out; ++i)
-  {
-    out[i * 2 + 0] = m_last_stretched_sample[0];
-    out[i * 2 + 1] = m_last_stretched_sample[1];
-  }
-
-  return num_out;
+  // Always return the valid mixed samples
+  return samples_received;
 }
 
 // Call this before ProcessSamples()

@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
 #include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
@@ -52,18 +53,21 @@
 
 class OpenALStream final : public SoundStream
 {
-#ifdef _WIN32
 public:
+  static std::string GetName() { return _trans("OpenAL (Deprecated)"); }
+  static bool IsValid();
+#ifdef _WIN32
   OpenALStream() : m_source(0), m_use_surround(false) {}
   ~OpenALStream() override;
   bool Init() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
   bool SetRunning(bool running) override;
-  void Update() override;
+  static bool SupportsSurround() { return true; }
+  static bool SupportsCustomLatency() { return true; }
+  static bool SupportsVolumeChanges() { return true; }
 
-  static bool IsValid();
-  bool IsSurroundEnabled() const override { return m_use_surround; }
+  AudioCommon::SurroundState GetSurroundState() const override;
 
 private:
   std::thread m_thread;

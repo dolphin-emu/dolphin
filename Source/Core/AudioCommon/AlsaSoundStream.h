@@ -18,16 +18,16 @@
 
 class AlsaSound final : public SoundStream
 {
-#if defined(HAVE_ALSA) && HAVE_ALSA
 public:
+  static std::string GetName() { return "ALSA"; }
+#if defined(HAVE_ALSA) && HAVE_ALSA
+  static bool IsValid() { return true; }
   AlsaSound();
   ~AlsaSound() override;
 
   bool Init() override;
   void SoundLoop() override;
   bool SetRunning(bool running) override;
-
-  static bool IsValid() { return true; }
 
 private:
   // maximum number of frames the buffer can hold

@@ -17,8 +17,6 @@ namespace
 const size_t BUFFER_SAMPLES = 512;  // ~10 ms - needs to be at least 240 for surround
 }
 
-PulseAudio::PulseAudio() = default;
-
 bool PulseAudio::Init()
 {
   m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
@@ -132,7 +130,7 @@ bool PulseAudio::PulseInit()
   m_pa_ba.tlength =
       BUFFER_SAMPLES * m_channels *
       m_bytespersample;  // designed latency, only change this flag for low latency output
-  // TODO: review this, audio stretching and DPLII won't work correctly if latency is dynamic
+  // TODO: review this, audio stretching won't work correctly if latency is dynamic
   pa_stream_flags flags = pa_stream_flags(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY |
                                           PA_STREAM_AUTO_TIMING_UPDATE);
   m_pa_error = pa_stream_connect_playback(m_pa_s, nullptr, &m_pa_ba, flags, nullptr, nullptr);
@@ -189,6 +187,24 @@ void PulseAudio::PulseShutdown()
   m_pa_ml = nullptr;
   m_pa_mlapi = nullptr;
   m_pa_ctx = nullptr;
+}
+
+AudioCommon::SurroundState PulseAudio::GetSurroundState() const
+{
+  if (m_run_thread.IsSet() && m_pa_connected == 1 && m_pa_error >= 0)
+  {
+    if (!m_stereo)
+    {
+      return AudioCommon::SurroundState::Enabled;
+    }
+    if (SConfig::GetInstance().ShouldUseDPL2Decoder())
+    {
+      return AudioCommon::SurroundState::Failed;
+    }
+  }
+  return SConfig::GetInstance().ShouldUseDPL2Decoder() ?
+             AudioCommon::SurroundState::EnabledNotRunning :
+             AudioCommon::SurroundState::Disabled;
 }
 
 void PulseAudio::StateCallback(pa_context* c)

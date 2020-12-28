@@ -39,13 +39,33 @@ DPL2FSDecoder::~DPL2FSDecoder() {
 
 void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
                          unsigned int sample_rate) {
+  int prev_N = N;
   setup = chsetup;
   N = blsize;
+  bool N_changed = !initialized || C != prev_N;
   samplerate = sample_rate;
 
   // Initialize the parameters
+  int prev_C = C;
+  C = static_cast<unsigned int>(chn_alloc[setup].size());
+  bool C_changed = !initialized || C != prev_C;
   wnd = std::vector<double>(N);
-  inbuf = std::vector<float>(3 * N);
+  if (N_changed)
+  {
+    inbuf = std::vector<float>(3 * N);
+  }
+  else
+  {
+    size_t prev_size = inbuf.size();
+    inbuf.resize(3 * N);
+    // Pad the data in the first third of the input buffer
+    if (prev_size > 0 && prev_size < inbuf.size())
+    {
+      //To finish
+      for (size_t i = prev_size; i < inbuf.size(); i += 2)
+        memcpy(&inbuf[i], &inbuf[prev_N - 2], sizeof(float) * 2);
+    }
+  }
   lt = std::vector<double>(N);
   rt = std::vector<double>(N);
   dst = std::vector<double>(N);
@@ -55,16 +75,26 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
   delete[] inverse;
   forward = kiss_fftr_alloc(N, 0, 0, 0);
   inverse = kiss_fftr_alloc(N, 1, 0, 0);
-  C = static_cast<unsigned int>(chn_alloc[setup].size());
 
   // Allocate per-channel buffers (pad if we already have data)
-  float outputval = outbuf.size() > 0 ? outbuf.back() : 0.f;
-  outbuf.resize((N + N / 2) * C, outputval);
-  for (unsigned int k = 0; k < signal.size(); k++)
+  if (C_changed)
   {
-    signal[k].resize(N);
+    outbuf = std::vector<float>((N + N / 2) * C);
   }
-  signal.resize(C, signal.size() > 0 ? signal.back() : std::vector<cplx>(N));
+  else
+  {
+    size_t prev_size = outbuf.size();
+    outbuf.resize((N + N / 2) * C);
+    if (prev_size > 0)
+    {
+      //To review, probably not needed, the new output is never based on the old one, it's just to shift the memory quicker
+      for (size_t i = prev_size; i < outbuf.size(); i += C)
+        memcpy(&outbuf[i], &outbuf[prev_size - C], sizeof(float) * C);
+    }
+  }
+  for (unsigned int k = 0; k < std::min(C, unsigned int(signal.size())); k++)
+    signal[k].resize(N);
+  signal.resize(C, std::vector<cplx>(N));
 
   // Init the window function
   for (unsigned int k = 0; k < N; k++)
@@ -99,7 +129,7 @@ float* DPL2FSDecoder::decode(const float* input_part_1,
     // process first and second half, overlapped
     buffered_decode(&inbuf[0]);
     buffered_decode(&inbuf[N]);
-    // shift the third half of the input to the beginning (for overlapping with
+    // shift the third part of the input to the beginning (for overlapping with
     // a future block)
     memcpy(&inbuf[0], &inbuf[2 * N], sizeof(float) * N);
     buffer_empty = false;
@@ -116,7 +146,9 @@ void DPL2FSDecoder::flush() {
 }
 
 // number of samples currently held in the buffer
-unsigned int DPL2FSDecoder::buffered() { return buffer_empty ? 0 : N / 2; }
+unsigned int DPL2FSDecoder::buffered() const { return buffer_empty ? 0 : N / 2; }
+
+float* DPL2FSDecoder::input_buffer() { return &inbuf[0]; }
 
 // set soundfield & rendering parameters
 void DPL2FSDecoder::set_circular_wrap(float v) { circular_wrap = v; }
@@ -242,7 +274,7 @@ void DPL2FSDecoder::buffered_decode(float *input) {
     }
   }
 
-  // shift the last 2/3 to the first 2/3 of the output buffer
+  // shift the last 2/3 (a block) to the first 2/3 of the output buffer
   memcpy(&outbuf[0], &outbuf[C * N / 2], N * C * sizeof(float));
   // and clear the rest
   memset(&outbuf[C * N], 0, C * sizeof(float) * N / 2);

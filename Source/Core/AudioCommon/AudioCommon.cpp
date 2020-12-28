@@ -26,12 +26,13 @@
 // This shouldn't be a global, at least not here.
 std::unique_ptr<SoundStream> g_sound_stream;
 
+bool g_selected_sound_stream_failed = false;
 std::mutex g_sound_stream_mutex;
 std::mutex g_sound_stream_running_mutex;
 
 namespace AudioCommon
 {
-static bool s_audio_dump_start = false;
+static bool s_audio_dump_started = false;
 static bool s_sound_stream_running = false;
 
 constexpr int AUDIO_VOLUME_MIN = 0;
@@ -40,19 +41,19 @@ constexpr int AUDIO_VOLUME_MAX = 100;
 static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view backend)
 {
   // We only check IsValid on backends that are only available on some platforms
-  if (backend == BACKEND_CUBEB)
+  if (backend == CubebStream::GetName() && CubebStream::IsValid())
     return std::make_unique<CubebStream>();
-  else if (backend == BACKEND_OPENAL && OpenALStream::IsValid())
+  else if (backend == OpenALStream::GetName() && OpenALStream::IsValid())
     return std::make_unique<OpenALStream>();
-  else if (backend == BACKEND_NULLSOUND)
+  else if (backend == NullSound::GetName())  // NullSound is always valid
     return std::make_unique<NullSound>();
-  else if (backend == BACKEND_ALSA && AlsaSound::IsValid())
+  else if (backend == AlsaSound::GetName() && AlsaSound::IsValid())
     return std::make_unique<AlsaSound>();
-  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::IsValid())
+  else if (backend == PulseAudio::GetName() && PulseAudio::IsValid())
     return std::make_unique<PulseAudio>();
-  else if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
+  else if (backend == OpenSLESStream::GetName() && OpenSLESStream::IsValid())
     return std::make_unique<OpenSLESStream>();
-  else if (backend == BACKEND_WASAPI && WASAPIStream::IsValid())
+  else if (backend == WASAPIStream::GetName() && WASAPIStream::IsValid())
     return std::make_unique<WASAPIStream>();
   return {};
 }
@@ -82,33 +83,35 @@ void PostInitSoundStream()
 
     std::string backend = SConfig::GetInstance().sBackend;
     g_sound_stream = CreateSoundStreamForBackend(backend);
+    g_selected_sound_stream_failed = false;
 
     if (!g_sound_stream)
     {
-      WARN_LOG(AUDIO, "Unknown backend %s, using %s instead", backend.c_str(),
+      WARN_LOG(AUDIO, "Unknown backend %s, using %s instead (default)", backend.c_str(),
                GetDefaultSoundBackend().c_str());
       backend = GetDefaultSoundBackend();
-      g_sound_stream = CreateSoundStreamForBackend(GetDefaultSoundBackend());
+      g_sound_stream = CreateSoundStreamForBackend(backend);
     }
 
     if (!g_sound_stream || !g_sound_stream->Init())
     {
       WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead", backend.c_str(),
-               BACKEND_NULLSOUND);
+               NullSound::GetName().c_str());
       g_sound_stream = std::make_unique<NullSound>();
-      g_sound_stream->Init();
+      g_sound_stream->Init();  // NullSound can't fail
+      g_selected_sound_stream_failed = true;
     }
   }
 
   UpdateSoundStreamSettings(true);
   // This can fail, but we don't really care as it just won't produce any sounds,
-  // also the user might be able to fix it up by changing his device settings
+  // also the user might be able to fix it up by changing their device settings
   // and pausing and unpausing the emulation.
-  // Note that when we start a game, this is called here, but then it's called
-  // with false and true again, so basically the backend is restarted
-  SetSoundStreamRunning(true);
+  // Note that when we start a game, this is called here, but then it's called with false
+  // and true again, so basically the backend is "restarted" with every emulation state change
+  SetSoundStreamRunning(true, true);
 
-  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_started)
     StartAudioDump();
 }
 
@@ -116,13 +119,15 @@ void ShutdownSoundStream()
 {
   INFO_LOG_FMT(AUDIO, "Shutting down sound stream");
 
-  if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+  if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_started)
     StopAudioDump();
 
-  SetSoundStreamRunning(false);
+  SetSoundStreamRunning(false, true);
   {
     std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
+    g_selected_sound_stream_failed = false;
     g_sound_stream.reset();
+    s_sound_stream_running = false;  // Force this off in case the backend failed to stop
   }
 
   INFO_LOG_FMT(AUDIO, "Done shutting down sound stream");
@@ -130,16 +135,28 @@ void ShutdownSoundStream()
 
 std::string GetDefaultSoundBackend()
 {
-  std::string backend = BACKEND_NULLSOUND;
+  std::string backend = NullSound::GetName();
 #if defined ANDROID
-  backend = BACKEND_OPENSLES;
+  backend = OpenSLESStream::GetName();
 #elif defined __linux__
   if (AlsaSound::IsValid())
-    backend = BACKEND_ALSA;
+    backend = AlsaSound::GetName();
 #elif defined(__APPLE__) || defined(_WIN32)
-  backend = BACKEND_CUBEB;
+  backend = CubebStream::GetName();
 #endif
   return backend;
+}
+
+std::string GetBackendName()
+{
+  std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
+  // The only case in which the started stream is different from the config one is when it failed
+  // to start and fell back to NullSound
+  if (g_selected_sound_stream_failed && g_sound_stream)
+  {
+    return NullSound::GetName();
+  }
+  return SConfig::GetInstance().sBackend;
 }
 
 DPL2Quality GetDefaultDPL2Quality()
@@ -151,53 +168,75 @@ std::vector<std::string> GetSoundBackends()
 {
   std::vector<std::string> backends;
 
-  backends.emplace_back(BACKEND_NULLSOUND);
-  backends.emplace_back(BACKEND_CUBEB);
+  backends.emplace_back(NullSound::GetName());
+  if (CubebStream::IsValid())
+    backends.emplace_back(CubebStream::GetName());
   if (AlsaSound::IsValid())
-    backends.emplace_back(BACKEND_ALSA);
+    backends.emplace_back(AlsaSound::GetName());
   if (PulseAudio::IsValid())
-    backends.emplace_back(BACKEND_PULSEAUDIO);
+    backends.emplace_back(PulseAudio::GetName());
   if (OpenALStream::IsValid())
-    backends.emplace_back(BACKEND_OPENAL);
+    backends.emplace_back(OpenALStream::GetName());
   if (OpenSLESStream::IsValid())
-    backends.emplace_back(BACKEND_OPENSLES);
+    backends.emplace_back(OpenSLESStream::GetName());
   if (WASAPIStream::IsValid())
-    backends.emplace_back(BACKEND_WASAPI);
+    backends.emplace_back(WASAPIStream::GetName());
 
   return backends;
 }
 
-bool SupportsDPL2Decoder(std::string_view backend)
+bool SupportsSurround(std::string_view backend)
 {
-  if (backend == BACKEND_OPENAL)
-    return true;
-  if (backend == BACKEND_CUBEB)
-    return true;
-  if (backend == BACKEND_PULSEAUDIO)
-    return true;
-  if (backend == BACKEND_WASAPI)
-    return true;
+  if (backend == CubebStream::GetName())
+    return CubebStream::SupportsSurround();
+  if (backend == AlsaSound::GetName())
+    return AlsaSound::SupportsSurround();
+  if (backend == PulseAudio::GetName())
+    return PulseAudio::SupportsSurround();
+  if (backend == OpenALStream::GetName())
+    return OpenALStream::SupportsSurround();
+  if (backend == OpenSLESStream::GetName())
+    return OpenSLESStream::SupportsSurround();
+  if (backend == WASAPIStream::GetName())
+    return WASAPIStream::SupportsSurround();
+
   return false;
 }
 
 bool SupportsLatencyControl(std::string_view backend)
 {
-  // TODO: we should ask the backends whether they support this
-#ifdef _WIN32
-  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
-#else
-  // TODO: test whether cubeb supports latency on Mac OS X and Linux (different internal backends).
-  // It does NOT support latency on Win 10 (at least on my devices) despite exposing it and
-  // seemingly supporting it on WASAPI
-  return backend == BACKEND_CUBEB;
-#endif
+  if (backend == CubebStream::GetName())
+    return CubebStream::SupportsCustomLatency();
+  if (backend == AlsaSound::GetName())
+    return AlsaSound::SupportsCustomLatency();
+  if (backend == PulseAudio::GetName())
+    return PulseAudio::SupportsCustomLatency();
+  if (backend == OpenALStream::GetName())
+    return OpenALStream::SupportsCustomLatency();
+  if (backend == OpenSLESStream::GetName())
+    return OpenSLESStream::SupportsCustomLatency();
+  if (backend == WASAPIStream::GetName())
+    return WASAPIStream::SupportsCustomLatency();
+
+  return false;
 }
 
 bool SupportsVolumeChanges(std::string_view backend)
 {
-  // TODO: we should ask the backends whether they support this
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_WASAPI ||
-         BACKEND_OPENSLES;
+  if (backend == CubebStream::GetName())
+    return CubebStream::SupportsVolumeChanges();
+  if (backend == AlsaSound::GetName())
+    return AlsaSound::SupportsVolumeChanges();
+  if (backend == PulseAudio::GetName())
+    return PulseAudio::SupportsVolumeChanges();
+  if (backend == OpenALStream::GetName())
+    return OpenALStream::SupportsVolumeChanges();
+  if (backend == OpenSLESStream::GetName())
+    return OpenSLESStream::SupportsVolumeChanges();
+  if (backend == WASAPIStream::GetName())
+    return WASAPIStream::SupportsVolumeChanges();
+
+  return false;
 }
 
 bool BackendSupportsRuntimeSettingsChanges()
@@ -210,14 +249,15 @@ bool BackendSupportsRuntimeSettingsChanges()
   return false;
 }
 
-bool IsSurroundEnabled()
+SurroundState GetSurroundState()
 {
   std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
   if (g_sound_stream)
   {
-    return g_sound_stream->IsSurroundEnabled();
+    return g_sound_stream->GetSurroundState();
   }
-  return SConfig::GetInstance().ShouldUseDPL2Decoder();
+  return SConfig::GetInstance().ShouldUseDPL2Decoder() ? SurroundState::EnabledNotRunning :
+                                                         SurroundState::Disabled;
 }
 
 unsigned long GetDefaultSampleRate()
@@ -321,7 +361,7 @@ unsigned long GetOSMixerSampleRate()
 #endif
 }
 
-void UpdateSoundStreamSettings(bool volume_changed, bool settings_changed, bool surround_changed)
+void UpdateSoundStreamSettings(bool volume_changed, bool settings_changed)
 {
   // This can be called from any threads, needs to be protected
   std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
@@ -332,11 +372,7 @@ void UpdateSoundStreamSettings(bool volume_changed, bool settings_changed, bool 
       int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
       g_sound_stream->SetVolume(volume);
     }
-    if (surround_changed)
-    {
-      g_sound_stream->GetMixer()->SetSurroundChanged();
-    }
-    if (settings_changed || surround_changed)
+    if (settings_changed)
     {
       // Some backends will be able to apply changes in settings at runtime
       g_sound_stream->OnSettingsChanged();
@@ -348,7 +384,7 @@ bool SetSoundStreamRunning(bool running, bool send_error)
 {
   // This can be called by the main thread while a previous
   // SetRunning() might still be waiting to finish, so we need to protect it
-  // as most backends could even crash
+  // as most backends could even crash. No need to check g_sound_stream_mutex
   std::lock_guard<std::mutex> guard(g_sound_stream_running_mutex);
 
   if (!g_sound_stream)
@@ -379,9 +415,9 @@ void SendAIBuffer(const short* samples, unsigned int num_samples)
   if (!g_sound_stream)
     return;
 
-  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_started)
     StartAudioDump();
-  else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+  else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_started)
     StopAudioDump();
 
   Mixer* pMixer = g_sound_stream->GetMixer();
@@ -405,7 +441,7 @@ void StartAudioDump()
   File::CreateFullPath(audio_file_name_dsp);
   g_sound_stream->GetMixer()->StartLogDTKAudio(audio_file_name_dtk);
   g_sound_stream->GetMixer()->StartLogDSPAudio(audio_file_name_dsp);
-  s_audio_dump_start = true;
+  s_audio_dump_started = true;
 }
 
 void StopAudioDump()
@@ -414,7 +450,7 @@ void StopAudioDump()
     return;
   g_sound_stream->GetMixer()->StopLogDTKAudio();
   g_sound_stream->GetMixer()->StopLogDSPAudio();
-  s_audio_dump_start = false;
+  s_audio_dump_started = false;
 }
 
 void IncreaseVolume(unsigned short offset)

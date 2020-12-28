@@ -17,15 +17,16 @@
 
 class PulseAudio final : public SoundStream
 {
-#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
-  PulseAudio();
+  static std::string GetName() { return "Pulse"; }
+#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
+  static bool IsValid() { return true; }
   ~PulseAudio() override;
 
   bool Init() override;
   bool SetRunning(bool running) override;
-  bool IsSurroundEnabled() const override { return !m_stereo; }
-  static bool IsValid() { return true; }
+  static bool SupportsSurround() { return true; }
+  AudioCommon::SurroundState GetSurroundState() const override;
   void StateCallback(pa_context* c);
   void WriteCallback(pa_stream* s, size_t length);
   void UnderflowCallback(pa_stream* s);
