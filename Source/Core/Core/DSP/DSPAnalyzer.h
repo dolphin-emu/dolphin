@@ -26,7 +26,7 @@ enum CodeFlags : u8
   CODE_LOOP_START = 4,
   CODE_LOOP_END = 8,
   CODE_UPDATE_SR = 16,
-  CODE_CHECK_INT = 32,
+  CODE_CHECK_EXC = 32,
 };
 
 class Analyzer
@@ -49,8 +49,41 @@ public:
   // some pretty expensive analysis if necessary.
   void Analyze();
 
-  // Retrieves the flags set during analysis for code in memory.
-  [[nodiscard]] u8 GetCodeFlags(u16 address) const { return m_code_flags[address]; }
+  // Whether or not the given address indicates the start of an instruction.
+  [[nodiscard]] bool IsStartOfInstruction(u16 address) const
+  {
+    return (GetCodeFlags(address) & CODE_START_OF_INST) != 0;
+  }
+
+  // Whether or not the address indicates an idle skip location.
+  [[nodiscard]] bool IsIdleSkip(u16 address) const
+  {
+    return (GetCodeFlags(address) & CODE_IDLE_SKIP) != 0;
+  }
+
+  // Whether or not the address indicates the start of a loop.
+  [[nodiscard]] bool IsLoopStart(u16 address) const
+  {
+    return (GetCodeFlags(address) & CODE_LOOP_START) != 0;
+  }
+
+  // Whether or not the address indicates the end of a loop.
+  [[nodiscard]] bool IsLoopEnd(u16 address) const
+  {
+    return (GetCodeFlags(address) & CODE_LOOP_END) != 0;
+  }
+
+  // Whether or not the address describes an instruction that requires updating the SR register.
+  [[nodiscard]] bool IsUpdateSR(u16 address) const
+  {
+    return (GetCodeFlags(address) & CODE_UPDATE_SR) != 0;
+  }
+
+  // Whether or not the address describes instructions that potentially raise exceptions.
+  [[nodiscard]] bool IsCheckExceptions(u16 address) const
+  {
+    return (GetCodeFlags(address) & CODE_CHECK_EXC) != 0;
+  }
 
 private:
   // Flushes all analyzed state.
@@ -59,6 +92,9 @@ private:
   // Analyzes a region of DSP memory.
   // Note: start is inclusive, end is exclusive.
   void AnalyzeRange(u16 start_addr, u16 end_addr);
+
+  // Retrieves the flags set during analysis for code in memory.
+  [[nodiscard]] u8 GetCodeFlags(u16 address) const { return m_code_flags[address]; }
 
   // Holds data about all instructions in RAM.
   std::array<u8, 65536> m_code_flags{};

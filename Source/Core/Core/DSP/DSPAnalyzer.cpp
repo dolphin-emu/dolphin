@@ -130,7 +130,7 @@ void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
         opcode->opcode == 0x1900 || opcode->opcode == 0x1980 || opcode->opcode == 0x2000 ||
         opcode->extended)
     {
-      m_code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_INT;
+      m_code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_EXC;
     }
 
     addr += opcode->size;
