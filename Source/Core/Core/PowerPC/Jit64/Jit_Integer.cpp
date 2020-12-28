@@ -1690,15 +1690,20 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       AndWithMask(Ra, ~mask);
       OR(32, Ra, Imm32(Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
     }
-    else if (inst.SH && gpr.IsImm(a))
+    else if (gpr.IsImm(a))
     {
-      u32 maskA = gpr.Imm32(a) & ~mask;
+      const u32 maskA = gpr.Imm32(a) & ~mask;
 
       RCOpArg Rs = gpr.Use(s, RCMode::Read);
       RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
       RegCache::Realize(Rs, Ra);
 
-      if (left_shift)
+      if (inst.SH == 0)
+      {
+        MOV(32, Ra, Rs);
+        AndWithMask(Ra, mask);
+      }
+      else if (left_shift)
       {
         MOV(32, Ra, Rs);
         SHL(32, Ra, Imm8(inst.SH));
@@ -1713,7 +1718,11 @@ void Jit64::rlwimix(UGeckoInstruction inst)
         RotateLeft(32, Ra, Rs, inst.SH);
         AndWithMask(Ra, mask);
       }
-      OR(32, Ra, Imm32(maskA));
+
+      if (maskA)
+        OR(32, Ra, Imm32(maskA));
+      else
+        needs_test = true;
     }
     else if (inst.SH)
     {
