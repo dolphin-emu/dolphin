@@ -111,23 +111,18 @@ add_library(core
   DSP/DSPDisassembler.cpp
   DSP/DSPDisassembler.h
   DSP/DSPHWInterface.cpp
-  DSP/DSPHWInterface.h
   DSP/DSPMemoryMap.cpp
-  DSP/DSPMemoryMap.h
   DSP/DSPStacks.cpp
-  DSP/DSPStacks.h
   DSP/DSPTables.cpp
   DSP/DSPTables.h
   DSP/LabelMap.cpp
   DSP/LabelMap.h
   DSP/Interpreter/DSPIntArithmetic.cpp
   DSP/Interpreter/DSPIntBranch.cpp
-  DSP/Interpreter/DSPIntCCUtil.cpp
   DSP/Interpreter/DSPIntCCUtil.h
   DSP/Interpreter/DSPInterpreter.cpp
   DSP/Interpreter/DSPInterpreter.h
   DSP/Interpreter/DSPIntExtOps.cpp
-  DSP/Interpreter/DSPIntExtOps.h
   DSP/Interpreter/DSPIntLoadStore.cpp
   DSP/Interpreter/DSPIntMisc.cpp
   DSP/Interpreter/DSPIntMultiplier.cpp
@@ -186,8 +181,6 @@ add_library(core
   HW/DSPHLE/MailHandler.h
   HW/DSPHLE/DSPHLE.cpp
   HW/DSPHLE/DSPHLE.h
-  HW/DSPLLE/DSPDebugInterface.cpp
-  HW/DSPLLE/DSPDebugInterface.h
   HW/DSPLLE/DSPHost.cpp
   HW/DSPLLE/DSPSymbols.cpp
   HW/DSPLLE/DSPSymbols.h

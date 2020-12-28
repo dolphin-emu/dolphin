@@ -6,13 +6,22 @@
 
 #include "Common/Logging/Log.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
 namespace DSP::JIT::x64
 {
+u16 DSPEmitter::ReadIFXRegisterHelper(DSPEmitter& emitter, u16 address)
+{
+  return emitter.m_dsp_core.DSPState().ReadIFX(address);
+}
+
+void DSPEmitter::WriteIFXRegisterHelper(DSPEmitter& emitter, u16 address, u16 value)
+{
+  emitter.m_dsp_core.DSPState().WriteIFX(address, value);
+}
+
 // clobbers:
 // EAX = (s8)g_dsp.reg_stack_ptrs[reg_index]
 // expects:
@@ -32,7 +41,7 @@ void DSPEmitter::dsp_reg_stack_push(StackRegister stack_reg)
   // g_dsp.reg_stack[reg_index][g_dsp.reg_stack_ptrs[reg_index]] = g_dsp.r[DSP_REG_ST0 + reg_index];
   MOV(16, R(tmp1), M_SDSP_r_st(reg_index));
   MOVZX(64, 8, RAX, R(AL));
-  MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stacks[reg_index]));
+  MOV(64, R(tmp2), ImmPtr(m_dsp_core.DSPState().reg_stacks[reg_index]));
   MOV(16, MComplex(tmp2, EAX, SCALE_2, 0), R(tmp1));
   m_gpr.PutXReg(tmp1);
   m_gpr.PutXReg(tmp2);
@@ -50,7 +59,7 @@ void DSPEmitter::dsp_reg_stack_pop(StackRegister stack_reg)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   X64Reg tmp2 = m_gpr.GetFreeXReg();
   MOVZX(64, 8, RAX, R(AL));
-  MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stacks[reg_index]));
+  MOV(64, R(tmp2), ImmPtr(m_dsp_core.DSPState().reg_stacks[reg_index]));
   MOV(16, R(tmp1), MComplex(tmp2, EAX, SCALE_2, 0));
   MOV(16, M_SDSP_r_st(reg_index), R(tmp1));
   m_gpr.PutXReg(tmp1);
@@ -520,7 +529,7 @@ void DSPEmitter::dmem_write(X64Reg value)
 
   //  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
   AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
-  MOV(64, R(ECX), ImmPtr(g_dsp.dram));
+  MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().dram));
   MOV(16, MComplex(ECX, EAX, SCALE_2, 0), R(value));
 
   FixupBranch end = J(true);
@@ -530,7 +539,7 @@ void DSPEmitter::dmem_write(X64Reg value)
   X64Reg abisafereg = m_gpr.MakeABICallSafe(value);
   MOVZX(32, 16, abisafereg, R(abisafereg));
   m_gpr.PushRegs();
-  ABI_CallFunctionRR(gdsp_ifx_write, EAX, abisafereg);
+  ABI_CallFunctionPRR(WriteIFXRegisterHelper, this, EAX, abisafereg);
   m_gpr.PopRegs();
   m_gpr.FlushRegs(c);
   SetJumpTarget(end);
@@ -541,7 +550,7 @@ void DSPEmitter::dmem_write_imm(u16 address, X64Reg value)
   switch (address >> 12)
   {
   case 0x0:  // 0xxx DRAM
-    MOV(64, R(RDX), ImmPtr(g_dsp.dram));
+    MOV(64, R(RDX), ImmPtr(m_dsp_core.DSPState().dram));
     MOV(16, MDisp(RDX, (address & DSP_DRAM_MASK) * 2), R(value));
     break;
 
@@ -550,12 +559,13 @@ void DSPEmitter::dmem_write_imm(u16 address, X64Reg value)
     MOV(16, R(EAX), Imm16(address));
     X64Reg abisafereg = m_gpr.MakeABICallSafe(value);
     m_gpr.PushRegs();
-    ABI_CallFunctionRR(gdsp_ifx_write, EAX, abisafereg);
+    ABI_CallFunctionPRR(WriteIFXRegisterHelper, this, EAX, abisafereg);
     m_gpr.PopRegs();
     break;
   }
   default:  // Unmapped/non-existing memory
-    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Write to UNKNOWN ({:04x}) memory", g_dsp.pc, address);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Write to UNKNOWN ({:04x}) memory",
+                  m_dsp_core.DSPState().pc, address);
     break;
   }
 }
@@ -570,7 +580,7 @@ void DSPEmitter::imem_read(X64Reg address)
   FixupBranch irom = J_CC(CC_A);
   //	return g_dsp.iram[addr & DSP_IRAM_MASK];
   AND(16, R(address), Imm16(DSP_IRAM_MASK));
-  MOV(64, R(ECX), ImmPtr(g_dsp.iram));
+  MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().iram));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
   FixupBranch end = J();
@@ -578,7 +588,7 @@ void DSPEmitter::imem_read(X64Reg address)
   //	else if (addr == 0x8)
   //		return g_dsp.irom[addr & DSP_IROM_MASK];
   AND(16, R(address), Imm16(DSP_IROM_MASK));
-  MOV(64, R(ECX), ImmPtr(g_dsp.irom));
+  MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().irom));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
   SetJumpTarget(end);
@@ -594,7 +604,7 @@ void DSPEmitter::dmem_read(X64Reg address)
   FixupBranch dram = J_CC(CC_A);
   //	return g_dsp.dram[addr & DSP_DRAM_MASK];
   AND(32, R(address), Imm32(DSP_DRAM_MASK));
-  MOV(64, R(ECX), ImmPtr(g_dsp.dram));
+  MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().dram));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
   FixupBranch end = J(true);
@@ -604,7 +614,7 @@ void DSPEmitter::dmem_read(X64Reg address)
   FixupBranch ifx = J_CC(CC_A);
   //		return g_dsp.coef[addr & DSP_COEF_MASK];
   AND(32, R(address), Imm32(DSP_COEF_MASK));
-  MOV(64, R(ECX), ImmPtr(g_dsp.coef));
+  MOV(64, R(ECX), ImmPtr(m_dsp_core.DSPState().coef));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
   FixupBranch end2 = J(true);
@@ -614,7 +624,7 @@ void DSPEmitter::dmem_read(X64Reg address)
   DSPJitRegCache c(m_gpr);
   X64Reg abisafereg = m_gpr.MakeABICallSafe(address);
   m_gpr.PushRegs();
-  ABI_CallFunctionR(gdsp_ifx_read, abisafereg);
+  ABI_CallFunctionPR(ReadIFXRegisterHelper, this, abisafereg);
   m_gpr.PopRegs();
   m_gpr.FlushRegs(c);
   SetJumpTarget(end);
@@ -626,24 +636,25 @@ void DSPEmitter::dmem_read_imm(u16 address)
   switch (address >> 12)
   {
   case 0x0:  // 0xxx DRAM
-    MOV(64, R(RDX), ImmPtr(g_dsp.dram));
+    MOV(64, R(RDX), ImmPtr(m_dsp_core.DSPState().dram));
     MOV(16, R(EAX), MDisp(RDX, (address & DSP_DRAM_MASK) * 2));
     break;
 
   case 0x1:  // 1xxx COEF
-    MOV(64, R(RDX), ImmPtr(g_dsp.coef));
+    MOV(64, R(RDX), ImmPtr(m_dsp_core.DSPState().coef));
     MOV(16, R(EAX), MDisp(RDX, (address & DSP_COEF_MASK) * 2));
     break;
 
   case 0xf:  // Fxxx HW regs
   {
     m_gpr.PushRegs();
-    ABI_CallFunctionC16(gdsp_ifx_read, address);
+    ABI_CallFunctionPC(ReadIFXRegisterHelper, this, address);
     m_gpr.PopRegs();
     break;
   }
   default:  // Unmapped/non-existing memory
-    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Read from UNKNOWN ({:04x}) memory", g_dsp.pc, address);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Read from UNKNOWN ({:04x}) memory",
+                  m_dsp_core.DSPState().pc, address);
   }
 }
 

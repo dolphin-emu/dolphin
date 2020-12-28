@@ -9,6 +9,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
 
+namespace DSP
+{
+struct SDSP;
+}
+
 namespace DSP::Symbols
 {
 class DSPSymbolDB : public Common::SymbolDB
@@ -21,7 +26,7 @@ public:
 
 extern DSPSymbolDB g_dsp_symbol_db;
 
-void AutoDisassembly(u16 start_addr, u16 end_addr);
+void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr);
 
 void Clear();
 
