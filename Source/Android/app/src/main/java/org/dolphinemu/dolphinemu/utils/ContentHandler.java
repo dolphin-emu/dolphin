@@ -15,7 +15,9 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 /*
   We use a lot of "catch (Exception e)" in this class. This is for two reasons:
@@ -184,34 +186,94 @@ public class ContentHandler
   public static String[] getChildNames(@NonNull Uri uri, boolean recursive)
   {
     ArrayList<String> result = new ArrayList<>();
-    getChildNames(uri, DocumentsContract.getDocumentId(treeToDocument(uri)), recursive, result);
+
+    ForEachChildCallback callback = new ForEachChildCallback()
+    {
+      @Override
+      public void run(String displayName, String documentId, boolean isDirectory)
+      {
+        if (recursive && isDirectory)
+        {
+          forEachChild(uri, documentId, this);
+        }
+        else
+        {
+          result.add(displayName);
+        }
+      }
+    };
+
+    forEachChild(uri, DocumentsContract.getDocumentId(treeToDocument(uri)), callback);
+
     return result.toArray(new String[0]);
   }
 
-  private static void getChildNames(@NonNull Uri uri, @NonNull String documentId, boolean recursive,
-          List<String> resultOut)
+  @NonNull @Keep
+  public static String[] doFileSearch(@NonNull String directory, @NonNull String[] extensions,
+          boolean recursive)
+  {
+    ArrayList<String> result = new ArrayList<>();
+
+    try
+    {
+      Uri uri = unmangle(directory);
+      String documentId = DocumentsContract.getDocumentId(treeToDocument(uri));
+      boolean acceptAll = extensions.length == 0;
+      Predicate<String> extensionCheck = (displayName) ->
+      {
+        String extension = FileBrowserHelper.getExtension(displayName, true);
+        return extension != null && Arrays.stream(extensions).anyMatch(extension::equalsIgnoreCase);
+      };
+      doFileSearch(uri, directory, documentId, recursive, result, acceptAll, extensionCheck);
+    }
+    catch (Exception ignored)
+    {
+    }
+
+    return result.toArray(new String[0]);
+  }
+
+  private static void doFileSearch(@NonNull Uri baseUri, @NonNull String path,
+          @NonNull String documentId, boolean recursive, @NonNull List<String> resultOut,
+          boolean acceptAll, @NonNull Predicate<String> extensionCheck)
+  {
+    forEachChild(baseUri, documentId, (displayName, childDocumentId, isDirectory) ->
+    {
+      String childPath = path + '/' + displayName;
+      if (acceptAll || (!isDirectory && extensionCheck.test(displayName)))
+      {
+        resultOut.add(childPath);
+      }
+      if (recursive && isDirectory)
+      {
+        doFileSearch(baseUri, childPath, childDocumentId, recursive, resultOut, acceptAll,
+                extensionCheck);
+      }
+    });
+  }
+
+  private interface ForEachChildCallback
+  {
+    void run(String displayName, String documentId, boolean isDirectory);
+  }
+
+  private static void forEachChild(@NonNull Uri uri, @NonNull String documentId,
+          @NonNull ForEachChildCallback callback)
   {
     try
     {
       Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, documentId);
 
-      final String[] projection = recursive ? new String[]{Document.COLUMN_DISPLAY_NAME,
-              Document.COLUMN_MIME_TYPE, Document.COLUMN_DOCUMENT_ID} :
-              new String[]{Document.COLUMN_DISPLAY_NAME};
+      final String[] projection = new String[]{Document.COLUMN_DISPLAY_NAME,
+              Document.COLUMN_MIME_TYPE, Document.COLUMN_DOCUMENT_ID};
       try (Cursor cursor = getContentResolver().query(childrenUri, projection, null, null, null))
       {
         if (cursor != null)
         {
           while (cursor.moveToNext())
           {
-            if (recursive && Document.MIME_TYPE_DIR.equals(cursor.getString(1)))
-            {
-              getChildNames(uri, cursor.getString(2), recursive, resultOut);
-            }
-            else
-            {
-              resultOut.add(cursor.getString(0));
-            }
+            callback.run(cursor.getString(0), cursor.getString(2),
+                    Document.MIME_TYPE_DIR.equals(cursor.getString(1)));
           }
         }
       }

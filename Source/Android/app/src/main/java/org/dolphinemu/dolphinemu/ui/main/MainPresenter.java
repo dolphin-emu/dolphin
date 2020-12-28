@@ -130,8 +130,8 @@ public final class MainPresenter
 
     boolean recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
     String[] childNames = ContentHandler.getChildNames(uri, recursive);
-    if (Arrays.stream(childNames).noneMatch((name) ->
-            FileBrowserHelper.GAME_EXTENSIONS.contains(FileBrowserHelper.getExtension(name))))
+    if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
+            FileBrowserHelper.getExtension(name, false))))
     {
       AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
       builder.setMessage(mContext.getString(R.string.wrong_file_extension_in_directory,

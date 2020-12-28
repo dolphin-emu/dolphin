@@ -44,6 +44,14 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   return result;
 }
 
+jobjectArray JStringArrayFromVector(JNIEnv* env, std::vector<std::string> vector)
+{
+  jobjectArray result = env->NewObjectArray(vector.size(), IDCache::GetStringClass(), nullptr);
+  for (jsize i = 0; i < vector.size(); ++i)
+    env->SetObjectArrayElement(result, i, ToJString(env, vector[i]));
+  return result;
+}
+
 bool IsPathAndroidContent(const std::string& uri)
 {
   return StringBeginsWith(uri, "content://");
@@ -128,6 +136,17 @@ std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
                                                  IDCache::GetContentHandlerGetChildNames(),
                                                  ToJString(env, uri), false);
   return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(children));
+}
+
+std::vector<std::string> DoFileSearchAndroidContent(const std::string& directory,
+                                                    const std::vector<std::string>& extensions,
+                                                    bool recursive)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject result = env->CallStaticObjectMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(),
+      ToJString(env, directory), JStringArrayFromVector(env, extensions), recursive);
+  return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(result));
 }
 
 int GetNetworkIpAddress()

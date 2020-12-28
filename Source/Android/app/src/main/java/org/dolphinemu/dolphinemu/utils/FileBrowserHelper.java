@@ -88,10 +88,10 @@ public final class FileBrowserHelper
 
     String path = uri.getLastPathSegment();
     if (path != null)
-      extension = getExtension(new File(path).getName());
+      extension = getExtension(new File(path).getName(), false);
 
     if (extension == null)
-      extension = getExtension(ContentHandler.getDisplayName(uri));
+      extension = getExtension(ContentHandler.getDisplayName(uri), false);
 
     if (extension != null && validExtensions.contains(extension))
     {
@@ -122,13 +122,15 @@ public final class FileBrowserHelper
   }
 
   @Nullable
-  public static String getExtension(@Nullable String fileName)
+  public static String getExtension(@Nullable String fileName, boolean includeDot)
   {
     if (fileName == null)
       return null;
 
     int dotIndex = fileName.lastIndexOf(".");
-    return dotIndex != -1 ? fileName.substring(dotIndex + 1) : null;
+    if (dotIndex == -1)
+      return null;
+    return fileName.substring(dotIndex + (includeDot ? 0 : 1));
   }
 
   public static String setToSortedDelimitedString(Set<String> set)

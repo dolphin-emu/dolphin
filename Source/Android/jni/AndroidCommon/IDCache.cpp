@@ -10,6 +10,8 @@ static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 static JavaVM* s_java_vm;
 
+static jclass s_string_class;
+
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
 static jmethodID s_do_rumble;
@@ -47,6 +49,7 @@ static jmethodID s_content_handler_delete;
 static jmethodID s_content_handler_get_size_and_is_directory;
 static jmethodID s_content_handler_get_display_name;
 static jmethodID s_content_handler_get_child_names;
+static jmethodID s_content_handler_do_file_search;
 
 static jclass s_network_helper_class;
 static jmethodID s_network_helper_get_network_ip_address;
@@ -76,6 +79,11 @@ JNIEnv* GetEnvForThread()
     JNIEnv* env = nullptr;
   } owned;
   return owned.env;
+}
+
+jclass GetStringClass()
+{
+  return s_string_class;
 }
 
 jclass GetNativeLibraryClass()
@@ -228,6 +236,11 @@ jmethodID GetContentHandlerGetChildNames()
   return s_content_handler_get_child_names;
 }
 
+jmethodID GetContentHandlerDoFileSearch()
+{
+  return s_content_handler_do_file_search;
+}
+
 jclass GetNetworkHelperClass()
 {
   return s_network_helper_class;
@@ -261,6 +274,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   JNIEnv* env;
   if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
     return JNI_ERR;
+
+  const jclass string_class = env->FindClass("java/lang/String");
+  s_string_class = reinterpret_cast<jclass>(env->NewGlobalRef(string_class));
 
   const jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
@@ -331,6 +347,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
       s_content_handler_class, "getDisplayName", "(Ljava/lang/String;)Ljava/lang/String;");
   s_content_handler_get_child_names = env->GetStaticMethodID(
       s_content_handler_class, "getChildNames", "(Ljava/lang/String;Z)[Ljava/lang/String;");
+  s_content_handler_do_file_search =
+      env->GetStaticMethodID(s_content_handler_class, "doFileSearch",
+                             "(Ljava/lang/String;[Ljava/lang/String;Z)[Ljava/lang/String;");
 
   const jclass network_helper_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");
