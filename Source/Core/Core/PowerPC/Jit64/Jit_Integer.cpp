@@ -1771,11 +1771,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
     RCOpArg Rs = gpr.Use(s, RCMode::Read);
     RegCache::Realize(Ra, Rs);
 
-    if (a != s)
-      MOV(32, Ra, Rs);
-
-    if (amount)
-      ROL(32, Ra, Imm8(amount));
+    RotateLeft(32, Ra, Rs, amount);
 
     // we need flags if we're merging the branch
     if (inst.Rc && CheckMergedBranch(0))
