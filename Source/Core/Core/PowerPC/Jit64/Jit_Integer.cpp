@@ -1541,6 +1541,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   {
     const bool left_shift = inst.SH && inst.MB == 0 && inst.ME == 31 - inst.SH;
     const bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
+    const bool field_extract = inst.SH && inst.ME == 31 && inst.MB > 32 - inst.SH;
     const u32 mask = MakeRotationMask(inst.MB, inst.ME);
     const u32 prerotate_mask = Common::RotateRight(mask, inst.SH);
     const bool simple_mask = mask == 0xff || mask == 0xffff;
@@ -1573,6 +1574,13 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
       if (inst.SH)
         ROL(32, Ra, Imm8(inst.SH));
       needs_sext = (mask & 0x80000000) != 0;
+    }
+    // Use BEXTR where possible: Only AMD implements this in one uop
+    else if (field_extract && cpu_info.bBMI1 && cpu_info.vendor == CPUVendor::AMD)
+    {
+      MOV(32, R(RSCRATCH), Imm32((mask_size << 8) | (32 - inst.SH)));
+      BEXTR(32, Ra, Rs, RSCRATCH);
+      needs_sext = false;
     }
     else
     {
