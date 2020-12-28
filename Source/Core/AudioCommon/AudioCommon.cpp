@@ -137,12 +137,14 @@ std::string GetDefaultSoundBackend()
 {
   std::string backend = NullSound::GetName();
 #if defined ANDROID
-  backend = OpenSLESStream::GetName();
+  if (OpenSLESStream::IsValid())
+    backend = OpenSLESStream::GetName();
 #elif defined __linux__
   if (AlsaSound::IsValid())
     backend = AlsaSound::GetName();
 #elif defined(__APPLE__) || defined(_WIN32)
-  backend = CubebStream::GetName();
+  if (CubebStream::IsValid())
+    backend = CubebStream::GetName();
 #endif
   return backend;
 }
@@ -152,7 +154,7 @@ std::string GetBackendName()
   std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
   // The only case in which the started stream is different from the config one is when it failed
   // to start and fell back to NullSound
-  if (g_selected_sound_stream_failed && g_sound_stream)
+  if (g_sound_stream && g_selected_sound_stream_failed)
   {
     return NullSound::GetName();
   }
