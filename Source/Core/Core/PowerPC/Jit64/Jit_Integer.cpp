@@ -1668,7 +1668,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
     else if (mask == 0xFFFFFFFF)
     {
       RCOpArg Rs = gpr.Use(s, RCMode::Read);
-      RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
       RegCache::Realize(Rs, Ra);
       RotateLeft(32, Ra, Rs, inst.SH);
       needs_test = true;
