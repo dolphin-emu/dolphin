@@ -1956,14 +1956,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
-    u32 mask = 0x80000000;
-    u32 i = 0;
-    for (; i < 32; i++, mask >>= 1)
-    {
-      if (gpr.Imm32(s) & mask)
-        break;
-    }
-    gpr.SetImmediate32(a, i);
+    gpr.SetImmediate32(a, Common::CountLeadingZeros(gpr.Imm32(s)));
   }
   else
   {

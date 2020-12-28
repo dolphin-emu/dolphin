@@ -236,17 +236,7 @@ void Interpreter::cmpl(UGeckoInstruction inst)
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)
 {
-  u32 val = rGPR[inst.RS];
-  u32 mask = 0x80000000;
-
-  int i = 0;
-  for (; i < 32; i++, mask >>= 1)
-  {
-    if (val & mask)
-      break;
-  }
-
-  rGPR[inst.RA] = i;
+  rGPR[inst.RA] = Common::CountLeadingZeros(rGPR[inst.RS]);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
