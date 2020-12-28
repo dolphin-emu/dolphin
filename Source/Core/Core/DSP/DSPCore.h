@@ -398,8 +398,8 @@ struct SDSP
   void DoState(PointerWrap& p);
 
   // DSP static analyzer.
-  Analyzer::Analyzer& GetAnalyzer() { return m_analyzer; }
-  const Analyzer::Analyzer& GetAnalyzer() const { return m_analyzer; }
+  Analyzer& GetAnalyzer() { return m_analyzer; }
+  const Analyzer& GetAnalyzer() const { return m_analyzer; }
 
   DSP_Regs r{};
   u16 pc = 0;
@@ -454,7 +454,7 @@ private:
   u16 ReadIFXImpl(u16 address);
 
   DSPCore& m_dsp_core;
-  Analyzer::Analyzer m_analyzer;
+  Analyzer m_analyzer;
 };
 
 enum class State

@@ -12,7 +12,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
 
-namespace DSP::Analyzer
+namespace DSP
 {
 // Good candidates for idle skipping is mail wait loops. If we're time slicing
 // between the main CPU and the DSP, if the DSP runs into one of these, it might
@@ -160,4 +160,4 @@ void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
   }
   INFO_LOG_FMT(DSPLLE, "Finished analysis.");
 }
-}  // namespace DSP::Analyzer
+}  // namespace DSP

@@ -12,8 +12,7 @@ namespace DSP
 struct SDSP;
 }
 
-// Basic code analysis.
-namespace DSP::Analyzer
+namespace DSP
 {
 // Useful things to detect:
 // * Loop endpoints - so that we can avoid checking for loops every cycle.
@@ -102,4 +101,4 @@ private:
   // DSP context for analysis to be run under.
   const SDSP& m_dsp;
 };
-}  // namespace DSP::Analyzer
+}  // namespace DSP
