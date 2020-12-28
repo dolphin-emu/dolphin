@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
@@ -517,15 +518,15 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-  bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
-  // bool ordered = !!(inst.SUBOP10 & 32);
-  int a = inst.FA;
-  int b = inst.FB;
-  u32 crf = inst.CRFD;
-  int output[4] = {PowerPC::CR_SO, PowerPC::CR_EQ, PowerPC::CR_GT, PowerPC::CR_LT};
+  const bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
+  // const bool ordered = !!(inst.SUBOP10 & 32);
+  const int a = inst.FA;
+  const int b = inst.FB;
+  const u32 crf = inst.CRFD;
+  u64 output[4] = {PowerPC::CR_SO, PowerPC::CR_EQ, PowerPC::CR_GT, PowerPC::CR_LT};
 
   // Merge neighboring fcmp and cror (the primary use of cror).
-  UGeckoInstruction next = js.op[1].inst;
+  const UGeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
       CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
       static_cast<u32>(next.CRBA >> 2) == crf && static_cast<u32>(next.CRBB >> 2) == crf &&
@@ -541,7 +542,8 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 
   RCOpArg Ra = upper ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
   RCX64Reg Rb = fpr.Bind(b, RCMode::Read);
-  RegCache::Realize(Ra, Rb);
+  RCX64Reg rcx = gpr.Scratch(RCX);
+  RegCache::Realize(Ra, Rb, rcx);
 
   if (fprf)
     AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
@@ -557,64 +559,56 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     UCOMISD(Rb, Ra);
   }
 
-  FixupBranch pNaN, pLesser, pGreater;
-  FixupBranch continue1, continue2, continue3;
+  // Please note that our arguments are REVERSED to normal. (See above UCOMISD instruction.)
+  //
+  //               x64 flags
+  //               ZF  PF  CF
+  // Unordered      1   1   1
+  // Less than      0   0   0
+  // Greater than   0   0   1
+  // Equal          1   0   0
+  //
+  // Thus we can take use ZF:CF as an index into an array.
+  //  x64      PPC
+  // ZF:CF
+  //   0       CR_LT
+  //   1       CR_GT
+  //   2       CR_EQ
+  //   3       CR_SO
 
-  if (a != b)
-  {
-    // if B > A, goto Lesser's jump target
-    pLesser = J_CC(CC_A);
-  }
+  const auto construct_cr_lookup_entry = [&](int cr_bit, int x64_index) {
+    const u64 internal = PowerPC::ConditionRegister::PPCToInternal(output[cr_bit]);
+    return Common::RotateLeft(internal, x64_index * 8);
+  };
 
-  // if (B != B) or (A != A), goto NaN's jump target
-  pNaN = J_CC(CC_P);
+  const u64 cr_lookup_table = construct_cr_lookup_entry(PowerPC::CR_LT_BIT, 0) |
+                              construct_cr_lookup_entry(PowerPC::CR_GT_BIT, 1) |
+                              construct_cr_lookup_entry(PowerPC::CR_EQ_BIT, 2) |
+                              construct_cr_lookup_entry(PowerPC::CR_SO_BIT, 3);
 
-  if (a != b)
-  {
-    // if B < A, goto Greater's jump target
-    // JB can't precede the NaN check because it doesn't test ZF
-    pGreater = J_CC(CC_B);
-  }
+  const u64 fpscr_lookup_table = (u64(PowerPC::CR_LT) << (0 * 8 + FPRF_SHIFT)) |
+                                 (u64(PowerPC::CR_GT) << (1 * 8 + FPRF_SHIFT)) |
+                                 (u64(PowerPC::CR_EQ) << (2 * 8 + FPRF_SHIFT)) |
+                                 (u64(PowerPC::CR_SO) << (3 * 8 + FPRF_SHIFT));
 
-  MOV(64, R(RSCRATCH),
-      Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_EQ_BIT])));
+  SETcc(CC_E, rcx);
+  RCL(8, rcx, Imm8(4));  // cl = ZF:CF:000
+
+  MOV(64, R(RSCRATCH), Imm64(cr_lookup_table));
   if (fprf)
-    OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_EQ << FPRF_SHIFT));
+    MOV(64, R(RSCRATCH2), Imm64(fpscr_lookup_table));
 
-  continue1 = J();
-
-  SetJumpTarget(pNaN);
-  MOV(64, R(RSCRATCH),
-      Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_SO_BIT])));
+  ROR(64, R(RSCRATCH), rcx);
   if (fprf)
-    OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_SO << FPRF_SHIFT));
+    ROR(64, R(RSCRATCH2), rcx);
 
-  if (a != b)
-  {
-    continue2 = J();
-
-    SetJumpTarget(pGreater);
-    MOV(64, R(RSCRATCH),
-        Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_GT_BIT])));
-    if (fprf)
-      OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_GT << FPRF_SHIFT));
-    continue3 = J();
-
-    SetJumpTarget(pLesser);
-    MOV(64, R(RSCRATCH),
-        Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_LT_BIT])));
-    if (fprf)
-      OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_LT << FPRF_SHIFT));
-  }
-
-  SetJumpTarget(continue1);
-  if (a != b)
-  {
-    SetJumpTarget(continue2);
-    SetJumpTarget(continue3);
-  }
+  AND(64, R(RSCRATCH), Imm32(0x80000001));  // Mask is sign extended to 64 bits
+  if (fprf)
+    AND(32, R(RSCRATCH2), Imm32(FPRF_MASK));
 
   MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
+  if (fprf)
+    OR(32, PPCSTATE(fpscr), R(RSCRATCH2));
 }
 
 void Jit64::fcmpX(UGeckoInstruction inst)
