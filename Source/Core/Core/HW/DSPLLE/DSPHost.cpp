@@ -93,7 +93,7 @@ void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
   UpdateDebugger();
 
   dsp.ClearIRAM();
-  state.GetAnalyzer().Analyze();
+  state.GetAnalyzer().Analyze(state);
 }
 
 void UpdateDebugger()

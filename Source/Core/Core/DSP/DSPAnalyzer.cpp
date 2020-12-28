@@ -61,17 +61,14 @@ constexpr u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] = {
      0, 0},
 };
 
-Analyzer::Analyzer(const SDSP& dsp) : m_dsp{dsp}
-{
-}
-
+Analyzer::Analyzer() = default;
 Analyzer::~Analyzer() = default;
 
-void Analyzer::Analyze()
+void Analyzer::Analyze(const SDSP& dsp)
 {
   Reset();
-  AnalyzeRange(0x0000, 0x1000);  // IRAM
-  AnalyzeRange(0x8000, 0x9000);  // IROM
+  AnalyzeRange(dsp, 0x0000, 0x1000);  // IRAM
+  AnalyzeRange(dsp, 0x8000, 0x9000);  // IROM
 }
 
 void Analyzer::Reset()
@@ -79,7 +76,7 @@ void Analyzer::Reset()
   m_code_flags.fill(0);
 }
 
-void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
+void Analyzer::AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr)
 {
   // First we run an extremely simplified version of a disassembler to find
   // where all instructions start.
@@ -89,7 +86,7 @@ void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
   u16 last_arithmetic = 0;
   for (u16 addr = start_addr; addr < end_addr;)
   {
-    const UDSPInstruction inst = m_dsp.ReadIMEM(addr);
+    const UDSPInstruction inst = dsp.ReadIMEM(addr);
     const DSPOPCTemplate* opcode = GetOpTemplate(inst);
     if (!opcode)
     {
@@ -101,7 +98,7 @@ void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
     if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100)
     {
       // BLOOP, BLOOPI
-      const u16 loop_end = m_dsp.ReadIMEM(addr + 1);
+      const u16 loop_end = dsp.ReadIMEM(addr + 1);
       m_code_flags[addr] |= CODE_LOOP_START;
       m_code_flags[loop_end] |= CODE_LOOP_END;
     }
@@ -148,7 +145,7 @@ void Analyzer::AnalyzeRange(u16 start_addr, u16 end_addr)
           found = true;
         if (idle_skip_sigs[s][i] == 0xFFFF)
           continue;
-        if (idle_skip_sigs[s][i] != m_dsp.ReadIMEM(static_cast<u16>(addr + i)))
+        if (idle_skip_sigs[s][i] != dsp.ReadIMEM(static_cast<u16>(addr + i)))
           break;
       }
       if (found)

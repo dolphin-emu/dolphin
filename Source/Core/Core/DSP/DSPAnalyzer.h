@@ -20,14 +20,14 @@ namespace DSP
 class Analyzer
 {
 public:
-  explicit Analyzer(const SDSP& dsp);
+  explicit Analyzer();
   ~Analyzer();
 
   Analyzer(const Analyzer&) = default;
-  Analyzer& operator=(const Analyzer&) = delete;
+  Analyzer& operator=(const Analyzer&) = default;
 
   Analyzer(Analyzer&&) = default;
-  Analyzer& operator=(Analyzer&&) = delete;
+  Analyzer& operator=(Analyzer&&) = default;
 
   // This one should be called every time IRAM changes - which is basically
   // every time that a new ucode gets uploaded, and never else. At that point,
@@ -35,7 +35,7 @@ public:
   // all old analysis away. Luckily the entire address space is only 64K code
   // words and the actual code space 8K instructions in total, so we can do
   // some pretty expensive analysis if necessary.
-  void Analyze();
+  void Analyze(const SDSP& dsp);
 
   // Whether or not the given address indicates the start of an instruction.
   [[nodiscard]] bool IsStartOfInstruction(u16 address) const
@@ -90,15 +90,12 @@ private:
 
   // Analyzes a region of DSP memory.
   // Note: start is inclusive, end is exclusive.
-  void AnalyzeRange(u16 start_addr, u16 end_addr);
+  void AnalyzeRange(const SDSP& dsp, u16 start_addr, u16 end_addr);
 
   // Retrieves the flags set during analysis for code in memory.
   [[nodiscard]] u8 GetCodeFlags(u16 address) const { return m_code_flags[address]; }
 
   // Holds data about all instructions in RAM.
   std::array<u8, 65536> m_code_flags{};
-
-  // DSP context for analysis to be run under.
-  const SDSP& m_dsp;
 };
 }  // namespace DSP
