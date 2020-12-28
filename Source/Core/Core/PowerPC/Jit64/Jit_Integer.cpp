@@ -1726,7 +1726,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
     }
     else if (inst.SH)
     {
-      // TODO: common cases of this might be faster with pinsrb or abuse of AH
+      // TODO: perhaps consider pinsrb or abuse of AH
       RCOpArg Rs = gpr.Use(s, RCMode::Read);
       RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
       RegCache::Realize(Rs, Ra);
@@ -1735,22 +1735,28 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       {
         MOV(32, R(RSCRATCH), Rs);
         SHL(32, R(RSCRATCH), Imm8(inst.SH));
-        AndWithMask(Ra, ~mask);
-        OR(32, Ra, R(RSCRATCH));
       }
       else if (right_shift)
       {
         MOV(32, R(RSCRATCH), Rs);
         SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
-        AndWithMask(Ra, ~mask);
-        OR(32, Ra, R(RSCRATCH));
       }
       else
       {
         RotateLeft(32, RSCRATCH, Rs, inst.SH);
-        XOR(32, R(RSCRATCH), Ra);
-        AndWithMask(RSCRATCH, mask);
-        XOR(32, Ra, R(RSCRATCH));
+      }
+
+      if (mask == 0xFF || mask == 0xFFFF)
+      {
+        MOV(mask == 0xFF ? 8 : 16, Ra, R(RSCRATCH));
+        needs_test = true;
+      }
+      else
+      {
+        if (!left_shift && !right_shift)
+          AndWithMask(RSCRATCH, mask);
+        AndWithMask(Ra, ~mask);
+        OR(32, Ra, R(RSCRATCH));
       }
     }
     else
@@ -1758,9 +1764,18 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       RCX64Reg Rs = gpr.Bind(s, RCMode::Read);
       RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
       RegCache::Realize(Rs, Ra);
-      XOR(32, Ra, Rs);
-      AndWithMask(Ra, ~mask);
-      XOR(32, Ra, Rs);
+
+      if (mask == 0xFF || mask == 0xFFFF)
+      {
+        MOV(mask == 0xFF ? 8 : 16, Ra, Rs);
+        needs_test = true;
+      }
+      else
+      {
+        XOR(32, Ra, Rs);
+        AndWithMask(Ra, ~mask);
+        XOR(32, Ra, Rs);
+      }
     }
     if (inst.Rc)
       ComputeRC(a, needs_test);
