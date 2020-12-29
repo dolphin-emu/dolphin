@@ -33,6 +33,7 @@ PrimeWidget::PrimeWidget(GraphicsWindow* parent)
   ConnectWidgets();
   AddDescriptions();
 
+  ToggleShowCrosshair(m_toggle_gc_show_crosshair->isChecked());
   ArmPositionModeChanged(m_manual_arm_position->isChecked());
 }
 
