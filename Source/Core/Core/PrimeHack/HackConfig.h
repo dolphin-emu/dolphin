@@ -34,6 +34,8 @@ bool GetSkipCutscene();
 bool GetRestoreDashing();
 
 bool GetEnableSecondaryGunFX();
+bool GetShowGCCrosshair();
+u32 GetGCCrosshairColor();
 
 bool GetAutoArmAdjust();
 bool GetToggleArmAdjust();

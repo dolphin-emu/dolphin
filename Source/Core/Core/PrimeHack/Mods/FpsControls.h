@@ -99,6 +99,7 @@ private:
       u32 cplayer_address;
       u32 camera_uid_address;
       u32 state_mgr_address;
+      u32 crosshair_color_address;
     } mp1_gc_static;
 
     struct {
@@ -117,6 +118,7 @@ private:
     struct {
       u32 state_mgr_address;
       u32 tweak_player_offset;
+      u32 crosshair_color_address;
     } mp2_gc_static;
 
     struct {
