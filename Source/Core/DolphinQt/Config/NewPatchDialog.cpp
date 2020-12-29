@@ -18,6 +18,23 @@
 #include "Core/PatchEngine.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
+struct NewPatchEntry
+{
+  NewPatchEntry() = default;
+
+  // These entries share the lifetime of their associated text widgets, and because they are
+  // captured by pointer by various edit handlers, they should not copied or moved.
+  NewPatchEntry(const NewPatchEntry&) = delete;
+  NewPatchEntry& operator=(const NewPatchEntry&) = delete;
+  NewPatchEntry(NewPatchEntry&&) = delete;
+  NewPatchEntry& operator=(NewPatchEntry&&) = delete;
+
+  QLineEdit* address = nullptr;
+  QLineEdit* value = nullptr;
+  QLineEdit* comparand = nullptr;
+  PatchEngine::PatchEntry entry;
+};
+
 NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     : QDialog(parent), m_patch(patch)
 {
@@ -38,6 +55,8 @@ NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     m_patch.enabled = true;
   }
 }
+
+NewPatchDialog::~NewPatchDialog() = default;
 
 void NewPatchDialog::CreateWidgets()
 {
@@ -80,9 +99,7 @@ void NewPatchDialog::ConnectWidgets()
 
 void NewPatchDialog::AddEntry()
 {
-  m_patch.entries.emplace_back();
-
-  m_entry_layout->addWidget(CreateEntry(m_patch.entries[m_patch.entries.size() - 1]));
+  m_entry_layout->addWidget(CreateEntry({}));
 }
 
 static u32 OnTextEdited(QLineEdit* edit, const QString& text)
@@ -104,27 +121,7 @@ static u32 OnTextEdited(QLineEdit* edit, const QString& text)
   return value;
 }
 
-static bool PatchEq(const PatchEngine::PatchEntry& a, const PatchEngine::PatchEntry& b)
-{
-  if (a.address != b.address)
-    return false;
-
-  if (a.type != b.type)
-    return false;
-
-  if (a.value != b.value)
-    return false;
-
-  if (a.comparand != b.comparand)
-    return false;
-
-  if (a.conditional != b.conditional)
-    return false;
-
-  return true;
-}
-
-QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
+QGroupBox* NewPatchDialog::CreateEntry(const PatchEngine::PatchEntry& entry)
 {
   QGroupBox* box = new QGroupBox();
 
@@ -145,9 +142,11 @@ QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
   auto* value = new QLineEdit;
   auto* comparand = new QLineEdit;
 
-  m_edits.push_back(address);
-  m_edits.push_back(value);
-  m_edits.push_back(comparand);
+  auto* new_entry = m_entries.emplace_back(std::make_unique<NewPatchEntry>()).get();
+  new_entry->address = address;
+  new_entry->value = value;
+  new_entry->comparand = comparand;
+  new_entry->entry = entry;
 
   auto* conditional = new QCheckBox(tr("Conditional"));
   auto* comparand_label = new QLabel(tr("Comparand:"));
@@ -165,56 +164,53 @@ QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
   box->setLayout(layout);
 
   connect(address, qOverload<const QString&>(&QLineEdit::textEdited),
-          [&entry, address](const QString& text) { entry.address = OnTextEdited(address, text); });
-
-  connect(value, qOverload<const QString&>(&QLineEdit::textEdited),
-          [&entry, value](const QString& text) { entry.value = OnTextEdited(value, text); });
-
-  connect(comparand, qOverload<const QString&>(&QLineEdit::textEdited),
-          [&entry, comparand](const QString& text) {
-            entry.comparand = OnTextEdited(comparand, text);
+          [new_entry](const QString& text) {
+            new_entry->entry.address = OnTextEdited(new_entry->address, text);
           });
 
-  connect(remove, &QPushButton::clicked, [this, box, address, value, comparand, entry] {
-    if (m_patch.entries.size() > 1)
+  connect(value, qOverload<const QString&>(&QLineEdit::textEdited),
+          [new_entry](const QString& text) {
+            new_entry->entry.value = OnTextEdited(new_entry->value, text);
+          });
+
+  connect(comparand, qOverload<const QString&>(&QLineEdit::textEdited),
+          [new_entry](const QString& text) {
+            new_entry->entry.comparand = OnTextEdited(new_entry->comparand, text);
+          });
+
+  connect(remove, &QPushButton::clicked, [this, box, new_entry] {
+    if (m_entries.size() > 1)
     {
       box->setVisible(false);
       m_entry_layout->removeWidget(box);
       box->deleteLater();
 
-      m_patch.entries.erase(
-          std::find_if(m_patch.entries.begin(), m_patch.entries.end(),
-                       [entry](const PatchEngine::PatchEntry& e) { return PatchEq(e, entry); }));
-
-      const auto it = std::remove_if(
-          m_edits.begin(), m_edits.end(), [address, value, comparand](QLineEdit* line_edit) {
-            return line_edit == address || line_edit == value || line_edit == comparand;
-          });
-      m_edits.erase(it, m_edits.end());
+      m_entries.erase(std::find_if(m_entries.begin(), m_entries.end(),
+                                   [new_entry](const auto& e) { return e.get() == new_entry; }));
     }
   });
 
-  connect(byte, &QRadioButton::toggled, [&entry](bool checked) {
+  connect(byte, &QRadioButton::toggled, [new_entry](bool checked) {
     if (checked)
-      entry.type = PatchEngine::PatchType::Patch8Bit;
+      new_entry->entry.type = PatchEngine::PatchType::Patch8Bit;
   });
 
-  connect(word, &QRadioButton::toggled, [&entry](bool checked) {
+  connect(word, &QRadioButton::toggled, [new_entry](bool checked) {
     if (checked)
-      entry.type = PatchEngine::PatchType::Patch16Bit;
+      new_entry->entry.type = PatchEngine::PatchType::Patch16Bit;
   });
 
-  connect(dword, &QRadioButton::toggled, [&entry](bool checked) {
+  connect(dword, &QRadioButton::toggled, [new_entry](bool checked) {
     if (checked)
-      entry.type = PatchEngine::PatchType::Patch32Bit;
+      new_entry->entry.type = PatchEngine::PatchType::Patch32Bit;
   });
 
   byte->setChecked(entry.type == PatchEngine::PatchType::Patch8Bit);
   word->setChecked(entry.type == PatchEngine::PatchType::Patch16Bit);
   dword->setChecked(entry.type == PatchEngine::PatchType::Patch32Bit);
 
-  connect(conditional, &QCheckBox::toggled, [&entry, comparand_label, comparand](bool checked) {
-    entry.conditional = checked;
+  connect(conditional, &QCheckBox::toggled, [new_entry, comparand_label, comparand](bool checked) {
+    new_entry->entry.conditional = checked;
     comparand_label->setVisible(checked);
     comparand->setVisible(checked);
   });
@@ -240,11 +236,22 @@ void NewPatchDialog::accept()
 
   bool valid = true;
 
-  for (const auto* edit : m_edits)
+  for (const auto& entry : m_entries)
   {
-    edit->text().toUInt(&valid, 16);
+    entry->address->text().toUInt(&valid, 16);
     if (!valid)
       break;
+
+    entry->value->text().toUInt(&valid, 16);
+    if (!valid)
+      break;
+
+    if (entry->entry.conditional)
+    {
+      entry->comparand->text().toUInt(&valid, 16);
+      if (!valid)
+        break;
+    }
   }
 
   if (!valid)
@@ -253,6 +260,13 @@ void NewPatchDialog::accept()
         this, tr("Error"),
         tr("Some values you provided are invalid.\nPlease check the highlighted values."));
     return;
+  }
+
+  m_patch.entries.clear();
+
+  for (const auto& entry : m_entries)
+  {
+    m_patch.entries.emplace_back(entry->entry);
   }
 
   QDialog::accept();
