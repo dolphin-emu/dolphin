@@ -46,14 +46,16 @@ void Interpreter::ExecuteInstruction(const UDSPInstruction inst)
 
 void Interpreter::Step()
 {
-  m_dsp_core.CheckExceptions();
-  m_dsp_core.DSPState().step_counter++;
+  auto& state = m_dsp_core.DSPState();
 
-  const u16 opc = m_dsp_core.DSPState().FetchInstruction();
+  m_dsp_core.CheckExceptions();
+  state.step_counter++;
+
+  const u16 opc = state.FetchInstruction();
   ExecuteInstruction(UDSPInstruction{opc});
 
-  const auto pc = m_dsp_core.DSPState().pc;
-  if ((Analyzer::GetCodeFlags(static_cast<u16>(pc - 1)) & Analyzer::CODE_LOOP_END) != 0)
+  const auto pc = state.pc;
+  if (state.GetAnalyzer().IsLoopEnd(static_cast<u16>(pc - 1)))
     HandleLoop();
 }
 
@@ -117,8 +119,7 @@ int Interpreter::RunCyclesDebug(int cycles)
         return cycles;
       }
 
-      // Idle skipping.
-      if ((Analyzer::GetCodeFlags(state.pc) & Analyzer::CODE_IDLE_SKIP) != 0)
+      if (state.GetAnalyzer().IsIdleSkip(state.pc))
         return 0;
 
       Step();
@@ -173,8 +174,7 @@ int Interpreter::RunCycles(int cycles)
       if ((state.cr & CR_HALT) != 0)
         return 0;
 
-      // Idle skipping.
-      if ((Analyzer::GetCodeFlags(state.pc) & Analyzer::CODE_IDLE_SKIP) != 0)
+      if (state.GetAnalyzer().IsIdleSkip(state.pc))
         return 0;
 
       Step();

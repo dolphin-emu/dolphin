@@ -483,7 +483,7 @@ void DSPCore::Step()
 void DSPCore::Reset()
 {
   m_dsp.Reset();
-  Analyzer::Analyze(m_dsp);
+  m_dsp.GetAnalyzer().Analyze(m_dsp);
 }
 
 void DSPCore::ClearIRAM()
