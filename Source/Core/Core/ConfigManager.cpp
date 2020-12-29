@@ -963,12 +963,11 @@ DiscIO::Region SConfig::GetFallbackRegion()
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
-  int language_value;
+  DiscIO::Language language;
   if (wii)
-    language_value = Config::Get(Config::SYSCONF_LANGUAGE);
+    language = static_cast<DiscIO::Language>(Config::Get(Config::SYSCONF_LANGUAGE));
   else
-    language_value = SConfig::GetInstance().SelectedLanguage + 1;
-  DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
+    language = DiscIO::FromGameCubeLanguage(SConfig::GetInstance().SelectedLanguage);
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
   if (language > DiscIO::Language::Unknown || language < DiscIO::Language::Japanese)
