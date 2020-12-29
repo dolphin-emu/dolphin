@@ -432,8 +432,6 @@ struct SDSP
   // Accelerator / DMA / other hardware registers. Not GPRs.
   std::array<u16, 256> ifx_regs{};
 
-  std::unique_ptr<Accelerator> accelerator;
-
   // When state saving, all of the above can just be memcpy'd into the save state.
   // The below needs special handling.
   u16* iram = nullptr;
@@ -455,6 +453,7 @@ private:
 
   u16 ReadIFXImpl(u16 address);
 
+  std::unique_ptr<Accelerator> m_accelerator;
   std::array<std::atomic<u32>, 2> m_mailbox;
   DSPCore& m_dsp_core;
   Analyzer m_analyzer;
