@@ -54,10 +54,10 @@
 #include "UICommon/GameFile.h"
 
 #ifdef _WIN32
-#include "shlobj.h"
-#include <qcoreapplication.h>
+#include <QCoreApplication>
+#include <shlobj.h>
 #include <wrl/client.h>
-#endif 
+#endif
 
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
@@ -388,9 +388,9 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
-    #ifdef _WIN32
+#ifdef _WIN32
     menu->addAction(tr("Add Shortcut to Desktop"), this, &GameList::AddShortcutToDesktop);
-    #endif
+#endif
 
     menu->addSeparator();
 
@@ -641,14 +641,13 @@ void GameList::OpenGCSaveFolder()
 void GameList::AddShortcutToDesktop()
 {
   const auto game = GetSelectedGame();
-  const auto game_name = game->GetLongName();
-  const auto file_path = game->GetFilePath();
-  const auto file_name = game->GetFileName();
+  const auto& game_name = game->GetLongName();
+  const auto& file_path = game->GetFilePath();
 
   std::wstring args = UTF8ToTStr("-e \"" + file_path + "\"");
   std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
 
-  // Gets the desktop position with shorcut
+  // Gets the desktop position with shortcut
   WCHAR* desktop = nullptr;
   SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, NULL, &desktop);
   std::wstring desktop_path = std::wstring(desktop) + UTF8ToTStr("\\" + game_name + ".lnk");
@@ -659,21 +658,28 @@ void GameList::AddShortcutToDesktop()
   CoInitialize(NULL);
   hres = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&psl));
 
-  if (SUCCEEDED(hres))
+  if (!SUCCEEDED(hres))
   {
-    Microsoft::WRL::ComPtr<IPersistFile> ppf;
-    
-    psl->SetPath(dolphin_path.c_str());
-    psl->SetArguments(args.c_str());
-
-    hres = psl->QueryInterface(IID_IPersistFile, static_cast<LPVOID*>(&ppf));
-
-    if (SUCCEEDED(hres))
-    {
-      hres = ppf->Save(desktop_path.c_str(), TRUE);
-    }
+    ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
+                                 tr("There was an issue adding a shortcut to the desktop"));
+    return;
   }
 
+  Microsoft::WRL::ComPtr<IPersistFile> ppf;
+
+  psl->SetPath(dolphin_path.c_str());
+  psl->SetArguments(args.c_str());
+
+  hres = psl->QueryInterface(IID_IPersistFile, static_cast<LPVOID*>(&ppf));
+
+  if (!SUCCEEDED(hres))
+  {
+    ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
+                                 tr("There was an issue adding a shortcut to the desktop"));
+    return;
+  }
+
+  hres = ppf->Save(desktop_path.c_str(), TRUE);
   ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
                                tr("Shortcut successfully added to the desktop"));
 }
