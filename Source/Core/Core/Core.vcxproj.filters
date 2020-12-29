@@ -467,9 +467,6 @@
     <ClCompile Include="HW\EXI\EXI_DeviceMic.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClCompile>
     <ClCompile Include="HW\Sram.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
@@ -1001,11 +998,16 @@
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
     <ClCompile Include="HW\EXI\BBA\XLINK_KAI_BBA.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\EXI\BBA\TAP_Win32.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
+    <ClCompile Include="Config\FreeLookSettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeLookConfig.cpp" />
+    <ClCompile Include="FreeLookManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1248,9 +1250,6 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\EXI\EXI_DeviceMic.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\Sram.h">
@@ -1764,10 +1763,15 @@
       <Filter>PowerPC\JitArmCommon</Filter>
     </ClInclude>
     <ClInclude Include="HW\EXI\BBA\TAP_Win32.h">
-      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
     <ClInclude Include="SyncIdentifier.h" />
     <ClInclude Include="CheatCodes.h" />
+    <ClInclude Include="Config\FreeLookSettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeLookConfig.h" />
+    <ClInclude Include="FreeLookManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
