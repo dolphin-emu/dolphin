@@ -25,21 +25,21 @@ void SDSP::InitializeIFX()
 {
   ifx_regs.fill(0);
 
-  mbox[MAILBOX_CPU].store(0);
-  mbox[MAILBOX_DSP].store(0);
+  GetMailbox(Mailbox::CPU).store(0);
+  GetMailbox(Mailbox::DSP).store(0);
 }
 
 u32 SDSP::PeekMailbox(Mailbox mailbox) const
 {
-  return mbox[mailbox].load();
+  return GetMailbox(mailbox).load();
 }
 
 u16 SDSP::ReadMailboxLow(Mailbox mailbox)
 {
-  const u32 value = mbox[mailbox].load(std::memory_order_acquire);
-  mbox[mailbox].store(value & ~0x80000000, std::memory_order_release);
+  const u32 value = GetMailbox(mailbox).load(std::memory_order_acquire);
+  GetMailbox(mailbox).store(value & ~0x80000000, std::memory_order_release);
 
-  if (m_dsp_core.GetInitHax() && mailbox == MAILBOX_DSP)
+  if (m_dsp_core.GetInitHax() && mailbox == Mailbox::DSP)
   {
     m_dsp_core.SetInitHax(false);
     m_dsp_core.Reset();
@@ -47,7 +47,7 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
   }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  const char* const type = mailbox == MAILBOX_DSP ? "DSP" : "CPU";
+  const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
   DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, mailbox,
                 PeekMailbox(mailbox), pc);
 #endif
@@ -57,7 +57,7 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
 
 u16 SDSP::ReadMailboxHigh(Mailbox mailbox)
 {
-  if (m_dsp_core.GetInitHax() && mailbox == MAILBOX_DSP)
+  if (m_dsp_core.GetInitHax() && mailbox == Mailbox::DSP)
   {
     return 0x8054;
   }
@@ -68,13 +68,13 @@ u16 SDSP::ReadMailboxHigh(Mailbox mailbox)
 
 void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 {
-  const u32 old_value = mbox[mailbox].load(std::memory_order_acquire);
+  const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
   const u32 new_value = (old_value & ~0xffff) | value;
 
-  mbox[mailbox].store(new_value | 0x80000000, std::memory_order_release);
+  GetMailbox(mailbox).store(new_value | 0x80000000, std::memory_order_release);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-  const char* const type = mailbox == MAILBOX_DSP ? "DSP" : "CPU";
+  const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
   DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, mailbox,
                 PeekMailbox(mailbox), pc);
 #endif
@@ -82,10 +82,10 @@ void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 
 void SDSP::WriteMailboxHigh(Mailbox mailbox, u16 value)
 {
-  const u32 old_value = mbox[mailbox].load(std::memory_order_acquire);
+  const u32 old_value = GetMailbox(mailbox).load(std::memory_order_acquire);
   const u32 new_value = (old_value & 0xffff) | (value << 16);
 
-  mbox[mailbox].store(new_value & ~0x80000000, std::memory_order_release);
+  GetMailbox(mailbox).store(new_value & ~0x80000000, std::memory_order_release);
 }
 
 void SDSP::WriteIFX(u32 address, u16 value)
@@ -102,19 +102,19 @@ void SDSP::WriteIFX(u32 address, u16 value)
     break;
 
   case DSP_DMBH:
-    WriteMailboxHigh(MAILBOX_DSP, value);
+    WriteMailboxHigh(Mailbox::DSP, value);
     break;
 
   case DSP_DMBL:
-    WriteMailboxLow(MAILBOX_DSP, value);
+    WriteMailboxLow(Mailbox::DSP, value);
     break;
 
   case DSP_CMBH:
-    WriteMailboxHigh(MAILBOX_CPU, value);
+    WriteMailboxHigh(Mailbox::CPU, value);
     break;
 
   case DSP_CMBL:
-    WriteMailboxLow(MAILBOX_CPU, value);
+    WriteMailboxLow(Mailbox::CPU, value);
     break;
 
   case DSP_DSBL:
@@ -207,16 +207,16 @@ u16 SDSP::ReadIFXImpl(u16 address)
   switch (address & 0xff)
   {
   case DSP_DMBH:
-    return ReadMailboxHigh(MAILBOX_DSP);
+    return ReadMailboxHigh(Mailbox::DSP);
 
   case DSP_DMBL:
-    return ReadMailboxLow(MAILBOX_DSP);
+    return ReadMailboxLow(Mailbox::DSP);
 
   case DSP_CMBH:
-    return ReadMailboxHigh(MAILBOX_CPU);
+    return ReadMailboxHigh(Mailbox::CPU);
 
   case DSP_CMBL:
-    return ReadMailboxLow(MAILBOX_CPU);
+    return ReadMailboxLow(Mailbox::CPU);
 
   case DSP_DSCR:
     return ifx_regs[address & 0xFF];

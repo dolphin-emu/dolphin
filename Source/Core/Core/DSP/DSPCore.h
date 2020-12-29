@@ -228,10 +228,10 @@ enum class ExceptionType
   ExternalInterrupt = 7     // 0x000e external int (message from CPU)
 };
 
-enum Mailbox : int
+enum class Mailbox
 {
-  MAILBOX_CPU,
-  MAILBOX_DSP
+  CPU,
+  DSP
 };
 
 struct DSP_Regs
@@ -445,6 +445,9 @@ struct SDSP
   u16* coef = nullptr;
 
 private:
+  auto& GetMailbox(Mailbox mailbox) { return mbox[static_cast<u32>(mailbox)]; }
+  const auto& GetMailbox(Mailbox mailbox) const { return mbox[static_cast<u32>(mailbox)]; }
+
   void FreeMemoryPages();
 
   void DoDMA();
