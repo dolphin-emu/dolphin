@@ -201,9 +201,9 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_slider = new QSlider(Qt::Horizontal);
   m_emu_speed_tolerance_indicator = new QLabel();
   QSize min_size = m_emu_speed_tolerance_indicator->minimumSize();
-  min_size.setWidth(
-      std::max(std::max(font_metrics.width(tr("Disabled")), font_metrics.width(tr("None"))),
-               font_metrics.width(tr("%1 ms").arg(125))));
+  min_size.setWidth(std::max(std::max(font_metrics.horizontalAdvance(tr("Disabled")),
+                                      font_metrics.horizontalAdvance(tr("None"))),
+                             font_metrics.horizontalAdvance(tr("%1 ms").arg(125))));
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   //To review: maybe have a set of 4 or 5 options to keep it simpler (low, high, ...).
@@ -245,7 +245,7 @@ void AudioPane::CreateWidgets()
   int max_width = 0;
   for (int i = 0; i <= max_dolby_quality; ++i)
   {
-    max_width = std::max(max_width, font_metrics.width(GetDPL2QualityAndLatencyLabel(
+    max_width = std::max(max_width, font_metrics.horizontalAdvance(GetDPL2QualityAndLatencyLabel(
                                         AudioCommon::DPL2Quality(max_dolby_quality))));
   }
   min_size.setWidth(max_width);
