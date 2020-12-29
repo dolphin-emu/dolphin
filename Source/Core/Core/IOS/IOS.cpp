@@ -409,7 +409,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
 void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
 {
   ASSERT(device->GetDeviceType() == Device::Device::DeviceType::Static);
-  m_device_map[device->GetDeviceName()] = std::move(device);
+  m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
 }
 
 void Kernel::AddCoreDevices()
