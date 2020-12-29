@@ -23,7 +23,7 @@ namespace DSP
 {
 void SDSP::InitializeIFX()
 {
-  ifx_regs.fill(0);
+  m_ifx_regs.fill(0);
 
   GetMailbox(Mailbox::CPU).store(0);
   GetMailbox(Mailbox::DSP).store(0);
@@ -118,14 +118,14 @@ void SDSP::WriteIFX(u32 address, u16 value)
     break;
 
   case DSP_DSBL:
-    ifx_regs[DSP_DSBL] = value;
-    ifx_regs[DSP_DSCR] |= 4;  // Doesn't really matter since we do DMA instantly
-    if (!ifx_regs[DSP_AMDM])
+    m_ifx_regs[DSP_DSBL] = value;
+    m_ifx_regs[DSP_DSCR] |= 4;  // Doesn't really matter since we do DMA instantly
+    if (!m_ifx_regs[DSP_AMDM])
       DoDMA();
     else
       NOTICE_LOG_FMT(DSPLLE, "Masked DMA skipped");
-    ifx_regs[DSP_DSCR] &= ~4;
-    ifx_regs[DSP_DSBL] = 0;
+    m_ifx_regs[DSP_DSCR] &= ~4;
+    m_ifx_regs[DSP_DSBL] = 0;
     break;
 
   case DSP_GAIN:
@@ -138,44 +138,46 @@ void SDSP::WriteIFX(u32 address, u16 value)
   case DSP_DSMAH:
   case DSP_DSMAL:
   case DSP_DSCR:
-    ifx_regs[address & 0xFF] = value;
+    m_ifx_regs[address & 0xFF] = value;
     break;
 
   case DSP_ACSAH:
-    accelerator->SetStartAddress(value << 16 | static_cast<u16>(accelerator->GetStartAddress()));
+    m_accelerator->SetStartAddress(value << 16 |
+                                   static_cast<u16>(m_accelerator->GetStartAddress()));
     break;
   case DSP_ACSAL:
-    accelerator->SetStartAddress(static_cast<u16>(accelerator->GetStartAddress() >> 16) << 16 |
-                                 value);
-    break;
-  case DSP_ACEAH:
-    accelerator->SetEndAddress(value << 16 | static_cast<u16>(accelerator->GetEndAddress()));
-    break;
-  case DSP_ACEAL:
-    accelerator->SetEndAddress(static_cast<u16>(accelerator->GetEndAddress() >> 16) << 16 | value);
-    break;
-  case DSP_ACCAH:
-    accelerator->SetCurrentAddress(value << 16 |
-                                   static_cast<u16>(accelerator->GetCurrentAddress()));
-    break;
-  case DSP_ACCAL:
-    accelerator->SetCurrentAddress(static_cast<u16>(accelerator->GetCurrentAddress() >> 16) << 16 |
+    m_accelerator->SetStartAddress(static_cast<u16>(m_accelerator->GetStartAddress() >> 16) << 16 |
                                    value);
     break;
+  case DSP_ACEAH:
+    m_accelerator->SetEndAddress(value << 16 | static_cast<u16>(m_accelerator->GetEndAddress()));
+    break;
+  case DSP_ACEAL:
+    m_accelerator->SetEndAddress(static_cast<u16>(m_accelerator->GetEndAddress() >> 16) << 16 |
+                                 value);
+    break;
+  case DSP_ACCAH:
+    m_accelerator->SetCurrentAddress(value << 16 |
+                                     static_cast<u16>(m_accelerator->GetCurrentAddress()));
+    break;
+  case DSP_ACCAL:
+    m_accelerator->SetCurrentAddress(
+        static_cast<u16>(m_accelerator->GetCurrentAddress() >> 16) << 16 | value);
+    break;
   case DSP_FORMAT:
-    accelerator->SetSampleFormat(value);
+    m_accelerator->SetSampleFormat(value);
     break;
   case DSP_YN1:
-    accelerator->SetYn1(value);
+    m_accelerator->SetYn1(value);
     break;
   case DSP_YN2:
-    accelerator->SetYn2(value);
+    m_accelerator->SetYn2(value);
     break;
   case DSP_PRED_SCALE:
-    accelerator->SetPredScale(value);
+    m_accelerator->SetPredScale(value);
     break;
   case DSP_ACDATA1:  // Accelerator write (Zelda type) - "UnkZelda"
-    accelerator->WriteD3(value);
+    m_accelerator->WriteD3(value);
     break;
 
   default:
@@ -197,7 +199,7 @@ void SDSP::WriteIFX(u32 address, u16 value)
     {
       ERROR_LOG_FMT(DSPLLE, "{:04x} MW {:04x} ({:04x})", pc, address, value);
     }
-    ifx_regs[address & 0xFF] = value;
+    m_ifx_regs[address & 0xFF] = value;
     break;
   }
 }
@@ -219,36 +221,36 @@ u16 SDSP::ReadIFXImpl(u16 address)
     return ReadMailboxLow(Mailbox::CPU);
 
   case DSP_DSCR:
-    return ifx_regs[address & 0xFF];
+    return m_ifx_regs[address & 0xFF];
 
   case DSP_ACSAH:
-    return static_cast<u16>(accelerator->GetStartAddress() >> 16);
+    return static_cast<u16>(m_accelerator->GetStartAddress() >> 16);
   case DSP_ACSAL:
-    return static_cast<u16>(accelerator->GetStartAddress());
+    return static_cast<u16>(m_accelerator->GetStartAddress());
   case DSP_ACEAH:
-    return static_cast<u16>(accelerator->GetEndAddress() >> 16);
+    return static_cast<u16>(m_accelerator->GetEndAddress() >> 16);
   case DSP_ACEAL:
-    return static_cast<u16>(accelerator->GetEndAddress());
+    return static_cast<u16>(m_accelerator->GetEndAddress());
   case DSP_ACCAH:
-    return static_cast<u16>(accelerator->GetCurrentAddress() >> 16);
+    return static_cast<u16>(m_accelerator->GetCurrentAddress() >> 16);
   case DSP_ACCAL:
-    return static_cast<u16>(accelerator->GetCurrentAddress());
+    return static_cast<u16>(m_accelerator->GetCurrentAddress());
   case DSP_FORMAT:
-    return accelerator->GetSampleFormat();
+    return m_accelerator->GetSampleFormat();
   case DSP_YN1:
-    return accelerator->GetYn1();
+    return m_accelerator->GetYn1();
   case DSP_YN2:
-    return accelerator->GetYn2();
+    return m_accelerator->GetYn2();
   case DSP_PRED_SCALE:
-    return accelerator->GetPredScale();
+    return m_accelerator->GetPredScale();
   case DSP_ACCELERATOR:  // ADPCM Accelerator reads
-    return accelerator->Read(reinterpret_cast<s16*>(&ifx_regs[DSP_COEF_A1_0]));
+    return m_accelerator->Read(reinterpret_cast<s16*>(&m_ifx_regs[DSP_COEF_A1_0]));
   case DSP_ACDATA1:  // Accelerator reads (Zelda type) - "UnkZelda"
-    return accelerator->ReadD3();
+    return m_accelerator->ReadD3();
 
   default:
   {
-    const u16 ifx_reg = ifx_regs[address & 0xFF];
+    const u16 ifx_reg = m_ifx_regs[address & 0xFF];
 
     if ((address & 0xff) >= 0xa0)
     {
@@ -288,7 +290,7 @@ const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
 
   Host::CodeLoaded(m_dsp_core, addr, size);
   NOTICE_LOG_FMT(DSPLLE, "*** Copy new UCode from {:#010x} to {:#06x} (crc: {:#08x})", addr,
-                 dsp_addr, iram_crc);
+                 dsp_addr, m_iram_crc);
 
   return reinterpret_cast<const u8*>(iram) + dsp_addr;
 }
@@ -321,10 +323,10 @@ const u8* SDSP::DDMAOut(u16 dsp_addr, u32 addr, u32 size)
 
 void SDSP::DoDMA()
 {
-  const u32 addr = (ifx_regs[DSP_DSMAH] << 16) | ifx_regs[DSP_DSMAL];
-  const u16 ctl = ifx_regs[DSP_DSCR];
-  const u16 dsp_addr = ifx_regs[DSP_DSPA] * 2;
-  const u16 len = ifx_regs[DSP_DSBL];
+  const u32 addr = (m_ifx_regs[DSP_DSMAH] << 16) | m_ifx_regs[DSP_DSMAL];
+  const u16 ctl = m_ifx_regs[DSP_DSCR];
+  const u16 dsp_addr = m_ifx_regs[DSP_DSPA] * 2;
+  const u16 len = m_ifx_regs[DSP_DSBL];
 
   if (len > 0x4000)
   {

@@ -49,7 +49,7 @@ void Interpreter::Step()
   auto& state = m_dsp_core.DSPState();
 
   m_dsp_core.CheckExceptions();
-  state.step_counter++;
+  state.AdvanceStepCounter();
 
   const u16 opc = state.FetchInstruction();
   ExecuteInstruction(UDSPInstruction{opc});
