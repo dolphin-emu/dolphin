@@ -122,7 +122,7 @@ void Interpreter::rti(const UDSPInstruction)
 void Interpreter::halt(const UDSPInstruction)
 {
   auto& state = m_dsp_core.DSPState();
-  state.cr |= 0x4;
+  state.cr |= CR_HALT;
   state.pc--;
 }
 

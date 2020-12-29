@@ -201,7 +201,7 @@ void Interpreter::WriteCR(u16 val)
   {
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL RESET");
     m_dsp_core.Reset();
-    val &= ~1;
+    val &= ~CR_RESET;
   }
   // init
   else if (val == 4)
@@ -210,7 +210,7 @@ void Interpreter::WriteCR(u16 val)
     // OSInitAudioSystem ucode should send this mail - not DSP core itself
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL INIT");
     m_dsp_core.SetInitHax(true);
-    val |= 0x800;
+    val |= CR_INIT;
   }
 
   // update cr
@@ -223,11 +223,11 @@ u16 Interpreter::ReadCR()
 
   if ((state.pc & 0x8000) != 0)
   {
-    state.cr |= 0x800;
+    state.cr |= CR_INIT;
   }
   else
   {
-    state.cr &= ~0x800;
+    state.cr &= ~CR_INIT;
   }
 
   return state.cr;

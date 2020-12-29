@@ -161,7 +161,7 @@ bool SDSP::Initialize(const DSPInitOptions& opts)
   r.sr |= SR_INT_ENABLE;
   r.sr |= SR_EXT_INT_ENABLE;
 
-  cr = 0x804;
+  cr = CR_INIT | CR_HALT;
   InitializeIFX();
   // Mostly keep IRAM write protected. We unprotect only when DMA-ing
   // in new ucodes.
