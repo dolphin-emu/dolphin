@@ -16,6 +16,10 @@
 
 namespace DSP::Interpreter
 {
+// Not needed for game ucodes (it slows down interpreter + easier to compare int VS
+// dspjit64 without it)
+//#define PRECISE_BACKLOG
+
 Interpreter::Interpreter(DSPCore& dsp) : m_dsp_core{dsp}
 {
   InitInstructionTables();

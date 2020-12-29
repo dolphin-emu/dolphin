@@ -25,10 +25,6 @@
 
 namespace DSP
 {
-// not needed for game ucodes (it slows down interpreter/dspjit32 + easier to compare int VS
-// dspjit64 without it)
-//#define PRECISE_BACKLOG
-
 // Returns false if the hash fails and the user hits "Yes"
 static bool VerifyRoms(const SDSP& dsp)
 {
