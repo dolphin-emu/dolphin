@@ -236,7 +236,7 @@ void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
             v3.push_back(count);
             if (count > max_count)
             {
-              // INFO_LOG(AUDIO_INTERFACE, "count is broken %u", count);
+              //INFO_LOG_FMT(AUDIO_INTERFACE, "count is broken {}", count);
               max_count = count;
             }
           }
@@ -245,7 +245,7 @@ void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
       }
     }
   }
-  INFO_LOG(AUDIO_INTERFACE, "max_count %u", max_count);
+  INFO_LOG_FMT(AUDIO_INTERFACE, "max_count {}", max_count);
 
   //To do: scale m_decoded_fifo to the bigger multiple of the new block size that it can contain?
   //and m_float_conversion_buffer to the min between prev num and new block size.
@@ -288,11 +288,11 @@ void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
   s32 lcm3 = MathUtil::LCM(num_samples, m_block_size - num_samples);
   s32 lcm4 = MathUtil::LCM(m_block_size - num_samples, m_block_size);
   s32 lcm5 = MathUtil::LCM(num_samples - m_block_size, num_samples);
-  INFO_LOG(AUDIO_INTERFACE,
-           "backend_latency %u  block_size %u  "
-           "added_dpl2_latency %u  ga_dpl2_latency1 %u  ga_dpl2_latency2 "
-           "%u  ga_dpl2_latency3 %u, gad_dpl2_latency4 %u  LCM1 %u  LCM2 %u  LCM3 %u  LCM4 "
-           "%u  LCM5 %u",
+  INFO_LOG_FMT(AUDIO_INTERFACE,
+           "backend_latency {}  block_size {}  "
+           "added_dpl2_latency {}  ga_dpl2_latency1 {}  ga_dpl2_latency2 "
+           "{}  ga_dpl2_latency3 {}, gad_dpl2_latency4 {}  LCM1 {}  LCM2 {}  LCM3 {}  LCM4 "
+           "{}  LCM5 {}",
            num_samples, m_block_size, added_dpl2_latency, guessed_added_dpl2_latency1,
            guessed_added_dpl2_latency2, guessed_added_dpl2_latency3, guessed_added_dpl2_latency4,
            lcm1, lcm2, lcm3, lcm4, lcm5);

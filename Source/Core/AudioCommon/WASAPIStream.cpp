@@ -40,7 +40,7 @@ public:
     result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     // It's very rare for this to happen so we don't append the consequences of the error
     if (result != RPC_E_CHANGED_MODE && FAILED(result))
-      ERROR_LOG(AUDIO, "WASAPI: Failed to initialize the COM library");
+      ERROR_LOG_FMT(AUDIO, "WASAPI: Failed to initialize the COM library");
   }
   ~AutoCoInit()
   {
@@ -69,7 +69,7 @@ public:
           " Hz PCM audio."
           "\nWASAPI exclusive mode (event driven) won't work";
 
-      ERROR_LOG(AUDIO, message.c_str());
+      ERROR_LOG_FMT(AUDIO, message.c_str());
       OSD::AddMessage(message, 6000U, OSD::Color::RED);
     }
   }
@@ -449,8 +449,8 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
       device = GetDeviceByName(SConfig::GetInstance().sWASAPIDeviceName);
       if (!device)
       {
-        ERROR_LOG(AUDIO, "WASAPI: Can't find device '%s', falling back to default",
-                  SConfig::GetInstance().sWASAPIDeviceName.c_str());
+        ERROR_LOG_FMT(AUDIO, "WASAPI: Can't find device '{}', falling back to default",
+                  SConfig::GetInstance().sWASAPIDeviceName);
         result = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
       }
     }
@@ -545,8 +545,9 @@ bool WASAPIStream::SetRestartFromResult(HRESULT result)
   // This can be triggered by changing the "Spacial sound" settings or the sample rate
   if (result == AUDCLNT_E_DEVICE_INVALIDATED || result == AUDCLNT_E_RESOURCES_INVALIDATED)
   {
-    WARN_LOG(AUDIO, "WASAPI: The audio device has either been removed or a setting has recently "
-                    "changed and Windows is recomputing it. Restarting WASAPI");
+    WARN_LOG_FMT(AUDIO,
+                 "WASAPI: The audio device has either been removed or a setting has recently "
+                 "changed and Windows is recomputing it. Restarting WASAPI");
     // Doing this here is definitely a hack, the correct way would be to use IMMNotificationClient
     // but it seems more complicated to use, relying on errors is just simpler
     m_should_restart = true;
@@ -749,10 +750,10 @@ bool WASAPIStream::SetRunning(bool running)
     // Fallback to stereo if surround 5.1 is not supported
     if (m_surround && result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
-      WARN_LOG(AUDIO,
-               "WASAPI: Your current audio device doesn't support 5.1 16-bit %u Hz"
-               " PCM audio. Will fallback to 2.0 16-bit",
-               GetMixer()->GetSampleRate());
+      WARN_LOG_FMT(AUDIO,
+                   "WASAPI: Your current audio device doesn't support 5.1 16-bit {} Hz"
+                   " PCM audio. Will fallback to 2.0 16-bit",
+                   GetMixer()->GetSampleRate());
 
       m_surround = false;
 
@@ -770,8 +771,8 @@ bool WASAPIStream::SetRunning(bool running)
 
     if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
-      WARN_LOG(AUDIO,
-               "WASAPI: Your current audio device doesn't support 2.0 16-bit %u Hz"
+      WARN_LOG_FMT(AUDIO,
+               "WASAPI: Your current audio device doesn't support 2.0 16-bit {} Hz"
                " PCM audio. Exclusive mode (event driven) won't work",
                GetMixer()->GetSampleRate());
 
@@ -805,8 +806,8 @@ bool WASAPIStream::SetRunning(bool running)
         return false;
       }
 
-      WARN_LOG(AUDIO, "WASAPI: Your current audio device doesn't support the latency (period)"
-                      " you specified. Falling back to default device latency");
+      WARN_LOG_FMT(AUDIO, "WASAPI: Your current audio device doesn't support the latency (period)"
+                          " you specified. Falling back to default device latency");
 
       // m_frames_in_buffer should already "include" our previously attempted latency,
       // so we don't need to multiply by our target latency again
@@ -819,7 +820,7 @@ bool WASAPIStream::SetRunning(bool running)
     }
 
     // Show this even if we failed, just for information to the user
-    INFO_LOG(AUDIO, "WASAPI: Sample Rate: %u, Channels: %u, Audio Period: %ims",
+    INFO_LOG_FMT(AUDIO, "WASAPI: Sample Rate: {}, Channels: {}, Audio Period: {}ms",
              m_format.Format.nSamplesPerSec, m_format.Format.nChannels, device_period / 10000);
 
     if (SetRestartFromResult(result) || !HandleWinAPI("Failed to initialize IAudioClient", result))
@@ -883,8 +884,9 @@ bool WASAPIStream::SetRunning(bool running)
       if (device_frequency != m_format.Format.nSamplesPerSec)
       {
         // m_audio_clock->GetPosition would return unreliable values
-        WARN_LOG(AUDIO, "WASAPI: The device frequence is different from our sample rate, we can't"
-                        " keep them in sync. WASAPI will still work");
+        WARN_LOG_FMT(AUDIO,
+                     "WASAPI: The device frequence is different from our sample rate, we can't"
+                     " keep them in sync. WASAPI will still work");
         m_audio_clock->Release();
         m_audio_clock = nullptr;
       }
@@ -1030,8 +1032,8 @@ void WASAPIStream::SoundLoop()
     {
       // We don't set m_should_restart to true here because
       // we can't guarantee it wouldn't constantly fail again
-      ERROR_LOG(AUDIO, "WASAPI: WaitForMultipleObjects failed. Stopping sound playback."
-                       " Pausing and unpausing the emulation might fix the problem");
+      ERROR_LOG_FMT(AUDIO, "WASAPI: WaitForMultipleObjects failed. Stopping sound playback."
+                           " Pausing and unpausing the emulation might fix the problem");
       break;
     }
 
@@ -1111,10 +1113,10 @@ void WASAPIStream::SoundLoop()
 
       if (SUCCEEDED(result) && device_samples_position >= submitted_samples)
       {
-        WARN_LOG(AUDIO, "WASAPI: Fell out of sync with the device period as we could not compute"
-                        " samples in time. "
-                        "Restarting WASAPI to avoid crackling. If this keeps happening,"
-                        " increase your backend latency");
+        WARN_LOG_FMT(AUDIO,
+                     "WASAPI: Fell out of sync with the device period as we could not compute"
+                     " samples in time. Restarting WASAPI to avoid crackling."
+                     " If this keeps happening, increase your backend latency");
 
         // Don't check more than roughly once per second, as this could trigger a lot otherwise
         m_wait_next_desync_check = m_format.Format.nSamplesPerSec;

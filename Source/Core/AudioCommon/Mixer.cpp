@@ -113,7 +113,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     s32 post_mix_samples = SamplesDifference(indexW, indexR, rate, m_fract.load()) / NC;
     post_mix_samples -= num_samples * rate + INTERP_SAMPLES;
     double latency = std::max(post_mix_samples, 0) / input_sample_rate;
-    INFO_LOG(AUDIO, "latency: %lf", latency);
+    INFO_LOG_FMT(AUDIO, "latency: {}", latency);
     // This isn't big enough to notice but it is enough to make a difference and recover latency
 
     AdjustSpeedByLatency(latency, 0.0, m_mixer->GetMinLatency(), m_mixer->GetMaxLatency(),
@@ -387,7 +387,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
   bool predicting = true;
   // Set predicting to false if we are not predicting (meaning the last samples push isn't late)
   double actual_speed = m_dma_speed.GetLastSpeed(predicting, true);
-  //INFO_LOG(AUDIO, "dma_mixer current speed: %lf", average_actual_speed);
+  //INFO_LOG_FMT(AUDIO, "dma_mixer current speed: {}", average_actual_speed);
 
   double target_speed = emulation_speed;
 
@@ -461,7 +461,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
       //as we'd use an average too long
       static bool use_new_average = true;
       target_speed = use_new_average ? m_dma_speed.GetCachedAverageSpeed(true, true, true) : average_actual_speed;
-      INFO_LOG(AUDIO, "                              actual_speed: %f               average_actual_speed: %f", actual_speed, average_actual_speed);
+      INFO_LOG_FMT(AUDIO, "                              actual_speed: {}               average_actual_speed: {}", actual_speed, average_actual_speed);
       m_time_at_custom_speed = m_time_at_custom_speed + time_delta;
     }
     else
@@ -506,7 +506,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
     // immediately. Not that this isn't the whole stretcher latency, there is also the unprocessed
     // part which we can't control
     const double latency = m_stretcher.GetProcessedLatency();
-    INFO_LOG(AUDIO, "latency: %lf", latency);
+    INFO_LOG_FMT(AUDIO, "latency: {}", latency);
     const double acceptable_latency = m_stretcher.GetAcceptableLatency() - time_delta;
     const double min_latency = m_min_latency + acceptable_latency;
     const double max_latency = m_max_latency + acceptable_latency;
@@ -793,7 +793,7 @@ void Mixer::PushDMASamples(const s16* samples, u32 num_samples)
   m_dma_speed.CacheAverageSpeed(true, m_time_at_custom_speed);
 
   static bool PrintPushedSamples = true;
-  if (PrintPushedSamples) INFO_LOG(AUDIO, "dma_mixer added samples: %u, speed: %lf", num_samples, m_dma_speed.GetCachedAverageSpeed());
+  if (PrintPushedSamples) INFO_LOG_FMT(AUDIO, "dma_mixer added samples: {}, speed: {}", num_samples, m_dma_speed.GetCachedAverageSpeed());
   m_dma_mixer.PushSamples(samples, num_samples);
 
   int sample_rate = m_dma_mixer.GetRoundedInputSampleRate();

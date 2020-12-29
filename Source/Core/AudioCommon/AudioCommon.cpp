@@ -293,7 +293,7 @@ unsigned long GetOSMixerSampleRate()
   HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
   if (result != RPC_E_CHANGED_MODE && FAILED(result))
   {
-    ERROR_LOG(AUDIO, "Failed to initialize the COM library");
+    ERROR_LOG_FMT(AUDIO, "Failed to initialize the COM library");
     return 0;
   }
   Common::ScopeGuard uninit([result] {
@@ -312,7 +312,7 @@ unsigned long GetOSMixerSampleRate()
   {
     _com_error err(result);
     std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
-    ERROR_LOG(AUDIO, "Failed to create MMDeviceEnumerator: (%s)", error.c_str());
+    ERROR_LOG_FMT(AUDIO, "Failed to create MMDeviceEnumerator: ({})", error);
     return 0;
   }
 
@@ -322,7 +322,7 @@ unsigned long GetOSMixerSampleRate()
   {
     _com_error err(result);
     std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
-    ERROR_LOG(AUDIO, "Failed to obtain default endpoint: (%s)", error.c_str());
+    ERROR_LOG_FMT((AUDIO, "Failed to obtain default endpoint: ({})", error);
     enumerator->Release();
     return 0;
   }
@@ -334,7 +334,7 @@ unsigned long GetOSMixerSampleRate()
   {
     _com_error err(result);
     std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
-    ERROR_LOG(AUDIO, "Failed to reactivate IAudioClient: (%s)", error.c_str());
+    ERROR_LOG_FMT((AUDIO, "Failed to reactivate IAudioClient: ({})", error);
     device->Release();
     enumerator->Release();
     return 0;
@@ -349,7 +349,7 @@ unsigned long GetOSMixerSampleRate()
   {
     _com_error err(result);
     std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
-    ERROR_LOG(AUDIO, "Failed to retrieve the mixer format: (%s)", error.c_str());
+    ERROR_LOG_FMT(AUDIO, "Failed to retrieve the mixer format: ({})", error);
     // Return the default Dolphin sample rate, hoping it would work
     sample_rate = GetDefaultSampleRate();
   }
