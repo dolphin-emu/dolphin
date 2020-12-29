@@ -9,6 +9,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -75,20 +76,20 @@ public:
   };
 
   void AddEntry(Entry&& entry);
-  Entry* GetEntry(const std::string& key);
-  const Entry* GetEntry(const std::string& key) const;
-  Entry* GetOrAddEntry(const std::string& key, Entry::Type type);
-  void RemoveEntry(const std::string& key);
+  Entry* GetEntry(std::string_view key);
+  const Entry* GetEntry(std::string_view key) const;
+  Entry* GetOrAddEntry(std::string_view key, Entry::Type type);
+  void RemoveEntry(std::string_view key);
 
   // Intended for use with the non array types.
   template <typename T>
-  T GetData(const std::string& key, T default_value) const
+  T GetData(std::string_view key, T default_value) const
   {
     const Entry* entry = GetEntry(key);
     return entry ? entry->GetData(default_value) : default_value;
   }
   template <typename T>
-  void SetData(const std::string& key, Entry::Type type, T value)
+  void SetData(std::string_view key, Entry::Type type, T value)
   {
     GetOrAddEntry(key, type)->SetData(value);
   }

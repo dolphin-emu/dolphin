@@ -227,29 +227,29 @@ void SysConf::AddEntry(Entry&& entry)
   m_entries.emplace_back(std::move(entry));
 }
 
-SysConf::Entry* SysConf::GetEntry(const std::string& key)
+SysConf::Entry* SysConf::GetEntry(std::string_view key)
 {
   const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
                                      [&key](const auto& entry) { return entry.name == key; });
   return iterator != m_entries.end() ? &*iterator : nullptr;
 }
 
-const SysConf::Entry* SysConf::GetEntry(const std::string& key) const
+const SysConf::Entry* SysConf::GetEntry(std::string_view key) const
 {
   const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
                                      [&key](const auto& entry) { return entry.name == key; });
   return iterator != m_entries.end() ? &*iterator : nullptr;
 }
 
-SysConf::Entry* SysConf::GetOrAddEntry(const std::string& key, Entry::Type type)
+SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
 {
   if (Entry* entry = GetEntry(key))
     return entry;
-  AddEntry({type, key});
+  AddEntry({type, std::string(key)});
   return GetEntry(key);
 }
 
-void SysConf::RemoveEntry(const std::string& key)
+void SysConf::RemoveEntry(std::string_view key)
 {
   m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
                                  [&key](const auto& entry) { return entry.name == key; }),
