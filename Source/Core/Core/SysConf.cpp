@@ -222,9 +222,9 @@ SysConf::Entry::Entry(Type type_, const std::string& name_, std::vector<u8> byte
 {
 }
 
-void SysConf::AddEntry(Entry&& entry)
+SysConf::Entry& SysConf::AddEntry(Entry&& entry)
 {
-  m_entries.emplace_back(std::move(entry));
+  return m_entries.emplace_back(std::move(entry));
 }
 
 SysConf::Entry* SysConf::GetEntry(std::string_view key)
@@ -245,8 +245,8 @@ SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
 {
   if (Entry* entry = GetEntry(key))
     return entry;
-  AddEntry({type, std::string(key)});
-  return GetEntry(key);
+
+  return &AddEntry({type, std::string(key)});
 }
 
 void SysConf::RemoveEntry(std::string_view key)

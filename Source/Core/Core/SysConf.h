@@ -75,7 +75,7 @@ public:
     std::vector<u8> bytes;
   };
 
-  void AddEntry(Entry&& entry);
+  Entry& AddEntry(Entry&& entry);
   Entry* GetEntry(std::string_view key);
   const Entry* GetEntry(std::string_view key) const;
   Entry* GetOrAddEntry(std::string_view key, Entry::Type type);
