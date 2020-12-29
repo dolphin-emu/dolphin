@@ -455,7 +455,7 @@ private:
 
   u16 ReadIFXImpl(u16 address);
 
-  std::atomic<u32> m_mailbox[2];
+  std::array<std::atomic<u32>, 2> m_mailbox;
   DSPCore& m_dsp_core;
   Analyzer m_analyzer;
 };
