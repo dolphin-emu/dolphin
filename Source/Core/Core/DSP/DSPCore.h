@@ -429,9 +429,6 @@ struct SDSP
   u32 iram_crc = 0;
   u64 step_counter = 0;
 
-  // Accelerator / DMA / other hardware registers. Not GPRs.
-  std::array<u16, 256> ifx_regs{};
-
   // When state saving, all of the above can just be memcpy'd into the save state.
   // The below needs special handling.
   u16* iram = nullptr;
@@ -452,6 +449,9 @@ private:
   const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
 
   u16 ReadIFXImpl(u16 address);
+
+  // Accelerator / DMA / other hardware registers. Not GPRs.
+  std::array<u16, 256> m_ifx_regs{};
 
   std::unique_ptr<Accelerator> m_accelerator;
   std::array<std::atomic<u32>, 2> m_mailbox;

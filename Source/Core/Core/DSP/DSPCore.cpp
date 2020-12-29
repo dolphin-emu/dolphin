@@ -385,7 +385,7 @@ void SDSP::DoState(PointerWrap& p)
   }
 
   p.Do(step_counter);
-  p.DoArray(ifx_regs);
+  p.DoArray(m_ifx_regs);
   m_accelerator->DoState(p);
   p.Do(m_mailbox[0]);
   p.Do(m_mailbox[1]);
