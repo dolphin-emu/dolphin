@@ -385,7 +385,8 @@ void AudioPane::OnEmulationStateChanged(bool running)
     m_dolby_pro_logic->setEnabled(!running);
     EnableDolbyQualityWidgets(!running && m_dolby_pro_logic->isChecked());
   }
-  if (m_latency_control_supported)
+  if (m_latency_control_supported &&
+      AudioCommon::SupportsLatencyControl(SConfig::GetInstance().sBackend))
   {
     m_latency_label->setEnabled(!running);
     m_latency_spin->setEnabled(!running);
