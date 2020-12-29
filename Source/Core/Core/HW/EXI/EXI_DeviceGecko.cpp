@@ -76,7 +76,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
   {
     if (server.accept(*new_client) == sf::Socket::Done)
     {
-      std::lock_guard<std::mutex> lk(connection_lock);
+      std::lock_guard lk(connection_lock);
       waiting_socks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
@@ -90,7 +90,7 @@ bool GeckoSockServer::GetAvailableSock()
 {
   bool sock_filled = false;
 
-  std::lock_guard<std::mutex> lk(connection_lock);
+  std::lock_guard lk(connection_lock);
 
   if (!waiting_socks.empty())
   {
@@ -125,7 +125,7 @@ void GeckoSockServer::ClientThread()
     bool did_nothing = true;
 
     {
-      std::lock_guard<std::mutex> lk(transfer_lock);
+      std::lock_guard lk(transfer_lock);
 
       // what's an ideal buffer size?
       std::array<char, 128> buffer;
@@ -186,7 +186,7 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
   // |= 0x08000000 if successful
   case CMD_RECV:
   {
-    std::lock_guard<std::mutex> lk(transfer_lock);
+    std::lock_guard lk(transfer_lock);
     if (!recv_fifo.empty())
     {
       _uData = 0x08000000 | (recv_fifo.front() << 16);
@@ -199,7 +199,7 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
   // |= 0x04000000 if successful
   case CMD_SEND:
   {
-    std::lock_guard<std::mutex> lk(transfer_lock);
+    std::lock_guard lk(transfer_lock);
     send_fifo.push_back(_uData >> 20);
     _uData = 0x04000000;
     break;
@@ -215,7 +215,7 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
   // |= 0x04000000 if data in recv FIFO
   case CMD_CHK_RX:
   {
-    std::lock_guard<std::mutex> lk(transfer_lock);
+    std::lock_guard lk(transfer_lock);
     _uData = recv_fifo.empty() ? 0 : 0x04000000;
     break;
   }

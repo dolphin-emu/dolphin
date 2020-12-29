@@ -169,7 +169,7 @@ std::string GetInputDisplay()
 
   std::string input_display;
   {
-    std::lock_guard<std::mutex> guard(s_input_display_lock);
+    std::lock_guard guard(s_input_display_lock);
     for (int i = 0; i < 8; ++i)
     {
       if ((s_controllers & (1 << i)) != 0)
@@ -634,7 +634,7 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
     display_str += " DISCONNECTED";
   }
 
-  std::lock_guard<std::mutex> guard(s_input_display_lock);
+  std::lock_guard guard(s_input_display_lock);
   s_InputDisplay[controllerID] = std::move(display_str);
 }
 
@@ -765,7 +765,7 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", 31);
   }
 
-  std::lock_guard<std::mutex> guard(s_input_display_lock);
+  std::lock_guard guard(s_input_display_lock);
   s_InputDisplay[controllerID] = std::move(display_str);
 }
 

@@ -328,7 +328,7 @@ s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
 
 s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_address)
 {
-  std::unique_lock<std::mutex> l(m_write_mutex);
+  std::unique_lock l(m_write_mutex);
   if (length != 0x80)
     INFO_LOG_FMT(EXPANSIONINTERFACE, "Writing to {:#x}. Length: {:#x}", dest_address, length);
   s32 block = dest_address / Memcard::BLOCK_SIZE;
@@ -593,7 +593,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 
 void GCMemcardDirectory::FlushToFile()
 {
-  std::unique_lock<std::mutex> l(m_write_mutex);
+  std::unique_lock l(m_write_mutex);
   int errors = 0;
   Memcard::DEntry invalid;
   for (Memcard::GCIFile& save : m_saves)
@@ -686,7 +686,7 @@ void GCMemcardDirectory::FlushToFile()
 
 void GCMemcardDirectory::DoState(PointerWrap& p)
 {
-  std::unique_lock<std::mutex> l(m_write_mutex);
+  std::unique_lock l(m_write_mutex);
   m_last_block = -1;
   m_last_block_address = nullptr;
   p.Do(m_save_directory);

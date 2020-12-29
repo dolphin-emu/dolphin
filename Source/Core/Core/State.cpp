@@ -307,7 +307,7 @@ struct CompressAndDumpState_args
 
 static void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
-  std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
+  std::lock_guard lk(*save_args.buffer_mutex);
 
   // ScopeGuard is used here to ensure that g_compressAndDumpStateSyncEvent.Set()
   // will be called and that it will happen after the IOFile is closed.
@@ -419,7 +419,7 @@ void SaveAs(const std::string& filename, bool wait)
 
         // Then actually do the write.
         {
-          std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+          std::lock_guard lk(g_cs_current_buffer);
           g_current_buffer.resize(buffer_size);
           ptr = &g_current_buffer[0];
           p.SetMode(PointerWrap::MODE_WRITE);
@@ -576,7 +576,7 @@ void LoadAs(const std::string& filename)
         // Save temp buffer for undo load state
         if (!Movie::IsJustStartingRecordingInputFromSaveState())
         {
-          std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+          std::lock_guard lk(g_cs_undo_load_buffer);
           SaveToBuffer(g_undo_load_buffer);
           if (Movie::IsMovieActive())
             Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
@@ -649,12 +649,12 @@ void Shutdown()
   // this gives a better guarantee to free the allocated memory right NOW (as opposed to, actually,
   // never)
   {
-    std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+    std::lock_guard lk(g_cs_current_buffer);
     std::vector<u8>().swap(g_current_buffer);
   }
 
   {
-    std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+    std::lock_guard lk(g_cs_undo_load_buffer);
     std::vector<u8>().swap(g_undo_load_buffer);
   }
 }
@@ -716,7 +716,7 @@ void Flush()
 // Load the last state before loading the state
 void UndoLoadState()
 {
-  std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+  std::lock_guard lk(g_cs_undo_load_buffer);
   if (!g_undo_load_buffer.empty())
   {
     if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))

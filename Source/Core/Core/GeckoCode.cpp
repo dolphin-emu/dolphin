@@ -66,7 +66,7 @@ static std::mutex s_active_codes_lock;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+  std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
   if (SConfig::GetInstance().bEnableCheats)
@@ -98,7 +98,7 @@ void UpdateSyncedCodes(const std::vector<GeckoCode>& gcodes)
 
 std::vector<GeckoCode> SetAndReturnActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+  std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
   if (SConfig::GetInstance().bEnableCheats)
@@ -218,14 +218,14 @@ static Installation InstallCodeHandlerLocked()
 // modifications will be reset]
 void DoState(PointerWrap& p)
 {
-  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  std::lock_guard codes_lock(s_active_codes_lock);
   p.Do(s_code_handler_installed);
   // FIXME: The active codes list will disagree with the embedded GCT
 }
 
 void Shutdown()
 {
-  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  std::lock_guard codes_lock(s_active_codes_lock);
   s_active_codes.clear();
   s_code_handler_installed = Installation::Uninstalled;
 }
@@ -237,7 +237,7 @@ void RunCodeHandler()
 
   // NOTE: Need to release the lock because of GUI deadlocks with PanicAlert in HostWrite_*
   {
-    std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+    std::lock_guard codes_lock(s_active_codes_lock);
     if (s_code_handler_installed != Installation::Installed)
     {
       // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be

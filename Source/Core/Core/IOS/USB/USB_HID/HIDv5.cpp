@@ -65,7 +65,7 @@ IPCCommandResult USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
     if (request.in_vectors.size() + request.io_vectors.size() != 2)
       return GetDefaultReply(IPC_EINVAL);
 
-    std::lock_guard<std::mutex> lock{m_usbv5_devices_mutex};
+    std::lock_guard lock{m_usbv5_devices_mutex};
     USBV5Device* device = GetUSBV5Device(request.in_vectors[0].address);
     if (!device)
       return GetDefaultReply(IPC_EINVAL);

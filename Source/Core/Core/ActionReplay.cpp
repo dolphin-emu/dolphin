@@ -116,7 +116,7 @@ void ApplyCodes(const std::vector<ARCode>& codes)
   if (!SConfig::GetInstance().bEnableCheats)
     return;
 
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   s_disable_logging = false;
   s_active_codes.clear();
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
@@ -144,7 +144,7 @@ std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
 {
   if (SConfig::GetInstance().bEnableCheats)
   {
-    std::lock_guard<std::mutex> guard(s_lock);
+    std::lock_guard guard(s_lock);
     s_disable_logging = false;
     s_active_codes.clear();
     std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
@@ -162,7 +162,7 @@ void AddCode(ARCode code)
 
   if (code.enabled)
   {
-    std::lock_guard<std::mutex> guard(s_lock);
+    std::lock_guard guard(s_lock);
     s_disable_logging = false;
     s_active_codes.emplace_back(std::move(code));
   }
@@ -335,13 +335,13 @@ void EnableSelfLogging(bool enable)
 
 std::vector<std::string> GetSelfLog()
 {
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   return s_internal_log;
 }
 
 void ClearSelfLog()
 {
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   s_internal_log.clear();
 }
 
@@ -979,7 +979,7 @@ void RunAllActive()
   // If the mutex is idle then acquiring it should be cheap, fast mutexes
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   s_active_codes.erase(std::remove_if(s_active_codes.begin(), s_active_codes.end(),
                                       [](const ARCode& code) {
                                         bool success = RunCodeLocked(code);
