@@ -505,14 +505,14 @@ s32 Kernel::GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<Device::Device> Kernel::GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> Kernel::GetDeviceByName(std::string_view device_name)
 {
   std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
-std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
   return Kernel::GetDeviceByName(device_name);
 }
