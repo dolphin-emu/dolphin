@@ -33,7 +33,7 @@ public:
   void DoState(PointerWrap& p);
 
 private:
-  void SpeakerData(const u8* data, int length);
+  void SpeakerData(const u8* data, int length, float speaker_pan);
 
   // TODO: enum class
   static const u8 DATA_FORMAT_ADPCM = 0x00;

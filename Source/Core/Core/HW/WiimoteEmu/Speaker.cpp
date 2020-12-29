@@ -245,7 +245,7 @@ int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 
   if (0x00 == addr)
   {
-    SpeakerData(data_in, count);
+    SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
     return count;
   }
   else

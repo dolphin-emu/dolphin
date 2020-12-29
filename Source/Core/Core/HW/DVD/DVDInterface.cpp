@@ -313,7 +313,7 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
   // Determine which audio data to read next.
   // 168 samples (3.5ms at 48kHz/5.25ms at 32kHz on Wii, similar numbers on GC)
   const u32 maximum_samples = sample_rate / 2000 * 7;
-
+  //To review: it also later one was: static const int MAXIMUM_SAMPLES = 168;
   u64 read_offset = 0;
   u32 read_length = 0;
 

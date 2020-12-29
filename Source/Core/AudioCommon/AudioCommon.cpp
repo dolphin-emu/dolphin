@@ -111,6 +111,13 @@ void PostInitSoundStream()
   // and true again, so basically the backend is "restarted" with every emulation state change
   SetSoundStreamRunning(true, true);
 
+  //To review: are these still needed after merge with master?
+  // Ideally these two calls would be done in AudioInterface::Init so that we don't
+  // need to have a dependency on AudioInterface here, but this has to be done
+  // after creating g_sound_stream (above) and before starting audio dumping (below)
+  g_sound_stream->GetMixer()->SetDMAInputSampleRate(AudioInterface::GetAIDSampleRate());
+  g_sound_stream->GetMixer()->SetStreamingInputSampleRate(AudioInterface::GetAISSampleRate());
+
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_started)
     StartAudioDump();
 }

@@ -775,10 +775,6 @@ void SConfig::LoadDefaults()
   bUsePanicHandlers = true;
   bOnScreenDisplayMessages = true;
 
-  m_analytics_id = "";
-  m_analytics_enabled = false;
-  m_analytics_permission_asked = false;
-
   bLoopFifoReplay = true;
 
   bJITOff = false;  // debugger only settings
