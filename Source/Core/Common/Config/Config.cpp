@@ -71,10 +71,13 @@ void AddConfigChangedCallback(ConfigChangedCallback func)
 
 void OnConfigChanged()
 {
+  // Increment the config version to invalidate caches.
+  // To ensure that getters do not return stale data, this should always be done
+  // even when callbacks are suppressed.
+  s_config_version.fetch_add(1, std::memory_order_relaxed);
+
   if (s_callback_guards)
     return;
-
-  s_config_version.fetch_add(1, std::memory_order_relaxed);
 
   for (const auto& callback : s_callbacks)
     callback();
