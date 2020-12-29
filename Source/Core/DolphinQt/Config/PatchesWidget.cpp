@@ -8,6 +8,8 @@
 #include <QListWidget>
 #include <QPushButton>
 
+#include <fmt/format.h>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
@@ -143,8 +145,17 @@ void PatchesWidget::SavePatches()
 
     for (const auto& entry : patch.entries)
     {
-      lines.emplace_back(StringFromFormat("0x%08X:%s:0x%08X", entry.address,
-                                          PatchEngine::PatchTypeAsString(entry.type), entry.value));
+      if (!entry.conditional)
+      {
+        lines.emplace_back(fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
+                                       PatchEngine::PatchTypeAsString(entry.type), entry.value));
+      }
+      else
+      {
+        lines.emplace_back(fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
+                                       PatchEngine::PatchTypeAsString(entry.type), entry.value,
+                                       entry.comparand));
+      }
     }
   }
 
