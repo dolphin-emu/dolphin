@@ -228,10 +228,10 @@ enum class ExceptionType
   ExternalInterrupt = 7     // 0x000e external int (message from CPU)
 };
 
-enum Mailbox : int
+enum class Mailbox
 {
-  MAILBOX_CPU,
-  MAILBOX_DSP
+  CPU,
+  DSP
 };
 
 struct DSP_Regs
@@ -429,9 +429,6 @@ struct SDSP
   u32 iram_crc = 0;
   u64 step_counter = 0;
 
-  // Mailbox.
-  std::atomic<u32> mbox[2];
-
   // Accelerator / DMA / other hardware registers. Not GPRs.
   std::array<u16, 256> ifx_regs{};
 
@@ -445,6 +442,9 @@ struct SDSP
   u16* coef = nullptr;
 
 private:
+  auto& GetMailbox(Mailbox mailbox) { return m_mailbox[static_cast<u32>(mailbox)]; }
+  const auto& GetMailbox(Mailbox mailbox) const { return m_mailbox[static_cast<u32>(mailbox)]; }
+
   void FreeMemoryPages();
 
   void DoDMA();
@@ -455,6 +455,7 @@ private:
 
   u16 ReadIFXImpl(u16 address);
 
+  std::array<std::atomic<u32>, 2> m_mailbox;
   DSPCore& m_dsp_core;
   Analyzer m_analyzer;
 };

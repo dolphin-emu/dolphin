@@ -387,8 +387,8 @@ void SDSP::DoState(PointerWrap& p)
   p.Do(step_counter);
   p.DoArray(ifx_regs);
   accelerator->DoState(p);
-  p.Do(mbox[0]);
-  p.Do(mbox[1]);
+  p.Do(m_mailbox[0]);
+  p.Do(m_mailbox[1]);
   Common::UnWriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
   p.DoArray(iram, DSP_IRAM_SIZE);
   Common::WriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);

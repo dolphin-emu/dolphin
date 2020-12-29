@@ -213,25 +213,25 @@ u16 DSPLLE::DSP_ReadControlRegister()
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)
 {
-  return m_dsp_core.ReadMailboxHigh(cpu_mailbox ? MAILBOX_CPU : MAILBOX_DSP);
+  return m_dsp_core.ReadMailboxHigh(cpu_mailbox ? Mailbox::CPU : Mailbox::DSP);
 }
 
 u16 DSPLLE::DSP_ReadMailBoxLow(bool cpu_mailbox)
 {
-  return m_dsp_core.ReadMailboxLow(cpu_mailbox ? MAILBOX_CPU : MAILBOX_DSP);
+  return m_dsp_core.ReadMailboxLow(cpu_mailbox ? Mailbox::CPU : Mailbox::DSP);
 }
 
 void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
 {
   if (cpu_mailbox)
   {
-    if ((m_dsp_core.PeekMailbox(MAILBOX_CPU) & 0x80000000) != 0)
+    if ((m_dsp_core.PeekMailbox(Mailbox::CPU) & 0x80000000) != 0)
     {
       // the DSP didn't read the previous value
       WARN_LOG_FMT(DSPLLE, "Mailbox isn't empty ... strange");
     }
 
-    m_dsp_core.WriteMailboxHigh(MAILBOX_CPU, value);
+    m_dsp_core.WriteMailboxHigh(Mailbox::CPU, value);
   }
   else
   {
@@ -243,7 +243,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 {
   if (cpu_mailbox)
   {
-    m_dsp_core.WriteMailboxLow(MAILBOX_CPU, value);
+    m_dsp_core.WriteMailboxLow(Mailbox::CPU, value);
   }
   else
   {
