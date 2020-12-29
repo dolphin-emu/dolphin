@@ -429,9 +429,6 @@ struct SDSP
   u32 iram_crc = 0;
   u64 step_counter = 0;
 
-  // Mailbox.
-  std::atomic<u32> mbox[2];
-
   // Accelerator / DMA / other hardware registers. Not GPRs.
   std::array<u16, 256> ifx_regs{};
 
@@ -445,8 +442,8 @@ struct SDSP
   u16* coef = nullptr;
 
 private:
-  auto& GetMailbox(Mailbox mailbox) { return mbox[static_cast<u32>(mailbox)]; }
-  const auto& GetMailbox(Mailbox mailbox) const { return mbox[static_cast<u32>(mailbox)]; }
+  auto& GetMailbox(Mailbox mailbox) { return m_mailbox[static_cast<u32>(mailbox)]; }
+  const auto& GetMailbox(Mailbox mailbox) const { return m_mailbox[static_cast<u32>(mailbox)]; }
 
   void FreeMemoryPages();
 
@@ -458,6 +455,7 @@ private:
 
   u16 ReadIFXImpl(u16 address);
 
+  std::atomic<u32> m_mailbox[2];
   DSPCore& m_dsp_core;
   Analyzer m_analyzer;
 };
