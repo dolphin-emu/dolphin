@@ -140,7 +140,7 @@ Wiimote::Wiimote() = default;
 
 void Wiimote::Shutdown()
 {
-  std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+  std::lock_guard lk(s_known_ids_mutex);
   s_known_ids.erase(GetId());
 
   StopThread();
@@ -550,7 +550,7 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
 
 bool WiimoteScanner::IsReady() const
 {
-  std::lock_guard<std::mutex> lg(m_backends_mutex);
+  std::lock_guard lg(m_backends_mutex);
   return std::any_of(m_backends.begin(), m_backends.end(),
                      [](const auto& backend) { return backend->IsReady(); });
 }
@@ -623,7 +623,7 @@ void WiimoteScanner::ThreadFunc()
   // are called on different threads (and so reference different CFRunLoops) which can cause an
   // EXC_BAD_ACCES crash.
   {
-    std::lock_guard<std::mutex> lg(m_backends_mutex);
+    std::lock_guard lg(m_backends_mutex);
 
     m_backends.emplace_back(std::make_unique<WiimoteScannerLinux>());
     m_backends.emplace_back(std::make_unique<WiimoteScannerAndroid>());
@@ -670,7 +670,7 @@ void WiimoteScanner::ThreadFunc()
         for (auto* wiimote : found_wiimotes)
         {
           {
-            std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+            std::lock_guard lk(s_known_ids_mutex);
             s_known_ids.insert(wiimote->GetId());
           }
 
@@ -681,7 +681,7 @@ void WiimoteScanner::ThreadFunc()
         if (found_board)
         {
           {
-            std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+            std::lock_guard lk(s_known_ids_mutex);
             s_known_ids.insert(found_board->GetId());
           }
 
@@ -696,7 +696,7 @@ void WiimoteScanner::ThreadFunc()
   }
 
   {
-    std::lock_guard<std::mutex> lg(m_backends_mutex);
+    std::lock_guard lg(m_backends_mutex);
     m_backends.clear();
   }
 
@@ -942,7 +942,7 @@ bool IsBalanceBoardName(const std::string& name)
 // This is called from the scanner backends (currently on the scanner thread).
 bool IsNewWiimote(const std::string& identifier)
 {
-  std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+  std::lock_guard lk(s_known_ids_mutex);
   return s_known_ids.count(identifier) == 0;
 }
 

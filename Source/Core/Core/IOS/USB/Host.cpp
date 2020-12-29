@@ -66,7 +66,7 @@ void USBHost::DoState(PointerWrap& p)
 
 bool USBHost::AddDevice(std::unique_ptr<USB::Device> device)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   if (m_devices.find(device->GetId()) != m_devices.end())
     return false;
 
@@ -76,7 +76,7 @@ bool USBHost::AddDevice(std::unique_ptr<USB::Device> device)
 
 std::shared_ptr<USB::Device> USBHost::GetDeviceById(const u64 device_id) const
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   const auto it = m_devices.find(device_id);
   if (it == m_devices.end())
     return nullptr;
@@ -145,7 +145,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 
 void USBHost::DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceChangeHooks& hooks)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   for (auto it = m_devices.begin(); it != m_devices.end();)
   {
     if (plugged_devices.find(it->second->GetId()) == plugged_devices.end())

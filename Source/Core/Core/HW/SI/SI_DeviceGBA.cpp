@@ -106,14 +106,14 @@ static void GBAConnectionWaiter()
   {
     if (server.accept(*new_client) == sf::Socket::Done)
     {
-      std::lock_guard<std::mutex> lk(s_cs_gba);
+      std::lock_guard lk(s_cs_gba);
       s_waiting_socks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
     }
     if (clock_server.accept(*new_client) == sf::Socket::Done)
     {
-      std::lock_guard<std::mutex> lk(s_cs_gba_clk);
+      std::lock_guard lk(s_cs_gba_clk);
       s_waiting_clocks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
@@ -142,13 +142,13 @@ static std::unique_ptr<T> MoveFromFront(std::queue<std::unique_ptr<T>>& ptrs)
 
 static std::unique_ptr<sf::TcpSocket> GetNextSock()
 {
-  std::lock_guard<std::mutex> lk(s_cs_gba);
+  std::lock_guard lk(s_cs_gba);
   return MoveFromFront(s_waiting_socks);
 }
 
 static std::unique_ptr<sf::TcpSocket> GetNextClock()
 {
-  std::lock_guard<std::mutex> lk(s_cs_gba_clk);
+  std::lock_guard lk(s_cs_gba_clk);
   return MoveFromFront(s_waiting_clocks);
 }
 

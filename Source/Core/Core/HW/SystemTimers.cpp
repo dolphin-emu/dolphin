@@ -179,7 +179,7 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
   u32 next_event = GetTicksPerSecond() / 1000;
 
   {
-    std::lock_guard<std::mutex> lk(s_emu_to_real_time_mutex);
+    std::lock_guard lk(s_emu_to_real_time_mutex);
     s_emu_to_real_time_ring_buffer[s_emu_to_real_time_index] = time - s_time_spent_sleeping;
     s_emu_to_real_time_index =
         (s_emu_to_real_time_index + 1) % s_emu_to_real_time_ring_buffer.size();
@@ -252,7 +252,7 @@ double GetEstimatedEmulationPerformance()
 {
   u64 ts_now, ts_before;  // In microseconds
   {
-    std::lock_guard<std::mutex> lk(s_emu_to_real_time_mutex);
+    std::lock_guard lk(s_emu_to_real_time_mutex);
     size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() - 1 :
                                                        s_emu_to_real_time_index - 1;
     size_t index_before = s_emu_to_real_time_index;

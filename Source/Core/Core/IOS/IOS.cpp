@@ -235,7 +235,7 @@ Kernel::Kernel()
 Kernel::~Kernel()
 {
   {
-    std::lock_guard<std::mutex> lock(m_device_map_mutex);
+    std::lock_guard lock(m_device_map_mutex);
     m_device_map.clear();
   }
 
@@ -417,7 +417,7 @@ void Kernel::AddCoreDevices()
   m_fs = FS::MakeFileSystem();
   ASSERT(m_fs);
 
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
   AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
   AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
   AddDevice(std::make_unique<Device::DolphinDevice>(*this, "/dev/dolphin"));
@@ -425,7 +425,7 @@ void Kernel::AddCoreDevices()
 
 void Kernel::AddStaticDevices()
 {
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
 
   const Feature features = GetFeatures(GetVersion());
 
@@ -507,7 +507,7 @@ s32 Kernel::GetFreeDeviceID()
 
 std::shared_ptr<Device::Device> Kernel::GetDeviceByName(const std::string& device_name)
 {
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
