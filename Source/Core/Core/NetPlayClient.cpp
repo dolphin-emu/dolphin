@@ -324,7 +324,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
                  player.revision);
 
     {
-      std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+      std::lock_guard lkp(m_crit.players);
       m_players[player.pid] = player;
     }
 
@@ -340,7 +340,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> pid;
 
     {
-      std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+      std::lock_guard lkp(m_crit.players);
       const auto it = m_players.find(pid);
       if (it == m_players.end())
         break;
@@ -591,7 +591,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     std::string netplay_name;
     {
-      std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+      std::lock_guard lkg(m_crit.game);
       ReceiveSyncIdentifier(packet, m_selected_game);
       packet >> netplay_name;
     }
@@ -623,7 +623,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> pid;
 
     {
-      std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+      std::lock_guard lkp(m_crit.players);
       Player& player = m_players[pid];
       u32 status;
       packet >> status;
@@ -637,7 +637,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   case NP_MSG_START_GAME:
   {
     {
-      std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+      std::lock_guard lkg(m_crit.game);
       packet >> m_current_game;
       packet >> m_net_settings.m_CPUthread;
 
@@ -767,7 +767,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> pid;
 
     {
-      std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+      std::lock_guard lkp(m_crit.players);
       Player& player = m_players[pid];
       packet >> player.ping;
     }
@@ -785,7 +785,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> frame;
 
     std::string player = "??";
-    std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+    std::lock_guard lkp(m_crit.players);
     {
       auto it = m_players.find(pid_to_blame);
       if (it != m_players.end())
@@ -808,7 +808,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     }
 
     {
-      std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+      std::lock_guard lkg(m_crit.game);
       memcpy(&g_SRAM.settings, sram, sram_settings_len);
       g_SRAM_netplay_initialized = true;
     }
@@ -1305,7 +1305,7 @@ void NetPlayClient::Disconnect()
 void NetPlayClient::SendAsync(sf::Packet&& packet, const u8 channel_id)
 {
   {
-    std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+    std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), channel_id});
   }
   ENetUtil::WakeupThread(m_client);
@@ -1376,7 +1376,7 @@ void NetPlayClient::ThreadFunc()
 // called from ---GUI--- thread
 void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 {
-  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  std::lock_guard lkp(m_crit.players);
 
   std::ostringstream ss;
 
@@ -1432,7 +1432,7 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 // called from ---GUI--- thread
 std::vector<const Player*> NetPlayClient::GetPlayers()
 {
-  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  std::lock_guard lkp(m_crit.players);
   std::vector<const Player*> players;
 
   for (const auto& pair : m_players)
@@ -1499,7 +1499,7 @@ void NetPlayClient::SendStopGamePacket()
 // called from ---GUI--- thread
 bool NetPlayClient::StartGame(const std::string& path)
 {
-  std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+  std::lock_guard lkg(m_crit.game);
   SendStartGamePacket();
 
   if (m_is_running.IsSet())
@@ -1950,7 +1950,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
   WiimoteInput nw;
   nw.report_id = reporting_mode;
   {
-    std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+    std::lock_guard lkp(m_crit.players);
 
     // Only send data, if this Wiimote is mapped to this player
     if (m_wiimote_map[_number] == m_local_player->pid)
@@ -2213,7 +2213,7 @@ void NetPlayClient::RequestGolfControl()
 // called from ---GUI--- thread
 std::string NetPlayClient::GetCurrentGolfer()
 {
-  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  std::lock_guard lkp(m_crit.players);
   if (m_players.count(m_current_golfer))
     return m_players[m_current_golfer].name;
   return "";
@@ -2309,7 +2309,7 @@ void NetPlayClient::SendTimeBase()
 
 bool NetPlayClient::DoAllPlayersHaveGame()
 {
-  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  std::lock_guard lkp(m_crit.players);
 
   return std::all_of(std::begin(m_players), std::end(m_players), [](auto entry) {
     return entry.second.game_status == SyncIdentifierComparison::SameGame;
