@@ -77,7 +77,7 @@ void PrimeWidget::CreateWidgets()
   graphics_layout->addWidget(fov_counter, 8, 2);
 
   // Crosshair Color
-  auto* crosshair_color_box = new QGroupBox(tr("Crosshair Color"));
+  auto* crosshair_color_box = new QGroupBox(tr("GCN Crosshair Color"));
   auto* crosshair_color_layout = new QGridLayout();
 
   crosshair_color_box->setLayout(crosshair_color_layout);
