@@ -396,6 +396,12 @@ struct SDSP
   // Writes a value to a given register.
   void WriteRegister(size_t reg, u16 val);
 
+  // Advances the step counter used for debugging purposes.
+  void AdvanceStepCounter() { ++m_step_counter; }
+
+  // Sets the calculated IRAM CRC for debugging purposes.
+  void SetIRAMCRC(u32 crc) { m_iram_crc = crc; }
+
   // Saves and loads any necessary state.
   void DoState(PointerWrap& p);
 
@@ -425,10 +431,6 @@ struct SDSP
   // the stack overflows, you're screwed.
   u16 reg_stacks[4][DSP_STACK_DEPTH]{};
 
-  // For debugging.
-  u32 iram_crc = 0;
-  u64 step_counter = 0;
-
   // When state saving, all of the above can just be memcpy'd into the save state.
   // The below needs special handling.
   u16* iram = nullptr;
@@ -449,6 +451,10 @@ private:
   const u8* IDMAOut(u16 dsp_addr, u32 addr, u32 size);
 
   u16 ReadIFXImpl(u16 address);
+
+  // For debugging.
+  u32 m_iram_crc = 0;
+  u64 m_step_counter = 0;
 
   // Accelerator / DMA / other hardware registers. Not GPRs.
   std::array<u16, 256> m_ifx_regs{};

@@ -290,7 +290,7 @@ const u8* SDSP::IDMAIn(u16 dsp_addr, u32 addr, u32 size)
 
   Host::CodeLoaded(m_dsp_core, addr, size);
   NOTICE_LOG_FMT(DSPLLE, "*** Copy new UCode from {:#010x} to {:#06x} (crc: {:#08x})", addr,
-                 dsp_addr, iram_crc);
+                 dsp_addr, m_iram_crc);
 
   return reinterpret_cast<const u8*>(iram) + dsp_addr;
 }

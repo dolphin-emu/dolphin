@@ -119,7 +119,7 @@ SDSP::~SDSP() = default;
 
 bool SDSP::Initialize(const DSPInitOptions& opts)
 {
-  step_counter = 0;
+  m_step_counter = 0;
   m_accelerator = std::make_unique<LLEAccelerator>(*this);
 
   irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
@@ -384,7 +384,7 @@ void SDSP::DoState(PointerWrap& p)
     p.Do(stack);
   }
 
-  p.Do(step_counter);
+  p.Do(m_step_counter);
   p.DoArray(m_ifx_regs);
   m_accelerator->DoState(p);
   p.Do(m_mailbox[0]);

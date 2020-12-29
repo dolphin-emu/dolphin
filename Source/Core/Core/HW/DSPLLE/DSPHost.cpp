@@ -77,7 +77,7 @@ void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
 {
   auto& state = dsp.DSPState();
   const u32 iram_crc = Common::HashEctor(ptr, size);
-  state.iram_crc = iram_crc;
+  state.SetIRAMCRC(iram_crc);
 
   if (SConfig::GetInstance().m_DumpUCode)
   {
