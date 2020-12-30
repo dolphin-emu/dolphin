@@ -54,7 +54,8 @@ enum class FlushMode
 class OpArg
 {
 public:
-  OpArg() : m_type(REG_NOTLOADED), m_reg(Arm64Gen::INVALID_REG), m_value(0), m_last_used(0) {}
+  OpArg() = default;
+
   RegType GetType() const { return m_type; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
   u32 GetImm() const { return m_value; }
@@ -88,22 +89,23 @@ public:
 
 private:
   // For REG_REG
-  RegType m_type;            // store type
-  Arm64Gen::ARM64Reg m_reg;  // host register we are in
+  RegType m_type = REG_NOTLOADED;                    // store type
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;  // host register we are in
 
   // For REG_IMM
-  u32 m_value;  // IMM value
+  u32 m_value = 0;  // IMM value
 
-  u32 m_last_used;
+  u32 m_last_used = 0;
 
-  bool m_dirty;
+  bool m_dirty = false;
 };
 
 class HostReg
 {
 public:
-  HostReg() : m_reg(Arm64Gen::INVALID_REG), m_locked(false) {}
-  HostReg(Arm64Gen::ARM64Reg reg) : m_reg(reg), m_locked(false) {}
+  HostReg() = default;
+  HostReg(Arm64Gen::ARM64Reg reg) : m_reg(reg) {}
+
   bool IsLocked() const { return m_locked; }
   void Lock() { m_locked = true; }
   void Unlock() { m_locked = false; }
@@ -111,17 +113,15 @@ public:
   bool operator==(const Arm64Gen::ARM64Reg& reg) { return reg == m_reg; }
 
 private:
-  Arm64Gen::ARM64Reg m_reg;
-  bool m_locked;
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;
+  bool m_locked = false;
 };
 
 class Arm64RegCache
 {
 public:
-  explicit Arm64RegCache(size_t guest_reg_count)
-      : m_emit(nullptr), m_float_emit(nullptr), m_guest_registers(guest_reg_count),
-        m_reg_stats(nullptr){};
-  virtual ~Arm64RegCache(){};
+  explicit Arm64RegCache(size_t guest_reg_count) : m_guest_registers(guest_reg_count) {}
+  virtual ~Arm64RegCache() = default;
 
   void Init(Arm64Gen::ARM64XEmitter* emitter);
 
@@ -187,7 +187,7 @@ protected:
   }
 
   // Code emitter
-  Arm64Gen::ARM64XEmitter* m_emit;
+  Arm64Gen::ARM64XEmitter* m_emit = nullptr;
 
   // Float emitter
   std::unique_ptr<Arm64Gen::ARM64FloatEmitter> m_float_emit;
@@ -201,14 +201,14 @@ protected:
   std::vector<OpArg> m_guest_registers;
 
   // Register stats for the current block
-  PPCAnalyst::BlockRegStats* m_reg_stats;
+  PPCAnalyst::BlockRegStats* m_reg_stats = nullptr;
 };
 
 class Arm64GPRCache : public Arm64RegCache
 {
 public:
   Arm64GPRCache();
-  ~Arm64GPRCache() {}
+
   void Start(PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode
@@ -270,7 +270,7 @@ class Arm64FPRCache : public Arm64RegCache
 {
 public:
   Arm64FPRCache();
-  ~Arm64FPRCache() {}
+
   // Flushes the register cache in different ways depending on the mode
   void Flush(FlushMode mode, PPCAnalyst::CodeOp* op = nullptr) override;
 
