@@ -110,7 +110,9 @@ public:
   void Lock() { m_locked = true; }
   void Unlock() { m_locked = false; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
-  bool operator==(const Arm64Gen::ARM64Reg& reg) { return reg == m_reg; }
+
+  bool operator==(Arm64Gen::ARM64Reg reg) const { return reg == m_reg; }
+  bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
 
 private:
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;
