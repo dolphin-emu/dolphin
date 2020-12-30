@@ -239,8 +239,8 @@ void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state)
 
 void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
-  FlushRegisters(BitSet32(~0U), mode == FLUSH_MAINTAIN_STATE);
-  FlushCRRegisters(BitSet32(~0U), mode == FLUSH_MAINTAIN_STATE);
+  FlushRegisters(BitSet32(~0U), mode == FlushMode::MaintainState);
+  FlushCRRegisters(BitSet32(~0U), mode == FlushMode::MaintainState);
 }
 
 ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
@@ -391,7 +391,7 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
     {
       // XXX: Determine if we can keep a register in the lower 64bits
       // Which will allow it to be callee saved.
-      FlushRegister(i, mode == FLUSH_MAINTAIN_STATE);
+      FlushRegister(i, mode == FlushMode::MaintainState);
     }
   }
 }

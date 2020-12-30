@@ -42,13 +42,13 @@ enum RegType
   REG_DUP_SINGLE,         // The lower one contains both registers, as single
 };
 
-enum FlushMode
+enum class FlushMode
 {
   // Flushes all registers, no exceptions
-  FLUSH_ALL = 0,
+  All,
   // Flushes registers in a conditional branch
   // Doesn't wipe the state of the registers from the cache
-  FLUSH_MAINTAIN_STATE,
+  MaintainState,
 };
 
 class OpArg
