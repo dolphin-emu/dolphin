@@ -211,14 +211,14 @@ bool SysConf::Save() const
   return result == IOS::HLE::FS::ResultCode::Success;
 }
 
-SysConf::Entry::Entry(Type type_, const std::string& name_) : type(type_), name(name_)
+SysConf::Entry::Entry(Type type_, std::string name_) : type(type_), name(std::move(name_))
 {
   if (type != Type::SmallArray && type != Type::BigArray)
     bytes.resize(GetNonArrayEntrySize(type));
 }
 
-SysConf::Entry::Entry(Type type_, const std::string& name_, std::vector<u8> bytes_)
-    : type(type_), name(name_), bytes(std::move(bytes_))
+SysConf::Entry::Entry(Type type_, std::string name_, std::vector<u8> bytes_)
+    : type(type_), name(std::move(name_)), bytes(std::move(bytes_))
 {
 }
 
