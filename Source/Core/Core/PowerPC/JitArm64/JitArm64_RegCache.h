@@ -134,7 +134,7 @@ public:
   // Flushes the register cache in different ways depending on the mode
   virtual void Flush(FlushMode mode, PPCAnalyst::CodeOp* op) = 0;
 
-  virtual BitSet32 GetCallerSavedUsed() = 0;
+  virtual BitSet32 GetCallerSavedUsed() const = 0;
 
   // Returns a temporary register for use
   // Requires unlocking after done
@@ -183,7 +183,7 @@ protected:
   virtual void FlushRegister(size_t preg, bool maintain_state) = 0;
 
   // Get available host registers
-  u32 GetUnlockedRegisterCount();
+  u32 GetUnlockedRegisterCount() const;
 
   void IncrementAllUsed()
   {
@@ -234,7 +234,7 @@ public:
   void BindToRegister(size_t preg, bool do_load) { BindToRegister(GetGuestGPR(preg), do_load); }
   // Binds a guest CR to a host register, optionally loading its value
   void BindCRToRegister(size_t preg, bool do_load) { BindToRegister(GetGuestCR(preg), do_load); }
-  BitSet32 GetCallerSavedUsed() override;
+  BitSet32 GetCallerSavedUsed() const override;
 
   void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
   void StoreCRRegisters(BitSet32 regs) { FlushCRRegisters(regs, false); }
@@ -249,7 +249,7 @@ protected:
   void FlushRegister(size_t index, bool maintain_state) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg);
+  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
 
   struct GuestRegInfo
   {
@@ -285,9 +285,9 @@ public:
 
   Arm64Gen::ARM64Reg RW(size_t preg, RegType type = REG_LOWER_PAIR);
 
-  BitSet32 GetCallerSavedUsed() override;
+  BitSet32 GetCallerSavedUsed() const override;
 
-  bool IsSingle(size_t preg, bool lower_only = false);
+  bool IsSingle(size_t preg, bool lower_only = false) const;
 
   void FixSinglePrecision(size_t preg);
 
@@ -303,7 +303,7 @@ protected:
   void FlushRegister(size_t preg, bool maintain_state) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg);
+  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state);
 };

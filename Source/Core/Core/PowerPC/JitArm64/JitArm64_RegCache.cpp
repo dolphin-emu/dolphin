@@ -27,7 +27,7 @@ void Arm64RegCache::Init(ARM64XEmitter* emitter)
 ARM64Reg Arm64RegCache::GetReg()
 {
   // If we have no registers left, dump the most stale register first
-  if (!GetUnlockedRegisterCount())
+  if (GetUnlockedRegisterCount() == 0)
     FlushMostStaleRegister();
 
   for (auto& it : m_host_registers)
@@ -45,12 +45,14 @@ ARM64Reg Arm64RegCache::GetReg()
   return INVALID_REG;
 }
 
-u32 Arm64RegCache::GetUnlockedRegisterCount()
+u32 Arm64RegCache::GetUnlockedRegisterCount() const
 {
   u32 unlocked_registers = 0;
-  for (auto& it : m_host_registers)
+  for (const auto& it : m_host_registers)
+  {
     if (!it.IsLocked())
       ++unlocked_registers;
+  }
   return unlocked_registers;
 }
 
@@ -105,7 +107,7 @@ void Arm64GPRCache::Start(PPCAnalyst::BlockRegStats& stats)
 {
 }
 
-bool Arm64GPRCache::IsCalleeSaved(ARM64Reg reg)
+bool Arm64GPRCache::IsCalleeSaved(ARM64Reg reg) const
 {
   static constexpr std::array<ARM64Reg, 11> callee_regs{{
       X28,
@@ -351,12 +353,14 @@ void Arm64GPRCache::GetAllocationOrder()
     m_host_registers.push_back(HostReg(reg));
 }
 
-BitSet32 Arm64GPRCache::GetCallerSavedUsed()
+BitSet32 Arm64GPRCache::GetCallerSavedUsed() const
 {
   BitSet32 registers(0);
-  for (auto& it : m_host_registers)
+  for (const auto& it : m_host_registers)
+  {
     if (it.IsLocked() && !IsCalleeSaved(it.GetReg()))
-      registers[DecodeReg(it.GetReg())] = 1;
+      registers[DecodeReg(it.GetReg())] = true;
+  }
   return registers;
 }
 
@@ -622,7 +626,7 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
   }
 }
 
-bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
+bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg) const
 {
   static constexpr std::array<ARM64Reg, 9> callee_regs{{
       Q8,
@@ -710,18 +714,20 @@ void Arm64FPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
     FlushRegister(j, maintain_state);
 }
 
-BitSet32 Arm64FPRCache::GetCallerSavedUsed()
+BitSet32 Arm64FPRCache::GetCallerSavedUsed() const
 {
   BitSet32 registers(0);
-  for (auto& it : m_host_registers)
+  for (const auto& it : m_host_registers)
+  {
     if (it.IsLocked())
-      registers[it.GetReg() - Q0] = 1;
+      registers[it.GetReg() - Q0] = true;
+  }
   return registers;
 }
 
-bool Arm64FPRCache::IsSingle(size_t preg, bool lower_only)
+bool Arm64FPRCache::IsSingle(size_t preg, bool lower_only) const
 {
-  RegType type = m_guest_registers[preg].GetType();
+  const RegType type = m_guest_registers[preg].GetType();
   return type == REG_REG_SINGLE || type == REG_DUP_SINGLE ||
          (lower_only && type == REG_LOWER_PAIR_SINGLE);
 }
