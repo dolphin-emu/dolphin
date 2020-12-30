@@ -31,16 +31,16 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   // X2 is a temporary
   // Q0 is the return register
   // Q1 is a temporary
-  bool update = inst.OPCD == 57;
-  s32 offset = inst.SIMM_12;
+  const bool update = inst.OPCD == 57;
+  const s32 offset = inst.SIMM_12;
 
   gpr.Lock(W0, W1, W2, W30);
   fpr.Lock(Q0, Q1);
 
-  ARM64Reg arm_addr = gpr.R(inst.RA);
-  ARM64Reg scale_reg = W0;
-  ARM64Reg addr_reg = W1;
-  ARM64Reg type_reg = W2;
+  const ARM64Reg arm_addr = gpr.R(inst.RA);
+  constexpr ARM64Reg scale_reg = W0;
+  constexpr ARM64Reg addr_reg = W1;
+  constexpr ARM64Reg type_reg = W2;
   ARM64Reg VS;
 
   if (inst.RA || update)  // Always uses the register on update
@@ -57,13 +57,13 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
   if (update)
   {
-    gpr.BindToRegister(inst.RA, REG_REG);
+    gpr.BindToRegister(inst.RA, true);
     MOV(arm_addr, addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
   {
-    VS = fpr.RW(inst.RS, REG_REG_SINGLE);
+    VS = fpr.RW(inst.RS, RegType::Single);
     if (!inst.W)
     {
       ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), MEM_REG);
@@ -85,7 +85,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(X30);
 
-    VS = fpr.RW(inst.RS, REG_REG_SINGLE);
+    VS = fpr.RW(inst.RS, RegType::Single);
     m_float_emit.ORR(EncodeRegToDouble(VS), D0, D0);
   }
 
@@ -113,20 +113,20 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   // X1 is the address
   // Q0 is the store register
 
-  bool update = inst.OPCD == 61;
-  s32 offset = inst.SIMM_12;
+  const bool update = inst.OPCD == 61;
+  const s32 offset = inst.SIMM_12;
 
   gpr.Lock(W0, W1, W2, W30);
   fpr.Lock(Q0, Q1);
 
-  bool single = fpr.IsSingle(inst.RS);
+  const bool single = fpr.IsSingle(inst.RS);
 
-  ARM64Reg arm_addr = gpr.R(inst.RA);
-  ARM64Reg VS = fpr.R(inst.RS, single ? REG_REG_SINGLE : REG_REG);
+  const ARM64Reg arm_addr = gpr.R(inst.RA);
+  const ARM64Reg VS = fpr.R(inst.RS, single ? RegType::Single : RegType::Register);
 
-  ARM64Reg scale_reg = W0;
-  ARM64Reg addr_reg = W1;
-  ARM64Reg type_reg = W2;
+  constexpr ARM64Reg scale_reg = W0;
+  constexpr ARM64Reg addr_reg = W1;
+  constexpr ARM64Reg type_reg = W2;
 
   BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
@@ -149,7 +149,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
   if (update)
   {
-    gpr.BindToRegister(inst.RA, REG_REG);
+    gpr.BindToRegister(inst.RA, true);
     MOV(arm_addr, addr_reg);
   }
 

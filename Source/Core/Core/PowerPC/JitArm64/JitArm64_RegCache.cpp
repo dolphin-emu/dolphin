@@ -83,7 +83,7 @@ void Arm64RegCache::FlushMostStaleRegister()
     const u32 last_used = reg.GetLastUsed();
 
     if (last_used > most_stale_amount &&
-        (reg.GetType() != REG_NOTLOADED && reg.GetType() != REG_IMM))
+        (reg.GetType() != RegType::NotLoaded && reg.GetType() != RegType::Immediate))
     {
       most_stale_preg = i;
       most_stale_amount = last_used;
@@ -160,7 +160,7 @@ void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state)
   OpArg& reg = guest_reg.reg;
   size_t bitsize = guest_reg.bitsize;
 
-  if (reg.GetType() == REG_REG)
+  if (reg.GetType() == RegType::Register)
   {
     ARM64Reg host_reg = reg.GetReg();
     if (reg.IsDirty())
@@ -172,7 +172,7 @@ void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state)
       reg.Flush();
     }
   }
-  else if (reg.GetType() == REG_IMM)
+  else if (reg.GetType() == RegType::Immediate)
   {
     if (!reg.GetImm())
     {
@@ -204,8 +204,8 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
         // We've got two guest registers in a row to store
         OpArg& reg1 = m_guest_registers[i];
         OpArg& reg2 = m_guest_registers[i + 1];
-        if (reg1.IsDirty() && reg2.IsDirty() && reg1.GetType() == REG_REG &&
-            reg2.GetType() == REG_REG)
+        if (reg1.IsDirty() && reg2.IsDirty() && reg1.GetType() == RegType::Register &&
+            reg2.GetType() == RegType::Register)
         {
           size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
           ARM64Reg RX1 = R(GetGuestByIndex(i));
@@ -255,10 +255,9 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
 
   switch (reg.GetType())
   {
-  case REG_REG:  // already in a reg
+  case RegType::Register:  // already in a reg
     return reg.GetReg();
-    break;
-  case REG_IMM:  // Is an immediate
+  case RegType::Immediate:  // Is an immediate
   {
     ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     m_emit->MOVI2R(host_reg, reg.GetImm());
@@ -267,7 +266,7 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
     return host_reg;
   }
   break;
-  case REG_NOTLOADED:  // Register isn't loaded at /all/
+  case RegType::NotLoaded:  // Register isn't loaded at /all/
   {
     // This is a bit annoying. We try to keep these preloaded as much as possible
     // This can also happen on cases where PPCAnalyst isn't feeing us proper register usage
@@ -290,7 +289,7 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
 void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm)
 {
   OpArg& reg = guest_reg.reg;
-  if (reg.GetType() == REG_REG)
+  if (reg.GetType() == RegType::Register)
     UnlockRegister(DecodeReg(reg.GetReg()));
   reg.LoadToImm(imm);
 }
@@ -298,14 +297,14 @@ void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm)
 void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load)
 {
   OpArg& reg = guest_reg.reg;
-  size_t bitsize = guest_reg.bitsize;
+  const size_t bitsize = guest_reg.bitsize;
 
   reg.ResetLastUsed();
 
   reg.SetDirty(true);
-  if (reg.GetType() == REG_NOTLOADED)
+  if (reg.GetType() == RegType::NotLoaded)
   {
-    ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
+    const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     reg.Load(host_reg);
     if (do_load)
       m_emit->LDR(INDEX_UNSIGNED, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
@@ -370,7 +369,7 @@ void Arm64GPRCache::FlushByHost(ARM64Reg host_reg)
   for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
     const OpArg& reg = m_guest_registers[i];
-    if (reg.GetType() == REG_REG && DecodeReg(reg.GetReg()) == host_reg)
+    if (reg.GetType() == RegType::Register && DecodeReg(reg.GetReg()) == host_reg)
     {
       FlushRegister(i, false);
       return;
@@ -391,7 +390,7 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
   {
     const RegType reg_type = m_guest_registers[i].GetType();
 
-    if (reg_type != REG_NOTLOADED && reg_type != REG_IMM)
+    if (reg_type != RegType::NotLoaded && reg_type != RegType::Immediate)
     {
       // XXX: Determine if we can keep a register in the lower 64bits
       // Which will allow it to be callee saved.
@@ -409,90 +408,90 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
 
   switch (reg.GetType())
   {
-  case REG_REG_SINGLE:
+  case RegType::Single:
   {
     // We're asked for singles, so just return the register.
-    if (type == REG_REG_SINGLE || type == REG_LOWER_PAIR_SINGLE)
+    if (type == RegType::Single || type == RegType::LowerPairSingle)
       return host_reg;
 
     // Else convert this register back to doubles.
     m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-    reg.Load(host_reg, REG_REG);
+    reg.Load(host_reg, RegType::Register);
     [[fallthrough]];
   }
-  case REG_REG:  // already in a reg
+  case RegType::Register:  // already in a reg
   {
     return host_reg;
   }
-  case REG_LOWER_PAIR_SINGLE:
+  case RegType::LowerPairSingle:
   {
     // We're asked for the lower single, so just return the register.
-    if (type == REG_LOWER_PAIR_SINGLE)
+    if (type == RegType::LowerPairSingle)
       return host_reg;
 
     // Else convert this register back to a double.
     m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-    reg.Load(host_reg, REG_LOWER_PAIR);
+    reg.Load(host_reg, RegType::LowerPair);
     [[fallthrough]];
   }
-  case REG_LOWER_PAIR:
+  case RegType::LowerPair:
   {
-    if (type == REG_REG)
+    if (type == RegType::Register)
     {
       // Load the high 64bits from the file and insert them in to the high 64bits of the host
       // register
-      ARM64Reg tmp_reg = GetReg();
+      const ARM64Reg tmp_reg = GetReg();
       m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, PPC_REG, u32(PPCSTATE_OFF(ps[preg].ps1)));
       m_float_emit->INS(64, host_reg, 1, tmp_reg, 0);
       UnlockRegister(tmp_reg);
 
       // Change it over to a full 128bit register
-      reg.Load(host_reg, REG_REG);
+      reg.Load(host_reg, RegType::Register);
     }
     return host_reg;
   }
-  case REG_DUP_SINGLE:
+  case RegType::DuplicatedSingle:
   {
-    if (type == REG_LOWER_PAIR_SINGLE)
+    if (type == RegType::LowerPairSingle)
       return host_reg;
 
-    if (type == REG_REG_SINGLE)
+    if (type == RegType::Single)
     {
       // Duplicate to the top and change over
       m_float_emit->INS(32, host_reg, 1, host_reg, 0);
-      reg.Load(host_reg, REG_REG_SINGLE);
+      reg.Load(host_reg, RegType::Single);
       return host_reg;
     }
 
     m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-    reg.Load(host_reg, REG_DUP);
+    reg.Load(host_reg, RegType::Duplicated);
     [[fallthrough]];
   }
-  case REG_DUP:
+  case RegType::Duplicated:
   {
-    if (type == REG_REG)
+    if (type == RegType::Register)
     {
       // We are requesting a full 128bit register
       // but we are only available in the lower 64bits
       // Duplicate to the top and change over
       m_float_emit->INS(64, host_reg, 1, host_reg, 0);
-      reg.Load(host_reg, REG_REG);
+      reg.Load(host_reg, RegType::Register);
     }
     return host_reg;
   }
-  case REG_NOTLOADED:  // Register isn't loaded at /all/
+  case RegType::NotLoaded:  // Register isn't loaded at /all/
   {
     host_reg = GetReg();
     u32 load_size;
-    if (type == REG_REG)
+    if (type == RegType::Register)
     {
       load_size = 128;
-      reg.Load(host_reg, REG_REG);
+      reg.Load(host_reg, RegType::Register);
     }
     else
     {
       load_size = 64;
-      reg.Load(host_reg, REG_LOWER_PAIR);
+      reg.Load(host_reg, RegType::LowerPair);
     }
     reg.SetDirty(false);
     m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, PPC_REG,
@@ -519,14 +518,14 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
   reg.SetDirty(true);
 
   // If not loaded at all, just alloc a new one.
-  if (reg.GetType() == REG_NOTLOADED)
+  if (reg.GetType() == RegType::NotLoaded)
   {
     reg.Load(GetReg(), type);
     return reg.GetReg();
   }
 
   // Only the lower value will be overwritten, so we must be extra careful to store PSR1 if dirty.
-  if ((type == REG_LOWER_PAIR || type == REG_LOWER_PAIR_SINGLE) && was_dirty)
+  if ((type == RegType::LowerPair || type == RegType::LowerPairSingle) && was_dirty)
   {
     // We must *not* change host_reg as this register might still be in use. So it's fine to
     // store this register, but it's *not* fine to convert it to double. So for double convertion,
@@ -536,21 +535,21 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
 
     switch (reg.GetType())
     {
-    case REG_REG_SINGLE:
+    case RegType::Single:
       flush_reg = GetReg();
       m_float_emit->FCVTL(64, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
       [[fallthrough]];
-    case REG_REG:
+    case RegType::Register:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
       // store.
       // It would take longer to do an insert to a temporary and a 64bit store than to just do this.
       m_float_emit->STR(128, INDEX_UNSIGNED, flush_reg, PPC_REG, u32(PPCSTATE_OFF(ps[preg].ps0)));
       break;
-    case REG_DUP_SINGLE:
+    case RegType::DuplicatedSingle:
       flush_reg = GetReg();
       m_float_emit->FCVT(64, 32, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
       [[fallthrough]];
-    case REG_DUP:
+    case RegType::Duplicated:
       // Store PSR1 (which is equal to PSR0) in memory.
       m_float_emit->STR(64, INDEX_UNSIGNED, flush_reg, PPC_REG, u32(PPCSTATE_OFF(ps[preg].ps1)));
       break;
@@ -618,7 +617,8 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
     const OpArg& reg = m_guest_registers[i];
     const RegType reg_type = reg.GetType();
 
-    if ((reg_type != REG_NOTLOADED && reg_type != REG_IMM) && reg.GetReg() == host_reg)
+    if ((reg_type != RegType::NotLoaded && reg_type != RegType::Immediate) &&
+        reg.GetReg() == host_reg)
     {
       FlushRegister(i, false);
       return;
@@ -646,32 +646,32 @@ bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg) const
 void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
 {
   OpArg& reg = m_guest_registers[preg];
-  ARM64Reg host_reg = reg.GetReg();
+  const ARM64Reg host_reg = reg.GetReg();
+  const bool dirty = reg.IsDirty();
   RegType type = reg.GetType();
-  bool dirty = reg.IsDirty();
 
   // If we're in single mode, just convert it back to a double.
-  if (type == REG_REG_SINGLE)
+  if (type == RegType::Single)
   {
     if (dirty)
       m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-    type = REG_REG;
+    type = RegType::Register;
   }
-  if (type == REG_DUP_SINGLE || type == REG_LOWER_PAIR_SINGLE)
+  if (type == RegType::DuplicatedSingle || type == RegType::LowerPairSingle)
   {
     if (dirty)
       m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
 
-    if (type == REG_DUP_SINGLE)
-      type = REG_DUP;
+    if (type == RegType::DuplicatedSingle)
+      type = RegType::Duplicated;
     else
-      type = REG_LOWER_PAIR;
+      type = RegType::LowerPair;
   }
 
-  if (type == REG_REG || type == REG_LOWER_PAIR)
+  if (type == RegType::Register || type == RegType::LowerPair)
   {
     u32 store_size;
-    if (type == REG_REG)
+    if (type == RegType::Register)
       store_size = 128;
     else
       store_size = 64;
@@ -688,7 +688,7 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
       reg.Flush();
     }
   }
-  else if (type == REG_DUP)
+  else if (type == RegType::Duplicated)
   {
     if (dirty)
     {
@@ -728,8 +728,8 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed() const
 bool Arm64FPRCache::IsSingle(size_t preg, bool lower_only) const
 {
   const RegType type = m_guest_registers[preg].GetType();
-  return type == REG_REG_SINGLE || type == REG_DUP_SINGLE ||
-         (lower_only && type == REG_LOWER_PAIR_SINGLE);
+  return type == RegType::Single || type == RegType::DuplicatedSingle ||
+         (lower_only && type == RegType::LowerPairSingle);
 }
 
 void Arm64FPRCache::FixSinglePrecision(size_t preg)
@@ -738,13 +738,13 @@ void Arm64FPRCache::FixSinglePrecision(size_t preg)
   ARM64Reg host_reg = reg.GetReg();
   switch (reg.GetType())
   {
-  case REG_DUP:  // only PS0 needs to be converted
+  case RegType::Duplicated:  // only PS0 needs to be converted
     m_float_emit->FCVT(32, 64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-    reg.Load(host_reg, REG_DUP_SINGLE);
+    reg.Load(host_reg, RegType::DuplicatedSingle);
     break;
-  case REG_REG:  // PS0 and PS1 needs to be converted
+  case RegType::Register:  // PS0 and PS1 needs to be converted
     m_float_emit->FCVTN(32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-    reg.Load(host_reg, REG_REG_SINGLE);
+    reg.Load(host_reg, RegType::Single);
     break;
   default:
     break;

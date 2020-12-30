@@ -32,17 +32,17 @@ static_assert((PPCSTATE_OFF(ps[0].ps0) % 8) == 0,
 static_assert(PPCSTATE_OFF(xer_ca) < 4096, "STRB can't store xer_ca!");
 static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 
-enum RegType
+enum class RegType
 {
-  REG_NOTLOADED = 0,
-  REG_REG,         // Reg type is register
-  REG_IMM,         // Reg is really a IMM
-  REG_LOWER_PAIR,  // Only the lower pair of a paired register
-  REG_DUP,  // The lower reg is the same as the upper one (physical upper doesn't actually have the
-            // duplicated value)
-  REG_REG_SINGLE,         // Both registers are loaded as single
-  REG_LOWER_PAIR_SINGLE,  // Only the lower pair of a paired register, as single
-  REG_DUP_SINGLE,         // The lower one contains both registers, as single
+  NotLoaded,
+  Register,    // Reg type is register
+  Immediate,   // Reg is really a IMM
+  LowerPair,   // Only the lower pair of a paired register
+  Duplicated,  // The lower reg is the same as the upper one (physical upper doesn't actually have
+               // the duplicated value)
+  Single,      // Both registers are loaded as single
+  LowerPairSingle,   // Only the lower pair of a paired register, as single
+  DuplicatedSingle,  // The lower one contains both registers, as single
 };
 
 enum class FlushMode
@@ -62,14 +62,14 @@ public:
   RegType GetType() const { return m_type; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
   u32 GetImm() const { return m_value; }
-  void Load(Arm64Gen::ARM64Reg reg, RegType type = REG_REG)
+  void Load(Arm64Gen::ARM64Reg reg, RegType type = RegType::Register)
   {
     m_type = type;
     m_reg = reg;
   }
   void LoadToImm(u32 imm)
   {
-    m_type = REG_IMM;
+    m_type = RegType::Immediate;
     m_value = imm;
 
     m_reg = Arm64Gen::INVALID_REG;
@@ -77,7 +77,7 @@ public:
   void Flush()
   {
     // Invalidate any previous information
-    m_type = REG_NOTLOADED;
+    m_type = RegType::NotLoaded;
     m_reg = Arm64Gen::INVALID_REG;
 
     // Arbitrarily large value that won't roll over on a lot of increments
@@ -92,7 +92,7 @@ public:
 
 private:
   // For REG_REG
-  RegType m_type = REG_NOTLOADED;                    // store type
+  RegType m_type = RegType::NotLoaded;               // store type
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;  // host register we are in
 
   // For REG_IMM
@@ -227,7 +227,7 @@ public:
   // Set a register to an immediate, only valid for guest GPRs
   void SetImmediate(size_t preg, u32 imm) { SetImmediate(GetGuestGPR(preg), imm); }
   // Returns if a register is set as an immediate, only valid for guest GPRs
-  bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == REG_IMM; }
+  bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == RegType::Immediate; }
   // Gets the immediate that a register is set to, only valid for guest GPRs
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
   // Binds a guest GPR to a host register, optionally loading its value
@@ -281,9 +281,9 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  Arm64Gen::ARM64Reg R(size_t preg, RegType type = REG_LOWER_PAIR);
+  Arm64Gen::ARM64Reg R(size_t preg, RegType type = RegType::LowerPair);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type = REG_LOWER_PAIR);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType type = RegType::LowerPair);
 
   BitSet32 GetCallerSavedUsed() const override;
 
