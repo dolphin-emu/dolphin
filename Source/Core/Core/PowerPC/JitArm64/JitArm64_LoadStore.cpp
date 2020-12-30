@@ -297,21 +297,25 @@ void JitArm64::lXX(UGeckoInstruction inst)
     {
     case 55:  // lwzux
       update = true;
+      [[fallthrough]];
     case 23:  // lwzx
       flags |= BackPatchInfo::FLAG_SIZE_32;
       break;
     case 119:  // lbzux
       update = true;
+      [[fallthrough]];
     case 87:  // lbzx
       flags |= BackPatchInfo::FLAG_SIZE_8;
       break;
     case 311:  // lhzux
       update = true;
+      [[fallthrough]];
     case 279:  // lhzx
       flags |= BackPatchInfo::FLAG_SIZE_16;
       break;
     case 375:  // lhaux
       update = true;
+      [[fallthrough]];
     case 343:  // lhax
       flags |= BackPatchInfo::FLAG_EXTEND | BackPatchInfo::FLAG_SIZE_16;
       break;
@@ -325,21 +329,25 @@ void JitArm64::lXX(UGeckoInstruction inst)
     break;
   case 33:  // lwzu
     update = true;
+    [[fallthrough]];
   case 32:  // lwz
     flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
   case 35:  // lbzu
     update = true;
+    [[fallthrough]];
   case 34:  // lbz
     flags |= BackPatchInfo::FLAG_SIZE_8;
     break;
   case 41:  // lhzu
     update = true;
+    [[fallthrough]];
   case 40:  // lhz
     flags |= BackPatchInfo::FLAG_SIZE_16;
     break;
   case 43:  // lhau
     update = true;
+    [[fallthrough]];
   case 42:  // lha
     flags |= BackPatchInfo::FLAG_EXTEND | BackPatchInfo::FLAG_SIZE_16;
     break;
@@ -389,6 +397,7 @@ void JitArm64::stX(UGeckoInstruction inst)
     break;
   case 37:  // stwu
     update = true;
+    [[fallthrough]];
   case 36:  // stw
     flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
