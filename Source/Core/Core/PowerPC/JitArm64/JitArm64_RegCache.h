@@ -15,10 +15,13 @@
 #include "Core/PowerPC/PowerPC.h"
 
 // Dedicated host registers
-static const Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::X28;  // memory base register
-static const Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::X29;  // ppcState pointer
-static const Arm64Gen::ARM64Reg DISPATCHER_PC =
-    Arm64Gen::W26;  // PC register when calling the dispatcher
+
+// memory base register
+constexpr Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::X28;
+// ppcState pointer
+constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::X29;
+// PC register when calling the dispatcher
+constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::W26;
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
