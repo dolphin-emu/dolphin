@@ -47,7 +47,7 @@ public:
     tail = (tail + 1) % N;
   }
 
-  // Copies over an array, loops over of num is greater than max_size
+  // Copies over an array, loops over if num is greater than max_size
   void push_array(const T* t, size_t num)
   {
     size_t back_writable_num = std::min(tail_to_end(), num);
@@ -158,9 +158,9 @@ public:
   const T& beginning() const noexcept { return storage[0]; }
   size_t size() const noexcept { return count; }
   size_t max_size() const noexcept { return N; }
-  // Helper to know how many more samples we could read before needing to loop over
+  // Helper to know how many more items we could read before needing to loop over
   size_t head_to_end() const noexcept { return N - head; }
-  // Helper to know how many more samples we could write before needing to loop over
+  // Helper to know how many more items we could write before needing to loop over
   size_t tail_to_end() const noexcept { return N - tail; }
   bool empty() const noexcept { return size() == 0; }
 
