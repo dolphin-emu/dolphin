@@ -69,7 +69,7 @@ public:
           " Hz PCM audio."
           "\nWASAPI exclusive mode (event driven) won't work";
 
-      ERROR_LOG_FMT(AUDIO, message.c_str());
+      ERROR_LOG_FMT(AUDIO, "{}", message);
       OSD::AddMessage(message, 6000U, OSD::Color::RED);
     }
   }

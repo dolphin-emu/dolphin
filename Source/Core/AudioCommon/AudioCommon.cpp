@@ -311,7 +311,7 @@ unsigned long GetOSMixerSampleRate()
   if (result != S_OK)
   {
     _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
+    std::string error = TStrToUTF8(err.ErrorMessage());
     ERROR_LOG_FMT(AUDIO, "Failed to create MMDeviceEnumerator: ({})", error);
     return 0;
   }
@@ -321,8 +321,8 @@ unsigned long GetOSMixerSampleRate()
   if (result != S_OK)
   {
     _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
-    ERROR_LOG_FMT((AUDIO, "Failed to obtain default endpoint: ({})", error);
+    std::string error = TStrToUTF8(err.ErrorMessage());
+    ERROR_LOG_FMT(AUDIO, "Failed to obtain default endpoint: ({})", error);
     enumerator->Release();
     return 0;
   }
@@ -333,8 +333,8 @@ unsigned long GetOSMixerSampleRate()
   if (result != S_OK)
   {
     _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
-    ERROR_LOG_FMT((AUDIO, "Failed to reactivate IAudioClient: ({})", error);
+    std::string error = TStrToUTF8(err.ErrorMessage());
+    ERROR_LOG_FMT(AUDIO, "Failed to reactivate IAudioClient: ({})", error);
     device->Release();
     enumerator->Release();
     return 0;
@@ -348,7 +348,7 @@ unsigned long GetOSMixerSampleRate()
   if (result != S_OK)
   {
     _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
+    std::string error = TStrToUTF8(err.ErrorMessage());
     ERROR_LOG_FMT(AUDIO, "Failed to retrieve the mixer format: ({})", error);
     // Return the default Dolphin sample rate, hoping it would work
     sample_rate = GetDefaultSampleRate();
