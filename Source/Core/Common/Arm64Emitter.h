@@ -701,6 +701,11 @@ public:
   void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
   void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
   void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
+  void TST(ARM64Reg Rn, ARM64Reg Rm) { ANDS(Is64Bit(Rn) ? ZR : WZR, Rn, Rm); }
+  void TST(ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift)
+  {
+    ANDS(Is64Bit(Rn) ? ZR : WZR, Rn, Rm, Shift);
+  }
 
   // Wrap the above for saner syntax
   void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
@@ -752,7 +757,6 @@ public:
   void EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
-  void TST(ARM64Reg Rn, ARM64Reg Rm) { ANDS(Is64Bit(Rn) ? ZR : WZR, Rn, Rm); }
   // Add/subtract (immediate)
   void ADD(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
   void ADDS(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
