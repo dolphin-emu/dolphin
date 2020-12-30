@@ -245,8 +245,9 @@ void AudioPane::CreateWidgets()
   int max_width = 0;
   for (int i = 0; i <= max_dolby_quality; ++i)
   {
+    // This will work under any DPI. Adding 1 to the end result might fix some edge cases
     max_width = std::max(max_width, font_metrics.horizontalAdvance(GetDPL2QualityAndLatencyLabel(
-                                        AudioCommon::DPL2Quality(max_dolby_quality))));
+                                        AudioCommon::DPL2Quality(i))));
   }
   min_size.setWidth(max_width);
   m_dolby_quality_latency_label->setMinimumSize(min_size);
