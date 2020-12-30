@@ -389,7 +389,18 @@ void GameList::ShowContextMenu(const QPoint&)
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
 #ifdef _WIN32
-    menu->addAction(tr("Add Shortcut to Desktop"), this, &GameList::AddShortcutToDesktop);
+    menu->addAction(tr("Add Shortcut to Desktop"), this, [this] {
+      if (AddShortcutToDesktop())
+      {
+        ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
+                                     tr("Shortcut successfully added to the desktop"));
+      }
+      else
+      {
+        ModalMessageBox::critical(this, tr("Add Shortcut to Desktop"),
+                                  tr("There was an issue adding a shortcut to the desktop"));
+      }
+    });
 #endif
 
     menu->addSeparator();
@@ -638,7 +649,7 @@ void GameList::OpenGCSaveFolder()
 }
 
 #ifdef _WIN32
-void GameList::AddShortcutToDesktop()
+bool GameList::AddShortcutToDesktop()
 {
   const auto game = GetSelectedGame();
   const auto& game_name = game->GetLongName();
@@ -649,20 +660,18 @@ void GameList::AddShortcutToDesktop()
 
   // Gets the desktop position with shortcut
   WCHAR* desktop = nullptr;
-  SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, NULL, &desktop);
+  SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop);
   std::wstring desktop_path = std::wstring(desktop) + UTF8ToTStr("\\" + game_name + ".lnk");
-
-  HRESULT hres;
+  
   Microsoft::WRL::ComPtr<IShellLink> psl;
 
-  CoInitialize(NULL);
-  hres = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&psl));
+  CoInitialize(nullptr);
+  HRESULT hres =
+      CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&psl));
 
-  if (!SUCCEEDED(hres))
+  if (FAILED(hres))
   {
-    ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
-                                 tr("There was an issue adding a shortcut to the desktop"));
-    return;
+    return false;
   }
 
   Microsoft::WRL::ComPtr<IPersistFile> ppf;
@@ -672,16 +681,13 @@ void GameList::AddShortcutToDesktop()
 
   hres = psl->QueryInterface(IID_IPersistFile, static_cast<LPVOID*>(&ppf));
 
-  if (!SUCCEEDED(hres))
+  if (FAILED(hres))
   {
-    ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
-                                 tr("There was an issue adding a shortcut to the desktop"));
-    return;
+    return false;
   }
 
   hres = ppf->Save(desktop_path.c_str(), TRUE);
-  ModalMessageBox::information(this, tr("Add Shortcut to Desktop"),
-                               tr("Shortcut successfully added to the desktop"));
+  return true;
 }
 #endif
 
