@@ -10,6 +10,8 @@ namespace IDCache
 {
 JNIEnv* GetEnvForThread();
 
+jclass GetStringClass();
+
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
 jmethodID GetDoRumble();
@@ -44,6 +46,10 @@ jmethodID GetCompressCallbackRun();
 jclass GetContentHandlerClass();
 jmethodID GetContentHandlerOpenFd();
 jmethodID GetContentHandlerDelete();
+jmethodID GetContentHandlerGetSizeAndIsDirectory();
+jmethodID GetContentHandlerGetDisplayName();
+jmethodID GetContentHandlerGetChildNames();
+jmethodID GetContentHandlerDoFileSearch();
 
 jclass GetNetworkHelperClass();
 jmethodID GetNetworkHelperGetNetworkIpAddress();

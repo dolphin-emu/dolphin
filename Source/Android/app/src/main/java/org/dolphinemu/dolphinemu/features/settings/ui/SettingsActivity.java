@@ -25,6 +25,8 @@ import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
+import java.util.Set;
+
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
   private static final String ARG_MENU_TAG = "menu_tag";
@@ -179,13 +181,19 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
-      if (requestCode == MainPresenter.REQUEST_SD_FILE)
+      if (requestCode != MainPresenter.REQUEST_DIRECTORY)
       {
         Uri uri = canonicalizeIfPossible(result.getData());
-        int takeFlags = result.getFlags() &
-                (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-        FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.RAW_EXTENSION, () ->
+        Set<String> validExtensions = requestCode == MainPresenter.REQUEST_GAME_FILE ?
+                FileBrowserHelper.GAME_EXTENSIONS : FileBrowserHelper.RAW_EXTENSION;
+
+        int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+        if (requestCode != MainPresenter.REQUEST_GAME_FILE)
+          flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+        int takeFlags = flags & result.getFlags();
+
+        FileBrowserHelper.runAfterExtensionCheck(this, uri, validExtensions, () ->
         {
           getContentResolver().takePersistableUriPermission(uri, takeFlags);
           getFragment().getAdapter().onFilePickerConfirmation(uri.toString());

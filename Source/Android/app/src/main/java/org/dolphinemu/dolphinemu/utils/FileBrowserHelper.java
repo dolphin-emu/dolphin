@@ -28,7 +28,14 @@ import java.util.Set;
 public final class FileBrowserHelper
 {
   public static final HashSet<String> GAME_EXTENSIONS = new HashSet<>(Arrays.asList(
-          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf", "dff"));
+          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf"));
+
+  public static final HashSet<String> GAME_LIKE_EXTENSIONS = new HashSet<>(GAME_EXTENSIONS);
+
+  static
+  {
+    GAME_LIKE_EXTENSIONS.add("dff");
+  }
 
   public static final HashSet<String> RAW_EXTENSION = new HashSet<>(Collections.singletonList(
           "raw"));
@@ -50,21 +57,6 @@ public final class FileBrowserHelper
     activity.startActivityForResult(i, MainPresenter.REQUEST_DIRECTORY);
   }
 
-  public static void openFilePicker(FragmentActivity activity, int requestCode, boolean allowMulti,
-          HashSet<String> extensions)
-  {
-    Intent i = new Intent(activity, CustomFilePickerActivity.class);
-
-    i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, allowMulti);
-    i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
-    i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
-    i.putExtra(FilePickerActivity.EXTRA_START_PATH,
-            Environment.getExternalStorageDirectory().getPath());
-    i.putExtra(CustomFilePickerActivity.EXTRA_EXTENSIONS, extensions);
-
-    activity.startActivityForResult(i, requestCode);
-  }
-
   @Nullable
   public static String getSelectedPath(Intent result)
   {
@@ -74,22 +66,6 @@ public final class FileBrowserHelper
     {
       File file = Utils.getFileForUri(files.get(0));
       return file.getAbsolutePath();
-    }
-
-    return null;
-  }
-
-  @Nullable
-  public static String[] getSelectedFiles(Intent result)
-  {
-    // Use the provided utility method to parse the result
-    List<Uri> files = Utils.getSelectedFilesFromResult(result);
-    if (!files.isEmpty())
-    {
-      String[] paths = new String[files.size()];
-      for (int i = 0; i < files.size(); i++)
-        paths[i] = Utils.getFileForUri(files.get(i)).getAbsolutePath();
-      return paths;
     }
 
     return null;
@@ -112,10 +88,10 @@ public final class FileBrowserHelper
 
     String path = uri.getLastPathSegment();
     if (path != null)
-      extension = getExtension(new File(path).getName());
+      extension = getExtension(new File(path).getName(), false);
 
     if (extension == null)
-      extension = getExtension(ContentHandler.getDisplayName(uri));
+      extension = getExtension(ContentHandler.getDisplayName(uri), false);
 
     if (extension != null && validExtensions.contains(extension))
     {
@@ -133,10 +109,8 @@ public final class FileBrowserHelper
       int messageId = validExtensions.size() == 1 ?
               R.string.wrong_file_extension_single : R.string.wrong_file_extension_multiple;
 
-      ArrayList<String> extensionsList = new ArrayList<>(validExtensions);
-      Collections.sort(extensionsList);
-
-      message = context.getString(messageId, extension, join(", ", extensionsList));
+      message = context.getString(messageId, extension,
+              setToSortedDelimitedString(validExtensions));
     }
 
     new AlertDialog.Builder(context, R.style.DolphinDialogBase)
@@ -148,13 +122,22 @@ public final class FileBrowserHelper
   }
 
   @Nullable
-  private static String getExtension(@Nullable String fileName)
+  public static String getExtension(@Nullable String fileName, boolean includeDot)
   {
     if (fileName == null)
       return null;
 
     int dotIndex = fileName.lastIndexOf(".");
-    return dotIndex != -1 ? fileName.substring(dotIndex + 1) : null;
+    if (dotIndex == -1)
+      return null;
+    return fileName.substring(dotIndex + (includeDot ? 0 : 1));
+  }
+
+  public static String setToSortedDelimitedString(Set<String> set)
+  {
+    ArrayList<String> list = new ArrayList<>(set);
+    Collections.sort(list);
+    return join(", ", list);
   }
 
   // TODO: Replace this with String.join once we can use Java 8

@@ -78,18 +78,39 @@ FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 #else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    AndroidContentInit(path);
+  else
+#endif
+    m_exists = stat(path.c_str(), &m_stat) == 0;
 }
 
 FileInfo::FileInfo(const char* path)
 {
-  m_exists = stat(path, &m_stat) == 0;
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    AndroidContentInit(path);
+  else
+#endif
+    m_exists = stat(path, &m_stat) == 0;
 }
 #endif
 
 FileInfo::FileInfo(int fd)
 {
-  m_exists = fstat(fd, &m_stat);
+  m_exists = fstat(fd, &m_stat) == 0;
 }
+
+#ifdef ANDROID
+void FileInfo::AndroidContentInit(const std::string& path)
+{
+  const jlong result = GetAndroidContentSizeAndIsDirectory(path);
+  m_exists = result != -1;
+  m_stat.st_mode = result == -2 ? S_IFDIR : S_IFREG;
+  m_stat.st_size = result >= 0 ? result : 0;
+}
+#endif
 
 bool FileInfo::Exists() const
 {
@@ -476,14 +497,47 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   {
     const std::string virtual_name(TStrToUTF8(ffd.cFileName));
 #else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return parent_entry;
+  DIR* dirp = nullptr;
+
+#ifdef ANDROID
+  std::vector<std::string> child_names;
+  if (IsPathAndroidContent(directory))
+  {
+    child_names = GetAndroidContentChildNames(directory);
+  }
+  else
+#endif
+  {
+    dirp = opendir(directory.c_str());
+    if (!dirp)
+      return parent_entry;
+  }
+
+#ifdef ANDROID
+  auto it = child_names.cbegin();
+#endif
 
   // non Windows loop
-  while (dirent* result = readdir(dirp))
+  while (true)
   {
-    const std::string virtual_name(result->d_name);
+    std::string virtual_name;
+
+#ifdef ANDROID
+    if (!dirp)
+    {
+      if (it == child_names.cend())
+        break;
+      virtual_name = *it;
+      ++it;
+    }
+    else
+#endif
+    {
+      dirent* result = readdir(dirp);
+      if (!result)
+        break;
+      virtual_name = result->d_name;
+    }
 #endif
     if (virtual_name == "." || virtual_name == "..")
       continue;
@@ -514,7 +568,8 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   FindClose(hFind);
 #else
   }
-  closedir(dirp);
+  if (dirp)
+    closedir(dirp);
 #endif
 
   return parent_entry;

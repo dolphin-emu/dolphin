@@ -306,28 +306,17 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedPosition = position;
     FilePicker filePicker = (FilePicker) item;
 
-    switch (filePicker.getRequestType())
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("*/*");
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
     {
-      case MainPresenter.REQUEST_SD_FILE:
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
-          intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
-                  filePicker.getSelectedValue(mView.getSettings()));
-        }
-
-        mView.getActivity().startActivityForResult(intent, filePicker.getRequestType());
-        break;
-      case MainPresenter.REQUEST_GAME_FILE:
-        FileBrowserHelper.openFilePicker(mView.getActivity(), filePicker.getRequestType(), false,
-                FileBrowserHelper.GAME_EXTENSIONS);
-        break;
-      default:
-        throw new InvalidParameterException("Unhandled request code");
+      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
+              filePicker.getSelectedValue(mView.getSettings()));
     }
+
+    mView.getActivity().startActivityForResult(intent, filePicker.getRequestType());
   }
 
   public void onFilePickerConfirmation(String selectedFile)

@@ -2,9 +2,11 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -13,10 +15,16 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.ContentHandler;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+
+import java.util.Arrays;
+import java.util.Set;
 
 public final class MainPresenter
 {
@@ -95,18 +103,40 @@ public final class MainPresenter
     return false;
   }
 
-  public void addDirIfNeeded(Context context)
+  public void addDirIfNeeded()
   {
     if (mDirToAdd != null)
     {
-      GameFileCache.addGameFolder(mDirToAdd, context);
+      GameFileCache.addGameFolder(mDirToAdd);
       mDirToAdd = null;
     }
   }
 
-  public void onDirectorySelected(String dir)
+  public void onDirectorySelected(Intent result)
   {
-    mDirToAdd = dir;
+    Uri uri = result.getData();
+
+    boolean recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
+    String[] childNames = ContentHandler.getChildNames(uri, recursive);
+    if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
+            FileBrowserHelper.getExtension(name, false))))
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+      builder.setMessage(mContext.getString(R.string.wrong_file_extension_in_directory,
+              FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
+      builder.setPositiveButton(R.string.ok, null);
+      builder.show();
+    }
+
+    ContentResolver contentResolver = mContext.getContentResolver();
+    Uri canonicalizedUri = contentResolver.canonicalize(uri);
+    if (canonicalizedUri != null)
+      uri = canonicalizedUri;
+
+    int takeFlags = result.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
+    mContext.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+    mDirToAdd = uri.toString();
   }
 
   public void installWAD(String file)
