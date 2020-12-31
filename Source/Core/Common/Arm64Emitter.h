@@ -302,12 +302,12 @@ enum IndexType
   INDEX_SIGNED,  // used in LDP/STP
 };
 
-enum ShiftAmount
+enum class ShiftAmount
 {
-  SHIFT_0 = 0,
-  SHIFT_16 = 1,
-  SHIFT_32 = 2,
-  SHIFT_48 = 3,
+  Shift0,
+  Shift16,
+  Shift32,
+  Shift48,
 };
 
 enum class RoundingMode
@@ -737,9 +737,9 @@ public:
   void CMP(ARM64Reg Rn, u32 imm, bool shift = false);
 
   // Data Processing (Immediate)
-  void MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos = SHIFT_0);
-  void MOVN(ARM64Reg Rd, u32 imm, ShiftAmount pos = SHIFT_0);
-  void MOVK(ARM64Reg Rd, u32 imm, ShiftAmount pos = SHIFT_0);
+  void MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
+  void MOVN(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
+  void MOVK(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
 
   // Bitfield move
   void BFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);

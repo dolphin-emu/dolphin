@@ -767,7 +767,8 @@ void ARM64XEmitter::EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount 
   ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "%s: immediate out of range: %d", __func__, imm);
 
   Rd = DecodeReg(Rd);
-  Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (pos << 21) | (imm << 5) | Rd);
+  Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (static_cast<u32>(pos) << 21) | (imm << 5) |
+          Rd);
 }
 
 void ARM64XEmitter::EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
@@ -2004,7 +2005,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   {
     // Zero immediate, just clear the register. EOR is pointless when we have MOVZ, which looks
     // clearer in disasm too.
-    MOVZ(Rd, 0, SHIFT_0);
+    MOVZ(Rd, 0, ShiftAmount::Shift0);
     return;
   }
 
@@ -2022,7 +2023,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   // Small negative integer. Use MOVN
   if (!Is64Bit(Rd) && (imm | 0xFFFF0000) == imm)
   {
-    MOVN(Rd, ~imm, SHIFT_0);
+    MOVN(Rd, ~imm, ShiftAmount::Shift0);
     return;
   }
 
