@@ -69,9 +69,35 @@ public:
     ScanForFiles(m_data_dir);
   }
 
-  bool SaveExists() override
+  bool SaveExists() const override
   {
-    return m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin");
+    return !m_files_list.empty() ||
+           (m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin"));
+  }
+
+  bool EraseSave() override
+  {
+    // banner.bin is not in m_files_list, delete separately
+    const auto banner_delete_result =
+        m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/banner.bin");
+    if (banner_delete_result != FS::ResultCode::Success)
+      return false;
+
+    for (const SaveFile& file : m_files_list)
+    {
+      // files in subdirs are deleted automatically when the subdir is deleted
+      if (file.path.find('/') != std::string::npos)
+        continue;
+
+      const auto result =
+          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + file.path);
+      if (result != FS::ResultCode::Success)
+        return false;
+    }
+
+    m_files_list.clear();
+    m_files_size = 0;
+    return true;
   }
 
   std::optional<Header> ReadHeader() override
@@ -245,6 +271,10 @@ public:
     File::CreateFullPath(path);
     m_file = File::IOFile{path, mode};
   }
+
+  bool SaveExists() const override { return m_file.GetSize() > 0; }
+
+  bool EraseSave() override { return m_file.GetSize() == 0 || m_file.Resize(0); }
 
   std::optional<Header> ReadHeader() override
   {
@@ -447,23 +477,60 @@ StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path,
   return StoragePointer{new DataBinStorage{iosc, path, mode}};
 }
 
-template <typename T>
-static bool Copy(std::string_view description, Storage* source,
-                 std::optional<T> (Storage::*read_fn)(), Storage* dest,
-                 bool (Storage::*write_fn)(const T&))
-{
-  const std::optional<T> data = (source->*read_fn)();
-  if (data && (dest->*write_fn)(*data))
-    return true;
-  ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to {} {}", !data ? "read" : "write", description);
-  return false;
-}
-
 bool Copy(Storage* source, Storage* dest)
 {
-  return Copy("header", source, &Storage::ReadHeader, dest, &Storage::WriteHeader) &&
-         Copy("bk header", source, &Storage::ReadBkHeader, dest, &Storage::WriteBkHeader) &&
-         Copy("files", source, &Storage::ReadFiles, dest, &Storage::WriteFiles);
+  // first make sure we can read all the data from the source
+  const auto header = source->ReadHeader();
+  if (!header)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read header");
+    return false;
+  }
+
+  const auto bk_header = source->ReadBkHeader();
+  if (!bk_header)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read bk header");
+    return false;
+  }
+
+  const auto files = source->ReadFiles();
+  if (!files)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read files");
+    return false;
+  }
+
+  // once we have confirmed we can read the source, erase corresponding save in the destination
+  if (dest->SaveExists())
+  {
+    if (!dest->EraseSave())
+    {
+      ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to erase existing save");
+      return false;
+    }
+  }
+
+  // and then write it to the destination
+  if (!dest->WriteHeader(*header))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write header");
+    return false;
+  }
+
+  if (!dest->WriteBkHeader(*bk_header))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write bk header");
+    return false;
+  }
+
+  if (!dest->WriteFiles(*files))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write files");
+    return false;
+  }
+
+  return true;
 }
 
 bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
