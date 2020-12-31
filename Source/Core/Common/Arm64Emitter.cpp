@@ -1247,15 +1247,15 @@ void ARM64XEmitter::CLREX()
 }
 void ARM64XEmitter::DSB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 4, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 4, WSP);
 }
 void ARM64XEmitter::DMB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 5, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 5, WSP);
 }
 void ARM64XEmitter::ISB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 6, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 6, WSP);
 }
 
 // Add/Subtract (extended register)

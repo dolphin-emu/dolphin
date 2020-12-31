@@ -364,7 +364,7 @@ enum class SystemHint
   SEVL,
 };
 
-enum BarrierType
+enum class BarrierType
 {
   OSHLD = 1,
   OSHST = 2,
