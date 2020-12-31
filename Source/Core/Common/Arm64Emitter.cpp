@@ -6,6 +6,8 @@
 #include <array>
 #include <cinttypes>
 #include <cstring>
+#include <optional>
+#include <tuple>
 #include <vector>
 
 #include "Common/Align.h"
@@ -32,30 +34,20 @@ uint64_t LargestPowerOf2Divisor(uint64_t value)
 }
 
 // For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
+std::optional<std::pair<u32, bool>> IsImmArithmetic(uint64_t input)
 {
   if (input < 4096)
-  {
-    *val = input;
-    *shift = false;
-    return true;
-  }
-  else if ((input & 0xFFF000) == input)
-  {
-    *val = input >> 12;
-    *shift = true;
-    return true;
-  }
-  return false;
+    return std::pair{static_cast<u32>(input), false};
+
+  if ((input & 0xFFF000) == input)
+    return std::pair{static_cast<u32>(input >> 12), true};
+
+  return std::nullopt;
 }
 
 // For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s,
-                  unsigned int* imm_r)
+std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
 {
-  // DCHECK((n != NULL) && (imm_s != NULL) && (imm_r != NULL));
-  // DCHECK((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
-
   bool negate = false;
 
   // Logical immediates are encoded using parameters n, imm_s and imm_r using
@@ -160,7 +152,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // The input was zero (or all 1 bits, which will come to here too after we
       // inverted it at the start of the function), for which we just return
       // false.
-      return false;
+      return std::nullopt;
     }
     else
     {
@@ -177,12 +169,12 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
 
   // If the repeat period d is not a power of two, it can't be encoded.
   if (!MathUtil::IsPow2<u64>(d))
-    return false;
+    return std::nullopt;
 
   // If the bit stretch (b - a) does not fit within the mask derived from the
   // repeat period, then fail.
   if (((b - a) & ~mask) != 0)
-    return false;
+    return std::nullopt;
 
   // The only possible option is b - a repeated every d bits. Now we're going to
   // actually construct the valid logical immediate derived from that
@@ -200,17 +192,17 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       0x5555555555555555UL,
   }};
 
-  int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
+  const int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
 
   // Ensure that the index to the multipliers array is within bounds.
   DEBUG_ASSERT((multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
 
-  uint64_t multiplier = multipliers[multiplier_idx];
-  uint64_t candidate = (b - a) * multiplier;
+  const u64 multiplier = multipliers[multiplier_idx];
+  const u64 candidate = (b - a) * multiplier;
 
   // The candidate pattern doesn't match our input value, so fail.
   if (value != candidate)
-    return false;
+    return std::nullopt;
 
   // We have a match! This is a valid logical immediate, so now we have to
   // construct the bits and pieces of the instruction encoding that generates
@@ -219,7 +211,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // Count the set bits in our basic stretch. The special case of clz(0) == -1
   // makes the answer come out right for stretches that reach the very top of
   // the word (e.g. numbers like 0xffffc00000000000).
-  int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
+  const int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
   int s = clz_a - clz_b;
 
   // Decide how many bits to rotate right by, to put the low bit of that basic
@@ -252,11 +244,11 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   //    11110s     2    UInt(s)
   //
   // So we 'or' (-d << 1) with our computed s to form imms.
-  *n = out_n;
-  *imm_s = ((-d << 1) | (s - 1)) & 0x3f;
-  *imm_r = r;
-
-  return true;
+  return std::tuple{
+      static_cast<u32>(out_n),
+      static_cast<u32>(((-d << 1) | (s - 1)) & 0x3f),
+      static_cast<u32>(r),
+  };
 }
 
 float FPImm8ToFloat(u8 bits)
@@ -270,7 +262,7 @@ float FPImm8ToFloat(u8 bits)
   return Common::BitCast<float>(f);
 }
 
-bool FPImm8FromFloat(float value, u8* imm_out)
+std::optional<u8> FPImm8FromFloat(float value)
 {
   const u32 f = Common::BitCast<u32>(value);
   const u32 mantissa4 = (f & 0x7FFFFF) >> 19;
@@ -278,16 +270,15 @@ bool FPImm8FromFloat(float value, u8* imm_out)
   const u32 sign = f >> 31;
 
   if ((exponent >> 7) == ((exponent >> 6) & 1))
-    return false;
+    return std::nullopt;
 
   const u8 imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
   const float new_float = FPImm8ToFloat(imm8);
-  if (new_float == value)
-    *imm_out = imm8;
-  else
-    return false;
 
-  return true;
+  if (new_float != value)
+    return std::nullopt;
+
+  return imm8;
 }
 }  // Anonymous namespace
 
@@ -4085,11 +4076,12 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 
 void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
   if (!Is64Bit(Rn))
     imm &= 0xFFFFFFFF;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4104,9 +4096,9 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4121,9 +4113,9 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4138,9 +4130,9 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     ANDS(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4266,76 +4258,79 @@ void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     ADD(Rd, Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     SUB(Rd, Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     CMP(Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool negate)
 {
   ASSERT_MSG(DYNA_REC, !IsDouble(Rd), "MOVI2F does not yet support double precision");
-  uint8_t imm8;
-  if (value == 0.0)
+
+  if (value == 0.0f)
   {
     FMOV(Rd, IsDouble(Rd) ? ZR : WZR);
     if (negate)
@@ -4343,9 +4338,9 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
     // TODO: There are some other values we could generate with the float-imm instruction, like
     // 1.0...
   }
-  else if (FPImm8FromFloat(value, &imm8))
+  else if (const auto imm = FPImm8FromFloat(value))
   {
-    FMOV(Rd, imm8);
+    FMOV(Rd, *imm);
   }
   else
   {
