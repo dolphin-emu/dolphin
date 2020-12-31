@@ -19,6 +19,7 @@
 #include <fmt/format.h>
 #include <pugixml.hpp>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -221,6 +222,67 @@ bool IsTitleInstalled(u64 title_id)
   // directory means that the title is installed.
   return std::any_of(entries->begin(), entries->end(),
                      [](const std::string& file) { return file != "title.tmd"; });
+}
+
+bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, u64 title_id)
+{
+  const auto entries = fs.ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
+  return entries && std::any_of(entries->begin(), entries->end(),
+                                [](const std::string& file) { return file == "title.tmd"; });
+}
+
+IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
+{
+  auto file = fs.OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                          "/title/00000001/00000002/data/tmds.sys", IOS::HLE::FS::Mode::Read);
+  if (!file)
+    return {};
+
+  // structure of this file is as follows:
+  // - 32 bytes descriptor of a TMD, which contains a title ID and a length
+  // - the TMD, with padding aligning to 32 bytes
+  // - repeat for as many TMDs as stored
+  while (true)
+  {
+    std::array<u8, 32> descriptor;
+    if (!file->Read(descriptor.data(), descriptor.size()))
+      return {};
+
+    const u64 tid = Common::swap64(descriptor.data());
+    const u32 tmd_length = Common::swap32(descriptor.data() + 8);
+    if (tid == title_id)
+    {
+      // found the right TMD
+      std::vector<u8> tmd_bytes(tmd_length);
+      if (!file->Read(tmd_bytes.data(), tmd_length))
+        return {};
+      return IOS::ES::TMDReader(std::move(tmd_bytes));
+    }
+
+    // not the right TMD, skip this one and go to the next
+    if (!file->Seek(Common::AlignUp(tmd_length, 32), IOS::HLE::FS::SeekMode::Current))
+      return {};
+  }
+}
+
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::Device::ES& es, u64 title_id)
+{
+  if (IsTMDImported(fs, title_id))
+    return true;
+
+  auto tmd = FindBackupTMD(fs, title_id);
+  if (!tmd.IsValid())
+    return false;
+
+  IOS::HLE::Device::ES::Context context;
+  context.uid = IOS::SYSMENU_UID;
+  context.gid = IOS::SYSMENU_GID;
+  const auto import_result =
+      es.ImportTmd(context, tmd.GetBytes(), Titles::SYSTEM_MENU, IOS::ES::TITLE_TYPE_DEFAULT);
+  if (import_result != IOS::HLE::IPC_SUCCESS)
+    return false;
+
+  return es.ImportTitleDone(context) == IOS::HLE::IPC_SUCCESS;
 }
 
 // Common functionality for system updaters.
