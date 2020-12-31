@@ -603,6 +603,13 @@ public:
   void CNTVCT(ARM64Reg Rt);
 
   void HINT(SystemHint op);
+  void NOP() { HINT(SystemHint::NOP); }
+  void SEV() { HINT(SystemHint::SEV); }
+  void SEVL() { HINT(SystemHint::SEVL); }
+  void WFE() { HINT(SystemHint::WFE); }
+  void WFI() { HINT(SystemHint::WFI); }
+  void YIELD() { HINT(SystemHint::YIELD); }
+
   void CLREX();
   void DSB(BarrierType type);
   void DMB(BarrierType type);

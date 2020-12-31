@@ -965,7 +965,7 @@ FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
   branch.ptr = m_code;
   branch.type = FixupBranch::Type::CBZ;
   branch.reg = Rt;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
@@ -974,7 +974,7 @@ FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
   branch.ptr = m_code;
   branch.type = FixupBranch::Type::CBNZ;
   branch.reg = Rt;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B(CCFlags cond)
@@ -983,7 +983,7 @@ FixupBranch ARM64XEmitter::B(CCFlags cond)
   branch.ptr = m_code;
   branch.type = FixupBranch::Type::BConditional;
   branch.cond = cond;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
@@ -993,7 +993,7 @@ FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
   branch.type = FixupBranch::Type::TBZ;
   branch.reg = Rt;
   branch.bit = bit;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
@@ -1003,7 +1003,7 @@ FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
   branch.type = FixupBranch::Type::TBNZ;
   branch.reg = Rt;
   branch.bit = bit;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B()
@@ -1011,7 +1011,7 @@ FixupBranch ARM64XEmitter::B()
   FixupBranch branch{};
   branch.ptr = m_code;
   branch.type = FixupBranch::Type::B;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::BL()
@@ -1019,7 +1019,7 @@ FixupBranch ARM64XEmitter::BL()
   FixupBranch branch{};
   branch.ptr = m_code;
   branch.type = FixupBranch::Type::BL;
-  HINT(SystemHint::NOP);
+  NOP();
   return branch;
 }
 
