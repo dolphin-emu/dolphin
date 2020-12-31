@@ -126,7 +126,8 @@ public:
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
                           TicketImportType type = TicketImportType::PossiblyPersonalised,
                           VerifySignature verify_signature = VerifySignature::Yes);
-  ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
+  ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes, u64 caller_title_id,
+                       u32 caller_title_flags);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                              const std::vector<u8>& cert_chain,
                              VerifySignature verify_signature = VerifySignature::Yes);
@@ -135,7 +136,8 @@ public:
   ReturnCode ImportContentEnd(Context& context, u32 content_fd);
   ReturnCode ImportTitleDone(Context& context);
   ReturnCode ImportTitleCancel(Context& context);
-  ReturnCode ExportTitleInit(Context& context, u64 title_id, u8* tmd, u32 tmd_size);
+  ReturnCode ExportTitleInit(Context& context, u64 title_id, u8* tmd, u32 tmd_size,
+                             u64 caller_title_id, u32 caller_title_flags);
   ReturnCode ExportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size);
   ReturnCode ExportContentEnd(Context& context, u32 content_fd);
