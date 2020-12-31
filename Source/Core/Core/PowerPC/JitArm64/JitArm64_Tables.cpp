@@ -10,13 +10,10 @@
 
 namespace
 {
-// Should be moved in to the Jit class
-using Instruction = void (JitArm64::*)(UGeckoInstruction);
-
 struct GekkoOPTemplate
 {
   int opcode;
-  Instruction fn;
+  JitArm64::Instruction fn;
   // GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 
@@ -339,8 +336,8 @@ constexpr std::array<GekkoOPTemplate, 10> table63_2{{
     {31, &JitArm64::fp_arith},               // fnmaddx
 }};
 
-constexpr std::array<Instruction, 64> dynaOpTable = [] {
-  std::array<Instruction, 64> table{};
+constexpr std::array<JitArm64::Instruction, 64> dynaOpTable = [] {
+  std::array<JitArm64::Instruction, 64> table{};
 
   for (auto& tpl : table)
   {
@@ -355,8 +352,8 @@ constexpr std::array<Instruction, 64> dynaOpTable = [] {
   return table;
 }();
 
-constexpr std::array<Instruction, 1024> dynaOpTable4 = [] {
-  std::array<Instruction, 1024> table{};
+constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable4 = [] {
+  std::array<JitArm64::Instruction, 1024> table{};
 
   for (auto& entry : table)
   {
@@ -391,8 +388,8 @@ constexpr std::array<Instruction, 1024> dynaOpTable4 = [] {
   return table;
 }();
 
-constexpr std::array<Instruction, 1024> dynaOpTable19 = [] {
-  std::array<Instruction, 1024> table{};
+constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable19 = [] {
+  std::array<JitArm64::Instruction, 1024> table{};
 
   for (auto& entry : table)
   {
@@ -407,8 +404,8 @@ constexpr std::array<Instruction, 1024> dynaOpTable19 = [] {
   return table;
 }();
 
-constexpr std::array<Instruction, 1024> dynaOpTable31 = [] {
-  std::array<Instruction, 1024> table{};
+constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable31 = [] {
+  std::array<JitArm64::Instruction, 1024> table{};
 
   for (auto& entry : table)
   {
@@ -423,8 +420,8 @@ constexpr std::array<Instruction, 1024> dynaOpTable31 = [] {
   return table;
 }();
 
-constexpr std::array<Instruction, 32> dynaOpTable59 = [] {
-  std::array<Instruction, 32> table{};
+constexpr std::array<JitArm64::Instruction, 32> dynaOpTable59 = [] {
+  std::array<JitArm64::Instruction, 32> table{};
 
   for (auto& entry : table)
   {
@@ -439,8 +436,8 @@ constexpr std::array<Instruction, 32> dynaOpTable59 = [] {
   return table;
 }();
 
-constexpr std::array<Instruction, 1024> dynaOpTable63 = [] {
-  std::array<Instruction, 1024> table{};
+constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable63 = [] {
+  std::array<JitArm64::Instruction, 1024> table{};
 
   for (auto& entry : table)
   {

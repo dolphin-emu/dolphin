@@ -43,7 +43,9 @@ public:
   void Jit(u32) override;
 
   const char* GetName() const override { return "JITARM64"; }
+
   // OPCODES
+  using Instruction = void (JitArm64::*)(UGeckoInstruction);
   void FallBackToInterpreter(UGeckoInstruction inst);
   void DoNothing(UGeckoInstruction inst);
   void HLEFunction(u32 hook_index);
