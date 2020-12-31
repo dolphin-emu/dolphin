@@ -916,6 +916,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
   {
   case 1:  // CBNZ
     Not = true;
+    [[fallthrough]];
   case 0:  // CBZ
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
@@ -932,6 +933,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
     break;
   case 4:  // TBNZ
     Not = true;
+    [[fallthrough]];
   case 3:  // TBZ
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance), "%s(%d): Received too large distance: %" PRIx64,
