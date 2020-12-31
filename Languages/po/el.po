@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-16 23:05+0100\n"
-"PO-Revision-Date: 2020-12-16 22:05+0000\n"
+"POT-Creation-Date: 2020-12-31 20:15+0100\n"
+"PO-Revision-Date: 2020-12-31 19:15+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Greek (http://www.transifex.com/delroth/dolphin-emu/language/"
 "el/)\n"
@@ -38,7 +38,7 @@ msgid ""
 "that it hasn't been tampered with."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1138
+#: Source/Core/DolphinQt/MenuBar.cpp:1139
 msgid ""
 "\n"
 "\n"
@@ -58,7 +58,7 @@ msgstr " (Δίσκος %1)"
 msgid "! Not"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:196
+#: Source/Core/Core/Boot/Boot.cpp:205
 msgid "\"{0}\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
 
@@ -83,7 +83,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:72
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:402
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:403
 msgid "%1 %"
 msgstr "%1 %"
 
@@ -111,7 +111,7 @@ msgid "%1 (Revision %3)"
 msgstr "%1 (Αναθεώρηση %3)"
 
 #. i18n: "Stock" refers to input profiles included with Dolphin
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:466
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:474
 msgid "%1 (Stock)"
 msgstr ""
 
@@ -217,7 +217,7 @@ msgstr ""
 msgid "& And"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:603
+#: Source/Core/DolphinQt/MenuBar.cpp:604
 msgid "&About"
 msgstr "&Περί"
 
@@ -246,7 +246,7 @@ msgstr "&Ρυθμίσεις Ήχου"
 msgid "&Auto Update:"
 msgstr "&Αυτόματη Ενημέρωση:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:542
+#: Source/Core/DolphinQt/MenuBar.cpp:543
 msgid "&Automatic Start"
 msgstr "&Αυτόματη Εκκίνηση"
 
@@ -258,7 +258,7 @@ msgstr "&Εκκίνηση από DVD Αντίγραφο Ασφαλείας"
 msgid "&Breakpoints"
 msgstr "&Σημεία Διακοπής"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:586
+#: Source/Core/DolphinQt/MenuBar.cpp:587
 msgid "&Bug Tracker"
 msgstr "&Ιχνηλάτης Σφαλμάτων"
 
@@ -270,11 +270,11 @@ msgstr ""
 msgid "&Cheats Manager"
 msgstr "&Διαχειριστής Cheats"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:596
+#: Source/Core/DolphinQt/MenuBar.cpp:597
 msgid "&Check for Updates..."
 msgstr "&Έλεγχος για Ενημερώσεις..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:960
+#: Source/Core/DolphinQt/MenuBar.cpp:961
 msgid "&Clear Symbols"
 msgstr ""
 
@@ -334,7 +334,7 @@ msgstr ""
 msgid "&File"
 msgstr "&Αρχείο"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:549
+#: Source/Core/DolphinQt/MenuBar.cpp:550
 msgid "&Font..."
 msgstr "&Γραμματοσειρά..."
 
@@ -342,11 +342,15 @@ msgstr "&Γραμματοσειρά..."
 msgid "&Frame Advance"
 msgstr "&Προώθηση ανά Καρέ"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:962
+#: Source/Core/DolphinQt/MenuBar.cpp:531
+msgid "&Free Look Settings"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:963
 msgid "&Generate Symbols From"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:582
+#: Source/Core/DolphinQt/MenuBar.cpp:583
 msgid "&GitHub Repository"
 msgstr ""
 
@@ -354,7 +358,7 @@ msgstr ""
 msgid "&Graphics Settings"
 msgstr "&Ρυθμίσεις Γραφικών"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:573
+#: Source/Core/DolphinQt/MenuBar.cpp:574
 msgid "&Help"
 msgstr "&Βοήθεια"
 
@@ -382,7 +386,7 @@ msgstr "&Γλώσσα:"
 msgid "&Load State"
 msgstr "&Φόρτωση Σημείου Αποθήκευσης"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:968
+#: Source/Core/DolphinQt/MenuBar.cpp:969
 msgid "&Load Symbol Map"
 msgstr ""
 
@@ -394,7 +398,7 @@ msgstr ""
 msgid "&Memory"
 msgstr "&Μνήμη"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:732
+#: Source/Core/DolphinQt/MenuBar.cpp:733
 msgid "&Movie"
 msgstr "&Ταινία"
 
@@ -415,7 +419,7 @@ msgstr "&Άνοιγμα..."
 msgid "&Options"
 msgstr "&Ρυθμίσεις"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:988
+#: Source/Core/DolphinQt/MenuBar.cpp:989
 msgid "&Patch HLE Functions"
 msgstr ""
 
@@ -431,7 +435,7 @@ msgstr "&Αναπαραγωγή"
 msgid "&Properties"
 msgstr "&Ιδιότητες"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:747
+#: Source/Core/DolphinQt/MenuBar.cpp:748
 msgid "&Read-Only Mode"
 msgstr "&Μόνο Για Ανάγνωση"
 
@@ -460,7 +464,7 @@ msgstr "&Επανεκκίνηση"
 msgid "&Resource Pack Manager"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:969
+#: Source/Core/DolphinQt/MenuBar.cpp:970
 msgid "&Save Symbol Map"
 msgstr ""
 
@@ -494,7 +498,7 @@ msgstr "&Προβολή"
 msgid "&Watch"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:575
+#: Source/Core/DolphinQt/MenuBar.cpp:576
 msgid "&Website"
 msgstr "&Ιστοσελίδα"
 
@@ -506,11 +510,11 @@ msgstr "&Wiki"
 msgid "&Yes"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1240
+#: Source/Core/DolphinQt/MenuBar.cpp:1241
 msgid "'%1' not found, no symbol names generated"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1364
+#: Source/Core/DolphinQt/MenuBar.cpp:1365
 msgid "'%1' not found, scanning for common functions instead"
 msgstr ""
 
@@ -609,14 +613,14 @@ msgid "32-bit Integer"
 msgstr "32-bit Ακέραιος"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:344
+#: Source/Core/Core/HotkeyManager.cpp:330
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:23
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:425
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:426
 msgid "3D"
 msgstr "3D"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:346
+#: Source/Core/Core/HotkeyManager.cpp:332
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:26
 msgid "3D Depth"
 msgstr "3D Βάθος"
@@ -704,8 +708,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1317
-#: Source/Core/DolphinQt/MainWindow.cpp:1385
+#: Source/Core/DolphinQt/MainWindow.cpp:1338
+#: Source/Core/DolphinQt/MainWindow.cpp:1406
 msgid "A NetPlay Session is already in progress!"
 msgstr ""
 
@@ -727,7 +731,7 @@ msgstr ""
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:825
+#: Source/Core/DolphinQt/MainWindow.cpp:833
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -939,7 +943,7 @@ msgstr "Προσθήκη..."
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:181
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:141
-#: Source/Core/DolphinQt/MenuBar.cpp:963
+#: Source/Core/DolphinQt/MenuBar.cpp:964
 msgid "Address"
 msgstr "Διεύθυνση"
 
@@ -1001,7 +1005,7 @@ msgstr "Αφρική"
 msgid "All Files (*)"
 msgstr "Όλα τα Αρχεία (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:691
+#: Source/Core/DolphinQt/MainWindow.cpp:699
 msgid ""
 "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *."
 "rvz *.wad *.dff *.m3u);;All Files (*)"
@@ -1013,12 +1017,12 @@ msgid ""
 "rvz *.wad *.m3u);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1204
-#: Source/Core/DolphinQt/MainWindow.cpp:1211
+#: Source/Core/DolphinQt/MainWindow.cpp:1225
+#: Source/Core/DolphinQt/MainWindow.cpp:1232
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:364
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
 msgid "All devices"
 msgstr "Όλες οι συσκευές"
 
@@ -1042,14 +1046,10 @@ msgstr "Άδεια Μετάδοσης Στατιστικών Χρήσης "
 msgid "Allow Writes to SD Card"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:271
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:36
 msgid ""
-"Allows manipulation of the in-game camera. Move the mouse while holding the "
-"right button to pan or middle button to roll.<br><br>Use the WASD keys while "
-"holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 "
-"to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the "
-"speed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
-"dolphin_emphasis>"
+"Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If "
+"unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:20
@@ -1128,15 +1128,15 @@ msgstr "Εξομάλυνση Ορίων:"
 msgid "Any Region"
 msgstr "Οποιαδήποτε Περιοχή"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1501
+#: Source/Core/DolphinQt/MenuBar.cpp:1502
 msgid "Append signature to"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:981
+#: Source/Core/DolphinQt/MenuBar.cpp:982
 msgid "Append to &Existing Signature File..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:985
+#: Source/Core/DolphinQt/MenuBar.cpp:986
 msgid "Appl&y Signature File..."
 msgstr ""
 
@@ -1154,7 +1154,7 @@ msgstr "Apploader Ημερομηνία:"
 msgid "Apply"
 msgstr "Εφαρμογή"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1524
+#: Source/Core/DolphinQt/MenuBar.cpp:1525
 msgid "Apply signature file"
 msgstr ""
 
@@ -1162,7 +1162,7 @@ msgstr ""
 msgid "Arbitrary Mipmap Detection"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:235
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:236
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Είστε σίγουροι ότι θέλετε να διαγράψετε το '%1';"
 
@@ -1263,7 +1263,7 @@ msgstr "Αυτόματη Προσαρμογή Μεγέθους Παραθύρο�
 msgid "Auto-Hide"
 msgstr "Αυτόματη Απόκρυψη"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1250
+#: Source/Core/DolphinQt/MenuBar.cpp:1251
 msgid "Auto-detect RSO modules?"
 msgstr ""
 
@@ -1307,7 +1307,7 @@ msgstr ""
 msgid "Backend"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:134
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:121
 msgid "Backend Multithreading"
 msgstr ""
 
@@ -1324,6 +1324,7 @@ msgstr "Backend:"
 msgid "Background Input"
 msgstr "Χειρισμός με Ανεστίαστο Παραθ."
 
+#: Source/Core/Core/FreeLookManager.cpp:74
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:26
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:25
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:22
@@ -1345,7 +1346,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:798
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:211
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
-#: Source/Core/DolphinQt/MenuBar.cpp:630
+#: Source/Core/DolphinQt/MenuBar.cpp:631
 msgid "Banner"
 msgstr "Εικονίδιο"
 
@@ -1393,13 +1394,13 @@ msgstr "Beta (μια φορά τον μήνα)"
 msgid "BetterJoy, DS4Windows, etc"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:122
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:109
 msgid "Bitrate (kbps):"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:808
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
-#: Source/Core/DolphinQt/MenuBar.cpp:640
+#: Source/Core/DolphinQt/MenuBar.cpp:641
 msgid "Block Size"
 msgstr ""
 
@@ -1435,19 +1436,19 @@ msgid ""
 "Passthrough mode cannot be used."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:535
+#: Source/Core/DolphinQt/MenuBar.cpp:536
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1541
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1567
+#: Source/Core/DolphinQt/MainWindow.cpp:1588
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:141
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:128
 msgid "Borderless Fullscreen"
 msgstr "Πλήρης Οθόνη Χωρίς Περιθώρια  "
 
@@ -1469,7 +1470,7 @@ msgstr ""
 msgid "Break"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:334
+#: Source/Core/Core/HotkeyManager.cpp:320
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:27
 msgid "Breakpoint"
 msgstr ""
@@ -1558,7 +1559,7 @@ msgstr "Κουμπιά"
 msgid "C Stick"
 msgstr "Stick Κάμερας "
 
-#: Source/Core/DolphinQt/MenuBar.cpp:980
+#: Source/Core/DolphinQt/MenuBar.cpp:981
 msgid "C&reate Signature File..."
 msgstr ""
 
@@ -1582,7 +1583,7 @@ msgstr "CRC32:"
 msgid "Cached Interpreter (slower)"
 msgstr "Cached Interpreter (πιο αργή)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:247
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:229
 msgid ""
 "Caches custom textures to system RAM on startup.<br><br>This can require "
 "exponentially more RAM but fixes possible stuttering."
@@ -1617,6 +1618,10 @@ msgstr ""
 msgid "Callstack"
 msgstr ""
 
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:65
+msgid "Camera 1"
+msgstr ""
+
 #. i18n: Refers to emulated wii remote camera properties.
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:229
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:238
@@ -1627,8 +1632,8 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1310
-#: Source/Core/DolphinQt/MainWindow.cpp:1378
+#: Source/Core/DolphinQt/MainWindow.cpp:1331
+#: Source/Core/DolphinQt/MainWindow.cpp:1399
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr ""
 
@@ -1652,7 +1657,7 @@ msgstr ""
 msgid "Cannot boot this WAD because it could not be installed to the NAND."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:506
+#: Source/Core/Core/Boot/Boot.cpp:515
 msgid "Cannot find the GC IPL."
 msgstr "Δεν μπορεί να βρεθεί το GC IPL."
 
@@ -1662,7 +1667,7 @@ msgid ""
 "Have you chosen the right type?"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:504
+#: Source/Core/Core/Boot/Boot.cpp:513
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Δεν μπορεί να ξεκινήσει το παιχνίδι, γιατί το GC IPL δεν βρέθηκε."
 
@@ -1700,16 +1705,16 @@ msgstr "Αυτόματη Αλλαγή Δίσκων"
 msgid "Change the disc to {0}"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:278
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:44
 msgid ""
-"Changes the in-game camera type during freelook.<br><br>Six Axis: Offers "
+"Changes the in-game camera type during Free Look.<br><br>Six Axis: Offers "
 "full camera control on all axes, akin to moving a spacecraft in zero "
-"gravity. This is the most powerful freelook option but is the most "
-"challenging to use.<br /><br>First Person: Controls the free camera "
-"similarly to a first person video game. The camera can rotate and travel, "
-"but roll is impossible. Easy to use, but limiting.<br><br>Orbital: Rotates "
-"the free camera around the original camera. Has no lateral movement, only "
-"rotation and you may zoom up to the camera's origin point."
+"gravity. This is the most powerful Free Look option but is the most "
+"challenging to use.<br> <br>First Person: Controls the free camera similarly "
+"to a first person video game. The camera can rotate and travel, but roll is "
+"impossible. Easy to use, but limiting.<br><br>Orbital: Rotates the free "
+"camera around the original camera. Has no lateral movement, only rotation "
+"and you may zoom up to the camera's origin point."
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:67
@@ -1762,11 +1767,11 @@ msgstr "Κίνα"
 msgid "Choose a file to open"
 msgstr "Επιλέξτε ένα αρχείο για άνοιγμα"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1542
+#: Source/Core/DolphinQt/MenuBar.cpp:1543
 msgid "Choose priority input file"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1547
+#: Source/Core/DolphinQt/MenuBar.cpp:1548
 msgid "Choose secondary input file"
 msgstr ""
 
@@ -1790,12 +1795,12 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:137
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:242
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:122
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:123
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:105
 msgid "Clear"
 msgstr "Καθάρισ."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:840
+#: Source/Core/DolphinQt/MenuBar.cpp:841
 msgid "Clear Cache"
 msgstr ""
 
@@ -1828,7 +1833,7 @@ msgstr "Κωδικός:"
 msgid "Codes received!"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:983
+#: Source/Core/DolphinQt/MenuBar.cpp:984
 msgid "Combine &Two Signature Files..."
 msgstr ""
 
@@ -1851,7 +1856,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:809
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:227
-#: Source/Core/DolphinQt/MenuBar.cpp:641
+#: Source/Core/DolphinQt/MenuBar.cpp:642
 msgid "Compression"
 msgstr ""
 
@@ -1878,6 +1883,10 @@ msgstr "Ρυθμίσεις"
 msgid "Configure"
 msgstr "Ρυθμίσεις"
 
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:38
+msgid "Configure Controller"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:44
 msgid "Configure Dolphin"
 msgstr "Ρύθμιση Dolphin"
@@ -1890,13 +1899,13 @@ msgstr ""
 msgid "Configure Output"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:234
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:235
 #: Source/Core/DolphinQt/ConvertDialog.cpp:293
 #: Source/Core/DolphinQt/ConvertDialog.cpp:399
 #: Source/Core/DolphinQt/GameList/GameList.cpp:520
 #: Source/Core/DolphinQt/GameList/GameList.cpp:636
-#: Source/Core/DolphinQt/MainWindow.cpp:824
-#: Source/Core/DolphinQt/MainWindow.cpp:1508
+#: Source/Core/DolphinQt/MainWindow.cpp:832
+#: Source/Core/DolphinQt/MainWindow.cpp:1529
 #: Source/Core/DolphinQt/WiiUpdate.cpp:138
 msgid "Confirm"
 msgstr "Επιβεβαίωση"
@@ -1909,7 +1918,7 @@ msgstr "Επιβεβαίωση αλλαγής backend "
 msgid "Confirm on Stop"
 msgstr "Επιβεβαίωση Διακοπής"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1205
+#: Source/Core/DolphinQt/MenuBar.cpp:1206
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:524
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:238
 msgid "Confirmation"
@@ -1985,27 +1994,23 @@ msgstr ""
 msgid "Control Stick"
 msgstr "Stick Ελέγχου "
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:93
-msgid "Control Type:"
-msgstr ""
-
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:422
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:423
 msgid "Controller Profile"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:336
+#: Source/Core/Core/HotkeyManager.cpp:322
 msgid "Controller Profile 1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:323
 msgid "Controller Profile 2"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:338
+#: Source/Core/Core/HotkeyManager.cpp:324
 msgid "Controller Profile 3"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:339
+#: Source/Core/Core/HotkeyManager.cpp:325
 msgid "Controller Profile 4"
 msgstr ""
 
@@ -2210,14 +2215,14 @@ msgid ""
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:188
+#: Source/Core/Core/Boot/Boot.cpp:197
 msgid ""
 "Could not read \"{0}\". There is no disc in the drive or it is not a "
 "GameCube/Wii backup. Please note that Dolphin cannot play games directly "
 "from the original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:211
+#: Source/Core/Core/Boot/Boot.cpp:220
 msgid "Could not recognize file {0}"
 msgstr ""
 
@@ -2258,7 +2263,7 @@ msgstr "Δημιουργία Νέας Κάρτας Μνήμης"
 msgid "Create..."
 msgstr "Δημιουργία..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:241
 msgid ""
 "Creates frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within."
@@ -2276,11 +2281,11 @@ msgstr "Δημιουργός:"
 msgid "Critical"
 msgstr "Κρίσιμο"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:131
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:118
 msgid "Crop"
 msgstr "Κόψιμο"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:287
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:253
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -2401,7 +2406,7 @@ msgid "Debug Only"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:48
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:419
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:420
 msgid "Debugging"
 msgstr "Debugging"
 
@@ -2415,11 +2420,15 @@ msgstr "Δεκαδικός"
 msgid "Decoding Quality:"
 msgstr "Ποιότητα Αποκωδικοποίησης:"
 
-#: Source/Core/Core/HotkeyManager.cpp:141
+#: Source/Core/Core/FreeLookManager.cpp:78
+msgid "Decrease"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Decrease Convergence"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Decrease Depth"
 msgstr "Μείωση Βάθους"
 
@@ -2432,7 +2441,15 @@ msgstr ""
 msgid "Decrease IR"
 msgstr "Μείωση IR"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:123
+#: Source/Core/Core/FreeLookManager.cpp:89
+msgid "Decrease X"
+msgstr ""
+
+#: Source/Core/Core/FreeLookManager.cpp:91
+msgid "Decrease Y"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:124
 msgid "Default"
 msgstr "Προεπιλ."
 
@@ -2456,7 +2473,7 @@ msgstr "Προεπιλεγμένο ISO:"
 msgid "Default thread"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:152
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:139
 msgid "Defer EFB Cache Invalidation"
 msgstr ""
 
@@ -2464,7 +2481,7 @@ msgstr ""
 msgid "Defer EFB Copies to RAM"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:300
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:266
 msgid ""
 "Defers invalidation of the EFB access cache until a GPU synchronization "
 "command is executed. If disabled, the cache will be invalidated with every "
@@ -2473,7 +2490,7 @@ msgid ""
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:101
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:102
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
 msgid "Delete"
 msgstr "Διαγραφή"
@@ -2507,7 +2524,7 @@ msgstr "Βάθος:"
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
 #: Source/Core/DolphinQt/GameList/GameList.cpp:800
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
-#: Source/Core/DolphinQt/MenuBar.cpp:632
+#: Source/Core/DolphinQt/MenuBar.cpp:633
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Description"
 msgstr "Περιγραφή"
@@ -2533,7 +2550,7 @@ msgstr ""
 msgid "Dev (multiple times a day)"
 msgstr "Dev (πολλαπλές φορές την ημέρα)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:81
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:82
 msgid "Device"
 msgstr "Συσκευή"
 
@@ -2594,7 +2611,7 @@ msgstr "Απενεργοποίηση EFB VRAM Αντίγραφα"
 msgid "Disable Emulation Speed Limit"
 msgstr "Απενεργοποίηση Ορίου Ταχύτητας Εξομοίωσης"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:832
+#: Source/Core/DolphinQt/MenuBar.cpp:833
 msgid "Disable Fastmem"
 msgstr ""
 
@@ -2602,7 +2619,7 @@ msgstr ""
 msgid "Disable Fog"
 msgstr "Απενεργοποίηση Ομίχλης"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:824
+#: Source/Core/DolphinQt/MenuBar.cpp:825
 msgid "Disable JIT Cache"
 msgstr "Απενεργοποίηση JIT Cache"
 
@@ -2613,7 +2630,7 @@ msgid ""
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:237
 msgid ""
 "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -2665,11 +2682,11 @@ msgstr ""
 "Εξουσιοδοτείτε το Dolphin να αναφέρει πληροφορίες στους προγραμματιστές του "
 "Dolphin;"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1509
+#: Source/Core/DolphinQt/MainWindow.cpp:1530
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1206
+#: Source/Core/DolphinQt/MenuBar.cpp:1207
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
@@ -2681,7 +2698,7 @@ msgstr ""
 msgid "Do you want to delete the selected save file?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:828
+#: Source/Core/DolphinQt/MainWindow.cpp:836
 msgid "Do you want to stop the current emulation?"
 msgstr "Θέλετε να σταματήσετε την τρέχουσα εξομοίωση;"
 
@@ -2694,9 +2711,9 @@ msgstr "Dolby Pro Logic II Αποκωδικοποιητής"
 msgid "Dolphin FIFO Log (*.dff)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1394
-#: Source/Core/DolphinQt/MenuBar.cpp:1410
-#: Source/Core/DolphinQt/MenuBar.cpp:1428
+#: Source/Core/DolphinQt/MenuBar.cpp:1395
+#: Source/Core/DolphinQt/MenuBar.cpp:1411
+#: Source/Core/DolphinQt/MenuBar.cpp:1429
 msgid "Dolphin Map File (*.map)"
 msgstr ""
 
@@ -2708,8 +2725,8 @@ msgstr ""
 msgid "Dolphin Signature File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1588
-#: Source/Core/DolphinQt/MainWindow.cpp:1659
+#: Source/Core/DolphinQt/MainWindow.cpp:1609
+#: Source/Core/DolphinQt/MainWindow.cpp:1680
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Ταινίες (*.dtm)"
 
@@ -2780,6 +2797,7 @@ msgstr "Συμπιέστηκε η εικόνα του δίσκου."
 msgid "Double"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:70
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:77
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
@@ -2849,11 +2867,11 @@ msgstr ""
 msgid "Dump &MRAM"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:794
+#: Source/Core/DolphinQt/MenuBar.cpp:795
 msgid "Dump Audio"
 msgstr "Εξαγωγή Ήχου"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:101
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 msgid "Dump Base Textures"
 msgstr ""
 
@@ -2861,11 +2879,11 @@ msgstr ""
 msgid "Dump EFB Target"
 msgstr "Εξαγωγή EFB Target"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:788
+#: Source/Core/DolphinQt/MenuBar.cpp:789
 msgid "Dump Frames"
 msgstr "Εξαγωγή Καρέ"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:102
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:89
 msgid "Dump Mip Maps"
 msgstr ""
 
@@ -2909,7 +2927,7 @@ msgstr ""
 msgid "Dump Textures"
 msgstr "Εξαγωγή Υφών"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:114
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:101
 msgid "Dump at Internal Resolution"
 msgstr ""
 
@@ -2934,14 +2952,14 @@ msgstr ""
 msgid "Dump root CA"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:228
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:209
 msgid ""
 "Dumps decoded game textures based on the other flags to User/Dump/Textures/"
-"<game_id>/.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
+"&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:251
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:233
 msgid ""
 "Dumps the contents of EFB copies to User/Dump/Textures/.<br><br /"
 "><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3044,14 +3062,14 @@ msgid ""
 "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:329
+#: Source/Core/Core/HotkeyManager.cpp:315
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:27
 msgid "Emulation Speed"
 msgstr "Ταχύτητα Εξομοίωσης"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:29
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:100
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:33
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:87
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
 msgstr "Ενεργοποίηση"
@@ -3097,7 +3115,7 @@ msgstr "Ενεργοποίηση FPRF"
 msgid "Enable MMU"
 msgstr "Ενεργοποίηση MMU"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:132
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:119
 msgid "Enable Progressive Scan"
 msgstr "Ενεργοποίηση Προοδευτικής Σάρωσης"
 
@@ -3163,7 +3181,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:294
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:260
 msgid ""
 "Enables multithreaded command submission in backends where supported. "
 "Enabling this option may result in a performance improvement on systems with "
@@ -3171,7 +3189,7 @@ msgid ""
 "<br><br /><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:290
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:256
 msgid ""
 "Enables progressive scan if supported by the emulated software. Most games "
 "don't have any issue with this.<br><br><dolphin_emphasis>If unsure, leave "
@@ -3199,14 +3217,14 @@ msgstr ""
 "Ενεργοποιεί τη Μονάδα Διαχείρισης Μνήμης, απαραίτητο για μερικά παιχνίδια. "
 "(Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:224
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:205
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
 "in debugging graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:267
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:249
 msgid ""
 "Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3251,7 +3269,7 @@ msgstr ""
 msgid "Enter password"
 msgstr "Εισαγωγή κωδικού"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1254
+#: Source/Core/DolphinQt/MenuBar.cpp:1255
 msgid "Enter the RSO module address:"
 msgstr ""
 
@@ -3268,8 +3286,8 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:313
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:475
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:225
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:264
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:226
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:265
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:215
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:231
 #: Source/Core/DolphinQt/ConvertDialog.cpp:449
@@ -3285,26 +3303,26 @@ msgstr ""
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:282
 #: Source/Core/DolphinQt/Main.cpp:212 Source/Core/DolphinQt/Main.cpp:227
-#: Source/Core/DolphinQt/Main.cpp:234 Source/Core/DolphinQt/MainWindow.cpp:253
-#: Source/Core/DolphinQt/MainWindow.cpp:260
-#: Source/Core/DolphinQt/MainWindow.cpp:981
-#: Source/Core/DolphinQt/MainWindow.cpp:1309
-#: Source/Core/DolphinQt/MainWindow.cpp:1316
-#: Source/Core/DolphinQt/MainWindow.cpp:1377
-#: Source/Core/DolphinQt/MainWindow.cpp:1384
-#: Source/Core/DolphinQt/MainWindow.cpp:1487
-#: Source/Core/DolphinQt/MenuBar.cpp:1169
-#: Source/Core/DolphinQt/MenuBar.cpp:1239
-#: Source/Core/DolphinQt/MenuBar.cpp:1260
-#: Source/Core/DolphinQt/MenuBar.cpp:1272
-#: Source/Core/DolphinQt/MenuBar.cpp:1325
-#: Source/Core/DolphinQt/MenuBar.cpp:1345
-#: Source/Core/DolphinQt/MenuBar.cpp:1447
-#: Source/Core/DolphinQt/MenuBar.cpp:1456
-#: Source/Core/DolphinQt/MenuBar.cpp:1468
-#: Source/Core/DolphinQt/MenuBar.cpp:1489
-#: Source/Core/DolphinQt/MenuBar.cpp:1514
-#: Source/Core/DolphinQt/MenuBar.cpp:1564
+#: Source/Core/DolphinQt/Main.cpp:234 Source/Core/DolphinQt/MainWindow.cpp:255
+#: Source/Core/DolphinQt/MainWindow.cpp:262
+#: Source/Core/DolphinQt/MainWindow.cpp:989
+#: Source/Core/DolphinQt/MainWindow.cpp:1330
+#: Source/Core/DolphinQt/MainWindow.cpp:1337
+#: Source/Core/DolphinQt/MainWindow.cpp:1398
+#: Source/Core/DolphinQt/MainWindow.cpp:1405
+#: Source/Core/DolphinQt/MainWindow.cpp:1508
+#: Source/Core/DolphinQt/MenuBar.cpp:1170
+#: Source/Core/DolphinQt/MenuBar.cpp:1240
+#: Source/Core/DolphinQt/MenuBar.cpp:1261
+#: Source/Core/DolphinQt/MenuBar.cpp:1273
+#: Source/Core/DolphinQt/MenuBar.cpp:1326
+#: Source/Core/DolphinQt/MenuBar.cpp:1346
+#: Source/Core/DolphinQt/MenuBar.cpp:1448
+#: Source/Core/DolphinQt/MenuBar.cpp:1457
+#: Source/Core/DolphinQt/MenuBar.cpp:1469
+#: Source/Core/DolphinQt/MenuBar.cpp:1490
+#: Source/Core/DolphinQt/MenuBar.cpp:1515
+#: Source/Core/DolphinQt/MenuBar.cpp:1565
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:421
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:729
@@ -3336,7 +3354,7 @@ msgstr ""
 msgid "Error obtaining session list: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:254
+#: Source/Core/DolphinQt/MainWindow.cpp:256
 msgid "Error occured while loading some texture packs"
 msgstr ""
 
@@ -3436,7 +3454,7 @@ msgstr ""
 msgid "Expected start of expression."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:147
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:134
 msgid "Experimental"
 msgstr "Πειραματικός"
 
@@ -3452,7 +3470,7 @@ msgstr "Εξαγωγή Όλων Των Αποθηκεύσεων Wii"
 msgid "Export Recording"
 msgstr "Εξαγωγή Εγγραφής"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:740
+#: Source/Core/DolphinQt/MenuBar.cpp:741
 msgid "Export Recording..."
 msgstr "Εξαγωγή Εγγραφής..."
 
@@ -3468,23 +3486,23 @@ msgstr ""
 msgid "Export Wii Saves"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1093
+#: Source/Core/DolphinQt/MenuBar.cpp:1094
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
 msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:242
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:402
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:403
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:48
 msgid "Extension"
 msgstr "Επέκταση"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:118
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:120
 msgid "Extension Motion Input"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:119
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:121
 msgid "Extension Motion Simulation"
 msgstr ""
 
@@ -3548,7 +3566,7 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1515
+#: Source/Core/DolphinQt/MenuBar.cpp:1516
 msgid "Failed to append to signature file '%1'"
 msgstr ""
 
@@ -3613,7 +3631,7 @@ msgstr ""
 msgid "Failed to export the following save files:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1169
+#: Source/Core/DolphinQt/MenuBar.cpp:1170
 msgid "Failed to extract certificates from NAND"
 msgstr ""
 
@@ -3640,11 +3658,11 @@ msgstr ""
 msgid "Failed to import \"%1\"."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1080
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
 msgid "Failed to import save files."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:981
+#: Source/Core/DolphinQt/MainWindow.cpp:989
 msgid "Failed to init core"
 msgstr ""
 
@@ -3664,18 +3682,18 @@ msgid "Failed to install pack: %1"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:507
-#: Source/Core/DolphinQt/MenuBar.cpp:1055
+#: Source/Core/DolphinQt/MenuBar.cpp:1056
 msgid "Failed to install this title to the NAND."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1411
+#: Source/Core/DolphinQt/MainWindow.cpp:1432
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1272
-#: Source/Core/DolphinQt/MenuBar.cpp:1345
+#: Source/Core/DolphinQt/MenuBar.cpp:1273
+#: Source/Core/DolphinQt/MenuBar.cpp:1346
 msgid "Failed to load RSO module at %1"
 msgstr ""
 
@@ -3687,11 +3705,11 @@ msgstr ""
 msgid "Failed to load dxgi.dll"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1456
+#: Source/Core/DolphinQt/MenuBar.cpp:1457
 msgid "Failed to load map file '%1'"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:447
+#: Source/Core/Core/Boot/Boot.cpp:456
 msgid "Failed to load the executable to memory."
 msgstr ""
 
@@ -3701,7 +3719,7 @@ msgid ""
 "update package."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1487
+#: Source/Core/DolphinQt/MainWindow.cpp:1508
 #: Source/Core/DolphinQt/RenderWidget.cpp:119
 msgid "Failed to open '%1'"
 msgstr ""
@@ -3728,7 +3746,7 @@ msgid ""
 "Make sure there's an application assigned to open INI files."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1409
+#: Source/Core/DolphinQt/MainWindow.cpp:1430
 msgid "Failed to open server"
 msgstr ""
 
@@ -3785,19 +3803,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1448
+#: Source/Core/DolphinQt/MenuBar.cpp:1449
 msgid "Failed to save code map to path '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1489
+#: Source/Core/DolphinQt/MenuBar.cpp:1490
 msgid "Failed to save signature file '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1469
+#: Source/Core/DolphinQt/MenuBar.cpp:1470
 msgid "Failed to save symbol map to path '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1565
+#: Source/Core/DolphinQt/MenuBar.cpp:1566
 msgid "Failed to save to signature file '%1'"
 msgstr ""
 
@@ -3831,7 +3849,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:505
 #: Source/Core/DolphinQt/GameList/GameList.cpp:533
 #: Source/Core/DolphinQt/GameList/GameList.cpp:660
-#: Source/Core/DolphinQt/MenuBar.cpp:1055
+#: Source/Core/DolphinQt/MenuBar.cpp:1056
 msgid "Failure"
 msgstr "Αποτυχία"
 
@@ -3862,13 +3880,18 @@ msgid ""
 "{2}.){3}"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:86
+#: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:26
+msgid "Field of View"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:41
 msgid "File Details"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:807
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
-#: Source/Core/DolphinQt/MenuBar.cpp:639
+#: Source/Core/DolphinQt/MenuBar.cpp:640
 msgid "File Format"
 msgstr ""
 
@@ -3882,18 +3905,18 @@ msgstr "Πληροφορίες Αρχείου"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:802
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
-#: Source/Core/DolphinQt/MenuBar.cpp:634
+#: Source/Core/DolphinQt/MenuBar.cpp:635
 msgid "File Name"
 msgstr "Όνομα Αρχείου"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:803
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
-#: Source/Core/DolphinQt/MenuBar.cpp:635
+#: Source/Core/DolphinQt/MenuBar.cpp:636
 msgid "File Path"
 msgstr "Διαδρομή Αρχείου"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:806
-#: Source/Core/DolphinQt/MenuBar.cpp:638
+#: Source/Core/DolphinQt/MenuBar.cpp:639
 msgid "File Size"
 msgstr "Μέγεθος Αρχείου"
 
@@ -3972,7 +3995,7 @@ msgstr ""
 msgid "First Block"
 msgstr "Πρώτο Μπλοκ"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:89
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:40
 msgid "First Person"
 msgstr ""
 
@@ -4046,6 +4069,7 @@ msgstr ""
 msgid "Format:"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:73
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:24
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:21
@@ -4064,7 +4088,7 @@ msgstr ""
 msgid "Frame %1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:49 Source/Core/Core/HotkeyManager.cpp:330
+#: Source/Core/Core/HotkeyManager.cpp:49 Source/Core/Core/HotkeyManager.cpp:316
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:22
 msgid "Frame Advance"
 msgstr "Προώθηση ανά Καρέ"
@@ -4081,7 +4105,7 @@ msgstr ""
 msgid "Frame Advance Reset Speed"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:110
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:97
 msgid "Frame Dumping"
 msgstr ""
 
@@ -4089,7 +4113,7 @@ msgstr ""
 msgid "Frame Range"
 msgstr "Εύρος Καρέ"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1674
+#: Source/Core/VideoCommon/RenderBase.cpp:1679
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr ""
 
@@ -4101,78 +4125,38 @@ msgstr "Καρέ για Εγγραφή:"
 msgid "France"
 msgstr "Γαλλία"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:84
-msgid "Free Look"
-msgstr "Ελεύθερη Ματιά"
-
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:333
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:42
 msgid "Free Look Control Type"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:342
-#: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:22
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:436
+msgid "Free Look Controller %1"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/FreeLookWindow.cpp:18
+msgid "Free Look Settings"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:54
+msgid ""
+"Free Look allows for manipulation of the in-game camera. Different camera "
+"types are available from the dropdown.<br><br>For detailed instructions, <a "
+"href=\"https://wiki.dolphin-emu.org/index.php?title=Free_Look\">refer to "
+"this page</a>."
+msgstr ""
+
+#: Source/Core/Core/FreeLookManager.cpp:197
+#: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:26
+msgid "FreeLook"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:328
 msgid "Freelook"
 msgstr "Ελεύθερη Ματιά"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
-msgid "Freelook Decrease Field of View X"
-msgstr ""
-
-#: Source/Core/Core/HotkeyManager.cpp:134
-msgid "Freelook Decrease Field of View Y"
-msgstr ""
-
 #: Source/Core/Core/HotkeyManager.cpp:120
-msgid "Freelook Decrease Speed"
-msgstr "Ελεύθερη Ματιά Μείωση Ταχύτητας"
-
-#: Source/Core/Core/HotkeyManager.cpp:131
-msgid "Freelook Increase Field of View X"
-msgstr ""
-
-#: Source/Core/Core/HotkeyManager.cpp:133
-msgid "Freelook Increase Field of View Y"
-msgstr ""
-
-#: Source/Core/Core/HotkeyManager.cpp:121
-msgid "Freelook Increase Speed"
-msgstr "Ελεύθερη Ματιά Αύξηση Ταχύτητας"
-
-#: Source/Core/Core/HotkeyManager.cpp:124
-msgid "Freelook Move Down"
-msgstr "Ελεύθερη Ματιά Μετακίνηση Κάτω"
-
-#: Source/Core/Core/HotkeyManager.cpp:125
-msgid "Freelook Move Left"
-msgstr "Ελεύθερη Ματιά Μετακίνηση Αριστερά"
-
-#: Source/Core/Core/HotkeyManager.cpp:126
-msgid "Freelook Move Right"
-msgstr "Ελεύθερη Ματιά Μετακίνηση Δεξιά"
-
-#: Source/Core/Core/HotkeyManager.cpp:123
-msgid "Freelook Move Up"
-msgstr "Ελεύθερη Ματιά Μετακίνηση Πάνω"
-
-#: Source/Core/Core/HotkeyManager.cpp:129
-msgid "Freelook Reset"
-msgstr "Ελεύθερη Ματιά Επαναφορά"
-
-#: Source/Core/Core/HotkeyManager.cpp:122
-msgid "Freelook Reset Speed"
-msgstr "Ελεύθερη Ματιά Επαναφορά Ταχύτητας"
-
-#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Freelook Toggle"
 msgstr ""
-
-#: Source/Core/Core/HotkeyManager.cpp:127
-msgid "Freelook Zoom In"
-msgstr "Ελεύθερη Ματιά Zoom In"
-
-#: Source/Core/Core/HotkeyManager.cpp:128
-msgid "Freelook Zoom Out"
-msgstr "Ελεύθερη Ματιά Zoom Out"
 
 #: Source/Core/DiscIO/Enums.cpp:86
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:64
@@ -4335,7 +4319,7 @@ msgid "Game Folders"
 msgstr "Φάκελοι Παιχνιδιών"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:804
-#: Source/Core/DolphinQt/MenuBar.cpp:636
+#: Source/Core/DolphinQt/MenuBar.cpp:637
 msgid "Game ID"
 msgstr "ID Παιχνιδιού"
 
@@ -4377,11 +4361,11 @@ msgstr ""
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:384
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:385
 msgid "GameCube Controller"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:383
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:384
 msgid "GameCube Controller at Port %1"
 msgstr ""
 
@@ -4389,11 +4373,11 @@ msgstr ""
 msgid "GameCube Controllers"
 msgstr "GameCube Χειριστήρια"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:375
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:376
 msgid "GameCube Keyboard"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:376
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:377
 msgid "GameCube Keyboard at Port %1"
 msgstr ""
 
@@ -4407,7 +4391,7 @@ msgstr ""
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:388
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:389
 msgid "GameCube Microphone Slot %1"
 msgstr ""
 
@@ -4420,18 +4404,19 @@ msgstr ""
 msgid "Gecko Codes"
 msgstr "Κωδικοί Gecko"
 
-#: Source/Core/Core/HotkeyManager.cpp:327
+#: Source/Core/Core/HotkeyManager.cpp:313
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:196
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:70
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:99
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:116
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:414
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:415
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:435
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:37
 msgid "General"
 msgstr "Γενικά"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:399
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:400
 msgid "General and Options"
 msgstr ""
 
@@ -4447,7 +4432,7 @@ msgstr ""
 msgid "Generated by search (Address %1)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1233
+#: Source/Core/DolphinQt/MenuBar.cpp:1234
 msgid "Generated symbol names from '%1'"
 msgstr ""
 
@@ -4474,13 +4459,13 @@ msgid "Good dump"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:34
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:423
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:424
 #: Source/Core/DolphinQt/ToolBar.cpp:131
 msgid "Graphics"
 msgstr "Γραφικά"
 
-#: Source/Core/Core/HotkeyManager.cpp:340
-#: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:24
+#: Source/Core/Core/HotkeyManager.cpp:326
+#: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:21
 msgid "Graphics Toggles"
 msgstr ""
 
@@ -4506,7 +4491,7 @@ msgstr "Αριστερό Πράσινο"
 msgid "Green Right"
 msgstr "Δεξί Πράσινο"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:611
+#: Source/Core/DolphinQt/MenuBar.cpp:612
 msgid "Grid View"
 msgstr "Προβολή Πλέγματος"
 
@@ -4550,7 +4535,7 @@ msgstr ""
 msgid "Hide"
 msgstr "Απόκρυψη"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:706
+#: Source/Core/DolphinQt/MenuBar.cpp:707
 msgid "Hide All"
 msgstr ""
 
@@ -4563,11 +4548,11 @@ msgid "Hide Incompatible Sessions"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:185
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:423
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:424
 msgid "High"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:421
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:422
 msgid "Highest"
 msgstr "Μέγιστη"
 
@@ -4618,11 +4603,11 @@ msgstr ""
 msgid "Host with NetPlay"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:428
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:429
 msgid "Hotkey Settings"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:205
+#: Source/Core/Core/HotkeyManager.cpp:191
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:42
 msgid "Hotkeys"
@@ -4761,7 +4746,7 @@ msgstr ""
 msgid "Immediately Present XFB"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:308
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:274
 msgid ""
 "Implements fullscreen mode with a borderless window spanning the whole "
 "screen instead of using exclusive mode. Allows for faster transitions "
@@ -4786,11 +4771,11 @@ msgstr ""
 msgid "Import failed"
 msgstr "Η εισαγωγή απέτυχε"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1550
+#: Source/Core/DolphinQt/MainWindow.cpp:1571
 msgid "Importing NAND backup"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1560
+#: Source/Core/DolphinQt/MainWindow.cpp:1581
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -4809,11 +4794,15 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:142
+#: Source/Core/Core/FreeLookManager.cpp:79
+msgid "Increase"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Increase Convergence"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Increase Depth"
 msgstr "Αύξηση Βάθους"
 
@@ -4826,6 +4815,14 @@ msgstr ""
 msgid "Increase IR"
 msgstr "Αύξηση IR"
 
+#: Source/Core/Core/FreeLookManager.cpp:88
+msgid "Increase X"
+msgstr ""
+
+#: Source/Core/Core/FreeLookManager.cpp:90
+msgid "Increase Y"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:49
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:59
 #: Source/Core/DolphinQt/ConvertDialog.cpp:99
@@ -4834,8 +4831,8 @@ msgstr "Πληροφορίες"
 
 #: Source/Core/Common/MsgHandler.cpp:58
 #: Source/Core/DolphinQt/GameList/GameList.cpp:628
-#: Source/Core/DolphinQt/MenuBar.cpp:1232
-#: Source/Core/DolphinQt/MenuBar.cpp:1374
+#: Source/Core/DolphinQt/MenuBar.cpp:1233
+#: Source/Core/DolphinQt/MenuBar.cpp:1375
 msgid "Information"
 msgstr "Πληροφορίες"
 
@@ -4843,10 +4840,10 @@ msgstr "Πληροφορίες"
 msgid "Inhibit Screensaver During Emulation"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1254
-#: Source/Core/DolphinQt/MenuBar.cpp:1331
-#: Source/Core/DolphinQt/MenuBar.cpp:1475
-#: Source/Core/DolphinQt/MenuBar.cpp:1499
+#: Source/Core/DolphinQt/MenuBar.cpp:1255
+#: Source/Core/DolphinQt/MenuBar.cpp:1332
+#: Source/Core/DolphinQt/MenuBar.cpp:1476
+#: Source/Core/DolphinQt/MenuBar.cpp:1500
 msgid "Input"
 msgstr "Είσοδος"
 
@@ -4897,7 +4894,7 @@ msgstr ""
 msgid "Instruction Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1590
+#: Source/Core/DolphinQt/MenuBar.cpp:1591
 msgid "Instruction:"
 msgstr ""
 
@@ -4934,7 +4931,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Εσωτερικό Σφάλμα LZO - αποτυχία lzo_init()"
 
-#: Source/Core/Core/HotkeyManager.cpp:341
+#: Source/Core/Core/HotkeyManager.cpp:327
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:376
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:28
 msgid "Internal Resolution"
@@ -4948,7 +4945,7 @@ msgstr "Εσωτερική Ανάλυση:"
 msgid "Interpreter (slowest)"
 msgstr "Interpreter (πιο αργή απ' όλες)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:805
+#: Source/Core/DolphinQt/MenuBar.cpp:806
 msgid "Interpreter Core"
 msgstr ""
 
@@ -4960,7 +4957,7 @@ msgstr ""
 msgid "Invalid Mixed Code"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:261
+#: Source/Core/DolphinQt/MainWindow.cpp:263
 msgid "Invalid Pack %1 provided: %2"
 msgstr ""
 
@@ -4969,7 +4966,7 @@ msgstr ""
 msgid "Invalid Player ID"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1260
+#: Source/Core/DolphinQt/MenuBar.cpp:1261
 msgid "Invalid RSO module address: %1"
 msgstr ""
 
@@ -5032,7 +5029,7 @@ msgstr "Ιταλικά"
 msgid "Italy"
 msgstr "Ιταλία"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:803
+#: Source/Core/DolphinQt/MenuBar.cpp:804
 msgid "JIT"
 msgstr ""
 
@@ -5040,7 +5037,7 @@ msgstr ""
 msgid "JIT Arm64 (experimental)"
 msgstr "JIT Arm64 (πειραματική)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:816
+#: Source/Core/DolphinQt/MenuBar.cpp:817
 msgid "JIT Block Linking Off"
 msgstr ""
 
@@ -5048,47 +5045,47 @@ msgstr ""
 msgid "JIT Blocks"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:939
+#: Source/Core/DolphinQt/MenuBar.cpp:940
 msgid "JIT Branch Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:907
+#: Source/Core/DolphinQt/MenuBar.cpp:908
 msgid "JIT FloatingPoint Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:915
+#: Source/Core/DolphinQt/MenuBar.cpp:916
 msgid "JIT Integer Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:891
+#: Source/Core/DolphinQt/MenuBar.cpp:892
 msgid "JIT LoadStore Floating Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:859
+#: Source/Core/DolphinQt/MenuBar.cpp:860
 msgid "JIT LoadStore Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:899
+#: Source/Core/DolphinQt/MenuBar.cpp:900
 msgid "JIT LoadStore Paired Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:875
+#: Source/Core/DolphinQt/MenuBar.cpp:876
 msgid "JIT LoadStore lXz Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:867
+#: Source/Core/DolphinQt/MenuBar.cpp:868
 msgid "JIT LoadStore lbzx Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:883
+#: Source/Core/DolphinQt/MenuBar.cpp:884
 msgid "JIT LoadStore lwz Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:851
+#: Source/Core/DolphinQt/MenuBar.cpp:852
 msgid "JIT Off (JIT Core)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:923
+#: Source/Core/DolphinQt/MenuBar.cpp:924
 msgid "JIT Paired Off"
 msgstr ""
 
@@ -5096,11 +5093,11 @@ msgstr ""
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT Recompiler (προτείνεται)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:947
+#: Source/Core/DolphinQt/MenuBar.cpp:948
 msgid "JIT Register Cache Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:931
+#: Source/Core/DolphinQt/MenuBar.cpp:932
 msgid "JIT SystemRegisters Off"
 msgstr ""
 
@@ -5185,22 +5182,23 @@ msgstr ""
 msgid "Latency:"
 msgstr "Αδράνεια:"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:432
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:433
 msgid "Latency: ~10ms"
 msgstr "Αδράνεια: ~10ms"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:434
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:435
 msgid "Latency: ~20ms"
 msgstr "Αδράνεια: ~20ms"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:438
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:439
 msgid "Latency: ~40ms"
 msgstr "Αδράνεια: ~40ms"
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:436
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:437
 msgid "Latency: ~80ms"
 msgstr "Αδράνεια: ~80ms"
 
+#: Source/Core/Core/FreeLookManager.cpp:71
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:34
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:37
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:148
@@ -5236,7 +5234,7 @@ msgid ""
 "Right click to re-center it."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:59
+#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:51
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -5246,7 +5244,7 @@ msgstr ""
 "Μεσαίο κλικ για καθάρισμα.\n"
 "Δεξί κλικ για περισσότερες επιλογές."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:63
+#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:55
 msgid ""
 "Left/Right-click to configure output.\n"
 "Middle-click to clear."
@@ -5268,11 +5266,11 @@ msgstr "Άδεια"
 msgid "Limit Chunked Upload Speed:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:645
+#: Source/Core/DolphinQt/MenuBar.cpp:646
 msgid "List Columns"
 msgstr "Λίστα Στηλών"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:608
+#: Source/Core/DolphinQt/MenuBar.cpp:609
 msgid "List View"
 msgstr "Προβολή Λίστας"
 
@@ -5281,17 +5279,17 @@ msgid "Listening"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:24
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:99
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:100
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:107
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:88
 msgid "Load"
 msgstr "Φόρτωσ."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:973
+#: Source/Core/DolphinQt/MenuBar.cpp:974
 msgid "Load &Bad Map File..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:972
+#: Source/Core/DolphinQt/MenuBar.cpp:973
 msgid "Load &Other Map File..."
 msgstr ""
 
@@ -5303,7 +5301,7 @@ msgstr "Φόρτωση Τροποποιημένων Υφών"
 msgid "Load GameCube Main Menu"
 msgstr "Φόρτωση Κυρίως Μενού GameCube"
 
-#: Source/Core/Core/HotkeyManager.cpp:350
+#: Source/Core/Core/HotkeyManager.cpp:336
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:23
 msgid "Load Last State"
 msgstr ""
@@ -5312,88 +5310,88 @@ msgstr ""
 msgid "Load Path:"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:194
-#: Source/Core/Core/HotkeyManager.cpp:347
+#: Source/Core/Core/HotkeyManager.cpp:180
+#: Source/Core/Core/HotkeyManager.cpp:333
 msgid "Load State"
 msgstr "Φόρτωση Σημείου Αποθήκευσης"
 
-#: Source/Core/Core/HotkeyManager.cpp:179
+#: Source/Core/Core/HotkeyManager.cpp:165
 msgid "Load State Last 1"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:188
+#: Source/Core/Core/HotkeyManager.cpp:174
 msgid "Load State Last 10"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:180
+#: Source/Core/Core/HotkeyManager.cpp:166
 msgid "Load State Last 2"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:181
+#: Source/Core/Core/HotkeyManager.cpp:167
 msgid "Load State Last 3"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:182
+#: Source/Core/Core/HotkeyManager.cpp:168
 msgid "Load State Last 4"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:183
+#: Source/Core/Core/HotkeyManager.cpp:169
 msgid "Load State Last 5"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:184
+#: Source/Core/Core/HotkeyManager.cpp:170
 msgid "Load State Last 6"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:185
+#: Source/Core/Core/HotkeyManager.cpp:171
 msgid "Load State Last 7"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:186
+#: Source/Core/Core/HotkeyManager.cpp:172
 msgid "Load State Last 8"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:187
+#: Source/Core/Core/HotkeyManager.cpp:173
 msgid "Load State Last 9"
 msgstr "Φόρτωση Τελευταίας Αποθήκευσης 9"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Load State Slot 1"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:153
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Load State Slot 10"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Load State Slot 2"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Load State Slot 3"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Load State Slot 4"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Slot 5"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:149
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Load State Slot 6"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Load State Slot 7"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
+#: Source/Core/Core/HotkeyManager.cpp:137
 msgid "Load State Slot 8"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Load State Slot 9"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 9"
 
@@ -5413,11 +5411,11 @@ msgstr ""
 msgid "Load Wii Save"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1013
+#: Source/Core/DolphinQt/MenuBar.cpp:1014
 msgid "Load Wii System Menu %1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load from Selected Slot"
 msgstr ""
 
@@ -5425,8 +5423,8 @@ msgstr ""
 msgid "Load from Slot %1 - %2"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1393
-#: Source/Core/DolphinQt/MenuBar.cpp:1409
+#: Source/Core/DolphinQt/MenuBar.cpp:1394
+#: Source/Core/DolphinQt/MenuBar.cpp:1410
 msgid "Load map file"
 msgstr ""
 
@@ -5434,15 +5432,15 @@ msgstr ""
 msgid "Load..."
 msgstr "Φόρτωση..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1375
+#: Source/Core/DolphinQt/MenuBar.cpp:1376
 msgid "Loaded symbols from '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:224
 msgid ""
-"Loads custom textures from User/Load/Textures/<game_id>/ and User/Load/"
-"DynamicInputTextures/<game_id>/.<br><br><dolphin_emphasis>If unsure, leave "
-"this unchecked.</dolphin_emphasis>"
+"Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/"
+"DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, "
+"leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:553
@@ -5462,7 +5460,7 @@ msgstr "Καταγραφή"
 msgid "Log Configuration"
 msgstr "Ρυθμίσεις Καταγραφής"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:845
+#: Source/Core/DolphinQt/MenuBar.cpp:846
 msgid "Log JIT Instruction Coverage"
 msgstr ""
 
@@ -5490,11 +5488,11 @@ msgid "Lost connection to NetPlay server..."
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:179
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:419
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:420
 msgid "Low"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:417
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:418
 msgid "Lowest"
 msgstr "Ελάχιστη"
 
@@ -5525,7 +5523,7 @@ msgstr "Κύριο Stick"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:801
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:215
-#: Source/Core/DolphinQt/MenuBar.cpp:633
+#: Source/Core/DolphinQt/MenuBar.cpp:634
 msgid "Maker"
 msgstr "Δημιουργός"
 
@@ -5629,7 +5627,7 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1532
+#: Source/Core/DolphinQt/MainWindow.cpp:1553
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -5643,12 +5641,12 @@ msgstr "MiB"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:84
 #: Source/Core/DolphinQt/Config/Mapping/GCMicrophone.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:390
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:391
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:95
 msgid "Microphone"
 msgstr "Μικρόφωνο"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:127
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:114
 msgid "Misc"
 msgstr "Διάφορα"
 
@@ -5669,7 +5667,7 @@ msgstr ""
 msgid "Modifier"
 msgstr "Modifier"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:219
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:200
 msgid ""
 "Modifies textures to show the format they're encoded in.<br><br>May require "
 "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -5696,11 +5694,11 @@ msgstr ""
 msgid "More than"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:401
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:402
 msgid "Motion Input"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:400
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:401
 msgid "Motion Simulation"
 msgstr ""
 
@@ -5709,7 +5707,12 @@ msgstr ""
 msgid "Motor"
 msgstr "Μοτέρ"
 
-#: Source/Core/Core/HotkeyManager.cpp:331
+#: Source/Core/Core/FreeLookManager.cpp:67
+#: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:23
+msgid "Move"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:317
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:24
 msgid "Movie"
 msgstr "Ταινία"
@@ -5718,10 +5721,10 @@ msgstr "Ταινία"
 msgid "N&o to All"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1102
-#: Source/Core/DolphinQt/MenuBar.cpp:1146
-#: Source/Core/DolphinQt/MenuBar.cpp:1151
-#: Source/Core/DolphinQt/MenuBar.cpp:1155
+#: Source/Core/DolphinQt/MenuBar.cpp:1103
+#: Source/Core/DolphinQt/MenuBar.cpp:1147
+#: Source/Core/DolphinQt/MenuBar.cpp:1152
+#: Source/Core/DolphinQt/MenuBar.cpp:1156
 msgid "NAND Check"
 msgstr "Έλεγχος NAND "
 
@@ -5923,7 +5926,7 @@ msgstr ""
 msgid "No file loaded / recorded."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1102
+#: Source/Core/DolphinQt/MenuBar.cpp:1103
 msgid "No issues have been detected."
 msgstr "Δεν εντοπίστηκαν προβλήματα."
 
@@ -6074,17 +6077,17 @@ msgstr "Offset:"
 msgid "On"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:578
+#: Source/Core/DolphinQt/MenuBar.cpp:579
 msgid "Online &Documentation"
 msgstr "Online &Εγχειρίδια "
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1499
+#: Source/Core/DolphinQt/MenuBar.cpp:1500
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1475
+#: Source/Core/DolphinQt/MenuBar.cpp:1476
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -6156,22 +6159,24 @@ msgstr "Ρυθμίσεις"
 msgid "Orange"
 msgstr "Πορτοκαλί"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:89
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:40
 msgid "Orbital"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:82
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:87
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:99
+#: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:30
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:171
 msgid "Other"
 msgstr "Άλλα"
 
-#: Source/Core/Core/HotkeyManager.cpp:351
+#: Source/Core/Core/HotkeyManager.cpp:337
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:26
 msgid "Other State Hotkeys"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:427
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:428
 msgid "Other State Management"
 msgstr ""
 
@@ -6183,7 +6188,7 @@ msgstr ""
 msgid "Overlay Information"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:736
+#: Source/Core/DolphinQt/MenuBar.cpp:737
 msgid "P&lay Input Recording..."
 msgstr "Α&ναπαραγωγή Εγγραφής Χειρισμών..."
 
@@ -6271,7 +6276,7 @@ msgstr "Φάκελοι"
 msgid "Pause"
 msgstr "Παύση"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:756
+#: Source/Core/DolphinQt/MenuBar.cpp:757
 msgid "Pause at End of Movie"
 msgstr "Παύση στο Τέλος της Ταινίας"
 
@@ -6316,7 +6321,7 @@ msgstr ""
 msgid "PiB"
 msgstr "PiB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1197
+#: Source/Core/DolphinQt/MenuBar.cpp:1198
 msgid "Pick a debug font"
 msgstr ""
 
@@ -6333,7 +6338,7 @@ msgid "Pitch Up"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:797
-#: Source/Core/DolphinQt/MenuBar.cpp:629
+#: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Platform"
 msgstr "Πλατφόρμα"
 
@@ -6369,7 +6374,7 @@ msgid "Point"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:86
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:56
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:57
 msgid "Port %1"
 msgstr ""
 
@@ -6482,11 +6487,11 @@ msgid ""
 "the game might not work correctly."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:97
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:98
 msgid "Profile"
 msgstr "Προφίλ"
 
-#: Source/Core/Core/HotkeyManager.cpp:333
+#: Source/Core/Core/HotkeyManager.cpp:319
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:25
 msgid "Program Counter"
 msgstr ""
@@ -6531,7 +6536,7 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:59
 #: Source/Core/DolphinQt/ConvertDialog.cpp:430
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:423
-#: Source/Core/DolphinQt/MainWindow.cpp:1531
+#: Source/Core/DolphinQt/MainWindow.cpp:1552
 msgid "Question"
 msgstr "Ερώτηση"
 
@@ -6555,11 +6560,11 @@ msgstr "R-Αναλογική"
 msgid "READY"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:965
+#: Source/Core/DolphinQt/MenuBar.cpp:966
 msgid "RSO Modules"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1250
+#: Source/Core/DolphinQt/MenuBar.cpp:1251
 msgid "RSO auto-detection"
 msgstr ""
 
@@ -6673,7 +6678,7 @@ msgstr "Redump.org Κατάσταση:"
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:81
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:83
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:84
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:98
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:88
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:41
@@ -6691,7 +6696,7 @@ msgid "Refreshing..."
 msgstr "Ανανέωση..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:805
-#: Source/Core/DolphinQt/MenuBar.cpp:637
+#: Source/Core/DolphinQt/MenuBar.cpp:638
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
 msgstr "Περιοχή"
@@ -6768,7 +6773,7 @@ msgstr "Αναπαραγωγή στο Κεντρικό Παράθυρο"
 msgid "Rendering"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:213
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:194
 msgid ""
 "Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
@@ -6782,11 +6787,12 @@ msgstr ""
 msgid "Request to Join Your Party"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:80
 #: Source/Core/Core/HotkeyManager.cpp:34
 #: Source/Core/DolphinQt/CheatsManager.cpp:386
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:896
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:122
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:740
 msgid "Reset"
 msgstr "Επανεκκίνηση"
@@ -6801,6 +6807,10 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:91
 msgid "Reset Traversal Settings"
+msgstr ""
+
+#: Source/Core/Core/FreeLookManager.cpp:84
+msgid "Reset View"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
@@ -6844,6 +6854,7 @@ msgstr ""
 msgid "Revision: %1"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:72
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:35
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:38
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:150
@@ -6954,7 +6965,7 @@ msgstr ""
 msgid "START"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:977
+#: Source/Core/DolphinQt/MenuBar.cpp:978
 msgid "Sa&ve Code"
 msgstr ""
 
@@ -6968,7 +6979,7 @@ msgid "Safe"
 msgstr "Ασφαλής"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:100
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:101
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:108
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:89
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:710
@@ -6981,7 +6992,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:464
 #: Source/Core/DolphinQt/GameList/GameList.cpp:469
-#: Source/Core/DolphinQt/MenuBar.cpp:1092
+#: Source/Core/DolphinQt/MenuBar.cpp:1093
 msgid "Save Export"
 msgstr ""
 
@@ -6993,58 +7004,58 @@ msgstr ""
 msgid "Save File to"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1071
-#: Source/Core/DolphinQt/MenuBar.cpp:1078
-#: Source/Core/DolphinQt/MenuBar.cpp:1080
+#: Source/Core/DolphinQt/MenuBar.cpp:1072
+#: Source/Core/DolphinQt/MenuBar.cpp:1079
+#: Source/Core/DolphinQt/MenuBar.cpp:1081
 msgid "Save Import"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:190
+#: Source/Core/Core/HotkeyManager.cpp:176
 msgid "Save Oldest State"
 msgstr "Αποθήκευση Παλαιότερου Σημείου"
 
-#: Source/Core/Core/HotkeyManager.cpp:193
-#: Source/Core/Core/HotkeyManager.cpp:348
+#: Source/Core/Core/HotkeyManager.cpp:179
+#: Source/Core/Core/HotkeyManager.cpp:334
 msgid "Save State"
 msgstr "Αποθήκευση Σημείου"
 
-#: Source/Core/Core/HotkeyManager.cpp:156
+#: Source/Core/Core/HotkeyManager.cpp:142
 msgid "Save State Slot 1"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:165
+#: Source/Core/Core/HotkeyManager.cpp:151
 msgid "Save State Slot 10"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:157
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Save State Slot 2"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:158
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Save State Slot 3"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:159
+#: Source/Core/Core/HotkeyManager.cpp:145
 msgid "Save State Slot 4"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:160
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Save State Slot 5"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:161
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Save State Slot 6"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:162
+#: Source/Core/Core/HotkeyManager.cpp:148
 msgid "Save State Slot 7"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:163
+#: Source/Core/Core/HotkeyManager.cpp:149
 msgid "Save State Slot 8"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:164
+#: Source/Core/Core/HotkeyManager.cpp:150
 msgid "Save State Slot 9"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 9"
 
@@ -7064,7 +7075,7 @@ msgstr ""
 msgid "Save State to Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:974
+#: Source/Core/DolphinQt/MenuBar.cpp:975
 msgid "Save Symbol Map &As..."
 msgstr ""
 
@@ -7072,7 +7083,7 @@ msgstr ""
 msgid "Save Texture Cache to State"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:426
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:427
 msgid "Save and Load State"
 msgstr ""
 
@@ -7080,26 +7091,26 @@ msgstr ""
 msgid "Save as..."
 msgstr "Αποθήκευση ως..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1551
+#: Source/Core/DolphinQt/MenuBar.cpp:1552
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1072
+#: Source/Core/DolphinQt/MenuBar.cpp:1073
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
 "Overwrite now?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1426
+#: Source/Core/DolphinQt/MenuBar.cpp:1427
 msgid "Save map file"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1477
+#: Source/Core/DolphinQt/MenuBar.cpp:1478
 msgid "Save signature file"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:152
 msgid "Save to Selected Slot"
 msgstr ""
 
@@ -7146,7 +7157,7 @@ msgstr ""
 msgid "Search Subfolders"
 msgstr "Αναζήτηση σε Υποφακέλους"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:847
+#: Source/Core/DolphinQt/MenuBar.cpp:848
 msgid "Search for an Instruction"
 msgstr ""
 
@@ -7154,7 +7165,7 @@ msgstr ""
 msgid "Search games..."
 msgstr "Αναζήτηση παιχνιδιών..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1590
+#: Source/Core/DolphinQt/MenuBar.cpp:1591
 msgid "Search instruction"
 msgstr ""
 
@@ -7183,7 +7194,7 @@ msgid "Select Dump Path"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:447
-#: Source/Core/DolphinQt/MenuBar.cpp:1086
+#: Source/Core/DolphinQt/MenuBar.cpp:1087
 msgid "Select Export Directory"
 msgstr ""
 
@@ -7203,7 +7214,7 @@ msgstr ""
 msgid "Select Slot %1 - %2"
 msgstr "Επιλογή Θέσης %1 - %2"
 
-#: Source/Core/Core/HotkeyManager.cpp:349
+#: Source/Core/Core/HotkeyManager.cpp:335
 msgid "Select State"
 msgstr ""
 
@@ -7211,43 +7222,43 @@ msgstr ""
 msgid "Select State Slot"
 msgstr "Επιλογή Θέσης Αποθήκευσης"
 
-#: Source/Core/Core/HotkeyManager.cpp:168
+#: Source/Core/Core/HotkeyManager.cpp:154
 msgid "Select State Slot 1"
 msgstr "Επιλέξτε Θέση 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:177
+#: Source/Core/Core/HotkeyManager.cpp:163
 msgid "Select State Slot 10"
 msgstr "Επιλέξτε Θέση 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:169
+#: Source/Core/Core/HotkeyManager.cpp:155
 msgid "Select State Slot 2"
 msgstr "Επιλέξτε Θέση 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:170
+#: Source/Core/Core/HotkeyManager.cpp:156
 msgid "Select State Slot 3"
 msgstr "Επιλέξτε Θέση 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:171
+#: Source/Core/Core/HotkeyManager.cpp:157
 msgid "Select State Slot 4"
 msgstr "Επιλέξτε Θέση 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:172
+#: Source/Core/Core/HotkeyManager.cpp:158
 msgid "Select State Slot 5"
 msgstr "Επιλέξτε Θέση 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:173
+#: Source/Core/Core/HotkeyManager.cpp:159
 msgid "Select State Slot 6"
 msgstr "Επιλέξτε Θέση 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:174
+#: Source/Core/Core/HotkeyManager.cpp:160
 msgid "Select State Slot 7"
 msgstr "Επιλέξτε Θέση 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:175
+#: Source/Core/Core/HotkeyManager.cpp:161
 msgid "Select State Slot 8"
 msgstr "Επιλέξτε Θέση 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:176
+#: Source/Core/Core/HotkeyManager.cpp:162
 msgid "Select State Slot 9"
 msgstr "Επιλέξτε Θέση 9"
 
@@ -7261,9 +7272,9 @@ msgid "Select a Directory"
 msgstr "Επιλέξτε ένα Φάκελο"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:178
-#: Source/Core/DolphinQt/MainWindow.cpp:689
-#: Source/Core/DolphinQt/MainWindow.cpp:1203
-#: Source/Core/DolphinQt/MainWindow.cpp:1210
+#: Source/Core/DolphinQt/MainWindow.cpp:697
+#: Source/Core/DolphinQt/MainWindow.cpp:1224
+#: Source/Core/DolphinQt/MainWindow.cpp:1231
 msgid "Select a File"
 msgstr "Επιλέξτε ένα Αρχείο"
 
@@ -7279,25 +7290,25 @@ msgstr ""
 msgid "Select a game"
 msgstr "Επιλέξτε ένα παιχνίδι"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1041
+#: Source/Core/DolphinQt/MenuBar.cpp:1042
 msgid "Select a title to install to NAND"
 msgstr "Επιλέξτε ένα αρχείο για εγκατάσταση στην NAND"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1331
+#: Source/Core/DolphinQt/MenuBar.cpp:1332
 msgid "Select the RSO module address:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1587
-#: Source/Core/DolphinQt/MainWindow.cpp:1658
+#: Source/Core/DolphinQt/MainWindow.cpp:1608
+#: Source/Core/DolphinQt/MainWindow.cpp:1679
 msgid "Select the Recording File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1565
+#: Source/Core/DolphinQt/MainWindow.cpp:1586
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1540
-#: Source/Core/DolphinQt/MenuBar.cpp:1061
+#: Source/Core/DolphinQt/MainWindow.cpp:1561
+#: Source/Core/DolphinQt/MenuBar.cpp:1062
 msgid "Select the save file"
 msgstr "Επιλέξτε αρχείο αποθήκευσης"
 
@@ -7512,11 +7523,11 @@ msgstr "Εμφάνιση Γραμμής &Εργαλείων"
 msgid "Show Active Title in Window Title"
 msgstr "Εμφάνιση Ενεργού Τίτλου στον Τίτλο Παραθύρου"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:705
+#: Source/Core/DolphinQt/MenuBar.cpp:706
 msgid "Show All"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:692
+#: Source/Core/DolphinQt/MenuBar.cpp:693
 msgid "Show Australia"
 msgstr "Εμφάνιση Αυστραλίας"
 
@@ -7528,7 +7539,7 @@ msgstr "Εμφάνιση Τρέχοντος Παιχνιδιού σε Discord"
 msgid "Show Debugging UI"
 msgstr "Εμφάνιση Διεπαφής Αποσφαλμάτωσης"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:667
+#: Source/Core/DolphinQt/MenuBar.cpp:668
 msgid "Show ELF/DOL"
 msgstr "Εμφάνιση ELF/DOL"
 
@@ -7536,19 +7547,19 @@ msgstr "Εμφάνιση ELF/DOL"
 msgid "Show FPS"
 msgstr "Εμφάνιση FPS"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:768
+#: Source/Core/DolphinQt/MenuBar.cpp:769
 msgid "Show Frame Counter"
 msgstr "Εμφάνιση Μετρητή Καρέ"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:693
+#: Source/Core/DolphinQt/MenuBar.cpp:694
 msgid "Show France"
 msgstr "Εμφάνιση Γαλλίας"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:665
+#: Source/Core/DolphinQt/MenuBar.cpp:666
 msgid "Show GameCube"
 msgstr "Εμφάνιση GameCube"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:694
+#: Source/Core/DolphinQt/MenuBar.cpp:695
 msgid "Show Germany"
 msgstr "Εμφάνιση Γερμανίας"
 
@@ -7556,23 +7567,23 @@ msgstr "Εμφάνιση Γερμανίας"
 msgid "Show Golf Mode Overlay"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:774
+#: Source/Core/DolphinQt/MenuBar.cpp:775
 msgid "Show Input Display"
 msgstr "Εμφάνιση Προβολής Χειρισμών"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:695
+#: Source/Core/DolphinQt/MenuBar.cpp:696
 msgid "Show Italy"
 msgstr "Εμφάνιση Ιταλίας"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:689
+#: Source/Core/DolphinQt/MenuBar.cpp:690
 msgid "Show JAP"
 msgstr "Εμφάνιση JAP"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:696
+#: Source/Core/DolphinQt/MenuBar.cpp:697
 msgid "Show Korea"
 msgstr "Εμφάνιση Κορέας"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:762
+#: Source/Core/DolphinQt/MenuBar.cpp:763
 msgid "Show Lag Counter"
 msgstr "Εμφάνιση Μετρητή Καθυστέρησης "
 
@@ -7592,7 +7603,7 @@ msgstr "Εμφάνιση Μηνυμάτων NetPlay"
 msgid "Show NetPlay Ping"
 msgstr "Εμφάνιση NetPlay Ping"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:697
+#: Source/Core/DolphinQt/MenuBar.cpp:698
 msgid "Show Netherlands"
 msgstr "Εμφάνιση Ολλανδίας"
 
@@ -7600,7 +7611,7 @@ msgstr "Εμφάνιση Ολλανδίας"
 msgid "Show On-Screen Display Messages"
 msgstr "Εμφάνιση Μηνυμάτων στην Οθόνη "
 
-#: Source/Core/DolphinQt/MenuBar.cpp:690
+#: Source/Core/DolphinQt/MenuBar.cpp:691
 msgid "Show PAL"
 msgstr "Εμφάνιση PAL"
 
@@ -7609,19 +7620,19 @@ msgstr "Εμφάνιση PAL"
 msgid "Show PC"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:670
+#: Source/Core/DolphinQt/MenuBar.cpp:671
 msgid "Show Platforms"
 msgstr "Εμφάνιση Πλατφόρμας"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:704
+#: Source/Core/DolphinQt/MenuBar.cpp:705
 msgid "Show Regions"
 msgstr "Εμφάνιση Περιοχών"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:698
+#: Source/Core/DolphinQt/MenuBar.cpp:699
 msgid "Show Russia"
 msgstr "Εμφάνιση Ρωσίας"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:699
+#: Source/Core/DolphinQt/MenuBar.cpp:700
 msgid "Show Spain"
 msgstr "Εμφάνιση Ισπανίας"
 
@@ -7630,31 +7641,31 @@ msgstr "Εμφάνιση Ισπανίας"
 msgid "Show Statistics"
 msgstr "Εμφάνιση Στατιστικών"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:780
+#: Source/Core/DolphinQt/MenuBar.cpp:781
 msgid "Show System Clock"
 msgstr "Εμφάνιση Ώρας Συστήματος"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:700
+#: Source/Core/DolphinQt/MenuBar.cpp:701
 msgid "Show Taiwan"
 msgstr "Εμφάνιση Ταϊβάν"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:691
+#: Source/Core/DolphinQt/MenuBar.cpp:692
 msgid "Show USA"
 msgstr "Εμφάνιση USA"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:702
+#: Source/Core/DolphinQt/MenuBar.cpp:703
 msgid "Show Unknown"
 msgstr "Εμφάνιση Αγνώστων"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:666
+#: Source/Core/DolphinQt/MenuBar.cpp:667
 msgid "Show WAD"
 msgstr "Εμφάνιση WAD"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:664
+#: Source/Core/DolphinQt/MenuBar.cpp:665
 msgid "Show Wii"
 msgstr "Εμφάνιση Wii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:701
+#: Source/Core/DolphinQt/MenuBar.cpp:702
 msgid "Show World"
 msgstr "Εμφάνιση Κόσμου"
 
@@ -7695,7 +7706,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:216
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:197
 msgid ""
 "Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
@@ -7717,7 +7728,7 @@ msgstr ""
 msgid "Sideways Wii Remote"
 msgstr "Πλαγιαστό Wii Remote"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:964
+#: Source/Core/DolphinQt/MenuBar.cpp:965
 msgid "Signature Database"
 msgstr ""
 
@@ -7734,7 +7745,7 @@ msgstr "Κινέζικα Απλοποιημένα"
 msgid "Simulate DK Bongos"
 msgstr "Προσομοίωση DK Bongos"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:89
+#: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:40
 msgid "Six Axis"
 msgstr ""
 
@@ -7860,6 +7871,8 @@ msgstr "Ένταση Ηχείου:"
 msgid "Specific"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:76
+#: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:25
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:43
 msgid "Speed"
 msgstr "Ταχύτητα"
@@ -7892,7 +7905,7 @@ msgstr "Εκκίνηση"
 msgid "Start &NetPlay..."
 msgstr "Έναρξη &NetPlay..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:734
+#: Source/Core/DolphinQt/MenuBar.cpp:735
 msgid "Start Re&cording Input"
 msgstr "Εκκίνηση Ε&γγραφής Χειρισμών"
 
@@ -7955,7 +7968,7 @@ msgstr ""
 msgid "Step successful!"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:332
+#: Source/Core/Core/HotkeyManager.cpp:318
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:22
 msgid "Stepping"
 msgstr ""
@@ -7994,7 +8007,7 @@ msgstr "Stick"
 msgid "Stop"
 msgstr "Διακοπή"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:737
+#: Source/Core/DolphinQt/MenuBar.cpp:738
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
@@ -8066,14 +8079,14 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:326
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:252
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:253
 #: Source/Core/DolphinQt/ConvertDialog.cpp:510
 #: Source/Core/DolphinQt/GameList/GameList.cpp:505
 #: Source/Core/DolphinQt/GameList/GameList.cpp:533
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:451
-#: Source/Core/DolphinQt/MenuBar.cpp:1050
-#: Source/Core/DolphinQt/MenuBar.cpp:1164
+#: Source/Core/DolphinQt/MenuBar.cpp:1051
+#: Source/Core/DolphinQt/MenuBar.cpp:1165
 msgid "Success"
 msgstr "Επιτυχία"
 
@@ -8087,7 +8100,7 @@ msgctxt ""
 msgid "Successfully converted %n image(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:253
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:254
 msgid "Successfully deleted '%1'."
 msgstr "Επιτυχής διαγραφή '%1'."
 
@@ -8107,7 +8120,7 @@ msgstr ""
 msgid "Successfully exported the save file."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1165
+#: Source/Core/DolphinQt/MenuBar.cpp:1166
 msgid "Successfully extracted certificates from NAND"
 msgstr ""
 
@@ -8119,12 +8132,12 @@ msgstr ""
 msgid "Successfully extracted system data."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1078
+#: Source/Core/DolphinQt/MenuBar.cpp:1079
 msgid "Successfully imported save files."
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:506
-#: Source/Core/DolphinQt/MenuBar.cpp:1051
+#: Source/Core/DolphinQt/MenuBar.cpp:1052
 msgid "Successfully installed this title to the NAND."
 msgstr ""
 
@@ -8188,7 +8201,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:113
-#: Source/Core/DolphinQt/MenuBar.cpp:958
+#: Source/Core/DolphinQt/MenuBar.cpp:959
 msgid "Symbols"
 msgstr ""
 
@@ -8247,20 +8260,20 @@ msgstr ""
 msgid "System Language:"
 msgstr "Γλώσσα Συστήματος:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:752
+#: Source/Core/DolphinQt/MenuBar.cpp:753
 msgid "TAS Input"
 msgstr "TAS Είσοδος"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:417
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:418
 msgid "TAS Tools"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:388
 #: Source/Core/DolphinQt/GameList/GameList.cpp:810
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
-#: Source/Core/DolphinQt/MenuBar.cpp:642
+#: Source/Core/DolphinQt/MenuBar.cpp:643
 msgid "Tags"
 msgstr "Ετικέτες"
 
@@ -8295,7 +8308,7 @@ msgstr "Cache Υφών"
 msgid "Texture Cache Accuracy"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:97
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:84
 msgid "Texture Dumping"
 msgstr ""
 
@@ -8313,7 +8326,7 @@ msgstr ""
 msgid "The H3 hash table for the {0} partition is not correct."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:341
+#: Source/Core/Core/Boot/Boot.cpp:350
 msgid "The IPL file is not a known good dump. (CRC32: {0:x})"
 msgstr ""
 
@@ -8327,13 +8340,13 @@ msgstr ""
 msgid "The Masterpiece partitions are missing."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1156
+#: Source/Core/DolphinQt/MenuBar.cpp:1157
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1151
+#: Source/Core/DolphinQt/MenuBar.cpp:1152
 msgid "The NAND has been repaired."
 msgstr ""
 
@@ -8384,7 +8397,7 @@ msgstr ""
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1106
+#: Source/Core/DolphinQt/MenuBar.cpp:1107
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
 "Shop Channel may not work correctly.\n"
@@ -8502,8 +8515,8 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:226
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:265
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:227
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:266
 msgid "The profile '%1' does not exist"
 msgstr ""
 
@@ -8663,7 +8676,7 @@ msgstr ""
 "Αυτός ο προσομοιωτής action replay δεν υποστηρίζει κωδικούς που αλλάζουν το "
 "ίδιο το Action Replay."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:236
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:237
 #: Source/Core/DolphinQt/GameList/GameList.cpp:638
 msgid "This cannot be undone!"
 msgstr ""
@@ -8843,7 +8856,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:799
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:207
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
-#: Source/Core/DolphinQt/MenuBar.cpp:631
+#: Source/Core/DolphinQt/MenuBar.cpp:632
 msgid "Title"
 msgstr "Τίτλος"
 
@@ -8861,15 +8874,15 @@ msgstr ""
 msgid "Toggle &Fullscreen"
 msgstr "Εναλλαγή &Πλήρους Οθόνης"
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Toggle 3D Anaglyph"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Toggle 3D Side-by-Side"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Toggle 3D Top-Bottom"
 msgstr ""
 
@@ -9080,7 +9093,7 @@ msgid ""
 "behavior."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1325
+#: Source/Core/DolphinQt/MenuBar.cpp:1326
 msgid "Unable to auto-detect RSO module"
 msgstr ""
 
@@ -9112,11 +9125,11 @@ msgstr ""
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:191 Source/Core/DolphinQt/MenuBar.cpp:338
+#: Source/Core/Core/HotkeyManager.cpp:177 Source/Core/DolphinQt/MenuBar.cpp:338
 msgid "Undo Load State"
 msgstr "Αναίρεση Φόρτωσης Σημείου Αποθ. "
 
-#: Source/Core/Core/HotkeyManager.cpp:192 Source/Core/DolphinQt/MenuBar.cpp:355
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:355
 msgid "Undo Save State"
 msgstr "Αναίρεση Αποθήκευσης Σημείου Αποθ. "
 
@@ -9201,6 +9214,7 @@ msgstr "Αποσυμπίεση"
 msgid "Unsigned Integer"
 msgstr ""
 
+#: Source/Core/Core/FreeLookManager.cpp:69
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:76
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
@@ -9211,7 +9225,7 @@ msgstr "Πάνω"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:222
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:274
-#: Source/Core/DolphinQt/MenuBar.cpp:564
+#: Source/Core/DolphinQt/MenuBar.cpp:565
 msgid "Update"
 msgstr "Ενημέρωση"
 
@@ -9280,7 +9294,7 @@ msgstr ""
 msgid "Use Fullscreen"
 msgstr "Χρήση Πλήρους Οθόνης"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:116
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:103
 msgid "Use Lossless Codec (FFV1)"
 msgstr ""
 
@@ -9415,7 +9429,7 @@ msgstr ""
 msgid "Virtual Notches"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:328
+#: Source/Core/Core/HotkeyManager.cpp:314
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:25
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:61
 msgid "Volume"
@@ -9437,7 +9451,7 @@ msgstr "Αύξηση Έντασης"
 msgid "Vulkan"
 msgstr "Vulkan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1042
+#: Source/Core/DolphinQt/MenuBar.cpp:1043
 msgid "WAD files (*.wad)"
 msgstr "WAD αρχεία (*.wad)"
 
@@ -9522,7 +9536,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
-#: Source/Core/DolphinQt/MenuBar.cpp:1363
+#: Source/Core/DolphinQt/MenuBar.cpp:1364
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:413
 msgid "Warning"
 msgstr "Προειδοποίηση"
@@ -9599,20 +9613,20 @@ msgstr ""
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:237
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:219
 msgid ""
-"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This "
-"includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled "
-"in Enhancements.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
-"dolphin_emphasis>"
+"Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.  "
+"This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is "
+"enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave this "
+"checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:232
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:213
 msgid ""
-"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  "
-"This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' "
-"is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave this "
-"checked.</dolphin_emphasis>"
+"Whether to dump mipmapped game textures to User/Dump/Textures/&lt;"
+"game_id&gt;/.  This includes arbitrary mipmapped textures if 'Arbitrary "
+"Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If "
+"unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
@@ -9623,7 +9637,7 @@ msgstr ""
 msgid "Widescreen Hack"
 msgstr "Hack Ευρείας Οθόνης"
 
-#: Source/Core/Core/HotkeyManager.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:321
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyWii.cpp:21
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:42
 msgid "Wii"
@@ -9648,7 +9662,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:27
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:32
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:37
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:398
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:399
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
 msgstr ""
@@ -9685,7 +9699,7 @@ msgstr ""
 msgid "Wii TAS Input %1 - Wii Remote + Nunchuk"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:421
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:422
 msgid "Wii and Wii Remote"
 msgstr ""
 
@@ -9693,7 +9707,7 @@ msgstr ""
 msgid "Wii data is not public yet"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1062
+#: Source/Core/DolphinQt/MenuBar.cpp:1063
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr ""
 
@@ -9819,7 +9833,7 @@ msgid ""
 "they also occur on 10.14+."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:565
+#: Source/Core/DolphinQt/MenuBar.cpp:566
 msgid "You are running the latest version available on this update track."
 msgstr ""
 
@@ -9852,7 +9866,7 @@ msgstr ""
 msgid "You must select a game to host!"
 msgstr ""
 
-#: Source/Core/Core/DSP/DSPCore.cpp:80
+#: Source/Core/Core/DSP/DSPCore.cpp:73
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
@@ -9896,7 +9910,7 @@ msgstr ""
 msgid "d3d12.dll could not be loaded."
 msgstr "d3d12.dll δεν μπόρεσε να φορτώσει."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:358
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:359
 msgid "disconnected"
 msgstr "αποσύνδεση"
 
@@ -9952,7 +9966,7 @@ msgstr ""
 msgid "{0} (NKit)"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:348
+#: Source/Core/Core/Boot/Boot.cpp:357
 msgid "{0} IPL found in {1} directory. The disc might not be recognized"
 msgstr ""
 
