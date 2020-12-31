@@ -335,13 +335,13 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 
   if (single)
   {
-    m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), ROUND_Z);
+    m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), RoundingMode::Z);
   }
   else
   {
     ARM64Reg V1 = gpr.GetReg();
 
-    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), ROUND_Z);
+    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), RoundingMode::Z);
     m_float_emit.FMOV(EncodeRegToSingle(VD), V1);
 
     gpr.Unlock(V1);

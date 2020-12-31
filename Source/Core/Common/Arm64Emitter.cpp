@@ -6,6 +6,8 @@
 #include <array>
 #include <cinttypes>
 #include <cstring>
+#include <optional>
+#include <tuple>
 #include <vector>
 
 #include "Common/Align.h"
@@ -32,30 +34,20 @@ uint64_t LargestPowerOf2Divisor(uint64_t value)
 }
 
 // For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
+std::optional<std::pair<u32, bool>> IsImmArithmetic(uint64_t input)
 {
   if (input < 4096)
-  {
-    *val = input;
-    *shift = false;
-    return true;
-  }
-  else if ((input & 0xFFF000) == input)
-  {
-    *val = input >> 12;
-    *shift = true;
-    return true;
-  }
-  return false;
+    return std::pair{static_cast<u32>(input), false};
+
+  if ((input & 0xFFF000) == input)
+    return std::pair{static_cast<u32>(input >> 12), true};
+
+  return std::nullopt;
 }
 
 // For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s,
-                  unsigned int* imm_r)
+std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
 {
-  // DCHECK((n != NULL) && (imm_s != NULL) && (imm_r != NULL));
-  // DCHECK((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
-
   bool negate = false;
 
   // Logical immediates are encoded using parameters n, imm_s and imm_r using
@@ -160,7 +152,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // The input was zero (or all 1 bits, which will come to here too after we
       // inverted it at the start of the function), for which we just return
       // false.
-      return false;
+      return std::nullopt;
     }
     else
     {
@@ -177,12 +169,12 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
 
   // If the repeat period d is not a power of two, it can't be encoded.
   if (!MathUtil::IsPow2<u64>(d))
-    return false;
+    return std::nullopt;
 
   // If the bit stretch (b - a) does not fit within the mask derived from the
   // repeat period, then fail.
   if (((b - a) & ~mask) != 0)
-    return false;
+    return std::nullopt;
 
   // The only possible option is b - a repeated every d bits. Now we're going to
   // actually construct the valid logical immediate derived from that
@@ -200,17 +192,17 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       0x5555555555555555UL,
   }};
 
-  int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
+  const int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
 
   // Ensure that the index to the multipliers array is within bounds.
   DEBUG_ASSERT((multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
 
-  uint64_t multiplier = multipliers[multiplier_idx];
-  uint64_t candidate = (b - a) * multiplier;
+  const u64 multiplier = multipliers[multiplier_idx];
+  const u64 candidate = (b - a) * multiplier;
 
   // The candidate pattern doesn't match our input value, so fail.
   if (value != candidate)
-    return false;
+    return std::nullopt;
 
   // We have a match! This is a valid logical immediate, so now we have to
   // construct the bits and pieces of the instruction encoding that generates
@@ -219,7 +211,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // Count the set bits in our basic stretch. The special case of clz(0) == -1
   // makes the answer come out right for stretches that reach the very top of
   // the word (e.g. numbers like 0xffffc00000000000).
-  int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
+  const int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
   int s = clz_a - clz_b;
 
   // Decide how many bits to rotate right by, to put the low bit of that basic
@@ -252,11 +244,11 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   //    11110s     2    UInt(s)
   //
   // So we 'or' (-d << 1) with our computed s to form imms.
-  *n = out_n;
-  *imm_s = ((-d << 1) | (s - 1)) & 0x3f;
-  *imm_r = r;
-
-  return true;
+  return std::tuple{
+      static_cast<u32>(out_n),
+      static_cast<u32>(((-d << 1) | (s - 1)) & 0x3f),
+      static_cast<u32>(r),
+  };
 }
 
 float FPImm8ToFloat(u8 bits)
@@ -270,7 +262,7 @@ float FPImm8ToFloat(u8 bits)
   return Common::BitCast<float>(f);
 }
 
-bool FPImm8FromFloat(float value, u8* imm_out)
+std::optional<u8> FPImm8FromFloat(float value)
 {
   const u32 f = Common::BitCast<u32>(value);
   const u32 mantissa4 = (f & 0x7FFFFF) >> 19;
@@ -278,16 +270,15 @@ bool FPImm8FromFloat(float value, u8* imm_out)
   const u32 sign = f >> 31;
 
   if ((exponent >> 7) == ((exponent >> 6) & 1))
-    return false;
+    return std::nullopt;
 
   const u8 imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
   const float new_float = FPImm8ToFloat(imm8);
-  if (new_float == value)
-    *imm_out = imm8;
-  else
-    return false;
 
-  return true;
+  if (new_float != value)
+    return std::nullopt;
+
+  return imm8;
 }
 }  // Anonymous namespace
 
@@ -776,7 +767,8 @@ void ARM64XEmitter::EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount 
   ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "%s: immediate out of range: %d", __func__, imm);
 
   Rd = DecodeReg(Rd);
-  Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (pos << 21) | (imm << 5) | Rd);
+  Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (static_cast<u32>(pos) << 21) | (imm << 5) |
+          Rd);
 }
 
 void ARM64XEmitter::EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
@@ -923,41 +915,43 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 
   switch (branch.type)
   {
-  case 1:  // CBNZ
+  case FixupBranch::Type::CBNZ:
     Not = true;
-  case 0:  // CBZ
+    [[fallthrough]];
+  case FixupBranch::Type::CBZ:
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
-    bool b64Bit = Is64Bit(branch.reg);
-    ARM64Reg reg = DecodeReg(branch.reg);
+               __func__, static_cast<int>(branch.type), distance);
+    const bool b64Bit = Is64Bit(branch.reg);
+    const ARM64Reg reg = DecodeReg(branch.reg);
     inst = (b64Bit << 31) | (0x1A << 25) | (Not << 24) | (MaskImm19(distance) << 5) | reg;
   }
   break;
-  case 2:  // B (conditional)
+  case FixupBranch::Type::BConditional:
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
+               __func__, static_cast<int>(branch.type), distance);
     inst = (0x2A << 25) | (MaskImm19(distance) << 5) | branch.cond;
     break;
-  case 4:  // TBNZ
+  case FixupBranch::Type::TBNZ:
     Not = true;
-  case 3:  // TBZ
+    [[fallthrough]];
+  case FixupBranch::Type::TBZ:
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
-    ARM64Reg reg = DecodeReg(branch.reg);
+               __func__, static_cast<int>(branch.type), distance);
+    const ARM64Reg reg = DecodeReg(branch.reg);
     inst = ((branch.bit & 0x20) << 26) | (0x1B << 25) | (Not << 24) | ((branch.bit & 0x1F) << 19) |
            (MaskImm14(distance) << 5) | reg;
   }
   break;
-  case 5:  // B (unconditional)
+  case FixupBranch::Type::B:
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
+               __func__, static_cast<int>(branch.type), distance);
     inst = (0x5 << 26) | MaskImm26(distance);
     break;
-  case 6:  // BL (unconditional)
+  case FixupBranch::Type::BL:
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
+               __func__, static_cast<int>(branch.type), distance);
     inst = (0x25 << 26) | MaskImm26(distance);
     break;
   }
@@ -967,65 +961,65 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 0;
+  branch.type = FixupBranch::Type::CBZ;
   branch.reg = Rt;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 1;
+  branch.type = FixupBranch::Type::CBNZ;
   branch.reg = Rt;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B(CCFlags cond)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 2;
+  branch.type = FixupBranch::Type::BConditional;
   branch.cond = cond;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 3;
+  branch.type = FixupBranch::Type::TBZ;
   branch.reg = Rt;
   branch.bit = bit;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 4;
+  branch.type = FixupBranch::Type::TBNZ;
   branch.reg = Rt;
   branch.bit = bit;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B()
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 5;
-  HINT(HINT_NOP);
+  branch.type = FixupBranch::Type::B;
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::BL()
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 6;
-  HINT(HINT_NOP);
+  branch.type = FixupBranch::Type::BL;
+  NOP();
   return branch;
 }
 
@@ -1156,15 +1150,15 @@ void ARM64XEmitter::_MSR(PStateField field, u8 imm)
   u32 op1 = 0, op2 = 0;
   switch (field)
   {
-  case FIELD_SPSel:
+  case PStateField::SPSel:
     op1 = 0;
     op2 = 5;
     break;
-  case FIELD_DAIFSet:
+  case PStateField::DAIFSet:
     op1 = 3;
     op2 = 6;
     break;
-  case FIELD_DAIFClr:
+  case PStateField::DAIFClr:
     op1 = 3;
     op2 = 7;
     break;
@@ -1179,35 +1173,35 @@ static void GetSystemReg(PStateField field, int& o0, int& op1, int& CRn, int& CR
 {
   switch (field)
   {
-  case FIELD_NZCV:
+  case PStateField::NZCV:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 2;
     op2 = 0;
     break;
-  case FIELD_FPCR:
+  case PStateField::FPCR:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 4;
     op2 = 0;
     break;
-  case FIELD_FPSR:
+  case PStateField::FPSR:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 4;
     op2 = 1;
     break;
-  case FIELD_PMCR_EL0:
+  case PStateField::PMCR_EL0:
     o0 = 3;
     op1 = 3;
     CRn = 9;
     CRm = 6;
     op2 = 0;
     break;
-  case FIELD_PMCCNTR_EL0:
+  case PStateField::PMCCNTR_EL0:
     o0 = 3;
     op1 = 3;
     CRn = 9;
@@ -1246,7 +1240,7 @@ void ARM64XEmitter::CNTVCT(Arm64Gen::ARM64Reg Rt)
 
 void ARM64XEmitter::HINT(SystemHint op)
 {
-  EncodeSystemInst(0, 3, 2, 0, op, WSP);
+  EncodeSystemInst(0, 3, 2, 0, static_cast<u32>(op), WSP);
 }
 void ARM64XEmitter::CLREX()
 {
@@ -1254,15 +1248,15 @@ void ARM64XEmitter::CLREX()
 }
 void ARM64XEmitter::DSB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 4, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 4, WSP);
 }
 void ARM64XEmitter::DMB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 5, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 5, WSP);
 }
 void ARM64XEmitter::ISB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 6, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 6, WSP);
 }
 
 // Add/Subtract (extended register)
@@ -2011,7 +2005,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   {
     // Zero immediate, just clear the register. EOR is pointless when we have MOVZ, which looks
     // clearer in disasm too.
-    MOVZ(Rd, 0, SHIFT_0);
+    MOVZ(Rd, 0, ShiftAmount::Shift0);
     return;
   }
 
@@ -2029,7 +2023,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   // Small negative integer. Use MOVN
   if (!Is64Bit(Rd) && (imm | 0xFFFF0000) == imm)
   {
-    MOVN(Rd, ~imm, SHIFT_0);
+    MOVN(Rd, ~imm, ShiftAmount::Shift0);
     return;
   }
 
@@ -2334,28 +2328,28 @@ void ARM64FloatEmitter::EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, Roundin
   if (IsGPR(Rd))
   {
     // Use the encoding that transfers the result to a GPR.
-    bool sf = Is64Bit(Rd);
-    int type = IsDouble(Rn) ? 1 : 0;
+    const bool sf = Is64Bit(Rd);
+    const int type = IsDouble(Rn) ? 1 : 0;
     Rd = DecodeReg(Rd);
     Rn = DecodeReg(Rn);
     int opcode = (sign ? 1 : 0);
     int rmode = 0;
     switch (round)
     {
-    case ROUND_A:
+    case RoundingMode::A:
       rmode = 0;
       opcode |= 4;
       break;
-    case ROUND_P:
+    case RoundingMode::P:
       rmode = 1;
       break;
-    case ROUND_M:
+    case RoundingMode::M:
       rmode = 2;
       break;
-    case ROUND_Z:
+    case RoundingMode::Z:
       rmode = 3;
       break;
-    case ROUND_N:
+    case RoundingMode::N:
       rmode = 0;
       break;
     }
@@ -2370,20 +2364,20 @@ void ARM64FloatEmitter::EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, Roundin
     int opcode = 0;
     switch (round)
     {
-    case ROUND_A:
+    case RoundingMode::A:
       opcode = 0x1C;
       break;
-    case ROUND_N:
+    case RoundingMode::N:
       opcode = 0x1A;
       break;
-    case ROUND_M:
+    case RoundingMode::M:
       opcode = 0x1B;
       break;
-    case ROUND_P:
+    case RoundingMode::P:
       opcode = 0x1A;
       sz |= 2;
       break;
-    case ROUND_Z:
+    case RoundingMode::Z:
       opcode = 0x1B;
       sz |= 2;
       break;
@@ -4085,11 +4079,12 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 
 void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
   if (!Is64Bit(Rn))
     imm &= 0xFFFFFFFF;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4104,9 +4099,9 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4121,9 +4116,9 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4138,9 +4133,9 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     ANDS(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4266,76 +4261,79 @@ void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     ADD(Rd, Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     SUB(Rd, Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     CMP(Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool negate)
 {
   ASSERT_MSG(DYNA_REC, !IsDouble(Rd), "MOVI2F does not yet support double precision");
-  uint8_t imm8;
-  if (value == 0.0)
+
+  if (value == 0.0f)
   {
     FMOV(Rd, IsDouble(Rd) ? ZR : WZR);
     if (negate)
@@ -4343,9 +4341,9 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
     // TODO: There are some other values we could generate with the float-imm instruction, like
     // 1.0...
   }
-  else if (FPImm8FromFloat(value, &imm8))
+  else if (const auto imm = FPImm8FromFloat(value))
   {
-    FMOV(Rd, imm8);
+    FMOV(Rd, *imm);
   }
   else
   {
