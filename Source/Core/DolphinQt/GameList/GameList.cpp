@@ -452,8 +452,11 @@ void GameList::ExportWiiSave()
   QList<std::string> failed;
   for (const auto& game : GetSelectedGames())
   {
-    if (!WiiSave::Export(game->GetTitleID(), export_dir.toStdString()))
+    if (WiiSave::Export(game->GetTitleID(), export_dir.toStdString()) !=
+        WiiSave::CopyResult::Success)
+    {
       failed.push_back(game->GetName(UICommon::GameFile::Variant::LongAndPossiblyCustom));
+    }
   }
 
   if (!failed.isEmpty())

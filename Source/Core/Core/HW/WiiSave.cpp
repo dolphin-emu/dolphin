@@ -477,28 +477,28 @@ StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path,
   return StoragePointer{new DataBinStorage{iosc, path, mode}};
 }
 
-bool Copy(Storage* source, Storage* dest)
+CopyResult Copy(Storage* source, Storage* dest)
 {
   // first make sure we can read all the data from the source
   const auto header = source->ReadHeader();
   if (!header)
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read header");
-    return false;
+    return CopyResult::CorruptedSource;
   }
 
   const auto bk_header = source->ReadBkHeader();
   if (!bk_header)
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read bk header");
-    return false;
+    return CopyResult::CorruptedSource;
   }
 
   const auto files = source->ReadFiles();
   if (!files)
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read files");
-    return false;
+    return CopyResult::CorruptedSource;
   }
 
   // once we have confirmed we can read the source, erase corresponding save in the destination
@@ -507,7 +507,7 @@ bool Copy(Storage* source, Storage* dest)
     if (!dest->EraseSave())
     {
       ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to erase existing save");
-      return false;
+      return CopyResult::Error;
     }
   }
 
@@ -515,25 +515,25 @@ bool Copy(Storage* source, Storage* dest)
   if (!dest->WriteHeader(*header))
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write header");
-    return false;
+    return CopyResult::Error;
   }
 
   if (!dest->WriteBkHeader(*bk_header))
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write bk header");
-    return false;
+    return CopyResult::Error;
   }
 
   if (!dest->WriteFiles(*files))
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write files");
-    return false;
+    return CopyResult::Error;
   }
 
-  return true;
+  return CopyResult::Success;
 }
 
-bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
+CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
 {
   IOS::HLE::Kernel ios;
   const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");
@@ -541,23 +541,23 @@ bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrit
   if (!header)
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to read header");
-    return false;
+    return CopyResult::CorruptedSource;
   }
 
   if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), *ios.GetES(), header->tid))
   {
     ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}",
                   header->tid);
-    return false;
+    return CopyResult::TitleMissing;
   }
 
   const auto nand = MakeNandStorage(ios.GetFS().get(), header->tid);
   if (nand->SaveExists() && !can_overwrite())
-    return false;
+    return CopyResult::Cancelled;
   return Copy(data_bin.get(), nand.get());
 }
 
-static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
+static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
                                        static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
@@ -566,7 +566,7 @@ static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
               MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
-bool Export(u64 tid, std::string_view export_path)
+CopyResult Export(u64 tid, std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   return Export(tid, export_path, &ios);
@@ -578,7 +578,7 @@ size_t ExportAll(std::string_view export_path)
   size_t exported_save_count = 0;
   for (const u64 title : ios.GetES()->GetInstalledTitles())
   {
-    if (Export(title, export_path, &ios))
+    if (Export(title, export_path, &ios) == CopyResult::Success)
       ++exported_save_count;
   }
   return exported_save_count;
