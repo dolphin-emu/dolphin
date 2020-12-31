@@ -342,16 +342,16 @@ struct FixupBranch
   ARM64Reg reg;
 };
 
-enum PStateField
+enum class PStateField
 {
-  FIELD_SPSel = 0,
-  FIELD_DAIFSet,
-  FIELD_DAIFClr,
-  FIELD_NZCV,  // The only system registers accessible from EL0 (user space)
-  FIELD_PMCR_EL0,
-  FIELD_PMCCNTR_EL0,
-  FIELD_FPCR = 0x340,
-  FIELD_FPSR = 0x341,
+  SPSel = 0,
+  DAIFSet,
+  DAIFClr,
+  NZCV,  // The only system registers accessible from EL0 (user space)
+  PMCR_EL0,
+  PMCCNTR_EL0,
+  FPCR = 0x340,
+  FPSR = 0x341,
 };
 
 enum class SystemHint

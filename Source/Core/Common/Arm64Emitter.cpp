@@ -1149,15 +1149,15 @@ void ARM64XEmitter::_MSR(PStateField field, u8 imm)
   u32 op1 = 0, op2 = 0;
   switch (field)
   {
-  case FIELD_SPSel:
+  case PStateField::SPSel:
     op1 = 0;
     op2 = 5;
     break;
-  case FIELD_DAIFSet:
+  case PStateField::DAIFSet:
     op1 = 3;
     op2 = 6;
     break;
-  case FIELD_DAIFClr:
+  case PStateField::DAIFClr:
     op1 = 3;
     op2 = 7;
     break;
@@ -1172,35 +1172,35 @@ static void GetSystemReg(PStateField field, int& o0, int& op1, int& CRn, int& CR
 {
   switch (field)
   {
-  case FIELD_NZCV:
+  case PStateField::NZCV:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 2;
     op2 = 0;
     break;
-  case FIELD_FPCR:
+  case PStateField::FPCR:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 4;
     op2 = 0;
     break;
-  case FIELD_FPSR:
+  case PStateField::FPSR:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 4;
     op2 = 1;
     break;
-  case FIELD_PMCR_EL0:
+  case PStateField::PMCR_EL0:
     o0 = 3;
     op1 = 3;
     CRn = 9;
     CRm = 6;
     op2 = 0;
     break;
-  case FIELD_PMCCNTR_EL0:
+  case PStateField::PMCCNTR_EL0:
     o0 = 3;
     op1 = 3;
     CRn = 9;
