@@ -26,4 +26,4 @@ enum CCFlags
   CC_HS = CC_CS,  // Alias of CC_CS  Unsigned higher or same
   CC_LO = CC_CC,  // Alias of CC_CC  Unsigned lower
 };
-const u32 NO_COND = 0xE0000000;
+constexpr u32 NO_COND = 0xE0000000;
