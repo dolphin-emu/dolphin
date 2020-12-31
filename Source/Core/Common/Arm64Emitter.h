@@ -354,14 +354,14 @@ enum PStateField
   FIELD_FPSR = 0x341,
 };
 
-enum SystemHint
+enum class SystemHint
 {
-  HINT_NOP = 0,
-  HINT_YIELD,
-  HINT_WFE,
-  HINT_WFI,
-  HINT_SEV,
-  HINT_SEVL,
+  NOP,
+  YIELD,
+  WFE,
+  WFI,
+  SEV,
+  SEVL,
 };
 
 enum BarrierType

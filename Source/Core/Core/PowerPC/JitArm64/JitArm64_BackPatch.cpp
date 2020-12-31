@@ -322,7 +322,7 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
 
   const u32 num_insts_max = fastmem_area_length / 4 - 1;
   for (u32 i = 0; i < num_insts_max; ++i)
-    emitter.HINT(HINT_NOP);
+    emitter.HINT(SystemHint::NOP);
 
   m_fault_to_handler.erase(slow_handler_iter);
 
