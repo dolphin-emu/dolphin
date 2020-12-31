@@ -310,13 +310,13 @@ enum ShiftAmount
   SHIFT_48 = 3,
 };
 
-enum RoundingMode
+enum class RoundingMode
 {
-  ROUND_A,  // round to nearest, ties to away
-  ROUND_M,  // round towards -inf
-  ROUND_N,  // round to nearest, ties to even
-  ROUND_P,  // round towards +inf
-  ROUND_Z,  // round towards zero
+  A,  // round to nearest, ties to away
+  M,  // round towards -inf
+  N,  // round to nearest, ties to even
+  P,  // round towards +inf
+  Z,  // round towards zero
 };
 
 struct FixupBranch

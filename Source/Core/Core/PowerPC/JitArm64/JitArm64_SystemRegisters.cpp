@@ -261,7 +261,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     m_float_emit.LDR(32, INDEX_UNSIGNED, SD, Xg,
                      offsetof(CoreTiming::Globals, last_OC_factor_inverted));
     m_float_emit.FMUL(SC, SC, SD);
-    m_float_emit.FCVTS(Xresult, SC, ROUND_Z);
+    m_float_emit.FCVTS(Xresult, SC, RoundingMode::Z);
 
     LDP(INDEX_SIGNED, XA, XB, Xg, offsetof(CoreTiming::Globals, global_timer));
     SXTW(XB, WB);

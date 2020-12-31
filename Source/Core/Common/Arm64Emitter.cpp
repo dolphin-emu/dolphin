@@ -2327,28 +2327,28 @@ void ARM64FloatEmitter::EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, Roundin
   if (IsGPR(Rd))
   {
     // Use the encoding that transfers the result to a GPR.
-    bool sf = Is64Bit(Rd);
-    int type = IsDouble(Rn) ? 1 : 0;
+    const bool sf = Is64Bit(Rd);
+    const int type = IsDouble(Rn) ? 1 : 0;
     Rd = DecodeReg(Rd);
     Rn = DecodeReg(Rn);
     int opcode = (sign ? 1 : 0);
     int rmode = 0;
     switch (round)
     {
-    case ROUND_A:
+    case RoundingMode::A:
       rmode = 0;
       opcode |= 4;
       break;
-    case ROUND_P:
+    case RoundingMode::P:
       rmode = 1;
       break;
-    case ROUND_M:
+    case RoundingMode::M:
       rmode = 2;
       break;
-    case ROUND_Z:
+    case RoundingMode::Z:
       rmode = 3;
       break;
-    case ROUND_N:
+    case RoundingMode::N:
       rmode = 0;
       break;
     }
@@ -2363,20 +2363,20 @@ void ARM64FloatEmitter::EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, Roundin
     int opcode = 0;
     switch (round)
     {
-    case ROUND_A:
+    case RoundingMode::A:
       opcode = 0x1C;
       break;
-    case ROUND_N:
+    case RoundingMode::N:
       opcode = 0x1A;
       break;
-    case ROUND_M:
+    case RoundingMode::M:
       opcode = 0x1B;
       break;
-    case ROUND_P:
+    case RoundingMode::P:
       opcode = 0x1A;
       sz |= 2;
       break;
-    case ROUND_Z:
+    case RoundingMode::Z:
       opcode = 0x1B;
       sz |= 2;
       break;
