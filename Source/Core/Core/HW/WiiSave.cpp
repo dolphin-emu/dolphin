@@ -40,6 +40,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
+#include "Core/WiiUtils.h"
 
 namespace WiiSave
 {
@@ -475,6 +476,14 @@ bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrit
     ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to read header");
     return false;
   }
+
+  if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), *ios.GetES(), header->tid))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}",
+                  header->tid);
+    return false;
+  }
+
   const auto nand = MakeNandStorage(ios.GetFS().get(), header->tid);
   if (nand->SaveExists() && !can_overwrite())
     return false;
