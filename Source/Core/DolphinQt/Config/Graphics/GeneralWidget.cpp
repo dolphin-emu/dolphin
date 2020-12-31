@@ -61,7 +61,7 @@ void GeneralWidget::CreateWidgets()
                          Config::GFX_ASPECT_RATIO);
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
-  m_enable_fullscreen = new GraphicsBool(tr("Use Fullscreen"), Config::MAIN_FULLSCREEN);
+  m_enable_fullscreen = new GraphicsBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN);
 
   m_video_box->setLayout(m_video_layout);
 
@@ -188,6 +188,7 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
 {
   m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);
+  m_enable_fullscreen->setEnabled(!running);
 
   const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
