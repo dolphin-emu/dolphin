@@ -103,11 +103,12 @@ static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
 static std::thread s_emu_thread;
-static StateChangedCallbackFunc s_on_state_changed_callback;
+static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
+static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
 
@@ -136,6 +137,11 @@ bool GetIsThrottlerTempDisabled()
 void SetIsThrottlerTempDisabled(bool disable)
 {
   s_is_throttler_temp_disabled = disable;
+}
+
+double GetActualEmulationSpeed()
+{
+  return s_last_actual_emulation_speed;
 }
 
 void FrameUpdateOnCPUThread()
@@ -269,9 +275,9 @@ void Stop()  // - Hammertime!
 
   s_is_stopping = true;
 
-  // Notify state changed callback
-  if (s_on_state_changed_callback)
-    s_on_state_changed_callback(State::Stopping);
+  s_timer.Stop();
+
+  CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
   HostDispatchJobs();
@@ -293,6 +299,8 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
+
+  s_last_actual_emulation_speed = 1.0;
 }
 
 void DeclareAsCPUThread()
@@ -424,16 +432,14 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
-  if (s_on_state_changed_callback)
-    s_on_state_changed_callback(State::Starting);
+  CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
     s_is_started = false;
     s_is_stopping = false;
     s_wants_determinism = false;
 
-    if (s_on_state_changed_callback)
-      s_on_state_changed_callback(State::Uninitialized);
+    CallOnStateChangedCallbacks(State::Uninitialized);
 
     INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -661,18 +667,27 @@ void SetState(State state)
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
+    s_timer.Update();
     break;
   case State::Running:
     CPU::EnableStepping(false);
     Wiimote::Resume();
+    if (!s_timer.IsRunning())
+    {
+      s_timer.Start();
+    }
+    else
+    {
+      // Add time difference from the last pause
+      s_timer.AddTimeDifference();
+    }
     break;
   default:
     PanicAlertFmt("Invalid state");
     break;
   }
 
-  if (s_on_state_changed_callback)
-    s_on_state_changed_callback(GetState());
+  CallOnStateChangedCallbacks(GetState());
 }
 
 State GetState()
@@ -855,13 +870,13 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 void VideoThrottle()
 {
   // Update info per second
-  u32 ElapseTime = (u32)s_timer.GetTimeDifference();
+  u32 ElapseTime = (u32)s_timer.GetTimeElapsed();
   if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
   {
-    UpdateTitle();
+    s_timer.Start();
 
-    // Reset counter
-    s_timer.Update();
+    UpdateTitle(ElapseTime);
+
     s_drawn_frame.store(0);
     s_drawn_video.store(0);
   }
@@ -873,8 +888,10 @@ void VideoThrottle()
 
 // Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
 // frame is presented to the host screen
-void Callback_FramePresented()
+void Callback_FramePresented(double actual_emulation_speed)
 {
+  s_last_actual_emulation_speed = actual_emulation_speed;
+
   s_drawn_frame++;
   s_stop_frame_step.store(true);
 }
@@ -895,15 +912,13 @@ void Callback_NewField()
     {
       s_frame_step = false;
       CPU::Break();
-      if (s_on_state_changed_callback)
-        s_on_state_changed_callback(Core::GetState());
+      CallOnStateChangedCallbacks(Core::GetState());
     }
   }
 }
 
-void UpdateTitle()
+void UpdateTitle(u32 ElapseTime)
 {
-  u32 ElapseTime = (u32)s_timer.GetTimeDifference();
   s_request_refresh_info = false;
   SConfig& _CoreParameter = SConfig::GetInstance();
 
@@ -993,9 +1008,38 @@ void Shutdown()
   HostDispatchJobs();
 }
 
-void SetOnStateChangedCallback(StateChangedCallbackFunc callback)
+int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 {
-  s_on_state_changed_callback = std::move(callback);
+  for (size_t i = 0; i < s_on_state_changed_callbacks.size(); ++i)
+  {
+    if (!s_on_state_changed_callbacks[i])
+    {
+      s_on_state_changed_callbacks[i] = std::move(callback);
+      return int(i);
+    }
+  }
+  s_on_state_changed_callbacks.emplace_back(std::move(callback));
+  return int(s_on_state_changed_callbacks.size()) - 1;
+}
+
+bool RemoveOnStateChangedCallback(int* handle)
+{
+  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > *handle)
+  {
+    s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
+    *handle = -1;
+    return true;
+  }
+  return false;
+}
+
+void CallOnStateChangedCallbacks(Core::State state)
+{
+  for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
+  {
+    if (on_state_changed_callback)
+      on_state_changed_callback(state);
+  }
 }
 
 void UpdateWantDeterminism(bool initial)
