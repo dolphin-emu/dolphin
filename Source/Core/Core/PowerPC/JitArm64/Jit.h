@@ -172,7 +172,6 @@ private:
     const u8* slowmem_code;
   };
 
-  static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
   bool HandleFunctionHooking(u32 address);
