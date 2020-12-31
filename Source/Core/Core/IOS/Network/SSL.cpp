@@ -35,6 +35,39 @@ static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     0,         /* No RSA min key size */
 };
 
+namespace
+{
+// Dirty workaround to disable SNI which isn't supported by the Wii.
+//
+// This SSL extension can ONLY be disabled by undefining
+// MBEDTLS_SSL_SERVER_NAME_INDICATION and recompiling the library. When
+// enabled and if the hostname is set, it uses the SNI extension which is sent
+// with the Client Hello message.
+//
+// This workaround doesn't require recompiling the library. It does so by
+// deferring mbedtls_ssl_set_hostname after the Client Hello message. The send
+// callback is used as it's the (only?) hook called at the beginning of
+// each step of the handshake by the mbedtls_ssl_flush_output function.
+//
+// The hostname still needs to be set as it is checked against the Common Name
+// field during the certificate verification process.
+int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
+{
+  auto* ssl = static_cast<IOS::HLE::WII_SSL*>(ctx);
+
+  if (ssl->ctx.state == MBEDTLS_SSL_SERVER_HELLO)
+    mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
+  return mbedtls_net_send(&ssl->hostfd, buf, len);
+}
+
+int SSLRecv(void* ctx, unsigned char* buf, size_t len)
+{
+  auto* ssl = static_cast<IOS::HLE::WII_SSL*>(ctx);
+
+  return mbedtls_net_recv(&ssl->hostfd, buf, len);
+}
+}  // namespace
+
 NetSSL::NetSSL(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (WII_SSL& ssl : _SSL)
@@ -223,8 +256,6 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       mbedtls_ssl_conf_renegotiation(&ssl->config, MBEDTLS_SSL_RENEGOTIATION_ENABLED);
 
       ssl->hostname = hostname;
-      mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
-
       ssl->active = true;
       WriteReturnValue(freeSSL, BufferIn);
     }
@@ -445,7 +476,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       WiiSockMan& sm = WiiSockMan::GetInstance();
       ssl->hostfd = sm.GetHostSocket(ssl->sockfd);
       INFO_LOG_FMT(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = {}", ssl->sockfd);
-      mbedtls_ssl_set_bio(&ssl->ctx, &ssl->hostfd, mbedtls_net_send, mbedtls_net_recv, nullptr);
+      mbedtls_ssl_set_bio(&ssl->ctx, ssl, SSLSendWithoutSNI, SSLRecv, nullptr);
       WriteReturnValue(SSL_OK, BufferIn);
     }
     else

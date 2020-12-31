@@ -457,14 +457,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_WRITE:
           {
-            int ret = mbedtls_ssl_write(&Device::NetSSL::_SSL[sslID].ctx,
-                                        Memory::GetPointer(BufferOut2), BufferOutSize2);
+            WII_SSL* ssl = &Device::NetSSL::_SSL[sslID];
+            const int ret =
+                mbedtls_ssl_write(&ssl->ctx, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogSSLWrite(
-                  Memory::GetPointer(BufferOut2), ret,
-                  static_cast<mbedtls_net_context*>(Device::NetSSL::_SSL[sslID].ctx.p_bio)->fd);
+              PowerPC::debug_interface.NetworkLogger()->LogSSLWrite(Memory::GetPointer(BufferOut2),
+                                                                    ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -491,14 +491,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_READ:
           {
-            int ret = mbedtls_ssl_read(&Device::NetSSL::_SSL[sslID].ctx,
-                                       Memory::GetPointer(BufferIn2), BufferInSize2);
+            WII_SSL* ssl = &Device::NetSSL::_SSL[sslID];
+            const int ret =
+                mbedtls_ssl_read(&ssl->ctx, Memory::GetPointer(BufferIn2), BufferInSize2);
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogSSLRead(
-                  Memory::GetPointer(BufferIn2), ret,
-                  static_cast<mbedtls_net_context*>(Device::NetSSL::_SSL[sslID].ctx.p_bio)->fd);
+              PowerPC::debug_interface.NetworkLogger()->LogSSLRead(Memory::GetPointer(BufferIn2),
+                                                                   ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
