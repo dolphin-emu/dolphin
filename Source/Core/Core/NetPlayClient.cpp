@@ -694,6 +694,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_SkipIPL;
       packet >> m_net_settings.m_LoadIPLDump;
       packet >> m_net_settings.m_VertexRounding;
+      packet >> m_net_settings.m_TextureLookupWithEpsilon;
       packet >> m_net_settings.m_InternalResolution;
       packet >> m_net_settings.m_EFBScaledCopy;
       packet >> m_net_settings.m_FastDepthCalc;

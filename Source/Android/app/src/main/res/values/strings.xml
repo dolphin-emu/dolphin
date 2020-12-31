@@ -269,6 +269,8 @@
     <string name="disable_destination_alpha_description">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>
     <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values.</string>
+    <string name="texture_lookup_with_epsilon">Use Epsilon during texture lookup</string>
+    <string name="texture_lookup_with_epsilon_description">Uses Epsilon to work around rounding issue on some GPUs in texture lookup. Fixes texture glitches in some games eg. horizontal/vertical lines in videos. If unsure, leave this unchecked.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>

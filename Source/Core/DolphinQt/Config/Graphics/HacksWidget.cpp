@@ -105,13 +105,16 @@ void HacksWidget::CreateWidgets()
   m_disable_bounding_box =
       new GraphicsBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
   m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUDING);
+  m_texture_lookup_with_epsilon = new GraphicsBool(tr("Use Epsilon during texture lookup"),
+                                                   Config::GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
   other_layout->addWidget(m_vertex_rounding, 1, 0);
-  other_layout->addWidget(m_save_texture_cache_state, 1, 1);
+  other_layout->addWidget(m_texture_lookup_with_epsilon, 1, 1);
+  other_layout->addWidget(m_save_texture_cache_state, 2, 0);
 
   main_layout->addWidget(efb_box);
   main_layout->addWidget(texture_cache_box);
@@ -277,6 +280,10 @@ void HacksWidget::AddDescriptions()
       "higher internal resolutions. This setting has no effect when native internal "
       "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
+  static const char TR_TEXTURE_LOOKUP_WITH_EPSILON_DESCRIPTION[] = QT_TR_NOOP(
+      "Uses Epsilon to work around rounding issue on some GPUs in texture lookup.<br><br>"
+      "Fixes texture glitches in some games eg. horizontal/vertical lines in videos.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
@@ -289,6 +296,7 @@ void HacksWidget::AddDescriptions()
   m_skip_duplicate_xfbs->SetDescription(tr(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));
   m_gpu_texture_decoding->SetDescription(tr(TR_GPU_DECODING_DESCRIPTION));
   m_fast_depth_calculation->SetDescription(tr(TR_FAST_DEPTH_CALC_DESCRIPTION));
+  m_texture_lookup_with_epsilon->SetDescription(tr(TR_TEXTURE_LOOKUP_WITH_EPSILON_DESCRIPTION));
   m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));

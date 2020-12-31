@@ -166,6 +166,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_HACK_COPY_EFB_SCALED(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "EFBScaledCopy", true),
   GFX_HACK_EFB_EMULATE_FORMAT_CHANGES(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "EFBEmulateFormatChanges", false),
+  GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
+          "UseEpsilonDuringTextureLookup", false),
 
   LOGGER_WRITE_TO_FILE(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "WriteToFile", false),
 

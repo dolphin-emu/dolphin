@@ -73,6 +73,8 @@ public:
     if (m_settings.m_StrictSettingsSync)
     {
       layer->Set(Config::GFX_HACK_VERTEX_ROUDING, m_settings.m_VertexRounding);
+      layer->Set(Config::GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON,
+                 m_settings.m_TextureLookupWithEpsilon);
       layer->Set(Config::GFX_EFB_SCALE, m_settings.m_InternalResolution);
       layer->Set(Config::GFX_HACK_COPY_EFB_SCALED, m_settings.m_EFBScaledCopy);
       layer->Set(Config::GFX_FAST_DEPTH_CALC, m_settings.m_FastDepthCalc);

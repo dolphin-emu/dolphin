@@ -19,6 +19,7 @@ struct pixel_ubershader_uid_data
   u32 early_depth : 1;
   u32 per_pixel_depth : 1;
   u32 uint_output : 1;
+  u32 epsilon_hack : 1;
 
   u32 NumValues() const { return sizeof(pixel_ubershader_uid_data); }
 };
