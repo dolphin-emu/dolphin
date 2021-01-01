@@ -2052,17 +2052,21 @@ void Jit64::srawx(UGeckoInstruction inst)
     gpr.SetImmediate32(a, 0);
     FinalizeCarry(false);
   }
-  else if (cpu_info.bBMI2 && a != b)
+  else if (cpu_info.bBMI2)
   {
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
     RCX64Reg Rb = gpr.Bind(b, RCMode::Read);
-    RCOpArg Rs = gpr.UseNoImm(s, RCMode::Read);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
     RegCache::Realize(Ra, Rb, Rs);
 
-    if (a != s)
-      MOV(32, Ra, Rs);
-    SHL(64, Ra, Imm8(32));
-    SARX(64, Ra, Ra, Rb);
+    X64Reg tmp = RSCRATCH;
+    if (a == s && a != b)
+      tmp = Ra;
+    else
+      MOV(32, R(tmp), Rs);
+
+    SHL(64, R(tmp), Imm8(32));
+    SARX(64, Ra, R(tmp), Rb);
     if (js.op->wantsCA)
     {
       MOV(32, R(RSCRATCH), Ra);
