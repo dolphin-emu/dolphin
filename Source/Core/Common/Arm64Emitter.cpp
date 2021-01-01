@@ -2004,7 +2004,7 @@ void ARM64XEmitter::ADRP(ARM64Reg Rd, s32 imm)
 }
 
 // Wrapper around MOVZ+MOVK (and later MOVN)
-void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
+void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm)
 {
   unsigned int parts = Is64Bit(Rd) ? 4 : 2;
   BitSet32 upload_part(0);
@@ -2041,13 +2041,10 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   // XXX: Use MOVN when possible.
   // XXX: Optimize more
   // XXX: Support rotating immediates to save instructions
-  if (optimize)
+  for (unsigned int i = 0; i < parts; ++i)
   {
-    for (unsigned int i = 0; i < parts; ++i)
-    {
-      if ((imm >> (i * 16)) & 0xFFFF)
-        upload_part[i] = 1;
-    }
+    if ((imm >> (i * 16)) & 0xFFFF)
+      upload_part[i] = 1;
   }
 
   u64 aligned_pc = (u64)GetCodePtr() & ~0xFFF;
@@ -2090,7 +2087,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
     }
     else
     {
-      if (upload_part[i] || !optimize)
+      if (upload_part[i])
         MOVK(Rd, (imm >> (i * 16)) & 0xFFFF, (ShiftAmount)i);
     }
   }
