@@ -62,4 +62,5 @@ void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                             s64 ticks_until_completion);
 
 void ReadFile(std::string& fileName, std::vector<u8>& buf);
+std::string GetFileName(const DiscIO::Partition& partition, u64 offset);
 }  // namespace DVDThread

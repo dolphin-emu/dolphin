@@ -255,10 +255,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
   else
   {
+#ifndef IS_PLAYBACK
     if (Settings::Instance().IsBootDefaultISO() && !Settings::Instance().GetDefaultGame().isEmpty())
     {
       boot = BootParameters::GenerateFromFile(Settings::Instance().GetDefaultGame().toStdString(), save_state_path);
     }
+#endif
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     if (options.is_set("debugger"))

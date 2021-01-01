@@ -88,6 +88,8 @@ void HacksWidget::CreateWidgets()
   m_store_xfb_copies = new GraphicsBool(tr("Store XFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
+  // Don't let people touch this
+  m_immediate_xfb->setEnabled(false);
   m_skip_duplicate_xfbs = new GraphicsBool(tr("Skip Presenting Duplicate Frames"),
                                            Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
 

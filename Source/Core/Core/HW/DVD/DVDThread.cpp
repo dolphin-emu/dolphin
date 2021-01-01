@@ -411,4 +411,8 @@ void ReadFile(std::string& fileName, std::vector<u8>& buf)
     INFO_LOG(SLIPPI, "Failed to open file: %s", fileName.c_str());
   }
 }
+
+std::string GetFileName(const DiscIO::Partition &partition, u64 offset) {
+  return s_disc->GetFileSystem(partition)->FindFileInfo(offset)->GetName();
+}
 }  // namespace DVDThread
