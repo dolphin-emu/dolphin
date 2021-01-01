@@ -15,4 +15,3 @@ public:
   int32_t frame;
   u8 padBuf[SLIPPI_PAD_FULL_SIZE];
 };
-

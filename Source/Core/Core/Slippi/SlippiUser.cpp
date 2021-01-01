@@ -33,7 +33,7 @@ static void system_hidden(const char* cmd)
   memset(&p_info, 0, sizeof(p_info));
   s_info.cb = sizeof(s_info);
 
-  wchar_t utf16cmd[MAX_SYSTEM_PROGRAM] = { 0 };
+  wchar_t utf16cmd[MAX_SYSTEM_PROGRAM] = {0};
   MultiByteToWideChar(CP_UTF8, 0, cmd, -1, utf16cmd, MAX_SYSTEM_PROGRAM);
   if (CreateProcessW(NULL, utf16cmd, NULL, NULL, 0, CREATE_NO_WINDOW, NULL, NULL, &s_info, &p_info))
   {
@@ -110,19 +110,21 @@ bool SlippiUser::AttemptLogin()
 
   {
     std::string userFilePathTxt =
-      userFilePath + ".txt"; // Put the filename here in its own scope because we don't really need it elsewhere
+        userFilePath +
+        ".txt";  // Put the filename here in its own scope because we don't really need it elsewhere
     if (File::Exists(userFilePathTxt))
     {
       // If both files exist we just log they exist and take no further action
       if (File::Exists(userFilePath))
       {
-        INFO_LOG(SLIPPI_ONLINE,
-          "Found both .json.txt and .json file for user data. Using .json and ignoring the .json.txt");
+        INFO_LOG(SLIPPI_ONLINE, "Found both .json.txt and .json file for user data. Using .json "
+                                "and ignoring the .json.txt");
       }
       // If only the .txt file exists move the contents to a json file and log if it fails
       else if (!File::Rename(userFilePathTxt, userFilePath))
       {
-        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", userFilePathTxt.c_str(), userFilePath.c_str());
+        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", userFilePathTxt.c_str(),
+                 userFilePath.c_str());
       }
     }
   }
@@ -137,7 +139,8 @@ bool SlippiUser::AttemptLogin()
   if (isLoggedIn)
   {
     overwriteFromServer();
-    WARN_LOG(SLIPPI_ONLINE, "Found user %s (%s)", userInfo.displayName.c_str(), userInfo.uid.c_str());
+    WARN_LOG(SLIPPI_ONLINE, "Found user %s (%s)", userInfo.displayName.c_str(),
+             userInfo.uid.c_str());
   }
 
   return isLoggedIn;
@@ -149,7 +152,8 @@ void SlippiUser::OpenLogInPage()
   std::string path = getUserFilePath();
 
 #ifdef _WIN32
-  // On windows, sometimes the path can have backslashes and slashes mixed, convert all to backslashes
+  // On windows, sometimes the path can have backslashes and slashes mixed, convert all to
+  // backslashes
   path = ReplaceAll(path, "\\", "\\");
   path = ReplaceAll(path, "/", "\\");
 #endif
@@ -169,7 +173,7 @@ void SlippiUser::OpenLogInPage()
 #elif defined(__APPLE__)
   std::string command = "open \"" + fullUrl + "\"";
 #else
-  std::string command = "xdg-open \"" + fullUrl + "\""; // Linux
+  std::string command = "xdg-open \"" + fullUrl + "\"";  // Linux
 #endif
 
   RunSystemCommand(command);
@@ -181,12 +185,15 @@ void SlippiUser::UpdateApp()
   auto isoPath = SConfig::GetInstance().m_strIsoPath;
 
   std::string path = File::GetExeDirectory() + "/dolphin-slippi-tools.exe";
-  std::string echoMsg = "echo Starting update process. If nothing happen after a few "
-    "minutes, you may need to update manually from https://slippi.gg/netplay ...";
+  std::string echoMsg =
+      "echo Starting update process. If nothing happen after a few "
+      "minutes, you may need to update manually from https://slippi.gg/netplay ...";
   // std::string command =
-  //    "start /b cmd /c " + echoMsg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath + "\"";
-  std::string command = "start /b cmd /c " + echoMsg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath +
-    "\" -version \"" + Common::scm_slippi_semver_str + "\"";
+  //    "start /b cmd /c " + echoMsg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath +
+  //    "\"";
+  std::string command = "start /b cmd /c " + echoMsg + " && \"" + path +
+                        "\" app-update -launch -iso \"" + isoPath + "\" -version \"" +
+                        Common::scm_slippi_semver_str + "\"";
   WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
   RunSystemCommand(command);
 #elif defined(__APPLE__)
@@ -263,7 +270,8 @@ void SlippiUser::FileListenThread()
 std::string SlippiUser::getUserFilePath()
 {
 #if defined(__APPLE__)
-  std::string userFilePath = File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + "user.json";
+  std::string userFilePath =
+      File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + "user.json";
 #elif defined(_WIN32)
   std::string userFilePath = File::GetExeDirectory() + DIR_SEP + "user.json";
 #else

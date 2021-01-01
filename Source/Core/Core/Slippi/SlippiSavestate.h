@@ -1,8 +1,8 @@
 #pragma once
 
+#include <unordered_map>
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include <unordered_map>
 
 class PointerWrap;
 
@@ -14,7 +14,10 @@ public:
     u32 address;
     u32 length;
 
-    bool operator==(const PreserveBlock& p) const { return address == p.address && length == p.length; }
+    bool operator==(const PreserveBlock& p) const
+    {
+      return address == p.address && length == p.length;
+    }
   };
 
   SlippiSavestate();
@@ -46,7 +49,7 @@ private:
   {
     std::size_t operator()(const PreserveBlock& node) const
     {
-      return node.address ^ node.length; // TODO: This is probably a bad hash
+      return node.address ^ node.length;  // TODO: This is probably a bad hash
     }
   };
 
