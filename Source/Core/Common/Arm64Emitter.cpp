@@ -572,8 +572,7 @@ void ARM64XEmitter::EncodeArithmeticInst(u32 instenc, bool flags, ARM64Reg Rd, A
   Rn = DecodeReg(Rn);
   Rm = DecodeReg(Rm);
   Write32((b64Bit << 31) | (flags << 29) | (ArithEnc[instenc] << 21) |
-          (Option.GetType() == ArithOption::TYPE_EXTENDEDREG ? (1 << 21) : 0) | (Rm << 16) |
-          Option.GetData() | (Rn << 5) | Rd);
+          (Option.IsExtended() ? (1 << 21) : 0) | (Rm << 16) | Option.GetData() | (Rn << 5) | Rd);
 }
 
 void ARM64XEmitter::EncodeArithmeticCarryInst(u32 op, bool flags, ARM64Reg Rd, ARM64Reg Rn,
@@ -2617,8 +2616,7 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
 void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64Reg Rt, ARM64Reg Rn,
                                                       ArithOption Rm)
 {
-  ASSERT_MSG(DYNA_REC, Rm.GetType() == ArithOption::TYPE_EXTENDEDREG,
-             "%s must contain an extended reg as Rm!", __func__);
+  ASSERT_MSG(DYNA_REC, Rm.IsExtended(), "%s must contain an extended reg as Rm!", __func__);
 
   u32 encoded_size = 0;
   u32 encoded_op = 0;

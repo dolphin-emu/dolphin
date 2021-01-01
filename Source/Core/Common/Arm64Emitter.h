@@ -382,34 +382,33 @@ enum class BarrierType
 
 class ArithOption
 {
-public:
-  enum WidthSpecifier
-  {
-    WIDTH_DEFAULT,
-    WIDTH_32BIT,
-    WIDTH_64BIT,
-  };
-
-  enum ExtendSpecifier
-  {
-    EXTEND_UXTB = 0x0,
-    EXTEND_UXTH = 0x1,
-    EXTEND_UXTW = 0x2, /* Also LSL on 32bit width */
-    EXTEND_UXTX = 0x3, /* Also LSL on 64bit width */
-    EXTEND_SXTB = 0x4,
-    EXTEND_SXTH = 0x5,
-    EXTEND_SXTW = 0x6,
-    EXTEND_SXTX = 0x7,
-  };
-
-  enum TypeSpecifier
-  {
-    TYPE_EXTENDEDREG,
-    TYPE_IMM,
-    TYPE_SHIFTEDREG,
-  };
-
 private:
+  enum class WidthSpecifier
+  {
+    Default,
+    Width32Bit,
+    Width64Bit,
+  };
+
+  enum class ExtendSpecifier
+  {
+    UXTB = 0x0,
+    UXTH = 0x1,
+    UXTW = 0x2, /* Also LSL on 32bit width */
+    UXTX = 0x3, /* Also LSL on 64bit width */
+    SXTB = 0x4,
+    SXTH = 0x5,
+    SXTW = 0x6,
+    SXTX = 0x7,
+  };
+
+  enum class TypeSpecifier
+  {
+    ExtendedReg,
+    Immediate,
+    ShiftedReg,
+  };
+
   ARM64Reg m_destReg;
   WidthSpecifier m_width;
   ExtendSpecifier m_extend;
@@ -436,16 +435,16 @@ public:
       m_shift = 0;
 
     m_destReg = Rd;
-    m_type = TYPE_EXTENDEDREG;
+    m_type = TypeSpecifier::ExtendedReg;
     if (Is64Bit(Rd))
     {
-      m_width = WIDTH_64BIT;
-      m_extend = EXTEND_UXTX;
+      m_width = WidthSpecifier::Width64Bit;
+      m_extend = ExtendSpecifier::UXTX;
     }
     else
     {
-      m_width = WIDTH_32BIT;
-      m_extend = EXTEND_UXTW;
+      m_width = WidthSpecifier::Width32Bit;
+      m_extend = ExtendSpecifier::UXTW;
     }
     m_shifttype = ST_LSL;
   }
@@ -454,38 +453,37 @@ public:
     m_destReg = Rd;
     m_shift = shift;
     m_shifttype = shift_type;
-    m_type = TYPE_SHIFTEDREG;
+    m_type = TypeSpecifier::ShiftedReg;
     if (Is64Bit(Rd))
     {
-      m_width = WIDTH_64BIT;
+      m_width = WidthSpecifier::Width64Bit;
       if (shift == 64)
         m_shift = 0;
     }
     else
     {
-      m_width = WIDTH_32BIT;
+      m_width = WidthSpecifier::Width32Bit;
       if (shift == 32)
         m_shift = 0;
     }
   }
-  TypeSpecifier GetType() const { return m_type; }
   ARM64Reg GetReg() const { return m_destReg; }
   u32 GetData() const
   {
     switch (m_type)
     {
-    case TYPE_EXTENDEDREG:
-      return (m_extend << 13) | (m_shift << 10);
-      break;
-    case TYPE_SHIFTEDREG:
+    case TypeSpecifier::ExtendedReg:
+      return (static_cast<u32>(m_extend) << 13) | (m_shift << 10);
+    case TypeSpecifier::ShiftedReg:
       return (m_shifttype << 22) | (m_shift << 10);
-      break;
     default:
       DEBUG_ASSERT_MSG(DYNA_REC, false, "Invalid type in GetData");
       break;
     }
     return 0;
   }
+
+  bool IsExtended() const { return m_type == TypeSpecifier::ExtendedReg; }
 };
 
 class ARM64XEmitter
