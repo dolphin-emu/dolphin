@@ -277,15 +277,6 @@ constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)
   return static_cast<ARM64Reg>(reg | 0xC0);
 }
 
-enum OpType
-{
-  TYPE_IMM = 0,
-  TYPE_REG,
-  TYPE_IMMSREG,
-  TYPE_RSR,
-  TYPE_MEM
-};
-
 enum ShiftType
 {
   ST_LSL = 0,
