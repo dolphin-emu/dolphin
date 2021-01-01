@@ -284,7 +284,8 @@ void CodeDiffDialog::Update(bool include)
     QString fix_sym = QString::fromStdString(iter.symbol);
     fix_sym.replace(QStringLiteral("\t"), QStringLiteral("  "));
 
-    QString tmp_out = QStringLiteral("%1\t%2\t%3").arg(iter.addr, 1, 16).arg(iter.hits).arg(fix_sym);
+    QString tmp_out =
+        QStringLiteral("%1\t%2\t%3").arg(iter.addr, 1, 16).arg(iter.hits).arg(fix_sym);
 
     auto* item = new QListWidgetItem(tmp_out, m_matching_results_list);
     item->setData(Qt::UserRole, iter.addr);
