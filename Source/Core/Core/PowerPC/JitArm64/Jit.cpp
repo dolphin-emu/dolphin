@@ -44,9 +44,7 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
-  InitializeInstructionTables();
-
-  size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
+  const size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&farcode, child_code_size);
 
