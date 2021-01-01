@@ -1,4 +1,4 @@
-// Copyright 2020 Dolphin Emulator Project
+// Copyright 2021 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -111,8 +111,8 @@ void CodeDiffDialog::ClearData()
     m_record_btn->toggle();
   ClearBlockCache();
   m_matching_results_list->clear();
-  m_exclude_size_label->setText(QString::fromStdString("Excluded: 0"));
-  m_include_size_label->setText(QString::fromStdString("Included: 0"));
+  m_exclude_size_label->setText(QStringLiteral("Excluded: 0"));
+  m_include_size_label->setText(QStringLiteral("Included: 0"));
   m_exclude_btn->setEnabled(false);
   m_include_btn->setEnabled(false);
   std::vector<Diff>().swap(m_include);
@@ -160,8 +160,6 @@ void CodeDiffDialog::OnRecord(bool enabled)
 
 void CodeDiffDialog::OnIncludeExclude(bool include)
 {
-  bool isize = m_include.size() != 0;
-  bool xsize = m_exclude.size() != 0;
   std::vector<Diff> current_diff;
   Profiler::ProfileStats prof_stats;
   auto& blockstats = prof_stats.block_stats;
@@ -190,7 +188,7 @@ void CodeDiffDialog::OnIncludeExclude(bool include)
        [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
 
   // If both lists are empty, write and skip.
-  if (!isize && !xsize)
+  if (m_include.empty() && m_exclude.empty())
   {
     if (include)
       m_include = current;
@@ -201,11 +199,11 @@ void CodeDiffDialog::OnIncludeExclude(bool include)
 
   // Update exclude list. Compare to exclude list if it exists and make current_diff to check
   // against include.
-  if (!xsize && !include)
+  if (m_exclude.empty() && !include)
   {
     m_exclude = current;
   }
-  else if (xsize)
+  else if (!m_exclude.empty())
   {
     for (auto& iter : current)
     {
@@ -220,7 +218,7 @@ void CodeDiffDialog::OnIncludeExclude(bool include)
       }
     }
     // If there is no include list, we're done.
-    if (!include && !isize)
+    if (!include && m_include.empty())
       return;
   }
   else
@@ -229,7 +227,7 @@ void CodeDiffDialog::OnIncludeExclude(bool include)
   }
 
   // Update include list.
-  if (include && isize)
+  if (include && !m_include.empty())
   {
     // Compare include with current and remove items that aren't in both.
     std::vector<Diff> tmp_swap;
@@ -241,7 +239,7 @@ void CodeDiffDialog::OnIncludeExclude(bool include)
     }
     m_include.swap(tmp_swap);
   }
-  else if ((!isize && include) || (!xsize && !include))
+  else if ((m_include.empty() && include) || (m_exclude.empty() && !include))
   {
     // If both lists are about to be filled for the first time, compare full lists and remove from
     // include list.
@@ -286,18 +284,16 @@ void CodeDiffDialog::Update(bool include)
     QString fix_sym = QString::fromStdString(iter.symbol);
     fix_sym.replace(QStringLiteral("\t"), QStringLiteral("  "));
 
-    QString tmp_out =
-        QString::fromStdString(StringFromFormat("%08x\t%i\t", iter.addr, iter.hits)) + fix_sym;
+    QString tmp_out = QStringLiteral("%1\t%2\t%3").arg(iter.addr, 1, 16).arg(iter.hits).arg(fix_sym);
 
     auto* item = new QListWidgetItem(tmp_out, m_matching_results_list);
     item->setData(Qt::UserRole, iter.addr);
 
     m_matching_results_list->addItem(item);
   }
-  m_exclude_size_label->setText(QString::fromStdString("Excluded: ") +
-                                QString::number(m_exclude.size()));
-  m_include_size_label->setText(QString::fromStdString("Included: ") +
-                                QString::number(m_include.size()));
+
+  m_exclude_size_label->setText(QStringLiteral("Excluded: %1").arg(m_exclude.size()));
+  m_include_size_label->setText(QStringLiteral("Included: %1").arg(m_include.size()));
 
   JitInterface::ClearCache();
   if (old_state == Core::State::Running)
