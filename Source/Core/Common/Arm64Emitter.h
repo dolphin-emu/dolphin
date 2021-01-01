@@ -521,6 +521,9 @@ private:
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
+  template <typename T>
+  void MOVI2RImpl(ARM64Reg Rd, T imm);
+
 protected:
   void Write32(u32 value);
 
@@ -864,7 +867,7 @@ public:
   void ADR(ARM64Reg Rd, s32 imm);
   void ADRP(ARM64Reg Rd, s64 imm);
 
-  // Wrapper around MOVZ+MOVK
+  // Wrapper around ADR/ADRP/MOVZ/MOVN/MOVK
   void MOVI2R(ARM64Reg Rd, u64 imm);
   bool MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2);
   template <class P>
