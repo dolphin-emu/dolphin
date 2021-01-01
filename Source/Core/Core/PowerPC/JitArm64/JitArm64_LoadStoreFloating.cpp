@@ -75,12 +75,13 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   u32 imm_addr = 0;
   bool is_immediate = false;
 
-  RegType type = !!(flags & BackPatchInfo::FLAG_SIZE_F64) ? REG_LOWER_PAIR : REG_DUP_SINGLE;
+  const RegType type =
+      (flags & BackPatchInfo::FLAG_SIZE_F64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
   gpr.Lock(W0, W30);
   fpr.Lock(Q0);
 
-  ARM64Reg VD = fpr.RW(inst.FD, type);
+  const ARM64Reg VD = fpr.RW(inst.FD, type);
   ARM64Reg addr_reg = W0;
 
   if (update)
@@ -244,9 +245,9 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   gpr.Lock(W0, W1, W30);
   fpr.Lock(Q0);
 
-  bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS, true);
+  const bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS, true);
 
-  ARM64Reg V0 = fpr.R(inst.FS, single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR);
+  const ARM64Reg V0 = fpr.R(inst.FS, single ? RegType::LowerPairSingle : RegType::LowerPair);
 
   if (single)
   {

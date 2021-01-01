@@ -15,10 +15,13 @@
 #include "Core/PowerPC/PowerPC.h"
 
 // Dedicated host registers
-static const Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::X28;  // memory base register
-static const Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::X29;  // ppcState pointer
-static const Arm64Gen::ARM64Reg DISPATCHER_PC =
-    Arm64Gen::W26;  // PC register when calling the dispatcher
+
+// memory base register
+constexpr Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::X28;
+// ppcState pointer
+constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::X29;
+// PC register when calling the dispatcher
+constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::W26;
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
@@ -29,43 +32,44 @@ static_assert((PPCSTATE_OFF(ps[0].ps0) % 8) == 0,
 static_assert(PPCSTATE_OFF(xer_ca) < 4096, "STRB can't store xer_ca!");
 static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 
-enum RegType
+enum class RegType
 {
-  REG_NOTLOADED = 0,
-  REG_REG,         // Reg type is register
-  REG_IMM,         // Reg is really a IMM
-  REG_LOWER_PAIR,  // Only the lower pair of a paired register
-  REG_DUP,  // The lower reg is the same as the upper one (physical upper doesn't actually have the
-            // duplicated value)
-  REG_REG_SINGLE,         // Both registers are loaded as single
-  REG_LOWER_PAIR_SINGLE,  // Only the lower pair of a paired register, as single
-  REG_DUP_SINGLE,         // The lower one contains both registers, as single
+  NotLoaded,
+  Register,    // Reg type is register
+  Immediate,   // Reg is really a IMM
+  LowerPair,   // Only the lower pair of a paired register
+  Duplicated,  // The lower reg is the same as the upper one (physical upper doesn't actually have
+               // the duplicated value)
+  Single,      // Both registers are loaded as single
+  LowerPairSingle,   // Only the lower pair of a paired register, as single
+  DuplicatedSingle,  // The lower one contains both registers, as single
 };
 
-enum FlushMode
+enum class FlushMode
 {
   // Flushes all registers, no exceptions
-  FLUSH_ALL = 0,
+  All,
   // Flushes registers in a conditional branch
   // Doesn't wipe the state of the registers from the cache
-  FLUSH_MAINTAIN_STATE,
+  MaintainState,
 };
 
 class OpArg
 {
 public:
-  OpArg() : m_type(REG_NOTLOADED), m_reg(Arm64Gen::INVALID_REG), m_value(0), m_last_used(0) {}
+  OpArg() = default;
+
   RegType GetType() const { return m_type; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
   u32 GetImm() const { return m_value; }
-  void Load(Arm64Gen::ARM64Reg reg, RegType type = REG_REG)
+  void Load(Arm64Gen::ARM64Reg reg, RegType type = RegType::Register)
   {
     m_type = type;
     m_reg = reg;
   }
   void LoadToImm(u32 imm)
   {
-    m_type = REG_IMM;
+    m_type = RegType::Immediate;
     m_value = imm;
 
     m_reg = Arm64Gen::INVALID_REG;
@@ -73,7 +77,7 @@ public:
   void Flush()
   {
     // Invalidate any previous information
-    m_type = REG_NOTLOADED;
+    m_type = RegType::NotLoaded;
     m_reg = Arm64Gen::INVALID_REG;
 
     // Arbitrarily large value that won't roll over on a lot of increments
@@ -88,40 +92,41 @@ public:
 
 private:
   // For REG_REG
-  RegType m_type;            // store type
-  Arm64Gen::ARM64Reg m_reg;  // host register we are in
+  RegType m_type = RegType::NotLoaded;               // store type
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;  // host register we are in
 
   // For REG_IMM
-  u32 m_value;  // IMM value
+  u32 m_value = 0;  // IMM value
 
-  u32 m_last_used;
+  u32 m_last_used = 0;
 
-  bool m_dirty;
+  bool m_dirty = false;
 };
 
 class HostReg
 {
 public:
-  HostReg() : m_reg(Arm64Gen::INVALID_REG), m_locked(false) {}
-  HostReg(Arm64Gen::ARM64Reg reg) : m_reg(reg), m_locked(false) {}
+  HostReg() = default;
+  HostReg(Arm64Gen::ARM64Reg reg) : m_reg(reg) {}
+
   bool IsLocked() const { return m_locked; }
   void Lock() { m_locked = true; }
   void Unlock() { m_locked = false; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
-  bool operator==(const Arm64Gen::ARM64Reg& reg) { return reg == m_reg; }
+
+  bool operator==(Arm64Gen::ARM64Reg reg) const { return reg == m_reg; }
+  bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
 
 private:
-  Arm64Gen::ARM64Reg m_reg;
-  bool m_locked;
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;
+  bool m_locked = false;
 };
 
 class Arm64RegCache
 {
 public:
-  explicit Arm64RegCache(size_t guest_reg_count)
-      : m_emit(nullptr), m_float_emit(nullptr), m_guest_registers(guest_reg_count),
-        m_reg_stats(nullptr){};
-  virtual ~Arm64RegCache(){};
+  explicit Arm64RegCache(size_t guest_reg_count) : m_guest_registers(guest_reg_count) {}
+  virtual ~Arm64RegCache() = default;
 
   void Init(Arm64Gen::ARM64XEmitter* emitter);
 
@@ -129,7 +134,7 @@ public:
   // Flushes the register cache in different ways depending on the mode
   virtual void Flush(FlushMode mode, PPCAnalyst::CodeOp* op) = 0;
 
-  virtual BitSet32 GetCallerSavedUsed() = 0;
+  virtual BitSet32 GetCallerSavedUsed() const = 0;
 
   // Returns a temporary register for use
   // Requires unlocking after done
@@ -178,7 +183,7 @@ protected:
   virtual void FlushRegister(size_t preg, bool maintain_state) = 0;
 
   // Get available host registers
-  u32 GetUnlockedRegisterCount();
+  u32 GetUnlockedRegisterCount() const;
 
   void IncrementAllUsed()
   {
@@ -187,7 +192,7 @@ protected:
   }
 
   // Code emitter
-  Arm64Gen::ARM64XEmitter* m_emit;
+  Arm64Gen::ARM64XEmitter* m_emit = nullptr;
 
   // Float emitter
   std::unique_ptr<Arm64Gen::ARM64FloatEmitter> m_float_emit;
@@ -201,14 +206,14 @@ protected:
   std::vector<OpArg> m_guest_registers;
 
   // Register stats for the current block
-  PPCAnalyst::BlockRegStats* m_reg_stats;
+  PPCAnalyst::BlockRegStats* m_reg_stats = nullptr;
 };
 
 class Arm64GPRCache : public Arm64RegCache
 {
 public:
   Arm64GPRCache();
-  ~Arm64GPRCache() {}
+
   void Start(PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode
@@ -222,14 +227,14 @@ public:
   // Set a register to an immediate, only valid for guest GPRs
   void SetImmediate(size_t preg, u32 imm) { SetImmediate(GetGuestGPR(preg), imm); }
   // Returns if a register is set as an immediate, only valid for guest GPRs
-  bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == REG_IMM; }
+  bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == RegType::Immediate; }
   // Gets the immediate that a register is set to, only valid for guest GPRs
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
   // Binds a guest GPR to a host register, optionally loading its value
   void BindToRegister(size_t preg, bool do_load) { BindToRegister(GetGuestGPR(preg), do_load); }
   // Binds a guest CR to a host register, optionally loading its value
   void BindCRToRegister(size_t preg, bool do_load) { BindToRegister(GetGuestCR(preg), do_load); }
-  BitSet32 GetCallerSavedUsed() override;
+  BitSet32 GetCallerSavedUsed() const override;
 
   void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
   void StoreCRRegisters(BitSet32 regs) { FlushCRRegisters(regs, false); }
@@ -244,7 +249,7 @@ protected:
   void FlushRegister(size_t index, bool maintain_state) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg);
+  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
 
   struct GuestRegInfo
   {
@@ -270,19 +275,19 @@ class Arm64FPRCache : public Arm64RegCache
 {
 public:
   Arm64FPRCache();
-  ~Arm64FPRCache() {}
+
   // Flushes the register cache in different ways depending on the mode
   void Flush(FlushMode mode, PPCAnalyst::CodeOp* op = nullptr) override;
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  Arm64Gen::ARM64Reg R(size_t preg, RegType type = REG_LOWER_PAIR);
+  Arm64Gen::ARM64Reg R(size_t preg, RegType type = RegType::LowerPair);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type = REG_LOWER_PAIR);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType type = RegType::LowerPair);
 
-  BitSet32 GetCallerSavedUsed() override;
+  BitSet32 GetCallerSavedUsed() const override;
 
-  bool IsSingle(size_t preg, bool lower_only = false);
+  bool IsSingle(size_t preg, bool lower_only = false) const;
 
   void FixSinglePrecision(size_t preg);
 
@@ -298,7 +303,7 @@ protected:
   void FlushRegister(size_t preg, bool maintain_state) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg);
+  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state);
 };

@@ -44,8 +44,8 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   gpr.BindToRegister(inst.RS, true);
   STR(INDEX_UNSIGNED, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
 
-  gpr.Flush(FlushMode::FLUSH_ALL);
-  fpr.Flush(FlushMode::FLUSH_ALL);
+  gpr.Flush(FlushMode::All);
+  fpr.Flush(FlushMode::All);
 
   // Our jit cache also stores some MSR bits, as they have changed, we either
   // have to validate them in the BLR/RET check, or just flush the stack here.
@@ -201,8 +201,8 @@ void JitArm64::twx(UGeckoInstruction inst)
   SwitchToFarCode();
   SetJumpTarget(far_addr);
 
-  gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+  gpr.Flush(FlushMode::MaintainState);
+  fpr.Flush(FlushMode::MaintainState);
 
   LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
   ORR(WA, WA, 24, 0);  // Same as WA | EXCEPTION_PROGRAM
@@ -217,8 +217,8 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush(FlushMode::FLUSH_ALL);
-    fpr.Flush(FlushMode::FLUSH_ALL);
+    gpr.Flush(FlushMode::All);
+    fpr.Flush(FlushMode::All);
     WriteExit(js.compilerPC + 4);
   }
 }
