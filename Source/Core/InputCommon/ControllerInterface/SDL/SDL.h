@@ -81,7 +81,7 @@ private:
     static constexpr u16 DISABLED_EFFECT_TYPE = 0;
 
   private:
-    virtual void SetState(ControlState state) override final;
+    virtual void SetStateInternal(ControlState state) override final;
     void UpdateEffect();
     SDL_Haptic* const m_haptic;
     int m_id = -1;

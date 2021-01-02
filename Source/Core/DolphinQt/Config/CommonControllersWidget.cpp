@@ -27,6 +27,7 @@ void CommonControllersWidget::CreateLayout()
   m_common_box = new QGroupBox(tr("Common"));
   m_common_layout = new QVBoxLayout();
   m_common_bg_input = new QCheckBox(tr("Background Input"));
+  m_common_bg_input->setToolTip(tr("Output doesn't require focus unless specified"));
   m_common_configure_controller_interface = new QPushButton(tr("Alternate Input Sources"));
 
   m_common_layout->addWidget(m_common_bg_input);

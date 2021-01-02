@@ -32,7 +32,7 @@ class GCKeyboard : public ControllerEmu::EmulatedController
 {
 public:
   explicit GCKeyboard(unsigned int index);
-  KeyboardStatus GetInput() const;
+  KeyboardStatus GetInput();
   std::string GetName() const override;
   ControllerEmu::ControlGroup* GetGroup(KeyboardGroup group);
   void LoadDefaults(const ControllerInterface& ciface) override;

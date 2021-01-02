@@ -245,7 +245,7 @@ std::string Touchscreen::Motor::GetName() const
   return ss.str();
 }
 
-void Touchscreen::Motor::SetState(ControlState state)
+void Touchscreen::Motor::SetStateInternal(ControlState state)
 {
   if (state > 0)
   {

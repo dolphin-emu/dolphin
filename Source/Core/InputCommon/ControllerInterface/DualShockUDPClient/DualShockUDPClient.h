@@ -4,12 +4,22 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "Common/Config/Config.h"
 
 namespace ciface::DualShockUDPClient
 {
 constexpr char DEFAULT_SERVER_ADDRESS[] = "127.0.0.1";
 constexpr u16 DEFAULT_SERVER_PORT = 26760;
+
+// Hacky global way of doing calibration from UI
+extern std::atomic<int> g_calibration_device_index;
+extern bool g_calibration_device_found;
+extern s16 g_calibration_touch_x_min;
+extern s16 g_calibration_touch_y_min;
+extern s16 g_calibration_touch_x_max;
+extern s16 g_calibration_touch_y_max;
 
 namespace Settings
 {

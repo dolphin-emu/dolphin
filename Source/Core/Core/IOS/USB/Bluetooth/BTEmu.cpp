@@ -14,6 +14,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -23,6 +24,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "Core/SysConf.h"
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS::HLE
@@ -337,10 +339,12 @@ void BluetoothEmuDevice::Update()
   const u64 interval = SystemTimers::GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
   const u64 now = CoreTiming::GetTicks();
 
-  if (now - m_last_ticks > interval)
+  if (now - m_last_ticks >= interval)
   {
-    g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Bluetooth);
-    g_controller_interface.UpdateInput();
+    g_controller_interface.UpdateInput(ciface::InputChannel::Bluetooth, 1.0 / Wiimote::UPDATE_FREQ);
+    ControlReference::UpdateGate(!SConfig::GetInstance().m_BackgroundInput,
+                                 SConfig::GetInstance().bLockCursor, true,
+                                 ciface::InputChannel::Bluetooth);
     for (auto& wiimote : m_wiimotes)
       wiimote->UpdateInput();
     m_last_ticks = now;

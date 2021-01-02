@@ -4,7 +4,6 @@
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 
-#include <tuple>
 #include <vector>
 
 #include <QApplication>
@@ -15,6 +14,7 @@
 
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 #include "Common/Thread.h"
 
@@ -35,7 +35,8 @@ constexpr auto SPURIOUS_TRIGGER_COMBO_THRESHOLD = std::chrono::milliseconds(150)
 
 QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& control_device,
-                                const ciface::Core::DeviceQualifier& default_device, Quote quote)
+                                const ciface::Core::DeviceQualifier& default_device,
+                                ExpressionType expression_type)
 {
   QString expr;
 
@@ -49,13 +50,10 @@ QString GetExpressionForControl(const QString& control_name,
   // append the control name
   expr += control_name;
 
-  if (quote == Quote::On)
+  if (expression_type == ExpressionType::QuoteOn)
   {
-    // If our expression contains any non-alpha characters
-    // we should quote it
-    const QRegularExpression reg(QStringLiteral("[^a-zA-Z]"));
-    if (reg.match(expr).hasMatch())
-      expr = QStringLiteral("`%1`").arg(expr);
+    // wrap around ` (bareword expressions might work anyway but we do it for consistency)
+    expr = QStringLiteral("`%1`").arg(expr);
   }
 
   return expr;
@@ -63,7 +61,8 @@ QString GetExpressionForControl(const QString& control_name,
 
 QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
                          const std::vector<std::string>& device_strings,
-                         const ciface::Core::DeviceQualifier& default_device, Quote quote)
+                         const ciface::Core::DeviceQualifier& default_device,
+                         ExpressionType expression_type)
 {
   const auto filter = new BlockUserInputFilter(button);
 
@@ -77,7 +76,9 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
   // The button text won't be updated if we don't process events here
   QApplication::processEvents();
 
-  // Avoid that the button press itself is registered as an event
+  // Avoid the input press itself starting as "1/down" in the input detection,
+  // which would then either always or never detect it.
+  // This should always work as input is updated at 60Hz by a different thread.
   Common::SleepCurrentThread(50);
 
   auto detections =
@@ -101,20 +102,57 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
 
   button->setText(old_text);
 
-  return BuildExpression(detections, default_device, quote);
+  return BuildExpression(detections, default_device, expression_type);
 }
 
-void TestOutput(QPushButton* button, OutputReference* reference)
+void TestOutput(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+                ciface::Core::Device* device, std::string output_name)
 {
+  ciface::Core::Device::Output* output = device->FindOutput(output_name);
+  if (!output)
+    return;
+
   const auto old_text = button->text();
   button->setText(QStringLiteral("..."));
 
   // The button text won't be updated if we don't process events here
   QApplication::processEvents();
 
-  reference->State(1.0);
+  {
+    const auto lock = device_container.GetDevicesOutputLock();
+    output->SetState(1.0, button);
+  }
   std::this_thread::sleep_for(OUTPUT_TEST_TIME);
-  reference->State(0.0);
+  {
+    const auto lock = device_container.GetDevicesOutputLock();
+    output->SetState(0.0, button);
+  }
+
+  button->setText(old_text);
+}
+
+void TestOutput(QPushButton* button, OutputReference* reference)
+{
+  // No point in locking the thread if the expression won't do anything
+  if (reference->GetParseStatus() == ciface::ExpressionParser::ParseStatus::EmptyExpression)
+    return;
+
+  const auto old_text = button->text();
+  button->setText(QStringLiteral("..."));
+
+  // The button text won't be updated if we don't process events here
+  QApplication::processEvents();
+
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    reference->SetState(1.0);
+  }
+  // This will hang the UI but it's the simplest way of doing it.
+  std::this_thread::sleep_for(OUTPUT_TEST_TIME);
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    reference->SetState(0.0);
+  }
 
   button->setText(old_text);
 }
@@ -136,7 +174,7 @@ void RemoveSpuriousTriggerCombinations(
 
 QString
 BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>& detections,
-                const ciface::Core::DeviceQualifier& default_device, Quote quote)
+                const ciface::Core::DeviceQualifier& default_device, ExpressionType expression_type)
 {
   std::vector<const ciface::Core::DeviceContainer::InputDetection*> pressed_inputs;
 
@@ -146,7 +184,7 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
     // Return the parent-most name if there is one for better hotkey strings.
     // Detection of L/R_Ctrl will be changed to just Ctrl.
     // Users can manually map L_Ctrl if they so desire.
-    const auto input = (quote == Quote::On) ?
+    const auto input = (expression_type != ExpressionType::QuoteOffAndRedirectToParentInputOff) ?
                            detection.device->GetParentMostInput(detection.input) :
                            detection.input;
 
@@ -154,7 +192,8 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
     device_qualifier.FromDevice(detection.device.get());
 
     return MappingCommon::GetExpressionForControl(QString::fromStdString(input->GetName()),
-                                                  device_qualifier, default_device, quote);
+                                                  device_qualifier, default_device,
+                                                  expression_type);
   };
 
   bool new_alternation = false;

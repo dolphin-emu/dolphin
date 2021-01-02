@@ -21,7 +21,10 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
 
   connect(this, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
           [this, parent](double value) {
-            m_setting.SetValue(value);
+            {
+              const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+              m_setting.SetValue(value);
+            }
             ConfigChanged();
             parent->SaveSettings();
           });
@@ -52,9 +55,11 @@ void MappingDouble::ConfigChanged()
   }
   else
   {
+    // We can't clamp (or at least won't) the value if it came from an expression
     constexpr auto inf = std::numeric_limits<double>::infinity();
     setRange(-inf, inf);
     setButtonSymbols(ButtonSymbols::NoButtons);
+    // Don't disable the button even if users could accidentally lose their expression
     suffix += QString::fromUtf8(" 🎮");
   }
 
@@ -79,7 +84,10 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
     setToolTip(tr(ui_description));
 
   connect(this, &QCheckBox::stateChanged, this, [this, parent](int value) {
-    m_setting.SetValue(value != 0);
+    {
+      const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+      m_setting.SetValue(value != 0);
+    }
     ConfigChanged();
     parent->SaveSettings();
   });
@@ -96,7 +104,7 @@ void MappingBool::ConfigChanged()
 
   if (m_setting.IsSimpleValue())
     setText({});
-  else
+  else  // Don't disable the button even if users could accidentally lose their expression
     setText(QString::fromUtf8("🎮"));
 
   setChecked(m_setting.GetValue());

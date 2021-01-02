@@ -145,8 +145,23 @@ bool InputConfig::LoadConfig(bool isGC)
   }
   else
   {
-    m_controllers[0]->LoadDefaults(g_controller_interface);
-    m_controllers[0]->UpdateReferences(g_controller_interface);
+    // Only load the default profile for the first controller,
+    // otherwise they would all share the same mappings and default device
+    if (m_controllers.size() > 0)
+    {
+      m_controllers[0]->LoadDefaults(g_controller_interface);
+      m_controllers[0]->UpdateReferences(g_controller_interface);
+    }
+    // Set the "default" default device for all other controllers, or they would end up
+    // having no default device (which is fine, but might be confusing for some users)
+    const std::string& default_device_string = g_controller_interface.GetDefaultDeviceString();
+    if (!default_device_string.empty())
+    {
+      for (size_t i = 1; i < m_controllers.size(); ++i)
+      {
+        m_controllers[i]->SetDefaultDevice(default_device_string);
+      }
+    }
     return false;
   }
 }

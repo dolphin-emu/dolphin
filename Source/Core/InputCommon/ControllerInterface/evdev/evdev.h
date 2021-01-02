@@ -24,7 +24,6 @@ private:
   public:
     Effect(int fd);
     ~Effect();
-    void SetState(ControlState state) override;
 
   protected:
     virtual bool UpdateParameters(ControlState state) = 0;
@@ -34,6 +33,7 @@ private:
     static constexpr int DISABLED_EFFECT_TYPE = 0;
 
   private:
+    void SetStateInternal(ControlState state) override;
     void UpdateEffect();
 
     int const m_fd;

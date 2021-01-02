@@ -35,7 +35,7 @@ class GCPad : public ControllerEmu::EmulatedController
 {
 public:
   explicit GCPad(unsigned int index);
-  GCPadStatus GetInput() const;
+  GCPadStatus GetInput();
   void SetOutput(const ControlState strength);
 
   bool GetMicButton() const;

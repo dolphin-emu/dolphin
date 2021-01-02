@@ -74,7 +74,6 @@
 #include "Core/MemoryWatcher.h"
 #endif
 
-#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -250,17 +249,6 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   s_is_booting.Set();
   s_emu_thread = std::thread(EmuThread, std::move(boot), prepared_wsi);
   return true;
-}
-
-static void ResetRumble()
-{
-#if defined(__LIBUSB__)
-  GCAdapter::ResetRumble();
-#endif
-  if (!Pad::IsInitialized())
-    return;
-  for (int i = 0; i < 4; ++i)
-    Pad::ResetRumble(i);
 }
 
 // Called from GUI thread
@@ -467,6 +455,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     Keyboard::LoadConfig();
   }
 
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::SerialInterface, true);
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::Bluetooth, true);
+
   const std::optional<std::string> savestate_path = boot->savestate_path;
   const bool delete_savestate = boot->delete_savestate;
 
@@ -499,6 +490,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
   Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
+    g_controller_interface.SetChannelRunning(ciface::InputChannel::SerialInterface, false);
+    g_controller_interface.SetChannelRunning(ciface::InputChannel::Bluetooth, false);
+
     if (!init_controllers)
       return;
 
@@ -510,7 +504,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     FreeLook::Shutdown();
 
-    ResetRumble();
+#if defined(__LIBUSB__)
+    GCAdapter::ResetRumble();
+#endif
 
     Keyboard::Shutdown();
     Pad::Shutdown();
@@ -666,11 +662,17 @@ void SetState(State state)
     // NOTE: GetState() will return State::Paused immediately, even before anything has
     //   stopped (including the CPU).
     CPU::EnableStepping(true);  // Break
+    g_controller_interface.SetChannelRunning(ciface::InputChannel::SerialInterface, false);
+    g_controller_interface.SetChannelRunning(ciface::InputChannel::Bluetooth, false);
     Wiimote::Pause();
-    ResetRumble();
+#if defined(__LIBUSB__)
+    GCAdapter::ResetRumble();
+#endif
     s_timer.Update();
     break;
   case State::Running:
+    g_controller_interface.SetChannelRunning(ciface::InputChannel::SerialInterface, true);
+    g_controller_interface.SetChannelRunning(ciface::InputChannel::Bluetooth, true);
     CPU::EnableStepping(false);
     Wiimote::Resume();
     if (!s_timer.IsRunning())
@@ -786,7 +788,13 @@ static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   // (s_efbAccessRequested).
   Fifo::PauseAndLock(do_lock, false);
 
-  ResetRumble();
+  const bool running = do_lock ? false : unpause_on_unlock;
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::SerialInterface, running);
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::Bluetooth, running);
+
+#if defined(__LIBUSB__)
+  GCAdapter::ResetRumble();
+#endif
 
   // CPU is unlocked last because CPU::PauseAndLock contains the synchronization
   // mechanism that prevents CPU::Break from racing.
@@ -1013,7 +1021,7 @@ int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 
 bool RemoveOnStateChangedCallback(int* handle)
 {
-  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > *handle)
+  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > static_cast<size_t>(*handle))
   {
     s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
     *handle = -1;
@@ -1111,17 +1119,6 @@ void DoFrameStep()
     // if not paused yet, pause immediately instead
     SetState(State::Paused);
   }
-}
-
-void UpdateInputGate(bool require_focus, bool require_full_focus)
-{
-  // If the user accepts background input, controls should pass even if an on screen interface is on
-  const bool focus_passes =
-      !require_focus || (Host_RendererHasFocus() && !Host_UIBlocksControllerState());
-  // Ignore full focus if we don't require basic focus
-  const bool full_focus_passes =
-      !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
-  ControlReference::SetInputGate(focus_passes && full_focus_passes);
 }
 
 }  // namespace Core

@@ -6,6 +6,7 @@
 
 #include <QDialog>
 
+class QComboBox;
 class QDialogButtonBox;
 class QGridLayout;
 class QLineEdit;
@@ -26,4 +27,5 @@ private:
   QLineEdit* m_description;
   QLineEdit* m_server_address;
   QSpinBox* m_server_port;
+  QComboBox* m_type;
 };

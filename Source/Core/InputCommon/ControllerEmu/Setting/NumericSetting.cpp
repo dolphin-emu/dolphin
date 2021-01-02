@@ -28,27 +28,27 @@ const char* NumericSettingBase::GetUIDescription() const
 }
 
 template <>
-void NumericSetting<int>::SetExpressionFromValue()
+std::string NumericSetting<int>::GetExpressionFromValue() const
 {
-  m_value.m_input.SetExpression(ValueToString(GetValue()));
+  return ValueToString(int(GetValue()));
 }
 
 template <>
-void NumericSetting<double>::SetExpressionFromValue()
+std::string NumericSetting<double>::GetExpressionFromValue() const
 {
   // We must use a dot decimal separator for expression parser.
   std::ostringstream ss;
   ss.imbue(std::locale::classic());
   ss << GetValue();
 
-  m_value.m_input.SetExpression(ss.str());
+  return ss.str();
 }
 
 template <>
-void NumericSetting<bool>::SetExpressionFromValue()
+std::string NumericSetting<bool>::GetExpressionFromValue() const
 {
   // Cast bool to prevent "true"/"false" strings.
-  m_value.m_input.SetExpression(ValueToString(int(GetValue())));
+  return ValueToString(int(GetValue()));
 }
 
 template <>

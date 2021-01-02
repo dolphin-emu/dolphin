@@ -186,6 +186,8 @@ void Nunchuk::DoState(PointerWrap& p)
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
+  // Super::LoadDefaults() isn't needed. GetStateLock() is already called the parent Wiimote.
+
   // Stick
   m_stick->SetControlExpression(0, "W");  // up
   m_stick->SetControlExpression(1, "S");  // down
