@@ -176,6 +176,14 @@ static u32 GetNumAutoShaderCompilerThreads()
   return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
 }
 
+static u32 GetNumAutoShaderPreCompilerThreads()
+{
+  // Automatic number. We use clamp(cpus - 2, 1, infty) here.
+  // We chose this because we don't want to limit our speed-up
+  // and at the same time leave two logical cores for the dolphin UI and the rest of the OS.
+  return static_cast<u32>(std::max(cpu_info.num_cores - 2, 1));
+}
+
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
   if (!backend_info.bSupportsBackgroundCompiling)
@@ -199,5 +207,5 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
   else
-    return GetNumAutoShaderCompilerThreads();
+    return GetNumAutoShaderPreCompilerThreads();
 }
