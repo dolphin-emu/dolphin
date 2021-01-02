@@ -126,9 +126,9 @@ void KeyboardMouse::UpdateCursorInput()
   RECT rect;
   GetClientRect(m_hwnd, &rect);
 
-  // Width and height are the size of the rendering window.
-  const auto win_width = rect.right - rect.left;
-  const auto win_height = rect.bottom - rect.top;
+  // Width and height are the size of the rendering window. They could be 0
+  const auto win_width = std::max(rect.right - rect.left, 1l);
+  const auto win_height = std::max(rect.bottom - rect.top, 1l);
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
