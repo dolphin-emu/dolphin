@@ -24,6 +24,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace SerialInterface
@@ -670,7 +671,7 @@ static void ChangeDeviceDeterministic(SIDevices device, int channel)
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event, channel);
 }
 
-void UpdateDevices()
+void UpdateDevices(double delta_seconds, double average_delta_seconds)
 {
   // Check for device change requests:
   for (int i = 0; i != MAX_SI_CHANNELS; ++i)
@@ -690,8 +691,11 @@ void UpdateDevices()
 
   // Update inputs at the rate of SI
   // Typically 120hz but is variable
-  g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::SerialInterface);
-  g_controller_interface.UpdateInput();
+  ControlReference::UpdateGate(!SConfig::GetInstance().m_BackgroundInput,
+                               SConfig::GetInstance().bLockCursor, true,
+                               ciface::InputChannel::SerialInterface);
+  g_controller_interface.UpdateInput(ciface::InputChannel::SerialInterface, delta_seconds,
+                                     average_delta_seconds, 2);
 
   // Update channels and set the status bit if there's new data
   s_status_reg.RDST0 =

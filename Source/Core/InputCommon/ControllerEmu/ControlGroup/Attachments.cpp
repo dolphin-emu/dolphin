@@ -27,6 +27,7 @@ u32 Attachments::GetSelectedAttachment() const
 
 void Attachments::SetSelectedAttachment(u32 val)
 {
+  const auto lock = EmulatedController::GetStateLock();
   m_selection_setting.SetValue(val);
 }
 

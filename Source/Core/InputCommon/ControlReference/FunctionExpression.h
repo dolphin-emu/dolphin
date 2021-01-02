@@ -14,8 +14,13 @@
 
 namespace ciface::ExpressionParser
 {
+// if input > this, then it passes
 constexpr ControlState CONDITION_THRESHOLD = 0.5;
 
+// [arg] means that it's optional and can be not inserted.
+// arg = x means that it will default to that value if you don't specify it.
+// ... means that unlimited args are supported.
+// Make sure to call GetValue() on every arg within your GetValue()
 class FunctionExpression : public Expression
 {
 public:
@@ -31,9 +36,13 @@ public:
   using ArgumentValidation = std::variant<ArgumentsAreValid, ExpectedArguments>;
 
   int CountNumControls() const override;
-  void UpdateReferences(ControlEnvironment& env) override;
+  Device::FocusFlags GetFocusFlags() const override;
+  void UpdateReferences(ControlEnvironment& env, bool is_input) override;
 
   ArgumentValidation SetArguments(std::vector<std::unique_ptr<Expression>>&& args);
+
+  // These will be shown in the UI so wrap them in _trans(). Automatically word wrapped.
+  virtual const char* GetDescription(bool for_input) const { return nullptr; };
 
   void SetValue(ControlState value) override;
 

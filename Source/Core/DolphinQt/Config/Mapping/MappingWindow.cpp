@@ -9,11 +9,11 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QScreen>
 #include <QTabWidget>
 #include <QTimer>
 #include <QVBoxLayout>
-
-#include "Core/Core.h"
+#include <QWindow>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -68,29 +68,42 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   SetMappingType(type);
 
   const auto timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, [this] {
-    const auto lock = GetController()->GetStateLock();
+  QWidget* parent_window = window();
+  connect(timer, &QTimer::timeout, this, [this, parent_window, timer] {
+    // Draw at the current monitor refresh rate. When emulation is running,
+    // input is often updated at frequencies higher than 60 so this is good to have.
+    QScreen* screen = parent_window->windowHandle()->screen();
+    m_indicator_update_freq = screen->refreshRate();
+    // Note that accuracy is limited to ms so it won't exactly be what we want
+    timer->setInterval(1000 / m_indicator_update_freq);
     emit Update();
   });
 
-  timer->start(1000 / INDICATOR_UPDATE_FREQ);
+  timer->start(1000 / m_indicator_update_freq);
 
-  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
 
 void MappingWindow::CreateDevicesLayout()
 {
   m_devices_layout = new QHBoxLayout();
-  m_devices_box = new QGroupBox(tr("Device"));
+  m_devices_box = new QGroupBox(tr("Default Device"));
   m_devices_combo = new QComboBox();
   m_devices_refresh = new QPushButton(tr("Refresh"));
+  m_detect_all_devices = new QCheckBox(tr("Detect Input From All Devices"));
 
   m_devices_combo->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   m_devices_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
+  m_devices_combo->setToolTip(
+      tr("Select the default device for this controller.\nThe default device won't need its path "
+         "in front of input/output "
+         "mappings,\nall other devices will (if you want them to work at the same "
+         "time).\nChanging the default device could break your current mappings."));
+
   m_devices_layout->addWidget(m_devices_combo);
   m_devices_layout->addWidget(m_devices_refresh);
+  m_devices_layout->addWidget(m_detect_all_devices);
 
   m_devices_box->setLayout(m_devices_layout);
 }
@@ -117,6 +130,8 @@ void MappingWindow::CreateProfilesLayout()
   m_profiles_layout->addLayout(button_layout);
 
   m_profiles_box->setLayout(m_profiles_layout);
+
+  UpdateProfileButtonState();
 }
 
 void MappingWindow::CreateResetLayout()
@@ -203,8 +218,10 @@ void MappingWindow::UpdateProfileButtonState()
     builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
   }
 
-  m_profiles_save->setEnabled(!builtin);
-  m_profiles_delete->setEnabled(!builtin);
+  bool enable_save_and_delete = !builtin && m_profiles_combo->currentText().length() > 0;
+  m_profiles_save->setEnabled(enable_save_and_delete);
+  m_profiles_delete->setEnabled(enable_save_and_delete);
+  m_profiles_load->setEnabled(m_profiles_combo->currentText().length() > 0);
 }
 
 void MappingWindow::OnSelectProfile(int)
@@ -281,7 +298,6 @@ void MappingWindow::OnLoadProfilePressed()
   m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
   m_controller->UpdateReferences(g_controller_interface);
 
-  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
 
@@ -312,19 +328,29 @@ void MappingWindow::OnSaveProfilePressed()
 
 void MappingWindow::OnSelectDevice(int)
 {
-  if (IsMappingAllDevices())
-    return;
+  const bool no_device = m_devices_combo->currentIndex() == m_devices_combo->count() - 1;
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    if (no_device)
+      m_controller->SetDefaultDevice("");
+    // Original string is stored in the "user-data".
+    else
+      m_controller->SetDefaultDevice(m_devices_combo->currentData().toString().toStdString());
+  }
 
-  // Original string is stored in the "user-data".
-  const auto device = m_devices_combo->currentData().toString().toStdString();
+  m_detect_all_devices->setEnabled(!no_device);
 
-  m_controller->SetDefaultDevice(device);
   m_controller->UpdateReferences(g_controller_interface);
 }
 
-bool MappingWindow::IsMappingAllDevices() const
+bool MappingWindow::IsDetectingAllDevices() const
 {
-  return m_devices_combo->currentIndex() == m_devices_combo->count() - 1;
+  // "Detect From All Devices" is blocked from changing when we have no default device as it would
+  // make no sense to do so. Sso we act like it was true (without changing the current value)
+  const auto default_device = m_controller->GetDefaultDevice();
+  if (default_device.name.empty())
+    return true;
+  return m_detect_all_devices->isChecked();
 }
 
 void MappingWindow::RefreshDevices()
@@ -344,10 +370,15 @@ void MappingWindow::OnGlobalDevicesChanged()
     m_devices_combo->addItem(qname, qname);
   }
 
-  m_devices_combo->insertSeparator(m_devices_combo->count());
+  const bool has_any_devices = m_devices_combo->count() > 0;
 
   const auto default_device = m_controller->GetDefaultDevice().ToString();
 
+  bool created_disconnected_default_device = false;
+
+  m_detect_all_devices->setEnabled(!default_device.empty());
+
+  // Try to reselect the default device, add it as a disconnected one if not found
   if (!default_device.empty())
   {
     const auto default_device_index =
@@ -359,15 +390,30 @@ void MappingWindow::OnGlobalDevicesChanged()
     }
     else
     {
-      // Selected device is not currently attached.
+      // Separate disconnected devices from connected ones
+      if (has_any_devices)
+        m_devices_combo->insertSeparator(m_devices_combo->count());
       const auto qname = QString::fromStdString(default_device);
       m_devices_combo->addItem(QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + qname,
                                qname);
       m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
+      created_disconnected_default_device = true;
     }
   }
 
-  m_devices_combo->addItem(tr("All devices"));
+  // Separate other devices from this
+  if (m_devices_combo->count() > 0)
+    m_devices_combo->insertSeparator(m_devices_combo->count());
+  m_devices_combo->addItem(tr("None"));
+
+  // Default to "None" if we had no default device or no devices.
+  // Defaulting to the first found device is not necessary because configs already default to it.
+  // Updating references isn't always necessary as it's already called elsewhere on device change.
+  if ((default_device.empty() || !has_any_devices) && !created_disconnected_default_device)
+  {
+    m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
+    OnSelectDevice(m_devices_combo->currentIndex());
+  }
 }
 
 void MappingWindow::SetMappingType(MappingWindow::Type type)
@@ -452,6 +498,9 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     return;
   }
 
+  // Automatically hide the tab bar if it's redundant (we only have one tab)
+  m_tab_widget->setTabBarAutoHide(true);
+
   widget->LoadSettings();
 
   m_config = widget->GetConfig();
@@ -516,7 +565,6 @@ void MappingWindow::OnDefaultFieldsPressed()
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
 
-  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
 }
@@ -526,14 +574,13 @@ void MappingWindow::OnClearFieldsPressed()
   // Loading an empty inifile section clears everything.
   IniFile::Section sec;
 
-  // Keep the currently selected device.
-  const auto default_device = m_controller->GetDefaultDevice();
   m_controller->LoadConfig(&sec);
-  m_controller->SetDefaultDevice(default_device);
+
+  // Set "None" default device.
+  m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
 
   m_controller->UpdateReferences(g_controller_interface);
 
-  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
 }

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <chrono>
 #include <optional>
 
 #include "Common/CommonTypes.h"
@@ -59,5 +58,4 @@ private:
   ControllerEmu::IMUGyroscope* m_rotation_gyro;
 
   const unsigned int m_index;
-  std::optional<std::chrono::steady_clock::time_point> m_last_free_look_rotate_time;
 };

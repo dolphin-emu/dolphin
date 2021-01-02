@@ -37,13 +37,13 @@ private:
     void UpdateOutput();
     void Release();
 
-    void SetState(ControlState state) override;
     std::string GetName() const override;
 
   protected:
     const LPDIRECTINPUTEFFECT m_effect;
 
   private:
+    void SetStateInternal(ControlState state) override;
     virtual void UpdateEffect(int magnitude) = 0;
 
     ForceFeedbackDevice& m_parent;

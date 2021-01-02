@@ -63,6 +63,8 @@ add_executable(dolphin-emu
   Config/CommonControllersWidget.h
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.h
+  Config/ControllerInterface/DualShockUDPClientCalibrationDialog.cpp
+  Config/ControllerInterface/DualShockUDPClientCalibrationDialog.h
   Config/ControllerInterface/DualShockUDPClientWidget.cpp
   Config/ControllerInterface/DualShockUDPClientWidget.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp

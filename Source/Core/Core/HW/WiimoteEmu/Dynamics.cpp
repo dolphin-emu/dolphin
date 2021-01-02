@@ -227,7 +227,7 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
 {
-  const auto cursor = ir_group->GetState(true);
+  const auto cursor = ir_group->GetState(false, time_elapsed);
 
   if (!cursor.IsVisible())
   {
@@ -310,7 +310,7 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
 {
-  const auto ang_vel = imu_gyroscope_group->GetState();
+  const auto ang_vel = imu_gyroscope_group->GetState(true);
 
   // Reset if pointing is disabled or we have no gyro data.
   if (!imu_ir_group->enabled || !ang_vel.has_value())

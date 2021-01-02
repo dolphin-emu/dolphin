@@ -85,6 +85,8 @@ void Host::SetMainWindowHandle(void* handle)
   m_main_window_handle = handle;
 }
 
+// Note that even if we are rendering in fullscreen and we are seemingly in the foreground,
+// it doesn't imply the window has focus
 bool Host::GetRenderFocus()
 {
 #ifdef _WIN32
@@ -226,6 +228,7 @@ void Host_RequestRenderWindowSize(int w, int h)
 
 bool Host_UIBlocksControllerState()
 {
+  // TODO: shouldn't this call WantCaptureKeyboard and "controller" as well?
   return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard;
 }
 

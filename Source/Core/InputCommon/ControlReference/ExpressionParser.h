@@ -12,6 +12,8 @@
 
 namespace ciface::ExpressionParser
 {
+using namespace ciface::Core;
+
 enum TokenType
 {
   TOK_WHITESPACE,
@@ -151,8 +153,6 @@ public:
   }
 
   std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier) const;
-  Core::Device::Input* FindInput(ControlQualifier qualifier) const;
-  Core::Device::Output* FindOutput(ControlQualifier qualifier) const;
   // Returns an existing variable by the specified name if already existing. Creates it otherwise.
   std::shared_ptr<ControlState> GetVariablePtr(const std::string& name);
 
@@ -164,14 +164,17 @@ private:
   const Core::DeviceQualifier& default_device;
 };
 
+// Expressions can modify their own mutable variables in GetValue() but all threads will share it
 class Expression
 {
 public:
   virtual ~Expression() = default;
   virtual ControlState GetValue() const = 0;
   virtual void SetValue(ControlState state) = 0;
+  // Return 1 if your expression could ultimately be used to control an input
   virtual int CountNumControls() const = 0;
-  virtual void UpdateReferences(ControlEnvironment& finder) = 0;
+  virtual Device::FocusFlags GetFocusFlags() const { return Device::FocusFlags::Default; }
+  virtual void UpdateReferences(ControlEnvironment& finder, bool is_input) = 0;
 };
 
 class ParseResult

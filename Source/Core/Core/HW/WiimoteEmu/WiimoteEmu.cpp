@@ -47,6 +47,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace WiimoteEmu
 {
@@ -191,6 +192,8 @@ void Wiimote::Reset()
   m_shake_state = {};
 
   m_imu_cursor_state = {};
+
+  m_ir->ResetState(false);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)
@@ -423,7 +426,7 @@ void Wiimote::UpdateButtonsStatus()
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void Wiimote::Update()
 {
-  const auto lock = GetStateLock();
+  CacheInputAndRefreshOutput();
 
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
@@ -596,7 +599,6 @@ void Wiimote::SendDataReport()
 bool Wiimote::IsButtonPressed()
 {
   u16 buttons = 0;
-  const auto lock = GetStateLock();
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
@@ -606,6 +608,8 @@ bool Wiimote::IsButtonPressed()
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
+
+  const auto lock = GetStateLock();
 
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
@@ -722,8 +726,10 @@ bool Wiimote::IsUpright() const
 
 void Wiimote::SetRumble(bool on)
 {
+  // This can be called at "any" time, we need to make sure the input channel is right
+  g_controller_interface.SetInputChannel(ciface::InputChannel::Bluetooth);
   const auto lock = GetStateLock();
-  m_rumble->controls.front()->control_ref->State(on);
+  m_rumble->controls.front()->control_ref->SetState(on);
 }
 
 void Wiimote::StepDynamics()

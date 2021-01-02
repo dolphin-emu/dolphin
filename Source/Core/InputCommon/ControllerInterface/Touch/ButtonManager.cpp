@@ -786,7 +786,7 @@ void InputDevice::AxisEvent(int axis, float value)
   }
 }
 
-bool InputDevice::ButtonValue(int pad_id, ButtonType button) const
+bool InputDevice::ButtonValue(int pad_id, ButtonType button)
 {
   const auto binding = m_input_binds.find(std::make_pair(pad_id, button));
   if (binding == m_input_binds.end())
@@ -808,7 +808,7 @@ bool InputDevice::ButtonValue(int pad_id, ButtonType button) const
   }
 }
 
-float InputDevice::AxisValue(int pad_id, ButtonType axis) const
+float InputDevice::AxisValue(int pad_id, ButtonType axis)
 {
   const auto binding = m_input_binds.find(std::make_pair(pad_id, axis));
   if (binding == m_input_binds.end())

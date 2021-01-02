@@ -13,6 +13,7 @@
 
 #include "Common/Config/Config.h"
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientCalibrationDialog.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 DualShockUDPClientWidget::DualShockUDPClientWidget()
@@ -32,14 +33,14 @@ void DualShockUDPClientWidget::CreateWidgets()
   m_server_list = new QListWidget();
   main_layout->addWidget(m_server_list);
 
+  // Note that you can always recalibrate
+  m_calibrate = new QPushButton(tr("Calibrate Touch..."));
   m_add_server = new QPushButton(tr("Add..."));
-  m_add_server->setEnabled(m_servers_enabled->isChecked());
-
   m_remove_server = new QPushButton(tr("Remove"));
-  m_remove_server->setEnabled(m_servers_enabled->isChecked());
 
   QHBoxLayout* hlayout = new QHBoxLayout;
   hlayout->addStretch();
+  hlayout->addWidget(m_calibrate);
   hlayout->addWidget(m_add_server);
   hlayout->addWidget(m_remove_server);
 
@@ -60,14 +61,19 @@ void DualShockUDPClientWidget::CreateWidgets()
   setLayout(main_layout);
 
   RefreshServerList();
+
+  OnServersEnabledToggled();
 }
 
 void DualShockUDPClientWidget::ConnectWidgets()
 {
   connect(m_servers_enabled, &QCheckBox::clicked, this,
-          &DualShockUDPClientWidget::OnServersToggled);
+          &DualShockUDPClientWidget::OnServersEnabledToggled);
+  connect(m_calibrate, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnCalibration);
   connect(m_add_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerAdded);
   connect(m_remove_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerRemoved);
+  connect(m_server_list, &QListWidget::itemSelectionChanged, this,
+          &DualShockUDPClientWidget::OnServerSelectionChanged);
 }
 
 void DualShockUDPClientWidget::RefreshServerList()
@@ -81,6 +87,7 @@ void DualShockUDPClientWidget::RefreshServerList()
   // Update our servers setting if the user is using old configuration
   if (!server_address_setting.empty() && server_port_setting != 0)
   {
+    // We have added even more settings now but they don't have to be defined
     const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
     Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
                              servers_setting + fmt::format("{}:{}:{};", "DS4",
@@ -98,11 +105,15 @@ void DualShockUDPClientWidget::RefreshServerList()
     if (server_info.size() < 3)
       continue;
 
+    // Index 3 and 4 are controller type and calibration data, there is no need to show them,
+    // especially because the data might not be there and the default interpretation is up to
+    // some other code, not us. Users can make a new one if they want to change these settings.
     QListWidgetItem* list_item = new QListWidgetItem(QString::fromStdString(
         fmt::format("{}:{} - {}", server_info[1], server_info[2], server_info[0])));
     m_server_list->addItem(list_item);
   }
-  emit ConfigChanged();
+
+  OnServerSelectionChanged();
 }
 
 void DualShockUDPClientWidget::OnServerAdded()
@@ -136,10 +147,60 @@ void DualShockUDPClientWidget::OnServerRemoved()
   RefreshServerList();
 }
 
-void DualShockUDPClientWidget::OnServersToggled()
+void DualShockUDPClientWidget::OnCalibration()
 {
-  bool checked = m_servers_enabled->isChecked();
+  // Enable calibration state and recreate the devices
+  ciface::DualShockUDPClient::g_calibration_device_index = m_server_list->currentRow();
+  // Instead of actually pointlessly editing a setting, we call OnConfigChanged()
+  Config::OnConfigChanged();
+
+  DualShockUDPClientCalibrationDialog calibration_dialog(this, m_server_list->currentRow());
+  // These need to be called before RefreshServerList, it will destroy the calibration devices
+  connect(&calibration_dialog, &DualShockUDPClientCalibrationDialog::accepted, this,
+          &DualShockUDPClientWidget::OnCalibrationEnded);
+  connect(&calibration_dialog, &DualShockUDPClientCalibrationDialog::rejected, this,
+          &DualShockUDPClientWidget::OnCalibrationEnded);
+
+  // Re-create all the UDP devices now, so that they will use the new calibration values
+  connect(&calibration_dialog, &DualShockUDPClientCalibrationDialog::accepted, this,
+          &DualShockUDPClientWidget::RefreshServerList);
+  calibration_dialog.exec();
+}
+
+// Reset calibration state
+void DualShockUDPClientWidget::OnCalibrationEnded()
+{
+  ciface::DualShockUDPClient::g_calibration_device_index = -1;
+  ciface::DualShockUDPClient::g_calibration_device_found = false;
+  ciface::DualShockUDPClient::g_calibration_touch_x_min = std::numeric_limits<s16>::max();
+  ciface::DualShockUDPClient::g_calibration_touch_y_min = std::numeric_limits<s16>::max();
+  ciface::DualShockUDPClient::g_calibration_touch_x_max = std::numeric_limits<s16>::min();
+  ciface::DualShockUDPClient::g_calibration_touch_y_max = std::numeric_limits<s16>::min();
+}
+
+void DualShockUDPClientWidget::OnServersEnabledToggled()
+{
+  const bool checked = m_servers_enabled->isChecked();
   Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, checked);
   m_add_server->setEnabled(checked);
-  m_remove_server->setEnabled(checked);
+
+  const QSignalBlocker blocker(m_server_list);
+  m_server_list->setEnabled(checked);
+  m_server_list->setSelectionMode(checked ? QAbstractItemView::SelectionMode::SingleSelection :
+                                            QAbstractItemView::SelectionMode::NoSelection);
+
+  if (!checked)
+  {
+    m_server_list->clearSelection();
+    m_server_list->setCurrentRow(-1);
+  }
+
+  OnServerSelectionChanged();
+}
+
+void DualShockUDPClientWidget::OnServerSelectionChanged()
+{
+  const bool any_selected = m_server_list->currentRow() >= 0;
+  m_remove_server->setEnabled(any_selected);
+  m_calibrate->setEnabled(any_selected);
 }
