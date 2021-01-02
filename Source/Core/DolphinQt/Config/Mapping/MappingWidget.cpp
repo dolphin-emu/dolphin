@@ -175,7 +175,20 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       {
         QWidget* widget = form_layout->itemAt(i)->widget();
         if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
+        {
           widget->setEnabled(group->enabled);
+        }
+        // Layouts could be even more nested but they likely never will
+        else if (QLayout* nested_layout = form_layout->itemAt(i)->layout())
+        {
+          for (int k = 0; k < nested_layout->count(); ++k)
+          {
+            if (widget = nested_layout->itemAt(k)->widget())
+            {
+              widget->setEnabled(group->enabled);
+            }
+          }
+        }
       }
     };
     enable_group_by_checkbox();
