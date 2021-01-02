@@ -197,6 +197,7 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
 {
   const auto button = new QPushButton(tr("..."));
   button->setFixedWidth(QFontMetrics(font()).boundingRect(button->text()).width() * 2);
+  button->setToolTip(tr("Advanced mapping"));
 
   button->connect(button, &QPushButton::clicked, [this, &setting]() {
     if (setting.IsSimpleValue())

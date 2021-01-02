@@ -28,7 +28,9 @@ class EmulatedController;
 class NumericSettingBase;
 }  // namespace ControllerEmu
 
-constexpr int INDICATOR_UPDATE_FREQ = 30;
+// For smoother UI, this should be based on the current monitor refresh rate.
+// No point in this being higher than HotkeyScheduler.cpp UPDATE_FREQUENCY
+constexpr int INDICATOR_UPDATE_FREQ = 60;
 
 class MappingWidget : public QWidget
 {
