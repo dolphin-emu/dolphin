@@ -86,6 +86,13 @@ void MappingWindow::CreateDevicesLayout()
   m_devices_combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   m_devices_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
+  m_devices_combo->setToolTip(
+      tr("Select the default device for this controller.\nThe default device won't need its path "
+         "in front of input "
+         "mappings (key bindings),\nall other devices will, if you want them to work at the same "
+         "time.\nChanging the default device could break your current mappings.\nSetting \"All "
+         "devices\" will only allow you to auto detect from all devices."));
+
   m_devices_layout->addWidget(m_devices_combo);
   m_devices_layout->addWidget(m_devices_refresh);
 
@@ -307,8 +314,43 @@ void MappingWindow::OnSaveProfilePressed()
 
 void MappingWindow::OnSelectDevice(int)
 {
+  const auto default_device = m_controller->GetDefaultDevice().ToString();
+  int default_device_index = -1;
+  if (!default_device.empty())
+    default_device_index = m_devices_combo->findData(QString::fromStdString(default_device));
+  bool default_device_connected = false;
+  for (const auto& name : g_controller_interface.GetAllDeviceStrings())
+  {
+    if (name == default_device)
+      default_device_connected = true;
+  }
+
   if (IsMappingAllDevices())
+  {
+    if (default_device_index >= 0)
+    {
+      QString qname = QString();
+      // Specify "default" even if we only have one device
+      qname.append(QLatin1Char{'['}).append(tr("default")).append(QStringLiteral("] "));
+      if (!default_device_connected)
+        qname.append(QLatin1Char{'['}).append(tr("disconnected")).append(QStringLiteral("] "));
+      qname.append(QString::fromStdString(default_device));
+      m_devices_combo->setItemText(default_device_index, qname);
+    }
+    // Leave the last default device, even if it's now disconnected
     return;
+  }
+  else
+  {
+    if (default_device_index >= 0)
+    {
+      QString qname = QString();
+      if (!default_device_connected)
+        qname.append(QLatin1Char{'['}).append(tr("disconnected")).append(QStringLiteral("] "));
+      qname.append(QString::fromStdString(default_device));
+      m_devices_combo->setItemText(default_device_index, qname);
+    }
+  }
 
   // Original string is stored in the "user-data".
   const auto device = m_devices_combo->currentData().toString().toStdString();
@@ -339,10 +381,14 @@ void MappingWindow::OnGlobalDevicesChanged()
     m_devices_combo->addItem(qname, qname);
   }
 
+  bool has_any_devices = m_devices_combo->count() > 0;
+
+  // Separate all disconnected device from connected ones
   m_devices_combo->insertSeparator(m_devices_combo->count());
 
   const auto default_device = m_controller->GetDefaultDevice().ToString();
 
+  // Force reselect of the default device, even if we have "All devices" selected
   if (!default_device.empty())
   {
     const auto default_device_index =
@@ -354,7 +400,7 @@ void MappingWindow::OnGlobalDevicesChanged()
     }
     else
     {
-      // Selected device is not currently attached.
+      // Selected device is not currently attached, leave it default but specify it
       const auto qname = QString::fromStdString(default_device);
       m_devices_combo->addItem(QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + qname,
                                qname);
@@ -363,6 +409,17 @@ void MappingWindow::OnGlobalDevicesChanged()
   }
 
   m_devices_combo->addItem(tr("All devices"));
+
+  // Force select a new default device if it was empty and now we have some devices,
+  // as that's what the user will see
+  if (default_device.empty() && has_any_devices)
+  {
+    OnSelectDevice(m_devices_combo->currentIndex());
+  }
+  else
+  {
+    m_controller->UpdateReferences(g_controller_interface);
+  }
 }
 
 void MappingWindow::SetMappingType(MappingWindow::Type type)
@@ -439,6 +496,9 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   default:
     return;
   }
+
+  // Automatically hide the tab bar if its redundant (we only have one tab)
+  m_tab_widget->setTabBarAutoHide(true);
 
   widget->LoadSettings();
 
