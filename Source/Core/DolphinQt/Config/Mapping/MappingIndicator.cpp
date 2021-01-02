@@ -293,7 +293,7 @@ void MappingIndicator::paintEvent(QPaintEvent*)
 
 void CursorIndicator::Draw()
 {
-  const auto adj_coord = m_cursor_group.GetState(true);
+  const auto adj_coord = m_cursor_group.GetState(0.f, true);
 
   DrawReshapableInput(m_cursor_group, CURSOR_TV_COLOR,
                       adj_coord.IsVisible() ?

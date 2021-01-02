@@ -192,6 +192,8 @@ void Wiimote::Reset()
   m_shake_state = {};
 
   m_imu_cursor_state = {};
+
+  m_ir->ResetState(true);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)

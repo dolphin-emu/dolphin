@@ -280,10 +280,13 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                      ControlState modifier)
+                                                      ControlState modifier, ControlState clamp)
 {
   x -= m_center.x;
   y -= m_center.y;
+
+  // We run this even if both x and y will be zero.
+  // The angle value will be random but dist will stay 0
 
   // TODO: make the AtAngle functions work with negative angles:
   ControlState angle = std::atan2(y, x) + MathUtil::TAU;
@@ -317,8 +320,8 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // Scale to the gate shape/radius:
   dist *= gate_max_dist;
 
-  return {std::clamp(std::cos(angle) * dist, -1.0, 1.0),
-          std::clamp(std::sin(angle) * dist, -1.0, 1.0)};
+  return {std::clamp(std::cos(angle) * dist, -clamp, clamp),
+          std::clamp(std::sin(angle) * dist, -clamp, clamp)};
 }
 
 }  // namespace ControllerEmu
