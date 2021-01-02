@@ -15,6 +15,7 @@
 
 namespace ciface::ExpressionParser
 {
+// if input > this, then it passes
 constexpr ControlState CONDITION_THRESHOLD = 0.5;
 
 class FunctionExpression : public Expression

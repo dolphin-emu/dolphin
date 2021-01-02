@@ -23,6 +23,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
@@ -34,6 +35,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControlReference/FunctionExpression.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -195,6 +197,7 @@ private:
   int m_column;
 };
 
+// Also used for output
 class InputStateLineEdit : public QLineEdit
 {
 public:
@@ -216,7 +219,13 @@ IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* con
 
   connect(parent, &MappingWidget::Update, this, &IOWindow::Update);
 
-  setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
+  // TODO: it would be nice to have the name of the input in the window
+  // (control->ui_name from MappingWidget.cpp)
+  QString title =
+      m_type == IOWindow::Type::Output ?
+          tr("Configure Output") :
+          (m_type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Input Setting"));
+  setWindowTitle(title);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   ConfigChanged();
@@ -256,7 +265,7 @@ void IOWindow::CreateMainLayout()
   m_operators_combo = new QComboBox();
   m_operators_combo->addItem(tr("Operators"));
   m_operators_combo->insertSeparator(1);
-  if (m_type == Type::Input)
+  if (m_type == Type::Input || m_type == Type::InputSetting)
   {
     m_operators_combo->addItem(tr("! Not"));
     m_operators_combo->addItem(tr("* Multiply"));
@@ -270,55 +279,79 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr("^ Xor"));
   }
   m_operators_combo->addItem(tr("| Or"));
-  if (m_type == Type::Input)
+  if (m_type == Type::Input || m_type == Type::InputSetting)
   {
     m_operators_combo->addItem(tr(", Comma"));
   }
 
   m_functions_combo = new QComboBox(this);
   m_functions_combo->addItem(tr("Functions"));
-  m_functions_combo->insertSeparator(1);
-  m_functions_combo->addItem(QStringLiteral("if"));
-  m_functions_combo->addItem(QStringLiteral("timer"));
-  m_functions_combo->addItem(QStringLiteral("toggle"));
-  m_functions_combo->addItem(QStringLiteral("deadzone"));
-  m_functions_combo->addItem(QStringLiteral("smooth"));
-  m_functions_combo->addItem(QStringLiteral("hold"));
-  m_functions_combo->addItem(QStringLiteral("tap"));
-  m_functions_combo->addItem(QStringLiteral("relative"));
-  m_functions_combo->addItem(QStringLiteral("pulse"));
-  m_functions_combo->addItem(QStringLiteral("sin"));
-  m_functions_combo->addItem(QStringLiteral("cos"));
-  m_functions_combo->addItem(QStringLiteral("tan"));
-  m_functions_combo->addItem(QStringLiteral("asin"));
-  m_functions_combo->addItem(QStringLiteral("acos"));
-  m_functions_combo->addItem(QStringLiteral("atan"));
-  m_functions_combo->addItem(QStringLiteral("atan2"));
-  m_functions_combo->addItem(QStringLiteral("sqrt"));
-  m_functions_combo->addItem(QStringLiteral("pow"));
-  m_functions_combo->addItem(QStringLiteral("min"));
-  m_functions_combo->addItem(QStringLiteral("max"));
-  m_functions_combo->addItem(QStringLiteral("clamp"));
+  // This might an empty unselectable whitespace at the end of the ComboBox selection
+  m_functions_combo->insertSeparator(m_functions_combo->count());  // A separator is also an item
+  m_functions_parameters.push_back(QStringLiteral(""));            // Keep the indexes aligned
+  // Logic/Math:
+  AddFunction("if");
+  AddFunction("not");
+  AddFunction("min");
+  AddFunction("max");
+  AddFunction("clamp");
+  AddFunction("minus");
+  AddFunction("pow");
+  AddFunction("sqrt");
+  AddFunction("sin");
+  AddFunction("cos");
+  AddFunction("tan");
+  AddFunction("asin");
+  AddFunction("acos");
+  AddFunction("atan");
+  AddFunction("atan2");
+  m_functions_combo->insertSeparator(m_functions_combo->count());
+  m_functions_parameters.push_back(QStringLiteral(""));
+  // State/time based:
+  AddFunction("onPress");
+  AddFunction("onRelease");
+  AddFunction("onChange");
+  AddFunction("cache");
+  AddFunction("hold");
+  AddFunction("toggle");
+  AddFunction("tap");
+  AddFunction("relative");
+  AddFunction("smooth");
+  AddFunction("pulse");
+  AddFunction("timer");
+  m_functions_combo->insertSeparator(m_functions_combo->count());
+  m_functions_parameters.push_back(QStringLiteral(""));
+  // Stick helpers:
+  AddFunction("deadzone");
+  AddFunction("antiDeadzone");
+  AddFunction("bezierCurve");
+  AddFunction("antiAcceleration");
 
   // Devices
   m_main_layout->addWidget(m_devices_combo);
 
   // Range
   auto* range_hbox = new QHBoxLayout();
-  range_hbox->addWidget(new QLabel(tr("Range")));
+  range_hbox->addWidget(new QLabel(tr("Range (%)")));
   range_hbox->addWidget(m_range_slider);
   range_hbox->addWidget(m_range_spinbox);
   m_range_slider->setMinimum(-500);
   m_range_slider->setMaximum(500);
   m_range_spinbox->setMinimum(-500);
   m_range_spinbox->setMaximum(500);
-  m_main_layout->addLayout(range_hbox);
+  m_range_slider->setToolTip(
+      tr("Multiplies (not clamp) the final result. Usually defaults to 100"));
+  m_range_spinbox->setToolTip(m_range_slider->toolTip());
+  // If this is an input setting, the range won't be saved in our config,
+  // nor it would make sense to change it, so just hide it
+  if (m_type != Type::InputSetting)
+    m_main_layout->addLayout(range_hbox);
 
   // Options (Buttons, Outputs) and action buttons
 
   m_option_list->setTabKeyNavigation(false);
 
-  if (m_type == Type::Input)
+  if (m_type == Type::Input || m_type == Type::InputSetting)
   {
     m_option_list->setColumnCount(2);
     m_option_list->setColumnWidth(1, 64);
@@ -350,7 +383,7 @@ void IOWindow::CreateMainLayout()
 
   button_vbox->addWidget(m_select_button);
 
-  if (m_type == Type::Input)
+  if (m_type == Type::Input || m_type == Type::InputSetting)
   {
     m_test_button->hide();
     button_vbox->addWidget(m_detect_button);
@@ -363,7 +396,7 @@ void IOWindow::CreateMainLayout()
 
   button_vbox->addWidget(m_operators_combo);
 
-  if (m_type == Type::Input)
+  if (m_type == Type::Input || m_type == Type::InputSetting)
     button_vbox->addWidget(m_functions_combo);
   else
     m_functions_combo->hide();
@@ -380,6 +413,58 @@ void IOWindow::CreateMainLayout()
   setLayout(m_main_layout);
 }
 
+void IOWindow::AddFunction(std::string function_name)
+{
+  using namespace ciface::ExpressionParser;
+  // Try to instantiate the function by name
+  std::unique_ptr<FunctionExpression> func = MakeFunctionExpression(function_name);
+
+  // Don't do anything if the function doesn't exist
+  if (func.get() == nullptr)
+  {
+    return;
+  }
+
+  m_functions_combo->addItem(QString::fromStdString(function_name));
+
+  // Try to set the function arguments, which will return a corrected version
+  // if they are not valid
+  std::vector<std::unique_ptr<Expression>> fake_args;
+  const auto argument_validation = func->SetArguments(std::move(fake_args));
+
+  // If the fake empty arguments are invalid, pre-fill commas between them.
+  // We don't add the argument names themselves because names are always parsed correctly,
+  // so the expression would be accepted. Also, errors are visible at the bottom of the widget
+  if (std::holds_alternative<FunctionExpression::ExpectedArguments>(argument_validation))
+  {
+    std::string correct_args =
+        std::get<FunctionExpression::ExpectedArguments>(argument_validation).text;
+
+    int commas_num = std::count(correct_args.begin(), correct_args.end(), ',');
+    int brackets_num = std::count(correct_args.begin(), correct_args.end(), '[');
+    int equals_num = std::count(correct_args.begin(), correct_args.end(), '=');
+
+    // Arguments that either have brackets or equal are not mandatory.
+    // As an alternative we should just pass in an increasing number of argments,
+    // and see the first number that gets accepted
+    commas_num -= brackets_num;
+    commas_num -= equals_num;
+
+    std::string commas = "";
+    while (commas_num > 0)
+    {
+      commas += ",";
+      --commas_num;
+    }
+
+    m_functions_parameters.push_back(QString::fromStdString(commas));
+  }
+  else
+  {
+    m_functions_parameters.push_back(QStringLiteral(""));
+  }
+}
+
 void IOWindow::ConfigChanged()
 {
   const QSignalBlocker blocker(this);
@@ -390,8 +475,9 @@ void IOWindow::ConfigChanged()
 
   m_expression_text->setPlainText(QString::fromStdString(m_reference->GetExpression()));
   m_expression_text->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor);
-  m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
-  m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
+  m_range = m_reference->range;
+  m_range_spinbox->setValue(m_range * SLIDER_TICK_COUNT);
+  m_range_slider->setValue(m_range * SLIDER_TICK_COUNT);
 
   m_devq = m_controller->GetDefaultDevice();
 
@@ -416,6 +502,7 @@ void IOWindow::ConnectWidgets()
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
   connect(m_range_spinbox, qOverload<int>(&QSpinBox::valueChanged), this,
           &IOWindow::OnRangeChanged);
+  connect(m_range_slider, &QSlider::valueChanged, this, &IOWindow::OnRangeChanged);
 
   connect(m_expression_text, &QPlainTextEdit::textChanged,
           [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
@@ -430,16 +517,22 @@ void IOWindow::ConnectWidgets()
   });
 
   connect(m_functions_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
-    if (0 == index)
+    if (0 == index || 1 == index)
       return;
 
-    m_expression_text->insertPlainText(m_functions_combo->currentText() + QStringLiteral("()"));
+    m_expression_text->insertPlainText(m_functions_combo->currentText() + QStringLiteral("(") +
+                                       m_functions_parameters[index - 1] + QStringLiteral(")"));
 
     m_functions_combo->setCurrentIndex(0);
   });
 
-  // revert the expression when the window closes without using the OK button
-  connect(this, &IOWindow::finished, [this] { UpdateExpression(m_original_expression); });
+  // revert the expression and range changes when the window closes without using the OK button
+  connect(this, &IOWindow::finished, [this] {
+    UpdateExpression(m_original_expression);
+  });
+  connect(this, &IOWindow::accepted, [this] {
+    SaveRange();
+  });
 }
 
 void IOWindow::AppendSelectedOption()
@@ -451,9 +544,9 @@ void IOWindow::AppendSelectedOption()
       m_option_list->currentItem()->text(), m_devq, m_controller->GetDefaultDevice()));
 }
 
-void IOWindow::OnDeviceChanged(const QString& device)
+void IOWindow::OnDeviceChanged()
 {
-  m_devq.FromString(device.toStdString());
+  m_devq.FromString(m_devices_combo->currentData().toString().toStdString());
   UpdateOptionList();
 }
 
@@ -501,9 +594,14 @@ void IOWindow::OnTestButtonPressed()
 
 void IOWindow::OnRangeChanged(int value)
 {
-  m_reference->range = static_cast<double>(value) / SLIDER_TICK_COUNT;
-  m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
-  m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
+  m_range = static_cast<ControlState>(value) / SLIDER_TICK_COUNT;
+  m_range_spinbox->setValue(m_range * SLIDER_TICK_COUNT);
+  m_range_slider->setValue(m_range * SLIDER_TICK_COUNT);
+}
+
+void IOWindow::SaveRange()
+{
+  m_reference->range = m_range;
 }
 
 void IOWindow::UpdateOptionList()
@@ -538,15 +636,35 @@ void IOWindow::UpdateOptionList()
   }
 }
 
+// Note that this isn't refreshed when we add/remove a device
 void IOWindow::UpdateDeviceList()
 {
   m_devices_combo->clear();
 
+  auto default_name = m_controller->GetDefaultDevice().ToString();
+  int default_device_index = -1;
   for (const auto& name : g_controller_interface.GetAllDeviceStrings())
-    m_devices_combo->addItem(QString::fromStdString(name));
+  {
+    QString qname = QString();
+    if (name == default_name)
+    {
+      default_device_index = m_devices_combo->count();
+      // Specify "default" even if we only have one device
+      qname.append(QStringLiteral("[default] "));
+    }
+    qname.append(QString::fromStdString(name));
+    m_devices_combo->addItem(qname, QString::fromStdString(name));
+  }
 
-  m_devices_combo->setCurrentText(
-      QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
+  if (default_device_index >= 0)
+  {
+    m_devices_combo->setCurrentIndex(default_device_index);
+  }
+  else
+  {
+    // Refresh to the first device
+    OnDeviceChanged();
+  }
 }
 
 void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)

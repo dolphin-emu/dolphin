@@ -273,7 +273,7 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
     if (setting.IsSimpleValue())
       setting.SetExpressionFromValue();
 
-    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::InputSetting);
     io.exec();
 
     setting.SimplifyIfPossible();
