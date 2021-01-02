@@ -29,7 +29,7 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
   for (auto& named_direction : named_directions)
     AddInput(Translate, named_direction);
 
-  AddInput(Translate, _trans("Modifier"));
+  AddInput(Translate, _trans("Modifier"), 0.5);
 }
 
 AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)

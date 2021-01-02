@@ -62,6 +62,8 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
 
   AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
+  numeric_settings.back().get()->GetInputReference().default_range = AUTO_HIDE_MS / 1000.0;
+  numeric_settings.back().get()->GetInputReference().range = AUTO_HIDE_MS / 1000.0;
 }
 
 Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)

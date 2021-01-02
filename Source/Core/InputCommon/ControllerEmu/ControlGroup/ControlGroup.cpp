@@ -72,7 +72,8 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
     }
 
     // range
-    sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
+    sec->Get(group + c->name + "/Range", &c->control_ref->range,
+             c->control_ref->default_range * 100.0);
     c->control_ref->range /= 100;
   }
 
@@ -148,19 +149,26 @@ void ControlGroup::SetControlExpression(int index, const std::string& expression
   controls.at(index)->control_ref->SetExpression(expression);
 }
 
-void ControlGroup::AddInput(Translatability translate, std::string name_)
+void ControlGroup::AddInput(Translatability translate, std::string name_, ControlState range)
 {
   controls.emplace_back(std::make_unique<Input>(translate, std::move(name_)));
+  controls.back().get()->control_ref->default_range = range;
+  controls.back().get()->control_ref->range = range;
 }
 
-void ControlGroup::AddInput(Translatability translate, std::string name_, std::string ui_name_)
+void ControlGroup::AddInput(Translatability translate, std::string name_, std::string ui_name_,
+                            ControlState range)
 {
   controls.emplace_back(std::make_unique<Input>(translate, std::move(name_), std::move(ui_name_)));
+  controls.back().get()->control_ref->default_range = range;
+  controls.back().get()->control_ref->range = range;
 }
 
-void ControlGroup::AddOutput(Translatability translate, std::string name_)
+void ControlGroup::AddOutput(Translatability translate, std::string name_, ControlState range)
 {
   controls.emplace_back(std::make_unique<Output>(translate, std::move(name_)));
+  controls.back().get()->control_ref->default_range = range;
+  controls.back().get()->control_ref->range = range;
 }
 
 }  // namespace ControllerEmu

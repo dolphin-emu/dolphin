@@ -308,11 +308,7 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // This is affected by the modifier's "range" setting which defaults to 50%.
   if (modifier)
   {
-    // TODO: Modifier's range setting gets reset to 100% when the clear button is clicked.
-    // This causes the modifier to not behave how a user might suspect.
-    // Retaining the old scale-by-50% behavior until range is fixed to clear to 50%.
-    dist *= 0.5;
-    // dist *= modifier;
+    dist *= modifier;
   }
 
   // Apply deadzone as a percentage of the user-defined calibration shape/size:
