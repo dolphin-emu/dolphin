@@ -158,9 +158,98 @@ void CodeDiffDialog::OnRecord(bool enabled)
   JitInterface::SetProfilingState(state);
 }
 
-void CodeDiffDialog::OnIncludeExclude(bool include)
+void CodeDiffDialog::OnInclude()
 {
   std::vector<Diff> current_diff;
+  auto current_symbols = CalculateSymbolsFromProfile();
+  if (m_include.empty() && m_exclude.empty())
+  {
+    m_include = current_symbols;
+    return;
+  }
+
+  if (m_exclude.empty())
+  {
+    current_diff = current_symbols;
+  }
+  else
+  {
+    for (auto& iter : current_symbols)
+    {
+      auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
+
+      if (pos->symbol != iter.symbol)
+      {
+        current_diff.push_back(iter);
+      }
+    }
+  }
+
+  if (!m_include.empty())
+  {
+    // Compare include with current and remove items that aren't in both.
+    std::vector<Diff> tmp_swap;
+    for (auto& iter : m_include)
+    {
+      if (std::any_of(current_diff.begin(), current_diff.end(),
+                      [&](Diff& v) { return v.symbol == iter.symbol; }))
+      {
+        tmp_swap.push_back(iter);
+      }
+    }
+    m_include.swap(tmp_swap);
+  }
+  else
+  {
+    m_include = current_symbols;
+    RemoveMatchingSymbolsFromIncludes(m_exclude);
+  }
+}
+
+void CodeDiffDialog::OnExclude()
+{
+  std::vector<Diff> current_diff;
+  auto current_symbols = CalculateSymbolsFromProfile();
+  if (m_include.empty() && m_exclude.empty())
+  {
+    m_exclude = current_symbols;
+    return;
+  }
+
+  if (m_exclude.empty())
+  {
+    m_exclude = current_symbols;
+  }
+  else
+  {
+    for (auto& iter : current_symbols)
+    {
+      auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
+
+      if (pos->symbol != iter.symbol)
+      {
+        current_diff.push_back(iter);
+
+        m_exclude.insert(pos, iter);
+      }
+    }
+    // If there is no include list, we're done.
+    if (m_include.empty())
+      return;
+  }
+
+  if (m_exclude.empty())
+  {
+    RemoveMatchingSymbolsFromIncludes(m_exclude);
+  }
+  else
+  {
+    RemoveMatchingSymbolsFromIncludes(current_diff);
+  }
+}
+
+std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
+{
   Profiler::ProfileStats prof_stats;
   auto& blockstats = prof_stats.block_stats;
   JitInterface::GetProfileResults(&prof_stats);
@@ -187,81 +276,16 @@ void CodeDiffDialog::OnIncludeExclude(bool include)
   sort(current.begin(), current.end(),
        [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
 
-  // If both lists are empty, write and skip.
-  if (m_include.empty() && m_exclude.empty())
-  {
-    if (include)
-      m_include = current;
-    else
-      m_exclude = current;
-    return;
-  }
+  return current;
+}
 
-  // Update exclude list. Compare to exclude list if it exists and make current_diff to check
-  // against include.
-  if (m_exclude.empty() && !include)
+void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(const std::vector<Diff>& symbol_list)
+{
+  for (auto& list : symbol_list)
   {
-    m_exclude = current;
-  }
-  else if (!m_exclude.empty())
-  {
-    for (auto& iter : current)
-    {
-      auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
-
-      if (pos->symbol != iter.symbol)
-      {
-        current_diff.push_back(iter);
-
-        if (!include)
-          m_exclude.insert(pos, iter);
-      }
-    }
-    // If there is no include list, we're done.
-    if (!include && m_include.empty())
-      return;
-  }
-  else
-  {
-    current_diff = current;
-  }
-
-  // Update include list.
-  if (include && !m_include.empty())
-  {
-    // Compare include with current and remove items that aren't in both.
-    std::vector<Diff> tmp_swap;
-    for (auto& iter : m_include)
-    {
-      if (std::any_of(current_diff.begin(), current_diff.end(),
-                      [&](Diff& v) { return v.symbol == iter.symbol; }))
-        tmp_swap.push_back(iter);
-    }
-    m_include.swap(tmp_swap);
-  }
-  else if ((m_include.empty() && include) || (m_exclude.empty() && !include))
-  {
-    // If both lists are about to be filled for the first time, compare full lists and remove from
-    // include list.
-    if (include)
-      m_include = current;
-
-    for (auto& list : m_exclude)
-    {
-      m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
-                                     [&](Diff const& v) { return v.symbol == list.symbol; }),
-                      m_include.end());
-    }
-  }
-  else
-  {
-    // If exclude pressed, remove new exclude items from include list that match.
-    for (auto& list : current_diff)
-    {
-      m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
-                                     [&](Diff& v) { return v.symbol == list.symbol; }),
-                      m_include.end());
-    }
+    m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
+                                   [&](Diff& v) { return v.symbol == list.symbol; }),
+                    m_include.end());
   }
 }
 
@@ -273,7 +297,14 @@ void CodeDiffDialog::Update(bool include)
     Core::SetState(Core::State::Paused);
 
   // Main process
-  OnIncludeExclude(include);
+  if (include)
+  {
+    OnInclude();
+  }
+  else
+  {
+    OnExclude();
+  }
 
   m_matching_results_list->clear();
 
