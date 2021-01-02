@@ -57,6 +57,9 @@ public:
   virtual InputReference& GetInputReference() = 0;
   virtual const InputReference& GetInputReference() const = 0;
 
+  // Can be edited in UI? This setting should not used if is false
+  virtual bool IsEnabled() const = 0;
+
   virtual bool IsSimpleValue() const = 0;
 
   // Convert a literal expression e.g. "7.0" to a regular value. (disables expression parsing)
@@ -89,9 +92,10 @@ public:
                 "NumericSetting is only implemented for int, double, and bool.");
 
   NumericSetting(SettingValue<ValueType>* value, const NumericSettingDetails& details,
-                 ValueType default_value, ValueType min_value, ValueType max_value)
+                 ValueType default_value, ValueType min_value, ValueType max_value,
+                 NumericSetting<bool>* edit_condition = nullptr)
       : NumericSettingBase(details), m_value(*value), m_default_value(default_value),
-        m_min_value(min_value), m_max_value(max_value)
+        m_min_value(min_value), m_max_value(max_value), m_edit_condition(edit_condition)
   {
     m_value.SetValue(m_default_value);
   }
@@ -117,6 +121,9 @@ public:
     else
       section.Set(group_name + m_details.ini_name, m_value.m_input.GetExpression(), "");
   }
+
+  bool IsEnabled() const override { return !m_edit_condition || m_edit_condition->GetValue(); }
+  const NumericSetting<bool>* GetEditCondition() const { return m_edit_condition; }
 
   bool IsSimpleValue() const override { return m_value.IsSimpleValue(); }
 
@@ -146,6 +153,9 @@ private:
   const ValueType m_default_value;
   const ValueType m_min_value;
   const ValueType m_max_value;
+
+  // Assuming settings are never destroyed if not all together
+  const NumericSetting<bool>* m_edit_condition;
 };
 
 template <typename T>

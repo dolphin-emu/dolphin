@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <QString>
+#include <QFormLayout>
 #include <QWidget>
 
 constexpr int WIDGET_MAX_WIDTH = 112;
@@ -53,10 +54,16 @@ signals:
 protected:
   int GetPort() const;
 
+  void RefreshSettingsEnabled();
+
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:
-  MappingWindow* m_parent;
+  MappingWindow* const m_parent;
+
+  std::vector<std::tuple<const ControllerEmu::NumericSettingBase*, QFormLayout::TakeRowResult,
+                         const ControllerEmu::ControlGroup*>>
+      m_edit_condition_numeric_settings;
 };

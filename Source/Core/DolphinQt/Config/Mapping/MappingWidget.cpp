@@ -5,7 +5,6 @@
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
 #include <QCheckBox>
-#include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
@@ -133,17 +132,24 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& setting : group->numeric_settings)
   {
     QWidget* setting_widget = nullptr;
+    bool has_edit_condition = false;
 
     switch (setting->GetType())
     {
     case ControllerEmu::SettingType::Double:
       setting_widget = new MappingDouble(
           this, static_cast<ControllerEmu::NumericSetting<double>*>(setting.get()));
+      has_edit_condition =
+          static_cast<ControllerEmu::NumericSetting<double>*>(setting.get())->GetEditCondition() !=
+          nullptr;
       break;
 
     case ControllerEmu::SettingType::Bool:
       setting_widget =
           new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
+      has_edit_condition =
+          static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get())->GetEditCondition() !=
+          nullptr;
       break;
 
     default:
@@ -159,6 +165,16 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
 
       form_layout->addRow(tr(setting->GetUIName()), hbox);
+
+      QFormLayout::TakeRowResult row;
+      row.fieldItem = form_layout->itemAt(form_layout->rowCount() - 1, QFormLayout::FieldRole);
+      row.labelItem = form_layout->itemAt(form_layout->rowCount() - 1, QFormLayout::LabelRole);
+      row.labelItem->widget()->setToolTip(tr(setting->GetUIDescription()));
+
+      if (has_edit_condition)
+      {
+        m_edit_condition_numeric_settings.emplace_back(std::make_tuple(setting.get(), row, group));
+      }
     }
   }
 
@@ -197,7 +213,48 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
             [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
 
+  // This isn't called immediately when the edit condition changes
+  // but it's called at frequent regular intervals so it's fine.
+  // Connecting checkbox changes events would have been quite complicated
+  // given that groups have the ability to override the enabled value as well
+  connect(this, &MappingWidget::Update, this, &MappingWidget::RefreshSettingsEnabled);
+
   return group_box;
+}
+
+void MappingWidget::RefreshSettingsEnabled()
+{
+  for (auto& numeric_settings : m_edit_condition_numeric_settings)
+  {
+    bool enabled = true;
+    const ControllerEmu::NumericSettingBase* setting = std::get<0>(numeric_settings);
+    switch (setting->GetType())
+    {
+    case ControllerEmu::SettingType::Double:
+      enabled = static_cast<const ControllerEmu::NumericSetting<double>*>(setting)->IsEnabled();
+      break;
+
+    case ControllerEmu::SettingType::Bool:
+      enabled = static_cast<const ControllerEmu::NumericSetting<bool>*>(setting)->IsEnabled();
+      break;
+    }
+    enabled = enabled && std::get<2>(numeric_settings)->enabled;
+
+    if (QWidget* widget = std::get<1>(numeric_settings).labelItem->widget())
+    {
+      widget->setEnabled(enabled);
+    }
+    if (QLayout* layout = std::get<1>(numeric_settings).fieldItem->layout())
+    {
+      for (int i = 0; i < layout->count(); ++i)
+      {
+        if (QWidget* widget = layout->itemAt(i)->widget())
+        {
+          widget->setEnabled(enabled);
+        }
+      }
+    }
+  }
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const
