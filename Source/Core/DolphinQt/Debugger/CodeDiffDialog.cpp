@@ -160,21 +160,21 @@ void CodeDiffDialog::OnRecord(bool enabled)
 
 void CodeDiffDialog::OnInclude()
 {
-  std::vector<Diff> current_diff;
-  auto current_symbols = CalculateSymbolsFromProfile();
+  const auto recorded_symbols = CalculateSymbolsFromProfile();
   if (m_include.empty() && m_exclude.empty())
   {
-    m_include = current_symbols;
+    m_include = recorded_symbols;
     return;
   }
 
+  std::vector<Diff> current_diff;
   if (m_exclude.empty())
   {
-    current_diff = current_symbols;
+    current_diff = recorded_symbols;
   }
   else
   {
-    for (auto& iter : current_symbols)
+    for (auto& iter : recorded_symbols)
     {
       auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
 
@@ -192,37 +192,37 @@ void CodeDiffDialog::OnInclude()
     for (auto& iter : m_include)
     {
       if (std::any_of(current_diff.begin(), current_diff.end(),
-                      [&](Diff& v) { return v.symbol == iter.symbol; }))
+                      [&](Diff& v) { return v.symbol != iter.symbol; }))
       {
-        tmp_swap.push_back(iter);
+        m_include.push_back(iter);
       }
     }
     m_include.swap(tmp_swap);
   }
   else
   {
-    m_include = current_symbols;
+    m_include = recorded_symbols;
     RemoveMatchingSymbolsFromIncludes(m_exclude);
   }
 }
 
 void CodeDiffDialog::OnExclude()
 {
-  std::vector<Diff> current_diff;
-  auto current_symbols = CalculateSymbolsFromProfile();
+  const auto recorded_symbols = CalculateSymbolsFromProfile();
   if (m_include.empty() && m_exclude.empty())
   {
-    m_exclude = current_symbols;
+    m_exclude = recorded_symbols;
     return;
   }
 
+  std::vector<Diff> current_diff;
   if (m_exclude.empty())
   {
-    m_exclude = current_symbols;
+    m_exclude = recorded_symbols;
   }
   else
   {
-    for (auto& iter : current_symbols)
+    for (auto& iter : recorded_symbols)
     {
       auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
 
@@ -238,11 +238,7 @@ void CodeDiffDialog::OnExclude()
       return;
   }
 
-  if (m_exclude.empty())
-  {
-    RemoveMatchingSymbolsFromIncludes(m_exclude);
-  }
-  else
+  if (!m_exclude.empty())
   {
     RemoveMatchingSymbolsFromIncludes(current_diff);
   }
