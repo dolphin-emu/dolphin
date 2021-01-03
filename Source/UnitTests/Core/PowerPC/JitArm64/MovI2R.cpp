@@ -1,0 +1,95 @@
+// Copyright 2021 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include <cstddef>
+#include <type_traits>
+
+#include "Common/Arm64Emitter.h"
+#include "Common/Assert.h"
+#include "Common/BitUtils.h"
+#include "Common/Random.h"
+
+#include <gtest/gtest.h>
+
+namespace
+{
+using namespace Arm64Gen;
+
+class TestMovI2R : public ARM64CodeBlock
+{
+public:
+  TestMovI2R() { AllocCodeSpace(4096); }
+
+  void Check32(u32 value)
+  {
+    ResetCodePtr();
+
+    const u8* fn = GetCodePtr();
+    MOVI2R(W0, value);
+    RET();
+
+    FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
+
+    const u64 result = Common::BitCast<u64 (*)()>(fn)();
+    EXPECT_EQ(value, result);
+  }
+
+  void Check64(u64 value)
+  {
+    ResetCodePtr();
+
+    const u8* fn = GetCodePtr();
+    MOVI2R(X0, value);
+    RET();
+
+    FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
+
+    const u64 result = Common::BitCast<u64 (*)()>(fn)();
+    EXPECT_EQ(value, result);
+  }
+};
+
+}  // namespace
+
+TEST(JitArm64, MovI2R_32BitValues)
+{
+  TestMovI2R test;
+  for (u64 i = 0; i < 0x100000000; i++)
+  {
+    test.Check32(static_cast<u32>(i));
+    test.Check64(i);
+  }
+}
+
+TEST(JitArm64, MovI2R_Rand)
+{
+  Common::Random::PRNG rng{0};
+  TestMovI2R test;
+  for (u64 i = 0; i < 0x100000; i++)
+  {
+    test.Check64(rng.GenerateValue<u64>());
+  }
+}
+
+TEST(JitArm64, MovI2R_ADP)
+{
+  TestMovI2R test;
+  const u64 base = Common::BitCast<u64>(test.GetCodePtr());
+  for (s64 i = -0x20000; i < 0x20000; i++)
+  {
+    const u64 offset = static_cast<u64>(i);
+    test.Check64(base + offset);
+  }
+}
+
+TEST(JitArm64, MovI2R_ADRP)
+{
+  TestMovI2R test;
+  const u64 base = Common::BitCast<u64>(test.GetCodePtr()) & ~0xFFF;
+  for (s64 i = -0x20000; i < 0x20000; i++)
+  {
+    const u64 offset = static_cast<u64>(i) << 12;
+    test.Check64(base + offset);
+  }
+}
