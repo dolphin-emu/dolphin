@@ -105,18 +105,18 @@ void JitArm64::GenerateAsm()
     // b.effectiveAddress != addr || b.msrBits != msr
     ARM64Reg pc_and_msr = W25;
     ARM64Reg pc_and_msr2 = W24;
-    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, effectiveAddress));
+    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlockData, effectiveAddress));
     CMP(pc_and_msr, DISPATCHER_PC);
     FixupBranch pc_missmatch = B(CC_NEQ);
 
     LDR(INDEX_UNSIGNED, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
     ANDI2R(pc_and_msr2, pc_and_msr2, JitBaseBlockCache::JIT_CACHE_MSR_MASK);
-    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, msrBits));
+    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlockData, msrBits));
     CMP(pc_and_msr, pc_and_msr2);
     FixupBranch msr_missmatch = B(CC_NEQ);
 
     // return blocks[block_num].normalEntry;
-    LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlock, normalEntry));
+    LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlockData, normalEntry));
     BR(block);
     SetJumpTarget(not_found);
     SetJumpTarget(pc_missmatch);
