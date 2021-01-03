@@ -70,8 +70,6 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
                      "surface),\nit will make it independent from the emulation speed.")},
              false, false, true, edit_condition);
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
-  numeric_settings.back().get()->GetInputReference().default_range = AUTO_HIDE_MS / 1000.0;
-  numeric_settings.back().get()->GetInputReference().range = AUTO_HIDE_MS / 1000.0;
 }
 
 Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)

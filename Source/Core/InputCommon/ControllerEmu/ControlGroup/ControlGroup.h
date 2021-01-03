@@ -101,7 +101,7 @@ public:
 
   bool enabled = true;
   std::vector<std::unique_ptr<Control>> controls;
-  // Settings can point to eatch other so never remove them individually
+  // Settings can point to each other so never remove them individually
   std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
 };
 }  // namespace ControllerEmu
