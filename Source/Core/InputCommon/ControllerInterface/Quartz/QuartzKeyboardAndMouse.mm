@@ -188,8 +188,8 @@ void KeyboardAndMouse::UpdateInput()
 
   loc.x -= bounds.origin.x;
   loc.y -= bounds.origin.y;
-  m_cursor.x = (loc.x / bounds.size.width * 2 - 1.0) * window_scale.x;
-  m_cursor.y = (loc.y / bounds.size.height * 2 - 1.0) * window_scale.y;
+  m_cursor.x = (loc.x / std::max(bounds.size.width, 1.0) * 2 - 1.0) * window_scale.x;
+  m_cursor.y = (loc.y / std::max(bounds.size.height, 1.0) * 2 - 1.0) * window_scale.y;
 }
 
 std::string KeyboardAndMouse::GetName() const

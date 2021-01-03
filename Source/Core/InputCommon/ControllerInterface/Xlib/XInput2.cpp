@@ -227,8 +227,8 @@ void KeyboardMouse::UpdateCursor()
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // the mouse position as a range from -1 to 1
-  m_state.cursor.x = (win_x / win_attribs.width * 2 - 1) * window_scale.x;
-  m_state.cursor.y = (win_y / win_attribs.height * 2 - 1) * window_scale.y;
+  m_state.cursor.x = (win_x / std::max(win_attribs.width, 1) * 2 - 1) * window_scale.x;
+  m_state.cursor.y = (win_y / std::max(win_attribs.height, 1) * 2 - 1) * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()
