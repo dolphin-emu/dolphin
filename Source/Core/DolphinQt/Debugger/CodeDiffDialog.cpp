@@ -115,6 +115,7 @@ void CodeDiffDialog::ClearData()
   m_include_size_label->setText(QStringLiteral("Included: 0"));
   m_exclude_btn->setEnabled(false);
   m_include_btn->setEnabled(false);
+  // Swap is used instead of clear for efficiency in the case of huge m_include/m_exclude
   std::vector<Diff>().swap(m_include);
   std::vector<Diff>().swap(m_exclude);
   JitInterface::SetProfilingState(JitInterface::ProfilingState::Disabled);
@@ -192,9 +193,9 @@ void CodeDiffDialog::OnInclude()
     for (auto& iter : m_include)
     {
       if (std::any_of(current_diff.begin(), current_diff.end(),
-                      [&](Diff& v) { return v.symbol != iter.symbol; }))
+                      [&](Diff& v) { return v.symbol == iter.symbol; }))
       {
-        m_include.push_back(iter);
+        tmp_swap.push_back(iter);
       }
     }
     m_include.swap(tmp_swap);
