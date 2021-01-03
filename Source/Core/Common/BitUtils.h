@@ -365,7 +365,7 @@ T ExpandValue(T value, size_t left_shift_amount)
 constexpr int CountLeadingZeros(uint64_t value)
 {
 #if defined(__GNUC__)
-  return __builtin_clzll(value);
+  return value ? __builtin_clzll(value) : 64;
 #elif defined(_MSC_VER) && defined(_M_ARM_64)
   return _CountLeadingZeros64(value);
 #elif defined(_MSC_VER) && defined(_M_X86_64)
@@ -385,7 +385,7 @@ constexpr int CountLeadingZeros(uint64_t value)
 constexpr int CountLeadingZeros(uint32_t value)
 {
 #if defined(__GNUC__)
-  return __builtin_clz(value);
+  return value ? __builtin_clz(value) : 32;
 #elif defined(_MSC_VER) && defined(_M_ARM_64)
   return _CountLeadingZeros(value);
 #elif defined(_MSC_VER) && defined(_M_X86_64)
