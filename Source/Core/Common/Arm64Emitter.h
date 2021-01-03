@@ -896,13 +896,13 @@ public:
   void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
   void SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
 
-  bool TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm);
-  bool TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm);
-  bool TryCMPI2R(ARM64Reg Rn, u32 imm);
+  bool TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
+  bool TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
+  bool TryCMPI2R(ARM64Reg Rn, u64 imm);
 
-  bool TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm);
-  bool TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm);
-  bool TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm);
+  bool TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
+  bool TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
+  bool TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
 
   // ABI related
   void ABI_PushRegisters(BitSet32 registers);

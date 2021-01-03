@@ -2040,6 +2040,7 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
     MOVN,
     ADR,
     ADRP,
+    ORR,
   };
 
   struct Part
@@ -2055,6 +2056,12 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 
   SmallVector<Part, max_parts> best_parts;
   Approach best_approach;
+  u64 best_base;
+
+  const auto instructions_required = [](const SmallVector<Part, max_parts>& parts,
+                                        Approach approach) {
+    return parts.size() + (approach > Approach::MOVN);
+  };
 
   const auto try_base = [&](T base, Approach approach, bool first_time) {
     SmallVector<Part, max_parts> parts;
@@ -2068,32 +2075,52 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
         parts.emplace_back(imm_shifted, static_cast<ShiftAmount>(i));
     }
 
-    if (first_time || parts.size() < best_parts.size())
+    if (first_time ||
+        instructions_required(parts, approach) < instructions_required(best_parts, best_approach))
     {
       best_parts = std::move(parts);
       best_approach = approach;
+      best_base = base;
     }
   };
 
+  // Try MOVZ/MOVN
+  try_base(T(0), Approach::MOVZ, true);
+  try_base(~T(0), Approach::MOVN, false);
+
+  // Try PC-relative approaches
   const auto sext_21_bit = [](u64 x) {
     return static_cast<s64>((x & 0x1FFFFF) | (x & 0x100000 ? ~0x1FFFFF : 0));
   };
-
   const u64 pc = reinterpret_cast<u64>(GetCodePtr());
   const s64 adrp_offset = sext_21_bit((imm >> 12) - (pc >> 12)) << 12;
   const s64 adr_offset = sext_21_bit(imm - pc);
   const u64 adrp_base = (pc & ~0xFFF) + adrp_offset;
   const u64 adr_base = pc + adr_offset;
-
-  // First: Try approaches for which instruction_count = max(parts.size(), 1)
-  try_base(T(0), Approach::MOVZ, true);
-  try_base(~T(0), Approach::MOVN, false);
-
-  // Second: Try approaches for which instruction_count = parts.size() + 1
   if constexpr (sizeof(T) == 8)
   {
     try_base(adrp_base, Approach::ADRP, false);
     try_base(adr_base, Approach::ADR, false);
+  }
+
+  // Try ORR (or skip it if we already have a 1-instruction encoding - these tests are non-trivial)
+  if (instructions_required(best_parts, best_approach) > 1)
+  {
+    if constexpr (sizeof(T) == 8)
+    {
+      for (u64 orr_imm : {(imm << 32) | (imm & 0x0000'0000'FFFF'FFFF),
+                          (imm & 0xFFFF'FFFF'0000'0000) | (imm >> 32),
+                          (imm << 48) | (imm & 0x0000'FFFF'FFFF'0000) | (imm >> 48)})
+      {
+        if (IsImmLogical(orr_imm, 64))
+          try_base(orr_imm, Approach::ORR, false);
+      }
+    }
+    else
+    {
+      if (IsImmLogical(imm, 32))
+        try_base(imm, Approach::ORR, false);
+    }
   }
 
   size_t parts_uploaded = 0;
@@ -2123,6 +2150,12 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 
   case Approach::ADRP:
     ADRP(Rd, adrp_offset);
+    break;
+
+  case Approach::ORR:
+    constexpr ARM64Reg zero_reg = sizeof(T) == 8 ? ZR : WZR;
+    const bool success = TryORRI2R(Rd, zero_reg, best_base);
+    ASSERT(success);
     break;
   }
 
@@ -4330,7 +4363,7 @@ void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   ADDI2R_internal(Is64Bit(Rn) ? ZR : WZR, Rn, imm, true, true, scratch);
 }
 
-bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
   if (const auto result = IsImmArithmetic(imm))
   {
@@ -4342,7 +4375,7 @@ bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
   return false;
 }
 
-bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
   if (const auto result = IsImmArithmetic(imm))
   {
@@ -4354,7 +4387,7 @@ bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
   return false;
 }
 
-bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u64 imm)
 {
   if (const auto result = IsImmArithmetic(imm))
   {
@@ -4366,9 +4399,9 @@ bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
   return false;
 }
 
-bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
   {
     const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
@@ -4377,9 +4410,10 @@ bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 
   return false;
 }
-bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+
+bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
   {
     const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
@@ -4388,9 +4422,10 @@ bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 
   return false;
 }
-bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+
+bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
   {
     const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
