@@ -76,8 +76,8 @@ SlippiUser::SlippiUser()
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 5000);
 
     // Set up HTTP Headers
-    m_curlHeaderList = curl_slist_append(m_curlHeaderList, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_curlHeaderList);
+    m_curl_header_list = curl_slist_append(m_curl_header_list, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, m_curl_header_list);
 
 #ifdef _WIN32
     // ALPN support is enabled by default but requires Windows >= 8.1.
@@ -91,59 +91,58 @@ SlippiUser::SlippiUser()
 SlippiUser::~SlippiUser()
 {
   // Wait for thread to terminate
-  runThread = false;
-  if (fileListenThread.joinable())
-    fileListenThread.join();
+  m_run_thread = false;
+  if (m_file_listen_thread.joinable())
+    m_file_listen_thread.join();
 
   if (m_curl)
   {
-    curl_slist_free_all(m_curlHeaderList);
+    curl_slist_free_all(m_curl_header_list);
     curl_easy_cleanup(m_curl);
   }
 }
 
 bool SlippiUser::AttemptLogin()
 {
-  std::string userFilePath = getUserFilePath();
+  std::string user_file_path = getUserFilePath();
 
-  INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", userFilePath.c_str());
+  INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", user_file_path.c_str());
 
   {
-    std::string userFilePathTxt =
-        userFilePath +
-        ".txt";  // Put the filename here in its own scope because we don't really need it elsewhere
-    if (File::Exists(userFilePathTxt))
+    // Put the filename here in its own scope because we don't really need it elsewhere
+    std::string user_file_path_txt = user_file_path + ".txt";
+    if (File::Exists(user_file_path_txt))
     {
       // If both files exist we just log they exist and take no further action
-      if (File::Exists(userFilePath))
+      if (File::Exists(user_file_path))
       {
         INFO_LOG(SLIPPI_ONLINE, "Found both .json.txt and .json file for user data. Using .json "
                                 "and ignoring the .json.txt");
       }
       // If only the .txt file exists move the contents to a json file and log if it fails
-      else if (!File::Rename(userFilePathTxt, userFilePath))
+      else if (!File::Rename(user_file_path_txt, user_file_path))
       {
-        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", userFilePathTxt.c_str(),
-                 userFilePath.c_str());
+        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", user_file_path_txt.c_str(),
+                 user_file_path.c_str());
       }
     }
   }
 
   // Get user file
-  std::string userFileContents;
-  File::ReadFileToString(userFilePath, userFileContents);
+  std::string user_file_contents;
+  File::ReadFileToString(user_file_path, user_file_contents);
 
-  userInfo = parseFile(userFileContents);
+  m_user_info = parseFile(user_file_contents);
 
-  isLoggedIn = !userInfo.uid.empty();
-  if (isLoggedIn)
+  m_is_logged_in = !m_user_info.uid.empty();
+  if (m_is_logged_in)
   {
     overwriteFromServer();
-    WARN_LOG(SLIPPI_ONLINE, "Found user %s (%s)", userInfo.displayName.c_str(),
-             userInfo.uid.c_str());
+    WARN_LOG(SLIPPI_ONLINE, "Found user %s (%s)", m_user_info.display_name.c_str(),
+             m_user_info.uid.c_str());
   }
 
-  return isLoggedIn;
+  return m_is_logged_in;
 }
 
 void SlippiUser::OpenLogInPage()
@@ -159,21 +158,21 @@ void SlippiUser::OpenLogInPage()
 #endif
 
 #ifndef __APPLE__
-  char* escapedPath = curl_easy_escape(nullptr, path.c_str(), (int)path.length());
-  path = std::string(escapedPath);
-  curl_free(escapedPath);
+  char* escaped_path = curl_easy_escape(nullptr, path.c_str(), (int)path.length());
+  path = std::string(escaped_path);
+  curl_free(escaped_path);
 #endif
 
-  std::string fullUrl = url + "?path=" + path;
+  std::string full_url = url + "?path=" + path;
 
-  INFO_LOG(SLIPPI_ONLINE, "[User] Login at path: %s", fullUrl.c_str());
+  INFO_LOG(SLIPPI_ONLINE, "[User] Login at path: %s", full_url.c_str());
 
 #ifdef _WIN32
-  std::string command = "explorer \"" + fullUrl + "\"";
+  std::string command = "explorer \"" + full_url + "\"";
 #elif defined(__APPLE__)
-  std::string command = "open \"" + fullUrl + "\"";
+  std::string command = "open \"" + full_url + "\"";
 #else
-  std::string command = "xdg-open \"" + fullUrl + "\"";  // Linux
+  std::string command = "xdg-open \"" + full_url + "\"";  // Linux
 #endif
 
   RunSystemCommand(command);
@@ -185,13 +184,13 @@ void SlippiUser::UpdateApp()
   auto isoPath = SConfig::GetInstance().m_strIsoPath;
 
   std::string path = File::GetExeDirectory() + "/dolphin-slippi-tools.exe";
-  std::string echoMsg =
+  std::string echo_msg =
       "echo Starting update process. If nothing happen after a few "
       "minutes, you may need to update manually from https://slippi.gg/netplay ...";
   // std::string command =
-  //    "start /b cmd /c " + echoMsg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath +
+  //    "start /b cmd /c " + echo_msg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath +
   //    "\"";
-  std::string command = "start /b cmd /c " + echoMsg + " && \"" + path +
+  std::string command = "start /b cmd /c " + echo_msg + " && \"" + path +
                         "\" app-update -launch -iso \"" + isoPath + "\" -version \"" +
                         Common::scm_slippi_semver_str + "\"";
   WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
@@ -215,48 +214,48 @@ void SlippiUser::UpdateApp()
 
 void SlippiUser::ListenForLogIn()
 {
-  if (runThread)
+  if (m_run_thread)
     return;
 
-  if (fileListenThread.joinable())
-    fileListenThread.join();
+  if (m_file_listen_thread.joinable())
+    m_file_listen_thread.join();
 
-  runThread = true;
-  fileListenThread = std::thread(&SlippiUser::FileListenThread, this);
+  m_run_thread = true;
+  m_file_listen_thread = std::thread(&SlippiUser::FileListenThread, this);
 }
 
 void SlippiUser::LogOut()
 {
-  runThread = false;
+  m_run_thread = false;
   deleteFile();
 
-  UserInfo emptyUser;
-  isLoggedIn = false;
-  userInfo = emptyUser;
+  UserInfo empty_user;
+  m_is_logged_in = false;
+  m_user_info = empty_user;
 }
 
 void SlippiUser::OverwriteLatestVersion(std::string version)
 {
-  userInfo.latestVersion = version;
+  m_user_info.latest_version = version;
 }
 
 SlippiUser::UserInfo SlippiUser::GetUserInfo()
 {
-  return userInfo;
+  return m_user_info;
 }
 
 bool SlippiUser::IsLoggedIn()
 {
-  return isLoggedIn;
+  return m_is_logged_in;
 }
 
 void SlippiUser::FileListenThread()
 {
-  while (runThread)
+  while (m_run_thread)
   {
     if (AttemptLogin())
     {
-      runThread = false;
+      m_run_thread = false;
       break;
     }
 
@@ -270,14 +269,14 @@ void SlippiUser::FileListenThread()
 std::string SlippiUser::getUserFilePath()
 {
 #if defined(__APPLE__)
-  std::string userFilePath =
+  std::string user_file_path =
       File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + "user.json";
 #elif defined(_WIN32)
-  std::string userFilePath = File::GetExeDirectory() + DIR_SEP + "user.json";
+  std::string user_file_path = File::GetExeDirectory() + DIR_SEP + "user.json";
 #else
-  std::string userFilePath = File::GetUserPath(F_USERJSON_IDX);
+  std::string user_file_path = File::GetUserPath(F_USERJSON_IDX);
 #endif
-  return userFilePath;
+  return user_file_path;
 }
 
 inline std::string readString(json obj, std::string key)
@@ -291,30 +290,30 @@ inline std::string readString(json obj, std::string key)
   return obj[key];
 }
 
-SlippiUser::UserInfo SlippiUser::parseFile(std::string fileContents)
+SlippiUser::UserInfo SlippiUser::parseFile(std::string file_contents)
 {
   UserInfo info;
-  info.fileContents = fileContents;
+  info.file_contents = file_contents;
 
-  auto res = json::parse(fileContents, nullptr, false);
+  auto res = json::parse(file_contents, nullptr, false);
   if (res.is_discarded() || !res.is_object())
   {
     return info;
   }
 
   info.uid = readString(res, "uid");
-  info.displayName = readString(res, "displayName");
-  info.playKey = readString(res, "playKey");
-  info.connectCode = readString(res, "connectCode");
-  info.latestVersion = readString(res, "latestVersion");
+  info.display_name = readString(res, "displayName");
+  info.play_key = readString(res, "playKey");
+  info.connect_code = readString(res, "connectCode");
+  info.latest_version = readString(res, "latestVersion");
 
   return info;
 }
 
 void SlippiUser::deleteFile()
 {
-  std::string userFilePath = getUserFilePath();
-  File::Delete(userFilePath);
+  std::string user_file_path = getUserFilePath();
+  File::Delete(user_file_path);
 }
 
 void SlippiUser::overwriteFromServer()
@@ -324,7 +323,7 @@ void SlippiUser::overwriteFromServer()
 
   // Perform curl request
   std::string resp;
-  curl_easy_setopt(m_curl, CURLOPT_URL, (URL_START + "/" + userInfo.uid).c_str());
+  curl_easy_setopt(m_curl, CURLOPT_URL, (URL_START + "/" + m_user_info.uid).c_str());
   curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &resp);
   CURLcode res = curl_easy_perform(m_curl);
 
@@ -334,19 +333,19 @@ void SlippiUser::overwriteFromServer()
     return;
   }
 
-  long responseCode;
-  curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &responseCode);
-  if (responseCode != 200)
+  long response_code;
+  curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &response_code);
+  if (response_code != 200)
   {
-    ERROR_LOG(SLIPPI, "[User] Server responded with non-success status: %d", responseCode);
+    ERROR_LOG(SLIPPI, "[User] Server responded with non-success status: %d", response_code);
     return;
   }
 
-  // Overwrite userInfo with data from server
+  // Overwrite user info with data from server
   auto r = json::parse(resp);
-  userInfo.connectCode = r.value("connectCode", userInfo.connectCode);
-  userInfo.latestVersion = r.value("latestVersion", userInfo.latestVersion);
+  m_user_info.connect_code = r.value("connectCode", m_user_info.connect_code);
+  m_user_info.latest_version = r.value("latestVersion", m_user_info.latest_version);
 
   // TODO: Once it's possible to change Display name from website, uncomment below
-  // userInfo.displayName = r.value("displayName", userInfo.displayName);
+  // m_user_info.display_name = r.value("displayName", m_user_info.display_name);
 }
