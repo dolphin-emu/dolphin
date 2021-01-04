@@ -980,6 +980,18 @@ void Jit64::subfx(UGeckoInstruction inst)
         GenerateOverflow();
     }
   }
+  else if (gpr.IsImm(b) && gpr.Imm32(b) == 0)
+  {
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+
+    if (d != a)
+      MOV(32, Rd, Ra);
+    NEG(32, Rd);
+    if (inst.OE)
+      GenerateOverflow();
+  }
   else
   {
     RCOpArg Ra = gpr.Use(a, RCMode::Read);
