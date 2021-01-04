@@ -955,7 +955,14 @@ void Jit64::subfx(UGeckoInstruction inst)
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Rb, Rd);
 
-    if (d == b)
+    if (j == 0)
+    {
+      if (d != b)
+        MOV(32, Rd, Rb);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (d == b)
     {
       SUB(32, Rd, Imm32(j));
       if (inst.OE)
