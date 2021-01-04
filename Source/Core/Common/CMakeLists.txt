@@ -226,10 +226,19 @@ target_sources(common PRIVATE
 )
 
 if(ENABLE_EGL AND EGL_FOUND)
-  target_sources(common PRIVATE
-    GL/GLInterface/EGL.cpp
-    GL/GLInterface/EGL.h
-  )
+  if (LIBDRM_FOUND AND LIBGBM_FOUND)
+    target_sources(common PRIVATE
+      GL/GLInterface/EGL.cpp
+      GL/GLInterface/EGL.h
+      GL/GLInterface/EGLDRM.cpp
+      GL/GLInterface/EGLDRM.h
+    )
+  else()
+    target_sources(common PRIVATE
+      GL/GLInterface/EGL.cpp
+      GL/GLInterface/EGL.h
+    )
+  endif()
   if(ANDROID)
     target_sources(common PRIVATE
       GL/GLInterface/EGLAndroid.cpp
@@ -241,8 +250,13 @@ if(ENABLE_EGL AND EGL_FOUND)
       GL/GLInterface/EGLX11.h
     )
   endif()
-  target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS})
-  target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
+  if (LIBDRM_FOUND AND LIBGBM_FOUND)
+    target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS} ${LIBDRM_INCLUDE_DIRS} ${LIBGBM_INCLUDE_DIRS})
+    target_link_libraries(common PUBLIC ${EGL_LIBRARIES} ${LIBDRM_LIBRARIES} ${LIBGBM_LIBRARIES})
+  else()
+    target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS})
+    target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
+  endif()
 endif()
 
 if(WIN32)

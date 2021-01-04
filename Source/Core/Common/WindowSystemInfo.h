@@ -13,6 +13,7 @@ enum class WindowSystemType
   X11,
   Wayland,
   FBDev,
+  DRM
 };
 
 struct WindowSystemInfo

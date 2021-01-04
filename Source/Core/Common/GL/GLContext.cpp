@@ -17,6 +17,9 @@
 #endif
 #if HAVE_EGL
 #include "Common/GL/GLInterface/EGL.h"
+#if HAVE_DRM
+#include "Common/GL/GLInterface/EGLDRM.h"
+#endif
 #if HAVE_X11
 #include "Common/GL/GLInterface/EGLX11.h"
 #endif
@@ -110,6 +113,10 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
 #if HAVE_EGL
   if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
     context = std::make_unique<GLContextEGL>();
+#if HAVE_DRM
+  else if (wsi.type == WindowSystemType::DRM)
+    context = std::make_unique<GLContextEGLDRM>();
+#endif
 #endif
 
   if (!context)
