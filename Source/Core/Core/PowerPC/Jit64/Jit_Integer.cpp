@@ -941,7 +941,13 @@ void Jit64::subfx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (a == b)
+  {
+    gpr.SetImmediate32(d, 0);
+    if (inst.OE)
+      GenerateConstantOverflow(false);
+  }
+  else if (gpr.IsImm(a, b))
   {
     s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
     gpr.SetImmediate32(d, i - j);
