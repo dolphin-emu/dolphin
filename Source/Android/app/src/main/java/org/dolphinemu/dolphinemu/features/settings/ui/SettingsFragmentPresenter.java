@@ -658,8 +658,8 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(R.string.other, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.GFX_FAST_DEPTH_CALC, R.string.fast_depth_calculation,
             R.string.fast_depth_calculation_description));
-    sl.add(new CheckBoxSetting(BooleanSetting.GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON, R.string.texture_lookup_with_epsilon,
-            R.string.texture_lookup_with_epsilon_description));
+    sl.add(new IntSliderSetting(IntSetting.GFX_HACK_TEXTURE_LOOKUP_EPSILON, R.string.texture_lookup_epsilon,
+            R.string.texture_lookup_epsilon_description, 0, 100, "%"));
   }
 
   private void addLogConfigurationSettings(ArrayList<SettingsItem> sl)

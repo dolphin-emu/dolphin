@@ -148,8 +148,7 @@ const Info<bool> GFX_HACK_COPY_EFB_SCALED{{System::GFX, "Hacks", "EFBScaledCopy"
 const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{
     {System::GFX, "Hacks", "EFBEmulateFormatChanges"}, false};
 const Info<bool> GFX_HACK_VERTEX_ROUDING{{System::GFX, "Hacks", "VertexRounding"}, false};
-const Info<bool> GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON{
-    {System::GFX, "Hacks", "UseEpsilonDuringTextureLookup"}, false};
+const Info<int> GFX_HACK_TEXTURE_LOOKUP_EPSILON{{System::GFX, "Hacks", "TextureLookupEpsilon"}, 0};
 
 // Graphics.GameSpecific
 

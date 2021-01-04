@@ -122,7 +122,7 @@ extern const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS;
 extern const Info<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const Info<bool> GFX_HACK_VERTEX_ROUDING;
-extern const Info<bool> GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON;
+extern const Info<int> GFX_HACK_TEXTURE_LOOKUP_EPSILON;
 
 // Graphics.GameSpecific
 

@@ -1339,7 +1339,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_SkipIPL;
   spac << m_settings.m_LoadIPLDump;
   spac << m_settings.m_VertexRounding;
-  spac << m_settings.m_TextureLookupWithEpsilon;
+  spac << m_settings.m_TextureLookupEpsilon;
   spac << m_settings.m_InternalResolution;
   spac << m_settings.m_EFBScaledCopy;
   spac << m_settings.m_FastDepthCalc;

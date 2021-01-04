@@ -200,6 +200,7 @@ PixelShaderUid GetPixelShaderUid()
 
   uid_data->per_pixel_depth = per_pixel_depth;
   uid_data->forced_early_z = forced_early_z;
+  uid_data->epsilon_hack = g_ActiveConfig.iTextureLookupEpsilon;
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
@@ -274,7 +275,6 @@ PixelShaderUid GetPixelShaderUid()
       uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
       uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
       uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
-      uid_data->stagehash[n].epsilon_hack = g_ActiveConfig.bTextureLookupWithEpsilon;
     }
 
     if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST ||
@@ -813,6 +813,12 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
+  // Hack: When set, it uses a small Epsilon to work around
+  // the rounding issue on some GPUs in texture lookups.
+  // Fixes texture glitches in some games eg. horizontal/vertical lines in videos.
+  // The correct solution would be to integerize texture lookups, but it would be much slower.
+  out.Write("\tfloat texture_lookup_epsilon = {};\n", (float)uid_data->epsilon_hack / 100.0);
+
   for (u32 i = 0; i < numStages; i++)
   {
     // Build the equation for this stage
@@ -1201,14 +1207,10 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       else
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
-    out.Write("\ttextemp = ");
 
-    // Hack: When enabled, it uses a small Epsilon to work around
-    // the rounding issue on some GPUs in texture lookups.
-    // Fixes texture glitches in some games eg. horizontal/vertical lines in videos.
-    // The correct solution would be to integerize texture lookups, but it would be much slower.
-    SampleTexture(out, stage.epsilon_hack ? "(float2(tevcoord.xy) + 0.25)" : "float2(tevcoord.xy)",
-                  texswap, stage.tevorders_texmap, stereo, api_type);
+    out.Write("\ttextemp = ");
+    SampleTexture(out, "(float2(tevcoord.xy) + texture_lookup_epsilon)", texswap,
+                  stage.tevorders_texmap, stereo, api_type);
   }
   else
   {

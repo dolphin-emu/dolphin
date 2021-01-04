@@ -486,7 +486,7 @@ void NetPlayDialog::OnStart()
   settings.m_LoadIPLDump = Config::Get(Config::MAIN_LOAD_IPL_DUMP) &&
                            Settings::Instance().GetNetPlayServer()->DoAllPlayersHaveIPLDump();
   settings.m_VertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
-  settings.m_TextureLookupWithEpsilon = Config::Get(Config::GFX_HACK_TEXTURE_LOOKUP_WITH_EPSILON);
+  settings.m_TextureLookupEpsilon = Config::Get(Config::GFX_HACK_TEXTURE_LOOKUP_EPSILON);
   settings.m_InternalResolution = Config::Get(Config::GFX_EFB_SCALE);
   settings.m_EFBScaledCopy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   settings.m_FastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);

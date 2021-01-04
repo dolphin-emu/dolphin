@@ -7,6 +7,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsBool;
+class GraphicsSlider;
 class GraphicsWindow;
 class QLabel;
 class ToolTipSlider;
@@ -42,7 +43,7 @@ private:
   GraphicsBool* m_fast_depth_calculation;
   GraphicsBool* m_disable_bounding_box;
   GraphicsBool* m_vertex_rounding;
-  GraphicsBool* m_texture_lookup_with_epsilon;
+  GraphicsSlider* m_texture_lookup_epsilon;
   GraphicsBool* m_save_texture_cache_state;
   GraphicsBool* m_defer_efb_copies;
 

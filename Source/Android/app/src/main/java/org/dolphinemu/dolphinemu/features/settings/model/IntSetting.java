@@ -53,6 +53,8 @@ public enum IntSetting implements AbstractIntSetting
   GFX_STEREO_DEPTH(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY, "StereoDepth", 20),
   GFX_STEREO_CONVERGENCE_PERCENTAGE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY,
           "StereoConvergencePercentage", 100),
+  GFX_HACK_TEXTURE_LOOKUP_EPSILON(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
+          "TextureLookupEpsilon", 0),
 
   LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1);
 

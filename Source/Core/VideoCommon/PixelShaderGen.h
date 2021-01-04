@@ -61,6 +61,9 @@ struct pixel_shader_uid_data
   u32 tevindref_bi4 : 3;
   u32 tevindref_bc4 : 3;
 
+  u32 epsilon_hack : 7;
+  u32 pad1 : 25;
+
   void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
   {
     if (index == 0)
@@ -137,8 +140,7 @@ struct pixel_shader_uid_data
     u32 tevorders_texcoord : 3;
     u32 tevorders_enable : 1;
     u32 tevorders_colorchan : 3;
-    u32 epsilon_hack : 1;
-    u32 pad1 : 5;
+    u32 pad1 : 6;
 
     // TODO: Clean up the swapXY mess
     u32 hasindstage : 1;

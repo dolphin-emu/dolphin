@@ -60,7 +60,7 @@ struct NetSettings
   bool m_SkipIPL;
   bool m_LoadIPLDump;
   bool m_VertexRounding;
-  bool m_TextureLookupWithEpsilon;
+  int m_TextureLookupEpsilon;
   int m_InternalResolution;
   bool m_EFBScaledCopy;
   bool m_FastDepthCalc;

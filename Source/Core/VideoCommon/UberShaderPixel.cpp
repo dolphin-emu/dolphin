@@ -31,7 +31,7 @@ PixelShaderUid GetPixelShaderUid()
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
-  uid_data->epsilon_hack = g_ActiveConfig.bTextureLookupWithEpsilon;
+  uid_data->epsilon_hack = g_ActiveConfig.iTextureLookupEpsilon;
 
   return out;
 }
@@ -61,7 +61,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
   const bool bounding_box = host_config.bounding_box;
   const u32 numTexgen = uid_data->num_texgens;
-  const bool epsilonHack = uid_data->epsilon_hack != 0;
+  const u32 epsilonHack = uid_data->epsilon_hack;
   ShaderCode out;
 
   out.Write("// Pixel UberShader for {} texgens{}{}\n", numTexgen,
@@ -901,11 +901,11 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("\n"
               "      float2 uv = ");
 
-    // Hack: When enabled, it uses a small Epsilon to work around
+    // Hack: When set, it uses a small Epsilon to work around
     // the rounding issue on some GPUs in texture lookups.
     // Fixes texture glitches in some games eg. horizontal/vertical lines in videos.
     // The correct solution would be to integerize texture lookups, but it would be much slower.
-    out.Write(epsilonHack ? "(float2(tevcoord.xy) + 0.25)" : "(float2(tevcoord.xy))");
+    out.Write("(float2(tevcoord.xy) + {})", (float)epsilonHack / 100.0);
 
     out.Write("* " I_TEXDIMS "[sampler_num].xy;\n");
     out.Write("      int4 color = sampleTexture(sampler_num, float3(uv, {}));\n",
