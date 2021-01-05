@@ -168,6 +168,8 @@ elseif (ANDROID)
   PRIVATE
     androidcommon
   )
+elseif(HAIKU)
+  target_link_libraries(common PRIVATE be GL)
 endif()
 
 if(ANDROID)
@@ -255,6 +257,11 @@ elseif(APPLE)
   target_sources(common PRIVATE
     GL/GLInterface/AGL.h
     GL/GLInterface/AGL.mm
+  )
+elseif(HAIKU)
+  target_sources(common PRIVATE
+    GL/GLInterface/BGL.h
+    GL/GLInterface/BGL.cpp
   )
 elseif(ENABLE_X11 AND X11_FOUND)
   target_sources(common PRIVATE

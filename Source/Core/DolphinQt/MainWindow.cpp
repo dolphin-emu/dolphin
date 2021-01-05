@@ -154,6 +154,8 @@ static WindowSystemType GetWindowSystemType()
     return WindowSystemType::X11;
   else if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
+  else if (platform_name == QStringLiteral("haiku"))
+    return WindowSystemType::Haiku;
 
   ModalMessageBox::critical(
       nullptr, QStringLiteral("Error"),
@@ -167,7 +169,7 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   wsi.type = GetWindowSystemType();
 
   // Our Win32 Qt external doesn't have the private API.
-#if defined(WIN32) || defined(__APPLE__)
+#if defined(WIN32) || defined(__APPLE__) || defined(__HAIKU__)
   wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
   wsi.render_surface = wsi.render_window;
 #else
