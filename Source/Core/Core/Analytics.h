@@ -54,6 +54,13 @@ enum class GameQuirk
   MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP,
   MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP,
 
+  // The WD module can be configured to operate in six different modes.
+  // In practice, only mode 1 (DS communications) and mode 3 (AOSS access point scanning)
+  // are used by games and the system menu respectively.
+  USES_UNCOMMON_WD_MODE,
+
+  USES_WD_UNIMPLEMENTED_IOCTL,
+
   COUNT,
 };
 
