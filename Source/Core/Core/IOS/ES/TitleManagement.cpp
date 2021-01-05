@@ -107,15 +107,14 @@ IPCCommandResult ES::ImportTicket(const IOCtlVRequest& request)
 constexpr std::array<u8, 16> NULL_KEY{};
 
 // Used for exporting titles and importing them back (ImportTmd and ExportTitleInit).
-static ReturnCode InitBackupKey(const IOS::ES::TMDReader& tmd, IOSC& iosc, IOSC::Handle* key)
+static ReturnCode InitBackupKey(u64 tid, u32 title_flags, IOSC& iosc, IOSC::Handle* key)
 {
   // Some versions of IOS have a bug that causes it to use a zeroed key instead of the PRNG key.
   // When Nintendo decided to fix it, they added checks to keep using the zeroed key only in
   // affected titles to avoid making existing exports useless.
 
   // Ignore the region byte.
-  const u64 title_id = tmd.GetTitleId() | 0xff;
-  const u32 title_flags = tmd.GetTitleFlags();
+  const u64 title_id = tid | 0xff;
   const u32 affected_type = IOS::ES::TITLE_TYPE_0x10 | IOS::ES::TITLE_TYPE_DATA;
   if (title_id == Titles::SYSTEM_MENU || (title_flags & affected_type) != affected_type ||
       !(title_id == 0x00010005735841ff || title_id - 0x00010005735a41ff <= 0x700))
@@ -136,7 +135,8 @@ static void ResetTitleImportContext(ES::Context* context, IOSC& iosc)
   context->title_import_export = {};
 }
 
-ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
+ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes, u64 caller_title_id,
+                         u32 caller_title_flags)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTmd");
 
@@ -166,8 +166,8 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
     return ES_EIO;
   }
 
-  ret =
-      InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
+  ret = InitBackupKey(caller_title_id, caller_title_flags, m_ios.GetIOSC(),
+                      &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "ImportTmd: InitBackupKey failed with error {}", ret);
@@ -189,7 +189,8 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(ImportTmd(context, tmd));
+  return GetDefaultReply(ImportTmd(context, tmd, m_title_context.tmd.GetTitleId(),
+                                   m_title_context.tmd.GetTitleFlags()));
 }
 
 static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& iosc,
@@ -651,7 +652,8 @@ IPCCommandResult ES::DeleteContent(const IOCtlVRequest& request)
                                        Memory::Read_U32(request.in_vectors[1].address)));
 }
 
-ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size)
+ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size,
+                               u64 caller_title_id, u32 caller_title_flags)
 {
   // No concurrent title import/export is allowed.
   if (context.title_import_export.valid)
@@ -664,8 +666,8 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd = tmd;
 
-  const ReturnCode ret =
-      InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
+  const ReturnCode ret = InitBackupKey(caller_title_id, caller_title_flags, m_ios.GetIOSC(),
+                                       &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -688,7 +690,9 @@ IPCCommandResult ES::ExportTitleInit(Context& context, const IOCtlVRequest& requ
   u8* tmd_bytes = Memory::GetPointer(request.io_vectors[0].address);
   const u32 tmd_size = request.io_vectors[0].size;
 
-  return GetDefaultReply(ExportTitleInit(context, title_id, tmd_bytes, tmd_size));
+  return GetDefaultReply(ExportTitleInit(context, title_id, tmd_bytes, tmd_size,
+                                         m_title_context.tmd.GetTitleId(),
+                                         m_title_context.tmd.GetTitleFlags()));
 }
 
 ReturnCode ES::ExportContentBegin(Context& context, u64 title_id, u32 content_id)
