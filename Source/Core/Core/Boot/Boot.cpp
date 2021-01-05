@@ -139,6 +139,14 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     return {};
   }
 
+  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
+  // RetroArch uses the OS separator.
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
+    for (auto& path : paths)
+      std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+
   std::string folder_path;
   std::string extension;
   SplitPath(paths.front(), &folder_path, nullptr, &extension);
