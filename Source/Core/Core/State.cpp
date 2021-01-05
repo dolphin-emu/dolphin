@@ -99,11 +99,11 @@ enum
   STATE_LOAD = 2,
 };
 
-static bool g_use_compression = true;
+static bool s_use_compression = true;
 
 void EnableCompression(bool compression)
 {
-  g_use_compression = compression;
+  s_use_compression = compression;
 }
 
 // Returns true if state version matches current Dolphin state version, false otherwise.
@@ -358,7 +358,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   // Setting up the header
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.gameID, std::size(header.gameID));
-  header.size = g_use_compression ? (u32)buffer_size : 0;
+  header.size = s_use_compression ? (u32)buffer_size : 0;
   header.time = Common::Timer::GetDoubleTime();
 
   f.WriteArray(&header, 1);
