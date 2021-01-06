@@ -27,6 +27,8 @@ struct PatchEntry
   PatchType type = PatchType::Patch8Bit;
   u32 address = 0;
   u32 value = 0;
+  u32 comparand = 0;
+  bool conditional = false;
 };
 
 struct Patch
