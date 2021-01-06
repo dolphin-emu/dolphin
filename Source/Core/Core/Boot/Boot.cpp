@@ -162,6 +162,8 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
   }
 
+  Libretro::AddDiscs(paths);
+
   std::string path = paths.front();
   if (paths.size() == 1)
     paths.clear();

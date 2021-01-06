@@ -156,18 +156,42 @@ void retro_unload_game(void)
 namespace Libretro
 {
 // Disk swapping
-static struct retro_disk_control_callback retro_disk_control_cb;
 static unsigned disk_index = 0;
+static bool eject_state;
 static std::vector<std::string> disk_paths;
 
 static bool retro_set_eject_state(bool ejected)
 {
+  if (eject_state == ejected)
+    return false;
+
+  eject_state = ejected;
+
+  if (ejected)
+    Core::RunAsCPUThread([] { DVDInterface::EjectDisc(DVDInterface::EjectCause::User); });
+  else
+  {
+    if (disk_index < 0 || disk_index >= (int)disk_paths.size())
+      Core::RunAsCPUThread([] { DVDInterface::SetDisc(nullptr, std::nullopt); });
+    else
+    {
+      Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(disk_paths[disk_index]); });
+    }
+    
+  }
+
   return true;
+}
+
+void AddDiscs(std::vector<std::string> paths)
+{
+  for (auto& path : paths)
+    disk_paths.push_back(path);
 }
 
 static bool retro_get_eject_state()
 {
-  return false;
+  return eject_state;
 }
 
 static unsigned retro_get_image_index()
@@ -177,15 +201,10 @@ static unsigned retro_get_image_index()
 
 static bool retro_set_image_index(unsigned index)
 {
-  disk_index = index;
-  if (disk_index >= disk_paths.size())
-  {
-    // No disk in drive
-    return true;
-  }
-  Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(disk_paths[disk_index]); });
-
-  return true;
+  if (eject_state)
+    disk_index = index;
+  
+  return eject_state;
 }
 
 static unsigned retro_get_num_images()
@@ -202,14 +221,16 @@ static bool retro_add_image_index()
 
 static bool retro_replace_image_index(unsigned index, const struct retro_game_info* info)
 {
-  if (info == nullptr)
+  if (index >= disk_paths.size())
+    return false;
+
+  if (!info->path)
   {
-    if (index < disk_paths.size())
-    {
-      disk_paths.erase(disk_paths.begin() + index);
-      if (disk_index >= index && disk_index > 0)
-        disk_index--;
-    }
+    disk_paths.erase(disk_paths.begin() + index);
+    if (!disk_paths.size())
+      disk_index = -1;
+    else if (disk_index > (int)index)
+      disk_index--;
   }
   else
     disk_paths[index] = info->path;
@@ -217,16 +238,54 @@ static bool retro_replace_image_index(unsigned index, const struct retro_game_in
   return true;
 }
 
+static bool RETRO_CALLCONV retro_set_initial_image(unsigned index, const char* path)
+{
+  if (index >= disk_paths.size())
+    index = 0;
+
+  disk_index = index;
+
+  return true;
+}
+
+static bool RETRO_CALLCONV retro_get_image_path(unsigned index, char* path, size_t len)
+{
+  if (index >= disk_paths.size())
+    return false;
+
+  if (disk_paths[index].empty())
+    return false;
+
+  strncpy(path, disk_paths[index].c_str(), len);
+  return true;
+}
+static bool RETRO_CALLCONV retro_get_image_label(unsigned index, char* label, size_t len)
+{
+  if (index >= disk_paths.size())
+    return false;
+
+  if (disk_paths[index].empty())
+    return false;
+
+  strncpy(label, disk_paths[index].c_str(), len);
+  return true;
+}
+
 static void InitDiskControlInterface()
 {
-  retro_disk_control_cb.set_eject_state = retro_set_eject_state;
-  retro_disk_control_cb.get_eject_state = retro_get_eject_state;
-  retro_disk_control_cb.set_image_index = retro_set_image_index;
-  retro_disk_control_cb.get_image_index = retro_get_image_index;
-  retro_disk_control_cb.get_num_images = retro_get_num_images;
-  retro_disk_control_cb.add_image_index = retro_add_image_index;
-  retro_disk_control_cb.replace_image_index = retro_replace_image_index;
+  static retro_disk_control_ext_callback disk_control = {
+      retro_set_eject_state,
+      retro_get_eject_state,
+      retro_get_image_index,
+      retro_set_image_index,
+      retro_get_num_images,
+      retro_replace_image_index,
+      retro_add_image_index,
+      retro_set_initial_image,
+      retro_get_image_path,
+      retro_get_image_label,
+  };
 
-  environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE, &retro_disk_control_cb);
+  environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE, &disk_control);
 }
 }  // namespace Libretro

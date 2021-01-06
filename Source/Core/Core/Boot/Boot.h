@@ -162,3 +162,8 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
 /// Normally, this is automatically done by ES when the System Menu is installed,
 /// but we cannot rely on this because we don't require any system titles to be installed.
 void CreateSystemMenuTitleDirs();
+
+namespace Libretro
+{
+void AddDiscs(std::vector<std::string> paths);
+}
