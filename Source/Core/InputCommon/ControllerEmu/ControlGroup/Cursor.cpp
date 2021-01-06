@@ -62,7 +62,7 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
              20, 0, 360);
 
   AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
-  NumericSetting<bool>* edit_condition =
+  const NumericSetting<bool>* edit_condition =
       static_cast<NumericSetting<bool>*>(numeric_settings.back().get());
   AddSetting(&m_relative_absolute_time_setting,
              {_trans("Relative Input Absolute Time"), _trans(""),
@@ -81,6 +81,8 @@ Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
   if (!adjusted)
     return {x, y};
 
+  // Values are clamped later on, the maximum movement between two frames
+  // should not be clamped in relative mode
   return Reshape(x, y, 0.0, std::numeric_limits<ControlState>::infinity());
 }
 
@@ -102,8 +104,8 @@ Cursor::StateData Cursor::GetState(float absolute_time_elapsed, bool is_ui)
       1000.0;
   m_last_update[i] = now;
 
-  // Relative input:
-  if (m_relative_setting.GetValue() ^ (controls[6]->GetState<bool>()))
+  // Relative input (the second check is for Hold):
+  if (m_relative_setting.GetValue() ^ controls[6]->GetState<bool>())
   {
     // Recenter:
     if (controls[5]->GetState<bool>())
@@ -123,8 +125,8 @@ Cursor::StateData Cursor::GetState(float absolute_time_elapsed, bool is_ui)
       const double step =
           STEP_PER_SEC * (use_absolute_time ? absolute_time_elapsed : (ms_since_update / 1000.0));
 
-      m_state[i].x = std::clamp(m_state[i].x + input.x * step, -1.0, 1.0);
-      m_state[i].y = std::clamp(m_state[i].y + input.y * step, -1.0, 1.0);
+      m_state[i].x += input.x * step;
+      m_state[i].y += input.y * step;
     }
   }
   // Absolute input:
@@ -133,6 +135,13 @@ Cursor::StateData Cursor::GetState(float absolute_time_elapsed, bool is_ui)
     m_state[i].x = input.x;
     m_state[i].y = input.y;
   }
+
+  // Clamp between -1 and 1, before auto hide. Clamping after auto hide could make it easier to find
+  // when you've lost the cursor but it could also make it more annoying.
+  // If we don't do this, we could go over the user specified angles (which can just be increased
+  // instead), or lose the cursor over the borders.
+  m_state[i].x = std::clamp(m_state[i].x, -1.0, 1.0);
+  m_state[i].y = std::clamp(m_state[i].y, -1.0, 1.0);
 
   StateData result = m_state[i];
 
@@ -146,6 +155,7 @@ Cursor::StateData Cursor::GetState(float absolute_time_elapsed, bool is_ui)
   }
   else if (m_auto_hide_timer[i])
   {
+    // Auto hide is based on real world time, doesn't depend on emulation time/speed
     m_auto_hide_timer[i] -= std::min<int>(ms_since_update, m_auto_hide_timer[i]);
   }
 

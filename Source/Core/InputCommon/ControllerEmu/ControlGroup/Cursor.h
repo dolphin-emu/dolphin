@@ -33,6 +33,7 @@ public:
   ReshapeData GetReshapableState(bool adjusted) final override;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
+  // Also updates the state
   StateData GetState(float absolute_time_elapsed, bool is_ui);
 
   void ResetState(bool is_ui);
