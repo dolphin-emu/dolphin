@@ -7,7 +7,6 @@
 #ifdef _MSC_VER
 #include <filesystem>
 namespace fs = std::filesystem;
-#define HAS_STD_FILESYSTEM
 #endif
 
 #include <algorithm>
@@ -139,6 +138,7 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     return {};
   }
 
+#ifdef _MSC_VER
   // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
   // RetroArch uses the OS separator.
   constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
@@ -146,6 +146,7 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
   if (os_separator != DIR_SEP_CHR)
     for (auto& path : paths)
       std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+#endif
 
   std::string folder_path;
   std::string extension;
