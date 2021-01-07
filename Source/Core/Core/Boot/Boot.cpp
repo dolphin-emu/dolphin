@@ -4,6 +4,12 @@
 
 #include "Core/Boot/Boot.h"
 
+#ifdef _MSC_VER
+#include <filesystem>
+namespace fs = std::filesystem;
+#define HAS_STD_FILESYSTEM
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cstring>
