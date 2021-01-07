@@ -163,7 +163,6 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
 /// but we cannot rely on this because we don't require any system titles to be installed.
 void CreateSystemMenuTitleDirs();
 
-namespace Libretro
-{
-void AddDiscs(std::vector<std::string> paths);
-}
+#ifdef __LIBRETRO__
+std::vector<std::string> ReadM3UFile(const std::string& m3u_path, const std::string& folder_path);
+#endif

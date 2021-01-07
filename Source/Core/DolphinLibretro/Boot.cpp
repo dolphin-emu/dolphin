@@ -25,10 +25,22 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#ifdef _MSC_VER
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 namespace Libretro
 {
 extern retro_environment_t environ_cb;
+
+// Disk swapping
 static void InitDiskControlInterface();
+static std::string NormalizePath(const std::string& path);
+static std::string DenormalizePath(const std::string& path);
+static unsigned disk_index = 0;
+static bool eject_state;
+static std::vector<std::string> disk_paths;
 }  // namespace Libretro
 
 bool retro_load_game(const struct retro_game_info* game)
@@ -126,7 +138,28 @@ bool retro_load_game(const struct retro_game_info* game)
   NOTICE_LOG(VIDEO, "Using GFX backend: %s", Config::Get(Config::MAIN_GFX_BACKEND).c_str());
 
   WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
-  if (!BootManager::BootCore(BootParameters::GenerateFromFile(game->path), wsi))
+
+  std::vector<std::string> normalized_game_paths;
+  normalized_game_paths.push_back(Libretro::NormalizePath(game->path));
+  std::string folder_path;
+  std::string extension;
+  SplitPath(normalized_game_paths.front(), &folder_path, nullptr, &extension);
+  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+  if (extension == ".m3u" || extension == ".m3u8")
+  {
+    normalized_game_paths = ReadM3UFile(normalized_game_paths.front(), folder_path);
+    if (normalized_game_paths.empty())
+    {
+      ERROR_LOG(BOOT, "Could not boot %s. M3U contains no paths\n", game->path);
+      return false;
+    }
+  }
+
+  for (auto& normalized_game_path : normalized_game_paths)
+    Libretro::disk_paths.push_back(Libretro::DenormalizePath(normalized_game_path));
+
+  if (!BootManager::BootCore(BootParameters::GenerateFromFile(normalized_game_paths), wsi))
   {
     ERROR_LOG(BOOT, "Could not boot %s\n", game->path);
     return false;
@@ -156,9 +189,35 @@ void retro_unload_game(void)
 namespace Libretro
 {
 // Disk swapping
-static unsigned disk_index = 0;
-static bool eject_state;
-static std::vector<std::string> disk_paths;
+
+// Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
+// RetroArch uses the OS separator.
+// Convert between them when switching between systems.
+std::string NormalizePath(const std::string& path)
+{
+  std::string newPath = path;
+#ifdef _MSC_VER
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
+    std::replace(newPath.begin(), newPath.end(), '\\', DIR_SEP_CHR);
+#endif
+
+  return newPath;
+}
+
+std::string DenormalizePath(const std::string& path)
+{
+  std::string newPath = path;
+#ifdef _MSC_VER
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
+    std::replace(newPath.begin(), newPath.end(), DIR_SEP_CHR, '\\');
+#endif
+
+  return newPath;
+}
 
 static bool retro_set_eject_state(bool ejected)
 {
@@ -167,26 +226,15 @@ static bool retro_set_eject_state(bool ejected)
 
   eject_state = ejected;
 
-  if (ejected)
-    Core::RunAsCPUThread([] { DVDInterface::EjectDisc(DVDInterface::EjectCause::User); });
-  else
+  if (!ejected)
   {
-    if (disk_index < 0 || disk_index >= (int)disk_paths.size())
-      Core::RunAsCPUThread([] { DVDInterface::SetDisc(nullptr, std::nullopt); });
-    else
+    if (disk_index >= 0 && disk_index < (int)disk_paths.size())
     {
-      Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(disk_paths[disk_index]); });
+      Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(NormalizePath(disk_paths[disk_index])); });
     }
-    
   }
 
   return true;
-}
-
-void AddDiscs(std::vector<std::string> paths)
-{
-  for (auto& path : paths)
-    disk_paths.push_back(path);
 }
 
 static bool retro_get_eject_state()

@@ -4,11 +4,6 @@
 
 #include "Core/Boot/Boot.h"
 
-#ifdef _MSC_VER
-#include <filesystem>
-namespace fs = std::filesystem;
-#endif
-
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -60,7 +55,10 @@ namespace fs = std::filesystem;
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
-static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
+#ifndef __LIBRETRO__
+static
+#endif
+std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
 {
 #ifndef HAS_STD_FILESYSTEM
@@ -138,21 +136,20 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     return {};
   }
 
-#ifdef _MSC_VER
-  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
-  // RetroArch uses the OS separator.
-  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
-  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
-  if (os_separator != DIR_SEP_CHR)
-    for (auto& path : paths)
-      std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
-#endif
-
+#ifndef __LIBRETRO__
   std::string folder_path;
+#endif
   std::string extension;
-  SplitPath(paths.front(), &folder_path, nullptr, &extension);
+  SplitPath(paths.front(),
+#ifndef __LIBRETRO__
+    &folder_path,
+#else
+    nullptr,
+#endif
+    nullptr, &extension);
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
+#ifndef __LIBRETRO__
   if (extension == ".m3u" || extension == ".m3u8")
   {
     paths = ReadM3UFile(paths.front(), folder_path);
@@ -162,8 +159,7 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
   }
-
-  Libretro::AddDiscs(paths);
+#endif
 
   std::string path = paths.front();
   if (paths.size() == 1)
