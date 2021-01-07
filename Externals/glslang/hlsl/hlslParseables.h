@@ -36,7 +36,7 @@
 #ifndef _HLSLPARSEABLES_INCLUDED_
 #define _HLSLPARSEABLES_INCLUDED_
 
-#include "../glslang/MachineIndependent/Initialize.h"
+#include "../MachineIndependent/Initialize.h"
 
 namespace glslang {
 
