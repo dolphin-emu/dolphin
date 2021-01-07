@@ -36,9 +36,9 @@
 #ifndef HLSL_PARSE_INCLUDED_
 #define HLSL_PARSE_INCLUDED_
 
-#include "../MachineIndependent/parseVersions.h"
-#include "../MachineIndependent/ParseHelper.h"
-#include "../MachineIndependent/attribute.h"
+#include "../glslang/MachineIndependent/parseVersions.h"
+#include "../glslang/MachineIndependent/ParseHelper.h"
+#include "../glslang/MachineIndependent/attribute.h"
 
 #include <array>
 
