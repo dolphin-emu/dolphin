@@ -13,6 +13,7 @@
 # DanbSky <danbsky@live.jp>, 2013-2015
 # CyberRex.x <hspwinx86@gmail.com>, 2019
 # raid273, 2020
+# HIJKLM, 2021
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
@@ -777,7 +778,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:370
 msgid "A sync can only be triggered when a Wii game is running."
-msgstr "WiiリモコンとのSyncはWiiのゲームを実行中にのみ行なえます"
+msgstr "WiiリモコンとのSyncはWiiのゲームを実行中にのみ行えます"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:115
 msgid ""
@@ -2290,16 +2291,16 @@ msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
 msgstr ""
-"更新ファイルのダウンロードに失敗。インターネット接続設定を確認してから改めて"
-"試してください"
+"更新ファイルのダウンロードに失敗しました。インターネット接続設定を確認してか"
+"ら改めて試してください"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:44
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
 msgstr ""
-"更新情報のダウンロードに失敗。インターネット接続設定を確認してから改めて試し"
-"てください"
+"更新情報のダウンロードに失敗しました。インターネット接続設定を確認してから改"
+"めて試してください"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:123
 msgid ""
@@ -2322,8 +2323,8 @@ msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
 msgstr ""
-"更新ファイルのWiiシステムメモリへのインストールに失敗。ログで詳細を確認してく"
-"ださい"
+"更新ファイルのWiiシステムメモリへのインストールに失敗しました。ログで詳細を確"
+"認してください"
 
 #: Source/Core/Core/IOS/ES/ES.cpp:278
 msgid ""
@@ -2716,7 +2717,7 @@ msgstr "デバイス："
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:142
 msgid "Dims the screen after five minutes of inactivity."
-msgstr "5分間操作がない状態が続くと、画面を暗くするようにします"
+msgstr "5分間操作がない場合、画面を暗くするようにします"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:189
 msgid "Direct Connection"
@@ -2740,7 +2741,7 @@ msgstr ""
 "す。このまま使用することはできますが、描画に問題が発生する場合があります。\n"
 "\n"
 "本当に Direct3D 11 を使いますか？\n"
-"よく分からない場合、「いいえ」を選択してください。"
+"よく分からなければ、「いいえ」を選択してください。"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:106
 msgid "Disable Bounding Box"
@@ -4985,7 +4986,7 @@ msgstr ""
 "個人に関する情報が収集されることはありません。収集したデータは人々がどのよう"
 "にDolphinを使っているかを調べ、開発の優先順位を決めたり、稀な環境で発生するバ"
 "グの特定に役立てたりします。\n"
-"また、この許可はいつでもDolphinの設定から取り消すことが可能です"
+"また、この許可はいつでもDolphinの設定から取り消すことが可能です。"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:56
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:728
@@ -7464,7 +7465,7 @@ msgstr "保存"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:352
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
-msgstr "ペアリングの初期化はWiiのゲームを実行中にのみ行なえます"
+msgstr "ペアリングの初期化はWiiのゲームを実行中にのみ行えます"
 
 #: Source/Core/Core/Movie.cpp:954
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
@@ -9138,7 +9139,7 @@ msgstr ""
 
 #: Source/Core/DiscIO/NANDImporter.cpp:62
 msgid "This file does not look like a BootMii NAND backup."
-msgstr "このファイルはBootMii NANDバックアップではないようです"
+msgstr "このファイルはBootMii NANDバックアップではないようです。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:743
 msgid ""
