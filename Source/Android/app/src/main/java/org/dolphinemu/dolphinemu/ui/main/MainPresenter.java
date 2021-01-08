@@ -112,6 +112,17 @@ public final class MainPresenter
     }
   }
 
+  /**
+   * Called when a selection is made using the legacy folder picker.
+   */
+  public void onDirectorySelected(String dir)
+  {
+    mDirToAdd = dir;
+  }
+
+  /**
+   * Called when a selection is made using the Storage Access Framework folder picker.
+   */
   public void onDirectorySelected(Intent result)
   {
     Uri uri = result.getData();
