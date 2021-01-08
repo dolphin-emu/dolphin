@@ -425,6 +425,8 @@ add_library(core
   PowerPC/BreakPoints.h
   PowerPC/ConditionRegister.cpp
   PowerPC/ConditionRegister.h
+  PowerPC/Expression.cpp
+  PowerPC/Expression.h
   PowerPC/JitInterface.cpp
   PowerPC/JitInterface.h
   PowerPC/MMU.cpp
@@ -556,6 +558,7 @@ PUBLIC
   cubeb
   discio
   enet
+  expr
   inputcommon
   ${MBEDTLS_LIBRARIES}
   pugixml

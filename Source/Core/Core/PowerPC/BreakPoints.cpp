@@ -14,6 +14,7 @@
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/Expression.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 
@@ -33,7 +34,7 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
 bool BreakPoints::IsBreakPointBreakOnHit(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
-    return bp.address == address && bp.break_on_hit;
+    return bp.address == address && bp.break_on_hit && EvaluateCondition(bp.condition);
   });
 }
 
@@ -51,9 +52,16 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
     if (!bp.is_temporary)
     {
       std::ostringstream ss;
-      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
-         << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "");
-      bp_strings.push_back(ss.str());
+      ss << fmt::format("${:08x} ", bp.address);
+      if (bp.is_enabled)
+        ss << "n";
+      if (bp.log_on_hit)
+        ss << "l";
+      if (bp.break_on_hit)
+        ss << "b";
+      if (bp.condition)
+        ss << "c " << bp.condition->GetText();
+      bp_strings.emplace_back(ss.str());
     }
   }
 
@@ -67,31 +75,43 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     TBreakPoint bp;
     std::stringstream ss;
     ss << std::hex << bp_string;
+    if (ss.peek() == '$')
+      ss.ignore();
     ss >> bp.address;
-    bp.is_enabled = bp_string.find('n') != bp_string.npos;
-    bp.log_on_hit = bp_string.find('l') != bp_string.npos;
-    bp.break_on_hit = bp_string.find('b') != bp_string.npos;
+    std::string flags;
+    ss >> flags;
+    bp.is_enabled = flags.find('n') != std::string::npos;
+    bp.log_on_hit = flags.find('l') != std::string::npos;
+    bp.break_on_hit = flags.find('b') != std::string::npos;
+    if (flags.find('c') != std::string::npos)
+    {
+      ss >> std::ws;
+      std::string condition;
+      std::getline(ss, condition);
+      bp.condition = Expression::TryParse(condition);
+    }
     bp.is_temporary = false;
-    Add(bp);
+    Add(std::move(bp));
   }
 }
 
-void BreakPoints::Add(const TBreakPoint& bp)
+void BreakPoints::Add(TBreakPoint bp)
 {
   if (IsAddressBreakPoint(bp.address))
     return;
 
-  m_breakpoints.push_back(bp);
-
   JitInterface::InvalidateICache(bp.address, 4, true);
+
+  m_breakpoints.emplace_back(std::move(bp));
 }
 
 void BreakPoints::Add(u32 address, bool temp)
 {
-  BreakPoints::Add(address, temp, true, false);
+  BreakPoints::Add(address, temp, true, false, {});
 }
 
-void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit)
+void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
+                      std::optional<Expression> condition)
 {
   // Only add new addresses
   if (IsAddressBreakPoint(address))
@@ -103,8 +123,9 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
   bp.break_on_hit = break_on_hit;
   bp.log_on_hit = log_on_hit;
   bp.address = address;
+  bp.condition = std::move(condition);
 
-  m_breakpoints.push_back(bp);
+  m_breakpoints.emplace_back(std::move(bp));
 
   JitInterface::InvalidateICache(address, 4, true);
 }

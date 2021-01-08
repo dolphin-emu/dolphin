@@ -812,6 +812,8 @@ endif()
 
 include_directories(Externals/picojson)
 
+add_subdirectory(Externals/expr)
+
 add_subdirectory(Externals/rangeset)
 
 ########################################
