@@ -1,29 +1,24 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class InputBindingSetting extends SettingsItem
 {
-  private String mFile;
-  private String mSection;
-  private String mKey;
+  private final String mFile;
+  private final String mSection;
+  private final String mKey;
 
-  private String mGameId;
-
-  public InputBindingSetting(String file, String section, String key, int titleId, String gameId)
+  public InputBindingSetting(String file, String section, String key, int titleId)
   {
     super(titleId, 0);
     mFile = file;
     mSection = section;
     mKey = key;
-    mGameId = gameId;
   }
 
   public String getKey()
@@ -36,9 +31,14 @@ public class InputBindingSetting extends SettingsItem
     return settings.getSection(mFile, mSection).getString(mKey, "");
   }
 
+  public String getDescriptionValue()
+  {
+    return AdHocStringSetting.getStringGlobal(mFile, mSection, mKey + "Description", "");
+  }
+
   /**
-   * Saves the provided key input setting both to the INI file (so native code can use it) and as
-   * an Android preference (so it persists correctly and is human-readable.)
+   * Saves the provided input setting as both native code and user-readable keys since there is no
+   * easy way to convert between the two.
    *
    * @param keyEvent KeyEvent of this key press.
    */
@@ -51,8 +51,8 @@ public class InputBindingSetting extends SettingsItem
   }
 
   /**
-   * Saves the provided motion input setting both to the INI file (so native code can use it) and as
-   * an Android preference (so it persists correctly and is human-readable.)
+   * Saves the provided input setting as both native code and user-readable keys since there is no
+   * easy way to convert between the two.
    *
    * @param device      InputDevice from which the input event originated.
    * @param motionRange MotionRange of the movement
@@ -69,30 +69,20 @@ public class InputBindingSetting extends SettingsItem
 
   public void setValue(Settings settings, String bind, String ui)
   {
-    SharedPreferences
-            preferences =
-            PreferenceManager.getDefaultSharedPreferences(DolphinApplication.getAppContext());
-    SharedPreferences.Editor editor = preferences.edit();
-    editor.putString(mKey + mGameId, ui);
-    editor.apply();
-
-    settings.getSection(mFile, mSection).setString(mKey, bind);
+    new AdHocStringSetting(mFile, mSection, mKey, "").setString(settings, bind);
+    new AdHocStringSetting(mFile, mSection, mKey + "Description", "").setString(settings, ui);
   }
 
   public void clearValue(Settings settings)
   {
-    setValue(settings, "", "");
+    new AdHocStringSetting(mFile, mSection, mKey, "").delete(settings);
+    new AdHocStringSetting(mFile, mSection, mKey + "Description", "").delete(settings);
   }
 
   @Override
   public int getType()
   {
     return TYPE_INPUT_BINDING;
-  }
-
-  public String getGameId()
-  {
-    return mGameId;
   }
 
   @Override

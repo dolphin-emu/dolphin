@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 import android.os.Vibrator;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
@@ -12,9 +13,9 @@ import org.dolphinemu.dolphinemu.utils.Rumble;
 
 public class RumbleBindingSetting extends InputBindingSetting
 {
-  public RumbleBindingSetting(String file, String section, String key, int titleId, String gameId)
+  public RumbleBindingSetting(String file, String section, String key, int titleId)
   {
-    super(file, section, key, titleId, gameId);
+    super(file, section, key, titleId);
   }
 
   /**
@@ -46,8 +47,8 @@ public class RumbleBindingSetting extends InputBindingSetting
     }
     else
     {
-      setValue(settings, "",
-              DolphinApplication.getAppContext().getString(R.string.rumble_not_found));
+      Toast.makeText(DolphinApplication.getAppContext(), R.string.rumble_not_found,
+              Toast.LENGTH_SHORT).show();
     }
   }
 
