@@ -17,7 +17,7 @@ public:
 
   std::string GetName() const override { return NAME; }
   std::string GetDisplayName() const override { return _trans("Vulkan"); }
-  void InitBackendInfo() override;
+  bool InitBackendInfo() override;
   void PrepareWindow(WindowSystemInfo& wsi) override;
 
   static constexpr const char* NAME = "Vulkan";

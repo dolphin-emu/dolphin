@@ -29,7 +29,7 @@
 
 namespace Vulkan
 {
-void VideoBackend::InitBackendInfo()
+bool VideoBackend::InitBackendInfo()
 {
   VulkanContext::PopulateBackendInfo(&g_Config);
 
@@ -66,13 +66,16 @@ void VideoBackend::InitBackendInfo()
     else
     {
       PanicAlertFmt("Failed to create Vulkan instance.");
+      return false;
     }
 
     UnloadVulkanLibrary();
+    return true;
   }
   else
   {
     PanicAlertFmt("Failed to load Vulkan library.");
+    return false;
   }
 }
 

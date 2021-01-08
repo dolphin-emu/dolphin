@@ -23,7 +23,7 @@
 
 namespace Null
 {
-void VideoBackend::InitBackendInfo()
+bool VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
   g_Config.backend_info.MaxTextureSize = 16384;
@@ -60,6 +60,7 @@ void VideoBackend::InitBackendInfo()
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();
   g_Config.backend_info.AAModes = {1};
+  return true;
 }
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)

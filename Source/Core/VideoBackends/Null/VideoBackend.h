@@ -16,7 +16,7 @@ public:
 
   std::string GetName() const override { return NAME; }
   std::string GetDisplayName() const override;
-  void InitBackendInfo() override;
+  bool InitBackendInfo() override;
 
   static constexpr const char* NAME = "Null";
 };

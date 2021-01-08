@@ -56,6 +56,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
+#include <iostream>
+
 VideoBackendBase* g_video_backend = nullptr;
 
 #ifdef _WIN32
@@ -218,15 +220,16 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
     // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+    // edit: Vulkan > OGL > D3D11 > D3D12 > SW > Null
+#ifdef HAS_VULKAN
+    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+#endif
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
 #ifdef _WIN32
     backends.push_back(std::make_unique<DX11::VideoBackend>());
     backends.push_back(std::make_unique<DX12::VideoBackend>());
-#endif
-#ifdef HAS_VULKAN
-    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<SW::VideoSoftware>());
@@ -263,7 +266,12 @@ void VideoBackendBase::PopulateBackendInfo()
   // We refresh the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
   ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
-  g_video_backend->InitBackendInfo();
+  bool loaded = g_video_backend->InitBackendInfo();
+  if (!loaded)
+  {
+    ActivateBackend("OGL");
+    g_video_backend->InitBackendInfo();
+  }
   g_Config.Refresh();
 }
 

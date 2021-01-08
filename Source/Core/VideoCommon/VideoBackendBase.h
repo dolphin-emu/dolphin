@@ -42,7 +42,7 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  virtual void InitBackendInfo() = 0;
+  virtual bool InitBackendInfo() = 0;
   virtual std::optional<std::string> GetWarningMessage() const { return {}; }
 
   // Prepares a native window for rendering. This is called on the main thread, or the
