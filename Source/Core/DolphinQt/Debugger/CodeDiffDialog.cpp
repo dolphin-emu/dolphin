@@ -188,17 +188,14 @@ void CodeDiffDialog::OnInclude()
 
   if (!m_include.empty())
   {
-    // Compare include with current and remove items that aren't in both.
-    std::vector<Diff> tmp_swap;
-    for (auto& iter : m_include)
-    {
-      if (std::any_of(current_diff.begin(), current_diff.end(),
-                      [&](Diff& v) { return v.symbol == iter.symbol; }))
-      {
-        tmp_swap.push_back(iter);
-      }
-    }
-    m_include.swap(tmp_swap);
+    m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
+                                   [&](Diff& v) {
+                                     // Remove values if it can't find matching symbols
+                                     return std::none_of(
+                                         current_diff.begin(), current_diff.end(),
+                                         [&](Diff& p) { return p.symbol == v.symbol; });
+                                   }),
+                    m_include.end());
   }
   else
   {
@@ -276,14 +273,15 @@ std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
   return current;
 }
 
-void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(const std::vector<Diff>& symbol_list)
+void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(std::vector<Diff>& symbol_list)
 {
-  for (auto& list : symbol_list)
-  {
-    m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
-                                   [&](Diff& v) { return v.symbol == list.symbol; }),
-                    m_include.end());
-  }
+  m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
+                                 [&](Diff& i) {
+                                   return std::any_of(
+                                       symbol_list.begin(), symbol_list.end(),
+                                       [&](Diff& s) { return i.symbol == s.symbol; });
+                                 }),
+                  m_include.end());
 }
 
 void CodeDiffDialog::Update(bool include)
