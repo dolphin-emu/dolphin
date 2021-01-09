@@ -302,6 +302,7 @@ jobs:
         if: success()
         shell: bash
         run: |
+          rm '/usr/local/bin/2to3' || true
           brew update
           brew upgrade cmake
           brew install \
@@ -368,6 +369,7 @@ jobs:
         if: success()
         shell: bash
         run: |
+          rm '/usr/local/bin/2to3' || true
           brew update
           brew upgrade cmake
           brew install \
