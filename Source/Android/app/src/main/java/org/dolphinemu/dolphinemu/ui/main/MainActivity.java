@@ -163,8 +163,15 @@ public final class MainActivity extends AppCompatActivity implements MainView
   @Override
   public void launchFileListActivity()
   {
-    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-    startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY);
+    if (DirectoryInitialization.preferOldFolderPicker(this))
+    {
+      FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS);
+    }
+    else
+    {
+      Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+      startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY);
+    }
   }
 
   @Override
@@ -202,7 +209,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
       switch (requestCode)
       {
         case MainPresenter.REQUEST_DIRECTORY:
-          mPresenter.onDirectorySelected(result);
+          if (DirectoryInitialization.preferOldFolderPicker(this))
+          {
+            mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
+          }
+          else
+          {
+            mPresenter.onDirectorySelected(result);
+          }
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:
