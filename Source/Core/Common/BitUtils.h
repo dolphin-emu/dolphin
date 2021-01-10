@@ -369,7 +369,7 @@ constexpr int CountLeadingZeros(uint64_t value)
 #elif defined(_MSC_VER) && defined(_M_ARM_64)
   return _CountLeadingZeros64(value);
 #elif defined(_MSC_VER) && defined(_M_X86_64)
-  unsigned long index;
+  unsigned long index = 0;
   return _BitScanReverse64(&index, value) ? 63 - index : 64;
 #else
   int result = 64;
@@ -389,7 +389,7 @@ constexpr int CountLeadingZeros(uint32_t value)
 #elif defined(_MSC_VER) && defined(_M_ARM_64)
   return _CountLeadingZeros(value);
 #elif defined(_MSC_VER) && defined(_M_X86_64)
-  unsigned long index;
+  unsigned long index = 0;
   return _BitScanReverse(&index, value) ? 31 - index : 32;
 #else
   int result = 32;
