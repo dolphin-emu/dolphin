@@ -242,6 +242,7 @@
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
     <ClCompile Include="PowerPC\ConditionRegister.cpp" />
+    <ClCompile Include="PowerPC\GDBStub.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -600,6 +601,7 @@
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
     <ClInclude Include="PowerPC\ConditionRegister.h" />
+    <ClInclude Include="PowerPC\GDBStub.h" />
     <ClInclude Include="PowerPC\Interpreter\ExceptionUtils.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
