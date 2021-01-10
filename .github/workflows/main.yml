@@ -302,6 +302,7 @@ jobs:
         if: success()
         shell: bash
         run: |
+          rm '/usr/local/bin/2to3' || true
           brew update
           brew upgrade cmake
           brew install \
@@ -329,7 +330,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-macOS-netplay.tar.gz
-          echo "::set-env name=FILE_NAME::${FILE_NAME}"
           cp -Rf Data/Sys build/Binaries/Dolphin.app/Contents/Resources/
           mkdir artifact
           cd ./build/Binaries/
@@ -368,6 +368,7 @@ jobs:
         if: success()
         shell: bash
         run: |
+          rm '/usr/local/bin/2to3' || true
           brew update
           brew upgrade cmake
           brew install \
@@ -399,7 +400,6 @@ jobs:
           cd ./build/Binaries/
           cp -Rf ../../Data/Sys ./Dolphin.app/Contents/Resources
           cp -Rf ../../slippi-desktop-app/app/dolphin-dev/overwrite/Sys ./Dolphin.app/Contents/Resources
-          cp -Rf ../../slippi-desktop-app/app/dolphin-dev/overwrite/User ./Dolphin.app/Contents/Resources
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-macOS-playback.zip
           zip -r "${FILE_NAME}" Dolphin.app
           mv "${FILE_NAME}" ../../artifact/
