@@ -162,3 +162,7 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
 /// Normally, this is automatically done by ES when the System Menu is installed,
 /// but we cannot rely on this because we don't require any system titles to be installed.
 void CreateSystemMenuTitleDirs();
+
+#ifdef __LIBRETRO__
+std::vector<std::string> ReadM3UFile(const std::string& m3u_path, const std::string& folder_path);
+#endif

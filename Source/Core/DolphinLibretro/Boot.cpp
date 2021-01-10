@@ -25,10 +25,22 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#ifdef _MSC_VER
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 namespace Libretro
 {
 extern retro_environment_t environ_cb;
+
+// Disk swapping
 static void InitDiskControlInterface();
+static std::string NormalizePath(const std::string& path);
+static std::string DenormalizePath(const std::string& path);
+static unsigned disk_index = 0;
+static bool eject_state;
+static std::vector<std::string> disk_paths;
 }  // namespace Libretro
 
 bool retro_load_game(const struct retro_game_info* game)
@@ -126,7 +138,28 @@ bool retro_load_game(const struct retro_game_info* game)
   NOTICE_LOG(VIDEO, "Using GFX backend: %s", Config::Get(Config::MAIN_GFX_BACKEND).c_str());
 
   WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
-  if (!BootManager::BootCore(BootParameters::GenerateFromFile(game->path), wsi))
+
+  std::vector<std::string> normalized_game_paths;
+  normalized_game_paths.push_back(Libretro::NormalizePath(game->path));
+  std::string folder_path;
+  std::string extension;
+  SplitPath(normalized_game_paths.front(), &folder_path, nullptr, &extension);
+  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+  if (extension == ".m3u" || extension == ".m3u8")
+  {
+    normalized_game_paths = ReadM3UFile(normalized_game_paths.front(), folder_path);
+    if (normalized_game_paths.empty())
+    {
+      ERROR_LOG(BOOT, "Could not boot %s. M3U contains no paths\n", game->path);
+      return false;
+    }
+  }
+
+  for (auto& normalized_game_path : normalized_game_paths)
+    Libretro::disk_paths.push_back(Libretro::DenormalizePath(normalized_game_path));
+
+  if (!BootManager::BootCore(BootParameters::GenerateFromFile(normalized_game_paths), wsi))
   {
     ERROR_LOG(BOOT, "Could not boot %s\n", game->path);
     return false;
@@ -156,18 +189,57 @@ void retro_unload_game(void)
 namespace Libretro
 {
 // Disk swapping
-static struct retro_disk_control_callback retro_disk_control_cb;
-static unsigned disk_index = 0;
-static std::vector<std::string> disk_paths;
+
+// Dolphin expects to be able to use "/" (DIR_SEP) everywhere.
+// RetroArch uses the OS separator.
+// Convert between them when switching between systems.
+std::string NormalizePath(const std::string& path)
+{
+  std::string newPath = path;
+#ifdef _MSC_VER
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
+    std::replace(newPath.begin(), newPath.end(), '\\', DIR_SEP_CHR);
+#endif
+
+  return newPath;
+}
+
+std::string DenormalizePath(const std::string& path)
+{
+  std::string newPath = path;
+#ifdef _MSC_VER
+  constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
+  static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
+  if (os_separator != DIR_SEP_CHR)
+    std::replace(newPath.begin(), newPath.end(), DIR_SEP_CHR, '\\');
+#endif
+
+  return newPath;
+}
 
 static bool retro_set_eject_state(bool ejected)
 {
+  if (eject_state == ejected)
+    return false;
+
+  eject_state = ejected;
+
+  if (!ejected)
+  {
+    if (disk_index >= 0 && disk_index < (int)disk_paths.size())
+    {
+      Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(NormalizePath(disk_paths[disk_index])); });
+    }
+  }
+
   return true;
 }
 
 static bool retro_get_eject_state()
 {
-  return false;
+  return eject_state;
 }
 
 static unsigned retro_get_image_index()
@@ -177,15 +249,10 @@ static unsigned retro_get_image_index()
 
 static bool retro_set_image_index(unsigned index)
 {
-  disk_index = index;
-  if (disk_index >= disk_paths.size())
-  {
-    // No disk in drive
-    return true;
-  }
-  Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(disk_paths[disk_index]); });
-
-  return true;
+  if (eject_state)
+    disk_index = index;
+  
+  return eject_state;
 }
 
 static unsigned retro_get_num_images()
@@ -202,14 +269,16 @@ static bool retro_add_image_index()
 
 static bool retro_replace_image_index(unsigned index, const struct retro_game_info* info)
 {
-  if (info == nullptr)
+  if (index >= disk_paths.size())
+    return false;
+
+  if (!info->path)
   {
-    if (index < disk_paths.size())
-    {
-      disk_paths.erase(disk_paths.begin() + index);
-      if (disk_index >= index && disk_index > 0)
-        disk_index--;
-    }
+    disk_paths.erase(disk_paths.begin() + index);
+    if (!disk_paths.size())
+      disk_index = -1;
+    else if (disk_index > (int)index)
+      disk_index--;
   }
   else
     disk_paths[index] = info->path;
@@ -217,16 +286,54 @@ static bool retro_replace_image_index(unsigned index, const struct retro_game_in
   return true;
 }
 
+static bool RETRO_CALLCONV retro_set_initial_image(unsigned index, const char* path)
+{
+  if (index >= disk_paths.size())
+    index = 0;
+
+  disk_index = index;
+
+  return true;
+}
+
+static bool RETRO_CALLCONV retro_get_image_path(unsigned index, char* path, size_t len)
+{
+  if (index >= disk_paths.size())
+    return false;
+
+  if (disk_paths[index].empty())
+    return false;
+
+  strncpy(path, disk_paths[index].c_str(), len);
+  return true;
+}
+static bool RETRO_CALLCONV retro_get_image_label(unsigned index, char* label, size_t len)
+{
+  if (index >= disk_paths.size())
+    return false;
+
+  if (disk_paths[index].empty())
+    return false;
+
+  strncpy(label, disk_paths[index].c_str(), len);
+  return true;
+}
+
 static void InitDiskControlInterface()
 {
-  retro_disk_control_cb.set_eject_state = retro_set_eject_state;
-  retro_disk_control_cb.get_eject_state = retro_get_eject_state;
-  retro_disk_control_cb.set_image_index = retro_set_image_index;
-  retro_disk_control_cb.get_image_index = retro_get_image_index;
-  retro_disk_control_cb.get_num_images = retro_get_num_images;
-  retro_disk_control_cb.add_image_index = retro_add_image_index;
-  retro_disk_control_cb.replace_image_index = retro_replace_image_index;
+  static retro_disk_control_ext_callback disk_control = {
+      retro_set_eject_state,
+      retro_get_eject_state,
+      retro_get_image_index,
+      retro_set_image_index,
+      retro_get_num_images,
+      retro_replace_image_index,
+      retro_add_image_index,
+      retro_set_initial_image,
+      retro_get_image_path,
+      retro_get_image_label,
+  };
 
-  environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE, &retro_disk_control_cb);
+  environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE, &disk_control);
 }
 }  // namespace Libretro
