@@ -330,7 +330,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-macOS-netplay.tar.gz
-          echo "::set-env name=FILE_NAME::${FILE_NAME}"
           cp -Rf Data/Sys build/Binaries/Dolphin.app/Contents/Resources/
           mkdir artifact
           cd ./build/Binaries/
