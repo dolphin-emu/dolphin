@@ -69,6 +69,7 @@
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'=='ARM64'">_ARCH_64=1;_M_ARM_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_GDBSTUB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
       Make sure we include a clean version of windows.h.
       -->

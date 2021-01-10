@@ -8,7 +8,7 @@
 
 #include "Common/CommonTypes.h"
 
-#if defined(_WIN32) || !defined(MSG_WAITALL)
+#ifndef MSG_WAITALL
 #define MSG_WAITALL (8)
 #endif
 
