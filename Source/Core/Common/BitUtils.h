@@ -362,53 +362,53 @@ T ExpandValue(T value, size_t left_shift_amount)
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
 }
 
-// On some compiler / arch combinations, the compiler does not see instrinsics as constexpr, so mark
-// the function as inline instead.
-#if defined(_MSC_VER) && defined(_M_ARM_64)
-#define CONSTEXPR_FROM_INTRINSIC inline
-#else
-#define CONSTEXPR_FROM_INTRINSIC constexpr
-#endif
+template <typename T>
+constexpr int CountLeadingZerosConst(T value)
+{
+  int result = sizeof(T) * 8;
+  while (value)
+  {
+    result--;
+    value >>= 1;
+  }
+  return result;
+}
 
-CONSTEXPR_FROM_INTRINSIC
-int CountLeadingZeros(uint64_t value)
+constexpr int CountLeadingZeros(uint64_t value)
 {
 #if defined(__GNUC__)
   return value ? __builtin_clzll(value) : 64;
-#elif defined(_MSC_VER) && defined(_M_ARM_64)
-  return _CountLeadingZeros64(value);
-#elif defined(_MSC_VER) && defined(_M_X86_64)
-  unsigned long index = 0;
-  return _BitScanReverse64(&index, value) ? 63 - index : 64;
-#else
-  int result = 64;
-  while (value)
+#elif defined(_MSC_VER)
+  if (std::is_constant_evaluated())
   {
-    result--;
-    value >>= 1;
+    return CountLeadingZerosConst(value);
   }
-  return result;
+  else
+  {
+    unsigned long index = 0;
+    return _BitScanReverse64(&index, value) ? 63 - index : 64;
+  }
+#else
+  return CountLeadingZerosConst(value);
 #endif
 }
 
-CONSTEXPR_FROM_INTRINSIC
-int CountLeadingZeros(uint32_t value)
+constexpr int CountLeadingZeros(uint32_t value)
 {
 #if defined(__GNUC__)
   return value ? __builtin_clz(value) : 32;
-#elif defined(_MSC_VER) && defined(_M_ARM_64)
-  return _CountLeadingZeros(value);
-#elif defined(_MSC_VER) && defined(_M_X86_64)
-  unsigned long index = 0;
-  return _BitScanReverse(&index, value) ? 31 - index : 32;
-#else
-  int result = 32;
-  while (value)
+#elif defined(_MSC_VER)
+  if (std::is_constant_evaluated())
   {
-    result--;
-    value >>= 1;
+    return CountLeadingZerosConst(value);
   }
-  return result;
+  else
+  {
+    unsigned long index = 0;
+    return _BitScanReverse(&index, value) ? 31 - index : 32;
+  }
+#else
+  return CountLeadingZerosConst(value);
 #endif
 }
 
