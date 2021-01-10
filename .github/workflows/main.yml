@@ -400,7 +400,6 @@ jobs:
           cd ./build/Binaries/
           cp -Rf ../../Data/Sys ./Dolphin.app/Contents/Resources
           cp -Rf ../../slippi-desktop-app/app/dolphin-dev/overwrite/Sys ./Dolphin.app/Contents/Resources
-          cp -Rf ../../slippi-desktop-app/app/dolphin-dev/overwrite/User ./Dolphin.app/Contents/Resources
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-macOS-playback.zip
           zip -r "${FILE_NAME}" Dolphin.app
           mv "${FILE_NAME}" ../../artifact/
