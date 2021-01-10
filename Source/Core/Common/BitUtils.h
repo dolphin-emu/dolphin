@@ -362,7 +362,16 @@ T ExpandValue(T value, size_t left_shift_amount)
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
 }
 
-constexpr int CountLeadingZeros(uint64_t value)
+// On some compiler / arch combinations, the compiler does not see instrinsics as constexpr, so mark
+// the function as inline instead.
+#if defined(_MSC_VER) && defined(_M_ARM_64)
+#define CONSTEXPR_FROM_INTRINSIC inline
+#else
+#define CONSTEXPR_FROM_INTRINSIC constexpr
+#endif
+
+CONSTEXPR_FROM_INTRINSIC
+int CountLeadingZeros(uint64_t value)
 {
 #if defined(__GNUC__)
   return value ? __builtin_clzll(value) : 64;
@@ -382,7 +391,8 @@ constexpr int CountLeadingZeros(uint64_t value)
 #endif
 }
 
-constexpr int CountLeadingZeros(uint32_t value)
+CONSTEXPR_FROM_INTRINSIC
+int CountLeadingZeros(uint32_t value)
 {
 #if defined(__GNUC__)
   return value ? __builtin_clz(value) : 32;
@@ -401,5 +411,7 @@ constexpr int CountLeadingZeros(uint32_t value)
   return result;
 #endif
 }
+
+#undef CONSTEXPR_FROM_INTRINSIC
 
 }  // namespace Common
