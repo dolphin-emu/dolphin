@@ -164,7 +164,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
   switch (cmd)
   {
   case OpcodeDecoder::GX_NOP:
-  case 0x44:
+  case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
   case OpcodeDecoder::GX_CMD_INVL_VC:
     break;
 
