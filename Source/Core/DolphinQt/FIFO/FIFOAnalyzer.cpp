@@ -211,8 +211,8 @@ void FIFOAnalyzer::UpdateDetails()
         new_label = QStringLiteral("NOP");
         break;
 
-      case 0x44:
-        new_label = QStringLiteral("0x44");
+      case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
+        new_label = QStringLiteral("GX_CMD_UNKNOWN_METRICS");
         break;
 
       case OpcodeDecoder::GX_CMD_INVL_VC:
