@@ -5,6 +5,7 @@
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QClipboard>
 #include <QComboBox>
