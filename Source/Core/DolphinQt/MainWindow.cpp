@@ -654,7 +654,7 @@ void MainWindow::ConnectStack()
 
   layout->addWidget(m_game_list);
   layout->addWidget(m_search_bar);
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
 
   connect(m_search_bar, &SearchBar::Search, m_game_list, &GameList::SetSearchTerm);
 
