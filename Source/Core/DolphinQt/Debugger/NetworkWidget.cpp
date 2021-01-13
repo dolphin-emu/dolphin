@@ -40,9 +40,9 @@ QTableWidgetItem* GetSocketDomain(s32 host_fd)
   switch (sa.sa_family)
   {
   case 2:
-    return new QTableWidgetItem(QLatin1Literal("AF_INET"));
+    return new QTableWidgetItem(QStringLiteral("AF_INET"));
   case 23:
-    return new QTableWidgetItem(QLatin1Literal("AF_INET6"));
+    return new QTableWidgetItem(QStringLiteral("AF_INET6"));
   default:
     return new QTableWidgetItem(QString::number(sa.sa_family));
   }
@@ -63,9 +63,9 @@ QTableWidgetItem* GetSocketType(s32 host_fd)
   switch (so_type)
   {
   case 1:
-    return new QTableWidgetItem(QLatin1Literal("SOCK_STREAM"));
+    return new QTableWidgetItem(QStringLiteral("SOCK_STREAM"));
   case 2:
-    return new QTableWidgetItem(QLatin1Literal("SOCK_DGRAM"));
+    return new QTableWidgetItem(QStringLiteral("SOCK_DGRAM"));
   default:
     return new QTableWidgetItem(QString::number(so_type));
   }
