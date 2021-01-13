@@ -862,7 +862,7 @@ public:
 
   // Address of label/page PC-relative
   void ADR(ARM64Reg Rd, s32 imm);
-  void ADRP(ARM64Reg Rd, s32 imm);
+  void ADRP(ARM64Reg Rd, s64 imm);
 
   // Wrapper around MOVZ+MOVK
   void MOVI2R(ARM64Reg Rd, u64 imm);

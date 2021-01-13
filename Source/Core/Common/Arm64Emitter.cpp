@@ -1998,9 +1998,9 @@ void ARM64XEmitter::ADR(ARM64Reg Rd, s32 imm)
 {
   EncodeAddressInst(0, Rd, imm);
 }
-void ARM64XEmitter::ADRP(ARM64Reg Rd, s32 imm)
+void ARM64XEmitter::ADRP(ARM64Reg Rd, s64 imm)
 {
-  EncodeAddressInst(1, Rd, imm >> 12);
+  EncodeAddressInst(1, Rd, static_cast<s32>(imm >> 12));
 }
 
 // Wrapper around MOVZ+MOVK (and later MOVN)
