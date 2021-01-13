@@ -16,6 +16,7 @@
 #include <windows.h>
 #include "Common/StringUtil.h"
 #else
+#include <pthread.h>
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -38,9 +39,12 @@ void* AllocateExecutableMemory(size_t size)
 #if defined(_WIN32)
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
+  int map_flags =MAP_ANON | MAP_PRIVATE;
+#if defined(_M_ARM_64) && defined(__APPLE__)
+  map_flags |= MAP_JIT;
+#endif
   void* ptr =
-      mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
-
+      mmap(nullptr, size, PROT_READ | PROT_WRITE |PROT_EXEC , map_flags, -1, 0);
   if (ptr == MAP_FAILED)
     ptr = nullptr;
 #endif
@@ -49,6 +53,35 @@ void* AllocateExecutableMemory(size_t size)
     PanicAlertFmt("Failed to allocate executable memory");
 
   return ptr;
+}
+// Certain platforms (Mac OS X on ARM) enforce that a single thread can only have write or
+// execute permissions to pages at any given point of time. The two below functions
+// are used to toggle between having write permissions or execute permissions.
+//
+// The default state of these allocations in Dolphin is for them to be executable,
+// but not writeable. So, functions that are updating these pages should wrap their
+// writes like below:
+
+// JITPageWriteEnableExecuteDisable();
+// PrepareInstructionStreamForJIT();
+// JITPageWriteDisableExecuteEnable();
+
+//Allows a thread to write to executable memory, but not execute the data.
+void JITPageWriteEnableExecuteDisable(){
+#if defined(_M_ARM_64) && defined(__APPLE__)
+  if (__builtin_available(macOS 11.0, *)) {
+    pthread_jit_write_protect_np(0);
+  }
+#endif
+
+}
+//Allows a thread to execute memory allocated for execution, but not write to it.
+void JITPageWriteDisableExecuteEnable(){
+#if defined(_M_ARM_64) && defined(__APPLE__)
+  if (__builtin_available(macOS 11.0, *)) {
+    pthread_jit_write_protect_np(1);
+  }
+#endif
 }
 
 void* AllocateMemoryPages(size_t size)

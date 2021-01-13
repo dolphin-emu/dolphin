@@ -289,6 +289,7 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
   if ((const u8*)ctx->CTX_PC - fault_location > fastmem_area_length)
     return false;
 
+  Common::JITPageWriteEnableExecuteDisable();
   ARM64XEmitter emitter((u8*)fault_location);
 
   emitter.BL(slow_handler_iter->second.slowmem_code);
@@ -300,6 +301,8 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
   m_fault_to_handler.erase(slow_handler_iter);
 
   emitter.FlushIcache();
+  Common::JITPageWriteDisableExecuteEnable();
+
   ctx->CTX_PC = reinterpret_cast<std::uintptr_t>(fault_location);
   return true;
 }

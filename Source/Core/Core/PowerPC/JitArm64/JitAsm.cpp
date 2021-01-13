@@ -25,6 +25,8 @@ using namespace Arm64Gen;
 
 void JitArm64::GenerateAsm()
 {
+  Common::JITPageWriteEnableExecuteDisable();
+
   // This value is all of the callee saved registers that we are required to save.
   // According to the AACPS64 we need to save R19 ~ R30 and Q8 ~ Q15.
   const u32 ALL_CALLEE_SAVED = 0x7FF80000;
@@ -197,6 +199,7 @@ void JitArm64::GenerateAsm()
   GenerateCommonAsm();
 
   FlushIcache();
+  Common::JITPageWriteDisableExecuteEnable();
 }
 
 void JitArm64::GenerateCommonAsm()

@@ -54,8 +54,10 @@ VertexLoaderARM64::VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_at
     : VertexLoaderBase(vtx_desc, vtx_att), m_float_emit(this)
 {
   AllocCodeSpace(4096);
+  Common::JITPageWriteEnableExecuteDisable();
   ClearCodeSpace();
   GenerateVertexLoader();
+  Common::JITPageWriteDisableExecuteEnable();
   WriteProtect();
 }
 
