@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QPixmap>
+#include <QRegularExpression>
 
 #include "Core/ConfigManager.h"
 
@@ -96,7 +97,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       const int disc_nr = game.GetDiscNumber() + 1;
       if (disc_nr > 1)
       {
-        if (!name.contains(QRegExp(QStringLiteral("disc ?%1").arg(disc_nr), Qt::CaseInsensitive)))
+        if (!name.contains(QRegularExpression(QStringLiteral("disc ?%1").arg(disc_nr),
+                                              QRegularExpression::CaseInsensitiveOption)))
         {
           name.append(tr(" (Disc %1)").arg(disc_nr));
         }
@@ -107,11 +109,14 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       {
         constexpr int MAX_NUMBER_LENGTH = 10;
 
-        QRegExp rx(QStringLiteral("\\d+"));
+        const QRegularExpression rx(QStringLiteral("\\d+"));
+        QRegularExpressionMatch match;
         int pos = 0;
-        while ((pos = rx.indexIn(name, pos)) != -1)
+        while ((match = rx.match(name, pos)).hasMatch())
         {
-          name.replace(pos, rx.matchedLength(), rx.cap().rightJustified(MAX_NUMBER_LENGTH));
+          pos = match.capturedStart();
+          name.replace(pos, match.capturedLength(),
+                       match.captured().rightJustified(MAX_NUMBER_LENGTH));
           pos += MAX_NUMBER_LENGTH;
         }
       }
