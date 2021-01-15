@@ -933,12 +933,62 @@ void Jit64::subfx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (a == b)
+  {
+    gpr.SetImmediate32(d, 0);
+    if (inst.OE)
+      GenerateConstantOverflow(false);
+  }
+  else if (gpr.IsImm(a, b))
   {
     s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
     gpr.SetImmediate32(d, i - j);
     if (inst.OE)
       GenerateConstantOverflow((s64)i - (s64)j);
+  }
+  else if (gpr.IsImm(a))
+  {
+    s32 j = gpr.SImm32(a);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rb, Rd);
+
+    if (j == 0)
+    {
+      if (d != b)
+        MOV(32, Rd, Rb);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (d == b)
+    {
+      SUB(32, Rd, Imm32(j));
+      if (inst.OE)
+        GenerateOverflow();
+    }
+    else if (Rb.IsSimpleReg() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Rb.GetSimpleReg(), -j));
+    }
+    else
+    {
+      MOV(32, Rd, Rb);
+      SUB(32, Rd, Imm32(j));
+      if (inst.OE)
+        GenerateOverflow();
+    }
+  }
+  else if (gpr.IsImm(b) && gpr.Imm32(b) == 0)
+  {
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+
+    if (d != a)
+      MOV(32, Rd, Ra);
+    NEG(32, Rd);
+    if (inst.OE)
+      GenerateOverflow();
   }
   else
   {
@@ -956,10 +1006,6 @@ void Jit64::subfx(UGeckoInstruction inst)
       MOV(32, R(RSCRATCH), Ra);
       MOV(32, Rd, Rb);
       SUB(32, Rd, R(RSCRATCH));
-    }
-    else if (Rb.IsSimpleReg() && Ra.IsImm() && !inst.OE)
-    {
-      LEA(32, Rd, MDisp(Rb.GetSimpleReg(), -Ra.SImm32()));
     }
     else
     {
