@@ -1263,7 +1263,7 @@ void ARM64XEmitter::ISB(BarrierType type)
 // Add/Subtract (extended register)
 void ARM64XEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  ADD(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  ADD(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1273,7 +1273,7 @@ void ARM64XEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Optio
 
 void ARM64XEmitter::ADDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeArithmeticInst(0, true, Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  EncodeArithmeticInst(0, true, Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::ADDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1283,7 +1283,7 @@ void ARM64XEmitter::ADDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Opti
 
 void ARM64XEmitter::SUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  SUB(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  SUB(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::SUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1293,7 +1293,7 @@ void ARM64XEmitter::SUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Optio
 
 void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeArithmeticInst(1, true, Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  EncodeArithmeticInst(1, true, Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1303,7 +1303,7 @@ void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Opti
 
 void ARM64XEmitter::CMN(ARM64Reg Rn, ARM64Reg Rm)
 {
-  CMN(Rn, Rm, ArithOption(Rn, ST_LSL, 0));
+  CMN(Rn, Rm, ArithOption(Rn, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::CMN(ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1313,7 +1313,7 @@ void ARM64XEmitter::CMN(ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
 
 void ARM64XEmitter::CMP(ARM64Reg Rn, ARM64Reg Rm)
 {
-  CMP(Rn, Rm, ArithOption(Rn, ST_LSL, 0));
+  CMP(Rn, Rm, ArithOption(Rn, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::CMP(ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1553,13 +1553,13 @@ void ARM64XEmitter::MOV(ARM64Reg Rd, ARM64Reg Rm, ArithOption Shift)
 void ARM64XEmitter::MOV(ARM64Reg Rd, ARM64Reg Rm)
 {
   if (IsGPR(Rd) && IsGPR(Rm))
-    ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSL, 0));
+    ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ShiftType::LSL, 0));
   else
     ASSERT_MSG(DYNA_REC, false, "Non-GPRs not supported in MOV");
 }
 void ARM64XEmitter::MVN(ARM64Reg Rd, ARM64Reg Rm)
 {
-  ORN(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSL, 0));
+  ORN(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ShiftType::LSL, 0));
 }
 void ARM64XEmitter::LSL(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
@@ -2016,7 +2016,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
     // Max unsigned value (or if signed, -1)
     // Set to ~ZR
     ARM64Reg ZR = Is64Bit(Rd) ? SP : WSP;
-    ORN(Rd, ZR, ZR, ArithOption(ZR, ST_LSL, 0));
+    ORN(Rd, ZR, ZR, ArithOption(ZR, ShiftType::LSL, 0));
     return;
   }
 

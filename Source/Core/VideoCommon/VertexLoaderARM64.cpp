@@ -195,7 +195,7 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
     FixupBranch dont_store = B(CC_GT);
     MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_cache);
     ADD(EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg), EncodeRegTo64(count_reg),
-        ArithOption(EncodeRegTo64(count_reg), ST_LSL, 4));
+        ArithOption(EncodeRegTo64(count_reg), ShiftType::LSL, 4));
     m_float_emit.STUR(write_size, coords, EncodeRegTo64(scratch1_reg), -16);
     SetJumpTarget(dont_store);
   }
@@ -248,20 +248,20 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 
     // B
     AND(scratch2_reg, scratch3_reg, 32, 4);
-    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 3));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 5));
-    ORR(scratch1_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 16));
+    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 3));
+    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 5));
+    ORR(scratch1_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 16));
 
     // G
     UBFM(scratch2_reg, scratch3_reg, 5, 10);
-    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 6));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 8));
+    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
+    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 8));
 
     // R
     UBFM(scratch2_reg, scratch3_reg, 11, 15);
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 3));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 2));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 3));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 2));
 
     // A
     ORRI2R(scratch1_reg, scratch1_reg, 0xFF000000);
@@ -286,18 +286,18 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 
     // G
     AND(scratch2_reg, scratch3_reg, 32, 3);
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 8));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 8));
 
     // B
     UBFM(scratch2_reg, scratch3_reg, 12, 15);
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 16));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 16));
 
     // A
     UBFM(scratch2_reg, scratch3_reg, 8, 11);
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 24));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 24));
 
     // Final duplication
-    ORR(scratch1_reg, scratch1_reg, scratch1_reg, ArithOption(scratch1_reg, ST_LSL, 4));
+    ORR(scratch1_reg, scratch1_reg, scratch1_reg, ArithOption(scratch1_reg, ShiftType::LSL, 4));
 
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
     load_bytes = 2;
@@ -323,26 +323,26 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
 
     // A
     UBFM(scratch2_reg, scratch3_reg, 0, 5);
-    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 6));
-    ORR(scratch1_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 24));
+    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
+    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
+    ORR(scratch1_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 24));
 
     // B
     UBFM(scratch2_reg, scratch3_reg, 6, 11);
-    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 6));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 16));
+    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
+    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 16));
 
     // G
     UBFM(scratch2_reg, scratch3_reg, 12, 17);
-    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
-    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 6));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 8));
+    ORR(scratch2_reg, WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
+    ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 6));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 8));
 
     // R
     UBFM(scratch2_reg, scratch3_reg, 18, 23);
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
-    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 4));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 2));
+    ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 4));
 
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 

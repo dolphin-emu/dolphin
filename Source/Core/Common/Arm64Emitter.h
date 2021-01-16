@@ -277,12 +277,16 @@ constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)
   return static_cast<ARM64Reg>(reg | 0xC0);
 }
 
-enum ShiftType
+enum class ShiftType
 {
-  ST_LSL = 0,
-  ST_LSR = 1,
-  ST_ASR = 2,
-  ST_ROR = 3,
+  // Logical Shift Left
+  LSL = 0,
+  // Logical Shift Right
+  LSR = 1,
+  // Arithmetic Shift Right
+  ASR = 2,
+  // Rotate Right
+  ROR = 3,
 };
 
 enum class IndexType
@@ -437,7 +441,7 @@ public:
       m_width = WidthSpecifier::Width32Bit;
       m_extend = ExtendSpecifier::UXTW;
     }
-    m_shifttype = ST_LSL;
+    m_shifttype = ShiftType::LSL;
   }
   ArithOption(ARM64Reg Rd, ShiftType shift_type, u32 shift)
   {
@@ -466,7 +470,7 @@ public:
     case TypeSpecifier::ExtendedReg:
       return (static_cast<u32>(m_extend) << 13) | (m_shift << 10);
     case TypeSpecifier::ShiftedReg:
-      return (m_shifttype << 22) | (m_shift << 10);
+      return (static_cast<u32>(m_shifttype) << 22) | (m_shift << 10);
     default:
       DEBUG_ASSERT_MSG(DYNA_REC, false, "Invalid type in GetData");
       break;
@@ -699,14 +703,38 @@ public:
   void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
 
   // Wrap the above for saner syntax
-  void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { AND(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { BIC(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { ORR(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void ORN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { ORN(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void EOR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { EOR(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { EON(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { ANDS(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { BICS(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
+  void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    AND(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    BIC(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    ORR(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void ORN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    ORN(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void EOR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    EOR(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    EON(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    ANDS(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    BICS(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
   // Convenience wrappers around ORR. These match the official convenience syntax.
   void MOV(ARM64Reg Rd, ARM64Reg Rm, ArithOption Shift);
   void MOV(ARM64Reg Rd, ARM64Reg Rm);

@@ -91,7 +91,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   LDRB(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF(xer_so_ov));
 
   // [0 SO OV CA]
-  ADD(WA, WA, WB, ArithOption(WB, ST_LSL, 2));
+  ADD(WA, WA, WB, ArithOption(WB, ShiftType::LSL, 2));
   // [SO OV CA 0] << 3
   LSL(WA, WA, 4);
 
@@ -136,7 +136,7 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
   ARM64Reg RB = gpr.R(b);
 
   UBFM(index, RB, 28, 31);
-  ADD(index64, PPC_REG, index64, ArithOption(index64, ST_LSL, 2));
+  ADD(index64, PPC_REG, index64, ArithOption(index64, ShiftType::LSL, 2));
   LDR(IndexType::Unsigned, gpr.R(d), index64, PPCSTATE_OFF(sr[0]));
 
   gpr.Unlock(index);
@@ -155,7 +155,7 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
   ARM64Reg RB = gpr.R(b);
 
   UBFM(index, RB, 28, 31);
-  ADD(index64, PPC_REG, index64, ArithOption(index64, ST_LSL, 2));
+  ADD(index64, PPC_REG, index64, ArithOption(index64, ShiftType::LSL, 2));
   STR(IndexType::Unsigned, gpr.R(d), index64, PPCSTATE_OFF(sr[0]));
 
   gpr.Unlock(index);
@@ -282,7 +282,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     ADD(XB, XB, 1);
     UMULH(Xresult, Xresult, XB);
 
-    ADD(Xresult, XA, Xresult, ArithOption(Xresult, ST_LSR, 3));
+    ADD(Xresult, XA, Xresult, ArithOption(Xresult, ShiftType::LSR, 3));
     STR(IndexType::Unsigned, Xresult, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
 
     if (CanMergeNextInstructions(1))
@@ -332,9 +332,9 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     LDRH(IndexType::Unsigned, RD, PPC_REG, PPCSTATE_OFF(xer_stringctrl));
     LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-    ORR(RD, RD, WA, ArithOption(WA, ST_LSL, XER_CA_SHIFT));
+    ORR(RD, RD, WA, ArithOption(WA, ShiftType::LSL, XER_CA_SHIFT));
     LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_so_ov));
-    ORR(RD, RD, WA, ArithOption(WA, ST_LSL, XER_OV_SHIFT));
+    ORR(RD, RD, WA, ArithOption(WA, ShiftType::LSL, XER_OV_SHIFT));
     gpr.Unlock(WA);
   }
   break;
@@ -633,7 +633,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     else
     {
       UBFX(XC, CR, 61, 1);
-      ORR(XA, XC, XA, ArithOption(XA, ST_LSL, 4));
+      ORR(XA, XC, XA, ArithOption(XA, ShiftType::LSL, 4));
     }
 
     // EQ
@@ -648,7 +648,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
 
     // LT
     UBFX(XC, CR, 62, 1);
-    ORR(WA, WA, WC, ArithOption(WC, ST_LSL, 3));
+    ORR(WA, WA, WC, ArithOption(WC, ShiftType::LSL, 3));
   }
 
   gpr.Unlock(WC);

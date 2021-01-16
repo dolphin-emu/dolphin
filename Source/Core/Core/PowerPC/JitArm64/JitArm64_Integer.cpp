@@ -567,7 +567,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   {
     ARM64Reg WA = gpr.GetReg();
     MOVI2R(WA, mask);
-    AND(gpr.R(a), WA, gpr.R(s), ArithOption(gpr.R(s), ST_ROR, 32 - inst.SH));
+    AND(gpr.R(a), WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, 32 - inst.SH));
     gpr.Unlock(WA);
   }
 
@@ -592,7 +592,7 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
   {
     gpr.BindToRegister(a, a == s);
     ARM64Reg WA = gpr.GetReg();
-    ArithOption Shift(gpr.R(s), ST_ROR, 32 - (gpr.GetImm(b) & 0x1f));
+    ArithOption Shift(gpr.R(s), ShiftType::ROR, 32 - (gpr.GetImm(b) & 0x1f));
     MOVI2R(WA, mask);
     AND(gpr.R(a), WA, gpr.R(s), Shift);
     gpr.Unlock(WA);
@@ -656,7 +656,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
       if (a != s)
       {
         ASR(RA, RS, amount);
-        ANDS(dest, RA, RS, ArithOption(RS, ST_LSL, 32 - amount));
+        ANDS(dest, RA, RS, ArithOption(RS, ShiftType::LSL, 32 - amount));
       }
       else
       {
@@ -1500,7 +1500,7 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
 
       MOVI2R(WA, mask);
       BIC(WB, gpr.R(a), WA);
-      AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ST_ROR, 32 - inst.SH));
+      AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, 32 - inst.SH));
       ORR(gpr.R(a), WB, WA);
 
       gpr.Unlock(WA, WB);
