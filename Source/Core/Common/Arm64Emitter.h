@@ -285,12 +285,12 @@ enum ShiftType
   ST_ROR = 3,
 };
 
-enum IndexType
+enum class IndexType
 {
-  INDEX_UNSIGNED,
-  INDEX_POST,
-  INDEX_PRE,
-  INDEX_SIGNED,  // used in LDP/STP
+  Unsigned,
+  Post,
+  Pre,
+  Signed,  // used in LDP/STP
 };
 
 enum class ShiftAmount

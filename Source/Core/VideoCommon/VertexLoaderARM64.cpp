@@ -53,12 +53,12 @@ void VertexLoaderARM64::GetVertexAddr(int array, u64 attribute, ARM64Reg reg)
     {
       if (m_src_ofs < 4096)
       {
-        LDRB(INDEX_UNSIGNED, scratch1_reg, src_reg, m_src_ofs);
+        LDRB(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
       }
       else
       {
         ADD(reg, src_reg, m_src_ofs);
-        LDRB(INDEX_UNSIGNED, scratch1_reg, reg, 0);
+        LDRB(IndexType::Unsigned, scratch1_reg, reg, 0);
       }
       m_src_ofs += 1;
     }
@@ -70,12 +70,12 @@ void VertexLoaderARM64::GetVertexAddr(int array, u64 attribute, ARM64Reg reg)
       }
       else if (m_src_ofs <= 8190 && !(m_src_ofs & 1))
       {
-        LDRH(INDEX_UNSIGNED, scratch1_reg, src_reg, m_src_ofs);
+        LDRH(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
       }
       else
       {
         ADD(reg, src_reg, m_src_ofs);
-        LDRH(INDEX_UNSIGNED, scratch1_reg, reg, 0);
+        LDRH(IndexType::Unsigned, scratch1_reg, reg, 0);
       }
       m_src_ofs += 2;
       REV16(scratch1_reg, scratch1_reg);
@@ -87,10 +87,10 @@ void VertexLoaderARM64::GetVertexAddr(int array, u64 attribute, ARM64Reg reg)
       m_skip_vertex = CBZ(scratch2_reg);
     }
 
-    LDR(INDEX_UNSIGNED, scratch2_reg, stride_reg, array * 4);
+    LDR(IndexType::Unsigned, scratch2_reg, stride_reg, array * 4);
     MUL(scratch1_reg, scratch1_reg, scratch2_reg);
 
-    LDR(INDEX_UNSIGNED, EncodeRegTo64(scratch2_reg), arraybase_reg, array * 8);
+    LDR(IndexType::Unsigned, EncodeRegTo64(scratch2_reg), arraybase_reg, array * 8);
     ADD(EncodeRegTo64(reg), EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg));
   }
   else
@@ -123,7 +123,7 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
   if (offset == -1)
   {
     if (count_in == 1)
-      m_float_emit.LDR(elem_size, INDEX_UNSIGNED, coords, EncodeRegTo64(scratch1_reg), 0);
+      m_float_emit.LDR(elem_size, IndexType::Unsigned, coords, EncodeRegTo64(scratch1_reg), 0);
     else
       m_float_emit.LD1(elem_size, 1, coords, EncodeRegTo64(scratch1_reg));
   }
@@ -133,7 +133,7 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
   }
   else
   {
-    m_float_emit.LDR(load_size, INDEX_UNSIGNED, coords, src_reg, offset);
+    m_float_emit.LDR(load_size, IndexType::Unsigned, coords, src_reg, offset);
   }
 
   if (format != FORMAT_FLOAT)
@@ -163,7 +163,7 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
 
     if (dequantize && scaling_exponent)
     {
-      m_float_emit.LDR(32, INDEX_UNSIGNED, scale, scale_reg, scaling_exponent * 4);
+      m_float_emit.LDR(32, IndexType::Unsigned, scale, scale_reg, scaling_exponent * 4);
       m_float_emit.FMUL(32, coords, coords, scale, 0);
     }
   }
@@ -180,7 +180,7 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
   }
   else if (!(m_dst_ofs & mask))
   {
-    m_float_emit.STR(write_size, INDEX_UNSIGNED, coords, dst_reg, m_dst_ofs);
+    m_float_emit.STR(write_size, IndexType::Unsigned, coords, dst_reg, m_dst_ofs);
   }
   else
   {
@@ -222,15 +222,15 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
   case FORMAT_32B_888x:
   case FORMAT_32B_8888:
     if (offset == -1)
-      LDR(INDEX_UNSIGNED, scratch2_reg, EncodeRegTo64(scratch1_reg), 0);
+      LDR(IndexType::Unsigned, scratch2_reg, EncodeRegTo64(scratch1_reg), 0);
     else if (offset & 3)  // Not aligned - unscaled
       LDUR(scratch2_reg, src_reg, offset);
     else
-      LDR(INDEX_UNSIGNED, scratch2_reg, src_reg, offset);
+      LDR(IndexType::Unsigned, scratch2_reg, src_reg, offset);
 
     if (format != FORMAT_32B_8888)
       ORRI2R(scratch2_reg, scratch2_reg, 0xFF000000);
-    STR(INDEX_UNSIGNED, scratch2_reg, dst_reg, m_dst_ofs);
+    STR(IndexType::Unsigned, scratch2_reg, dst_reg, m_dst_ofs);
     load_bytes = 3 + (format != FORMAT_24B_888);
     break;
 
@@ -238,11 +238,11 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
     //                   RRRRRGGG GGGBBBBB
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     if (offset == -1)
-      LDRH(INDEX_UNSIGNED, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
+      LDRH(IndexType::Unsigned, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
     else if (offset & 1)  // Not aligned - unscaled
       LDURH(scratch3_reg, src_reg, offset);
     else
-      LDRH(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
+      LDRH(IndexType::Unsigned, scratch3_reg, src_reg, offset);
 
     REV16(scratch3_reg, scratch3_reg);
 
@@ -266,7 +266,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
     // A
     ORRI2R(scratch1_reg, scratch1_reg, 0xFF000000);
 
-    STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
+    STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
     load_bytes = 2;
     break;
 
@@ -275,11 +275,11 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
     //           REV16 - RRRRGGGG BBBBAAAA
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     if (offset == -1)
-      LDRH(INDEX_UNSIGNED, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
+      LDRH(IndexType::Unsigned, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
     else if (offset & 1)  // Not aligned - unscaled
       LDURH(scratch3_reg, src_reg, offset);
     else
-      LDRH(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
+      LDRH(IndexType::Unsigned, scratch3_reg, src_reg, offset);
 
     // R
     UBFM(scratch1_reg, scratch3_reg, 4, 7);
@@ -299,7 +299,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
     // Final duplication
     ORR(scratch1_reg, scratch1_reg, scratch1_reg, ArithOption(scratch1_reg, ST_LSL, 4));
 
-    STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
+    STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
     load_bytes = 2;
     break;
 
@@ -316,7 +316,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
       if (offset & 3)  // Not aligned - unscaled
         LDUR(scratch3_reg, src_reg, offset);
       else
-        LDR(INDEX_UNSIGNED, scratch3_reg, src_reg, offset);
+        LDR(IndexType::Unsigned, scratch3_reg, src_reg, offset);
     }
 
     REV32(scratch3_reg, scratch3_reg);
@@ -344,7 +344,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSL, 2));
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 4));
 
-    STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
+    STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 
     load_bytes = 3;
     break;
@@ -401,15 +401,15 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   if (m_VtxDesc.PosMatIdx)
   {
-    LDRB(INDEX_UNSIGNED, scratch1_reg, src_reg, m_src_ofs);
+    LDRB(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
     AND(scratch1_reg, scratch1_reg, 0, 5);
-    STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
+    STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 
     // Z-Freeze
     CMP(count_reg, 3);
     FixupBranch dont_store = B(CC_GT);
     MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_matrix_index);
-    STR(INDEX_UNSIGNED, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
+    STR(IndexType::Unsigned, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
     SetJumpTarget(dont_store);
 
     m_native_components |= VB_HAS_POSMTXIDX;
@@ -544,12 +544,12 @@ void VertexLoaderARM64::GenerateVertexLoader()
       m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
       m_native_vtx_decl.texcoords[i].integer = false;
 
-      LDRB(INDEX_UNSIGNED, scratch2_reg, src_reg, texmatidx_ofs[i]);
+      LDRB(IndexType::Unsigned, scratch2_reg, src_reg, texmatidx_ofs[i]);
       m_float_emit.UCVTF(S31, scratch2_reg);
 
       if (tc[i])
       {
-        m_float_emit.STR(32, INDEX_UNSIGNED, D31, dst_reg, m_dst_ofs);
+        m_float_emit.STR(32, IndexType::Unsigned, D31, dst_reg, m_dst_ofs);
         m_dst_ofs += sizeof(float);
       }
       else
@@ -565,14 +565,14 @@ void VertexLoaderARM64::GenerateVertexLoader()
           // If m_dst_ofs isn't 8byte aligned we can't store an 8byte zero register
           // So store two 4byte zero registers
           // The destination is always 4byte aligned
-          STR(INDEX_UNSIGNED, WSP, dst_reg, m_dst_ofs);
-          STR(INDEX_UNSIGNED, WSP, dst_reg, m_dst_ofs + 4);
+          STR(IndexType::Unsigned, WSP, dst_reg, m_dst_ofs);
+          STR(IndexType::Unsigned, WSP, dst_reg, m_dst_ofs + 4);
         }
         else
         {
-          STR(INDEX_UNSIGNED, SP, dst_reg, m_dst_ofs);
+          STR(IndexType::Unsigned, SP, dst_reg, m_dst_ofs);
         }
-        m_float_emit.STR(32, INDEX_UNSIGNED, D31, dst_reg, m_dst_ofs + 8);
+        m_float_emit.STR(32, IndexType::Unsigned, D31, dst_reg, m_dst_ofs + 8);
 
         m_dst_ofs += sizeof(float) * 3;
       }
