@@ -775,18 +775,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_dpad->SetControlExpression(1, "F");
 
   // Motion Source
-  m_imu_accelerometer->SetControlExpression(0, "Accel Up");
-  m_imu_accelerometer->SetControlExpression(1, "Accel Down");
-  m_imu_accelerometer->SetControlExpression(2, "Accel Left");
-  m_imu_accelerometer->SetControlExpression(3, "Accel Right");
-  m_imu_accelerometer->SetControlExpression(4, "Accel Forward");
-  m_imu_accelerometer->SetControlExpression(5, "Accel Backward");
-  m_imu_gyroscope->SetControlExpression(0, "Gyro Pitch Up");
-  m_imu_gyroscope->SetControlExpression(1, "Gyro Pitch Down");
-  m_imu_gyroscope->SetControlExpression(2, "Gyro Roll Left");
-  m_imu_gyroscope->SetControlExpression(3, "Gyro Roll Right");
-  m_imu_gyroscope->SetControlExpression(4, "Gyro Yaw Left");
-  m_imu_gyroscope->SetControlExpression(5, "Gyro Yaw Right");
+  m_imu_ir->enabled = false;
 
   // Enable Nunchuk
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
