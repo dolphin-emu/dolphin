@@ -912,14 +912,14 @@ public:
   }
 
   // This function expects you to have set up the state.
-  // Overwrites X0 and X30
+  // Overwrites X0 and X8
   template <typename T, typename... Args>
   ARM64Reg ABI_SetupLambda(const std::function<T(Args...)>* f)
   {
     auto trampoline = &ARM64XEmitter::CallLambdaTrampoline<T, Args...>;
-    MOVI2R(X30, (uintptr_t)trampoline);
-    MOVI2R(X0, (uintptr_t) const_cast<void*>((const void*)f));
-    return X30;
+    MOVP2R(X8, trampoline);
+    MOVP2R(X0, const_cast<void*>((const void*)f));
+    return X8;
   }
 
   // Plain function call

@@ -125,9 +125,9 @@ void JitArm64::GenerateAsm()
 
   // Call C version of Dispatch().
   STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+  MOVP2R(X8, reinterpret_cast<void*>(&JitBase::Dispatch));
   MOVP2R(X0, this);
-  MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
-  BLR(X30);
+  BLR(X8);
 
   FixupBranch no_block_available = CBZ(X0);
 
@@ -145,8 +145,8 @@ void JitArm64::GenerateAsm()
   ResetStack();
   MOVP2R(X0, this);
   MOV(W1, DISPATCHER_PC);
-  MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
-  BLR(X30);
+  MOVP2R(X8, reinterpret_cast<void*>(&JitTrampoline));
+  BLR(X8);
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   B(dispatcher_no_check);
 
@@ -165,8 +165,8 @@ void JitArm64::GenerateAsm()
   FixupBranch Exit = B(CC_NEQ);
 
   SetJumpTarget(to_start_of_timing_slice);
-  MOVP2R(X30, &CoreTiming::Advance);
-  BLR(X30);
+  MOVP2R(X8, &CoreTiming::Advance);
+  BLR(X8);
 
   // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
