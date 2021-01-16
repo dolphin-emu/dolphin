@@ -1039,11 +1039,11 @@ void WASAPIStream::SoundLoop()
 
     // We could as well override the SoundStream::SetVolume(int) function
     float volume = SConfig::GetInstance().m_IsMuted ? 0.f : SConfig::GetInstance().m_Volume / 100.f;
+    // Ignore them in case they fail
     if (m_simple_audio_volume)
     {
       float master_volume = 1.f;
       BOOL mute = false;
-      // Ignore them in case they fail
       m_simple_audio_volume->GetMasterVolume(&master_volume);
       m_simple_audio_volume->GetMute(&mute);
       volume *= mute ? 0.f : master_volume;
@@ -1095,7 +1095,8 @@ void WASAPIStream::SoundLoop()
 
     // If the device period was set too low, the above computations might take longer
     // that the latency, so we'd lose this audio frame
-    m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, 0);
+    m_audio_renderer->ReleaseBuffer(m_frames_in_buffer,
+                                    volume <= 0.f ? AUDCLNT_BUFFERFLAGS_SILENT : 0);
     submitted_samples += m_frames_in_buffer;
     m_wait_next_desync_check -= m_frames_in_buffer;
 
