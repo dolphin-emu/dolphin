@@ -13,7 +13,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -22,9 +21,9 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
-import java.util.Set;
 
 public final class MainPresenter
 {
@@ -162,7 +161,7 @@ public final class MainPresenter
 
     Thread installWADThread = new Thread(() ->
     {
-      if (NativeLibrary.InstallWAD(file))
+      if (WiiUtils.installWAD(file))
       {
         mainPresenterActivity.runOnUiThread(
                 () -> Toast.makeText(mContext, R.string.wad_install_success, Toast.LENGTH_SHORT)
