@@ -238,22 +238,22 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     else
       accessSize = 8;
 
-    LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    LDR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     if (accessSize == 32)
     {
       REV32(W1, RS);
-      STR(INDEX_POST, W1, X0, 4);
+      STR(IndexType::Post, W1, X0, 4);
     }
     else if (accessSize == 16)
     {
       REV16(W1, RS);
-      STRH(INDEX_POST, W1, X0, 2);
+      STRH(IndexType::Post, W1, X0, 2);
     }
     else
     {
-      STRB(INDEX_POST, RS, X0, 1);
+      STRB(IndexType::Post, RS, X0, 1);
     }
-    STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    STR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
   else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
@@ -471,7 +471,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
       ARM64Reg RX3 = gpr.R(i + 2);
       ARM64Reg RX2 = gpr.R(i + 1);
       ARM64Reg RX1 = gpr.R(i);
-      LDP(INDEX_POST, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
+      LDP(IndexType::Post, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
       REV32(EncodeRegTo64(RX1), EncodeRegTo64(RX1));
       REV32(EncodeRegTo64(RX3), EncodeRegTo64(RX3));
       LSR(EncodeRegTo64(RX2), EncodeRegTo64(RX1), 32);
@@ -484,7 +484,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
       gpr.BindToRegister(i, false);
       ARM64Reg RX2 = gpr.R(i + 1);
       ARM64Reg RX1 = gpr.R(i);
-      LDP(INDEX_POST, RX1, RX2, XA, 8);
+      LDP(IndexType::Post, RX1, RX2, XA, 8);
       REV32(RX1, RX1);
       REV32(RX2, RX2);
       ++i;
@@ -493,7 +493,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     {
       gpr.BindToRegister(i, false);
       ARM64Reg RX = gpr.R(i);
-      LDR(INDEX_POST, RX, XA, 4);
+      LDR(IndexType::Post, RX, XA, 4);
       REV32(RX, RX);
     }
   }
@@ -527,7 +527,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
   {
     ARM64Reg RX = gpr.R(i);
     REV32(WB, RX);
-    STR(INDEX_UNSIGNED, WB, XA, (i - inst.RD) * 4);
+    STR(IndexType::Unsigned, WB, XA, (i - inst.RD) * 4);
   }
 
   gpr.Unlock(WA, WB);
