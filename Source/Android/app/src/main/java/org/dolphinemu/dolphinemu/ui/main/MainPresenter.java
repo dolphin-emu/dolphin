@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -24,6 +23,7 @@ import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 public final class MainPresenter
 {
@@ -150,32 +150,38 @@ public final class MainPresenter
     mDirToAdd = uri.toString();
   }
 
-  public void installWAD(String file)
+  public void installWAD(String path)
+  {
+    runOnThreadAndShowResult(R.string.import_in_progress, () ->
+    {
+      boolean success = WiiUtils.installWAD(path);
+      int message = success ? R.string.wad_install_success : R.string.wad_install_failure;
+      return mContext.getResources().getString(message);
+    });
+  }
+
+  private void runOnThreadAndShowResult(int progressMessage, Supplier<String> f)
   {
     final Activity mainPresenterActivity = (Activity) mContext;
 
-    AlertDialog dialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase).create();
-    dialog.setTitle("Installing WAD");
-    dialog.setMessage("Installing...");
-    dialog.setCancelable(false);
-    dialog.show();
+    AlertDialog progressDialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
+            .create();
+    progressDialog.setTitle(progressMessage);
+    progressDialog.setCancelable(false);
+    progressDialog.show();
 
-    Thread installWADThread = new Thread(() ->
+    new Thread(() ->
     {
-      if (WiiUtils.installWAD(file))
+      String result = f.get();
+      mainPresenterActivity.runOnUiThread(() ->
       {
-        mainPresenterActivity.runOnUiThread(
-                () -> Toast.makeText(mContext, R.string.wad_install_success, Toast.LENGTH_SHORT)
-                        .show());
-      }
-      else
-      {
-        mainPresenterActivity.runOnUiThread(
-                () -> Toast.makeText(mContext, R.string.wad_install_failure, Toast.LENGTH_SHORT)
-                        .show());
-      }
-      mainPresenterActivity.runOnUiThread(dialog::dismiss);
-    }, "InstallWAD");
-    installWADThread.start();
+        progressDialog.dismiss();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+        builder.setMessage(result);
+        builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+        builder.show();
+      });
+    }, mContext.getResources().getString(progressMessage)).start();
   }
 }
