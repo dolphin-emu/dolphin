@@ -4,7 +4,14 @@
 <dict>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
-	<key>com.apple.security.cs.disable-library-validation</key>
+	<!-- Needed for GameCube microphone emulation -->
+	<key>com.apple.security.device.audio-input</key>
 	<true/>
+	<!-- TODO: It is likely this requirement is coming from Qt, but should confirm -->
+  	<key>com.apple.security.automation.apple-events</key>
+  	<true/>
+	<!-- This is needed to use adhoc signed linked libraries -->
+ 	<key>com.apple.security.cs.disable-library-validation</key> 
+  	<true/>
 </dict>
 </plist>

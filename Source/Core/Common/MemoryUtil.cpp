@@ -39,12 +39,11 @@ void* AllocateExecutableMemory(size_t size)
 #if defined(_WIN32)
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-  int map_flags =MAP_ANON | MAP_PRIVATE;
+  int map_flags = MAP_ANON | MAP_PRIVATE;
 #if defined(_M_ARM_64) && defined(__APPLE__)
   map_flags |= MAP_JIT;
 #endif
-  void* ptr =
-      mmap(nullptr, size, PROT_READ | PROT_WRITE |PROT_EXEC , map_flags, -1, 0);
+  void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, map_flags, -1, 0);
   if (ptr == MAP_FAILED)
     ptr = nullptr;
 #endif
@@ -54,7 +53,19 @@ void* AllocateExecutableMemory(size_t size)
 
   return ptr;
 }
-// Certain platforms (Mac OS X on ARM) enforce that a single thread can only have write or
+// This function is used to provide a counter for the JITPageWrite*Execute*
+// functions to enable nesting. The static variable is wrapped in a a function
+// to allow those functions to be called inside of the constructor of a static
+// variable portably.
+//
+// The variable is thread_local as the W^X mode is specific to each running thread.
+static int& JITPageWriteNestCounter()
+{
+  static thread_local int nest_counter = 0;
+  return nest_counter;
+}
+
+// Certain platforms (Mac OS on ARM) enforce that a single thread can only have write or
 // execute permissions to pages at any given point of time. The two below functions
 // are used to toggle between having write permissions or execute permissions.
 //
@@ -66,20 +77,52 @@ void* AllocateExecutableMemory(size_t size)
 // PrepareInstructionStreamForJIT();
 // JITPageWriteDisableExecuteEnable();
 
-//Allows a thread to write to executable memory, but not execute the data.
-void JITPageWriteEnableExecuteDisable(){
+// These functions can be nested, in which case execution will only be enabled
+// after the call to the JITPageWriteDisableExecuteEnable from the top most
+// nesting level. Example:
+
+// [JIT page is in execute mode for the thread]
+// JITPageWriteEnableExecuteDisable();
+//   [JIT page is in write mode for the thread]
+//   JITPageWriteEnableExecuteDisable();
+//     [JIT page is in write mode for the thread]
+//   JITPageWriteDisableExecuteEnable();
+//   [JIT page is in write mode for the thread]
+// JITPageWriteDisableExecuteEnable();
+// [JIT page is in execute mode for the thread]
+
+// Allows a thread to write to executable memory, but not execute the data.
+void JITPageWriteEnableExecuteDisable()
+{
 #if defined(_M_ARM_64) && defined(__APPLE__)
-  if (__builtin_available(macOS 11.0, *)) {
-    pthread_jit_write_protect_np(0);
+  if (JITPageWriteNestCounter() == 0)
+  {
+    if (__builtin_available(macOS 11.0, *))
+    {
+      pthread_jit_write_protect_np(0);
+    }
   }
 #endif
-
+  JITPageWriteNestCounter()++;
 }
-//Allows a thread to execute memory allocated for execution, but not write to it.
-void JITPageWriteDisableExecuteEnable(){
+// Allows a thread to execute memory allocated for execution, but not write to it.
+void JITPageWriteDisableExecuteEnable()
+{
+  JITPageWriteNestCounter()--;
+
+  // Sanity check the NestCounter to identify underflow
+  // This can indicate the calls to JITPageWriteDisableExecuteEnable()
+  // are not matched with previous calls to JITPageWriteEnableExecuteDisable()
+  if (JITPageWriteNestCounter() < 0)
+    PanicAlertFmt("JITPageWriteNestCounter() underflowed");
+
 #if defined(_M_ARM_64) && defined(__APPLE__)
-  if (__builtin_available(macOS 11.0, *)) {
-    pthread_jit_write_protect_np(1);
+  if (JITPageWriteNestCounter() == 0)
+  {
+    if (__builtin_available(macOS 11.0, *))
+    {
+      pthread_jit_write_protect_np(1);
+    }
   }
 #endif
 }

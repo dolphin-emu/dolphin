@@ -73,8 +73,8 @@ void JitArm64::Init()
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
-  //Ifdef this since the exception handler runs on a separate thread on Mac OS X (ARM)
-#if !defined(__APPLE__) && !defined(_M_ARM_64)
+  // Ifdef this since the exception handler runs on a separate thread on macOS (ARM)
+#if !(defined(__APPLE__) && defined(_M_ARM_64))
   // We can't handle any fault from other threads.
   if (!Core::IsCPUThread())
   {
@@ -631,7 +631,6 @@ void JitArm64::Jit(u32)
   DoJit(em_address, b, nextPC);
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
   Common::JITPageWriteDisableExecuteEnable();
-
 }
 
 void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)

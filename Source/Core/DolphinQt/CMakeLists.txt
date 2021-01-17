@@ -518,6 +518,22 @@ if(APPLE)
     POST_BUILD COMMAND
     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
     $<TARGET_FILE:dolphin-emu>)
+
+  if(MACOS_CODE_SIGNING)
+    # Code sign make file builds
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime --entitlements ${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
+    
+    # Code sign builds for build systems that do have release/debug variants (Xcode)
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime --entitlements ${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
+      
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime --entitlements ${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/Dolphin.app" || true)
+  endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()
