@@ -91,11 +91,12 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_open_file:
-        mView.launchOpenFileActivity();
+        mView.launchOpenFileActivity(REQUEST_GAME_FILE);
         return true;
 
       case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().run(context, true, mView::launchInstallWAD);
+        new AfterDirectoryInitializationRunner().run(context, true,
+                () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
         return true;
     }
 

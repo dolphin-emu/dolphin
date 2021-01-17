@@ -180,21 +180,12 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
-  public void launchOpenFileActivity()
+  public void launchOpenFileActivity(int requestCode)
   {
     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
     intent.addCategory(Intent.CATEGORY_OPENABLE);
     intent.setType("*/*");
-    startActivityForResult(intent, MainPresenter.REQUEST_GAME_FILE);
-  }
-
-  @Override
-  public void launchInstallWAD()
-  {
-    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-    intent.addCategory(Intent.CATEGORY_OPENABLE);
-    intent.setType("*/*");
-    startActivityForResult(intent, MainPresenter.REQUEST_WAD_FILE);
+    startActivityForResult(intent, requestCode);
   }
 
   @Override
