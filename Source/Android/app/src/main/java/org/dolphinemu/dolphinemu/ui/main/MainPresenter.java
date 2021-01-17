@@ -31,6 +31,7 @@ public final class MainPresenter
   public static final int REQUEST_GAME_FILE = 2;
   public static final int REQUEST_SD_FILE = 3;
   public static final int REQUEST_WAD_FILE = 4;
+  public static final int REQUEST_WII_SAVE_FILE = 5;
 
   private final MainView mView;
   private final Context mContext;
@@ -98,6 +99,11 @@ public final class MainPresenter
         new AfterDirectoryInitializationRunner().run(context, true,
                 () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
         return true;
+
+      case R.id.menu_import_wii_save:
+        new AfterDirectoryInitializationRunner().run(context, true,
+                () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
+        return true;
     }
 
     return false;
@@ -160,6 +166,33 @@ public final class MainPresenter
     });
   }
 
+  public void importWiiSave(String path)
+  {
+    runOnThreadAndShowResult(R.string.import_in_progress, () ->
+    {
+      int result = WiiUtils.importWiiSave(path);
+      int message;
+      switch (result)
+      {
+        case WiiUtils.RESULT_SUCCESS:
+          message = R.string.wii_save_import_success;
+          break;
+        case WiiUtils.RESULT_CORRUPTED_SOURCE:
+          message = R.string.wii_save_import_corruped_source;
+          break;
+        case WiiUtils.RESULT_TITLE_MISSING:
+          message = R.string.wii_save_import_title_missing;
+          break;
+        case WiiUtils.RESULT_CANCELLED:
+          return null;
+        default:
+          message = R.string.wii_save_import_error;
+          break;
+      }
+      return mContext.getResources().getString(message);
+    });
+  }
+
   private void runOnThreadAndShowResult(int progressMessage, Supplier<String> f)
   {
     final Activity mainPresenterActivity = (Activity) mContext;
@@ -177,10 +210,14 @@ public final class MainPresenter
       {
         progressDialog.dismiss();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
-        builder.setMessage(result);
-        builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
-        builder.show();
+        if (result != null)
+        {
+          AlertDialog.Builder builder =
+                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+          builder.setMessage(result);
+          builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+          builder.show();
+        }
       });
     }, mContext.getResources().getString(progressMessage)).start();
   }

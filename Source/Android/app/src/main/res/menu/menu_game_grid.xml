@@ -25,4 +25,9 @@
         android:title="@string/grid_menu_install_wad"
         app:showAsAction="never"/>
 
+    <item
+        android:id="@+id/menu_import_wii_save"
+        android:title="@string/grid_menu_import_wii_save"
+        app:showAsAction="never"/>
+
 </menu>

@@ -220,6 +220,11 @@ public final class MainActivity extends AppCompatActivity implements MainView
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.WAD_EXTENSION,
                   () -> mPresenter.installWAD(result.getData().toString()));
           break;
+
+        case MainPresenter.REQUEST_WII_SAVE_FILE:
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
+                  () -> mPresenter.importWiiSave(result.getData().toString()));
+          break;
       }
     }
     else

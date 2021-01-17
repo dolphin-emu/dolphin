@@ -244,6 +244,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.WAD_EXTENSION,
                   () -> mPresenter.installWAD(result.getData().toString()));
           break;
+
+        case MainPresenter.REQUEST_WII_SAVE_FILE:
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
+                  () -> mPresenter.importWiiSave(result.getData().toString()));
+          break;
       }
     }
     else
@@ -343,6 +348,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     rowItems.add(new TvSettingsItem(R.id.menu_install_wad,
             R.drawable.ic_folder,
             R.string.grid_menu_install_wad));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_import_wii_save,
+            R.drawable.ic_folder,
+            R.string.grid_menu_import_wii_save));
 
     // Create a header for this row.
     HeaderItem header =
