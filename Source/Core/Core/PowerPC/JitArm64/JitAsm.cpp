@@ -97,7 +97,7 @@ void JitArm64::GenerateAsm()
     ARM64Reg cache_base = X27;
     ARM64Reg block = X30;
     ORRI2R(pc_masked, WZR, JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3);
-    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ST_LSL, 1));
+    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
     MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
     LDR(block, cache_base, EncodeRegTo64(pc_masked));
     FixupBranch not_found = CBZ(block);
@@ -224,7 +224,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.UCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -238,7 +238,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.SCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -252,7 +252,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.UCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -266,7 +266,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.SCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -288,7 +288,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.UCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -302,7 +302,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.SCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -316,7 +316,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.UCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -330,7 +330,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.SCVTF(32, D0, D0);
 
     MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
@@ -387,7 +387,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
 
@@ -414,7 +414,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
 
@@ -442,7 +442,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
 
@@ -469,7 +469,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
 
@@ -511,7 +511,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
 
@@ -537,7 +537,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
 
@@ -563,7 +563,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
 
@@ -589,7 +589,7 @@ void JitArm64::GenerateCommonAsm()
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVP2R(X2, &m_quantizeTableS);
-      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+      ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
       float_emit.LDR(32, IndexType::Unsigned, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
 
