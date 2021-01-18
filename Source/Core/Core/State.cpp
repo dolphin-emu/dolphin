@@ -456,10 +456,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   Flush();
   File::IOFile f(filename, "rb");
   if (!f)
-  {
-    Core::DisplayMessage("State not found", 2000);
     return false;
-  }
 
   f.ReadArray(&header, 1);
   return true;
