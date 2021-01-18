@@ -19,12 +19,12 @@ import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
+import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
@@ -171,9 +171,6 @@ public final class MainPresenter
 
   public void importWiiSave(String path)
   {
-    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N)
-      return;  // TODO
-
     final Activity mainPresenterActivity = (Activity) mContext;
 
     CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
