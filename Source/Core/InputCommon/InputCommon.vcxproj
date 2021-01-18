@@ -20,6 +20,7 @@
     <ClCompile Include="ControllerEmu\ControlGroup\IMUCursor.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\IMUGyroscope.cpp" />
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
+    <ClCompile Include="ControllerEmu\ProfileManager.cpp" />
     <ClCompile Include="ControllerEmu\StickGate.cpp" />
     <ClCompile Include="ControllerEmu\Control\Control.cpp" />
     <ClCompile Include="ControllerEmu\Control\Input.cpp" />
@@ -50,6 +51,7 @@
     <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
+    <ClCompile Include="DeviceProfileContainer.cpp" />
     <ClCompile Include="DynamicInputTextureConfiguration.cpp" />
     <ClCompile Include="DynamicInputTextureManager.cpp" />
     <ClCompile Include="GCAdapter.cpp" />
@@ -62,6 +64,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\IMUCursor.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\IMUGyroscope.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
+    <ClInclude Include="ControllerEmu\ProfileManager.h" />
     <ClInclude Include="ControllerEmu\StickGate.h" />
     <ClInclude Include="ControllerEmu\Control\Control.h" />
     <ClInclude Include="ControllerEmu\Control\Input.h" />
@@ -94,6 +97,7 @@
     <ClInclude Include="ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
+    <ClInclude Include="DeviceProfileContainer.h" />
     <ClInclude Include="DynamicInputTextureConfiguration.h" />
     <ClInclude Include="DynamicInputTextureManager.h" />
     <ClInclude Include="GCAdapter.h" />

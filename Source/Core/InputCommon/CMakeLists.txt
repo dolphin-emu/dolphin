@@ -1,4 +1,6 @@
 add_library(inputcommon
+  DeviceProfileContainer.cpp
+  DeviceProfileContainer.h
   DynamicInputTextureConfiguration.cpp
   DynamicInputTextureConfiguration.h
   DynamicInputTextureManager.cpp
@@ -11,6 +13,8 @@ add_library(inputcommon
   InputProfile.h
   ControllerEmu/ControllerEmu.cpp
   ControllerEmu/ControllerEmu.h
+  ControllerEmu/ProfileManager.cpp
+  ControllerEmu/ProfileManager.h
   ControllerEmu/StickGate.cpp
   ControllerEmu/StickGate.h
   ControllerEmu/Control/Control.cpp

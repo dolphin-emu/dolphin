@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
@@ -16,7 +17,6 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
-#include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
@@ -26,12 +26,15 @@ InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_nam
 
 InputConfig::~InputConfig() = default;
 
+void InputConfig::LoadProfiles()
+{
+  m_device_profile_container.Load(m_profile_name);
+}
+
 bool InputConfig::LoadConfig(bool isGC)
 {
   IniFile inifile;
-  bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
   static constexpr std::array<std::string_view, MAX_BBMOTES> num = {"1", "2", "3", "4", "BB"};
-  std::string profile[MAX_BBMOTES];
   std::string path;
 
 #if defined(ANDROID)
@@ -40,6 +43,8 @@ bool InputConfig::LoadConfig(bool isGC)
 #endif
 
   m_dynamic_input_tex_config_manager.Load();
+
+  LoadProfiles();
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
@@ -60,26 +65,47 @@ bool InputConfig::LoadConfig(bool isGC)
 
     for (int i = 0; i < 4; i++)
     {
-      const auto profile_name = fmt::format("{}Profile{}", type, num[i]);
-
-      if (control_section->Exists(profile_name))
+      if (static_cast<std::size_t>(i + 1) > m_controllers.size())
       {
-        std::string profile_setting;
-        if (control_section->Get(profile_name, &profile_setting))
+        continue;
+      }
+      const auto profile_name = fmt::format("{}Profile{}", type, num[i]);
+      m_controllers[i]->GetProfileManager().ClearProfileFilter();
+      std::string profile_setting;
+      if (control_section->Get(profile_name, &profile_setting))
+      {
+        const auto& setting_choices = SplitString(profile_setting, ',');
+        std::vector<std::string> profiles;
+        for (const std::string& setting_choice : setting_choices)
         {
-          auto profiles = InputProfile::GetProfilesFromSetting(
-              profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
-
-          if (profiles.empty())
+          const std::string full_path =
+              File::GetUserPath(D_CONFIG_IDX) + path + std::string(StripSpaces(setting_choice));
+          if (File::IsDirectory(full_path))
           {
-            // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertFmtT("No profiles found for game setting '{0}'", profile_setting);
-            continue;
+            const auto files_under_directory = Common::DoFileSearch({full_path}, {".ini"}, true);
+            profiles.insert(profiles.end(), files_under_directory.begin(),
+                            files_under_directory.end());
           }
+          else
+          {
+            const std::string profile_file_path = full_path + ".ini";
+            if (File::Exists(profile_file_path))
+            {
+              profiles.push_back(profile_file_path);
+            }
+          }
+        }
 
-          // Use the first profile by default
-          profile[i] = profiles[0];
-          useProfile[i] = true;
+        if (profiles.empty())
+        {
+          // TODO: PanicAlert shouldn't be used for this.
+          PanicAlertFmtT("No profiles found for game setting '{0}'", profile_setting);
+          continue;
+        }
+
+        for (auto profile : profiles)
+        {
+          m_controllers[i]->GetProfileManager().AddToProfileFilter(profile);
         }
       }
     }
@@ -105,17 +131,11 @@ bool InputConfig::LoadConfig(bool isGC)
     {
       IniFile::Section config;
       // Load settings from ini
-      if (useProfile[n])
+      if (controller->GetProfileManager().ProfilesInFilter() > 0)
       {
-        std::string base;
-        SplitPath(profile[n], nullptr, &base, nullptr);
-        Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
-                                 controller->GetName() + "'",
-                             6000);
-
-        IniFile profile_ini;
-        profile_ini.Load(profile[n]);
-        config = *profile_ini.GetOrCreateSection("Profile");
+        controller->GetProfileManager().SetProfileForGame(0);
+        auto profile = controller->GetProfileManager().GetProfile();
+        config = *profile->GetProfileData();
       }
       else
       {
@@ -180,6 +200,11 @@ std::size_t InputConfig::GetControllerCount() const
   return m_controllers.size();
 }
 
+InputCommon::DeviceProfileContainer& InputConfig::GetDeviceProfileContainer()
+{
+  return m_device_profile_container;
+}
+
 void InputConfig::RegisterHotplugCallback()
 {
   // Update control references on all controllers
@@ -198,6 +223,7 @@ void InputConfig::UnregisterHotplugCallback()
 void InputConfig::OnControllerCreated(ControllerEmu::EmulatedController& controller)
 {
   controller.SetDynamicInputTextureManager(&m_dynamic_input_tex_config_manager);
+  controller.GetProfileManager().SetDeviceProfileContainer(&m_device_profile_container);
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

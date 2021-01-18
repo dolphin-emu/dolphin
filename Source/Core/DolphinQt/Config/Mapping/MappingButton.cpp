@@ -135,6 +135,9 @@ void MappingButton::UpdateIndicator()
 void MappingButton::ConfigChanged()
 {
   setText(ToDisplayString(QString::fromStdString(m_reference->GetExpression())));
+
+  // Key changed, so clear any set profile
+  m_parent->GetParent()->ClearProfile();
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)

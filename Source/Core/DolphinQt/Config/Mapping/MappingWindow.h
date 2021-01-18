@@ -53,6 +53,7 @@ public:
   ControllerEmu::EmulatedController* GetController() const;
   bool IsMappingAllDevices() const;
   void ShowExtensionMotionTabs(bool show);
+  void ClearProfile();
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
@@ -123,4 +124,10 @@ private:
   Type m_mapping_type;
   const int m_port;
   InputConfig* m_config;
+
+  // Profile clears typically happen when setting a button's
+  // key expression unfortunately loading a profile emits a config
+  // change which causes all buttons to pretend they had
+  // their key expression set, we want to ignore these
+  bool m_ignore_profile_clears = false;
 };

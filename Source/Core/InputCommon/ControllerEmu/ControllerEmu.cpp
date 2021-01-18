@@ -26,6 +26,10 @@ std::string EmulatedController::GetDisplayName() const
   return GetName();
 }
 
+EmulatedController::EmulatedController() : m_profile_manager(this)
+{
+}
+
 EmulatedController::~EmulatedController() = default;
 
 // This should be called before calling GetState() or State() on a control reference
@@ -83,6 +87,11 @@ bool EmulatedController::IsDefaultDeviceConnected() const
   return m_default_device_is_connected;
 }
 
+InputCommon::ProfileManager& EmulatedController::GetProfileManager()
+{
+  return m_profile_manager;
+}
+
 const ciface::Core::DeviceQualifier& EmulatedController::GetDefaultDevice() const
 {
   return m_default_device;
@@ -125,6 +134,21 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
   {
     sec->Get(base + "Device", &defdev, "");
     SetDefaultDevice(defdev);
+
+    std::string profile_path;
+    sec->Get(base + "ProfilePath", &profile_path, "");
+    if (!profile_path.empty())
+    {
+      m_profile_manager.SetProfile(profile_path);
+
+      // Prefer the profile found by the index
+      // revert back to config if the profile index can't be found
+      if (m_profile_manager.GetProfile())
+      {
+        return;
+      }
+      // TODO: warn
+    }
   }
 
   for (auto& cg : groups)
@@ -140,7 +164,20 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
 {
   const std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
+  {
     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+
+    auto profile = m_profile_manager.GetProfile();
+    if (profile)
+    {
+      sec->Set(base + "ProfilePath", profile->GetAbsolutePath(), "");
+    }
+    else
+    {
+      const std::string empty_path = "";
+      sec->Set(base + "ProfilePath", empty_path, "");
+    }
+  }
 
   for (auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);

@@ -16,6 +16,7 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/ProfileManager.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/DynamicInputTextureManager.h"
 
@@ -169,6 +170,7 @@ struct RawValue
 class EmulatedController
 {
 public:
+  EmulatedController();
   virtual ~EmulatedController();
 
   virtual std::string GetName() const = 0;
@@ -180,6 +182,7 @@ public:
   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
 
   bool IsDefaultDeviceConnected() const;
+  InputCommon::ProfileManager& GetProfileManager();
   const ciface::Core::DeviceQualifier& GetDefaultDevice() const;
   void SetDefaultDevice(const std::string& device);
   void SetDefaultDevice(ciface::Core::DeviceQualifier devq);
@@ -230,5 +233,6 @@ private:
   InputCommon::DynamicInputTextureManager* m_dynamic_input_tex_config_manager = nullptr;
   ciface::Core::DeviceQualifier m_default_device;
   bool m_default_device_is_connected{false};
+  InputCommon::ProfileManager m_profile_manager;
 };
 }  // namespace ControllerEmu

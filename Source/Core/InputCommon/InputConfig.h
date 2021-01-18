@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/DeviceProfileContainer.h"
 #include "InputCommon/DynamicInputTextureManager.h"
 
 namespace ControllerEmu
@@ -25,6 +26,7 @@ public:
 
   ~InputConfig();
 
+  void LoadProfiles();
   bool LoadConfig(bool isGC);
   void SaveConfig();
 
@@ -43,6 +45,7 @@ public:
   std::string GetGUIName() const { return m_gui_name; }
   std::string GetProfileName() const { return m_profile_name; }
   std::size_t GetControllerCount() const;
+  InputCommon::DeviceProfileContainer& GetDeviceProfileContainer();
 
   // These should be used after creating all controllers and before clearing them, respectively.
   void RegisterHotplugCallback();
@@ -56,4 +59,5 @@ private:
   const std::string m_gui_name;
   const std::string m_profile_name;
   InputCommon::DynamicInputTextureManager m_dynamic_input_tex_config_manager;
+  InputCommon::DeviceProfileContainer m_device_profile_container;
 };
