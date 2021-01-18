@@ -7,6 +7,7 @@
 #include <jni.h>
 
 #include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
 
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
@@ -44,12 +45,14 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_install
   return static_cast<jboolean>(WiiUtils::InstallWAD(path));
 }
 
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSave(JNIEnv* env,
-                                                                                   jclass,
-                                                                                   jstring jFile)
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSave(
+    JNIEnv* env, jclass, jstring jFile, jobject jCanOverwrite)
 {
   const std::string path = GetJString(env, jFile);
-  const auto can_overwrite = [] { return true; };  // TODO
+  const auto can_overwrite = [&] {
+    const jmethodID get = IDCache::GetBooleanSupplierGet();
+    return static_cast<bool>(env->CallBooleanMethod(jCanOverwrite, get));
+  };
 
   return ConvertCopyResult(WiiSave::Import(path, can_overwrite));
 }

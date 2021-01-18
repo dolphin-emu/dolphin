@@ -333,6 +333,7 @@
     <string name="import_in_progress">Importing...</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
+    <string name="wii_save_exists">Save data for this title already exists in the NAND. Consider backing up the current data before overwriting.\nOverwrite now?</string>
     <string name="wii_save_import_success">Successfully imported save file.</string>
     <string name="wii_save_import_error">Failed to import save file. Your NAND may be corrupt, or something is preventing access to files within it.</string>
     <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>

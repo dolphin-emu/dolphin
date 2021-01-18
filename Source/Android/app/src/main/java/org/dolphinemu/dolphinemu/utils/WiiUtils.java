@@ -10,5 +10,5 @@ public final class WiiUtils
 
   public static native boolean installWAD(String file);
 
-  public static native int importWiiSave(String file);
+  public static native int importWiiSave(String file, BooleanSupplier canOverwrite);
 }

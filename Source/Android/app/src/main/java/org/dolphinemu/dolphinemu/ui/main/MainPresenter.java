@@ -18,11 +18,14 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 public final class MainPresenter
@@ -168,9 +171,41 @@ public final class MainPresenter
 
   public void importWiiSave(String path)
   {
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N)
+      return;  // TODO
+
+    final Activity mainPresenterActivity = (Activity) mContext;
+
+    CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
+
     runOnThreadAndShowResult(R.string.import_in_progress, () ->
     {
-      int result = WiiUtils.importWiiSave(path);
+      BooleanSupplier canOverwrite = () ->
+      {
+        mainPresenterActivity.runOnUiThread(() ->
+        {
+          AlertDialog.Builder builder =
+                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+          builder.setMessage(R.string.wii_save_exists);
+          builder.setCancelable(false);
+          builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
+          builder.setNegativeButton(R.string.no, (dialog, i) -> canOverwriteFuture.complete(false));
+          builder.show();
+        });
+
+        try
+        {
+          return canOverwriteFuture.get();
+        }
+        catch (ExecutionException | InterruptedException e)
+        {
+          // Shouldn't happen
+          throw new RuntimeException(e);
+        }
+      };
+
+      int result = WiiUtils.importWiiSave(path, canOverwrite);
+
       int message;
       switch (result)
       {
