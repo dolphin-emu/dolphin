@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include <open-vcdiff/src/google/vcdecoder.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "Common/CommonTypes.h"
 
 class SlippiGameFileLoader
 {

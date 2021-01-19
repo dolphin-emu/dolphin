@@ -1,6 +1,6 @@
+#include "SlippiReplayComm.h"
 #include <cctype>
 #include <memory>
-#include "SlippiReplayComm.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
@@ -18,7 +18,8 @@ static inline void ltrim(std::string& s)
 // trim from end (in place)
 static inline void rtrim(std::string& s)
 {
-  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(), s.end());
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+          s.end());
 }
 
 // trim from both ends (in place)
@@ -31,11 +32,13 @@ static inline void trim(std::string& s)
 SlippiReplayComm::SlippiReplayComm()
 {
   INFO_LOG(EXPANSIONINTERFACE, "SlippiReplayComm: Using playback config path: %s",
-    SConfig::GetInstance().m_strSlippiInput.c_str());
+           SConfig::GetInstance().m_strSlippiInput.c_str());
   configFilePath = SConfig::GetInstance().m_strSlippiInput.c_str();
 }
 
-SlippiReplayComm::~SlippiReplayComm() {}
+SlippiReplayComm::~SlippiReplayComm()
+{
+}
 
 SlippiReplayComm::CommSettings SlippiReplayComm::getSettings()
 {
@@ -177,8 +180,8 @@ void SlippiReplayComm::loadFile()
     {
       WARN_LOG(EXPANSIONINTERFACE, "Comm file load error detected. Check file format");
 
-      // Reset in the case of read error. this fixes a race condition where file mod time changes but
-      // the file is not readable yet?
+      // Reset in the case of read error. this fixes a race condition where file mod time changes
+      // but the file is not readable yet?
       configLastLoadModTime = 0;
     }
 

@@ -11,10 +11,10 @@
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
-#include "Core/ConfigManager.h"
-#include "Core/NetPlayProto.h"
-#include "Core/Core.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/NetPlayProto.h"
 //#include "Core/HW/EXI_DeviceIPL.h"
 //#include "Core/HW/SI.h"
 //#include "Core/HW/SI_DeviceGCController.h"
@@ -22,16 +22,16 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 //#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/Movie.h"
-#include "InputCommon/GCAdapter.h"
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoConfig.h"
 #include <SlippiGame.h>
 #include <algorithm>
 #include <fstream>
 #include <mbedtls/md5.h>
 #include <memory>
 #include <thread>
+#include "Core/Movie.h"
+#include "InputCommon/GCAdapter.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 
 static std::mutex pad_mutex;
 static std::mutex ack_mutex;
@@ -62,15 +62,14 @@ SlippiNetplayClient::~SlippiNetplayClient()
 }
 
 // called from ---SLIPPI EXI--- thread
-SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 remotePort, const u16 localPort,
-  bool isDecider)
+SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 remotePort,
+                                         const u16 localPort, bool isDecider)
 #ifdef _WIN32
-  : m_qos_handle(nullptr)
-  , m_qos_flow_id(0)
+    : m_qos_handle(nullptr), m_qos_flow_id(0)
 #endif
 {
   WARN_LOG(SLIPPI_ONLINE, "Initializing Slippi Netplay for port: %d, with host: %s", localPort,
-    isDecider ? "true" : "false");
+           isDecider ? "true" : "false");
 
   this->isDecider = isDecider;
 
@@ -78,9 +77,10 @@ SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 r
   ENetAddress* localAddr = nullptr;
   ENetAddress localAddrDef;
 
-  // It is important to be able to set the local port to listen on even in a client connection because
-  // not doing so will break hole punching, the host is expecting traffic to come from a specific ip/port
-  // and if the port does not match what it is expecting, it will not get through the NAT on some routers
+  // It is important to be able to set the local port to listen on even in a client connection
+  // because not doing so will break hole punching, the host is expecting traffic to come from a
+  // specific ip/port and if the port does not match what it is expecting, it will not get through
+  // the NAT on some routers
   if (localPort > 0)
   {
     INFO_LOG(SLIPPI_ONLINE, "Setting up local address");
@@ -91,7 +91,8 @@ SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 r
     localAddr = &localAddrDef;
   }
 
-  // TODO: Figure out how to use a local port when not hosting without accepting incoming connections
+  // TODO: Figure out how to use a local port when not hosting without accepting incoming
+  // connections
   m_client = enet_host_create(localAddr, 2, 3, 0, 0);
 
   if (m_client == nullptr)
@@ -126,7 +127,8 @@ SlippiNetplayClient::SlippiNetplayClient(bool isDecider)
 unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 {
   NetPlay::MessageId mid = 0;
-  if (!(packet >> mid)) {
+  if (!(packet >> mid))
+  {
     ERROR_LOG(SLIPPI_ONLINE, "Received empty netplay packet");
     return 0;
   }
@@ -136,7 +138,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   case NetPlay::NP_MSG_SLIPPI_PAD:
   {
     int32_t frame;
-    if (!(packet >> frame)) {
+    if (!(packet >> frame))
+    {
       ERROR_LOG(SLIPPI_ONLINE, "Netplay packet too small to read frame count");
       break;
     }
@@ -151,8 +154,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
     auto timing = lastFrameTiming;
     if (!hasGameStarted)
     {
-      // Handle case where opponent starts sending inputs before our game has reached frame 1. This will
-      // continuously say frame 0 is now to prevent opp from getting too far ahead
+      // Handle case where opponent starts sending inputs before our game has reached frame 1. This
+      // will continuously say frame 0 is now to prevent opp from getting too far ahead
       timing.frame = 0;
       timing.timeUs = curTime;
     }
@@ -161,8 +164,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
     s64 frameDiffOffsetUs = 16683 * (timing.frame - frame);
     s64 timeOffsetUs = opponentSendTimeUs - timing.timeUs + frameDiffOffsetUs;
 
-    INFO_LOG(SLIPPI_ONLINE, "[Offset] Opp Frame: %d, My Frame: %d. Time offset: %lld", frame, timing.frame,
-      timeOffsetUs);
+    INFO_LOG(SLIPPI_ONLINE, "[Offset] Opp Frame: %d, My Frame: %d. Time offset: %lld", frame,
+             timing.frame, timeOffsetUs);
 
     // Add this offset to circular buffer for use later
     if (frameOffsetData.buf.size() < SLIPPI_ONLINE_LOCKSTEP_INTERVAL)
@@ -173,7 +176,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
     frameOffsetData.idx = (frameOffsetData.idx + 1) % SLIPPI_ONLINE_LOCKSTEP_INTERVAL;
 
     {
-      std::lock_guard<std::mutex> lk(pad_mutex); // TODO: Is this the correct lock?
+      std::lock_guard<std::mutex> lk(pad_mutex);  // TODO: Is this the correct lock?
 
       auto packetData = (u8*)packet.getData();
 
@@ -183,18 +186,20 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
       int inputsToCopy = frame - headFrame;
 
       // Check that the packet actually contains the data it claims to
-      if ((5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE) > (int)packet.getDataSize()) {
+      if ((5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE) > (int)packet.getDataSize())
+      {
         ERROR_LOG(SLIPPI_ONLINE, "Netplay packet too small to read pad buffer");
         break;
       }
 
       for (int i = inputsToCopy - 1; i >= 0; i--)
       {
-        auto pad = std::make_unique<SlippiPad>(frame - i, &packetData[5 + i * SLIPPI_PAD_DATA_SIZE]);
+        auto pad =
+            std::make_unique<SlippiPad>(frame - i, &packetData[5 + i * SLIPPI_PAD_DATA_SIZE]);
 
         INFO_LOG(SLIPPI_ONLINE, "Rcv [%d] -> %02X %02X %02X %02X %02X %02X %02X %02X", pad->frame,
-          pad->padBuf[0], pad->padBuf[1], pad->padBuf[2], pad->padBuf[3], pad->padBuf[4], pad->padBuf[5],
-          pad->padBuf[6], pad->padBuf[7]);
+                 pad->padBuf[0], pad->padBuf[1], pad->padBuf[2], pad->padBuf[3], pad->padBuf[4],
+                 pad->padBuf[5], pad->padBuf[6], pad->padBuf[7]);
 
         remotePadQueue.push_front(std::move(pad));
       }
@@ -210,11 +215,12 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 
   case NetPlay::NP_MSG_SLIPPI_PAD_ACK:
   {
-    std::lock_guard<std::mutex> lk(ack_mutex); // Trying to fix rare crash on ackTimers.count
+    std::lock_guard<std::mutex> lk(ack_mutex);  // Trying to fix rare crash on ackTimers.count
 
     // Store last frame acked
     int32_t frame;
-    if (!(packet >> frame)) {
+    if (!(packet >> frame))
+    {
       ERROR_LOG(SLIPPI_ONLINE, "Ack packet too small to read frame");
       break;
     }
@@ -239,8 +245,9 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
     pingUs = Common::Timer::GetTimeUs() - sendTime;
     if (g_ActiveConfig.bShowNetPlayPing && frame % SLIPPI_PING_DISPLAY_INTERVAL == 0)
     {
-      OSD::AddTypedMessage(OSD::MessageType::NetPlayPing, StringFromFormat("Ping: %u", pingUs / 1000),
-        OSD::Duration::NORMAL, OSD::Color::CYAN);
+      OSD::AddTypedMessage(OSD::MessageType::NetPlayPing,
+                           StringFromFormat("Ping: %u", pingUs / 1000), OSD::Duration::NORMAL,
+                           OSD::Color::CYAN);
     }
   }
   break;
@@ -259,7 +266,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 
     // This might be a good place to reset some logic? Game can't start until we receive this msg
     // so this should ensure that everything is initialized before the game starts
-    // TODO: This could cause issues in the case of a desync? If this is ever received mid-game, bad things
+    // TODO: This could cause issues in the case of a desync? If this is ever received mid-game, bad
+    // things
     // TODO: will happen. Consider improving this
     hasGameStarted = false;
   }
@@ -267,7 +275,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 
   case NetPlay::NP_MSG_SLIPPI_CONN_SELECTED:
   {
-    // Currently this is unused but the intent is to support two-way simultaneous connection attempts
+    // Currently this is unused but the intent is to support two-way simultaneous connection
+    // attempts
     isConnectionSelected = true;
   }
   break;
@@ -290,7 +299,8 @@ void SlippiNetplayClient::writeToPacket(sf::Packet& packet, SlippiPlayerSelectio
   packet << s.connectCode;
 }
 
-std::unique_ptr<SlippiPlayerSelections> SlippiNetplayClient::readSelectionsFromPacket(sf::Packet& packet)
+std::unique_ptr<SlippiPlayerSelections>
+SlippiNetplayClient::readSelectionsFromPacket(sf::Packet& packet)
 {
   auto s = std::make_unique<SlippiPlayerSelections>();
 
@@ -405,26 +415,27 @@ void SlippiNetplayClient::ThreadFunc()
 
   bool qos_success = false;
 #ifdef _WIN32
-  QOS_VERSION ver = { 1, 0 };
+  QOS_VERSION ver = {1, 0};
 
   if (Config::Get(Config::NETPLAY_ENABLE_QOS) && QOSCreateHandle(&ver, &m_qos_handle))
   {
     // from win32.c
-    struct sockaddr_in sin = { 0 };
+    struct sockaddr_in sin = {0};
 
     sin.sin_family = AF_INET;
     sin.sin_port = ENET_HOST_TO_NET_16(m_server->host->address.port);
     sin.sin_addr.s_addr = m_server->host->address.host;
 
     if (QOSAddSocketToFlow(m_qos_handle, m_server->host->socket, reinterpret_cast<PSOCKADDR>(&sin),
-      // this is 0x38
-      QOSTrafficTypeControl, QOS_NON_ADAPTIVE_FLOW, &m_qos_flow_id))
+                           // this is 0x38
+                           QOSTrafficTypeControl, QOS_NON_ADAPTIVE_FLOW, &m_qos_flow_id))
     {
       DWORD dscp = 0x2e;
 
       // this will fail if we're not admin
       // sets DSCP to the same as linux (0x2e)
-      QOSSetFlow(m_qos_handle, m_qos_flow_id, QOSSetOutgoingDSCPValue, sizeof(DWORD), &dscp, 0, nullptr);
+      QOSSetFlow(m_qos_handle, m_qos_flow_id, QOSSetOutgoingDSCPValue, sizeof(DWORD), &dscp, 0,
+                 nullptr);
 
       qos_success = true;
     }
@@ -441,7 +452,8 @@ void SlippiNetplayClient::ThreadFunc()
     // https://www.tucny.com/Home/dscp-tos
     // ef is better than cs7
     int tos_val = 0xb8;
-    qos_success = setsockopt(m_server->host->socket, IPPROTO_IP, IP_TOS, &tos_val, sizeof(tos_val)) == 0;
+    qos_success =
+        setsockopt(m_server->host->socket, IPPROTO_IP, IP_TOS, &tos_val, sizeof(tos_val)) == 0;
   }
 #endif
 
@@ -468,13 +480,13 @@ void SlippiNetplayClient::ThreadFunc()
         break;
       case ENET_EVENT_TYPE_DISCONNECT:
         ERROR_LOG(SLIPPI_ONLINE, "[Netplay] Disconnected Event detected: %s",
-          netEvent.peer == m_server ? "same client" : "diff client");
+                  netEvent.peer == m_server ? "same client" : "diff client");
 
         // If the disconnect event doesn't come from the client we are actually listening to,
         // it can be safely ignored
         if (netEvent.peer == m_server)
         {
-          m_do_loop.Clear(); // Stop the loop, will trigger a disconnect
+          m_do_loop.Clear();  // Stop the loop, will trigger a disconnect
         }
         break;
       default:
@@ -550,8 +562,10 @@ void SlippiNetplayClient::SendConnectionSelected()
 void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
 {
   auto status = slippiConnectStatus;
-  bool connectionFailed = status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
-  bool connectionDisconnected = status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED;
+  bool connectionFailed =
+      status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
+  bool connectionDisconnected =
+      status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED;
   if (connectionFailed || connectionDisconnected)
   {
     return;
@@ -559,8 +573,9 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
 
   // if (pad && isDecider)
   //{
-  //  ERROR_LOG(SLIPPI_ONLINE, "[%d] %X %X %X %X %X %X %X %X", pad->frame, pad->padBuf[0], pad->padBuf[1],
-  //  pad->padBuf[2], pad->padBuf[3], pad->padBuf[4], pad->padBuf[5], pad->padBuf[6], pad->padBuf[7]);
+  //  ERROR_LOG(SLIPPI_ONLINE, "[%d] %X %X %X %X %X %X %X %X", pad->frame, pad->padBuf[0],
+  //  pad->padBuf[1], pad->padBuf[2], pad->padBuf[3], pad->padBuf[4], pad->padBuf[5],
+  //  pad->padBuf[6], pad->padBuf[7]);
   //}
 
   if (pad)
@@ -590,10 +605,10 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
   INFO_LOG(SLIPPI_ONLINE, "Sending a packet of inputs [%d]...", frame);
   for (auto it = localPadQueue.begin(); it != localPadQueue.end(); ++it)
   {
-    INFO_LOG(SLIPPI_ONLINE, "Send [%d] -> %02X %02X %02X %02X %02X %02X %02X %02X", (*it)->frame, (*it)->padBuf[0],
-      (*it)->padBuf[1], (*it)->padBuf[2], (*it)->padBuf[3], (*it)->padBuf[4], (*it)->padBuf[5],
-      (*it)->padBuf[6], (*it)->padBuf[7]);
-    spac->append((*it)->padBuf, SLIPPI_PAD_DATA_SIZE); // only transfer 8 bytes per pad
+    INFO_LOG(SLIPPI_ONLINE, "Send [%d] -> %02X %02X %02X %02X %02X %02X %02X %02X", (*it)->frame,
+             (*it)->padBuf[0], (*it)->padBuf[1], (*it)->padBuf[2], (*it)->padBuf[3],
+             (*it)->padBuf[4], (*it)->padBuf[5], (*it)->padBuf[6], (*it)->padBuf[7]);
+    spac->append((*it)->padBuf, SLIPPI_PAD_DATA_SIZE);  // only transfer 8 bytes per pad
   }
 
   SendAsync(std::move(spac));
@@ -626,7 +641,7 @@ void SlippiNetplayClient::SetMatchSelections(SlippiPlayerSelections& s)
 
 std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(int32_t curFrame)
 {
-  std::lock_guard<std::mutex> lk(pad_mutex); // TODO: Is this the correct lock?
+  std::lock_guard<std::mutex> lk(pad_mutex);  // TODO: Is this the correct lock?
 
   std::unique_ptr<SlippiRemotePadOutput> padOutput = std::make_unique<SlippiRemotePadOutput>();
 
@@ -677,7 +692,7 @@ std::string SlippiNetplayClient::GetOpponentName()
 
 int32_t SlippiNetplayClient::GetSlippiLatestRemoteFrame()
 {
-  std::lock_guard<std::mutex> lk(pad_mutex); // TODO: Is this the correct lock?
+  std::lock_guard<std::mutex> lk(pad_mutex);  // TODO: Is this the correct lock?
 
   if (remotePadQueue.empty())
   {
@@ -713,7 +728,7 @@ s32 SlippiNetplayClient::CalcTimeOffsetUs()
   int count = end - offset;
   if (count <= 0)
   {
-    return 0; // What do I return here?
+    return 0;  // What do I return here?
   }
 
   return sum / count;

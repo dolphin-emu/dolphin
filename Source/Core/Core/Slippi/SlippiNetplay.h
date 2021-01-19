@@ -4,6 +4,16 @@
 
 #pragma once
 
+#include <SFML/Network/Packet.hpp>
+#include <array>
+#include <deque>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <thread>
+#include <vector>
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Timer.h"
@@ -11,22 +21,13 @@
 #include "Core/NetPlayProto.h"
 #include "Core/Slippi/SlippiPad.h"
 #include "InputCommon/GCPadStatus.h"
-#include <SFML/Network/Packet.hpp>
-#include <array>
-#include <deque>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <vector>
-#include <queue>
 
 #ifdef _WIN32
 #include <Qos2.h>
 #endif
 
-#define SLIPPI_ONLINE_LOCKSTEP_INTERVAL 30 // Number of frames to wait before attempting to time-sync
+#define SLIPPI_ONLINE_LOCKSTEP_INTERVAL                                                            \
+  30  // Number of frames to wait before attempting to time-sync
 #define SLIPPI_PING_DISPLAY_INTERVAL 60
 
 struct SlippiRemotePadOutput
@@ -103,8 +104,9 @@ public:
   void ThreadFunc();
   void SendAsync(std::unique_ptr<sf::Packet> packet);
 
-  SlippiNetplayClient(bool isDecider); // Make a dummy client
-  SlippiNetplayClient(const std::string& address, const u16 remotePort, const u16 localPort, bool isDecider);
+  SlippiNetplayClient(bool isDecider);  // Make a dummy client
+  SlippiNetplayClient(const std::string& address, const u16 remotePort, const u16 localPort,
+                      bool isDecider);
   ~SlippiNetplayClient();
 
   // Slippi Online
@@ -149,8 +151,8 @@ protected:
   std::thread m_thread;
 
   std::string m_selected_game;
-  Common::Flag m_is_running{ false };
-  Common::Flag m_do_loop{ true };
+  Common::Flag m_is_running{false};
+  Common::Flag m_do_loop{true};
 
   unsigned int m_minimum_buffer_size = 6;
 
@@ -176,8 +178,8 @@ protected:
   bool hasGameStarted = false;
   FrameTiming lastFrameTiming;
   u64 pingUs;
-  std::deque<std::unique_ptr<SlippiPad>> localPadQueue;  // most recent inputs at start of deque
-  std::deque<std::unique_ptr<SlippiPad>> remotePadQueue; // most recent inputs at start of deque
+  std::deque<std::unique_ptr<SlippiPad>> localPadQueue;   // most recent inputs at start of deque
+  std::deque<std::unique_ptr<SlippiPad>> remotePadQueue;  // most recent inputs at start of deque
   std::queue<FrameTiming> ackTimers;
   SlippiConnectStatus slippiConnectStatus = SlippiConnectStatus::NET_CONNECT_STATUS_UNSET;
   SlippiMatchInfo matchInfo;

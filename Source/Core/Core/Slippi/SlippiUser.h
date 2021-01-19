@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Common/CommonTypes.h"
 #include <atomic>
 #include <curl/curl.h>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include "Common/CommonTypes.h"
 
 class SlippiUser
 {

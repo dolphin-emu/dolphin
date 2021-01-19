@@ -5,7 +5,7 @@
 #include <string.h>
 
 // TODO: Confirm the default and padding values are right
-static u8 emptyPad[SLIPPI_PAD_FULL_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static u8 emptyPad[SLIPPI_PAD_FULL_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 SlippiPad::SlippiPad(int32_t frame)
 {
