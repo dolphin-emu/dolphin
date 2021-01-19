@@ -73,7 +73,7 @@ static ENetAddress MakeENetAddress(const TraversalInetAddress& address)
   return eaddr;
 }
 
-void TraversalClient::ConnectToClient(const std::string& host)
+void TraversalClient::ConnectToClient(std::string_view host)
 {
   if (host.size() > sizeof(TraversalHostId))
   {
@@ -82,7 +82,7 @@ void TraversalClient::ConnectToClient(const std::string& host)
   }
   TraversalPacket packet = {};
   packet.type = TraversalPacketType::ConnectPlease;
-  memcpy(packet.connectPlease.hostId.data(), host.c_str(), host.size());
+  memcpy(packet.connectPlease.hostId.data(), host.data(), host.size());
   m_ConnectRequestId = SendTraversalPacket(packet);
   m_PendingConnect = true;
 }

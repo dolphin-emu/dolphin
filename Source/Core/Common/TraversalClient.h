@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <enet/enet.h>
 
@@ -51,7 +52,7 @@ public:
   bool IsConnected() const { return m_State == State::Connected; }
 
   void Reset();
-  void ConnectToClient(const std::string& host);
+  void ConnectToClient(std::string_view host);
   void ReconnectToServer();
   void Update();
   void HandleResends();
