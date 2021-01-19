@@ -29,10 +29,7 @@ enum class TraversalPacketType : u8
   ConnectFailed = 7,
 };
 
-enum
-{
-  TraversalProtoVersion = 0
-};
+constexpr u8 TraversalProtoVersion = 0;
 
 enum class TraversalConnectFailedReason : u8
 {
