@@ -690,7 +690,7 @@ void Jit64::boolX(UGeckoInstruction inst)
       else
       {
         RCOpArg Rs = gpr.Use(s, RCMode::Read);
-        RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+        RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
         RegCache::Realize(Rs, Ra);
         MOV(32, Ra, Rs);
         NOT(32, Ra);
