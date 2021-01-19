@@ -8,25 +8,25 @@
 typedef std::array<char, NETPLAY_CODE_SIZE> TraversalHostId;
 typedef u64 TraversalRequestId;
 
-enum TraversalPacketType
+enum class TraversalPacketType : u8
 {
   // [*->*]
-  TraversalPacketAck = 0,
+  Ack = 0,
   // [c->s]
-  TraversalPacketPing = 1,
+  Ping = 1,
   // [c->s]
-  TraversalPacketHelloFromClient = 2,
+  HelloFromClient = 2,
   // [s->c]
-  TraversalPacketHelloFromServer = 3,
+  HelloFromServer = 3,
   // [c->s] When connecting, first the client asks the central server...
-  TraversalPacketConnectPlease = 4,
+  ConnectPlease = 4,
   // [s->c] ...who asks the game host to send a UDP packet to the
   // client... (an ack implies success)
-  TraversalPacketPleaseSendPacket = 5,
+  PleaseSendPacket = 5,
   // [s->c] ...which the central server relays back to the client.
-  TraversalPacketConnectReady = 6,
+  ConnectReady = 6,
   // [s->c] Alternately, the server might not have heard of this host.
-  TraversalPacketConnectFailed = 7
+  ConnectFailed = 7,
 };
 
 enum
@@ -50,7 +50,7 @@ struct TraversalInetAddress
 };
 struct TraversalPacket
 {
-  u8 type;
+  TraversalPacketType type;
   TraversalRequestId requestId;
   union
   {
