@@ -125,7 +125,7 @@ public:
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress addr) override;
-  void OnConnectFailed(u8 reason) override;
+  void OnConnectFailed(TraversalConnectFailedReason reason) override;
 
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;

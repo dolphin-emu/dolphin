@@ -134,7 +134,7 @@ private:
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress) override {}
-  void OnConnectFailed(u8) override {}
+  void OnConnectFailed(TraversalConnectFailedReason) override {}
   void UpdatePadMapping();
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;

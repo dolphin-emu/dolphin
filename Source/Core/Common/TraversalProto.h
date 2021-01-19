@@ -34,11 +34,11 @@ enum
   TraversalProtoVersion = 0
 };
 
-enum TraversalConnectFailedReason
+enum class TraversalConnectFailedReason : u8
 {
-  TraversalConnectFailedClientDidntRespond = 0,
-  TraversalConnectFailedClientFailure,
-  TraversalConnectFailedNoSuchClient
+  ClientDidntRespond = 0,
+  ClientFailure,
+  NoSuchClient,
 };
 
 #pragma pack(push, 1)
@@ -88,7 +88,7 @@ struct TraversalPacket
     struct
     {
       TraversalRequestId requestId;
-      u8 reason;
+      TraversalConnectFailedReason reason;
     } connectFailed;
   };
 };

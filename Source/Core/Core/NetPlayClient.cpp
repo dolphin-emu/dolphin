@@ -1780,19 +1780,19 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::OnConnectFailed(u8 reason)
+void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
 {
   m_connecting = false;
   m_connection_state = ConnectionState::Failure;
   switch (reason)
   {
-  case TraversalConnectFailedClientDidntRespond:
+  case TraversalConnectFailedReason::ClientDidntRespond:
     PanicAlertFmtT("Traversal server timed out connecting to the host");
     break;
-  case TraversalConnectFailedClientFailure:
+  case TraversalConnectFailedReason::ClientFailure:
     PanicAlertFmtT("Server rejected traversal attempt");
     break;
-  case TraversalConnectFailedNoSuchClient:
+  case TraversalConnectFailedReason::NoSuchClient:
     PanicAlertFmtT("Invalid host");
     break;
   default:
