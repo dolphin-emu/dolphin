@@ -58,17 +58,17 @@ void TraversalClient::ReconnectToServer()
     m_Client->OnTraversalStateChanged();
 }
 
-static ENetAddress MakeENetAddress(TraversalInetAddress* address)
+static ENetAddress MakeENetAddress(const TraversalInetAddress& address)
 {
-  ENetAddress eaddr;
-  if (address->isIPV6)
+  ENetAddress eaddr{};
+  if (address.isIPV6)
   {
     eaddr.port = 0;  // no support yet :(
   }
   else
   {
-    eaddr.host = address->address[0];
-    eaddr.port = ntohs(address->port);
+    eaddr.host = address.address[0];
+    eaddr.port = ntohs(address.port);
   }
   return eaddr;
 }
@@ -160,7 +160,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
   case TraversalPacketType::PleaseSendPacket:
   {
     // security is overrated.
-    ENetAddress addr = MakeENetAddress(&packet->pleaseSendPacket.address);
+    ENetAddress addr = MakeENetAddress(packet->pleaseSendPacket.address);
     if (addr.port != 0)
     {
       char message[] = "Hello from Dolphin Netplay...";
@@ -188,7 +188,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       break;
 
     if (packet->type == TraversalPacketType::ConnectReady)
-      m_Client->OnConnectReady(MakeENetAddress(&packet->connectReady.address));
+      m_Client->OnConnectReady(MakeENetAddress(packet->connectReady.address));
     else
       m_Client->OnConnectFailed(packet->connectFailed.reason);
     break;
