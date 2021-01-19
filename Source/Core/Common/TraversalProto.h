@@ -1,12 +1,14 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
 #pragma once
+
 #include <array>
+#include <cstddef>
 #include "Common/CommonTypes.h"
 
-#define NETPLAY_CODE_SIZE 8
-typedef std::array<char, NETPLAY_CODE_SIZE> TraversalHostId;
-typedef u64 TraversalRequestId;
+constexpr size_t NETPLAY_CODE_SIZE = 8;
+using TraversalHostId = std::array<char, NETPLAY_CODE_SIZE>;
+using TraversalRequestId = u64;
 
 enum class TraversalPacketType : u8
 {
