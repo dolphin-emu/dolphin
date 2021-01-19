@@ -48,7 +48,7 @@ void TraversalClient::ReconnectToServer()
   }
   m_ServerAddress.port = m_port;
 
-  m_State = Connecting;
+  m_State = State::Connecting;
 
   TraversalPacket hello = {};
   hello.type = TraversalPacketHelloFromClient;
@@ -145,7 +145,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     }
     break;
   case TraversalPacketHelloFromServer:
-    if (m_State != Connecting)
+    if (!IsConnecting())
       break;
     if (!packet->helloFromServer.ok)
     {
@@ -153,7 +153,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       break;
     }
     m_HostId = packet->helloFromServer.yourHostId;
-    m_State = Connected;
+    m_State = State::Connected;
     if (m_Client)
       m_Client->OnTraversalStateChanged();
     break;
@@ -214,7 +214,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
 
 void TraversalClient::OnFailure(FailureReason reason)
 {
-  m_State = Failure;
+  m_State = State::Failure;
   m_FailureReason = reason;
 
   if (m_Client)
@@ -257,7 +257,7 @@ void TraversalClient::HandleResends()
 void TraversalClient::HandlePing()
 {
   const u32 now = enet_time_get();
-  if (m_State == Connected && now - m_PingTime >= 500)
+  if (IsConnected() && now - m_PingTime >= 500)
   {
     TraversalPacket ping = {};
     ping.type = TraversalPacketPing;

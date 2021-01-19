@@ -126,7 +126,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
 
     m_server = g_MainNetHost.get();
 
-    if (g_TraversalClient->GetState() == TraversalClient::Failure)
+    if (g_TraversalClient->HasFailed())
       g_TraversalClient->ReconnectToServer();
   }
   else
@@ -190,7 +190,7 @@ void NetPlayServer::SetupIndex()
 
   if (m_traversal_client)
   {
-    if (m_traversal_client->GetState() != TraversalClient::Connected)
+    if (!m_traversal_client->IsConnected())
       return;
 
     session.server_id = std::string(g_TraversalClient->GetHostID().data(), 8);
@@ -1149,7 +1149,7 @@ void NetPlayServer::OnTraversalStateChanged()
   if (!m_dialog)
     return;
 
-  if (state == TraversalClient::Failure)
+  if (state == TraversalClient::State::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
 
   m_dialog->OnTraversalStateChanged(state);

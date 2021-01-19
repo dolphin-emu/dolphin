@@ -25,11 +25,11 @@ public:
 class TraversalClient
 {
 public:
-  enum State
+  enum class State
   {
     Connecting,
     Connected,
-    Failure
+    Failure,
   };
   enum class FailureReason
   {
@@ -45,6 +45,10 @@ public:
   TraversalHostId GetHostID() const;
   State GetState() const;
   FailureReason GetFailureReason() const;
+
+  bool HasFailed() const { return m_State == State::Failure; }
+  bool IsConnecting() const { return m_State == State::Connecting; }
+  bool IsConnected() const { return m_State == State::Connected; }
 
   void Reset();
   void ConnectToClient(const std::string& host);
