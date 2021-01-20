@@ -378,7 +378,7 @@ constexpr int CountLeadingZeros(uint64_t value)
 {
 #if defined(__GNUC__)
   return value ? __builtin_clzll(value) : 64;
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && __cplusplus >= 201803L
   if (std::is_constant_evaluated())
   {
     return CountLeadingZerosConst(value);
@@ -397,7 +397,7 @@ constexpr int CountLeadingZeros(uint32_t value)
 {
 #if defined(__GNUC__)
   return value ? __builtin_clz(value) : 32;
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && __cplusplus >= 201803L
   if (std::is_constant_evaluated())
   {
     return CountLeadingZerosConst(value);
@@ -411,7 +411,5 @@ constexpr int CountLeadingZeros(uint32_t value)
   return CountLeadingZerosConst(value);
 #endif
 }
-
-#undef CONSTEXPR_FROM_INTRINSIC
 
 }  // namespace Common
