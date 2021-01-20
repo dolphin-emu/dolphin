@@ -13,7 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Common\Arm64Emitter.cpp" />
     <ClCompile Include="Common\ArmCPUDetect.cpp" />
-    <ClCompile Include="Common\GenericFPURoundMode.cpp" />
+    <ClCompile Include="Common\ArmFPURoundMode.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\Jit_Util.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\Jit.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\JitArm64_BackPatch.cpp" />
