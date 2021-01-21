@@ -9,6 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -385,22 +386,73 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fctiwzx");
 }
 
+// Since the following float conversion functions are used in non-arithmetic PPC float
+// instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
+// into QNaNs. This means we can't just use FCVT/FCVTL/FCVTN.
+
+// When calling the conversion functions, we are cheating a little and not
+// saving the FPRs since we know the functions happen to not use them.
+
 void JitArm64::ConvertDoubleToSingleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  m_float_emit.FCVT(32, 64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+  FlushCarry();
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
+  QuickCallFunction(ARM64Reg::X1, &ConvertToSingle);
+  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W0);
+
+  ABI_PopRegisters(gpr_saved);
 }
 
 void JitArm64::ConvertDoubleToSinglePair(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  m_float_emit.FCVTN(32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+  FlushCarry();
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
+  QuickCallFunction(ARM64Reg::X1, &ConvertToSingle);
+  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W0);
+
+  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 1);
+  QuickCallFunction(ARM64Reg::X1, &ConvertToSingle);
+  m_float_emit.INS(32, dest_reg, 1, ARM64Reg::W0);
+
+  ABI_PopRegisters(gpr_saved);
 }
 
 void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+  FlushCarry();
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
+  QuickCallFunction(ARM64Reg::X1, &ConvertToDouble);
+  m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
+
+  ABI_PopRegisters(gpr_saved);
 }
 
 void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+  FlushCarry();
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 1);
+  QuickCallFunction(ARM64Reg::X1, &ConvertToDouble);
+  m_float_emit.INS(64, dest_reg, 1, ARM64Reg::X0);
+
+  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
+  QuickCallFunction(ARM64Reg::X1, &ConvertToDouble);
+  m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
+
+  ABI_PopRegisters(gpr_saved);
 }
