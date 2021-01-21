@@ -304,14 +304,13 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto game = GetSelectedGame();
     DiscIO::Platform platform = game->GetPlatform();
-
+    menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
     if (platform != DiscIO::Platform::ELFOrDOL)
     {
-      menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
-
-      menu->addSeparator();
     }
+
+    menu->addSeparator();
 
     if (DiscIO::IsDisc(platform))
     {
