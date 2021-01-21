@@ -149,6 +149,8 @@ void FreeLookController::Update()
   if (!g_freelook_camera.IsActive())
     return;
 
+  const auto lock = GetStateLock();
+
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
     g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed());
 
