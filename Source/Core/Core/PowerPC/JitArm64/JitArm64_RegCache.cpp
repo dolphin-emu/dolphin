@@ -17,9 +17,10 @@
 
 using namespace Arm64Gen;
 
-void Arm64RegCache::Init(ARM64XEmitter* emitter)
+void Arm64RegCache::Init(JitArm64* jit)
 {
-  m_emit = emitter;
+  m_jit = jit;
+  m_emit = jit;
   m_float_emit.reset(new ARM64FloatEmitter(m_emit));
   GetAllocationOrder();
 }
@@ -467,7 +468,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
 
     // Else convert this register back to doubles.
-    m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+    m_jit->ConvertSingleToDoublePair(host_reg, host_reg);
     reg.Load(host_reg, RegType::Register);
     [[fallthrough]];
   }
@@ -482,7 +483,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
 
     // Else convert this register back to a double.
-    m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg);
     reg.Load(host_reg, RegType::LowerPair);
     [[fallthrough]];
   }
@@ -516,7 +517,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
     }
 
-    m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg);
     reg.Load(host_reg, RegType::Duplicated);
     [[fallthrough]];
   }
@@ -593,7 +594,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     {
     case RegType::Single:
       flush_reg = GetReg();
-      m_float_emit->FCVTL(64, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
+      m_jit->ConvertSingleToDoublePair(flush_reg, host_reg);
       [[fallthrough]];
     case RegType::Register:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
@@ -604,7 +605,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       break;
     case RegType::DuplicatedSingle:
       flush_reg = GetReg();
-      m_float_emit->FCVT(64, 32, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
+      m_jit->ConvertSingleToDoubleLower(flush_reg, host_reg);
       [[fallthrough]];
     case RegType::Duplicated:
       // Store PSR1 (which is equal to PSR0) in memory.
@@ -712,13 +713,13 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
   if (type == RegType::Single)
   {
     if (dirty)
-      m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+      m_jit->ConvertSingleToDoublePair(host_reg, host_reg);
     type = RegType::Register;
   }
   if (type == RegType::DuplicatedSingle || type == RegType::LowerPairSingle)
   {
     if (dirty)
-      m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+      m_jit->ConvertSingleToDoubleLower(host_reg, host_reg);
 
     if (type == RegType::DuplicatedSingle)
       type = RegType::Duplicated;

@@ -386,3 +386,23 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
              "Register allocation turned singles into doubles in the middle of fctiwzx");
 }
+
+void JitArm64::ConvertDoubleToSingleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
+{
+  m_float_emit.FCVT(32, 64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+}
+
+void JitArm64::ConvertDoubleToSinglePair(ARM64Reg dest_reg, ARM64Reg src_reg)
+{
+  m_float_emit.FCVTN(32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+}
+
+void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
+{
+  m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+}
+
+void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg)
+{
+  m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+}

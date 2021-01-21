@@ -15,6 +15,8 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
+class JitArm64;
+
 // Dedicated host registers
 
 // memory base register
@@ -150,7 +152,7 @@ public:
   explicit Arm64RegCache(size_t guest_reg_count) : m_guest_registers(guest_reg_count) {}
   virtual ~Arm64RegCache() = default;
 
-  void Init(Arm64Gen::ARM64XEmitter* emitter);
+  void Init(JitArm64* jit);
 
   virtual void Start(PPCAnalyst::BlockRegStats& stats) {}
   void DiscardRegisters(BitSet32 regs);
@@ -217,6 +219,8 @@ protected:
     for (auto& reg : m_guest_registers)
       reg.IncrementLastUsed();
   }
+
+  JitArm64* m_jit = nullptr;
 
   // Code emitter
   Arm64Gen::ARM64XEmitter* m_emit = nullptr;

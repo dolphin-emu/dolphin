@@ -258,7 +258,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   if (want_single && !have_single)
   {
     const ARM64Reg single_reg = fpr.GetReg();
-    m_float_emit.FCVT(32, 64, EncodeRegToDouble(single_reg), EncodeRegToDouble(V0));
+    ConvertDoubleToSingleLower(single_reg, V0);
     V0 = single_reg;
   }
 

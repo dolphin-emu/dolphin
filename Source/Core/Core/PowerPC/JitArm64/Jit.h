@@ -152,6 +152,11 @@ public:
   void psq_l(UGeckoInstruction inst);
   void psq_st(UGeckoInstruction inst);
 
+  void ConvertDoubleToSingleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
+  void ConvertDoubleToSinglePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
+  void ConvertSingleToDoubleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
+  void ConvertSingleToDoublePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
+
 private:
   struct SlowmemHandler
   {
