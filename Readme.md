@@ -1,6 +1,6 @@
 # Dolphin MPN
 
-Dolphin MPN is an emulator for running GameCube and Wii games on Windows and Linux
+Dolphin MPN is an emulator for running GameCube and Wii games on Windows, macOS, and Linux
 
 
 ## Info
