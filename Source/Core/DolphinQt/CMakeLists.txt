@@ -192,6 +192,8 @@ add_executable(dolphin-emu
   Config/ToolTipControls/ToolTipWidget.h
   Config/VerifyWidget.cpp
   Config/VerifyWidget.h
+  Config/WiimoteControllersWidget.cpp
+  Config/WiimoteControllersWidget.h
   Debugger/BreakpointWidget.cpp
   Debugger/BreakpointWidget.h
   Debugger/CodeViewWidget.cpp

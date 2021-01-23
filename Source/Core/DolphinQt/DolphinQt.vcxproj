@@ -115,6 +115,7 @@
     <ClCompile Include="Config\ToolTipControls\ToolTipSlider.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipSpinBox.cpp" />
     <ClCompile Include="Config\VerifyWidget.cpp" />
+    <ClCompile Include="Config\WiimoteControllersWidget.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="Config\ToolTipControls\ToolTipSpinBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipWidget.h" />
     <QtMoc Include="Config\VerifyWidget.h" />
+    <QtMoc Include="Config\WiimoteControllersWidget.h" />
     <QtMoc Include="ConvertDialog.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
     <QtMoc Include="Debugger\CodeViewWidget.h" />
