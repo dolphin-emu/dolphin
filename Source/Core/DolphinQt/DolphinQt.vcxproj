@@ -49,6 +49,7 @@
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
+    <ClCompile Include="Config\CommonControllersWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
@@ -220,6 +221,7 @@
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
+    <QtMoc Include="Config\CommonControllersWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />

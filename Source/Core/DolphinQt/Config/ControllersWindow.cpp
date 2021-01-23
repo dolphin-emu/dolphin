@@ -31,7 +31,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 
-#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
+#include "DolphinQt/Config/CommonControllersWidget.h"
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -68,7 +68,7 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 
   CreateGamecubeLayout();
   CreateWiimoteLayout();
-  CreateCommonLayout();
+  m_common = new CommonControllersWidget(this);
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
@@ -204,20 +204,6 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
 }
 
-void ControllersWindow::CreateCommonLayout()
-{
-  // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-  m_common_box = new QGroupBox(tr("Common"));
-  m_common_layout = new QVBoxLayout();
-  m_common_bg_input = new QCheckBox(tr("Background Input"));
-  m_common_configure_controller_interface = new QPushButton(tr("Alternate Input Sources"));
-
-  m_common_layout->addWidget(m_common_bg_input);
-  m_common_layout->addWidget(m_common_configure_controller_interface);
-
-  m_common_box->setLayout(m_common_layout);
-}
-
 void ControllersWindow::CreateMainLayout()
 {
   auto* layout = new QVBoxLayout();
@@ -225,7 +211,7 @@ void ControllersWindow::CreateMainLayout()
 
   layout->addWidget(m_gc_box);
   layout->addWidget(m_wiimote_box);
-  layout->addWidget(m_common_box);
+  layout->addWidget(m_common);
   layout->addStretch();
   layout->addWidget(m_button_box);
 
@@ -246,9 +232,6 @@ void ControllersWindow::ConnectWidgets()
   connect(m_wiimote_continuous_scanning, &QCheckBox::toggled, this,
           &ControllersWindow::OnWiimoteModeChanged);
 
-  connect(m_common_bg_input, &QCheckBox::toggled, this, &ControllersWindow::SaveSettings);
-  connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
-          &ControllersWindow::OnControllerInterfaceConfigure);
   connect(m_wiimote_continuous_scanning, &QCheckBox::toggled, this,
           &ControllersWindow::SaveSettings);
   connect(m_wiimote_real_balance_board, &QCheckBox::toggled, this,
@@ -457,14 +440,6 @@ void ControllersWindow::OnWiimoteConfigure()
   window->show();
 }
 
-void ControllersWindow::OnControllerInterfaceConfigure()
-{
-  ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
-  window->setAttribute(Qt::WA_DeleteOnClose, true);
-  window->setWindowModality(Qt::WindowModality::WindowModal);
-  window->show();
-}
-
 void ControllersWindow::LoadSettings()
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
@@ -483,8 +458,6 @@ void ControllersWindow::LoadSettings()
   m_wiimote_ciface->setChecked(SConfig::GetInstance().connect_wiimotes_for_ciface);
   m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
-  m_common_bg_input->setChecked(SConfig::GetInstance().m_BackgroundInput);
-
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
     m_wiimote_passthrough->setChecked(true);
   else
@@ -499,7 +472,6 @@ void ControllersWindow::SaveSettings()
   SConfig::GetInstance().connect_wiimotes_for_ciface = m_wiimote_ciface->isChecked();
   SConfig::GetInstance().m_WiimoteContinuousScanning = m_wiimote_continuous_scanning->isChecked();
   SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
-  SConfig::GetInstance().m_BackgroundInput = m_common_bg_input->isChecked();
 
   WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, m_wiimote_real_balance_board->isChecked() ?
                                                       WiimoteSource::Real :
