@@ -233,37 +233,21 @@ void Jit64::dcbx(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
 
   X64Reg addr = RSCRATCH;
-  X64Reg value = RSCRATCH2;
   RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(inst.RB, RCMode::Read);
-  RCX64Reg tmp = gpr.Scratch();
-  RegCache::Realize(Ra, Rb, tmp);
+  RegCache::Realize(Ra, Rb);
 
   MOV_sum(32, addr, Ra, Rb);
+  AND(32, R(addr), Imm8(~31));
 
-  // Check whether a JIT cache line needs to be invalidated.
-  LEA(32, value, MScaled(addr, SCALE_8, 0));  // addr << 3 (masks the first 3 bits)
-  SHR(32, R(value), Imm8(3 + 5 + 5));         // >> 5 for cache line size, >> 5 for width of bitset
-  MOV(64, R(tmp), ImmPtr(GetBlockCache()->GetBlockBitSet()));
-  MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
-  SHR(32, R(addr), Imm8(5));
-  BT(32, R(value), R(addr));
-
-  FixupBranch c = J_CC(CC_C, true);
-  SwitchToFarCode();
-  SetJumpTarget(c);
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   MOV(32, R(ABI_PARAM1), R(addr));
-  SHL(32, R(ABI_PARAM1), Imm8(5));
   MOV(32, R(ABI_PARAM2), Imm32(32));
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
   ABI_CallFunction(JitInterface::InvalidateICache);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
-  c = J(true);
-  SwitchToNearCode();
-  SetJumpTarget(c);
 }
 
 void Jit64::dcbt(UGeckoInstruction inst)
