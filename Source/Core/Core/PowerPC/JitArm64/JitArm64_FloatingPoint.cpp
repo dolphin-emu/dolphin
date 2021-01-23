@@ -258,7 +258,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
   const u32 d = inst.FD;
 
   const bool single = fpr.IsSingle(b, true);
-  if (single)
+  if (single && js.fpr_is_store_safe[b])
   {
     // Source is already in single precision, so no need to do anything but to copy to PSR1.
     const ARM64Reg VB = fpr.R(b, RegType::LowerPairSingle);
@@ -266,6 +266,9 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     if (b != d)
       m_float_emit.FMOV(EncodeRegToSingle(VD), EncodeRegToSingle(VB));
+
+    ASSERT_MSG(DYNA_REC, fpr.IsSingle(b, true),
+               "Register allocation turned singles into doubles in the middle of frspx");
   }
   else
   {
@@ -274,9 +277,6 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
   }
-
-  ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
-             "Register allocation turned singles into doubles in the middle of frspx");
 }
 
 void JitArm64::fcmpX(UGeckoInstruction inst)
