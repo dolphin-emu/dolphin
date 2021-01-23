@@ -1998,7 +1998,7 @@ void CEXISlippi::setMatchSelections(u8* payload)
   s.rngOffset = generator() % 0xFFFF;
 
   // Get user name from file
-  std::string displayName = user->GetUserInfo().displayName;
+  std::string displayName = user->GetUserInfo().display_name;
 
   // Just let the max length to transfer to opponent be potentially 16 worst-case utf-8 chars
   // This string will get converted to the game format later
@@ -2011,7 +2011,7 @@ void CEXISlippi::setMatchSelections(u8* payload)
   s.playerName = displayName;
 
   // Get user connect code from file
-  s.connectCode = user->GetUserInfo().connectCode;
+  s.connectCode = user->GetUserInfo().connect_code;
 
   // Merge these selections
   localSelections.Merge(s);
@@ -2108,7 +2108,7 @@ void CEXISlippi::prepareOnlineStatus()
   if (isLoggedIn)
   {
     // Check if we have the latest version, and if not, indicate we need to update
-    version::Semver200_version latestVersion(userInfo.latestVersion);
+    version::Semver200_version latestVersion(userInfo.latest_version);
     version::Semver200_version currentVersion(Common::scm_slippi_semver_str);
 
     appState = latestVersion > currentVersion ? 2 : 1;
@@ -2117,11 +2117,11 @@ void CEXISlippi::prepareOnlineStatus()
   m_read_queue.push_back(appState);
 
   // Write player name (31 bytes)
-  std::string playerName = ConvertStringForGame(userInfo.displayName, MAX_NAME_LENGTH);
+  std::string playerName = ConvertStringForGame(userInfo.display_name, MAX_NAME_LENGTH);
   m_read_queue.insert(m_read_queue.end(), playerName.begin(), playerName.end());
 
   // Write connect code (10 bytes)
-  std::string connectCode = userInfo.connectCode;
+  std::string connectCode = userInfo.connect_code;
   char shiftJisHashtag[] = {'\x81', '\x94', '\x00'};
   connectCode.resize(CONNECT_CODE_LENGTH);
   connectCode = ReplaceAll(connectCode, "#", shiftJisHashtag);
