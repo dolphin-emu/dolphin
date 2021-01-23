@@ -77,6 +77,8 @@ add_executable(dolphin-emu
   Config/FreeLookWidget.h
   Config/FreeLookWindow.cpp
   Config/FreeLookWindow.h
+  Config/GamecubeControllersWidget.cpp
+  Config/GamecubeControllersWidget.h
   Config/GameConfigEdit.cpp
   Config/GameConfigEdit.h
   Config/GameConfigHighlighter.cpp
