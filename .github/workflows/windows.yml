@@ -26,7 +26,7 @@ jobs:
       run: git submodule update --init --recursive
     # Setup MSBuild For Later Usage
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.1
+      uses: microsoft/setup-msbuild@v1.0.2
       with:
         vs-version: '16.6.2'
     # Run MSBuild
