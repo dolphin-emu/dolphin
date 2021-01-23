@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v2
     # Setup CMake
     - name: Setup CMake
-      uses: Symbitic/install-cmake@v0.1.0
+      uses: Symbitic/install-cmake@v0.1.1
       with:
         platform: linux
     # Setup Packages
