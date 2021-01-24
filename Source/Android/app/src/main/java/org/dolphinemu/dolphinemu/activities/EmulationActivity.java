@@ -912,7 +912,8 @@ public final class EmulationActivity extends AppCompatActivity
               updateWiimoteNewImuIr(indexSelected);
               NativeLibrary.ReloadWiimoteConfig();
             });
-    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            mSettings.saveSettings(null, null));
 
     builder.show();
   }
