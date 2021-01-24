@@ -140,6 +140,8 @@ public:
   // Requires unlocking after done
   Arm64Gen::ARM64Reg GetReg();
 
+  void UpdateLastUsed(BitSet32 regs_used);
+
   // Locks a register so a cache cannot use it
   // Useful for function calls
   template <typename T = Arm64Gen::ARM64Reg, typename... Args>

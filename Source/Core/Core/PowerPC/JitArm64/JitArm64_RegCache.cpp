@@ -41,8 +41,20 @@ ARM64Reg Arm64RegCache::GetReg()
   // Holy cow, how did you run out of registers?
   // We can't return anything reasonable in this case. Return INVALID_REG and watch the failure
   // happen
-  WARN_LOG_FMT(DYNA_REC, "All available registers are locked dumb dumb");
+  ASSERT_MSG(DYNA_REC, 0, "All available registers are locked!");
   return INVALID_REG;
+}
+
+void Arm64RegCache::UpdateLastUsed(BitSet32 regs_used)
+{
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
+  {
+    OpArg& reg = m_guest_registers[i];
+    if (i < 32 && regs_used[i])
+      reg.ResetLastUsed();
+    else
+      reg.IncrementLastUsed();
+  }
 }
 
 u32 Arm64RegCache::GetUnlockedRegisterCount() const

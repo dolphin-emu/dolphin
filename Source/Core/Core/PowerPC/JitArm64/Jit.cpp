@@ -694,6 +694,15 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     if (!SConfig::GetInstance().bEnableDebugging)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
+    // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
+    if (op.inst.OPCD != 46 && op.inst.OPCD != 47)
+      gpr.UpdateLastUsed(op.regsIn | op.regsOut);
+
+    BitSet32 fpr_used = op.fregsIn;
+    if (op.fregOut >= 0)
+      fpr_used[op.fregOut] = true;
+    fpr.UpdateLastUsed(fpr_used);
+
     // Gather pipe writes using a non-immediate address are discovered by profiling.
     bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
