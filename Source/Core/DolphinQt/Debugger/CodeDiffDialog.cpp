@@ -177,9 +177,9 @@ void CodeDiffDialog::OnInclude()
   {
     for (auto& iter : recorded_symbols)
     {
-      auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
+      auto pos = std::lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
 
-      if (pos->symbol != iter.symbol)
+      if (pos == m_exclude.end() || pos->symbol != iter.symbol)
       {
         current_diff.push_back(iter);
       }
@@ -188,14 +188,7 @@ void CodeDiffDialog::OnInclude()
 
   if (!m_include.empty())
   {
-    m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
-                                   [&](Diff& v) {
-                                     // Remove values if it can't find matching symbols
-                                     return std::none_of(
-                                         current_diff.begin(), current_diff.end(),
-                                         [&](Diff& p) { return p.symbol == v.symbol; });
-                                   }),
-                    m_include.end());
+    RemoveMissingSymbolsFromIncludes(current_diff);
   }
   else
   {
@@ -222,12 +215,11 @@ void CodeDiffDialog::OnExclude()
   {
     for (auto& iter : recorded_symbols)
     {
-      auto pos = lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
+      auto pos = std::lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
 
-      if (pos->symbol != iter.symbol)
+      if (pos == m_exclude.end() || pos->symbol != iter.symbol)
       {
         current_diff.push_back(iter);
-
         m_exclude.insert(pos, iter);
       }
     }
@@ -271,6 +263,18 @@ std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
        [](const Diff& v1, const Diff& v2) { return (v1.symbol < v2.symbol); });
 
   return current;
+}
+
+void CodeDiffDialog::RemoveMissingSymbolsFromIncludes(std::vector<Diff>& symbol_diff)
+{
+  m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
+                                 [&](Diff& v) {
+                                   // Remove values if it can't find matching symbols
+                                   return std::none_of(
+                                       symbol_diff.begin(), symbol_diff.end(),
+                                       [&](Diff& p) { return p.symbol == v.symbol; });
+                                 }),
+                  m_include.end());
 }
 
 void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(std::vector<Diff>& symbol_list)
