@@ -412,6 +412,7 @@ void Renderer::CheckForSurfaceResize()
   g_command_buffer_mgr->CheckLastPresentFail();
 
   // Resize the swap chain.
+  m_swap_chain->UpdateSize(m_new_width, m_new_height);
   m_swap_chain->RecreateSwapChain();
   OnSwapChainResized();
 }

@@ -55,6 +55,12 @@ public:
   }
   VkResult AcquireNextImage();
 
+  void UpdateSize(int width, int height)
+  {
+    m_wsi.width = width;
+    m_wsi.height = height;
+  }
+
   bool RecreateSurface(void* native_handle);
   bool ResizeSwapChain();
   bool RecreateSwapChain();

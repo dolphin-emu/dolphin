@@ -22,6 +22,10 @@
 #include <X11/Xlib.h>
 #endif
 
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+#include <wayland-client.h>
+#endif
+
 namespace Vulkan
 {
 SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
@@ -78,6 +82,29 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateXlibSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+  if (wsi.type == WindowSystemType::Wayland)
+  {
+    VkWaylandSurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
+        nullptr,                                            // const void*                    pNext
+        0,                                                  // VkWaylandSurfaceCreateFlagsKHR flags
+        static_cast<struct wl_display*>(wsi.display_connection),  // struct wl_display* display
+        static_cast<struct wl_surface*>(wsi.render_surface)       // struct wl_surface* surface
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateWaylandSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateWaylandSurfaceKHR failed: ");
       return VK_NULL_HANDLE;
     }
 
@@ -264,7 +291,12 @@ bool SwapChain::CreateSwapChain()
   // Determine the dimensions of the swap chain. Values of -1 indicate the size we specify here
   // determines window size?
   VkExtent2D size = surface_capabilities.currentExtent;
-  if (size.width == UINT32_MAX)
+  if (size.width == UINT32_MAX && m_wsi.type == WindowSystemType::Wayland)
+  {
+    size.width = m_wsi.width;
+    size.height = m_wsi.height;
+  }
+  else if (size.width == UINT32_MAX)
   {
     size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
     size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
