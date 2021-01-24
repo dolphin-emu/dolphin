@@ -195,6 +195,39 @@ void JitArm64::GenerateAsm()
 
 void JitArm64::GenerateCommonAsm()
 {
+  GetAsmRoutines()->cdts = GetCodePtr();
+  GenerateConvertDoubleToSingle();
+  JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
+
+  GenerateQuantizedLoadStores();
+}
+
+// Input in X0, output in W1, clobbers X0-X3 and flags.
+void JitArm64::GenerateConvertDoubleToSingle()
+{
+  UBFX(ARM64Reg::X2, ARM64Reg::X0, 52, 11);
+  SUB(ARM64Reg::W3, ARM64Reg::W2, 874);
+  CMP(ARM64Reg::W3, 896 - 874);
+  LSR(ARM64Reg::X1, ARM64Reg::X0, 32);
+  FixupBranch denormal = B(CCFlags::CC_LS);
+
+  ANDI2R(ARM64Reg::X1, ARM64Reg::X1, 0xc0000000);
+  BFXIL(ARM64Reg::X1, ARM64Reg::X0, 29, 30);
+  RET();
+
+  SetJumpTarget(denormal);
+  LSR(ARM64Reg::X3, ARM64Reg::X0, 21);
+  MOVZ(ARM64Reg::X0, 905);
+  ORRI2R(ARM64Reg::W3, ARM64Reg::W3, 0x80000000);
+  SUB(ARM64Reg::W2, ARM64Reg::W0, ARM64Reg::W2);
+  LSRV(ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W2);
+  ANDI2R(ARM64Reg::X3, ARM64Reg::X1, 0x80000000);
+  ORR(ARM64Reg::X1, ARM64Reg::X3, ARM64Reg::X2);
+  RET();
+}
+
+void JitArm64::GenerateQuantizedLoadStores()
+{
   // X0 is the scale
   // X1 is address
   // X2 is a temporary on stores
@@ -654,6 +687,4 @@ void JitArm64::GenerateCommonAsm()
   paired_store_quantized[29] = storeSingleU16Slow;
   paired_store_quantized[30] = storeSingleS8Slow;
   paired_store_quantized[31] = storeSingleS16Slow;
-
-  GetAsmRoutines()->mfcr = nullptr;
 }

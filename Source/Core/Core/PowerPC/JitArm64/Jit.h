@@ -220,6 +220,8 @@ private:
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();
+  void GenerateConvertDoubleToSingle();
+  void GenerateQuantizedLoadStores();
 
   // Profiling
   void BeginTimeProfile(JitBlock* b);

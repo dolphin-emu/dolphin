@@ -397,12 +397,12 @@ void JitArm64::ConvertDoubleToSingleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
   FlushCarry();
 
-  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
   ABI_PushRegisters(gpr_saved);
 
   m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
-  QuickCallFunction(ARM64Reg::X1, &ConvertToSingle);
-  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W0);
+  BL(cdts);
+  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W1);
 
   ABI_PopRegisters(gpr_saved);
 }
@@ -411,16 +411,16 @@ void JitArm64::ConvertDoubleToSinglePair(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
   FlushCarry();
 
-  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
   ABI_PushRegisters(gpr_saved);
 
   m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
-  QuickCallFunction(ARM64Reg::X1, &ConvertToSingle);
-  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W0);
+  BL(cdts);
+  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W1);
 
   m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 1);
-  QuickCallFunction(ARM64Reg::X1, &ConvertToSingle);
-  m_float_emit.INS(32, dest_reg, 1, ARM64Reg::W0);
+  BL(cdts);
+  m_float_emit.INS(32, dest_reg, 1, ARM64Reg::W1);
 
   ABI_PopRegisters(gpr_saved);
 }
