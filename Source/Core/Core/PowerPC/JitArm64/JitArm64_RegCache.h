@@ -281,9 +281,9 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  Arm64Gen::ARM64Reg R(size_t preg, RegType type = RegType::LowerPair);
+  Arm64Gen::ARM64Reg R(size_t preg, RegType type);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type = RegType::LowerPair);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType type);
 
   BitSet32 GetCallerSavedUsed() const override;
 

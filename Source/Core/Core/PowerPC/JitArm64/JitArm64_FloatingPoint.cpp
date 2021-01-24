@@ -356,7 +356,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   const bool single = fpr.IsSingle(b, true);
 
   const ARM64Reg VB = fpr.R(b, single ? RegType::LowerPairSingle : RegType::LowerPair);
-  const ARM64Reg VD = fpr.RW(d);
+  const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
 
   const ARM64Reg V0 = fpr.GetReg();
 
