@@ -17,10 +17,6 @@
 #include "Common/WindowsRegistry.h"
 #endif
 
-#if defined(ANDROID)
-#include <functional>
-#endif
-
 #if defined(__APPLE__)
 #include "Common/CommonFuncs.h"
 #endif
