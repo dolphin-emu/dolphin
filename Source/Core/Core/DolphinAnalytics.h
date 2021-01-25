@@ -181,7 +181,7 @@ private:
   // Performance sampling state & internal helpers.
   void InitializePerformanceSampling();  // Called on game start / title switch.
   bool ShouldStartPerformanceSampling();
-  u64 m_sampling_next_start_us;              // Next timestamp (in us) at which to trigger sampling.
+  u64 m_sampling_next_start_us;  // Next timestamp (in us) at which to trigger sampling.
   bool m_sampling_performance_info = false;  // Whether we are currently collecting samples.
   std::vector<PerformanceSample> m_performance_samples;
 
