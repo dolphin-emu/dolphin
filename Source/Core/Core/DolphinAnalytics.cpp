@@ -152,7 +152,7 @@ DolphinAnalytics& DolphinAnalytics::Instance()
 
 void DolphinAnalytics::ReloadConfig()
 {
-  std::lock_guard lk{m_reporter_mutex};
+  const std::lock_guard lk{m_reporter_mutex};
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
@@ -259,7 +259,7 @@ static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::Count),
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 {
-  u32 quirk_idx = static_cast<u32>(quirk);
+  const u32 quirk_idx = static_cast<u32>(quirk);
 
   // Only report once per run.
   if (m_reported_quirks[quirk_idx])
@@ -317,7 +317,7 @@ void DolphinAnalytics::InitializePerformanceSampling()
   m_performance_samples.clear();
   m_sampling_performance_info = false;
 
-  u64 wait_us =
+  const u64 wait_us =
       PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
   m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
@@ -328,7 +328,7 @@ bool DolphinAnalytics::ShouldStartPerformanceSampling()
   if (Common::Timer::NowUs() < m_sampling_next_start_us)
     return false;
 
-  u64 wait_us =
+  const u64 wait_us =
       PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
   m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
