@@ -662,6 +662,98 @@ void Jit64::boolX(UGeckoInstruction inst)
     else if (inst.SUBOP10 == 284)  // eqvx
       gpr.SetImmediate32(a, ~(rs_offset ^ rb_offset));
   }
+  else if (gpr.IsImm(s) || gpr.IsImm(b))
+  {
+    auto [i, j] = gpr.IsImm(s) ? std::pair(s, b) : std::pair(b, s);
+    u32 imm = gpr.Imm32(i);
+
+    bool complement_b = (inst.SUBOP10 == 60 /* andcx */) || (inst.SUBOP10 == 412 /* orcx */);
+    bool final_not = (inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */) ||
+                     (inst.SUBOP10 == 284 /* eqvx */);
+    bool is_and = (inst.SUBOP10 == 28 /* andx */) || (inst.SUBOP10 == 60 /* andcx */) ||
+                  (inst.SUBOP10 == 476 /* nandx */);
+    bool is_or = (inst.SUBOP10 == 444 /* orx */) || (inst.SUBOP10 == 412 /* orcx */) ||
+                 (inst.SUBOP10 == 124 /* norx */);
+    bool is_xor = (inst.SUBOP10 == 316 /* xorx */) || (inst.SUBOP10 == 284 /* eqvx */);
+
+    // Precompute complement when possible
+    if (complement_b && gpr.IsImm(b))
+    {
+      imm = ~imm;
+      complement_b = false;
+    }
+
+    if (is_xor)
+    {
+      RCOpArg Rj = gpr.Use(j, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RegCache::Realize(Rj, Ra);
+
+      if (a != j)
+        MOV(32, Ra, Rj);
+      XOR(32, Ra, Imm32(imm));
+
+      if (final_not)
+      {
+        NOT(32, Ra);
+        needs_test = true;
+      }
+    }
+    else if (is_and)
+    {
+      RCOpArg Rj = gpr.Use(j, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RegCache::Realize(Rj, Ra);
+
+      if (complement_b)
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        NOT(32, Ra);
+        AND(32, Ra, Imm32(imm));
+      }
+      else
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        AND(32, Ra, Imm32(imm));
+      }
+
+      if (final_not) {
+        NOT(32, Ra);
+        needs_test = true;
+      }
+    }
+    else if (is_or)
+    {
+      RCOpArg Rj = gpr.Use(j, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RegCache::Realize(Rj, Ra);
+
+      if (complement_b)
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        NOT(32, Ra);
+        OR(32, Ra, Imm32(imm));
+      }
+      else
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        OR(32, Ra, Imm32(imm));
+      }
+
+      if (final_not) {
+        NOT(32, Ra);
+        needs_test = true;
+      }
+    }
+    else
+    {
+      PanicAlertFmt("WTF!");
+    }
+  }
   else if (s == b)
   {
     if ((inst.SUBOP10 == 28 /* andx */) || (inst.SUBOP10 == 444 /* orx */))
