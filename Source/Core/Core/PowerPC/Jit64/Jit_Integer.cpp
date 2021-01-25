@@ -687,10 +687,18 @@ void Jit64::boolX(UGeckoInstruction inst)
       RCOpArg Rj = gpr.Use(j, RCMode::Read);
       RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
       RegCache::Realize(Rj, Ra);
-
-      if (a != j)
-        MOV(32, Ra, Rj);
-      XOR(32, Ra, Imm32(imm));
+      if (imm == 0)
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        needs_test = true;
+      }
+      else
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        XOR(32, Ra, Imm32(imm));
+      }
     }
     else if (is_and)
     {
