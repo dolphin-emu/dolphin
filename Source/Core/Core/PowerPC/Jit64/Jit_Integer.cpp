@@ -693,6 +693,12 @@ void Jit64::boolX(UGeckoInstruction inst)
           MOV(32, Ra, Rj);
         needs_test = true;
       }
+      else if (imm == 0xFFFFFFFF && !inst.Rc)
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        NOT(32, Ra);
+      }
       else
       {
         if (a != j)
