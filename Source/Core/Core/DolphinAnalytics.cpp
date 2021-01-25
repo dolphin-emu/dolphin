@@ -17,7 +17,6 @@
 #elif defined(__APPLE__)
 #include <objc/message.h>
 #elif defined(ANDROID)
-#include <functional>
 #include "Common/AndroidAnalytics.h"
 #endif
 
