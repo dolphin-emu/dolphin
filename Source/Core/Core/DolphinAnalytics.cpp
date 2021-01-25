@@ -42,7 +42,6 @@
 
 namespace
 {
-constexpr char ANALYTICS_ENDPOINT[] = "https://analytics.dolphin-emu.org/report";
 }  // namespace
 
 #if defined(ANDROID)
@@ -73,10 +72,11 @@ void DolphinAnalytics::ReloadConfig()
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
   if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
   {
+    constexpr char analytics_endpoint[] = "https://analytics.dolphin-emu.org/report";
 #if defined(ANDROID)
-    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
+    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(analytics_endpoint);
 #else
-    new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
+    new_backend = std::make_unique<Common::HttpAnalyticsBackend>(analytics_endpoint);
 #endif
   }
   m_reporter.SetBackend(std::move(new_backend));
