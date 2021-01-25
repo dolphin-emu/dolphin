@@ -835,7 +835,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
     else if (inst.SUBOP10 == 60)  // andcx
     {
-      if (cpu_info.bBMI1 && Rb.IsSimpleReg() && !Rs.IsImm())
+      if (cpu_info.bBMI1 && Rb.IsSimpleReg())
       {
         ANDN(32, Ra, Rb.GetSimpleReg(), Rs);
       }
@@ -910,7 +910,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
     else if (inst.SUBOP10 == 60)  // andcx
     {
-      if (cpu_info.bBMI1 && Rb.IsSimpleReg() && !Rs.IsImm())
+      if (cpu_info.bBMI1 && Rb.IsSimpleReg())
       {
         ANDN(32, Ra, Rb.GetSimpleReg(), Rs);
       }
