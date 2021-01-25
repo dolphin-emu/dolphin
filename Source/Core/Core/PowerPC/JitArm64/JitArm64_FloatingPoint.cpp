@@ -220,30 +220,28 @@ void JitArm64::fselx(UGeckoInstruction inst)
   const u32 c = inst.FC;
   const u32 d = inst.FD;
 
-  const bool a_single = fpr.IsSingle(a, true);
-  if (a_single)
-  {
-    const ARM64Reg VA = fpr.R(a, RegType::LowerPairSingle);
-    m_float_emit.FCMPE(EncodeRegToSingle(VA));
-  }
-  else
-  {
-    const ARM64Reg VA = fpr.R(a, RegType::LowerPair);
-    m_float_emit.FCMPE(EncodeRegToDouble(VA));
-  }
+  const bool b_and_c_singles = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
+  const RegType b_and_c_type = b_and_c_singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const auto b_and_c_reg_encoder = b_and_c_singles ? EncodeRegToSingle : EncodeRegToDouble;
 
+  const bool a_single = fpr.IsSingle(a, true) && (b_and_c_singles || (a != b && a != c));
+  const RegType a_type = a_single ? RegType::LowerPairSingle : RegType::LowerPair;
+  const auto a_reg_encoder = a_single ? EncodeRegToSingle : EncodeRegToDouble;
+
+  const ARM64Reg VA = fpr.R(a, a_type);
+  const ARM64Reg VB = fpr.R(b, b_and_c_type);
+  const ARM64Reg VC = fpr.R(c, b_and_c_type);
+
+  // If a == d, the RW call below may change the type of a to double. This is okay, because the
+  // actual value in the register is not altered by RW. So let's just assert before calling RW.
   ASSERT_MSG(DYNA_REC, a_single == fpr.IsSingle(a, true),
              "Register allocation turned singles into doubles in the middle of fselx");
 
-  const bool b_and_c_singles = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
-  const RegType type = b_and_c_singles ? RegType::LowerPairSingle : RegType::LowerPair;
-  const auto reg_encoder = b_and_c_singles ? EncodeRegToSingle : EncodeRegToDouble;
+  const ARM64Reg VD = fpr.RW(d, b_and_c_type);
 
-  const ARM64Reg VB = fpr.R(b, type);
-  const ARM64Reg VC = fpr.R(c, type);
-  const ARM64Reg VD = fpr.RW(d, type);
-
-  m_float_emit.FCSEL(reg_encoder(VD), reg_encoder(VC), reg_encoder(VB), CC_GE);
+  m_float_emit.FCMPE(a_reg_encoder(VA));
+  m_float_emit.FCSEL(b_and_c_reg_encoder(VD), b_and_c_reg_encoder(VC), b_and_c_reg_encoder(VB),
+                     CC_GE);
 
   ASSERT_MSG(DYNA_REC, b_and_c_singles == (fpr.IsSingle(b, true) && fpr.IsSingle(c, true)),
              "Register allocation turned singles into doubles in the middle of fselx");
