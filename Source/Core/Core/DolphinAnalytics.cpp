@@ -372,12 +372,13 @@ static const char* GetShaderCompilationMode(const VideoConfig& video_config)
 void DolphinAnalytics::MakePerGameBuilder()
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
+  const SConfig& config = SConfig::GetInstance();
 
   // Gameid.
-  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
+  builder.AddData("gameid", config.GetGameID());
 
   // Unique id bound to the gameid.
-  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
+  builder.AddData("id", MakeUniqueId(config.GetGameID()));
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
