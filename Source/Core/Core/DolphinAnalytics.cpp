@@ -121,7 +121,7 @@ void AddPlatformInformationToReportBuilder(Common::AnalyticsReportBuilder* build
 }
 }  // namespace
 
-    // Under arm64, we need to call objc_msgSend to receive a struct.
+// Under arm64, we need to call objc_msgSend to receive a struct.
 DolphinAnalytics::DolphinAnalytics()
 {
   m_last_analytics_enabled = Config::Get(Config::MAIN_ANALYTICS_ENABLED);
