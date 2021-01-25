@@ -41,10 +41,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace
-{
-}  // namespace
-
 #if defined(ANDROID)
 static std::function<std::string(std::string)> s_get_val_func;
 void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::string)> func)
@@ -53,6 +49,79 @@ void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::strin
 }
 #endif
 
+namespace
+{
+void AddVersionInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("version-desc", Common::GetScmDescStr());
+  builder->AddData("version-hash", Common::GetScmRevGitStr());
+  builder->AddData("version-branch", Common::GetScmBranchStr());
+  builder->AddData("version-dist", Common::GetScmDistributorStr());
+}
+
+void AddAutoUpdateInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
+}
+
+void AddCPUInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("cpu-summary", cpu_info.Summarize());
+}
+
+#if defined(_WIN32)
+void AddWindowsInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  const auto winver = WindowsRegistry::GetOSVersion();
+  builder->AddData("win-ver-major", static_cast<u32>(winver.dwMajorVersion));
+  builder->AddData("win-ver-minor", static_cast<u32>(winver.dwMinorVersion));
+  builder->AddData("win-ver-build", static_cast<u32>(winver.dwBuildNumber));
+}
+#elif defined(ANDROID)
+void AddAndroidInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  builder->AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
+  builder->AddData("android-model", s_get_val_func("DEVICE_MODEL"));
+  builder->AddData("android-version", s_get_val_func("DEVICE_OS"));
+}
+#elif defined(__APPLE__)
+void AddMacOSInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+  Common::MacOSVersion version = Common::GetMacOSVersion();
+  builder->AddData("osx-ver-major", version.major);
+  builder->AddData("osx-ver-minor", version.minor);
+  builder->AddData("osx-ver-bugfix", version.patch);
+}
+#endif
+
+void AddPlatformInformationToReportBuilder(Common::AnalyticsReportBuilder* builder)
+{
+#if defined(_WIN32)
+  builder->AddData("os-type", "windows");
+  AddWindowsInformationToReportBuilder(builder);
+#elif defined(ANDROID)
+  builder->AddData("os-type", "android");
+  AddAndroidInformationToReportBuilder(builder);
+#elif defined(__APPLE__)
+  builder->AddData("os-type", "osx");
+  AddMacOSInformationToReportBuilder(builder);
+#elif defined(__linux__)
+  builder->AddData("os-type", "linux");
+#elif defined(__FreeBSD__)
+  builder->AddData("os-type", "freebsd");
+#elif defined(__OpenBSD__)
+  builder->AddData("os-type", "openbsd");
+#elif defined(__NetBSD__)
+  builder->AddData("os-type", "netbsd");
+#elif defined(__HAIKU__)
+  builder->AddData("os-type", "haiku");
+#else
+  builder->AddData("os-type", "unknown");
+#endif
+}
+}  // namespace
+
+    // Under arm64, we need to call objc_msgSend to receive a struct.
 DolphinAnalytics::DolphinAnalytics()
 {
   m_last_analytics_enabled = Config::Get(Config::MAIN_ANALYTICS_ENABLED);
@@ -268,55 +337,12 @@ bool DolphinAnalytics::ShouldStartPerformanceSampling()
 
 void DolphinAnalytics::MakeBaseBuilder()
 {
-  Common::AnalyticsReportBuilder builder;
+  m_base_builder = Common::AnalyticsReportBuilder();
 
-  // Version information.
-  builder.AddData("version-desc", Common::GetScmDescStr());
-  builder.AddData("version-hash", Common::GetScmRevGitStr());
-  builder.AddData("version-branch", Common::GetScmBranchStr());
-  builder.AddData("version-dist", Common::GetScmDistributorStr());
-
-  // Auto-Update information.
-  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
-
-  // CPU information.
-  builder.AddData("cpu-summary", cpu_info.Summarize());
-
-// OS information.
-#if defined(_WIN32)
-  builder.AddData("os-type", "windows");
-
-  const auto winver = WindowsRegistry::GetOSVersion();
-  builder.AddData("win-ver-major", static_cast<u32>(winver.dwMajorVersion));
-  builder.AddData("win-ver-minor", static_cast<u32>(winver.dwMinorVersion));
-  builder.AddData("win-ver-build", static_cast<u32>(winver.dwBuildNumber));
-#elif defined(ANDROID)
-  builder.AddData("os-type", "android");
-  builder.AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
-  builder.AddData("android-model", s_get_val_func("DEVICE_MODEL"));
-  builder.AddData("android-version", s_get_val_func("DEVICE_OS"));
-#elif defined(__APPLE__)
-  builder.AddData("os-type", "osx");
-
-  Common::MacOSVersion version = Common::GetMacOSVersion();
-  builder.AddData("osx-ver-major", version.major);
-  builder.AddData("osx-ver-minor", version.minor);
-  builder.AddData("osx-ver-bugfix", version.patch);
-#elif defined(__linux__)
-  builder.AddData("os-type", "linux");
-#elif defined(__FreeBSD__)
-  builder.AddData("os-type", "freebsd");
-#elif defined(__OpenBSD__)
-  builder.AddData("os-type", "openbsd");
-#elif defined(__NetBSD__)
-  builder.AddData("os-type", "netbsd");
-#elif defined(__HAIKU__)
-  builder.AddData("os-type", "haiku");
-#else
-  builder.AddData("os-type", "unknown");
-#endif
-
-  m_base_builder = builder;
+  AddVersionInformationToReportBuilder(&m_base_builder);
+  AddAutoUpdateInformationToReportBuilder(&m_base_builder);
+  AddCPUInformationToReportBuilder(&m_base_builder);
+  AddPlatformInformationToReportBuilder(&m_base_builder);
 }
 
 static const char* GetShaderCompilationMode()
