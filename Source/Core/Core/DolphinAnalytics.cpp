@@ -46,8 +46,6 @@
 
 namespace
 {
-constexpr char ANALYTICS_ENDPOINT[] = "https://analytics.dolphin-emu.org/report";
-
 using namespace std::chrono_literals;
 
 // Performance sampling configuration constants.
@@ -112,7 +110,8 @@ void DolphinAnalytics::ReloadConfig()
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
   if (m_last_analytics_enabled)
   {
-    new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
+    constexpr char analytics_endpoint[] = "https://analytics.dolphin-emu.org/report";
+    new_backend = std::make_unique<Common::HttpAnalyticsBackend>(analytics_endpoint);
   }
   m_reporter.SetBackend(std::move(new_backend));
 
