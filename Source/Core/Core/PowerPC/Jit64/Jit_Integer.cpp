@@ -783,9 +783,18 @@ void Jit64::boolX(UGeckoInstruction inst)
       }
       else
       {
-        if (a != j)
+        if (a == j)
+          OR(32, Ra, Imm32(imm));
+        else if (s32(imm) >= -128 && s32(imm) <= 127)
+        {
           MOV(32, Ra, Rj);
-        OR(32, Ra, Imm32(imm));
+          OR(32, Ra, Imm32(imm));
+        }
+        else
+        {
+          MOV(32, Ra, Imm32(imm));
+          OR(32, Ra, Rj);
+        }
 
         if (final_not)
         {
