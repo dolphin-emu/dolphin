@@ -766,7 +766,15 @@ void Jit64::boolX(UGeckoInstruction inst)
       RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
       RegCache::Realize(Rj, Ra);
 
-      if (complement_b)
+      if (imm == 0)
+      {
+        if (a != j)
+          MOV(32, Ra, Rj);
+        if (final_not || complement_b)
+          NOT(32, Ra);
+        needs_test = true;
+      }
+      else if (complement_b)
       {
         if (a != j)
           MOV(32, Ra, Rj);
@@ -778,11 +786,12 @@ void Jit64::boolX(UGeckoInstruction inst)
         if (a != j)
           MOV(32, Ra, Rj);
         OR(32, Ra, Imm32(imm));
-      }
 
-      if (final_not) {
-        NOT(32, Ra);
-        needs_test = true;
+        if (final_not)
+        {
+          NOT(32, Ra);
+          needs_test = true;
+        }
       }
     }
     else
