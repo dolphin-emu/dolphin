@@ -133,6 +133,9 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
     </ClCompile>
+    <ClCompile Condition="'$(Configuration)'=='Debug' And '$(EnableASAN)'=='true'">
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+    </ClCompile>
     <!--ClCompile Release-->
     <ClCompile Condition="'$(Configuration)'=='Release'">
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>

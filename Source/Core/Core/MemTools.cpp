@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -28,30 +29,32 @@ namespace EMM
 {
 #ifdef _WIN32
 
+static PVOID s_veh_handle;
+
 static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
   switch (pPtrs->ExceptionRecord->ExceptionCode)
   {
   case EXCEPTION_ACCESS_VIOLATION:
   {
-    int accessType = (int)pPtrs->ExceptionRecord->ExceptionInformation[0];
-    if (accessType == 8)  // Rule out DEP
+    ULONG_PTR access_type = pPtrs->ExceptionRecord->ExceptionInformation[0];
+    if (access_type == 8)  // Rule out DEP
     {
-      return (DWORD)EXCEPTION_CONTINUE_SEARCH;
+      return EXCEPTION_CONTINUE_SEARCH;
     }
 
     // virtual address of the inaccessible data
-    uintptr_t badAddress = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
-    CONTEXT* ctx = pPtrs->ContextRecord;
+    uintptr_t fault_address = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
+    SContext* ctx = pPtrs->ContextRecord;
 
-    if (JitInterface::HandleFault(badAddress, ctx))
+    if (JitInterface::HandleFault(fault_address, ctx))
     {
-      return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
+      return EXCEPTION_CONTINUE_EXECUTION;
     }
     else
     {
       // Let's not prevent debugging.
-      return (DWORD)EXCEPTION_CONTINUE_SEARCH;
+      return EXCEPTION_CONTINUE_SEARCH;
     }
   }
 
@@ -84,18 +87,17 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 void InstallExceptionHandler()
 {
-  // Make sure this is only called once per process execution
-  // Instead, could make a Uninstall function, but whatever..
-  static bool handlerInstalled = false;
-  if (handlerInstalled)
+  if (s_veh_handle)
     return;
 
-  AddVectoredExceptionHandler(TRUE, Handler);
-  handlerInstalled = true;
+  s_veh_handle = AddVectoredExceptionHandler(TRUE, Handler);
+  ASSERT(s_veh_handle);
 }
 
 void UninstallExceptionHandler()
 {
+  ULONG status = RemoveVectoredExceptionHandler(s_veh_handle);
+  ASSERT(status);
 }
 
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
