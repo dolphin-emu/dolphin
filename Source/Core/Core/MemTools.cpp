@@ -87,9 +87,7 @@ static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 void InstallExceptionHandler()
 {
-  if (s_veh_handle)
-    return;
-
+  ASSERT(!s_veh_handle);
   s_veh_handle = AddVectoredExceptionHandler(TRUE, Handler);
   ASSERT(s_veh_handle);
 }
@@ -98,6 +96,8 @@ void UninstallExceptionHandler()
 {
   ULONG status = RemoveVectoredExceptionHandler(s_veh_handle);
   ASSERT(status);
+  if (status)
+    s_veh_handle = nullptr;
 }
 
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
