@@ -711,11 +711,11 @@ void NetPlayDialog::UpdateGUI()
   {
     switch (g_TraversalClient->GetState())
     {
-    case TraversalClient::Connecting:
+    case TraversalClient::State::Connecting:
       m_hostcode_label->setText(tr("..."));
       m_hostcode_action_button->setEnabled(false);
       break;
-    case TraversalClient::Connected:
+    case TraversalClient::State::Connected:
     {
       const auto host_id = g_TraversalClient->GetHostID();
       m_hostcode_label->setText(
@@ -725,7 +725,7 @@ void NetPlayDialog::UpdateGUI()
       m_is_copy_button_retry = false;
       break;
     }
-    case TraversalClient::Failure:
+    case TraversalClient::State::Failure:
       m_hostcode_label->setText(tr("Error"));
       m_hostcode_action_button->setText(tr("Retry"));
       m_hostcode_action_button->setEnabled(true);
@@ -1003,6 +1003,7 @@ void NetPlayDialog::OnTraversalStateChanged(TraversalClient::State state)
   case TraversalClient::State::Connected:
   case TraversalClient::State::Failure:
     UpdateDiscordPresence();
+    break;
   default:
     break;
   }

@@ -174,7 +174,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     m_traversal_client = g_TraversalClient.get();
 
     // If we were disconnected in the background, reconnect.
-    if (m_traversal_client->GetState() == TraversalClient::Failure)
+    if (m_traversal_client->HasFailed())
       m_traversal_client->ReconnectToServer();
     m_traversal_client->m_Client = this;
     m_host_spec = address;
@@ -1755,12 +1755,13 @@ void NetPlayClient::OnTraversalStateChanged()
   const TraversalClient::State state = m_traversal_client->GetState();
 
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
-      state == TraversalClient::Connected)
+      state == TraversalClient::State::Connected)
   {
     m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
     m_traversal_client->ConnectToClient(m_host_spec);
   }
-  else if (m_connection_state != ConnectionState::Failure && state == TraversalClient::Failure)
+  else if (m_connection_state != ConnectionState::Failure &&
+           state == TraversalClient::State::Failure)
   {
     Disconnect();
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
@@ -1779,19 +1780,19 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
 }
 
 // called from ---NETPLAY--- thread
-void NetPlayClient::OnConnectFailed(u8 reason)
+void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
 {
   m_connecting = false;
   m_connection_state = ConnectionState::Failure;
   switch (reason)
   {
-  case TraversalConnectFailedClientDidntRespond:
+  case TraversalConnectFailedReason::ClientDidntRespond:
     PanicAlertFmtT("Traversal server timed out connecting to the host");
     break;
-  case TraversalConnectFailedClientFailure:
+  case TraversalConnectFailedReason::ClientFailure:
     PanicAlertFmtT("Server rejected traversal attempt");
     break;
-  case TraversalConnectFailedNoSuchClient:
+  case TraversalConnectFailedReason::NoSuchClient:
     PanicAlertFmtT("Invalid host");
     break;
   default:
