@@ -329,8 +329,15 @@
     <string name="grid_menu_refresh">Refresh Library</string>
     <string name="grid_menu_open_file">Open File</string>
     <string name="grid_menu_install_wad">Install WAD</string>
+    <string name="grid_menu_import_wii_save">Import Wii Save</string>
+    <string name="import_in_progress">Importing...</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
+    <string name="wii_save_exists">Save data for this title already exists in the NAND. Consider backing up the current data before overwriting.\nOverwrite now?</string>
+    <string name="wii_save_import_success">Successfully imported save file.</string>
+    <string name="wii_save_import_error">Failed to import save file. Your NAND may be corrupt, or something is preventing access to files within it.</string>
+    <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>
+    <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>

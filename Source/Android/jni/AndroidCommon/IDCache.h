@@ -56,4 +56,6 @@ jmethodID GetNetworkHelperGetNetworkIpAddress();
 jmethodID GetNetworkHelperGetNetworkPrefixLength();
 jmethodID GetNetworkHelperGetNetworkGateway();
 
+jmethodID GetBooleanSupplierGet();
+
 }  // namespace IDCache

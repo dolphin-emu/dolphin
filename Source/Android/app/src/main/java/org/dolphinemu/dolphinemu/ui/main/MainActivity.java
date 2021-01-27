@@ -175,21 +175,12 @@ public final class MainActivity extends AppCompatActivity implements MainView
   }
 
   @Override
-  public void launchOpenFileActivity()
+  public void launchOpenFileActivity(int requestCode)
   {
     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
     intent.addCategory(Intent.CATEGORY_OPENABLE);
     intent.setType("*/*");
-    startActivityForResult(intent, MainPresenter.REQUEST_GAME_FILE);
-  }
-
-  @Override
-  public void launchInstallWAD()
-  {
-    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-    intent.addCategory(Intent.CATEGORY_OPENABLE);
-    intent.setType("*/*");
-    startActivityForResult(intent, MainPresenter.REQUEST_WAD_FILE);
+    startActivityForResult(intent, requestCode);
   }
 
   /**
@@ -228,6 +219,11 @@ public final class MainActivity extends AppCompatActivity implements MainView
         case MainPresenter.REQUEST_WAD_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.WAD_EXTENSION,
                   () -> mPresenter.installWAD(result.getData().toString()));
+          break;
+
+        case MainPresenter.REQUEST_WII_SAVE_FILE:
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
+                  () -> mPresenter.importWiiSave(result.getData().toString()));
           break;
       }
     }

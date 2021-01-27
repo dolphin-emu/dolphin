@@ -39,6 +39,7 @@ enum class CopyResult
   Cancelled,
   CorruptedSource,
   TitleMissing,
+  NumberOfEntries
 };
 
 CopyResult Copy(Storage* source, Storage* destination);

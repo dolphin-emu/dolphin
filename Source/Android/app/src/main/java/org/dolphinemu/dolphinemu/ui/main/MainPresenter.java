@@ -7,24 +7,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
+import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 public final class MainPresenter
 {
@@ -32,6 +34,7 @@ public final class MainPresenter
   public static final int REQUEST_GAME_FILE = 2;
   public static final int REQUEST_SD_FILE = 3;
   public static final int REQUEST_WAD_FILE = 4;
+  public static final int REQUEST_WII_SAVE_FILE = 5;
 
   private final MainView mView;
   private final Context mContext;
@@ -92,11 +95,17 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_open_file:
-        mView.launchOpenFileActivity();
+        mView.launchOpenFileActivity(REQUEST_GAME_FILE);
         return true;
 
       case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().run(context, true, mView::launchInstallWAD);
+        new AfterDirectoryInitializationRunner().run(context, true,
+                () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
+        return true;
+
+      case R.id.menu_import_wii_save:
+        new AfterDirectoryInitializationRunner().run(context, true,
+                () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
         return true;
     }
 
@@ -150,32 +159,98 @@ public final class MainPresenter
     mDirToAdd = uri.toString();
   }
 
-  public void installWAD(String file)
+  public void installWAD(String path)
+  {
+    runOnThreadAndShowResult(R.string.import_in_progress, () ->
+    {
+      boolean success = WiiUtils.installWAD(path);
+      int message = success ? R.string.wad_install_success : R.string.wad_install_failure;
+      return mContext.getResources().getString(message);
+    });
+  }
+
+  public void importWiiSave(String path)
   {
     final Activity mainPresenterActivity = (Activity) mContext;
 
-    AlertDialog dialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase).create();
-    dialog.setTitle("Installing WAD");
-    dialog.setMessage("Installing...");
-    dialog.setCancelable(false);
-    dialog.show();
+    CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
 
-    Thread installWADThread = new Thread(() ->
+    runOnThreadAndShowResult(R.string.import_in_progress, () ->
     {
-      if (NativeLibrary.InstallWAD(file))
+      BooleanSupplier canOverwrite = () ->
       {
-        mainPresenterActivity.runOnUiThread(
-                () -> Toast.makeText(mContext, R.string.wad_install_success, Toast.LENGTH_SHORT)
-                        .show());
-      }
-      else
+        mainPresenterActivity.runOnUiThread(() ->
+        {
+          AlertDialog.Builder builder =
+                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+          builder.setMessage(R.string.wii_save_exists);
+          builder.setCancelable(false);
+          builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
+          builder.setNegativeButton(R.string.no, (dialog, i) -> canOverwriteFuture.complete(false));
+          builder.show();
+        });
+
+        try
+        {
+          return canOverwriteFuture.get();
+        }
+        catch (ExecutionException | InterruptedException e)
+        {
+          // Shouldn't happen
+          throw new RuntimeException(e);
+        }
+      };
+
+      int result = WiiUtils.importWiiSave(path, canOverwrite);
+
+      int message;
+      switch (result)
       {
-        mainPresenterActivity.runOnUiThread(
-                () -> Toast.makeText(mContext, R.string.wad_install_failure, Toast.LENGTH_SHORT)
-                        .show());
+        case WiiUtils.RESULT_SUCCESS:
+          message = R.string.wii_save_import_success;
+          break;
+        case WiiUtils.RESULT_CORRUPTED_SOURCE:
+          message = R.string.wii_save_import_corruped_source;
+          break;
+        case WiiUtils.RESULT_TITLE_MISSING:
+          message = R.string.wii_save_import_title_missing;
+          break;
+        case WiiUtils.RESULT_CANCELLED:
+          return null;
+        default:
+          message = R.string.wii_save_import_error;
+          break;
       }
-      mainPresenterActivity.runOnUiThread(dialog::dismiss);
-    }, "InstallWAD");
-    installWADThread.start();
+      return mContext.getResources().getString(message);
+    });
+  }
+
+  private void runOnThreadAndShowResult(int progressMessage, Supplier<String> f)
+  {
+    final Activity mainPresenterActivity = (Activity) mContext;
+
+    AlertDialog progressDialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
+            .create();
+    progressDialog.setTitle(progressMessage);
+    progressDialog.setCancelable(false);
+    progressDialog.show();
+
+    new Thread(() ->
+    {
+      String result = f.get();
+      mainPresenterActivity.runOnUiThread(() ->
+      {
+        progressDialog.dismiss();
+
+        if (result != null)
+        {
+          AlertDialog.Builder builder =
+                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+          builder.setMessage(result);
+          builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+          builder.show();
+        }
+      });
+    }, mContext.getResources().getString(progressMessage)).start();
   }
 }

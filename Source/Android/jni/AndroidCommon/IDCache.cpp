@@ -56,6 +56,9 @@ static jmethodID s_network_helper_get_network_ip_address;
 static jmethodID s_network_helper_get_network_prefix_length;
 static jmethodID s_network_helper_get_network_gateway;
 
+static jclass s_boolean_supplier_class;
+static jmethodID s_boolean_supplier_get;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -261,6 +264,11 @@ jmethodID GetNetworkHelperGetNetworkGateway()
   return s_network_helper_get_network_gateway;
 }
 
+jmethodID GetBooleanSupplierGet()
+{
+  return s_boolean_supplier_get;
+}
+
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -360,6 +368,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(s_network_helper_class, "GetNetworkPrefixLength", "()I");
   s_network_helper_get_network_gateway =
       env->GetStaticMethodID(s_network_helper_class, "GetNetworkGateway", "()I");
+
+  const jclass boolean_supplier_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/BooleanSupplier");
+  s_boolean_supplier_class = reinterpret_cast<jclass>(env->NewGlobalRef(boolean_supplier_class));
+  s_boolean_supplier_get = env->GetMethodID(s_boolean_supplier_class, "get", "()Z");
 
   return JNI_VERSION;
 }
