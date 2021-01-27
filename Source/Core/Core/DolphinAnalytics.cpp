@@ -27,7 +27,6 @@
 #include "Common/Crypto/SHA1.h"
 #include "Common/EnumUtils.h"
 #include "Common/Random.h"
-#include "Common/Timer.h"
 #include "Common/Version.h"
 
 #include "Core/Config/MainSettings.h"
@@ -35,7 +34,6 @@
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
-#include "Core/PerformanceSampleAggregator.h"
 
 #include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
@@ -321,6 +319,7 @@ void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
     // Clear up and stop sampling until next time ShouldStartPerformanceSampling() says so.
     m_performance_samples.clear();
     m_sampling_performance_info = false;
+    m_sampling_next_start_us = m_sample_aggregator.GetRepeatSamplingStartTimestamp().count();
   }
 }
 
@@ -329,22 +328,13 @@ void DolphinAnalytics::InitializePerformanceSampling()
   m_performance_samples.clear();
   m_sampling_performance_info = false;
 
-  const u64 wait_us =
-      PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
-      Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
+  m_sampling_next_start_us = m_sample_aggregator.GetInitialSamplingStartTimestamp().count();
 }
 
 bool DolphinAnalytics::ShouldStartPerformanceSampling()
 {
-  if (Common::Timer::NowUs() < m_sampling_next_start_us)
-    return false;
-
-  const u64 wait_us =
-      PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
-      Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
-  return true;
+  return static_cast<u64>(m_sample_aggregator.GetCurrentMicroseconds().count()) >=
+         m_sampling_next_start_us;
 }
 
 void DolphinAnalytics::MakeBaseBuilder()

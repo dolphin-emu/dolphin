@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/PerformanceSample.h"
+#include "Core/PerformanceSampleAggregator.h"
 
 #if defined(ANDROID)
 #include <functional>
@@ -138,6 +139,10 @@ public:
 
   // Reports performance information. This method performs its own throttling / aggregation --
   // calling it does not guarantee when a report will actually be sent.
+  // Performance reports are generated using data from 100 consecutive frames.
+  // Report starting times are randomized to obtain a wider range of sample data.
+  // The first report begins 5-8 minutes after a game is launched.
+  // Successive reports begin 30-33 minutes after the previous report finishes.
   //
   // This method is NOT thread-safe.
   void ReportPerformanceInfo(PerformanceSample&& sample);
@@ -165,21 +170,16 @@ private:
   // values created by MakeUniqueId.
   std::string m_unique_id;
 
-  // Performance sampling configuration constants.
-  //
-  // 5min after startup + rand(0, 3min) jitter time, collect performance for 100 frames in a row.
-  // Repeat collection after 30min + rand(0, 3min).
   static constexpr int NUM_PERFORMANCE_SAMPLES_PER_REPORT = 100;
-  static constexpr int PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS = 300;
-  static constexpr int PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS = 180;
-  static constexpr int PERFORMANCE_SAMPLING_INTERVAL_SECS = 1800;
 
   // Performance sampling state & internal helpers.
   void InitializePerformanceSampling();  // Called on game start / title switch.
   bool ShouldStartPerformanceSampling();
+
   u64 m_sampling_next_start_us;  // Next timestamp (in us) at which to trigger sampling.
   bool m_sampling_performance_info = false;  // Whether we are currently collecting samples.
   std::vector<PerformanceSample> m_performance_samples;
+  PerformanceSampleAggregator m_sample_aggregator;
 
   // What quirks have already been reported about the current game.
   std::array<bool, static_cast<size_t>(GameQuirk::Count)> m_reported_quirks;
