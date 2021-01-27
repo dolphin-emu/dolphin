@@ -221,10 +221,10 @@ void AdvancedPane::ConnectLayout()
   });
 
   QDateTime initial_date_time;
-  initial_date_time.setTime_t(SConfig::GetInstance().m_customRTCValue);
+  initial_date_time.setSecsSinceEpoch(SConfig::GetInstance().m_customRTCValue);
   m_custom_rtc_datetime->setDateTime(initial_date_time);
   connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    SConfig::GetInstance().m_customRTCValue = date_time.toTime_t();
+    SConfig::GetInstance().m_customRTCValue = static_cast<u32>(date_time.toSecsSinceEpoch());
     Update();
   });
 }

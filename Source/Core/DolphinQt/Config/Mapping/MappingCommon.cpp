@@ -9,7 +9,7 @@
 
 #include <QApplication>
 #include <QPushButton>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QTimer>
 
@@ -51,8 +51,8 @@ QString GetExpressionForControl(const QString& control_name,
 
   if (quote == Quote::On)
   {
-    QRegExp reg(QStringLiteral("[a-zA-Z]+"));
-    if (!reg.exactMatch(expr))
+    const QRegularExpression reg(QStringLiteral("[a-zA-Z]+"));
+    if (!reg.match(expr).hasMatch())
       expr = QStringLiteral("`%1`").arg(expr);
   }
 
