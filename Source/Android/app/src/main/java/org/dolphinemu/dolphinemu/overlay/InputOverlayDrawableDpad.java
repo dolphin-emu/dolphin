@@ -183,6 +183,11 @@ public final class InputOverlayDrawableDpad
     mPressedTwoDirectionsStateBitmap.setBounds(left, top, right, bottom);
   }
 
+  public void setOpacity(int value)
+  {
+    mDefaultStateBitmap.setAlpha(value);
+  }
+
   public Rect getBounds()
   {
     return mDefaultStateBitmap.getBounds();
