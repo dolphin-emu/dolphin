@@ -916,7 +916,9 @@ static void TryToConnectBalanceBoard(std::unique_ptr<Wiimote> wm)
 static void HandleWiimoteDisconnect(int index)
 {
   Core::RunAsCPUThread([index] {
-    g_wiimotes[index] = nullptr;
+    // The Wii Remote object must exist through the call to UpdateSource
+    // to prevent WiimoteDevice from having a dangling HIDWiimote pointer.
+    const auto temp_real_wiimote = std::move(g_wiimotes[index]);
     WiimoteCommon::UpdateSource(index);
   });
 }
