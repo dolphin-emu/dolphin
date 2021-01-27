@@ -783,7 +783,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager, XFStateManager& 
     break;
   }
 
-  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_BP_COMMAND);
+  DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesUnknownBPCommand);
   WARN_LOG_FMT(VIDEO, "Unknown BP opcode: address = {:#010x} value = {:#010x}", bp.address,
                bp.newvalue);
 }

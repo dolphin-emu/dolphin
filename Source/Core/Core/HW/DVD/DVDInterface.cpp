@@ -885,14 +885,14 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::StopLaser:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowStopLaser");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_STOP_LASER);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowStopLaser);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::Offset:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowOffset");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_OFFSET);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowOffset);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
@@ -900,7 +900,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   case DICommand::ReadBCA:
   {
     WARN_LOG_FMT(DVDINTERFACE, "DVDLowReadDiskBca - supplying dummy data to appease NSMBW");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_READ_DISK_BCA);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowReadDiskBCA);
     // NSMBW checks that the first 0x33 bytes of the BCA are 0, then it expects a 1.
     // Most (all?) other games have 0x34 0's at the start of the BCA, but don't actually
     // read it.  NSMBW doesn't care about the other 12 bytes (which contain manufacturing data?)
@@ -915,14 +915,14 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::RequestDiscStatus:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowRequestDiscStatus");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_DISC_STATUS);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowRequestDiscStatus);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::RequestRetryNumber:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowRequestRetryNumber");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_RETRY_NUMBER);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowRequestRetryNumber);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
@@ -935,7 +935,7 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::SerMeasControl:
     ERROR_LOG_FMT(DVDINTERFACE, "DVDLowSerMeasControl");
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_SER_MEAS_CONTROL);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::UsesDVDLowSerMeasControl);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;

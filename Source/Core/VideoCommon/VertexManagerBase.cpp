@@ -459,13 +459,11 @@ void VertexManagerBase::Flush()
     // eventually simulate the behavior we have test cases for it.
     if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUTexgensBetweenXFAndBP);
     }
     if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
     {
-      DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::MismatchedGPUColorsBetweenXFAndBP);
     }
 
     return;
