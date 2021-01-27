@@ -16,6 +16,7 @@
 
 #include "Core/Core.h"
 
+#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -195,7 +196,9 @@ void MappingWindow::UpdateProfileButtonState()
   if (m_profiles_combo->findText(m_profiles_combo->currentText()) != -1)
   {
     const QString profile_path = m_profiles_combo->currentData().toString();
-    builtin = profile_path.startsWith(QString::fromStdString(File::GetSysDirectory()));
+    std::string sys_dir = File::GetSysDirectory();
+    sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
+    builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
   }
 
   m_profiles_save->setEnabled(!builtin);
@@ -459,7 +462,8 @@ void MappingWindow::PopulateProfileSelection()
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
-    m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
+    if (!basename.empty())  // Ignore files with an empty name to avoid multiple problems
+      m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
 
   m_profiles_combo->insertSeparator(m_profiles_combo->count());
@@ -470,9 +474,12 @@ void MappingWindow::PopulateProfileSelection()
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
-    // i18n: "Stock" refers to input profiles included with Dolphin
-    m_profiles_combo->addItem(tr("%1 (Stock)").arg(QString::fromStdString(basename)),
-                              QString::fromStdString(filename));
+    if (!basename.empty())
+    {
+      // i18n: "Stock" refers to input profiles included with Dolphin
+      m_profiles_combo->addItem(tr("%1 (Stock)").arg(QString::fromStdString(basename)),
+                                QString::fromStdString(filename));
+    }
   }
 
   m_profiles_combo->setCurrentIndex(-1);
