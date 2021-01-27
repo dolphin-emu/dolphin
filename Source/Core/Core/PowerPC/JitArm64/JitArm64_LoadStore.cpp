@@ -538,11 +538,9 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  gpr.Lock(W30);
+  gpr.Lock(W0);
 
-  ARM64Reg addr = gpr.GetReg();
-  ARM64Reg value = gpr.GetReg();
-  ARM64Reg WA = W30;
+  ARM64Reg addr = W0;
 
   u32 a = inst.RA, b = inst.RB;
 
@@ -551,21 +549,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   else
     MOV(addr, gpr.R(b));
 
-  // Check whether a JIT cache line needs to be invalidated.
-  AND(value, addr, 32 - 10, 28 - 10);  // upper three bits and last 10 bit are masked for the bitset
-                                       // of cachelines, 0x1ffffc00
-  LSR(value, value, 5 + 5);            // >> 5 for cache line size, >> 5 for width of bitset
-  MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
-  LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
-
-  LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
-
-  LSR(value, value, addr);  // move current bit to bit 0
-
-  FixupBranch bit_not_set = TBZ(value, 0);
-  FixupBranch far_addr = B();
-  SwitchToFarCode();
-  SetJumpTarget(far_addr);
+  ANDI2R(addr, addr, ~31);  // mask sizeof cacheline
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
@@ -573,7 +557,6 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
 
-  LSL(W0, addr, 5);
   MOVI2R(X1, 32);
   MOVI2R(X2, 0);
   MOVP2R(X3, &JitInterface::InvalidateICache);
@@ -582,12 +565,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
   ABI_PopRegisters(gprs_to_push);
 
-  FixupBranch near_addr = B();
-  SwitchToNearCode();
-  SetJumpTarget(bit_not_set);
-  SetJumpTarget(near_addr);
-
-  gpr.Unlock(addr, value, W30);
+  gpr.Unlock(W0);
 }
 
 void JitArm64::dcbt(UGeckoInstruction inst)
