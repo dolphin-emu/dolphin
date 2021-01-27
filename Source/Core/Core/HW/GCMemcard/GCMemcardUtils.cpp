@@ -72,6 +72,19 @@ bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs)
   return true;
 }
 
+bool HasDuplicateIdentity(const std::vector<Savefile>& savefiles)
+{
+  for (size_t i = 0; i < savefiles.size(); ++i)
+  {
+    for (size_t j = i + 1; j < savefiles.size(); ++j)
+    {
+      if (HasSameIdentity(savefiles[i].dir_entry, savefiles[j].dir_entry))
+        return true;
+    }
+  }
+  return false;
+}
+
 static void ByteswapDEntrySavHeader(std::array<u8, DENTRY_SIZE>& entry)
 {
   // several bytes in SAV are swapped compared to the internal memory card format

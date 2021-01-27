@@ -13,6 +13,9 @@ namespace Memcard
 {
 bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs);
 
+// Check if any two given savefiles have the same identity.
+bool HasDuplicateIdentity(const std::vector<Savefile>& savefiles);
+
 enum class ReadSavefileErrorCode
 {
   OpenFileFail,

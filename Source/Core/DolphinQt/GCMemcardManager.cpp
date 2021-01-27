@@ -515,6 +515,12 @@ void GCMemcardManager::ImportFiles(int slot, const std::vector<Memcard::Savefile
            "", static_cast<int>(number_of_blocks)));
   }
 
+  if (Memcard::HasDuplicateIdentity(savefiles))
+  {
+    error_messages.push_back(
+        tr("At least two of the selected save files have the same internal filename."));
+  }
+
   for (const Memcard::Savefile& savefile : savefiles)
   {
     if (card->TitlePresent(savefile.dir_entry))
