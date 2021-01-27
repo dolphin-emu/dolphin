@@ -66,6 +66,9 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
     ASSERT_MSG(DYNA_REC, 0, "ps_merge - invalid op");
     break;
   }
+
+  ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b)),
+             "Register allocation turned singles into doubles in the middle of ps_mergeXX");
 }
 
 void JitArm64::ps_mulsX(UGeckoInstruction inst)
@@ -91,6 +94,9 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
   const ARM64Reg VD = fpr.RW(d, type);
 
   m_float_emit.FMUL(size, reg_encoder(VD), reg_encoder(VA), reg_encoder(VC), upper ? 1 : 0);
+
+  ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(c)),
+             "Register allocation turned singles into doubles in the middle of ps_mulsX");
 
   fpr.FixSinglePrecision(d);
 }
@@ -250,6 +256,10 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     ASSERT_MSG(DYNA_REC, 0, "ps_madd - invalid op");
     break;
   }
+
+  ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
+             "Register allocation turned singles into doubles in the middle of ps_maddXX");
+
   fpr.FixSinglePrecision(d);
 
   if (V0Q != INVALID_REG)
@@ -291,6 +301,9 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
     m_float_emit.MOV(VD, V0);
     fpr.Unlock(V0Q);
   }
+
+  ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
+             "Register allocation turned singles into doubles in the middle of ps_sel");
 }
 
 void JitArm64::ps_sumX(UGeckoInstruction inst)
@@ -329,6 +342,9 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
     m_float_emit.FADD(size, reg_encoder(V0), reg_encoder(V0), reg_encoder(upper ? VB : VA));
     m_float_emit.INS(size, VD, upper ? 1 : 0, V0, upper ? 1 : 0);
   }
+
+  ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
+             "Register allocation turned singles into doubles in the middle of ps_sumX");
 
   fpr.FixSinglePrecision(d);
 

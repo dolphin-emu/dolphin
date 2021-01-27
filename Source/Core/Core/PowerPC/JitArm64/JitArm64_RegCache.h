@@ -140,6 +140,8 @@ public:
   // Requires unlocking after done
   Arm64Gen::ARM64Reg GetReg();
 
+  void UpdateLastUsed(BitSet32 regs_used);
+
   // Locks a register so a cache cannot use it
   // Useful for function calls
   template <typename T = Arm64Gen::ARM64Reg, typename... Args>
@@ -281,9 +283,9 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  Arm64Gen::ARM64Reg R(size_t preg, RegType type = RegType::LowerPair);
+  Arm64Gen::ARM64Reg R(size_t preg, RegType type);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type = RegType::LowerPair);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType type);
 
   BitSet32 GetCallerSavedUsed() const override;
 
