@@ -58,6 +58,7 @@
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\FreeLookWidget.cpp" />
     <ClCompile Include="Config\FreeLookWindow.cpp" />
+    <ClCompile Include="Config\GamecubeControllersWidget.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />
     <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
@@ -231,6 +232,7 @@
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\FreeLookWidget.h" />
     <QtMoc Include="Config\FreeLookWindow.h" />
+    <QtMoc Include="Config\GamecubeControllersWidget.h" />
     <QtMoc Include="Config\GameConfigHighlighter.h" />
     <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
