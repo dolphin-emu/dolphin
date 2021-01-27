@@ -53,6 +53,20 @@
 
 #include "UICommon/GameFile.h"
 
+#ifdef _WIN32
+#include <QCoreApplication>
+#include <shlobj.h>
+#include <wil/com.h>
+
+// This file uses some identifiers which are defined as macros in Windows headers.
+// Undefine them for the intellisense parser to solve some red squiggles.
+#ifdef __INTELLISENSE__
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
+#endif
+#endif
+
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
   m_list_proxy = new ListProxyModel(this);
@@ -382,6 +396,15 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
+#ifdef _WIN32
+    menu->addAction(tr("Add Shortcut to Desktop"), this, [this] {
+      if (!AddShortcutToDesktop())
+      {
+        ModalMessageBox::critical(this, tr("Add Shortcut to Desktop"),
+                                  tr("There was an issue adding a shortcut to the desktop"));
+      }
+    });
+#endif
 
     menu->addSeparator();
 
@@ -630,6 +653,41 @@ void GameList::OpenGCSaveFolder()
   if (!found)
     ModalMessageBox::information(this, tr("Information"), tr("No save data found."));
 }
+
+#ifdef _WIN32
+bool GameList::AddShortcutToDesktop()
+{
+  auto init = wil::CoInitializeEx_failfast(COINIT_APARTMENTTHREADED);
+  auto shell_link = wil::CoCreateInstanceNoThrow<ShellLink, IShellLink>();
+  if (!shell_link)
+    return false;
+
+  std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
+  if (FAILED(shell_link->SetPath(dolphin_path.c_str())))
+    return false;
+
+  const auto game = GetSelectedGame();
+  const auto& file_path = game->GetFilePath();
+  std::wstring args = UTF8ToTStr("-e \"" + file_path + "\"");
+  if (FAILED(shell_link->SetArguments(args.c_str())))
+    return false;
+
+  wil::unique_cotaskmem_string desktop;
+  if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop)))
+    return false;
+
+  const auto& game_name = game->GetLongName();
+  std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
+  auto persist_file = shell_link.try_query<IPersistFile>();
+  if (!persist_file)
+    return false;
+
+  if (FAILED(persist_file->Save(desktop_path.c_str(), TRUE)))
+    return false;
+
+  return true;
+}
+#endif
 
 void GameList::DeleteFile()
 {
