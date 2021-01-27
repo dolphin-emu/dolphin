@@ -128,7 +128,12 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_unloadGameIn
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_save(
     JNIEnv*, jclass, jint layer)
 {
-  return GetLayer(layer, {})->Save();
+  const std::shared_ptr<Config::Layer> layer_ptr = GetLayer(layer, {});
+
+  // Workaround for the Settings class carrying around a legacy map of settings it always saves
+  layer_ptr->MarkAsDirty();
+
+  return layer_ptr->Save();
 }
 
 JNIEXPORT jboolean JNICALL

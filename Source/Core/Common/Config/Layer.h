@@ -138,6 +138,8 @@ public:
     m_map.insert_or_assign(location, std::move(new_value));
   }
 
+  void MarkAsDirty() { m_is_dirty = true; }
+
   Section GetSection(System system, const std::string& section);
   ConstSection GetSection(System system, const std::string& section) const;
 
