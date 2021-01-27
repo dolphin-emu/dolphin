@@ -190,7 +190,8 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(5, "RETURN");  // Start
 #else
   // OS X/Linux
-  m_buttons->SetControlExpression(5, "Return");          // Start
+  // Start
+  m_buttons->SetControlExpression(5, "Return");
 #endif
 
   // stick modifiers to 50 %
@@ -218,10 +219,10 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(2, "LEFT");   // Left
   m_main_stick->SetControlExpression(3, "RIGHT");  // Right
 #elif __APPLE__
-  m_main_stick->SetControlExpression(0, "Up Arrow");     // Up
-  m_main_stick->SetControlExpression(1, "Down Arrow");   // Down
-  m_main_stick->SetControlExpression(2, "Left Arrow");   // Left
-  m_main_stick->SetControlExpression(3, "Right Arrow");  // Right
+  m_main_stick->SetControlExpression(0, "`Up Arrow`");     // Up
+  m_main_stick->SetControlExpression(1, "`Down Arrow`");   // Down
+  m_main_stick->SetControlExpression(2, "`Left Arrow`");   // Left
+  m_main_stick->SetControlExpression(3, "`Right Arrow`");  // Right
 #else
   m_main_stick->SetControlExpression(0, "Up");     // Up
   m_main_stick->SetControlExpression(1, "Down");   // Down
