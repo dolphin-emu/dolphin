@@ -52,7 +52,7 @@ bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs)
 
   // With all that in mind, even if it mismatches the comparison behavior of the BIOS, we treat
   // m_filename as a nullterminated string for determining if two files identify as the same, as not
-  // doing so would cause more harm and confusion that good in practice.
+  // doing so would cause more harm and confusion than good in practice.
 
   if (lhs.m_gamecode != rhs.m_gamecode)
     return false;
