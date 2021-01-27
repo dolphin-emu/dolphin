@@ -455,14 +455,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
 {
   Flush();
   File::IOFile f(filename, "rb");
-  if (!f)
-  {
-    Core::DisplayMessage("State not found", 2000);
-    return false;
-  }
-
-  f.ReadArray(&header, 1);
-  return true;
+  return f.ReadArray(&header, 1);
 }
 
 std::string GetInfoStringOfSlot(int slot, bool translate)
@@ -493,14 +486,13 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 {
   Flush();
   File::IOFile f(filename, "rb");
-  if (!f)
+
+  StateHeader header;
+  if (!f.ReadArray(&header, 1))
   {
     Core::DisplayMessage("State not found", 2000);
     return;
   }
-
-  StateHeader header;
-  f.ReadArray(&header, 1);
 
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
