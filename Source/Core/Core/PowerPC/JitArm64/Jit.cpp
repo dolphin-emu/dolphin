@@ -157,9 +157,9 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
+  MOVP2R(X8, instr);
   MOVI2R(W0, inst.hex);
-  MOVP2R(X30, instr);
-  BLR(X30);
+  BLR(X8);
 
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
@@ -213,10 +213,10 @@ void JitArm64::HLEFunction(u32 hook_index)
   gpr.Flush(FlushMode::All);
   fpr.Flush(FlushMode::All);
 
+  MOVP2R(X8, &HLE::Execute);
   MOVI2R(W0, js.compilerPC);
   MOVI2R(W1, hook_index);
-  MOVP2R(X30, &HLE::Execute);
-  BLR(X30);
+  BLR(X8);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -246,11 +246,11 @@ void JitArm64::Cleanup()
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0.Hex || MMCR1.Hex)
   {
-    MOVP2R(X30, &PowerPC::UpdatePerformanceMonitor);
+    MOVP2R(X8, &PowerPC::UpdatePerformanceMonitor);
     MOVI2R(X0, js.downcountAmount);
     MOVI2R(X1, js.numLoadStoreInst);
     MOVI2R(X2, js.numFloatingPointInst);
-    BLR(X30);
+    BLR(X8);
   }
 }
 
@@ -453,10 +453,10 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
   STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
   if (only_external)
-    MOVP2R(X30, &PowerPC::CheckExternalExceptions);
+    MOVP2R(X8, &PowerPC::CheckExternalExceptions);
   else
-    MOVP2R(X30, &PowerPC::CheckExceptions);
-  BLR(X30);
+    MOVP2R(X8, &PowerPC::CheckExceptions);
+  BLR(X8);
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
   SetJumpTarget(no_exceptions);
@@ -723,8 +723,8 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(Exception);
       ABI_PushRegisters(regs_in_use);
       m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
-      MOVP2R(X30, &GPFifo::FastCheckGatherPipe);
-      BLR(X30);
+      MOVP2R(X8, &GPFifo::FastCheckGatherPipe);
+      BLR(X8);
       m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
       ABI_PopRegisters(regs_in_use);
 
