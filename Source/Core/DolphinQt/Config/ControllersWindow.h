@@ -8,6 +8,7 @@
 
 #include <array>
 
+class CommonControllersWidget;
 class MappingWindow;
 class QDialogButtonBox;
 class QCheckBox;
@@ -16,7 +17,6 @@ class QHBoxLayout;
 class QGridLayout;
 class QGroupBox;
 class QLabel;
-class QVBoxLayout;
 class QPushButton;
 class QRadioButton;
 
@@ -36,11 +36,9 @@ private:
   void OnWiimoteRefreshPressed();
   void OnGCPadConfigure();
   void OnWiimoteConfigure();
-  void OnControllerInterfaceConfigure();
 
   void CreateGamecubeLayout();
   void CreateWiimoteLayout();
-  void CreateCommonLayout();
   void CreateMainLayout();
   void ConnectWidgets();
   void LoadSettings();
@@ -75,8 +73,5 @@ private:
   QPushButton* m_wiimote_refresh;
 
   // Common
-  QGroupBox* m_common_box;
-  QVBoxLayout* m_common_layout;
-  QCheckBox* m_common_bg_input;
-  QPushButton* m_common_configure_controller_interface;
+  CommonControllersWidget* m_common;
 };
