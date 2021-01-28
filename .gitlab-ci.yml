@@ -18,9 +18,18 @@ variables:
   variables:
     CORE_ARGS: -DLIBRETRO=ON -DENABLE_QT=OFF
 
+.core-windows-defs:
+  extends: .core-defs
+  variables:
+    CORE_ARGS: -DLIBRETRO=ON -DENABLE_QT=OFF
+
 # Inclusion templates, required for the build to work
 include:
   ################################## DESKTOPS ################################
+  # Windows
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/windows-cmake-msvc19.yml'
+
   # Linux 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-cmake.yml'
@@ -40,6 +49,14 @@ stages:
 ##############################################################################
 #
 ################################### DESKTOPS #################################
+# Windows 64-bit
+libretro-build-windows-x64:
+  extends:
+    - .libretro-windows-msvc19-cmake-x86_64
+    - .core-windows-defs
+  after_script:
+    - mv.exe "Binary\$Env:LIBNAME" "$Env:LIBNAME"
+
 # Linux 64-bit
 libretro-build-linux-x64:
   extends:
