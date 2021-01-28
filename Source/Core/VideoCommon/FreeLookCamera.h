@@ -32,6 +32,7 @@ public:
   virtual void MoveForward(float amt) = 0;
 
   virtual void Rotate(const Common::Vec3& amt) = 0;
+  virtual void Rotate(const Common::Quaternion& quat) = 0;
 
   virtual void Reset() = 0;
 

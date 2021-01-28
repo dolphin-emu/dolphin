@@ -36,7 +36,7 @@ std::string to_string(FreeLook::ControlType type)
   return "";
 }
 
-class SixAxisController : public CameraController
+class SixAxisController final : public CameraController
 {
 public:
   SixAxisController() = default;
@@ -58,12 +58,11 @@ public:
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
   }
 
-  void Rotate(const Common::Vec3& amt) override
+  void Rotate(const Common::Vec3& amt) override { Rotate(Common::Quaternion::RotateXYZ(amt)); }
+
+  void Rotate(const Common::Quaternion& quat) override
   {
-    using Common::Matrix33;
-    m_mat = Common::Matrix44::FromMatrix33(Matrix33::RotateX(amt.x) * Matrix33::RotateY(amt.y) *
-                                           Matrix33::RotateZ(amt.z)) *
-            m_mat;
+    m_mat = Common::Matrix44::FromQuaternion(quat) * m_mat;
   }
 
   void Reset() override { m_mat = Common::Matrix44::Identity(); }
@@ -74,31 +73,30 @@ private:
   Common::Matrix44 m_mat = Common::Matrix44::Identity();
 };
 
-constexpr double HalfPI = MathUtil::PI / 2;
-
-class FPSController : public CameraController
+class FPSController final : public CameraController
 {
 public:
   Common::Matrix44 GetView() override
   {
-    return m_rotate_mat * Common::Matrix44::Translate(m_position);
+    return Common::Matrix44::FromQuaternion(m_rotate_quat) *
+           Common::Matrix44::Translate(m_position);
   }
 
   void MoveVertical(float amt) override
   {
-    Common::Vec3 up{m_rotate_mat.data[4], m_rotate_mat.data[5], m_rotate_mat.data[6]};
+    const Common::Vec3 up = m_rotate_quat.Conjugate() * Common::Vec3{0, 1, 0};
     m_position += up * amt;
   }
 
   void MoveHorizontal(float amt) override
   {
-    Common::Vec3 right{m_rotate_mat.data[0], m_rotate_mat.data[1], m_rotate_mat.data[2]};
+    const Common::Vec3 right = m_rotate_quat.Conjugate() * Common::Vec3{1, 0, 0};
     m_position += right * amt;
   }
 
   void MoveForward(float amt) override
   {
-    Common::Vec3 forward{m_rotate_mat.data[8], m_rotate_mat.data[9], m_rotate_mat.data[10]};
+    const Common::Vec3 forward = m_rotate_quat.Conjugate() * Common::Vec3{0, 0, 1};
     m_position += forward * amt;
   }
 
@@ -106,43 +104,41 @@ public:
   {
     m_rotation += amt;
 
-    using Common::Matrix33;
-    using Common::Matrix44;
-    m_rotate_mat =
-        Matrix44::FromMatrix33(Matrix33::RotateX(m_rotation.x) * Matrix33::RotateY(m_rotation.y));
+    using Common::Quaternion;
+    const auto quat =
+        (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
+    Rotate(quat);
   }
+
+  void Rotate(const Common::Quaternion& quat) override { m_rotate_quat = quat; }
 
   void Reset() override
   {
     m_position = Common::Vec3{};
     m_rotation = Common::Vec3{};
-    m_rotate_mat = Common::Matrix44::Identity();
+    m_rotate_quat = Common::Quaternion::Identity();
   }
 
   void DoState(PointerWrap& p)
   {
     p.Do(m_rotation);
-    p.Do(m_rotate_mat);
+    p.Do(m_rotate_quat);
     p.Do(m_position);
   }
 
 private:
   Common::Vec3 m_rotation = Common::Vec3{};
-  Common::Matrix44 m_rotate_mat = Common::Matrix44::Identity();
+  Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
   Common::Vec3 m_position = Common::Vec3{};
 };
 
-class OrbitalController : public CameraController
+class OrbitalController final : public CameraController
 {
 public:
   Common::Matrix44 GetView() override
   {
-    Common::Matrix44 result = Common::Matrix44::Identity();
-    result *= Common::Matrix44::Translate(Common::Vec3{0, 0, -m_distance});
-    result *= Common::Matrix44::FromMatrix33(Common::Matrix33::RotateX(m_rotation.x));
-    result *= Common::Matrix44::FromMatrix33(Common::Matrix33::RotateY(m_rotation.y));
-
-    return result;
+    return Common::Matrix44::Translate(Common::Vec3{0, 0, -m_distance}) *
+           Common::Matrix44::FromQuaternion(m_rotate_quat);
   }
 
   void MoveVertical(float) override {}
@@ -155,23 +151,36 @@ public:
     m_distance = std::clamp(m_distance, 0.0f, m_distance);
   }
 
-  void Rotate(const Common::Vec3& amt) override { m_rotation += amt; }
+  void Rotate(const Common::Vec3& amt) override
+  {
+    m_rotation += amt;
+
+    using Common::Quaternion;
+    const auto quat =
+        (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
+    Rotate(quat);
+  }
+
+  void Rotate(const Common::Quaternion& quat) override { m_rotate_quat = quat; }
 
   void Reset() override
   {
     m_rotation = Common::Vec3{};
+    m_rotate_quat = Common::Quaternion::Identity();
     m_distance = 0;
   }
 
   void DoState(PointerWrap& p)
   {
     p.Do(m_rotation);
+    p.Do(m_rotate_quat);
     p.Do(m_distance);
   }
 
 private:
   float m_distance = 0;
   Common::Vec3 m_rotation = Common::Vec3{};
+  Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
 };
 }  // namespace
 
