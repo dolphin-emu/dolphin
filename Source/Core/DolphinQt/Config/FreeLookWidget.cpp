@@ -29,6 +29,7 @@ FreeLookWidget::FreeLookWidget(QWidget* parent) : QWidget(parent)
 void FreeLookWidget::CreateLayout()
 {
   auto* layout = new QVBoxLayout();
+  layout->setAlignment(Qt::AlignTop);
 
   m_enable_freelook = new ToolTipCheckBox(tr("Enable"));
   m_enable_freelook->setChecked(Config::Get(Config::FREE_LOOK_ENABLED));
