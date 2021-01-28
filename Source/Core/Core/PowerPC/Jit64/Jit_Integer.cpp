@@ -664,16 +664,16 @@ void Jit64::boolX(UGeckoInstruction inst)
   }
   else if (gpr.IsImm(s) || gpr.IsImm(b))
   {
-    auto [i, j] = gpr.IsImm(s) ? std::pair(s, b) : std::pair(b, s);
+    const auto [i, j] = gpr.IsImm(s) ? std::pair(s, b) : std::pair(b, s);
     u32 imm = gpr.Imm32(i);
 
     bool complement_b = (inst.SUBOP10 == 60 /* andcx */) || (inst.SUBOP10 == 412 /* orcx */);
-    bool final_not = (inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */);
-    bool is_and = (inst.SUBOP10 == 28 /* andx */) || (inst.SUBOP10 == 60 /* andcx */) ||
-                  (inst.SUBOP10 == 476 /* nandx */);
-    bool is_or = (inst.SUBOP10 == 444 /* orx */) || (inst.SUBOP10 == 412 /* orcx */) ||
-                 (inst.SUBOP10 == 124 /* norx */);
-    bool is_xor = (inst.SUBOP10 == 316 /* xorx */) || (inst.SUBOP10 == 284 /* eqvx */);
+    const bool final_not = (inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */);
+    const bool is_and = (inst.SUBOP10 == 28 /* andx */) || (inst.SUBOP10 == 60 /* andcx */) ||
+                        (inst.SUBOP10 == 476 /* nandx */);
+    const bool is_or = (inst.SUBOP10 == 444 /* orx */) || (inst.SUBOP10 == 412 /* orcx */) ||
+                       (inst.SUBOP10 == 124 /* norx */);
+    const bool is_xor = (inst.SUBOP10 == 316 /* xorx */) || (inst.SUBOP10 == 284 /* eqvx */);
 
     // Precompute complement when possible
     if (complement_b && gpr.IsImm(b) || (inst.SUBOP10 == 284 /* eqvx */))
