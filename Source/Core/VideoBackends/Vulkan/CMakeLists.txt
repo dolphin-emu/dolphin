@@ -1,36 +1,36 @@
 add_library(videovulkan
-  BoundingBox.cpp
-  BoundingBox.h
   CommandBufferManager.cpp
   CommandBufferManager.h
   Constants.h
-  main.cpp
   ObjectCache.cpp
   ObjectCache.h
-  PerfQuery.cpp
-  PerfQuery.h
-  Renderer.cpp
-  Renderer.h
   ShaderCompiler.cpp
   ShaderCompiler.h
-  StateTracker.cpp
-  StateTracker.h
   StagingBuffer.cpp
   StagingBuffer.h
-  StreamBuffer.cpp
-  StreamBuffer.h
-  SwapChain.cpp
-  SwapChain.h
-  VertexFormat.cpp
-  VertexFormat.h
-  VertexManager.cpp
-  VertexManager.h
+  StateTracker.cpp
+  StateTracker.h
+  VKBoundingBox.cpp
+  VKBoundingBox.h
+  VKMain.cpp
+  VKPerfQuery.cpp
+  VKPerfQuery.h
   VKPipeline.cpp
   VKPipeline.h
+  VKRenderer.cpp
+  VKRenderer.h
   VKShader.cpp
   VKShader.h
+  VKStreamBuffer.cpp
+  VKStreamBuffer.h
+  VKSwapChain.cpp
+  VKSwapChain.h
   VKTexture.cpp
   VKTexture.h
+  VKVertexFormat.cpp
+  VKVertexFormat.h
+  VKVertexManager.cpp
+  VKVertexManager.h
   VulkanContext.cpp
   VulkanContext.h
   VulkanLoader.cpp

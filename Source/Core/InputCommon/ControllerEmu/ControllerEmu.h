@@ -16,7 +16,7 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/DynamicInputTextureManager.h"
 
 class ControllerInterface;

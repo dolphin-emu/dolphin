@@ -21,10 +21,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"

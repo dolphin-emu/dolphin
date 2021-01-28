@@ -35,11 +35,8 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
-      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
-      <Project>{e54cf649-140e-4255-81a5-30a673c1fb36}</Project>
+    <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
+      <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

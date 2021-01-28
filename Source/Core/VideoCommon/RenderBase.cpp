@@ -39,11 +39,11 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
-#include "Core/Analytics.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/FreeLookConfig.h"
 #include "Core/HW/SystemTimers.h"

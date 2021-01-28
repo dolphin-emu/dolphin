@@ -21,10 +21,10 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLShader.h"
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoBackends/OGL/OGLStreamBuffer.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GeometryShaderManager.h"

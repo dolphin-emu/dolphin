@@ -12,7 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/Swap.h"
-#include "Core/Analytics.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 

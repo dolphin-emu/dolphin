@@ -23,9 +23,9 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/ENetUtil.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"

@@ -12,7 +12,7 @@
 
 #include "Common/Matrix.h"
 #include "Common/WindowSystemInfo.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 // enable disable sources
 #ifdef _WIN32

@@ -17,8 +17,8 @@
 #endif
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/GekkoDisassembler.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/PerformanceCounter.h"
