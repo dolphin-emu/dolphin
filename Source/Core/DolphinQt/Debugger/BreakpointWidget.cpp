@@ -43,11 +43,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     UpdateButtonsEnabled();
     if (state == Core::State::Uninitialized)
-    {
-      PowerPC::breakpoints.Clear();
-      PowerPC::memchecks.Clear();
       Update();
-    }
   });
 
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, this,
