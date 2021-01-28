@@ -438,6 +438,7 @@
     <ClInclude Include="Core\NetworkCaptureLogger.h" />
     <ClInclude Include="Core\PatchEngine.h" />
     <ClInclude Include="Core\PerformanceSample.h" />
+    <ClInclude Include="Core\PerformanceSampleAggregator.h" />
     <ClInclude Include="Core\PowerPC\BreakPoints.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.h" />
@@ -1106,6 +1107,7 @@
     <ClCompile Include="Core\NetPlayServer.cpp" />
     <ClCompile Include="Core\NetworkCaptureLogger.cpp" />
     <ClCompile Include="Core\PatchEngine.cpp" />
+    <ClCompile Include="Core\PerformanceSampleAggregator.cpp" />
     <ClCompile Include="Core\PowerPC\BreakPoints.cpp" />
     <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreter_Disassembler.cpp" />
     <ClCompile Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.cpp" />

@@ -29,14 +29,18 @@
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/PerformanceSampleAggregator.h"
+
 #include "Core/System.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 

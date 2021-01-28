@@ -484,6 +484,8 @@ add_library(core
   PatchEngine.cpp
   PatchEngine.h
   PerformanceSample.h
+  PerformanceSampleAggregator.cpp
+  PerformanceSampleAggregator.h
   PowerPC/BreakPoints.cpp
   PowerPC/BreakPoints.h
   PowerPC/CachedInterpreter/CachedInterpreter_Disassembler.cpp
