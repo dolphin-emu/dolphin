@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <type_traits>
 #include <vector>
 
@@ -28,6 +29,48 @@ template <typename T, typename F>
 constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) * a)
 {
   return x + (y - x) * a;
+}
+
+// Casts the specified value to a Dest. The value will be clamped to fit in the destination type.
+// Warning: The result of SaturatingCast(NaN) is undefined.
+template <typename Dest, typename T>
+constexpr Dest SaturatingCast(T value)
+{
+  static_assert(std::is_integral<Dest>());
+
+  constexpr Dest lo = std::numeric_limits<Dest>::lowest();
+  constexpr Dest hi = std::numeric_limits<Dest>::max();
+
+  // T being a signed integer and Dest unsigned is a problematic case because the value will
+  // be converted into an unsigned integer, and u32(...) < 0 is always false.
+  if constexpr (std::is_integral<T>() && std::is_signed<T>() && std::is_unsigned<Dest>())
+  {
+    static_assert(lo == 0);
+    if (value < 0)
+      return lo;
+    // Now that we got rid of negative values, we can safely cast value to an unsigned T
+    // since unsigned T can represent any positive value signed T could represent.
+    // The compiler will then promote the LHS or the RHS if necessary.
+    if (std::make_unsigned_t<T>(value) > hi)
+      return hi;
+  }
+  else if constexpr (std::is_integral<T>() && std::is_unsigned<T>() && std::is_signed<Dest>())
+  {
+    // value and hi will never be negative, and hi is representable as an unsigned Dest.
+    if (value > std::make_unsigned_t<Dest>(hi))
+      return hi;
+  }
+  else
+  {
+    // Do not use std::clamp or a similar function here to avoid overflow.
+    // For example, if Dest = s64 and T = int, we want integer promotion to convert value to a s64
+    // instead of changing lo or hi into an int.
+    if (value < lo)
+      return lo;
+    if (value > hi)
+      return hi;
+  }
+  return static_cast<Dest>(value);
 }
 
 template <typename T>
