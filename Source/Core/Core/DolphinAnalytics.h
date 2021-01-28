@@ -12,6 +12,8 @@
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/PerformanceSample.h"
+
 #if defined(ANDROID)
 #include <functional>
 #endif
@@ -134,12 +136,6 @@ public:
   // Get the base builder for building a report
   const Common::AnalyticsReportBuilder& BaseBuilder() const { return m_base_builder; }
 
-  struct PerformanceSample
-  {
-    double speed_ratio;  // See SystemTimers::GetEstimatedEmulationPerformance().
-    int num_prims;
-    int num_draw_calls;
-  };
   // Reports performance information. This method performs its own throttling / aggregation --
   // calling it does not guarantee when a report will actually be sent.
   //

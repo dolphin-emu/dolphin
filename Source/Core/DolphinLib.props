@@ -437,6 +437,7 @@
     <ClInclude Include="Core\NetPlayServer.h" />
     <ClInclude Include="Core\NetworkCaptureLogger.h" />
     <ClInclude Include="Core\PatchEngine.h" />
+    <ClInclude Include="Core\PerformanceSample.h" />
     <ClInclude Include="Core\PowerPC\BreakPoints.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreter.h" />
     <ClInclude Include="Core\PowerPC\CachedInterpreter\CachedInterpreterBlockCache.h" />
