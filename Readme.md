@@ -159,8 +159,8 @@ is intended for debugging purposes only.
 * `GC/dsp_coef.bin`: DSP dumps
 * `GC/dsp_rom.bin`: DSP dumps
 * `Wii/clientca.pem`: Wii network certificate
-* `Wii/clientcacakey.pem`: Wii network certificate
-* `Wii/rootca.pem`: Wii network certificate
+* `Wii/clientcakey.pem`: Wii network certificate key
+* `Wii/rootca.pem`: Wii network certificate issuer / CA
 
 The DSP dumps included with Dolphin have been written from scratch and do not
 contain any copyrighted material. They should work for most purposes, however
