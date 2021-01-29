@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include <QDialog>
 
 #include "DolphinQt/Config/Graphics/GraphicsDialog.h"
@@ -23,8 +25,18 @@ class GrandSettingsWindow final : public GraphicsDialog
   Q_OBJECT
 public:
   explicit GrandSettingsWindow(X11Utils::XRRConfiguration* xrr_config, QWidget* parent = nullptr);
+  void SetDefaultPane();
+  void SetControllersPane();
+  void SetGraphicsPane();
+  void SetControllersEnabled(bool enable);
 
 private:
+  enum class SelectedPane
+  {
+    Default,
+    Graphics,
+    Controllers
+  };
   void PopulateWidgets();
   void OnSearch(const QString& text);
   bool TreeNodeContainsText(const QString& text, QTreeWidgetItem* item);
@@ -34,4 +46,7 @@ private:
   QTreeWidget* m_tree;
   QLineEdit* m_search_bar;
   QStackedWidget* m_widget_stack;
+
+  SelectedPane m_selected_pane = SelectedPane::Default;
+  bool m_controllers_enabled = true;
 };

@@ -364,6 +364,10 @@ void MainWindow::InitCoreCallbacks()
     if (state == Core::State::Uninitialized)
       OnStopComplete();
 
+    const bool should_disable_controllers =
+        state != Core::State::Uninitialized && NetPlay::IsNetPlayRunning();
+    m_settings_window->SetControllersEnabled(!should_disable_controllers);
+
     if (state == Core::State::Running && m_fullscreen_requested)
     {
       FullScreen();
@@ -498,12 +502,7 @@ void MainWindow::ConnectMenuBar()
 
   // Options
   connect(m_menu_bar, &MenuBar::Configure, this, &MainWindow::ShowSettingsWindow);
-  connect(m_menu_bar, &MenuBar::ConfigureGraphics, this, &MainWindow::ShowGraphicsWindow);
-  connect(m_menu_bar, &MenuBar::ConfigureAudio, this, &MainWindow::ShowAudioWindow);
-  connect(m_menu_bar, &MenuBar::ConfigureControllers, this, &MainWindow::ShowControllersWindow);
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
-  connect(m_menu_bar, &MenuBar::ConfigureFreelook, this, &MainWindow::ShowFreeLookWindow);
-  connect(m_menu_bar, &MenuBar::ConfigureGrandSettings, this, &MainWindow::ShowGrandSettingsDialog);
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
@@ -650,7 +649,7 @@ void MainWindow::ConnectGameList()
   connect(m_game_list, &GameList::OnStartWithRiivolution, this,
           &MainWindow::ShowRiivolutionBootWidget);
 
-  connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
+  // connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
   connect(m_game_list, &GameList::OpenGraphicsSettings, this, &MainWindow::ShowGraphicsWindow);
 }
 
@@ -1166,37 +1165,22 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
   }
 }
 
-void MainWindow::ShowControllersWindow()
-{
-  if (!m_controllers_window)
-  {
-    m_controllers_window = new ControllersWindow(this);
-    InstallHotkeyFilter(m_controllers_window);
-  }
-
-  m_controllers_window->show();
-  m_controllers_window->raise();
-  m_controllers_window->activateWindow();
-}
-
-void MainWindow::ShowFreeLookWindow()
-{
-  if (!m_freelook_window)
-  {
-    m_freelook_window = new FreeLookWindow(this);
-    InstallHotkeyFilter(m_freelook_window);
-  }
-
-  m_freelook_window->show();
-  m_freelook_window->raise();
-  m_freelook_window->activateWindow();
-}
-
 void MainWindow::ShowSettingsWindow()
 {
   if (!m_settings_window)
   {
-    m_settings_window = new SettingsWindow(this);
+#ifdef HAVE_XRANDR
+    if (GetWindowSystemType() == WindowSystemType::X11 && m_xrr_config != nullptr)
+    {
+      m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+              "display", windowHandle())),
+          winId());
+    }
+    m_settings_window = new GrandSettingsWindow(m_xrr_config.get(), this);
+#else
+    m_settings_window = new GrandSettingsWindow(nullptr, this);
+#endif
     InstallHotkeyFilter(m_settings_window);
   }
 
@@ -1205,16 +1189,10 @@ void MainWindow::ShowSettingsWindow()
   m_settings_window->activateWindow();
 }
 
-void MainWindow::ShowAudioWindow()
+void MainWindow::ShowControllersWindow()
 {
   ShowSettingsWindow();
-  m_settings_window->SelectAudioPane();
-}
-
-void MainWindow::ShowGeneralWindow()
-{
-  ShowSettingsWindow();
-  m_settings_window->SelectGeneralPane();
+  m_settings_window->SetControllersPane();
 }
 
 void MainWindow::ShowAboutDialog()
@@ -1236,45 +1214,16 @@ void MainWindow::ShowHotkeyDialog()
   m_hotkey_window->activateWindow();
 }
 
-void MainWindow::ShowGrandSettingsDialog()
+void MainWindow::ShowGeneralWindow()
 {
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-  if (GetWindowSystemType() == WindowSystemType::X11 && m_xrr_config != nullptr)
-  {
-    m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
-        static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-            "display", windowHandle())),
-        winId());
-  }
-  GrandSettingsWindow grand{m_xrr_config.get(), this};
-#else
-  GrandSettingsWindow grand{nullptr, this};
-#endif
-  grand.exec();
+  ShowSettingsWindow();
+  m_settings_window->SetDefaultPane();
 }
 
 void MainWindow::ShowGraphicsWindow()
 {
-  if (!m_graphics_window)
-  {
-#ifdef HAVE_XRANDR
-    if (GetWindowSystemType() == WindowSystemType::X11 && m_xrr_config != nullptr)
-    {
-      m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
-          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-              "display", windowHandle())),
-          winId());
-    }
-    m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
-#else
-    m_graphics_window = new GraphicsWindow(nullptr, this);
-#endif
-    InstallHotkeyFilter(m_graphics_window);
-  }
-
-  m_graphics_window->show();
-  m_graphics_window->raise();
-  m_graphics_window->activateWindow();
+  ShowSettingsWindow();
+  m_settings_window->SetGraphicsPane();
 }
 
 void MainWindow::ShowNetPlaySetupDialog()

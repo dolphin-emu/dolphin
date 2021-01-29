@@ -518,16 +518,7 @@ void MenuBar::AddOptionsMenu()
   options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
                           QKeySequence::Preferences);
   options_menu->addSeparator();
-  options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
-  options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
-  m_controllers_action =
-      options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
-  options_menu->addAction(tr("&Free Look Settings"), this, &MenuBar::ConfigureFreelook);
-
-  options_menu->addSeparator();
-
-  options_menu->addAction(tr("Grand Settings"), this, &MenuBar::ConfigureGrandSettings);
 
   options_menu->addSeparator();
 

@@ -237,7 +237,6 @@ private:
   QAction* m_automatic_start;
   QAction* m_reset_ignore_panic_handler;
   QAction* m_change_font;
-  QAction* m_controllers_action;
 
   // View
   QAction* m_show_code;

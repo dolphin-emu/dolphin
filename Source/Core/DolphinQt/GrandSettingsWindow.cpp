@@ -39,7 +39,7 @@ GrandSettingsWindow::GrandSettingsWindow(X11Utils::XRRConfiguration* xrr_config,
     : GraphicsDialog(parent), m_xrr_config(xrr_config)
 {
   // Set Window Properties
-  setWindowTitle(tr("Grand Settings"));
+  setWindowTitle(tr("Settings"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   m_search_bar = new QLineEdit();
@@ -77,6 +77,12 @@ GrandSettingsWindow::GrandSettingsWindow(X11Utils::XRRConfiguration* xrr_config,
 void GrandSettingsWindow::PopulateWidgets()
 {
   m_tree->clear();
+  for (int i = m_widget_stack->count(); i >= 0; i--)
+  {
+    QWidget* widget = m_widget_stack->widget(i);
+    m_widget_stack->removeWidget(widget);
+    widget->deleteLater();
+  }
 
   QStringList all_tags;
 
@@ -112,9 +118,12 @@ void GrandSettingsWindow::PopulateWidgets()
   });
 
   auto emulator = create_item(nullptr, tr("Emulator"), {});
-  emulator->setExpanded(true);
   auto general = create_item_with_widget(emulator, tr("General"), {}, new GeneralPane);
-  general->setSelected(true);
+  if (m_selected_pane == SelectedPane::Default)
+  {
+    general->setSelected(true);
+    emulator->setExpanded(true);
+  }
   create_item_with_widget(emulator, tr("Interface"), {}, new InterfacePane);
   create_item_with_widget(emulator, tr("Paths"), {}, new PathPane);
 
@@ -141,7 +150,15 @@ void GrandSettingsWindow::PopulateWidgets()
     connect(general_widget, &GeneralWidget::BackendChanged, this,
             &GrandSettingsWindow::OnBackendChanged);
 
-    create_item_with_widget(graphics, tr("General"), {}, general_widget);
+    auto* graphics_pane = create_item_with_widget(graphics, tr("General"), {}, general_widget);
+    QVariant pane_index_data = graphics_pane->data(1, Qt::UserRole);
+    if (pane_index_data.isValid() && !pane_index_data.isNull() &&
+        m_selected_pane == SelectedPane::Graphics)
+    {
+      m_widget_stack->setCurrentIndex(pane_index_data.toInt());
+      graphics_pane->setSelected(true);
+      graphics_pane->parent()->setExpanded(true);
+    }
     create_item_with_widget(graphics, tr("Enhancements"), {}, enhancements_widget);
     create_item_with_widget(graphics, tr("Hacks"), {}, hacks_widget);
     create_item_with_widget(graphics, tr("Advanced"), {}, advanced_widget);
@@ -159,16 +176,25 @@ void GrandSettingsWindow::PopulateWidgets()
   auto inputs = create_item(nullptr, tr("Inputs"), {});
 
   auto gamecube_inputs = new GamecubeControllersWidget(this);
-  create_item_with_widget(inputs, tr("Gamecube"), {}, gamecube_inputs);
+  auto gamecube_pane = create_item_with_widget(inputs, tr("Gamecube"), {}, gamecube_inputs);
+  QVariant pane_index_data = gamecube_pane->data(1, Qt::UserRole);
+  if (pane_index_data.isValid() && !pane_index_data.isNull() &&
+      m_selected_pane == SelectedPane::Controllers && m_controllers_enabled)
+  {
+    m_widget_stack->setCurrentIndex(pane_index_data.toInt());
+    gamecube_pane->setSelected(true);
+    gamecube_pane->parent()->setExpanded(true);
+  }
 
   auto wii_inputs = new WiimoteControllersWidget(this);
-  create_item_with_widget(inputs, tr("Wii"), {}, wii_inputs);
+  auto wii_pane = create_item_with_widget(inputs, tr("Wii"), {}, wii_inputs);
 
   QStringList common_tags = {QStringLiteral("DSU"), QStringLiteral("Background"),
                              QStringLiteral("DS4"), QStringLiteral("Joycons")};
   all_tags.append(common_tags);
   auto common_inputs = new CommonControllersWidget(this);
-  create_item_with_widget(inputs, tr("Common"), common_tags, common_inputs);
+  auto common_inputs_pane =
+      create_item_with_widget(inputs, tr("Common"), common_tags, common_inputs);
 
   create_item_with_widget(nullptr, tr("FreeLook"), {}, new FreeLookWidget(this));
 
@@ -176,6 +202,19 @@ void GrandSettingsWindow::PopulateWidgets()
   tags_completer->setCaseSensitivity(Qt::CaseInsensitive);
   tags_completer->setCompletionMode(QCompleter::CompletionMode::PopupCompletion);
   m_search_bar->setCompleter(tags_completer);
+
+  if (m_controllers_enabled)
+  {
+    gamecube_pane->flags().setFlag(Qt::ItemFlag::ItemIsEnabled);
+    wii_pane->flags().setFlag(Qt::ItemFlag::ItemIsEnabled);
+    common_inputs_pane->flags().setFlag(Qt::ItemFlag::ItemIsEnabled);
+  }
+  else
+  {
+    gamecube_pane->flags().setFlag(Qt::ItemFlag::ItemIsEnabled, false);
+    wii_pane->flags().setFlag(Qt::ItemFlag::ItemIsEnabled, false);
+    common_inputs_pane->flags().setFlag(Qt::ItemFlag::ItemIsEnabled, false);
+  }
 }
 
 void GrandSettingsWindow::OnSearch(const QString& text)
@@ -230,4 +269,28 @@ void GrandSettingsWindow::OnBackendChanged(const QString& backend_name)
   PopulateWidgets();
 
   emit BackendChanged(backend_name);
+}
+
+void GrandSettingsWindow::SetDefaultPane()
+{
+  m_selected_pane = SelectedPane::Default;
+  PopulateWidgets();
+}
+
+void GrandSettingsWindow::SetControllersPane()
+{
+  m_selected_pane = SelectedPane::Controllers;
+  PopulateWidgets();
+}
+
+void GrandSettingsWindow::SetGraphicsPane()
+{
+  m_selected_pane = SelectedPane::Graphics;
+  PopulateWidgets();
+}
+
+void GrandSettingsWindow::SetControllersEnabled(bool enable)
+{
+  m_controllers_enabled = enable;
+  PopulateWidgets();
 }
