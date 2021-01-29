@@ -234,6 +234,8 @@ void JitArm64::Cleanup()
 {
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
+    static_assert(PPCSTATE_OFF(gather_pipe_ptr) <= 504);
+    static_assert(PPCSTATE_OFF(gather_pipe_ptr) + 8 == PPCSTATE_OFF(gather_pipe_base_ptr));
     LDP(IndexType::Signed, X0, X1, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     SUB(X0, X0, X1);
     CMP(X0, GPFifo::GATHER_PIPE_SIZE);

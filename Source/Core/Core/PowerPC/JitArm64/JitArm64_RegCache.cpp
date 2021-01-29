@@ -220,19 +220,22 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
         if (reg1.IsDirty() && reg2.IsDirty() && reg1.GetType() == RegType::Register &&
             reg2.GetType() == RegType::Register)
         {
-          size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
-          ARM64Reg RX1 = R(GetGuestByIndex(i));
-          ARM64Reg RX2 = R(GetGuestByIndex(i + 1));
-          m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
-          if (!maintain_state)
+          const size_t ppc_offset = GetGuestByIndex(i).ppc_offset;
+          if (ppc_offset <= 252)
           {
-            UnlockRegister(DecodeReg(RX1));
-            UnlockRegister(DecodeReg(RX2));
-            reg1.Flush();
-            reg2.Flush();
+            ARM64Reg RX1 = R(GetGuestByIndex(i));
+            ARM64Reg RX2 = R(GetGuestByIndex(i + 1));
+            m_emit->STP(IndexType::Signed, RX1, RX2, PPC_REG, u32(ppc_offset));
+            if (!maintain_state)
+            {
+              UnlockRegister(DecodeReg(RX1));
+              UnlockRegister(DecodeReg(RX2));
+              reg1.Flush();
+              reg2.Flush();
+            }
+            ++i;
+            continue;
           }
-          ++i;
-          continue;
         }
       }
 
@@ -707,14 +710,18 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
   {
     if (dirty)
     {
-      // If the paired registers were at the start of ppcState we could do an STP here.
-      // Too bad moving them would break savestate compatibility between x86_64 and AArch64
-      // m_float_emit->STP(64, IndexType::Signed, host_reg, host_reg, PPC_REG,
-      // PPCSTATE_OFF(ps[preg].ps0));
-      m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG,
-                        u32(PPCSTATE_OFF(ps[preg].ps0)));
-      m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG,
-                        u32(PPCSTATE_OFF(ps[preg].ps1)));
+      if (PPCSTATE_OFF(ps[preg].ps0) <= 504)
+      {
+        m_float_emit->STP(64, IndexType::Signed, host_reg, host_reg, PPC_REG,
+                          PPCSTATE_OFF(ps[preg].ps0));
+      }
+      else
+      {
+        m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG,
+                          u32(PPCSTATE_OFF(ps[preg].ps0)));
+        m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG,
+                          u32(PPCSTATE_OFF(ps[preg].ps1)));
+      }
     }
 
     if (!maintain_state)
