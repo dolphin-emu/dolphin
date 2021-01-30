@@ -452,13 +452,16 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
   MOVI2R(DISPATCHER_PC, destination);
   FixupBranch no_exceptions = CBZ(W30);
 
-  STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+  static_assert(PPCSTATE_OFF(pc) <= 252);
+  static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+  STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
   if (only_external)
     MOVP2R(X8, &PowerPC::CheckExternalExceptions);
   else
     MOVP2R(X8, &PowerPC::CheckExceptions);
   BLR(X8);
+
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
   SetJumpTarget(no_exceptions);
@@ -479,13 +482,16 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
   LDR(IndexType::Unsigned, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
   FixupBranch no_exceptions = CBZ(W30);
 
-  STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+  static_assert(PPCSTATE_OFF(pc) <= 252);
+  static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+  STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
   if (only_external)
     MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExternalExceptions);
   else
     MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExceptions);
   BLR(EncodeRegTo64(DISPATCHER_PC));
+
   LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
   SetJumpTarget(no_exceptions);
