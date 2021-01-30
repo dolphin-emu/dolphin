@@ -296,23 +296,16 @@ void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
 
   if (m_performance_samples.size() >= NUM_PERFORMANCE_SAMPLES_PER_REPORT)
   {
-    std::vector<u32> speed_times_1000(m_performance_samples.size());
-    std::vector<u32> num_prims(m_performance_samples.size());
-    std::vector<u32> num_draw_calls(m_performance_samples.size());
-    for (size_t i = 0; i < m_performance_samples.size(); ++i)
-    {
-      speed_times_1000[i] = static_cast<u32>(m_performance_samples[i].speed_ratio * 1000);
-      num_prims[i] = m_performance_samples[i].num_prims;
-      num_draw_calls[i] = m_performance_samples[i].num_draw_calls;
-    }
+    PerformanceSampleAggregator::CompletedReport report =
+        PerformanceSampleAggregator::GetReportFromSamples(m_performance_samples);
 
     // The per game builder should already exist -- there is no way we can be reporting performance
     // info without a game start event having been generated.
     Common::AnalyticsReportBuilder builder(m_per_game_builder);
     builder.AddData("type", "performance");
-    builder.AddData("speed", speed_times_1000);
-    builder.AddData("prims", num_prims);
-    builder.AddData("draw-calls", num_draw_calls);
+    builder.AddData("speed", report.speed);
+    builder.AddData("prims", report.primitives);
+    builder.AddData("draw-calls", report.draw_calls);
 
     Send(builder);
 

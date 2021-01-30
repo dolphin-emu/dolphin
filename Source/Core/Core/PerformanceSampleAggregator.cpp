@@ -42,3 +42,22 @@ std::chrono::microseconds PerformanceSampleAggregator::GetCurrentMicroseconds()
       std::chrono::high_resolution_clock::now().time_since_epoch();
   return std::chrono::duration_cast<std::chrono::microseconds>(time_since_epoch);
 }
+
+PerformanceSampleAggregator::CompletedReport
+PerformanceSampleAggregator::GetReportFromSamples(const std::vector<PerformanceSample>& samples)
+{
+  CompletedReport report;
+  const size_t num_samples = samples.size();
+  report.speed.resize(num_samples);
+  report.primitives.resize(num_samples);
+  report.draw_calls.resize(num_samples);
+
+  for (size_t i = 0; i < num_samples; ++i)
+  {
+    const PerformanceSample& sample = samples[i];
+    report.speed[i] = static_cast<u32>(sample.speed_ratio * 1'000);
+    report.primitives[i] = sample.num_prims;
+    report.draw_calls[i] = sample.num_draw_calls;
+  }
+  return report;
+}
