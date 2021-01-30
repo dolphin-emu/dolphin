@@ -225,7 +225,7 @@ void DolphinAnalytics::ReportGameStart()
 
   // Reset per-game state.
   m_reported_quirks.fill(false);
-  InitializePerformanceSampling();
+  m_sample_aggregator.InitializePerformanceSampling();
 }
 
 // Keep in sync with enum class GameQuirk definition.
@@ -284,50 +284,24 @@ void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
 
 void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
 {
-  if (ShouldStartPerformanceSampling())
+  m_sample_aggregator.AddSampleIfSamplingInProgress(std::move(sample));
+  const std::optional<PerformanceSampleAggregator::CompletedReport> report_optional =
+      m_sample_aggregator.PopReportIfComplete();
+  if (!report_optional)
   {
-    m_sampling_performance_info = true;
+    return;
   }
+  const PerformanceSampleAggregator::CompletedReport& report = *report_optional;
 
-  if (m_sampling_performance_info)
-  {
-    m_performance_samples.emplace_back(std::move(sample));
-  }
+  // The per game builder should already exist -- there is no way we can be reporting performance
+  // info without a game start event having been generated.
+  Common::AnalyticsReportBuilder builder(m_per_game_builder);
+  builder.AddData("type", "performance");
+  builder.AddData("speed", report.speed);
+  builder.AddData("prims", report.primitives);
+  builder.AddData("draw-calls", report.draw_calls);
 
-  if (m_performance_samples.size() >= NUM_PERFORMANCE_SAMPLES_PER_REPORT)
-  {
-    PerformanceSampleAggregator::CompletedReport report =
-        PerformanceSampleAggregator::GetReportFromSamples(m_performance_samples);
-
-    // The per game builder should already exist -- there is no way we can be reporting performance
-    // info without a game start event having been generated.
-    Common::AnalyticsReportBuilder builder(m_per_game_builder);
-    builder.AddData("type", "performance");
-    builder.AddData("speed", report.speed);
-    builder.AddData("prims", report.primitives);
-    builder.AddData("draw-calls", report.draw_calls);
-
-    Send(builder);
-
-    // Clear up and stop sampling until next time ShouldStartPerformanceSampling() says so.
-    m_performance_samples.clear();
-    m_sampling_performance_info = false;
-    m_sampling_next_start_us = m_sample_aggregator.GetRepeatSamplingStartTimestamp().count();
-  }
-}
-
-void DolphinAnalytics::InitializePerformanceSampling()
-{
-  m_performance_samples.clear();
-  m_sampling_performance_info = false;
-
-  m_sampling_next_start_us = m_sample_aggregator.GetInitialSamplingStartTimestamp().count();
-}
-
-bool DolphinAnalytics::ShouldStartPerformanceSampling()
-{
-  return static_cast<u64>(m_sample_aggregator.GetCurrentMicroseconds().count()) >=
-         m_sampling_next_start_us;
+  Send(builder);
 }
 
 void DolphinAnalytics::MakeBaseBuilder()

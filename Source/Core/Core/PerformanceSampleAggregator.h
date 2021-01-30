@@ -5,6 +5,7 @@
 #pragma once
 
 #include <chrono>
+#include <optional>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -14,11 +15,7 @@
 class PerformanceSampleAggregator
 {
 public:
-  PerformanceSampleAggregator() = default;
-
-  static std::chrono::microseconds GetInitialSamplingStartTimestamp();
-  static std::chrono::microseconds GetRepeatSamplingStartTimestamp();
-  static std::chrono::microseconds GetCurrentMicroseconds();
+  PerformanceSampleAggregator();
 
   struct CompletedReport
   {
@@ -27,5 +24,15 @@ public:
     std::vector<u32> draw_calls;
   };
 
-  static CompletedReport GetReportFromSamples(const std::vector<PerformanceSample>& samples);
+  // Called on game start / title switch.
+  void InitializePerformanceSampling();
+  void AddSampleIfSamplingInProgress(PerformanceSample&& sample);
+  std::optional<CompletedReport> PopReportIfComplete();
+
+private:
+  // Called after sampling report is completed
+  void ResetPerformanceSampling();
+
+  std::vector<PerformanceSample> m_samples;
+  std::chrono::microseconds m_next_starting_timestamp;
 };

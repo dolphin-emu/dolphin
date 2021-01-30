@@ -170,15 +170,6 @@ private:
   // values created by MakeUniqueId.
   std::string m_unique_id;
 
-  static constexpr int NUM_PERFORMANCE_SAMPLES_PER_REPORT = 100;
-
-  // Performance sampling state & internal helpers.
-  void InitializePerformanceSampling();  // Called on game start / title switch.
-  bool ShouldStartPerformanceSampling();
-
-  u64 m_sampling_next_start_us;  // Next timestamp (in us) at which to trigger sampling.
-  bool m_sampling_performance_info = false;  // Whether we are currently collecting samples.
-  std::vector<PerformanceSample> m_performance_samples;
   PerformanceSampleAggregator m_sample_aggregator;
 
   // What quirks have already been reported about the current game.
