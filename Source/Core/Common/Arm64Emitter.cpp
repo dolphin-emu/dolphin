@@ -856,6 +856,8 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
   Rt2 = DecodeReg(Rt2);
   Rn = DecodeReg(Rn);
 
+  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair!");
+
   Write32((op << 30) | (0b101 << 27) | (type_encode << 23) | (load << 22) | ((imm & 0x7F) << 15) |
           (Rt2 << 10) | (Rn << 5) | Rt);
 }
@@ -2610,6 +2612,8 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
   Rt = DecodeReg(Rt);
   Rt2 = DecodeReg(Rt2);
   Rn = DecodeReg(Rn);
+
+  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair!");
 
   Write32((opc << 30) | (0b1011 << 26) | (type_encode << 23) | (load << 22) | ((imm & 0x7F) << 15) |
           (Rt2 << 10) | (Rn << 5) | Rt);
