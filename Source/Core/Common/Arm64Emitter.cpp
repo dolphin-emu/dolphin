@@ -1661,7 +1661,7 @@ void ARM64XEmitter::BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
   ASSERT_MSG(DYNA_REC, (lsb + width) <= size,
              "%s passed lsb %d and width %d which is greater than the register size!", __func__,
              lsb, width);
-  EncodeBitfieldMOVInst(1, Rd, Rn, (size - lsb) % size, width - 1);
+  BFM(Rd, Rn, (size - lsb) % size, width - 1);
 }
 void ARM64XEmitter::BFXIL(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
@@ -1669,7 +1669,7 @@ void ARM64XEmitter::BFXIL(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
   ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
              "%s passed lsb %d and width %d which is greater than the register size!", __func__,
              lsb, width);
-  EncodeBitfieldMOVInst(1, Rd, Rn, lsb, lsb + width - 1);
+  BFM(Rd, Rn, lsb, lsb + width - 1);
 }
 void ARM64XEmitter::UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
@@ -1677,7 +1677,7 @@ void ARM64XEmitter::UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
   ASSERT_MSG(DYNA_REC, (lsb + width) <= size,
              "%s passed lsb %d and width %d which is greater than the register size!", __func__,
              lsb, width);
-  EncodeBitfieldMOVInst(2, Rd, Rn, (size - lsb) % size, width - 1);
+  UBFM(Rd, Rn, (size - lsb) % size, width - 1);
 }
 void ARM64XEmitter::EXTR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 shift)
 {
