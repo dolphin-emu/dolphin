@@ -199,6 +199,10 @@ void JitArm64::GenerateCommonAsm()
   GenerateConvertDoubleToSingle();
   JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
 
+  GetAsmRoutines()->cstd = GetCodePtr();
+  GenerateConvertSingleToDouble();
+  JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cstd");
+
   GenerateQuantizedLoadStores();
 }
 
@@ -223,6 +227,48 @@ void JitArm64::GenerateConvertDoubleToSingle()
   LSRV(ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W2);
   ANDI2R(ARM64Reg::X3, ARM64Reg::X1, 0x80000000);
   ORR(ARM64Reg::X1, ARM64Reg::X3, ARM64Reg::X2);
+  RET();
+}
+
+// Input in W0, output in X0, clobbers X0-X4 and flags.
+void JitArm64::GenerateConvertSingleToDouble()
+{
+  UBFX(ARM64Reg::W1, ARM64Reg::W0, 23, 8);
+  FixupBranch normal_or_nan = CBNZ(ARM64Reg::W1);
+
+  ANDI2R(ARM64Reg::W1, ARM64Reg::W0, 0x007fffff);
+  FixupBranch denormal = CBNZ(ARM64Reg::W1);
+
+  // Zero
+  LSL(ARM64Reg::X0, ARM64Reg::X0, 32);
+  RET();
+
+  SetJumpTarget(denormal);
+  ANDI2R(ARM64Reg::W2, ARM64Reg::W0, 0x80000000);
+  CLZ(ARM64Reg::X3, ARM64Reg::X1);
+  LSL(ARM64Reg::X2, ARM64Reg::X2, 32);
+  ORRI2R(ARM64Reg::X4, ARM64Reg::X3, 0xffffffffffffffc0);
+  SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
+  ADD(ARM64Reg::X3, ARM64Reg::X4, 23);
+  LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
+  BFI(ARM64Reg::X2, ARM64Reg::X1, 30, 22);
+  MOVI2R(ARM64Reg::X1, 0x3a90000000000000);
+  ADD(ARM64Reg::X0, ARM64Reg::X2, ARM64Reg::X1);
+  RET();
+
+  SetJumpTarget(normal_or_nan);
+  CMP(ARM64Reg::W1, 0xff);
+  ANDI2R(ARM64Reg::W2, ARM64Reg::W0, 0x40000000);
+  CSET(ARM64Reg::W4, CCFlags::CC_NEQ);
+  ANDI2R(ARM64Reg::W3, ARM64Reg::W0, 0xc0000000);
+  EOR(ARM64Reg::W2, ARM64Reg::W4, ARM64Reg::W2, ArithOption(ARM64Reg::W2, ShiftType::LSR, 30));
+  MOVI2R(ARM64Reg::X1, 0x3800000000000000);
+  ANDI2R(ARM64Reg::W4, ARM64Reg::W0, 0x3fffffff);
+  LSL(ARM64Reg::X3, ARM64Reg::X3, 32);
+  CMP(ARM64Reg::W2, 0);
+  CSEL(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::ZR, CCFlags::CC_NEQ);
+  BFI(ARM64Reg::X3, ARM64Reg::X4, 29, 30);
+  ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X1);
   RET();
 }
 

@@ -9,7 +9,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -390,9 +389,6 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 // instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
 // into QNaNs. This means we can't just use FCVT/FCVTL/FCVTN.
 
-// When calling the conversion functions, we are cheating a little and not
-// saving the FPRs since we know the functions happen to not use them.
-
 void JitArm64::ConvertDoubleToSingleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
   FlushCarry();
@@ -429,11 +425,11 @@ void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
   FlushCarry();
 
-  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
   ABI_PushRegisters(gpr_saved);
 
   m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
-  QuickCallFunction(ARM64Reg::X1, &ConvertToDouble);
+  BL(cstd);
   m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
 
   ABI_PopRegisters(gpr_saved);
@@ -443,15 +439,16 @@ void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg)
 {
   FlushCarry();
 
-  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed();
+  // Save X0-X4 and X30 if they're in use
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
   ABI_PushRegisters(gpr_saved);
 
   m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 1);
-  QuickCallFunction(ARM64Reg::X1, &ConvertToDouble);
+  BL(cstd);
   m_float_emit.INS(64, dest_reg, 1, ARM64Reg::X0);
 
   m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
-  QuickCallFunction(ARM64Reg::X1, &ConvertToDouble);
+  BL(cstd);
   m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
 
   ABI_PopRegisters(gpr_saved);

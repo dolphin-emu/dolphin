@@ -221,6 +221,7 @@ private:
   void GenerateAsm();
   void GenerateCommonAsm();
   void GenerateConvertDoubleToSingle();
+  void GenerateConvertSingleToDouble();
   void GenerateQuantizedLoadStores();
 
   // Profiling
