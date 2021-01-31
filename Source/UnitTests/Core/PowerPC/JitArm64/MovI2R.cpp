@@ -54,11 +54,13 @@ public:
 
 TEST(JitArm64, MovI2R_32BitValues)
 {
+  Common::Random::PRNG rng{0};
   TestMovI2R test;
-  for (u64 i = 0; i < 0x100000000; i++)
+  for (u64 i = 0; i < 0x100000; i++)
   {
-    test.Check32(static_cast<u32>(i));
-    test.Check64(i);
+    const u32 value = rng.GenerateValue<u32>();
+    test.Check32(value);
+    test.Check64(value);
   }
 }
 
