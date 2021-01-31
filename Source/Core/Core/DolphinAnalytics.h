@@ -7,10 +7,8 @@
 #include <mutex>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "Common/Analytics.h"
-#include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 
 #include "Core/PerformanceSample.h"
