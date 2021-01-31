@@ -7,7 +7,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #include <fmt/format.h>
 
