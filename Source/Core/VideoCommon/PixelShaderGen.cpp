@@ -16,6 +16,7 @@
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -808,7 +809,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       }
 
       out.Write("\tint3 iindtex{} = ", i);
-      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
+
+      FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+      TexMode0& tm0 = texUnit.texMode0[texmap & 3];
+
+      SampleTexture(out,
+                    SamplerCommon::IsBpTexMode0PointFiltering(tm0) ?
+                        "((float2(tempcoord >> 7) + 0.5f) * 128.0f)" :
+                        "(float2(tempcoord))",
+                    "abg", texmap, stereo, api_type);
     }
   }
 
@@ -1201,7 +1210,15 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
     out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, api_type);
+
+    FourTexUnits& texUnit = bpmem.tex[(stage.tevorders_texmap >> 2) & 1];
+    TexMode0& tm0 = texUnit.texMode0[stage.tevorders_texmap & 3];
+
+    SampleTexture(out,
+                  SamplerCommon::IsBpTexMode0PointFiltering(tm0) ?
+                      "((float2(tevcoord.xy >> 7) + 0.5f) * 128.0f)" :
+                      "float2(tevcoord.xy)",
+                  texswap, stage.tevorders_texmap, stereo, api_type);
   }
   else
   {
