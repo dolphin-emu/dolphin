@@ -1443,6 +1443,10 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
   const int a = inst.RA, s = inst.RS;
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
+  const u32 lsb = 31 - inst.ME;
+  const u32 width = inst.ME - inst.MB + 1;
+  const u32 rot_dist = inst.SH ? 32 - inst.SH : 0;
+
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {
     u32 res = (gpr.GetImm(a) & ~mask) | (Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
@@ -1462,17 +1466,22 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
         gpr.BindToRegister(a, a == s);
 
       if (inst.SH)
-        ROR(gpr.R(a), gpr.R(s), 32 - inst.SH);
+        ROR(gpr.R(a), gpr.R(s), rot_dist);
       else if (a != s)
         MOV(gpr.R(a), gpr.R(s));
+    }
+    else if (lsb == 0 && inst.MB <= inst.ME && rot_dist + width <= 32)
+    {
+      // Destination is in least significant position
+      // No mask inversion
+      // Source field pre-rotation is contiguous
+      gpr.BindToRegister(a, true);
+      BFXIL(gpr.R(a), gpr.R(s), rot_dist, width);
     }
     else if (inst.SH == 0 && inst.MB <= inst.ME)
     {
       // No rotation
       // No mask inversion
-      u32 lsb = 31 - inst.ME;
-      u32 width = inst.ME - inst.MB + 1;
-
       gpr.BindToRegister(a, true);
       ARM64Reg WA = gpr.GetReg();
       UBFX(WA, gpr.R(s), lsb, width);
@@ -1482,15 +1491,18 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
     else if (inst.SH && inst.MB <= inst.ME)
     {
       // No mask inversion
-      u32 lsb = 31 - inst.ME;
-      u32 width = inst.ME - inst.MB + 1;
-
       gpr.BindToRegister(a, true);
-      ARM64Reg WA = gpr.GetReg();
-      ROR(WA, gpr.R(s), 32 - inst.SH);
-      UBFX(WA, WA, lsb, width);
-      BFI(gpr.R(a), WA, lsb, width);
-      gpr.Unlock(WA);
+      if ((rot_dist + lsb) % 32 == 0)
+      {
+        BFI(gpr.R(a), gpr.R(s), lsb, width);
+      }
+      else
+      {
+        ARM64Reg WA = gpr.GetReg();
+        ROR(WA, gpr.R(s), (rot_dist + lsb) % 32);
+        BFI(gpr.R(a), WA, lsb, width);
+        gpr.Unlock(WA);
+      }
     }
     else
     {
@@ -1500,7 +1512,7 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
 
       MOVI2R(WA, mask);
       BIC(WB, gpr.R(a), WA);
-      AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, 32 - inst.SH));
+      AND(WA, WA, gpr.R(s), ArithOption(gpr.R(s), ShiftType::ROR, rot_dist));
       ORR(gpr.R(a), WB, WA);
 
       gpr.Unlock(WA, WB);
