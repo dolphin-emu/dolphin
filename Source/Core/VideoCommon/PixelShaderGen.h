@@ -137,7 +137,8 @@ struct pixel_shader_uid_data
     u32 tevorders_texcoord : 3;
     u32 tevorders_enable : 1;
     u32 tevorders_colorchan : 3;
-    u32 pad1 : 6;
+    u32 tevorders_pointsample : 1;
+    u32 pad1 : 5;
 
     // TODO: Clean up the swapXY mess
     u32 hasindstage : 1;

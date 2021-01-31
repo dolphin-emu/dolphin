@@ -16,6 +16,7 @@
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -273,7 +274,10 @@ PixelShaderUid GetPixelShaderUid()
       uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
       uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
       uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
-      uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
+      const int texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
+      uid_data->stagehash[n].tevorders_texmap = texmap;
+      uid_data->stagehash[n].tevorders_pointsample = SamplerCommon::IsBpTexMode0PointFiltering(
+          bpmem.tex[(texmap >> 2) & 1].texMode0[texmap & 3]);
     }
 
     if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST ||
@@ -795,6 +799,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     {
       const u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);
+      const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+      const TexMode0& tm0 = texUnit.texMode0[texmap & 3];
 
       if (texcoord < uid_data->genMode_numtexgens)
       {
@@ -808,7 +814,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       }
 
       out.Write("\tint3 iindtex{} = ", i);
-      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
+      SampleTexture(out,
+                    SamplerCommon::IsBpTexMode0PointFiltering(tm0) ? "(float2(tempcoord >> 7) * 128.0f + 64.0f)" :
+                                                                     "float2(tempcoord)",
+                    "abg", texmap, stereo, api_type);
     }
   }
 
@@ -1201,7 +1210,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
     out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, api_type);
+    SampleTexture(out,
+                  stage.tevorders_pointsample ? "(float2(tevcoord.xy >> 7) * 128.0f + 64.0f)" : "float2(tevcoord.xy)",
+                  texswap, stage.tevorders_texmap, stereo, api_type);
   }
   else
   {
