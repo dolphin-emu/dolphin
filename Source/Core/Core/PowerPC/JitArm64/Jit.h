@@ -154,8 +154,10 @@ public:
 
   void ConvertDoubleToSingleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
   void ConvertDoubleToSinglePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
-  void ConvertSingleToDoubleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
-  void ConvertSingleToDoublePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
+  void ConvertSingleToDoubleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg,
+                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+  void ConvertSingleToDoublePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg,
+                                 Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
 
 private:
   struct SlowmemHandler
@@ -189,13 +191,17 @@ private:
     nearcode = GetWritableCodePtr();
     SetCodePtrUnsafe(farcode.GetWritableCodePtr());
     AlignCode16();
+    m_in_farcode = true;
   }
 
   void SwitchToNearCode()
   {
     farcode.SetCodePtrUnsafe(GetWritableCodePtr());
     SetCodePtrUnsafe(nearcode);
+    m_in_farcode = false;
   }
+
+  bool IsInFarCode() const { return m_in_farcode; }
 
   // Dump a memory range of code
   void DumpCode(const u8* start, const u8* end);
@@ -262,6 +268,7 @@ private:
 
   Arm64Gen::ARM64CodeBlock farcode;
   u8* nearcode;  // Backed up when we switch to far code.
+  bool m_in_farcode = false;
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault = false;

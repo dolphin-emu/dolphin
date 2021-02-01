@@ -168,6 +168,9 @@ public:
 
   void UpdateLastUsed(BitSet32 regs_used);
 
+  // Get available host registers
+  u32 GetUnlockedRegisterCount() const;
+
   // Locks a register so a cache cannot use it
   // Useful for function calls
   template <typename T = Arm64Gen::ARM64Reg, typename... Args>
@@ -210,9 +213,6 @@ protected:
 
   void DiscardRegister(size_t preg);
   virtual void FlushRegister(size_t preg, bool maintain_state) = 0;
-
-  // Get available host registers
-  u32 GetUnlockedRegisterCount() const;
 
   void IncrementAllUsed()
   {

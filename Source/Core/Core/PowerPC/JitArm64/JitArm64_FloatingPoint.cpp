@@ -421,9 +421,34 @@ void JitArm64::ConvertDoubleToSinglePair(ARM64Reg dest_reg, ARM64Reg src_reg)
   ABI_PopRegisters(gpr_saved);
 }
 
-void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
+void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg, ARM64Reg scratch_reg)
 {
+  ASSERT(scratch_reg != src_reg);
+
+  const bool switch_to_farcode = !IsInFarCode();
+
   FlushCarry();
+
+  // Do we know that the input isn't NaN, and that the input isn't denormal or FPCR.FZ is not set?
+  // (This check unfortunately also catches zeroes)
+
+  FixupBranch fast;
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    m_float_emit.FABS(EncodeRegToSingle(scratch_reg), EncodeRegToSingle(src_reg));
+    m_float_emit.FCMP(EncodeRegToSingle(scratch_reg));
+    fast = B(CCFlags::CC_GT);
+
+    if (switch_to_farcode)
+    {
+      FixupBranch slow = B();
+
+      SwitchToFarCode();
+      SetJumpTarget(slow);
+    }
+  }
+
+  // If no (or if we don't have a scratch register), call the bit-exact routine
 
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
   ABI_PushRegisters(gpr_saved);
@@ -433,11 +458,64 @@ void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
   m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
 
   ABI_PopRegisters(gpr_saved);
+
+  // If yes, do a fast conversion with FCVT
+
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    FixupBranch continue1 = B();
+
+    if (switch_to_farcode)
+      SwitchToNearCode();
+
+    SetJumpTarget(fast);
+
+    m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+
+    SetJumpTarget(continue1);
+  }
 }
 
-void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg)
+void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg, ARM64Reg scratch_reg)
 {
+  ASSERT(scratch_reg != src_reg);
+
+  const bool switch_to_farcode = !IsInFarCode();
+
   FlushCarry();
+
+  // Do we know that neither input is NaN, and that neither input is denormal or FPCR.FZ is not set?
+  // (This check unfortunately also catches zeroes)
+
+  FixupBranch fast;
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    // Set each 32-bit element of scratch_reg to 0x0000'0000 or 0xFFFF'FFFF depending on whether
+    // the absolute value of the corresponding element in src_reg compares greater than 0
+    m_float_emit.MOVI(8, EncodeRegToDouble(scratch_reg), 0);
+    m_float_emit.FACGT(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
+                       EncodeRegToDouble(scratch_reg));
+
+    // 0x0000'0000'0000'0000 (zero)     -> 0x0000'0000'0000'0000 (zero)
+    // 0x0000'0000'FFFF'FFFF (denormal) -> 0xFF00'0000'FFFF'FFFF (normal)
+    // 0xFFFF'FFFF'0000'0000 (NaN)      -> 0x00FF'FFFF'0000'0000 (normal)
+    // 0xFFFF'FFFF'FFFF'FFFF (NaN)      -> 0xFFFF'FFFF'FFFF'FFFF (NaN)
+    m_float_emit.INS(8, EncodeRegToDouble(scratch_reg), 7, EncodeRegToDouble(scratch_reg), 0);
+
+    // Is scratch_reg a NaN (0xFFFF'FFFF'FFFF'FFFF)?
+    m_float_emit.FCMP(EncodeRegToDouble(scratch_reg));
+    fast = B(CCFlags::CC_VS);
+
+    if (switch_to_farcode)
+    {
+      FixupBranch slow = B();
+
+      SwitchToFarCode();
+      SetJumpTarget(slow);
+    }
+  }
+
+  // If no (or if we don't have a scratch register), call the bit-exact routine
 
   // Save X0-X4 and X30 if they're in use
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
@@ -452,4 +530,19 @@ void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg)
   m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
 
   ABI_PopRegisters(gpr_saved);
+
+  // If yes, do a fast conversion with FCVTL
+
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    FixupBranch continue1 = B();
+
+    if (switch_to_farcode)
+      SwitchToNearCode();
+
+    SetJumpTarget(fast);
+    m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+
+    SetJumpTarget(continue1);
+  }
 }

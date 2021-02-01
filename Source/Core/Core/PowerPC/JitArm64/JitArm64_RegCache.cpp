@@ -468,7 +468,10 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
 
     // Else convert this register back to doubles.
-    m_jit->ConvertSingleToDoublePair(host_reg, host_reg);
+    const ARM64Reg tmp_reg = GetReg();
+    m_jit->ConvertSingleToDoublePair(host_reg, host_reg, tmp_reg);
+    UnlockRegister(tmp_reg);
+
     reg.Load(host_reg, RegType::Register);
     [[fallthrough]];
   }
@@ -483,7 +486,10 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
 
     // Else convert this register back to a double.
-    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg);
+    const ARM64Reg tmp_reg = GetReg();
+    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg, tmp_reg);
+    UnlockRegister(tmp_reg);
+
     reg.Load(host_reg, RegType::LowerPair);
     [[fallthrough]];
   }
@@ -517,7 +523,10 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
     }
 
-    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg);
+    const ARM64Reg tmp_reg = GetReg();
+    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg, tmp_reg);
+    UnlockRegister(tmp_reg);
+
     reg.Load(host_reg, RegType::Duplicated);
     [[fallthrough]];
   }
@@ -594,7 +603,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     {
     case RegType::Single:
       flush_reg = GetReg();
-      m_jit->ConvertSingleToDoublePair(flush_reg, host_reg);
+      m_jit->ConvertSingleToDoublePair(flush_reg, host_reg, flush_reg);
       [[fallthrough]];
     case RegType::Register:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
@@ -605,7 +614,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       break;
     case RegType::DuplicatedSingle:
       flush_reg = GetReg();
-      m_jit->ConvertSingleToDoubleLower(flush_reg, host_reg);
+      m_jit->ConvertSingleToDoubleLower(flush_reg, host_reg, flush_reg);
       [[fallthrough]];
     case RegType::Duplicated:
       // Store PSR1 (which is equal to PSR0) in memory.
@@ -709,17 +718,20 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
   const bool dirty = reg.IsDirty();
   RegType type = reg.GetType();
 
+  // If FlushRegister calls GetReg with all registers locked, we can get infinite recursion
+  const ARM64Reg tmp_reg = GetUnlockedRegisterCount() > 0 ? GetReg() : ARM64Reg::INVALID_REG;
+
   // If we're in single mode, just convert it back to a double.
   if (type == RegType::Single)
   {
     if (dirty)
-      m_jit->ConvertSingleToDoublePair(host_reg, host_reg);
+      m_jit->ConvertSingleToDoublePair(host_reg, host_reg, tmp_reg);
     type = RegType::Register;
   }
   if (type == RegType::DuplicatedSingle || type == RegType::LowerPairSingle)
   {
     if (dirty)
-      m_jit->ConvertSingleToDoubleLower(host_reg, host_reg);
+      m_jit->ConvertSingleToDoubleLower(host_reg, host_reg, tmp_reg);
 
     if (type == RegType::DuplicatedSingle)
       type = RegType::Duplicated;
@@ -771,6 +783,9 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
       reg.Flush();
     }
   }
+
+  if (tmp_reg != ARM64Reg::INVALID_REG)
+    UnlockRegister(tmp_reg);
 }
 
 void Arm64FPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
