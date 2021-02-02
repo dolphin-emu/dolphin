@@ -59,6 +59,11 @@ enum
   FL_OUT_FLOAT_D = (1 << 28),  // frD is used as a destination.
   // Used in the case of double ops (they don't modify the top half of the output)
   FL_INOUT_FLOAT_D = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
+  FL_IN_FLOAT_A_BITEXACT = (1 << 29),  // The output is based on the exact bits in frA.
+  FL_IN_FLOAT_B_BITEXACT = (1 << 30),  // The output is based on the exact bits in frB.
+  FL_IN_FLOAT_C_BITEXACT = (1 << 31),  // The output is based on the exact bits in frC.
+  FL_IN_FLOAT_AB_BITEXACT = FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT,
+  FL_IN_FLOAT_BC_BITEXACT = FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT,
 };
 
 enum class OpType
