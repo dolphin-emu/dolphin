@@ -258,7 +258,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   if (want_single && !have_single)
   {
     const ARM64Reg single_reg = fpr.GetReg();
-    ConvertDoubleToSingleLower(single_reg, V0);
+    ConvertDoubleToSingleLower(inst.FS, single_reg, V0);
     V0 = single_reg;
   }
 

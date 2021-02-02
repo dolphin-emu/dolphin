@@ -695,6 +695,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     js.compilerPC = op.address;
     js.op = &op;
+    js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
@@ -830,6 +831,9 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
 
       CompileInstruction(op);
+
+      js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
+
       if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();
 

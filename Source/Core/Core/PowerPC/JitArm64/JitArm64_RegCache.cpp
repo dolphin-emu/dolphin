@@ -469,7 +469,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
 
     // Else convert this register back to doubles.
     const ARM64Reg tmp_reg = GetReg();
-    m_jit->ConvertSingleToDoublePair(host_reg, host_reg, tmp_reg);
+    m_jit->ConvertSingleToDoublePair(preg, host_reg, host_reg, tmp_reg);
     UnlockRegister(tmp_reg);
 
     reg.Load(host_reg, RegType::Register);
@@ -487,7 +487,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
 
     // Else convert this register back to a double.
     const ARM64Reg tmp_reg = GetReg();
-    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg, tmp_reg);
+    m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg, tmp_reg);
     UnlockRegister(tmp_reg);
 
     reg.Load(host_reg, RegType::LowerPair);
@@ -524,7 +524,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     }
 
     const ARM64Reg tmp_reg = GetReg();
-    m_jit->ConvertSingleToDoubleLower(host_reg, host_reg, tmp_reg);
+    m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg, tmp_reg);
     UnlockRegister(tmp_reg);
 
     reg.Load(host_reg, RegType::Duplicated);
@@ -594,7 +594,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
   if ((type == RegType::LowerPair || type == RegType::LowerPairSingle) && was_dirty)
   {
     // We must *not* change host_reg as this register might still be in use. So it's fine to
-    // store this register, but it's *not* fine to convert it to double. So for double convertion,
+    // store this register, but it's *not* fine to convert it to double. So for double conversion,
     // a temporary register needs to be used.
     ARM64Reg host_reg = reg.GetReg();
     ARM64Reg flush_reg = host_reg;
@@ -603,7 +603,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     {
     case RegType::Single:
       flush_reg = GetReg();
-      m_jit->ConvertSingleToDoublePair(flush_reg, host_reg, flush_reg);
+      m_jit->ConvertSingleToDoublePair(preg, flush_reg, host_reg, flush_reg);
       [[fallthrough]];
     case RegType::Register:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
@@ -614,7 +614,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       break;
     case RegType::DuplicatedSingle:
       flush_reg = GetReg();
-      m_jit->ConvertSingleToDoubleLower(flush_reg, host_reg, flush_reg);
+      m_jit->ConvertSingleToDoubleLower(preg, flush_reg, host_reg, flush_reg);
       [[fallthrough]];
     case RegType::Duplicated:
       // Store PSR1 (which is equal to PSR0) in memory.
@@ -725,13 +725,13 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
   if (type == RegType::Single)
   {
     if (dirty)
-      m_jit->ConvertSingleToDoublePair(host_reg, host_reg, tmp_reg);
+      m_jit->ConvertSingleToDoublePair(preg, host_reg, host_reg, tmp_reg);
     type = RegType::Register;
   }
   if (type == RegType::DuplicatedSingle || type == RegType::LowerPairSingle)
   {
     if (dirty)
-      m_jit->ConvertSingleToDoubleLower(host_reg, host_reg, tmp_reg);
+      m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg, tmp_reg);
 
     if (type == RegType::DuplicatedSingle)
       type = RegType::Duplicated;
@@ -822,7 +822,7 @@ void Arm64FPRCache::FixSinglePrecision(size_t preg)
     m_float_emit->FCVT(32, 64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, RegType::DuplicatedSingle);
     break;
-  case RegType::Register:  // PS0 and PS1 needs to be converted
+  case RegType::Register:  // PS0 and PS1 need to be converted
     m_float_emit->FCVTN(32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, RegType::Single);
     break;

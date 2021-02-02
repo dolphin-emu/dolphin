@@ -389,8 +389,14 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 // instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
 // into QNaNs. This means we can't just use FCVT/FCVTL/FCVTN.
 
-void JitArm64::ConvertDoubleToSingleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
+void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVT(32, 64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
+
   FlushCarry();
 
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
@@ -403,8 +409,14 @@ void JitArm64::ConvertDoubleToSingleLower(ARM64Reg dest_reg, ARM64Reg src_reg)
   ABI_PopRegisters(gpr_saved);
 }
 
-void JitArm64::ConvertDoubleToSinglePair(ARM64Reg dest_reg, ARM64Reg src_reg)
+void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVTN(32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
+
   FlushCarry();
 
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
@@ -421,9 +433,16 @@ void JitArm64::ConvertDoubleToSinglePair(ARM64Reg dest_reg, ARM64Reg src_reg)
   ABI_PopRegisters(gpr_saved);
 }
 
-void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg, ARM64Reg scratch_reg)
+void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
+                                          ARM64Reg scratch_reg)
 {
   ASSERT(scratch_reg != src_reg);
+
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
 
   const bool switch_to_farcode = !IsInFarCode();
 
@@ -476,9 +495,16 @@ void JitArm64::ConvertSingleToDoubleLower(ARM64Reg dest_reg, ARM64Reg src_reg, A
   }
 }
 
-void JitArm64::ConvertSingleToDoublePair(ARM64Reg dest_reg, ARM64Reg src_reg, ARM64Reg scratch_reg)
+void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
+                                         ARM64Reg scratch_reg)
 {
   ASSERT(scratch_reg != src_reg);
+
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
 
   const bool switch_to_farcode = !IsInFarCode();
 

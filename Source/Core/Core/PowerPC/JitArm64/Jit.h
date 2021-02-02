@@ -152,11 +152,15 @@ public:
   void psq_l(UGeckoInstruction inst);
   void psq_st(UGeckoInstruction inst);
 
-  void ConvertDoubleToSingleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
-  void ConvertDoubleToSinglePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg);
-  void ConvertSingleToDoubleLower(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg,
+  void ConvertDoubleToSingleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                  Arm64Gen::ARM64Reg src_reg);
+  void ConvertDoubleToSinglePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                 Arm64Gen::ARM64Reg src_reg);
+  void ConvertSingleToDoubleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                  Arm64Gen::ARM64Reg src_reg,
                                   Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
-  void ConvertSingleToDoublePair(Arm64Gen::ARM64Reg dest_reg, Arm64Gen::ARM64Reg src_reg,
+  void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                 Arm64Gen::ARM64Reg src_reg,
                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
 
 private:

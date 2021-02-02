@@ -976,7 +976,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
     op.fprIsSingle = fprIsSingle;
     op.fprIsDuplicated = fprIsDuplicated;
-    op.fprIsStoreSafe = fprIsStoreSafe;
+    op.fprIsStoreSafeBeforeInst = fprIsStoreSafe;
     if (op.fregOut >= 0)
     {
       if (op.opinfo->type == OpType::SingleFP)
@@ -1036,6 +1036,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
             (op.opinfo->type == OpType::SingleFP || op.opinfo->type == OpType::PS);
       }
     }
+    op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
 
     if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
     {
