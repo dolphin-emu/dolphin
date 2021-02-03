@@ -149,6 +149,7 @@ public:
   std::tuple<bool, bool> GetBVMenuOptions();
 
   std::tuple<double, double> GetPrimeStickXY();
+  bool CheckPitchRecentre();
 
   std::tuple <double, double, bool, bool, bool> GetPrimeSettings();
 

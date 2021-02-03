@@ -72,6 +72,11 @@ void FpsControls::run_mod(Game game, Region region) {
 void FpsControls::calculate_pitch_delta() {
   const float compensated_sens = GetSensitivity() * TURNRATE_RATIO / 60.f;
 
+  if (CheckPitchRecentre()) {
+    calculate_pitch_to_target(0.f);
+    return;
+  }
+
   pitch += static_cast<float>(GetVerticalAxis()) * compensated_sens *
     (InvertedY() ? 1.f : -1.f);
   pitch = std::clamp(pitch, -1.52f, 1.52f);
@@ -171,6 +176,29 @@ void FpsControls::calculate_pitch_locked(Game game, Region region) {
 
 float FpsControls::calculate_yaw_vel() {
   return GetHorizontalAxis() * GetSensitivity() * (InvertedX() ? 1.f : -1.f);;
+}
+
+void FpsControls::calculate_pitch_to_target(float target_pitch)
+{
+  // Smoothly transitions pitch to target through interpolation
+
+  const float margin = 0.05f;
+  if (pitch > (target_pitch - margin) && pitch < (target_pitch + margin)) {
+    delta = 0;
+    pitch = target_pitch;
+    return;
+  }
+
+  if (delta == 0) {
+    start_pitch = pitch;
+  }
+
+  pitch = MathUtil::Lerp(start_pitch, target_pitch, delta / 15.f);
+  pitch = std::clamp(pitch, -1.52f, 1.52f);
+
+  delta++;
+
+  return;
 }
 
 void FpsControls::handle_beam_visor_switch(std::array<int, 4> const &beams,
@@ -561,22 +589,18 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
   }
 
   // Lock Camera according to ContextSensitiveControls and interpolate to pitch 0
-  if (prime::GetLockCamera()) {
-    if (pitch > -0.005f && pitch < 0.005f) {
-      delta = 0;
-      writef32(0, pitch_address);
+  if (prime::GetLockCamera() != Unlocked) {
+    const float target_pitch = Centre ? 0.f : 0.23f;
+
+    if (pitch == target_pitch) {
+      writef32(target_pitch, pitch_address);
       mp3_handle_cursor(false);
 
       return;
     }
 
-    if (delta == 0) {
-      start_pitch = pitch;
-    }
-
-    pitch = MathUtil::Lerp(start_pitch, 0.f, delta / 15.f);
+    calculate_pitch_to_target(target_pitch);
     writef32(pitch, pitch_address);
-    delta++;
 
     return;
   }

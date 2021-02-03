@@ -24,6 +24,7 @@ private:
   // ------------------------------
   void calculate_pitch_delta();
   void calculate_pitch_locked(Game game, Region region);
+  void calculate_pitch_to_target(float target_pitch);
   float calculate_yaw_vel();
   void handle_beam_visor_switch(std::array<int, 4> const &beams,
                                 std::array<std::tuple<int, int>, 4> const& visors);

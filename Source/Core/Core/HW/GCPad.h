@@ -32,6 +32,7 @@ void ResetRumble(int pad_num);
 
 bool GetMicButton(int pad_num);
 
+bool CheckPitchRecentre();
 bool PrimeUseController();
 
 void PrimeSetMode(bool controller);

@@ -57,8 +57,12 @@ bool GetCulling();
 bool HandleReticleLockOn();
 void SetReticleLock(bool lock);
 
-void SetLockCamera(bool lock);
-bool GetLockCamera();
+enum CameraLock { Centre, Angle45, Unlocked };
+
+void SetLockCamera(CameraLock lock);
+CameraLock GetLockCamera();
+
+bool CheckPitchRecentre();
 
 double GetHorizontalAxis();
 double GetVerticalAxis();

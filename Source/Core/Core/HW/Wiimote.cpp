@@ -197,60 +197,59 @@ void Pause()
   WiimoteReal::Pause();
 }
 
-
 bool CheckVisor(int visorcount)
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->CheckVisorCtrl(visorcount);
+  return wiimote->CheckVisorCtrl(visorcount);
 }
 
 bool CheckBeam(int beamcount)
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->CheckBeamCtrl(beamcount);
+  return wiimote->CheckBeamCtrl(beamcount);
 }
 
 bool CheckForward() {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
-        controls[0].get()->control_ref->State() > 0.5;
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+      controls[0].get()->control_ref->State() > 0.5;
 }
 
 bool CheckBack() {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
-        controls[1].get()->control_ref->State() > 0.5;
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+      controls[1].get()->control_ref->State() > 0.5;
 }
 
 bool CheckLeft() {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
-        controls[2].get()->control_ref->State() > 0.5;
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+      controls[2].get()->control_ref->State() > 0.5;
 }
 
 bool CheckRight() {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
-        controls[3].get()->control_ref->State() > 0.5;
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+      controls[3].get()->control_ref->State() > 0.5;
 }
 
 bool CheckJump() {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->groups[0].get()->controls[1]->control_ref->State() > 0.5;
+  return wiimote->groups[0].get()->controls[1]->control_ref->State() > 0.5;
 }
 
 bool CheckSpringBall()
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->CheckSpringBallCtrl();
+  return wiimote->CheckSpringBallCtrl();
 }
 
 std::tuple<bool, bool> GetBVMenuOptions()
@@ -262,44 +261,51 @@ std::tuple<bool, bool> GetBVMenuOptions()
 
 bool CheckImprovedMotions()
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->CheckImprovedMotions();
+  return wiimote->CheckImprovedMotions();
 }
 
 bool CheckVisorScroll(bool direction)
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->CheckVisorScrollCtrl(direction);
+  return wiimote->CheckVisorScrollCtrl(direction);
 }
 
 bool CheckBeamScroll(bool direction)
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->CheckBeamScrollCtrl(direction);
+  return wiimote->CheckBeamScrollCtrl(direction);
 }
 
 bool PrimeUseController()
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->PrimeControllerMode();
+  return wiimote->PrimeControllerMode();
 }
 
 std::tuple<double, double> GetPrimeStickXY()
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->GetPrimeStickXY();
+  return wiimote->GetPrimeStickXY();
 }
 
 std::tuple<double, double, bool, bool, bool> PrimeSettings()
 {
-    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-    return wiimote->GetPrimeSettings();
+  return wiimote->GetPrimeSettings();
+}
+
+bool CheckPitchRecentre()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckPitchRecentre();
 }
 
 void DoState(PointerWrap& p)

@@ -37,7 +37,7 @@ bool inverted_x = false;
 bool inverted_y = false;
 HackManager hack_mgr;
 bool is_running = false;
-bool lock_camera = false;
+CameraLock lock_camera = CameraLock::Unlocked;
 bool reticle_lock = false;
 }
 
@@ -247,6 +247,19 @@ void SetInvertedX(bool inverted) {
   inverted_x = inverted;
 }
 
+bool CheckPitchRecentre() {
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    if (Pad::PrimeUseController()) {
+      return Pad::CheckPitchRecentre();
+    } 
+  }
+  else if (Wiimote::PrimeUseController()) {
+    return Wiimote::CheckPitchRecentre();
+  }
+
+  return false;
+}
+
 double GetHorizontalAxis() {
   if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
     if (Pad::PrimeUseController()) {
@@ -277,11 +290,11 @@ bool GetCulling() {
   return Config::Get(Config::TOGGLE_CULLING);
 }
 
-void SetLockCamera(bool lock) {
+void SetLockCamera(CameraLock lock) {
   lock_camera = lock;
 }
 
-bool GetLockCamera() {
+CameraLock GetLockCamera() {
   return lock_camera;
 }
 

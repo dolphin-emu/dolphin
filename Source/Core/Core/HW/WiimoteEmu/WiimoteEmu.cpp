@@ -363,6 +363,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   m_primehack_stick->AddSetting(&m_primehack_horizontal_sensitivity, {"Horizontal Sensitivity", nullptr, nullptr, _trans("Horizontal Sensitivity")}, 45, 1, 100);
   m_primehack_stick->AddSetting(&m_primehack_vertical_sensitivity, {"Vertical Sensitivity", nullptr, nullptr, _trans("Vertical Sensitivity")}, 35, 1, 100);
+  m_primehack_stick->AddInput(ControllerEmu::Translatability::Translate, _trans("Reset Camera Pitch"));
 
   groups.emplace_back(m_primehack_modes = new ControllerEmu::PrimeHackModes(_trans("PrimeHack")));
 
@@ -728,6 +729,11 @@ std::tuple<double, double> Wiimote::GetPrimeStickXY()
   const auto stick_state = m_primehack_stick->GetState();
 
   return std::make_tuple(stick_state.x * m_primehack_horizontal_sensitivity.GetValue(), stick_state.y * -m_primehack_vertical_sensitivity.GetValue());
+}
+
+bool Wiimote::CheckPitchRecentre()
+{
+  return m_primehack_stick->controls[5]->GetState() > 0.5;
 }
 
 std::tuple<bool, bool> Wiimote::GetBVMenuOptions()

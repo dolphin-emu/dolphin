@@ -112,6 +112,7 @@ bool CheckLeft();
 bool CheckRight();
 bool CheckJump();
 bool PrimeUseController();
+bool CheckPitchRecentre();
 
 std::tuple<double, double> GetPrimeStickXY();
 std::tuple<bool, bool> GetBVMenuOptions();

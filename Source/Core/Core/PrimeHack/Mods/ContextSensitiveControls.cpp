@@ -8,7 +8,7 @@ namespace prime {
 void ContextSensitiveControls::run_mod(Game game, Region region) {
   // Always reset the camera lock or it will never be unlocked
   // This is done before the game check just in case somebody quits during a motion puzzle.
-  SetLockCamera(false);
+  SetLockCamera(Unlocked);
 
   if (game != Game::PRIME_3 && game != Game::PRIME_3_STANDALONE) {
     return;
@@ -56,9 +56,17 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
         }
 
         if (LockCameraInPuzzles()) {
-          // if object is active and isn't the ship radio at the start of the game.
-          if (puzzle_state > 0 && read32(entity + 0xC) != 0x0c180263) {
-            SetLockCamera(true);
+          if (puzzle_state > 0) {
+            // Clear the first byte, since we do not account for the layer ID.
+            u32 id = read32(entity + 0xC) & ~(0xFF << 24);
+            // If the id isn't ship radios
+            if (blacklisted_editor_ids.find(id) == blacklisted_editor_ids.end()) {
+              SetLockCamera(Centre);
+            }
+            else {
+              // Aim up to face the radio properly.
+              SetLockCamera(Angle45);
+            }
           }
         }  
       } else if (vft_func == motion_vtf_address + 0x38) {
