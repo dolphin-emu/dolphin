@@ -51,8 +51,10 @@ QString GetExpressionForControl(const QString& control_name,
 
   if (quote == Quote::On)
   {
-    const QRegularExpression reg(QStringLiteral("[a-zA-Z]+"));
-    if (!reg.match(expr).hasMatch())
+    // If our expression contains any non-alpha characters
+    // we should quote it
+    const QRegularExpression reg(QStringLiteral("[^a-zA-Z]"));
+    if (reg.match(expr).hasMatch())
       expr = QStringLiteral("`%1`").arg(expr);
   }
 
