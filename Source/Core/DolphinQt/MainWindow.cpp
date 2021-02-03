@@ -1463,7 +1463,7 @@ void MainWindow::UpdateScreenSaverInhibition()
 
   m_is_screensaver_inhibited = inhibit;
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_X11
   if (GetWindowSystemType() == WindowSystemType::X11)
     UICommon::InhibitScreenSaver(winId(), inhibit);
 #else
