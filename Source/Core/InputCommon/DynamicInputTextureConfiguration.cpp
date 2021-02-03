@@ -17,10 +17,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ImageOperations.h"
-#include "VideoCommon/RenderBase.h"
 
 namespace
 {
@@ -251,7 +249,7 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
 
 DynamicInputTextureConfiguration::~DynamicInputTextureConfiguration() = default;
 
-void DynamicInputTextureConfiguration::GenerateTextures(const IniFile::Section* sec,
+bool DynamicInputTextureConfiguration::GenerateTextures(const IniFile::Section* sec,
                                                         const std::string& controller_name) const
 {
   bool any_dirty = false;
@@ -260,13 +258,7 @@ void DynamicInputTextureConfiguration::GenerateTextures(const IniFile::Section* 
     any_dirty |= GenerateTexture(sec, controller_name, texture_data);
   }
 
-  if (!any_dirty)
-    return;
-  if (Core::GetState() == Core::State::Starting)
-    return;
-  if (!g_renderer)
-    return;
-  g_renderer->ForceReloadTextures();
+  return any_dirty;
 }
 
 bool DynamicInputTextureConfiguration::GenerateTexture(
