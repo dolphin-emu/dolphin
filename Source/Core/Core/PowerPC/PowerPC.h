@@ -102,12 +102,16 @@ static_assert(std::is_standard_layout<PairedSingle>(), "PairedSingle must be sta
 //
 // On AArch64, most load/store instructions support fairly large immediate offsets,
 // but not LDP/STP, which we want to use for accessing certain things.
+// These must be in the first 260 bytes: pc, npc
 // These must be in the first 520 bytes: gather_pipe_ptr, gather_pipe_base_ptr
 // Better code is generated if these are in the first 260 bytes: gpr
 // Better code is generated if these are in the first 520 bytes: ps
 // Unfortunately not all of those fit in 520 bytes, but we can fit most of ps and all of the rest.
 struct PowerPCState
 {
+  u32 pc;  // program counter
+  u32 npc;
+
   // gather pipe pointer for JIT access
   u8* gather_pipe_ptr;
   u8* gather_pipe_base_ptr;
@@ -120,9 +124,6 @@ struct PowerPCState
   // Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
   alignas(16) PairedSingle ps[32];
 #endif
-
-  u32 pc;  // program counter
-  u32 npc;
 
   ConditionRegister cr;
 
