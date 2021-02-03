@@ -41,7 +41,9 @@ void* AllocateExecutableMemory(size_t size)
 #else
   int map_flags = MAP_ANON | MAP_PRIVATE;
 #if defined(_M_ARM_64) && defined(__APPLE__)
-  // This check is in place to prepare for x86_64 MAP_JIT support.
+  // This check is in place to prepare for x86_64 MAP_JIT support. While MAP_JIT did exist
+  // prior to 10.14, it had restrictions on the number of JIT allocations that were removed
+  // in 10.14.
   if (__builtin_available(macOS 10.14, *))
     map_flags |= MAP_JIT;
 #endif
@@ -206,7 +208,10 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
     PanicAlertFmt("WriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
-#else
+#elif !(defined(_M_ARM_64) && defined(__APPLE__))
+  // MacOS 11.2 on ARM does not allow for changing the access permissions of pages
+  // that were marked executable, instead it uses the protections offered by MAP_JIT
+  // for write protection.
   if (mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ) != 0)
     PanicAlertFmt("WriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
 #endif
@@ -218,7 +223,10 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
     PanicAlertFmt("UnWriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
-#else
+#elif !(defined(_M_ARM_64) && defined(__APPLE__))
+  // MacOS 11.2 on ARM does not allow for changing the access permissions of pages
+  // that were marked executable, instead it uses the protections offered by MAP_JIT
+  // for write protection.
   if (mprotect(ptr, size,
                allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
   {
