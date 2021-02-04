@@ -45,7 +45,7 @@ public:
 
 std::string VideoSoftware::GetName() const
 {
-  return "Software Renderer";
+  return NAME;
 }
 
 std::string VideoSoftware::GetDisplayName() const
@@ -112,7 +112,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
       !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize())
   {
-    PanicAlert("Failed to initialize renderer classes");
+    PanicAlertFmt("Failed to initialize renderer classes");
     Shutdown();
     return false;
   }

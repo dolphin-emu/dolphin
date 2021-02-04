@@ -37,10 +37,10 @@ IPCCommandResult USBHost::Open(const OpenRequest& request)
 {
   if (!m_has_initialised && !Core::WantsDeterminism())
   {
-    StartThreads();
+    GetScanThread().Start();
     // Force a device scan to complete, because some games (including Your Shape) only care
     // about the initial device list (in the first GETDEVICECHANGE reply).
-    m_first_scan_complete_event.Wait();
+    GetScanThread().WaitForFirstScan();
     m_has_initialised = true;
   }
   return GetDefaultReply(IPC_SUCCESS);
@@ -49,9 +49,9 @@ IPCCommandResult USBHost::Open(const OpenRequest& request)
 void USBHost::UpdateWantDeterminism(const bool new_want_determinism)
 {
   if (new_want_determinism)
-    StopThreads();
+    GetScanThread().Stop();
   else if (IsOpened())
-    StartThreads();
+    GetScanThread().Start();
 }
 
 void USBHost::DoState(PointerWrap& p)
@@ -66,7 +66,7 @@ void USBHost::DoState(PointerWrap& p)
 
 bool USBHost::AddDevice(std::unique_ptr<USB::Device> device)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   if (m_devices.find(device->GetId()) != m_devices.end())
     return false;
 
@@ -76,7 +76,7 @@ bool USBHost::AddDevice(std::unique_ptr<USB::Device> device)
 
 std::shared_ptr<USB::Device> USBHost::GetDeviceById(const u64 device_id) const
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   const auto it = m_devices.find(device_id);
   if (it == m_devices.end())
     return nullptr;
@@ -109,7 +109,6 @@ bool USBHost::UpdateDevices(const bool always_add_hooks)
     return false;
   DetectRemovedDevices(plugged_devices, hooks);
   DispatchHooks(hooks);
-  m_first_scan_complete_event.Set();
   return true;
 }
 
@@ -146,7 +145,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 
 void USBHost::DetectRemovedDevices(const std::set<u64>& plugged_devices, DeviceChangeHooks& hooks)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   for (auto it = m_devices.begin(); it != m_devices.end();)
   {
     if (plugged_devices.find(it->second->GetId()) == plugged_devices.end())
@@ -165,43 +164,53 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 {
   for (const auto& hook : hooks)
   {
-    INFO_LOG(IOS_USB, "%s - %s device: %04x:%04x", GetDeviceName().c_str(),
-             hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
-             hook.first->GetPid());
+    INFO_LOG_FMT(IOS_USB, "{} - {} device: {:04x}:{:04x}", GetDeviceName(),
+                 hook.second == ChangeEvent::Inserted ? "New" : "Removed", hook.first->GetVid(),
+                 hook.first->GetPid());
     OnDeviceChange(hook.second, hook.first);
   }
   if (!hooks.empty())
     OnDeviceChangeEnd();
 }
 
-void USBHost::StartThreads()
+USBHost::ScanThread::~ScanThread()
+{
+  Stop();
+}
+
+void USBHost::ScanThread::WaitForFirstScan()
+{
+  m_first_scan_complete_event.Wait();
+}
+
+void USBHost::ScanThread::Start()
 {
   if (Core::WantsDeterminism())
     return;
 
-  if (!m_scan_thread_running.IsSet())
+  if (m_thread_running.TestAndSet())
   {
-    m_scan_thread_running.Set();
-    m_scan_thread = std::thread([this] {
+    m_thread = std::thread([this] {
       Common::SetCurrentThreadName("USB Scan Thread");
-      while (m_scan_thread_running.IsSet())
+      while (m_thread_running.IsSet())
       {
-        UpdateDevices();
+        if (m_host->UpdateDevices())
+          m_first_scan_complete_event.Set();
         Common::SleepCurrentThread(50);
       }
     });
   }
 }
 
-void USBHost::StopThreads()
+void USBHost::ScanThread::Stop()
 {
-  if (m_scan_thread_running.TestAndClear())
-    m_scan_thread.join();
+  if (m_thread_running.TestAndClear())
+    m_thread.join();
 
   // Clear all devices and dispatch removal hooks.
   DeviceChangeHooks hooks;
-  DetectRemovedDevices(std::set<u64>(), hooks);
-  DispatchHooks(hooks);
+  m_host->DetectRemovedDevices(std::set<u64>(), hooks);
+  m_host->DispatchHooks(hooks);
 }
 
 IPCCommandResult USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
@@ -214,8 +223,8 @@ IPCCommandResult USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u3
   if (ret == IPC_SUCCESS)
     return GetNoReply();
 
-  ERROR_LOG(IOS_USB, "[%04x:%04x] Failed to submit transfer (request %u): %s", device->GetVid(),
-            device->GetPid(), request, device->GetErrorName(ret).c_str());
+  ERROR_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Failed to submit transfer (request {}): {}",
+                device->GetVid(), device->GetPid(), request, device->GetErrorName(ret));
   return GetDefaultReply(ret <= 0 ? ret : IPC_EINVAL);
 }
 }  // namespace IOS::HLE::Device

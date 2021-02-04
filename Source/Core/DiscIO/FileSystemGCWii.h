@@ -42,6 +42,7 @@ public:
 
   u64 GetOffset() const override;
   u32 GetSize() const override;
+  bool IsRoot() const override;
   bool IsDirectory() const override;
   u32 GetTotalChildren() const override;
   std::string GetName() const override;

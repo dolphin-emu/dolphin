@@ -41,10 +41,10 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &ThreadWidget::Update);
 
-  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsThreadsVisible());
   });
 }
@@ -131,10 +131,10 @@ void ThreadWidget::ShowContextMenu(QTableWidget* table)
 
 QLineEdit* ThreadWidget::CreateLineEdit() const
 {
-  QLineEdit* line_edit = new QLineEdit(QLatin1Literal("00000000"));
+  QLineEdit* line_edit = new QLineEdit(QStringLiteral("00000000"));
   line_edit->setReadOnly(true);
   line_edit->setFixedWidth(
-      line_edit->fontMetrics().boundingRect(QLatin1Literal(" 00000000 ")).width());
+      line_edit->fontMetrics().boundingRect(QStringLiteral(" 00000000 ")).width());
   return line_edit;
 }
 
@@ -252,14 +252,14 @@ void ThreadWidget::Update()
   if (!isVisible())
     return;
 
-  const auto state = Core::GetState();
-  if (state == Core::State::Stopping)
+  const auto emu_state = Core::GetState();
+  if (emu_state == Core::State::Stopping)
   {
     m_thread_table->setRowCount(0);
     UpdateThreadContext({});
     UpdateThreadCallstack({});
   }
-  if (state != Core::State::Paused)
+  if (emu_state != Core::State::Paused)
     return;
 
   const auto format_hex = [](u32 value) {
@@ -269,9 +269,9 @@ void ThreadWidget::Update()
     addr = PowerPC::HostIsRAMAddress(addr) ? PowerPC::HostRead_U32(addr) : 0;
     return format_hex(addr);
   };
-  const auto get_state = [](u16 state) {
+  const auto get_state = [](u16 thread_state) {
     QString state_name;
-    switch (state)
+    switch (thread_state)
     {
     case 1:
       state_name = tr("READY");
@@ -288,7 +288,7 @@ void ThreadWidget::Update()
     default:
       state_name = tr("UNKNOWN");
     }
-    return QStringLiteral("%1 (%2)").arg(QString::number(state), state_name);
+    return QStringLiteral("%1 (%2)").arg(QString::number(thread_state), state_name);
   };
   const auto get_priority = [](u16 base, u16 effective) {
     return QStringLiteral("%1 (%2)").arg(QString::number(base), QString::number(effective));
@@ -374,39 +374,39 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
     switch (i)
     {
     case 8:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("CR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("CR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.cr)));
       break;
     case 9:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("LR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("LR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.lr)));
       break;
     case 10:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("CTR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("CTR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.ctr)));
       break;
     case 11:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("XER")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("XER")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.xer)));
       break;
     case 12:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("FPSCR")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("FPSCR")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.fpscr)));
       break;
     case 13:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("SRR0")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("SRR0")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.srr0)));
       break;
     case 14:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("SRR1")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("SRR1")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.srr1)));
       break;
     case 15:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("DUMMY")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("DUMMY")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.dummy)));
       break;
     case 16:
-      m_context_table->setItem(i, 6, new QTableWidgetItem(QLatin1Literal("STATE")));
+      m_context_table->setItem(i, 6, new QTableWidgetItem(QStringLiteral("STATE")));
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.state)));
       break;
     default:
@@ -454,7 +454,7 @@ void ThreadWidget::UpdateThreadCallstack(const Common::Debug::PartialContext& co
     }
     else
     {
-      m_callstack_table->setItem(i, 2, new QTableWidgetItem(QLatin1Literal("--------")));
+      m_callstack_table->setItem(i, 2, new QTableWidgetItem(QStringLiteral("--------")));
     }
     sp = PowerPC::HostRead_U32(sp);
     m_callstack_table->setItem(i, 1, new QTableWidgetItem(format_hex(sp)));

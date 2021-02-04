@@ -1,4 +1,10 @@
 add_library(inputcommon
+  DynamicInputTextureConfiguration.cpp
+  DynamicInputTextureConfiguration.h
+  DynamicInputTextureManager.cpp
+  DynamicInputTextureManager.h
+  ImageOperations.cpp
+  ImageOperations.h
   InputConfig.cpp
   InputConfig.h
   InputProfile.cpp
@@ -48,10 +54,10 @@ add_library(inputcommon
   ControllerInterface/DualShockUDPClient/DualShockUDPProto.h
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/ControllerInterface.h
-  ControllerInterface/Device.cpp
-  ControllerInterface/Device.h
-  ControllerInterface/Wiimote/Wiimote.cpp
-  ControllerInterface/Wiimote/Wiimote.h
+  ControllerInterface/CoreDevice.cpp
+  ControllerInterface/CoreDevice.h
+  ControllerInterface/Wiimote/WiimoteController.cpp
+  ControllerInterface/Wiimote/WiimoteController.h
   ControlReference/ControlReference.cpp
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp
@@ -66,6 +72,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
+  png
 )
 
 if(WIN32)

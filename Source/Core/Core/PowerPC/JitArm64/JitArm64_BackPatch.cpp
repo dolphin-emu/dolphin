@@ -24,28 +24,30 @@ using namespace Arm64Gen;
 void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
 {
   for (int i = 0; i < 30; i += 2)
-    ERROR_LOG(DYNA_REC, "R%d: 0x%016llx\tR%d: 0x%016llx", i, ctx->CTX_REG(i), i + 1,
-              ctx->CTX_REG(i + 1));
-
-  ERROR_LOG(DYNA_REC, "R30: 0x%016llx\tSP: 0x%016llx", ctx->CTX_REG(30), ctx->CTX_SP);
-
-  ERROR_LOG(DYNA_REC, "Access Address: 0x%016lx", access_address);
-  ERROR_LOG(DYNA_REC, "PC: 0x%016llx", ctx->CTX_PC);
-
-  ERROR_LOG(DYNA_REC, "Memory Around PC");
-
-  std::string pc_memory = "";
-  for (u64 pc = (ctx->CTX_PC - 32); pc < (ctx->CTX_PC + 32); pc += 16)
   {
-    pc_memory += StringFromFormat("%08x%08x%08x%08x", Common::swap32(*(u32*)pc),
-                                  Common::swap32(*(u32*)(pc + 4)), Common::swap32(*(u32*)(pc + 8)),
-                                  Common::swap32(*(u32*)(pc + 12)));
-
-    ERROR_LOG(DYNA_REC, "0x%016" PRIx64 ": %08x %08x %08x %08x", pc, *(u32*)pc, *(u32*)(pc + 4),
-              *(u32*)(pc + 8), *(u32*)(pc + 12));
+    ERROR_LOG_FMT(DYNA_REC, "R{}: {:#018x}\tR{}: {:#018x}", i, ctx->CTX_REG(i), i + 1,
+                  ctx->CTX_REG(i + 1));
   }
 
-  ERROR_LOG(DYNA_REC, "Full block: %s", pc_memory.c_str());
+  ERROR_LOG_FMT(DYNA_REC, "R30: {:#018x}\tSP: {:#018x}", ctx->CTX_LR, ctx->CTX_SP);
+
+  ERROR_LOG_FMT(DYNA_REC, "Access Address: {:#018x}", access_address);
+  ERROR_LOG_FMT(DYNA_REC, "PC: {:#018x}", ctx->CTX_PC);
+
+  ERROR_LOG_FMT(DYNA_REC, "Memory Around PC");
+
+  std::string pc_memory;
+  for (u64 pc = (ctx->CTX_PC - 32); pc < (ctx->CTX_PC + 32); pc += 16)
+  {
+    pc_memory += fmt::format("{:08x}{:08x}{:08x}{:08x}", Common::swap32(*(u32*)pc),
+                             Common::swap32(*(u32*)(pc + 4)), Common::swap32(*(u32*)(pc + 8)),
+                             Common::swap32(*(u32*)(pc + 12)));
+
+    ERROR_LOG_FMT(DYNA_REC, "{:#018x}: {:08x} {:08x} {:08x} {:08x}", pc, *(u32*)pc, *(u32*)(pc + 4),
+                  *(u32*)(pc + 8), *(u32*)(pc + 12));
+  }
+
+  ERROR_LOG_FMT(DYNA_REC, "Full block: {}", pc_memory);
 }
 
 void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, ARM64Reg RS,
@@ -118,8 +120,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     {
       // This literally only stores 32bytes of zeros to the target address
       ADD(addr, addr, MEM_REG);
-      STP(INDEX_SIGNED, ZR, ZR, addr, 0);
-      STP(INDEX_SIGNED, ZR, ZR, addr, 16);
+      STP(IndexType::Signed, ZR, ZR, addr, 0);
+      STP(IndexType::Signed, ZR, ZR, addr, 16);
     }
     else
     {
@@ -185,49 +187,49 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       {
         m_float_emit.FCVT(32, 64, D0, RS);
         m_float_emit.UMOV(32, W0, Q0, 0);
-        MOVP2R(X30, &PowerPC::Write_U32);
-        BLR(X30);
+        MOVP2R(X8, &PowerPC::Write_U32);
+        BLR(X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
       {
         m_float_emit.UMOV(32, W0, RS, 0);
-        MOVP2R(X30, &PowerPC::Write_U32);
-        BLR(X30);
+        MOVP2R(X8, &PowerPC::Write_U32);
+        BLR(X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2)
       {
         m_float_emit.FCVTN(32, D0, RS);
         m_float_emit.UMOV(64, X0, D0, 0);
         ROR(X0, X0, 32);
-        MOVP2R(X30, &PowerPC::Write_U64);
-        BLR(X30);
+        MOVP2R(X8, &PowerPC::Write_U64);
+        BLR(X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
       {
         m_float_emit.UMOV(64, X0, RS, 0);
         ROR(X0, X0, 32);
-        MOVP2R(X30, &PowerPC::Write_U64);
-        BLR(X30);
+        MOVP2R(X8, &PowerPC::Write_U64);
+        BLR(X8);
       }
       else
       {
-        MOVP2R(X30, &PowerPC::Write_U64);
+        MOVP2R(X8, &PowerPC::Write_U64);
         m_float_emit.UMOV(64, X0, RS, 0);
-        BLR(X30);
+        BLR(X8);
       }
     }
     else if (flags & BackPatchInfo::FLAG_LOAD && flags & BackPatchInfo::FLAG_MASK_FLOAT)
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
       {
-        MOVP2R(X30, &PowerPC::Read_U32);
-        BLR(X30);
+        MOVP2R(X8, &PowerPC::Read_U32);
+        BLR(X8);
         m_float_emit.INS(32, RS, 0, X0);
       }
       else
       {
-        MOVP2R(X30, &PowerPC::Read_F64);
-        BLR(X30);
+        MOVP2R(X8, &PowerPC::Read_F64);
+        BLR(X8);
         m_float_emit.INS(64, RS, 0, X0);
       }
     }
@@ -236,29 +238,29 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       MOV(W0, RS);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVP2R(X30, &PowerPC::Write_U32);
+        MOVP2R(X8, &PowerPC::Write_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVP2R(X30, &PowerPC::Write_U16);
+        MOVP2R(X8, &PowerPC::Write_U16);
       else
-        MOVP2R(X30, &PowerPC::Write_U8);
+        MOVP2R(X8, &PowerPC::Write_U8);
 
-      BLR(X30);
+      BLR(X8);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      MOVP2R(X30, &PowerPC::ClearCacheLine);
-      BLR(X30);
+      MOVP2R(X8, &PowerPC::ClearCacheLine);
+      BLR(X8);
     }
     else
     {
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVP2R(X30, &PowerPC::Read_U32);
+        MOVP2R(X8, &PowerPC::Read_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVP2R(X30, &PowerPC::Read_U16);
+        MOVP2R(X8, &PowerPC::Read_U16);
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
-        MOVP2R(X30, &PowerPC::Read_U8);
+        MOVP2R(X8, &PowerPC::Read_U8);
 
-      BLR(X30);
+      BLR(X8);
 
       if (!(flags & BackPatchInfo::FLAG_REVERSE))
       {
@@ -294,9 +296,9 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
       !(access_address >= (uintptr_t)Memory::logical_base &&
         access_address < (uintptr_t)Memory::logical_base + 0x100010000))
   {
-    ERROR_LOG(DYNA_REC,
-              "Exception handler - access below memory space. PC: 0x%016llx 0x%016lx < 0x%016lx",
-              ctx->CTX_PC, access_address, (uintptr_t)Memory::physical_base);
+    ERROR_LOG_FMT(DYNA_REC,
+                  "Exception handler - access below memory space. PC: {:#018x} {:#018x} < {:#018x}",
+                  ctx->CTX_PC, access_address, (uintptr_t)Memory::physical_base);
     return false;
   }
 
@@ -320,7 +322,7 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
 
   const u32 num_insts_max = fastmem_area_length / 4 - 1;
   for (u32 i = 0; i < num_insts_max; ++i)
-    emitter.HINT(HINT_NOP);
+    emitter.NOP();
 
   m_fault_to_handler.erase(slow_handler_iter);
 

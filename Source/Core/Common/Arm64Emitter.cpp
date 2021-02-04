@@ -6,6 +6,8 @@
 #include <array>
 #include <cinttypes>
 #include <cstring>
+#include <optional>
+#include <tuple>
 #include <vector>
 
 #include "Common/Align.h"
@@ -26,50 +28,26 @@ namespace
 const int kWRegSizeInBits = 32;
 const int kXRegSizeInBits = 64;
 
-// The below few functions are taken from V8.
-int CountLeadingZeros(uint64_t value, int width)
-{
-  // TODO(jbramley): Optimize this for ARM64 hosts.
-  int count = 0;
-  uint64_t bit_test = 1ULL << (width - 1);
-  while ((count < width) && ((bit_test & value) == 0))
-  {
-    count++;
-    bit_test >>= 1;
-  }
-  return count;
-}
-
 uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
   return value & -(int64_t)value;
 }
 
 // For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
+std::optional<std::pair<u32, bool>> IsImmArithmetic(uint64_t input)
 {
   if (input < 4096)
-  {
-    *val = input;
-    *shift = false;
-    return true;
-  }
-  else if ((input & 0xFFF000) == input)
-  {
-    *val = input >> 12;
-    *shift = true;
-    return true;
-  }
-  return false;
+    return std::pair{static_cast<u32>(input), false};
+
+  if ((input & 0xFFF000) == input)
+    return std::pair{static_cast<u32>(input >> 12), true};
+
+  return std::nullopt;
 }
 
 // For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s,
-                  unsigned int* imm_r)
+std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
 {
-  // DCHECK((n != NULL) && (imm_s != NULL) && (imm_r != NULL));
-  // DCHECK((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
-
   bool negate = false;
 
   // Logical immediates are encoded using parameters n, imm_s and imm_r using
@@ -155,8 +133,8 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
     // Compute the repeat distance d, and set up a bitmask covering the basic
     // unit of repetition (i.e. a word with the bottom d bits set). Also, in all
     // of these cases the N bit of the output will be zero.
-    clz_a = CountLeadingZeros(a, kXRegSizeInBits);
-    int clz_c = CountLeadingZeros(c, kXRegSizeInBits);
+    clz_a = Common::CountLeadingZeros(a);
+    int clz_c = Common::CountLeadingZeros(c);
     d = clz_a - clz_c;
     mask = ((UINT64_C(1) << d) - 1);
     out_n = 0;
@@ -174,7 +152,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // The input was zero (or all 1 bits, which will come to here too after we
       // inverted it at the start of the function), for which we just return
       // false.
-      return false;
+      return std::nullopt;
     }
     else
     {
@@ -182,7 +160,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // of set bits in our word, meaning that we have the trivial case of
       // d == 64 and only one 'repetition'. Set up all the same variables as in
       // the general case above, and set the N bit in the output.
-      clz_a = CountLeadingZeros(a, kXRegSizeInBits);
+      clz_a = Common::CountLeadingZeros(a);
       d = 64;
       mask = ~UINT64_C(0);
       out_n = 1;
@@ -191,12 +169,12 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
 
   // If the repeat period d is not a power of two, it can't be encoded.
   if (!MathUtil::IsPow2<u64>(d))
-    return false;
+    return std::nullopt;
 
   // If the bit stretch (b - a) does not fit within the mask derived from the
   // repeat period, then fail.
   if (((b - a) & ~mask) != 0)
-    return false;
+    return std::nullopt;
 
   // The only possible option is b - a repeated every d bits. Now we're going to
   // actually construct the valid logical immediate derived from that
@@ -214,17 +192,17 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       0x5555555555555555UL,
   }};
 
-  int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
+  const int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
 
   // Ensure that the index to the multipliers array is within bounds.
   DEBUG_ASSERT((multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
 
-  uint64_t multiplier = multipliers[multiplier_idx];
-  uint64_t candidate = (b - a) * multiplier;
+  const u64 multiplier = multipliers[multiplier_idx];
+  const u64 candidate = (b - a) * multiplier;
 
   // The candidate pattern doesn't match our input value, so fail.
   if (value != candidate)
-    return false;
+    return std::nullopt;
 
   // We have a match! This is a valid logical immediate, so now we have to
   // construct the bits and pieces of the instruction encoding that generates
@@ -233,7 +211,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // Count the set bits in our basic stretch. The special case of clz(0) == -1
   // makes the answer come out right for stretches that reach the very top of
   // the word (e.g. numbers like 0xffffc00000000000).
-  int clz_b = (b == 0) ? -1 : CountLeadingZeros(b, kXRegSizeInBits);
+  const int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
   int s = clz_a - clz_b;
 
   // Decide how many bits to rotate right by, to put the low bit of that basic
@@ -266,11 +244,11 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   //    11110s     2    UInt(s)
   //
   // So we 'or' (-d << 1) with our computed s to form imms.
-  *n = out_n;
-  *imm_s = ((-d << 1) | (s - 1)) & 0x3f;
-  *imm_r = r;
-
-  return true;
+  return std::tuple{
+      static_cast<u32>(out_n),
+      static_cast<u32>(((-d << 1) | (s - 1)) & 0x3f),
+      static_cast<u32>(r),
+  };
 }
 
 float FPImm8ToFloat(u8 bits)
@@ -284,7 +262,7 @@ float FPImm8ToFloat(u8 bits)
   return Common::BitCast<float>(f);
 }
 
-bool FPImm8FromFloat(float value, u8* imm_out)
+std::optional<u8> FPImm8FromFloat(float value)
 {
   const u32 f = Common::BitCast<u32>(value);
   const u32 mantissa4 = (f & 0x7FFFFF) >> 19;
@@ -292,16 +270,15 @@ bool FPImm8FromFloat(float value, u8* imm_out)
   const u32 sign = f >> 31;
 
   if ((exponent >> 7) == ((exponent >> 6) & 1))
-    return false;
+    return std::nullopt;
 
   const u8 imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
   const float new_float = FPImm8ToFloat(imm8);
-  if (new_float == value)
-    *imm_out = imm8;
-  else
-    return false;
 
-  return true;
+  if (new_float != value)
+    return std::nullopt;
+
+  return imm8;
 }
 }  // Anonymous namespace
 
@@ -310,7 +287,7 @@ void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr)
   m_code = ptr;
 }
 
-void ARM64XEmitter::SetCodePtr(u8* ptr)
+void ARM64XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
 {
   SetCodePtrUnsafe(ptr);
   m_lastCacheFlushEnd = ptr;
@@ -595,8 +572,7 @@ void ARM64XEmitter::EncodeArithmeticInst(u32 instenc, bool flags, ARM64Reg Rd, A
   Rn = DecodeReg(Rn);
   Rm = DecodeReg(Rm);
   Write32((b64Bit << 31) | (flags << 29) | (ArithEnc[instenc] << 21) |
-          (Option.GetType() == ArithOption::TYPE_EXTENDEDREG ? (1 << 21) : 0) | (Rm << 16) |
-          Option.GetData() | (Rn << 5) | Rd);
+          (Option.IsExtended() ? (1 << 21) : 0) | (Rm << 16) | Option.GetData() | (Rn << 5) | Rd);
 }
 
 void ARM64XEmitter::EncodeArithmeticCarryInst(u32 op, bool flags, ARM64Reg Rd, ARM64Reg Rn,
@@ -775,8 +751,10 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn,
   else if (size == 16)
     imm >>= 1;
 
-  ASSERT_MSG(DYNA_REC, imm >= 0, "%s(INDEX_UNSIGNED): offset must be positive %d", __func__, imm);
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "%s(INDEX_UNSIGNED): offset too large %d", __func__, imm);
+  ASSERT_MSG(DYNA_REC, imm >= 0, "%s(IndexType::Unsigned): offset must be positive %d", __func__,
+             imm);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "%s(IndexType::Unsigned): offset too large %d", __func__,
+             imm);
 
   Rt = DecodeReg(Rt);
   Rn = DecodeReg(Rn);
@@ -790,7 +768,8 @@ void ARM64XEmitter::EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount 
   ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "%s: immediate out of range: %d", __func__, imm);
 
   Rd = DecodeReg(Rd);
-  Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (pos << 21) | (imm << 5) | Rd);
+  Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (static_cast<u32>(pos) << 21) | (imm << 5) |
+          Rd);
 }
 
 void ARM64XEmitter::EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
@@ -849,17 +828,17 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
 
   switch (type)
   {
-  case INDEX_SIGNED:
+  case IndexType::Signed:
     type_encode = 0b010;
     break;
-  case INDEX_POST:
+  case IndexType::Post:
     type_encode = 0b001;
     break;
-  case INDEX_PRE:
+  case IndexType::Pre:
     type_encode = 0b011;
     break;
-  case INDEX_UNSIGNED:
-    ASSERT_MSG(DYNA_REC, false, "%s doesn't support INDEX_UNSIGNED!", __func__);
+  case IndexType::Unsigned:
+    ASSERT_MSG(DYNA_REC, false, "%s doesn't support IndexType::Unsigned!", __func__);
     break;
   }
 
@@ -876,6 +855,8 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
   Rt = DecodeReg(Rt);
   Rt2 = DecodeReg(Rt2);
   Rn = DecodeReg(Rn);
+
+  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair!");
 
   Write32((op << 30) | (0b101 << 27) | (type_encode << 23) | (load << 22) | ((imm & 0x7F) << 15) |
           (Rt2 << 10) | (Rn << 5) | Rt);
@@ -937,41 +918,43 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 
   switch (branch.type)
   {
-  case 1:  // CBNZ
+  case FixupBranch::Type::CBNZ:
     Not = true;
-  case 0:  // CBZ
+    [[fallthrough]];
+  case FixupBranch::Type::CBZ:
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
-    bool b64Bit = Is64Bit(branch.reg);
-    ARM64Reg reg = DecodeReg(branch.reg);
+               __func__, static_cast<int>(branch.type), distance);
+    const bool b64Bit = Is64Bit(branch.reg);
+    const ARM64Reg reg = DecodeReg(branch.reg);
     inst = (b64Bit << 31) | (0x1A << 25) | (Not << 24) | (MaskImm19(distance) << 5) | reg;
   }
   break;
-  case 2:  // B (conditional)
+  case FixupBranch::Type::BConditional:
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
+               __func__, static_cast<int>(branch.type), distance);
     inst = (0x2A << 25) | (MaskImm19(distance) << 5) | branch.cond;
     break;
-  case 4:  // TBNZ
+  case FixupBranch::Type::TBNZ:
     Not = true;
-  case 3:  // TBZ
+    [[fallthrough]];
+  case FixupBranch::Type::TBZ:
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
-    ARM64Reg reg = DecodeReg(branch.reg);
+               __func__, static_cast<int>(branch.type), distance);
+    const ARM64Reg reg = DecodeReg(branch.reg);
     inst = ((branch.bit & 0x20) << 26) | (0x1B << 25) | (Not << 24) | ((branch.bit & 0x1F) << 19) |
            (MaskImm14(distance) << 5) | reg;
   }
   break;
-  case 5:  // B (unconditional)
+  case FixupBranch::Type::B:
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
+               __func__, static_cast<int>(branch.type), distance);
     inst = (0x5 << 26) | MaskImm26(distance);
     break;
-  case 6:  // BL (unconditional)
+  case FixupBranch::Type::BL:
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, branch.type, distance);
+               __func__, static_cast<int>(branch.type), distance);
     inst = (0x25 << 26) | MaskImm26(distance);
     break;
   }
@@ -981,65 +964,65 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 0;
+  branch.type = FixupBranch::Type::CBZ;
   branch.reg = Rt;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 1;
+  branch.type = FixupBranch::Type::CBNZ;
   branch.reg = Rt;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B(CCFlags cond)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 2;
+  branch.type = FixupBranch::Type::BConditional;
   branch.cond = cond;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 3;
+  branch.type = FixupBranch::Type::TBZ;
   branch.reg = Rt;
   branch.bit = bit;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 4;
+  branch.type = FixupBranch::Type::TBNZ;
   branch.reg = Rt;
   branch.bit = bit;
-  HINT(HINT_NOP);
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B()
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 5;
-  HINT(HINT_NOP);
+  branch.type = FixupBranch::Type::B;
+  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::BL()
 {
-  FixupBranch branch;
+  FixupBranch branch{};
   branch.ptr = m_code;
-  branch.type = 6;
-  HINT(HINT_NOP);
+  branch.type = FixupBranch::Type::BL;
+  NOP();
   return branch;
 }
 
@@ -1092,8 +1075,6 @@ void ARM64XEmitter::QuickCallFunction(ARM64Reg scratchreg, const void* func)
   distance >>= 2;  // Can only branch to opcode-aligned (4) addresses
   if (!IsInRangeImm26(distance))
   {
-    // WARN_LOG(DYNA_REC, "Distance too far in function call (%p to %p)! Using scratch.", m_code,
-    // func);
     MOVI2R(scratchreg, (uintptr_t)func);
     BLR(scratchreg);
   }
@@ -1172,15 +1153,15 @@ void ARM64XEmitter::_MSR(PStateField field, u8 imm)
   u32 op1 = 0, op2 = 0;
   switch (field)
   {
-  case FIELD_SPSel:
+  case PStateField::SPSel:
     op1 = 0;
     op2 = 5;
     break;
-  case FIELD_DAIFSet:
+  case PStateField::DAIFSet:
     op1 = 3;
     op2 = 6;
     break;
-  case FIELD_DAIFClr:
+  case PStateField::DAIFClr:
     op1 = 3;
     op2 = 7;
     break;
@@ -1195,35 +1176,35 @@ static void GetSystemReg(PStateField field, int& o0, int& op1, int& CRn, int& CR
 {
   switch (field)
   {
-  case FIELD_NZCV:
+  case PStateField::NZCV:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 2;
     op2 = 0;
     break;
-  case FIELD_FPCR:
+  case PStateField::FPCR:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 4;
     op2 = 0;
     break;
-  case FIELD_FPSR:
+  case PStateField::FPSR:
     o0 = 3;
     op1 = 3;
     CRn = 4;
     CRm = 4;
     op2 = 1;
     break;
-  case FIELD_PMCR_EL0:
+  case PStateField::PMCR_EL0:
     o0 = 3;
     op1 = 3;
     CRn = 9;
     CRm = 6;
     op2 = 0;
     break;
-  case FIELD_PMCCNTR_EL0:
+  case PStateField::PMCCNTR_EL0:
     o0 = 3;
     op1 = 3;
     CRn = 9;
@@ -1262,7 +1243,7 @@ void ARM64XEmitter::CNTVCT(Arm64Gen::ARM64Reg Rt)
 
 void ARM64XEmitter::HINT(SystemHint op)
 {
-  EncodeSystemInst(0, 3, 2, 0, op, WSP);
+  EncodeSystemInst(0, 3, 2, 0, static_cast<u32>(op), WSP);
 }
 void ARM64XEmitter::CLREX()
 {
@@ -1270,21 +1251,21 @@ void ARM64XEmitter::CLREX()
 }
 void ARM64XEmitter::DSB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 4, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 4, WSP);
 }
 void ARM64XEmitter::DMB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 5, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 5, WSP);
 }
 void ARM64XEmitter::ISB(BarrierType type)
 {
-  EncodeSystemInst(0, 3, 3, type, 6, WSP);
+  EncodeSystemInst(0, 3, 3, static_cast<u32>(type), 6, WSP);
 }
 
 // Add/Subtract (extended register)
 void ARM64XEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  ADD(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  ADD(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1294,7 +1275,7 @@ void ARM64XEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Optio
 
 void ARM64XEmitter::ADDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeArithmeticInst(0, true, Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  EncodeArithmeticInst(0, true, Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::ADDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1304,7 +1285,7 @@ void ARM64XEmitter::ADDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Opti
 
 void ARM64XEmitter::SUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  SUB(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  SUB(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::SUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1314,7 +1295,7 @@ void ARM64XEmitter::SUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Optio
 
 void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  EncodeArithmeticInst(1, true, Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0));
+  EncodeArithmeticInst(1, true, Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1324,7 +1305,7 @@ void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Opti
 
 void ARM64XEmitter::CMN(ARM64Reg Rn, ARM64Reg Rm)
 {
-  CMN(Rn, Rm, ArithOption(Rn, ST_LSL, 0));
+  CMN(Rn, Rm, ArithOption(Rn, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::CMN(ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1334,7 +1315,7 @@ void ARM64XEmitter::CMN(ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
 
 void ARM64XEmitter::CMP(ARM64Reg Rn, ARM64Reg Rm)
 {
-  CMP(Rn, Rm, ArithOption(Rn, ST_LSL, 0));
+  CMP(Rn, Rm, ArithOption(Rn, ShiftType::LSL, 0));
 }
 
 void ARM64XEmitter::CMP(ARM64Reg Rn, ARM64Reg Rm, ArithOption Option)
@@ -1574,13 +1555,13 @@ void ARM64XEmitter::MOV(ARM64Reg Rd, ARM64Reg Rm, ArithOption Shift)
 void ARM64XEmitter::MOV(ARM64Reg Rd, ARM64Reg Rm)
 {
   if (IsGPR(Rd) && IsGPR(Rm))
-    ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSL, 0));
+    ORR(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ShiftType::LSL, 0));
   else
     ASSERT_MSG(DYNA_REC, false, "Non-GPRs not supported in MOV");
 }
 void ARM64XEmitter::MVN(ARM64Reg Rd, ARM64Reg Rm)
 {
-  ORN(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ST_LSL, 0));
+  ORN(Rd, Is64Bit(Rd) ? ZR : WZR, Rm, ArithOption(Rm, ShiftType::LSL, 0));
 }
 void ARM64XEmitter::LSL(ARM64Reg Rd, ARM64Reg Rm, int shift)
 {
@@ -1677,18 +1658,26 @@ void ARM64XEmitter::UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
 void ARM64XEmitter::BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
   u32 size = Is64Bit(Rn) ? 64 : 32;
-  ASSERT_MSG(DYNA_REC, (lsb + width) <= size,
+  ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
              "%s passed lsb %d and width %d which is greater than the register size!", __func__,
              lsb, width);
-  EncodeBitfieldMOVInst(1, Rd, Rn, (size - lsb) % size, width - 1);
+  BFM(Rd, Rn, (size - lsb) % size, width - 1);
+}
+void ARM64XEmitter::BFXIL(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
+{
+  u32 size = Is64Bit(Rn) ? 64 : 32;
+  ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
+             "%s passed lsb %d and width %d which is greater than the register size!", __func__,
+             lsb, width);
+  BFM(Rd, Rn, lsb, lsb + width - 1);
 }
 void ARM64XEmitter::UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
   u32 size = Is64Bit(Rn) ? 64 : 32;
-  ASSERT_MSG(DYNA_REC, (lsb + width) <= size,
+  ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
              "%s passed lsb %d and width %d which is greater than the register size!", __func__,
              lsb, width);
-  EncodeBitfieldMOVInst(2, Rd, Rn, (size - lsb) % size, width - 1);
+  UBFM(Rd, Rn, (size - lsb) % size, width - 1);
 }
 void ARM64XEmitter::EXTR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 shift)
 {
@@ -1853,70 +1842,70 @@ void ARM64XEmitter::LDNP(ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm)
 // XXX: Most of these support vectors
 void ARM64XEmitter::STRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(0x0E4, Rt, Rn, imm, 8);
   else
-    EncodeLoadStoreIndexedInst(0x0E0, type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
+    EncodeLoadStoreIndexedInst(0x0E0, type == IndexType::Post ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::LDRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(0x0E5, Rt, Rn, imm, 8);
   else
-    EncodeLoadStoreIndexedInst(0x0E1, type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
+    EncodeLoadStoreIndexedInst(0x0E1, type == IndexType::Post ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::LDRSB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E6 : 0x0E7, Rt, Rn, imm, 8);
   else
-    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E2 : 0x0E3, type == INDEX_POST ? 1 : 3, Rt, Rn,
+    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E2 : 0x0E3, type == IndexType::Post ? 1 : 3, Rt, Rn,
                                imm);
 }
 void ARM64XEmitter::STRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(0x1E4, Rt, Rn, imm, 16);
   else
-    EncodeLoadStoreIndexedInst(0x1E0, type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
+    EncodeLoadStoreIndexedInst(0x1E0, type == IndexType::Post ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::LDRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(0x1E5, Rt, Rn, imm, 16);
   else
-    EncodeLoadStoreIndexedInst(0x1E1, type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
+    EncodeLoadStoreIndexedInst(0x1E1, type == IndexType::Post ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::LDRSH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E6 : 0x1E7, Rt, Rn, imm, 16);
   else
-    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E2 : 0x1E3, type == INDEX_POST ? 1 : 3, Rt, Rn,
+    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E2 : 0x1E3, type == IndexType::Post ? 1 : 3, Rt, Rn,
                                imm);
 }
 void ARM64XEmitter::STR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E4 : 0x2E4, Rt, Rn, imm, Is64Bit(Rt) ? 64 : 32);
   else
-    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E0 : 0x2E0, type == INDEX_POST ? 1 : 3, Rt, Rn,
+    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E0 : 0x2E0, type == IndexType::Post ? 1 : 3, Rt, Rn,
                                imm);
 }
 void ARM64XEmitter::LDR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E5 : 0x2E5, Rt, Rn, imm, Is64Bit(Rt) ? 64 : 32);
   else
-    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E1 : 0x2E1, type == INDEX_POST ? 1 : 3, Rt, Rn,
+    EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E1 : 0x2E1, type == IndexType::Post ? 1 : 3, Rt, Rn,
                                imm);
 }
 void ARM64XEmitter::LDRSW(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
     EncodeLoadStoreIndexedInst(0x2E6, Rt, Rn, imm, 32);
   else
-    EncodeLoadStoreIndexedInst(0x2E2, type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
+    EncodeLoadStoreIndexedInst(0x2E2, type == IndexType::Post ? 1 : 3, Rt, Rn, imm);
 }
 
 // Load/Store register (register offset)
@@ -2027,7 +2016,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   {
     // Zero immediate, just clear the register. EOR is pointless when we have MOVZ, which looks
     // clearer in disasm too.
-    MOVZ(Rd, 0, SHIFT_0);
+    MOVZ(Rd, 0, ShiftAmount::Shift0);
     return;
   }
 
@@ -2037,7 +2026,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
     // Max unsigned value (or if signed, -1)
     // Set to ~ZR
     ARM64Reg ZR = Is64Bit(Rd) ? SP : WSP;
-    ORN(Rd, ZR, ZR, ArithOption(ZR, ST_LSL, 0));
+    ORN(Rd, ZR, ZR, ArithOption(ZR, ShiftType::LSL, 0));
     return;
   }
 
@@ -2045,7 +2034,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   // Small negative integer. Use MOVN
   if (!Is64Bit(Rd) && (imm | 0xFFFF0000) == imm)
   {
-    MOVN(Rd, ~imm, SHIFT_0);
+    MOVN(Rd, ~imm, ShiftAmount::Shift0);
     return;
   }
 
@@ -2144,13 +2133,13 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
   // The first push must adjust the SP, else a context switch may invalidate everything below SP.
   if (num_regs & 1)
   {
-    STR(INDEX_PRE, (ARM64Reg)(X0 + *it++), SP, -stack_size);
+    STR(IndexType::Pre, (ARM64Reg)(X0 + *it++), SP, -stack_size);
   }
   else
   {
     ARM64Reg first_reg = (ARM64Reg)(X0 + *it++);
     ARM64Reg second_reg = (ARM64Reg)(X0 + *it++);
-    STP(INDEX_PRE, first_reg, second_reg, SP, -stack_size);
+    STP(IndexType::Pre, first_reg, second_reg, SP, -stack_size);
   }
 
   // Fast store for all other registers, this is always an even number.
@@ -2158,7 +2147,7 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
   {
     ARM64Reg odd_reg = (ARM64Reg)(X0 + *it++);
     ARM64Reg even_reg = (ARM64Reg)(X0 + *it++);
-    STP(INDEX_SIGNED, odd_reg, even_reg, SP, 16 * (i + 1));
+    STP(IndexType::Signed, odd_reg, even_reg, SP, 16 * (i + 1));
   }
 
   ASSERT_MSG(DYNA_REC, it == registers.end(), "%s registers don't match.", __func__);
@@ -2189,14 +2178,14 @@ void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
   {
     ARM64Reg odd_reg = (ARM64Reg)(X0 + *it++);
     ARM64Reg even_reg = (ARM64Reg)(X0 + *it++);
-    LDP(INDEX_SIGNED, odd_reg, even_reg, SP, 16 * (i + 1));
+    LDP(IndexType::Signed, odd_reg, even_reg, SP, 16 * (i + 1));
   }
 
   // Post loading the first (two) registers.
   if (num_regs & 1)
-    LDR(INDEX_POST, first, SP, stack_size);
+    LDR(IndexType::Post, first, SP, stack_size);
   else
-    LDP(INDEX_POST, first, second, SP, stack_size);
+    LDP(IndexType::Post, first, second, SP, stack_size);
 
   ASSERT_MSG(DYNA_REC, it == registers.end(), "%s registers don't match.", __func__);
 }
@@ -2221,12 +2210,12 @@ void ARM64FloatEmitter::EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type,
   else if (size == 128)
     encoded_size = 0;
 
-  if (type == INDEX_UNSIGNED)
+  if (type == IndexType::Unsigned)
   {
     ASSERT_MSG(DYNA_REC, !(imm & ((size - 1) >> 3)),
-               "%s(INDEX_UNSIGNED) immediate offset must be aligned to size! (%d) (%p)", __func__,
-               imm, m_emit->GetCodePtr());
-    ASSERT_MSG(DYNA_REC, imm >= 0, "%s(INDEX_UNSIGNED) immediate offset must be positive!",
+               "%s(IndexType::Unsigned) immediate offset must be aligned to size! (%d) (%p)",
+               __func__, imm, m_emit->GetCodePtr());
+    ASSERT_MSG(DYNA_REC, imm >= 0, "%s(IndexType::Unsigned) immediate offset must be positive!",
                __func__);
     if (size == 16)
       imm >>= 1;
@@ -2243,13 +2232,13 @@ void ARM64FloatEmitter::EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type,
     ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255),
                "%s immediate offset must be within range of -256 to 256!", __func__);
     encoded_imm = (imm & 0x1FF) << 2;
-    if (type == INDEX_POST)
+    if (type == IndexType::Post)
       encoded_imm |= 1;
     else
       encoded_imm |= 3;
   }
 
-  Write32((encoded_size << 30) | (0xF << 26) | (type == INDEX_UNSIGNED ? (1 << 24) : 0) |
+  Write32((encoded_size << 30) | (0xF << 26) | (type == IndexType::Unsigned ? (1 << 24) : 0) |
           (size == 128 ? (1 << 23) : 0) | (opc << 22) | (encoded_imm << 10) | (Rn << 5) | Rt);
 }
 
@@ -2350,28 +2339,28 @@ void ARM64FloatEmitter::EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, Roundin
   if (IsGPR(Rd))
   {
     // Use the encoding that transfers the result to a GPR.
-    bool sf = Is64Bit(Rd);
-    int type = IsDouble(Rn) ? 1 : 0;
+    const bool sf = Is64Bit(Rd);
+    const int type = IsDouble(Rn) ? 1 : 0;
     Rd = DecodeReg(Rd);
     Rn = DecodeReg(Rn);
     int opcode = (sign ? 1 : 0);
     int rmode = 0;
     switch (round)
     {
-    case ROUND_A:
+    case RoundingMode::A:
       rmode = 0;
       opcode |= 4;
       break;
-    case ROUND_P:
+    case RoundingMode::P:
       rmode = 1;
       break;
-    case ROUND_M:
+    case RoundingMode::M:
       rmode = 2;
       break;
-    case ROUND_Z:
+    case RoundingMode::Z:
       rmode = 3;
       break;
-    case ROUND_N:
+    case RoundingMode::N:
       rmode = 0;
       break;
     }
@@ -2386,20 +2375,20 @@ void ARM64FloatEmitter::EmitConvertScalarToInt(ARM64Reg Rd, ARM64Reg Rn, Roundin
     int opcode = 0;
     switch (round)
     {
-    case ROUND_A:
+    case RoundingMode::A:
       opcode = 0x1C;
       break;
-    case ROUND_N:
+    case RoundingMode::N:
       opcode = 0x1A;
       break;
-    case ROUND_M:
+    case RoundingMode::M:
       opcode = 0x1B;
       break;
-    case ROUND_P:
+    case RoundingMode::P:
       opcode = 0x1A;
       sz |= 2;
       break;
-    case ROUND_Z:
+    case RoundingMode::Z:
       opcode = 0x1B;
       sz |= 2;
       break;
@@ -2595,17 +2584,17 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
 
   switch (type)
   {
-  case INDEX_SIGNED:
+  case IndexType::Signed:
     type_encode = 0b010;
     break;
-  case INDEX_POST:
+  case IndexType::Post:
     type_encode = 0b001;
     break;
-  case INDEX_PRE:
+  case IndexType::Pre:
     type_encode = 0b011;
     break;
-  case INDEX_UNSIGNED:
-    ASSERT_MSG(DYNA_REC, false, "%s doesn't support INDEX_UNSIGNED!", __func__);
+  case IndexType::Unsigned:
+    ASSERT_MSG(DYNA_REC, false, "%s doesn't support IndexType::Unsigned!", __func__);
     break;
   }
 
@@ -2632,6 +2621,8 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
   Rt2 = DecodeReg(Rt2);
   Rn = DecodeReg(Rn);
 
+  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair!");
+
   Write32((opc << 30) | (0b1011 << 26) | (type_encode << 23) | (load << 22) | ((imm & 0x7F) << 15) |
           (Rt2 << 10) | (Rn << 5) | Rt);
 }
@@ -2639,8 +2630,7 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
 void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64Reg Rt, ARM64Reg Rn,
                                                       ArithOption Rm)
 {
-  ASSERT_MSG(DYNA_REC, Rm.GetType() == ArithOption::TYPE_EXTENDEDREG,
-             "%s must contain an extended reg as Rm!", __func__);
+  ASSERT_MSG(DYNA_REC, Rm.IsExtended(), "%s must contain an extended reg as Rm!", __func__);
 
   u32 encoded_size = 0;
   u32 encoded_op = 0;
@@ -3019,7 +3009,7 @@ void ARM64FloatEmitter::LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM6
 {
   ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!",
              __func__);
-  ASSERT_MSG(DYNA_REC, type == INDEX_POST, "%s only supports post indexing!", __func__);
+  ASSERT_MSG(DYNA_REC, type == IndexType::Post, "%s only supports post indexing!", __func__);
 
   u32 opcode = 0;
   if (count == 1)
@@ -3052,7 +3042,7 @@ void ARM64FloatEmitter::ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM6
 {
   ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!",
              __func__);
-  ASSERT_MSG(DYNA_REC, type == INDEX_POST, "%s only supports post indexing!", __func__);
+  ASSERT_MSG(DYNA_REC, type == IndexType::Post, "%s only supports post indexing!", __func__);
 
   u32 opcode = 0;
   if (count == 1)
@@ -3979,7 +3969,7 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
       if (count == 1)
         island_regs.push_back((ARM64Reg)(Q0 + i));
       else
-        ST1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), tmp);
+        ST1(64, count, IndexType::Post, (ARM64Reg)(Q0 + i), tmp);
 
       i += count - 1;
     }
@@ -3991,12 +3981,12 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
       pair_regs.push_back(it);
       if (pair_regs.size() == 2)
       {
-        STP(128, INDEX_POST, pair_regs[0], pair_regs[1], tmp, 32);
+        STP(128, IndexType::Post, pair_regs[0], pair_regs[1], tmp, 32);
         pair_regs.clear();
       }
     }
     if (pair_regs.size())
-      STR(128, INDEX_POST, pair_regs[0], tmp, 16);
+      STR(128, IndexType::Post, pair_regs[0], tmp, 16);
   }
   else
   {
@@ -4006,12 +3996,12 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
       pair_regs.push_back((ARM64Reg)(Q0 + it));
       if (pair_regs.size() == 2)
       {
-        STP(128, INDEX_PRE, pair_regs[0], pair_regs[1], SP, -32);
+        STP(128, IndexType::Pre, pair_regs[0], pair_regs[1], SP, -32);
         pair_regs.clear();
       }
     }
     if (pair_regs.size())
-      STR(128, INDEX_PRE, pair_regs[0], SP, -16);
+      STR(128, IndexType::Pre, pair_regs[0], SP, -16);
   }
 }
 void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
@@ -4052,7 +4042,7 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
       if (count == 1)
         island_regs.push_back((ARM64Reg)(Q0 + i));
       else
-        LD1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), SP);
+        LD1(64, count, IndexType::Post, (ARM64Reg)(Q0 + i), SP);
 
       i += count - 1;
     }
@@ -4064,12 +4054,12 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
       pair_regs.push_back(it);
       if (pair_regs.size() == 2)
       {
-        LDP(128, INDEX_POST, pair_regs[0], pair_regs[1], SP, 32);
+        LDP(128, IndexType::Post, pair_regs[0], pair_regs[1], SP, 32);
         pair_regs.clear();
       }
     }
     if (pair_regs.size())
-      LDR(128, INDEX_POST, pair_regs[0], SP, 16);
+      LDR(128, IndexType::Post, pair_regs[0], SP, 16);
   }
   else
   {
@@ -4084,14 +4074,14 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
       {
         // First load must be a regular LDR if odd
         odd = false;
-        LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
+        LDR(128, IndexType::Post, (ARM64Reg)(Q0 + i), SP, 16);
       }
       else
       {
         pair_regs.push_back((ARM64Reg)(Q0 + i));
         if (pair_regs.size() == 2)
         {
-          LDP(128, INDEX_POST, pair_regs[1], pair_regs[0], SP, 32);
+          LDP(128, IndexType::Post, pair_regs[1], pair_regs[0], SP, 32);
           pair_regs.clear();
         }
       }
@@ -4101,11 +4091,12 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 
 void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
   if (!Is64Bit(Rn))
     imm &= 0xFFFFFFFF;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4120,9 +4111,9 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4137,9 +4128,9 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4154,9 +4145,9 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  unsigned int n, imm_s, imm_r;
-  if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
+    const auto& [n, imm_s, imm_r] = *result;
     ANDS(Rd, Rn, imm_r, imm_s, n != 0);
   }
   else
@@ -4282,76 +4273,79 @@ void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     ADD(Rd, Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     SUB(Rd, Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
+  if (const auto result = IsImmArithmetic(imm))
+  {
+    const auto [val, shift] = *result;
     CMP(Rn, val, shift);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 {
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
+  if (const auto result = IsImmLogical(imm, 32))
+  {
+    const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool negate)
 {
   ASSERT_MSG(DYNA_REC, !IsDouble(Rd), "MOVI2F does not yet support double precision");
-  uint8_t imm8;
-  if (value == 0.0)
+
+  if (value == 0.0f)
   {
     FMOV(Rd, IsDouble(Rd) ? ZR : WZR);
     if (negate)
@@ -4359,9 +4353,9 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
     // TODO: There are some other values we could generate with the float-imm instruction, like
     // 1.0...
   }
-  else if (FPImm8FromFloat(value, &imm8))
+  else if (const auto imm = FPImm8FromFloat(value))
   {
-    FMOV(Rd, imm8);
+    FMOV(Rd, *imm);
   }
   else
   {

@@ -17,8 +17,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 121;  // Last changed in PR 8988
+constexpr u32 STATE_VERSION = 128;  // Last changed in PR 9366
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -99,11 +99,11 @@ enum
   STATE_LOAD = 2,
 };
 
-static bool g_use_compression = true;
+static bool s_use_compression = true;
 
 void EnableCompression(bool compression)
 {
-  g_use_compression = compression;
+  s_use_compression = compression;
 }
 
 // Returns true if state version matches current Dolphin state version, false otherwise.
@@ -213,10 +213,6 @@ static void DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
-
-#if defined(HAVE_FFMPEG)
-  FrameDump::DoState();
-#endif
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
@@ -311,7 +307,7 @@ struct CompressAndDumpState_args
 
 static void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
-  std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
+  std::lock_guard lk(*save_args.buffer_mutex);
 
   // ScopeGuard is used here to ensure that g_compressAndDumpStateSyncEvent.Set()
   // will be called and that it will happen after the IOFile is closed.
@@ -362,7 +358,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   // Setting up the header
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.gameID, std::size(header.gameID));
-  header.size = g_use_compression ? (u32)buffer_size : 0;
+  header.size = s_use_compression ? (u32)buffer_size : 0;
   header.time = Common::Timer::GetDoubleTime();
 
   f.WriteArray(&header, 1);
@@ -385,7 +381,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
       }
 
       if (lzo1x_1_compress(buffer_data + i, cur_len, out, &out_len, wrkmem) != LZO_E_OK)
-        PanicAlertT("Internal LZO Error - compression failed");
+        PanicAlertFmtT("Internal LZO Error - compression failed");
 
       // The size of the data to write is 'out_len'
       f.WriteArray((lzo_uint32*)&out_len, 1);
@@ -423,7 +419,7 @@ void SaveAs(const std::string& filename, bool wait)
 
         // Then actually do the write.
         {
-          std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+          std::lock_guard lk(g_cs_current_buffer);
           g_current_buffer.resize(buffer_size);
           ptr = &g_current_buffer[0];
           p.SetMode(PointerWrap::MODE_WRITE);
@@ -459,14 +455,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
 {
   Flush();
   File::IOFile f(filename, "rb");
-  if (!f)
-  {
-    Core::DisplayMessage("State not found", 2000);
-    return false;
-  }
-
-  f.ReadArray(&header, 1);
-  return true;
+  return f.ReadArray(&header, 1);
 }
 
 std::string GetInfoStringOfSlot(int slot, bool translate)
@@ -482,18 +471,28 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   return Common::Timer::GetDateTimeFormatted(header.time);
 }
 
+u64 GetUnixTimeOfSlot(int slot)
+{
+  State::StateHeader header;
+  if (!ReadHeader(MakeStateFilename(slot), header))
+    return 0;
+
+  constexpr u64 MS_PER_SEC = 1000;
+  return static_cast<u64>(header.time * MS_PER_SEC) +
+         (Common::Timer::DOUBLE_TIME_OFFSET * MS_PER_SEC);
+}
+
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
   Flush();
   File::IOFile f(filename, "rb");
-  if (!f)
+
+  StateHeader header;
+  if (!f.ReadArray(&header, 1))
   {
     Core::DisplayMessage("State not found", 2000);
     return;
   }
-
-  StateHeader header;
-  f.ReadArray(&header, 1);
 
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
@@ -525,9 +524,9 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
       if (res != LZO_E_OK)
       {
         // This doesn't seem to happen anymore.
-        PanicAlertT("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
-                    "Try loading the state again",
-                    res, i, new_len);
+        PanicAlertFmtT("Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
+                       "Try loading the state again",
+                       res, i, new_len);
         return;
       }
 
@@ -536,12 +535,12 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   }
   else  // uncompressed
   {
-    const size_t size = (size_t)(f.GetSize() - sizeof(StateHeader));
+    const auto size = static_cast<size_t>(f.GetSize() - sizeof(StateHeader));
     buffer.resize(size);
 
     if (!f.ReadBytes(&buffer[0], size))
     {
-      PanicAlert("wtf? reading bytes: %zu", size);
+      PanicAlertFmt("Error reading bytes: {0}", size);
       return;
     }
   }
@@ -569,7 +568,7 @@ void LoadAs(const std::string& filename)
         // Save temp buffer for undo load state
         if (!Movie::IsJustStartingRecordingInputFromSaveState())
         {
-          std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+          std::lock_guard lk(g_cs_undo_load_buffer);
           SaveToBuffer(g_undo_load_buffer);
           if (Movie::IsMovieActive())
             Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
@@ -631,7 +630,7 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 void Init()
 {
   if (lzo_init() != LZO_E_OK)
-    PanicAlertT("Internal LZO Error - lzo_init() failed");
+    PanicAlertFmtT("Internal LZO Error - lzo_init() failed");
 }
 
 void Shutdown()
@@ -642,12 +641,12 @@ void Shutdown()
   // this gives a better guarantee to free the allocated memory right NOW (as opposed to, actually,
   // never)
   {
-    std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+    std::lock_guard lk(g_cs_current_buffer);
     std::vector<u8>().swap(g_current_buffer);
   }
 
   {
-    std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+    std::lock_guard lk(g_cs_undo_load_buffer);
     std::vector<u8>().swap(g_undo_load_buffer);
   }
 }
@@ -709,7 +708,7 @@ void Flush()
 // Load the last state before loading the state
 void UndoLoadState()
 {
-  std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+  std::lock_guard lk(g_cs_undo_load_buffer);
   if (!g_undo_load_buffer.empty())
   {
     if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))
@@ -720,12 +719,12 @@ void UndoLoadState()
     }
     else
     {
-      PanicAlertT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
     }
   }
   else
   {
-    PanicAlertT("There is nothing to undo!");
+    PanicAlertFmtT("There is nothing to undo!");
   }
 }
 

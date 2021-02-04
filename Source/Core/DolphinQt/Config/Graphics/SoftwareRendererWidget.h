@@ -6,10 +6,10 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
+class GraphicsBool;
 class GraphicsWindow;
-class QCheckBox;
-class QComboBox;
 class QSpinBox;
+class ToolTipComboBox;
 
 class SoftwareRendererWidget final : public GraphicsWidget
 {
@@ -30,12 +30,12 @@ private:
 
   void OnEmulationStateChanged(bool running);
 
-  QComboBox* m_backend_combo;
-  QCheckBox* m_show_statistics;
-  QCheckBox* m_dump_textures;
-  QCheckBox* m_dump_objects;
-  QCheckBox* m_dump_tev_stages;
-  QCheckBox* m_dump_tev_fetches;
+  ToolTipComboBox* m_backend_combo;
+  GraphicsBool* m_show_statistics;
+  GraphicsBool* m_dump_textures;
+  GraphicsBool* m_dump_objects;
+  GraphicsBool* m_dump_tev_stages;
+  GraphicsBool* m_dump_tev_fetches;
 
   QSpinBox* m_object_range_min;
   QSpinBox* m_object_range_max;

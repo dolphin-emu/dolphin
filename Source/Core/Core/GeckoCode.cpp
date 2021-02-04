@@ -66,7 +66,7 @@ static std::mutex s_active_codes_lock;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+  std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
   if (SConfig::GetInstance().bEnableCheats)
@@ -98,7 +98,7 @@ void UpdateSyncedCodes(const std::vector<GeckoCode>& gcodes)
 
 std::vector<GeckoCode> SetAndReturnActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+  std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
   if (SConfig::GetInstance().bEnableCheats)
@@ -121,13 +121,14 @@ static Installation InstallCodeHandlerLocked()
   std::string data;
   if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
   {
-    ERROR_LOG(ACTIONREPLAY, "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
+    ERROR_LOG_FMT(ACTIONREPLAY,
+                  "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
     return Installation::Failed;
   }
 
   if (data.size() > INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS - CODE_SIZE)
   {
-    ERROR_LOG(ACTIONREPLAY, GECKO_CODE_HANDLER " is too big. The file may be corrupt.");
+    ERROR_LOG_FMT(ACTIONREPLAY, GECKO_CODE_HANDLER " is too big. The file may be corrupt.");
     return Installation::Failed;
   }
 
@@ -147,7 +148,7 @@ static Installation InstallCodeHandlerLocked()
     // Patch MMIO address
     if (PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000u | ((mmio_addr ^ 1) << 8)))
     {
-      NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", INSTALLER_BASE_ADDRESS + h);
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Patching MMIO access at {:08x}", INSTALLER_BASE_ADDRESS + h);
       PowerPC::HostWrite_U32(0x3f000000u | mmio_addr << 8, INSTALLER_BASE_ADDRESS + h);
     }
   }
@@ -175,11 +176,11 @@ static Installation InstallCodeHandlerLocked()
     // If the code is not going to fit in the space we have left then we have to skip it
     if (next_address + active_code.codes.size() * CODE_SIZE > end_address)
     {
-      NOTICE_LOG(ACTIONREPLAY,
-                 "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
-                 "not write: \"%s\". Need %zu bytes, only %u remain.",
-                 active_code.name.c_str(), active_code.codes.size() * CODE_SIZE,
-                 end_address - next_address);
+      NOTICE_LOG_FMT(ACTIONREPLAY,
+                     "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                     "not write: \"{}\". Need {} bytes, only {} remain.",
+                     active_code.name, active_code.codes.size() * CODE_SIZE,
+                     end_address - next_address);
       continue;
     }
 
@@ -191,8 +192,8 @@ static Installation InstallCodeHandlerLocked()
     }
   }
 
-  WARN_LOG(ACTIONREPLAY, "GeckoCodes: Using %u of %u bytes", next_address - start_address,
-           end_address - start_address);
+  WARN_LOG_FMT(ACTIONREPLAY, "GeckoCodes: Using {} of {} bytes", next_address - start_address,
+               end_address - start_address);
 
   // Stop code. Tells the handler that this is the end of the list.
   PowerPC::HostWrite_U32(0xF0000000, next_address);
@@ -217,14 +218,14 @@ static Installation InstallCodeHandlerLocked()
 // modifications will be reset]
 void DoState(PointerWrap& p)
 {
-  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  std::lock_guard codes_lock(s_active_codes_lock);
   p.Do(s_code_handler_installed);
   // FIXME: The active codes list will disagree with the embedded GCT
 }
 
 void Shutdown()
 {
-  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  std::lock_guard codes_lock(s_active_codes_lock);
   s_active_codes.clear();
   s_code_handler_installed = Installation::Uninstalled;
 }
@@ -236,7 +237,7 @@ void RunCodeHandler()
 
   // NOTE: Need to release the lock because of GUI deadlocks with PanicAlert in HostWrite_*
   {
-    std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+    std::lock_guard codes_lock(s_active_codes_lock);
     if (s_code_handler_installed != Installation::Installed)
     {
       // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be
@@ -275,10 +276,10 @@ void RunCodeHandler()
     PowerPC::HostWrite_U64(rPS(i).PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
     PowerPC::HostWrite_U64(rPS(i).PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
   }
-  DEBUG_LOG(ACTIONREPLAY,
-            "GeckoCodes: Initiating phantom branch-and-link. "
-            "PC = 0x%08X, SP = 0x%08X, SFP = 0x%08X",
-            PC, SP, SFP);
+  DEBUG_LOG_FMT(ACTIONREPLAY,
+                "GeckoCodes: Initiating phantom branch-and-link. "
+                "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
+                PC, SP, SFP);
   LR = HLE_TRAMPOLINE_ADDRESS;
   PC = NPC = ENTRY_POINT;
 }

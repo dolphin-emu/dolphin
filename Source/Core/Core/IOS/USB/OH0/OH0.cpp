@@ -28,7 +28,7 @@ OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name
 
 OH0::~OH0()
 {
-  StopThreads();
+  m_scan_thread.Stop();
 }
 
 IPCCommandResult OH0::Open(const OpenRequest& request)
@@ -54,7 +54,7 @@ IPCCommandResult OH0::IOCtl(const IOCtlRequest& request)
 
 IPCCommandResult OH0::IOCtlV(const IOCtlVRequest& request)
 {
-  INFO_LOG(IOS_USB, "/dev/usb/oh0 - IOCtlV %u", request.request);
+  INFO_LOG_FMT(IOS_USB, "/dev/usb/oh0 - IOCtlV {}", request.request);
   switch (request.request)
   {
   case USB::IOCTLV_USBV0_GETDEVLIST:
@@ -111,7 +111,7 @@ IPCCommandResult OH0::GetDeviceList(const IOCtlVRequest& request) const
 
   const u8 interface_class = Memory::Read_U8(request.in_vectors[1].address);
   u8 entries_count = 0;
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   for (const auto& device : m_devices)
   {
     if (entries_count >= max_entries_count)
@@ -145,7 +145,7 @@ IPCCommandResult OH0::GetRhPortStatus(const IOCtlVRequest& request) const
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(IPC_EINVAL);
 
-  ERROR_LOG(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_GETRHPORTSTATUS");
+  ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_GETRHPORTSTATUS");
   request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -155,14 +155,14 @@ IPCCommandResult OH0::SetRhPortStatus(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 0))
     return GetDefaultReply(IPC_EINVAL);
 
-  ERROR_LOG(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_SETRHPORTSTATUS");
+  ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_SETRHPORTSTATUS");
   request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult OH0::RegisterRemovalHook(const u64 device_id, const IOCtlRequest& request)
 {
-  std::lock_guard<std::mutex> lock{m_hooks_mutex};
+  std::lock_guard lock{m_hooks_mutex};
   // IOS only allows a single device removal hook.
   if (m_removal_hooks.find(device_id) != m_removal_hooks.end())
     return GetDefaultReply(IPC_EEXIST);
@@ -180,7 +180,7 @@ IPCCommandResult OH0::RegisterInsertionHook(const IOCtlVRequest& request)
   if (HasDeviceWithVidPid(vid, pid))
     return GetDefaultReply(IPC_SUCCESS);
 
-  std::lock_guard<std::mutex> lock{m_hooks_mutex};
+  std::lock_guard lock{m_hooks_mutex};
   // TODO: figure out whether IOS allows more than one hook.
   m_insertion_hooks[{vid, pid}] = request.address;
   return GetNoReply();
@@ -191,7 +191,7 @@ IPCCommandResult OH0::RegisterInsertionHookWithID(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(3, 1))
     return GetDefaultReply(IPC_EINVAL);
 
-  std::lock_guard<std::mutex> lock{m_hooks_mutex};
+  std::lock_guard lock{m_hooks_mutex};
   const u16 vid = Memory::Read_U16(request.in_vectors[0].address);
   const u16 pid = Memory::Read_U16(request.in_vectors[1].address);
   const bool trigger_only_for_new_device = Memory::Read_U8(request.in_vectors[2].address) == 1;
@@ -208,7 +208,7 @@ IPCCommandResult OH0::RegisterClassChangeHook(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
     return GetDefaultReply(IPC_EINVAL);
-  WARN_LOG(IOS_USB, "Unimplemented IOCtlV: USB::IOCTLV_USBV0_DEVICECLASSCHANGE (no reply)");
+  WARN_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: USB::IOCTLV_USBV0_DEVICECLASSCHANGE (no reply)");
   request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LWARNING);
   return GetNoReply();
 }
@@ -222,7 +222,7 @@ bool OH0::HasDeviceWithVidPid(const u16 vid, const u16 pid) const
 
 void OH0::OnDeviceChange(const ChangeEvent event, std::shared_ptr<USB::Device> device)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   if (event == ChangeEvent::Inserted)
     TriggerHook(m_insertion_hooks, {device->GetVid(), device->GetPid()}, IPC_SUCCESS);
   else if (event == ChangeEvent::Removed)
@@ -232,7 +232,7 @@ void OH0::OnDeviceChange(const ChangeEvent event, std::shared_ptr<USB::Device> d
 template <typename T>
 void OH0::TriggerHook(std::map<T, u32>& hooks, T value, const ReturnCode return_value)
 {
-  std::lock_guard<std::mutex> lk{m_hooks_mutex};
+  std::lock_guard lk{m_hooks_mutex};
   const auto hook = hooks.find(value);
   if (hook == hooks.end())
     return;
@@ -242,7 +242,7 @@ void OH0::TriggerHook(std::map<T, u32>& hooks, T value, const ReturnCode return_
 
 std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
 
   bool has_device_with_vid_pid = false;
   for (const auto& device : m_devices)

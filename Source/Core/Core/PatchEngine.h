@@ -27,13 +27,16 @@ struct PatchEntry
   PatchType type = PatchType::Patch8Bit;
   u32 address = 0;
   u32 value = 0;
+  u32 comparand = 0;
+  bool conditional = false;
 };
 
 struct Patch
 {
   std::string name;
   std::vector<PatchEntry> entries;
-  bool active = false;
+  bool enabled = false;
+  bool default_enabled = false;
   bool user_defined = false;  // False if this code is shipped with Dolphin.
 };
 

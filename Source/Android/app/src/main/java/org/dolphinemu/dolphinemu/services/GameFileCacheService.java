@@ -29,9 +29,10 @@ public final class GameFileCacheService extends IntentService
   private static final String ACTION_RESCAN = "org.dolphinemu.dolphinemu.RESCAN_GAME_FILE_CACHE";
 
   private static GameFileCache gameFileCache = null;
-  private static AtomicReference<GameFile[]> gameFiles = new AtomicReference<>(new GameFile[]{});
-  private static AtomicBoolean hasLoadedCache = new AtomicBoolean(false);
-  private static AtomicBoolean hasScannedLibrary = new AtomicBoolean(false);
+  private static final AtomicReference<GameFile[]> gameFiles =
+          new AtomicReference<>(new GameFile[]{});
+  private static final AtomicBoolean hasLoadedCache = new AtomicBoolean(false);
+  private static final AtomicBoolean hasScannedLibrary = new AtomicBoolean(false);
 
   public GameFileCacheService()
   {
@@ -86,6 +87,15 @@ public final class GameFileCacheService extends IntentService
     return matchWithoutRevision;
   }
 
+  public static String[] findSecondDiscAndGetPaths(GameFile gameFile)
+  {
+    GameFile secondFile = findSecondDisc(gameFile);
+    if (secondFile == null)
+      return new String[]{gameFile.getPath()};
+    else
+      return new String[]{gameFile.getPath(), secondFile.getPath()};
+  }
+
   public static boolean hasLoadedCache()
   {
     return hasLoadedCache.get();
@@ -109,7 +119,7 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startLoad(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context,
+    new AfterDirectoryInitializationRunner().run(context, false,
             () -> startService(context, ACTION_LOAD));
   }
 
@@ -120,7 +130,7 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startRescan(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context,
+    new AfterDirectoryInitializationRunner().run(context, false,
             () -> startService(context, ACTION_RESCAN));
   }
 
@@ -157,7 +167,7 @@ public final class GameFileCacheService extends IntentService
     {
       synchronized (gameFileCache)
       {
-        boolean changed = gameFileCache.scanLibrary(this);
+        boolean changed = gameFileCache.scanLibrary();
         if (changed)
           updateGameFileArray();
         hasScannedLibrary.set(true);

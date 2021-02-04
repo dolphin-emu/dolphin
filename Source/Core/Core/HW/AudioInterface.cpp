@@ -149,8 +149,8 @@ void Init()
   s_last_cpu_time = 0;
   s_cpu_cycles_per_sample = 0xFFFFFFFFFFFULL;
 
-  s_ais_sample_rate = 48000;
-  s_aid_sample_rate = 32000;
+  s_ais_sample_rate = Get48KHzSampleRate();
+  s_aid_sample_rate = Get32KHzSampleRate();
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
 }
@@ -168,13 +168,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
         if (s_control.AIINTMSK != tmp_ai_ctrl.AIINTMSK)
         {
-          DEBUG_LOG(AUDIO_INTERFACE, "Change AIINTMSK to %d", tmp_ai_ctrl.AIINTMSK);
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTMSK to {}", tmp_ai_ctrl.AIINTMSK);
           s_control.AIINTMSK = tmp_ai_ctrl.AIINTMSK;
         }
 
         if (s_control.AIINTVLD != tmp_ai_ctrl.AIINTVLD)
         {
-          DEBUG_LOG(AUDIO_INTERFACE, "Change AIINTVLD to %d", tmp_ai_ctrl.AIINTVLD);
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTVLD to {}", tmp_ai_ctrl.AIINTVLD);
           s_control.AIINTVLD = tmp_ai_ctrl.AIINTVLD;
         }
 
@@ -182,31 +182,28 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         if (tmp_ai_ctrl.AISFR != s_control.AISFR)
         {
           // AISFR rates below are intentionally inverted wrt yagcd
-          DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AISFR to {}",
+                        tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
           s_control.AISFR = tmp_ai_ctrl.AISFR;
-          if (SConfig::GetInstance().bWii)
-            s_ais_sample_rate = tmp_ai_ctrl.AISFR ? 48000 : 32000;
-          else
-            s_ais_sample_rate = tmp_ai_ctrl.AISFR ? 48043 : 32029;
+          s_ais_sample_rate = tmp_ai_ctrl.AISFR ? Get48KHzSampleRate() : Get32KHzSampleRate();
           g_sound_stream->GetMixer()->SetStreamInputSampleRate(s_ais_sample_rate);
           s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
         }
         // Set frequency of DMA
         if (tmp_ai_ctrl.AIDFR != s_control.AIDFR)
         {
-          DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIDFR to {}",
+                        tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
           s_control.AIDFR = tmp_ai_ctrl.AIDFR;
-          if (SConfig::GetInstance().bWii)
-            s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? 32000 : 48000;
-          else
-            s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? 32029 : 48043;
+          s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? Get32KHzSampleRate() : Get48KHzSampleRate();
           g_sound_stream->GetMixer()->SetDMAInputSampleRate(s_aid_sample_rate);
         }
 
         // Streaming counter
         if (tmp_ai_ctrl.PSTAT != s_control.PSTAT)
         {
-          DEBUG_LOG(AUDIO_INTERFACE, "%s streaming audio", tmp_ai_ctrl.PSTAT ? "start" : "stop");
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "{} streaming audio",
+                        tmp_ai_ctrl.PSTAT ? "start" : "stop");
           s_control.PSTAT = tmp_ai_ctrl.PSTAT;
           s_last_cpu_time = CoreTiming::GetTicks();
 
@@ -217,14 +214,14 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         // AI Interrupt
         if (tmp_ai_ctrl.AIINT)
         {
-          DEBUG_LOG(AUDIO_INTERFACE, "Clear AIS Interrupt");
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Clear AIS Interrupt");
           s_control.AIINT = 0;
         }
 
         // Sample Count Reset
         if (tmp_ai_ctrl.SCRESET)
         {
-          DEBUG_LOG(AUDIO_INTERFACE, "Reset AIS sample counter");
+          DEBUG_LOG_FMT(AUDIO_INTERFACE, "Reset AIS sample counter");
           s_sample_counter = 0;
 
           s_last_cpu_time = CoreTiming::GetTicks();
@@ -253,8 +250,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | AI_INTERRUPT_TIMING, MMIO::DirectRead<u32>(&s_interrupt_timing),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   DEBUG_LOG(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING=%08x@%08x", val,
-                             PowerPC::ppcState.pc);
+                   DEBUG_LOG_FMT(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING={:08x} at PC: {:08x}", val,
+                                 PowerPC::ppcState.pc);
                    s_interrupt_timing = val;
                    CoreTiming::RemoveEvent(event_type_ai);
                    CoreTiming::ScheduleEvent(GetAIPeriod(), event_type_ai);
@@ -287,8 +284,9 @@ static void IncreaseSampleCount(const u32 amount)
 
     if ((s_interrupt_timing - old_sample_counter) <= (s_sample_counter - old_sample_counter))
     {
-      DEBUG_LOG(AUDIO_INTERFACE, "GenerateAudioInterrupt %08x:%08x @ %08x s_control.AIINTVLD=%d",
-                s_sample_counter, s_interrupt_timing, PowerPC::ppcState.pc, s_control.AIINTVLD);
+      DEBUG_LOG_FMT(AUDIO_INTERFACE,
+                    "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} s_control.AIINTVLD={}",
+                    s_sample_counter, s_interrupt_timing, PowerPC::ppcState.pc, s_control.AIINTVLD);
       GenerateAudioInterrupt();
     }
   }
@@ -299,9 +297,24 @@ bool IsPlaying()
   return (s_control.PSTAT == 1);
 }
 
-unsigned int GetAIDSampleRate()
+u32 GetAIDSampleRate()
 {
   return s_aid_sample_rate;
+}
+
+u32 GetAISSampleRate()
+{
+  return s_ais_sample_rate;
+}
+
+u32 Get32KHzSampleRate()
+{
+  return SConfig::GetInstance().bWii ? 32000 : 32029;
+}
+
+u32 Get48KHzSampleRate()
+{
+  return SConfig::GetInstance().bWii ? 48000 : 48043;
 }
 
 static void Update(u64 userdata, s64 cycles_late)

@@ -21,10 +21,10 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLShader.h"
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoBackends/OGL/OGLStreamBuffer.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -38,7 +38,7 @@
 namespace OGL
 {
 u32 ProgramShaderCache::s_ubo_buffer_size;
-s32 ProgramShaderCache::s_ubo_align;
+s32 ProgramShaderCache::s_ubo_align = 1;
 GLuint ProgramShaderCache::s_attributeless_VBO = 0;
 GLuint ProgramShaderCache::s_attributeless_VAO = 0;
 GLuint ProgramShaderCache::s_last_VAO = 0;
@@ -357,7 +357,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
 
     if (compileStatus != GL_TRUE)
     {
-      ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
+      ERROR_LOG_FMT(VIDEO, "{} failed compilation:\n{}", prefix, info_log);
 
       std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
       std::ofstream file;
@@ -368,15 +368,15 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
-      PanicAlert("Failed to compile %s shader: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
+      PanicAlertFmt("Failed to compile {} shader: {}\n"
+                    "Debug info ({}, {}, {}):\n{}",
+                    prefix, filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                    g_ogl_config.gl_version, info_log);
 
       return false;
     }
 
-    WARN_LOG(VIDEO, "%s compiled with warnings:\n%s", prefix, info_log.c_str());
+    WARN_LOG_FMT(VIDEO, "{} compiled with warnings:\n{}", prefix, info_log);
   }
 
   return true;
@@ -396,7 +396,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
     glGetProgramInfoLog(id, length, &length, &info_log[0]);
     if (linkStatus != GL_TRUE)
     {
-      ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
+      ERROR_LOG_FMT(VIDEO, "Program failed linking:\n{}", info_log);
       std::string filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
@@ -413,15 +413,15 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
-      PanicAlert("Failed to link shaders: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
+      PanicAlertFmt("Failed to link shaders: {}\n"
+                    "Debug info ({}, {}, {}):\n{}",
+                    filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                    g_ogl_config.gl_version, info_log);
 
       return false;
     }
 
-    WARN_LOG(VIDEO, "Program linked with warnings:\n%s", info_log.c_str());
+    WARN_LOG_FMT(VIDEO, "Program linked with warnings:\n{}", info_log);
   }
 
   return true;
@@ -554,7 +554,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     glGetProgramiv(prog->shader.glprogid, GL_LINK_STATUS, &link_status);
     if (link_status != GL_TRUE)
     {
-      WARN_LOG(VIDEO, "Failed to create GL program from program binary.");
+      WARN_LOG_FMT(VIDEO, "Failed to create GL program from program binary.");
       prog->shader.Destroy();
       return nullptr;
     }
@@ -847,7 +847,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
       static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
-    PanicAlert("Failed to create shared context for shader compiling.");
+    PanicAlertFmt("Failed to create shared context for shader compiling.");
     return false;
   }
 

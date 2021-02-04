@@ -41,7 +41,6 @@
 
 #include "DolphinQt/Config/PropertiesDialog.h"
 #include "DolphinQt/ConvertDialog.h"
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
 #include "DolphinQt/MenuBar.h"
@@ -54,27 +53,40 @@
 
 #include "UICommon/GameFile.h"
 
-GameList::GameList(QWidget* parent) : QStackedWidget(parent)
+#ifdef _WIN32
+#include <QCoreApplication>
+#include <shlobj.h>
+#include <wil/com.h>
+
+// This file uses some identifiers which are defined as macros in Windows headers.
+// Undefine them for the intellisense parser to solve some red squiggles.
+#ifdef __INTELLISENSE__
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
+#endif
+#endif
+
+GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
-  m_model = Settings::Instance().GetGameListModel();
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
   m_list_proxy->setSortRole(GameListModel::SORT_ROLE);
-  m_list_proxy->setSourceModel(m_model);
+  m_list_proxy->setSourceModel(&m_model);
   m_grid_proxy = new GridProxyModel(this);
-  m_grid_proxy->setSourceModel(m_model);
+  m_grid_proxy->setSourceModel(&m_model);
 
   MakeListView();
   MakeGridView();
   MakeEmptyView();
 
   if (Settings::GetQSettings().contains(QStringLiteral("gridview/scale")))
-    m_model->SetScale(Settings::GetQSettings().value(QStringLiteral("gridview/scale")).toFloat());
+    m_model.SetScale(Settings::GetQSettings().value(QStringLiteral("gridview/scale")).toFloat());
 
   connect(m_list, &QTableView::doubleClicked, this, &GameList::GameSelected);
   connect(m_grid, &QListView::doubleClicked, this, &GameList::GameSelected);
-  connect(m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
-  connect(m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
+  connect(&m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
+  connect(&m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
 
   addWidget(m_list);
   addWidget(m_grid);
@@ -94,7 +106,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 
 void GameList::PurgeCache()
 {
-  m_model->PurgeCache();
+  m_model.PurgeCache();
 }
 
 void GameList::MakeListView()
@@ -176,7 +188,7 @@ GameList::~GameList()
 {
   Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
                                     m_list->horizontalHeader()->saveState());
-  Settings::GetQSettings().setValue(QStringLiteral("gridview/scale"), m_model->GetScale());
+  Settings::GetQSettings().setValue(QStringLiteral("gridview/scale"), m_model.GetScale());
 }
 
 void GameList::UpdateColumnVisibility()
@@ -205,9 +217,13 @@ void GameList::UpdateColumnVisibility()
 
 void GameList::MakeEmptyView()
 {
+  const QString refreshing_msg = tr("Refreshing...");
+  const QString empty_msg = tr("Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
+                               "Double-click here to set a games directory...");
+
   m_empty = new QLabel(this);
-  m_empty->setText(tr("Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
-                      "Double-click here to set a games directory..."));
+  m_empty->setText(refreshing_msg);
+  m_empty->setEnabled(false);
   m_empty->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
   auto event_filter = new DoubleClickEventFilter{m_empty};
@@ -218,6 +234,21 @@ void GameList::MakeEmptyView()
     if (!dir.isEmpty())
       Settings::Instance().AddPath(dir);
   });
+
+  QSizePolicy size_policy{m_empty->sizePolicy()};
+  size_policy.setRetainSizeWhenHidden(true);
+  m_empty->setSizePolicy(size_policy);
+
+  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
+          [this, refreshing_msg = refreshing_msg] {
+            m_empty->setText(refreshing_msg);
+            m_empty->setEnabled(false);
+          });
+  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this,
+          [this, empty_msg = empty_msg] {
+            m_empty->setText(empty_msg);
+            m_empty->setEnabled(true);
+          });
 }
 
 void GameList::resizeEvent(QResizeEvent* event)
@@ -263,18 +294,12 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
 
-  const auto can_convert = [](const std::shared_ptr<const UICommon::GameFile>& game) {
-    // Converting from TGC is temporarily disabled because PR #8738 was merged prematurely.
-    // The TGC check will be removed by PR #8644.
-    return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate() &&
-           game->GetBlobType() != DiscIO::BlobType::TGC;
-  };
-
   if (HasMultipleSelected())
   {
     const auto selected_games = GetSelectedGames();
 
-    if (std::all_of(selected_games.begin(), selected_games.end(), can_convert))
+    if (std::all_of(selected_games.begin(), selected_games.end(),
+                    [](const auto& game) { return game->ShouldAllowConversion(); }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
@@ -306,7 +331,7 @@ void GameList::ShowContextMenu(const QPoint&)
     {
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
 
-      if (can_convert(game))
+      if (game->ShouldAllowConversion())
         menu->addAction(tr("Convert File..."), this, &GameList::ConvertFile);
 
       QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
@@ -371,24 +396,31 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
+#ifdef _WIN32
+    menu->addAction(tr("Add Shortcut to Desktop"), this, [this] {
+      if (!AddShortcutToDesktop())
+      {
+        ModalMessageBox::critical(this, tr("Add Shortcut to Desktop"),
+                                  tr("There was an issue adding a shortcut to the desktop"));
+      }
+    });
+#endif
 
     menu->addSeparator();
-
-    auto* model = Settings::Instance().GetGameListModel();
 
     auto* tags_menu = menu->addMenu(tr("Tags"));
 
     auto path = game->GetFilePath();
-    auto game_tags = model->GetGameTags(path);
+    auto game_tags = m_model.GetGameTags(path);
 
-    for (const auto& tag : model->GetAllTags())
+    for (const auto& tag : m_model.GetAllTags())
     {
       auto* tag_action = tags_menu->addAction(tag);
 
       tag_action->setCheckable(true);
       tag_action->setChecked(game_tags.contains(tag));
 
-      connect(tag_action, &QAction::toggled, [path, tag, model](bool checked) {
+      connect(tag_action, &QAction::toggled, [path, tag, model = &m_model](bool checked) {
         if (!checked)
           model->RemoveGameTag(path, tag);
         else
@@ -403,9 +435,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
-    connect(netplay_host, &QAction::triggered, [this, game] {
-      emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier()));
-    });
+    connect(netplay_host, &QAction::triggered, [this, game] { emit NetPlayHost(*game); });
 
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       netplay_host->setEnabled(state == Core::State::Uninitialized);
@@ -445,8 +475,11 @@ void GameList::ExportWiiSave()
   QList<std::string> failed;
   for (const auto& game : GetSelectedGames())
   {
-    if (!WiiSave::Export(game->GetTitleID(), export_dir.toStdString()))
+    if (WiiSave::Export(game->GetTitleID(), export_dir.toStdString()) !=
+        WiiSave::CopyResult::Success)
+    {
       failed.push_back(game->GetName(UICommon::GameFile::Variant::LongAndPossiblyCustom));
+    }
   }
 
   if (!failed.isEmpty())
@@ -621,6 +654,41 @@ void GameList::OpenGCSaveFolder()
     ModalMessageBox::information(this, tr("Information"), tr("No save data found."));
 }
 
+#ifdef _WIN32
+bool GameList::AddShortcutToDesktop()
+{
+  auto init = wil::CoInitializeEx_failfast(COINIT_APARTMENTTHREADED);
+  auto shell_link = wil::CoCreateInstanceNoThrow<ShellLink, IShellLink>();
+  if (!shell_link)
+    return false;
+
+  std::wstring dolphin_path = QCoreApplication::applicationFilePath().toStdWString();
+  if (FAILED(shell_link->SetPath(dolphin_path.c_str())))
+    return false;
+
+  const auto game = GetSelectedGame();
+  const auto& file_path = game->GetFilePath();
+  std::wstring args = UTF8ToTStr("-e \"" + file_path + "\"");
+  if (FAILED(shell_link->SetArguments(args.c_str())))
+    return false;
+
+  wil::unique_cotaskmem_string desktop;
+  if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop)))
+    return false;
+
+  const auto& game_name = game->GetLongName();
+  std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
+  auto persist_file = shell_link.try_query<IPersistFile>();
+  if (!persist_file)
+    return false;
+
+  if (FAILED(persist_file->Save(desktop_path.c_str(), TRUE)))
+    return false;
+
+  return true;
+}
+#endif
+
 void GameList::DeleteFile()
 {
   ModalMessageBox confirm_dialog(this);
@@ -643,7 +711,7 @@ void GameList::DeleteFile()
 
         if (deletion_successful)
         {
-          m_model->RemoveGame(game->GetFilePath());
+          m_model.RemoveGame(game->GetFilePath());
         }
         else
         {
@@ -694,7 +762,7 @@ std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
   if (sel_model->hasSelection())
   {
     QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
-    return m_model->GetGameFile(model_index.row());
+    return m_model.GetGameFile(model_index.row());
   }
   return {};
 }
@@ -722,7 +790,7 @@ QList<std::shared_ptr<const UICommon::GameFile>> GameList::GetSelectedGames() co
     for (const auto& index : index_list)
     {
       QModelIndex model_index = proxy->mapToSource(index);
-      selected_list.push_back(m_model->GetGameFile(model_index.row()));
+      selected_list.push_back(m_model.GetGameFile(model_index.row()));
     }
   }
   return selected_list;
@@ -736,13 +804,18 @@ bool GameList::HasMultipleSelected() const
 
 std::shared_ptr<const UICommon::GameFile> GameList::FindGame(const std::string& path) const
 {
-  return m_model->FindGame(path);
+  return m_model.FindGame(path);
 }
 
 std::shared_ptr<const UICommon::GameFile>
 GameList::FindSecondDisc(const UICommon::GameFile& game) const
 {
-  return m_model->FindSecondDisc(game);
+  return m_model.FindSecondDisc(game);
+}
+
+std::string GameList::GetNetPlayName(const UICommon::GameFile& game) const
+{
+  return m_model.GetNetPlayName(game);
 }
 
 void GameList::SetViewColumn(int col, bool view)
@@ -759,7 +832,7 @@ void GameList::SetPreferredView(bool list)
 
 void GameList::ConsiderViewChange()
 {
-  if (m_model->rowCount(QModelIndex()) > 0)
+  if (m_model.rowCount(QModelIndex()) > 0)
   {
     if (m_prefer_list)
       setCurrentWidget(m_list);
@@ -908,7 +981,7 @@ void GameList::NewTag()
   if (tag.isEmpty())
     return;
 
-  Settings::Instance().GetGameListModel()->NewTag(tag);
+  m_model.NewTag(tag);
 }
 
 void GameList::DeleteTag()
@@ -918,12 +991,12 @@ void GameList::DeleteTag()
   if (tag.isEmpty())
     return;
 
-  Settings::Instance().GetGameListModel()->DeleteTag(tag);
+  m_model.DeleteTag(tag);
 }
 
 void GameList::SetSearchTerm(const QString& term)
 {
-  m_model->SetSearchTerm(term);
+  m_model.SetSearchTerm(term);
 
   m_list_proxy->invalidate();
   m_grid_proxy->invalidate();
@@ -933,7 +1006,7 @@ void GameList::SetSearchTerm(const QString& term)
 
 void GameList::ZoomIn()
 {
-  m_model->SetScale(m_model->GetScale() + 0.1);
+  m_model.SetScale(m_model.GetScale() + 0.1);
 
   m_list_proxy->invalidate();
   m_grid_proxy->invalidate();
@@ -943,10 +1016,10 @@ void GameList::ZoomIn()
 
 void GameList::ZoomOut()
 {
-  if (m_model->GetScale() <= 0.1)
+  if (m_model.GetScale() <= 0.1)
     return;
 
-  m_model->SetScale(m_model->GetScale() - 0.1);
+  m_model.SetScale(m_model.GetScale() - 0.1);
 
   m_list_proxy->invalidate();
   m_grid_proxy->invalidate();
@@ -958,7 +1031,7 @@ void GameList::UpdateFont()
 {
   QFont f;
 
-  f.setPointSizeF(m_model->GetScale() * f.pointSize());
+  f.setPointSizeF(m_model.GetScale() * f.pointSize());
 
   m_grid->setFont(f);
 }

@@ -16,7 +16,7 @@ namespace Gecko
 class GeckoCode
 {
 public:
-  GeckoCode() : enabled(false) {}
+  GeckoCode() = default;
   struct Code
   {
     u32 address = 0;
@@ -28,8 +28,9 @@ public:
   std::string name, creator;
   std::vector<std::string> notes;
 
-  bool enabled;
-  bool user_defined;
+  bool enabled = false;
+  bool default_enabled = false;
+  bool user_defined = false;
 
   bool Exist(u32 address, u32 data) const;
 };

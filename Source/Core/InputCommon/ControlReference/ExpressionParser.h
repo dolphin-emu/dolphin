@@ -9,7 +9,7 @@
 #include <optional>
 #include <string>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ciface::ExpressionParser
 {
@@ -26,6 +26,7 @@ enum TokenType
   TOK_VARIABLE,
   TOK_BAREWORD,
   TOK_COMMENT,
+  TOK_HOTKEY,
   // Binary Ops:
   TOK_BINARY_OPS_BEGIN,
   TOK_AND = TOK_BINARY_OPS_BEGIN,

@@ -7,7 +7,7 @@
 #include <QuartzCore/QuartzCore.h>
 
 #include "Common/Matrix.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ciface::Quartz
 {

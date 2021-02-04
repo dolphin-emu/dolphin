@@ -28,6 +28,8 @@
 
 namespace ciface::DualShockUDPClient
 {
+constexpr std::string_view DUALSHOCKUDP_SOURCE_NAME = "DSUClient";
+
 namespace Settings
 {
 const Config::Info<std::string> SERVER_ADDRESS{
@@ -215,7 +217,7 @@ static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, 
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
 
   while (s_hotplug_thread_running.IsSet())
   {
@@ -235,7 +237,7 @@ static void HotplugThreadFunc()
         if (server.m_socket.send(&list_ports, sizeof list_ports, server.m_address, server.m_port) !=
             sf::Socket::Status::Done)
         {
-          ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
+          ERROR_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
       }
     }
@@ -269,7 +271,7 @@ static void HotplugThreadFunc()
       }
     }
   }
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -302,7 +304,7 @@ static void StopHotplugThread()
 
 static void Restart()
 {
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient Restart");
 
   StopHotplugThread();
 
@@ -317,7 +319,7 @@ static void Restart()
     }
   }
 
-  PopulateDevices();  // remove devices
+  PopulateDevices();  // Only removes devices
 
   if (s_servers_enabled && !s_servers.empty())
     StartHotplugThread();
@@ -384,13 +386,16 @@ void Init()
 
 void PopulateDevices()
 {
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
+
+  // s_servers has already been updated so we can't use it to know which devices we removed,
+  // also it's good to remove all of them before adding new ones so that their id will be set
+  // correctly if they have the same name
+  g_controller_interface.RemoveDevice(
+      [](const auto* dev) { return dev->GetSource() == DUALSHOCKUDP_SOURCE_NAME; });
 
   for (auto& server : s_servers)
   {
-    g_controller_interface.RemoveDevice(
-        [&server](const auto* dev) { return dev->GetName() == server.m_description; });
-
     std::lock_guard lock{server.m_port_info_mutex};
     for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
     {
@@ -478,7 +483,7 @@ std::string Device::GetName() const
 
 std::string Device::GetSource() const
 {
-  return "DSUClient";
+  return std::string(DUALSHOCKUDP_SOURCE_NAME);
 }
 
 void Device::UpdateInput()
@@ -496,7 +501,9 @@ void Device::UpdateInput()
     msg.Finish();
     if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
         sf::Socket::Status::Done)
-      ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
+    }
   }
 
   // Receive and handle controller data

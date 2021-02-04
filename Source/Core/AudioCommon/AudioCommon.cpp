@@ -15,6 +15,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/AudioInterface.h"
 
 // This shouldn't be a global, at least not here.
 std::unique_ptr<SoundStream> g_sound_stream;
@@ -53,19 +54,24 @@ void InitSoundStream()
 
   if (!g_sound_stream)
   {
-    WARN_LOG(AUDIO, "Unknown backend %s, using %s instead.", backend.c_str(),
-             GetDefaultSoundBackend().c_str());
+    WARN_LOG_FMT(AUDIO, "Unknown backend {}, using {} instead.", backend, GetDefaultSoundBackend());
     backend = GetDefaultSoundBackend();
     g_sound_stream = CreateSoundStreamForBackend(GetDefaultSoundBackend());
   }
 
   if (!g_sound_stream || !g_sound_stream->Init())
   {
-    WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.", backend.c_str(),
-             BACKEND_NULLSOUND);
+    WARN_LOG_FMT(AUDIO, "Could not initialize backend {}, using {} instead.", backend,
+                 BACKEND_NULLSOUND);
     g_sound_stream = std::make_unique<NullSound>();
     g_sound_stream->Init();
   }
+
+  // Ideally these two calls would be done in AudioInterface::Init so that we don't
+  // need to have a dependency on AudioInterface here, but this has to be done
+  // after creating g_sound_stream (above) and before starting audio dumping (below)
+  g_sound_stream->GetMixer()->SetDMAInputSampleRate(AudioInterface::GetAIDSampleRate());
+  g_sound_stream->GetMixer()->SetStreamInputSampleRate(AudioInterface::GetAISSampleRate());
 
   UpdateSoundStream();
   SetSoundStreamRunning(true);
@@ -76,7 +82,7 @@ void InitSoundStream()
 
 void ShutdownSoundStream()
 {
-  INFO_LOG(AUDIO, "Shutting down sound stream");
+  INFO_LOG_FMT(AUDIO, "Shutting down sound stream");
 
   if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
     StopAudioDump();
@@ -84,7 +90,7 @@ void ShutdownSoundStream()
   SetSoundStreamRunning(false);
   g_sound_stream.reset();
 
-  INFO_LOG(AUDIO, "Done shutting down sound stream");
+  INFO_LOG_FMT(AUDIO, "Done shutting down sound stream");
 }
 
 std::string GetDefaultSoundBackend()
@@ -173,9 +179,9 @@ void SetSoundStreamRunning(bool running)
   if (g_sound_stream->SetRunning(running))
     return;
   if (running)
-    ERROR_LOG(AUDIO, "Error starting stream.");
+    ERROR_LOG_FMT(AUDIO, "Error starting stream.");
   else
-    ERROR_LOG(AUDIO, "Error stopping stream.");
+    ERROR_LOG_FMT(AUDIO, "Error stopping stream.");
 }
 
 void SendAIBuffer(const short* samples, unsigned int num_samples)

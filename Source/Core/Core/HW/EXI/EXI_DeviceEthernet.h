@@ -202,6 +202,9 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
+#if defined(__APPLE__)
+  TAPSERVER,
+#endif
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -337,7 +340,7 @@ private:
     void RecvStart() override;
     void RecvStop() override;
 
-  private:
+  protected:
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
     std::thread readThread;
@@ -355,6 +358,22 @@ private:
     int fd = -1;
 #endif
   };
+
+#if defined(__APPLE__)
+  class TAPServerNetworkInterface : public TAPNetworkInterface
+  {
+  public:
+    explicit TAPServerNetworkInterface(CEXIETHERNET* eth_ref) : TAPNetworkInterface(eth_ref) {}
+
+  public:
+    bool Activate() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+
+  private:
+    void ReadThreadHandler();
+  };
+#endif
 
   class XLinkNetworkInterface : public NetworkInterface
   {
@@ -383,7 +402,7 @@ private:
     bool m_bba_link_up = false;
     bool m_bba_failure_notified = false;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     sf::UdpSocket m_sf_socket;
     sf::IpAddress m_sf_recipient_ip;
     char m_in_frame[9004];

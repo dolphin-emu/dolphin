@@ -223,7 +223,7 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
   if (mode == "fake-completion")
     return GPUDeterminismMode::FakeCompletion;
 
-  NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+  NOTICE_LOG_FMT(BOOT, "Unknown GPU determinism mode {}", mode);
   return GPUDeterminismMode::Auto;
 }
 
@@ -401,7 +401,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     {
       const u32 wii_language =
           static_cast<u32>(StartUp.GetLanguageAdjustedForRegion(true, StartUp.m_region));
-      Config::SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
+      if (wii_language != Config::Get(Config::SYSCONF_LANGUAGE))
+        Config::SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
 
       const u8 country_code = static_cast<u8>(Config::Get(Config::SYSCONF_COUNTRY));
       if (StartUp.m_region != DiscIO::SysConfCountryToRegion(country_code))
@@ -429,7 +430,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
   // 1942 (Virtual Console) crash if the PAL60 option is enabled
-  if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region))
+  if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
   // Ensure any new settings are written to the SYSCONF
@@ -471,11 +472,11 @@ static void RestoreSYSCONF()
   for (const auto& setting : Config::SYSCONF_SETTINGS)
   {
     std::visit(
-        [&](auto& info) {
+        [&](auto* info) {
           // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
           // Otherwise we leave the new value in the SYSCONF.
-          if (Config::GetActiveLayerForConfig(info) == Config::LayerType::Base)
-            Config::SetBase(info, temp_layer.Get(info));
+          if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
+            Config::SetBase(*info, temp_layer.Get(*info));
         },
         setting.config_info);
   }

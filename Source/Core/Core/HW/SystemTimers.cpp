@@ -46,7 +46,6 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/HW/SystemTimers.h"
 
 #include <cfloat>
-#include <cinttypes>
 #include <cmath>
 #include <cstdlib>
 
@@ -180,7 +179,7 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
   u32 next_event = GetTicksPerSecond() / 1000;
 
   {
-    std::lock_guard<std::mutex> lk(s_emu_to_real_time_mutex);
+    std::lock_guard lk(s_emu_to_real_time_mutex);
     s_emu_to_real_time_ring_buffer[s_emu_to_real_time_index] = time - s_time_spent_sleeping;
     s_emu_to_real_time_index =
         (s_emu_to_real_time_index + 1) % s_emu_to_real_time_ring_buffer.size();
@@ -193,8 +192,8 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
     const s64 max_fallback = config.iTimingVariance * 1000;
     if (std::abs(diff) > max_fallback)
     {
-      DEBUG_LOG(COMMON, "system too %s, %" PRIi64 " ms skipped", diff < 0 ? "slow" : "fast",
-                std::abs(diff) - max_fallback);
+      DEBUG_LOG_FMT(COMMON, "system too {}, {} ms skipped", diff < 0 ? "slow" : "fast",
+                    std::abs(diff) - max_fallback);
       last_time = time - max_fallback;
     }
     else if (diff > 1000)
@@ -253,7 +252,7 @@ double GetEstimatedEmulationPerformance()
 {
   u64 ts_now, ts_before;  // In microseconds
   {
-    std::lock_guard<std::mutex> lk(s_emu_to_real_time_mutex);
+    std::lock_guard lk(s_emu_to_real_time_mutex);
     size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() - 1 :
                                                        s_emu_to_real_time_index - 1;
     size_t index_before = s_emu_to_real_time_index;

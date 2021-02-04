@@ -42,17 +42,18 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, CompressCB callback, void* arg)
+                    const std::string& outfile_path, CompressCB callback)
 {
   ASSERT(infile->IsDataSizeAccurate());
 
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
   {
-    PanicAlertT("Failed to open the output file \"%s\".\n"
-                "Check that you have permissions to write the target folder and that the media can "
-                "be written.",
-                outfile_path.c_str());
+    PanicAlertFmtT(
+        "Failed to open the output file \"{0}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
     return false;
   }
 
@@ -78,7 +79,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     if (i % progress_monitor == 0)
     {
       const bool was_cancelled =
-          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
+          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers);
       if (was_cancelled)
       {
         success = false;
@@ -89,15 +90,15 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     const u64 sz = std::min(buffer_size, infile->GetDataSize() - inpos);
     if (!infile->Read(inpos, sz, buffer.data()))
     {
-      PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+      PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
       success = false;
       break;
     }
     if (!outfile.WriteBytes(buffer.data(), sz))
     {
-      PanicAlertT("Failed to write the output file \"%s\".\n"
-                  "Check that you have enough space available on the target drive.",
-                  outfile_path.c_str());
+      PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
+                     "Check that you have enough space available on the target drive.",
+                     outfile_path);
       success = false;
       break;
     }

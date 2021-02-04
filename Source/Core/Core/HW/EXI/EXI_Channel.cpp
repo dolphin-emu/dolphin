@@ -9,6 +9,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
@@ -178,10 +179,10 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
 {
   DEBUG_ASSERT(device_num < NUM_DEVICES);
 
-  INFO_LOG(EXPANSIONINTERFACE,
-           "Changing EXI channel %d, device %d to type %d (notify software: %s)",
-           static_cast<int>(m_channel_id), device_num, static_cast<int>(device->m_device_type),
-           notify_presence_changed ? "true" : "false");
+  INFO_LOG_FMT(EXPANSIONINTERFACE,
+               "Changing EXI channel {}, device {} to type {} (notify software: {})", m_channel_id,
+               device_num, static_cast<int>(device->m_device_type),
+               notify_presence_changed ? "true" : "false");
 
   // Replace it with the new one
   m_devices[device_num] = std::move(device);

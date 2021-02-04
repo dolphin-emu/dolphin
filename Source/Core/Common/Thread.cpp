@@ -5,9 +5,11 @@
 #include "Common/Thread.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
+#include <processthreadsapi.h>
 #else
 #include <unistd.h>
 #endif
@@ -16,6 +18,8 @@
 #include <mach/mach.h>
 #elif defined BSD4_4 || defined __FreeBSD__ || defined __OpenBSD__
 #include <pthread_np.h>
+#elif defined __NetBSD__
+#include <sched.h>
 #elif defined __HAIKU__
 #include <OS.h>
 #endif
@@ -64,7 +68,7 @@ void SwitchCurrentThread()
 // Sets the debugger-visible name of the current thread.
 // Uses trick documented in:
 // https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
-void SetCurrentThreadName(const char* szThreadName)
+static void SetCurrentThreadNameViaException(const char* name)
 {
   static const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
@@ -79,7 +83,7 @@ void SetCurrentThreadName(const char* szThreadName)
 #pragma pack(pop)
 
   info.dwType = 0x1000;
-  info.szName = szThreadName;
+  info.szName = name;
   info.dwThreadID = static_cast<DWORD>(-1);
   info.dwFlags = 0;
 
@@ -92,13 +96,34 @@ void SetCurrentThreadName(const char* szThreadName)
   }
 }
 
+static void SetCurrentThreadNameViaApi(const char* name)
+{
+  // If possible, also set via the newer API. On some versions of Server it needs to be manually
+  // resolved. This API allows being able to observe the thread name even if a debugger wasn't
+  // attached when the name was set (see above link for more info).
+  static auto pSetThreadDescription = (decltype(&SetThreadDescription))GetProcAddress(
+      GetModuleHandleA("kernel32"), "SetThreadDescription");
+  if (pSetThreadDescription)
+  {
+    pSetThreadDescription(GetCurrentThread(), UTF8ToWString(name).c_str());
+  }
+}
+
+void SetCurrentThreadName(const char* name)
+{
+  SetCurrentThreadNameViaException(name);
+  SetCurrentThreadNameViaApi(name);
+}
+
 #else  // !WIN32, so must be POSIX threads
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
 #ifdef __APPLE__
   thread_policy_set(pthread_mach_thread_np(thread), THREAD_AFFINITY_POLICY, (integer_t*)&mask, 1);
-#elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__) && !(defined ANDROID)
+#elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__ || defined __NetBSD__) &&        \
+    !(defined ANDROID)
+#ifndef __NetBSD__
 #ifdef __FreeBSD__
   cpuset_t cpu_set;
 #else
@@ -111,6 +136,16 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
       CPU_SET(i, &cpu_set);
 
   pthread_setaffinity_np(thread, sizeof(cpu_set), &cpu_set);
+#else
+  cpuset_t* cpu_set = cpuset_create();
+
+  for (int i = 0; i != sizeof(mask) * 8; ++i)
+    if ((mask >> i) & 1)
+      cpuset_set(i, cpu_set);
+
+  pthread_setaffinity_np(thread, cpuset_size(cpu_set), cpu_set);
+  cpuset_destroy(cpu_set);
+#endif
 #endif
 }
 
@@ -129,22 +164,24 @@ void SwitchCurrentThread()
   usleep(1000 * 1);
 }
 
-void SetCurrentThreadName(const char* szThreadName)
+void SetCurrentThreadName(const char* name)
 {
 #ifdef __APPLE__
-  pthread_setname_np(szThreadName);
+  pthread_setname_np(name);
 #elif defined __FreeBSD__ || defined __OpenBSD__
-  pthread_set_name_np(pthread_self(), szThreadName);
+  pthread_set_name_np(pthread_self(), name);
+#elif defined(__NetBSD__)
+  pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name));
 #elif defined __HAIKU__
-  rename_thread(find_thread(nullptr), szThreadName);
+  rename_thread(find_thread(nullptr), name);
 #else
   // linux doesn't allow to set more than 16 bytes, including \0.
-  pthread_setname_np(pthread_self(), std::string(szThreadName).substr(0, 15).c_str());
+  pthread_setname_np(pthread_self(), std::string(name).substr(0, 15).c_str());
 #endif
 #ifdef USE_VTUNE
   // VTune uses OS thread names by default but probably supports longer names when set via its own
   // API.
-  __itt_thread_set_name(szThreadName);
+  __itt_thread_set_name(name);
 #endif
 }
 

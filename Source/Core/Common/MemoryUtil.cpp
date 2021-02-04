@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
+#if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
 #include <sys/sysctl.h>
 #elif defined __HAIKU__
 #include <OS.h>
@@ -46,7 +46,7 @@ void* AllocateExecutableMemory(size_t size)
 #endif
 
   if (ptr == nullptr)
-    PanicAlert("Failed to allocate executable memory");
+    PanicAlertFmt("Failed to allocate executable memory");
 
   return ptr;
 }
@@ -63,7 +63,7 @@ void* AllocateMemoryPages(size_t size)
 #endif
 
   if (ptr == nullptr)
-    PanicAlert("Failed to allocate raw memory");
+    PanicAlertFmt("Failed to allocate raw memory");
 
   return ptr;
 }
@@ -75,11 +75,11 @@ void* AllocateAlignedMemory(size_t size, size_t alignment)
 #else
   void* ptr = nullptr;
   if (posix_memalign(&ptr, alignment, size) != 0)
-    ERROR_LOG(MEMMAP, "Failed to allocate aligned memory");
+    ERROR_LOG_FMT(MEMMAP, "Failed to allocate aligned memory");
 #endif
 
   if (ptr == nullptr)
-    PanicAlert("Failed to allocate aligned memory");
+    PanicAlertFmt("Failed to allocate aligned memory");
 
   return ptr;
 }
@@ -90,10 +90,10 @@ void FreeMemoryPages(void* ptr, size_t size)
   {
 #ifdef _WIN32
     if (!VirtualFree(ptr, 0, MEM_RELEASE))
-      PanicAlert("FreeMemoryPages failed!\nVirtualFree: %s", GetLastErrorString().c_str());
+      PanicAlertFmt("FreeMemoryPages failed!\nVirtualFree: {}", GetLastErrorString());
 #else
     if (munmap(ptr, size) != 0)
-      PanicAlert("FreeMemoryPages failed!\nmunmap: %s", LastStrerrorString().c_str());
+      PanicAlertFmt("FreeMemoryPages failed!\nmunmap: {}", LastStrerrorString());
 #endif
   }
 }
@@ -115,10 +115,10 @@ void ReadProtectMemory(void* ptr, size_t size)
 #ifdef _WIN32
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, PAGE_NOACCESS, &oldValue))
-    PanicAlert("ReadProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
+    PanicAlertFmt("ReadProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
 #else
   if (mprotect(ptr, size, PROT_NONE) != 0)
-    PanicAlert("ReadProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
+    PanicAlertFmt("ReadProtectMemory failed!\nmprotect: {}", LastStrerrorString());
 #endif
 }
 
@@ -127,10 +127,10 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #ifdef _WIN32
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
-    PanicAlert("WriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
+    PanicAlertFmt("WriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
 #else
   if (mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ) != 0)
-    PanicAlert("WriteProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
+    PanicAlertFmt("WriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
 #endif
 }
 
@@ -139,12 +139,12 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #ifdef _WIN32
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
-    PanicAlert("UnWriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
+    PanicAlertFmt("UnWriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
 #else
   if (mprotect(ptr, size,
                allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
   {
-    PanicAlert("UnWriteProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
+    PanicAlertFmt("UnWriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
   }
 #endif
 }
@@ -156,7 +156,7 @@ size_t MemPhysical()
   memInfo.dwLength = sizeof(MEMORYSTATUSEX);
   GlobalMemoryStatusEx(&memInfo);
   return memInfo.ullTotalPhys;
-#elif defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
+#elif defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
   int mib[2];
   size_t physical_memory;
   mib[0] = CTL_HW;
@@ -164,8 +164,8 @@ size_t MemPhysical()
   mib[1] = HW_MEMSIZE;
 #elif defined __FreeBSD__
   mib[1] = HW_REALMEM;
-#elif defined __OpenBSD__
-  mib[1] = HW_PHYSMEM;
+#elif defined __OpenBSD__ || defined __NetBSD__
+  mib[1] = HW_PHYSMEM64;
 #endif
   size_t length = sizeof(size_t);
   sysctl(mib, 2, &physical_memory, &length, NULL, 0);

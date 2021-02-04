@@ -45,7 +45,7 @@ FIFOAnalyzer::FIFOAnalyzer()
   m_detail_list->setFont(Settings::Instance().GetDebugFont());
   m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
 
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, [this] {
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, [this] {
     m_detail_list->setFont(Settings::Instance().GetDebugFont());
     m_entry_detail_browser->setFont(Settings::Instance().GetDebugFont());
   });
@@ -211,8 +211,8 @@ void FIFOAnalyzer::UpdateDetails()
         new_label = QStringLiteral("NOP");
         break;
 
-      case 0x44:
-        new_label = QStringLiteral("0x44");
+      case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
+        new_label = QStringLiteral("GX_CMD_UNKNOWN_METRICS");
         break;
 
       case OpcodeDecoder::GX_CMD_INVL_VC:

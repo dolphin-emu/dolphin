@@ -238,22 +238,22 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     else
       accessSize = 8;
 
-    LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    LDR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     if (accessSize == 32)
     {
       REV32(W1, RS);
-      STR(INDEX_POST, W1, X0, 4);
+      STR(IndexType::Post, W1, X0, 4);
     }
     else if (accessSize == 16)
     {
       REV16(W1, RS);
-      STRH(INDEX_POST, W1, X0, 2);
+      STRH(IndexType::Post, W1, X0, 2);
     }
     else
     {
-      STRB(INDEX_POST, RS, X0, 1);
+      STRB(IndexType::Post, RS, X0, 1);
     }
-    STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    STR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
   else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
@@ -297,21 +297,25 @@ void JitArm64::lXX(UGeckoInstruction inst)
     {
     case 55:  // lwzux
       update = true;
+      [[fallthrough]];
     case 23:  // lwzx
       flags |= BackPatchInfo::FLAG_SIZE_32;
       break;
     case 119:  // lbzux
       update = true;
+      [[fallthrough]];
     case 87:  // lbzx
       flags |= BackPatchInfo::FLAG_SIZE_8;
       break;
     case 311:  // lhzux
       update = true;
+      [[fallthrough]];
     case 279:  // lhzx
       flags |= BackPatchInfo::FLAG_SIZE_16;
       break;
     case 375:  // lhaux
       update = true;
+      [[fallthrough]];
     case 343:  // lhax
       flags |= BackPatchInfo::FLAG_EXTEND | BackPatchInfo::FLAG_SIZE_16;
       break;
@@ -325,21 +329,25 @@ void JitArm64::lXX(UGeckoInstruction inst)
     break;
   case 33:  // lwzu
     update = true;
+    [[fallthrough]];
   case 32:  // lwz
     flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
   case 35:  // lbzu
     update = true;
+    [[fallthrough]];
   case 34:  // lbz
     flags |= BackPatchInfo::FLAG_SIZE_8;
     break;
   case 41:  // lhzu
     update = true;
+    [[fallthrough]];
   case 40:  // lhz
     flags |= BackPatchInfo::FLAG_SIZE_16;
     break;
   case 43:  // lhau
     update = true;
+    [[fallthrough]];
   case 42:  // lha
     flags |= BackPatchInfo::FLAG_EXTEND | BackPatchInfo::FLAG_SIZE_16;
     break;
@@ -389,6 +397,7 @@ void JitArm64::stX(UGeckoInstruction inst)
     break;
   case 37:  // stwu
     update = true;
+    [[fallthrough]];
   case 36:  // stw
     flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
@@ -462,7 +471,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
       ARM64Reg RX3 = gpr.R(i + 2);
       ARM64Reg RX2 = gpr.R(i + 1);
       ARM64Reg RX1 = gpr.R(i);
-      LDP(INDEX_POST, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
+      LDP(IndexType::Post, EncodeRegTo64(RX1), EncodeRegTo64(RX3), XA, 16);
       REV32(EncodeRegTo64(RX1), EncodeRegTo64(RX1));
       REV32(EncodeRegTo64(RX3), EncodeRegTo64(RX3));
       LSR(EncodeRegTo64(RX2), EncodeRegTo64(RX1), 32);
@@ -475,7 +484,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
       gpr.BindToRegister(i, false);
       ARM64Reg RX2 = gpr.R(i + 1);
       ARM64Reg RX1 = gpr.R(i);
-      LDP(INDEX_POST, RX1, RX2, XA, 8);
+      LDP(IndexType::Post, RX1, RX2, XA, 8);
       REV32(RX1, RX1);
       REV32(RX2, RX2);
       ++i;
@@ -484,7 +493,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     {
       gpr.BindToRegister(i, false);
       ARM64Reg RX = gpr.R(i);
-      LDR(INDEX_POST, RX, XA, 4);
+      LDR(IndexType::Post, RX, XA, 4);
       REV32(RX, RX);
     }
   }
@@ -518,7 +527,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
   {
     ARM64Reg RX = gpr.R(i);
     REV32(WB, RX);
-    STR(INDEX_UNSIGNED, WB, XA, (i - inst.RD) * 4);
+    STR(IndexType::Unsigned, WB, XA, (i - inst.RD) * 4);
   }
 
   gpr.Unlock(WA, WB);
@@ -529,11 +538,9 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  gpr.Lock(W30);
+  gpr.Lock(W0);
 
-  ARM64Reg addr = gpr.GetReg();
-  ARM64Reg value = gpr.GetReg();
-  ARM64Reg WA = W30;
+  ARM64Reg addr = W0;
 
   u32 a = inst.RA, b = inst.RB;
 
@@ -542,21 +549,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   else
     MOV(addr, gpr.R(b));
 
-  // Check whether a JIT cache line needs to be invalidated.
-  AND(value, addr, 32 - 10, 28 - 10);  // upper three bits and last 10 bit are masked for the bitset
-                                       // of cachelines, 0x1ffffc00
-  LSR(value, value, 5 + 5);            // >> 5 for cache line size, >> 5 for width of bitset
-  MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
-  LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
-
-  LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
-
-  LSR(value, value, addr);  // move current bit to bit 0
-
-  FixupBranch bit_not_set = TBZ(value, 0);
-  FixupBranch far_addr = B();
-  SwitchToFarCode();
-  SetJumpTarget(far_addr);
+  ANDI2R(addr, addr, ~31);  // mask sizeof cacheline
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
@@ -564,7 +557,6 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
 
-  LSL(W0, addr, 5);
   MOVI2R(X1, 32);
   MOVI2R(X2, 0);
   MOVP2R(X3, &JitInterface::InvalidateICache);
@@ -573,12 +565,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
   ABI_PopRegisters(gprs_to_push);
 
-  FixupBranch near_addr = B();
-  SwitchToNearCode();
-  SetJumpTarget(bit_not_set);
-  SetJumpTarget(near_addr);
-
-  gpr.Unlock(addr, value, W30);
+  gpr.Unlock(W0);
 }
 
 void JitArm64::dcbt(UGeckoInstruction inst)

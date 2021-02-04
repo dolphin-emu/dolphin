@@ -26,7 +26,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
   for (u16& volume : m_last_aux_volumes)
     volume = 0x8000;
 
-  INFO_LOG(DSPHLE, "Instantiating AXWiiUCode");
+  INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode");
 
   m_old_axwii = (crc == 0xfa450138);
 }
@@ -43,11 +43,6 @@ void AXWiiUCode::HandleCommandList()
   u16 volume;
 
   u32 pb_addr = 0;
-
-  // WARN_LOG(DSPHLE, "Command list:");
-  // for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-  //     WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
-  // WARN_LOG(DSPHLE, "-------------");
 
   u32 curr_idx = 0;
   bool end = false;

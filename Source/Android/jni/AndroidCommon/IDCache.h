@@ -8,14 +8,16 @@
 
 namespace IDCache
 {
-static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
-
 JNIEnv* GetEnvForThread();
+
+jclass GetStringClass();
 
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
 jmethodID GetDoRumble();
 jmethodID GetUpdateTouchPointer();
+jmethodID GetOnTitleChanged();
+jmethodID GetFinishEmulationActivity();
 
 jclass GetAnalyticsClass();
 jmethodID GetSendAnalyticsReport();
@@ -31,5 +33,29 @@ jfieldID GetGameFileCachePointer();
 jclass GetLinkedHashMapClass();
 jmethodID GetLinkedHashMapInit();
 jmethodID GetLinkedHashMapPut();
+
+jclass GetIniFileClass();
+jfieldID GetIniFilePointer();
+jclass GetIniFileSectionClass();
+jfieldID GetIniFileSectionPointer();
+jmethodID GetIniFileSectionConstructor();
+
+jclass GetCompressCallbackClass();
+jmethodID GetCompressCallbackRun();
+
+jclass GetContentHandlerClass();
+jmethodID GetContentHandlerOpenFd();
+jmethodID GetContentHandlerDelete();
+jmethodID GetContentHandlerGetSizeAndIsDirectory();
+jmethodID GetContentHandlerGetDisplayName();
+jmethodID GetContentHandlerGetChildNames();
+jmethodID GetContentHandlerDoFileSearch();
+
+jclass GetNetworkHelperClass();
+jmethodID GetNetworkHelperGetNetworkIpAddress();
+jmethodID GetNetworkHelperGetNetworkPrefixLength();
+jmethodID GetNetworkHelperGetNetworkGateway();
+
+jmethodID GetBooleanSupplierGet();
 
 }  // namespace IDCache

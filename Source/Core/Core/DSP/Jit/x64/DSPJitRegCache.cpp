@@ -11,7 +11,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
@@ -957,7 +956,7 @@ void DSPJitRegCache::GetXReg(X64Reg reg)
 {
   if (m_xregs[reg].guest_reg == DSP_REG_STATIC)
   {
-    ERROR_LOG(DSPLLE, "Trying to get statically used XReg %d", reg);
+    ERROR_LOG_FMT(DSPLLE, "Trying to get statically used XReg {}", reg);
     return;
   }
 
@@ -973,7 +972,7 @@ void DSPJitRegCache::PutXReg(X64Reg reg)
 {
   if (m_xregs[reg].guest_reg == DSP_REG_STATIC)
   {
-    ERROR_LOG(DSPLLE, "Trying to put statically used XReg %d", reg);
+    ERROR_LOG_FMT(DSPLLE, "Trying to put statically used XReg {}", reg);
     return;
   }
 

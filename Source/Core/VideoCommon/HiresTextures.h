@@ -14,11 +14,15 @@
 
 enum class TextureFormat;
 
+std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
+                                                      const std::string& game_id);
+
 class HiresTexture
 {
 public:
   static void Init();
   static void Update();
+  static void Clear();
   static void Shutdown();
 
   static std::shared_ptr<HiresTexture> Search(const u8* texture, size_t texture_size,
@@ -53,8 +57,6 @@ private:
   static bool LoadDDSTexture(Level& level, const std::string& filename, u32 mip_level);
   static bool LoadTexture(Level& level, const std::vector<u8>& buffer);
   static void Prefetch();
-
-  static std::set<std::string> GetTextureDirectories(const std::string& game_id);
 
   HiresTexture() {}
   bool m_has_arbitrary_mipmaps;

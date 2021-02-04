@@ -1,7 +1,10 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import androidx.annotation.NonNull;
+
 public enum MenuTag
 {
+  SETTINGS("settings"),
   CONFIG("config"),
   CONFIG_GENERAL("config_general"),
   CONFIG_INTERFACE("config_interface"),
@@ -46,6 +49,7 @@ public enum MenuTag
     this.subType = subtype;
   }
 
+  @NonNull
   @Override
   public String toString()
   {

@@ -181,7 +181,7 @@ bool RenderWidget::event(QEvent* event)
     break;
   }
   case QEvent::MouseMove:
-    if (g_Config.bFreeLook)
+    if (g_freelook_camera.IsActive())
       OnFreeLookMouseMove(static_cast<QMouseEvent*>(event));
     [[fallthrough]];
 
@@ -203,7 +203,13 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowDeactivate:
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
-      Core::SetState(Core::State::Paused);
+    {
+      // If we are declared as the CPU thread, it means that the real CPU thread is waiting
+      // for us to finish showing a panic alert (with that panic alert likely being the cause
+      // of this event), so trying to pause the real CPU thread would cause a deadlock
+      if (!Core::IsCPUThread())
+        Core::SetState(Core::State::Paused);
+    }
 
     emit FocusChanged(false);
     break;
@@ -241,7 +247,7 @@ void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
     // Camera Pitch and Yaw:
     g_freelook_camera.Rotate(Common::Vec3{mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f});
   }
-  else if (event->buttons() & Qt::MidButton)
+  else if (event->buttons() & Qt::MiddleButton)
   {
     // Camera Roll:
     g_freelook_camera.Rotate({0.f, 0.f, mouse_move.x() / 200.f});

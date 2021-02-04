@@ -18,7 +18,10 @@ namespace IOS::HLE::Device
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
-USB_VEN::~USB_VEN() = default;
+USB_VEN::~USB_VEN()
+{
+  m_scan_thread.Stop();
+}
 
 IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {
@@ -71,7 +74,7 @@ IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
     if (request.in_vectors.size() + request.io_vectors.size() != s_num_vectors.at(request.request))
       return GetDefaultReply(IPC_EINVAL);
 
-    std::lock_guard<std::mutex> lock{m_usbv5_devices_mutex};
+    std::lock_guard lock{m_usbv5_devices_mutex};
     USBV5Device* device = GetUSBV5Device(request.in_vectors[0].address);
     if (!device)
       return GetDefaultReply(IPC_EINVAL);

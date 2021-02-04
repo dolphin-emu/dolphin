@@ -31,15 +31,20 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <shellapi.h>
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
+#if defined(__NetBSD__)
+#define LIBICONV_PLUG
+#endif
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
 #endif
 
-#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) &&       \
+    !defined(__NetBSD__)
 static locale_t GetCLocale()
 {
   static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
@@ -132,11 +137,11 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
     c_locale = _create_locale(LC_ALL, "C");
   writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   writtenCount = vsnprintf(out, outsize, format, args);
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 #endif
@@ -173,16 +178,16 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
   {
-    ERROR_LOG(COMMON, "Unable to allocate memory for string");
+    ERROR_LOG_FMT(COMMON, "Unable to allocate memory for string");
     buf = nullptr;
   }
 
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -441,24 +446,22 @@ std::wstring CPToUTF16(u32 code_page, std::string_view input)
 
 std::string UTF16ToCP(u32 code_page, std::wstring_view input)
 {
-  std::string output;
+  if (input.empty())
+    return {};
 
-  if (0 != input.size())
+  // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
+  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                        nullptr, 0, nullptr, nullptr);
+
+  std::string output(size, '\0');
+
+  if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                  output.data(), static_cast<int>(output.size()), nullptr, nullptr))
   {
-    // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
-    auto const size = WideCharToMultiByte(
-        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
-
-    output.resize(size);
-
-    if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                    &output[0], static_cast<int>(output.size()), nullptr, nullptr))
-    {
-      const DWORD error_code = GetLastError();
-      ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu",
-                std::wstring(input).c_str(), error_code);
-      output.clear();
-    }
+    const DWORD error_code = GetLastError();
+    ERROR_LOG_FMT(COMMON, "WideCharToMultiByte Error in String '{}': {}", WStringToUTF8(input),
+                  error_code);
+    return {};
   }
 
   return output;
@@ -507,7 +510,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
   iconv_t const conv_desc = iconv_open(tocode, fromcode);
   if ((iconv_t)-1 == conv_desc)
   {
-    ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, strerror(errno));
+    ERROR_LOG_FMT(COMMON, "Iconv initialization failure [{}]: {}", fromcode, strerror(errno));
   }
   else
   {
@@ -525,8 +528,13 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-          iconv(conv_desc, (char**)(&src_buffer), &src_bytes, &dst_buffer, &dst_bytes);
-
+#if defined(__OpenBSD__) || defined(__NetBSD__)
+          iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
+                &dst_bytes);
+#else
+          iconv(conv_desc, const_cast<char**>(reinterpret_cast<const char**>(&src_buffer)),
+                &src_bytes, &dst_buffer, &dst_bytes);
+#endif
       if ((size_t)-1 == iconv_result)
       {
         if (EILSEQ == errno || EINVAL == errno)
@@ -540,7 +548,7 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
         }
         else
         {
-          ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, strerror(errno));
+          ERROR_LOG_FMT(COMMON, "iconv failure [{}]: {}", fromcode, strerror(errno));
           break;
         }
       }
@@ -628,5 +636,24 @@ std::string PathToString(const std::filesystem::path& path)
 #else
   return path.native();
 #endif
+}
+#endif
+
+#ifdef _WIN32
+std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
+{
+  int nargs;
+  LPWSTR* tokenized = CommandLineToArgvW(command_line, &nargs);
+  if (!tokenized)
+    return {};
+
+  std::vector<std::string> argv(nargs);
+  for (size_t i = 0; i < nargs; ++i)
+  {
+    argv[i] = WStringToUTF8(tokenized[i]);
+  }
+
+  LocalFree(tokenized);
+  return argv;
 }
 #endif

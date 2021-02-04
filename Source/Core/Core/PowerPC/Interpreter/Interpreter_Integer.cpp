@@ -128,11 +128,11 @@ void Interpreter::subfic(UGeckoInstruction inst)
 
 void Interpreter::twi(UGeckoInstruction inst)
 {
-  s32 a = rGPR[inst.RA];
-  s32 b = inst.SIMM_16;
-  s32 TO = inst.TO;
+  const s32 a = rGPR[inst.RA];
+  const s32 b = inst.SIMM_16;
+  const s32 TO = inst.TO;
 
-  DEBUG_LOG(POWERPC, "twi rA %x SIMM %x TO %0x", a, b, TO);
+  DEBUG_LOG_FMT(POWERPC, "twi rA {:x} SIMM {:x} TO {:x}", a, b, TO);
 
   if (((a < b) && (TO & 0x10)) || ((a > b) && (TO & 0x08)) || ((a == b) && (TO & 0x04)) ||
       (((u32)a < (u32)b) && (TO & 0x02)) || (((u32)a > (u32)b) && (TO & 0x01)))
@@ -236,17 +236,7 @@ void Interpreter::cmpl(UGeckoInstruction inst)
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)
 {
-  u32 val = rGPR[inst.RS];
-  u32 mask = 0x80000000;
-
-  int i = 0;
-  for (; i < 32; i++, mask >>= 1)
-  {
-    if (val & mask)
-      break;
-  }
-
-  rGPR[inst.RA] = i;
+  rGPR[inst.RA] = Common::CountLeadingZeros(rGPR[inst.RS]);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -371,11 +361,11 @@ void Interpreter::srwx(UGeckoInstruction inst)
 
 void Interpreter::tw(UGeckoInstruction inst)
 {
-  s32 a = rGPR[inst.RA];
-  s32 b = rGPR[inst.RB];
-  s32 TO = inst.TO;
+  const s32 a = rGPR[inst.RA];
+  const s32 b = rGPR[inst.RB];
+  const s32 TO = inst.TO;
 
-  DEBUG_LOG(POWERPC, "tw rA %0x rB %0x TO %0x", a, b, TO);
+  DEBUG_LOG_FMT(POWERPC, "tw rA {:x} rB {:x} TO {:x}", a, b, TO);
 
   if (((a < b) && (TO & 0x10)) || ((a > b) && (TO & 0x08)) || ((a == b) && (TO & 0x04)) ||
       (((u32)a < (u32)b) && (TO & 0x02)) || (((u32)a > (u32)b) && (TO & 0x01)))

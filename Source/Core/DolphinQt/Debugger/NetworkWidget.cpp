@@ -40,9 +40,9 @@ QTableWidgetItem* GetSocketDomain(s32 host_fd)
   switch (sa.sa_family)
   {
   case 2:
-    return new QTableWidgetItem(QLatin1Literal("AF_INET"));
+    return new QTableWidgetItem(QStringLiteral("AF_INET"));
   case 23:
-    return new QTableWidgetItem(QLatin1Literal("AF_INET6"));
+    return new QTableWidgetItem(QStringLiteral("AF_INET6"));
   default:
     return new QTableWidgetItem(QString::number(sa.sa_family));
   }
@@ -63,9 +63,9 @@ QTableWidgetItem* GetSocketType(s32 host_fd)
   switch (so_type)
   {
   case 1:
-    return new QTableWidgetItem(QLatin1Literal("SOCK_STREAM"));
+    return new QTableWidgetItem(QStringLiteral("SOCK_STREAM"));
   case 2:
-    return new QTableWidgetItem(QLatin1Literal("SOCK_DGRAM"));
+    return new QTableWidgetItem(QStringLiteral("SOCK_DGRAM"));
   default:
     return new QTableWidgetItem(QString::number(so_type));
   }
@@ -158,10 +158,10 @@ NetworkWidget::NetworkWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &NetworkWidget::Update);
 
-  connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsNetworkVisible());
   });
 }

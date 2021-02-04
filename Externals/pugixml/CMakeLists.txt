@@ -1,6 +1,6 @@
 project(pugixml)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 option(BUILD_SHARED_LIBS "Build shared instead of static library" OFF)
 

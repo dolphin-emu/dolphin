@@ -14,7 +14,7 @@
 #include <SDL_haptic.h>
 #endif
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ciface::SDL
 {

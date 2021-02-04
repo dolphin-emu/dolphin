@@ -17,10 +17,10 @@
 #endif
 
 #include "Common/StringUtil.h"
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/Host.h"
 
 #include "UICommon/CommandLineParse.h"

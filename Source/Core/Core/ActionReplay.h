@@ -28,8 +28,9 @@ struct ARCode
 {
   std::string name;
   std::vector<AREntry> ops;
-  bool active;
-  bool user_defined;
+  bool enabled = false;
+  bool default_enabled = false;
+  bool user_defined = false;
 };
 
 void RunAllActive();

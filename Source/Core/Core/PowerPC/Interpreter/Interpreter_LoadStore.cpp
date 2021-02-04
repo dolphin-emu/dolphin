@@ -268,8 +268,8 @@ void Interpreter::lmw(UGeckoInstruction inst)
 
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
-      PanicAlert("DSI exception in lmw");
-      NOTICE_LOG(POWERPC, "DSI exception in lmw");
+      PanicAlertFmt("DSI exception in lmw");
+      NOTICE_LOG_FMT(POWERPC, "DSI exception in lmw");
       return;
     }
     else
@@ -295,8 +295,8 @@ void Interpreter::stmw(UGeckoInstruction inst)
     PowerPC::Write_U32(rGPR[i], address);
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
-      PanicAlert("DSI exception in stmw");
-      NOTICE_LOG(POWERPC, "DSI exception in stmw");
+      PanicAlertFmt("DSI exception in stmw");
+      NOTICE_LOG_FMT(POWERPC, "DSI exception in stmw");
       return;
     }
   }
@@ -689,7 +689,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
     // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
-      NOTICE_LOG(POWERPC, "DSI exception in lswx");
+      NOTICE_LOG_FMT(POWERPC, "DSI exception in lswx");
       return;
     }
     rGPR[reg] |= temp_value;
@@ -878,7 +878,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
     const u32 temp_value = PowerPC::Read_U8(EA) << (24 - i);
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
-      PanicAlert("DSI exception in lsw.");
+      PanicAlertFmt("DSI exception in lsw.");
       return;
     }
 

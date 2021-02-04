@@ -43,10 +43,12 @@ public:
   void Jit(u32) override;
 
   const char* GetName() const override { return "JITARM64"; }
+
   // OPCODES
+  using Instruction = void (JitArm64::*)(UGeckoInstruction);
   void FallBackToInterpreter(UGeckoInstruction inst);
   void DoNothing(UGeckoInstruction inst);
-  void HLEFunction(UGeckoInstruction inst);
+  void HLEFunction(u32 hook_index);
 
   void DynaRunTable4(UGeckoInstruction inst);
   void DynaRunTable19(UGeckoInstruction inst);
@@ -172,8 +174,9 @@ private:
     const u8* slowmem_code;
   };
 
-  static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
+
+  bool HandleFunctionHooking(u32 address);
 
   // Simple functions to switch between near and far code emitting
   void SwitchToFarCode()

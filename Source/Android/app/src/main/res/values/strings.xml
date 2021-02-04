@@ -123,6 +123,12 @@
     <string name="turntable_effect_dial">Dial</string>
     <string name="turntable_crossfade">Crossfade</string>
 
+    <!-- Main Preference Fragment -->
+    <string name="config">Config</string>
+    <string name="graphics_settings">Graphics Settings</string>
+    <string name="gcpad_settings">GameCube Input</string>
+    <string name="wiimote_settings">Wii Input</string>
+
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
     <string name="dual_core">Dual Core</string>
@@ -130,13 +136,24 @@
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
-    <string name="gamecube_system_language">System Language</string>
+    <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="wii_widescreen">Widescreen</string>
+    <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
+    <string name="wii_pal60">Use PAL60 Mode (EuRGB60)</string>
+    <string name="wii_pal60_description">Changes refresh rate from 50 Hz to 60 Hz in PAL games that support it.</string>
+    <string name="wii_screensaver">Enable Screen Saver</string>
+    <string name="wii_screensaver_description">Dims the screen after five minutes of inactivity.</string>
+    <string name="sound_mode">Sound</string>
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
     <string name="wii_sd_card_allow_writes">Allow Writes to SD Card</string>
+    <string name="wiimote_rumble">Wii Remote Rumble</string>
+    <string name="wiimote_volume">Wii Remote Speaker Volume</string>
+    <string name="sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
+    <string name="sensor_bar_position">Sensor Bar Position</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
@@ -149,14 +166,17 @@
     <string name="lock_emulation_landscape_desc">Some touch controls will require additional tweaking if played in portrait</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
-    <string name="gametdb_thanks">Thanks to GameTDB.com for providing GameCube and Wii covers!</string>
+    <string name="analytics_new_id">Generate a New Statistics Identity</string>
+    <string name="analytics_new_id_confirmation">Are you sure you want to generate a new statistics identity?</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
+    <string name="emulation_screen_orientation">Screen Orientation During Emulation</string>
     <string name="panic_handlers">Use Panic Handlers</string>
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
+    <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
 
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
@@ -174,8 +194,6 @@
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
     <string name="SD_card_path">SD Card Path</string>
-    <string name="reset_paths">Reset Paths to Default Settings</string>
-    <string name="reset_paths_confirmation">Are you sure you want to reset Paths to default settings?</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>
@@ -276,11 +294,14 @@
     <string name="log_enable_all_confirmation">Are you sure you want to enable all log types?</string>
     <string name="log_disable_all">Disable all Log Types</string>
     <string name="log_disable_all_confirmation">Are you sure you want to disable all log types?</string>
+    <string name="log_clear">Clear Log file</string>
+    <string name="log_clear_confirmation">Are you sure you want to clear the log file?</string>
     <string name="log_types">Log Types</string>
 
     <!-- Debug -->
     <string name="debug_submenu">Debug</string>
-    <string name="debug_warning">Warning: These settings will slow emulation</string>
+    <string name="debug_warning">Warning: Debug settings will slow emulation</string>
+    <string name="debug_fastmem">Disable Fastmem</string>
     <string name="debug_jit_header">Jit</string>
     <string name="debug_jitoff">Jit Disabled</string>
     <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
@@ -289,7 +310,7 @@
     <string name="debug_jitfloatingpointoff">Jit Floating Point Disabled</string>
     <string name="debug_jitintegeroff">Jit Integer Disabled</string>
     <string name="debug_jitpairedoff">Jit Paired Disabled</string>
-    <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
+    <string name="debug_jitsystemregistersoff">Jit System Registers Disabled</string>
     <string name="debug_jitbranchoff">Jit Branch Disabled</string>
     <string name="debug_jitregistercacheoff">Jit Register Cache Disabled</string>
 
@@ -302,24 +323,30 @@
     <string name="clear">Clear</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
+    <string name="continue_anyway">Continue Anyway</string>
 
     <!-- Game Grid Screen-->
-    <string name="grid_menu_config">Config</string>
-    <string name="grid_menu_graphics_settings">Graphics Settings</string>
-    <string name="grid_menu_gcpad_settings">GameCube Input</string>
-    <string name="grid_menu_wiimote_settings">Wii Input</string>
+    <string name="add_directory_title">Add Folder to Library</string>
+    <string name="grid_menu_settings">Settings</string>
     <string name="grid_menu_refresh">Refresh Library</string>
     <string name="grid_menu_open_file">Open File</string>
     <string name="grid_menu_install_wad">Install WAD</string>
+    <string name="grid_menu_import_wii_save">Import Wii Save</string>
+    <string name="import_in_progress">Importing...</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
+    <string name="wii_save_exists">Save data for this title already exists in the NAND. Consider backing up the current data before overwriting.\nOverwrite now?</string>
+    <string name="wii_save_import_success">Successfully imported save file.</string>
+    <string name="wii_save_import_error">Failed to import save file. Your NAND may be corrupt, or something is preventing access to files within it.</string>
+    <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>
+    <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
 
-    <!-- Add Directory Screen-->
-    <string name="add_directory_title">Add Folder to Library</string>
-    <string name="add_directory_up_one_level">Up one level</string>
-    <string name="add_directory_empty_folder">That folder is empty.</string>
-
-    <!-- Preferences Screen -->
+    <!-- Game Properties Screen -->
+    <string name="properties_details">Details</string>
+    <string name="properties_convert">Convert File</string>
+    <string name="properties_set_default_iso">Set as Default ISO</string>
+    <string name="properties_edit_game_settings">Edit Game Settings</string>
+    <string name="properties_clear_game_settings">Clear Game Settings</string>
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>
     <string name="preferences_game_properties">Game Properties</string>
@@ -336,19 +363,39 @@
     <string name="game_details_block_size">Block Size</string>
     <string name="game_details_no_compression">No Compression</string>
 
+    <!-- Convert Screen -->
+    <string name="convert_format">Format</string>
+    <string name="convert_block_size">Block Size</string>
+    <string name="convert_compression">Compression</string>
+    <string name="convert_compression_level">Compression Level</string>
+    <string name="convert_remove_junk_data">Remove Junk Data (Irreversible)</string>
+    <string name="convert_convert">Convert</string>
+    <string name="convert_converting">Converting</string>
+    <string name="convert_warning_iso">Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?</string>
+    <string name="convert_warning_gcz">Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?</string>
+    <string name="convert_success_message">The disc image was successfully converted.</string>
+    <string name="convert_failure_message">Dolphin failed to complete the requested action.</string>
+    <string name="convert_format_info">
+ISO: A simple and robust format which is supported by many programs. It takes up more space
+than any other format.
+\n\nGCZ: A basic compressed format which is compatible with most versions of Dolphin and some
+other programs. It can\'t efficiently compress junk data (unless removed) or encrypted Wii data.
+\n\nWIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later,
+and a few other programs. It can efficiently compress encrypted Wii data, but not junk data
+(unless removed).
+\n\nRVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later.
+It can efficiently compress both junk data and encrypted Wii data.
+    </string>
+
     <!-- Emulation Menu -->
     <string name="pause_emulation">Pause Emulation</string>
     <string name="unpause_emulation">Unpause Emulation</string>
     <string name="emulation_screenshot">Take Screenshot</string>
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
-    <string name="emulation_exit">Exit</string>
-    <string name="emulation_slot1">Slot 1</string>
-    <string name="emulation_slot2">Slot 2</string>
-    <string name="emulation_slot3">Slot 3</string>
-    <string name="emulation_slot4">Slot 4</string>
-    <string name="emulation_slot5">Slot 5</string>
-    <string name="emulation_slot6">Slot 6</string>
+    <string name="emulation_exit">Exit Emulation</string>
+    <string name="emulation_state_slot">Slot %1$d\n\n%2$s</string>
+    <string name="emulation_state_slot_empty">Slot %1$d\n\nEmpty</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wii Remotes</string>
@@ -358,15 +405,16 @@
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Adjust Scale</string>
+    <string name="emulation_control_opacity">Adjust Opacity</string>
+    <string name="emulation_control_adjustments">Adjust Controls</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
-    <string name="emulation_touch_button_help">Swipe down from the top of the screen to access the menu.</string>
+    <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
-    <string name="emulation_screen_orientation">Screen Orientation</string>
     <string name="emulation_motion_controls">Motion Controls</string>
 
     <!-- GC Adapter Menu-->
@@ -384,6 +432,10 @@
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
     <string name="load_settings">Loading Settings...</string>
+    <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
+    <string name="setting_clear_info">Long press a setting to clear it.</string>
+    <string name="setting_clear_confirm">Do you want to restore this setting to its default value?</string>
+    <string name="setting_cleared">Setting cleared</string>
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
@@ -393,11 +445,21 @@
 
     <string name="select_dir">Select This Directory</string>
 
+    <!-- File Pickers -->
+    <string name="no_file_extension">The selected file does not appear to have a file name extension.\n\nContinue anyway?</string>
+    <string name="wrong_file_extension_single">The selected file has the file name extension \"%1$s\", but \"%2$s\" was expected.\n\nContinue anyway?</string>
+    <string name="wrong_file_extension_multiple">The selected file has the file name extension \"%1$s\", but one of these extensions was expected: %2$s\n\nContinue anyway?</string>
+    <string name="wrong_file_extension_in_directory">No compatible files were found in the selected location.\n\nThe supported formats are: %1$s</string>
+    <string name="unavailable_paths">Dolphin does not have permission to access one or more configured paths. Would you like to fix this before starting?</string>
+
     <!-- Misc -->
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>
     <string name="vertical_offset">Vertical Offset</string>
+    <string name="default_values">Default Values</string>
+    <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
+    <string name="ignore_warning_alert_messages">Ignore for this session</string>
 
 </resources>

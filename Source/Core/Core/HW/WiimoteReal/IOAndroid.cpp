@@ -27,7 +27,7 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   found_wiimotes.clear();
   found_board = nullptr;
 
-  NOTICE_LOG(WIIMOTE, "Finding Wiimotes");
+  NOTICE_LOG_FMT(WIIMOTE, "Finding Wiimotes");
 
   JNIEnv* env = IDCache::GetEnvForThread();
 

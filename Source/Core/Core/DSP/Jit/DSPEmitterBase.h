@@ -10,6 +10,11 @@
 
 class PointerWrap;
 
+namespace DSP
+{
+class DSPCore;
+}
+
 namespace DSP::JIT
 {
 class DSPEmitter
@@ -31,5 +36,5 @@ public:
   void DoState(PointerWrap&) override {}
 };
 
-std::unique_ptr<DSPEmitter> CreateDSPEmitter();
+std::unique_ptr<DSPEmitter> CreateDSPEmitter(DSPCore& dsp);
 }  // namespace DSP::JIT

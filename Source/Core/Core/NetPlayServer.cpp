@@ -23,9 +23,9 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/ENetUtil.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -51,6 +51,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
+#include "Core/SyncIdentifier.h"
 #include "DiscIO/Enums.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
@@ -108,7 +109,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   //--use server time
   if (enet_initialize() != 0)
   {
-    PanicAlertT("Enet Didn't Initialize");
+    PanicAlertFmtT("Enet Didn't Initialize");
   }
 
   m_pad_map.fill(0);
@@ -125,7 +126,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
 
     m_server = g_MainNetHost.get();
 
-    if (g_TraversalClient->GetState() == TraversalClient::Failure)
+    if (g_TraversalClient->HasFailed())
       g_TraversalClient->ReconnectToServer();
   }
   else
@@ -182,14 +183,14 @@ void NetPlayServer::SetupIndex()
   session.region = Config::Get(Config::NETPLAY_INDEX_REGION);
   session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
   session.method = m_traversal_client ? "traversal" : "direct";
-  session.game_id = m_selected_game.empty() ? "UNKNOWN" : m_selected_game;
+  session.game_id = m_selected_game_name.empty() ? "UNKNOWN" : m_selected_game_name;
   session.player_count = static_cast<int>(m_players.size());
   session.in_game = m_is_running;
   session.port = GetPort();
 
   if (m_traversal_client)
   {
-    if (m_traversal_client->GetState() != TraversalClient::Connected)
+    if (!m_traversal_client->IsConnected())
       return;
 
     session.server_id = std::string(g_TraversalClient->GetHostID().data(), 8);
@@ -238,7 +239,7 @@ void NetPlayServer::ThreadFunc()
       SendToClients(spac);
 
       m_index.SetPlayerCount(static_cast<int>(m_players.size()));
-      m_index.SetGame(m_selected_game);
+      m_index.SetGame(m_selected_game_name);
       m_index.SetInGame(m_is_running);
 
       m_update_pings = false;
@@ -252,7 +253,7 @@ void NetPlayServer::ThreadFunc()
     while (!m_async_queue.Empty())
     {
       {
-        std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+        std::lock_guard lkp(m_crit.players);
         auto& e = m_async_queue.Front();
         if (e.target_mode == TargetMode::Only)
         {
@@ -274,8 +275,8 @@ void NetPlayServer::ThreadFunc()
       {
         // Actual client initialization is deferred to the receive event, so here
         // we'll just log the new connection.
-        INFO_LOG(NETPLAY, "Peer connected from: %x:%u", netEvent.peer->address.host,
-                 netEvent.peer->address.port);
+        INFO_LOG_FMT(NETPLAY, "Peer connected from: {:x}:{}", netEvent.peer->address.host,
+                     netEvent.peer->address.port);
       }
       break;
       case ENET_EVENT_TYPE_RECEIVE:
@@ -288,7 +289,7 @@ void NetPlayServer::ThreadFunc()
           // uninitialized client, we'll assume this is their initialization packet
           unsigned int error;
           {
-            std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+            std::lock_guard lkg(m_crit.game);
             error = OnConnect(netEvent.peer, rpac);
           }
 
@@ -310,7 +311,7 @@ void NetPlayServer::ThreadFunc()
           if (OnData(rpac, client) != 0)
           {
             // if a bad packet is received, disconnect the client
-            std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+            std::lock_guard lkg(m_crit.game);
             OnDisconnect(client);
 
             ClearPeerPlayerId(netEvent.peer);
@@ -321,7 +322,7 @@ void NetPlayServer::ThreadFunc()
       break;
       case ENET_EVENT_TYPE_DISCONNECT:
       {
-        std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+        std::lock_guard lkg(m_crit.game);
         if (!netEvent.peer->data)
           break;
         auto it = m_players.find(*PeerPlayerId(netEvent.peer));
@@ -347,6 +348,20 @@ void NetPlayServer::ThreadFunc()
     enet_peer_disconnect(player_entry.second.socket, 0);
   }
 }  // namespace NetPlay
+
+static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
+{
+  // We cast here due to a potential long vs long long mismatch
+  spac << static_cast<sf::Uint64>(sync_identifier.dol_elf_size);
+
+  spac << sync_identifier.game_id;
+  spac << sync_identifier.revision;
+  spac << sync_identifier.disc_number;
+  spac << sync_identifier.is_datel;
+
+  for (const u8& x : sync_identifier.sync_hash)
+    spac << x;
+}
 
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
@@ -413,11 +428,12 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   Send(player.socket, spac);
 
   // send new client the selected game
-  if (!m_selected_game.empty())
+  if (!m_selected_game_name.empty())
   {
     spac.clear();
     spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
-    spac << m_selected_game;
+    SendSyncIdentifier(spac, m_selected_game_identifier);
+    spac << m_selected_game_name;
     Send(player.socket, spac);
   }
 
@@ -455,7 +471,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 
   // add client to the player list
   {
-    std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+    std::lock_guard lkp(m_crit.players);
     m_players.emplace(*PeerPlayerId(player.socket), std::move(player));
     UpdatePadMapping();  // sync pad mappings with everyone
     UpdateWiimoteMapping();
@@ -475,7 +491,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
     {
       if (mapping == pid && pid != 1)
       {
-        std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+        std::lock_guard lkg(m_crit.game);
         m_is_running = false;
 
         sf::Packet spac;
@@ -500,7 +516,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
 
   enet_peer_disconnect(player.socket, 0);
 
-  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  std::lock_guard lkp(m_crit.players);
   auto it = m_players.find(player.pid);
   if (it != m_players.end())
     m_players.erase(it);
@@ -581,7 +597,7 @@ void NetPlayServer::UpdateWiimoteMapping()
 // called from ---GUI--- thread and ---NETPLAY--- thread
 void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
-  std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+  std::lock_guard lkg(m_crit.game);
 
   m_target_buffer_size = size;
 
@@ -599,7 +615,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 
 void NetPlayServer::SetHostInputAuthority(const bool enable)
 {
-  std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+  std::lock_guard lkg(m_crit.game);
 
   m_host_input_authority = enable;
 
@@ -618,7 +634,7 @@ void NetPlayServer::SetHostInputAuthority(const bool enable)
 void NetPlayServer::SendAsync(sf::Packet&& packet, const PlayerId pid, const u8 channel_id)
 {
   {
-    std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+    std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(AsyncQueueEntry{std::move(packet), pid, TargetMode::Only, channel_id});
   }
   ENetUtil::WakeupThread(m_server);
@@ -628,7 +644,7 @@ void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_
                                        const u8 channel_id)
 {
   {
-    std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+    std::lock_guard lkq(m_crit.async_queue_write);
     m_async_queue.Push(
         AsyncQueueEntry{std::move(packet), skip_pid, TargetMode::AllExcept, channel_id});
   }
@@ -638,7 +654,7 @@ void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_
 void NetPlayServer::SendChunked(sf::Packet&& packet, const PlayerId pid, const std::string& title)
 {
   {
-    std::lock_guard<std::recursive_mutex> lkq(m_crit.chunked_data_queue_write);
+    std::lock_guard lkq(m_crit.chunked_data_queue_write);
     m_chunked_data_queue.Push(
         ChunkedDataQueueEntry{std::move(packet), pid, TargetMode::Only, title});
   }
@@ -649,7 +665,7 @@ void NetPlayServer::SendChunkedToClients(sf::Packet&& packet, const PlayerId ski
                                          const std::string& title)
 {
   {
-    std::lock_guard<std::recursive_mutex> lkq(m_crit.chunked_data_queue_write);
+    std::lock_guard lkq(m_crit.chunked_data_queue_write);
     m_chunked_data_queue.Push(
         ChunkedDataQueueEntry{std::move(packet), skip_pid, TargetMode::AllExcept, title});
   }
@@ -662,7 +678,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   MessageId mid;
   packet >> mid;
 
-  INFO_LOG(NETPLAY, "Got client message: %x", mid);
+  INFO_LOG_FMT(NETPLAY, "Got client message: {:x}", mid);
 
   // don't need lock because this is the only thread that modifies the players
   // only need locks for writes to m_players in this thread
@@ -903,7 +919,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     sf::Packet spac;
     spac << (MessageId)NP_MSG_STOP_GAME;
 
-    std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+    std::lock_guard lkp(m_crit.players);
     SendToClients(spac);
   }
   break;
@@ -913,7 +929,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 status;
     packet >> status;
 
-    m_players[player.pid].game_status = static_cast<PlayerGameStatus>(status);
+    m_players[player.pid].game_status = static_cast<SyncIdentifierComparison>(status);
 
     // send msg to other clients
     sf::Packet spac;
@@ -1055,8 +1071,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_SAVE_DATA_FAILURE:
     {
-      m_dialog->AppendChat(
-          fmt::format(Common::GetStringT("{} failed to synchronize."), player.name));
+      m_dialog->AppendChat(Common::FmtFormatT("{0} failed to synchronize.", player.name));
       m_dialog->OnGameStartAborted();
       ChunkedDataAbort();
       m_start_pending = false;
@@ -1064,8 +1079,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     break;
 
     default:
-      PanicAlertT(
-          "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking player!",
+      PanicAlertFmtT(
+          "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking player!",
           sub_id, player.pid);
       return 1;
     }
@@ -1099,16 +1114,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_CODES_FAILURE:
     {
-      m_dialog->AppendChat(
-          fmt::format(Common::GetStringT("{} failed to synchronize codes."), player.name));
+      m_dialog->AppendChat(Common::FmtFormatT("{0} failed to synchronize codes.", player.name));
       m_dialog->OnGameStartAborted();
       m_start_pending = false;
     }
     break;
 
     default:
-      PanicAlertT(
-          "Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking player!",
+      PanicAlertFmtT(
+          "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} Kicking player!",
           sub_id, player.pid);
       return 1;
     }
@@ -1116,8 +1130,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   break;
 
   default:
-    PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid,
-                player.pid);
+    PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!", mid,
+                   player.pid);
     // unknown message, kick the client
     return 1;
   }
@@ -1135,7 +1149,7 @@ void NetPlayServer::OnTraversalStateChanged()
   if (!m_dialog)
     return;
 
-  if (state == TraversalClient::Failure)
+  if (state == TraversalClient::State::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
 
   m_dialog->OnTraversalStateChanged(state);
@@ -1153,16 +1167,19 @@ void NetPlayServer::SendChatMessage(const std::string& msg)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::ChangeGame(const std::string& game)
+bool NetPlayServer::ChangeGame(const SyncIdentifier& sync_identifier,
+                               const std::string& netplay_name)
 {
-  std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+  std::lock_guard lkg(m_crit.game);
 
-  m_selected_game = game;
+  m_selected_game_identifier = sync_identifier;
+  m_selected_game_name = netplay_name;
 
   // send changed game to clients
   sf::Packet spac;
   spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
-  spac << game;
+  SendSyncIdentifier(spac, m_selected_game_identifier);
+  spac << m_selected_game_name;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1170,11 +1187,11 @@ bool NetPlayServer::ChangeGame(const std::string& game)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
+bool NetPlayServer::ComputeMD5(const SyncIdentifier& sync_identifier)
 {
   sf::Packet spac;
   spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
-  spac << file_identifier;
+  SendSyncIdentifier(spac, sync_identifier);
 
   SendAsyncToClients(std::move(spac));
 
@@ -1215,7 +1232,7 @@ bool NetPlayServer::RequestStartGame()
     m_start_pending = true;
     if (!SyncSaveData())
     {
-      PanicAlertT("Error synchronizing save data!");
+      PanicAlertFmtT("Error synchronizing save data!");
       m_start_pending = false;
       return false;
     }
@@ -1228,7 +1245,7 @@ bool NetPlayServer::RequestStartGame()
     m_start_pending = true;
     if (!SyncCodes())
     {
-      PanicAlertT("Error synchronizing cheat codes!");
+      PanicAlertFmtT("Error synchronizing cheat codes!");
       m_start_pending = false;
       return false;
     }
@@ -1247,7 +1264,7 @@ bool NetPlayServer::StartGame()
 {
   m_timebase_by_frame.clear();
   m_desync_detected = false;
-  std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+  std::lock_guard lkg(m_crit.game);
   m_current_game = Common::Timer::GetTimeMs();
 
   // no change, just update with clients
@@ -1260,7 +1277,7 @@ bool NetPlayServer::StartGame()
   const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
   const std::string region = SConfig::GetDirectoryForRegion(
-      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
+      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game_identifier)->GetRegion()));
 
   // sync GC SRAM with clients
   if (!g_SRAM_netplay_initialized)
@@ -1395,10 +1412,10 @@ bool NetPlayServer::SyncSaveData()
     }
   }
 
-  const auto game = m_dialog->FindGameFile(m_selected_game);
+  const auto game = m_dialog->FindGameFile(m_selected_game_identifier);
   if (game == nullptr)
   {
-    PanicAlertT("Selected game doesn't exist in game list!");
+    PanicAlertFmtT("Selected game doesn't exist in game list!");
     return false;
   }
 
@@ -1618,10 +1635,10 @@ bool NetPlayServer::SyncCodes()
   m_codes_synced = false;
 
   // Get Game Path
-  const auto game = m_dialog->FindGameFile(m_selected_game);
+  const auto game = m_dialog->FindGameFile(m_selected_game_identifier);
   if (game == nullptr)
   {
-    PanicAlertT("Selected game doesn't exist in game list!");
+    PanicAlertFmtT("Selected game doesn't exist in game list!");
     return false;
   }
 
@@ -1655,16 +1672,16 @@ bool NetPlayServer::SyncCodes()
     u16 codelines = 0;
     for (const Gecko::GeckoCode& active_code : s_active_codes)
     {
-      NOTICE_LOG(ACTIONREPLAY, "Indexing %s", active_code.name.c_str());
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Indexing {}", active_code.name);
       for (const Gecko::GeckoCode::Code& code : active_code.codes)
       {
-        NOTICE_LOG(ACTIONREPLAY, "%08x %08x", code.address, code.data);
+        NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", code.address, code.data);
         codelines++;
       }
     }
 
     // Output codelines to send
-    NOTICE_LOG(ACTIONREPLAY, "Sending %d Gecko codelines", codelines);
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {} Gecko codelines", codelines);
 
     // Send initial packet. Notify of the sync operation and total number of lines being sent.
     {
@@ -1683,10 +1700,10 @@ bool NetPlayServer::SyncCodes()
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
-        NOTICE_LOG(ACTIONREPLAY, "Sending %s", active_code.name.c_str());
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {}", active_code.name);
         for (const Gecko::GeckoCode::Code& code : active_code.codes)
         {
-          NOTICE_LOG(ACTIONREPLAY, "%08x %08x", code.address, code.data);
+          NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", code.address, code.data);
           pac << code.address;
           pac << code.data;
         }
@@ -1705,16 +1722,16 @@ bool NetPlayServer::SyncCodes()
     u16 codelines = 0;
     for (const ActionReplay::ARCode& active_code : s_active_codes)
     {
-      NOTICE_LOG(ACTIONREPLAY, "Indexing %s", active_code.name.c_str());
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Indexing {}", active_code.name);
       for (const ActionReplay::AREntry& op : active_code.ops)
       {
-        NOTICE_LOG(ACTIONREPLAY, "%08x %08x", op.cmd_addr, op.value);
+        NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
         codelines++;
       }
     }
 
     // Output codelines to send
-    NOTICE_LOG(ACTIONREPLAY, "Sending %d AR codelines", codelines);
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {} AR codelines", codelines);
 
     // Send initial packet. Notify of the sync operation and total number of lines being sent.
     {
@@ -1733,10 +1750,10 @@ bool NetPlayServer::SyncCodes()
       // Iterate through the active code vector and send each codeline
       for (const ActionReplay::ARCode& active_code : s_active_codes)
       {
-        NOTICE_LOG(ACTIONREPLAY, "Sending %s", active_code.name.c_str());
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {}", active_code.name);
         for (const ActionReplay::AREntry& op : active_code.ops)
         {
-          NOTICE_LOG(ACTIONREPLAY, "%08x %08x", op.cmd_addr, op.value);
+          NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
           pac << op.value;
         }
@@ -1761,7 +1778,7 @@ bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Pac
   File::IOFile file(file_path, "rb");
   if (!file)
   {
-    PanicAlertT("Failed to open file \"%s\".", file_path.c_str());
+    PanicAlertFmtT("Failed to open file \"{0}\".", file_path);
     return false;
   }
 
@@ -1795,14 +1812,14 @@ bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Pac
 
     if (!file.ReadBytes(in_buffer.data(), cur_len))
     {
-      PanicAlertT("Error reading file: %s", file_path.c_str());
+      PanicAlertFmtT("Error reading file: {0}", file_path.c_str());
       return false;
     }
 
     if (lzo1x_1_compress(in_buffer.data(), cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
         LZO_E_OK)
     {
-      PanicAlertT("Internal LZO Error - compression failed");
+      PanicAlertFmtT("Internal LZO Error - compression failed");
       return false;
     }
 
@@ -1857,7 +1874,7 @@ bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, s
     if (lzo1x_1_compress(&in_buffer[i], cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
         LZO_E_OK)
     {
-      PanicAlertT("Internal LZO Error - compression failed");
+      PanicAlertFmtT("Internal LZO Error - compression failed");
       return false;
     }
 

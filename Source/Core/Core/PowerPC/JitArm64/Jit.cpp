@@ -33,7 +33,7 @@ constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 
 constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
 constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
-constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
+constexpr size_t GUARD_SIZE = 64 * 1024;  // two guards - bottom (permanent) and middle (see above)
 constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
 
 JitArm64::JitArm64() : m_float_emit(this)
@@ -44,9 +44,7 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
-  InitializeInstructionTables();
-
-  size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
+  const size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&farcode, child_code_size);
 
@@ -78,7 +76,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
   // We can't handle any fault from other threads.
   if (!Core::IsCPUThread())
   {
-    ERROR_LOG(DYNA_REC, "Exception handler - Not on CPU thread");
+    ERROR_LOG_FMT(DYNA_REC, "Exception handler - Not on CPU thread");
     DoBacktrace(access_address, ctx);
     return false;
   }
@@ -97,7 +95,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 
   if (!success)
   {
-    ERROR_LOG(DYNA_REC, "Exception handler - Unhandled fault");
+    ERROR_LOG_FMT(DYNA_REC, "Exception handler - Unhandled fault");
     DoBacktrace(access_address, ctx);
   }
   return success;
@@ -108,7 +106,7 @@ bool JitArm64::HandleStackFault()
   if (!m_enable_blr_optimization)
     return false;
 
-  ERROR_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+  ERROR_LOG_FMT(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
   m_enable_blr_optimization = false;
 #ifndef _WIN32
   Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
@@ -144,31 +142,31 @@ void JitArm64::Shutdown()
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
   FlushCarry();
-  gpr.Flush(FlushMode::FLUSH_ALL, js.op);
-  fpr.Flush(FlushMode::FLUSH_ALL, js.op);
+  gpr.Flush(FlushMode::All, js.op);
+  fpr.Flush(FlushMode::All, js.op);
 
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     // also flush the program counter
     ARM64Reg WA = gpr.GetReg();
     MOVI2R(WA, js.compilerPC);
-    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(pc));
+    STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(pc));
     ADD(WA, WA, 4);
-    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
+    STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
     gpr.Unlock(WA);
   }
 
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
+  MOVP2R(X8, instr);
   MOVI2R(W0, inst.hex);
-  MOVP2R(X30, instr);
-  BLR(X30);
+  BLR(X8);
 
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     if (js.isLastInstruction)
     {
       ARM64Reg WA = gpr.GetReg();
-      LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
+      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
       WriteExceptionExit(WA);
       gpr.Unlock(WA);
     }
@@ -176,7 +174,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
     {
       // only exit if ppcstate.npc was changed
       ARM64Reg WA = gpr.GetReg();
-      LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
+      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(npc));
       ARM64Reg WB = gpr.GetReg();
       MOVI2R(WB, js.compilerPC + 4);
       CMP(WB, WA);
@@ -191,15 +189,15 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   if (jo.memcheck && (js.op->opinfo->flags & FL_LOADSTORE))
   {
     ARM64Reg WA = gpr.GetReg();
-    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+    LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
     FixupBranch noException = TBZ(WA, IntLog2(EXCEPTION_DSI));
 
     FixupBranch handleException = B();
     SwitchToFarCode();
     SetJumpTarget(handleException);
 
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
+    gpr.Flush(FlushMode::MaintainState);
+    fpr.Flush(FlushMode::MaintainState);
 
     WriteExceptionExit(js.compilerPC);
 
@@ -209,20 +207,16 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::HLEFunction(UGeckoInstruction inst)
+void JitArm64::HLEFunction(u32 hook_index)
 {
-  gpr.Flush(FlushMode::FLUSH_ALL);
-  fpr.Flush(FlushMode::FLUSH_ALL);
+  FlushCarry();
+  gpr.Flush(FlushMode::All);
+  fpr.Flush(FlushMode::All);
 
+  MOVP2R(X8, &HLE::Execute);
   MOVI2R(W0, js.compilerPC);
-  MOVI2R(W1, inst.hex);
-  MOVP2R(X30, &HLE::Execute);
-  BLR(X30);
-
-  ARM64Reg WA = gpr.GetReg();
-  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
-  WriteExit(WA);
-  gpr.Unlock(WA);
+  MOVI2R(W1, hook_index);
+  BLR(X8);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -232,15 +226,17 @@ void JitArm64::DoNothing(UGeckoInstruction inst)
 
 void JitArm64::Break(UGeckoInstruction inst)
 {
-  WARN_LOG(DYNA_REC, "Breaking! %08x - Fix me ;)", inst.hex);
-  exit(0);
+  WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst.hex);
+  std::exit(0);
 }
 
 void JitArm64::Cleanup()
 {
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
-    LDP(INDEX_SIGNED, X0, X1, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+    static_assert(PPCSTATE_OFF(gather_pipe_ptr) <= 504);
+    static_assert(PPCSTATE_OFF(gather_pipe_ptr) + 8 == PPCSTATE_OFF(gather_pipe_base_ptr));
+    LDP(IndexType::Signed, X0, X1, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     SUB(X0, X0, X1);
     CMP(X0, GPFifo::GATHER_PIPE_SIZE);
     FixupBranch exit = B(CC_LT);
@@ -248,13 +244,23 @@ void JitArm64::Cleanup()
     BLR(X0);
     SetJumpTarget(exit);
   }
+
+  // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+  if (MMCR0.Hex || MMCR1.Hex)
+  {
+    MOVP2R(X8, &PowerPC::UpdatePerformanceMonitor);
+    MOVI2R(X0, js.downcountAmount);
+    MOVI2R(X1, js.numLoadStoreInst);
+    MOVI2R(X2, js.numFloatingPointInst);
+    BLR(X8);
+  }
 }
 
 void JitArm64::DoDownCount()
 {
-  LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(downcount));
+  LDR(IndexType::Unsigned, W0, PPC_REG, PPCSTATE_OFF(downcount));
   SUBSI2R(W0, W0, js.downcountAmount, W1);
-  STR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(downcount));
+  STR(IndexType::Unsigned, W0, PPC_REG, PPCSTATE_OFF(downcount));
 }
 
 void JitArm64::ResetStack()
@@ -262,7 +268,7 @@ void JitArm64::ResetStack()
   if (!m_enable_blr_optimization)
     return;
 
-  LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+  LDR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
   ADD(SP, X0, 0);
 }
 
@@ -279,9 +285,9 @@ void JitArm64::AllocStack()
     return;
   }
 
-  m_stack_pointer = m_stack_base + GUARD_OFFSET;
+  m_stack_pointer = m_stack_base + STACK_SIZE;
   Common::ReadProtectMemory(m_stack_base, GUARD_SIZE);
-  Common::ReadProtectMemory(m_stack_pointer, GUARD_SIZE);
+  Common::ReadProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
 #else
   // For windows we just keep using the system stack and reserve a large amount of memory at the end
   // of the stack.
@@ -303,8 +309,8 @@ void JitArm64::FreeStack()
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)
 {
   Cleanup();
-  DoDownCount();
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   LK &= m_enable_blr_optimization;
 
@@ -313,7 +319,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     // Push {ARM_PC+20; PPC_PC} on the stack
     MOVI2R(X1, exit_address_after_return);
     ADR(X0, 20);
-    STP(INDEX_PRE, X0, X1, SP, -16);
+    STP(IndexType::Pre, X0, X1, SP, -16);
   }
 
   JitBlock* b = js.curBlock;
@@ -345,8 +351,8 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     MOV(DISPATCHER_PC, dest);
 
   Cleanup();
-  DoDownCount();
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   LK &= m_enable_blr_optimization;
 
@@ -359,7 +365,7 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     // Push {ARM_PC, PPC_PC} on the stack
     MOVI2R(X1, exit_address_after_return);
     ADR(X0, 12);
-    STP(INDEX_PRE, X0, X1, SP, -16);
+    STP(IndexType::Pre, X0, X1, SP, -16);
 
     BL(dispatcher);
 
@@ -387,7 +393,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   ARM64Reg code_reg = gpr.GetReg();
   MOVI2R(after_reg, exit_address_after_return);
   ADR(EncodeRegTo64(code_reg), 12);
-  STP(INDEX_PRE, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), SP, -16);
+  STP(IndexType::Pre, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), SP, -16);
   gpr.Unlock(after_reg, code_reg);
 
   FixupBranch skip_exit = BL();
@@ -421,7 +427,7 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
   EndTimeProfile(js.curBlock);
 
   // Check if {ARM_PC, PPC_PC} matches the current state.
-  LDP(INDEX_POST, X2, X1, SP, 16);
+  LDP(IndexType::Post, X2, X1, SP, 16);
   CMP(W1, DISPATCHER_PC);
   FixupBranch no_match = B(CC_NEQ);
 
@@ -431,9 +437,9 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
 
   SetJumpTarget(no_match);
 
-  DoDownCount();
-
   ResetStack();
+
+  DoDownCount();
 
   B(dispatcher);
 }
@@ -441,24 +447,27 @@ void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
 void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
 {
   Cleanup();
-  DoDownCount();
 
-  LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
+  LDR(IndexType::Unsigned, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
   MOVI2R(DISPATCHER_PC, destination);
   FixupBranch no_exceptions = CBZ(W30);
 
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+  static_assert(PPCSTATE_OFF(pc) <= 252);
+  static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+  STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
   if (only_external)
-    MOVP2R(X30, &PowerPC::CheckExternalExceptions);
+    MOVP2R(X8, &PowerPC::CheckExternalExceptions);
   else
-    MOVP2R(X30, &PowerPC::CheckExceptions);
-  BLR(X30);
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+    MOVP2R(X8, &PowerPC::CheckExceptions);
+  BLR(X8);
+
+  LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
   SetJumpTarget(no_exceptions);
 
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   B(dispatcher);
 }
@@ -469,46 +478,64 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
     MOV(DISPATCHER_PC, dest);
 
   Cleanup();
-  DoDownCount();
 
-  LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
+  LDR(IndexType::Unsigned, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
   FixupBranch no_exceptions = CBZ(W30);
 
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+  static_assert(PPCSTATE_OFF(pc) <= 252);
+  static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+  STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
   if (only_external)
     MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExternalExceptions);
   else
     MOVP2R(EncodeRegTo64(DISPATCHER_PC), &PowerPC::CheckExceptions);
   BLR(EncodeRegTo64(DISPATCHER_PC));
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+
+  LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
   SetJumpTarget(no_exceptions);
 
   EndTimeProfile(js.curBlock);
+  DoDownCount();
 
   B(dispatcher);
+}
+
+bool JitArm64::HandleFunctionHooking(u32 address)
+{
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
+    HLEFunction(hook_index);
+
+    if (type != HLE::HookType::Replace)
+      return false;
+
+    LDR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+    js.downcountAmount += js.st.numCycles;
+    WriteExit(DISPATCHER_PC);
+    return true;
+  });
 }
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
 {
   std::string output;
   for (const u8* code = start; code < end; code += sizeof(u32))
-    output += StringFromFormat("%08x", Common::swap32(code));
-  WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
+    output += fmt::format("{:08x}", Common::swap32(code));
+  WARN_LOG_FMT(DYNA_REC, "Code dump from {} to {}:\n{}", fmt::ptr(start), fmt::ptr(end), output);
 }
 
 void JitArm64::BeginTimeProfile(JitBlock* b)
 {
   MOVP2R(X0, &b->profile_data);
-  LDR(INDEX_UNSIGNED, X1, X0, offsetof(JitBlock::ProfileData, runCount));
+  LDR(IndexType::Unsigned, X1, X0, offsetof(JitBlock::ProfileData, runCount));
   ADD(X1, X1, 1);
 
   // Fetch the current counter register
   CNTVCT(X2);
 
   // stores runCount and ticStart
-  STP(INDEX_SIGNED, X1, X2, X0, offsetof(JitBlock::ProfileData, runCount));
+  STP(IndexType::Signed, X1, X2, X0, offsetof(JitBlock::ProfileData, runCount));
 }
 
 void JitArm64::EndTimeProfile(JitBlock* b)
@@ -521,16 +548,16 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
   MOVP2R(X0, &b->profile_data);
 
-  LDR(INDEX_UNSIGNED, X2, X0, offsetof(JitBlock::ProfileData, ticStart));
+  LDR(IndexType::Unsigned, X2, X0, offsetof(JitBlock::ProfileData, ticStart));
   SUB(X1, X1, X2);
 
   // loads ticCounter and downcountCounter
-  LDP(INDEX_SIGNED, X2, X3, X0, offsetof(JitBlock::ProfileData, ticCounter));
+  LDP(IndexType::Signed, X2, X3, X0, offsetof(JitBlock::ProfileData, ticCounter));
   ADD(X2, X2, X1);
   ADDI2R(X3, X3, js.downcountAmount, X1);
 
   // stores ticCounter and downcountCounter
-  STP(INDEX_SIGNED, X2, X3, X0, offsetof(JitBlock::ProfileData, ticCounter));
+  STP(IndexType::Signed, X2, X3, X0, offsetof(JitBlock::ProfileData, ticCounter));
 }
 
 void JitArm64::Run()
@@ -582,7 +609,7 @@ void JitArm64::Jit(u32)
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
-    WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
+    WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
 
@@ -596,7 +623,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   if (em_address == 0)
   {
     Core::SetState(Core::State::Paused);
-    WARN_LOG(DYNA_REC, "ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
+    WARN_LOG_FMT(DYNA_REC, "ERROR: Compiling at 0. LR={:08x} CTR={:08x}", LR, CTR);
   }
 
   js.isLastInstruction = false;
@@ -609,6 +636,8 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.skipInstructions = 0;
   js.curBlock = b;
   js.carryFlagSet = false;
+  js.numLoadStoreInst = 0;
+  js.numFloatingPointInst = 0;
 
   u8* const start = GetWritableCodePtr();
   b->checkedEntry = start;
@@ -637,17 +666,17 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     int gqr = *code_block.m_gqr_used.begin();
     if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
     {
-      LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
+      LDR(IndexType::Unsigned, W0, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
       FixupBranch no_fail = CBZ(W0);
       FixupBranch fail = B();
       SwitchToFarCode();
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
-      STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+      STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
       MOVI2R(W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       MOVP2R(X1, &JitInterface::CompileExceptionCheck);
       BLR(X1);
-      B(dispatcher);
+      B(dispatcher_no_check);
       SwitchToNearCode();
       SetJumpTarget(no_fail);
       js.assumeNoPairedQuantize = true;
@@ -673,6 +702,15 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     if (!SConfig::GetInstance().bEnableDebugging)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
+    // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
+    if (op.inst.OPCD != 46 && op.inst.OPCD != 47)
+      gpr.UpdateLastUsed(op.regsIn | op.regsOut);
+
+    BitSet32 fpr_used = op.fregsIn;
+    if (op.fregOut >= 0)
+      fpr_used[op.fregOut] = true;
+    fpr.UpdateLastUsed(fpr_used);
+
     // Gather pipe writes using a non-immediate address are discovered by profiling.
     bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
@@ -693,23 +731,23 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(Exception);
       ABI_PushRegisters(regs_in_use);
       m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
-      MOVP2R(X30, &GPFifo::FastCheckGatherPipe);
-      BLR(X30);
+      MOVP2R(X8, &GPFifo::FastCheckGatherPipe);
+      BLR(X8);
       m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
       ABI_PopRegisters(regs_in_use);
 
       // Inline exception check
-      LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
+      LDR(IndexType::Unsigned, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
       TBZ(W30, 3, done_here);  // EXCEPTION_EXTERNAL_INT
-      LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(msr));
+      LDR(IndexType::Unsigned, W30, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(W30, 11, done_here);
       MOVP2R(X30, &ProcessorInterface::m_InterruptCause);
-      LDR(INDEX_UNSIGNED, W30, X30, 0);
+      LDR(IndexType::Unsigned, W30, X30, 0);
       TST(W30, 23, 2);
       B(CC_EQ, done_here);
 
-      gpr.Flush(FLUSH_MAINTAIN_STATE);
-      fpr.Flush(FLUSH_MAINTAIN_STATE);
+      gpr.Flush(FlushMode::MaintainState);
+      fpr.Flush(FlushMode::MaintainState);
       WriteExceptionExit(js.compilerPC, true);
       SwitchToNearCode();
       SetJumpTarget(exit);
@@ -725,28 +763,31 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     {
       ARM64Reg WA = gpr.GetReg();
       ARM64Reg XA = EncodeRegTo64(WA);
-      LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
       FixupBranch NoExtException = TBZ(WA, 3);  // EXCEPTION_EXTERNAL_INT
       FixupBranch Exception = B();
       SwitchToFarCode();
       const u8* done_here = GetCodePtr();
       FixupBranch exit = B();
       SetJumpTarget(Exception);
-      LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));
+      LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(WA, 11, done_here);
       MOVP2R(XA, &ProcessorInterface::m_InterruptCause);
-      LDR(INDEX_UNSIGNED, WA, XA, 0);
+      LDR(IndexType::Unsigned, WA, XA, 0);
       TST(WA, 23, 2);
       B(CC_EQ, done_here);
       gpr.Unlock(WA);
 
-      gpr.Flush(FLUSH_MAINTAIN_STATE);
-      fpr.Flush(FLUSH_MAINTAIN_STATE);
+      gpr.Flush(FlushMode::MaintainState);
+      fpr.Flush(FlushMode::MaintainState);
       WriteExceptionExit(js.compilerPC, true);
       SwitchToNearCode();
       SetJumpTarget(NoExtException);
       SetJumpTarget(exit);
     }
+
+    if (HandleFunctionHooking(op.address))
+      break;
 
     if (!op.skip)
     {
@@ -754,19 +795,19 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       {
         // This instruction uses FPU - needs to add FP exception bailout
         ARM64Reg WA = gpr.GetReg();
-        LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));
+        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
         FixupBranch b1 = TBNZ(WA, 13);  // Test FP enabled bit
 
         FixupBranch far_addr = B();
         SwitchToFarCode();
         SetJumpTarget(far_addr);
 
-        gpr.Flush(FLUSH_MAINTAIN_STATE);
-        fpr.Flush(FLUSH_MAINTAIN_STATE);
+        gpr.Flush(FlushMode::MaintainState);
+        fpr.Flush(FlushMode::MaintainState);
 
-        LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+        LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
         ORR(WA, WA, 26, 0);  // EXCEPTION_FPU_UNAVAILABLE
-        STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+        STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
         gpr.Unlock(WA);
 
@@ -781,8 +822,8 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       if (SConfig::GetInstance().bJITRegisterCacheOff)
       {
-        gpr.Flush(FLUSH_ALL);
-        fpr.Flush(FLUSH_ALL);
+        gpr.Flush(FlushMode::All);
+        fpr.Flush(FlushMode::All);
         FlushCarry();
       }
 
@@ -793,6 +834,12 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       // If we have a register that will never be used again, flush it.
       gpr.StoreRegisters(~op.gprInUse);
       fpr.StoreRegisters(~op.fprInUse);
+
+      if (opinfo->flags & FL_LOADSTORE)
+        ++js.numLoadStoreInst;
+
+      if (opinfo->flags & FL_USE_FPU)
+        ++js.numFloatingPointInst;
     }
 
     i += js.skipInstructions;
@@ -801,8 +848,8 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   if (code_block.m_broken)
   {
-    gpr.Flush(FLUSH_ALL);
-    fpr.Flush(FLUSH_ALL);
+    gpr.Flush(FlushMode::All);
+    fpr.Flush(FlushMode::All);
     WriteExit(nextPC);
   }
 

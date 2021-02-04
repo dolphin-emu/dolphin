@@ -105,7 +105,7 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 
   if (target_imv == GetMemoryValues().end())
   {
-    ERROR_LOG(IOS, "Unknown IOS version: %016" PRIx64, ios_title_id);
+    ERROR_LOG_FMT(IOS, "Unknown IOS version: {:016x}", ios_title_id);
     return false;
   }
 
@@ -235,7 +235,7 @@ Kernel::Kernel()
 Kernel::~Kernel()
 {
   {
-    std::lock_guard<std::mutex> lock(m_device_map_mutex);
+    std::lock_guard lock(m_device_map_mutex);
     m_device_map.clear();
   }
 
@@ -249,10 +249,10 @@ Kernel::Kernel(u64 title_id) : m_title_id(title_id)
 
 EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
 {
-  INFO_LOG(IOS, "Starting IOS %016" PRIx64, title_id);
+  INFO_LOG_FMT(IOS, "Starting IOS {:016x}", title_id);
 
   if (!SetupMemory(title_id, MemorySetupType::IOSReload))
-    WARN_LOG(IOS, "No information about this IOS -- cannot set up memory values");
+    WARN_LOG_FMT(IOS, "No information about this IOS -- cannot set up memory values");
 
   if (title_id == Titles::MIOS)
   {
@@ -409,7 +409,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
 void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
 {
   ASSERT(device->GetDeviceType() == Device::Device::DeviceType::Static);
-  m_device_map[device->GetDeviceName()] = std::move(device);
+  m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
 }
 
 void Kernel::AddCoreDevices()
@@ -417,7 +417,7 @@ void Kernel::AddCoreDevices()
   m_fs = FS::MakeFileSystem();
   ASSERT(m_fs);
 
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
   AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
   AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
   AddDevice(std::make_unique<Device::DolphinDevice>(*this, "/dev/dolphin"));
@@ -425,7 +425,7 @@ void Kernel::AddCoreDevices()
 
 void Kernel::AddStaticDevices()
 {
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
 
   const Feature features = GetFeatures(GetVersion());
 
@@ -505,14 +505,14 @@ s32 Kernel::GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<Device::Device> Kernel::GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> Kernel::GetDeviceByName(std::string_view device_name)
 {
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
-std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
   return Kernel::GetDeviceByName(device_name);
 }
@@ -521,10 +521,10 @@ std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(const std::stri
 IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG(IOS, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
+  INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, request.flags, new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
-    ERROR_LOG(IOS, "Couldn't get a free fd, too many open files");
+    ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
     return IPCCommandResult{IPC_EMAX, true, 5000 * SystemTimers::TIMER_RATIO};
   }
   request.fd = new_fd;
@@ -546,7 +546,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
 
   if (!device)
   {
-    ERROR_LOG(IOS, "Unknown device: %s", request.path.c_str());
+    ERROR_LOG_FMT(IOS, "Unknown device: {}", request.path);
     return {IPC_ENOENT, true, 3700 * SystemTimers::TIMER_RATIO};
   }
 
@@ -575,7 +575,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
     return IPCCommandResult{IPC_EINVAL, true, 550 * SystemTimers::TIMER_RATIO};
 
   IPCCommandResult ret;
-  u64 wall_time_before = Common::Timer::GetTimeUs();
+  const u64 wall_time_before = Common::Timer::GetTimeUs();
 
   switch (request.command)
   {
@@ -604,12 +604,12 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
     break;
   }
 
-  u64 wall_time_after = Common::Timer::GetTimeUs();
+  const u64 wall_time_after = Common::Timer::GetTimeUs();
   constexpr u64 BLOCKING_IPC_COMMAND_THRESHOLD_US = 2000;
   if (wall_time_after - wall_time_before > BLOCKING_IPC_COMMAND_THRESHOLD_US)
   {
-    WARN_LOG(IOS, "Previous request to device %s blocked emulation for %" PRIu64 " microseconds.",
-             device->GetDeviceName().c_str(), wall_time_after - wall_time_before);
+    WARN_LOG_FMT(IOS, "Previous request to device {} blocked emulation for {} microseconds.",
+                 device->GetDeviceName(), wall_time_after - wall_time_before);
   }
 
   return ret;
@@ -690,7 +690,7 @@ void Kernel::UpdateIPC()
   if (!m_reply_queue.empty())
   {
     GenerateReply(m_reply_queue.front());
-    DEBUG_LOG(IOS, "<<-- Reply to IPC Request @ 0x%08x", m_reply_queue.front());
+    DEBUG_LOG_FMT(IOS, "<<-- Reply to IPC Request @ {:#010x}", m_reply_queue.front());
     m_reply_queue.pop_front();
     return;
   }
@@ -698,7 +698,7 @@ void Kernel::UpdateIPC()
   if (!m_ack_queue.empty())
   {
     GenerateAck(m_ack_queue.front());
-    WARN_LOG(IOS, "<<-- Double-ack to IPC Request @ 0x%08x", m_ack_queue.front());
+    WARN_LOG_FMT(IOS, "<<-- Double-ack to IPC Request @ {:#010x}", m_ack_queue.front());
     m_ack_queue.pop_front();
     return;
   }
@@ -824,7 +824,8 @@ void Init()
     if (!s_ios)
       return;
 
-    auto device = static_cast<Device::SDIOSlot0*>(s_ios->GetDeviceByName("/dev/sdio/slot0").get());
+    auto sdio_slot0 = s_ios->GetDeviceByName("/dev/sdio/slot0");
+    auto device = static_cast<Device::SDIOSlot0*>(sdio_slot0.get());
     if (device)
       device->EventNotify();
   });

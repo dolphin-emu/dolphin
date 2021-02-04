@@ -277,94 +277,89 @@ constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)
   return static_cast<ARM64Reg>(reg | 0xC0);
 }
 
-enum OpType
+enum class ShiftType
 {
-  TYPE_IMM = 0,
-  TYPE_REG,
-  TYPE_IMMSREG,
-  TYPE_RSR,
-  TYPE_MEM
+  // Logical Shift Left
+  LSL = 0,
+  // Logical Shift Right
+  LSR = 1,
+  // Arithmetic Shift Right
+  ASR = 2,
+  // Rotate Right
+  ROR = 3,
 };
 
-enum ShiftType
+enum class IndexType
 {
-  ST_LSL = 0,
-  ST_LSR = 1,
-  ST_ASR = 2,
-  ST_ROR = 3,
+  Unsigned,
+  Post,
+  Pre,
+  Signed,  // used in LDP/STP
 };
 
-enum IndexType
+enum class ShiftAmount
 {
-  INDEX_UNSIGNED,
-  INDEX_POST,
-  INDEX_PRE,
-  INDEX_SIGNED,  // used in LDP/STP
+  Shift0,
+  Shift16,
+  Shift32,
+  Shift48,
 };
 
-enum ShiftAmount
+enum class RoundingMode
 {
-  SHIFT_0 = 0,
-  SHIFT_16 = 1,
-  SHIFT_32 = 2,
-  SHIFT_48 = 3,
-};
-
-enum RoundingMode
-{
-  ROUND_A,  // round to nearest, ties to away
-  ROUND_M,  // round towards -inf
-  ROUND_N,  // round to nearest, ties to even
-  ROUND_P,  // round towards +inf
-  ROUND_Z,  // round towards zero
+  A,  // round to nearest, ties to away
+  M,  // round towards -inf
+  N,  // round to nearest, ties to even
+  P,  // round towards +inf
+  Z,  // round towards zero
 };
 
 struct FixupBranch
 {
-  u8* ptr;
-  // Type defines
-  // 0 = CBZ (32bit)
-  // 1 = CBNZ (32bit)
-  // 2 = B (conditional)
-  // 3 = TBZ
-  // 4 = TBNZ
-  // 5 = B (unconditional)
-  // 6 = BL (unconditional)
-  u32 type;
+  enum class Type : u32
+  {
+    CBZ,
+    CBNZ,
+    BConditional,
+    TBZ,
+    TBNZ,
+    B,
+    BL,
+  };
 
+  u8* ptr;
+  Type type;
   // Used with B.cond
   CCFlags cond;
-
   // Used with TBZ/TBNZ
   u8 bit;
-
   // Used with Test/Compare and Branch
   ARM64Reg reg;
 };
 
-enum PStateField
+enum class PStateField
 {
-  FIELD_SPSel = 0,
-  FIELD_DAIFSet,
-  FIELD_DAIFClr,
-  FIELD_NZCV,  // The only system registers accessible from EL0 (user space)
-  FIELD_PMCR_EL0,
-  FIELD_PMCCNTR_EL0,
-  FIELD_FPCR = 0x340,
-  FIELD_FPSR = 0x341,
+  SPSel = 0,
+  DAIFSet,
+  DAIFClr,
+  NZCV,  // The only system registers accessible from EL0 (user space)
+  PMCR_EL0,
+  PMCCNTR_EL0,
+  FPCR = 0x340,
+  FPSR = 0x341,
 };
 
-enum SystemHint
+enum class SystemHint
 {
-  HINT_NOP = 0,
-  HINT_YIELD,
-  HINT_WFE,
-  HINT_WFI,
-  HINT_SEV,
-  HINT_SEVL,
+  NOP,
+  YIELD,
+  WFE,
+  WFI,
+  SEV,
+  SEVL,
 };
 
-enum BarrierType
+enum class BarrierType
 {
   OSHLD = 1,
   OSHST = 2,
@@ -382,34 +377,33 @@ enum BarrierType
 
 class ArithOption
 {
-public:
-  enum WidthSpecifier
-  {
-    WIDTH_DEFAULT,
-    WIDTH_32BIT,
-    WIDTH_64BIT,
-  };
-
-  enum ExtendSpecifier
-  {
-    EXTEND_UXTB = 0x0,
-    EXTEND_UXTH = 0x1,
-    EXTEND_UXTW = 0x2, /* Also LSL on 32bit width */
-    EXTEND_UXTX = 0x3, /* Also LSL on 64bit width */
-    EXTEND_SXTB = 0x4,
-    EXTEND_SXTH = 0x5,
-    EXTEND_SXTW = 0x6,
-    EXTEND_SXTX = 0x7,
-  };
-
-  enum TypeSpecifier
-  {
-    TYPE_EXTENDEDREG,
-    TYPE_IMM,
-    TYPE_SHIFTEDREG,
-  };
-
 private:
+  enum class WidthSpecifier
+  {
+    Default,
+    Width32Bit,
+    Width64Bit,
+  };
+
+  enum class ExtendSpecifier
+  {
+    UXTB = 0x0,
+    UXTH = 0x1,
+    UXTW = 0x2, /* Also LSL on 32bit width */
+    UXTX = 0x3, /* Also LSL on 64bit width */
+    SXTB = 0x4,
+    SXTH = 0x5,
+    SXTW = 0x6,
+    SXTX = 0x7,
+  };
+
+  enum class TypeSpecifier
+  {
+    ExtendedReg,
+    Immediate,
+    ShiftedReg,
+  };
+
   ARM64Reg m_destReg;
   WidthSpecifier m_width;
   ExtendSpecifier m_extend;
@@ -436,56 +430,55 @@ public:
       m_shift = 0;
 
     m_destReg = Rd;
-    m_type = TYPE_EXTENDEDREG;
+    m_type = TypeSpecifier::ExtendedReg;
     if (Is64Bit(Rd))
     {
-      m_width = WIDTH_64BIT;
-      m_extend = EXTEND_UXTX;
+      m_width = WidthSpecifier::Width64Bit;
+      m_extend = ExtendSpecifier::UXTX;
     }
     else
     {
-      m_width = WIDTH_32BIT;
-      m_extend = EXTEND_UXTW;
+      m_width = WidthSpecifier::Width32Bit;
+      m_extend = ExtendSpecifier::UXTW;
     }
-    m_shifttype = ST_LSL;
+    m_shifttype = ShiftType::LSL;
   }
   ArithOption(ARM64Reg Rd, ShiftType shift_type, u32 shift)
   {
     m_destReg = Rd;
     m_shift = shift;
     m_shifttype = shift_type;
-    m_type = TYPE_SHIFTEDREG;
+    m_type = TypeSpecifier::ShiftedReg;
     if (Is64Bit(Rd))
     {
-      m_width = WIDTH_64BIT;
+      m_width = WidthSpecifier::Width64Bit;
       if (shift == 64)
         m_shift = 0;
     }
     else
     {
-      m_width = WIDTH_32BIT;
+      m_width = WidthSpecifier::Width32Bit;
       if (shift == 32)
         m_shift = 0;
     }
   }
-  TypeSpecifier GetType() const { return m_type; }
   ARM64Reg GetReg() const { return m_destReg; }
   u32 GetData() const
   {
     switch (m_type)
     {
-    case TYPE_EXTENDEDREG:
-      return (m_extend << 13) | (m_shift << 10);
-      break;
-    case TYPE_SHIFTEDREG:
-      return (m_shifttype << 22) | (m_shift << 10);
-      break;
+    case TypeSpecifier::ExtendedReg:
+      return (static_cast<u32>(m_extend) << 13) | (m_shift << 10);
+    case TypeSpecifier::ShiftedReg:
+      return (static_cast<u32>(m_shifttype) << 22) | (m_shift << 10);
     default:
       DEBUG_ASSERT_MSG(DYNA_REC, false, "Invalid type in GetData");
       break;
     }
     return 0;
   }
+
+  bool IsExtended() const { return m_type == TypeSpecifier::ExtendedReg; }
 };
 
 class ARM64XEmitter
@@ -540,7 +533,11 @@ public:
   }
 
   virtual ~ARM64XEmitter() {}
-  void SetCodePtr(u8* ptr);
+
+  // 'end' and 'write_failed' are unused in the ARM code emitter at the moment.
+  // They're just here for interface compatibility with the x64 code emitter.
+  void SetCodePtr(u8* ptr, u8* end, bool write_failed = false);
+
   void SetCodePtrUnsafe(u8* ptr);
   void ReserveCodeSpace(u32 bytes);
   u8* AlignCode16();
@@ -599,6 +596,13 @@ public:
   void CNTVCT(ARM64Reg Rt);
 
   void HINT(SystemHint op);
+  void NOP() { HINT(SystemHint::NOP); }
+  void SEV() { HINT(SystemHint::SEV); }
+  void SEVL() { HINT(SystemHint::SEVL); }
+  void WFE() { HINT(SystemHint::WFE); }
+  void WFI() { HINT(SystemHint::WFI); }
+  void YIELD() { HINT(SystemHint::YIELD); }
+
   void CLREX();
   void DSB(BarrierType type);
   void DMB(BarrierType type);
@@ -699,14 +703,38 @@ public:
   void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
 
   // Wrap the above for saner syntax
-  void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { AND(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { BIC(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { ORR(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void ORN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { ORN(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void EOR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { EOR(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { EON(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { ANDS(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
-  void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm) { BICS(Rd, Rn, Rm, ArithOption(Rd, ST_LSL, 0)); }
+  void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    AND(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    BIC(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    ORR(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void ORN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    ORN(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void EOR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    EOR(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    EON(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    ANDS(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
+  void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+  {
+    BICS(Rd, Rn, Rm, ArithOption(Rd, ShiftType::LSL, 0));
+  }
   // Convenience wrappers around ORR. These match the official convenience syntax.
   void MOV(ARM64Reg Rd, ARM64Reg Rm, ArithOption Shift);
   void MOV(ARM64Reg Rd, ARM64Reg Rm);
@@ -733,15 +761,16 @@ public:
   void CMP(ARM64Reg Rn, u32 imm, bool shift = false);
 
   // Data Processing (Immediate)
-  void MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos = SHIFT_0);
-  void MOVN(ARM64Reg Rd, u32 imm, ShiftAmount pos = SHIFT_0);
-  void MOVK(ARM64Reg Rd, u32 imm, ShiftAmount pos = SHIFT_0);
+  void MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
+  void MOVN(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
+  void MOVK(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
 
   // Bitfield move
   void BFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
   void SBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
   void UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
   void BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width);
+  void BFXIL(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width);
   void UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width);
 
   // Extract register (ROR with two inputs, if same then faster on A67)
@@ -884,14 +913,14 @@ public:
   }
 
   // This function expects you to have set up the state.
-  // Overwrites X0 and X30
+  // Overwrites X0 and X8
   template <typename T, typename... Args>
   ARM64Reg ABI_SetupLambda(const std::function<T(Args...)>* f)
   {
     auto trampoline = &ARM64XEmitter::CallLambdaTrampoline<T, Args...>;
-    MOVI2R(X30, (uintptr_t)trampoline);
-    MOVI2R(X0, (uintptr_t) const_cast<void*>((const void*)f));
-    return X30;
+    MOVP2R(X8, trampoline);
+    MOVP2R(X0, const_cast<void*>((const void*)f));
+    return X8;
   }
 
   // Plain function call

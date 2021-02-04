@@ -87,6 +87,11 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   for (u8 i = 0; i < sizeof(named_keys) / sizeof(*named_keys); ++i)
     AddInput(new Key(i, m_state_in.keyboard[named_keys[i].code]));
 
+  // Add combined left/right modifiers with consistent naming across platforms.
+  AddCombinedInput("Alt", {"LMENU", "RMENU"});
+  AddCombinedInput("Shift", {"LSHIFT", "RSHIFT"});
+  AddCombinedInput("Ctrl", {"LCONTROL", "RCONTROL"});
+
   // MOUSE
   DIDEVCAPS mouse_caps = {};
   mouse_caps.dwSize = sizeof(mouse_caps);
@@ -121,9 +126,9 @@ void KeyboardMouse::UpdateCursorInput()
   RECT rect;
   GetClientRect(m_hwnd, &rect);
 
-  // Width and height are the size of the rendering window.
-  const auto win_width = rect.right - rect.left;
-  const auto win_height = rect.bottom - rect.top;
+  // Width and height are the size of the rendering window. They could be 0
+  const auto win_width = std::max(rect.right - rect.left, 1l);
+  const auto win_height = std::max(rect.bottom - rect.top, 1l);
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 

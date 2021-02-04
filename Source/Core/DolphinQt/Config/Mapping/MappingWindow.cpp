@@ -16,11 +16,13 @@
 
 #include "Core/Core.h"
 
+#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
@@ -45,7 +47,7 @@
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"
 
 constexpr const char* PROFILES_DIR = "Profiles/";
@@ -82,7 +84,7 @@ void MappingWindow::CreateDevicesLayout()
   m_devices_combo = new QComboBox();
   m_devices_refresh = new QPushButton(tr("Refresh"));
 
-  m_devices_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+  m_devices_combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   m_devices_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   m_devices_layout->addWidget(m_devices_combo);
@@ -164,6 +166,11 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
 
+  connect(m_profiles_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &MappingWindow::OnSelectProfile);
+  connect(m_profiles_combo, &QComboBox::editTextChanged, this,
+          &MappingWindow::OnProfileTextChanged);
+
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
   connect(this, &QDialog::rejected, [this] { emit Save(); });
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -179,6 +186,33 @@ void MappingWindow::UpdateProfileIndex()
 
   if (text_index == -1)
     m_profiles_combo->setCurrentText(current_text);
+}
+
+void MappingWindow::UpdateProfileButtonState()
+{
+  // Make sure save/delete buttons are disabled for built-in profiles
+
+  bool builtin = false;
+  if (m_profiles_combo->findText(m_profiles_combo->currentText()) != -1)
+  {
+    const QString profile_path = m_profiles_combo->currentData().toString();
+    std::string sys_dir = File::GetSysDirectory();
+    sys_dir = ReplaceAll(sys_dir, "\\", DIR_SEP);
+    builtin = profile_path.startsWith(QString::fromStdString(sys_dir));
+  }
+
+  m_profiles_save->setEnabled(!builtin);
+  m_profiles_delete->setEnabled(!builtin);
+}
+
+void MappingWindow::OnSelectProfile(int)
+{
+  UpdateProfileButtonState();
+}
+
+void MappingWindow::OnProfileTextChanged(const QString&)
+{
+  UpdateProfileButtonState();
 }
 
 void MappingWindow::OnDeleteProfilePressed()
@@ -268,7 +302,10 @@ void MappingWindow::OnSaveProfilePressed()
   ini.Save(profile_path);
 
   if (m_profiles_combo->findText(profile_name) == -1)
-    m_profiles_combo->addItem(profile_name, QString::fromStdString(profile_path));
+  {
+    PopulateProfileSelection();
+    m_profiles_combo->setCurrentIndex(m_profiles_combo->findText(profile_name));
+  }
 }
 
 void MappingWindow::OnSelectDevice(int)
@@ -395,6 +432,13 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }
+  case Type::MAPPING_FREELOOK:
+  {
+    widget = new FreeLookGeneral(this);
+    AddWidget(tr("General"), widget);
+    setWindowTitle(tr("Free Look Controller %1").arg(GetPort() + 1));
+  }
+  break;
   default:
     return;
   }
@@ -405,14 +449,39 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
   m_controller = m_config->GetController(GetPort());
 
+  PopulateProfileSelection();
+}
+
+void MappingWindow::PopulateProfileSelection()
+{
+  m_profiles_combo->clear();
+
   const std::string profiles_path =
       File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
   for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
   {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
-    m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
+    if (!basename.empty())  // Ignore files with an empty name to avoid multiple problems
+      m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
+
+  m_profiles_combo->insertSeparator(m_profiles_combo->count());
+
+  const std::string builtin_profiles_path =
+      File::GetSysDirectory() + PROFILES_DIR + m_config->GetProfileName();
+  for (const auto& filename : Common::DoFileSearch({builtin_profiles_path}, {".ini"}))
+  {
+    std::string basename;
+    SplitPath(filename, nullptr, &basename, nullptr);
+    if (!basename.empty())
+    {
+      // i18n: "Stock" refers to input profiles included with Dolphin
+      m_profiles_combo->addItem(tr("%1 (Stock)").arg(QString::fromStdString(basename)),
+                                QString::fromStdString(filename));
+    }
+  }
+
   m_profiles_combo->setCurrentIndex(-1);
 }
 

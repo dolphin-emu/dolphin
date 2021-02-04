@@ -41,10 +41,10 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
   m_asm_splitter->restoreState(
       settings.value(QStringLiteral("jitwidget/asmsplitter")).toByteArray());
 
-  connect(&Settings::Instance(), &Settings::JITVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::JITVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled,
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &JITWidget::Update);

@@ -10,6 +10,8 @@
 
 namespace HLE
 {
+using HookFunction = void (*)();
+
 enum class HookType
 {
   Start,    // Hook the beginning of the function and execute the function afterwards
@@ -24,6 +26,14 @@ enum class HookFlag
   Fixed,    // An arbitrary hook mapped to a fixed address instead of a symbol
 };
 
+struct Hook
+{
+  char name[128];
+  HookFunction function;
+  HookType type;
+  HookFlag flags;
+};
+
 void PatchFixedFunctions();
 void PatchFunctions();
 void Clear();
@@ -31,15 +41,14 @@ void Reload();
 
 void Patch(u32 pc, std::string_view func_name);
 u32 UnPatch(std::string_view patch_name);
-bool UnPatch(u32 addr, std::string_view name = {});
-void Execute(u32 _CurrentPC, u32 _Instruction);
+void Execute(u32 current_pc, u32 hook_index);
 
-// Returns the HLE function index if the address is located in the function
-u32 GetFunctionIndex(u32 address);
-// Returns the HLE function index if the address matches the function start
-u32 GetFirstFunctionIndex(u32 address);
-HookType GetFunctionTypeByIndex(u32 index);
-HookFlag GetFunctionFlagsByIndex(u32 index);
+// Returns the HLE hook index of the address
+u32 GetHookByAddress(u32 address);
+// Returns the HLE hook index if the address matches the function start
+u32 GetHookByFunctionAddress(u32 address);
+HookType GetHookTypeByIndex(u32 index);
+HookFlag GetHookFlagsByIndex(u32 index);
 
 bool IsEnabled(HookFlag flag);
 
@@ -57,18 +66,18 @@ bool IsEnabled(HookFlag flag);
 template <typename FunctionObject>
 bool ReplaceFunctionIfPossible(u32 address, FunctionObject fn)
 {
-  const u32 function = GetFirstFunctionIndex(address);
-  if (function == 0)
+  const u32 hook_index = GetHookByFunctionAddress(address);
+  if (hook_index == 0)
     return false;
 
-  const HookType type = GetFunctionTypeByIndex(function);
+  const HookType type = GetHookTypeByIndex(hook_index);
   if (type != HookType::Start && type != HookType::Replace)
     return false;
 
-  const HookFlag flags = GetFunctionFlagsByIndex(function);
+  const HookFlag flags = GetHookFlagsByIndex(hook_index);
   if (!IsEnabled(flags))
     return false;
 
-  return fn(function, type);
+  return fn(hook_index, type);
 }
 }  // namespace HLE

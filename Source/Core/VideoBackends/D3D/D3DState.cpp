@@ -13,7 +13,7 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -386,7 +386,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     {
       return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
     }
-    WARN_LOG(VIDEO, "Creating D3D blend state failed with an error: %x", hr);
+    WARN_LOG_FMT(VIDEO, "Creating D3D blend state failed with an error: {:08X}", hr);
   }
 
   D3D11_BLEND_DESC desc = {};

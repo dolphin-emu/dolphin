@@ -28,7 +28,7 @@ namespace JIT::x64
 class DSPEmitter final : public JIT::DSPEmitter, public Gen::X64CodeBlock
 {
 public:
-  DSPEmitter();
+  explicit DSPEmitter(DSPCore& dsp);
   ~DSPEmitter() override;
 
   u16 RunCycles(u16 cycles) override;
@@ -197,6 +197,9 @@ private:
   // within the class itself to allow access to member variables.
   static void CompileCurrent(DSPEmitter& emitter);
 
+  static u16 ReadIFXRegisterHelper(DSPEmitter& emitter, u16 address);
+  static void WriteIFXRegisterHelper(DSPEmitter& emitter, u16 address, u16 value);
+
   void EmitInstruction(UDSPInstruction inst);
   void ClearIRAMandDSPJITCodespaceReset();
 
@@ -321,6 +324,8 @@ private:
   const u8* m_enter_dispatcher;
   const u8* m_return_dispatcher;
   const u8* m_stub_entry_point;
+
+  DSPCore& m_dsp_core;
 };
 
 }  // namespace JIT::x64

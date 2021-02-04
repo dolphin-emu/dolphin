@@ -22,6 +22,12 @@ class JitBase;
 // so this struct needs to have a standard layout.
 struct JitBlockData
 {
+  // Memory range this code block takes up in near and far code caches.
+  u8* near_begin;
+  u8* near_end;
+  u8* far_begin;
+  u8* far_end;
+
   // A special entry point for block linking; usually used to check the
   // downcount.
   u8* checkedEntry;
@@ -92,19 +98,6 @@ typedef void (*CompiledCode)();
 class ValidBlockBitSet final
 {
 public:
-  enum
-  {
-    // ValidBlockBitSet covers the whole 32-bit address-space in 32-byte
-    // chunks.
-    // FIXME: Maybe we can get away with less? There isn't any actual
-    // RAM in most of this space.
-    VALID_BLOCK_MASK_SIZE = (1ULL << 32) / 32,
-    // The number of elements in the allocated array. Each u32 contains 32 bits.
-    VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
-  };
-  // Directly accessed by Jit64.
-  std::unique_ptr<u32[]> m_valid_block;
-
   ValidBlockBitSet()
   {
     m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
@@ -115,6 +108,19 @@ public:
   void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
   void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
   bool Test(u32 bit) { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
+
+private:
+  enum
+  {
+    // ValidBlockBitSet covers the whole 32-bit address-space in 32-byte
+    // chunks.
+    // FIXME: Maybe we can get away with less? There isn't any actual
+    // RAM in most of this space.
+    VALID_BLOCK_MASK_SIZE = (1ULL << 32) / 32,
+    // The number of elements in the allocated array. Each u32 contains 32 bits.
+    VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
+  };
+  std::unique_ptr<u32[]> m_valid_block;
 };
 
 class JitBaseBlockCache
@@ -130,7 +136,7 @@ public:
   explicit JitBaseBlockCache(JitBase& jit);
   virtual ~JitBaseBlockCache();
 
-  void Init();
+  virtual void Init();
   void Shutdown();
   void Clear();
   void Reset();
@@ -156,9 +162,9 @@ public:
   void InvalidateICache(u32 address, u32 length, bool forced);
   void ErasePhysicalRange(u32 address, u32 length);
 
-  u32* GetBlockBitSet() const;
-
 protected:
+  virtual void DestroyBlock(JitBlock& block);
+
   JitBase& m_jit;
 
 private:
@@ -168,7 +174,6 @@ private:
   void LinkBlockExits(JitBlock& block);
   void LinkBlock(JitBlock& block);
   void UnlinkBlock(const JitBlock& block);
-  void DestroyBlock(JitBlock& block);
 
   JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
 

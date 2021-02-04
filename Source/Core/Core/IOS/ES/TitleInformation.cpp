@@ -4,7 +4,6 @@
 
 #include "Core/IOS/ES/ES.h"
 
-#include <cinttypes>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -26,8 +25,8 @@ IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
   const u16 num_contents = static_cast<u16>(GetStoredContentsFromTMD(tmd).size());
   Memory::Write_U32(num_contents, request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "GetStoredContentsCount (0x%x):  %u content(s) for %016" PRIx64, request.request,
-           num_contents, tmd.GetTitleId());
+  INFO_LOG_FMT(IOS_ES, "GetStoredContentsCount ({:#x}):  {} content(s) for {:016x}",
+               request.request, num_contents, tmd.GetTitleId());
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -129,7 +128,7 @@ IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVReque
   for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
   {
     Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * sizeof(u64));
-    INFO_LOG(IOS_ES, "     title %016" PRIx64, titles[i]);
+    INFO_LOG_FMT(IOS_ES, "     title {:016x}", titles[i]);
   }
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -137,7 +136,7 @@ IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVReque
 IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
 {
   const std::vector<u64> titles = GetInstalledTitles();
-  INFO_LOG(IOS_ES, "GetTitleCount: %zu titles", titles.size());
+  INFO_LOG_FMT(IOS_ES, "GetTitleCount: {} titles", titles.size());
   return GetTitleCount(titles, request);
 }
 
@@ -159,7 +158,7 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
   const u32 tmd_size = static_cast<u32>(tmd.GetBytes().size());
   Memory::Write_U32(tmd_size, request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "GetStoredTMDSize: %u bytes  for %016" PRIx64, tmd_size, title_id);
+  INFO_LOG_FMT(IOS_ES, "GetStoredTMDSize: {} bytes  for {:016x}", tmd_size, title_id);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -183,14 +182,14 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
-  INFO_LOG(IOS_ES, "GetStoredTMD: title %016" PRIx64 " (buffer size: %u)", title_id, MaxCount);
+  INFO_LOG_FMT(IOS_ES, "GetStoredTMD: title {:016x} (buffer size: {})", title_id, MaxCount);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
 {
   const std::vector<u64> titles = GetTitlesWithTickets();
-  INFO_LOG(IOS_ES, "GetOwnedTitleCount: %zu titles", titles.size());
+  INFO_LOG_FMT(IOS_ES, "GetOwnedTitleCount: {} titles", titles.size());
   return GetTitleCount(titles, request);
 }
 
@@ -204,7 +203,7 @@ IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_EINVAL);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
+  INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
 
   // as of 26/02/2012, this was latest bootmii version
   Memory::Write_U32(4, request.io_vectors[0].address);
@@ -219,7 +218,7 @@ IPCCommandResult ES::GetSharedContentsCount(const IOCtlVRequest& request) const
   const u32 count = GetSharedContentsCount();
   Memory::Write_U32(count, request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "GetSharedContentsCount: %u contents", count);
+  INFO_LOG_FMT(IOS_ES, "GetSharedContentsCount: {} contents", count);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -236,7 +235,7 @@ IPCCommandResult ES::GetSharedContents(const IOCtlVRequest& request) const
   const u32 count = std::min(static_cast<u32>(hashes.size()), max_count);
   Memory::CopyToEmu(request.io_vectors[0].address, hashes.data(), 20 * count);
 
-  INFO_LOG(IOS_ES, "GetSharedContents: %u contents (%u requested)", count, max_count);
+  INFO_LOG_FMT(IOS_ES, "GetSharedContents: {} contents ({} requested)", count, max_count);
   return GetDefaultReply(IPC_SUCCESS);
 }
 }  // namespace IOS::HLE::Device

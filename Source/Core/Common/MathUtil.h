@@ -9,11 +9,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
-
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif
 
 namespace MathUtil
 {
@@ -135,8 +132,12 @@ public:
 
   constexpr size_t Count() const { return m_running_mean.Count(); }
   constexpr T Mean() const { return m_running_mean.Mean(); }
+
   constexpr T Variance() const { return m_variance / (Count() - 1); }
-  constexpr T StandardDeviation() const { return std::sqrt(Variance()); }
+  T StandardDeviation() const { return std::sqrt(Variance()); }
+
+  constexpr T PopulationVariance() const { return m_variance / Count(); }
+  T PopulationStandardDeviation() const { return std::sqrt(PopulationVariance()); }
 
 private:
   RunningMean<T> m_running_mean;
@@ -150,21 +151,5 @@ float MathFloatVectorSum(const std::vector<float>&);
 // Rounds down. 0 -> undefined
 inline int IntLog2(u64 val)
 {
-#if defined(__GNUC__)
-  return 63 - __builtin_clzll(val);
-
-#elif defined(_MSC_VER)
-  unsigned long result = ULONG_MAX;
-  _BitScanReverse64(&result, val);
-  return result;
-
-#else
-  int result = -1;
-  while (val != 0)
-  {
-    val >>= 1;
-    ++result;
-  }
-  return result;
-#endif
+  return 63 - Common::CountLeadingZeros(val);
 }

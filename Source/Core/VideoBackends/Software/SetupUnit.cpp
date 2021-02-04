@@ -25,7 +25,7 @@ void SetupUnit::Init(u8 primitiveType)
 
 OutputVertexData* SetupUnit::GetVertex()
 {
-  memset(m_VertWritePointer, 0, sizeof(*m_VertWritePointer));
+  memset(reinterpret_cast<u8*>(m_VertWritePointer), 0, sizeof(*m_VertWritePointer));
   return m_VertWritePointer;
 }
 
@@ -37,7 +37,7 @@ void SetupUnit::SetupVertex()
     SetupQuad();
     break;
   case OpcodeDecoder::GX_DRAW_QUADS_2:
-    WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
+    WARN_LOG_FMT(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
     SetupQuad();
     break;
   case OpcodeDecoder::GX_DRAW_TRIANGLES:

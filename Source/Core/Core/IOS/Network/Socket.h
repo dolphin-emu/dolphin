@@ -15,7 +15,8 @@ typedef pollfd pollfd_t;
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__HAIKU__)
+#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or   \
+    defined(__HAIKU__)
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/ioctl.h>
@@ -45,6 +46,7 @@ typedef struct pollfd pollfd_t;
 #include <cstdio>
 #include <list>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -186,16 +188,19 @@ private:
   {
     Request request;
     bool is_ssl;
+    bool is_aborted = false;
     union
     {
       NET_IOCTL net_type;
       SSL_IOCTL ssl_type;
     };
+    void Abort(s32 value);
   };
 
   friend class WiiSockMan;
   void SetFd(s32 s);
   void SetWiiFd(s32 s);
+  s32 Shutdown(u32 how);
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
@@ -226,7 +231,7 @@ public:
     s64 timeout;
   };
 
-  static s32 GetNetErrorCode(s32 ret, const char* caller, bool isRW);
+  static s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
   static char* DecodeError(s32 ErrorCode);
 
   static WiiSockMan& GetInstance()
@@ -246,7 +251,8 @@ public:
   s32 AddSocket(s32 fd, bool is_rw);
   bool IsSocketBlocking(s32 wii_fd) const;
   s32 GetHostSocket(s32 wii_fd) const;
-  s32 DeleteSocket(s32 s);
+  s32 ShutdownSocket(s32 wii_fd, u32 how);
+  s32 DeleteSocket(s32 wii_fd);
   s32 GetLastNetError() const { return errno_last; }
   void SetLastNetError(s32 error) { errno_last = error; }
   void Clean() { WiiSockets.clear(); }
@@ -256,8 +262,8 @@ public:
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
-      ERROR_LOG(IOS_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, request.address,
-                type);
+      ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
+                    request.address, type);
       GetIOS()->EnqueueIPCReply(request, -SO_EBADF);
     }
     else

@@ -6,7 +6,6 @@
 
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
@@ -83,7 +82,7 @@ void DSPEmitter::WriteBranchExit()
 {
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
-  if (Analyzer::GetCodeFlags(m_start_address) & Analyzer::CODE_IDLE_SKIP)
+  if (m_dsp_core.DSPState().GetAnalyzer().IsIdleSkip(m_start_address))
   {
     MOV(16, R(EAX), Imm16(0x1000));
   }
@@ -126,7 +125,7 @@ void DSPEmitter::WriteBlockLink(u16 dest)
 
 void DSPEmitter::r_jcc(const UDSPInstruction opc)
 {
-  u16 dest = dsp_imem_read(m_compile_pc + 1);
+  const u16 dest = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   const DSPOPCTemplate* opcode = GetOpTemplate(opc);
 
   // If the block is unconditional, attempt to link block
@@ -172,7 +171,7 @@ void DSPEmitter::r_call(const UDSPInstruction opc)
 {
   MOV(16, R(DX), Imm16(m_compile_pc + 2));
   dsp_reg_store_stack(StackRegister::Call);
-  u16 dest = dsp_imem_read(m_compile_pc + 1);
+  const u16 dest = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   const DSPOPCTemplate* opcode = GetOpTemplate(opc);
 
   // If the block is unconditional, attempt to link block
@@ -228,8 +227,9 @@ void DSPEmitter::r_ifcc(const UDSPInstruction opc)
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::ifcc(const UDSPInstruction opc)
 {
+  const auto& state = m_dsp_core.DSPState();
   const u16 address = m_compile_pc + 1;
-  const DSPOPCTemplate* const op_template = GetOpTemplate(dsp_imem_read(address));
+  const DSPOPCTemplate* const op_template = GetOpTemplate(state.ReadIMEM(address));
 
   MOV(16, M_SDSP_pc(), Imm16(address + op_template->size));
   ReJitConditional(opc, &DSPEmitter::r_ifcc);
@@ -273,9 +273,9 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 // HALT
 // 0000 0000 0020 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
-void DSPEmitter::halt(const UDSPInstruction opc)
+void DSPEmitter::halt(const UDSPInstruction)
 {
-  OR(16, M_SDSP_cr(), Imm16(4));
+  OR(16, M_SDSP_cr(), Imm16(CR_HALT));
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M_SDSP_pc(), R(DX));
@@ -347,7 +347,8 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 
   SetJumpTarget(cnt);
   // dsp_skip_inst();
-  MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+  const auto& state = m_dsp_core.DSPState();
+  MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(state.ReadIMEM(loop_pc))->size));
   WriteBranchExit();
   m_gpr.FlushRegs(c, false);
   SetJumpTarget(exit);
@@ -380,7 +381,8 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
   else
   {
     // dsp_skip_inst();
-    MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+    const auto& state = m_dsp_core.DSPState();
+    MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(state.ReadIMEM(loop_pc))->size));
     WriteBranchExit();
   }
 }
@@ -396,11 +398,11 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
 // Up to 4 nested loops are allowed.
 void DSPEmitter::bloop(const UDSPInstruction opc)
 {
-  u16 reg = opc & 0x1f;
+  const u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
   // todo: check if we can use normal variant here
   dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
-  u16 loop_pc = dsp_imem_read(m_compile_pc + 1);
+  const u16 loop_pc = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
 
   TEST(16, R(EDX), R(EDX));
   DSPJitRegCache c(m_gpr);
@@ -417,7 +419,8 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
   SetJumpTarget(cnt);
   // g_dsp.pc = loop_pc;
   // dsp_skip_inst();
-  MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+  const auto& state = m_dsp_core.DSPState();
+  MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(state.ReadIMEM(loop_pc))->size));
   WriteBranchExit();
   m_gpr.FlushRegs(c, false);
   SetJumpTarget(exit);
@@ -434,11 +437,12 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 // nested loops are allowed.
 void DSPEmitter::bloopi(const UDSPInstruction opc)
 {
-  u16 cnt = opc & 0xff;
+  const auto& state = m_dsp_core.DSPState();
+  const u16 cnt = opc & 0xff;
   //	u16 loop_pc = dsp_fetch_code();
-  u16 loop_pc = dsp_imem_read(m_compile_pc + 1);
+  const u16 loop_pc = state.ReadIMEM(m_compile_pc + 1);
 
-  if (cnt)
+  if (cnt != 0)
   {
     MOV(16, R(RDX), Imm16(m_compile_pc + 2));
     dsp_reg_store_stack(StackRegister::Call);
@@ -453,7 +457,7 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
   {
     // g_dsp.pc = loop_pc;
     // dsp_skip_inst();
-    MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+    MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(state.ReadIMEM(loop_pc))->size));
     WriteBranchExit();
   }
 }

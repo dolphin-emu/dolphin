@@ -477,9 +477,6 @@ const std::array<pdlabel_t, 36> regnames =
 }};
 // clang-format on
 
-std::array<u16, WRITEBACK_LOG_SIZE> writeBackLog;
-std::array<int, WRITEBACK_LOG_SIZE> writeBackLogIdx;
-
 const char* pdname(u16 val)
 {
   static char tmpstr[12];  // nasty
@@ -592,8 +589,8 @@ void InitInstructionTable()
       // If the entry already in the table is a strict subset, allow it
       if ((s_ext_op_table[i]->opcode_mask | iter->opcode_mask) != s_ext_op_table[i]->opcode_mask)
       {
-        ERROR_LOG(DSPLLE, "opcode ext table place %zu already in use by %s when inserting %s", i,
-                  s_ext_op_table[i]->name, iter->name);
+        ERROR_LOG_FMT(DSPLLE, "opcode ext table place {} already in use by {} when inserting {}", i,
+                      s_ext_op_table[i]->name, iter->name);
       }
     }
   }
@@ -610,12 +607,7 @@ void InitInstructionTable()
     if (s_op_table[i] == &cw)
       s_op_table[i] = &*iter;
     else
-      ERROR_LOG(DSPLLE, "opcode table place %zu already in use for %s", i, iter->name);
+      ERROR_LOG_FMT(DSPLLE, "opcode table place {} already in use for {}", i, iter->name);
   }
-
-  writeBackLogIdx.fill(-1);
-
-  // Ensure the interpreter tables are all set up, as JITs also rely on them.
-  Interpreter::InitInstructionTables();
 }
 }  // namespace DSP

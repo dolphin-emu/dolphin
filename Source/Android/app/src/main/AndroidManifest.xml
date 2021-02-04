@@ -19,6 +19,7 @@
 
     <uses-feature android:glEsVersion="0x00030000"/>
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -95,6 +96,10 @@
                     android:scheme="@string/scheme"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".activities.ConvertActivity"
+            android:theme="@style/DolphinBase" />
 
         <service android:name=".utils.DirectoryInitialization"/>
         <service android:name=".services.GameFileCacheService"/>

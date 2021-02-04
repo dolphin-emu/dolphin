@@ -12,7 +12,7 @@
 
 #include "Common/Matrix.h"
 #include "Common/WindowSystemInfo.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 // enable disable sources
 #ifdef _WIN32
@@ -50,6 +50,7 @@ public:
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
   void RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback);
+  void PlatformPopulateDevices(std::function<void()> callback);
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 

@@ -204,7 +204,11 @@ constexpr u8 CHANNEL_COUNT = 2;
 constexpr u8 DEFAULT_CHANNEL = 0;
 constexpr u8 CHUNKED_DATA_CHANNEL = 1;
 
-using NetWiimote = std::vector<u8>;
+struct WiimoteInput
+{
+  u8 report_id;
+  std::vector<u8> data;
+};
 using MessageId = u8;
 using PlayerId = u8;
 using FrameNum = u32;

@@ -12,7 +12,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
-#include "VideoBackends/Vulkan/VertexFormat.h"
+#include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
@@ -248,7 +248,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
     pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
     break;
   default:
-    PanicAlert("Unknown pipeline layout.");
+    PanicAlertFmt("Unknown pipeline layout.");
     return nullptr;
   }
 

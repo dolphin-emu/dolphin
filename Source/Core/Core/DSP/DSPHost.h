@@ -13,6 +13,11 @@
 // core isn't used, for example in an asm/disasm tool, then most of these
 // can be stubbed out.
 
+namespace DSP
+{
+class DSPCore;
+}
+
 namespace DSP::Host
 {
 u8 ReadHostMemory(u32 addr);
@@ -23,7 +28,7 @@ void OSD_AddMessage(std::string str, u32 ms);
 bool OnThread();
 bool IsWiiHost();
 void InterruptRequest();
-void CodeLoaded(u32 addr, size_t size);
-void CodeLoaded(const u8* ptr, size_t size);
+void CodeLoaded(DSPCore& dsp, u32 addr, size_t size);
+void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size);
 void UpdateDebugger();
 }  // namespace DSP::Host

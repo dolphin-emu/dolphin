@@ -9,8 +9,11 @@
 #if defined(__APPLE__)
 #include "Common/GL/GLInterface/AGL.h"
 #endif
-#if defined(WIN32)
+#if defined(_WIN32)
 #include "Common/GL/GLInterface/WGL.h"
+#endif
+#if defined(__HAIKU__)
+#include "Common/GL/GLInterface/BGL.h"
 #endif
 #if HAVE_X11
 #include "Common/GL/GLInterface/GLX.h"
@@ -91,6 +94,10 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
 #if defined(ANDROID)
   if (wsi.type == WindowSystemType::Android)
     context = std::make_unique<GLContextEGLAndroid>();
+#endif
+#if defined(__HAIKU__)
+  if (wsi.type == WindowSystemType::Haiku)
+    context = std::make_unique<GLContextBGL>();
 #endif
 #if HAVE_X11
   if (wsi.type == WindowSystemType::X11)

@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <mbedtls/md5.h>
@@ -27,8 +26,8 @@
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Lazy.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
@@ -41,6 +40,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
+#include "Core/WiiUtils.h"
 
 namespace WiiSave
 {
@@ -69,9 +69,35 @@ public:
     ScanForFiles(m_data_dir);
   }
 
-  bool SaveExists() override
+  bool SaveExists() const override
   {
-    return m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin");
+    return !m_files_list.empty() ||
+           (m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin"));
+  }
+
+  bool EraseSave() override
+  {
+    // banner.bin is not in m_files_list, delete separately
+    const auto banner_delete_result =
+        m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/banner.bin");
+    if (banner_delete_result != FS::ResultCode::Success)
+      return false;
+
+    for (const SaveFile& file : m_files_list)
+    {
+      // files in subdirs are deleted automatically when the subdir is deleted
+      if (file.path.find('/') != std::string::npos)
+        continue;
+
+      const auto result =
+          m_fs->Delete(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir + "/" + file.path);
+      if (result != FS::ResultCode::Success)
+        return false;
+    }
+
+    m_files_list.clear();
+    m_files_size = 0;
+    return true;
   }
 
   std::optional<Header> ReadHeader() override
@@ -246,6 +272,10 @@ public:
     m_file = File::IOFile{path, mode};
   }
 
+  bool SaveExists() const override { return m_file.GetSize() > 0; }
+
+  bool EraseSave() override { return m_file.GetSize() == 0 || m_file.Resize(0); }
+
   std::optional<Header> ReadHeader() override
   {
     Header header;
@@ -255,11 +285,12 @@ public:
     std::array<u8, 0x10> iv = s_sd_initial_iv;
     m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
                    sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
-    u32 banner_size = header.banner_size;
+    const u32 banner_size = header.banner_size;
     if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
         (((banner_size - BNR_SZ) % ICON_SZ) != 0))
     {
-      ERROR_LOG(CONSOLE, "Not a Wii save or read failure for file header size %x", banner_size);
+      ERROR_LOG_FMT(CONSOLE, "Not a Wii save or read failure for file header size {:x}",
+                    banner_size);
       return {};
     }
 
@@ -269,9 +300,9 @@ public:
     mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     if (md5_file != md5_calc)
     {
-      ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
-                Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
-                Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
+      ERROR_LOG_FMT(CONSOLE, "MD5 mismatch\n {:016x}{:016x} != {:016x}{:016x}",
+                    Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
+                    Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
       return {};
     }
     return header;
@@ -392,7 +423,7 @@ public:
 
     if (!WriteSignatures())
     {
-      ERROR_LOG(CORE, "WiiSave::WriteFiles: Failed to write signatures");
+      ERROR_LOG_FMT(CORE, "WiiSave::WriteFiles: Failed to write signatures");
       return false;
     }
     return true;
@@ -446,41 +477,87 @@ StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path,
   return StoragePointer{new DataBinStorage{iosc, path, mode}};
 }
 
-template <typename T>
-static bool Copy(const char* description, Storage* source, std::optional<T> (Storage::*read_fn)(),
-                 Storage* dest, bool (Storage::*write_fn)(const T&))
+CopyResult Copy(Storage* source, Storage* dest)
 {
-  const std::optional<T> data = (source->*read_fn)();
-  if (data && (dest->*write_fn)(*data))
-    return true;
-  ERROR_LOG(CORE, "WiiSave::Copy: Failed to %s %s", !data ? "read" : "write", description);
-  return false;
+  // first make sure we can read all the data from the source
+  const auto header = source->ReadHeader();
+  if (!header)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read header");
+    return CopyResult::CorruptedSource;
+  }
+
+  const auto bk_header = source->ReadBkHeader();
+  if (!bk_header)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read bk header");
+    return CopyResult::CorruptedSource;
+  }
+
+  const auto files = source->ReadFiles();
+  if (!files)
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to read files");
+    return CopyResult::CorruptedSource;
+  }
+
+  // once we have confirmed we can read the source, erase corresponding save in the destination
+  if (dest->SaveExists())
+  {
+    if (!dest->EraseSave())
+    {
+      ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to erase existing save");
+      return CopyResult::Error;
+    }
+  }
+
+  // and then write it to the destination
+  if (!dest->WriteHeader(*header))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write header");
+    return CopyResult::Error;
+  }
+
+  if (!dest->WriteBkHeader(*bk_header))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write bk header");
+    return CopyResult::Error;
+  }
+
+  if (!dest->WriteFiles(*files))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Copy: Failed to write files");
+    return CopyResult::Error;
+  }
+
+  return CopyResult::Success;
 }
 
-bool Copy(Storage* source, Storage* dest)
-{
-  return Copy("header", source, &Storage::ReadHeader, dest, &Storage::WriteHeader) &&
-         Copy("bk header", source, &Storage::ReadBkHeader, dest, &Storage::WriteBkHeader) &&
-         Copy("files", source, &Storage::ReadFiles, dest, &Storage::WriteFiles);
-}
-
-bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
+CopyResult Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
 {
   IOS::HLE::Kernel ios;
   const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");
   const std::optional<Header> header = data_bin->ReadHeader();
   if (!header)
   {
-    ERROR_LOG(CORE, "WiiSave::Import: Failed to read header");
-    return false;
+    ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to read header");
+    return CopyResult::CorruptedSource;
   }
+
+  if (!WiiUtils::EnsureTMDIsImported(*ios.GetFS(), *ios.GetES(), header->tid))
+  {
+    ERROR_LOG_FMT(CORE, "WiiSave::Import: Failed to find or import TMD for title {:16x}",
+                  header->tid);
+    return CopyResult::TitleMissing;
+  }
+
   const auto nand = MakeNandStorage(ios.GetFS().get(), header->tid);
   if (nand->SaveExists() && !can_overwrite())
-    return false;
+    return CopyResult::Cancelled;
   return Copy(data_bin.get(), nand.get());
 }
 
-static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
+static CopyResult Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
   const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
                                        static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
@@ -489,7 +566,7 @@ static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
               MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
-bool Export(u64 tid, std::string_view export_path)
+CopyResult Export(u64 tid, std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   return Export(tid, export_path, &ios);
@@ -501,7 +578,7 @@ size_t ExportAll(std::string_view export_path)
   size_t exported_save_count = 0;
   for (const u64 title : ios.GetES()->GetInstalledTitles())
   {
-    if (Export(title, export_path, &ios))
+    if (Export(title, export_path, &ios) == CopyResult::Success)
       ++exported_save_count;
   }
   return exported_save_count;

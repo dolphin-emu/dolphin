@@ -34,8 +34,6 @@ add_library(common
   Crypto/ec.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
-  Debug/OSThread.cpp
-  Debug/OSThread.h
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
@@ -45,8 +43,6 @@ add_library(common
   ENetUtil.cpp
   ENetUtil.h
   Event.h
-  File.cpp
-  File.h
   FileSearch.cpp
   FileSearch.h
   FileUtil.cpp
@@ -55,6 +51,7 @@ add_library(common
   Flag.h
   FloatUtils.cpp
   FloatUtils.h
+  FormatUtil.h
   FPURoundMode.h
   GekkoDisassembler.cpp
   GekkoDisassembler.h
@@ -67,6 +64,8 @@ add_library(common
   IniFile.cpp
   IniFile.h
   Inline.h
+  IOFile.cpp
+  IOFile.h
   JitRegister.cpp
   JitRegister.h
   Lazy.h
@@ -107,10 +106,10 @@ add_library(common
   SDCardUtil.cpp
   SDCardUtil.h
   Semaphore.h
-  SFMLHelper.cpp
-  SFMLHelper.h
   SettingsHandler.cpp
   SettingsHandler.h
+  SFMLHelper.cpp
+  SFMLHelper.h
   SPSCQueue.h
   StringUtil.cpp
   StringUtil.h
@@ -164,6 +163,13 @@ elseif(WIN32)
   if (_M_X86_64)
 	  target_link_libraries(common PRIVATE opengl32.lib)
   endif()
+elseif (ANDROID)
+  target_link_libraries(common
+  PRIVATE
+    androidcommon
+  )
+elseif(HAIKU)
+  target_link_libraries(common PRIVATE be GL)
 endif()
 
 if(ANDROID)
@@ -251,6 +257,11 @@ elseif(APPLE)
   target_sources(common PRIVATE
     GL/GLInterface/AGL.h
     GL/GLInterface/AGL.mm
+  )
+elseif(HAIKU)
+  target_sources(common PRIVATE
+    GL/GLInterface/BGL.h
+    GL/GLInterface/BGL.cpp
   )
 elseif(ENABLE_X11 AND X11_FOUND)
   target_sources(common PRIVATE

@@ -36,13 +36,14 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/FreeLookManager.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -79,10 +80,14 @@
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
+
+#ifdef ANDROID
+#include "jni/AndroidCommon/IDCache.h"
+#endif
 
 namespace Core
 {
@@ -97,7 +102,6 @@ static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
-static Common::Event s_done_booting;
 static std::thread s_emu_thread;
 static StateChangedCallbackFunc s_on_state_changed_callback;
 
@@ -216,7 +220,7 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     if (IsRunning())
     {
-      PanicAlertT("Emu Thread already running");
+      PanicAlertFmtT("Emu Thread already running");
       return false;
     }
 
@@ -229,8 +233,8 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 
-  INFO_LOG(BOOT, "Starting core = %s mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
-  INFO_LOG(BOOT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
+  INFO_LOG_FMT(BOOT, "Starting core = {} mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
+  INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
@@ -239,7 +243,6 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   g_video_backend->PrepareWindow(prepared_wsi);
 
   // Start the emu thread
-  s_done_booting.Reset();
   s_is_booting.Set();
   s_emu_thread = std::thread(EmuThread, std::move(boot), prepared_wsi);
   return true;
@@ -275,10 +278,10 @@ void Stop()  // - Hammertime!
 
   Fifo::EmulatorState(false);
 
-  INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
+  INFO_LOG_FMT(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
 
   // Stop the CPU
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   CPU::Stop();
 
   if (_CoreParameter.bCPUThread)
@@ -286,7 +289,7 @@ void Stop()  // - Hammertime!
     // Video_EnterLoop() should now exit so that EmuThread()
     // will continue concurrently with the rest of the commands
     // in this function. We no longer rely on Postmessage.
-    INFO_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
 
     g_video_backend->Video_ExitLoop();
   }
@@ -328,6 +331,12 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   // This needs to be delayed until after the video backend is ready.
   DolphinAnalytics::Instance().ReportGameStart();
+
+#ifdef ANDROID
+  // For some reason, calling the JNI function AttachCurrentThread from the CPU thread after a
+  // certain point causes a crash if fastmem is enabled. Let's call it early to avoid that problem.
+  static_cast<void>(IDCache::GetEnvForThread());
+#endif
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
@@ -403,7 +412,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
   else
   {
     // FIFO log does not contain any frames, cannot continue.
-    PanicAlert("FIFO file is invalid, cannot playback.");
+    PanicAlertFmt("FIFO file is invalid, cannot playback.");
     FifoPlayer::GetInstance().Close();
     return;
   }
@@ -419,7 +428,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     s_on_state_changed_callback(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
-    s_done_booting.Set();
     s_is_started = false;
     s_is_stopping = false;
     s_wants_determinism = false;
@@ -427,7 +435,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     if (s_on_state_changed_callback)
       s_on_state_changed_callback(State::Uninitialized);
 
-    INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
+    INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
 
   Common::SetCurrentThreadName("Emuthread - Starting");
@@ -435,54 +443,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
   s_frame_step = false;
-
-  Movie::Init(*boot);
-  Common::ScopeGuard movie_guard{&Movie::Shutdown};
-
-  HW::Init();
-
-  Common::ScopeGuard hw_guard{[] {
-    // We must set up this flag before executing HW::Shutdown()
-    s_hardware_initialized = false;
-    INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
-    HW::Shutdown();
-    INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-
-    // Clear on screen messages that haven't expired
-    OSD::ClearMessages();
-
-    // The config must be restored only after the whole HW has shut down,
-    // not when it is still running.
-    BootManager::RestoreConfig();
-
-    PatchEngine::Shutdown();
-    HLE::Clear();
-  }};
-
-  VideoBackendBase::PopulateBackendInfo();
-
-  if (!g_video_backend->Initialize(wsi))
-  {
-    PanicAlert("Failed to initialize video backend!");
-    return;
-  }
-  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
-
-  // Render a single frame without anything on it to clear the screen.
-  // This avoids the game list being displayed while the core is finishing initializing.
-  g_renderer->BeginUIFrame();
-  g_renderer->EndUIFrame();
-
-  if (cpu_info.HTT)
-    SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
-  else
-    SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 2;
-
-  if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
-  {
-    PanicAlert("Failed to initialize DSP emulation!");
-    return;
-  }
 
   // The frontend will likely have initialized the controller interface, as it needs
   // it to provide the configuration dialogs. In this case, instead of re-initializing
@@ -525,6 +485,15 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       NetPlay::SetupWiimotes();
   }
 
+  if (init_controllers)
+  {
+    FreeLook::Initialize();
+  }
+  else
+  {
+    FreeLook::LoadInputConfig();
+  }
+
   Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
     if (!init_controllers)
       return;
@@ -535,6 +504,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       Wiimote::Shutdown();
     }
 
+    FreeLook::Shutdown();
+
     ResetRumble();
 
     Keyboard::Shutdown();
@@ -542,13 +513,65 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     g_controller_interface.Shutdown();
   }};
 
+  Movie::Init(*boot);
+  Common::ScopeGuard movie_guard{&Movie::Shutdown};
+
+  HW::Init();
+
+  Common::ScopeGuard hw_guard{[] {
+    // We must set up this flag before executing HW::Shutdown()
+    s_hardware_initialized = false;
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
+    HW::Shutdown();
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
+
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
+    // The config must be restored only after the whole HW has shut down,
+    // not when it is still running.
+    BootManager::RestoreConfig();
+
+    PatchEngine::Shutdown();
+    HLE::Clear();
+    PowerPC::debug_interface.Clear();
+  }};
+
+  VideoBackendBase::PopulateBackendInfo();
+
+  if (!g_video_backend->Initialize(wsi))
+  {
+    PanicAlertFmt("Failed to initialize video backend!");
+    return;
+  }
+  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
+
+  // Render a single frame without anything on it to clear the screen.
+  // This avoids the game list being displayed while the core is finishing initializing.
+  g_renderer->BeginUIFrame();
+  g_renderer->EndUIFrame();
+
+  if (cpu_info.HTT)
+    SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
+  else
+    SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 2;
+
+  if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
+  {
+    PanicAlertFmt("Failed to initialize DSP emulation!");
+    return;
+  }
+
+  // Inputs loading may have generated custom dynamic textures
+  // it's now ok to initialize any custom textures
+  HiresTexture::Update();
+
   AudioCommon::InitSoundStream();
   Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
 
   // The hardware is initialized.
   s_hardware_initialized = true;
   s_is_booting.Clear();
-  s_done_booting.Set();
 
   // Set execution state to known values (CPU/FIFO/Audio Paused)
   CPU::Break();
@@ -604,11 +627,11 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     Fifo::RunGpuLoop();
 
     // We have now exited the Video Loop
-    INFO_LOG(CONSOLE, "%s", StopMessage(false, "Video Loop Ended").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
 
     // Join with the CPU thread.
     s_cpu_thread.join();
-    INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "CPU thread stopped."));
   }
   else  // SingleCore mode
   {
@@ -617,9 +640,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
 #ifdef USE_GDBSTUB
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
   gdb_deinit();
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
 #endif
 }
 
@@ -645,7 +668,7 @@ void SetState(State state)
     Wiimote::Resume();
     break;
   default:
-    PanicAlert("Invalid state");
+    PanicAlertFmt("Invalid state");
     break;
   }
 
@@ -670,12 +693,6 @@ State GetState()
     return State::Starting;
 
   return State::Uninitialized;
-}
-
-void WaitUntilDoneBooting()
-{
-  if (s_is_booting.IsSet() || !s_hardware_initialized)
-    s_done_booting.Wait();
 }
 
 static std::string GenerateScreenshotFolderPath()
@@ -990,7 +1007,7 @@ void UpdateWantDeterminism(bool initial)
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != s_wants_determinism || initial)
   {
-    NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
+    NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
 
     RunAsCPUThread([&] {
       s_wants_determinism = new_want_determinism;
@@ -1012,7 +1029,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop)
 
   bool send_message = false;
   {
-    std::lock_guard<std::mutex> guard(s_host_jobs_lock);
+    std::lock_guard guard(s_host_jobs_lock);
     send_message = s_host_jobs_queue.empty();
     s_host_jobs_queue.emplace(HostJob{std::move(job), run_during_stop});
   }
@@ -1026,7 +1043,7 @@ void HostDispatchJobs()
   // WARNING: This should only run on the Host Thread.
   // NOTE: This function is potentially re-entrant. If a job calls
   //   Core::Stop for instance then we'll enter this a second time.
-  std::unique_lock<std::mutex> guard(s_host_jobs_lock);
+  std::unique_lock guard(s_host_jobs_lock);
   while (!s_host_jobs_queue.empty())
   {
     HostJob job = std::move(s_host_jobs_queue.front());

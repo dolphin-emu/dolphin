@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -15,6 +16,10 @@
 namespace fs = std::filesystem;
 #define HAS_STD_FILESYSTEM
 #else
+#ifdef ANDROID
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
 #include <cstring>
 #include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
@@ -24,36 +29,30 @@ namespace Common
 {
 #ifndef HAS_STD_FILESYSTEM
 
-static std::vector<std::string>
-FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
-                   std::function<bool(const File::FSTEntry&)> callback)
+static void FileSearchWithTest(const std::string& directory, bool recursive,
+                               std::vector<std::string>* result_out,
+                               std::function<bool(const File::FSTEntry&)> callback)
 {
-  std::vector<std::string> result;
-  for (const std::string& directory : directories)
-  {
-    File::FSTEntry top = File::ScanDirectoryTree(directory, recursive);
+  File::FSTEntry top = File::ScanDirectoryTree(directory, recursive);
 
-    std::function<void(File::FSTEntry&)> DoEntry;
-    DoEntry = [&](File::FSTEntry& entry) {
-      if (callback(entry))
-        result.push_back(entry.physicalName);
-      for (auto& child : entry.children)
-        DoEntry(child);
-    };
-    for (auto& child : top.children)
+  const std::function<void(File::FSTEntry&)> DoEntry = [&](File::FSTEntry& entry) {
+    if (callback(entry))
+      result_out->push_back(entry.physicalName);
+    for (auto& child : entry.children)
       DoEntry(child);
-  }
-  // remove duplicates
-  std::sort(result.begin(), result.end());
-  result.erase(std::unique(result.begin(), result.end()), result.end());
-  return result;
+  };
+
+  for (auto& child : top.children)
+    DoEntry(child);
 }
 
 std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
                                       const std::vector<std::string>& exts, bool recursive)
 {
+  std::vector<std::string> result;
+
   bool accept_all = exts.empty();
-  return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
+  const auto callback = [&exts, accept_all](const File::FSTEntry& entry) {
     if (accept_all)
       return true;
     if (entry.isDirectory)
@@ -63,7 +62,34 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
       return name.length() >= ext.length() &&
              strcasecmp(name.c_str() + name.length() - ext.length(), ext.c_str()) == 0;
     });
-  });
+  };
+
+  for (const std::string& directory : directories)
+  {
+#ifdef ANDROID
+    // While File::ScanDirectoryTree (which is called in FileSearchWithTest) does handle Android
+    // content correctly, having a specialized implementation of DoFileSearch for Android content
+    // provides a much needed performance boost. Also, this specialized implementation will be
+    // required if we in the future replace the use of File::ScanDirectoryTree with std::filesystem.
+    if (IsPathAndroidContent(directory))
+    {
+      const std::vector<std::string> partial_result =
+          DoFileSearchAndroidContent(directory, exts, recursive);
+
+      result.insert(result.end(), std::make_move_iterator(partial_result.begin()),
+                    std::make_move_iterator(partial_result.end()));
+    }
+    else
+#endif
+    {
+      FileSearchWithTest(directory, recursive, &result, callback);
+    }
+  }
+
+  // remove duplicates
+  std::sort(result.begin(), result.end());
+  result.erase(std::unique(result.begin(), result.end()), result.end());
+  return result;
 }
 
 #else
@@ -98,7 +124,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   };
   for (const auto& directory : directories)
   {
-    const fs::path directory_path = StringToPath(directory);
+    fs::path directory_path = StringToPath(directory);
     if (fs::is_directory(directory_path))  // Can't create iterators for non-existant directories
     {
       if (recursive)
@@ -125,9 +151,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // std::filesystem uses the OS separator.
   constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
   static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
-  if (os_separator != DIR_SEP_CHR)
+  if constexpr (os_separator != DIR_SEP_CHR)
+  {
     for (auto& path : result)
       std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+  }
 
   return result;
 }

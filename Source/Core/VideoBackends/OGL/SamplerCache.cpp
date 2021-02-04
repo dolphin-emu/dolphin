@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/OGLRender.h"
 
 #include <memory>
 

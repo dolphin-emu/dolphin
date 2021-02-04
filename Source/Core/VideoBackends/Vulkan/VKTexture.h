@@ -54,7 +54,7 @@ public:
   VkImageView GetView() const { return m_view; }
   VkImageLayout GetLayout() const { return m_layout; }
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
-  bool IsAdopted() const { return m_device_memory != nullptr; }
+  bool IsAdopted() const { return m_device_memory != VkDeviceMemory(VK_NULL_HANDLE); }
 
   static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config);
   static std::unique_ptr<VKTexture>

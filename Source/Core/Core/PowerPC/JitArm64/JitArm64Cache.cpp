@@ -19,8 +19,8 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
   if (!dest)
   {
     // Use a fixed amount of instructions, so we can assume to use 3 instructions on patching.
-    emit.MOVZ(DISPATCHER_PC, source.exitAddress & 0xFFFF, SHIFT_0);
-    emit.MOVK(DISPATCHER_PC, source.exitAddress >> 16, SHIFT_16);
+    emit.MOVZ(DISPATCHER_PC, source.exitAddress & 0xFFFF, ShiftAmount::Shift0);
+    emit.MOVK(DISPATCHER_PC, source.exitAddress >> 16, ShiftAmount::Shift16);
 
     if (source.call)
       emit.BL(m_jit.GetAsmRoutines()->dispatcher);

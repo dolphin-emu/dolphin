@@ -35,6 +35,10 @@ constexpr u32 m_os = OS_ALL | OS_LINUX;
 constexpr u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
 constexpr u32 m_os = OS_ALL | OS_OPENBSD;
+#elif __NetBSD__
+constexpr u32 m_os = OS_ALL | OS_NETBSD;
+#elif __HAIKU__
+constexpr u32 m_os = OS_ALL | OS_HAIKU;
 #endif
 
 static API m_api = API_OPENGL;
@@ -117,7 +121,8 @@ constexpr BugInfo m_known_bugs[] = {
     {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_SLOW_CACHED_READBACK_MEMORY,
      -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
-     BUG_SLOW_CACHED_READBACK_MEMORY, -1.0, -1.0, true}};
+     BUG_SLOW_CACHED_READBACK_MEMORY, -1.0, -1.0, true},
+};
 
 static std::map<Bug, BugInfo> m_bugs;
 

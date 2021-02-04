@@ -69,7 +69,6 @@ class USBV5ResourceManager : public USBHost
 {
 public:
   using USBHost::USBHost;
-  ~USBV5ResourceManager() override;
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override = 0;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override = 0;

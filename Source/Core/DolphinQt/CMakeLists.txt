@@ -1,8 +1,8 @@
 if (NOT Qt5_DIR AND MSVC)
   if(_M_ARM_64)
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_arm64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
   else()
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
   endif()
 endif()
 
@@ -59,6 +59,8 @@ add_executable(dolphin-emu
   Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
+  Config/CommonControllersWidget.cpp
+  Config/CommonControllersWidget.h
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
   Config/ControllerInterface/DualShockUDPClientAddServerDialog.h
   Config/ControllerInterface/DualShockUDPClientWidget.cpp
@@ -71,6 +73,12 @@ add_executable(dolphin-emu
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
   Config/FilesystemWidget.h
+  Config/FreeLookWidget.cpp
+  Config/FreeLookWidget.h
+  Config/FreeLookWindow.cpp
+  Config/FreeLookWindow.h
+  Config/GamecubeControllersWidget.cpp
+  Config/GamecubeControllersWidget.h
   Config/GameConfigEdit.cpp
   Config/GameConfigEdit.h
   Config/GameConfigHighlighter.cpp
@@ -81,6 +89,8 @@ add_executable(dolphin-emu
   Config/GeckoCodeWidget.h
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/AdvancedWidget.h
+  Config/Graphics/BalloonTip.cpp
+  Config/Graphics/BalloonTip.h
   Config/Graphics/EnhancementsWidget.cpp
   Config/Graphics/EnhancementsWidget.h
   Config/Graphics/GeneralWidget.cpp
@@ -95,7 +105,6 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsRadio.h
   Config/Graphics/GraphicsSlider.cpp
   Config/Graphics/GraphicsSlider.h
-  Config/Graphics/GraphicsWidget.cpp
   Config/Graphics/GraphicsWidget.h
   Config/Graphics/GraphicsWindow.cpp
   Config/Graphics/GraphicsWindow.h
@@ -111,6 +120,8 @@ add_executable(dolphin-emu
   Config/LogConfigWidget.h
   Config/LogWidget.cpp
   Config/LogWidget.h
+  Config/Mapping/FreeLookGeneral.cpp
+  Config/Mapping/FreeLookGeneral.h
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCKeyboardEmu.h
   Config/Mapping/GCMicrophone.cpp
@@ -170,8 +181,21 @@ add_executable(dolphin-emu
   Config/PropertiesDialog.h
   Config/SettingsWindow.cpp
   Config/SettingsWindow.h
+  Config/ToolTipControls/ToolTipCheckBox.cpp
+  Config/ToolTipControls/ToolTipCheckBox.h
+  Config/ToolTipControls/ToolTipComboBox.cpp
+  Config/ToolTipControls/ToolTipComboBox.h
+  Config/ToolTipControls/ToolTipRadioButton.cpp
+  Config/ToolTipControls/ToolTipRadioButton.h
+  Config/ToolTipControls/ToolTipSlider.cpp
+  Config/ToolTipControls/ToolTipSlider.h
+  Config/ToolTipControls/ToolTipSpinBox.cpp
+  Config/ToolTipControls/ToolTipSpinBox.h
+  Config/ToolTipControls/ToolTipWidget.h
   Config/VerifyWidget.cpp
   Config/VerifyWidget.h
+  Config/WiimoteControllersWidget.cpp
+  Config/WiimoteControllersWidget.h
   Debugger/BreakpointWidget.cpp
   Debugger/BreakpointWidget.h
   Debugger/CodeViewWidget.cpp
@@ -277,6 +301,8 @@ add_executable(dolphin-emu
   TAS/TASCheckBox.h
   TAS/TASInputWindow.cpp
   TAS/TASInputWindow.h
+  TAS/TASSlider.cpp
+  TAS/TASSlider.h
   TAS/StickWidget.cpp
   TAS/StickWidget.h
   TAS/IRWidget.cpp

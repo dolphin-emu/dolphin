@@ -373,7 +373,7 @@ void GCMemcardManager::ImportFile()
   }
 
   if (!m_slot_memcard[m_active_slot]->Save())
-    PanicAlertT("File write failed");
+    PanicAlertFmtT("File write failed");
 
   UpdateSlotTable(m_active_slot);
 }
@@ -401,7 +401,7 @@ void GCMemcardManager::CopyFiles()
   for (int i = 0; i < SLOT_COUNT; i++)
   {
     if (!m_slot_memcard[i]->Save())
-      PanicAlertT("File write failed");
+      PanicAlertFmtT("File write failed");
 
     UpdateSlotTable(i);
   }
@@ -444,7 +444,7 @@ void GCMemcardManager::DeleteFiles()
 
   if (!memcard->Save())
   {
-    PanicAlertT("File write failed");
+    PanicAlertFmtT("File write failed");
   }
   else
   {
@@ -461,7 +461,7 @@ void GCMemcardManager::FixChecksums()
   memcard->FixChecksums();
 
   if (!memcard->Save())
-    PanicAlertT("File write failed");
+    PanicAlertFmtT("File write failed");
 }
 
 void GCMemcardManager::CreateNewCard(int slot)

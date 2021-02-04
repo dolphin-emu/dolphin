@@ -82,9 +82,9 @@ void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 o
   const std::string path = file_info->GetPath();
   const std::string log_string = fmt::format("{} kB {}", size_string, path);
   if (IsSoundFile(path))
-    INFO_LOG(FILEMON, "%s", log_string.c_str());
+    INFO_LOG_FMT(FILEMON, "{}", log_string);
   else
-    WARN_LOG(FILEMON, "%s", log_string.c_str());
+    WARN_LOG_FMT(FILEMON, "{}", log_string);
 
   // Update the last accessed file
   s_previous_partition = partition;

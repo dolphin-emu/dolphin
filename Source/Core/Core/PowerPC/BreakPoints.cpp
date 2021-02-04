@@ -65,12 +65,13 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
   for (const std::string& bp_string : bp_strings)
   {
     TBreakPoint bp;
-    std::stringstream ss;
-    ss << std::hex << bp_string;
-    ss >> bp.address;
-    bp.is_enabled = bp_string.find('n') != bp_string.npos;
-    bp.log_on_hit = bp_string.find('l') != bp_string.npos;
-    bp.break_on_hit = bp_string.find('b') != bp_string.npos;
+    std::string flags;
+    std::istringstream iss(bp_string);
+    iss >> std::hex >> bp.address;
+    iss >> flags;
+    bp.is_enabled = flags.find('n') != flags.npos;
+    bp.log_on_hit = flags.find('l') != flags.npos;
+    bp.break_on_hit = flags.find('b') != flags.npos;
     bp.is_temporary = false;
     Add(bp);
   }
@@ -265,10 +266,9 @@ bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 a
   {
     if (log_on_hit)
     {
-      NOTICE_LOG(MEMMAP, "MBP %08x (%s) %s%zu %0*x at %08x (%s)", pc,
-                 debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
-                 static_cast<int>(size * 2), value, addr,
-                 debug_interface->GetDescription(addr).c_str());
+      NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
+                     debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8, value,
+                     addr, debug_interface->GetDescription(addr));
     }
     if (break_on_hit)
       return true;
