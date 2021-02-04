@@ -98,6 +98,11 @@ ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocu
 {
 }
 
+void QComboBoxWithMouseWheelDisabled::wheelEvent(QWheelEvent* event)
+{
+  // Do nothing
+}
+
 void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
 {
   // TODO: This is going to result in improper highlighting with non-ascii characters:
@@ -253,7 +258,7 @@ void IOWindow::CreateMainLayout()
   m_expression_text->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
   new ControlExpressionSyntaxHighlighter(m_expression_text->document());
 
-  m_operators_combo = new QComboBox();
+  m_operators_combo = new QComboBoxWithMouseWheelDisabled();
   m_operators_combo->addItem(tr("Operators"));
   m_operators_combo->insertSeparator(1);
   if (m_type == Type::Input)
@@ -275,7 +280,7 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr(", Comma"));
   }
 
-  m_functions_combo = new QComboBox(this);
+  m_functions_combo = new QComboBoxWithMouseWheelDisabled(this);
   m_functions_combo->addItem(tr("Functions"));
   m_functions_combo->insertSeparator(1);
   m_functions_combo->addItem(QStringLiteral("if"));
