@@ -17,7 +17,7 @@ using namespace Arm64Gen;
 FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
   ARM64Reg XA = gpr.CR(field);
-  ARM64Reg WA = DecodeReg(XA);
+  ARM64Reg WA = EncodeRegTo32(XA);
 
   switch (bit)
   {
@@ -26,7 +26,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     return jump_if_set ? CBZ(WA) : CBNZ(WA);
   case PowerPC::CR_GT_BIT:  // check val > 0
-    CMP(XA, SP);
+    CMP(XA, ARM64Reg::SP);
     return B(jump_if_set ? CC_GT : CC_LE);
   case PowerPC::CR_LT_BIT:  // check bit 62 set
     return jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
@@ -84,7 +84,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
   ARM64Reg XB = gpr.CR(inst.CRFD);
-  ARM64Reg WB = DecodeReg(XB);
+  ARM64Reg WB = EncodeRegTo32(XB);
 
   // Copy XER[0-3] into CR[inst.CRFD]
   LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
@@ -99,8 +99,8 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   LDR(XB, XB, XA);
 
   // Clear XER[0-3]
-  STRB(IndexType::Unsigned, WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
-  STRB(IndexType::Unsigned, WZR, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+  STRB(IndexType::Unsigned, ARM64Reg::WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
+  STRB(IndexType::Unsigned, ARM64Reg::WZR, PPC_REG, PPCSTATE_OFF(xer_so_ov));
 
   gpr.Unlock(WA);
 }
@@ -278,7 +278,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     SUB(Xresult, Xresult, XB);
 
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    ORRI2R(XB, ZR, 0xAAAAAAAAAAAAAAAA);
+    ORRI2R(XB, ARM64Reg::ZR, 0xAAAAAAAAAAAAAAAA);
     ADD(XB, XB, 1);
     UMULH(Xresult, Xresult, XB);
 
@@ -461,7 +461,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       ARM64Reg WB = gpr.GetReg();
       ARM64Reg XB = EncodeRegTo64(WB);
       ORR(XB, XA, 64 - 63, 0, true);  // XA | 1<<63
-      CMP(XA, ZR);
+      CMP(XA, ARM64Reg::ZR);
       CSEL(XA, XA, XB, CC_NEQ);
       gpr.Unlock(WB);
     }
@@ -509,7 +509,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     bool negate = i ? negateB : negateA;
 
     ARM64Reg XC = gpr.CR(field);
-    ARM64Reg WC = DecodeReg(XC);
+    ARM64Reg WC = EncodeRegTo32(XC);
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:  // check bit 61 set
@@ -519,12 +519,12 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
-      CMP(WC, WZR);
+      CMP(WC, ARM64Reg::WZR);
       CSET(out, negate ? CC_NEQ : CC_EQ);
       break;
 
     case PowerPC::CR_GT_BIT:  // check val > 0
-      CMP(XC, ZR);
+      CMP(XC, ARM64Reg::ZR);
       CSET(out, negate ? CC_LE : CC_GT);
       break;
 
@@ -565,7 +565,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   int bit = 3 - (inst.CRBD & 3);
 
   gpr.Unlock(WB);
-  WB = INVALID_REG;
+  WB = ARM64Reg::INVALID_REG;
   gpr.BindCRToRegister(field, true);
   XB = gpr.CR(field);
 
@@ -577,7 +577,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     ARM64Reg WC = gpr.GetReg();
     ARM64Reg XC = EncodeRegTo64(WC);
     ORR(XC, XB, 64 - 63, 0, true);  // XB | 1<<63
-    CMP(XB, ZR);
+    CMP(XB, ARM64Reg::ZR);
     CSEL(XB, XB, XC, CC_NEQ);
     gpr.Unlock(WC);
   }
@@ -623,7 +623,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   for (int i = 0; i < 8; i++)
   {
     ARM64Reg CR = gpr.CR(i);
-    ARM64Reg WCR = DecodeReg(CR);
+    ARM64Reg WCR = EncodeRegTo32(CR);
 
     // SO
     if (i == 0)
@@ -638,12 +638,12 @@ void JitArm64::mfcr(UGeckoInstruction inst)
 
     // EQ
     ORR(WC, WA, 32 - 1, 0);  // WA | 1<<1
-    CMP(WCR, WZR);
+    CMP(WCR, ARM64Reg::WZR);
     CSEL(WA, WC, WA, CC_EQ);
 
     // GT
     ORR(WC, WA, 32 - 2, 0);  // WA | 1<<2
-    CMP(CR, ZR);
+    CMP(CR, ARM64Reg::ZR);
     CSEL(WA, WC, WA, CC_GT);
 
     // LT
@@ -672,7 +672,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
       {
         gpr.BindCRToRegister(i, false);
         ARM64Reg CR = gpr.CR(i);
-        ARM64Reg WCR = DecodeReg(CR);
+        ARM64Reg WCR = EncodeRegTo32(CR);
 
         if (i != 7)
           LSR(WCR, RS, 28 - i * 4);

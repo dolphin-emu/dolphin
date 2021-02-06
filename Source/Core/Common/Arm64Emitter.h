@@ -23,7 +23,7 @@ namespace Arm64Gen
 // 010 - VFP single precision
 // 100 - VFP double precision
 // 110 - VFP quad precision
-enum ARM64Reg
+enum class ARM64Reg
 {
   // 32bit registers
   W0 = 0,
@@ -224,9 +224,21 @@ enum ARM64Reg
   WZR = WSP,
   ZR = SP,
 
-  INVALID_REG = 0xFFFFFFFF
+  INVALID_REG = -1,
 };
 
+constexpr int operator&(const ARM64Reg& reg, const int mask)
+{
+  return static_cast<int>(reg) & mask;
+}
+constexpr int operator|(const ARM64Reg& reg, const int mask)
+{
+  return static_cast<int>(reg) | mask;
+}
+constexpr ARM64Reg operator+(const ARM64Reg& reg, const int addend)
+{
+  return static_cast<ARM64Reg>(static_cast<int>(reg) + addend);
+}
 constexpr bool Is64Bit(ARM64Reg reg)
 {
   return (reg & 0x20) != 0;
@@ -256,9 +268,13 @@ constexpr bool IsGPR(ARM64Reg reg)
   return static_cast<int>(reg) < 0x40;
 }
 
-constexpr ARM64Reg DecodeReg(ARM64Reg reg)
+constexpr int DecodeReg(ARM64Reg reg)
 {
-  return static_cast<ARM64Reg>(reg & 0x1F);
+  return reg & 0x1F;
+}
+constexpr ARM64Reg EncodeRegTo32(ARM64Reg reg)
+{
+  return static_cast<ARM64Reg>(DecodeReg(reg));
 }
 constexpr ARM64Reg EncodeRegTo64(ARM64Reg reg)
 {
@@ -266,7 +282,7 @@ constexpr ARM64Reg EncodeRegTo64(ARM64Reg reg)
 }
 constexpr ARM64Reg EncodeRegToSingle(ARM64Reg reg)
 {
-  return static_cast<ARM64Reg>(DecodeReg(reg) + S0);
+  return static_cast<ARM64Reg>(ARM64Reg::S0 | DecodeReg(reg));
 }
 constexpr ARM64Reg EncodeRegToDouble(ARM64Reg reg)
 {
@@ -578,7 +594,7 @@ public:
   // Unconditional Branch (register)
   void BR(ARM64Reg Rn);
   void BLR(ARM64Reg Rn);
-  void RET(ARM64Reg Rn = X30);
+  void RET(ARM64Reg Rn = ARM64Reg::X30);
   void ERET();
   void DRPS();
 
@@ -648,15 +664,15 @@ public:
   // Aliases
   void CSET(ARM64Reg Rd, CCFlags cond)
   {
-    ARM64Reg zr = Is64Bit(Rd) ? ZR : WZR;
+    ARM64Reg zr = Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR;
     CSINC(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
   }
   void CSETM(ARM64Reg Rd, CCFlags cond)
   {
-    ARM64Reg zr = Is64Bit(Rd) ? ZR : WZR;
+    ARM64Reg zr = Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR;
     CSINV(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
   }
-  void NEG(ARM64Reg Rd, ARM64Reg Rs) { SUB(Rd, Is64Bit(Rd) ? ZR : WZR, Rs); }
+  void NEG(ARM64Reg Rd, ARM64Reg Rs) { SUB(Rd, Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR, Rs); }
   // Data-Processing 1 source
   void RBIT(ARM64Reg Rd, ARM64Reg Rn);
   void REV16(ARM64Reg Rd, ARM64Reg Rn);
@@ -704,10 +720,10 @@ public:
   void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
   void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
   void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
-  void TST(ARM64Reg Rn, ARM64Reg Rm) { ANDS(Is64Bit(Rn) ? ZR : WZR, Rn, Rm); }
+  void TST(ARM64Reg Rn, ARM64Reg Rm) { ANDS(Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, Rm); }
   void TST(ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift)
   {
-    ANDS(Is64Bit(Rn) ? ZR : WZR, Rn, Rm, Shift);
+    ANDS(Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, Rm, Shift);
   }
 
   // Wrap the above for saner syntax
@@ -879,22 +895,22 @@ public:
 
   // Wrapper around AND x, y, imm etc. If you are sure the imm will work, no need to pass a scratch
   // register.
-  void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG)
+  void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG)
   {
-    ANDSI2R(Is64Bit(Rn) ? ZR : WZR, Rn, imm, scratch);
+    ANDSI2R(Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, imm, scratch);
   }
-  void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
+  void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                        ARM64Reg scratch);
-  void ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
-  void SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
+  void ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   bool TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
   bool TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
@@ -925,9 +941,9 @@ public:
   ARM64Reg ABI_SetupLambda(const std::function<T(Args...)>* f)
   {
     auto trampoline = &ARM64XEmitter::CallLambdaTrampoline<T, Args...>;
-    MOVP2R(X8, trampoline);
-    MOVP2R(X0, const_cast<void*>((const void*)f));
-    return X8;
+    MOVP2R(ARM64Reg::X8, trampoline);
+    MOVP2R(ARM64Reg::X0, const_cast<void*>((const void*)f));
+    return ARM64Reg::X8;
   }
 
   // Plain function call
@@ -962,9 +978,9 @@ public:
 
   // Loadstore multiple structure
   void LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
-  void LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm = SP);
+  void LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm = ARM64Reg::SP);
   void ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
-  void ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm = SP);
+  void ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm = ARM64Reg::SP);
 
   // Loadstore paired
   void LDP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
@@ -1109,12 +1125,13 @@ public:
   void MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift = 0);
   void BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
 
-  void MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch = INVALID_REG, bool negate = false);
-  void MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch = INVALID_REG);
+  void MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch = ARM64Reg::INVALID_REG,
+              bool negate = false);
+  void MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   // ABI related
-  void ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp = INVALID_REG);
-  void ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp = INVALID_REG);
+  void ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp = ARM64Reg::INVALID_REG);
+  void ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp = ARM64Reg::INVALID_REG);
 
 private:
   ARM64XEmitter* m_emit;

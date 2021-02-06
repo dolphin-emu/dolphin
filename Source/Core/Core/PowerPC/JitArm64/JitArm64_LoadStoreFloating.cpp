@@ -78,11 +78,11 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   const RegType type =
       (flags & BackPatchInfo::FLAG_SIZE_F64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
-  gpr.Lock(W0, W30);
-  fpr.Lock(Q0);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
 
   const ARM64Reg VD = fpr.RW(inst.FD, type);
-  ARM64Reg addr_reg = W0;
+  ARM64Reg addr_reg = ARM64Reg::W0;
 
   if (update)
   {
@@ -164,9 +164,9 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[W0] = 0;
-  fprs_in_use[0] = 0;  // Q0
-  fprs_in_use[VD - Q0] = 0;
+  regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
+  fprs_in_use[DecodeReg(VD)] = 0;
 
   if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
@@ -177,8 +177,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VD, XA, regs_in_use, fprs_in_use);
   }
 
-  gpr.Unlock(W0, W30);
-  fpr.Unlock(Q0);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
 }
 
 void JitArm64::stfXX(UGeckoInstruction inst)
@@ -242,8 +242,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   u32 imm_addr = 0;
   bool is_immediate = false;
 
-  gpr.Lock(W0, W1, W30);
-  fpr.Lock(Q0);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
 
   const bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS, true);
 
@@ -255,7 +255,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     flags |= BackPatchInfo::FLAG_SIZE_F32I;
   }
 
-  ARM64Reg addr_reg = W1;
+  ARM64Reg addr_reg = ARM64Reg::W1;
 
   if (update)
   {
@@ -344,9 +344,9 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[W0] = 0;
-  regs_in_use[W1] = 0;
-  fprs_in_use[0] = 0;  // Q0
+  regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
 
   if (is_immediate)
   {
@@ -358,25 +358,25 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       else
         accessSize = 32;
 
-      LDR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+      LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
       {
-        m_float_emit.REV64(8, Q0, V0);
+        m_float_emit.REV64(8, ARM64Reg::Q0, V0);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32)
       {
-        m_float_emit.FCVT(32, 64, D0, EncodeRegToDouble(V0));
-        m_float_emit.REV32(8, D0, D0);
+        m_float_emit.FCVT(32, 64, ARM64Reg::D0, EncodeRegToDouble(V0));
+        m_float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
       {
-        m_float_emit.REV32(8, D0, V0);
+        m_float_emit.REV32(8, ARM64Reg::D0, V0);
       }
 
-      m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? Q0 : D0, X0,
-                       accessSize >> 3);
+      m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? ARM64Reg::Q0 : ARM64Reg::D0,
+                       ARM64Reg::X0, accessSize >> 3);
 
-      STR(IndexType::Unsigned, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+      STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
       js.fifoBytesSinceCheck += accessSize >> 3;
 
       if (update)
@@ -399,6 +399,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   {
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, V0, XA, regs_in_use, fprs_in_use);
   }
-  gpr.Unlock(W0, W1, W30);
-  fpr.Unlock(Q0);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
 }

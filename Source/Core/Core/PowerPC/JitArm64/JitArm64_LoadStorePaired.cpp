@@ -34,13 +34,13 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   const bool update = inst.OPCD == 57;
   const s32 offset = inst.SIMM_12;
 
-  gpr.Lock(W0, W1, W2, W30);
-  fpr.Lock(Q0, Q1);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
   const ARM64Reg arm_addr = gpr.R(inst.RA);
-  constexpr ARM64Reg scale_reg = W0;
-  constexpr ARM64Reg addr_reg = W1;
-  constexpr ARM64Reg type_reg = W2;
+  constexpr ARM64Reg scale_reg = ARM64Reg::W0;
+  constexpr ARM64Reg addr_reg = ARM64Reg::W1;
+  constexpr ARM64Reg type_reg = ARM64Reg::W2;
   ARM64Reg VS;
 
   if (inst.RA || update)  // Always uses the register on update
@@ -81,22 +81,22 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
 
-    MOVP2R(X30, inst.W ? single_load_quantized : paired_load_quantized);
-    LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
+    MOVP2R(ARM64Reg::X30, inst.W ? single_load_quantized : paired_load_quantized);
+    LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
     VS = fpr.RW(inst.RS, RegType::Single);
-    m_float_emit.ORR(EncodeRegToDouble(VS), D0, D0);
+    m_float_emit.ORR(EncodeRegToDouble(VS), ARM64Reg::D0, ARM64Reg::D0);
   }
 
   if (inst.W)
   {
-    m_float_emit.FMOV(S0, 0x70);  // 1.0 as a Single
-    m_float_emit.INS(32, VS, 1, Q0, 0);
+    m_float_emit.FMOV(ARM64Reg::S0, 0x70);  // 1.0 as a Single
+    m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
   }
 
-  gpr.Unlock(W0, W1, W2, W30);
-  fpr.Unlock(Q0, Q1);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
 }
 
 void JitArm64::psq_st(UGeckoInstruction inst)
@@ -116,17 +116,17 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   const bool update = inst.OPCD == 61;
   const s32 offset = inst.SIMM_12;
 
-  gpr.Lock(W0, W1, W2, W30);
-  fpr.Lock(Q0, Q1);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
   const bool single = fpr.IsSingle(inst.RS);
 
   const ARM64Reg arm_addr = gpr.R(inst.RA);
   const ARM64Reg VS = fpr.R(inst.RS, single ? RegType::Single : RegType::Register);
 
-  constexpr ARM64Reg scale_reg = W0;
-  constexpr ARM64Reg addr_reg = W1;
-  constexpr ARM64Reg type_reg = W2;
+  constexpr ARM64Reg scale_reg = ARM64Reg::W0;
+  constexpr ARM64Reg addr_reg = ARM64Reg::W1;
+  constexpr ARM64Reg type_reg = ARM64Reg::W2;
 
   BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
@@ -169,14 +169,14 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   {
     if (single)
     {
-      m_float_emit.ORR(D0, VS, VS);
+      m_float_emit.ORR(ARM64Reg::D0, VS, VS);
     }
     else
     {
       if (inst.W)
-        m_float_emit.FCVT(32, 64, D0, VS);
+        m_float_emit.FCVT(32, 64, ARM64Reg::D0, VS);
       else
-        m_float_emit.FCVTN(32, D0, VS);
+        m_float_emit.FCVTN(32, ARM64Reg::D0, VS);
     }
 
     LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
@@ -192,26 +192,26 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(fail);
     // Slow
-    MOVP2R(X30, &paired_store_quantized[16 + inst.W * 8]);
-    LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
+    MOVP2R(ARM64Reg::X30, &paired_store_quantized[16 + inst.W * 8]);
+    LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
 
     ABI_PushRegisters(gprs_in_use);
-    m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
+    m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
     BLR(EncodeRegTo64(type_reg));
-    m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
+    m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
     ABI_PopRegisters(gprs_in_use);
     FixupBranch continue1 = B();
     SwitchToNearCode();
     SetJumpTarget(pass);
 
     // Fast
-    MOVP2R(X30, &paired_store_quantized[inst.W * 8]);
-    LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
+    MOVP2R(ARM64Reg::X30, &paired_store_quantized[inst.W * 8]);
+    LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
     SetJumpTarget(continue1);
   }
 
-  gpr.Unlock(W0, W1, W2, W30);
-  fpr.Unlock(Q0, Q1);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
 }
