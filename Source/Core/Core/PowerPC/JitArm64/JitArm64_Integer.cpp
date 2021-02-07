@@ -1494,7 +1494,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
 
     MOVI2R(WA, 32);
     SUB(WC, WA, WC);
-    LSL(WC, RS, WC);
+    LSLV(WC, RS, WC);
     CMP(WC, 0);
     CSET(WA, CC_NEQ);
     FixupBranch end = B();
