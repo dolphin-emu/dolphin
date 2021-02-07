@@ -432,7 +432,7 @@ static void BPWritten(const BPCmd& bp)
   // EFB Copy config
   // ----------------
   case BPMEM_EFB_TL:    // EFB Source Rect. Top, Left
-  case BPMEM_EFB_BR:    // EFB Source Rect. Bottom, Right (w, h - 1)
+  case BPMEM_EFB_WH:    // EFB Source Rect. Width, Height - 1
   case BPMEM_EFB_ADDR:  // EFB Target Address
     return;
   // --------------
@@ -995,10 +995,9 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
   }
   break;
 
-  case BPMEM_EFB_BR:  // 0x4A
+  case BPMEM_EFB_WH:  // 0x4A
   {
-    // TODO: Misleading name, should be BPMEM_EFB_WH instead
-    SetRegName(BPMEM_EFB_BR);
+    SetRegName(BPMEM_EFB_WH);
     X10Y10 width_height;
     width_height.hex = cmddata;
     *desc = fmt::format("Width: {}\nHeight: {}", width_height.x + 1, width_height.y + 1);
