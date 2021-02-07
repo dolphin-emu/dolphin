@@ -475,6 +475,98 @@ std::pair<std::string, std::string> GetXFRegInfo(u32 address, u32 value)
 #undef DescriptionlessReg
 }
 
+std::string GetXFMemName(u32 address)
+{
+  if (address >= XFMEM_POSMATRICES && address < XFMEM_POSMATRICES_END)
+  {
+    const u32 row = (address - XFMEM_POSMATRICES) / 4;
+    const u32 col = (address - XFMEM_POSMATRICES) % 4;
+    return fmt::format("Position matrix row {:2d} col {:2d}", row, col);
+  }
+  else if (address >= XFMEM_NORMALMATRICES && address < XFMEM_NORMALMATRICES_END)
+  {
+    const u32 row = (address - XFMEM_NORMALMATRICES) / 3;
+    const u32 col = (address - XFMEM_NORMALMATRICES) % 3;
+    return fmt::format("Normal matrix row {:2d} col {:2d}", row, col);
+  }
+  else if (address >= XFMEM_POSTMATRICES && address < XFMEM_POSTMATRICES_END)
+  {
+    const u32 row = (address - XFMEM_POSMATRICES) / 4;
+    const u32 col = (address - XFMEM_POSMATRICES) % 4;
+    return fmt::format("Post matrix row {:2d} col {:2d}", row, col);
+  }
+  else if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
+  {
+    const u32 light = (address - XFMEM_LIGHTS) / 16;
+    const u32 offset = (address - XFMEM_LIGHTS) % 16;
+    switch (offset)
+    {
+    default:
+      return fmt::format("Light {} unused param {}", light, offset);
+    case 3:
+      return fmt::format("Light {} color", light);
+    case 4:
+    case 5:
+    case 6:
+      return fmt::format("Light {} cosine attenuation {}", light, offset - 4);
+    case 7:
+    case 8:
+    case 9:
+      return fmt::format("Light {} distance attenuation {}", light, offset - 7);
+    case 10:
+    case 11:
+    case 12:
+      // Yagcd says light pos or "inf ldir", while dolphin has a union for dpos and sdir with only
+      // dpos being used nowadays. As far as I can tell only the DX9 engine once at
+      // Source/Plugins/Plugin_VideoDX9/Src/TransformEngine.cpp used sdir directly...
+      return fmt::format("Light {0} {1} position or inf ldir {1}", light, "xyz"[offset - 10]);
+    case 13:
+    case 14:
+    case 15:
+      // Yagcd says light dir or "1/2 angle", dolphin has union for ddir or shalfangle.
+      // It would make sense if d stood for direction and s for specular, but it's ddir and
+      // shalfhangle that have the comment "specular lights only", both at the same offset,
+      // while dpos and sdir have none...
+      return fmt::format("Light {0} {1} direction or half hangle {1}", light, "xyz"[offset - 13]);
+    }
+  }
+  else
+  {
+    return fmt::format("Unknown memory {:04x}", address);
+  }
+}
+
+std::string GetXFMemDescription(u32 address, u32 value)
+{
+  if ((address >= XFMEM_POSMATRICES && address < XFMEM_POSMATRICES_END) ||
+      (address >= XFMEM_NORMALMATRICES && address < XFMEM_NORMALMATRICES_END) ||
+      (address >= XFMEM_POSTMATRICES && address < XFMEM_POSTMATRICES_END))
+  {
+    // The matrices all use floats
+    return fmt::format("{} = {}", GetXFMemName(address), Common::BitCast<float>(value));
+  }
+  else if (address >= XFMEM_LIGHTS && address < XFMEM_LIGHTS_END)
+  {
+    // Each light is 16 words; for this function we don't care which light it is
+    const u32 offset = (address - XFMEM_LIGHTS) % 16;
+    if (offset <= 3)
+    {
+      // The unused parameters (0, 1, 2) and the color (3) should be hex-formatted
+      return fmt::format("{} = {:08x}", GetXFMemName(address), value);
+    }
+    else
+    {
+      // Everything else is a float
+      return fmt::format("{} = {}", GetXFMemName(address), Common::BitCast<float>(value));
+    }
+  }
+  else
+  {
+    // Unknown address
+    return fmt::format("{} = {:08x}", GetXFMemName(address), value);
+  }
+}
+
 std::pair<std::string, std::string> GetXFTransferInfo(const u8* data)
 {
   const u32 cmd = Common::swap32(data);
@@ -515,10 +607,16 @@ std::pair<std::string, std::string> GetXFTransferInfo(const u8* data)
     {
       xf_mem_transfer_size = XFMEM_REGISTERS_START - base_address;
       base_address = XFMEM_REGISTERS_START;
-      data += 4 * xf_mem_transfer_size;
     }
 
     fmt::format_to(name, "Write {} XF mem words at {:04x}", xf_mem_transfer_size, xf_mem_base);
+
+    for (u32 i = 0; i < xf_mem_transfer_size; i++)
+    {
+      const auto mem_desc = GetXFMemDescription(xf_mem_base + i, Common::swap32(data));
+      fmt::format_to(desc, i == 0 ? "{}" : "\n{}", mem_desc);
+      data += 4;
+    }
 
     if (end_address > XFMEM_REGISTERS_START)
       fmt::format_to(name, "; ");
