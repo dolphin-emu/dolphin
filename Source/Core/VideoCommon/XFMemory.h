@@ -192,6 +192,7 @@ enum
   XFMEM_POSTMATRICES_END = 0x600,
   XFMEM_LIGHTS = 0x600,
   XFMEM_LIGHTS_END = 0x680,
+  XFMEM_REGISTERS_START = 0x1000,
   XFMEM_ERROR = 0x1000,
   XFMEM_DIAG = 0x1001,
   XFMEM_STATE0 = 0x1002,
@@ -226,6 +227,7 @@ enum
   XFMEM_SETNUMTEXGENS = 0x103f,
   XFMEM_SETTEXMTXINFO = 0x1040,
   XFMEM_SETPOSTMTXINFO = 0x1050,
+  XFMEM_REGISTERS_END = 0x1058,
 };
 
 union LitChannel
@@ -244,6 +246,20 @@ union LitChannel
     return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
   }
 };
+template <>
+struct fmt::formatter<LitChannel>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const LitChannel& chan, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Material source: {0}\nEnable lighting: {1}\nLight mask: {2:x} ({2:08b})\n"
+                     "Ambient source: {3}\nDiffuse function: {4}\nAttenuation function: {5}",
+                     chan.matsource, chan.enablelighting ? "Yes" : "No", chan.GetFullLightMask(),
+                     chan.ambsource, chan.diffusefunc, chan.attnfunc);
+  }
+};
 
 union ClipDisable
 {
@@ -252,6 +268,22 @@ union ClipDisable
   BitField<2, 1, bool, u32> disable_cpoly_clipping_acceleration;
   u32 hex;
 };
+template <>
+struct fmt::formatter<ClipDisable>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const ClipDisable& cd, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Disable clipping detection: {}\n"
+                     "Disable trivial rejection: {}\n"
+                     "Disable cpoly clipping acceleration: {}",
+                     cd.disable_clipping_detection ? "Yes" : "No",
+                     cd.disable_trivial_rejection ? "Yes" : "No",
+                     cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
+  }
+};
 
 union INVTXSPEC
 {
@@ -259,6 +291,17 @@ union INVTXSPEC
   BitField<2, 2, NormalCount> numnormals;
   BitField<4, 4, u32> numtextures;
   u32 hex;
+};
+template <>
+struct fmt::formatter<INVTXSPEC>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const INVTXSPEC& spec, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "Num colors: {}\nNum normals: {}\nNum textures: {}", spec.numcolors,
+                     spec.numnormals, spec.numtextures);
+  }
 };
 
 union TexMtxInfo
@@ -273,6 +316,20 @@ union TexMtxInfo
   BitField<15, 3, u32> embosslightshift;   // light index that is used
   u32 hex;
 };
+template <>
+struct fmt::formatter<TexMtxInfo>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TexMtxInfo& i, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Projection: {}\nInput form: {}\nTex gen type: {}\n"
+                     "Source row: {}\nEmboss source shift: {}\nEmboss light shift: {}",
+                     i.projection, i.inputform, i.texgentype, i.sourcerow, i.embosssourceshift,
+                     i.embosslightshift);
+  }
+};
 
 union PostMtxInfo
 {
@@ -280,6 +337,18 @@ union PostMtxInfo
   BitField<6, 2, u32> unused;           //
   BitField<8, 1, bool, u32> normalize;  // normalize before send operation
   u32 hex;
+};
+
+template <>
+struct fmt::formatter<PostMtxInfo>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const PostMtxInfo& i, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index,
+                     i.normalize ? "Yes" : "No");
+  }
 };
 
 union NumColorChannel

@@ -25,6 +25,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/XFStructs.h"
 
 constexpr int FRAME_ROLE = Qt::UserRole;
 constexpr int OBJECT_ROLE = Qt::UserRole + 1;
@@ -237,8 +238,10 @@ void FIFOAnalyzer::UpdateDetails()
 
       case OpcodeDecoder::GX_LOAD_XF_REG:
       {
+        const auto [name, desc] = GetXFTransferInfo(objectdata);
         u32 cmd2 = Common::swap32(objectdata);
         objectdata += 4;
+        ASSERT(!name.empty());
 
         u8 streamSize = ((cmd2 >> 16) & 15) + 1;
 
@@ -253,6 +256,8 @@ void FIFOAnalyzer::UpdateDetails()
           if (((objectdata - stream_start) % 4) == 0)
             new_label += QLatin1Char(' ');
         }
+
+        new_label += QStringLiteral("  ") + QString::fromStdString(name);
       }
       break;
 
@@ -505,7 +510,17 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (*cmddata == OpcodeDecoder::GX_LOAD_XF_REG)
   {
+    const auto [name, desc] = GetXFTransferInfo(cmddata + 1);
+    ASSERT(!name.empty());
+
     text = tr("XF register ");
+    text += QString::fromStdString(name);
+    text += QLatin1Char{'\n'};
+
+    if (desc.empty())
+      text += tr("No description available");
+    else
+      text += QString::fromStdString(desc);
   }
   else
   {
