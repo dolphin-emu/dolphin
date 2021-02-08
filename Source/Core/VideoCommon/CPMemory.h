@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <array>
+#include <string>
+#include <utility>
+
 #include "Common/BitField.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -222,6 +226,65 @@ struct TVtxDesc
     high.Hex = value >> 17;
   }
 };
+template <>
+struct fmt::formatter<TVtxDesc::Low>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TVtxDesc::Low& desc, FormatContext& ctx)
+  {
+    static constexpr std::array<const char*, 2> present = {"Not present", "Present"};
+
+    return format_to(ctx.out(),
+                     "Position and normal matrix index: {}\n"
+                     "Texture Coord 0 matrix index: {}\n"
+                     "Texture Coord 1 matrix index: {}\n"
+                     "Texture Coord 2 matrix index: {}\n"
+                     "Texture Coord 3 matrix index: {}\n"
+                     "Texture Coord 4 matrix index: {}\n"
+                     "Texture Coord 5 matrix index: {}\n"
+                     "Texture Coord 6 matrix index: {}\n"
+                     "Texture Coord 7 matrix index: {}\n"
+                     "Position: {}\n"
+                     "Normal: {}\n"
+                     "Color 0: {}\n"
+                     "Color 1: {}",
+                     present[desc.PosMatIdx], present[desc.Tex0MatIdx], present[desc.Tex1MatIdx],
+                     present[desc.Tex2MatIdx], present[desc.Tex3MatIdx], present[desc.Tex4MatIdx],
+                     present[desc.Tex5MatIdx], present[desc.Tex6MatIdx], present[desc.Tex7MatIdx],
+                     desc.Position, desc.Normal, desc.Color0, desc.Color1);
+  }
+};
+template <>
+struct fmt::formatter<TVtxDesc::High>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TVtxDesc::High& desc, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Texture Coord 0: {}\n"
+                     "Texture Coord 1: {}\n"
+                     "Texture Coord 2: {}\n"
+                     "Texture Coord 3: {}\n"
+                     "Texture Coord 4: {}\n"
+                     "Texture Coord 5: {}\n"
+                     "Texture Coord 6: {}\n"
+                     "Texture Coord 7: {}",
+                     desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord, desc.Tex4Coord,
+                     desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
+  }
+};
+template <>
+struct fmt::formatter<TVtxDesc>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TVtxDesc& desc, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "{}\n{}", desc.low, desc.high);
+  }
+};
 
 union UVAT_group0
 {
@@ -247,6 +310,40 @@ union UVAT_group0
   BitField<30, 1, u32> ByteDequant;
   BitField<31, 1, u32> NormalIndex3;
 };
+template <>
+struct fmt::formatter<UVAT_group0>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const UVAT_group0& g0, FormatContext& ctx)
+  {
+    static constexpr std::array<const char*, 2> byte_dequant = {
+        "shift does not apply to u8/s8 components", "shift applies to u8/s8 components"};
+    static constexpr std::array<const char*, 2> normalindex3 = {"single index per normal",
+                                                                "triple-index per nine-normal"};
+
+    return format_to(ctx.out(),
+                     "Position elements: {}\n"
+                     "Position format: {}\n"
+                     "Position shift: {} ({})\n"
+                     "Normal elements: {}\n"
+                     "Normal format: {}\n"
+                     "Color 0 elements: {}\n"
+                     "Color 0 format: {}\n"
+                     "Color 1 elements: {}\n"
+                     "Color 1 format: {}\n"
+                     "Texture coord 0 elements: {}\n"
+                     "Texture coord 0 format: {}\n"
+                     "Texture coord 0 shift: {} ({})\n"
+                     "Byte dequant: {}\n"
+                     "Normal index 3: {}",
+                     g0.PosElements, g0.PosFormat, g0.PosFrac, 1.f / (1 << g0.PosFrac),
+                     g0.NormalElements, g0.NormalFormat, g0.Color0Elements, g0.Color0Comp,
+                     g0.Color1Elements, g0.Color1Comp, g0.Tex0CoordElements, g0.Tex0CoordFormat,
+                     g0.Tex0Frac, 1.f / (1 << g0.Tex0Frac), byte_dequant[g0.ByteDequant],
+                     normalindex3[g0.NormalIndex3]);
+  }
+};
 
 union UVAT_group1
 {
@@ -269,6 +366,33 @@ union UVAT_group1
   // 31
   BitField<31, 1, u32> VCacheEnhance;
 };
+template <>
+struct fmt::formatter<UVAT_group1>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const UVAT_group1& g1, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Texture coord 1 elements: {}\n"
+                     "Texture coord 1 format: {}\n"
+                     "Texture coord 1 shift: {} ({})\n"
+                     "Texture coord 2 elements: {}\n"
+                     "Texture coord 2 format: {}\n"
+                     "Texture coord 2 shift: {} ({})\n"
+                     "Texture coord 3 elements: {}\n"
+                     "Texture coord 3 format: {}\n"
+                     "Texture coord 3 shift: {} ({})\n"
+                     "Texture coord 4 elements: {}\n"
+                     "Texture coord 4 format: {}\n"
+                     "Enhance VCache (must always be on): {}",
+                     g1.Tex1CoordElements, g1.Tex1CoordFormat, g1.Tex1Frac,
+                     1.f / (1 << g1.Tex1Frac), g1.Tex2CoordElements, g1.Tex2CoordFormat,
+                     g1.Tex2Frac, 1.f / (1 << g1.Tex2Frac), g1.Tex3CoordElements,
+                     g1.Tex3CoordFormat, g1.Tex3Frac, 1.f / (1 << g1.Tex3Frac),
+                     g1.Tex4CoordElements, g1.Tex4CoordFormat, g1.VCacheEnhance ? "Yes" : "No");
+  }
+};
 
 union UVAT_group2
 {
@@ -287,6 +411,31 @@ union UVAT_group2
   BitField<23, 1, TexComponentCount> Tex7CoordElements;
   BitField<24, 3, ComponentFormat> Tex7CoordFormat;
   BitField<27, 5, u32> Tex7Frac;
+};
+template <>
+struct fmt::formatter<UVAT_group2>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const UVAT_group2& g2, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Texture coord 4 shift: {} ({})\n"
+                     "Texture coord 5 elements: {}\n"
+                     "Texture coord 5 format: {}\n"
+                     "Texture coord 5 shift: {} ({})\n"
+                     "Texture coord 6 elements: {}\n"
+                     "Texture coord 6 format: {}\n"
+                     "Texture coord 6 shift: {} ({})\n"
+                     "Texture coord 7 elements: {}\n"
+                     "Texture coord 7 format: {}\n"
+                     "Texture coord 7 shift: {} ({})",
+                     g2.Tex4Frac, 1.f / (1 << g2.Tex4Frac), g2.Tex5CoordElements,
+                     g2.Tex5CoordFormat, g2.Tex5Frac, 1.f / (1 << g2.Tex5Frac),
+                     g2.Tex6CoordElements, g2.Tex6CoordFormat, g2.Tex6Frac,
+                     1.f / (1 << g2.Tex6Frac), g2.Tex7CoordElements, g2.Tex7CoordFormat,
+                     g2.Tex7Frac, 1.f / (1 << g2.Tex7Frac));
+  }
 };
 
 struct ColorAttr
@@ -325,6 +474,17 @@ union TMatrixIndexA
   BitField<24, 6, u32> Tex3MtxIdx;
   u32 Hex;
 };
+template <>
+struct fmt::formatter<TMatrixIndexA>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TMatrixIndexA& m, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "PosNormal: {}\nTex0: {}\nTex1: {}\nTex2: {}\nTex3: {}",
+                     m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx, m.Tex3MtxIdx);
+  }
+};
 
 union TMatrixIndexB
 {
@@ -333,6 +493,17 @@ union TMatrixIndexB
   BitField<12, 6, u32> Tex6MtxIdx;
   BitField<18, 6, u32> Tex7MtxIdx;
   u32 Hex;
+};
+template <>
+struct fmt::formatter<TMatrixIndexB>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TMatrixIndexB& m, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
+                     m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
+  }
 };
 
 struct VAT
@@ -376,3 +547,5 @@ void FillCPMemoryArray(u32* memory);
 void DoCPState(PointerWrap& p);
 
 void CopyPreprocessCPStateFromMain();
+
+std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value);

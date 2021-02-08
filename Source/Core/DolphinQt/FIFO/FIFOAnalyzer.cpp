@@ -23,6 +23,7 @@
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
 
 constexpr int FRAME_ROLE = Qt::UserRole;
@@ -224,10 +225,13 @@ void FIFOAnalyzer::UpdateDetails()
         u32 cmd2 = *objectdata++;
         u32 value = Common::swap32(objectdata);
         objectdata += 4;
+        const auto [name, desc] = GetCPRegInfo(cmd2, value);
+        ASSERT(!name.empty());
 
-        new_label = QStringLiteral("CP  %1  %2")
+        new_label = QStringLiteral("CP  %1  %2  %3")
                         .arg(cmd2, 2, 16, QLatin1Char('0'))
-                        .arg(value, 8, 16, QLatin1Char('0'));
+                        .arg(value, 8, 16, QLatin1Char('0'))
+                        .arg(QString::fromStdString(name));
       }
       break;
 
@@ -484,7 +488,20 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (*cmddata == OpcodeDecoder::GX_LOAD_CP_REG)
   {
+    const u8 cmd = *(cmddata + 1);
+    const u32 value = Common::swap32(cmddata + 2);
+
+    const auto [name, desc] = GetCPRegInfo(cmd, value);
+    ASSERT(!name.empty());
+
     text = tr("CP register ");
+    text += QString::fromStdString(name);
+    text += QLatin1Char{'\n'};
+
+    if (desc.empty())
+      text += tr("No description available");
+    else
+      text += QString::fromStdString(desc);
   }
   else if (*cmddata == OpcodeDecoder::GX_LOAD_XF_REG)
   {
