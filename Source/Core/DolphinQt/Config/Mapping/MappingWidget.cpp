@@ -51,6 +51,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   QGroupBox* group_box = new QGroupBox(name);
   QFormLayout* form_layout = new QFormLayout();
 
+  QGridLayout* grid_layout = new QGridLayout();
+  int grid_row = 0;
+
   group_box->setLayout(form_layout);
 
   MappingIndicator* indicator = nullptr;
@@ -122,12 +125,15 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   {
     auto* button = new MappingButton(this, control->control_ref.get(), !indicator);
 
-    button->setMinimumWidth(100);
+    button->setMinimumWidth(75);
+    button->setMaximumWidth(150);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     const bool translate = control->translate == ControllerEmu::Translate;
     const QString translated_name =
         translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
-    form_layout->addRow(translated_name, button);
+
+    grid_layout->addWidget(new QLabel(translated_name), grid_row, 0);
+    grid_layout->addWidget(button, grid_row++, 1);
   }
 
   for (auto& setting : group->numeric_settings)
@@ -154,11 +160,11 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     if (setting_widget)
     {
       const auto hbox = new QHBoxLayout;
-
       hbox->addWidget(setting_widget);
+      hbox->addItem(new QSpacerItem(4, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
       hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
-
-      form_layout->addRow(tr(setting->GetUIName()), hbox);
+      grid_layout->addWidget(new QLabel(tr(setting->GetUIName())), grid_row, 0);
+      grid_layout->addItem(hbox, grid_row++, 1);
     }
   }
 
@@ -183,6 +189,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     connect(this, &MappingWidget::ConfigChanged, this,
             [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
+
+  form_layout->addRow(grid_layout);
 
   return group_box;
 }

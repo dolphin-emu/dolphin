@@ -83,8 +83,6 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
 
   connect(parent, &MappingWidget::ConfigChanged, this, &MappingBool::ConfigChanged);
   connect(parent, &MappingWidget::Update, this, &MappingBool::Update);
-
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
 }
 
 void MappingBool::ConfigChanged()
