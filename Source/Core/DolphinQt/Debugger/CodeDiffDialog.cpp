@@ -177,7 +177,7 @@ void CodeDiffDialog::OnInclude()
   {
     for (auto& iter : recorded_symbols)
     {
-      auto pos = std::lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
+      auto pos = std::lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol);
 
       if (pos == m_exclude.end() || pos->symbol != iter.symbol)
       {
@@ -215,7 +215,7 @@ void CodeDiffDialog::OnExclude()
   {
     for (auto& iter : recorded_symbols)
     {
-      auto pos = std::lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol, AddrOP);
+      auto pos = std::lower_bound(m_exclude.begin(), m_exclude.end(), iter.symbol);
 
       if (pos == m_exclude.end() || pos->symbol != iter.symbol)
       {

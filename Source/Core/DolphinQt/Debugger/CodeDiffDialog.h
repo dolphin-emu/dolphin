@@ -19,16 +19,13 @@ struct Diff
   u32 addr;
   std::string symbol;
   u32 hits;
+
+  bool operator<(const std::string& val) { return symbol < val; }
 };
 
 class CodeDiffDialog : public QDialog
 {
   Q_OBJECT
-
-  struct _AddrOp
-  {
-    bool operator()(const Diff& iter, const std::string& val) const { return iter.symbol < val; }
-  } AddrOP;
 
 public:
   explicit CodeDiffDialog(CodeWidget* parent);
