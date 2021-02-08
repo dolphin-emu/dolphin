@@ -30,6 +30,24 @@ void JitArm64::ComputeRC0(u64 imm)
     SXTW(gpr.CR(0), DecodeReg(gpr.CR(0)));
 }
 
+void JitArm64::ComputeCarry(ARM64Reg reg)
+{
+  js.carryFlagSet = false;
+
+  if (!js.op->wantsCA)
+    return;
+
+  if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
+  {
+    CMP(reg, 1);
+    js.carryFlagSet = true;
+  }
+  else
+  {
+    STRB(IndexType::Unsigned, reg, PPC_REG, PPCSTATE_OFF(xer_ca));
+  }
+}
+
 void JitArm64::ComputeCarry(bool Carry)
 {
   js.carryFlagSet = false;
@@ -1252,6 +1270,12 @@ void JitArm64::slwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }
+  else if (gpr.IsImm(s) && gpr.GetImm(s) == 0)
+  {
+    gpr.SetImmediate(a, 0);
+    if (inst.Rc)
+      ComputeRC0(0);
+  }
   else if (gpr.IsImm(b))
   {
     u32 i = gpr.GetImm(b);
@@ -1338,7 +1362,6 @@ void JitArm64::srawx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
-  bool inplace_carry = CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
@@ -1359,16 +1382,84 @@ void JitArm64::srawx(UGeckoInstruction inst)
       ComputeRC0(gpr.GetImm(a));
     return;
   }
-
-  if (gpr.IsImm(b) && !js.op->wantsCA)
+  else if (gpr.IsImm(s) && gpr.GetImm(s) == 0)
+  {
+    gpr.SetImmediate(a, 0);
+    ComputeCarry(false);
+    if (inst.Rc)
+      ComputeRC0(0);
+    return;
+  }
+  else if (gpr.IsImm(b))
   {
     int amount = gpr.GetImm(b);
-    if (amount & 0x20)
-      amount = 0x1F;
+
+    bool special = amount & 0x20;
+    amount &= 0x1f;
+
+    if (special)
+    {
+      gpr.BindToRegister(a, a == s);
+
+      ASR(gpr.R(a), gpr.R(s), 31);
+
+      if (js.op->wantsCA)
+      {
+        CMN(gpr.R(s), gpr.R(s));
+        ComputeCarry();
+      }
+    }
+    else if (amount == 0)
+    {
+      if (a != s)
+      {
+        gpr.BindToRegister(a, false);
+
+        MOV(gpr.R(a), gpr.R(s));
+      }
+
+      ComputeCarry(false);
+    }
+    else if (!js.op->wantsCA)
+    {
+      gpr.BindToRegister(a, a == s);
+
+      ASR(gpr.R(a), gpr.R(s), amount);
+    }
     else
-      amount &= 0x1F;
-    gpr.BindToRegister(a, a == s);
-    ASR(gpr.R(a), gpr.R(s), amount);
+    {
+      gpr.BindToRegister(a, a == s);
+
+      ARM64Reg WA = gpr.GetReg();
+
+      if (a != s)
+      {
+        ASR(gpr.R(a), gpr.R(s), amount);
+
+        // To compute the PPC carry flag, we do the following:
+        // 1. Take the bits which were shifted out, and create a temporary where they are in the
+        //    most significant positions (followed by zeroes).
+        // 2. Bitwise AND this temporary with the result of ASR. (Each bit which was shifted out
+        //    gets ANDed with a copy of the sign bit.)
+        // 3. Set the carry to the inverse of the Z flag. (The carry is set iff the sign bit was 1
+        //    and at least one of the bits which were shifted out were 1.)
+        TST(gpr.R(a), gpr.R(s), ArithOption(gpr.R(s), ShiftType::LSL, 32 - amount));
+      }
+      else
+      {
+        // TODO: If we implement register renaming, we can use the above approach for a == s too
+
+        LSL(WA, gpr.R(s), 32 - amount);
+        ASR(gpr.R(a), gpr.R(s), amount);
+        TST(WA, gpr.R(a));
+      }
+
+      CSET(WA, CC_NEQ);
+
+      ComputeCarry(WA);
+
+      gpr.Unlock(WA);
+    }
   }
   else if (!js.op->wantsCA)
   {
@@ -1403,7 +1494,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
 
     MOVI2R(WA, 32);
     SUB(WC, WA, WC);
-    LSL(WC, RS, WC);
+    LSLV(WC, RS, WC);
     CMP(WC, 0);
     CSET(WA, CC_NEQ);
     FixupBranch end = B();
@@ -1418,15 +1509,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
     SetJumpTarget(end);
 
     MOV(gpr.R(a), WB);
-    if (inplace_carry)
-    {
-      CMP(WA, 1);
-      ComputeCarry();
-    }
-    else
-    {
-      STRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-    }
+    ComputeCarry(WA);
 
     gpr.Unlock(WA, WB, WC);
   }
