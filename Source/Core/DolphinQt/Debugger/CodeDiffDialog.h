@@ -40,8 +40,8 @@ private:
   std::vector<Diff> CalculateSymbolsFromProfile();
   void OnInclude();
   void OnExclude();
-  void RemoveMissingSymbolsFromIncludes(std::vector<Diff>& symbol_diff);
-  void RemoveMatchingSymbolsFromIncludes(std::vector<Diff>& symbol_list);
+  void RemoveMissingSymbolsFromIncludes(const std::vector<Diff>& symbol_diff);
+  void RemoveMatchingSymbolsFromIncludes(const std::vector<Diff>& symbol_list);
   void Update(bool include);
   void InfoDisp();
 

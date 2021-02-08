@@ -265,25 +265,25 @@ std::vector<Diff> CodeDiffDialog::CalculateSymbolsFromProfile()
   return current;
 }
 
-void CodeDiffDialog::RemoveMissingSymbolsFromIncludes(std::vector<Diff>& symbol_diff)
+void CodeDiffDialog::RemoveMissingSymbolsFromIncludes(const std::vector<Diff>& symbol_diff)
 {
   m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
-                                 [&](Diff& v) {
+                                 [&](const Diff& v) {
                                    // Remove values if it can't find matching symbols
                                    return std::none_of(
                                        symbol_diff.begin(), symbol_diff.end(),
-                                       [&](Diff& p) { return p.symbol == v.symbol; });
+                                       [&](const Diff& p) { return p.symbol == v.symbol; });
                                  }),
                   m_include.end());
 }
 
-void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(std::vector<Diff>& symbol_list)
+void CodeDiffDialog::RemoveMatchingSymbolsFromIncludes(const std::vector<Diff>& symbol_list)
 {
   m_include.erase(std::remove_if(m_include.begin(), m_include.end(),
-                                 [&](Diff& i) {
+                                 [&](const Diff& i) {
                                    return std::any_of(
                                        symbol_list.begin(), symbol_list.end(),
-                                       [&](Diff& s) { return i.symbol == s.symbol; });
+                                       [&](const Diff& s) { return i.symbol == s.symbol; });
                                  }),
                   m_include.end());
 }
