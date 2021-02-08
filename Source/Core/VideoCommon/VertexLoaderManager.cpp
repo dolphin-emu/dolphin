@@ -77,11 +77,26 @@ void UpdateVertexArrayPointers()
   // But the vertex arrays with invalid addresses aren't actually enabled.
   // Note: Only array bases 0 through 11 are used by the Vertex loaders.
   //       12 through 15 are used for loading data into xfmem.
-  for (int i = 0; i < 12; i++)
+  // We also only update the array base if the vertex description states we are going to use it.
+  if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
+    cached_arraybases[ARRAY_POSITION] =
+        Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_POSITION]);
+
+  if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
+    cached_arraybases[ARRAY_NORMAL] = Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_NORMAL]);
+
+  for (size_t i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
-    // Only update the array base if the vertex description states we are going to use it.
-    if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) & MASK_INDEXED)
-      cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
+    if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
+      cached_arraybases[ARRAY_COLOR + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_COLOR + i]);
+  }
+
+  for (size_t i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
+  {
+    if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
+      cached_arraybases[ARRAY_TEXCOORD0 + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_TEXCOORD0 + i]);
   }
 
   g_main_cp_state.bases_dirty = false;
@@ -317,15 +332,13 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
     break;
 
   case VCD_LO:
-    state->vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
-    state->vtx_desc.Hex |= value;
+    state->vtx_desc.low.Hex = value;
     state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
     state->bases_dirty = true;
     break;
 
   case VCD_HI:
-    state->vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
-    state->vtx_desc.Hex |= (u64)value << 17;
+    state->vtx_desc.high.Hex = value;
     state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
     state->bases_dirty = true;
     break;
@@ -371,8 +384,8 @@ void FillCPMemoryArray(u32* memory)
 {
   memory[MATINDEX_A] = g_main_cp_state.matrix_index_a.Hex;
   memory[MATINDEX_B] = g_main_cp_state.matrix_index_b.Hex;
-  memory[VCD_LO] = (u32)g_main_cp_state.vtx_desc.Hex;
-  memory[VCD_HI] = (u32)(g_main_cp_state.vtx_desc.Hex >> 17);
+  memory[VCD_LO] = g_main_cp_state.vtx_desc.low.Hex;
+  memory[VCD_HI] = g_main_cp_state.vtx_desc.high.Hex;
 
   for (int i = 0; i < CP_NUM_VAT_REG; ++i)
   {

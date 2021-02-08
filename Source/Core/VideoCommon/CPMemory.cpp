@@ -17,7 +17,9 @@ void DoCPState(PointerWrap& p)
   p.DoArray(g_main_cp_state.array_strides);
   p.Do(g_main_cp_state.matrix_index_a);
   p.Do(g_main_cp_state.matrix_index_b);
-  p.Do(g_main_cp_state.vtx_desc.Hex);
+  u64 vtx_desc = g_main_cp_state.vtx_desc.GetLegacyHex();
+  p.Do(vtx_desc);
+  g_main_cp_state.vtx_desc.SetLegacyHex(vtx_desc);
   p.DoArray(g_main_cp_state.vtx_attr);
   p.DoMarker("CP Memory");
   if (p.mode == PointerWrap::MODE_READ)

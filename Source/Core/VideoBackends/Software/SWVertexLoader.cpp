@@ -183,8 +183,8 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
   const auto set_default_color = [](u8* color, int i) {
     // The default alpha channel seems to depend on the number of components in the vertex format.
     const auto& g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
-    const u32 color_elements = i == 0 ? g0.Color0Elements : g0.Color1Elements;
-    color[0] = color_elements == 0 ? 255 : 0;
+    const auto color_elements = i == 0 ? g0.Color0Elements.Value() : g0.Color1Elements.Value();
+    color[0] = color_elements == ColorComponentCount::RGB ? 255 : 0;
     color[1] = 255;
     color[2] = 255;
     color[3] = 255;

@@ -23,8 +23,8 @@ public:
   VertexLoaderUID() {}
   VertexLoaderUID(const TVtxDesc& vtx_desc, const VAT& vat)
   {
-    vid[0] = vtx_desc.Hex & 0xFFFFFFFF;
-    vid[1] = vtx_desc.Hex >> 32;
+    vid[0] = vtx_desc.GetLegacyHex0();
+    vid[1] = vtx_desc.GetLegacyHex1();
     vid[2] = vat.g0.Hex;
     vid[3] = vat.g1.Hex;
     vid[4] = vat.g2.Hex;

@@ -7,10 +7,16 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 
+enum class VertexComponentFormat;
+enum class ComponentFormat;
+enum class CoordComponentCount;
+
 class VertexLoader_Position
 {
 public:
-  static u32 GetSize(u64 type, u32 format, u32 elements);
+  static u32 GetSize(VertexComponentFormat type, ComponentFormat format,
+                     CoordComponentCount elements);
 
-  static TPipelineFunction GetFunction(u64 type, u32 format, u32 elements);
+  static TPipelineFunction GetFunction(VertexComponentFormat type, ComponentFormat format,
+                                       CoordComponentCount elements);
 };

@@ -618,9 +618,9 @@ void VertexShaderManager::SetVertexFormat(u32 components)
 
   // The default alpha channel seems to depend on the number of components in the vertex format.
   // If the vertex attribute has an alpha channel, zero is used, otherwise one.
-  const u32 color_chan_alpha =
-      (g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color0Elements ^ 1) |
-      ((g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color1Elements ^ 1) << 1);
+  const auto g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
+  const u32 color_chan_alpha = (g0.Color0Elements == ColorComponentCount::RGB ? 1 : 0) |
+                               (g0.Color1Elements == ColorComponentCount::RGB ? 2 : 0);
   if (color_chan_alpha != constants.color_chan_alpha)
   {
     constants.color_chan_alpha = color_chan_alpha;
