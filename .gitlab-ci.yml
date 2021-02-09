@@ -55,7 +55,7 @@ libretro-build-windows-x64:
     - .libretro-windows-msvc19-cmake-x86_64
     - .core-windows-defs
   after_script:
-    - mv.exe "Binary\$Env:LIBNAME" "$Env:LIBNAME"
+    - move-Item "Binary\$Env:LIBNAME" "$Env:LIBNAME" -Force -ErrorAction SilentlyContinue
 
 # Linux 64-bit
 libretro-build-linux-x64:
