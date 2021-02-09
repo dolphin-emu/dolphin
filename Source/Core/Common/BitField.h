@@ -32,6 +32,7 @@
 #pragma once
 
 #include <cstddef>
+#include <fmt/format.h>
 #include <limits>
 #include <type_traits>
 
@@ -99,6 +100,8 @@
  * explicit cast must be performed on the BitField object to make sure it gets
  * passed correctly, e.g.:
  * printf("Value: %d", (s32)some_register.some_signed_fields);
+ * Note that this does not apply when using fmt, as a formatter is provided that
+ * handles this conversion automatically.
  *
  * 2)
  * Not really a caveat, but potentially irritating: This class is used in some
@@ -186,3 +189,16 @@ private:
   static_assert(bits > 0, "Invalid number of bits");
 };
 #pragma pack()
+
+// Use the underlying type's formatter for BitFields, if one exists
+template <std::size_t position, std::size_t bits, typename T, typename S>
+struct fmt::formatter<BitField<position, bits, T, S>>
+{
+  fmt::formatter<T> m_formatter;
+  constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
+  template <typename FormatContext>
+  auto format(const BitField<position, bits, T, S>& bitfield, FormatContext& ctx)
+  {
+    return m_formatter.format(bitfield.Value(), ctx);
+  }
+};

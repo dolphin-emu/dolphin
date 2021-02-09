@@ -6,6 +6,15 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
+
+enum class TestEnum : u64
+{
+  A,
+  B,
+  C,
+  D,
+};
 
 union TestUnion
 {
@@ -23,6 +32,9 @@ union TestUnion
   BitField<15, 1, s64> signed_1bit;  // allowed values: -1 and 0
 
   BitField<63, 1, bool, u64> flag;
+
+  BitField<16, 2, TestEnum> enum_1;
+  BitField<48, 2, TestEnum> enum_2;
 };
 
 // table of raw numbers to test with
@@ -54,6 +66,8 @@ TEST(BitField, Storage)
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.at_dword_boundary));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.signed_1bit));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.flag));
+  EXPECT_EQ(sizeof(TestUnion), sizeof(object.enum_1));
+  EXPECT_EQ(sizeof(TestUnion), sizeof(object.enum_2));
 
   // Now write some values to one field and check if this reflects properly
   // in the others.
@@ -86,6 +100,8 @@ TEST(BitField, Read)
     EXPECT_EQ(object.at_dword_boundary, (s64)object.at_dword_boundary);
     EXPECT_EQ(object.signed_1bit, (s64)object.signed_1bit);
     EXPECT_EQ(object.flag, (bool)object.flag);
+    EXPECT_EQ(object.enum_1, static_cast<TestEnum>(object.enum_1));
+    EXPECT_EQ(object.enum_2, static_cast<TestEnum>(object.enum_2));
 
     // Now make sure the value is indeed correct
     EXPECT_EQ(val, object.full_u64);
@@ -96,6 +112,8 @@ TEST(BitField, Read)
     EXPECT_EQ(((s64)(object.hex << 30)) >> 60, object.at_dword_boundary);
     EXPECT_EQ(((object.hex >> 15) & 1) ? -1 : 0, object.signed_1bit);
     EXPECT_EQ((bool)object.flag, ((object.hex >> 63) & 1));
+    EXPECT_EQ(static_cast<TestEnum>((object.hex >> 16) & 3), object.enum_1);
+    EXPECT_EQ(static_cast<TestEnum>((object.hex >> 48) & 3), object.enum_2);
   }
 }
 
@@ -178,5 +196,58 @@ TEST(BitField, Alignment)
     // Assignment to field of a type with a size smaller than the underlying type
     object.flag = (val & 2);
     EXPECT_EQ(object.flag, (val & 2) != 0);
+  }
+}
+
+template <>
+struct fmt::formatter<TestEnum> : EnumFormatter<TestEnum::D>
+{
+  formatter() : EnumFormatter({"A", "B", "C", "D"}) {}
+};
+
+// Test behavior of using BitFields with fmt
+TEST(BitField, Fmt)
+{
+  TestUnion object;
+
+  for (u64 val : table)
+  {
+    object.hex = val;
+
+    // Formatting the BitField should be the same as formatting its value
+    EXPECT_EQ(fmt::to_string(object.full_u64), fmt::to_string(object.full_u64.Value()));
+    EXPECT_EQ(fmt::to_string(object.full_s64), fmt::to_string(object.full_s64.Value()));
+    EXPECT_EQ(fmt::to_string(object.regular_field_unsigned),
+              fmt::to_string(object.regular_field_unsigned.Value()));
+    EXPECT_EQ(fmt::to_string(object.regular_field_unsigned2),
+              fmt::to_string(object.regular_field_unsigned2.Value()));
+    EXPECT_EQ(fmt::to_string(object.regular_field_signed),
+              fmt::to_string(object.regular_field_signed.Value()));
+    EXPECT_EQ(fmt::to_string(object.at_dword_boundary),
+              fmt::to_string(object.at_dword_boundary.Value()));
+    EXPECT_EQ(fmt::to_string(object.signed_1bit), fmt::to_string(object.signed_1bit.Value()));
+    EXPECT_EQ(fmt::to_string(object.flag), fmt::to_string(object.flag.Value()));
+    // The custom enum formatter should be used properly.
+    EXPECT_EQ(fmt::to_string(object.enum_1), fmt::to_string(object.enum_1.Value()));
+    EXPECT_EQ(fmt::to_string(object.enum_2), fmt::to_string(object.enum_2.Value()));
+
+    // Formatting the BitField should respect the format spec
+    EXPECT_EQ(fmt::format("{:02x}", object.full_u64),
+              fmt::format("{:02x}", object.full_u64.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.full_s64),
+              fmt::format("{:02x}", object.full_s64.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.regular_field_unsigned),
+              fmt::format("{:02x}", object.regular_field_unsigned.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.regular_field_unsigned2),
+              fmt::format("{:02x}", object.regular_field_unsigned2.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.regular_field_signed),
+              fmt::format("{:02x}", object.regular_field_signed.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.at_dword_boundary),
+              fmt::format("{:02x}", object.at_dword_boundary.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.signed_1bit),
+              fmt::format("{:02x}", object.signed_1bit.Value()));
+    EXPECT_EQ(fmt::format("{:02x}", object.flag), fmt::format("{:02x}", object.flag.Value()));
+    EXPECT_EQ(fmt::format("{:s}", object.enum_1), fmt::format("{:s}", object.enum_1.Value()));
+    EXPECT_EQ(fmt::format("{:s}", object.enum_2), fmt::format("{:s}", object.enum_2.Value()));
   }
 }
