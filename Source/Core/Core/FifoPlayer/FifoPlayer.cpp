@@ -51,7 +51,7 @@ bool FifoPlayer::Open(const std::string& filename)
   {
     FifoPlaybackAnalyzer::AnalyzeFrames(m_File.get(), m_FrameInfo);
 
-    m_FrameRangeEnd = m_File->GetFrameCount();
+    m_FrameRangeEnd = m_File->GetFrameCount() - 1;
   }
 
   if (m_FileLoadedCb)
@@ -131,13 +131,10 @@ private:
 
 CPU::State FifoPlayer::AdvanceFrame()
 {
-  if (m_CurrentFrame >= m_FrameRangeEnd)
+  if (m_CurrentFrame > m_FrameRangeEnd)
   {
     if (!m_Loop)
       return CPU::State::PowerDown;
-    // If there are zero frames in the range then sleep instead of busy spinning
-    if (m_FrameRangeStart >= m_FrameRangeEnd)
-      return CPU::State::Stepping;
 
     // When looping, reload the contents of all the BP/CP/CF registers.
     // This ensures that each time the first frame is played back, the state of the
@@ -215,9 +212,9 @@ void FifoPlayer::SetFrameRangeStart(u32 start)
 {
   if (m_File)
   {
-    u32 frameCount = m_File->GetFrameCount();
-    if (start > frameCount)
-      start = frameCount;
+    const u32 lastFrame = m_File->GetFrameCount() - 1;
+    if (start > lastFrame)
+      start = lastFrame;
 
     m_FrameRangeStart = start;
     if (m_FrameRangeEnd < start)
@@ -232,9 +229,9 @@ void FifoPlayer::SetFrameRangeEnd(u32 end)
 {
   if (m_File)
   {
-    u32 frameCount = m_File->GetFrameCount();
-    if (end > frameCount)
-      end = frameCount;
+    const u32 lastFrame = m_File->GetFrameCount() - 1;
+    if (end > lastFrame)
+      end = lastFrame;
 
     m_FrameRangeEnd = end;
     if (m_FrameRangeStart > end)
