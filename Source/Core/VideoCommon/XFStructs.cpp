@@ -31,7 +31,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
   u32 address = baseAddress;
   u32 dataIndex = 0;
 
-  while (transferSize > 0 && address < 0x1058)
+  while (transferSize > 0 && address < XFMEM_REGISTERS_END)
   {
     u32 newValue = src.Peek<u32>(dataIndex * sizeof(u32));
     u32 nextAddress = address + 1;
@@ -208,30 +208,30 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 void LoadXFReg(u32 transferSize, u32 baseAddress, DataReader src)
 {
   // do not allow writes past registers
-  if (baseAddress + transferSize > 0x1058)
+  if (baseAddress + transferSize > XFMEM_REGISTERS_END)
   {
     WARN_LOG_FMT(VIDEO, "XF load exceeds address space: {:x} {} bytes", baseAddress, transferSize);
 
-    if (baseAddress >= 0x1058)
+    if (baseAddress >= XFMEM_REGISTERS_END)
       transferSize = 0;
     else
-      transferSize = 0x1058 - baseAddress;
+      transferSize = XFMEM_REGISTERS_END - baseAddress;
   }
 
   // write to XF mem
-  if (baseAddress < 0x1000 && transferSize > 0)
+  if (baseAddress < XFMEM_REGISTERS_START && transferSize > 0)
   {
     u32 end = baseAddress + transferSize;
 
     u32 xfMemBase = baseAddress;
     u32 xfMemTransferSize = transferSize;
 
-    if (end >= 0x1000)
+    if (end >= XFMEM_REGISTERS_START)
     {
-      xfMemTransferSize = 0x1000 - baseAddress;
+      xfMemTransferSize = XFMEM_REGISTERS_START - baseAddress;
 
-      baseAddress = 0x1000;
-      transferSize = end - 0x1000;
+      baseAddress = XFMEM_REGISTERS_START;
+      transferSize = end - XFMEM_REGISTERS_START;
     }
     else
     {
