@@ -189,6 +189,18 @@ bool FifoPlayer::IsRunningWithFakeVideoInterfaceUpdates() const
   return m_File->ShouldGenerateFakeVIUpdates();
 }
 
+u32 FifoPlayer::GetMaxObjectCount() const
+{
+  u32 result = 0;
+  for (auto& frame : m_FrameInfo)
+  {
+    const u32 count = static_cast<u32>(frame.objectStarts.size());
+    if (count > result)
+      result = count;
+  }
+  return result;
+}
+
 u32 FifoPlayer::GetFrameObjectCount() const
 {
   if (m_CurrentFrame < m_FrameInfo.size())

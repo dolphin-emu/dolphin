@@ -74,6 +74,7 @@ public:
   bool IsPlaying() const;
 
   FifoDataFile* GetFile() const { return m_File.get(); }
+  u32 GetMaxObjectCount() const;
   u32 GetFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }

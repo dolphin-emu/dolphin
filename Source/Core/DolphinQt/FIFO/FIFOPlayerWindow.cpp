@@ -298,16 +298,16 @@ void FIFOPlayerWindow::OnFIFOLoaded()
 {
   FifoDataFile* file = FifoPlayer::GetInstance().GetFile();
 
-  auto object_count = FifoPlayer::GetInstance().GetFrameObjectCount();
+  auto object_count = FifoPlayer::GetInstance().GetMaxObjectCount();
   auto frame_count = file->GetFrameCount();
 
   m_frame_range_to->setMaximum(frame_count);
-  m_object_range_to->setMaximum(object_count);
+  m_object_range_to->setMaximum(object_count - 1);
 
   m_frame_range_from->setValue(0);
   m_object_range_from->setValue(0);
   m_frame_range_to->setValue(frame_count);
-  m_object_range_to->setValue(object_count);
+  m_object_range_to->setValue(object_count - 1);
 
   UpdateInfo();
   UpdateLimits();
@@ -336,8 +336,8 @@ void FIFOPlayerWindow::UpdateLimits()
 {
   m_frame_range_from->setMaximum(std::max(m_frame_range_to->value() - 1, 0));
   m_frame_range_to->setMinimum(m_frame_range_from->value() + 1);
-  m_object_range_from->setMaximum(std::max(m_object_range_to->value() - 1, 0));
-  m_object_range_to->setMinimum(m_object_range_from->value() + 1);
+  m_object_range_from->setMaximum(m_object_range_to->value());
+  m_object_range_to->setMinimum(m_object_range_from->value());
 }
 
 void FIFOPlayerWindow::UpdateControls()
