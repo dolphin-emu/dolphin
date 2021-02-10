@@ -49,6 +49,7 @@
     <ClCompile Include="Common\BusyLoopTest.cpp" />
     <ClCompile Include="Common\CommonFuncsTest.cpp" />
     <ClCompile Include="Common\Crypto\EcTest.cpp" />
+    <ClCompile Include="Common\EnumFormatterTest.cpp" />
     <ClCompile Include="Common\EventTest.cpp" />
     <ClCompile Include="Common\FixedSizeQueueTest.cpp" />
     <ClCompile Include="Common\FlagTest.cpp" />
