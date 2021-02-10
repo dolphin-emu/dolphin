@@ -43,4 +43,5 @@ private:
   QCheckBox* m_dump_root_ca_checkbox;
   QCheckBox* m_dump_peer_cert_checkbox;
   QCheckBox* m_verify_certificates_checkbox;
+  QCheckBox* m_dump_as_pcap_checkbox;
 };
