@@ -94,20 +94,24 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
 }
 
 bool ContextSensitiveControls::init_mod(Game game, Region region) {
+  u32 lis, ori;
+  prime::GetVariableManager()->register_variable("rotary_velocity");
+  std::tie<u32, u32>(lis, ori) = prime::GetVariableManager()->make_lis_ori(12, "rotary_velocity");
+
   switch (game) {
   case Game::PRIME_3:
     if (region == Region::NTSC_U) {
       // Take control of the rotary puzzles
-      add_code_change(0x801F806C, 0x3D808000);
-      add_code_change(0x801F8074, 0x618C4170);
+      add_code_change(0x801F806C, lis);
+      add_code_change(0x801F8074, ori);
       add_code_change(0x801F807C, 0xC02C0000);
 
       cplayer_ptr_address = 0x805c6c6c;
       motion_vtf_address = 0x802e0dac;
     }
     else if (region == Region::PAL) {
-      add_code_change(0x801F7B4C, 0x3D808000);
-      add_code_change(0x801F7B54, 0x618C4170);
+      add_code_change(0x801F7B4C, lis);
+      add_code_change(0x801F7B54, ori);
       add_code_change(0x801F7B5C, 0xC02C0000);
 
       cplayer_ptr_address = 0x805ca0ec;
@@ -116,24 +120,24 @@ bool ContextSensitiveControls::init_mod(Game game, Region region) {
     break;
   case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U) {
-      add_code_change(0x801fb544, 0x3D808000);
-      add_code_change(0x801fb54c, 0x618C4170);
+      add_code_change(0x801fb544, lis);
+      add_code_change(0x801fb54c, ori);
       add_code_change(0x801fb554, 0xC02C0000);
 
       cplayer_ptr_address = 0x805c4f98;
       motion_vtf_address = 0x802e2508;
     }
     else if (region == Region::NTSC_J) {
-      add_code_change(0x801fdb5c, 0x3D808000);
-      add_code_change(0x801fdb64, 0x618C4170);
+      add_code_change(0x801fdb5c, lis);
+      add_code_change(0x801fdb64, ori);
       add_code_change(0x801fdb6c, 0xC02C0000);
 
       cplayer_ptr_address = 0x805caa5c;
       motion_vtf_address = 0x802e5ed8;
     }
     else if (region == Region::PAL) {
-      add_code_change(0x801fc5a8, 0x3D808000);
-      add_code_change(0x801fc5b0, 0x618C4170);
+      add_code_change(0x801fc5a8, lis);
+      add_code_change(0x801fc5b0, ori);
       add_code_change(0x801fc5b8, 0xC02C0000);
 
       cplayer_ptr_address = 0x805c759c;

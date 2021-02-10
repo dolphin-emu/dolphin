@@ -5,6 +5,7 @@
 
 #include "Common/IniFile.h"
 #include "Core/PrimeHack/PrimeUtils.h"
+#include "Core/PrimeHack/EmuVariableManager.h"
 
 #include "Core/PrimeHack/Mods/AutoEFB.h"
 #include "Core/PrimeHack/Mods/CutBeamFxMP1.h"
@@ -36,6 +37,7 @@ float camera_fov;
 bool inverted_x = false;
 bool inverted_y = false;
 HackManager hack_mgr;
+EmuVariableManager var_mgr;
 bool is_running = false;
 CameraLock lock_camera = CameraLock::Unlocked;
 bool reticle_lock = false;
@@ -113,6 +115,14 @@ bool CheckRight() {
 
 bool CheckJump() {
   return Wiimote::CheckJump();
+}
+
+bool CheckGrappleCtl() {
+  return Wiimote::CheckGrapple();
+}
+
+bool GrappleCtlBound() {
+  return Wiimote::GrappleCtlBound();
 }
 
 void SetEFBToTexture(bool toggle) {
@@ -300,6 +310,10 @@ CameraLock GetLockCamera() {
 
 std::tuple<bool, bool> GetMenuOptions() {
   return Wiimote::GetBVMenuOptions();
+}
+
+EmuVariableManager* GetVariableManager() {
+  return &var_mgr;
 }
 
 HackManager* GetHackManager() {

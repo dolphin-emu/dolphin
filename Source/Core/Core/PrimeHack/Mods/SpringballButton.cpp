@@ -103,8 +103,11 @@ bool SpringballButton::init_mod(Game game, Region region) {
 }
 
 void SpringballButton::springball_code(u32 start_point) {
-  add_code_change(start_point + 0x00, 0x3C808000);  // lis r4, 0x8000
-  add_code_change(start_point + 0x04, 0x60844164);  // ori r4, r4, 0x4164
+  u32 lis, ori;
+  std::tie<u32, u32>(lis, ori) = prime::GetVariableManager()->make_lis_ori(4, "springball_trigger");
+
+  add_code_change(start_point + 0x00, lis);  // lis r4, springball_trigger_upper
+  add_code_change(start_point + 0x04, ori);  // ori r4, r4, springball_trigger_lower
   add_code_change(start_point + 0x08, 0x88640000);  // lbz r3, 0(r4)
   add_code_change(start_point + 0x0c, 0x38A00000);  // li r5, 0
   add_code_change(start_point + 0x10, 0x98A40000);  // stb r5, 0(r4)
@@ -121,5 +124,4 @@ void SpringballButton::springball_check(u32 ball_address, u32 movement_address) 
       write8(1, 0x80004164);
   }
 }
-
 }

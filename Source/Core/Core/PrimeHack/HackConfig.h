@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "Core/PrimeHack/HackManager.h"
+#include "Core/PrimeHack/EmuVariableManager.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 
 // Naming scheme will match dolphin as this place acts as an interface between the hack & dolphin proper
@@ -21,6 +23,9 @@ bool CheckBack();
 bool CheckLeft();
 bool CheckRight();
 bool CheckJump();
+
+bool CheckGrappleCtl();
+bool GrappleCtlBound();
 
 void SetEFBToTexture(bool toggle);
 bool UseMPAutoEFB();
@@ -70,4 +75,5 @@ double GetVerticalAxis();
 std::tuple<bool, bool> GetMenuOptions();
 
 HackManager *GetHackManager();
+EmuVariableManager *GetVariableManager();
 }

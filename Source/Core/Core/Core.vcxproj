@@ -369,6 +369,7 @@
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
+    <ClCompile Include="PrimeHack\EmuVariableManager.cpp" />
     <ClCompile Include="PrimeHack\HackConfig.cpp" />
     <ClCompile Include="PrimeHack\HackManager.cpp" />
     <ClCompile Include="PrimeHack\Mods\AutoEFB.cpp" />
@@ -685,6 +686,7 @@
     <ClInclude Include="PowerPC\PPCSymbolDB.h" />
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
+    <ClInclude Include="PrimeHack\EmuVariableManager.h" />
     <ClInclude Include="PrimeHack\HackConfig.h" />
     <ClInclude Include="PrimeHack\HackManager.h" />
     <ClInclude Include="PrimeHack\Mods\AutoEFB.h" />

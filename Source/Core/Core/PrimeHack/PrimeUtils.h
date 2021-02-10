@@ -50,4 +50,17 @@ void AddCheatsTime(int index, u32 time);
 std::string GetDevInfo();
 void ClrDevInfo();
 
+// Borrowed from DolphinQt MathUtil.h
+template <typename T, typename F>
+constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) * a)
+{
+  return x + (y - x) * a;
+}
+
+template <typename T, typename F>
+constexpr auto AntiLerp(const T& x, const T& y, const F& a) -> decltype((a - x) / (y - x))
+{
+  return (a - x) / (y - x);
+}
+
 }  // namespace prime

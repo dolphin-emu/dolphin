@@ -144,6 +144,8 @@ public:
   bool CheckBeamScrollCtrl(bool direction);
   bool CheckVisorScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
+  bool CheckGrappleCtrl();
+  bool IsGrappleBinded();
   bool CheckImprovedMotions();
   bool PrimeControllerMode();
   std::tuple<bool, bool> GetBVMenuOptions();

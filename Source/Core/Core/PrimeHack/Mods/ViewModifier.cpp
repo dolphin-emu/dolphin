@@ -46,8 +46,9 @@ void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_addres
         apply_znear = true;
       }
       else if (fov >= 75) {
-        left = -0.00020000000000000017f * fov + 0.265f;
-        forward = -0.005599999999999999f * fov + 0.72f;
+        float factor = (fov - 75) / (125 - 75);
+        left = Lerp(left, 0.22f, factor);
+        forward = Lerp(forward, -0.02f, factor);
 
         apply_znear = true;
       }

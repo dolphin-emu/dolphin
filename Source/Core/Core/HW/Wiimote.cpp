@@ -245,6 +245,18 @@ bool CheckJump() {
   return wiimote->groups[0].get()->controls[1]->control_ref->State() > 0.5;
 }
 
+bool CheckGrapple() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckGrappleCtrl();
+}
+
+bool GrappleCtlBound() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->IsGrappleBinded();
+}
+
 bool CheckSpringBall()
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));

@@ -111,6 +111,11 @@ bool CheckBack();
 bool CheckLeft();
 bool CheckRight();
 bool CheckJump();
+
+bool CheckGrapple();
+bool GrappleCtlBound();
+bool PrimeUseController();
+
 bool PrimeUseController();
 bool CheckPitchRecentre();
 
