@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -195,8 +196,9 @@ struct SConfig
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
-
+  void SetRunningGameMetadata(const std::string& game_id);
   void LoadDefaults();
+  static std::string MakeGameID(std::string_view file_name);
   // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
   static DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
   // The region argument must be valid for GameCube (i.e. must not be NTSC-K)
