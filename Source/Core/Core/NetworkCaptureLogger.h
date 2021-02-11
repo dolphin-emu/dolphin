@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <map>
 #include <memory>
 
 #ifdef _WIN32
@@ -43,6 +44,8 @@ public:
   NetworkCaptureLogger& operator=(NetworkCaptureLogger&&) = delete;
   virtual ~NetworkCaptureLogger();
 
+  virtual void OnNewSocket(s32 socket) = 0;
+
   virtual void LogSSLRead(const void* data, std::size_t length, s32 socket) = 0;
   virtual void LogSSLWrite(const void* data, std::size_t length, s32 socket) = 0;
 
@@ -55,6 +58,8 @@ public:
 class DummyNetworkCaptureLogger : public NetworkCaptureLogger
 {
 public:
+  void OnNewSocket(s32 socket) override;
+
   void LogSSLRead(const void* data, std::size_t length, s32 socket) override;
   void LogSSLWrite(const void* data, std::size_t length, s32 socket) override;
 
@@ -78,6 +83,8 @@ class PCAPSSLCaptureLogger final : public NetworkCaptureLogger
 public:
   PCAPSSLCaptureLogger();
   ~PCAPSSLCaptureLogger();
+
+  void OnNewSocket(s32 socket) override;
 
   void LogSSLRead(const void* data, std::size_t length, s32 socket) override;
   void LogSSLWrite(const void* data, std::size_t length, s32 socket) override;
@@ -108,7 +115,7 @@ private:
                const sockaddr_in& to);
 
   std::unique_ptr<Common::PCAP> m_file;
-  u32 m_read_sequence_number = 0;
-  u32 m_write_sequence_number = 0;
+  std::map<s32, u32> m_read_sequence_number;
+  std::map<s32, u32> m_write_sequence_number;
 };
 }  // namespace Core
