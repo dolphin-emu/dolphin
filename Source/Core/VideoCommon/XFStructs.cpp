@@ -93,7 +93,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
       break;
 
     case XFMEM_DUALTEX:
-      if (xfmem.dualTexTrans.enabled != (newValue & 1))
+      if (xfmem.dualTexTrans.enabled != bool(newValue & 1))
         g_vertex_manager->Flush();
       VertexShaderManager::SetTexMatrixInfoChanged(-1);
       break;

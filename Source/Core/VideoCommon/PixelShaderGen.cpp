@@ -212,7 +212,8 @@ PixelShaderUid GetPixelShaderUid()
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       // optional perspective divides
-      uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
+                                           << i;
     }
   }
 

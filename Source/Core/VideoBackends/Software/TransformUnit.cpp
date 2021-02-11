@@ -80,7 +80,7 @@ void TransformPosition(const InputVertexData* src, OutputVertexData* dst)
   const float* mat = &xfmem.posMatrices[src->posMtx * 4];
   MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
-  if (xfmem.projection.type == GX_PERSPECTIVE)
+  if (xfmem.projection.type == ProjectionType::Perspective)
   {
     MultipleVec3Perspective(dst->mvPosition, xfmem.projection.rawProjection,
                             dst->projectedPosition);
@@ -115,39 +115,42 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
   Vec3 src;
   switch (texinfo.sourcerow)
   {
-  case XF_SRCGEOM_INROW:
+  case SourceRow::Geom:
     src = srcVertex->position;
     break;
-  case XF_SRCNORMAL_INROW:
+  case SourceRow::Normal:
     src = srcVertex->normal[0];
     break;
-  case XF_SRCBINORMAL_T_INROW:
+  case SourceRow::BinormalT:
     src = srcVertex->normal[1];
     break;
-  case XF_SRCBINORMAL_B_INROW:
+  case SourceRow::BinormalB:
     src = srcVertex->normal[2];
     break;
   default:
-    ASSERT(texinfo.sourcerow >= XF_SRCTEX0_INROW && texinfo.sourcerow <= XF_SRCTEX7_INROW);
-    src.x = srcVertex->texCoords[texinfo.sourcerow - XF_SRCTEX0_INROW][0];
-    src.y = srcVertex->texCoords[texinfo.sourcerow - XF_SRCTEX0_INROW][1];
+  {
+    ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
+    u32 texnum = static_cast<u32>(texinfo.sourcerow.Value()) - static_cast<u32>(SourceRow::Tex0);
+    src.x = srcVertex->texCoords[texnum][0];
+    src.y = srcVertex->texCoords[texnum][1];
     src.z = 1.0f;
     break;
+  }
   }
 
   const float* mat = &xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
   Vec3* dst = &dstVertex->texCoords[coordNum];
 
-  if (texinfo.projection == XF_TEXPROJ_ST)
+  if (texinfo.projection == TexSize::ST)
   {
-    if (texinfo.inputform == XF_TEXINPUT_AB11)
+    if (texinfo.inputform == TexInputForm::AB11)
       MultiplyVec2Mat24(src, mat, *dst);
     else
       MultiplyVec3Mat24(src, mat, *dst);
   }
-  else  // texinfo.projection == XF_TEXPROJ_STQ
+  else  // texinfo.projection == TexSize::STQ
   {
-    if (texinfo.inputform == XF_TEXINPUT_AB11)
+    if (texinfo.inputform == TexInputForm::AB11)
       MultiplyVec2Mat34(src, mat, *dst);
     else
       MultiplyVec3Mat34(src, mat, *dst);
@@ -209,28 +212,28 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
 
   switch (chan.attnfunc)
   {
-  case LIGHTATTN_NONE:
-  case LIGHTATTN_DIR:
+  case AttenuationFunc::None:
+  case AttenuationFunc::Dir:
   {
     ldir = ldir.Normalized();
     if (ldir == Vec3(0.0f, 0.0f, 0.0f))
       ldir = normal;
     break;
   }
-  case LIGHTATTN_SPEC:
+  case AttenuationFunc::Spec:
   {
     ldir = ldir.Normalized();
     attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
     Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
-    if (chan.diffusefunc != LIGHTDIF_NONE)
+    if (chan.diffusefunc != DiffuseFunc::None)
       distAttn = distAttn.Normalized();
 
     attn = SafeDivide(std::max(0.0f, attLen * cosAttn), attLen * distAttn);
     break;
   }
-  case LIGHTATTN_SPOT:
+  case AttenuationFunc::Spot:
   {
     float dist2 = ldir.Length2();
     float dist = sqrtf(dist2);
@@ -243,7 +246,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
     break;
   }
   default:
-    PanicAlertFmt("LightColor");
+    PanicAlertFmt("Invalid attnfunc: {}", chan.attnfunc);
   }
 
   return attn;
@@ -260,18 +263,18 @@ static void LightColor(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   float difAttn = ldir * normal;
   switch (chan.diffusefunc)
   {
-  case LIGHTDIF_NONE:
+  case DiffuseFunc::None:
     AddScaledIntegerColor(light->color, attn, lightCol);
     break;
-  case LIGHTDIF_SIGN:
+  case DiffuseFunc::Sign:
     AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
     break;
-  case LIGHTDIF_CLAMP:
+  case DiffuseFunc::Clamp:
     difAttn = std::max(0.0f, difAttn);
     AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
     break;
   default:
-    ASSERT(0);
+    PanicAlertFmt("Invalid diffusefunc: {}", chan.attnfunc);
   }
 }
 
@@ -286,18 +289,18 @@ static void LightAlpha(const Vec3& pos, const Vec3& normal, u8 lightNum, const L
   float difAttn = ldir * normal;
   switch (chan.diffusefunc)
   {
-  case LIGHTDIF_NONE:
+  case DiffuseFunc::None:
     lightCol += light->color[0] * attn;
     break;
-  case LIGHTDIF_SIGN:
+  case DiffuseFunc::Sign:
     lightCol += light->color[0] * attn * difAttn;
     break;
-  case LIGHTDIF_CLAMP:
+  case DiffuseFunc::Clamp:
     difAttn = std::max(0.0f, difAttn);
     lightCol += light->color[0] * attn * difAttn;
     break;
   default:
-    ASSERT(0);
+    PanicAlertFmt("Invalid diffusefunc: {}", chan.attnfunc);
   }
 }
 
@@ -311,17 +314,16 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
     // color
     const LitChannel& colorchan = xfmem.color[chan];
-    if (colorchan.matsource)
-      matcolor = src->color[chan];  // vertex
+    if (colorchan.matsource == MatSource::Vertex)
+      matcolor = src->color[chan];
     else
       std::memcpy(matcolor.data(), &xfmem.matColor[chan], sizeof(u32));
 
     if (colorchan.enablelighting)
     {
       Vec3 lightCol;
-      if (colorchan.ambsource)
+      if (colorchan.ambsource == AmbSource::Vertex)
       {
-        // vertex
         lightCol.x = src->color[chan][1];
         lightCol.y = src->color[chan][2];
         lightCol.z = src->color[chan][3];
@@ -355,16 +357,16 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
 
     // alpha
     const LitChannel& alphachan = xfmem.alpha[chan];
-    if (alphachan.matsource)
-      matcolor[0] = src->color[chan][0];  // vertex
+    if (alphachan.matsource == MatSource::Vertex)
+      matcolor[0] = src->color[chan][0];
     else
       matcolor[0] = xfmem.matColor[chan] & 0xff;
 
     if (xfmem.alpha[chan].enablelighting)
     {
       float lightCol;
-      if (alphachan.ambsource)
-        lightCol = src->color[chan][0];  // vertex
+      if (alphachan.ambsource == AmbSource::Vertex)
+        lightCol = src->color[chan][0];
       else
         lightCol = static_cast<float>(xfmem.ambColor[chan] & 0xff);
 
@@ -397,10 +399,10 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
 
     switch (texinfo.texgentype)
     {
-    case XF_TEXGEN_REGULAR:
+    case TexGenType::Regular:
       TransformTexCoordRegular(texinfo, coordNum, src, dst);
       break;
-    case XF_TEXGEN_EMBOSS_MAP:
+    case TexGenType::EmbossMap:
     {
       const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
@@ -413,22 +415,22 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       dst->texCoords[coordNum].z = dst->texCoords[texinfo.embosssourceshift].z;
     }
     break;
-    case XF_TEXGEN_COLOR_STRGBC0:
-      ASSERT(texinfo.sourcerow == XF_SRCCOLORS_INROW);
-      ASSERT(texinfo.inputform == XF_TEXINPUT_AB11);
+    case TexGenType::Color0:
+      ASSERT(texinfo.sourcerow == SourceRow::Colors);
+      ASSERT(texinfo.inputform == TexInputForm::AB11);
       dst->texCoords[coordNum].x = (float)dst->color[0][0] / 255.0f;
       dst->texCoords[coordNum].y = (float)dst->color[0][1] / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
-    case XF_TEXGEN_COLOR_STRGBC1:
-      ASSERT(texinfo.sourcerow == XF_SRCCOLORS_INROW);
-      ASSERT(texinfo.inputform == XF_TEXINPUT_AB11);
+    case TexGenType::Color1:
+      ASSERT(texinfo.sourcerow == SourceRow::Colors);
+      ASSERT(texinfo.inputform == TexInputForm::AB11);
       dst->texCoords[coordNum].x = (float)dst->color[1][0] / 255.0f;
       dst->texCoords[coordNum].y = (float)dst->color[1][1] / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     default:
-      ERROR_LOG_FMT(VIDEO, "Bad tex gen type {}", texinfo.texgentype.Value());
+      ERROR_LOG_FMT(VIDEO, "Bad tex gen type {}", texinfo.texgentype);
       break;
     }
   }

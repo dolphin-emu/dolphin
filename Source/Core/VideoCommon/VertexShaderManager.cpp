@@ -353,7 +353,7 @@ void VertexShaderManager::SetConstants()
 
     switch (xfmem.projection.type)
     {
-    case GX_PERSPECTIVE:
+    case ProjectionType::Perspective:
     {
       const Common::Vec2 fov =
           g_freelook_camera.IsActive() ? g_freelook_camera.GetFieldOfView() : Common::Vec2{1, 1};
@@ -382,7 +382,7 @@ void VertexShaderManager::SetConstants()
     }
     break;
 
-    case GX_ORTHOGRAPHIC:
+    case ProjectionType::Orthographic:
     {
       g_fProjectionMatrix[0] = rawProjection[0];
       g_fProjectionMatrix[1] = 0.0f;
@@ -419,7 +419,7 @@ void VertexShaderManager::SetConstants()
 
     auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
 
-    if (g_freelook_camera.IsActive() && xfmem.projection.type == GX_PERSPECTIVE)
+    if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
       corrected_matrix *= g_freelook_camera.GetView();
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
