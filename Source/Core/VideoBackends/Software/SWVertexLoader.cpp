@@ -84,7 +84,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
           &m_vertex, (VertexLoaderManager::g_current_components & VB_HAS_NRM2) != 0, outVertex);
     }
     TransformUnit::TransformColor(&m_vertex, outVertex);
-    TransformUnit::TransformTexCoord(&m_vertex, outVertex, m_tex_gen_special_case);
+    TransformUnit::TransformTexCoord(&m_vertex, outVertex);
 
     // assemble and rasterize the primitive
     m_setup_unit.SetupVertex();
@@ -120,11 +120,6 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
   m_vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx;
   m_vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx;
   m_vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx;
-
-  // special case if only pos and tex coord 0 and tex coord input is AB11
-  // http://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
-  m_tex_gen_special_case = VertexLoaderManager::g_current_components == VB_HAS_UV0 &&
-                           xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST;
 }
 
 template <typename T, typename I>

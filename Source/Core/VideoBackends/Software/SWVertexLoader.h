@@ -28,6 +28,4 @@ protected:
 
   InputVertexData m_vertex;
   SetupUnit m_setup_unit;
-
-  bool m_tex_gen_special_case;
 };
