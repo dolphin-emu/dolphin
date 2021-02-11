@@ -91,10 +91,9 @@ static void BPWritten(const BPCmd& bp)
   {
   case BPMEM_GENMODE:  // Set the Generation Mode
     PRIM_LOG("genmode: texgen={}, col={}, multisampling={}, tev={}, cullmode={}, ind={}, zfeeze={}",
-             bpmem.genMode.numtexgens.Value(), bpmem.genMode.numcolchans.Value(),
-             bpmem.genMode.multisampling.Value(), bpmem.genMode.numtevstages.Value() + 1,
-             static_cast<u32>(bpmem.genMode.cullmode), bpmem.genMode.numindstages.Value(),
-             bpmem.genMode.zfreeze.Value());
+             bpmem.genMode.numtexgens, bpmem.genMode.numcolchans, bpmem.genMode.multisampling,
+             bpmem.genMode.numtevstages + 1, bpmem.genMode.cullmode, bpmem.genMode.numindstages,
+             bpmem.genMode.zfreeze);
 
     if (bp.changes)
       PixelShaderManager::SetGenModeChanged();
@@ -138,8 +137,8 @@ static void BPWritten(const BPCmd& bp)
     GeometryShaderManager::SetLinePtWidthChanged();
     return;
   case BPMEM_ZMODE:  // Depth Control
-    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable.Value(),
-             bpmem.zmode.func.Value(), bpmem.zmode.updateenable.Value());
+    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable, bpmem.zmode.func,
+             bpmem.zmode.updateenable);
     SetDepthMode();
     PixelShaderManager::SetZModeControl();
     return;
@@ -147,10 +146,9 @@ static void BPWritten(const BPCmd& bp)
     if (bp.changes & 0xFFFF)
     {
       PRIM_LOG("blendmode: en={}, open={}, colupd={}, alphaupd={}, dst={}, src={}, sub={}, mode={}",
-               bpmem.blendmode.blendenable.Value(), bpmem.blendmode.logicopenable.Value(),
-               bpmem.blendmode.colorupdate.Value(), bpmem.blendmode.alphaupdate.Value(),
-               bpmem.blendmode.dstfactor.Value(), bpmem.blendmode.srcfactor.Value(),
-               bpmem.blendmode.subtract.Value(), bpmem.blendmode.logicmode.Value());
+               bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable,
+               bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.blendmode.dstfactor,
+               bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 
       SetBlendMode();
 
@@ -158,8 +156,7 @@ static void BPWritten(const BPCmd& bp)
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha
-    PRIM_LOG("constalpha: alp={}, en={}", bpmem.dstalpha.alpha.Value(),
-             bpmem.dstalpha.enable.Value());
+    PRIM_LOG("constalpha: alp={}, en={}", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
     if (bp.changes)
     {
       PixelShaderManager::SetAlpha();
@@ -264,14 +261,14 @@ static void BPWritten(const BPCmd& bp)
     const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
     if (PE_copy.copy_to_xfb == 0)
     {
-      // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
+      // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
       static constexpr CopyFilterCoefficients::Values filter_coefficients = {
           {0, 0, 21, 22, 21, 0, 0}};
-      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
-          srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f,
+          srcRect, PE_copy.intensity_fmt, PE_copy.half_scale, 1.0f, 1.0f,
           bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom, filter_coefficients);
     }
     else
@@ -297,7 +294,7 @@ static void BPWritten(const BPCmd& bp)
                     destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                     bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
-      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
           false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
@@ -370,10 +367,9 @@ static void BPWritten(const BPCmd& bp)
       PixelShaderManager::SetFogColorChanged();
     return;
   case BPMEM_ALPHACOMPARE:  // Compare Alpha Values
-    PRIM_LOG("alphacmp: ref0={}, ref1={}, comp0={}, comp1={}, logic={}",
-             bpmem.alpha_test.ref0.Value(), bpmem.alpha_test.ref1.Value(),
-             static_cast<int>(bpmem.alpha_test.comp0), static_cast<int>(bpmem.alpha_test.comp1),
-             static_cast<int>(bpmem.alpha_test.logic));
+    PRIM_LOG("alphacmp: ref0={}, ref1={}, comp0={}, comp1={}, logic={}", bpmem.alpha_test.ref0,
+             bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1,
+             bpmem.alpha_test.logic);
     if (bp.changes & 0xFFFF)
       PixelShaderManager::SetAlpha();
     if (bp.changes)
@@ -383,7 +379,7 @@ static void BPWritten(const BPCmd& bp)
     }
     return;
   case BPMEM_BIAS:  // BIAS
-    PRIM_LOG("ztex bias={:#x}", bpmem.ztex1.bias.Value());
+    PRIM_LOG("ztex bias={:#x}", bpmem.ztex1.bias);
     if (bp.changes)
       PixelShaderManager::SetZTextureBias();
     return;
@@ -393,11 +389,7 @@ static void BPWritten(const BPCmd& bp)
       PixelShaderManager::SetZTextureTypeChanged();
     if (bp.changes & 12)
       PixelShaderManager::SetZTextureOpChanged();
-#if defined(_DEBUG) || defined(DEBUGFAST)
-    static constexpr std::string_view pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
-    static constexpr std::string_view pztype[] = {"Z8", "Z16", "Z24", "?"};
-    PRIM_LOG("ztex op={}, type={}", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
-#endif
+    PRIM_LOG("ztex op={}, type={}", bpmem.ztex2.op, bpmem.ztex2.type);
   }
     return;
   // ----------------------------------
@@ -588,15 +580,15 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TEV_COLOR_RA + 6:
   {
     int num = (bp.address >> 1) & 0x3;
-    if (bpmem.tevregs[num].type_ra)
+    if (bpmem.tevregs[num].ra.type == TevRegType::Constant)
     {
-      PixelShaderManager::SetTevKonstColor(num, 0, (s32)bpmem.tevregs[num].red);
-      PixelShaderManager::SetTevKonstColor(num, 3, (s32)bpmem.tevregs[num].alpha);
+      PixelShaderManager::SetTevKonstColor(num, 0, bpmem.tevregs[num].ra.red);
+      PixelShaderManager::SetTevKonstColor(num, 3, bpmem.tevregs[num].ra.alpha);
     }
     else
     {
-      PixelShaderManager::SetTevColor(num, 0, (s32)bpmem.tevregs[num].red);
-      PixelShaderManager::SetTevColor(num, 3, (s32)bpmem.tevregs[num].alpha);
+      PixelShaderManager::SetTevColor(num, 0, bpmem.tevregs[num].ra.red);
+      PixelShaderManager::SetTevColor(num, 3, bpmem.tevregs[num].ra.alpha);
     }
     return;
   }
@@ -607,15 +599,15 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TEV_COLOR_BG + 6:
   {
     int num = (bp.address >> 1) & 0x3;
-    if (bpmem.tevregs[num].type_bg)
+    if (bpmem.tevregs[num].bg.type == TevRegType::Constant)
     {
-      PixelShaderManager::SetTevKonstColor(num, 1, (s32)bpmem.tevregs[num].green);
-      PixelShaderManager::SetTevKonstColor(num, 2, (s32)bpmem.tevregs[num].blue);
+      PixelShaderManager::SetTevKonstColor(num, 1, bpmem.tevregs[num].bg.green);
+      PixelShaderManager::SetTevKonstColor(num, 2, bpmem.tevregs[num].bg.blue);
     }
     else
     {
-      PixelShaderManager::SetTevColor(num, 1, (s32)bpmem.tevregs[num].green);
-      PixelShaderManager::SetTevColor(num, 2, (s32)bpmem.tevregs[num].blue);
+      PixelShaderManager::SetTevColor(num, 1, bpmem.tevregs[num].bg.green);
+      PixelShaderManager::SetTevColor(num, 2, bpmem.tevregs[num].bg.blue);
     }
     return;
   }
@@ -915,26 +907,18 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_BLENDMODE);
     BlendMode mode;
     mode.hex = cmddata;
-    const char* dstfactors[] = {"0",         "1",           "src_color", "1-src_color",
-                                "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha"};
-    const char* srcfactors[] = {"0",         "1",           "dst_color", "1-dst_color",
-                                "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha"};
-    const char* logicmodes[] = {"0",     "s & d",  "s & ~d",   "s",        "~s & d", "d",
-                                "s ^ d", "s | d",  "~(s | d)", "~(s ^ d)", "~d",     "s | ~d",
-                                "~s",    "~s | d", "~(s & d)", "1"};
-    *desc =
-        fmt::format("Enable: {}\n"
-                    "Logic ops: {}\n"
-                    "Dither: {}\n"
-                    "Color write: {}\n"
-                    "Alpha write: {}\n"
-                    "Dest factor: {}\n"
-                    "Source factor: {}\n"
-                    "Subtract: {}\n"
-                    "Logic mode: {}\n",
-                    no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-                    no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
-                    srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
+    *desc = fmt::format("Enable: {}\n"
+                        "Logic ops: {}\n"
+                        "Dither: {}\n"
+                        "Color write: {}\n"
+                        "Alpha write: {}\n"
+                        "Dest factor: {}\n"
+                        "Source factor: {}\n"
+                        "Subtract: {}\n"
+                        "Logic mode: {}\n",
+                        no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
+                        no_yes[mode.colorupdate], no_yes[mode.alphaupdate], mode.dstfactor,
+                        mode.srcfactor, no_yes[mode.subtract], mode.logicmode);
   }
   break;
 
@@ -948,16 +932,10 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_ZCOMPARE);
     PEControl config;
     config.hex = cmddata;
-    const char* pixel_formats[] = {"RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24",
-                                   "Y8",       "U8",        "V8",         "YUV420"};
-    const char* zformats[] = {
-        "linear",     "compressed (near)",     "compressed (mid)",     "compressed (far)",
-        "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)"};
     *desc = fmt::format("EFB pixel format: {}\n"
                         "Depth format: {}\n"
                         "Early depth test: {}\n",
-                        pixel_formats[config.pixel_format], zformats[config.zformat],
-                        no_yes[config.early_ztest]);
+                        config.pixel_format, config.zformat, no_yes[config.early_ztest]);
   }
   break;
 
@@ -1048,7 +1026,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         "Mipmap filter: {}\n"
         "Vertical scaling: {}\n"
         "Clear: {}\n"
-        "Frame to field: 0x{:01X}\n"
+        "Frame to field: {}\n"
         "Copy to XFB: {}\n"
         "Intensity format: {}\n"
         "Automatic color conversion: {}",
@@ -1059,9 +1037,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         (copy.gamma == 0) ?
             "1.0" :
             (copy.gamma == 1) ? "1.7" : (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
-        no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
-        static_cast<u32>(copy.frame_to_field), no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
-        no_yes[copy.auto_conv]);
+        no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear], copy.frame_to_field,
+        no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt], no_yes[copy.auto_conv]);
   }
   break;
 
@@ -1183,8 +1160,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     *desc = fmt::format("Texture Unit: {}\n"
                         "Width: {}\n"
                         "Height: {}\n"
-                        "Format: {:x}\n",
-                        texnum, u32(teximg.width) + 1, u32(teximg.height) + 1, u32(teximg.format));
+                        "Format: {}\n",
+                        texnum, u32(teximg.width) + 1, u32(teximg.height) + 1, teximg.format);
   }
   break;
 
@@ -1208,7 +1185,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                         "Even TMEM Height: {}\n"
                         "Cache is manually managed: {}\n",
                         texnum, u32(teximg.tmem_even), u32(teximg.cache_width),
-                        u32(teximg.cache_height), no_yes[teximg.image_type]);
+                        u32(teximg.cache_height), no_yes[teximg.cache_manually_managed]);
   }
   break;
 
@@ -1285,14 +1262,6 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_TEV_COLOR_ENV);
     TevStageCombiner::ColorCombiner cc;
     cc.hex = cmddata;
-    const char* tevin[] = {
-        "prev.rgb", "prev.aaa", "c0.rgb",  "c0.aaa",  "c1.rgb", "c1.aaa", "c2.rgb",    "c2.aaa",
-        "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "ONE",    "HALF",   "konst.rgb", "ZERO",
-    };
-    const char* tevbias[] = {"0", "+0.5", "-0.5", "compare"};
-    const char* tevop[] = {"add", "sub"};
-    const char* tevscale[] = {"1", "2", "4", "0.5"};
-    const char* tevout[] = {"prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb"};
     *desc = fmt::format("Tev stage: {}\n"
                         "a: {}\n"
                         "b: {}\n"
@@ -1303,9 +1272,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                         "Clamp: {}\n"
                         "Scale factor: {}\n"
                         "Dest: {}\n",
-                        (data[0] - BPMEM_TEV_COLOR_ENV) / 2, tevin[cc.a], tevin[cc.b], tevin[cc.c],
-                        tevin[cc.d], tevbias[cc.bias], tevop[cc.op], no_yes[cc.clamp],
-                        tevscale[cc.shift], tevout[cc.dest]);
+                        (data[0] - BPMEM_TEV_COLOR_ENV) / 2, cc.a, cc.b, cc.c, cc.d, cc.bias, cc.op,
+                        no_yes[cc.clamp], cc.scale, cc.dest);
     break;
   }
 
@@ -1329,13 +1297,6 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_TEV_ALPHA_ENV);
     TevStageCombiner::AlphaCombiner ac;
     ac.hex = cmddata;
-    const char* tevin[] = {
-        "prev", "c0", "c1", "c2", "tex", "ras", "konst", "ZERO",
-    };
-    const char* tevbias[] = {"0", "+0.5", "-0.5", "compare"};
-    const char* tevop[] = {"add", "sub"};
-    const char* tevscale[] = {"1", "2", "4", "0.5"};
-    const char* tevout[] = {"prev", "c0", "c1", "c2"};
     *desc = fmt::format("Tev stage: {}\n"
                         "a: {}\n"
                         "b: {}\n"
@@ -1348,9 +1309,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                         "Dest: {}\n"
                         "Ras sel: {}\n"
                         "Tex sel: {}\n",
-                        (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, tevin[ac.a], tevin[ac.b], tevin[ac.c],
-                        tevin[ac.d], tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp],
-                        tevscale[ac.shift], tevout[ac.dest], ac.rswap.Value(), ac.tswap.Value());
+                        (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, ac.a, ac.b, ac.c, ac.d, ac.bias, ac.op,
+                        no_yes[ac.clamp], ac.scale, ac.dest, ac.rswap.Value(), ac.tswap.Value());
     break;
   }
 
@@ -1410,14 +1370,10 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_ALPHACOMPARE);
     AlphaTest test;
     test.hex = cmddata;
-    const char* functions[] = {"NEVER",   "LESS",   "EQUAL",  "LEQUAL",
-                               "GREATER", "NEQUAL", "GEQUAL", "ALWAYS"};
-    const char* logic[] = {"AND", "OR", "XOR", "XNOR"};
     *desc = fmt::format("Test 1: {} (ref: 0x{:02x})\n"
                         "Test 2: {} (ref: 0x{:02x})\n"
                         "Logic: {}\n",
-                        functions[test.comp0], test.ref0.Value(), functions[test.comp1],
-                        test.ref1.Value(), logic[test.logic]);
+                        test.comp0, test.ref0.Value(), test.comp1, test.ref1.Value(), test.logic);
     break;
   }
 

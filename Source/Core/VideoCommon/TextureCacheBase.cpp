@@ -1187,12 +1187,12 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
   const u32 address = (tex.texImage3[id].image_base /* & 0x1FFFFF*/) << 5;
   u32 width = tex.texImage0[id].width + 1;
   u32 height = tex.texImage0[id].height + 1;
-  const TextureFormat texformat = static_cast<TextureFormat>(tex.texImage0[id].format);
+  const TextureFormat texformat = tex.texImage0[id].format;
   const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
-  const TLUTFormat tlutfmt = static_cast<TLUTFormat>(tex.texTlut[id].tlut_format);
+  const TLUTFormat tlutfmt = tex.texTlut[id].tlut_format;
   const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
   u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
-  const bool from_tmem = tex.texImage1[id].image_type != 0;
+  const bool from_tmem = tex.texImage1[id].cache_manually_managed != 0;
   const u32 tmem_address_even = from_tmem ? tex.texImage1[id].tmem_even * TMEM_LINE_SIZE : 0;
   const u32 tmem_address_odd = from_tmem ? tex.texImage2[id].tmem_odd * TMEM_LINE_SIZE : 0;
 
@@ -2204,7 +2204,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   if (copy_to_ram)
   {
     EFBCopyFilterCoefficients coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
-    PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
+    PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
     EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
                          NeedsCopyFilterInShader(coefficients));
 

@@ -17,7 +17,7 @@ bool BlendMode::UseLogicOp() const
     return false;
 
   // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
-  if (logicmode == BlendMode::NOOP)
+  if (logicmode == LogicOp::NoOp)
     return false;
 
   return true;

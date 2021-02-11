@@ -66,7 +66,7 @@ static void GetD3DRasterizerDesc(D3D12_RASTERIZER_DESC* desc, const Rasterizatio
       {D3D12_CULL_MODE_NONE, D3D12_CULL_MODE_BACK, D3D12_CULL_MODE_FRONT, D3D12_CULL_MODE_FRONT}};
 
   desc->FillMode = D3D12_FILL_MODE_SOLID;
-  desc->CullMode = cull_modes[rs_state.cullmode];
+  desc->CullMode = cull_modes[u32(rs_state.cullmode.Value())];
   desc->MultisampleEnable = fb_state.samples > 1;
 }
 
@@ -80,7 +80,7 @@ static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& st
        D3D12_COMPARISON_FUNC_ALWAYS}};
 
   desc->DepthEnable = state.testenable;
-  desc->DepthFunc = compare_funcs[state.func];
+  desc->DepthFunc = compare_funcs[u32(state.func.Value())];
   desc->DepthWriteMask =
       state.updateenable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 }
@@ -135,24 +135,24 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
     rtblend->BlendOpAlpha = state.subtractAlpha ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
     if (state.usedualsrc)
     {
-      rtblend->SrcBlend = src_dual_src_factors[state.srcfactor];
-      rtblend->SrcBlendAlpha = src_dual_src_factors[state.srcfactoralpha];
-      rtblend->DestBlend = dst_dual_src_factors[state.dstfactor];
-      rtblend->DestBlendAlpha = dst_dual_src_factors[state.dstfactoralpha];
+      rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor.Value())];
+      rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha.Value())];
+      rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor.Value())];
+      rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha.Value())];
     }
     else
     {
-      rtblend->SrcBlend = src_factors[state.srcfactor];
-      rtblend->SrcBlendAlpha = src_factors[state.srcfactoralpha];
-      rtblend->DestBlend = dst_factors[state.dstfactor];
-      rtblend->DestBlendAlpha = dst_factors[state.dstfactoralpha];
+      rtblend->SrcBlend = src_factors[u32(state.srcfactor.Value())];
+      rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha.Value())];
+      rtblend->DestBlend = dst_factors[u32(state.dstfactor.Value())];
+      rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha.Value())];
     }
   }
   else
   {
     rtblend->LogicOpEnable = state.logicopenable;
     if (state.logicopenable)
-      rtblend->LogicOp = logic_ops[state.logicmode];
+      rtblend->LogicOp = logic_ops[u32(state.logicmode.Value())];
   }
 }
 

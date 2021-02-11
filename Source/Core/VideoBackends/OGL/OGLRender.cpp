@@ -1140,11 +1140,11 @@ void Renderer::ApplyRasterizationState(const RasterizationState state)
     return;
 
   // none, ccw, cw, ccw
-  if (state.cullmode != GenMode::CULL_NONE)
+  if (state.cullmode != CullMode::None)
   {
     // TODO: GX_CULL_ALL not supported, yet!
     glEnable(GL_CULL_FACE);
-    glFrontFace(state.cullmode == GenMode::CULL_FRONT ? GL_CCW : GL_CW);
+    glFrontFace(state.cullmode == CullMode::Front ? GL_CCW : GL_CW);
   }
   else
   {
@@ -1166,7 +1166,7 @@ void Renderer::ApplyDepthState(const DepthState state)
   {
     glEnable(GL_DEPTH_TEST);
     glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[state.func]);
+    glDepthFunc(glCmpFuncs[u32(state.func.Value())]);
   }
   else
   {
@@ -1229,8 +1229,10 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     glBlendEquationSeparate(equation, equationAlpha);
-    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
-                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
+    glBlendFuncSeparate(src_factors[u32(state.srcfactor.Value())],
+                        dst_factors[u32(state.dstfactor.Value())],
+                        src_factors[u32(state.srcfactoralpha.Value())],
+                        dst_factors[u32(state.dstfactoralpha.Value())]);
   }
 
   const GLenum logic_op_codes[16] = {
@@ -1244,7 +1246,7 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     if (state.logicopenable)
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[state.logicmode]);
+      glLogicOp(logic_op_codes[u32(state.logicmode.Value())]);
     }
     else
     {

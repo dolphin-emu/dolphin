@@ -22,12 +22,12 @@ PixelShaderUid GetPixelShaderUid()
 
   pixel_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
-  uid_data->early_depth =
-      bpmem.UseEarlyDepthTest() &&
-      (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) &&
-      !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+  uid_data->early_depth = bpmem.UseEarlyDepthTest() &&
+                          (g_ActiveConfig.bFastDepthCalc ||
+                           bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
+                          !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->per_pixel_depth =
-      (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) ||
+      (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
@@ -367,21 +367,21 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       "// which are common to both color and alpha channels\n"
       "bool tevCompare(uint op, int3 color_A, int3 color_B) {{\n"
       "  switch (op) {{\n"
-      "  case 0u: // TEVCMP_R8_GT\n"
+      "  case 0u: // TevCompareMode::R8, TevComparison::GT\n"
       "    return (color_A.r > color_B.r);\n"
-      "  case 1u: // TEVCMP_R8_EQ\n"
+      "  case 1u: // TevCompareMode::R8, TevComparison::EQ\n"
       "    return (color_A.r == color_B.r);\n"
-      "  case 2u: // TEVCMP_GR16_GT\n"
+      "  case 2u: // TevCompareMode::GR16, TevComparison::GT\n"
       "    int A_16 = (color_A.r | (color_A.g << 8));\n"
       "    int B_16 = (color_B.r | (color_B.g << 8));\n"
       "    return A_16 > B_16;\n"
-      "  case 3u: // TEVCMP_GR16_EQ\n"
+      "  case 3u: // TevCompareMode::GR16, TevComparison::EQ\n"
       "    return (color_A.r == color_B.r && color_A.g == color_B.g);\n"
-      "  case 4u: // TEVCMP_BGR24_GT\n"
+      "  case 4u: // TevCompareMode::BGR24, TevComparison::GT\n"
       "    int A_24 = (color_A.r | (color_A.g << 8) | (color_A.b << 16));\n"
       "    int B_24 = (color_B.r | (color_B.g << 8) | (color_B.b << 16));\n"
       "    return A_24 > B_24;\n"
-      "  case 5u: // TEVCMP_BGR24_EQ\n"
+      "  case 5u: // TevCompareMode::BGR24, TevComparison::EQ\n"
       "    return (color_A.r == color_B.r && color_A.g == color_B.g && color_A.b == color_B.b);\n"
       "  default:\n"
       "    return false;\n"
@@ -814,29 +814,29 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "        s.AlphaBump = indcoord[bs - 1u];\n"
               "      switch(fmt)\n"
               "      {{\n"
-              "      case {}u:\n",
-              ITF_8);
+              "      case {:s}:\n",
+              IndTexFormat::ITF_8);
     out.Write("        indcoord.x = indcoord.x + ((bias & 1u) != 0u ? -128 : 0);\n"
               "        indcoord.y = indcoord.y + ((bias & 2u) != 0u ? -128 : 0);\n"
               "        indcoord.z = indcoord.z + ((bias & 4u) != 0u ? -128 : 0);\n"
               "        s.AlphaBump = s.AlphaBump & 0xf8;\n"
               "        break;\n"
-              "      case {}u:\n",
-              ITF_5);
+              "      case {:s}:\n",
+              IndTexFormat::ITF_5);
     out.Write("        indcoord.x = (indcoord.x & 0x1f) + ((bias & 1u) != 0u ? 1 : 0);\n"
               "        indcoord.y = (indcoord.y & 0x1f) + ((bias & 2u) != 0u ? 1 : 0);\n"
               "        indcoord.z = (indcoord.z & 0x1f) + ((bias & 4u) != 0u ? 1 : 0);\n"
               "        s.AlphaBump = s.AlphaBump & 0xe0;\n"
               "        break;\n"
-              "      case {}u:\n",
-              ITF_4);
+              "      case {:s}:\n",
+              IndTexFormat::ITF_4);
     out.Write("        indcoord.x = (indcoord.x & 0x0f) + ((bias & 1u) != 0u ? 1 : 0);\n"
               "        indcoord.y = (indcoord.y & 0x0f) + ((bias & 2u) != 0u ? 1 : 0);\n"
               "        indcoord.z = (indcoord.z & 0x0f) + ((bias & 4u) != 0u ? 1 : 0);\n"
               "        s.AlphaBump = s.AlphaBump & 0xf0;\n"
               "        break;\n"
-              "      case {}u:\n",
-              ITF_3);
+              "      case {:s}:\n",
+              IndTexFormat::ITF_3);
     out.Write("        indcoord.x = (indcoord.x & 0x07) + ((bias & 1u) != 0u ? 1 : 0);\n"
               "        indcoord.y = (indcoord.y & 0x07) + ((bias & 2u) != 0u ? 1 : 0);\n"
               "        indcoord.z = (indcoord.z & 0x07) + ((bias & 4u) != 0u ? 1 : 0);\n"
@@ -924,7 +924,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("      bool color_clamp = bool({});\n",
             BitfieldExtract("ss.cc", TevStageCombiner().colorC.clamp));
   out.Write("      uint color_shift = {};\n",
-            BitfieldExtract("ss.cc", TevStageCombiner().colorC.shift));
+            BitfieldExtract("ss.cc", TevStageCombiner().colorC.scale));
   out.Write("      uint color_dest = {};\n",
             BitfieldExtract("ss.cc", TevStageCombiner().colorC.dest));
 
@@ -949,12 +949,12 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       "      }} else {{ // Compare mode\n"
       "        // op 6 and 7 do a select per color channel\n"
       "        if (color_compare_op == 6u) {{\n"
-      "          // TEVCMP_RGB8_GT\n"
+      "          // TevCompareMode::RGB8, TevComparison::GT\n"
       "          color.r = (color_A.r > color_B.r) ? color_C.r : 0;\n"
       "          color.g = (color_A.g > color_B.g) ? color_C.g : 0;\n"
       "          color.b = (color_A.b > color_B.b) ? color_C.b : 0;\n"
       "        }} else if (color_compare_op == 7u) {{\n"
-      "          // TEVCMP_RGB8_EQ\n"
+      "          // TevCompareMode::RGB8, TevComparison::EQ\n"
       "          color.r = (color_A.r == color_B.r) ? color_C.r : 0;\n"
       "          color.g = (color_A.g == color_B.g) ? color_C.g : 0;\n"
       "          color.b = (color_A.b == color_B.b) ? color_C.b : 0;\n"
@@ -990,7 +990,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("      bool alpha_clamp = bool({});\n",
             BitfieldExtract("ss.ac", TevStageCombiner().alphaC.clamp));
   out.Write("      uint alpha_shift = {};\n",
-            BitfieldExtract("ss.ac", TevStageCombiner().alphaC.shift));
+            BitfieldExtract("ss.ac", TevStageCombiner().alphaC.scale));
   out.Write("      uint alpha_dest = {};\n",
             BitfieldExtract("ss.ac", TevStageCombiner().alphaC.dest));
 
@@ -1016,10 +1016,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "true, alpha_shift);\n"
             "      }} else {{ // Compare mode\n"
             "        if (alpha_compare_op == 6u) {{\n"
-            "          // TEVCMP_A8_GT\n"
+            "          // TevCompareMode::A8, TevComparison::GT\n"
             "          alpha = (alpha_A > alpha_B) ? alpha_C : 0;\n"
             "        }} else if (alpha_compare_op == 7u) {{\n"
-            "          // TEVCMP_A8_EQ\n"
+            "          // TevCompareMode::A8, TevComparison::EQ\n"
             "          alpha = (alpha_A == alpha_B) ? alpha_C : 0;\n"
             "        }} else {{\n"
             "          // All remaining alpha compare ops actually compare the color channels\n"
@@ -1157,8 +1157,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("  // Fog\n"
             "  uint fog_function = {};\n",
             BitfieldExtract("bpmem_fogParam3", FogParam3().fsel));
-  out.Write("  if (fog_function != 0u) {{\n"
-            "    // TODO: This all needs to be converted from float to fixed point\n"
+  out.Write("  if (fog_function != {:s}) {{\n", FogType::Off);
+  out.Write("    // TODO: This all needs to be converted from float to fixed point\n"
             "    float ze;\n"
             "    if ({} == 0u) {{\n",
             BitfieldExtract("bpmem_fogParam3", FogParam3().proj));
@@ -1188,23 +1188,27 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "    }}\n"
             "\n"
             "    float fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n"
-            "\n"
-            "    if (fog_function > 3u) {{\n"
-            "      switch (fog_function) {{\n"
-            "      case 4u:\n"
+            "\n");
+  out.Write("    if (fog_function >= {:s}) {{\n", FogType::Exp);
+  out.Write("      switch (fog_function) {{\n"
+            "      case {:s}:\n"
             "        fog = 1.0 - exp2(-8.0 * fog);\n"
-            "        break;\n"
-            "      case 5u:\n"
+            "        break;\n",
+            FogType::Exp);
+  out.Write("      case {:s}:\n"
             "        fog = 1.0 - exp2(-8.0 * fog * fog);\n"
-            "        break;\n"
-            "      case 6u:\n"
+            "        break;\n",
+            FogType::ExpSq);
+  out.Write("      case {:s}:\n"
             "        fog = exp2(-8.0 * (1.0 - fog));\n"
-            "        break;\n"
-            "      case 7u:\n"
+            "        break;\n",
+            FogType::BackwardsExp);
+  out.Write("      case {:s}:\n"
             "        fog = 1.0 - fog;\n"
             "        fog = exp2(-8.0 * fog * fog);\n"
-            "        break;\n"
-            "      }}\n"
+            "        break;\n",
+            FogType::BackwardsExpSq);
+  out.Write("      }}\n"
             "    }}\n"
             "\n"
             "    int ifog = iround(fog * 256.0);\n"
