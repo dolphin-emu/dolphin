@@ -39,7 +39,9 @@ s32 ESDevice::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid)
     entry.m_content = content;
     entry.m_title_id = title_id;
     entry.m_uid = uid;
-    INFO_LOG_FMT(IOS_ES, "OpenContent: title ID {:016x}, UID {:#x}, CFD {}", title_id, uid, i);
+    INFO_LOG_FMT(IOS_ES,
+                 "OpenContent: title ID {:016x}, UID {:#x}, content {:08x} (index {}) -> CFD {}",
+                 title_id, uid, content.id, content_index, i);
     return static_cast<s32>(i);
   }
 
