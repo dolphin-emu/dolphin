@@ -110,6 +110,8 @@ IPCReply ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
   const u32 size = request.io_vectors[0].size;
   const u32 addr = request.io_vectors[0].address;
 
+  INFO_LOG_FMT(IOS_ES, "ReadContent(uid={:#x}, cfd={}, size={}, addr={:08x})", uid, cfd, size,
+               addr);
   return IPCReply(ReadContent(cfd, Memory::GetPointer(addr), size, uid));
 }
 
