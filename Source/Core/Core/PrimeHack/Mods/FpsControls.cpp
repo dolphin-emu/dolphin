@@ -601,14 +601,15 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     if (prime::CheckGrappleCtl()) {
       if (grapple_time == 0) {
         grapple_time = Common::Timer::GetTimeMs();
+        grapple_button_down = true;
       }
       else if (Common::Timer::GetTimeMs() > grapple_time + 800) {
         if (!grapple_button_down) {
+          grapple_velocity += 0.45f;
           grapple_button_down = true;
         }   
       }
     } else if (grapple_button_down && grapple_velocity == 0) {
-      grapple_velocity += 0.45f;
       grapple_button_down = false;
     }
 

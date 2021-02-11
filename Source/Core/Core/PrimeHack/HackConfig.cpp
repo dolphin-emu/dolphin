@@ -170,11 +170,7 @@ bool GetShowGCCrosshair() {
 }
 
 u32 GetGCCrosshairColor() {
-  u32 r = Config::Get(Config::GC_CROSSHAIR_COLOR_R);
-  u32 g = Config::Get(Config::GC_CROSSHAIR_COLOR_G);
-  u32 b = Config::Get(Config::GC_CROSSHAIR_COLOR_B);
-  u32 a = Config::Get(Config::GC_CROSSHAIR_COLOR_A);
-  return r << 24 | g << 16 | b << 8 | a;
+  return Config::Get(Config::GC_CROSSHAIR_COLOR_RGBA);
 }
 
 bool GetAutoArmAdjust() {
