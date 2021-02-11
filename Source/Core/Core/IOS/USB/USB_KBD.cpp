@@ -20,7 +20,7 @@
 #include <windows.h>
 #endif
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 namespace
 {
@@ -307,4 +307,4 @@ void USB_KBD::Update()
   if (got_event)
     m_message_queue.emplace(MessageType::Event, modifiers, pressed_keys);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

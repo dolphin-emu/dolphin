@@ -26,10 +26,12 @@
 #include "Core/IOS/VersionInfo.h"
 #include "DiscIO/Enums.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
+{
+namespace
 {
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
-static u64 s_title_to_launch;
+u64 s_title_to_launch;
 
 struct DirectoryToCreate
 {
@@ -52,8 +54,9 @@ constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
     {"/meta", 0, public_modes, SYSMENU_UID, SYSMENU_GID},
     {"/wfs", 0, {FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None}, PID_UNKNOWN, PID_UNKNOWN},
 }};
+}  // namespace
 
-ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (const auto& directory : s_directories_to_create)
   {
@@ -117,7 +120,7 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   }
 }
 
-IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -132,7 +135,7 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode ES::GetTitleId(u64* title_id) const
+ReturnCode ESDevice::GetTitleId(u64* title_id) const
 {
   if (!m_title_context.active)
     return ES_EINVAL;
@@ -140,7 +143,7 @@ ReturnCode ES::GetTitleId(u64* title_id) const
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::GetTitleId(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTitleId(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -193,7 +196,7 @@ static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
   return ES_EINVAL;
 }
 
-IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
     return GetDefaultReply(ES_EINVAL);
@@ -220,7 +223,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-bool ES::LaunchTitle(u64 title_id, bool skip_reload)
+bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
 {
   m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_Launch: Title context changed: (none)");
@@ -248,7 +251,7 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
   return LaunchPPCTitle(title_id, skip_reload);
 }
 
-bool ES::LaunchIOS(u64 ios_title_id)
+bool ESDevice::LaunchIOS(u64 ios_title_id)
 {
   // A real Wii goes through several steps before getting to MIOS.
   //
@@ -286,7 +289,7 @@ bool ES::LaunchIOS(u64 ios_title_id)
   return m_ios.BootIOS(ios_title_id);
 }
 
-bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
+bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
   const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
   const IOS::ES::TicketReader ticket = FindSignedTicket(title_id);
@@ -336,7 +339,7 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   return m_ios.BootstrapPPC(GetContentPath(tmd.GetTitleId(), content));
 }
 
-void ES::Context::DoState(PointerWrap& p)
+void ESDevice::Context::DoState(PointerWrap& p)
 {
   p.Do(uid);
   p.Do(gid);
@@ -346,7 +349,7 @@ void ES::Context::DoState(PointerWrap& p)
   p.Do(ipc_fd);
 }
 
-void ES::DoState(PointerWrap& p)
+void ESDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
 
@@ -365,19 +368,19 @@ void ES::DoState(PointerWrap& p)
     context.DoState(p);
 }
 
-ES::ContextArray::iterator ES::FindActiveContext(s32 fd)
+ESDevice::ContextArray::iterator ESDevice::FindActiveContext(s32 fd)
 {
   return std::find_if(m_contexts.begin(), m_contexts.end(),
                       [fd](const auto& context) { return context.ipc_fd == fd && context.active; });
 }
 
-ES::ContextArray::iterator ES::FindInactiveContext()
+ESDevice::ContextArray::iterator ESDevice::FindInactiveContext()
 {
   return std::find_if(m_contexts.begin(), m_contexts.end(),
                       [](const auto& context) { return !context.active; });
 }
 
-IPCCommandResult ES::Open(const OpenRequest& request)
+IPCCommandResult ESDevice::Open(const OpenRequest& request)
 {
   auto context = FindInactiveContext();
   if (context == m_contexts.end())
@@ -390,7 +393,7 @@ IPCCommandResult ES::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-IPCCommandResult ES::Close(u32 fd)
+IPCCommandResult ESDevice::Close(u32 fd)
 {
   auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
@@ -404,7 +407,7 @@ IPCCommandResult ES::Close(u32 fd)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::IOCtlV(const IOCtlVRequest& request)
 {
   DEBUG_LOG_FMT(IOS_ES, "{} ({:#x})", GetDeviceName(), request.request);
   auto context = FindActiveContext(request.fd);
@@ -567,7 +570,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetConsumption(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 2))
     return GetDefaultReply(ES_EINVAL);
@@ -578,7 +581,7 @@ IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::Launch(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::Launch(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -608,7 +611,7 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   return GetNoReply();
 }
 
-IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::LaunchBC(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -627,7 +630,7 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
 // used from the PowerPC (for unpatched and up-to-date IOSes anyway).
 // So we block access to it from the IPC interface.
-IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DIVerify(const IOCtlVRequest& request)
 {
   return GetDefaultReply(ES_EINVAL);
 }
@@ -656,7 +659,7 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDRead
   return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
 }
 
-ReturnCode ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
+ReturnCode ESDevice::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
   m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_DIVerify: Title context changed: (none)");
@@ -696,8 +699,8 @@ ReturnCode ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketRead
       fs->SetMetadata(0, data_dir, m_ios.GetUidForPPC(), m_ios.GetGidForPPC(), 0, data_dir_modes));
 }
 
-ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
-                                         const IOS::ES::TMDReader& tmd) const
+ReturnCode ESDevice::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
+                                               const IOS::ES::TMDReader& tmd) const
 {
   const u32 title_flags = tmd.GetTitleFlags();
   // Only allow using this function with some titles (WFS titles).
@@ -739,8 +742,8 @@ ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
   return IPC_SUCCESS;
 }
 
-ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
-                              u32* handle)
+ReturnCode ESDevice::SetUpStreamKey(const u32 uid, const u8* ticket_view,
+                                    const IOS::ES::TMDReader& tmd, u32* handle)
 {
   ReturnCode ret = CheckStreamKeyPermissions(uid, ticket_view, tmd);
   if (ret != IPC_SUCCESS)
@@ -794,7 +797,7 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
                                          PID_ES);
 }
 
-IPCCommandResult ES::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
@@ -818,7 +821,7 @@ IPCCommandResult ES::SetUpStreamKey(const Context& context, const IOCtlVRequest&
   return GetDefaultReply(ret);
 }
 
-IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DeleteStreamKey(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -827,7 +830,7 @@ IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
   return GetDefaultReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
 }
 
-bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
+bool ESDevice::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
 {
   if (!m_title_context.active)
     return false;
@@ -840,7 +843,8 @@ bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
   return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
 }
 
-bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const
+bool ESDevice::IsIssuerCorrect(VerifyContainerType type,
+                               const IOS::ES::CertReader& issuer_cert) const
 {
   switch (type)
   {
@@ -857,7 +861,7 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
 
 static const std::string CERT_STORE_PATH = "/sys/cert.sys";
 
-ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
+ReturnCode ESDevice::ReadCertStore(std::vector<u8>* buffer) const
 {
   const auto store_file =
       m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
@@ -870,7 +874,7 @@ ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
   return IPC_SUCCESS;
 }
 
-ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
+ReturnCode ESDevice::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 {
   // Read the current store to determine if the new cert needs to be written.
   std::vector<u8> current_store;
@@ -895,9 +899,9 @@ ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
   return IPC_SUCCESS;
 }
 
-ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                               const IOS::ES::SignedBlobReader& signed_blob,
-                               const std::vector<u8>& cert_chain, u32* issuer_handle_out)
+ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                                     const IOS::ES::SignedBlobReader& signed_blob,
+                                     const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
   if (!signed_blob.IsSignatureValid())
     return ES_EINVAL;
@@ -987,9 +991,9 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   return ret;
 }
 
-ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                               const IOS::ES::CertReader& cert, const std::vector<u8>& cert_chain,
-                               u32 certificate_iosc_handle)
+ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                                     const IOS::ES::CertReader& cert,
+                                     const std::vector<u8>& cert_chain, u32 certificate_iosc_handle)
 {
   IOSC::Handle issuer_handle;
   ReturnCode ret = VerifyContainer(type, mode, cert, cert_chain, &issuer_handle);
@@ -1001,4 +1005,4 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   }
   return ret;
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

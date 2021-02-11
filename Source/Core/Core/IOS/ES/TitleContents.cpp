@@ -13,9 +13,9 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
+s32 ESDevice::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
 {
   const u64 title_id = tmd.GetTitleId();
 
@@ -46,7 +46,7 @@ s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
   return FS_EFDEXHAUSTED;
 }
 
-IPCCommandResult ES::OpenContent(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0) || request.in_vectors[0].size != sizeof(u64) ||
       request.in_vectors[1].size != sizeof(IOS::ES::TicketView) ||
@@ -66,7 +66,7 @@ IPCCommandResult ES::OpenContent(u32 uid, const IOCtlVRequest& request)
   return GetDefaultReply(OpenContent(tmd, content_index, uid));
 }
 
-IPCCommandResult ES::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -84,7 +84,7 @@ IPCCommandResult ES::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest&
   return GetDefaultReply(OpenContent(m_title_context.tmd, content_index, caller_uid));
 }
 
-s32 ES::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
+s32 ESDevice::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
@@ -99,7 +99,7 @@ s32 ES::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
   return result.Succeeded() ? *result : FS::ConvertResult(result.Error());
 }
 
-IPCCommandResult ES::ReadContent(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -111,7 +111,7 @@ IPCCommandResult ES::ReadContent(u32 uid, const IOCtlVRequest& request)
   return GetDefaultReply(ReadContent(cfd, Memory::GetPointer(addr), size, uid));
 }
 
-ReturnCode ES::CloseContent(u32 cfd, u32 uid)
+ReturnCode ESDevice::CloseContent(u32 cfd, u32 uid)
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
@@ -128,7 +128,7 @@ ReturnCode ES::CloseContent(u32 cfd, u32 uid)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::CloseContent(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::CloseContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -137,7 +137,7 @@ IPCCommandResult ES::CloseContent(u32 uid, const IOCtlVRequest& request)
   return GetDefaultReply(CloseContent(cfd, uid));
 }
 
-s32 ES::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid)
+s32 ESDevice::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid)
 {
   if (cfd >= m_content_table.size())
     return ES_EINVAL;
@@ -152,7 +152,7 @@ s32 ES::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid)
   return result.Succeeded() ? *result : FS::ConvertResult(result.Error());
 }
 
-IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::SeekContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -163,4 +163,4 @@ IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
 
   return GetDefaultReply(SeekContent(cfd, offset, mode, uid));
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -18,16 +18,16 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-ReturnCode ES::GetDeviceId(u32* device_id) const
+ReturnCode ESDevice::GetDeviceId(u32* device_id) const
 {
   *device_id = m_ios.GetIOSC().GetDeviceId();
   INFO_LOG_FMT(IOS_ES, "GetDeviceId: {:08X}", *device_id);
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::GetDeviceId(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetDeviceId(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -40,7 +40,7 @@ IPCCommandResult ES::GetDeviceId(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::Encrypt(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::Encrypt(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 2))
     return GetDefaultReply(ES_EINVAL);
@@ -57,7 +57,7 @@ IPCCommandResult ES::Encrypt(u32 uid, const IOCtlVRequest& request)
   return GetDefaultReply(ret);
 }
 
-IPCCommandResult ES::Decrypt(u32 uid, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::Decrypt(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 2))
     return GetDefaultReply(ES_EINVAL);
@@ -74,7 +74,7 @@ IPCCommandResult ES::Decrypt(u32 uid, const IOCtlVRequest& request)
   return GetDefaultReply(ret);
 }
 
-IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::CheckKoreaRegion(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -87,7 +87,7 @@ IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
   return GetDefaultReply(ES_EINVAL);
 }
 
-IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetDeviceCertificate(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0x180)
     return GetDefaultReply(ES_EINVAL);
@@ -99,7 +99,7 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::Sign(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::Sign(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 2))
     return GetDefaultReply(ES_EINVAL);
@@ -117,8 +117,8 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
-                          const std::vector<u8>& certs_bytes)
+ReturnCode ESDevice::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
+                                const std::vector<u8>& certs_bytes)
 {
   const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(certs_bytes);
   if (certs.empty())
@@ -185,7 +185,7 @@ ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ec
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::VerifySign(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::VerifySign(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
     return GetDefaultReply(ES_EINVAL);
@@ -203,4 +203,4 @@ IPCCommandResult ES::VerifySign(const IOCtlVRequest& request)
 
   return GetDefaultReply(VerifySign(hash, ecc_signature, certs));
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

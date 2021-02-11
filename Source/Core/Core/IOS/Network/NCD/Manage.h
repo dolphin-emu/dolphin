@@ -10,13 +10,13 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/NCD/WiiNetConfig.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // Interface for reading and changing network configuration (probably some other stuff as well)
-class NetNCDManage : public Device
+class NetNCDManageDevice : public Device
 {
 public:
-  NetNCDManage(Kernel& ios, const std::string& device_name);
+  NetNCDManageDevice(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
@@ -38,4 +38,4 @@ private:
   Net::WiiNetConfig config;
   u32 m_ipc_fd = 0;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

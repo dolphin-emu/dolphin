@@ -471,8 +471,8 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
   if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
-  auto di = std::static_pointer_cast<IOS::HLE::Device::DI>(
-      IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
+  auto di =
+      std::static_pointer_cast<IOS::HLE::DIDevice>(IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
 
   di->InitializeIfFirstTime();
   di->ChangePartition(data_partition);

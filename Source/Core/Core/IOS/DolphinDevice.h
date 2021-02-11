@@ -6,7 +6,7 @@
 
 #include "Core/IOS/Device.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class DolphinDevice final : public Device
 {
@@ -15,4 +15,4 @@ public:
   using Device::Device;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

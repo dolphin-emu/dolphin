@@ -12,12 +12,12 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // Used by the GetStoredContents ioctlvs. This assumes that the first output vector
 // is used for the content count (u32).
-IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
-                                            const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
+                                                  const IOCtlVRequest& request)
 {
   if (request.io_vectors[0].size != sizeof(u32) || !tmd.IsValid())
     return GetDefaultReply(ES_EINVAL);
@@ -32,7 +32,8 @@ IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
 
 // Used by the GetStoredContents ioctlvs. This assumes that the second input vector is used
 // for the content count and the output vector is used to store a list of content IDs (u32s).
-IPCCommandResult ES::GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredContents(const IOS::ES::TMDReader& tmd,
+                                             const IOCtlVRequest& request)
 {
   if (!tmd.IsValid())
     return GetDefaultReply(ES_EINVAL);
@@ -51,7 +52,7 @@ IPCCommandResult ES::GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCt
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetStoredContentsCount(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredContentsCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u64))
     return GetDefaultReply(ES_EINVAL);
@@ -63,7 +64,7 @@ IPCCommandResult ES::GetStoredContentsCount(const IOCtlVRequest& request)
   return GetStoredContentsCount(tmd, request);
 }
 
-IPCCommandResult ES::GetStoredContents(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredContents(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) || request.in_vectors[0].size != sizeof(u64))
     return GetDefaultReply(ES_EINVAL);
@@ -75,7 +76,7 @@ IPCCommandResult ES::GetStoredContents(const IOCtlVRequest& request)
   return GetStoredContents(tmd, request);
 }
 
-IPCCommandResult ES::GetTMDStoredContentsCount(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTMDStoredContentsCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -85,7 +86,7 @@ IPCCommandResult ES::GetTMDStoredContentsCount(const IOCtlVRequest& request)
   return GetStoredContentsCount(IOS::ES::TMDReader{std::move(tmd_bytes)}, request);
 }
 
-IPCCommandResult ES::GetTMDStoredContents(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTMDStoredContents(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -109,7 +110,8 @@ IPCCommandResult ES::GetTMDStoredContents(const IOCtlVRequest& request)
   return GetStoredContents(tmd, request);
 }
 
-IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTitleCount(const std::vector<u64>& titles,
+                                         const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return GetDefaultReply(ES_EINVAL);
@@ -119,7 +121,7 @@ IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVR
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -133,19 +135,19 @@ IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVReque
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTitleCount(const IOCtlVRequest& request)
 {
   const std::vector<u64> titles = GetInstalledTitles();
   INFO_LOG_FMT(IOS_ES, "GetTitleCount: {} titles", titles.size());
   return GetTitleCount(titles, request);
 }
 
-IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTitles(const IOCtlVRequest& request)
 {
   return GetTitles(GetInstalledTitles(), request);
 }
 
-IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredTMDSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -163,7 +165,7 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredTMD(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -186,19 +188,19 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetOwnedTitleCount(const IOCtlVRequest& request)
 {
   const std::vector<u64> titles = GetTitlesWithTickets();
   INFO_LOG_FMT(IOS_ES, "GetOwnedTitleCount: {} titles", titles.size());
   return GetTitleCount(titles, request);
 }
 
-IPCCommandResult ES::GetOwnedTitles(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetOwnedTitles(const IOCtlVRequest& request)
 {
   return GetTitles(GetTitlesWithTickets(), request);
 }
 
-IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetBoot2Version(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -210,7 +212,7 @@ IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetSharedContentsCount(const IOCtlVRequest& request) const
+IPCCommandResult ESDevice::GetSharedContentsCount(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -222,7 +224,7 @@ IPCCommandResult ES::GetSharedContentsCount(const IOCtlVRequest& request) const
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetSharedContents(const IOCtlVRequest& request) const
+IPCCommandResult ESDevice::GetSharedContents(const IOCtlVRequest& request) const
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -238,4 +240,4 @@ IPCCommandResult ES::GetSharedContents(const IOCtlVRequest& request) const
   INFO_LOG_FMT(IOS_ES, "GetSharedContents: {} contents ({} requested)", count, max_count);
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

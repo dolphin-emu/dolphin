@@ -25,7 +25,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -227,4 +227,4 @@ IPCCommandResult USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u3
                 device->GetVid(), device->GetPid(), request, device->GetErrorName(ret));
   return GetDefaultReply(ret <= 0 ? ret : IPC_EINVAL);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

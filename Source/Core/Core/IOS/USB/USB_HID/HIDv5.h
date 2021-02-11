@@ -9,7 +9,7 @@
 #include "Core/IOS/USB/Host.h"
 #include "Core/IOS/USB/USBV5.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class USB_HIDv5 final : public USBV5ResourceManager
 {
@@ -39,4 +39,4 @@ private:
 
   ScanThread m_scan_thread{this};
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

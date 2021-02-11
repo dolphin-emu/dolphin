@@ -24,7 +24,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // Common base class for USB host devices (such as /dev/usb/oh0 and /dev/usb/ven).
 class USBHost : public Device
@@ -85,4 +85,4 @@ private:
   bool m_has_initialised = false;
   LibusbUtils::Context m_context;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

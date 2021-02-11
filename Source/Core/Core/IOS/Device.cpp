@@ -142,8 +142,6 @@ void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LOG
   Dump("Unknown IOCtlV - " + description, type, level);
 }
 
-namespace Device
-{
 Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)
     : m_ios(ios), m_name(device_name), m_device_type(type)
 {
@@ -208,5 +206,4 @@ IPCCommandResult Device::GetNoReply()
 {
   return {IPC_SUCCESS, false, 0};
 }
-}  // namespace Device
 }  // namespace IOS::HLE

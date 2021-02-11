@@ -18,7 +18,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/VersionInfo.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // HACK: Since we do not want to require users to install disc updates when launching
 //       Wii games from the game list (which is the inaccurate game boot path anyway),
@@ -37,7 +37,7 @@ static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& cont
          (ios && SConfig::GetInstance().m_disc_booted_from_game_list && disc_title);
 }
 
-IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -65,7 +65,7 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTicketViews(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -100,7 +100,7 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode ES::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
+ReturnCode ESDevice::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
 {
   const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
@@ -137,7 +137,7 @@ ReturnCode ES::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
   return IPC_SUCCESS;
 }
 
-ReturnCode ES::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const
+ReturnCode ESDevice::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const
 {
   const u8 version = ticket_view[offsetof(IOS::ES::TicketView, version)];
   if (version == 1)
@@ -158,7 +158,7 @@ ReturnCode ES::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::GetV0TicketFromView(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
@@ -170,7 +170,7 @@ IPCCommandResult ES::GetV0TicketFromView(const IOCtlVRequest& request)
                                              Memory::GetPointer(request.io_vectors[0].address)));
 }
 
-IPCCommandResult ES::GetTicketSizeFromView(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
 {
   u32 ticket_size = 0;
   if (!request.HasNumberOfValidVectors(1, 1) ||
@@ -185,7 +185,7 @@ IPCCommandResult ES::GetTicketSizeFromView(const IOCtlVRequest& request)
   return GetDefaultReply(ret);
 }
 
-IPCCommandResult ES::GetTicketFromView(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTicketFromView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
@@ -203,7 +203,7 @@ IPCCommandResult ES::GetTicketFromView(const IOCtlVRequest& request)
                                            &ticket_size));
 }
 
-IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -221,7 +221,7 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetTMDViews(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(IOS::ES::TMDHeader::title_id) ||
@@ -247,7 +247,7 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -288,7 +288,7 @@ IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DIGetTMDView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
     return GetDefaultReply(ES_EINVAL);
@@ -334,7 +334,7 @@ IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DIGetTicketView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.io_vectors[0].size != sizeof(IOS::ES::TicketView))
@@ -372,7 +372,7 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::DIGetTMDSize(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DIGetTMDSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -385,7 +385,7 @@ IPCCommandResult ES::DIGetTMDSize(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
+IPCCommandResult ESDevice::DIGetTMD(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
     return GetDefaultReply(ES_EINVAL);
@@ -405,4 +405,4 @@ IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
   Memory::CopyToEmu(request.io_vectors[0].address, tmd_bytes.data(), tmd_bytes.size());
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

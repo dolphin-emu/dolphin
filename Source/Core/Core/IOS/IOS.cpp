@@ -285,9 +285,9 @@ std::shared_ptr<FS::FileSystem> Kernel::GetFS()
   return m_fs;
 }
 
-std::shared_ptr<Device::ES> Kernel::GetES()
+std::shared_ptr<ESDevice> Kernel::GetES()
 {
-  return std::static_pointer_cast<Device::ES>(m_device_map.at("/dev/es"));
+  return std::static_pointer_cast<ESDevice>(m_device_map.at("/dev/es"));
 }
 
 // Since we don't have actual processes, we keep track of only the PPC's UID/GID.
@@ -406,9 +406,9 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
   return true;
 }
 
-void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
+void Kernel::AddDevice(std::unique_ptr<Device> device)
 {
-  ASSERT(device->GetDeviceType() == Device::Device::DeviceType::Static);
+  ASSERT(device->GetDeviceType() == Device::DeviceType::Static);
   m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
 }
 
@@ -418,9 +418,9 @@ void Kernel::AddCoreDevices()
   ASSERT(m_fs);
 
   std::lock_guard lock(m_device_map_mutex);
-  AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
-  AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
-  AddDevice(std::make_unique<Device::DolphinDevice>(*this, "/dev/dolphin"));
+  AddDevice(std::make_unique<FSDevice>(*this, "/dev/fs"));
+  AddDevice(std::make_unique<ESDevice>(*this, "/dev/es"));
+  AddDevice(std::make_unique<DolphinDevice>(*this, "/dev/dolphin"));
 }
 
 void Kernel::AddStaticDevices()
@@ -430,49 +430,49 @@ void Kernel::AddStaticDevices()
   const Feature features = GetFeatures(GetVersion());
 
   // OH1 (Bluetooth)
-  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/usb/oh1"));
+  AddDevice(std::make_unique<DeviceStub>(*this, "/dev/usb/oh1"));
   if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    AddDevice(std::make_unique<Device::BluetoothEmu>(*this, "/dev/usb/oh1/57e/305"));
+    AddDevice(std::make_unique<BluetoothEmuDevice>(*this, "/dev/usb/oh1/57e/305"));
   else
-    AddDevice(std::make_unique<Device::BluetoothReal>(*this, "/dev/usb/oh1/57e/305"));
+    AddDevice(std::make_unique<BluetoothRealDevice>(*this, "/dev/usb/oh1/57e/305"));
 
   // Other core modules
-  AddDevice(std::make_unique<Device::STMImmediate>(*this, "/dev/stm/immediate"));
-  AddDevice(std::make_unique<Device::STMEventHook>(*this, "/dev/stm/eventhook"));
-  AddDevice(std::make_unique<Device::DI>(*this, "/dev/di"));
-  AddDevice(std::make_unique<Device::SDIOSlot0>(*this, "/dev/sdio/slot0"));
-  AddDevice(std::make_unique<Device::Stub>(*this, "/dev/sdio/slot1"));
+  AddDevice(std::make_unique<STMImmediateDevice>(*this, "/dev/stm/immediate"));
+  AddDevice(std::make_unique<STMEventHookDevice>(*this, "/dev/stm/eventhook"));
+  AddDevice(std::make_unique<DIDevice>(*this, "/dev/di"));
+  AddDevice(std::make_unique<SDIOSlot0Device>(*this, "/dev/sdio/slot0"));
+  AddDevice(std::make_unique<DeviceStub>(*this, "/dev/sdio/slot1"));
 
   // Network modules
   if (HasFeature(features, Feature::KD))
   {
-    AddDevice(std::make_unique<Device::NetKDRequest>(*this, "/dev/net/kd/request"));
-    AddDevice(std::make_unique<Device::NetKDTime>(*this, "/dev/net/kd/time"));
+    AddDevice(std::make_unique<NetKDRequestDevice>(*this, "/dev/net/kd/request"));
+    AddDevice(std::make_unique<NetKDTimeDevice>(*this, "/dev/net/kd/time"));
   }
   if (HasFeature(features, Feature::NCD))
   {
-    AddDevice(std::make_unique<Device::NetNCDManage>(*this, "/dev/net/ncd/manage"));
+    AddDevice(std::make_unique<NetNCDManageDevice>(*this, "/dev/net/ncd/manage"));
   }
   if (HasFeature(features, Feature::WiFi))
   {
-    AddDevice(std::make_unique<Device::NetWDCommand>(*this, "/dev/net/wd/command"));
+    AddDevice(std::make_unique<NetWDCommandDevice>(*this, "/dev/net/wd/command"));
   }
   if (HasFeature(features, Feature::SO))
   {
-    AddDevice(std::make_unique<Device::NetIPTop>(*this, "/dev/net/ip/top"));
+    AddDevice(std::make_unique<NetIPTopDevice>(*this, "/dev/net/ip/top"));
   }
   if (HasFeature(features, Feature::SSL))
   {
-    AddDevice(std::make_unique<Device::NetSSL>(*this, "/dev/net/ssl"));
+    AddDevice(std::make_unique<NetSSLDevice>(*this, "/dev/net/ssl"));
   }
 
   // USB modules
   // OH0 is unconditionally added because this device path is registered in all cases.
-  AddDevice(std::make_unique<Device::OH0>(*this, "/dev/usb/oh0"));
+  AddDevice(std::make_unique<OH0>(*this, "/dev/usb/oh0"));
   if (HasFeature(features, Feature::NewUSB))
   {
-    AddDevice(std::make_unique<Device::USB_HIDv5>(*this, "/dev/usb/hid"));
-    AddDevice(std::make_unique<Device::USB_VEN>(*this, "/dev/usb/ven"));
+    AddDevice(std::make_unique<USB_HIDv5>(*this, "/dev/usb/hid"));
+    AddDevice(std::make_unique<USB_VEN>(*this, "/dev/usb/ven"));
 
     // TODO(IOS): register /dev/usb/usb, /dev/usb/msc, /dev/usb/hub and /dev/usb/ehc
     //            as stubs that return IPC_EACCES.
@@ -480,15 +480,15 @@ void Kernel::AddStaticDevices()
   else
   {
     if (HasFeature(features, Feature::USB_HIDv4))
-      AddDevice(std::make_unique<Device::USB_HIDv4>(*this, "/dev/usb/hid"));
+      AddDevice(std::make_unique<USB_HIDv4>(*this, "/dev/usb/hid"));
     if (HasFeature(features, Feature::USB_KBD))
-      AddDevice(std::make_unique<Device::USB_KBD>(*this, "/dev/usb/kbd"));
+      AddDevice(std::make_unique<USB_KBD>(*this, "/dev/usb/kbd"));
   }
 
   if (HasFeature(features, Feature::WFS))
   {
-    AddDevice(std::make_unique<Device::WFSSRV>(*this, "/dev/usb/wfssrv"));
-    AddDevice(std::make_unique<Device::WFSI>(*this, "/dev/wfsi"));
+    AddDevice(std::make_unique<WFSSRVDevice>(*this, "/dev/usb/wfssrv"));
+    AddDevice(std::make_unique<WFSIDevice>(*this, "/dev/wfsi"));
   }
 }
 
@@ -505,14 +505,14 @@ s32 Kernel::GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<Device::Device> Kernel::GetDeviceByName(std::string_view device_name)
+std::shared_ptr<Device> Kernel::GetDeviceByName(std::string_view device_name)
 {
   std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
-std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
+std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
   return Kernel::GetDeviceByName(device_name);
 }
@@ -529,11 +529,11 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   }
   request.fd = new_fd;
 
-  std::shared_ptr<Device::Device> device;
+  std::shared_ptr<Device> device;
   if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path) &&
       !HasFeature(GetVersion(), Feature::NewUSB))
   {
-    device = std::make_shared<Device::OH0Device>(*this, request.path);
+    device = std::make_shared<OH0Device>(*this, request.path);
   }
   else if (request.path.find("/dev/") == 0)
   {
@@ -746,7 +746,7 @@ void Kernel::DoState(PointerWrap& p)
   if (m_title_id == Titles::MIOS)
     return;
 
-  // We need to make sure all file handles are closed so IOS::HLE::Device::FS::DoState can
+  // We need to make sure all file handles are closed so IOS::HLE::FSDevice::DoState can
   // successfully save or re-create /tmp
   for (auto& descriptor : m_fdmap)
   {
@@ -765,19 +765,19 @@ void Kernel::DoState(PointerWrap& p)
       p.Do(exists);
       if (exists)
       {
-        auto device_type = Device::Device::DeviceType::Static;
+        auto device_type = Device::DeviceType::Static;
         p.Do(device_type);
         switch (device_type)
         {
-        case Device::Device::DeviceType::Static:
+        case Device::DeviceType::Static:
         {
           std::string device_name;
           p.Do(device_name);
           m_fdmap[i] = GetDeviceByName(device_name);
           break;
         }
-        case Device::Device::DeviceType::OH0:
-          m_fdmap[i] = std::make_shared<Device::OH0Device>(*this, "");
+        case Device::DeviceType::OH0:
+          m_fdmap[i] = std::make_shared<OH0Device>(*this, "");
           m_fdmap[i]->DoState(p);
           break;
         }
@@ -825,13 +825,13 @@ void Init()
       return;
 
     auto sdio_slot0 = s_ios->GetDeviceByName("/dev/sdio/slot0");
-    auto device = static_cast<Device::SDIOSlot0*>(sdio_slot0.get());
+    auto device = static_cast<SDIOSlot0Device*>(sdio_slot0.get());
     if (device)
       device->EventNotify();
   });
 
-  Device::DI::s_finish_executing_di_command =
-      CoreTiming::RegisterEvent("FinishDICommand", Device::DI::FinishDICommandCallback);
+  DIDevice::s_finish_executing_di_command =
+      CoreTiming::RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
 
   // Start with IOS80 to simulate part of the Wii boot process.
   s_ios = std::make_unique<EmulationKernel>(Titles::SYSTEM_MENU_IOS);

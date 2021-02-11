@@ -16,13 +16,13 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // The front SD slot
-class SDIOSlot0 : public Device
+class SDIOSlot0Device : public Device
 {
 public:
-  SDIOSlot0(Kernel& ios, const std::string& device_name);
+  SDIOSlot0Device(Kernel& ios, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
 
@@ -164,4 +164,4 @@ private:
 
   File::IOFile m_card;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

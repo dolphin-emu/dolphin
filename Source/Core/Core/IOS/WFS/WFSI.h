@@ -32,12 +32,10 @@ private:
   std::vector<u8> m_whole_file;
 };
 
-namespace Device
-{
-class WFSI : public Device
+class WFSIDevice : public Device
 {
 public:
-  WFSI(Kernel& ios, const std::string& device_name);
+  WFSIDevice(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
@@ -125,5 +123,4 @@ private:
     IOCTL_WFSI_CHECK_HAS_SPACE = 0x95,
   };
 };
-}  // namespace Device
 }  // namespace IOS::HLE

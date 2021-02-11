@@ -374,13 +374,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
       if (it->is_ssl)
       {
         int sslID = Memory::Read_U32(BufferOut) - 1;
-        if (IOS::HLE::Device::IsSSLIDValid(sslID))
+        if (IOS::HLE::IsSSLIDValid(sslID))
         {
           switch (it->ssl_type)
           {
           case IOCTLV_NET_SSL_DOHANDSHAKE:
           {
-            mbedtls_ssl_context* ctx = &Device::NetSSL::_SSL[sslID].ctx;
+            mbedtls_ssl_context* ctx = &NetSSLDevice::_SSL[sslID].ctx;
             const int ret = mbedtls_ssl_handshake(ctx);
             if (ret != 0)
             {
@@ -457,7 +457,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_WRITE:
           {
-            WII_SSL* ssl = &Device::NetSSL::_SSL[sslID];
+            WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
             const int ret =
                 mbedtls_ssl_write(&ssl->ctx, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
@@ -491,7 +491,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_READ:
           {
-            WII_SSL* ssl = &Device::NetSSL::_SSL[sslID];
+            WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
             const int ret =
                 mbedtls_ssl_read(&ssl->ctx, Memory::GetPointer(BufferIn2), BufferInSize2);
 
