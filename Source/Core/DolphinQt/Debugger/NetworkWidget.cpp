@@ -241,11 +241,9 @@ void NetworkWidget::Update()
   {
     m_ssl_table->insertRow(ssl_id);
     s32 host_fd = -1;
-    if (IOS::HLE::Device::IsSSLIDValid(ssl_id) &&
-        IOS::HLE::Device::NetSSL::_SSL[ssl_id].ctx.p_bio != nullptr)
+    if (IOS::HLE::Device::IsSSLIDValid(ssl_id))
     {
-      host_fd =
-          static_cast<mbedtls_net_context*>(IOS::HLE::Device::NetSSL::_SSL[ssl_id].ctx.p_bio)->fd;
+      host_fd = IOS::HLE::Device::NetSSL::_SSL[ssl_id].hostfd;
     }
     m_ssl_table->setItem(ssl_id, 0, new QTableWidgetItem(QString::number(ssl_id)));
     m_ssl_table->setItem(ssl_id, 1, GetSocketDomain(host_fd));
