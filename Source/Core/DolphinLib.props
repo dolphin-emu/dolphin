@@ -1200,4 +1200,7 @@
     <ClCompile Include="VideoCommon\XFMemory.cpp" />
     <ClCompile Include="VideoCommon\XFStructs.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Common\BitField.natvis" />
+  </ItemGroup>
 </Project>
