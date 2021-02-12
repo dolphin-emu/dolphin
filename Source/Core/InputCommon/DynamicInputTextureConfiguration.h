@@ -19,7 +19,7 @@ class DynamicInputTextureConfiguration
 public:
   explicit DynamicInputTextureConfiguration(const std::string& json_file);
   ~DynamicInputTextureConfiguration();
-  void GenerateTextures(const IniFile::Section* sec, const std::string& controller_name) const;
+  bool GenerateTextures(const IniFile::Section* sec, const std::string& controller_name) const;
 
 private:
   struct DynamicInputTextureData

@@ -56,14 +56,7 @@ void HiresTexture::Init()
 
 void HiresTexture::Shutdown()
 {
-  if (s_prefetcher.joinable())
-  {
-    s_textureCacheAbortLoading.Set();
-    s_prefetcher.join();
-  }
-
-  s_textureMap.clear();
-  s_textureCache.clear();
+  Clear();
 }
 
 void HiresTexture::Update()
@@ -147,6 +140,11 @@ void HiresTexture::Update()
 
 void HiresTexture::Clear()
 {
+  if (s_prefetcher.joinable())
+  {
+    s_textureCacheAbortLoading.Set();
+    s_prefetcher.join();
+  }
   s_textureMap.clear();
   s_textureCache.clear();
 }
