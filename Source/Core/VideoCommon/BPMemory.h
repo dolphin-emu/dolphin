@@ -661,6 +661,7 @@ union FogParam0
   BitField<19, 1, u32> sign;
 
   u32 hex;
+  float FloatValue() const;
 };
 
 union FogParam3
@@ -673,6 +674,7 @@ union FogParam3
                               // backward exp, 7 - backward exp2
 
   u32 hex;
+  float FloatValue() const;
 };
 
 union FogRangeKElement
