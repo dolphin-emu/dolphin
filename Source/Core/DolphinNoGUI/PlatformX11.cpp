@@ -4,6 +4,12 @@
 
 #include <unistd.h>
 
+// X.h defines None to be 0L, but other parts of Dolphin undef that so that
+// None can be used in enums.  Work around that here by copying the definition
+// before it is undefined.
+#include <X11/X.h>
+static constexpr auto X_None = None;
+
 #include "DolphinNoGUI/Platform.h"
 
 #include "Common/MsgHandler.h"
@@ -47,7 +53,7 @@ private:
 
   Display* m_display = nullptr;
   Window m_window = {};
-  Cursor m_blank_cursor = None;
+  Cursor m_blank_cursor = X_None;
 #ifdef HAVE_XRANDR
   X11Utils::XRRConfiguration* m_xrr_config = nullptr;
 #endif
