@@ -16,7 +16,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 namespace
 {
@@ -48,7 +48,7 @@ u16 MakeNitroAllowedChannelMask(u16 enabled_channels_mask, u16 nitro_mask)
 }
 }  // namespace
 
-NetWDCommand::Status NetWDCommand::GetTargetStatusForMode(WD::Mode mode)
+NetWDCommandDevice::Status NetWDCommandDevice::GetTargetStatusForMode(WD::Mode mode)
 {
   switch (mode)
   {
@@ -61,7 +61,8 @@ NetWDCommand::Status NetWDCommand::GetTargetStatusForMode(WD::Mode mode)
   }
 }
 
-NetWDCommand::NetWDCommand(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetWDCommandDevice::NetWDCommandDevice(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name)
 {
   // TODO: use the MPCH setting in setting.txt to determine this value.
   m_nitro_enabled_channels = LegalNitroChannelMask;
@@ -77,14 +78,14 @@ NetWDCommand::NetWDCommand(Kernel& ios, const std::string& device_name) : Device
   m_info.initialised = true;
 }
 
-void NetWDCommand::Update()
+void NetWDCommandDevice::Update()
 {
   Device::Update();
   ProcessRecvRequests();
   HandleStateChange();
 }
 
-void NetWDCommand::ProcessRecvRequests()
+void NetWDCommandDevice::ProcessRecvRequests()
 {
   // Because we currently do not actually emulate the wireless driver, we have no frames
   // and no notification data that could be used to reply to requests.
@@ -125,7 +126,7 @@ void NetWDCommand::ProcessRecvRequests()
   process_queue(m_recv_frame_requests);
 }
 
-void NetWDCommand::HandleStateChange()
+void NetWDCommandDevice::HandleStateChange()
 {
   const auto status = m_status;
   const auto target_status = m_target_status;
@@ -168,7 +169,7 @@ void NetWDCommand::HandleStateChange()
                target_status);
 }
 
-void NetWDCommand::DoState(PointerWrap& p)
+void NetWDCommandDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
   p.Do(m_ipc_owner_fd);
@@ -182,7 +183,7 @@ void NetWDCommand::DoState(PointerWrap& p)
   p.Do(m_recv_notification_requests);
 }
 
-IPCCommandResult NetWDCommand::Open(const OpenRequest& request)
+IPCCommandResult NetWDCommandDevice::Open(const OpenRequest& request)
 {
   if (m_ipc_owner_fd < 0)
   {
@@ -211,7 +212,7 @@ IPCCommandResult NetWDCommand::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-IPCCommandResult NetWDCommand::Close(u32 fd)
+IPCCommandResult NetWDCommandDevice::Close(u32 fd)
 {
   if (m_ipc_owner_fd < 0 || fd != u32(m_ipc_owner_fd))
   {
@@ -227,7 +228,7 @@ IPCCommandResult NetWDCommand::Close(u32 fd)
   return Device::Close(fd);
 }
 
-IPCCommandResult NetWDCommand::SetLinkState(const IOCtlVRequest& request)
+IPCCommandResult NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)
@@ -263,7 +264,7 @@ IPCCommandResult NetWDCommand::SetLinkState(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetWDCommand::GetLinkState(const IOCtlVRequest& request) const
+IPCCommandResult NetWDCommandDevice::GetLinkState(const IOCtlVRequest& request) const
 {
   INFO_LOG_FMT(IOS_NET, "WD_GetLinkState called (status={}, mode={})", m_status, m_mode);
   if (!WD::IsValidMode(m_mode))
@@ -273,7 +274,7 @@ IPCCommandResult NetWDCommand::GetLinkState(const IOCtlVRequest& request) const
   return GetDefaultReply(u32(m_status == GetTargetStatusForMode(m_mode)));
 }
 
-IPCCommandResult NetWDCommand::Disassociate(const IOCtlVRequest& request)
+IPCCommandResult NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)
@@ -303,7 +304,7 @@ IPCCommandResult NetWDCommand::Disassociate(const IOCtlVRequest& request)
   return GetDefaultReply(u32(ResultCode::IllegalParameter));
 }
 
-IPCCommandResult NetWDCommand::GetInfo(const IOCtlVRequest& request) const
+IPCCommandResult NetWDCommandDevice::GetInfo(const IOCtlVRequest& request) const
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)
@@ -313,7 +314,7 @@ IPCCommandResult NetWDCommand::GetInfo(const IOCtlVRequest& request) const
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
+IPCCommandResult NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
 {
   switch (request.request)
   {
@@ -383,4 +384,4 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
 
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

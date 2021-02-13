@@ -13,7 +13,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class USB_KBD : public Device
 {
@@ -64,4 +64,4 @@ private:
   };
   int m_keyboard_layout = KBD_LAYOUT_QWERTY;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

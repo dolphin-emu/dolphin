@@ -30,12 +30,12 @@ namespace IOS::HLE
 void Init();
 }
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-class DI : public Device
+class DIDevice : public Device
 {
 public:
-  DI(Kernel& ios, const std::string& device_name);
+  DIDevice(Kernel& ios, const std::string& device_name);
 
   static void InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type);
   static DiscIO::Partition GetCurrentPartition();
@@ -145,4 +145,4 @@ private:
   bool m_has_initialized = false;
   u32 m_last_length = 0;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

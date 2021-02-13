@@ -55,7 +55,7 @@ private:
 
 constexpr int CONNECTION_MESSAGE_TIME = 3000;
 
-WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd)
+WiimoteDevice::WiimoteDevice(BluetoothEmuDevice* host, int number, bdaddr_t bd)
     : m_host(host), m_bd(bd),
       m_name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 

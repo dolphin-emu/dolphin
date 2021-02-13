@@ -12,11 +12,11 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 static std::unique_ptr<IOCtlRequest> s_event_hook_request;
 
-IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
+IPCCommandResult STMImmediateDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -62,12 +62,12 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-STMEventHook::~STMEventHook()
+STMEventHookDevice::~STMEventHookDevice()
 {
   s_event_hook_request.reset();
 }
 
-IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
+IPCCommandResult STMEventHookDevice::IOCtl(const IOCtlRequest& request)
 {
   if (request.request != IOCTL_STM_EVENTHOOK)
     return GetDefaultReply(IPC_EINVAL);
@@ -80,7 +80,7 @@ IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
   return GetNoReply();
 }
 
-void STMEventHook::DoState(PointerWrap& p)
+void STMEventHookDevice::DoState(PointerWrap& p)
 {
   u32 address = s_event_hook_request ? s_event_hook_request->address : 0;
   p.Do(address);
@@ -91,12 +91,12 @@ void STMEventHook::DoState(PointerWrap& p)
   Device::DoState(p);
 }
 
-bool STMEventHook::HasHookInstalled() const
+bool STMEventHookDevice::HasHookInstalled() const
 {
   return s_event_hook_request != nullptr;
 }
 
-void STMEventHook::TriggerEvent(const u32 event) const
+void STMEventHookDevice::TriggerEvent(const u32 event) const
 {
   // If the device isn't open, ignore the button press.
   if (!m_is_active || !s_event_hook_request)
@@ -107,14 +107,14 @@ void STMEventHook::TriggerEvent(const u32 event) const
   s_event_hook_request.reset();
 }
 
-void STMEventHook::ResetButton() const
+void STMEventHookDevice::ResetButton() const
 {
   // The reset button triggers STM_EVENT_RESET.
   TriggerEvent(STM_EVENT_RESET);
 }
 
-void STMEventHook::PowerButton() const
+void STMEventHookDevice::PowerButton() const
 {
   TriggerEvent(STM_EVENT_POWER);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -16,7 +16,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class USB_HIDv4 final : public USBHost
 {
@@ -56,4 +56,4 @@ private:
 
   ScanThread m_scan_thread{this};
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

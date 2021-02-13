@@ -23,7 +23,7 @@ namespace DiscIO
 enum class Platform;
 }
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 struct TitleContext
 {
@@ -38,10 +38,10 @@ struct TitleContext
   bool first_change = true;
 };
 
-class ES final : public Device
+class ESDevice final : public Device
 {
 public:
-  ES(Kernel& ios, const std::string& device_name);
+  ESDevice(Kernel& ios, const std::string& device_name);
 
   ReturnCode DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
@@ -385,4 +385,4 @@ private:
   ContextArray m_contexts;
   TitleContext m_title_context{};
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

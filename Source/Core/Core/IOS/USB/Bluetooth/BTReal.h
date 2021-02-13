@@ -40,13 +40,11 @@ enum class SyncButtonState
 
 using linkkey_t = std::array<u8, 16>;
 
-namespace Device
-{
-class BluetoothReal final : public BluetoothBase
+class BluetoothRealDevice final : public BluetoothBaseDevice
 {
 public:
-  BluetoothReal(Kernel& ios, const std::string& device_name);
-  ~BluetoothReal() override;
+  BluetoothRealDevice(Kernel& ios, const std::string& device_name);
+  ~BluetoothRealDevice() override;
 
   IPCCommandResult Open(const OpenRequest& request) override;
   IPCCommandResult Close(u32 fd) override;
@@ -121,14 +119,13 @@ private:
 
   bool OpenDevice(libusb_device* device);
 };
-}  // namespace Device
 }  // namespace IOS::HLE
 
 #else
 #include "Core/IOS/USB/Bluetooth/BTStub.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-using BluetoothReal = BluetoothStub;
-}  // namespace IOS::HLE::Device
+using BluetoothRealDevice = BluetoothStubDevice;
+}  // namespace IOS::HLE
 #endif

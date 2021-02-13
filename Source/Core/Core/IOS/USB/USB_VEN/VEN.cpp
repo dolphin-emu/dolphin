@@ -14,7 +14,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
@@ -159,4 +159,4 @@ IPCCommandResult USB_VEN::GetDeviceInfo(USBV5Device& device, const IOCtlRequest&
 
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

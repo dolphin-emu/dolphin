@@ -62,8 +62,6 @@ V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
 }
 }  // namespace USB
 
-namespace Device
-{
 namespace
 {
 #pragma pack(push, 1)
@@ -274,5 +272,4 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
   m_devicechange_hook_request.reset();
   INFO_LOG_FMT(IOS_USB, "{} USBv5 device(s), including interfaces", num_devices);
 }
-}  // namespace Device
 }  // namespace IOS::HLE

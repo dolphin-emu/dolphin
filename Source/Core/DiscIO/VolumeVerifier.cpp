@@ -568,12 +568,12 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
 
     if (IOS::HLE::IPC_SUCCESS !=
-            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
-                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+            es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::Ticket,
+                                IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore,
                                 m_volume.GetTicket(partition), cert_chain) ||
         IOS::HLE::IPC_SUCCESS !=
-            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
-                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+            es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
+                                IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore,
                                 m_volume.GetTMD(partition), cert_chain))
     {
       AddProblem(Severity::Low,
@@ -1010,8 +1010,8 @@ void VolumeVerifier::CheckMisc()
     const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
 
     if (IOS::HLE::IPC_SUCCESS !=
-        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
-                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, m_ticket,
+        es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::Ticket,
+                            IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, m_ticket,
                             cert_chain))
     {
       // i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
@@ -1019,9 +1019,8 @@ void VolumeVerifier::CheckMisc()
     }
 
     if (IOS::HLE::IPC_SUCCESS !=
-        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
-                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, tmd,
-                            cert_chain))
+        es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
+                            IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, tmd, cert_chain))
     {
       AddProblem(Severity::Low, Common::GetStringT("The TMD is not correctly signed."));
     }

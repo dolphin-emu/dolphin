@@ -245,7 +245,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
   auto device = ios->GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
   {
-    std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->TriggerSyncButtonHeldEvent();
+    std::static_pointer_cast<IOS::HLE::BluetoothBaseDevice>(device)->TriggerSyncButtonHeldEvent();
   }
 }
 
@@ -264,7 +264,7 @@ void WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed()
 
   if (device != nullptr)
   {
-    std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)
+    std::static_pointer_cast<IOS::HLE::BluetoothBaseDevice>(device)
         ->TriggerSyncButtonPressedEvent();
   }
 }

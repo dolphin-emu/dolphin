@@ -63,8 +63,6 @@ struct V5IsoMessage final : IsoMessage
 };
 }  // namespace USB
 
-namespace Device
-{
 class USBV5ResourceManager : public USBHost
 {
 public:
@@ -109,5 +107,4 @@ protected:
   mutable std::mutex m_usbv5_devices_mutex;
   u16 m_current_device_number = 0x21;
 };
-}  // namespace Device
 }  // namespace IOS::HLE

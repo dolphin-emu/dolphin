@@ -233,7 +233,7 @@ void HotkeyScheduler::Run()
         auto device = ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
 
         if (device != nullptr)
-          std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->UpdateSyncButtonState(
+          std::static_pointer_cast<IOS::HLE::BluetoothBaseDevice>(device)->UpdateSyncButtonState(
               IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
       }
 

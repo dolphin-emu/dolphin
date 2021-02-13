@@ -29,12 +29,10 @@ enum
   WFS_FILE_IS_OPENED = -10032,  // Cannot perform operation on an opened file.
 };
 
-namespace Device
-{
-class WFSSRV : public Device
+class WFSSRVDevice : public Device
 {
 public:
-  WFSSRV(Kernel& ios, const std::string& device_name);
+  WFSSRVDevice(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
@@ -105,5 +103,4 @@ private:
   // shutdown time.
   std::vector<u32> m_hanging;
 };
-}  // namespace Device
 }  // namespace IOS::HLE

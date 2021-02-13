@@ -12,7 +12,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class OH0;
 class OH0Device final : public Device
@@ -32,4 +32,4 @@ private:
   u16 m_pid = 0;
   u64 m_device_id = 0;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

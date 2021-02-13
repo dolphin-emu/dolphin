@@ -61,13 +61,11 @@ enum NET_IOCTL
   IOCTL_SO_ICMPCLOSE
 };
 
-namespace Device
-{
-class NetIPTop : public Device
+class NetIPTopDevice : public Device
 {
 public:
-  NetIPTop(Kernel& ios, const std::string& device_name);
-  virtual ~NetIPTop();
+  NetIPTopDevice(Kernel& ios, const std::string& device_name);
+  virtual ~NetIPTopDevice();
 
   void DoState(PointerWrap& p) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
@@ -105,5 +103,4 @@ private:
   WSADATA InitData;
 #endif
 };
-}  // namespace Device
 }  // namespace IOS::HLE

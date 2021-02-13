@@ -561,8 +561,7 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
   if (!DVDThread::HasDisc())
     return false;
 
-  return DVDThread::UpdateRunningGameMetadata(IOS::HLE::Device::DI::GetCurrentPartition(),
-                                              title_id);
+  return DVDThread::UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -1312,7 +1311,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::IOS:
   {
-    IOS::HLE::Device::DI::InterruptFromDVDInterface(interrupt_type);
+    IOS::HLE::DIDevice::InterruptFromDVDInterface(interrupt_type);
     break;
   }
 

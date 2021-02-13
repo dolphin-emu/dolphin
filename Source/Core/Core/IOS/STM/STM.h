@@ -12,7 +12,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 enum
 {
@@ -39,7 +39,7 @@ enum
 };
 
 // The /dev/stm/immediate
-class STMImmediate final : public Device
+class STMImmediateDevice final : public Device
 {
 public:
   using Device::Device;
@@ -47,11 +47,11 @@ public:
 };
 
 // The /dev/stm/eventhook
-class STMEventHook final : public Device
+class STMEventHookDevice final : public Device
 {
 public:
   using Device::Device;
-  ~STMEventHook() override;
+  ~STMEventHookDevice() override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 
@@ -62,4 +62,4 @@ public:
 private:
   void TriggerEvent(u32 event) const;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

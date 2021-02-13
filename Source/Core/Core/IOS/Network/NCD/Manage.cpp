@@ -13,20 +13,21 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-NetNCDManage::NetNCDManage(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetNCDManageDevice::NetNCDManageDevice(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name)
 {
   config.ReadConfig(ios.GetFS().get());
 }
 
-void NetNCDManage::DoState(PointerWrap& p)
+void NetNCDManageDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
   p.Do(m_ipc_fd);
 }
 
-IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
+IPCCommandResult NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   u32 common_result = 0;
@@ -131,4 +132,4 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
   }
   return GetDefaultReply(return_value);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

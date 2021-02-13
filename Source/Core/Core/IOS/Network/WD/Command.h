@@ -37,9 +37,9 @@ constexpr bool IsValidMode(Mode mode)
 }
 }  // namespace IOS::HLE::WD
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-class NetWDCommand : public Device
+class NetWDCommandDevice : public Device
 {
 public:
   enum class ResultCode : u32
@@ -50,7 +50,7 @@ public:
     DriverError = 0x80008003,
   };
 
-  NetWDCommand(Kernel& ios, const std::string& device_name);
+  NetWDCommandDevice(Kernel& ios, const std::string& device_name);
 
   IPCCommandResult Open(const OpenRequest& request) override;
   IPCCommandResult Close(u32 fd) override;
@@ -172,4 +172,4 @@ private:
   std::deque<u32> m_recv_frame_requests;
   std::deque<u32> m_recv_notification_requests;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

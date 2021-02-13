@@ -30,8 +30,6 @@ struct DeviceInfo
 };
 }  // namespace USB
 
-namespace Device
-{
 // /dev/usb/oh0
 class OH0 final : public USBHost
 {
@@ -85,5 +83,4 @@ private:
 
   ScanThread m_scan_thread{this};
 };
-}  // namespace Device
 }  // namespace IOS::HLE

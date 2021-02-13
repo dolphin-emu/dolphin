@@ -80,14 +80,12 @@ struct WII_SSL
   bool active;
 };
 
-namespace Device
-{
-class NetSSL : public Device
+class NetSSLDevice : public Device
 {
 public:
-  NetSSL(Kernel& ios, const std::string& device_name);
+  NetSSLDevice(Kernel& ios, const std::string& device_name);
 
-  virtual ~NetSSL();
+  virtual ~NetSSLDevice();
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
@@ -102,7 +100,6 @@ private:
 
 constexpr bool IsSSLIDValid(int id)
 {
-  return (id >= 0 && id < NET_SSL_MAXINSTANCES && IOS::HLE::Device::NetSSL::_SSL[id].active);
+  return (id >= 0 && id < NET_SSL_MAXINSTANCES && IOS::HLE::NetSSLDevice::_SSL[id].active);
 }
-}  // namespace Device
 }  // namespace IOS::HLE

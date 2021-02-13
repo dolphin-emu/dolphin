@@ -470,7 +470,7 @@ void ChangeWiiPads(bool instantly)
     return;
 
   const auto ios = IOS::HLE::GetIOS();
-  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(
                             ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
                         nullptr;
   for (int i = 0; i < MAX_WIIMOTES; ++i)

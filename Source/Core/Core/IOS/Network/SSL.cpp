@@ -21,9 +21,9 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-WII_SSL NetSSL::_SSL[IOS::HLE::NET_SSL_MAXINSTANCES];
+WII_SSL NetSSLDevice::_SSL[IOS::HLE::NET_SSL_MAXINSTANCES];
 
 static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     /* Hashes from SHA-1 and above */
@@ -68,7 +68,7 @@ int SSLRecv(void* ctx, unsigned char* buf, size_t len)
 }
 }  // namespace
 
-NetSSL::NetSSL(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetSSLDevice::NetSSLDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (WII_SSL& ssl : _SSL)
   {
@@ -76,7 +76,7 @@ NetSSL::NetSSL(Kernel& ios, const std::string& device_name) : Device(ios, device
   }
 }
 
-NetSSL::~NetSSL()
+NetSSLDevice::~NetSSLDevice()
 {
   // Cleanup sessions
   for (WII_SSL& ssl : _SSL)
@@ -101,7 +101,7 @@ NetSSL::~NetSSL()
   }
 }
 
-int NetSSL::GetSSLFreeID() const
+int NetSSLDevice::GetSSLFreeID() const
 {
   for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
   {
@@ -113,7 +113,7 @@ int NetSSL::GetSSLFreeID() const
   return 0;
 }
 
-IPCCommandResult NetSSL::IOCtl(const IOCtlRequest& request)
+IPCCommandResult NetSSLDevice::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_SSL, Common::Log::LINFO);
   return GetDefaultReply(IPC_SUCCESS);
@@ -167,7 +167,7 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   return bytes;
 }
 
-IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
+IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
 {
   u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
   u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
@@ -602,4 +602,4 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   // SSL return codes are written to BufferIn
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -15,14 +15,14 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 constexpr IOS::HLE::FS::Fd INVALID_FD = 0xffffffff;
 
-class FS : public Device
+class FSDevice : public Device
 {
 public:
-  FS(Kernel& ios, const std::string& device_name);
+  FSDevice(Kernel& ios, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
 
@@ -86,4 +86,4 @@ private:
   u16 m_cache_chain_index = 0;
   bool m_dirty_cache = false;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -19,7 +19,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/DolphinDevice.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 namespace
 {
@@ -187,4 +187,4 @@ IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return GetDefaultReply(IPC_EINVAL);
   }
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

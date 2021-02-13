@@ -166,8 +166,6 @@ struct IOCtlVRequest final : Request
                    Common::Log::LOG_LEVELS level = Common::Log::LERROR) const;
 };
 
-namespace Device
-{
 class Device
 {
 public:
@@ -213,5 +211,4 @@ protected:
 private:
   IPCCommandResult Unsupported(const Request& request);
 };
-}  // namespace Device
 }  // namespace IOS::HLE
