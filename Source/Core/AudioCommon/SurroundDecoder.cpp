@@ -125,7 +125,7 @@ void SurroundDecoder::Clear()
   m_float_conversion_buffer.clear();
   m_returnable_samples_in_decoder = 0;
   latency_warning_sent = false;
-  memset(m_last_decoded_samples, 0.f, sizeof(m_last_decoded_samples));
+  std::memset(m_last_decoded_samples, 0.f, sizeof(m_last_decoded_samples));
 }
 
 void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
@@ -267,7 +267,7 @@ void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
   if (read_samples > 0)
   {
     m_decoded_fifo.erase(read_samples);
-    memcpy(&m_last_decoded_samples[0], &out[read_samples - SURROUND_CHANNELS],
+    std::memcpy(&m_last_decoded_samples[0], &out[read_samples - SURROUND_CHANNELS],
            sizeof(float) * SURROUND_CHANNELS);
   }
 
@@ -302,7 +302,7 @@ void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
   // it should always keep that number, unless the backend latency changes
   while (read_samples < num_samples * SURROUND_CHANNELS)
   {
-    memcpy(&out[read_samples], &m_last_decoded_samples[0], sizeof(float) * SURROUND_CHANNELS);
+    std::memcpy(&out[read_samples], &m_last_decoded_samples[0], sizeof(float) * SURROUND_CHANNELS);
     read_samples += SURROUND_CHANNELS;
   }
 }

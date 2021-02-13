@@ -368,7 +368,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
     return 0;
   if (m_dma_speed.IsPaused())
   {
-    memset(samples, 0, num_samples * NC * sizeof(samples[0]));
+    std::memset(samples, 0, num_samples * NC * sizeof(samples[0]));
     return 0;
   }
   u32 original_num_samples = num_samples;
@@ -573,12 +573,12 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
     if (scratch_buffer_equal_samples)
     {
       samples = m_scratch_buffer.data();  // m_scratch_buffer might have been re-allocated
-      memset(samples, 0, std::max(available_samples, num_samples) * NC * sizeof(samples[0]));
+      std::memset(samples, 0, std::max(available_samples, num_samples) * NC * sizeof(samples[0]));
     }
     else
     {
-      memset(samples, 0, num_samples * NC * sizeof(samples[0]));
-      memset(m_scratch_buffer.data(), 0, available_samples * NC * sizeof(m_scratch_buffer[0]));
+      std::memset(samples, 0, num_samples * NC * sizeof(samples[0]));
+      std::memset(m_scratch_buffer.data(), 0, available_samples * NC * sizeof(m_scratch_buffer[0]));
     }
 
     m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, true);
@@ -593,7 +593,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
   }
   else
   {
-    memset(samples, 0, num_samples * NC * sizeof(samples[0]));
+    std::memset(samples, 0, num_samples * NC * sizeof(samples[0]));
 
     if (m_stretching)
     {
@@ -626,7 +626,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
 
 u32 Mixer::MixSurround(float* samples, u32 num_samples)
 {
-  memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(samples[0]));
+  std::memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(samples[0]));
   
   // Our latency might have increased
   m_scratch_buffer.reserve(num_samples * NC);
@@ -757,12 +757,12 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, u32 num_samples)
   if (over_bytes > 0)
   {
     auto bytes = num_samples * NC * size - over_bytes;
-    memcpy(&m_buffer[indexW & INDEX_MASK], samples, bytes);
-    memcpy(&m_buffer[0], samples + bytes / size, over_bytes);
+    std::memcpy(&m_buffer[indexW & INDEX_MASK], samples, bytes);
+    std::memcpy(&m_buffer[0], samples + bytes / size, over_bytes);
   }
   else
   {
-    memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * NC * size);
+    std::memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * NC * size);
   }
 
   m_indexW.fetch_add(num_samples * NC);
@@ -1050,7 +1050,7 @@ void Mixer::MixerFifo::UpdatePush(double time)
         u32 num_samples = std::round(std::max(latency_to_add, 0.0) * m_input_sample_rate);
         num_samples = std::min(num_samples, MAX_SAMPLES);
         
-        memset(m_mixer->m_conversion_buffer, 0,
+        std::memset(m_mixer->m_conversion_buffer, 0,
                num_samples * NC * sizeof(m_mixer->m_conversion_buffer[0]));
         PushSamples(m_mixer->m_conversion_buffer, num_samples);
       }
