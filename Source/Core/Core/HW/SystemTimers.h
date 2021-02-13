@@ -63,3 +63,12 @@ s64 GetLocalTimeRTCOffset();
 double GetEstimatedEmulationPerformance();
 
 }  // namespace SystemTimers
+
+inline namespace SystemTimersLiterals
+{
+/// Converts timebase ticks to clock ticks.
+constexpr u64 operator""_tbticks(unsigned long long value)
+{
+  return value * SystemTimers::TIMER_RATIO;
+}
+}  // namespace SystemTimersLiterals
