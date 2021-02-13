@@ -24,6 +24,10 @@ namespace Core
 NetworkCaptureLogger::NetworkCaptureLogger() = default;
 NetworkCaptureLogger::~NetworkCaptureLogger() = default;
 
+void DummyNetworkCaptureLogger::OnNewSocket(s32 socket)
+{
+}
+
 void DummyNetworkCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
 {
 }
@@ -80,6 +84,12 @@ PCAPSSLCaptureLogger::PCAPSSLCaptureLogger()
 }
 
 PCAPSSLCaptureLogger::~PCAPSSLCaptureLogger() = default;
+
+void PCAPSSLCaptureLogger::OnNewSocket(s32 socket)
+{
+  m_read_sequence_number[socket] = 0;
+  m_write_sequence_number[socket] = 0;
+}
 
 PCAPSSLCaptureLogger::ErrorState PCAPSSLCaptureLogger::SaveState() const
 {
@@ -193,8 +203,8 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
 
   if (socket_type == SOCK_STREAM)
   {
-    u32& sequence_number =
-        (log_type == LogType::Read) ? m_read_sequence_number : m_write_sequence_number;
+    u32& sequence_number = (log_type == LogType::Read) ? m_read_sequence_number[socket] :
+                                                         m_write_sequence_number[socket];
     Common::TCPHeader tcp_header(from, to, sequence_number, data, length);
     sequence_number += static_cast<u32>(length);
     Common::IPv4Header ip_header(tcp_header.Size() + length, tcp_header.IPProto(), from, to);
