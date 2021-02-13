@@ -45,6 +45,38 @@ struct IPCReply
   u64 reply_delay_ticks;
 };
 
+// Used to make it more convenient for functions to return timing information
+// without having to explicitly keep track of ticks in callers.
+class Ticks
+{
+public:
+  Ticks(u64* ticks = nullptr) : m_ticks(ticks) {}
+
+  void Add(u64 ticks)
+  {
+    if (m_ticks != nullptr)
+      *m_ticks += ticks;
+  }
+
+  void AddTimeBaseTicks(u64 tb_ticks) { Add(tb_ticks * SystemTimers::TIMER_RATIO); }
+
+private:
+  u64* m_ticks = nullptr;
+};
+
+template <typename ResultProducer>
+IPCReply MakeIPCReply(u64 ticks, const ResultProducer& fn)
+{
+  const s32 result_value = fn(Ticks{&ticks});
+  return IPCReply{result_value, ticks};
+}
+
+template <typename ResultProducer>
+IPCReply MakeIPCReply(const ResultProducer& fn)
+{
+  return MakeIPCReply(0, fn);
+}
+
 enum IPCCommandType : u32
 {
   IPC_CMD_OPEN = 1,
