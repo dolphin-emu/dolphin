@@ -67,7 +67,7 @@ public:
 
   void Reset() override { m_mat = Common::Matrix44::Identity(); }
 
-  void DoState(PointerWrap& p) { p.Do(m_mat); }
+  void DoState(PointerWrap& p) override { p.Do(m_mat); }
 
 private:
   Common::Matrix44 m_mat = Common::Matrix44::Identity();
@@ -119,7 +119,7 @@ public:
     m_rotate_quat = Common::Quaternion::Identity();
   }
 
-  void DoState(PointerWrap& p)
+  void DoState(PointerWrap& p) override
   {
     p.Do(m_rotation);
     p.Do(m_rotate_quat);
@@ -170,7 +170,7 @@ public:
     m_distance = 0;
   }
 
-  void DoState(PointerWrap& p)
+  void DoState(PointerWrap& p) override
   {
     p.Do(m_rotation);
     p.Do(m_rotate_quat);
