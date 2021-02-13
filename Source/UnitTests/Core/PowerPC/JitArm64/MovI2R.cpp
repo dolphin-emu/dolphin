@@ -78,10 +78,22 @@ TEST(JitArm64, MovI2R_ADP)
 {
   TestMovI2R test;
   const u64 base = Common::BitCast<u64>(test.GetCodePtr());
+
+  // Test offsets around 0
   for (s64 i = -0x20000; i < 0x20000; i++)
   {
     const u64 offset = static_cast<u64>(i);
     test.Check64(base + offset);
+  }
+
+  // Test offsets around the maximum
+  for (const s64 i : {-0x200000ll, 0x200000ll})
+  {
+    for (s64 j = -4; j < 4; j++)
+    {
+      const u64 offset = static_cast<u64>(i + j);
+      test.Check64(base + offset);
+    }
   }
 }
 
@@ -89,9 +101,21 @@ TEST(JitArm64, MovI2R_ADRP)
 {
   TestMovI2R test;
   const u64 base = Common::BitCast<u64>(test.GetCodePtr()) & ~0xFFF;
+
+  // Test offsets around 0
   for (s64 i = -0x20000; i < 0x20000; i++)
   {
     const u64 offset = static_cast<u64>(i) << 12;
     test.Check64(base + offset);
+  }
+
+  // Test offsets around the maximum
+  for (const s64 i : {-0x100000000ll, -0x80000000ll, 0x80000000ll, 0x100000000ll})
+  {
+    for (s64 j = -4; j < 4; j++)
+    {
+      const u64 offset = static_cast<u64>(i + (j << 12));
+      test.Check64(base + offset);
+    }
   }
 }
