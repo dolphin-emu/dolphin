@@ -384,6 +384,8 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   {
     while (IsHighWatermarkSet())
     {
+      if (CPU::GetState() != CPU::State::Running)
+        break;
       CoreTiming::Idle();
       CoreTiming::Advance();
     }
