@@ -120,10 +120,10 @@ void TitleContext::Update(const ES::TMDReader& tmd_, const ES::TicketReader& tic
   }
 }
 
-IPCCommandResult ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -132,7 +132,7 @@ IPCCommandResult ESDevice::GetTitleDirectory(const IOCtlVRequest& request)
           static_cast<u32>(title_id));
 
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETTITLEDIR: {}", path);
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 ReturnCode ESDevice::GetTitleId(u64* title_id) const
@@ -143,20 +143,20 @@ ReturnCode ESDevice::GetTitleId(u64* title_id) const
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ESDevice::GetTitleId(const IOCtlVRequest& request)
+IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   u64 title_id;
   const ReturnCode ret = GetTitleId(&title_id);
   if (ret != IPC_SUCCESS)
-    return GetDefaultReply(ret);
+    return IPCReply(ret);
 
   Memory::Write_U64(title_id, request.io_vectors[0].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETTITLEID: {:08x}/{:08x}", static_cast<u32>(title_id >> 32),
                static_cast<u32>(title_id));
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
@@ -196,10 +196,10 @@ static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
   return ES_EINVAL;
 }
 
-IPCCommandResult ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -207,20 +207,20 @@ IPCCommandResult ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
   if (ret < 0)
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Permission check failed with error {}", ret);
-    return GetDefaultReply(ret);
+    return IPCReply(ret);
   }
 
   const auto tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
-    return GetDefaultReply(FS_ENOENT);
+    return IPCReply(FS_ENOENT);
 
   if (!UpdateUIDAndGID(m_ios, tmd))
   {
     ERROR_LOG_FMT(IOS_ES, "SetUID: Failed to get UID for title {:016x}", title_id);
-    return GetDefaultReply(ES_SHORT_READ);
+    return IPCReply(ES_SHORT_READ);
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
@@ -380,11 +380,11 @@ ESDevice::ContextArray::iterator ESDevice::FindInactiveContext()
                       [](const auto& context) { return !context.active; });
 }
 
-IPCCommandResult ESDevice::Open(const OpenRequest& request)
+std::optional<IPCReply> ESDevice::Open(const OpenRequest& request)
 {
   auto context = FindInactiveContext();
   if (context == m_contexts.end())
-    return GetDefaultReply(ES_FD_EXHAUSTED);
+    return IPCReply{ES_FD_EXHAUSTED};
 
   context->active = true;
   context->uid = request.uid;
@@ -393,26 +393,26 @@ IPCCommandResult ESDevice::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-IPCCommandResult ESDevice::Close(u32 fd)
+std::optional<IPCReply> ESDevice::Close(u32 fd)
 {
   auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   context->active = false;
   context->ipc_fd = -1;
 
   INFO_LOG_FMT(IOS_ES, "ES: Close");
   m_is_active = false;
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ESDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> ESDevice::IOCtlV(const IOCtlVRequest& request)
 {
   DEBUG_LOG_FMT(IOS_ES, "{} ({:#x})", GetDeviceName(), request.request);
   auto context = FindActiveContext(request.fd);
   if (context == m_contexts.end())
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   switch (request.request)
   {
@@ -562,29 +562,29 @@ IPCCommandResult ESDevice::IOCtlV(const IOCtlVRequest& request)
     PanicAlertFmt("IOS-ES: Unimplemented ioctlv {:#x} ({} in vectors, {} io vectors)",
                   request.request, request.in_vectors.size(), request.io_vectors.size());
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_ES, Common::Log::LERROR);
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   case IOCTL_ES_INVALID_3F:
   default:
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   }
 }
 
-IPCCommandResult ESDevice::GetConsumption(const IOCtlVRequest& request)
+IPCReply ESDevice::GetConsumption(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 2))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   // This is at least what crediar's ES module does
   Memory::Write_U32(0, request.io_vectors[1].address);
   INFO_LOG_FMT(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ESDevice::Launch(const IOCtlVRequest& request)
+std::optional<IPCReply> ESDevice::Launch(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -598,41 +598,41 @@ IPCCommandResult ESDevice::Launch(const IOCtlVRequest& request)
 
   // Prevent loading installed IOSes that are not emulated.
   if (!IsEmulated(title_id))
-    return GetDefaultReply(FS_ENOENT);
+    return IPCReply(FS_ENOENT);
 
   // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
   // Note: Launch will potentially reset the whole IOS state -- including this ES instance.
   if (!LaunchTitle(title_id))
-    return GetDefaultReply(FS_ENOENT);
+    return IPCReply(FS_ENOENT);
 
   // ES_LAUNCH involves restarting IOS, which results in two acknowledgements in a row
   // (one from the previous IOS for this IPC request, and one from the new one as it boots).
   // Nothing should be written to the command buffer if the launch succeeded for obvious reasons.
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult ESDevice::LaunchBC(const IOCtlVRequest& request)
+std::optional<IPCReply> ESDevice::LaunchBC(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
   // An alternative way to do this is to check whether the current active IOS is MIOS.
   if (m_ios.GetVersion() == 0x101)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   if (!LaunchTitle(0x0000000100000100))
-    return GetDefaultReply(FS_ENOENT);
+    return IPCReply(FS_ENOENT);
 
-  return GetNoReply();
+  return std::nullopt;
 }
 
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
 // used from the PowerPC (for unpatched and up-to-date IOSes anyway).
 // So we block access to it from the IPC interface.
-IPCCommandResult ESDevice::DIVerify(const IOCtlVRequest& request)
+IPCReply ESDevice::DIVerify(const IOCtlVRequest& request)
 {
-  return GetDefaultReply(ES_EINVAL);
+  return IPCReply(ES_EINVAL);
 }
 
 static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& tmd)
@@ -796,13 +796,13 @@ ReturnCode ESDevice::SetUpStreamKey(const u32 uid, const u8* ticket_view, const 
                                          &ticket_bytes[offsetof(ES::Ticket, title_key)], PID_ES);
 }
 
-IPCCommandResult ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
       request.in_vectors[0].size != sizeof(ES::TicketView) ||
       !ES::IsValidTMDSize(request.in_vectors[1].size) || request.io_vectors[0].size != sizeof(u32))
   {
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
   }
 
   std::vector<u8> tmd_bytes(request.in_vectors[1].size);
@@ -810,22 +810,22 @@ IPCCommandResult ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRe
   const ES::TMDReader tmd{std::move(tmd_bytes)};
 
   if (!tmd.IsValid())
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   u32 handle;
   const ReturnCode ret =
       SetUpStreamKey(context.uid, Memory::GetPointer(request.in_vectors[0].address), tmd, &handle);
   Memory::Write_U32(handle, request.io_vectors[0].address);
-  return GetDefaultReply(ret);
+  return IPCReply(ret);
 }
 
-IPCCommandResult ESDevice::DeleteStreamKey(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteStreamKey(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u32 handle = Memory::Read_U32(request.in_vectors[0].address);
-  return GetDefaultReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
+  return IPCReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
 }
 
 bool ESDevice::IsActiveTitlePermittedByTicket(const u8* ticket_view) const

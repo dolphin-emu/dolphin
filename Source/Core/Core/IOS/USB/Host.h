@@ -33,7 +33,7 @@ public:
   USBHost(Kernel& ios, const std::string& device_name);
   virtual ~USBHost();
 
-  IPCCommandResult Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
 
   void UpdateWantDeterminism(bool new_want_determinism) override;
   void DoState(PointerWrap& p) override;
@@ -72,8 +72,8 @@ protected:
   virtual bool ShouldAddDevice(const USB::Device& device) const;
   virtual ScanThread& GetScanThread() = 0;
 
-  IPCCommandResult HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                  std::function<s32()> submit) const;
+  std::optional<IPCReply> HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
+                                         std::function<s32()> submit) const;
 
 private:
   bool AddDevice(std::unique_ptr<USB::Device> device);

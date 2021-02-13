@@ -127,7 +127,7 @@ bool BluetoothEmuDevice::RemoteDisconnect(const bdaddr_t& address)
   return SendEventDisconnect(GetConnectionHandle(address), 0x13);
 }
 
-IPCCommandResult BluetoothEmuDevice::Close(u32 fd)
+std::optional<IPCReply> BluetoothEmuDevice::Close(u32 fd)
 {
   // Clean up state
   m_scan_enable = 0;
@@ -139,7 +139,7 @@ IPCCommandResult BluetoothEmuDevice::Close(u32 fd)
   return Device::Close(fd);
 }
 
-IPCCommandResult BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
 {
   bool send_reply = true;
   switch (request.request)
@@ -204,7 +204,9 @@ IPCCommandResult BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_WIIMOTE);
   }
 
-  return send_reply ? GetDefaultReply(IPC_SUCCESS) : GetNoReply();
+  if (!send_reply)
+    return std::nullopt;
+  return IPCReply(IPC_SUCCESS);
 }
 
 // Here we handle the USB::IOCTLV_USBV0_BLKMSG Ioctlv

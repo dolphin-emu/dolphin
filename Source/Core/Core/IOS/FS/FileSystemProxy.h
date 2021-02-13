@@ -26,13 +26,13 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult Read(const ReadWriteRequest& request) override;
-  IPCCommandResult Write(const ReadWriteRequest& request) override;
-  IPCCommandResult Seek(const SeekRequest& request) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> Read(const ReadWriteRequest& request) override;
+  std::optional<IPCReply> Write(const ReadWriteRequest& request) override;
+  std::optional<IPCReply> Seek(const SeekRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
 private:
   struct Handle
@@ -62,19 +62,19 @@ private:
     ISFS_IOCTL_SHUTDOWN = 13,
   };
 
-  IPCCommandResult Format(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetStats(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult CreateDirectory(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult ReadDirectory(const Handle& handle, const IOCtlVRequest& request);
-  IPCCommandResult SetAttribute(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetAttribute(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult DeleteFile(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult RenameFile(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult CreateFile(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult SetFileVersionControl(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetFileStats(const Handle& handle, const IOCtlRequest& request);
-  IPCCommandResult GetUsage(const Handle& handle, const IOCtlVRequest& request);
-  IPCCommandResult Shutdown(const Handle& handle, const IOCtlRequest& request);
+  IPCReply Format(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetStats(const Handle& handle, const IOCtlRequest& request);
+  IPCReply CreateDirectory(const Handle& handle, const IOCtlRequest& request);
+  IPCReply ReadDirectory(const Handle& handle, const IOCtlVRequest& request);
+  IPCReply SetAttribute(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetAttribute(const Handle& handle, const IOCtlRequest& request);
+  IPCReply DeleteFile(const Handle& handle, const IOCtlRequest& request);
+  IPCReply RenameFile(const Handle& handle, const IOCtlRequest& request);
+  IPCReply CreateFile(const Handle& handle, const IOCtlRequest& request);
+  IPCReply SetFileVersionControl(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetFileStats(const Handle& handle, const IOCtlRequest& request);
+  IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request);
+  IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
 
   u64 EstimateTicksForReadWrite(const Handle& handle, const ReadWriteRequest& request);
   u64 SimulatePopulateFileCache(u32 fd, u32 offset, u32 file_size);

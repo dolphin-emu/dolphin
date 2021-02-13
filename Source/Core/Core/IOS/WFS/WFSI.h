@@ -37,7 +37,7 @@ class WFSIDevice : public Device
 public:
   WFSIDevice(Kernel& ios, const std::string& device_name);
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
 private:
   u32 GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const;

@@ -77,10 +77,10 @@ BluetoothRealDevice::~BluetoothRealDevice()
   SaveLinkKeys();
 }
 
-IPCCommandResult BluetoothRealDevice::Open(const OpenRequest& request)
+std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
 {
   if (!m_context.IsValid())
-    return GetDefaultReply(IPC_EACCES);
+    return IPCReply(IPC_EACCES);
 
   m_last_open_error.clear();
   m_context.GetDeviceList([this](libusb_device* device) {
@@ -132,13 +132,13 @@ IPCCommandResult BluetoothRealDevice::Open(const OpenRequest& request)
           m_last_open_error);
     }
     Core::QueueHostJob(Core::Stop);
-    return GetDefaultReply(IPC_ENOENT);
+    return IPCReply(IPC_ENOENT);
   }
 
   return Device::Open(request);
 }
 
-IPCCommandResult BluetoothRealDevice::Close(u32 fd)
+std::optional<IPCReply> BluetoothRealDevice::Close(u32 fd)
 {
   if (m_handle)
   {
@@ -151,7 +151,7 @@ IPCCommandResult BluetoothRealDevice::Close(u32 fd)
   return Device::Close(fd);
 }
 
-IPCCommandResult BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request)
 {
   if (!m_is_wii_bt_module && m_need_reset_keys.TestAndClear())
   {
@@ -173,13 +173,13 @@ IPCCommandResult BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request)
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
     {
       m_fake_read_buffer_size_reply.Set();
-      return GetNoReply();
+      return std::nullopt;
     }
     if (!m_is_wii_bt_module && (opcode == 0xFC4C || opcode == 0xFC4F))
     {
       m_fake_vendor_command_reply.Set();
       m_fake_vendor_command_reply_opcode = opcode;
-      return GetNoReply();
+      return std::nullopt;
     }
     if (opcode == HCI_CMD_DELETE_STORED_LINK_KEY)
     {
@@ -218,23 +218,23 @@ IPCCommandResult BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request)
       {
         Core::DisplayMessage("Scanning for Wii Remotes", 2000);
         FakeSyncButtonPressedEvent(*cmd);
-        return GetNoReply();
+        return std::nullopt;
       }
       if (m_sync_button_state == SyncButtonState::LongPressed)
       {
         Core::DisplayMessage("Reset saved Wii Remote pairings", 2000);
         FakeSyncButtonHeldEvent(*cmd);
-        return GetNoReply();
+        return std::nullopt;
       }
       if (m_fake_read_buffer_size_reply.TestAndClear())
       {
         FakeReadBufferSizeReply(*cmd);
-        return GetNoReply();
+        return std::nullopt;
       }
       if (m_fake_vendor_command_reply.TestAndClear())
       {
         FakeVendorCommandReply(*cmd);
-        return GetNoReply();
+        return std::nullopt;
       }
     }
     auto buffer = cmd->MakeBuffer(cmd->length);
@@ -258,7 +258,7 @@ IPCCommandResult BluetoothRealDevice::IOCtlV(const IOCtlVRequest& request)
   }
   }
   // Replies are generated inside of the message handlers (and asynchronously).
-  return GetNoReply();
+  return std::nullopt;
 }
 
 static bool s_has_shown_savestate_warning = false;

@@ -518,14 +518,14 @@ std::shared_ptr<Device> EmulationKernel::GetDeviceByName(std::string_view device
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
-IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
+std::optional<IPCReply> Kernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
   INFO_LOG_FMT(IOS, "Opening {} (mode {}, fd {})", request.path, request.flags, new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG_FMT(IOS, "Couldn't get a free fd, too many open files");
-    return IPCCommandResult{IPC_EMAX, true, 5000 * SystemTimers::TIMER_RATIO};
+    return IPCReply{IPC_EMAX, 5000_tbticks};
   }
   request.fd = new_fd;
 
@@ -547,22 +547,22 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   if (!device)
   {
     ERROR_LOG_FMT(IOS, "Unknown device: {}", request.path);
-    return {IPC_ENOENT, true, 3700 * SystemTimers::TIMER_RATIO};
+    return IPCReply{IPC_ENOENT, 3700_tbticks};
   }
 
-  IPCCommandResult result = device->Open(request);
-  if (result.return_value >= IPC_SUCCESS)
+  std::optional<IPCReply> result = device->Open(request);
+  if (result && result->return_value >= IPC_SUCCESS)
   {
     m_fdmap[new_fd] = device;
-    result.return_value = new_fd;
+    result->return_value = new_fd;
   }
   return result;
 }
 
-IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
+std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
 {
   if (request.command < IPC_CMD_OPEN || request.command > IPC_CMD_IOCTLV)
-    return IPCCommandResult{IPC_EINVAL, true, 978 * SystemTimers::TIMER_RATIO};
+    return IPCReply{IPC_EINVAL, 978_tbticks};
 
   if (request.command == IPC_CMD_OPEN)
   {
@@ -572,9 +572,9 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
 
   const auto device = (request.fd < IPC_MAX_FDS) ? m_fdmap[request.fd] : nullptr;
   if (!device)
-    return IPCCommandResult{IPC_EINVAL, true, 550 * SystemTimers::TIMER_RATIO};
+    return IPCReply{IPC_EINVAL, 550_tbticks};
 
-  IPCCommandResult ret;
+  std::optional<IPCReply> ret;
   const u64 wall_time_before = Common::Timer::GetTimeUs();
 
   switch (request.command)
@@ -600,7 +600,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
     break;
   default:
     ASSERT_MSG(IOS, false, "Unexpected command: %x", request.command);
-    ret = IPCCommandResult{IPC_EINVAL, true, 978 * SystemTimers::TIMER_RATIO};
+    ret = IPCReply{IPC_EINVAL, 978_tbticks};
     break;
   }
 
@@ -618,18 +618,18 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
 void Kernel::ExecuteIPCCommand(const u32 address)
 {
   Request request{address};
-  IPCCommandResult result = HandleIPCCommand(request);
+  std::optional<IPCReply> result = HandleIPCCommand(request);
 
-  if (!result.send_reply)
+  if (!result)
     return;
 
   // Ensure replies happen in order
   const s64 ticks_until_last_reply = m_last_reply_time - CoreTiming::GetTicks();
   if (ticks_until_last_reply > 0)
-    result.reply_delay_ticks += ticks_until_last_reply;
-  m_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
+    result->reply_delay_ticks += ticks_until_last_reply;
+  m_last_reply_time = CoreTiming::GetTicks() + result->reply_delay_ticks;
 
-  EnqueueIPCReply(request, result.return_value, static_cast<int>(result.reply_delay_ticks));
+  EnqueueIPCReply(request, result->return_value, result->reply_delay_ticks);
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
@@ -638,12 +638,11 @@ void Kernel::EnqueueIPCRequest(u32 address)
   // Based on hardware tests, IOS takes between 5µs and 10µs to acknowledge an IPC request.
   // Console 1: 456 TB ticks before ACK
   // Console 2: 658 TB ticks before ACK
-  CoreTiming::ScheduleEvent(500 * SystemTimers::TIMER_RATIO, s_event_enqueue,
-                            address | ENQUEUE_REQUEST_FLAG);
+  CoreTiming::ScheduleEvent(500_tbticks, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called to send a reply to an IOS syscall
-void Kernel::EnqueueIPCReply(const Request& request, const s32 return_value, int cycles_in_future,
+void Kernel::EnqueueIPCReply(const Request& request, const s32 return_value, s64 cycles_in_future,
                              CoreTiming::FromThread from)
 {
   Memory::Write_U32(static_cast<u32>(return_value), request.address + 4);
@@ -851,5 +850,21 @@ void Shutdown()
 EmulationKernel* GetIOS()
 {
   return s_ios.get();
+}
+
+// Based on a hardware test, a device takes at least ~2700 ticks to reply to an IPC request.
+// Depending on how much work a command performs, this can take much longer (10000+)
+// especially if the NAND filesystem is accessed.
+//
+// Because we currently don't emulate timing very accurately, we should not return
+// the minimum possible reply time (~960 ticks from the kernel or ~2700 from devices)
+// but an average value, otherwise we are going to be much too fast in most cases.
+IPCReply::IPCReply(s32 return_value_) : IPCReply(return_value_, 4000_tbticks)
+{
+}
+
+IPCReply::IPCReply(s32 return_value_, u64 reply_delay_ticks_)
+    : return_value(return_value_), reply_delay_ticks(reply_delay_ticks_)
+{
 }
 }  // namespace IOS::HLE

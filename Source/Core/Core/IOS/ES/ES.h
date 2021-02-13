@@ -48,9 +48,9 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
   struct TitleImportExportContext
   {
@@ -261,84 +261,84 @@ private:
   using ContextArray = std::array<Context, 3>;
 
   // Title management
-  IPCCommandResult ImportTicket(const IOCtlVRequest& request);
-  IPCCommandResult ImportTmd(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ImportTitleInit(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ImportContentBegin(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ImportContentData(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ImportContentEnd(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ImportTitleDone(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ImportTitleCancel(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ExportTitleInit(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ExportContentBegin(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ExportContentData(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ExportContentEnd(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult ExportTitleDone(Context& context, const IOCtlVRequest& request);
-  IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
-  IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
-  IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
-  IPCCommandResult DeleteSharedContent(const IOCtlVRequest& request);
-  IPCCommandResult DeleteContent(const IOCtlVRequest& request);
+  IPCReply ImportTicket(const IOCtlVRequest& request);
+  IPCReply ImportTmd(Context& context, const IOCtlVRequest& request);
+  IPCReply ImportTitleInit(Context& context, const IOCtlVRequest& request);
+  IPCReply ImportContentBegin(Context& context, const IOCtlVRequest& request);
+  IPCReply ImportContentData(Context& context, const IOCtlVRequest& request);
+  IPCReply ImportContentEnd(Context& context, const IOCtlVRequest& request);
+  IPCReply ImportTitleDone(Context& context, const IOCtlVRequest& request);
+  IPCReply ImportTitleCancel(Context& context, const IOCtlVRequest& request);
+  IPCReply ExportTitleInit(Context& context, const IOCtlVRequest& request);
+  IPCReply ExportContentBegin(Context& context, const IOCtlVRequest& request);
+  IPCReply ExportContentData(Context& context, const IOCtlVRequest& request);
+  IPCReply ExportContentEnd(Context& context, const IOCtlVRequest& request);
+  IPCReply ExportTitleDone(Context& context, const IOCtlVRequest& request);
+  IPCReply DeleteTitle(const IOCtlVRequest& request);
+  IPCReply DeleteTitleContent(const IOCtlVRequest& request);
+  IPCReply DeleteTicket(const IOCtlVRequest& request);
+  IPCReply DeleteSharedContent(const IOCtlVRequest& request);
+  IPCReply DeleteContent(const IOCtlVRequest& request);
 
   // Device identity and encryption
-  IPCCommandResult GetDeviceId(const IOCtlVRequest& request);
-  IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
-  IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
-  IPCCommandResult Sign(const IOCtlVRequest& request);
-  IPCCommandResult VerifySign(const IOCtlVRequest& request);
-  IPCCommandResult Encrypt(u32 uid, const IOCtlVRequest& request);
-  IPCCommandResult Decrypt(u32 uid, const IOCtlVRequest& request);
+  IPCReply GetDeviceId(const IOCtlVRequest& request);
+  IPCReply GetDeviceCertificate(const IOCtlVRequest& request);
+  IPCReply CheckKoreaRegion(const IOCtlVRequest& request);
+  IPCReply Sign(const IOCtlVRequest& request);
+  IPCReply VerifySign(const IOCtlVRequest& request);
+  IPCReply Encrypt(u32 uid, const IOCtlVRequest& request);
+  IPCReply Decrypt(u32 uid, const IOCtlVRequest& request);
 
   // Misc
-  IPCCommandResult SetUID(u32 uid, const IOCtlVRequest& request);
-  IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleId(const IOCtlVRequest& request);
-  IPCCommandResult GetConsumption(const IOCtlVRequest& request);
-  IPCCommandResult Launch(const IOCtlVRequest& request);
-  IPCCommandResult LaunchBC(const IOCtlVRequest& request);
-  IPCCommandResult DIVerify(const IOCtlVRequest& request);
-  IPCCommandResult SetUpStreamKey(const Context& context, const IOCtlVRequest& request);
-  IPCCommandResult DeleteStreamKey(const IOCtlVRequest& request);
+  IPCReply SetUID(u32 uid, const IOCtlVRequest& request);
+  IPCReply GetTitleDirectory(const IOCtlVRequest& request);
+  IPCReply GetTitleId(const IOCtlVRequest& request);
+  IPCReply GetConsumption(const IOCtlVRequest& request);
+  std::optional<IPCReply> Launch(const IOCtlVRequest& request);
+  std::optional<IPCReply> LaunchBC(const IOCtlVRequest& request);
+  IPCReply DIVerify(const IOCtlVRequest& request);
+  IPCReply SetUpStreamKey(const Context& context, const IOCtlVRequest& request);
+  IPCReply DeleteStreamKey(const IOCtlVRequest& request);
 
   // Title contents
-  IPCCommandResult OpenActiveTitleContent(u32 uid, const IOCtlVRequest& request);
-  IPCCommandResult OpenContent(u32 uid, const IOCtlVRequest& request);
-  IPCCommandResult ReadContent(u32 uid, const IOCtlVRequest& request);
-  IPCCommandResult CloseContent(u32 uid, const IOCtlVRequest& request);
-  IPCCommandResult SeekContent(u32 uid, const IOCtlVRequest& request);
+  IPCReply OpenActiveTitleContent(u32 uid, const IOCtlVRequest& request);
+  IPCReply OpenContent(u32 uid, const IOCtlVRequest& request);
+  IPCReply ReadContent(u32 uid, const IOCtlVRequest& request);
+  IPCReply CloseContent(u32 uid, const IOCtlVRequest& request);
+  IPCReply SeekContent(u32 uid, const IOCtlVRequest& request);
 
   // Title information
-  IPCCommandResult GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
-  IPCCommandResult GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request);
-  IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
-  IPCCommandResult GetOwnedTitles(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
-  IPCCommandResult GetTitles(const IOCtlVRequest& request);
-  IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlVRequest& request);
-  IPCCommandResult GetStoredContents(const ES::TMDReader& tmd, const IOCtlVRequest& request);
-  IPCCommandResult GetStoredContentsCount(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredContents(const IOCtlVRequest& request);
-  IPCCommandResult GetTMDStoredContentsCount(const IOCtlVRequest& request);
-  IPCCommandResult GetTMDStoredContents(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredTMDSize(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredTMD(const IOCtlVRequest& request);
-  IPCCommandResult GetSharedContentsCount(const IOCtlVRequest& request) const;
-  IPCCommandResult GetSharedContents(const IOCtlVRequest& request) const;
+  IPCReply GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
+  IPCReply GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request);
+  IPCReply GetOwnedTitleCount(const IOCtlVRequest& request);
+  IPCReply GetOwnedTitles(const IOCtlVRequest& request);
+  IPCReply GetTitleCount(const IOCtlVRequest& request);
+  IPCReply GetTitles(const IOCtlVRequest& request);
+  IPCReply GetBoot2Version(const IOCtlVRequest& request);
+  IPCReply GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlVRequest& request);
+  IPCReply GetStoredContents(const ES::TMDReader& tmd, const IOCtlVRequest& request);
+  IPCReply GetStoredContentsCount(const IOCtlVRequest& request);
+  IPCReply GetStoredContents(const IOCtlVRequest& request);
+  IPCReply GetTMDStoredContentsCount(const IOCtlVRequest& request);
+  IPCReply GetTMDStoredContents(const IOCtlVRequest& request);
+  IPCReply GetStoredTMDSize(const IOCtlVRequest& request);
+  IPCReply GetStoredTMD(const IOCtlVRequest& request);
+  IPCReply GetSharedContentsCount(const IOCtlVRequest& request) const;
+  IPCReply GetSharedContents(const IOCtlVRequest& request) const;
 
   // Views for tickets and TMDs
-  IPCCommandResult GetTicketViewCount(const IOCtlVRequest& request);
-  IPCCommandResult GetTicketViews(const IOCtlVRequest& request);
-  IPCCommandResult GetV0TicketFromView(const IOCtlVRequest& request);
-  IPCCommandResult GetTicketSizeFromView(const IOCtlVRequest& request);
-  IPCCommandResult GetTicketFromView(const IOCtlVRequest& request);
-  IPCCommandResult GetTMDViewSize(const IOCtlVRequest& request);
-  IPCCommandResult GetTMDViews(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTMDViewSize(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTMDView(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTMDSize(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTMD(const IOCtlVRequest& request);
+  IPCReply GetTicketViewCount(const IOCtlVRequest& request);
+  IPCReply GetTicketViews(const IOCtlVRequest& request);
+  IPCReply GetV0TicketFromView(const IOCtlVRequest& request);
+  IPCReply GetTicketSizeFromView(const IOCtlVRequest& request);
+  IPCReply GetTicketFromView(const IOCtlVRequest& request);
+  IPCReply GetTMDViewSize(const IOCtlVRequest& request);
+  IPCReply GetTMDViews(const IOCtlVRequest& request);
+  IPCReply DIGetTicketView(const IOCtlVRequest& request);
+  IPCReply DIGetTMDViewSize(const IOCtlVRequest& request);
+  IPCReply DIGetTMDView(const IOCtlVRequest& request);
+  IPCReply DIGetTMDSize(const IOCtlVRequest& request);
+  IPCReply DIGetTMD(const IOCtlVRequest& request);
 
   ContextArray::iterator FindActiveContext(s32 fd);
   ContextArray::iterator FindInactiveContext();

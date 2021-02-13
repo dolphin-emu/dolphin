@@ -183,7 +183,7 @@ void NetWDCommandDevice::DoState(PointerWrap& p)
   p.Do(m_recv_notification_requests);
 }
 
-IPCCommandResult NetWDCommandDevice::Open(const OpenRequest& request)
+std::optional<IPCReply> NetWDCommandDevice::Open(const OpenRequest& request)
 {
   if (m_ipc_owner_fd < 0)
   {
@@ -197,7 +197,7 @@ IPCCommandResult NetWDCommandDevice::Open(const OpenRequest& request)
     {
       ERROR_LOG_FMT(IOS_NET, "Unsupported WD operating mode: {}", mode);
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNCOMMON_WD_MODE);
-      return GetDefaultReply(s32(ResultCode::UnavailableCommand));
+      return IPCReply(s32(ResultCode::UnavailableCommand));
     }
 
     if (m_target_status == Status::Idle && mode <= WD::Mode::Unknown6)
@@ -212,12 +212,12 @@ IPCCommandResult NetWDCommandDevice::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-IPCCommandResult NetWDCommandDevice::Close(u32 fd)
+std::optional<IPCReply> NetWDCommandDevice::Close(u32 fd)
 {
   if (m_ipc_owner_fd < 0 || fd != u32(m_ipc_owner_fd))
   {
     ERROR_LOG_FMT(IOS_NET, "Invalid close attempt.");
-    return GetDefaultReply(u32(ResultCode::InvalidFd));
+    return IPCReply(u32(ResultCode::InvalidFd));
   }
 
   INFO_LOG_FMT(IOS_NET, "Closing and resetting status to Idle");
@@ -228,11 +228,11 @@ IPCCommandResult NetWDCommandDevice::Close(u32 fd)
   return Device::Close(fd);
 }
 
-IPCCommandResult NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
+IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)
-    return GetDefaultReply(u32(ResultCode::IllegalParameter));
+    return IPCReply(u32(ResultCode::IllegalParameter));
 
   const u32 state = Memory::Read_U32(vector->address);
   INFO_LOG_FMT(IOS_NET, "WD_SetLinkState called (state={}, mode={})", state, m_mode);
@@ -240,7 +240,7 @@ IPCCommandResult NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
   if (state == 0)
   {
     if (!WD::IsValidMode(m_mode))
-      return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+      return IPCReply(u32(ResultCode::UnavailableCommand));
 
     INFO_LOG_FMT(IOS_NET, "WD_SetLinkState: setting target status to 1 (Idle)");
     m_target_status = Status::Idle;
@@ -248,37 +248,37 @@ IPCCommandResult NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
   else
   {
     if (state != 1)
-      return GetDefaultReply(u32(ResultCode::IllegalParameter));
+      return IPCReply(u32(ResultCode::IllegalParameter));
 
     if (!WD::IsValidMode(m_mode))
-      return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+      return IPCReply(u32(ResultCode::UnavailableCommand));
 
     const auto target_status = GetTargetStatusForMode(m_mode);
     if (m_status != target_status && m_info.enabled_channels == 0)
-      return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+      return IPCReply(u32(ResultCode::UnavailableCommand));
 
     INFO_LOG_FMT(IOS_NET, "WD_SetLinkState: setting target status to {}", target_status);
     m_target_status = target_status;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetWDCommandDevice::GetLinkState(const IOCtlVRequest& request) const
+IPCReply NetWDCommandDevice::GetLinkState(const IOCtlVRequest& request) const
 {
   INFO_LOG_FMT(IOS_NET, "WD_GetLinkState called (status={}, mode={})", m_status, m_mode);
   if (!WD::IsValidMode(m_mode))
-    return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+    return IPCReply(u32(ResultCode::UnavailableCommand));
 
   // Contrary to what the name of the ioctl suggests, this returns a boolean, not the current state.
-  return GetDefaultReply(u32(m_status == GetTargetStatusForMode(m_mode)));
+  return IPCReply(u32(m_status == GetTargetStatusForMode(m_mode)));
 }
 
-IPCCommandResult NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
+IPCReply NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)
-    return GetDefaultReply(u32(ResultCode::IllegalParameter));
+    return IPCReply(u32(ResultCode::IllegalParameter));
 
   Common::MACAddress mac;
   Memory::CopyFromEmu(mac.data(), vector->address, mac.size());
@@ -289,7 +289,7 @@ IPCCommandResult NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
       m_mode != WD::Mode::Unknown6)
   {
     ERROR_LOG_FMT(IOS_NET, "WD_Disassociate: cannot disassociate in mode {}", m_mode);
-    return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+    return IPCReply(u32(ResultCode::UnavailableCommand));
   }
 
   const auto target_status = GetTargetStatusForMode(m_mode);
@@ -297,31 +297,31 @@ IPCCommandResult NetWDCommandDevice::Disassociate(const IOCtlVRequest& request)
   {
     ERROR_LOG_FMT(IOS_NET, "WD_Disassociate: cannot disassociate in status {} (target {})",
                   m_status, target_status);
-    return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+    return IPCReply(u32(ResultCode::UnavailableCommand));
   }
 
   // TODO: Check the input MAC address and only return 0x80008001 if it is unknown.
-  return GetDefaultReply(u32(ResultCode::IllegalParameter));
+  return IPCReply(u32(ResultCode::IllegalParameter));
 }
 
-IPCCommandResult NetWDCommandDevice::GetInfo(const IOCtlVRequest& request) const
+IPCReply NetWDCommandDevice::GetInfo(const IOCtlVRequest& request) const
 {
   const auto* vector = request.GetVector(0);
   if (!vector || vector->address == 0)
-    return GetDefaultReply(u32(ResultCode::IllegalParameter));
+    return IPCReply(u32(ResultCode::IllegalParameter));
 
   Memory::CopyToEmu(vector->address, &m_info, sizeof(m_info));
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
 {
   switch (request.request)
   {
   case IOCTLV_WD_INVALID:
-    return GetDefaultReply(u32(ResultCode::UnavailableCommand));
+    return IPCReply(u32(ResultCode::UnavailableCommand));
   case IOCTLV_WD_GET_MODE:
-    return GetDefaultReply(s32(m_mode));
+    return IPCReply(s32(m_mode));
   case IOCTLV_WD_SET_LINKSTATE:
     return SetLinkState(request);
   case IOCTLV_WD_GET_LINKSTATE:
@@ -361,11 +361,11 @@ IPCCommandResult NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
 
   case IOCTLV_WD_RECV_FRAME:
     m_recv_frame_requests.emplace_back(request.address);
-    return GetNoReply();
+    return std::nullopt;
 
   case IOCTLV_WD_RECV_NOTIFICATION:
     m_recv_notification_requests.emplace_back(request.address);
-    return GetNoReply();
+    return std::nullopt;
 
   case IOCTLV_WD_SET_CONFIG:
   case IOCTLV_WD_GET_CONFIG:
@@ -382,6 +382,6 @@ IPCCommandResult NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
     request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LWARNING);
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 }  // namespace IOS::HLE

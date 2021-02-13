@@ -43,7 +43,7 @@ class STMImmediateDevice final : public Device
 {
 public:
   using Device::Device;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 };
 
 // The /dev/stm/eventhook
@@ -52,7 +52,7 @@ class STMEventHookDevice final : public Device
 public:
   using Device::Device;
   ~STMEventHookDevice() override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 
   bool HasHookInstalled() const;

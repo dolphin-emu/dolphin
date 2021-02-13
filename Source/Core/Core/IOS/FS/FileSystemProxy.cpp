@@ -22,10 +22,10 @@ namespace IOS::HLE
 {
 using namespace IOS::HLE::FS;
 
-static IPCCommandResult GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
+static IPCReply GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
 {
   // According to hardware tests, FS takes at least 2700 TB ticks to reply to commands.
-  return {return_value, true, (2700 + extra_tb_ticks) * SystemTimers::TIMER_RATIO};
+  return IPCReply{return_value, (2700 + extra_tb_ticks) * SystemTimers::TIMER_RATIO};
 }
 
 /// Amount of TB ticks required for a superblock write to complete.
@@ -97,13 +97,13 @@ static u64 EstimateFileLookupTicks(const std::string& path, FileLookupMode mode)
 ///
 /// A superblock flush takes a very large amount of time, so other delays are ignored
 /// to simplify the implementation as they are insignificant.
-static IPCCommandResult GetReplyForSuperblockOperation(ResultCode result)
+static IPCReply GetReplyForSuperblockOperation(ResultCode result)
 {
   const u64 ticks = result == ResultCode::Success ? SUPERBLOCK_WRITE_TICKS : 0;
   return GetFSReply(ConvertResult(result), ticks);
 }
 
-IPCCommandResult FSDevice::Open(const OpenRequest& request)
+std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
 {
   if (m_fd_map.size() >= 16)
     return GetFSReply(ConvertResult(ResultCode::NoFreeHandle));
@@ -130,7 +130,7 @@ IPCCommandResult FSDevice::Open(const OpenRequest& request)
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
-IPCCommandResult FSDevice::Close(u32 fd)
+std::optional<IPCReply> FSDevice::Close(u32 fd)
 {
   u64 ticks = 0;
   if (m_fd_map[fd].fs_fd != INVALID_FD)
@@ -229,7 +229,7 @@ bool FSDevice::HasCacheForFile(u32 fd, u32 offset) const
   return m_cache_fd == fd && m_cache_chain_index == chain_index;
 }
 
-IPCCommandResult FSDevice::Read(const ReadWriteRequest& request)
+std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
 {
   const Handle& handle = m_fd_map[request.fd];
   if (handle.fs_fd == INVALID_FD)
@@ -247,7 +247,7 @@ IPCCommandResult FSDevice::Read(const ReadWriteRequest& request)
   return GetFSReply(*result, ticks);
 }
 
-IPCCommandResult FSDevice::Write(const ReadWriteRequest& request)
+std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
 {
   const Handle& handle = m_fd_map[request.fd];
   if (handle.fs_fd == INVALID_FD)
@@ -265,7 +265,7 @@ IPCCommandResult FSDevice::Write(const ReadWriteRequest& request)
   return GetFSReply(*result, ticks);
 }
 
-IPCCommandResult FSDevice::Seek(const SeekRequest& request)
+std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
 {
   const Handle& handle = m_fd_map[request.fd];
   if (handle.fs_fd == INVALID_FD)
@@ -318,11 +318,11 @@ static Result<T> GetParams(const IOCtlRequest& request)
   return params;
 }
 
-IPCCommandResult FSDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> FSDevice::IOCtl(const IOCtlRequest& request)
 {
   const auto it = m_fd_map.find(request.fd);
   if (it == m_fd_map.end())
-    return GetDefaultReply(ConvertResult(ResultCode::Invalid));
+    return IPCReply(ConvertResult(ResultCode::Invalid));
 
   switch (request.request)
   {
@@ -353,11 +353,11 @@ IPCCommandResult FSDevice::IOCtl(const IOCtlRequest& request)
   }
 }
 
-IPCCommandResult FSDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> FSDevice::IOCtlV(const IOCtlVRequest& request)
 {
   const auto it = m_fd_map.find(request.fd);
   if (it == m_fd_map.end())
-    return GetDefaultReply(ConvertResult(ResultCode::Invalid));
+    return IPCReply(ConvertResult(ResultCode::Invalid));
 
   switch (request.request)
   {
@@ -370,7 +370,7 @@ IPCCommandResult FSDevice::IOCtlV(const IOCtlVRequest& request)
   }
 }
 
-IPCCommandResult FSDevice::Format(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::Format(const Handle& handle, const IOCtlRequest& request)
 {
   if (handle.uid != 0)
     return GetFSReply(ConvertResult(ResultCode::AccessDenied));
@@ -379,7 +379,7 @@ IPCCommandResult FSDevice::Format(const Handle& handle, const IOCtlRequest& requ
   return GetReplyForSuperblockOperation(result);
 }
 
-IPCCommandResult FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
 {
   if (request.buffer_out_size < sizeof(ISFSNandStats))
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -387,7 +387,7 @@ IPCCommandResult FSDevice::GetStats(const Handle& handle, const IOCtlRequest& re
   const Result<NandStats> stats = m_ios.GetFS()->GetNandStats();
   LogResult(stats, "GetNandStats");
   if (!stats)
-    return GetDefaultReply(ConvertResult(stats.Error()));
+    return IPCReply(ConvertResult(stats.Error()));
 
   ISFSNandStats out;
   out.cluster_size = stats->cluster_size;
@@ -398,10 +398,10 @@ IPCCommandResult FSDevice::GetStats(const Handle& handle, const IOCtlRequest& re
   out.free_inodes = stats->free_inodes;
   out.used_inodes = stats->used_inodes;
   Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& request)
 {
   const auto params = GetParams<ISFSParams>(request);
   if (!params)
@@ -413,7 +413,7 @@ IPCCommandResult FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequ
   return GetReplyForSuperblockOperation(result);
 }
 
-IPCCommandResult FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& request)
+IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& request)
 {
   if (request.in_vectors.empty() || request.in_vectors.size() != request.io_vectors.size() ||
       request.in_vectors.size() > 2 || request.in_vectors[0].size != 64)
@@ -467,7 +467,7 @@ IPCCommandResult FSDevice::ReadDirectory(const Handle& handle, const IOCtlVReque
   return GetFSReply(IPC_SUCCESS);
 }
 
-IPCCommandResult FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& request)
 {
   const auto params = GetParams<ISFSParams>(request);
   if (!params)
@@ -479,7 +479,7 @@ IPCCommandResult FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest
   return GetReplyForSuperblockOperation(result);
 }
 
-IPCCommandResult FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& request)
 {
   if (request.buffer_in_size < 64 || request.buffer_out_size < sizeof(ISFSParams))
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -503,7 +503,7 @@ IPCCommandResult FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
-IPCCommandResult FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
 {
   if (request.buffer_in_size < 64)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -514,7 +514,7 @@ IPCCommandResult FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& 
   return GetReplyForSuperblockOperation(result);
 }
 
-IPCCommandResult FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
 {
   if (request.buffer_in_size < 64 * 2)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -526,7 +526,7 @@ IPCCommandResult FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& 
   return GetReplyForSuperblockOperation(result);
 }
 
-IPCCommandResult FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
 {
   const auto params = GetParams<ISFSParams>(request);
   if (!params)
@@ -538,7 +538,7 @@ IPCCommandResult FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& 
   return GetReplyForSuperblockOperation(result);
 }
 
-IPCCommandResult FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request)
 {
   const auto params = GetParams<ISFSParams>(request);
   if (!params)
@@ -550,7 +550,7 @@ IPCCommandResult FSDevice::SetFileVersionControl(const Handle& handle, const IOC
   return GetFSReply(IPC_SUCCESS);
 }
 
-IPCCommandResult FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& request)
 {
   if (request.buffer_out_size < 8 || handle.fs_fd == INVALID_FD)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
@@ -558,16 +558,16 @@ IPCCommandResult FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest
   const Result<FileStatus> status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
   LogResult(status, "GetFileStatus({})", handle.name.data());
   if (!status)
-    return GetDefaultReply(ConvertResult(status.Error()));
+    return IPCReply(ConvertResult(status.Error()));
 
   ISFSFileStats out;
   out.size = status->size;
   out.seek_position = status->offset;
   Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request)
+IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 2) || request.in_vectors[0].size != 64 ||
       request.io_vectors[0].size != 4 || request.io_vectors[1].size != 4)
@@ -586,7 +586,7 @@ IPCCommandResult FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& r
   return GetFSReply(IPC_SUCCESS);
 }
 
-IPCCommandResult FSDevice::Shutdown(const Handle& handle, const IOCtlRequest& request)
+IPCReply FSDevice::Shutdown(const Handle& handle, const IOCtlRequest& request)
 {
   INFO_LOG_FMT(IOS_FS, "Shutdown");
   return GetFSReply(IPC_SUCCESS);

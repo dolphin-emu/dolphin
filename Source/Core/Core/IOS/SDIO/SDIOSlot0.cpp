@@ -79,17 +79,17 @@ void SDIOSlot0Device::OpenInternal()
   }
 }
 
-IPCCommandResult SDIOSlot0Device::Open(const OpenRequest& request)
+std::optional<IPCReply> SDIOSlot0Device::Open(const OpenRequest& request)
 {
   OpenInternal();
   m_registers.fill(0);
 
   m_is_active = true;
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::Close(u32 fd)
+std::optional<IPCReply> SDIOSlot0Device::Close(u32 fd)
 {
   m_card.Close();
   m_block_length = 0;
@@ -98,7 +98,7 @@ IPCCommandResult SDIOSlot0Device::Close(u32 fd)
   return Device::Close(fd);
 }
 
-IPCCommandResult SDIOSlot0Device::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> SDIOSlot0Device::IOCtl(const IOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
 
@@ -123,10 +123,10 @@ IPCCommandResult SDIOSlot0Device::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> SDIOSlot0Device::IOCtlV(const IOCtlVRequest& request)
 {
   switch (request.request)
   {
@@ -137,7 +137,7 @@ IPCCommandResult SDIOSlot0Device::IOCtlV(const IOCtlVRequest& request)
     break;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 buffer_in_size,
@@ -325,7 +325,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
   return ret;
 }
 
-IPCCommandResult SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
 {
   const u32 reg = Memory::Read_U32(request.buffer_in);
   const u32 val = Memory::Read_U32(request.buffer_in + 16);
@@ -335,7 +335,7 @@ IPCCommandResult SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
   if (reg >= m_registers.size())
   {
     WARN_LOG_FMT(IOS_SD, "IOCTL_WRITEHCR out of range");
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   }
 
   if ((reg == HCR_CLOCKCONTROL) && (val & 1))
@@ -354,17 +354,17 @@ IPCCommandResult SDIOSlot0Device::WriteHCRegister(const IOCtlRequest& request)
     m_registers[reg] = val;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request)
 {
   const u32 reg = Memory::Read_U32(request.buffer_in);
 
   if (reg >= m_registers.size())
   {
     WARN_LOG_FMT(IOS_SD, "IOCTL_READHCR out of range");
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   }
 
   const u32 val = m_registers[reg];
@@ -372,20 +372,20 @@ IPCCommandResult SDIOSlot0Device::ReadHCRegister(const IOCtlRequest& request)
 
   // Just reading the register
   Memory::Write_U32(val, request.buffer_out);
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::ResetCard(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::ResetCard(const IOCtlRequest& request)
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_RESETCARD");
 
   // Returns 16bit RCA and 16bit 0s (meaning success)
   Memory::Write_U32(m_status, request.buffer_out);
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::SetClk(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::SetClk(const IOCtlRequest& request)
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_SETCLK");
 
@@ -395,10 +395,10 @@ IPCCommandResult SDIOSlot0Device::SetClk(const IOCtlRequest& request)
   if (clock != 1)
     INFO_LOG_FMT(IOS_SD, "Setting to {}, interesting", clock);
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::SendCommand(const IOCtlRequest& request)
+std::optional<IPCReply> SDIOSlot0Device::SendCommand(const IOCtlRequest& request)
 {
   INFO_LOG_FMT(IOS_SD, "IOCTL_SENDCMD {:x} IPC:{:08x}", Memory::Read_U32(request.buffer_in),
                request.address);
@@ -410,13 +410,13 @@ IPCCommandResult SDIOSlot0Device::SendCommand(const IOCtlRequest& request)
   {
     // Check if the condition is already true
     EventNotify();
-    return GetNoReply();
+    return std::nullopt;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
 {
   // Since IOS does the SD initialization itself, we just say we're always initialized.
   if (m_card)
@@ -450,19 +450,19 @@ IPCCommandResult SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
                (status & CARD_INITIALIZED) ? " and initialized" : "");
 
   Memory::Write_U32(status, request.buffer_out);
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::GetOCRegister(const IOCtlRequest& request)
+IPCReply SDIOSlot0Device::GetOCRegister(const IOCtlRequest& request)
 {
   const u32 ocr = GetOCRegister();
   INFO_LOG_FMT(IOS_SD, "IOCTL_GETOCR. Replying with ocr {:x}", ocr);
   Memory::Write_U32(ocr, request.buffer_out);
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult SDIOSlot0Device::SendCommand(const IOCtlVRequest& request)
+IPCReply SDIOSlot0Device::SendCommand(const IOCtlVRequest& request)
 {
   DEBUG_LOG_FMT(IOS_SD, "IOCTLV_SENDCMD {:#010x}", Memory::Read_U32(request.in_vectors[0].address));
   Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
@@ -472,7 +472,7 @@ IPCCommandResult SDIOSlot0Device::SendCommand(const IOCtlVRequest& request)
                      request.in_vectors[1].address, request.in_vectors[1].size,
                      request.io_vectors[0].address, request.io_vectors[0].size);
 
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
 
 u32 SDIOSlot0Device::GetOCRegister() const

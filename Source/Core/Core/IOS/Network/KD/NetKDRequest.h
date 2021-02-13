@@ -21,7 +21,7 @@ public:
   NetKDRequestDevice(Kernel& ios, const std::string& device_name);
   ~NetKDRequestDevice() override;
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
 private:
   enum

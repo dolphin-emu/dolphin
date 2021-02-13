@@ -18,7 +18,7 @@ class BluetoothStubDevice final : public BluetoothBaseDevice
 {
 public:
   using BluetoothBaseDevice::BluetoothBaseDevice;
-  IPCCommandResult Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
 }  // namespace IOS::HLE
