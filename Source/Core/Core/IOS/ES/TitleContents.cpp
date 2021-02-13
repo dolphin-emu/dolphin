@@ -15,11 +15,11 @@
 
 namespace IOS::HLE
 {
-s32 ESDevice::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
+s32 ESDevice::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid)
 {
   const u64 title_id = tmd.GetTitleId();
 
-  IOS::ES::Content content;
+  ES::Content content;
   if (!tmd.GetContent(content_index, &content))
     return ES_EINVAL;
 
@@ -49,7 +49,7 @@ s32 ESDevice::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 
 IPCCommandResult ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0) || request.in_vectors[0].size != sizeof(u64) ||
-      request.in_vectors[1].size != sizeof(IOS::ES::TicketView) ||
+      request.in_vectors[1].size != sizeof(ES::TicketView) ||
       request.in_vectors[2].size != sizeof(u32))
   {
     return GetDefaultReply(ES_EINVAL);
@@ -76,7 +76,7 @@ IPCCommandResult ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRe
   if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
-  IOS::ES::UIDSys uid_map{m_ios.GetFS()};
+  ES::UIDSys uid_map{m_ios.GetFS()};
   const u32 uid = uid_map.GetOrInsertUIDForTitle(m_title_context.tmd.GetTitleId());
   if (caller_uid != 0 && caller_uid != uid)
     return GetDefaultReply(ES_EACCES);

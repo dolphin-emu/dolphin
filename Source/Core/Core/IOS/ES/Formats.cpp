@@ -380,10 +380,10 @@ std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
 {
   for (size_t i = 0; i < GetNumberOfTickets(); ++i)
   {
-    const auto ticket_begin = m_bytes.begin() + sizeof(IOS::ES::Ticket) * i;
-    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(IOS::ES::Ticket, ticket_id));
+    const auto ticket_begin = m_bytes.begin() + sizeof(ES::Ticket) * i;
+    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(ES::Ticket, ticket_id));
     if (ticket_id == ticket_id_to_find)
-      return std::vector<u8>(ticket_begin, ticket_begin + sizeof(IOS::ES::Ticket));
+      return std::vector<u8>(ticket_begin, ticket_begin + sizeof(ES::Ticket));
   }
   return {};
 }

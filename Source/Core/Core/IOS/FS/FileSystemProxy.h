@@ -17,7 +17,7 @@ class PointerWrap;
 
 namespace IOS::HLE
 {
-constexpr IOS::HLE::FS::Fd INVALID_FD = 0xffffffff;
+constexpr FS::Fd INVALID_FD = 0xffffffff;
 
 class FSDevice : public Device
 {
@@ -39,7 +39,7 @@ private:
   {
     u16 gid = 0;
     u32 uid = 0;
-    IOS::HLE::FS::Fd fs_fd = INVALID_FD;
+    FS::Fd fs_fd = INVALID_FD;
     // We use a std::array to keep this savestate friendly.
     std::array<char, 64> name{};
     bool superblock_flush_needed = false;

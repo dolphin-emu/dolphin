@@ -30,9 +30,8 @@ namespace IOS::HLE
 //       booted from the game list, though.
 static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& context)
 {
-  const bool ios =
-      IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
-  const bool disc_title = context.active && IOS::ES::IsDiscTitle(context.tmd.GetTitleId());
+  const bool ios = IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
+  const bool disc_title = context.active && ES::IsDiscTitle(context.tmd.GetTitleId());
   return Core::WantsDeterminism() ||
          (ios && SConfig::GetInstance().m_disc_booted_from_game_list && disc_title);
 }
@@ -44,10 +43,10 @@ IPCCommandResult ESDevice::GetTicketViewCount(const IOCtlVRequest& request)
 
   const u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
+  const ES::TicketReader ticket = FindSignedTicket(TitleID);
   u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
 
-  if (!IOS::HLE::IsEmulated(TitleID))
+  if (!IsEmulated(TitleID))
   {
     view_count = 0;
     ERROR_LOG_FMT(IOS_ES, "GetViewCount: Dolphin doesn't emulate IOS title {:016x}", TitleID);
@@ -73,9 +72,9 @@ IPCCommandResult ESDevice::GetTicketViews(const IOCtlVRequest& request)
   const u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   const u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
 
-  const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
+  const ES::TicketReader ticket = FindSignedTicket(TitleID);
 
-  if (!IOS::HLE::IsEmulated(TitleID))
+  if (!IsEmulated(TitleID))
   {
     ERROR_LOG_FMT(IOS_ES, "GetViews: Dolphin doesn't emulate IOS title {:016x}", TitleID);
   }
@@ -85,13 +84,13 @@ IPCCommandResult ESDevice::GetTicketViews(const IOCtlVRequest& request)
     for (u32 view = 0; view < number_of_views; ++view)
     {
       const std::vector<u8> ticket_view = ticket.GetRawTicketView(view);
-      Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(IOS::ES::TicketView),
+      Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(ES::TicketView),
                         ticket_view.data(), ticket_view.size());
     }
   }
   else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
   {
-    Memory::Memset(request.io_vectors[0].address, 0, sizeof(IOS::ES::TicketView));
+    Memory::Memset(request.io_vectors[0].address, 0, sizeof(ES::TicketView));
     WARN_LOG_FMT(IOS_ES, "GetViews: Faking IOS title {:016x} being present", TitleID);
   }
 
@@ -102,8 +101,8 @@ IPCCommandResult ESDevice::GetTicketViews(const IOCtlVRequest& request)
 
 ReturnCode ESDevice::GetV0TicketFromView(const u8* ticket_view, u8* ticket) const
 {
-  const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
-  const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
+  const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
+  const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);
 
   const auto installed_ticket = FindSignedTicket(title_id);
   // TODO: when we get std::optional, check for presence instead of validity.
@@ -121,10 +120,10 @@ ReturnCode ESDevice::GetV0TicketFromView(const u8* ticket_view, u8* ticket) cons
   // Check for permission to export the ticket.
   const u32 title_identifier = static_cast<u32>(m_title_context.tmd.GetTitleId());
   const u32 permitted_title_mask =
-      Common::swap32(ticket_bytes.data() + offsetof(IOS::ES::Ticket, permitted_title_mask));
+      Common::swap32(ticket_bytes.data() + offsetof(ES::Ticket, permitted_title_mask));
   const u32 permitted_title_id =
-      Common::swap32(ticket_bytes.data() + offsetof(IOS::ES::Ticket, permitted_title_id));
-  const u8 title_export_allowed = ticket_bytes[offsetof(IOS::ES::Ticket, title_export_allowed)];
+      Common::swap32(ticket_bytes.data() + offsetof(ES::Ticket, permitted_title_id));
+  const u8 title_export_allowed = ticket_bytes[offsetof(ES::Ticket, title_export_allowed)];
 
   // This is the check present in IOS. The 5 does not correspond to any known constant, sadly.
   if (!title_identifier || (title_identifier & ~permitted_title_mask) != permitted_title_id ||
@@ -139,7 +138,7 @@ ReturnCode ESDevice::GetV0TicketFromView(const u8* ticket_view, u8* ticket) cons
 
 ReturnCode ESDevice::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const
 {
-  const u8 version = ticket_view[offsetof(IOS::ES::TicketView, version)];
+  const u8 version = ticket_view[offsetof(ES::TicketView, version)];
   if (version == 1)
   {
     // Currently, we have no support for v1 tickets at all (unlike IOS), so we fake it
@@ -150,19 +149,19 @@ ReturnCode ESDevice::GetTicketFromView(const u8* ticket_view, u8* ticket, u32* t
   }
   if (ticket != nullptr)
   {
-    if (*ticket_size >= sizeof(IOS::ES::Ticket))
+    if (*ticket_size >= sizeof(ES::Ticket))
       return GetV0TicketFromView(ticket_view, ticket);
     return ES_EINVAL;
   }
-  *ticket_size = sizeof(IOS::ES::Ticket);
+  *ticket_size = sizeof(ES::Ticket);
   return IPC_SUCCESS;
 }
 
 IPCCommandResult ESDevice::GetV0TicketFromView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
-      request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
-      request.io_vectors[0].size != sizeof(IOS::ES::Ticket))
+      request.in_vectors[0].size != sizeof(ES::TicketView) ||
+      request.io_vectors[0].size != sizeof(ES::Ticket))
   {
     return GetDefaultReply(ES_EINVAL);
   }
@@ -174,7 +173,7 @@ IPCCommandResult ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
 {
   u32 ticket_size = 0;
   if (!request.HasNumberOfValidVectors(1, 1) ||
-      request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
+      request.in_vectors[0].size != sizeof(ES::TicketView) ||
       request.io_vectors[0].size != sizeof(ticket_size))
   {
     return GetDefaultReply(ES_EINVAL);
@@ -188,7 +187,7 @@ IPCCommandResult ESDevice::GetTicketSizeFromView(const IOCtlVRequest& request)
 IPCCommandResult ESDevice::GetTicketFromView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
-      request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
+      request.in_vectors[0].size != sizeof(ES::TicketView) ||
       request.in_vectors[1].size != sizeof(u32))
   {
     return GetDefaultReply(ES_EINVAL);
@@ -209,7 +208,7 @@ IPCCommandResult ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(TitleID);
+  const ES::TMDReader tmd = FindInstalledTMD(TitleID);
 
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
@@ -224,7 +223,7 @@ IPCCommandResult ESDevice::GetTMDViewSize(const IOCtlVRequest& request)
 IPCCommandResult ESDevice::GetTMDViews(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
-      request.in_vectors[0].size != sizeof(IOS::ES::TMDHeader::title_id) ||
+      request.in_vectors[0].size != sizeof(ES::TMDHeader::title_id) ||
       request.in_vectors[1].size != sizeof(u32) ||
       Memory::Read_U32(request.in_vectors[1].address) != request.io_vectors[0].size)
   {
@@ -232,7 +231,7 @@ IPCCommandResult ESDevice::GetTMDViews(const IOCtlVRequest& request)
   }
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TMDReader tmd = FindInstalledTMD(title_id);
 
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
@@ -266,7 +265,7 @@ IPCCommandResult ESDevice::DIGetTMDViewSize(const IOCtlVRequest& request)
   {
     std::vector<u8> tmd_bytes(request.in_vectors[0].size);
     Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
-    const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+    const ES::TMDReader tmd{std::move(tmd_bytes)};
 
     // Yes, this returns -1017, not ES_INVALID_TMD.
     // IOS simply checks whether the TMD has all required content entries.
@@ -311,7 +310,7 @@ IPCCommandResult ESDevice::DIGetTMDView(const IOCtlVRequest& request)
   {
     std::vector<u8> tmd_bytes(request.in_vectors[0].size);
     Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
-    const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+    const ES::TMDReader tmd{std::move(tmd_bytes)};
 
     if (!tmd.IsValid())
       return GetDefaultReply(ES_EINVAL);
@@ -337,12 +336,12 @@ IPCCommandResult ESDevice::DIGetTMDView(const IOCtlVRequest& request)
 IPCCommandResult ESDevice::DIGetTicketView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) ||
-      request.io_vectors[0].size != sizeof(IOS::ES::TicketView))
+      request.io_vectors[0].size != sizeof(ES::TicketView))
   {
     return GetDefaultReply(ES_EINVAL);
   }
 
-  const bool has_ticket_vector = request.in_vectors[0].size == sizeof(IOS::ES::Ticket);
+  const bool has_ticket_vector = request.in_vectors[0].size == sizeof(ES::Ticket);
 
   // This ioctlv takes either a signed ticket or no ticket, in which case the ticket size must be 0.
   if (!has_ticket_vector && request.in_vectors[0].size != 0)
@@ -363,7 +362,7 @@ IPCCommandResult ESDevice::DIGetTicketView(const IOCtlVRequest& request)
   {
     std::vector<u8> ticket_bytes(request.in_vectors[0].size);
     Memory::CopyFromEmu(ticket_bytes.data(), request.in_vectors[0].address, ticket_bytes.size());
-    const IOS::ES::TicketReader ticket{std::move(ticket_bytes)};
+    const ES::TicketReader ticket{std::move(ticket_bytes)};
 
     view = ticket.GetRawTicketView(0);
   }

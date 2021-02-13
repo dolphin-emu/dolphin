@@ -99,7 +99,7 @@ void TitleContext::DoState(PointerWrap& p)
   p.Do(active);
 }
 
-void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_,
+void TitleContext::Update(const ES::TMDReader& tmd_, const ES::TicketReader& ticket_,
                           DiscIO::Platform platform)
 {
   if (!tmd_.IsValid() || !ticket_.IsValid())
@@ -159,9 +159,9 @@ IPCCommandResult ESDevice::GetTitleId(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
+static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
 {
-  IOS::ES::UIDSys uid_sys{kernel.GetFS()};
+  ES::UIDSys uid_sys{kernel.GetFS()};
   const u64 title_id = tmd.GetTitleId();
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (uid == 0)
@@ -175,9 +175,9 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 }
 
 static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
-                                         const IOS::ES::TMDReader& active_tmd)
+                                         const ES::TMDReader& active_tmd)
 {
-  IOS::ES::UIDSys uid_map{kernel.GetFS()};
+  ES::UIDSys uid_map{kernel.GetFS()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
@@ -246,7 +246,7 @@ bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
     return LaunchTitle(Titles::SYSTEM_MENU);
   }
 
-  if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
+  if (IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
     return LaunchIOS(title_id);
   return LaunchPPCTitle(title_id, skip_reload);
 }
@@ -272,9 +272,9 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
   // so only have this check for MIOS (for which having the binary is *required*).
   if (ios_title_id == Titles::MIOS)
   {
-    const IOS::ES::TMDReader tmd = FindInstalledTMD(ios_title_id);
-    const IOS::ES::TicketReader ticket = FindSignedTicket(ios_title_id);
-    IOS::ES::Content content;
+    const ES::TMDReader tmd = FindInstalledTMD(ios_title_id);
+    const ES::TicketReader ticket = FindSignedTicket(ios_title_id);
+    ES::Content content;
     if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
         !m_ios.BootIOS(ios_title_id, GetContentPath(ios_title_id, content)))
     {
@@ -291,8 +291,8 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
 
 bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
-  const IOS::ES::TicketReader ticket = FindSignedTicket(title_id);
+  const ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TicketReader ticket = FindSignedTicket(title_id);
 
   if (!tmd.IsValid() || !ticket.IsValid())
   {
@@ -332,7 +332,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return false;
   }
 
-  IOS::ES::Content content;
+  ES::Content content;
   if (!tmd.GetContent(tmd.GetBootIndex(), &content))
     return false;
 
@@ -597,7 +597,7 @@ IPCCommandResult ESDevice::Launch(const IOCtlVRequest& request)
                view, ticketid, devicetype, titleid, access);
 
   // Prevent loading installed IOSes that are not emulated.
-  if (!IOS::HLE::IsEmulated(title_id))
+  if (!IsEmulated(title_id))
     return GetDefaultReply(FS_ENOENT);
 
   // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
@@ -635,7 +635,7 @@ IPCCommandResult ESDevice::DIVerify(const IOCtlVRequest& request)
   return GetDefaultReply(ES_EINVAL);
 }
 
-static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd)
+static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const ES::TMDReader& tmd)
 {
   const std::string temp_path = "/tmp/title.tmd";
   fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
@@ -659,7 +659,7 @@ static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDRead
   return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
 }
 
-ReturnCode ESDevice::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
+ReturnCode ESDevice::DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket)
 {
   m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_DIVerify: Title context changed: (none)");
@@ -700,14 +700,14 @@ ReturnCode ESDevice::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::Tick
 }
 
 ReturnCode ESDevice::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
-                                               const IOS::ES::TMDReader& tmd) const
+                                               const ES::TMDReader& tmd) const
 {
   const u32 title_flags = tmd.GetTitleFlags();
   // Only allow using this function with some titles (WFS titles).
   // The following is the exact check from IOS. Unfortunately, other than knowing that the
   // title type is what IOS checks, we don't know much about the constants used here.
-  constexpr u32 WFS_AND_0x4_FLAG = IOS::ES::TITLE_TYPE_0x4 | IOS::ES::TITLE_TYPE_WFS_MAYBE;
-  if ((!(title_flags & IOS::ES::TITLE_TYPE_0x4) && ~(title_flags >> 5) & 1) ||
+  constexpr u32 WFS_AND_0x4_FLAG = ES::TITLE_TYPE_0x4 | ES::TITLE_TYPE_WFS_MAYBE;
+  if ((!(title_flags & ES::TITLE_TYPE_0x4) && ~(title_flags >> 5) & 1) ||
       (title_flags & WFS_AND_0x4_FLAG) == WFS_AND_0x4_FLAG)
   {
     return ES_EINVAL;
@@ -721,18 +721,18 @@ ReturnCode ESDevice::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_v
     return ES_EINVAL;
 
   // If the title type is of this specific type, then this function is limited to WFS.
-  if (title_flags & IOS::ES::TITLE_TYPE_WFS_MAYBE && uid != PID_UNKNOWN)
+  if (title_flags & ES::TITLE_TYPE_WFS_MAYBE && uid != PID_UNKNOWN)
     return ES_EINVAL;
 
-  const u64 view_title_id = Common::swap64(ticket_view + offsetof(IOS::ES::TicketView, title_id));
+  const u64 view_title_id = Common::swap64(ticket_view + offsetof(ES::TicketView, title_id));
   if (view_title_id != tmd.GetTitleId())
     return ES_EINVAL;
 
   // More permission checks.
   const u32 permitted_title_mask =
-      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
+      Common::swap32(ticket_view + offsetof(ES::TicketView, permitted_title_mask));
   const u32 permitted_title_id =
-      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
+      Common::swap32(ticket_view + offsetof(ES::TicketView, permitted_title_id));
   if ((uid == PID_UNKNOWN && (~permitted_title_mask & 0x13) != permitted_title_id) ||
       !IsActiveTitlePermittedByTicket(ticket_view))
   {
@@ -742,8 +742,8 @@ ReturnCode ESDevice::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_v
   return IPC_SUCCESS;
 }
 
-ReturnCode ESDevice::SetUpStreamKey(const u32 uid, const u8* ticket_view,
-                                    const IOS::ES::TMDReader& tmd, u32* handle)
+ReturnCode ESDevice::SetUpStreamKey(const u32 uid, const u8* ticket_view, const ES::TMDReader& tmd,
+                                    u32* handle)
 {
   ReturnCode ret = CheckStreamKeyPermissions(uid, ticket_view, tmd);
   if (ret != IPC_SUCCESS)
@@ -752,9 +752,9 @@ ReturnCode ESDevice::SetUpStreamKey(const u32 uid, const u8* ticket_view,
   // TODO (for the future): signature checks.
 
   // Find a signed ticket from the view.
-  const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
-  const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
-  const IOS::ES::TicketReader installed_ticket = FindSignedTicket(title_id);
+  const u64 ticket_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, ticket_id)]);
+  const u64 title_id = Common::swap64(&ticket_view[offsetof(ES::TicketView, title_id)]);
+  const ES::TicketReader installed_ticket = FindSignedTicket(title_id);
   // Unlike the other "get ticket from view" function, this returns a FS error, not ES_NO_TICKET.
   if (!installed_ticket.IsValid())
     return FS_ENOENT;
@@ -788,28 +788,26 @@ ReturnCode ESDevice::SetUpStreamKey(const u32 uid, const u8* ticket_view,
   if (ret != IPC_SUCCESS)
     return ret;
 
-  const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
+  const u8 index = ticket_bytes[offsetof(ES::Ticket, common_key_index)];
   if (index >= IOSC::COMMON_KEY_HANDLES.size())
     return ES_INVALID_TICKET;
 
   return m_ios.GetIOSC().ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
-                                         &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)],
-                                         PID_ES);
+                                         &ticket_bytes[offsetof(ES::Ticket, title_key)], PID_ES);
 }
 
 IPCCommandResult ESDevice::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) ||
-      request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
-      !IOS::ES::IsValidTMDSize(request.in_vectors[1].size) ||
-      request.io_vectors[0].size != sizeof(u32))
+      request.in_vectors[0].size != sizeof(ES::TicketView) ||
+      !ES::IsValidTMDSize(request.in_vectors[1].size) || request.io_vectors[0].size != sizeof(u32))
   {
     return GetDefaultReply(ES_EINVAL);
   }
 
   std::vector<u8> tmd_bytes(request.in_vectors[1].size);
   Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[1].address, tmd_bytes.size());
-  const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+  const ES::TMDReader tmd{std::move(tmd_bytes)};
 
   if (!tmd.IsValid())
     return GetDefaultReply(ES_EINVAL);
@@ -837,14 +835,13 @@ bool ESDevice::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
 
   const u32 title_identifier = static_cast<u32>(m_title_context.tmd.GetTitleId());
   const u32 permitted_title_mask =
-      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
+      Common::swap32(ticket_view + offsetof(ES::TicketView, permitted_title_mask));
   const u32 permitted_title_id =
-      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
+      Common::swap32(ticket_view + offsetof(ES::TicketView, permitted_title_id));
   return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
 }
 
-bool ESDevice::IsIssuerCorrect(VerifyContainerType type,
-                               const IOS::ES::CertReader& issuer_cert) const
+bool ESDevice::IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const
 {
   switch (type)
   {
@@ -874,14 +871,14 @@ ReturnCode ESDevice::ReadCertStore(std::vector<u8>* buffer) const
   return IPC_SUCCESS;
 }
 
-ReturnCode ESDevice::WriteNewCertToStore(const IOS::ES::CertReader& cert)
+ReturnCode ESDevice::WriteNewCertToStore(const ES::CertReader& cert)
 {
   // Read the current store to determine if the new cert needs to be written.
   std::vector<u8> current_store;
   const ReturnCode ret = ReadCertStore(&current_store);
   if (ret == IPC_SUCCESS)
   {
-    const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(current_store);
+    const std::map<std::string, ES::CertReader> certs = ES::ParseCertChain(current_store);
     // The cert is already present in the store. Nothing to do.
     if (certs.find(cert.GetName()) != certs.end())
       return IPC_SUCCESS;
@@ -900,7 +897,7 @@ ReturnCode ESDevice::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 }
 
 ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                                     const IOS::ES::SignedBlobReader& signed_blob,
+                                     const ES::SignedBlobReader& signed_blob,
                                      const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
   if (!signed_blob.IsSignatureValid())
@@ -914,13 +911,13 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
     return ES_EINVAL;
 
   // Find the direct issuer and the CA certificates for the blob.
-  const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(cert_chain);
+  const std::map<std::string, ES::CertReader> certs = ES::ParseCertChain(cert_chain);
   const auto issuer_cert_iterator = certs.find(parents[2]);
   const auto ca_cert_iterator = certs.find(parents[1]);
   if (issuer_cert_iterator == certs.end() || ca_cert_iterator == certs.end())
     return ES_UNKNOWN_ISSUER;
-  const IOS::ES::CertReader& issuer_cert = issuer_cert_iterator->second;
-  const IOS::ES::CertReader& ca_cert = ca_cert_iterator->second;
+  const ES::CertReader& issuer_cert = issuer_cert_iterator->second;
+  const ES::CertReader& ca_cert = ca_cert_iterator->second;
 
   // Some blobs can only be signed by specific certificates.
   if (!IsIssuerCorrect(type, issuer_cert))
@@ -992,8 +989,8 @@ ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
 }
 
 ReturnCode ESDevice::VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                                     const IOS::ES::CertReader& cert,
-                                     const std::vector<u8>& cert_chain, u32 certificate_iosc_handle)
+                                     const ES::CertReader& cert, const std::vector<u8>& cert_chain,
+                                     u32 certificate_iosc_handle)
 {
   IOSC::Handle issuer_handle;
   ReturnCode ret = VerifyContainer(type, mode, cert, cert_chain, &issuer_handle);

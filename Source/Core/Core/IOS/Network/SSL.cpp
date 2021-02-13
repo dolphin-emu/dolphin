@@ -23,7 +23,7 @@
 
 namespace IOS::HLE
 {
-WII_SSL NetSSLDevice::_SSL[IOS::HLE::NET_SSL_MAXINSTANCES];
+WII_SSL NetSSLDevice::_SSL[NET_SSL_MAXINSTANCES];
 
 static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     /* Hashes from SHA-1 and above */
@@ -53,7 +53,7 @@ namespace
 // field during the certificate verification process.
 int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
 {
-  auto* ssl = static_cast<IOS::HLE::WII_SSL*>(ctx);
+  auto* ssl = static_cast<WII_SSL*>(ctx);
 
   if (ssl->ctx.state == MBEDTLS_SSL_SERVER_HELLO)
     mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
@@ -62,7 +62,7 @@ int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
 
 int SSLRecv(void* ctx, unsigned char* buf, size_t len)
 {
-  auto* ssl = static_cast<IOS::HLE::WII_SSL*>(ctx);
+  auto* ssl = static_cast<WII_SSL*>(ctx);
 
   return mbedtls_net_recv(&ssl->hostfd, buf, len);
 }

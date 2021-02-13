@@ -120,7 +120,7 @@ IPCCommandResult ESDevice::Sign(const IOCtlVRequest& request)
 ReturnCode ESDevice::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
                                 const std::vector<u8>& certs_bytes)
 {
-  const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(certs_bytes);
+  const std::map<std::string, ES::CertReader> certs = ES::ParseCertChain(certs_bytes);
   if (certs.empty())
     return ES_EINVAL;
 
@@ -129,13 +129,13 @@ ReturnCode ESDevice::VerifySign(const std::vector<u8>& hash, const std::vector<u
   });
   if (ap_iterator == certs.end())
     return ES_UNKNOWN_ISSUER;
-  const IOS::ES::CertReader& ap = ap_iterator->second;
+  const ES::CertReader& ap = ap_iterator->second;
 
   const auto ap_issuers = SplitString(ap.GetIssuer(), '-');
   const auto ng_iterator = ap_issuers.size() > 1 ? certs.find(*ap_issuers.rbegin()) : certs.end();
   if (ng_iterator == certs.end())
     return ES_UNKNOWN_ISSUER;
-  const IOS::ES::CertReader& ng = ng_iterator->second;
+  const ES::CertReader& ng = ng_iterator->second;
 
   IOSC& iosc = m_ios.GetIOSC();
   IOSC::Handle ng_cert;

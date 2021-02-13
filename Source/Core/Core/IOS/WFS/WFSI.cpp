@@ -150,7 +150,7 @@ IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
                    WFS::NativePath(content_dir + "/_default.dol"));
     }
 
-    if (!IOS::ES::IsValidTMDSize(tmd_size))
+    if (!ES::IsValidTMDSize(tmd_size))
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large ({})", tmd_size);
       return_error_code = IPC_EINVAL;
@@ -161,7 +161,7 @@ IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
     Memory::CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    const IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
+    const ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
     if (!ticket.IsValid())
     {
       return_error_code = -11028;
@@ -193,7 +193,7 @@ IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
 
     // Initializes the IV from the index of the content in the TMD contents.
     const u32 content_id = Memory::Read_U32(request.buffer_in + 8);
-    IOS::ES::Content content_info;
+    ES::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
       WARN_LOG_FMT(IOS_WFS, "{}: Content id {:08x} not found", ioctl_name, content_id);
@@ -349,10 +349,10 @@ IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
     return_error_code = -3;
     if (homedir_path_len > 0x1FD)
       break;
-    auto device = IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
+    auto device = GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
     if (!device)
       break;
-    std::static_pointer_cast<IOS::HLE::WFSSRVDevice>(device)->SetHomeDir(homedir_path);
+    std::static_pointer_cast<WFSSRVDevice>(device)->SetHomeDir(homedir_path);
     return_error_code = IPC_SUCCESS;
     break;
   }
@@ -389,7 +389,7 @@ IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
       break;
     }
 
-    const IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
+    const ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
     SetCurrentTitleIdAndGroupId(tmd.GetTitleId(), tmd.GetGroupId());
     break;
   }
