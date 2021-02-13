@@ -163,7 +163,7 @@ public:
                                  Arm64Gen::ARM64Reg src_reg,
                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
 
-private:
+protected:
   struct SlowmemHandler
   {
     Arm64Gen::ARM64Reg dest_reg;
