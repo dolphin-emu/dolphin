@@ -178,8 +178,6 @@ public:
   Device(Kernel& ios, const std::string& device_name, DeviceType type = DeviceType::Static);
 
   virtual ~Device() = default;
-  // Release any resources which might interfere with savestating.
-  virtual void PrepareForState(PointerWrap::Mode mode) {}
   virtual void DoState(PointerWrap& p);
   void DoStateShared(PointerWrap& p);
 
