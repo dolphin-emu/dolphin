@@ -41,7 +41,7 @@ public:
 
   std::string GetGUIName() const { return m_gui_name; }
   std::string GetProfileName() const { return m_profile_name; }
-  std::size_t GetControllerCount() const;
+  int GetControllerCount() const;
 
   // These should be used after creating all controllers and before clearing them, respectively.
   void RegisterHotplugCallback();
