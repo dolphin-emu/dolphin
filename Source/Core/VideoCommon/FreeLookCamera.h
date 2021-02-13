@@ -79,7 +79,6 @@ private:
 
   float m_fov_step_size = 0.025f;
   float m_speed = 1.0f;
-  bool m_enabled = true;
 };
 
 extern FreeLookCamera g_freelook_camera;
