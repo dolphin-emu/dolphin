@@ -793,7 +793,7 @@ ReturnCode ESDevice::ExportContentEnd(Context& context, u32 content_fd)
 {
   if (!context.title_import_export.valid || !context.title_import_export.content.valid)
     return ES_EINVAL;
-  return CloseContent(content_fd, 0);
+  return static_cast<ReturnCode>(CloseContent(content_fd, 0));
 }
 
 IPCReply ESDevice::ExportContentEnd(Context& context, const IOCtlVRequest& request)

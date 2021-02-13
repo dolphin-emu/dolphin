@@ -105,10 +105,10 @@ public:
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
   // Title contents
-  s32 OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid);
-  ReturnCode CloseContent(u32 cfd, u32 uid);
-  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid);
-  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
+  s32 OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, Ticks ticks = {});
+  s32 CloseContent(u32 cfd, u32 uid, Ticks ticks = {});
+  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks = {});
+  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks = {});
 
   // Title management
   enum class TicketImportType
@@ -371,7 +371,7 @@ private:
   struct OpenedContent
   {
     bool m_opened = false;
-    FS::Fd m_fd;
+    u64 m_fd;
     u64 m_title_id = 0;
     ES::Content m_content;
     u32 m_uid = 0;
