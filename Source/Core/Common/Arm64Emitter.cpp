@@ -27,7 +27,6 @@ namespace Arm64Gen
 namespace
 {
 const int kWRegSizeInBits = 32;
-const int kXRegSizeInBits = 64;
 
 uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
