@@ -16,7 +16,7 @@ namespace IOS::HLE
 {
 // Used by the GetStoredContents ioctlvs. This assumes that the first output vector
 // is used for the content count (u32).
-IPCCommandResult ESDevice::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
+IPCCommandResult ESDevice::GetStoredContentsCount(const ES::TMDReader& tmd,
                                                   const IOCtlVRequest& request)
 {
   if (request.io_vectors[0].size != sizeof(u32) || !tmd.IsValid())
@@ -32,8 +32,7 @@ IPCCommandResult ESDevice::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
 
 // Used by the GetStoredContents ioctlvs. This assumes that the second input vector is used
 // for the content count and the output vector is used to store a list of content IDs (u32s).
-IPCCommandResult ESDevice::GetStoredContents(const IOS::ES::TMDReader& tmd,
-                                             const IOCtlVRequest& request)
+IPCCommandResult ESDevice::GetStoredContents(const ES::TMDReader& tmd, const IOCtlVRequest& request)
 {
   if (!tmd.IsValid())
     return GetDefaultReply(ES_EINVAL);
@@ -58,7 +57,7 @@ IPCCommandResult ESDevice::GetStoredContentsCount(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TMDReader tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
   return GetStoredContentsCount(tmd, request);
@@ -70,7 +69,7 @@ IPCCommandResult ESDevice::GetStoredContents(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TMDReader tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
   return GetStoredContents(tmd, request);
@@ -83,7 +82,7 @@ IPCCommandResult ESDevice::GetTMDStoredContentsCount(const IOCtlVRequest& reques
 
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
-  return GetStoredContentsCount(IOS::ES::TMDReader{std::move(tmd_bytes)}, request);
+  return GetStoredContentsCount(ES::TMDReader{std::move(tmd_bytes)}, request);
 }
 
 IPCCommandResult ESDevice::GetTMDStoredContents(const IOCtlVRequest& request)
@@ -94,7 +93,7 @@ IPCCommandResult ESDevice::GetTMDStoredContents(const IOCtlVRequest& request)
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
 
-  const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+  const ES::TMDReader tmd{std::move(tmd_bytes)};
   if (!tmd.IsValid())
     return GetDefaultReply(ES_EINVAL);
 
@@ -153,7 +152,7 @@ IPCCommandResult ESDevice::GetStoredTMDSize(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TMDReader tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
@@ -171,7 +170,7 @@ IPCCommandResult ESDevice::GetStoredTMD(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const ES::TMDReader tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 

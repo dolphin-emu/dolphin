@@ -55,7 +55,7 @@ private:
   u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
-  IOS::ES::TMDReader m_tmd;
+  ES::TMDReader m_tmd;
   std::string m_base_extract_path;
 
   u64 m_current_title_id;

@@ -68,7 +68,7 @@ NetWDCommandDevice::NetWDCommandDevice(Kernel& ios, const std::string& device_na
   m_nitro_enabled_channels = LegalNitroChannelMask;
 
   // TODO: Set the version string here. This is exposed to the PPC.
-  m_info.mac = IOS::Net::GetMACAddress();
+  m_info.mac = Net::GetMACAddress();
   m_info.enabled_channels = 0xfffe;
   m_info.channel = SelectWifiChannel(m_info.enabled_channels, 0);
   // The country code is supposed to be null terminated as it is logged with printf in WD.

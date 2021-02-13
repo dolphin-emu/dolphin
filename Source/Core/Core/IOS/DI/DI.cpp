@@ -539,7 +539,7 @@ std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRe
 
 static std::shared_ptr<DIDevice> GetDevice()
 {
-  auto ios = IOS::HLE::GetIOS();
+  auto ios = GetIOS();
   if (!ios)
     return nullptr;
   auto di = ios->GetDeviceByName("/dev/di");
@@ -667,7 +667,7 @@ IPCCommandResult DIDevice::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG_FMT(IOS_DI, "DVDLowOpenPartition: partition_offset {:#011x}", partition_offset);
 
     // Read TMD to the buffer
-    const IOS::ES::TMDReader tmd = DVDThread::GetTMD(m_current_partition);
+    const ES::TMDReader tmd = DVDThread::GetTMD(m_current_partition);
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 

@@ -29,11 +29,11 @@ struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_,
+  void Update(const ES::TMDReader& tmd_, const ES::TicketReader& ticket_,
               DiscIO::Platform platform);
 
-  IOS::ES::TicketReader ticket;
-  IOS::ES::TMDReader tmd;
+  ES::TicketReader ticket;
+  ES::TMDReader tmd;
   bool active = false;
   bool first_change = true;
 };
@@ -43,7 +43,7 @@ class ESDevice final : public Device
 public:
   ESDevice(Kernel& ios, const std::string& device_name);
 
-  ReturnCode DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
+  ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   void DoState(PointerWrap& p) override;
@@ -57,7 +57,7 @@ public:
     void DoState(PointerWrap& p);
 
     bool valid = false;
-    IOS::ES::TMDReader tmd;
+    ES::TMDReader tmd;
     IOSC::Handle key_handle = 0;
     struct ContentContext
     {
@@ -87,9 +87,9 @@ public:
     No = false,
   };
 
-  IOS::ES::TMDReader FindImportTMD(u64 title_id) const;
-  IOS::ES::TMDReader FindInstalledTMD(u64 title_id) const;
-  IOS::ES::TicketReader FindSignedTicket(u64 title_id) const;
+  ES::TMDReader FindImportTMD(u64 title_id) const;
+  ES::TMDReader FindInstalledTMD(u64 title_id) const;
+  ES::TicketReader FindSignedTicket(u64 title_id) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
   std::vector<u64> GetInstalledTitles() const;
@@ -98,14 +98,14 @@ public:
   // Get titles for which there is a ticket (in /ticket).
   std::vector<u64> GetTitlesWithTickets() const;
 
-  std::vector<IOS::ES::Content>
-  GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd,
+  std::vector<ES::Content>
+  GetStoredContentsFromTMD(const ES::TMDReader& tmd,
                            CheckContentHashes check_content_hashes = CheckContentHashes::No) const;
   u32 GetSharedContentsCount() const;
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
   // Title contents
-  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
+  s32 OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid);
   ReturnCode CloseContent(u32 cfd, u32 uid);
   s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid);
   s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
@@ -158,8 +158,7 @@ public:
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
   ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
 
-  ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
-                            u32* handle);
+  ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const ES::TMDReader& tmd, u32* handle);
 
   bool CreateTitleDirectories(u64 title_id, u16 group_id) const;
 
@@ -178,11 +177,11 @@ public:
   // On success, if issuer_handle is non-null, the IOSC object for the issuer will be written to it.
   // The caller is responsible for using IOSC_DeleteObject.
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const IOS::ES::SignedBlobReader& signed_blob,
+                             const ES::SignedBlobReader& signed_blob,
                              const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const IOS::ES::CertReader& certificate,
-                             const std::vector<u8>& cert_chain, u32 certificate_iosc_handle);
+                             const ES::CertReader& certificate, const std::vector<u8>& cert_chain,
+                             u32 certificate_iosc_handle);
 
 private:
   enum
@@ -316,9 +315,8 @@ private:
   IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
   IPCCommandResult GetTitles(const IOCtlVRequest& request);
   IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
-                                          const IOCtlVRequest& request);
-  IPCCommandResult GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCtlVRequest& request);
+  IPCCommandResult GetStoredContentsCount(const ES::TMDReader& tmd, const IOCtlVRequest& request);
+  IPCCommandResult GetStoredContents(const ES::TMDReader& tmd, const IOCtlVRequest& request);
   IPCCommandResult GetStoredContentsCount(const IOCtlVRequest& request);
   IPCCommandResult GetStoredContents(const IOCtlVRequest& request);
   IPCCommandResult GetTMDStoredContentsCount(const IOCtlVRequest& request);
@@ -350,32 +348,32 @@ private:
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
-                                       const IOS::ES::TMDReader& tmd) const;
+                                       const ES::TMDReader& tmd) const;
 
-  bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
+  bool IsIssuerCorrect(VerifyContainerType type, const ES::CertReader& issuer_cert) const;
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
-  ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
+  ReturnCode WriteNewCertToStore(const ES::CertReader& cert);
 
   // Start a title import.
-  bool InitImport(const IOS::ES::TMDReader& tmd);
+  bool InitImport(const ES::TMDReader& tmd);
   // Clean up the import content directory and move it back to /title.
-  bool FinishImport(const IOS::ES::TMDReader& tmd);
+  bool FinishImport(const ES::TMDReader& tmd);
   // Write a TMD for a title in /import atomically.
-  bool WriteImportTMD(const IOS::ES::TMDReader& tmd);
+  bool WriteImportTMD(const ES::TMDReader& tmd);
   // Finish stale imports and clear the import directory.
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
-  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content,
-                             const IOS::ES::SharedContentMap& map) const;
-  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content) const;
+  std::string GetContentPath(u64 title_id, const ES::Content& content,
+                             const ES::SharedContentMap& map) const;
+  std::string GetContentPath(u64 title_id, const ES::Content& content) const;
 
   struct OpenedContent
   {
     bool m_opened = false;
     FS::Fd m_fd;
     u64 m_title_id = 0;
-    IOS::ES::Content m_content;
+    ES::Content m_content;
     u32 m_uid = 0;
   };
 

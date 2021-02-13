@@ -374,7 +374,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
       if (it->is_ssl)
       {
         int sslID = Memory::Read_U32(BufferOut) - 1;
-        if (IOS::HLE::IsSSLIDValid(sslID))
+        if (IsSSLIDValid(sslID))
         {
           switch (it->ssl_type)
           {

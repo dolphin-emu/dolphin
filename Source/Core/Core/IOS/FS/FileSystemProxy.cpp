@@ -272,7 +272,7 @@ IPCCommandResult FSDevice::Seek(const SeekRequest& request)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
   const Result<u32> result =
-      m_ios.GetFS()->SeekFile(handle.fs_fd, request.offset, IOS::HLE::FS::SeekMode(request.mode));
+      m_ios.GetFS()->SeekFile(handle.fs_fd, request.offset, FS::SeekMode(request.mode));
   LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), request.offset, request.mode);
   if (!result)
     return GetFSReply(ConvertResult(result.Error()));
