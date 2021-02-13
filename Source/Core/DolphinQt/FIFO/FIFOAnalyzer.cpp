@@ -165,6 +165,9 @@ void FIFOAnalyzer::UpdateDetails()
   m_detail_list->clear();
   m_object_data_offsets.clear();
 
+  if (!FifoPlayer::GetInstance().IsPlaying())
+    return;
+
   auto items = m_tree_widget->selectedItems();
 
   if (items.isEmpty() || items[0]->data(0, OBJECT_ROLE).isNull())
@@ -316,6 +319,9 @@ void FIFOAnalyzer::BeginSearch()
 {
   QString search_str = m_search_edit->text();
 
+  if (!FifoPlayer::GetInstance().IsPlaying())
+    return;
+
   auto items = m_tree_widget->selectedItems();
 
   if (items.isEmpty() || items[0]->data(0, FRAME_ROLE).isNull())
@@ -461,6 +467,9 @@ void FIFOAnalyzer::ShowSearchResult(size_t index)
 void FIFOAnalyzer::UpdateDescription()
 {
   m_entry_detail_browser->clear();
+
+  if (!FifoPlayer::GetInstance().IsPlaying())
+    return;
 
   auto items = m_tree_widget->selectedItems();
 
