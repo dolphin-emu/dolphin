@@ -8,6 +8,7 @@
 #include <cstring>
 #include <optional>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "Common/Align.h"
@@ -1998,102 +1999,193 @@ void ARM64XEmitter::ADR(ARM64Reg Rd, s32 imm)
 {
   EncodeAddressInst(0, Rd, imm);
 }
-void ARM64XEmitter::ADRP(ARM64Reg Rd, s32 imm)
+void ARM64XEmitter::ADRP(ARM64Reg Rd, s64 imm)
 {
-  EncodeAddressInst(1, Rd, imm >> 12);
+  EncodeAddressInst(1, Rd, static_cast<s32>(imm >> 12));
 }
 
-// Wrapper around MOVZ+MOVK (and later MOVN)
-void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
+template <typename T, size_t MaxSize>
+class SmallVector final
 {
-  unsigned int parts = Is64Bit(Rd) ? 4 : 2;
-  BitSet32 upload_part(0);
+public:
+  SmallVector() = default;
+  explicit SmallVector(size_t size) : m_size(size) {}
 
-  // Always start with a movz! Kills the dependency on the register.
-  bool use_movz = true;
+  void push_back(const T& x) { m_array[m_size++] = x; }
+  void push_back(T&& x) { m_array[m_size++] = std::move(x); }
 
-  if (!imm)
+  template <typename... Args>
+  T& emplace_back(Args&&... args)
   {
-    // Zero immediate, just clear the register. EOR is pointless when we have MOVZ, which looks
-    // clearer in disasm too.
-    MOVZ(Rd, 0, ShiftAmount::Shift0);
-    return;
+    return m_array[m_size++] = T{std::forward<Args>(args)...};
   }
 
-  if ((Is64Bit(Rd) && imm == std::numeric_limits<u64>::max()) ||
-      (!Is64Bit(Rd) && imm == std::numeric_limits<u32>::max()))
-  {
-    // Max unsigned value (or if signed, -1)
-    // Set to ~ZR
-    ARM64Reg ZR = Is64Bit(Rd) ? SP : WSP;
-    ORN(Rd, ZR, ZR, ArithOption(ZR, ShiftType::LSL, 0));
-    return;
-  }
+  T& operator[](size_t i) { return m_array[i]; }
+  const T& operator[](size_t i) const { return m_array[i]; }
 
-  // TODO: Make some more systemic use of MOVN, but this will take care of most cases.
-  // Small negative integer. Use MOVN
-  if (!Is64Bit(Rd) && (imm | 0xFFFF0000) == imm)
-  {
-    MOVN(Rd, ~imm, ShiftAmount::Shift0);
-    return;
-  }
+  size_t size() const { return m_size; }
+  bool empty() const { return m_size == 0; }
 
-  // XXX: Use MOVN when possible.
-  // XXX: Optimize more
-  // XXX: Support rotating immediates to save instructions
-  if (optimize)
+private:
+  std::array<T, MaxSize> m_array{};
+  size_t m_size = 0;
+};
+
+template <typename T>
+void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
+{
+  enum class Approach
   {
-    for (unsigned int i = 0; i < parts; ++i)
+    MOVZ,
+    MOVN,
+    ADR,
+    ADRP,
+    ORR,
+  };
+
+  struct Part
+  {
+    Part() = default;
+    Part(u16 imm_, ShiftAmount shift_) : imm(imm_), shift(shift_) {}
+
+    u16 imm;
+    ShiftAmount shift;
+  };
+
+  constexpr size_t max_parts = sizeof(T) / 2;
+
+  SmallVector<Part, max_parts> best_parts;
+  Approach best_approach;
+  u64 best_base;
+
+  const auto instructions_required = [](const SmallVector<Part, max_parts>& parts,
+                                        Approach approach) {
+    return parts.size() + (approach > Approach::MOVN);
+  };
+
+  const auto try_base = [&](T base, Approach approach, bool first_time) {
+    SmallVector<Part, max_parts> parts;
+
+    for (size_t i = 0; i < max_parts; ++i)
     {
-      if ((imm >> (i * 16)) & 0xFFFF)
-        upload_part[i] = 1;
+      const size_t shift = i * 16;
+      const u16 imm_shifted = static_cast<u16>(imm >> shift);
+      const u16 base_shifted = static_cast<u16>(base >> shift);
+      if (imm_shifted != base_shifted)
+        parts.emplace_back(imm_shifted, static_cast<ShiftAmount>(i));
     }
+
+    if (first_time ||
+        instructions_required(parts, approach) < instructions_required(best_parts, best_approach))
+    {
+      best_parts = std::move(parts);
+      best_approach = approach;
+      best_base = base;
+    }
+  };
+
+  // Try MOVZ/MOVN
+  try_base(T(0), Approach::MOVZ, true);
+  try_base(~T(0), Approach::MOVN, false);
+
+  // Try PC-relative approaches
+  const auto sext_21_bit = [](u64 x) {
+    return static_cast<s64>((x & 0x1FFFFF) | (x & 0x100000 ? ~0x1FFFFF : 0));
+  };
+  const u64 pc = reinterpret_cast<u64>(GetCodePtr());
+  const s64 adrp_offset = sext_21_bit((imm >> 12) - (pc >> 12)) << 12;
+  const s64 adr_offset = sext_21_bit(imm - pc);
+  const u64 adrp_base = (pc & ~0xFFF) + adrp_offset;
+  const u64 adr_base = pc + adr_offset;
+  if constexpr (sizeof(T) == 8)
+  {
+    try_base(adrp_base, Approach::ADRP, false);
+    try_base(adr_base, Approach::ADR, false);
   }
 
-  u64 aligned_pc = (u64)GetCodePtr() & ~0xFFF;
-  s64 aligned_offset = (s64)imm - (s64)aligned_pc;
-  // The offset for ADR/ADRP is an s32, so make sure it can be represented in that
-  if (upload_part.Count() > 1 && std::abs(aligned_offset) < 0x7FFFFFFFLL)
+  // Try ORR (or skip it if we already have a 1-instruction encoding - these tests are non-trivial)
+  if (instructions_required(best_parts, best_approach) > 1)
   {
-    // Immediate we are loading is within 4GB of our aligned range
-    // Most likely a address that we can load in one or two instructions
-    if (!(std::abs(aligned_offset) & 0xFFF))
+    if constexpr (sizeof(T) == 8)
     {
-      // Aligned ADR
-      ADRP(Rd, (s32)aligned_offset);
-      return;
+      for (u64 orr_imm : {(imm << 32) | (imm & 0x0000'0000'FFFF'FFFF),
+                          (imm & 0xFFFF'FFFF'0000'0000) | (imm >> 32),
+                          (imm << 48) | (imm & 0x0000'FFFF'FFFF'0000) | (imm >> 48)})
+      {
+        if (IsImmLogical(orr_imm, 64))
+          try_base(orr_imm, Approach::ORR, false);
+      }
     }
     else
     {
-      // If the address is within 1MB of PC we can load it in a single instruction still
-      s64 offset = (s64)imm - (s64)GetCodePtr();
-      if (offset >= -0xFFFFF && offset <= 0xFFFFF)
-      {
-        ADR(Rd, (s32)offset);
-        return;
-      }
-      else
-      {
-        ADRP(Rd, (s32)(aligned_offset & ~0xFFF));
-        ADD(Rd, Rd, imm & 0xFFF);
-        return;
-      }
+      if (IsImmLogical(imm, 32))
+        try_base(imm, Approach::ORR, false);
     }
   }
 
-  for (unsigned i = 0; i < parts; ++i)
+  size_t parts_uploaded = 0;
+
+  // To kill any dependencies, we start with an instruction that overwrites the entire register
+  switch (best_approach)
   {
-    if (use_movz && upload_part[i])
+  case Approach::MOVZ:
+    if (best_parts.empty())
+      best_parts.emplace_back(u16(0), ShiftAmount::Shift0);
+
+    MOVZ(Rd, best_parts[0].imm, best_parts[0].shift);
+    ++parts_uploaded;
+    break;
+
+  case Approach::MOVN:
+    if (best_parts.empty())
+      best_parts.emplace_back(u16(0xFFFF), ShiftAmount::Shift0);
+
+    MOVN(Rd, static_cast<u16>(~best_parts[0].imm), best_parts[0].shift);
+    ++parts_uploaded;
+    break;
+
+  case Approach::ADR:
+    ADR(Rd, adr_offset);
+    break;
+
+  case Approach::ADRP:
+    ADRP(Rd, adrp_offset);
+    break;
+
+  case Approach::ORR:
+    constexpr ARM64Reg zero_reg = sizeof(T) == 8 ? ZR : WZR;
+    const bool success = TryORRI2R(Rd, zero_reg, best_base);
+    ASSERT(success);
+    break;
+  }
+
+  // And then we use MOVK for the remaining parts
+  for (; parts_uploaded < best_parts.size(); ++parts_uploaded)
+  {
+    const Part& part = best_parts[parts_uploaded];
+
+    if (best_approach == Approach::ADRP && part.shift == ShiftAmount::Shift0)
     {
-      MOVZ(Rd, (imm >> (i * 16)) & 0xFFFF, (ShiftAmount)i);
-      use_movz = false;
+      // The combination of ADRP followed by ADD immediate is specifically optimized in hardware
+      ASSERT(part.imm == (adrp_base & 0xF000) + (part.imm & 0xFFF));
+      ADD(Rd, Rd, part.imm & 0xFFF);
     }
     else
     {
-      if (upload_part[i] || !optimize)
-        MOVK(Rd, (imm >> (i * 16)) & 0xFFFF, (ShiftAmount)i);
+      MOVK(Rd, part.imm, part.shift);
     }
   }
+}
+
+template void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, u64 imm);
+template void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, u32 imm);
+
+void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm)
+{
+  if (Is64Bit(Rd))
+    MOVI2RImpl<u64>(Rd, imm);
+  else
+    MOVI2RImpl<u32>(Rd, static_cast<u32>(imm));
 }
 
 bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
@@ -4271,7 +4363,7 @@ void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   ADDI2R_internal(Is64Bit(Rn) ? ZR : WZR, Rn, imm, true, true, scratch);
 }
 
-bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
   if (const auto result = IsImmArithmetic(imm))
   {
@@ -4283,7 +4375,7 @@ bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
   return false;
 }
 
-bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
   if (const auto result = IsImmArithmetic(imm))
   {
@@ -4295,7 +4387,7 @@ bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
   return false;
 }
 
-bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u64 imm)
 {
   if (const auto result = IsImmArithmetic(imm))
   {
@@ -4307,9 +4399,9 @@ bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
   return false;
 }
 
-bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
   {
     const auto& [n, imm_s, imm_r] = *result;
     AND(Rd, Rn, imm_r, imm_s, n != 0);
@@ -4318,9 +4410,10 @@ bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 
   return false;
 }
-bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+
+bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
   {
     const auto& [n, imm_s, imm_r] = *result;
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
@@ -4329,9 +4422,10 @@ bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
 
   return false;
 }
-bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
+
+bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
   {
     const auto& [n, imm_s, imm_r] = *result;
     EOR(Rd, Rn, imm_r, imm_s, n != 0);

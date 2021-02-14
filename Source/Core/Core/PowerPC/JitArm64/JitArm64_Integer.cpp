@@ -912,7 +912,7 @@ void JitArm64::subfex(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     if (js.carryFlagSet)
     {
-      MOVI2R(WA, ~i + j, gpr.R(d));
+      MOVI2R(WA, ~i + j);
       ADC(gpr.R(d), WA, WZR);
     }
     else
