@@ -124,7 +124,7 @@ void WFSIDevice::FinalizePatchInstall()
   File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
 }
 
-IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_error_code = IPC_SUCCESS;
 
@@ -546,7 +546,7 @@ IPCCommandResult WFSIDevice::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  return GetDefaultReply(return_error_code);
+  return IPCReply(return_error_code);
 }
 
 u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const

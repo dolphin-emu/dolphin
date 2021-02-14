@@ -34,7 +34,7 @@ class WFSSRVDevice : public Device
 public:
   WFSSRVDevice(Kernel& ios, const std::string& device_name);
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
   s32 Rename(std::string source, std::string dest) const;
   void SetHomeDir(const std::string& home_dir);

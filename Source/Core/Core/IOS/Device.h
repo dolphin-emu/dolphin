@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -186,19 +187,23 @@ public:
   const std::string& GetDeviceName() const { return m_name; }
   // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
   // not by the devices themselves.
-  virtual IPCCommandResult Open(const OpenRequest& request);
-  virtual IPCCommandResult Close(u32 fd);
-  virtual IPCCommandResult Seek(const SeekRequest& seek) { return Unsupported(seek); }
-  virtual IPCCommandResult Read(const ReadWriteRequest& read) { return Unsupported(read); }
-  virtual IPCCommandResult Write(const ReadWriteRequest& write) { return Unsupported(write); }
-  virtual IPCCommandResult IOCtl(const IOCtlRequest& ioctl) { return Unsupported(ioctl); }
-  virtual IPCCommandResult IOCtlV(const IOCtlVRequest& ioctlv) { return Unsupported(ioctlv); }
+  virtual std::optional<IPCReply> Open(const OpenRequest& request);
+  virtual std::optional<IPCReply> Close(u32 fd);
+  virtual std::optional<IPCReply> Seek(const SeekRequest& seek) { return Unsupported(seek); }
+  virtual std::optional<IPCReply> Read(const ReadWriteRequest& read) { return Unsupported(read); }
+  virtual std::optional<IPCReply> Write(const ReadWriteRequest& write)
+  {
+    return Unsupported(write);
+  }
+  virtual std::optional<IPCReply> IOCtl(const IOCtlRequest& ioctl) { return Unsupported(ioctl); }
+  virtual std::optional<IPCReply> IOCtlV(const IOCtlVRequest& ioctlv)
+  {
+    return Unsupported(ioctlv);
+  }
   virtual void Update() {}
   virtual void UpdateWantDeterminism(bool new_want_determinism) {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
-  static IPCCommandResult GetDefaultReply(s32 return_value);
-  static IPCCommandResult GetNoReply();
 
 protected:
   Kernel& m_ios;
@@ -209,6 +214,6 @@ protected:
   bool m_is_active = false;
 
 private:
-  IPCCommandResult Unsupported(const Request& request);
+  std::optional<IPCReply> Unsupported(const Request& request);
 };
 }  // namespace IOS::HLE

@@ -51,30 +51,30 @@ void OH0Device::DoState(PointerWrap& p)
   p.Do(m_device_id);
 }
 
-IPCCommandResult OH0Device::Open(const OpenRequest& request)
+std::optional<IPCReply> OH0Device::Open(const OpenRequest& request)
 {
   if (m_vid == 0 && m_pid == 0)
-    return GetDefaultReply(IPC_ENOENT);
+    return IPCReply(IPC_ENOENT);
 
   m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
 
   ReturnCode return_code;
   std::tie(return_code, m_device_id) = m_oh0->DeviceOpen(m_vid, m_pid);
-  return GetDefaultReply(return_code);
+  return IPCReply(return_code);
 }
 
-IPCCommandResult OH0Device::Close(u32 fd)
+std::optional<IPCReply> OH0Device::Close(u32 fd)
 {
   m_oh0->DeviceClose(m_device_id);
   return Device::Close(fd);
 }
 
-IPCCommandResult OH0Device::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> OH0Device::IOCtl(const IOCtlRequest& request)
 {
   return m_oh0->DeviceIOCtl(m_device_id, request);
 }
 
-IPCCommandResult OH0Device::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> OH0Device::IOCtlV(const IOCtlVRequest& request)
 {
   return m_oh0->DeviceIOCtlV(m_device_id, request);
 }

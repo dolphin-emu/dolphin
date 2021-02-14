@@ -17,7 +17,7 @@ public:
   NetKDTimeDevice(Kernel& ios, const std::string& device_name);
   ~NetKDTimeDevice() override;
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
 private:
   // TODO: depending on CEXIIPL is a hack which I don't feel like

@@ -57,13 +57,13 @@ void DIDevice::DoState(PointerWrap& p)
   p.Do(m_last_length);
 }
 
-IPCCommandResult DIDevice::Open(const OpenRequest& request)
+std::optional<IPCReply> DIDevice::Open(const OpenRequest& request)
 {
   InitializeIfFirstTime();
   return Device::Open(request);
 }
 
-IPCCommandResult DIDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> DIDevice::IOCtl(const IOCtlRequest& request)
 {
   InitializeIfFirstTime();
 
@@ -91,7 +91,7 @@ IPCCommandResult DIDevice::IOCtl(const IOCtlRequest& request)
 
   // FinishIOCtl will be called after the command has been executed
   // to reply to the request, so we shouldn't reply here.
-  return GetNoReply();
+  return std::nullopt;
 }
 
 void DIDevice::ProcessQueuedIOCtl()
@@ -612,7 +612,7 @@ void DIDevice::FinishDICommand(DIResult result)
   }
 }
 
-IPCCommandResult DIDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
 {
   // IOCtlVs are not queued since they don't (currently) go into DVDInterface and act
   // asynchronously. This does mean that an IOCtlV can be executed while an IOCtl is in progress,
@@ -623,7 +623,7 @@ IPCCommandResult DIDevice::IOCtlV(const IOCtlVRequest& request)
   {
     ERROR_LOG_FMT(IOS_DI, "IOCtlV: Received bad input buffer size {:#04x}, should be 0x20",
                   request.in_vectors[0].size);
-    return GetDefaultReply(static_cast<s32>(DIResult::BadArgument));
+    return IPCReply{static_cast<s32>(DIResult::BadArgument)};
   }
   const u8 command = Memory::Read_U8(request.in_vectors[0].address);
   if (request.request != command)
@@ -704,7 +704,7 @@ IPCCommandResult DIDevice::IOCtlV(const IOCtlVRequest& request)
     ERROR_LOG_FMT(IOS_DI, "Unknown ioctlv {:#04x}", request.request);
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
   }
-  return GetDefaultReply(static_cast<s32>(return_value));
+  return IPCReply{static_cast<s32>(return_value)};
 }
 
 void DIDevice::ChangePartition(const DiscIO::Partition partition)

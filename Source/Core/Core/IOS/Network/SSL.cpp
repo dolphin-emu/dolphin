@@ -113,10 +113,10 @@ int NetSSLDevice::GetSSLFreeID() const
   return 0;
 }
 
-IPCCommandResult NetSSLDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> NetSSLDevice::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_SSL, Common::Log::LINFO);
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 constexpr std::array<u8, 32> s_client_cert_hash = {
@@ -167,7 +167,7 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   return bytes;
 }
 
-IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
 {
   u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
   u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
@@ -210,7 +210,7 @@ IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   // I don't trust SSL to be deterministic, and this is never going to sync
   // as such (as opposed to forwarding IPC results or whatever), so -
   if (Core::WantsDeterminism())
-    return GetDefaultReply(IPC_EACCES);
+    return IPCReply(IPC_EACCES);
 
   switch (request.request)
   {
@@ -499,7 +499,7 @@ IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
       sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_DOHANDSHAKE);
-      return GetNoReply();
+      return std::nullopt;
     }
     else
     {
@@ -514,7 +514,7 @@ IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
       sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_WRITE);
-      return GetNoReply();
+      return std::nullopt;
     }
     else
     {
@@ -538,7 +538,7 @@ IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
       sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_READ);
-      return GetNoReply();
+      return std::nullopt;
     }
     else
     {
@@ -600,6 +600,6 @@ IPCCommandResult NetSSLDevice::IOCtlV(const IOCtlVRequest& request)
   }
 
   // SSL return codes are written to BufferIn
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 }  // namespace IOS::HLE

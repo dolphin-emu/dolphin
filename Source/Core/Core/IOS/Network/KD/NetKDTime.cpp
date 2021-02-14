@@ -19,7 +19,7 @@ NetKDTimeDevice::NetKDTimeDevice(Kernel& ios, const std::string& device_name)
 
 NetKDTimeDevice::~NetKDTimeDevice() = default;
 
-IPCCommandResult NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 result = 0;
   u32 common_result = 0;
@@ -72,7 +72,7 @@ IPCCommandResult NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
 
   // write return values
   Memory::Write_U32(common_result, request.buffer_out);
-  return GetDefaultReply(result);
+  return IPCReply(result);
 }
 
 u64 NetKDTimeDevice::GetAdjustedUTC() const

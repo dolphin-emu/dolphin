@@ -32,7 +32,7 @@ NetKDRequestDevice::~NetKDRequestDevice()
   WiiSockMan::GetInstance().Clean();
 }
 
-IPCCommandResult NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_value = 0;
   switch (request.request)
@@ -169,7 +169,7 @@ IPCCommandResult NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
     request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   }
 
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
 
 u8 NetKDRequestDevice::GetAreaCode(const std::string& area) const

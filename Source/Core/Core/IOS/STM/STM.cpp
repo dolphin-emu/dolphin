@@ -16,7 +16,7 @@ namespace IOS::HLE
 {
 static std::unique_ptr<IOCtlRequest> s_event_hook_request;
 
-IPCCommandResult STMImmediateDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -59,7 +59,7 @@ IPCCommandResult STMImmediateDevice::IOCtl(const IOCtlRequest& request)
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_STM);
   }
 
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
 
 STMEventHookDevice::~STMEventHookDevice()
@@ -67,17 +67,17 @@ STMEventHookDevice::~STMEventHookDevice()
   s_event_hook_request.reset();
 }
 
-IPCCommandResult STMEventHookDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> STMEventHookDevice::IOCtl(const IOCtlRequest& request)
 {
   if (request.request != IOCTL_STM_EVENTHOOK)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   if (s_event_hook_request)
-    return GetDefaultReply(IPC_EEXIST);
+    return IPCReply(IPC_EEXIST);
 
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button is pressed.
   s_event_hook_request = std::make_unique<IOCtlRequest>(request.address);
-  return GetNoReply();
+  return std::nullopt;
 }
 
 void STMEventHookDevice::DoState(PointerWrap& p)

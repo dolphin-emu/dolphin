@@ -27,7 +27,7 @@ void NetNCDManageDevice::DoState(PointerWrap& p)
   p.Do(m_ipc_fd);
 }
 
-IPCCommandResult NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   u32 common_result = 0;
@@ -37,10 +37,10 @@ IPCCommandResult NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
   {
   case IOCTLV_NCD_LOCKWIRELESSDRIVER:
     if (!request.HasNumberOfValidVectors(0, 1))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (request.io_vectors[0].size < 2 * sizeof(u32))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (m_ipc_fd != 0)
     {
@@ -60,13 +60,13 @@ IPCCommandResult NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NCD_UNLOCKWIRELESSDRIVER:
   {
     if (!request.HasNumberOfValidVectors(1, 1))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (request.in_vectors[0].size < sizeof(u32))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (request.io_vectors[0].size < sizeof(u32))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     const u32 request_handle = Memory::Read_U32(request.in_vectors[0].address);
     if (m_ipc_fd == request_handle)
@@ -130,6 +130,6 @@ IPCCommandResult NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
   {
     Memory::Write_U32(common_result, request.io_vectors.at(common_vector).address + 4);
   }
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
 }  // namespace IOS::HLE

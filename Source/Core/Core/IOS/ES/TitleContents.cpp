@@ -46,13 +46,13 @@ s32 ESDevice::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid)
   return FS_EFDEXHAUSTED;
 }
 
-IPCCommandResult ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0) || request.in_vectors[0].size != sizeof(u64) ||
       request.in_vectors[1].size != sizeof(ES::TicketView) ||
       request.in_vectors[2].size != sizeof(u32))
   {
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
   }
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
@@ -61,27 +61,27 @@ IPCCommandResult ESDevice::OpenContent(u32 uid, const IOCtlVRequest& request)
 
   const auto tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
-    return GetDefaultReply(FS_ENOENT);
+    return IPCReply(FS_ENOENT);
 
-  return GetDefaultReply(OpenContent(tmd, content_index, uid));
+  return IPCReply(OpenContent(tmd, content_index, uid));
 }
 
-IPCCommandResult ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& request)
+IPCReply ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u32 content_index = Memory::Read_U32(request.in_vectors[0].address);
 
   if (!m_title_context.active)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   ES::UIDSys uid_map{m_ios.GetFS()};
   const u32 uid = uid_map.GetOrInsertUIDForTitle(m_title_context.tmd.GetTitleId());
   if (caller_uid != 0 && caller_uid != uid)
-    return GetDefaultReply(ES_EACCES);
+    return IPCReply(ES_EACCES);
 
-  return GetDefaultReply(OpenContent(m_title_context.tmd, content_index, caller_uid));
+  return IPCReply(OpenContent(m_title_context.tmd, content_index, caller_uid));
 }
 
 s32 ESDevice::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
@@ -99,16 +99,16 @@ s32 ESDevice::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
   return result.Succeeded() ? *result : FS::ConvertResult(result.Error());
 }
 
-IPCCommandResult ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::ReadContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u32))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
   const u32 size = request.io_vectors[0].size;
   const u32 addr = request.io_vectors[0].address;
 
-  return GetDefaultReply(ReadContent(cfd, Memory::GetPointer(addr), size, uid));
+  return IPCReply(ReadContent(cfd, Memory::GetPointer(addr), size, uid));
 }
 
 ReturnCode ESDevice::CloseContent(u32 cfd, u32 uid)
@@ -128,13 +128,13 @@ ReturnCode ESDevice::CloseContent(u32 cfd, u32 uid)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ESDevice::CloseContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::CloseContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
-  return GetDefaultReply(CloseContent(cfd, uid));
+  return IPCReply(CloseContent(cfd, uid));
 }
 
 s32 ESDevice::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid)
@@ -152,15 +152,15 @@ s32 ESDevice::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid)
   return result.Succeeded() ? *result : FS::ConvertResult(result.Error());
 }
 
-IPCCommandResult ESDevice::SeekContent(u32 uid, const IOCtlVRequest& request)
+IPCReply ESDevice::SeekContent(u32 uid, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u32 cfd = Memory::Read_U32(request.in_vectors[0].address);
   const u32 offset = Memory::Read_U32(request.in_vectors[1].address);
   const SeekMode mode = static_cast<SeekMode>(Memory::Read_U32(request.in_vectors[2].address));
 
-  return GetDefaultReply(SeekContent(cfd, offset, mode, uid));
+  return IPCReply(SeekContent(cfd, offset, mode, uid));
 }
 }  // namespace IOS::HLE

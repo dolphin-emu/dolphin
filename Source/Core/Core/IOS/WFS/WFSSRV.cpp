@@ -31,7 +31,7 @@ WFSSRVDevice::WFSSRVDevice(Kernel& ios, const std::string& device_name) : Device
   m_device_name = "msc01";
 }
 
-IPCCommandResult WFSSRVDevice::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
 {
   int return_error_code = IPC_SUCCESS;
 
@@ -90,7 +90,7 @@ IPCCommandResult WFSSRVDevice::IOCtl(const IOCtlRequest& request)
 
     // Leave hanging, but we need to acknowledge the request at shutdown time.
     m_hanging.push_back(request.address);
-    return GetNoReply();
+    return std::nullopt;
 
   case IOCTL_WFS_FLUSH:
     // Nothing to do.
@@ -359,7 +359,7 @@ IPCCommandResult WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  return GetDefaultReply(return_error_code);
+  return IPCReply(return_error_code);
 }
 
 s32 WFSSRVDevice::Rename(std::string source, std::string dest) const

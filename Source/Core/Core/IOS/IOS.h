@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -33,10 +34,14 @@ class ESDevice;
 struct Request;
 struct OpenRequest;
 
-struct IPCCommandResult
+struct IPCReply
 {
+  /// Constructs a reply with an average reply time.
+  /// Please avoid using this function if more accurate timings are known.
+  explicit IPCReply(s32 return_value_);
+  explicit IPCReply(s32 return_value_, u64 reply_delay_ticks_);
+
   s32 return_value;
-  bool send_reply;
   u64 reply_delay_ticks;
 };
 
@@ -84,7 +89,7 @@ public:
   void SDIO_EventNotify();
 
   void EnqueueIPCRequest(u32 address);
-  void EnqueueIPCReply(const Request& request, s32 return_value, int cycles_in_future = 0,
+  void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
                        CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 
   void SetUidForPPC(u32 uid);
@@ -102,7 +107,7 @@ protected:
   explicit Kernel(u64 title_id);
 
   void ExecuteIPCCommand(u32 address);
-  IPCCommandResult HandleIPCCommand(const Request& request);
+  std::optional<IPCReply> HandleIPCCommand(const Request& request);
   void EnqueueIPCAcknowledgement(u32 address, int cycles_in_future = 0);
 
   void AddDevice(std::unique_ptr<Device> device);
@@ -110,7 +115,7 @@ protected:
   void AddStaticDevices();
   std::shared_ptr<Device> GetDeviceByName(std::string_view device_name);
   s32 GetFreeDeviceID();
-  IPCCommandResult OpenDevice(OpenRequest& request);
+  std::optional<IPCReply> OpenDevice(OpenRequest& request);
 
   bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;
