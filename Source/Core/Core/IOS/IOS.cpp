@@ -745,14 +745,6 @@ void Kernel::DoState(PointerWrap& p)
   if (m_title_id == Titles::MIOS)
     return;
 
-  // We need to make sure all file handles are closed so IOS::HLE::FSDevice::DoState can
-  // successfully save or re-create /tmp
-  for (auto& descriptor : m_fdmap)
-  {
-    if (descriptor)
-      descriptor->PrepareForState(p.GetMode());
-  }
-
   for (const auto& entry : m_device_map)
     entry.second->DoState(p);
 
