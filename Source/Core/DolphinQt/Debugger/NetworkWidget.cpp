@@ -243,7 +243,9 @@ void NetworkWidget::Update()
     s32 host_fd = -1;
     if (IOS::HLE::IsSSLIDValid(ssl_id))
     {
-      host_fd = IOS::HLE::NetSSLDevice::_SSL[ssl_id].hostfd;
+      const auto& ssl = IOS::HLE::NetSSLDevice::_SSL[ssl_id];
+      host_fd = ssl.hostfd;
+      m_ssl_table->setItem(ssl_id, 5, new QTableWidgetItem(QString::fromStdString(ssl.hostname)));
     }
     m_ssl_table->setItem(ssl_id, 0, new QTableWidgetItem(QString::number(ssl_id)));
     m_ssl_table->setItem(ssl_id, 1, GetSocketDomain(host_fd));
@@ -292,7 +294,7 @@ QGroupBox* NetworkWidget::CreateSSLContextGroup()
   ssl_context_group->setLayout(ssl_context_layout);
 
   m_ssl_table = new QTableWidget();
-  QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name")};
+  QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
   m_ssl_table->setColumnCount(header.size());
 
   m_ssl_table->setHorizontalHeaderLabels(header);
