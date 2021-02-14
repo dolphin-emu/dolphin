@@ -442,8 +442,19 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
     return;
 
   m_address = address;
-  if (update == SetAddressUpdate::WithUpdate)
+  switch (update)
+  {
+  case SetAddressUpdate::WithoutUpdate:
+    return;
+  case SetAddressUpdate::WithUpdate:
+    // Update the CodeViewWidget
     Update();
+    break;
+  case SetAddressUpdate::WithDetailedUpdate:
+    // Update the CodeWidget's views (code view, function calls/callers, ...)
+    emit UpdateCodeWidget();
+    break;
+  }
 }
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
@@ -611,7 +622,7 @@ void CodeViewWidget::OnFollowBranch()
   if (!branch_addr)
     return;
 
-  SetAddress(branch_addr, SetAddressUpdate::WithUpdate);
+  SetAddress(branch_addr, SetAddressUpdate::WithDetailedUpdate);
 }
 
 void CodeViewWidget::OnRenameSymbol()
@@ -785,7 +796,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
       ToggleBreakpoint();
     else
-      SetAddress(addr, SetAddressUpdate::WithUpdate);
+      SetAddress(addr, SetAddressUpdate::WithDetailedUpdate);
 
     Update();
     break;
