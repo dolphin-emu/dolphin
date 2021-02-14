@@ -20,6 +20,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace IOS::HLE
 {
@@ -54,17 +55,30 @@ namespace
 int SSLSendWithoutSNI(void* ctx, const unsigned char* buf, size_t len)
 {
   auto* ssl = static_cast<WII_SSL*>(ctx);
+  auto* fd = &ssl->hostfd;
 
   if (ssl->ctx.state == MBEDTLS_SSL_SERVER_HELLO)
     mbedtls_ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
-  return mbedtls_net_send(&ssl->hostfd, buf, len);
+  const int ret = mbedtls_net_send(fd, buf, len);
+
+  // Log raw SSL packets if we don't dump unencrypted SSL writes
+  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
+    PowerPC::debug_interface.NetworkLogger()->LogWrite(buf, ret, *fd, nullptr);
+
+  return ret;
 }
 
 int SSLRecv(void* ctx, unsigned char* buf, size_t len)
 {
   auto* ssl = static_cast<WII_SSL*>(ctx);
+  auto* fd = &ssl->hostfd;
+  const int ret = mbedtls_net_recv(fd, buf, len);
 
-  return mbedtls_net_recv(&ssl->hostfd, buf, len);
+  // Log raw SSL packets if we don't dump unencrypted SSL reads
+  if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
+    PowerPC::debug_interface.NetworkLogger()->LogRead(buf, ret, *fd, nullptr);
+
+  return ret;
 }
 }  // namespace
 
