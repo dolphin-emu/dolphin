@@ -2036,11 +2036,11 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 {
   enum class Approach
   {
-    MOVZ,
-    MOVN,
-    ADR,
-    ADRP,
-    ORR,
+    MOVZBase,
+    MOVNBase,
+    ADRBase,
+    ADRPBase,
+    ORRBase,
   };
 
   struct Part
@@ -2060,7 +2060,7 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
 
   const auto instructions_required = [](const SmallVector<Part, max_parts>& parts,
                                         Approach approach) {
-    return parts.size() + (approach > Approach::MOVN);
+    return parts.size() + (approach > Approach::MOVNBase);
   };
 
   const auto try_base = [&](T base, Approach approach, bool first_time) {
@@ -2085,8 +2085,8 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
   };
 
   // Try MOVZ/MOVN
-  try_base(T(0), Approach::MOVZ, true);
-  try_base(~T(0), Approach::MOVN, false);
+  try_base(T(0), Approach::MOVZBase, true);
+  try_base(~T(0), Approach::MOVNBase, false);
 
   // Try PC-relative approaches
   const auto sext_21_bit = [](u64 x) {
@@ -2099,8 +2099,8 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
   const u64 adr_base = pc + adr_offset;
   if constexpr (sizeof(T) == 8)
   {
-    try_base(adrp_base, Approach::ADRP, false);
-    try_base(adr_base, Approach::ADR, false);
+    try_base(adrp_base, Approach::ADRPBase, false);
+    try_base(adr_base, Approach::ADRBase, false);
   }
 
   // Try ORR (or skip it if we already have a 1-instruction encoding - these tests are non-trivial)
@@ -2113,13 +2113,13 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
                           (imm << 48) | (imm & 0x0000'FFFF'FFFF'0000) | (imm >> 48)})
       {
         if (IsImmLogical(orr_imm, 64))
-          try_base(orr_imm, Approach::ORR, false);
+          try_base(orr_imm, Approach::ORRBase, false);
       }
     }
     else
     {
       if (IsImmLogical(imm, 32))
-        try_base(imm, Approach::ORR, false);
+        try_base(imm, Approach::ORRBase, false);
     }
   }
 
@@ -2128,7 +2128,7 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
   // To kill any dependencies, we start with an instruction that overwrites the entire register
   switch (best_approach)
   {
-  case Approach::MOVZ:
+  case Approach::MOVZBase:
     if (best_parts.empty())
       best_parts.emplace_back(u16(0), ShiftAmount::Shift0);
 
@@ -2136,7 +2136,7 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
     ++parts_uploaded;
     break;
 
-  case Approach::MOVN:
+  case Approach::MOVNBase:
     if (best_parts.empty())
       best_parts.emplace_back(u16(0xFFFF), ShiftAmount::Shift0);
 
@@ -2144,15 +2144,15 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
     ++parts_uploaded;
     break;
 
-  case Approach::ADR:
+  case Approach::ADRBase:
     ADR(Rd, adr_offset);
     break;
 
-  case Approach::ADRP:
+  case Approach::ADRPBase:
     ADRP(Rd, adrp_offset);
     break;
 
-  case Approach::ORR:
+  case Approach::ORRBase:
     constexpr ARM64Reg zero_reg = sizeof(T) == 8 ? ZR : WZR;
     const bool success = TryORRI2R(Rd, zero_reg, best_base);
     ASSERT(success);
@@ -2164,7 +2164,7 @@ void ARM64XEmitter::MOVI2RImpl(ARM64Reg Rd, T imm)
   {
     const Part& part = best_parts[parts_uploaded];
 
-    if (best_approach == Approach::ADRP && part.shift == ShiftAmount::Shift0)
+    if (best_approach == Approach::ADRPBase && part.shift == ShiftAmount::Shift0)
     {
       // The combination of ADRP followed by ADD immediate is specifically optimized in hardware
       ASSERT(part.imm == (adrp_base & 0xF000) + (part.imm & 0xFFF));
