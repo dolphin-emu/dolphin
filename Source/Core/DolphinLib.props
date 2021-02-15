@@ -476,6 +476,7 @@
     <ClInclude Include="InputCommon\ControlReference\ExpressionParser.h" />
     <ClInclude Include="InputCommon\ControlReference\FunctionExpression.h" />
     <ClInclude Include="InputCommon\DynamicInputTextures\DITConfiguration.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITData.h" />
     <ClInclude Include="InputCommon\DynamicInputTextureManager.h" />
     <ClInclude Include="InputCommon\GCAdapter.h" />
     <ClInclude Include="InputCommon\GCPadStatus.h" />

@@ -93,7 +93,7 @@ Configuration::Configuration(const std::string& json_file)
   const auto output_textures = output_textures_json.get<picojson::object>();
   for (auto& [name, data] : output_textures)
   {
-    DynamicInputTextureData texture_data;
+    Data texture_data;
     texture_data.m_hires_texture_name = name;
 
     // Required fields
@@ -262,7 +262,7 @@ bool Configuration::GenerateTextures(const IniFile::Section* sec,
 }
 
 bool Configuration::GenerateTexture(const IniFile::Section* sec, const std::string& controller_name,
-                                    const DynamicInputTextureData& texture_data) const
+                                    const Data& texture_data) const
 {
   std::string device_name;
   if (!sec->Get("Device", &device_name))

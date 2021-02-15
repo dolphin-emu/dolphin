@@ -10,7 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
-#include "InputCommon/ImageOperations.h"
+#include "InputCommon/DynamicInputTextures/DITData.h"
 
 namespace InputCommon::DynamicInputTextures
 {
@@ -22,24 +22,10 @@ public:
   bool GenerateTextures(const IniFile::Section* sec, const std::string& controller_name) const;
 
 private:
-  struct DynamicInputTextureData
-  {
-    std::string m_image_name;
-    std::string m_hires_texture_name;
-    std::string m_generated_folder_name;
-
-    using EmulatedKeyToRegionsMap = std::unordered_map<std::string, std::vector<Rect>>;
-    std::unordered_map<std::string, EmulatedKeyToRegionsMap> m_emulated_controllers;
-
-    using HostKeyToImagePath = std::unordered_map<std::string, std::string>;
-    std::unordered_map<std::string, HostKeyToImagePath> m_host_devices;
-    bool m_preserve_aspect_ratio = true;
-  };
-
   bool GenerateTexture(const IniFile::Section* sec, const std::string& controller_name,
-                       const DynamicInputTextureData& texture_data) const;
+                       const Data& texture_data) const;
 
-  std::vector<DynamicInputTextureData> m_dynamic_input_textures;
+  std::vector<Data> m_dynamic_input_textures;
   std::string m_base_path;
   bool m_valid = true;
 };
