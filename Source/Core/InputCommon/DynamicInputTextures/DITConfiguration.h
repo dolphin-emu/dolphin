@@ -12,13 +12,13 @@
 #include "Common/IniFile.h"
 #include "InputCommon/ImageOperations.h"
 
-namespace InputCommon
+namespace InputCommon::DynamicInputTextures
 {
-class DynamicInputTextureConfiguration
+class Configuration
 {
 public:
-  explicit DynamicInputTextureConfiguration(const std::string& json_file);
-  ~DynamicInputTextureConfiguration();
+  explicit Configuration(const std::string& json_file);
+  ~Configuration();
   bool GenerateTextures(const IniFile::Section* sec, const std::string& controller_name) const;
 
 private:
@@ -43,4 +43,4 @@ private:
   std::string m_base_path;
   bool m_valid = true;
 };
-}  // namespace InputCommon
+}  // namespace InputCommon::DynamicInputTextures

@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/DynamicInputTextureConfiguration.h"
+#include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 
 #include <optional>
 #include <sstream>
@@ -30,9 +30,9 @@ std::string GetStreamAsString(std::ifstream& stream)
 }
 }  // namespace
 
-namespace InputCommon
+namespace InputCommon::DynamicInputTextures
 {
-DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::string& json_file)
+Configuration::Configuration(const std::string& json_file)
 {
   std::ifstream json_stream;
   File::OpenFStream(json_stream, json_file, std::ios_base::in);
@@ -247,10 +247,10 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
   }
 }
 
-DynamicInputTextureConfiguration::~DynamicInputTextureConfiguration() = default;
+Configuration::~Configuration() = default;
 
-bool DynamicInputTextureConfiguration::GenerateTextures(const IniFile::Section* sec,
-                                                        const std::string& controller_name) const
+bool Configuration::GenerateTextures(const IniFile::Section* sec,
+                                     const std::string& controller_name) const
 {
   bool any_dirty = false;
   for (const auto& texture_data : m_dynamic_input_textures)
@@ -261,9 +261,8 @@ bool DynamicInputTextureConfiguration::GenerateTextures(const IniFile::Section* 
   return any_dirty;
 }
 
-bool DynamicInputTextureConfiguration::GenerateTexture(
-    const IniFile::Section* sec, const std::string& controller_name,
-    const DynamicInputTextureData& texture_data) const
+bool Configuration::GenerateTexture(const IniFile::Section* sec, const std::string& controller_name,
+                                    const DynamicInputTextureData& texture_data) const
 {
   std::string device_name;
   if (!sec->Get("Device", &device_name))
@@ -381,4 +380,4 @@ bool DynamicInputTextureConfiguration::GenerateTexture(
 
   return false;
 }
-}  // namespace InputCommon
+}  // namespace InputCommon::DynamicInputTextures

@@ -12,7 +12,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-#include "InputCommon/DynamicInputTextureConfiguration.h"
+#include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/RenderBase.h"
 

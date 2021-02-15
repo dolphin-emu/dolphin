@@ -1,6 +1,4 @@
 add_library(inputcommon
-  DynamicInputTextureConfiguration.cpp
-  DynamicInputTextureConfiguration.h
   DynamicInputTextureManager.cpp
   DynamicInputTextureManager.h
   ImageOperations.cpp
@@ -64,6 +62,8 @@ add_library(inputcommon
   ControlReference/ExpressionParser.h
   ControlReference/FunctionExpression.cpp
   ControlReference/FunctionExpression.h
+  DynamicInputTextures/DITConfiguration.cpp
+  DynamicInputTextures/DITConfiguration.h
 )
 
 target_link_libraries(inputcommon
