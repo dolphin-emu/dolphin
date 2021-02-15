@@ -65,6 +65,8 @@ add_library(inputcommon
   DynamicInputTextures/DITConfiguration.cpp
   DynamicInputTextures/DITConfiguration.h
   DynamicInputTextures/DITData.h
+  DynamicInputTextures/DITSpecification.cpp
+  DynamicInputTextures/DITSpecification.h
 )
 
 target_link_libraries(inputcommon

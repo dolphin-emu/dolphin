@@ -477,6 +477,7 @@
     <ClInclude Include="InputCommon\ControlReference\FunctionExpression.h" />
     <ClInclude Include="InputCommon\DynamicInputTextures\DITConfiguration.h" />
     <ClInclude Include="InputCommon\DynamicInputTextures\DITData.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITSpecification.h" />
     <ClInclude Include="InputCommon\DynamicInputTextureManager.h" />
     <ClInclude Include="InputCommon\GCAdapter.h" />
     <ClInclude Include="InputCommon\GCPadStatus.h" />
@@ -1043,6 +1044,7 @@
     <ClCompile Include="InputCommon\ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="InputCommon\ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="InputCommon\DynamicInputTextures\DITConfiguration.cpp" />
+    <ClCompile Include="InputCommon\DynamicInputTextures\DITSpecification.cpp" />
     <ClCompile Include="InputCommon\DynamicInputTextureManager.cpp" />
     <ClCompile Include="InputCommon\GCAdapter.cpp" />
     <ClCompile Include="InputCommon\ImageOperations.cpp" />
