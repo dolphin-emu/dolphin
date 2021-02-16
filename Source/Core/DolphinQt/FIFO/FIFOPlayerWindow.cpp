@@ -6,9 +6,13 @@
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
+#include <QEvent>
 #include <QFileDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QIcon>
+#include <QKeyEvent>
+#include <QKeySequence>
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
@@ -26,12 +30,13 @@
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
-FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QDialog(parent)
+FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(tr("FIFO Player"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  setWindowIcon(Resources::GetAppIcon());
 
   CreateWidgets();
   ConnectWidgets();
@@ -56,6 +61,8 @@ FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QDialog(parent)
       OnEmulationStopped();
     m_emu_state = state;
   });
+
+  installEventFilter(this);
 }
 
 FIFOPlayerWindow::~FIFOPlayerWindow()
@@ -167,7 +174,7 @@ void FIFOPlayerWindow::ConnectWidgets()
   connect(m_save, &QPushButton::clicked, this, &FIFOPlayerWindow::SaveRecording);
   connect(m_record, &QPushButton::clicked, this, &FIFOPlayerWindow::StartRecording);
   connect(m_stop, &QPushButton::clicked, this, &FIFOPlayerWindow::StopRecording);
-  connect(m_button_box, &QDialogButtonBox::rejected, this, &FIFOPlayerWindow::reject);
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &FIFOPlayerWindow::hide);
   connect(m_early_memory_updates, &QCheckBox::toggled, this,
           &FIFOPlayerWindow::OnEarlyMemoryUpdatesChanged);
   connect(m_frame_range_from, qOverload<int>(&QSpinBox::valueChanged), this,
@@ -370,4 +377,16 @@ void FIFOPlayerWindow::UpdateControls()
   m_record->setVisible(!m_stop->isVisible());
 
   m_save->setEnabled(FifoRecorder::GetInstance().IsRecordingDone());
+}
+
+bool FIFOPlayerWindow::eventFilter(QObject* object, QEvent* event)
+{
+  // Close when escape is pressed
+  if (event->type() == QEvent::KeyPress)
+  {
+    if (static_cast<QKeyEvent*>(event)->matches(QKeySequence::Cancel))
+      hide();
+  }
+
+  return false;
 }
