@@ -285,6 +285,11 @@ std::shared_ptr<FS::FileSystem> Kernel::GetFS()
   return m_fs;
 }
 
+std::shared_ptr<FSDevice> Kernel::GetFSDevice()
+{
+  return std::static_pointer_cast<FSDevice>(m_device_map.at("/dev/fs"));
+}
+
 std::shared_ptr<ESDevice> Kernel::GetES()
 {
   return std::static_pointer_cast<ESDevice>(m_device_map.at("/dev/es"));

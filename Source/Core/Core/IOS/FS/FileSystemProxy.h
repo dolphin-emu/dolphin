@@ -35,6 +35,15 @@ public:
   s32 Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {},
             Ticks ticks = {});
   s32 Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks = {});
+  FS::Result<FS::FileStatus> GetFileStatus(u64 fd, Ticks ticks = {});
+
+  template <typename T>
+  s32 Read(u64 fd, T* data, size_t count, Ticks ticks = {})
+  {
+    return Read(fd, reinterpret_cast<u8*>(data), static_cast<u32>(sizeof(T) * count), {}, ticks);
+  }
+
+  std::shared_ptr<FS::FileSystem> GetFS() const { return m_ios.GetFS(); }
 
   void DoState(PointerWrap& p) override;
 

@@ -394,7 +394,7 @@ ReturnCode ESDevice::ImportContentEnd(Context& context, u32 content_fd)
   std::string content_path;
   if (content_info.IsShared())
   {
-    ES::SharedContentMap shared_content{fs};
+    ES::SharedContentMap shared_content{m_ios.GetFSDevice()};
     content_path = shared_content.AddSharedContent(content_info.sha1);
   }
   else
@@ -441,7 +441,7 @@ static bool HasAllRequiredContents(Kernel& ios, const ES::TMDReader& tmd)
 {
   const u64 title_id = tmd.GetTitleId();
   const std::vector<ES::Content> contents = tmd.GetContents();
-  const ES::SharedContentMap shared_content_map{ios.GetFS()};
+  const ES::SharedContentMap shared_content_map{ios.GetFSDevice()};
   return std::all_of(contents.cbegin(), contents.cend(), [&](const ES::Content& content) {
     if (content.IsOptional())
       return true;
@@ -818,7 +818,7 @@ IPCReply ESDevice::ExportTitleDone(Context& context, const IOCtlVRequest& reques
 
 ReturnCode ESDevice::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 {
-  ES::SharedContentMap map{m_ios.GetFS()};
+  ES::SharedContentMap map{m_ios.GetFSDevice()};
   const auto content_path = map.GetFilenameFromSHA1(sha1);
   if (!content_path)
     return ES_EINVAL;

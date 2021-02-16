@@ -30,6 +30,7 @@ class FileSystem;
 
 class Device;
 class ESDevice;
+class FSDevice;
 
 struct Request;
 struct OpenRequest;
@@ -116,6 +117,7 @@ public:
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
+  std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetES();
 
   void SDIO_EventNotify();

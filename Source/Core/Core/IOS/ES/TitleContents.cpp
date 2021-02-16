@@ -78,7 +78,7 @@ IPCReply ESDevice::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest& r
   if (!m_title_context.active)
     return IPCReply(ES_EINVAL);
 
-  ES::UIDSys uid_map{m_ios.GetFS()};
+  ES::UIDSys uid_map{m_ios.GetFSDevice()};
   const u32 uid = uid_map.GetOrInsertUIDForTitle(m_title_context.tmd.GetTitleId());
   if (caller_uid != 0 && caller_uid != uid)
     return IPCReply(ES_EACCES);

@@ -661,19 +661,32 @@ IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlReques
 
 IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& request)
 {
-  if (request.buffer_out_size < 8 || handle.fs_fd == INVALID_FD)
+  if (request.buffer_out_size < 8)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
-  const Result<FileStatus> status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
-  LogResult(status, "GetFileStatus({})", handle.name.data());
-  if (!status)
-    return IPCReply(ConvertResult(status.Error()));
+  return MakeIPCReply([&](Ticks ticks) {
+    const Result<FileStatus> status = GetFileStatus(request.fd, ticks);
+    if (!status)
+      return ConvertResult(status.Error());
 
-  ISFSFileStats out;
-  out.size = status->size;
-  out.seek_position = status->offset;
-  Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
-  return IPCReply(IPC_SUCCESS);
+    ISFSFileStats out;
+    out.size = status->size;
+    out.seek_position = status->offset;
+    Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
+    return IPC_SUCCESS;
+  });
+}
+
+FS::Result<FS::FileStatus> FSDevice::GetFileStatus(u64 fd, Ticks ticks)
+{
+  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  const auto& handle = m_fd_map[fd];
+  if (handle.fs_fd == INVALID_FD)
+    return ResultCode::Invalid;
+
+  auto status = m_ios.GetFS()->GetFileStatus(handle.fs_fd);
+  LogResult(status, "GetFileStatus({})", handle.name.data());
+  return status;
 }
 
 IPCReply FSDevice::GetUsage(const Handle& handle, const IOCtlVRequest& request)

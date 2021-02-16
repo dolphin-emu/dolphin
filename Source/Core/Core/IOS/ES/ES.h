@@ -87,8 +87,8 @@ public:
     No = false,
   };
 
-  ES::TMDReader FindImportTMD(u64 title_id) const;
-  ES::TMDReader FindInstalledTMD(u64 title_id) const;
+  ES::TMDReader FindImportTMD(u64 title_id, Ticks ticks = {}) const;
+  ES::TMDReader FindInstalledTMD(u64 title_id, Ticks ticks = {}) const;
   ES::TicketReader FindSignedTicket(u64 title_id) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
@@ -364,9 +364,9 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
-  std::string GetContentPath(u64 title_id, const ES::Content& content,
-                             const ES::SharedContentMap& map) const;
-  std::string GetContentPath(u64 title_id, const ES::Content& content) const;
+  std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
+
+  static constexpr u64 IPC_OVERHEAD_TICKS = 2700_tbticks;
 
   struct OpenedContent
   {
