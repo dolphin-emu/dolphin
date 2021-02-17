@@ -251,3 +251,295 @@ TEST(BitField, Fmt)
     EXPECT_EQ(fmt::format("{:s}", object.enum_2), fmt::format("{:s}", object.enum_2.Value()));
   }
 }
+
+union TestUnion2
+{
+  u32 hex;
+  BitField<0, 2, u32> a;
+  BitField<2, 2, u32> b;
+  BitField<4, 2, u32> c;
+  BitFieldArray<0, 2, 3, u32> arr;
+};
+
+TEST(BitFieldArray, Unsigned)
+{
+  TestUnion2 object;
+  object.hex = 0;
+  const TestUnion2& objectc = object;
+
+  for (u32 value : object.arr)
+  {
+    EXPECT_EQ(value, 0u);
+  }
+
+  object.arr[0] = 2;
+  EXPECT_EQ(object.arr[0], 2u);
+  EXPECT_EQ(object.a, 2u);
+  EXPECT_EQ(object.hex, 0b00'00'10u);
+
+  object.arr[1] = 3;
+  EXPECT_EQ(object.arr[1], 3u);
+  EXPECT_EQ(object.b, 3u);
+  EXPECT_EQ(object.hex, 0b00'11'10u);
+
+  object.arr[2] = object.arr[1];
+  EXPECT_EQ(object.arr[2], 3u);
+  EXPECT_EQ(object.c, 3u);
+  EXPECT_EQ(object.hex, 0b11'11'10u);
+
+  object.arr[1] = objectc.arr[0];
+  EXPECT_EQ(object.arr[1], 2u);
+  EXPECT_EQ(object.b, 2u);
+  EXPECT_EQ(object.hex, 0b11'10'10u);
+
+  for (auto ref : object.arr)
+  {
+    ref = 1;
+  }
+  EXPECT_EQ(object.a, 1u);
+  EXPECT_EQ(object.b, 1u);
+  EXPECT_EQ(object.c, 1u);
+  EXPECT_EQ(object.hex, 0b01'01'01u);
+
+  std::fill_n(object.arr.begin(), object.arr.Size(), 3);
+  EXPECT_EQ(object.arr[0], 3u);
+  EXPECT_EQ(object.arr[1], 3u);
+  EXPECT_EQ(object.arr[2], 3u);
+  EXPECT_EQ(object.hex, 0b11'11'11u);
+
+  for (u32 i = 0; i < object.arr.Size(); i++)
+  {
+    object.arr[i] = i;
+  }
+  EXPECT_EQ(object.hex, 0b10'01'00u);
+
+  EXPECT_EQ(objectc.arr[0], 0u);
+  EXPECT_EQ(objectc.arr[1], 1u);
+  EXPECT_EQ(objectc.arr[2], 2u);
+
+  u32 counter = 0;
+  for (u32 value : objectc.arr)
+  {
+    EXPECT_EQ(value, counter);
+    counter++;
+  }
+
+  EXPECT_EQ("[0, 1, 2]", fmt::format("[{}]", fmt::join(object.arr, ", ")));
+  EXPECT_EQ("[0b00, 0b01, 0b10]", fmt::format("[{:#04b}]", fmt::join(object.arr, ", ")));
+}
+
+union TestUnion3
+{
+  s32 hex;
+  BitField<5, 2, s32> a;
+  BitField<7, 2, s32> b;
+  BitField<9, 2, s32> c;
+  BitFieldArray<5, 2, 3, s32> arr;
+};
+
+TEST(BitFieldArray, Signed)
+{
+  TestUnion3 object;
+  object.hex = 0;
+  const TestUnion3& objectc = object;
+
+  for (s32 value : object.arr)
+  {
+    EXPECT_EQ(value, 0);
+  }
+
+  object.arr[0] = -2;
+  EXPECT_EQ(object.arr[0], -2);
+  EXPECT_EQ(object.a, -2);
+  EXPECT_EQ(object.hex, 0b00'00'10'00000);
+
+  object.arr[1] = -1;
+  EXPECT_EQ(object.arr[1], -1);
+  EXPECT_EQ(object.b, -1);
+  EXPECT_EQ(object.hex, 0b00'11'10'00000);
+
+  object.arr[2] = object.arr[1];
+  EXPECT_EQ(object.arr[2], -1);
+  EXPECT_EQ(object.c, -1);
+  EXPECT_EQ(object.hex, 0b11'11'10'00000);
+
+  object.arr[1] = objectc.arr[0];
+  EXPECT_EQ(object.arr[1], -2);
+  EXPECT_EQ(object.b, -2);
+  EXPECT_EQ(object.hex, 0b11'10'10'00000);
+
+  for (auto ref : object.arr)
+  {
+    ref = 1;
+  }
+  EXPECT_EQ(object.a, 1);
+  EXPECT_EQ(object.b, 1);
+  EXPECT_EQ(object.c, 1);
+  EXPECT_EQ(object.hex, 0b01'01'01'00000);
+
+  std::fill_n(object.arr.begin(), object.arr.Size(), -1);
+  EXPECT_EQ(object.arr[0], -1);
+  EXPECT_EQ(object.arr[1], -1);
+  EXPECT_EQ(object.arr[2], -1);
+  EXPECT_EQ(object.hex, 0b11'11'11'00000);
+
+  for (u32 i = 0; i < object.arr.Size(); i++)
+  {
+    object.arr[i] = i;
+  }
+  EXPECT_EQ(object.hex, 0b10'01'00'00000);
+
+  EXPECT_EQ(objectc.arr[0], 0);
+  EXPECT_EQ(objectc.arr[1], 1);
+  EXPECT_EQ(objectc.arr[2], -2);
+
+  u32 counter = 0;
+  for (s32 value : objectc.arr)
+  {
+    EXPECT_EQ(value, object.arr[counter++]);
+  }
+
+  EXPECT_EQ("[0, 1, -2]", fmt::format("[{}]", fmt::join(object.arr, ", ")));
+  EXPECT_EQ("[+0b00, +0b01, -0b10]", fmt::format("[{:+#05b}]", fmt::join(object.arr, ", ")));
+}
+
+union TestUnion4
+{
+  u64 hex;
+  BitField<30, 2, TestEnum> a;
+  BitField<32, 2, TestEnum> b;
+  BitField<34, 2, TestEnum> c;
+  BitField<36, 2, TestEnum> d;
+  BitFieldArray<30, 2, 4, TestEnum> arr;
+};
+
+TEST(BitFieldArray, Enum)
+{
+  TestUnion4 object;
+  object.hex = 0;
+  const TestUnion4& objectc = object;
+
+  for (TestEnum value : object.arr)
+  {
+    EXPECT_EQ(value, TestEnum::A);
+  }
+
+  object.arr[0] = TestEnum::B;
+  EXPECT_EQ(object.arr[0], TestEnum::B);
+  EXPECT_EQ(object.a, TestEnum::B);
+  EXPECT_EQ(object.hex, 0b00'00'00'01ull << 30);
+
+  object.arr[1] = TestEnum::C;
+  EXPECT_EQ(object.arr[1], TestEnum::C);
+  EXPECT_EQ(object.b, TestEnum::C);
+  EXPECT_EQ(object.hex, 0b00'00'10'01ull << 30);
+
+  object.arr[2] = object.arr[1];
+  EXPECT_EQ(object.arr[2], TestEnum::C);
+  EXPECT_EQ(object.c, TestEnum::C);
+  EXPECT_EQ(object.hex, 0b00'10'10'01ull << 30);
+
+  object.arr[3] = objectc.arr[0];
+  EXPECT_EQ(object.arr[3], TestEnum::B);
+  EXPECT_EQ(object.d, TestEnum::B);
+  EXPECT_EQ(object.hex, 0b01'10'10'01ull << 30);
+
+  for (auto ref : object.arr)
+  {
+    ref = TestEnum::D;
+  }
+  EXPECT_EQ(object.a, TestEnum::D);
+  EXPECT_EQ(object.b, TestEnum::D);
+  EXPECT_EQ(object.c, TestEnum::D);
+  EXPECT_EQ(object.d, TestEnum::D);
+  EXPECT_EQ(object.hex, 0b11'11'11'11ull << 30);
+
+  std::fill_n(object.arr.begin(), object.arr.Size(), TestEnum::C);
+  EXPECT_EQ(object.a, TestEnum::C);
+  EXPECT_EQ(object.b, TestEnum::C);
+  EXPECT_EQ(object.c, TestEnum::C);
+  EXPECT_EQ(object.d, TestEnum::C);
+  EXPECT_EQ(object.hex, 0b10'10'10'10ull << 30);
+
+  for (u32 i = 0; i < object.arr.Size(); i++)
+  {
+    object.arr[i] = static_cast<TestEnum>(i);
+  }
+  EXPECT_EQ(object.hex, 0b11'10'01'00ull << 30);
+
+  EXPECT_EQ(objectc.arr[0], TestEnum::A);
+  EXPECT_EQ(objectc.arr[1], TestEnum::B);
+  EXPECT_EQ(objectc.arr[2], TestEnum::C);
+  EXPECT_EQ(objectc.arr[3], TestEnum::D);
+
+  u32 counter = 0;
+  for (TestEnum value : objectc.arr)
+  {
+    EXPECT_EQ(value, object.arr[counter++]);
+  }
+
+  EXPECT_EQ("[A (0), B (1), C (2), D (3)]", fmt::format("[{}]", fmt::join(object.arr, ", ")));
+  EXPECT_EQ("[0x0u /* A */, 0x1u /* B */, 0x2u /* C */, 0x3u /* D */]",
+            fmt::format("[{:s}]", fmt::join(object.arr, ", ")));
+}
+
+union TestUnion5
+{
+  u64 hex;
+  BitFieldArray<0, 5, 6, u8, u64> arr1;
+  BitFieldArray<30, 1, 4, bool, u64> arr2;
+};
+
+TEST(BitFieldArray, StorageType)
+{
+  TestUnion5 object;
+  const u64 arr2_hex_1 = 0b1010ull << 30;
+  object.hex = arr2_hex_1;
+  const TestUnion5& objectc = object;
+
+  EXPECT_FALSE(object.arr2[0]);
+  EXPECT_TRUE(object.arr2[1]);
+  EXPECT_FALSE(object.arr2[2]);
+  EXPECT_TRUE(object.arr2[3]);
+
+  object.arr1[0] = 0;
+  object.arr1[1] = 1;
+  object.arr1[2] = 2;
+  object.arr1[3] = 4;
+  object.arr1[4] = 8;
+  object.arr1[5] = 16;
+  const u64 arr1_hex = 0b10000'01000'00100'00010'00001'00000;
+  EXPECT_EQ(object.hex, arr1_hex | arr2_hex_1);
+
+  object.arr2[2] = object.arr2[0] = true;
+  object.arr2[3] = object.arr2[1] = false;
+  const u64 arr2_hex_2 = 0b0101ull << 30;
+  EXPECT_EQ(object.hex, arr1_hex | arr2_hex_2);
+
+  object.arr2[2] = object.arr2[1];
+  object.arr2[3] = objectc.arr2[0];
+  const u64 arr2_hex_3 = 0b1001ull << 30;
+  EXPECT_EQ(object.hex, arr1_hex | arr2_hex_3);
+
+  u32 counter = 0;
+  for (u8 value : object.arr1)
+  {
+    EXPECT_EQ(value, object.arr1[counter++]);
+  }
+  counter = 0;
+  for (bool value : object.arr2)
+  {
+    EXPECT_EQ(value, object.arr2[counter++]);
+  }
+
+  counter = 0;
+  for (u8 value : objectc.arr1)
+  {
+    EXPECT_EQ(value, object.arr1[counter++]);
+  }
+  counter = 0;
+  for (bool value : objectc.arr2)
+  {
+    EXPECT_EQ(value, object.arr2[counter++]);
+  }
+}
