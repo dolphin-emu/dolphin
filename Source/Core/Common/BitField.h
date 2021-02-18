@@ -110,7 +110,13 @@
  * symptoms.
  */
 #pragma pack(1)
-template <std::size_t position, std::size_t bits, typename T>
+template <std::size_t position, std::size_t bits, typename T,
+          // StorageType is T for non-enum types and the underlying type of T if
+          // T is an enumeration. Note that T is wrapped within an enable_if in the
+          // former case to workaround compile errors which arise when using
+          // std::underlying_type<T>::type directly.
+          typename StorageType = typename std::conditional_t<
+              std::is_enum<T>::value, std::underlying_type<T>, std::enable_if<true, T>>::type>
 struct BitField
 {
 private:
@@ -149,20 +155,13 @@ public:
   constexpr std::size_t NumBits() const { return bits; }
 
 private:
-  // StorageType is T for non-enum types and the underlying type of T if
-  // T is an enumeration. Note that T is wrapped within an enable_if in the
-  // former case to workaround compile errors which arise when using
-  // std::underlying_type<T>::type directly.
-  using StorageType = typename std::conditional_t<std::is_enum<T>::value, std::underlying_type<T>,
-                                                  std::enable_if<true, T>>::type;
-
   // Unsigned version of StorageType
   using StorageTypeU = std::make_unsigned_t<StorageType>;
 
   constexpr T Value(std::true_type) const
   {
-    using shift_amount = std::integral_constant<size_t, 8 * sizeof(T) - bits>;
-    return static_cast<T>((storage << (shift_amount() - position)) >> shift_amount());
+    const size_t shift_amount = 8 * sizeof(StorageType) - bits;
+    return static_cast<T>((storage << (shift_amount - position)) >> shift_amount);
   }
 
   constexpr T Value(std::false_type) const
@@ -172,15 +171,17 @@ private:
 
   static constexpr StorageType GetMask()
   {
-    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(T) - bits)) << position;
+    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(StorageType) - bits))
+           << position;
   }
 
   StorageType storage;
 
-  static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
+  static_assert(bits + position <= 8 * sizeof(StorageType), "Bitfield out of range");
+  static_assert(sizeof(T) <= sizeof(StorageType), "T must fit in StorageType");
 
   // And, you know, just in case people specify something stupid like bits=position=0x80000000
-  static_assert(position < 8 * sizeof(T), "Invalid position");
+  static_assert(position < 8 * sizeof(StorageType), "Invalid position");
   static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
   static_assert(bits > 0, "Invalid number of bits");
 };

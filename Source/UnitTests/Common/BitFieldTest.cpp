@@ -21,6 +21,8 @@ union TestUnion
   BitField<30, 4, s64> at_dword_boundary;  // goes over the boundary of two u32 values
 
   BitField<15, 1, s64> signed_1bit;  // allowed values: -1 and 0
+
+  BitField<63, 1, bool, u64> flag;
 };
 
 // table of raw numbers to test with
@@ -51,6 +53,7 @@ TEST(BitField, Storage)
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.regular_field_signed));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.at_dword_boundary));
   EXPECT_EQ(sizeof(TestUnion), sizeof(object.signed_1bit));
+  EXPECT_EQ(sizeof(TestUnion), sizeof(object.flag));
 
   // Now write some values to one field and check if this reflects properly
   // in the others.
@@ -82,6 +85,7 @@ TEST(BitField, Read)
     EXPECT_EQ(object.regular_field_signed, (s64)object.regular_field_signed);
     EXPECT_EQ(object.at_dword_boundary, (s64)object.at_dword_boundary);
     EXPECT_EQ(object.signed_1bit, (s64)object.signed_1bit);
+    EXPECT_EQ(object.flag, (bool)object.flag);
 
     // Now make sure the value is indeed correct
     EXPECT_EQ(val, object.full_u64);
@@ -91,6 +95,7 @@ TEST(BitField, Read)
     EXPECT_EQ(((s64)(object.hex << 52)) >> 61, object.regular_field_signed);
     EXPECT_EQ(((s64)(object.hex << 30)) >> 60, object.at_dword_boundary);
     EXPECT_EQ(((object.hex >> 15) & 1) ? -1 : 0, object.signed_1bit);
+    EXPECT_EQ((bool)object.flag, ((object.hex >> 63) & 1));
   }
 }
 
@@ -122,6 +127,10 @@ TEST(BitField, Assignment)
     // Assignment from other BitField
     object.at_dword_boundary = object.regular_field_signed;
     EXPECT_EQ(object.regular_field_signed, object.at_dword_boundary);
+
+    // Assignment to field of a type with a size smaller than the underlying type
+    object.flag = (val & 2);
+    EXPECT_EQ(object.flag, (val & 2) != 0);
   }
 }
 
@@ -165,5 +174,9 @@ TEST(BitField, Alignment)
     // Assignment from other BitField
     object.at_dword_boundary = object.regular_field_signed;
     EXPECT_EQ(object.regular_field_signed, object.at_dword_boundary);
+
+    // Assignment to field of a type with a size smaller than the underlying type
+    object.flag = (val & 2);
+    EXPECT_EQ(object.flag, (val & 2) != 0);
   }
 }
