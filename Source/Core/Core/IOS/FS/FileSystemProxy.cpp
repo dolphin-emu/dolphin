@@ -28,12 +28,60 @@ static IPCReply GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
   return IPCReply{return_value, (2700 + extra_tb_ticks) * SystemTimers::TIMER_RATIO};
 }
 
-/// Amount of TB ticks required for a superblock write to complete.
-constexpr u64 SUPERBLOCK_WRITE_TICKS = 3370000;
-/// Amount of TB ticks required to write a cluster (for a file).
-constexpr u64 CLUSTER_WRITE_TICKS = 300000;
-/// Amount of TB ticks required to read a cluster (for a file).
-constexpr u64 CLUSTER_READ_TICKS = 115000;
+/// Duration of a superblock write (in timebase ticks).
+constexpr u64 GetSuperblockWriteTbTicks(int ios_version)
+{
+  if (ios_version == 28 || ios_version == 80)
+    return 3350000;
+
+  if (ios_version < 28)
+    return 4100000;
+
+  return 3170000;
+}
+
+/// Duration of a file cluster write (in timebase ticks).
+constexpr u64 GetClusterWriteTbTicks(int ios_version)
+{
+  // Based on the time it takes to write two clusters (0x8000 bytes), divided by two.
+  if (ios_version < 28)
+    return 370000;
+
+  return 300000;
+}
+
+/// Duration of a file cluster read (in timebase ticks).
+constexpr u64 GetClusterReadTbTicks(int ios_version)
+{
+  if (ios_version == 28 || ios_version == 80)
+    return 125000;
+
+  if (ios_version < 28)
+    return 165000;
+
+  return 115000;
+}
+
+constexpr u64 GetFSModuleMemcpyTbTicks(int ios_version, u64 copy_size)
+{
+  // FS handles cached read/writes by doing a simple memcpy on an internal buffer.
+  // The following equations were obtained by doing cached reads with various read sizes
+  // on real hardware and performing a linear regression. R^2 was close to 1 (0.9999),
+  // which is not entirely surprising.
+
+  // Older versions of IOS have a simplistic implementation of memcpy that does not optimize
+  // large copies by copying 16 bytes or 32 bytes per chunk.
+  if (ios_version < 28)
+    return 1.0 * copy_size + 3.0;
+
+  return 0.636 * copy_size + 150.0;
+}
+
+constexpr u64 GetFreeClusterCheckTbTicks()
+{
+  return 1000;
+}
+
 constexpr size_t CLUSTER_DATA_SIZE = 0x4000;
 
 FSDevice::FSDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
@@ -97,9 +145,9 @@ static u64 EstimateFileLookupTicks(const std::string& path, FileLookupMode mode)
 ///
 /// A superblock flush takes a very large amount of time, so other delays are ignored
 /// to simplify the implementation as they are insignificant.
-static IPCReply GetReplyForSuperblockOperation(ResultCode result)
+static IPCReply GetReplyForSuperblockOperation(int ios_version, ResultCode result)
 {
-  const u64 ticks = result == ResultCode::Success ? SUPERBLOCK_WRITE_TICKS : 0;
+  const u64 ticks = result == ResultCode::Success ? GetSuperblockWriteTbTicks(ios_version) : 0;
   return GetFSReply(ConvertResult(result), ticks);
 }
 
@@ -142,7 +190,7 @@ std::optional<IPCReply> FSDevice::Close(u32 fd)
     }
 
     if (m_fd_map[fd].superblock_flush_needed)
-      ticks += SUPERBLOCK_WRITE_TICKS;
+      ticks += GetSuperblockWriteTbTicks(m_ios.GetVersion());
 
     const ResultCode result = m_ios.GetFS()->Close(m_fd_map[fd].fs_fd);
     LogResult(result, "Close({})", m_fd_map[fd].name.data());
@@ -164,7 +212,7 @@ u64 FSDevice::SimulatePopulateFileCache(u32 fd, u32 offset, u32 file_size)
 
   u64 ticks = SimulateFlushFileCache();
   if ((offset % CLUSTER_DATA_SIZE != 0 || offset != file_size) && offset < file_size)
-    ticks += CLUSTER_READ_TICKS;
+    ticks += GetClusterReadTbTicks(m_ios.GetVersion());
 
   m_cache_fd = fd;
   m_cache_chain_index = static_cast<u16>(offset / CLUSTER_DATA_SIZE);
@@ -177,7 +225,7 @@ u64 FSDevice::SimulateFlushFileCache()
     return 0;
   m_dirty_cache = false;
   m_fd_map[m_cache_fd].superblock_flush_needed = true;
-  return CLUSTER_WRITE_TICKS;
+  return GetClusterWriteTbTicks(m_ios.GetVersion());
 }
 
 // Simulate parts of the FS read/write logic to estimate ticks for file operations correctly.
@@ -199,7 +247,7 @@ u64 FSDevice::EstimateTicksForReadWrite(const Handle& handle, const ReadWriteReq
     if (!HasCacheForFile(request.fd, offset) && count >= CLUSTER_DATA_SIZE &&
         offset % CLUSTER_DATA_SIZE == 0)
     {
-      ticks += is_write ? CLUSTER_WRITE_TICKS : CLUSTER_READ_TICKS;
+      ticks += (is_write ? GetClusterWriteTbTicks : GetClusterReadTbTicks)(m_ios.GetVersion());
       copy_length = CLUSTER_DATA_SIZE;
       if (is_write)
         m_fd_map[request.fd].superblock_flush_needed = true;
@@ -210,8 +258,13 @@ u64 FSDevice::EstimateTicksForReadWrite(const Handle& handle, const ReadWriteReq
 
       const u32 start = offset - m_cache_chain_index * CLUSTER_DATA_SIZE;
       copy_length = std::min<u32>(CLUSTER_DATA_SIZE - start, count);
+
       // FS essentially just does a memcpy from/to an internal buffer.
-      ticks += 0.63f * copy_length + (request.command == IPC_CMD_WRITE ? 1000 : 0);
+      ticks += GetFSModuleMemcpyTbTicks(m_ios.GetVersion(), copy_length);
+
+      if (is_write)
+        ticks += GetFreeClusterCheckTbTicks();
+
       m_dirty_cache = is_write;
 
       if (is_write && (offset + copy_length) % CLUSTER_DATA_SIZE == 0)
@@ -376,7 +429,7 @@ IPCReply FSDevice::Format(const Handle& handle, const IOCtlRequest& request)
     return GetFSReply(ConvertResult(ResultCode::AccessDenied));
 
   const ResultCode result = m_ios.GetFS()->Format(handle.uid);
-  return GetReplyForSuperblockOperation(result);
+  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
 IPCReply FSDevice::GetStats(const Handle& handle, const IOCtlRequest& request)
@@ -410,7 +463,7 @@ IPCReply FSDevice::CreateDirectory(const Handle& handle, const IOCtlRequest& req
   const ResultCode result = m_ios.GetFS()->CreateDirectory(handle.uid, handle.gid, params->path,
                                                            params->attribute, params->modes);
   LogResult(result, "CreateDirectory({})", params->path);
-  return GetReplyForSuperblockOperation(result);
+  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
 IPCReply FSDevice::ReadDirectory(const Handle& handle, const IOCtlVRequest& request)
@@ -476,7 +529,7 @@ IPCReply FSDevice::SetAttribute(const Handle& handle, const IOCtlRequest& reques
   const ResultCode result = m_ios.GetFS()->SetMetadata(
       handle.uid, params->path, params->uid, params->gid, params->attribute, params->modes);
   LogResult(result, "SetMetadata({})", params->path);
-  return GetReplyForSuperblockOperation(result);
+  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
 IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& request)
@@ -511,7 +564,7 @@ IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
   const std::string path = Memory::GetString(request.buffer_in, 64);
   const ResultCode result = m_ios.GetFS()->Delete(handle.uid, handle.gid, path);
   LogResult(result, "Delete({})", path);
-  return GetReplyForSuperblockOperation(result);
+  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
 IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
@@ -523,7 +576,7 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
   const std::string new_path = Memory::GetString(request.buffer_in + 64, 64);
   const ResultCode result = m_ios.GetFS()->Rename(handle.uid, handle.gid, old_path, new_path);
   LogResult(result, "Rename({}, {})", old_path, new_path);
-  return GetReplyForSuperblockOperation(result);
+  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
 IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
@@ -535,7 +588,7 @@ IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
   const ResultCode result = m_ios.GetFS()->CreateFile(handle.uid, handle.gid, params->path,
                                                       params->attribute, params->modes);
   LogResult(result, "CreateFile({})", params->path);
-  return GetReplyForSuperblockOperation(result);
+  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
 }
 
 IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request)
