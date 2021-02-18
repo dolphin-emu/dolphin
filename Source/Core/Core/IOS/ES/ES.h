@@ -366,8 +366,6 @@ private:
 
   std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
 
-  static constexpr u64 IPC_OVERHEAD_TICKS = 2700_tbticks;
-
   struct OpenedContent
   {
     bool m_opened = false;

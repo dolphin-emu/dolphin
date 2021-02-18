@@ -22,16 +22,9 @@ namespace IOS::HLE
 {
 using namespace IOS::HLE::FS;
 
-static constexpr u64 GetIPCOverheadTicks()
-{
-  // According to hardware tests, FS takes at least 2700 TB ticks to reply to commands.
-  return 2700;
-}
-
 static IPCReply GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
 {
-  return IPCReply{return_value,
-                  (GetIPCOverheadTicks() + extra_tb_ticks) * SystemTimers::TIMER_RATIO};
+  return IPCReply{return_value, IPC_OVERHEAD_TICKS + extra_tb_ticks * SystemTimers::TIMER_RATIO};
 }
 
 /// Duration of a superblock write (in timebase ticks).
@@ -169,7 +162,7 @@ std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
 s64 FSDevice::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
                    std::optional<u32> ipc_fd, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
 
   if (m_fd_map.size() >= 16)
     return ConvertResult(ResultCode::NoFreeHandle);
@@ -204,7 +197,7 @@ std::optional<IPCReply> FSDevice::Close(u32 fd)
 
 s32 FSDevice::Close(u64 fd, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
 
   const auto& handle = m_fd_map[fd];
   if (handle.fs_fd != INVALID_FD)
@@ -318,7 +311,7 @@ std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
 
 s32 FSDevice::Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
 
   const Handle& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
@@ -347,7 +340,7 @@ std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
 s32 FSDevice::Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr,
                     Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
 
   const Handle& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
@@ -375,7 +368,7 @@ std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
 
 s32 FSDevice::Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
 
   const Handle& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
@@ -679,7 +672,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
 
 FS::Result<FS::FileStatus> FSDevice::GetFileStatus(u64 fd, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(GetIPCOverheadTicks());
+  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
   const auto& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
     return ResultCode::Invalid;

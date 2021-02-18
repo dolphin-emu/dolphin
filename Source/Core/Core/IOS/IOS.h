@@ -46,6 +46,8 @@ struct IPCReply
   u64 reply_delay_ticks;
 };
 
+constexpr u64 IPC_OVERHEAD_TICKS = 2700_tbticks;
+
 // Used to make it more convenient for functions to return timing information
 // without having to explicitly keep track of ticks in callers.
 class Ticks
