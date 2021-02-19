@@ -57,6 +57,7 @@ public:
 signals:
   void BreakpointsChanged();
   void ShowCode(u32 address);
+  void RequestWatch(QString name, u32 address);
 
 private:
   void OnContextMenu();
