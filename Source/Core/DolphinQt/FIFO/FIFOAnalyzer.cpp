@@ -81,6 +81,9 @@ void FIFOAnalyzer::CreateWidgets()
   m_search_previous = new QPushButton(tr("Previous Match"));
   m_search_label = new QLabel;
 
+  m_search_next->setEnabled(false);
+  m_search_previous->setEnabled(false);
+
   auto* box_layout = new QHBoxLayout;
 
   box_layout->addWidget(m_search_edit);
@@ -111,6 +114,7 @@ void FIFOAnalyzer::ConnectWidgets()
   connect(m_detail_list, &QListWidget::itemSelectionChanged, this,
           &FIFOAnalyzer::UpdateDescription);
 
+  connect(m_search_edit, &QLineEdit::returnPressed, this, &FIFOAnalyzer::BeginSearch);
   connect(m_search_new, &QPushButton::clicked, this, &FIFOAnalyzer::BeginSearch);
   connect(m_search_next, &QPushButton::clicked, this, &FIFOAnalyzer::FindNext);
   connect(m_search_previous, &QPushButton::clicked, this, &FIFOAnalyzer::FindPrevious);
@@ -167,6 +171,10 @@ void FIFOAnalyzer::UpdateDetails()
   // Clear m_object_data_offsets first, so that UpdateDescription exits immediately.
   m_object_data_offsets.clear();
   m_detail_list->clear();
+  m_search_results.clear();
+  m_search_next->setEnabled(false);
+  m_search_previous->setEnabled(false);
+  m_search_label->clear();
 
   if (!FifoPlayer::GetInstance().IsPlaying())
     return;
@@ -335,17 +343,15 @@ void FIFOAnalyzer::UpdateDetails()
 
 void FIFOAnalyzer::BeginSearch()
 {
-  QString search_str = m_search_edit->text();
+  const QString search_str = m_search_edit->text();
 
   if (!FifoPlayer::GetInstance().IsPlaying())
     return;
 
-  auto items = m_tree_widget->selectedItems();
+  const auto items = m_tree_widget->selectedItems();
 
-  if (items.isEmpty() || items[0]->data(0, FRAME_ROLE).isNull())
-    return;
-
-  if (items[0]->data(0, OBJECT_ROLE).isNull())
+  if (items.isEmpty() || items[0]->data(0, FRAME_ROLE).isNull() ||
+      items[0]->data(0, OBJECT_ROLE).isNull())
   {
     m_search_label->setText(tr("Invalid search parameters (no object selected)"));
     return;
@@ -380,36 +386,35 @@ void FIFOAnalyzer::BeginSearch()
 
   m_search_results.clear();
 
-  int frame_nr = items[0]->data(0, FRAME_ROLE).toInt();
-  int object_nr = items[0]->data(0, OBJECT_ROLE).toInt();
+  const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
+  const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
 
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  // TODO: Support searching through the last object...how do we know where the cmd data ends?
+  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
+  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+
+  const u8* const object = &fifo_frame.fifoData[object_start];
+
   // TODO: Support searching for bit patterns
-
-  const auto* start_ptr = &fifo_frame.fifoData[frame_info.objectStarts[object_nr]];
-  const auto* end_ptr = &fifo_frame.fifoData[frame_info.objectStarts[object_nr + 1]];
-
-  for (const u8* ptr = start_ptr; ptr < end_ptr - length + 1; ++ptr)
+  for (u32 cmd_nr = 0; cmd_nr < m_object_data_offsets.size(); cmd_nr++)
   {
-    if (std::equal(search_val.begin(), search_val.end(), ptr))
-    {
-      SearchResult result;
-      result.frame = frame_nr;
+    const u32 cmd_start = m_object_data_offsets[cmd_nr];
+    const u32 cmd_end = (cmd_nr + 1 == m_object_data_offsets.size()) ?
+                            object_size :
+                            m_object_data_offsets[cmd_nr + 1];
 
-      result.object = object_nr;
-      result.cmd = 0;
-      for (unsigned int cmd_nr = 1; cmd_nr < m_object_data_offsets.size(); ++cmd_nr)
+    const u8* const cmd_start_ptr = &object[cmd_start];
+    const u8* const cmd_end_ptr = &object[cmd_end];
+
+    for (const u8* ptr = cmd_start_ptr; ptr < cmd_end_ptr - length + 1; ptr++)
+    {
+      if (std::equal(search_val.begin(), search_val.end(), ptr))
       {
-        if (ptr < start_ptr + m_object_data_offsets[cmd_nr])
-        {
-          result.cmd = cmd_nr - 1;
-          break;
-        }
+        m_search_results.emplace_back(frame_nr, object_nr, cmd_nr);
+        break;
       }
-      m_search_results.push_back(result);
     }
   }
 
@@ -421,41 +426,29 @@ void FIFOAnalyzer::BeginSearch()
 
 void FIFOAnalyzer::FindNext()
 {
-  int index = m_detail_list->currentRow();
+  const int index = m_detail_list->currentRow();
+  ASSERT(index >= 0);
 
-  if (index == -1)
+  auto next_result =
+      std::find_if(m_search_results.begin(), m_search_results.end(),
+                   [index](auto& result) { return result.m_cmd > static_cast<u32>(index); });
+  if (next_result != m_search_results.end())
   {
-    ShowSearchResult(0);
-    return;
-  }
-
-  for (auto it = m_search_results.begin(); it != m_search_results.end(); ++it)
-  {
-    if (it->cmd > index)
-    {
-      ShowSearchResult(it - m_search_results.begin());
-      return;
-    }
+    ShowSearchResult(next_result - m_search_results.begin());
   }
 }
 
 void FIFOAnalyzer::FindPrevious()
 {
-  int index = m_detail_list->currentRow();
+  const int index = m_detail_list->currentRow();
+  ASSERT(index >= 0);
 
-  if (index == -1)
+  auto prev_result =
+      std::find_if(m_search_results.rbegin(), m_search_results.rend(),
+                   [index](auto& result) { return result.m_cmd < static_cast<u32>(index); });
+  if (prev_result != m_search_results.rend())
   {
-    ShowSearchResult(m_search_results.size() - 1);
-    return;
-  }
-
-  for (auto it = m_search_results.rbegin(); it != m_search_results.rend(); ++it)
-  {
-    if (it->cmd < index)
-    {
-      ShowSearchResult(m_search_results.size() - 1 - (it - m_search_results.rbegin()));
-      return;
-    }
+    ShowSearchResult((m_search_results.rend() - prev_result) - 1);
   }
 }
 
@@ -464,7 +457,7 @@ void FIFOAnalyzer::ShowSearchResult(size_t index)
   if (m_search_results.empty())
     return;
 
-  if (index > m_search_results.size())
+  if (index >= m_search_results.size())
   {
     ShowSearchResult(m_search_results.size() - 1);
     return;
@@ -473,10 +466,10 @@ void FIFOAnalyzer::ShowSearchResult(size_t index)
   const auto& result = m_search_results[index];
 
   QTreeWidgetItem* object_item =
-      m_tree_widget->topLevelItem(0)->child(result.frame)->child(result.object);
+      m_tree_widget->topLevelItem(0)->child(result.m_frame)->child(result.m_object);
 
   m_tree_widget->setCurrentItem(object_item);
-  m_detail_list->setCurrentRow(result.cmd);
+  m_detail_list->setCurrentRow(result.m_cmd);
 
   m_search_next->setEnabled(index + 1 < m_search_results.size());
   m_search_previous->setEnabled(index > 0);
