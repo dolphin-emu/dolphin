@@ -87,8 +87,8 @@ public:
     No = false,
   };
 
-  ES::TMDReader FindImportTMD(u64 title_id) const;
-  ES::TMDReader FindInstalledTMD(u64 title_id) const;
+  ES::TMDReader FindImportTMD(u64 title_id, Ticks ticks = {}) const;
+  ES::TMDReader FindInstalledTMD(u64 title_id, Ticks ticks = {}) const;
   ES::TicketReader FindSignedTicket(u64 title_id) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
@@ -105,10 +105,10 @@ public:
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
   // Title contents
-  s32 OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid);
-  ReturnCode CloseContent(u32 cfd, u32 uid);
-  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid);
-  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid);
+  s32 OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, Ticks ticks = {});
+  s32 CloseContent(u32 cfd, u32 uid, Ticks ticks = {});
+  s32 ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid, Ticks ticks = {});
+  s32 SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid, Ticks ticks = {});
 
   // Title management
   enum class TicketImportType
@@ -364,14 +364,12 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
-  std::string GetContentPath(u64 title_id, const ES::Content& content,
-                             const ES::SharedContentMap& map) const;
-  std::string GetContentPath(u64 title_id, const ES::Content& content) const;
+  std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
 
   struct OpenedContent
   {
     bool m_opened = false;
-    FS::Fd m_fd;
+    u64 m_fd;
     u64 m_title_id = 0;
     ES::Content m_content;
     u32 m_uid = 0;

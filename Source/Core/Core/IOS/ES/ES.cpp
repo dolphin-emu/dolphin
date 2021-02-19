@@ -161,7 +161,7 @@ IPCReply ESDevice::GetTitleId(const IOCtlVRequest& request)
 
 static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
 {
-  ES::UIDSys uid_sys{kernel.GetFS()};
+  ES::UIDSys uid_sys{kernel.GetFSDevice()};
   const u64 title_id = tmd.GetTitleId();
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (uid == 0)
@@ -177,7 +177,7 @@ static bool UpdateUIDAndGID(Kernel& kernel, const ES::TMDReader& tmd)
 static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
                                          const ES::TMDReader& active_tmd)
 {
-  ES::UIDSys uid_map{kernel.GetFS()};
+  ES::UIDSys uid_map{kernel.GetFSDevice()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;

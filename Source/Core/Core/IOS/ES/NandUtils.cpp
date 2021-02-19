@@ -6,7 +6,6 @@
 #include <array>
 #include <cctype>
 #include <functional>
-#include <iterator>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -17,35 +16,38 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/Uids.h"
 
 namespace IOS::HLE
 {
-static ES::TMDReader FindTMD(FS::FileSystem* fs, u64 title_id, const std::string& tmd_path)
+static ES::TMDReader FindTMD(FSDevice& fs, const std::string& tmd_path, Ticks ticks)
 {
-  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read);
-  if (!file)
+  const s64 fd = fs.Open(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read, {}, ticks);
+  if (fd < 0)
     return {};
+  Common::ScopeGuard guard{[&] { fs.Close(fd, ticks); }};
 
-  std::vector<u8> tmd_bytes(file->GetStatus()->size);
-  if (!file->Read(tmd_bytes.data(), tmd_bytes.size()))
+  std::vector<u8> tmd_bytes(fs.GetFileStatus(fd, ticks)->size);
+  if (!fs.Read(fd, tmd_bytes.data(), tmd_bytes.size(), ticks))
     return {};
 
   return ES::TMDReader{std::move(tmd_bytes)};
 }
 
-ES::TMDReader ESDevice::FindImportTMD(u64 title_id) const
+ES::TMDReader ESDevice::FindImportTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(m_ios.GetFS().get(), title_id,
-                 Common::GetImportTitlePath(title_id) + "/content/title.tmd");
+  return FindTMD(*m_ios.GetFSDevice(), Common::GetImportTitlePath(title_id) + "/content/title.tmd",
+                 ticks);
 }
 
-ES::TMDReader ESDevice::FindInstalledTMD(u64 title_id) const
+ES::TMDReader ESDevice::FindInstalledTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(m_ios.GetFS().get(), title_id, Common::GetTMDFileName(title_id));
+  return FindTMD(*m_ios.GetFSDevice(), Common::GetTMDFileName(title_id), ticks);
 }
 
 ES::TicketReader ESDevice::FindSignedTicket(u64 title_id) const
@@ -171,16 +173,15 @@ ESDevice::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
   if (!tmd.IsValid())
     return {};
 
-  const ES::SharedContentMap map{m_ios.GetFS()};
   const std::vector<ES::Content> contents = tmd.GetContents();
 
   std::vector<ES::Content> stored_contents;
 
   std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [this, &tmd, &map, check_content_hashes](const ES::Content& content) {
+               [this, &tmd, check_content_hashes](const ES::Content& content) {
                  const auto fs = m_ios.GetFS();
 
-                 const std::string path = GetContentPath(tmd.GetTitleId(), content, map);
+                 const std::string path = GetContentPath(tmd.GetTitleId(), content);
                  if (path.empty())
                    return false;
 
@@ -217,7 +218,7 @@ u32 ESDevice::GetSharedContentsCount() const
 
 std::vector<std::array<u8, 20>> ESDevice::GetSharedContents() const
 {
-  const ES::SharedContentMap map{m_ios.GetFS()};
+  const ES::SharedContentMap map{m_ios.GetFSDevice()};
   return map.GetHashes();
 }
 
@@ -267,7 +268,7 @@ bool ESDevice::CreateTitleDirectories(u64 title_id, u16 group_id) const
     return false;
   }
 
-  ES::UIDSys uid_sys{fs};
+  ES::UIDSys uid_sys{m_ios.GetFSDevice()};
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (fs->SetMetadata(0, data_dir, uid, group_id, 0, data_dir_modes) != FS::ResultCode::Success)
   {
@@ -382,16 +383,14 @@ void ESDevice::FinishAllStaleImports()
 }
 
 std::string ESDevice::GetContentPath(const u64 title_id, const ES::Content& content,
-                                     const ES::SharedContentMap& content_map) const
+                                     Ticks ticks) const
 {
   if (content.IsShared())
+  {
+    ES::SharedContentMap content_map{m_ios.GetFSDevice()};
+    ticks.Add(content_map.GetTicks());
     return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
+  }
   return fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content.id);
-}
-
-std::string ESDevice::GetContentPath(const u64 title_id, const ES::Content& content) const
-{
-  ES::SharedContentMap map{m_ios.GetFS()};
-  return GetContentPath(title_id, content, map);
 }
 }  // namespace IOS::HLE

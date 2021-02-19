@@ -6,7 +6,9 @@
 
 #include <array>
 #include <map>
+#include <optional>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
@@ -23,6 +25,25 @@ class FSDevice : public Device
 {
 public:
   FSDevice(Kernel& ios, const std::string& device_name);
+
+  // These are the equivalent of the IPC command handlers so IPC overhead is included
+  // in timing calculations.
+  s64 Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
+           std::optional<u32> ipc_fd = {}, Ticks ticks = {});
+  s32 Close(u64 fd, Ticks ticks = {});
+  s32 Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {}, Ticks ticks = {});
+  s32 Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {},
+            Ticks ticks = {});
+  s32 Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks = {});
+  FS::Result<FS::FileStatus> GetFileStatus(u64 fd, Ticks ticks = {});
+
+  template <typename T>
+  s32 Read(u64 fd, T* data, size_t count, Ticks ticks = {})
+  {
+    return Read(fd, reinterpret_cast<u8*>(data), static_cast<u32>(sizeof(T) * count), {}, ticks);
+  }
+
+  std::shared_ptr<FS::FileSystem> GetFS() const { return m_ios.GetFS(); }
 
   void DoState(PointerWrap& p) override;
 
@@ -76,14 +97,16 @@ private:
   IPCReply GetUsage(const Handle& handle, const IOCtlVRequest& request);
   IPCReply Shutdown(const Handle& handle, const IOCtlRequest& request);
 
-  u64 EstimateTicksForReadWrite(const Handle& handle, const ReadWriteRequest& request);
-  u64 SimulatePopulateFileCache(u32 fd, u32 offset, u32 file_size);
+  u64 EstimateTicksForReadWrite(const Handle& handle, u64 fd, IPCCommandType command, u32 size);
+  u64 SimulatePopulateFileCache(u64 fd, u32 offset, u32 file_size);
   u64 SimulateFlushFileCache();
-  bool HasCacheForFile(u32 fd, u32 offset) const;
+  bool HasCacheForFile(u64 fd, u32 offset) const;
 
-  std::map<u32, Handle> m_fd_map;
-  u32 m_cache_fd = INVALID_FD;
-  u16 m_cache_chain_index = 0;
   bool m_dirty_cache = false;
+  u16 m_cache_chain_index = 0;
+  std::optional<u64> m_cache_fd;
+  // The first 0x18 IDs are reserved for the PPC.
+  u64 m_next_fd = 0x18;
+  std::map<u64, Handle> m_fd_map;
 };
 }  // namespace IOS::HLE

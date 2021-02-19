@@ -30,6 +30,7 @@ class FileSystem;
 
 class Device;
 class ESDevice;
+class FSDevice;
 
 struct Request;
 struct OpenRequest;
@@ -44,6 +45,40 @@ struct IPCReply
   s32 return_value;
   u64 reply_delay_ticks;
 };
+
+constexpr u64 IPC_OVERHEAD_TICKS = 2700_tbticks;
+
+// Used to make it more convenient for functions to return timing information
+// without having to explicitly keep track of ticks in callers.
+class Ticks
+{
+public:
+  Ticks(u64* ticks = nullptr) : m_ticks(ticks) {}
+
+  void Add(u64 ticks)
+  {
+    if (m_ticks != nullptr)
+      *m_ticks += ticks;
+  }
+
+  void AddTimeBaseTicks(u64 tb_ticks) { Add(tb_ticks * SystemTimers::TIMER_RATIO); }
+
+private:
+  u64* m_ticks = nullptr;
+};
+
+template <typename ResultProducer>
+IPCReply MakeIPCReply(u64 ticks, const ResultProducer& fn)
+{
+  const s32 result_value = fn(Ticks{&ticks});
+  return IPCReply{result_value, ticks};
+}
+
+template <typename ResultProducer>
+IPCReply MakeIPCReply(const ResultProducer& fn)
+{
+  return MakeIPCReply(0, fn);
+}
 
 enum IPCCommandType : u32
 {
@@ -84,6 +119,7 @@ public:
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
   std::shared_ptr<FS::FileSystem> GetFS();
+  std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetES();
 
   void SDIO_EventNotify();

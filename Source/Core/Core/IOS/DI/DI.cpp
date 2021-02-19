@@ -109,7 +109,7 @@ void DIDevice::ProcessQueuedIOCtl()
   auto finished = StartIOCtl(request);
   if (finished)
   {
-    CoreTiming::ScheduleEvent(2700 * SystemTimers::TIMER_RATIO, s_finish_executing_di_command,
+    CoreTiming::ScheduleEvent(IPC_OVERHEAD_TICKS, s_finish_executing_di_command,
                               static_cast<u64>(finished.value()));
     return;
   }
