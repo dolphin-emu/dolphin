@@ -159,7 +159,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
     ss << " " << (mc.is_ranged ? mc.end_address : mc.start_address) << " "
        << (mc.is_ranged ? "n" : "") << (mc.is_break_on_read ? "r" : "")
        << (mc.is_break_on_write ? "w" : "") << (mc.log_on_hit ? "l" : "")
-       << (mc.break_on_hit ? "p" : "");
+       << (mc.break_on_hit ? "b" : "");
     mc_strings.push_back(ss.str());
   }
 
