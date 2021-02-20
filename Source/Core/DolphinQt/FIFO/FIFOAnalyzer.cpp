@@ -339,6 +339,9 @@ void FIFOAnalyzer::UpdateDetails()
   }
 
   m_detail_list->addItem(new_label);
+
+  // Needed to ensure the description updates when changing objects
+  m_detail_list->setCurrentRow(0);
 }
 
 void FIFOAnalyzer::BeginSearch()
@@ -485,6 +488,9 @@ void FIFOAnalyzer::UpdateDescription()
   const auto items = m_tree_widget->selectedItems();
 
   if (items.isEmpty() || m_object_data_offsets.empty())
+    return;
+
+  if (items[0]->data(0, FRAME_ROLE).isNull() || items[0]->data(0, OBJECT_ROLE).isNull())
     return;
 
   const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
