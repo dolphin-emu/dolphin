@@ -46,7 +46,7 @@ struct IPCReply
   u64 reply_delay_ticks;
 };
 
-constexpr u64 IPC_OVERHEAD_TICKS = 2700_tbticks;
+constexpr SystemTimers::TimeBaseTick IPC_OVERHEAD_TICKS = 2700_tbticks;
 
 // Used to make it more convenient for functions to return timing information
 // without having to explicitly keep track of ticks in callers.
@@ -60,8 +60,6 @@ public:
     if (m_ticks != nullptr)
       *m_ticks += ticks;
   }
-
-  void AddTimeBaseTicks(u64 tb_ticks) { Add(tb_ticks * SystemTimers::TIMER_RATIO); }
 
 private:
   u64* m_ticks = nullptr;

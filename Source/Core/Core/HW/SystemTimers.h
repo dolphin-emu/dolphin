@@ -33,6 +33,15 @@ enum
   TIMER_RATIO = 12
 };
 
+struct TimeBaseTick
+{
+  constexpr TimeBaseTick() = default;
+  constexpr explicit TimeBaseTick(u64 tb_ticks) : cpu_ticks(tb_ticks * TIMER_RATIO) {}
+  constexpr operator u64() const { return cpu_ticks; }
+
+  u64 cpu_ticks = 0;
+};
+
 enum class Mode
 {
   GC,
@@ -67,8 +76,8 @@ double GetEstimatedEmulationPerformance();
 inline namespace SystemTimersLiterals
 {
 /// Converts timebase ticks to clock ticks.
-constexpr u64 operator""_tbticks(unsigned long long value)
+constexpr SystemTimers::TimeBaseTick operator""_tbticks(unsigned long long value)
 {
-  return value * SystemTimers::TIMER_RATIO;
+  return SystemTimers::TimeBaseTick(value);
 }
 }  // namespace SystemTimersLiterals

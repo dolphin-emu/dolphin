@@ -22,46 +22,46 @@ namespace IOS::HLE
 {
 using namespace IOS::HLE::FS;
 
-static IPCReply GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
+static IPCReply GetFSReply(s32 return_value, SystemTimers::TimeBaseTick extra_tb_ticks = {})
 {
-  return IPCReply{return_value, IPC_OVERHEAD_TICKS + extra_tb_ticks * SystemTimers::TIMER_RATIO};
+  return IPCReply{return_value, IPC_OVERHEAD_TICKS + extra_tb_ticks};
 }
 
 /// Duration of a superblock write (in timebase ticks).
-constexpr u64 GetSuperblockWriteTbTicks(int ios_version)
+constexpr SystemTimers::TimeBaseTick GetSuperblockWriteTbTicks(int ios_version)
 {
   if (ios_version == 28 || ios_version == 80)
-    return 3350000;
+    return 3350000_tbticks;
 
   if (ios_version < 28)
-    return 4100000;
+    return 4100000_tbticks;
 
-  return 3170000;
+  return 3170000_tbticks;
 }
 
 /// Duration of a file cluster write (in timebase ticks).
-constexpr u64 GetClusterWriteTbTicks(int ios_version)
+constexpr SystemTimers::TimeBaseTick GetClusterWriteTbTicks(int ios_version)
 {
   // Based on the time it takes to write two clusters (0x8000 bytes), divided by two.
   if (ios_version < 28)
-    return 370000;
+    return 370000_tbticks;
 
-  return 300000;
+  return 300000_tbticks;
 }
 
 /// Duration of a file cluster read (in timebase ticks).
-constexpr u64 GetClusterReadTbTicks(int ios_version)
+constexpr SystemTimers::TimeBaseTick GetClusterReadTbTicks(int ios_version)
 {
   if (ios_version == 28 || ios_version == 80)
-    return 125000;
+    return 125000_tbticks;
 
   if (ios_version < 28)
-    return 165000;
+    return 165000_tbticks;
 
-  return 115000;
+  return 115000_tbticks;
 }
 
-constexpr u64 GetFSModuleMemcpyTbTicks(int ios_version, u64 copy_size)
+constexpr SystemTimers::TimeBaseTick GetFSModuleMemcpyTbTicks(int ios_version, u64 copy_size)
 {
   // FS handles cached read/writes by doing a simple memcpy on an internal buffer.
   // The following equations were obtained by doing cached reads with various read sizes
@@ -71,14 +71,14 @@ constexpr u64 GetFSModuleMemcpyTbTicks(int ios_version, u64 copy_size)
   // Older versions of IOS have a simplistic implementation of memcpy that does not optimize
   // large copies by copying 16 bytes or 32 bytes per chunk.
   if (ios_version < 28)
-    return 1.0 * copy_size + 3.0;
+    return SystemTimers::TimeBaseTick(1.0 * copy_size + 3.0);
 
-  return 0.636 * copy_size + 150.0;
+  return SystemTimers::TimeBaseTick(0.636 * copy_size + 150.0);
 }
 
-constexpr u64 GetFreeClusterCheckTbTicks()
+constexpr SystemTimers::TimeBaseTick GetFreeClusterCheckTbTicks()
 {
-  return 1000;
+  return 1000_tbticks;
 }
 
 constexpr size_t CLUSTER_DATA_SIZE = 0x4000;
@@ -128,17 +128,21 @@ enum class FileLookupMode
 // Note: lookups normally stop at the first non existing path (as the FST cannot be traversed
 // further when a directory doesn't exist). However for the sake of simplicity we assume that the
 // entire lookup succeeds because otherwise we'd need to check whether every path component exists.
-static u64 EstimateFileLookupTicks(const std::string& path, FileLookupMode mode)
+static SystemTimers::TimeBaseTick EstimateFileLookupTicks(const std::string& path,
+                                                          FileLookupMode mode)
 {
   const size_t number_of_path_components = std::count(path.cbegin(), path.cend(), '/');
   if (number_of_path_components == 0)
-    return 0;
+    return 0_tbticks;
+
   // Paths that end with a slash are invalid and rejected early in FS.
   if (!path.empty() && *path.rbegin() == '/')
-    return 300;
+    return 300_tbticks;
+
   if (mode == FileLookupMode::Normal)
-    return 680 * number_of_path_components;
-  return 1000 + 340 * number_of_path_components;
+    return SystemTimers::TimeBaseTick(680 * number_of_path_components);
+
+  return SystemTimers::TimeBaseTick(1000 + 340 * number_of_path_components);
 }
 
 /// Get a reply with the correct timing for operations that modify the superblock.
@@ -147,7 +151,8 @@ static u64 EstimateFileLookupTicks(const std::string& path, FileLookupMode mode)
 /// to simplify the implementation as they are insignificant.
 static IPCReply GetReplyForSuperblockOperation(int ios_version, ResultCode result)
 {
-  const u64 ticks = result == ResultCode::Success ? GetSuperblockWriteTbTicks(ios_version) : 0;
+  const auto ticks =
+      result == ResultCode::Success ? GetSuperblockWriteTbTicks(ios_version) : 0_tbticks;
   return GetFSReply(ConvertResult(result), ticks);
 }
 
@@ -162,7 +167,7 @@ std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
 s64 FSDevice::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
                    std::optional<u32> ipc_fd, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
+  ticks.Add(IPC_OVERHEAD_TICKS);
 
   if (m_fd_map.size() >= 16)
     return ConvertResult(ResultCode::NoFreeHandle);
@@ -178,7 +183,7 @@ s64 FSDevice::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode m
     return fd;
   }
 
-  ticks.AddTimeBaseTicks(EstimateFileLookupTicks(path, FileLookupMode::Normal));
+  ticks.Add(EstimateFileLookupTicks(path, FileLookupMode::Normal));
 
   auto backend_fd = m_ios.GetFS()->OpenFile(uid, gid, path, mode);
   LogResult(backend_fd, "OpenFile({})", path);
@@ -197,19 +202,19 @@ std::optional<IPCReply> FSDevice::Close(u32 fd)
 
 s32 FSDevice::Close(u64 fd, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
+  ticks.Add(IPC_OVERHEAD_TICKS);
 
   const auto& handle = m_fd_map[fd];
   if (handle.fs_fd != INVALID_FD)
   {
     if (fd == m_cache_fd)
     {
-      ticks.AddTimeBaseTicks(SimulateFlushFileCache());
+      ticks.Add(SimulateFlushFileCache());
       m_cache_fd.reset();
     }
 
     if (handle.superblock_flush_needed)
-      ticks.AddTimeBaseTicks(GetSuperblockWriteTbTicks(m_ios.GetVersion()));
+      ticks.Add(GetSuperblockWriteTbTicks(m_ios.GetVersion()));
 
     const ResultCode result = m_ios.GetFS()->Close(handle.fs_fd);
     LogResult(result, "Close({})", handle.name.data());
@@ -311,14 +316,14 @@ std::optional<IPCReply> FSDevice::Read(const ReadWriteRequest& request)
 
 s32 FSDevice::Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
+  ticks.Add(IPC_OVERHEAD_TICKS);
 
   const Handle& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
     return ConvertResult(ResultCode::Invalid);
 
   // Simulate the FS read logic to estimate ticks. Note: this must be done before reading.
-  ticks.AddTimeBaseTicks(EstimateTicksForReadWrite(handle, fd, IPC_CMD_READ, size));
+  ticks.Add(EstimateTicksForReadWrite(handle, fd, IPC_CMD_READ, size));
 
   const Result<u32> result = m_ios.GetFS()->ReadBytesFromFile(handle.fs_fd, data, size);
   if (ipc_buffer_addr)
@@ -340,14 +345,14 @@ std::optional<IPCReply> FSDevice::Write(const ReadWriteRequest& request)
 s32 FSDevice::Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr,
                     Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
+  ticks.Add(IPC_OVERHEAD_TICKS);
 
   const Handle& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
     return ConvertResult(ResultCode::Invalid);
 
   // Simulate the FS write logic to estimate ticks. Must be done before writing.
-  ticks.AddTimeBaseTicks(EstimateTicksForReadWrite(handle, fd, IPC_CMD_WRITE, size));
+  ticks.Add(EstimateTicksForReadWrite(handle, fd, IPC_CMD_WRITE, size));
 
   const Result<u32> result = m_ios.GetFS()->WriteBytesToFile(handle.fs_fd, data, size);
   if (ipc_buffer_addr)
@@ -368,7 +373,7 @@ std::optional<IPCReply> FSDevice::Seek(const SeekRequest& request)
 
 s32 FSDevice::Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
+  ticks.Add(IPC_OVERHEAD_TICKS);
 
   const Handle& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
@@ -587,7 +592,7 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
   const std::string path = Memory::GetString(request.buffer_in, 64);
-  const u64 ticks = EstimateFileLookupTicks(path, FileLookupMode::Split);
+  const auto ticks = EstimateFileLookupTicks(path, FileLookupMode::Split);
   const Result<Metadata> metadata = m_ios.GetFS()->GetMetadata(handle.uid, handle.gid, path);
   LogResult(metadata, "GetMetadata({})", path);
   if (!metadata)
@@ -672,7 +677,7 @@ IPCReply FSDevice::GetFileStats(const Handle& handle, const IOCtlRequest& reques
 
 FS::Result<FS::FileStatus> FSDevice::GetFileStatus(u64 fd, Ticks ticks)
 {
-  ticks.AddTimeBaseTicks(IPC_OVERHEAD_TICKS);
+  ticks.Add(IPC_OVERHEAD_TICKS);
   const auto& handle = m_fd_map[fd];
   if (handle.fs_fd == INVALID_FD)
     return ResultCode::Invalid;
