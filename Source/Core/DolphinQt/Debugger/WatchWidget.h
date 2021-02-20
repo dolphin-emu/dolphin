@@ -34,6 +34,10 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
+  void OnDelete();
+  void OnClear();
+  void OnNewWatch();
+
   void OnLoad();
   void OnSave();
 
@@ -47,6 +51,9 @@ private:
 
   void UpdateIcons();
 
+  QAction* m_new;
+  QAction* m_delete;
+  QAction* m_clear;
   QAction* m_load;
   QAction* m_save;
   QToolBar* m_toolbar;
