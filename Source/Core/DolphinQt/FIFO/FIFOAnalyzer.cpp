@@ -25,6 +25,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/XFStructs.h"
 
 constexpr int FRAME_ROLE = Qt::UserRole;
@@ -163,6 +164,25 @@ void FIFOAnalyzer::UpdateTree()
   }
 }
 
+static std::string GetPrimitiveName(u8 cmd)
+{
+  if ((cmd & 0xC0) != 0x80)
+  {
+    PanicAlertFmt("Not a primitive command: {:#04x}", cmd);
+    return "";
+  }
+  const u8 vat = cmd & OpcodeDecoder::GX_VAT_MASK;  // Vertex loader index (0 - 7)
+  const u8 primitive =
+      (cmd & OpcodeDecoder::GX_PRIMITIVE_MASK) >> OpcodeDecoder::GX_PRIMITIVE_SHIFT;
+  static constexpr std::array<const char*, 8> names = {
+      "GX_DRAW_QUADS",        "GX_DRAW_QUADS_2 (nonstandard)",
+      "GX_DRAW_TRIANGLES",    "GX_DRAW_TRIANGLE_STRIP",
+      "GX_DRAW_TRIANGLE_FAN", "GX_DRAW_LINES",
+      "GX_DRAW_LINE_STRIP",   "GX_DRAW_POINTS",
+  };
+  return fmt::format("{} VAT {}", names[primitive], vat);
+}
+
 void FIFOAnalyzer::UpdateDetails()
 {
   // Clearing the detail list can update the selection, which causes UpdateDescription to be called
@@ -193,13 +213,12 @@ void FIFOAnalyzer::UpdateDetails()
   // Note that frame_info.objectStarts[object_nr] is the start of the primitive data,
   // but we want to start with the register updates which happen before that.
   const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_nonprim_size = frame_info.objectStarts[object_nr] - object_start;
   const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
   u32 object_offset = 0;
-  while (object_offset < object_nonprim_size)
+  while (object_offset < object_size)
   {
     QString new_label;
     const u32 start_offset = object_offset;
@@ -329,8 +348,49 @@ void FIFOAnalyzer::UpdateDetails()
     break;
 
     default:
-      new_label = tr("Unexpected 0x80 call? Aborting...");
-      object_offset = object_nonprim_size;
+      if ((command & 0xC0) == 0x80)
+      {
+        // Object primitive data
+
+        const u8 vat = command & OpcodeDecoder::GX_VAT_MASK;
+        const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
+        const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+
+        const auto name = GetPrimitiveName(command);
+
+        const u16 vertex_count = Common::swap16(&object[object_offset]);
+        object_offset += 2;
+        const u32 vertex_size = VertexLoaderBase::GetVertexSize(vtx_desc, vtx_attr);
+
+        // Note that vertex_count is allowed to be 0, with no special treatment
+        // (another command just comes right after the current command, with no vertices in between)
+        const u32 object_prim_size = vertex_count * vertex_size;
+
+        new_label = QStringLiteral("PRIMITIVE %1 (%2)  %3 vertices %4 bytes/vertex %5 total bytes")
+                        .arg(QString::fromStdString(name))
+                        .arg(command, 2, 16, QLatin1Char('0'))
+                        .arg(vertex_count)
+                        .arg(vertex_size)
+                        .arg(object_prim_size);
+
+        // It's not really useful to have a massive unreadable hex string for the object primitives.
+        // Put it in the description instead.
+
+// #define INCLUDE_HEX_IN_PRIMITIVES
+#ifdef INCLUDE_HEX_IN_PRIMITIVES
+        new_label += QStringLiteral("   ");
+        for (u32 i = 0; i < object_prim_size; i++)
+        {
+          new_label += QStringLiteral("%1").arg(object[object_offset++], 2, 16, QLatin1Char('0'));
+        }
+#else
+        object_offset += object_prim_size;
+#endif
+      }
+      else
+      {
+        new_label = QStringLiteral("Unknown opcode %1").arg(command, 2, 16);
+      }
       break;
     }
     new_label = QStringLiteral("%1:  ").arg(object_start + start_offset, 8, 16, QLatin1Char('0')) +
@@ -338,34 +398,7 @@ void FIFOAnalyzer::UpdateDetails()
     m_detail_list->addItem(new_label);
   }
 
-  // Object primitive data
-  ASSERT(object_offset == object_nonprim_size);
-  m_object_data_offsets.push_back(object_offset);
-
-  const u8 cmd = object[object_offset++];
-  const u16 vertex_count = Common::swap16(&object[object_offset]);
-  object_offset += 2;
-
-  const u32 object_prim_size = object_size - object_offset;
-
-  QString new_label = QStringLiteral("%1:  %2 %3  ")
-                          .arg(object_start + object_offset, 8, 16, QLatin1Char('0'))
-                          .arg(cmd, 2, 16, QLatin1Char('0'))
-                          .arg(vertex_count, 4, 16, QLatin1Char('0'));
-
-  while (object_offset < object_size)
-  {
-    u32 byte = object[object_offset++];
-    new_label += QStringLiteral("%1").arg(byte, 2, 16, QLatin1Char('0'));
-  }
-
-  if (vertex_count != 0 && (object_prim_size % vertex_count) != 0)
-  {
-    new_label += QLatin1Char{'\n'};
-    new_label += tr("NOTE: Stream size doesn't match actual data length");
-  }
-
-  m_detail_list->addItem(new_label);
+  ASSERT(object_offset == object_size);
 
   // Needed to ensure the description updates when changing objects
   m_detail_list->setCurrentRow(0);
@@ -528,7 +561,9 @@ void FIFOAnalyzer::UpdateDescription()
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
   const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u8* cmddata = &fifo_frame.fifoData[object_start + m_object_data_offsets[entry_nr]];
+  const u32 entry_start = m_object_data_offsets[entry_nr];
+
+  const u8* cmddata = &fifo_frame.fifoData[object_start + entry_start];
 
   // TODO: Not sure whether we should bother translating the descriptions
 
@@ -620,6 +655,29 @@ void FIFOAnalyzer::UpdateDescription()
     text += tr("Usually used for light objects");
     text += QLatin1Char{'\n'};
     text += QString::fromStdString(written);
+  }
+  else if ((*cmddata & 0xC0) == 0x80)
+  {
+    const u8 vat = *cmddata & OpcodeDecoder::GX_VAT_MASK;
+    const auto name = GetPrimitiveName(*cmddata);
+    const u16 vertex_count = Common::swap16(cmddata + 1);
+
+    text = tr("Primitive ");
+    text += QString::fromStdString(name);
+    text += QLatin1Char{'\n'};
+
+    const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
+    const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+    const u32 vertex_size = VertexLoaderBase::GetVertexSize(vtx_desc, vtx_attr);
+
+    u32 i = 3;
+    for (u32 vertex_num = 0; vertex_num < vertex_count; vertex_num++)
+    {
+      text += QLatin1Char{'\n'};
+      // TODO: format each vertex nicely
+      for (u32 vertex_off = 0; vertex_off < vertex_size; vertex_off++)
+        text += QStringLiteral("%1").arg(cmddata[i++], 2, 16, QLatin1Char('0'));
+    }
   }
   else
   {

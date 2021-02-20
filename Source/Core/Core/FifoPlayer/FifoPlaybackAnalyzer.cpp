@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -80,6 +81,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       {
         // Clean up frame analysis
         analyzed.objectStarts.clear();
+        analyzed.objectCPStates.clear();
         analyzed.objectEnds.clear();
 
         return;
@@ -88,9 +90,14 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       if (wasDrawing != s_DrawingObject)
       {
         if (s_DrawingObject)
+        {
           analyzed.objectStarts.push_back(cmdStart);
+          analyzed.objectCPStates.push_back(s_CpMem);
+        }
         else
+        {
           analyzed.objectEnds.push_back(cmdStart);
+        }
       }
 
       cmdStart += cmdSize;
@@ -98,5 +105,8 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
     if (analyzed.objectEnds.size() < analyzed.objectStarts.size())
       analyzed.objectEnds.push_back(cmdStart);
+
+    ASSERT(analyzed.objectStarts.size() == analyzed.objectCPStates.size());
+    ASSERT(analyzed.objectStarts.size() == analyzed.objectEnds.size());
   }
 }
