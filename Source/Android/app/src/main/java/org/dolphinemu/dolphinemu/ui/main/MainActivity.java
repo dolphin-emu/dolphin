@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
+import org.dolphinemu.dolphinemu.utils.Action1;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -90,7 +91,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
-    refetchMetadata();
+    forEachPlatformGamesView(PlatformGamesView::refetchMetadata);
 
     if (sShouldRescanLibrary)
     {
@@ -266,26 +267,20 @@ public final class MainActivity extends AppCompatActivity implements MainView
     return mPresenter.handleOptionSelection(item.getItemId(), this);
   }
 
+  @Override
   public void showGames()
   {
-    for (Platform platform : Platform.values())
-    {
-      PlatformGamesView fragment = getPlatformGamesView(platform);
-      if (fragment != null)
-      {
-        fragment.showGames();
-      }
-    }
+    forEachPlatformGamesView(PlatformGamesView::showGames);
   }
 
-  private void refetchMetadata()
+  private void forEachPlatformGamesView(Action1<PlatformGamesView> action)
   {
     for (Platform platform : Platform.values())
     {
       PlatformGamesView fragment = getPlatformGamesView(platform);
       if (fragment != null)
       {
-        fragment.refetchMetadata();
+        action.call(fragment);
       }
     }
   }
