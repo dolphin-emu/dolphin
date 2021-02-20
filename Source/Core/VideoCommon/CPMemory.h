@@ -63,6 +63,11 @@ enum
   ARRAY_TEXCOORD0 = 4,
   NUM_TEXCOORD_ARRAYS = 8,
 
+  ARRAY_XF_A = 12,  // Usually used for position matrices
+  ARRAY_XF_B = 13,  // Usually used for normal matrices
+  ARRAY_XF_C = 14,  // Usually used for tex coord matrices
+  ARRAY_XF_D = 15,  // Usually used for light objects
+
   // Number of arrays related to vertex components (position, normal, color, tex coord)
   // Excludes the 4 arrays used for indexed XF loads
   NUM_VERTEX_COMPONENT_ARRAYS = 12,

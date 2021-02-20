@@ -271,21 +271,37 @@ void FIFOAnalyzer::UpdateDetails()
     break;
 
     case OpcodeDecoder::GX_LOAD_INDX_A:
-      new_label = QStringLiteral("LOAD INDX A");
+    {
+      const auto [desc, written] =
+          GetXFIndexedLoadInfo(ARRAY_XF_A, Common::swap32(&object[object_offset]));
       object_offset += 4;
-      break;
+      new_label = QStringLiteral("LOAD INDX A   %1").arg(QString::fromStdString(desc));
+    }
+    break;
     case OpcodeDecoder::GX_LOAD_INDX_B:
-      new_label = QStringLiteral("LOAD INDX B");
+    {
+      const auto [desc, written] =
+          GetXFIndexedLoadInfo(ARRAY_XF_B, Common::swap32(&object[object_offset]));
       object_offset += 4;
-      break;
+      new_label = QStringLiteral("LOAD INDX B   %1").arg(QString::fromStdString(desc));
+    }
+    break;
     case OpcodeDecoder::GX_LOAD_INDX_C:
-      new_label = QStringLiteral("LOAD INDX C");
+    {
+      const auto [desc, written] =
+          GetXFIndexedLoadInfo(ARRAY_XF_C, Common::swap32(&object[object_offset]));
       object_offset += 4;
-      break;
+      new_label = QStringLiteral("LOAD INDX C   %1").arg(QString::fromStdString(desc));
+    }
+    break;
     case OpcodeDecoder::GX_LOAD_INDX_D:
-      new_label = QStringLiteral("LOAD INDX D");
+    {
+      const auto [desc, written] =
+          GetXFIndexedLoadInfo(ARRAY_XF_D, Common::swap32(&object[object_offset]));
       object_offset += 4;
-      break;
+      new_label = QStringLiteral("LOAD INDX D   %1").arg(QString::fromStdString(desc));
+    }
+    break;
 
     case OpcodeDecoder::GX_CMD_CALL_DL:
       // The recorder should have expanded display lists into the fifo stream and skipped the
@@ -564,6 +580,46 @@ void FIFOAnalyzer::UpdateDescription()
       text += tr("No description available");
     else
       text += QString::fromStdString(desc);
+  }
+  else if (*cmddata == OpcodeDecoder::GX_LOAD_INDX_A)
+  {
+    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_A, Common::swap32(cmddata + 1));
+
+    text = QString::fromStdString(desc);
+    text += QLatin1Char{'\n'};
+    text += tr("Usually used for position matrices");
+    text += QLatin1Char{'\n'};
+    text += QString::fromStdString(written);
+  }
+  else if (*cmddata == OpcodeDecoder::GX_LOAD_INDX_B)
+  {
+    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_B, Common::swap32(cmddata + 1));
+
+    text = QString::fromStdString(desc);
+    text += QLatin1Char{'\n'};
+    text += tr("Usually used for normal matrices");
+    text += QLatin1Char{'\n'};
+    text += QString::fromStdString(written);
+  }
+  else if (*cmddata == OpcodeDecoder::GX_LOAD_INDX_C)
+  {
+    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_C, Common::swap32(cmddata + 1));
+
+    text = QString::fromStdString(desc);
+    text += QLatin1Char{'\n'};
+    text += tr("Usually used for tex coord matrices");
+    text += QLatin1Char{'\n'};
+    text += QString::fromStdString(written);
+  }
+  else if (*cmddata == OpcodeDecoder::GX_LOAD_INDX_D)
+  {
+    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_D, Common::swap32(cmddata + 1));
+
+    text = QString::fromStdString(desc);
+    text += QLatin1Char{'\n'};
+    text += tr("Usually used for light objects");
+    text += QLatin1Char{'\n'};
+    text += QString::fromStdString(written);
   }
   else
   {
