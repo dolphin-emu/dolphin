@@ -53,7 +53,7 @@ public final class MainPresenter
     mView.setVersionString(versionName);
 
     IntentFilter filter = new IntentFilter();
-    filter.addAction(GameFileCacheService.BROADCAST_ACTION);
+    filter.addAction(GameFileCacheService.CACHE_UPDATED);
     mBroadcastReceiver = new BroadcastReceiver()
     {
       @Override

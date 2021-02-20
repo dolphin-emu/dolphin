@@ -116,6 +116,8 @@ public class GameFileCache
     return cacheChanged;
   }
 
+  public native int getSize();
+
   public native GameFile[] getAllGames();
 
   public native GameFile addOrGet(String gamePath);
