@@ -177,11 +177,23 @@ public final class GameFileCacheService extends IntentService
     {
       synchronized (gameFileCache)
       {
-        boolean changed = gameFileCache.scanLibrary();
+        boolean changed = gameFileCache.update();
         if (changed)
         {
           updateGameFileArray();
           sendBroadcast(CACHE_UPDATED);
+        }
+
+        boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
+        if (additionalMetadataChanged)
+        {
+          updateGameFileArray();
+          sendBroadcast(CACHE_UPDATED);
+        }
+
+        if (changed || additionalMetadataChanged)
+        {
+          gameFileCache.save();
         }
       }
     }
