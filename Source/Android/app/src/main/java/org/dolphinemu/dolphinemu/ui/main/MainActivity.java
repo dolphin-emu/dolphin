@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -39,7 +40,8 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
  * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
-public final class MainActivity extends AppCompatActivity implements MainView
+public final class MainActivity extends AppCompatActivity
+        implements MainView, SwipeRefreshLayout.OnRefreshListener
 {
   private ViewPager mViewPager;
   private Toolbar mToolbar;
@@ -97,7 +99,11 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     if (sShouldRescanLibrary && !cacheAlreadyLoading)
     {
-      GameFileCacheService.startRescan(this);
+      new AfterDirectoryInitializationRunner().run(this, false, () ->
+      {
+        setRefreshing(true);
+        GameFileCacheService.startRescan(this);
+      });
     }
 
     sShouldRescanLibrary = true;
@@ -267,6 +273,28 @@ public final class MainActivity extends AppCompatActivity implements MainView
     return mPresenter.handleOptionSelection(item.getItemId(), this);
   }
 
+  /**
+   * Called when the user requests a refresh by swiping down.
+   */
+  @Override
+  public void onRefresh()
+  {
+    setRefreshing(true);
+    GameFileCacheService.startRescan(this);
+  }
+
+  /**
+   * Shows or hides the loading indicator.
+   */
+  @Override
+  public void setRefreshing(boolean refreshing)
+  {
+    forEachPlatformGamesView(view -> view.setRefreshing(refreshing));
+  }
+
+  /**
+   * To be called when the game file cache is updated.
+   */
   @Override
   public void showGames()
   {
@@ -297,7 +325,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
   private void setPlatformTabsAndStartGameFileCacheService()
   {
     PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-            getSupportFragmentManager(), this);
+            getSupportFragmentManager(), this, this);
     mViewPager.setAdapter(platformPagerAdapter);
     mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
     mTabLayout.setupWithViewPager(mViewPager);

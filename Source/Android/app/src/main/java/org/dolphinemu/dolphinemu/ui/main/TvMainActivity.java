@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -26,6 +28,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -36,11 +39,14 @@ import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public final class TvMainActivity extends FragmentActivity implements MainView
+public final class TvMainActivity extends FragmentActivity
+        implements MainView, SwipeRefreshLayout.OnRefreshListener
 {
   private static boolean sShouldRescanLibrary = true;
 
   private final MainPresenter mPresenter = new MainPresenter(this, this);
+
+  private SwipeRefreshLayout mSwipeRefresh;
 
   private BrowseSupportFragment mBrowseFragment;
 
@@ -84,7 +90,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
     if (sShouldRescanLibrary && !cacheAlreadyLoading)
     {
-      GameFileCacheService.startRescan(this);
+      new AfterDirectoryInitializationRunner().run(this, false, () ->
+      {
+        setRefreshing(true);
+        GameFileCacheService.startRescan(this);
+      });
     }
 
     sShouldRescanLibrary = true;
@@ -117,6 +127,16 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
   void setupUI()
   {
+    mSwipeRefresh = findViewById(R.id.swipe_refresh);
+
+    TypedValue typedValue = new TypedValue();
+    getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
+    mSwipeRefresh.setColorSchemeColors(typedValue.data);
+
+    mSwipeRefresh.setOnRefreshListener(this);
+
+    setRefreshing(GameFileCacheService.isLoading());
+
     final FragmentManager fragmentManager = getSupportFragmentManager();
     mBrowseFragment = new BrowseSupportFragment();
     fragmentManager
@@ -186,6 +206,15 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     intent.addCategory(Intent.CATEGORY_OPENABLE);
     intent.setType("*/*");
     startActivityForResult(intent, requestCode);
+  }
+
+  /**
+   * Shows or hides the loading indicator.
+   */
+  @Override
+  public void setRefreshing(boolean refreshing)
+  {
+    mSwipeRefresh.setRefreshing(refreshing);
   }
 
   @Override
@@ -275,6 +304,16 @@ public final class TvMainActivity extends FragmentActivity implements MainView
         Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_LONG).show();
       }
     }
+  }
+
+  /**
+   * Called when the user requests a refresh by swiping down.
+   */
+  @Override
+  public void onRefresh()
+  {
+    setRefreshing(true);
+    GameFileCacheService.startRescan(this);
   }
 
   private void buildRowsAdapter()

@@ -54,12 +54,21 @@ public final class MainPresenter
 
     IntentFilter filter = new IntentFilter();
     filter.addAction(GameFileCacheService.CACHE_UPDATED);
+    filter.addAction(GameFileCacheService.DONE_LOADING);
     mBroadcastReceiver = new BroadcastReceiver()
     {
       @Override
       public void onReceive(Context context, Intent intent)
       {
-        mView.showGames();
+        switch (intent.getAction())
+        {
+          case GameFileCacheService.CACHE_UPDATED:
+            mView.showGames();
+            break;
+          case GameFileCacheService.DONE_LOADING:
+            mView.setRefreshing(false);
+            break;
+        }
       }
     };
     LocalBroadcastManager.getInstance(mContext).registerReceiver(mBroadcastReceiver, filter);
@@ -87,6 +96,7 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_refresh:
+        mView.setRefreshing(true);
         GameFileCacheService.startRescan(context);
         return true;
 
