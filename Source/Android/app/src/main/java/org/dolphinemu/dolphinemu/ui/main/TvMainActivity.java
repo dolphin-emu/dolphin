@@ -68,6 +68,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   {
     super.onResume();
 
+    boolean cacheAlreadyLoading = GameFileCacheService.isLoading();
+
     if (DirectoryInitialization.shouldStart(this))
     {
       DirectoryInitialization.start(this);
@@ -80,14 +82,12 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     // such as system language, cover downloading...
     refetchMetadata();
 
-    if (sShouldRescanLibrary)
+    if (sShouldRescanLibrary && !cacheAlreadyLoading)
     {
       GameFileCacheService.startRescan(this);
     }
-    else
-    {
-      sShouldRescanLibrary = true;
-    }
+
+    sShouldRescanLibrary = true;
   }
 
   @Override

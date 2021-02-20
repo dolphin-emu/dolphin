@@ -80,6 +80,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
   {
     super.onResume();
 
+    boolean cacheAlreadyLoading = GameFileCacheService.isLoading();
+
     if (DirectoryInitialization.shouldStart(this))
     {
       DirectoryInitialization.start(this);
@@ -93,14 +95,12 @@ public final class MainActivity extends AppCompatActivity implements MainView
     // such as system language, cover downloading...
     forEachPlatformGamesView(PlatformGamesView::refetchMetadata);
 
-    if (sShouldRescanLibrary)
+    if (sShouldRescanLibrary && !cacheAlreadyLoading)
     {
       GameFileCacheService.startRescan(this);
     }
-    else
-    {
-      sShouldRescanLibrary = true;
-    }
+
+    sShouldRescanLibrary = true;
   }
 
   @Override
