@@ -20,27 +20,28 @@
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
-                     [address](const auto& bp) { return bp.address == address; });
+                     [address](const auto& bp) { return bp.is_enabled && bp.address == address; });
 }
 
 bool BreakPoints::IsTempBreakPoint(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
-    return bp.address == address && bp.is_temporary;
+    return bp.is_enabled && bp.address == address && bp.is_temporary;
   });
 }
 
 bool BreakPoints::IsBreakPointBreakOnHit(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
-    return bp.address == address && bp.break_on_hit;
+    return bp.is_enabled && bp.address == address && bp.break_on_hit;
   });
 }
 
 bool BreakPoints::IsBreakPointLogOnHit(u32 address) const
 {
-  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
-                     [address](const auto& bp) { return bp.address == address && bp.log_on_hit; });
+  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
+    return bp.is_enabled && bp.address == address && bp.log_on_hit;
+  });
 }
 
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
@@ -157,9 +158,9 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
     std::ostringstream ss;
     ss << std::hex << mc.start_address;
     ss << " " << (mc.is_ranged ? mc.end_address : mc.start_address) << " "
-       << (mc.is_ranged ? "n" : "") << (mc.is_break_on_read ? "r" : "")
-       << (mc.is_break_on_write ? "w" : "") << (mc.log_on_hit ? "l" : "")
-       << (mc.break_on_hit ? "b" : "");
+       << (mc.is_enabled ? "e" : "") << (mc.is_ranged ? "n" : "")
+       << (mc.is_break_on_read ? "r" : "") << (mc.is_break_on_write ? "w" : "")
+       << (mc.log_on_hit ? "l" : "") << (mc.break_on_hit ? "b" : "");
     mc_strings.push_back(ss.str());
   }
 
@@ -174,6 +175,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     std::stringstream ss;
     ss << std::hex << mc_string;
     ss >> mc.start_address;
+    mc.is_enabled = mc_string.find('e') != mc_string.npos;
     mc.is_ranged = mc_string.find('n') != mc_string.npos;
     mc.is_break_on_read = mc_string.find('r') != mc_string.npos;
     mc.is_break_on_write = mc_string.find('w') != mc_string.npos;
@@ -262,6 +264,11 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
 bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 addr, bool write,
                        size_t size, u32 pc)
 {
+  if (!is_enabled)
+  {
+    return false;
+  }
+
   if ((write && is_break_on_write) || (!write && is_break_on_read))
   {
     if (log_on_hit)

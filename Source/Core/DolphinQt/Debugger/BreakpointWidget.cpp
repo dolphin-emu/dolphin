@@ -8,6 +8,7 @@
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QMenu>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -80,12 +81,16 @@ void BreakpointWidget::CreateWidgets()
   m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   m_table->verticalHeader()->hide();
 
-  connect(m_table, &QTableWidget::itemClicked, [this](QTableWidgetItem* item) {
-    if (m_table->selectedItems()[0]->row() == item->row() &&
-        Core::GetState() == Core::State::Paused)
+  connect(m_table, &QTableWidget::customContextMenuRequested, this,
+          &BreakpointWidget::OnContextMenu);
+
+  m_table->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+
+  connect(m_table, &QTableWidget::itemDoubleClicked, [this](QTableWidgetItem* item) {
+    if (m_table->selectedItems()[0]->row() == item->row())
     {
       auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
-      emit SelectedBreakpoint(address);
+      OnEditBreakPoint(address);
     }
   });
 
@@ -168,7 +173,7 @@ void BreakpointWidget::Update()
   {
     m_table->setRowCount(i + 1);
 
-    auto* active = create_item(bp.is_enabled ? tr("on") : QString());
+    auto* active = create_item(bp.is_enabled ? tr("on") : tr("off"));
 
     active->setData(Qt::UserRole, bp.address);
 
@@ -201,7 +206,7 @@ void BreakpointWidget::Update()
   for (const auto& mbp : PowerPC::memchecks.GetMemChecks())
   {
     m_table->setRowCount(i + 1);
-    auto* active = create_item(mbp.break_on_hit || mbp.log_on_hit ? tr("on") : QString());
+    auto* active = create_item(mbp.is_enabled && (mbp.break_on_hit || mbp.log_on_hit) ? tr("on") : tr("off"));
     active->setData(Qt::UserRole, mbp.start_address);
 
     m_table->setItem(i, 0, active);
@@ -268,8 +273,7 @@ void BreakpointWidget::OnClear()
 
 void BreakpointWidget::OnNewBreakpoint()
 {
-  NewBreakpointDialog* dialog = new NewBreakpointDialog(this);
-  dialog->exec();
+  OnEditBreakPoint(0);
 }
 
 void BreakpointWidget::OnLoad()
@@ -310,6 +314,64 @@ void BreakpointWidget::OnSave()
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
+void BreakpointWidget::OnContextMenu()
+{
+  const auto& selected_items = m_table->selectedItems();
+  if (selected_items.isEmpty())
+  {
+    return;
+  }
+
+  const auto& selected_item = selected_items.constFirst();
+  const auto bp_address = selected_item->data(Qt::UserRole).toUInt();
+
+  auto* menu = new QMenu(this);
+
+  auto& inst_breakpoints = PowerPC::breakpoints.GetBreakPoints();
+  const auto& bp_iter = std::find_if(inst_breakpoints.begin(), inst_breakpoints.end(), [bp_address](TBreakPoint& bp) { return bp.address == bp_address; });
+  if (bp_iter != inst_breakpoints.end())
+  {
+    auto& bp = *bp_iter;
+    menu->addAction(tr(bp.is_enabled ? "Disable" : "Enable"), [this, &bp]() {
+      bp.is_enabled = !bp.is_enabled;
+      Update();
+    });
+  }
+  else
+  {
+    // It should be a memory breakpoint
+    auto& memory_breakpoints = PowerPC::memchecks.GetMemChecks();
+    const auto& mb_iter =
+        std::find_if(memory_breakpoints.begin(), memory_breakpoints.end(),
+                     [bp_address](TMemCheck& bp) { return bp.start_address == bp_address; });
+
+    if (mb_iter == memory_breakpoints.end())
+    {
+      return;
+    }
+
+    auto& bp = *mb_iter;
+    menu->addAction(tr(bp.is_enabled ? "Disable" : "Enable"), [this, &bp]() {
+      bp.is_enabled = !bp.is_enabled;
+      Update();
+    });
+  }
+
+  menu->addAction(tr("Go to"), [this, bp_address]() { emit SelectedBreakpoint(bp_address); });
+
+  menu->addSeparator();
+
+  menu->addAction(tr("Edit"), [this, bp_address]() { OnEditBreakPoint(bp_address); });
+
+  menu->exec(QCursor::pos());
+}
+
+void BreakpointWidget::OnEditBreakPoint(u32 breakpoint_address)
+{
+  NewBreakpointDialog* dialog = new NewBreakpointDialog(this, breakpoint_address);
+  dialog->exec();
+}
+
 void BreakpointWidget::AddBP(u32 addr)
 {
   AddBP(addr, false, true, true);
@@ -329,6 +391,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
 
   check.start_address = addr;
   check.end_address = addr;
+  check.is_enabled = true;
   check.is_ranged = false;
   check.is_break_on_read = on_read;
   check.is_break_on_write = on_write;
@@ -349,6 +412,7 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
 
   check.start_address = from;
   check.end_address = to;
+  check.is_enabled = true;
   check.is_ranged = true;
   check.is_break_on_read = on_read;
   check.is_break_on_write = on_write;

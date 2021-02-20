@@ -16,11 +16,14 @@ class QLabel;
 class QLineEdit;
 class QRadioButton;
 
+struct TBreakPoint;
+struct TMemCheck;
+
 class NewBreakpointDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit NewBreakpointDialog(BreakpointWidget* parent);
+  explicit NewBreakpointDialog(BreakpointWidget* parent, u32 breakpoint_address);
 
   void accept() override;
 
@@ -30,6 +33,10 @@ private:
 
   void OnBPTypeChanged();
   void OnAddressTypeChanged();
+
+  void OnLoadBreakpoint();
+
+  void LoadBreakpointFromCPU(u32 breakpoint_address);
 
   // Instruction BPs
   QRadioButton* m_instruction_bp;
@@ -56,4 +63,8 @@ private:
 
   QDialogButtonBox* m_buttons;
   BreakpointWidget* m_parent;
+
+  bool m_edit;
+  TBreakPoint* m_instruction_breakpoint{nullptr};
+  TMemCheck* m_memory_breakpoint{nullptr};
 };

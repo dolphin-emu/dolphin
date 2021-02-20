@@ -29,6 +29,8 @@ struct TMemCheck
   u32 start_address = 0;
   u32 end_address = 0;
 
+  bool is_enabled = false;
+
   bool is_ranged = false;
 
   bool is_break_on_read = false;
@@ -52,6 +54,7 @@ public:
   using TBreakPointsStr = std::vector<std::string>;
 
   const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
+  TBreakPoints& GetBreakPoints() { return m_breakpoints; }
   TBreakPointsStr GetStrings() const;
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 
@@ -83,6 +86,7 @@ public:
   using TMemChecksStr = std::vector<std::string>;
 
   const TMemChecks& GetMemChecks() const { return m_mem_checks; }
+  TMemChecks& GetMemChecks() { return m_mem_checks; }
   TMemChecksStr GetStrings() const;
   void AddFromStrings(const TMemChecksStr& mc_strings);
 

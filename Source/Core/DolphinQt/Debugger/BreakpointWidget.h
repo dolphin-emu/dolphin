@@ -46,6 +46,9 @@ private:
   void OnNewBreakpoint();
   void OnLoad();
   void OnSave();
+  void OnContextMenu();
+
+  void OnEditBreakPoint(u32 breakpoint_address);
 
   void UpdateIcons();
 

@@ -14,23 +14,33 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
+#include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-NewBreakpointDialog::NewBreakpointDialog(BreakpointWidget* parent)
+NewBreakpointDialog::NewBreakpointDialog(BreakpointWidget* parent, u32 breakpoint_address)
     : QDialog(parent), m_parent(parent)
 {
-  setWindowTitle(tr("New Breakpoint"));
+  LoadBreakpointFromCPU(breakpoint_address);
+
+  setWindowTitle(m_edit ? tr("Edit Breakpoint") : tr("New Breakpoint"));
   CreateWidgets();
   ConnectWidgets();
 
   OnBPTypeChanged();
   OnAddressTypeChanged();
+
+  if (m_edit)
+  {
+    OnLoadBreakpoint();
+  }
 }
 
 void NewBreakpointDialog::CreateWidgets()
 {
-  m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  m_buttons = new QDialogButtonBox((m_edit ? QDialogButtonBox::Save : QDialogButtonBox::Ok) | QDialogButtonBox::Cancel);
 
   // Instruction BP
   m_instruction_bp = new QRadioButton(tr("Instruction Breakpoint"));
@@ -135,6 +145,105 @@ void NewBreakpointDialog::OnAddressTypeChanged()
   m_memory_address_from_label->setText(ranged ? tr("From:") : tr("Address:"));
 }
 
+void NewBreakpointDialog::OnLoadBreakpoint()
+{
+  if (m_instruction_breakpoint != nullptr)
+  {
+    m_instruction_bp->setChecked(true);
+    m_memory_bp->setChecked(false);
+    m_memory_bp->setCheckable(false); // Disable changing the breakpoint type
+
+    m_instruction_address->setText(
+        QStringLiteral("%1").arg(m_instruction_breakpoint->address, 8, 16, QLatin1Char('0')));
+
+    // Action
+    if (m_instruction_breakpoint->break_on_hit && m_instruction_breakpoint->log_on_hit)
+    {
+      m_do_log_and_break->setChecked(true);
+    }
+    else if (m_instruction_breakpoint->break_on_hit)
+    {
+      m_do_break->setChecked(true);
+    }
+    else if (m_instruction_breakpoint->log_on_hit)
+    {
+      m_do_log->setChecked(true);
+    }
+  }
+  else if (m_memory_breakpoint != nullptr)
+  {
+    m_memory_bp->setChecked(true);
+    m_instruction_bp->setChecked(false);
+    m_instruction_bp->setCheckable(false); // Disable changing the breakpoint type
+
+    m_memory_address_from->setText(
+        QStringLiteral("%1").arg(m_memory_breakpoint->start_address, 8, 16, QLatin1Char('0')));
+
+    if (m_memory_breakpoint->is_ranged)
+    {
+      m_memory_use_address->setChecked(true);
+      m_memory_address_to->setText(
+          QStringLiteral("%1").arg(m_memory_breakpoint->end_address, 8, 16, QLatin1Char('0')));
+    }
+
+    // Conditions
+    if (m_memory_breakpoint->is_break_on_read && m_memory_breakpoint->is_break_on_write)
+    {
+      m_memory_on_read_and_write->setChecked(true);
+    }
+    else if (m_memory_breakpoint->is_break_on_write)
+    {
+      m_memory_on_write->setChecked(true);
+    }
+    else if (m_memory_breakpoint->is_break_on_read)
+    {
+      m_memory_on_read->setChecked(true);
+    }
+
+    // Action
+    if (m_memory_breakpoint->break_on_hit && m_memory_breakpoint->log_on_hit)
+    {
+      m_do_log_and_break->setChecked(true);
+    }
+    else if (m_memory_breakpoint->break_on_hit)
+    {
+      m_do_break->setChecked(true);
+    }
+    else if (m_memory_breakpoint->log_on_hit)
+    {
+      m_do_log->setChecked(true);
+    }
+  }
+}
+
+void NewBreakpointDialog::LoadBreakpointFromCPU(u32 breakpoint_address)
+{
+  m_edit = true;
+  auto& inst_breakpoints = PowerPC::breakpoints.GetBreakPoints();
+  const auto& bp_iter =
+      std::find_if(inst_breakpoints.begin(), inst_breakpoints.end(),
+      [breakpoint_address](TBreakPoint& bp) { return bp.address == breakpoint_address; });
+  if (bp_iter != inst_breakpoints.end())
+  {
+    m_instruction_breakpoint = &(*bp_iter);
+    return;
+  }
+
+  // It should be a memory breakpoint
+  auto& memory_breakpoints = PowerPC::memchecks.GetMemChecks();
+  const auto& mb_iter =
+      std::find_if(memory_breakpoints.begin(), memory_breakpoints.end(),
+      [breakpoint_address](TMemCheck& bp) { return bp.start_address == breakpoint_address; });
+
+  if (mb_iter == memory_breakpoints.end())
+  {
+    m_edit = false;
+    return;
+  }
+
+  m_memory_breakpoint = &(*mb_iter);
+}
+
 void NewBreakpointDialog::accept()
 {
   auto invalid_input = [this](QString field) {
@@ -165,7 +274,16 @@ void NewBreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, false, do_break, do_log);
+    if (m_instruction_breakpoint == nullptr)
+    {
+      m_parent->AddBP(address, false, do_break, do_log);
+    }
+    else
+    {
+      m_instruction_breakpoint->address = address;
+      m_instruction_breakpoint->break_on_hit = do_break;
+      m_instruction_breakpoint->log_on_hit = do_log;
+    }
   }
   else
   {
@@ -186,11 +304,37 @@ void NewBreakpointDialog::accept()
         return;
       }
 
-      m_parent->AddRangedMBP(from, to, on_read, on_write, do_log, do_break);
+      if (m_memory_breakpoint == nullptr)
+      {
+        m_parent->AddRangedMBP(from, to, on_read, on_write, do_log, do_break);
+      }
+      else
+      {
+        m_memory_breakpoint->is_ranged = true;
+        m_memory_breakpoint->start_address = from;
+        m_memory_breakpoint->end_address = to;
+        m_memory_breakpoint->is_break_on_read = on_read;
+        m_memory_breakpoint->is_break_on_write = on_write;
+        m_memory_breakpoint->break_on_hit = do_break;
+        m_memory_breakpoint->log_on_hit = do_log;
+      }
     }
     else
     {
-      m_parent->AddAddressMBP(from, on_read, on_write, do_log, do_break);
+      if (m_memory_breakpoint == nullptr)
+      {
+        m_parent->AddAddressMBP(from, on_read, on_write, do_log, do_break);
+      }
+      else
+      {
+        m_memory_breakpoint->is_ranged = false;
+        m_memory_breakpoint->start_address = from;
+        m_memory_breakpoint->end_address = from;
+        m_memory_breakpoint->is_break_on_read = on_read;
+        m_memory_breakpoint->is_break_on_write = on_write;
+        m_memory_breakpoint->break_on_hit = do_break;
+        m_memory_breakpoint->log_on_hit = do_log;
+      }
     }
   }
 
