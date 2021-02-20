@@ -209,7 +209,18 @@ void FIFOAnalyzer::UpdateDetails()
     switch (command)
     {
     case OpcodeDecoder::GX_NOP:
-      new_label = QStringLiteral("NOP");
+      if (object[object_offset] == OpcodeDecoder::GX_NOP)
+      {
+        u32 nop_count = 2;
+        while (object[++object_offset] == OpcodeDecoder::GX_NOP)
+          nop_count++;
+
+        new_label = QStringLiteral("NOP (%1x)").arg(nop_count);
+      }
+      else
+      {
+        new_label = QStringLiteral("NOP");
+      }
       break;
 
     case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
