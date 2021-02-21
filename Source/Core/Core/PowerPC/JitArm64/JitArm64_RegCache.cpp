@@ -602,9 +602,27 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     switch (reg.GetType())
     {
     case RegType::Single:
+      // For a store-safe register, conversion is just one instruction regardless of whether
+      // we're whether we're converting a pair, so ConvertSingleToDoublePair followed by a
+      // 128-bit store is faster than INS followed by ConvertSingleToDoubleLower and a
+      // 64-bit store. But for registers which are not store-safe, the latter is better.
       flush_reg = GetReg();
-      m_jit->ConvertSingleToDoublePair(preg, flush_reg, host_reg, flush_reg);
-      [[fallthrough]];
+      if (!m_jit->IsFPRStoreSafe(preg))
+      {
+        ARM64Reg scratch_reg = GetReg();
+        m_float_emit->INS(32, flush_reg, 0, host_reg, 1);
+        m_jit->ConvertSingleToDoubleLower(preg, flush_reg, flush_reg, scratch_reg);
+        m_float_emit->STR(64, IndexType::Unsigned, flush_reg, PPC_REG, u32(PPCSTATE_OFF_PS1(preg)));
+        Unlock(scratch_reg);
+        break;
+      }
+      else
+      {
+        m_jit->ConvertSingleToDoublePair(preg, flush_reg, host_reg, flush_reg);
+        m_float_emit->STR(128, IndexType::Unsigned, flush_reg, PPC_REG,
+                          u32(PPCSTATE_OFF_PS0(preg)));
+      }
+      break;
     case RegType::Register:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
       // store.

@@ -572,3 +572,8 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
     SetJumpTarget(continue1);
   }
 }
+
+bool JitArm64::IsFPRStoreSafe(size_t guest_reg) const
+{
+  return js.fpr_is_store_safe[guest_reg];
+}

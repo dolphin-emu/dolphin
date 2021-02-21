@@ -163,6 +163,8 @@ public:
                                  Arm64Gen::ARM64Reg src_reg,
                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
 
+  bool IsFPRStoreSafe(size_t guest_reg) const;
+
 protected:
   struct SlowmemHandler
   {
