@@ -96,7 +96,7 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
         return false;
       }
 
-      auto& key_to_regions = texture_data.m_emulated_controllers[emulated_controller_name];
+      auto& entries_vector = texture_data.m_emulated_controllers[emulated_controller_name];
       for (auto& [emulated_control, regions_array] : map.get<picojson::object>())
       {
         if (!regions_array.is<picojson::array>())
@@ -109,7 +109,6 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
           return false;
         }
 
-        std::vector<Rect> region_rects;
         for (auto& region : regions_array.get<picojson::array>())
         {
           Rect r;
@@ -151,9 +150,10 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
           r.top = static_cast<u32>(region_offsets[1].get<double>());
           r.right = static_cast<u32>(region_offsets[2].get<double>());
           r.bottom = static_cast<u32>(region_offsets[3].get<double>());
-          region_rects.push_back(r);
+
+          entries_vector.push_back(
+              Data::EmulatedSingleEntry{emulated_control, std::nullopt, std::move(r)});
         }
-        key_to_regions.insert_or_assign(emulated_control, std::move(region_rects));
       }
     }
 
@@ -185,10 +185,11 @@ bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_text
                       json_file, host_device);
         return false;
       }
-      auto& host_control_to_imagename = texture_data.m_host_devices[host_device];
+      auto& host_control_entries = texture_data.m_host_devices[host_device];
       for (auto& [host_control, image_name] : map.get<picojson::object>())
       {
-        host_control_to_imagename.insert_or_assign(host_control, image_name.to_str());
+        host_control_entries.push_back(Data::HostEntry{std::vector<std::string>{host_control},
+                                                       std::nullopt, image_name.to_str()});
       }
     }
 
