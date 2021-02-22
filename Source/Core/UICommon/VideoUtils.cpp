@@ -11,7 +11,7 @@
 #include <Windows.h>
 #endif
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
 #endif
 

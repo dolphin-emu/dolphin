@@ -191,7 +191,7 @@ private:
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
   std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
 #endif
 
