@@ -480,7 +480,7 @@ add_library(core
   PrimeHack/Mods/SpringballButton.cpp
   PrimeHack/Mods/ViewModifier.cpp
   PrimeHack/Mods/ContextSensitiveControls.cpp
-  PrimeHack/Mods/EmuVariableManager.cpp
+  PrimeHack/EmuVariableManager.cpp
   PrimeHack/HackConfig.cpp
   PrimeHack/HackManager.cpp
   PrimeHack/Transform.cpp
