@@ -135,6 +135,7 @@ struct VideoConfig final
   int iEFBAccessTileSize;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
+  u32 iMissingColorValue;
 
   // Stereoscopy
   StereoMode stereo_mode;

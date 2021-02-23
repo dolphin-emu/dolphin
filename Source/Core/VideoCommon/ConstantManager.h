@@ -61,7 +61,8 @@ struct VertexShaderConstants
   u32 components;           // .x
   u32 xfmem_dualTexInfo;    // .y
   u32 xfmem_numColorChans;  // .z
-  u32 color_chan_alpha;     // .w
+  u32 missing_color_hex;    // .w, used for change detection but not directly by shaders
+  float4 missing_color_value;
 
   std::array<float4, 6> posnormalmatrix;
   std::array<float4, 4> projection;

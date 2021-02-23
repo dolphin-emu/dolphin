@@ -180,14 +180,11 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
 static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
                                  const PortableVertexDeclaration& vdec)
 {
-  const auto set_default_color = [](u8* color, int i) {
-    // The default alpha channel seems to depend on the number of components in the vertex format.
-    const auto& g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
-    const auto color_elements = i == 0 ? g0.Color0Elements.Value() : g0.Color1Elements.Value();
-    color[0] = color_elements == ColorComponentCount::RGB ? 255 : 0;
-    color[1] = 255;
-    color[2] = 255;
-    color[3] = 255;
+  const auto set_default_color = [](std::array<u8, 4>& color) {
+    color[Tev::ALP_C] = g_ActiveConfig.iMissingColorValue & 0xFF;
+    color[Tev::BLU_C] = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
+    color[Tev::GRN_C] = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
+    color[Tev::RED_C] = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
   };
 
   if (vdec.colors[0].enable)
@@ -197,7 +194,7 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
     if (vdec.colors[1].enable)
       ReadVertexAttribute<u8>(dst->color[1].data(), src, vdec.colors[1], 0, 4, true);
     else
-      set_default_color(dst->color[1].data(), 1);
+      set_default_color(dst->color[1]);
   }
   else
   {
@@ -205,8 +202,8 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
     if (vdec.colors[1].enable)
       ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[1], 0, 4, true);
     else
-      set_default_color(dst->color[0].data(), 0);
-    set_default_color(dst->color[1].data(), 1);
+      set_default_color(dst->color[0]);
+    set_default_color(dst->color[1]);
   }
 }
 

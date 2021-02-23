@@ -189,8 +189,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("for (uint color = 0u; color < {}u; color++) {{\n", NUM_XF_COLOR_CHANNELS);
   out.Write("  if ((color == 0u || use_color_1) && (components & ({}u << color)) != 0u) {{\n",
             VB_HAS_COL0);
-  out.Write("    float4 color_value;\n"
-            "    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
+  out.Write("    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
             "present.\n"
             "    if (color == 0u)\n"
             "      vertex_color_0 = rawcolor0;\n"
@@ -201,12 +200,10 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("    // Use color1 for channel 0 if color0 is not present.\n"
             "    vertex_color_0 = rawcolor1;\n"
             "  }} else {{\n"
-            "    // The default alpha channel depends on the number of components in the vertex.\n"
-            "    float alpha = float((color_chan_alpha >> color) & 1u);\n"
             "    if (color == 0u)\n"
-            "      vertex_color_0 = float4(1.0, 1.0, 1.0, alpha);\n"
+            "      vertex_color_0 = missing_color_value;\n"
             "    else\n"
-            "      vertex_color_1 = float4(1.0, 1.0, 1.0, alpha);\n"
+            "      vertex_color_1 = missing_color_value;\n"
             "  }}\n"
             "}}\n"
             "\n");
