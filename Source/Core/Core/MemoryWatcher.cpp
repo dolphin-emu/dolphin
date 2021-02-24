@@ -8,9 +8,9 @@
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/MemoryWatcher.h"
+#include "Core/PowerPC/MMU.h"
 
 MemoryWatcher::MemoryWatcher()
 {
@@ -71,7 +71,7 @@ u32 MemoryWatcher::ChasePointer(const std::string& line)
   u32 value = 0;
   for (u32 offset : m_addresses[line])
   {
-    value = Memory::Read_U32(value + offset);
+    value = PowerPC::HostRead_U32(value + offset);
     if (!PowerPC::HostIsRAMAddress(value))
       break;
   }
