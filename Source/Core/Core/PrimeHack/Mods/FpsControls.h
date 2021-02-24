@@ -29,6 +29,7 @@ private:
   void handle_beam_visor_switch(std::array<int, 4> const &beams,
                                 std::array<std::tuple<int, int>, 4> const& visors);
   void mp3_handle_cursor(bool lock);
+  void mp3_handle_lasso(u32 cplayer_address);
 
   void run_mod_menu(Game game, Region region);
   void run_mod_mp1(Region region);
@@ -147,9 +148,9 @@ private:
   int delta = 0;
 
   // Prime 3 Grapple Lasso
-  u32 grapple_time = 0;
-  float grapple_velocity, grapple_power = 0;
-  bool grapple_button_down = false;
+  u32 grapple_initial_cooldown = 0;
+  bool grapple_button_down, grapple_tugging, grapple_swap_axis = false;
+  float grapple_frame_delta, grapple_hand_pos;
 
   // Check when to reset the cursor position
   bool menu_open = true;
