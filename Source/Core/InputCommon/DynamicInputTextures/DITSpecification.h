@@ -14,4 +14,7 @@ namespace InputCommon::DynamicInputTextures
 {
 bool ProcessSpecificationV1(picojson::value& root, std::vector<Data>& input_textures,
                             const std::string& base_path, const std::string& json_file);
-}
+
+bool ProcessSpecificationV2(picojson::value& root, std::vector<Data>& input_textures,
+                            const std::string& base_path, const std::string& json_file);
+}  // namespace InputCommon::DynamicInputTextures

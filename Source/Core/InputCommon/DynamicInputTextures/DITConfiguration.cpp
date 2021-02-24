@@ -73,7 +73,15 @@ Configuration::Configuration(const std::string& json_file)
     specification = static_cast<u8>(spec_from_json);
   }
 
-  if (specification != 1)
+  if (specification == 1)
+  {
+    m_valid = ProcessSpecificationV1(root, m_dynamic_input_textures, m_base_path, json_file);
+  }
+  else if (specification == 2)
+  {
+    m_valid = ProcessSpecificationV2(root, m_dynamic_input_textures, m_base_path, json_file);
+  }
+  else
   {
     ERROR_LOG_FMT(VIDEO,
                   "Failed to load dynamic input json file '{}', specification '{}' is invalid",
@@ -81,8 +89,6 @@ Configuration::Configuration(const std::string& json_file)
     m_valid = false;
     return;
   }
-
-  m_valid = ProcessSpecificationV1(root, m_dynamic_input_textures, m_base_path, json_file);
 }
 
 Configuration::~Configuration() = default;
@@ -110,33 +116,56 @@ bool Configuration::GenerateTexture(const IniFile& file,
   auto image_to_write = original_image;
 
   bool dirty = false;
-  for (auto& emulated_entry : emulated_controls_iter->second)
+  for (const auto& controller_name : controller_names)
   {
-    /*auto apply_original = [&] {
-      CopyImageRegion(*original_image, *image_to_write, emulated_entry.m_region,
-                      emulated_entry.m_region);
-      dirty = true;
-    };
-
-    if (!device_found)
+    auto* sec = file.GetSection(controller_name);
+    if (!sec)
     {
-      // If we get here, that means the controller is set to a
-      // device not exposed to the pack
-      // We still apply the original image, in case the user
-      // switched devices and wants to see the changes
-      apply_original();
       continue;
-    }*/
-
-    if (ApplyEmulatedEntry(host_devices_iter->second, emulated_entry, sec, *image_to_write, texture_data.m_preserve_aspect_ratio))
-    {
-      dirty = true;
     }
 
-    for (auto& [emulated_key, rects] : emulated_controls_iter->second)
+    std::string device_name;
+    if (!sec->Get("Device", &device_name))
     {
-      dirty = true;
-      //apply_original();
+      continue;
+    }
+
+    auto emulated_controls_iter = texture_data.m_emulated_controllers.find(controller_name);
+    if (emulated_controls_iter == texture_data.m_emulated_controllers.end())
+    {
+      continue;
+    }
+
+    bool device_found = true;
+    auto host_devices_iter = texture_data.m_host_devices.find(device_name);
+    if (host_devices_iter == texture_data.m_host_devices.end())
+    {
+      // If we fail to find our exact device,
+      // it's possible the creator doesn't care (single player game)
+      // and has used a wildcard for any device
+      host_devices_iter = texture_data.m_host_devices.find("");
+
+      if (host_devices_iter == texture_data.m_host_devices.end())
+      {
+        device_found = false;
+      }
+    }
+
+    for (auto& emulated_entry : emulated_controls_iter->second)
+    {
+      if (!device_found)
+      {
+        // If we get here, that means the controller is set to a
+        // device not exposed to the pack
+        dirty = true;
+        continue;
+      }
+
+      if (ApplyEmulatedEntry(host_devices_iter->second, emulated_entry, sec, *image_to_write,
+                             texture_data.m_preserve_aspect_ratio))
+      {
+        dirty = true;
+      }
     }
   }
 
@@ -170,21 +199,20 @@ bool Configuration::ApplyEmulatedEntry(const Configuration::HostEntries& host_en
                                        ImagePixelData& image_to_write,
                                        bool preserve_aspect_ratio) const
 {
-  return std::visit(
-      overloaded{
-          [&, this](const Data::EmulatedSingleEntry& entry) {
-            std::string host_key;
-            section->Get(entry.m_key, &host_key);
-            return ApplyEmulatedSingleEntry(host_entries, std::vector<std::string>{host_key},
-                                            entry.m_tag, entry.m_region, image_to_write,
-                                            preserve_aspect_ratio);
-          },
-          [&, this](const Data::EmulatedMultiEntry& entry) {
-            return ApplyEmulatedMultiEntry(host_entries, entry, section, image_to_write,
-                                           preserve_aspect_ratio);
-          },
-      },
-      emulated_entry);
+  return std::visit(overloaded{
+                        [&, this](const Data::EmulatedSingleEntry& entry) {
+                          std::string host_key;
+                          section->Get(entry.m_key, &host_key);
+                          return ApplyEmulatedSingleEntry(
+                              host_entries, std::vector<std::string>{host_key}, entry.m_tag,
+                              entry.m_region, image_to_write, preserve_aspect_ratio);
+                        },
+                        [&, this](const Data::EmulatedMultiEntry& entry) {
+                          return ApplyEmulatedMultiEntry(host_entries, entry, section,
+                                                         image_to_write, preserve_aspect_ratio);
+                        },
+                    },
+                    emulated_entry);
 }
 
 bool Configuration::ApplyEmulatedSingleEntry(const Configuration::HostEntries& host_entries,
