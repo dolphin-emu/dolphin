@@ -67,6 +67,7 @@ constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_sdio_notify;
+static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
 
 constexpr u32 ADDR_MEM1_SIZE = 0x3100;
 constexpr u32 ADDR_MEM1_SIM_SIZE = 0x3104;
@@ -174,6 +175,28 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   RAMOverrideForIOSMemoryValues(setup_type);
 
   return true;
+}
+
+// On a real console, the Starlet resets the PPC and holds it in reset limbo
+// by asserting the PPC's HRESET signal (via HW_RESETS).
+// We will simulate that by resetting MSR and putting the PPC into an infinite loop.
+// The memory write will not be observable since the PPC is not running any code...
+static void ResetAndPausePPC()
+{
+  // This should be cleared when the PPC is released so that the write is not observable.
+  Memory::Write_U32(0x48000000, 0x00000000);  // b 0x0
+  PowerPC::Reset();
+  PC = 0;
+}
+
+static void ReleasePPC()
+{
+  Memory::Write_U32(0, 0);
+  // HLE the bootstub that jumps to 0x3400.
+  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
+  // The state of other CPU registers (like the BAT registers) doesn't matter much
+  // because the realmode code at 0x3400 initializes everything itself anyway.
+  PC = 0x3400;
 }
 
 void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
@@ -323,18 +346,19 @@ u16 Kernel::GetGidForPPC() const
   return m_ppc_gid;
 }
 
-static std::vector<u8> ReadBootContent(FS::FileSystem* fs, const std::string& path, size_t max_size)
+static std::vector<u8> ReadBootContent(FSDevice* fs, const std::string& path, size_t max_size,
+                                       Ticks ticks = {})
 {
-  const auto file = fs->OpenFile(0, 0, path, FS::Mode::Read);
-  if (!file)
+  const s64 fd = fs->Open(0, 0, path, FS::Mode::Read, {}, ticks);
+  if (fd < 0)
     return {};
 
-  const size_t file_size = file->GetStatus()->size;
+  const size_t file_size = fs->GetFileStatus(fd, ticks)->size;
   if (max_size != 0 && file_size > max_size)
     return {};
 
   std::vector<u8> buffer(file_size);
-  if (!file->Read(buffer.data(), buffer.size()))
+  if (!fs->Read(fd, buffer.data(), buffer.size(), ticks))
     return {};
   return buffer;
 }
@@ -343,7 +367,10 @@ static std::vector<u8> ReadBootContent(FS::FileSystem* fs, const std::string& pa
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
 bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
-  const DolReader dol{ReadBootContent(m_fs.get(), boot_content_path, 0)};
+  // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
+  u64 ticks = 0;
+
+  const DolReader dol{ReadBootContent(GetFSDevice().get(), boot_content_path, 0, &ticks)};
 
   if (!dol.IsValid())
     return false;
@@ -351,15 +378,14 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
   if (!SetupMemory(m_title_id, MemorySetupType::Full))
     return false;
 
+  // Reset the PPC and pause its execution until we're ready.
+  ResetAndPausePPC();
+
   if (!dol.LoadIntoMemory())
     return false;
 
-  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
-  // The state of other CPU registers (like the BAT registers) doesn't matter much
-  // because the realmode code at 0x3400 initializes everything itself anyway.
-  MSR.Hex = 0;
-  PC = 0x3400;
-
+  INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
+  CoreTiming::ScheduleEvent(ticks, s_event_finish_ppc_bootstrap);
   return true;
 }
 
@@ -402,7 +428,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    ARMBinary binary{ReadBootContent(m_fs.get(), boot_content_path, 0xB00000)};
+    ARMBinary binary{ReadBootContent(GetFSDevice().get(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 
@@ -815,6 +841,12 @@ IOSC& Kernel::GetIOSC()
   return m_iosc;
 }
 
+static void FinishPPCBootstrap(u64 userdata, s64 cycles_late)
+{
+  ReleasePPC();
+  INFO_LOG_FMT(IOS, "Bootstrapping done.");
+}
+
 void Init()
 {
   s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", [](u64 userdata, s64) {
@@ -831,6 +863,9 @@ void Init()
     if (device)
       device->EventNotify();
   });
+
+  s_event_finish_ppc_bootstrap =
+      CoreTiming::RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
 
   DIDevice::s_finish_executing_di_command =
       CoreTiming::RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
