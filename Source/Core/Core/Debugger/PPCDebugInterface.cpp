@@ -4,9 +4,11 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -181,9 +183,13 @@ Common::Debug::Threads PPCDebugInterface::GetThreads() const
   if (!active_thread->IsValid())
     return threads;
 
-  const auto insert_threads = [&threads](u32 addr, auto get_next_addr) {
+  std::vector<u32> visited_addrs{{active_thread->GetAddress()}};
+  const auto insert_threads = [&threads, &visited_addrs](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::HostIsRAMAddress(addr))
     {
+      if (std::find(visited_addrs.begin(), visited_addrs.end(), addr) != visited_addrs.end())
+        break;
+      visited_addrs.push_back(addr);
       auto thread = std::make_unique<Core::Debug::OSThreadView>(addr);
       if (!thread->IsValid())
         break;
