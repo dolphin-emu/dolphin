@@ -137,6 +137,12 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
     return true;
   }
 
+  // This region is typically used to store constants (e.g. game ID, console type, ...)
+  // and system information (see below).
+  constexpr u32 LOW_MEM1_REGION_START = 0;
+  constexpr u32 LOW_MEM1_REGION_SIZE = 0x3fff;
+  Memory::Memset(LOW_MEM1_REGION_START, 0, LOW_MEM1_REGION_SIZE);
+
   Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
   Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
   Memory::Write_U32(target_imv->mem1_end, ADDR_MEM1_END);
