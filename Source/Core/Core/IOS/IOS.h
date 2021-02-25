@@ -133,6 +133,7 @@ public:
 
   bool BootstrapPPC(const std::string& boot_content_path);
   bool BootIOS(u64 ios_title_id, const std::string& boot_content_path = "");
+  void InitIPC();
   u32 GetVersion() const;
 
   IOSC& GetIOSC();
@@ -142,7 +143,6 @@ protected:
 
   void ExecuteIPCCommand(u32 address);
   std::optional<IPCReply> HandleIPCCommand(const Request& request);
-  void EnqueueIPCAcknowledgement(u32 address, int cycles_in_future = 0);
 
   void AddDevice(std::unique_ptr<Device> device);
   void AddCoreDevices();
@@ -165,7 +165,6 @@ protected:
   using IPCMsgQueue = std::deque<u32>;
   IPCMsgQueue m_request_queue;  // ppc -> arm
   IPCMsgQueue m_reply_queue;    // arm -> ppc
-  IPCMsgQueue m_ack_queue;      // arm -> ppc
   u64 m_last_reply_time = 0;
 
   IOSC m_iosc;

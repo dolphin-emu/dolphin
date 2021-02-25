@@ -122,6 +122,8 @@ void ESDevice::FinalizeEmulationState()
 
 void ESDevice::FinishInit()
 {
+  m_ios.InitIPC();
+
   if (s_title_to_launch != 0)
   {
     NOTICE_LOG_FMT(IOS, "Re-launching title after IOS reload.");

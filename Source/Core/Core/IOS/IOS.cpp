@@ -64,7 +64,6 @@ namespace IOS::HLE
 static std::unique_ptr<EmulationKernel> s_ios;
 
 constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
-constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_sdio_notify;
 static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
@@ -289,9 +288,6 @@ EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
     return;
   }
 
-  // IOS re-inits IPC and sends a dummy ack during its boot process.
-  EnqueueIPCAcknowledgement(0);
-
   AddCoreDevices();
   AddStaticDevices();
 }
@@ -441,6 +437,15 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
   s_ios.reset();
   s_ios = std::make_unique<EmulationKernel>(ios_title_id);
   return true;
+}
+
+void Kernel::InitIPC()
+{
+  if (s_ios == nullptr)
+    return;
+
+  INFO_LOG_FMT(IOS, "IPC initialised.");
+  GenerateAck(0);
 }
 
 void Kernel::AddDevice(std::unique_ptr<Device> device)
@@ -690,17 +695,9 @@ void Kernel::EnqueueIPCReply(const Request& request, const s32 return_value, s64
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
 }
 
-void Kernel::EnqueueIPCAcknowledgement(u32 address, int cycles_in_future)
-{
-  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue,
-                            address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
-}
-
 void Kernel::HandleIPCEvent(u64 userdata)
 {
-  if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
-    m_ack_queue.push_back(static_cast<u32>(userdata));
-  else if (userdata & ENQUEUE_REQUEST_FLAG)
+  if (userdata & ENQUEUE_REQUEST_FLAG)
     m_request_queue.push_back(static_cast<u32>(userdata));
   else
     m_reply_queue.push_back(static_cast<u32>(userdata));
@@ -728,14 +725,6 @@ void Kernel::UpdateIPC()
     GenerateReply(m_reply_queue.front());
     DEBUG_LOG_FMT(IOS, "<<-- Reply to IPC Request @ {:#010x}", m_reply_queue.front());
     m_reply_queue.pop_front();
-    return;
-  }
-
-  if (!m_ack_queue.empty())
-  {
-    GenerateAck(m_ack_queue.front());
-    WARN_LOG_FMT(IOS, "<<-- Double-ack to IPC Request @ {:#010x}", m_ack_queue.front());
-    m_ack_queue.pop_front();
     return;
   }
 }
