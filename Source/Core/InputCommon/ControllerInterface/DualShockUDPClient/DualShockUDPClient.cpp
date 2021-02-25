@@ -381,7 +381,9 @@ void Init()
     Config::SetBase(Settings::SERVER_PORT, 0);
   }
 
+  // It would be much better to unbind from this callback on DeInit but it's not possible as of now
   Config::AddConfigChangedCallback(ConfigChanged);
+  ConfigChanged();  // Call it immediately to load settings
 }
 
 void PopulateDevices()
