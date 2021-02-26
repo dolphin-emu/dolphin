@@ -166,6 +166,7 @@ protected:
   IPCMsgQueue m_request_queue;  // ppc -> arm
   IPCMsgQueue m_reply_queue;    // arm -> ppc
   u64 m_last_reply_time = 0;
+  bool m_ipc_paused = false;
 
   IOSC m_iosc;
   std::shared_ptr<FS::FileSystem> m_fs;

@@ -67,6 +67,7 @@ constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_sdio_notify;
 static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
+static CoreTiming::EventType* s_event_finish_ios_boot;
 
 constexpr u32 ADDR_MEM1_SIZE = 0x3100;
 constexpr u32 ADDR_MEM1_SIM_SIZE = 0x3104;
@@ -410,6 +411,21 @@ private:
   std::vector<u8> m_bytes;
 };
 
+static void FinishIOSBoot(u64 ios_title_id)
+{
+  // Shut down the active IOS first before switching to the new one.
+  s_ios.reset();
+  s_ios = std::make_unique<EmulationKernel>(ios_title_id);
+}
+
+static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
+{
+  // Older IOS versions are monolithic so the main ELF is much larger and takes longer to load.
+  if (version < 28)
+    return 16'000'000_tbticks;
+  return 2'600'000_tbticks;
+}
+
 // Similar to syscall 0x42 (ios_boot); this is used to change the current active IOS.
 // IOS writes the new version to 0x3140 before restarting, but it does *not* poke any
 // of the other constants to the memory. Warning: this resets the kernel instance.
@@ -419,6 +435,10 @@ private:
 // on the NAND, or the call will fail like on a Wii.
 bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_path)
 {
+  // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
+  // IPC is not resumed if the boot fails for any reason.
+  m_ipc_paused = true;
+
   if (!boot_content_path.empty())
   {
     // Load the ARM binary to memory (if possible).
@@ -433,9 +453,11 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
       return false;
   }
 
-  // Shut down the active IOS first before switching to the new one.
-  s_ios.reset();
-  s_ios = std::make_unique<EmulationKernel>(ios_title_id);
+  if (Core::IsRunningAndStarted())
+    CoreTiming::ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
+  else
+    FinishIOSBoot(ios_title_id);
+
   return true;
 }
 
@@ -707,7 +729,7 @@ void Kernel::HandleIPCEvent(u64 userdata)
 
 void Kernel::UpdateIPC()
 {
-  if (!IsReady())
+  if (m_ipc_paused || !IsReady())
     return;
 
   if (!m_request_queue.empty())
@@ -761,6 +783,7 @@ void Kernel::DoState(PointerWrap& p)
   p.Do(m_request_queue);
   p.Do(m_reply_queue);
   p.Do(m_last_reply_time);
+  p.Do(m_ipc_paused);
   p.Do(m_title_id);
   p.Do(m_ppc_uid);
   p.Do(m_ppc_gid);
@@ -857,6 +880,9 @@ void Init()
 
   s_event_finish_ppc_bootstrap =
       CoreTiming::RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
+
+  s_event_finish_ios_boot = CoreTiming::RegisterEvent(
+      "IOSFinishIOSBoot", [](u64 ios_title_id, s64) { FinishIOSBoot(ios_title_id); });
 
   DIDevice::s_finish_executing_di_command =
       CoreTiming::RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
