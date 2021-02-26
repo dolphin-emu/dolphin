@@ -856,6 +856,7 @@ IOSC& Kernel::GetIOSC()
 static void FinishPPCBootstrap(u64 userdata, s64 cycles_late)
 {
   ReleasePPC();
+  SConfig::OnNewTitleLoad();
   INFO_LOG_FMT(IOS, "Bootstrapping done.");
 }
 
