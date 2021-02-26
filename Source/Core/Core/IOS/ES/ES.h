@@ -43,6 +43,9 @@ class ESDevice final : public Device
 public:
   ESDevice(Kernel& ios, const std::string& device_name);
 
+  static void InitializeEmulationState();
+  static void FinalizeEmulationState();
+
   ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
@@ -363,6 +366,8 @@ private:
   // Finish stale imports and clear the import directory.
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
+
+  void FinishInit();
 
   std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
 

@@ -864,6 +864,8 @@ void Init()
       device->EventNotify();
   });
 
+  ESDevice::InitializeEmulationState();
+
   s_event_finish_ppc_bootstrap =
       CoreTiming::RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
 
@@ -883,6 +885,7 @@ void Init()
 void Shutdown()
 {
   s_ios.reset();
+  ESDevice::FinalizeEmulationState();
 }
 
 EmulationKernel* GetIOS()

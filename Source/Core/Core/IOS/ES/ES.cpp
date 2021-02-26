@@ -18,6 +18,8 @@
 #include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -54,6 +56,25 @@ constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
     {"/meta", 0, public_modes, SYSMENU_UID, SYSMENU_GID},
     {"/wfs", 0, {FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None}, PID_UNKNOWN, PID_UNKNOWN},
 }};
+
+CoreTiming::EventType* s_finish_init_event;
+
+constexpr SystemTimers::TimeBaseTick GetESBootTicks(u32 ios_version)
+{
+  if (ios_version < 28)
+    return 22'000'000_tbticks;
+
+  // Starting from IOS28, ES needs to load additional modules when it starts
+  // since the main ELF only contains the kernel and core modules.
+  if (ios_version < 57)
+    return 33'000'000_tbticks;
+
+  // These versions have extra modules that make them noticeably slower to load.
+  if (ios_version == 57 || ios_version == 58 || ios_version == 59)
+    return 39'000'000_tbticks;
+
+  return 37'000'000_tbticks;
+}
 }  // namespace
 
 ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
@@ -77,6 +98,30 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
   FinishAllStaleImports();
 
+  if (Core::IsRunningAndStarted())
+  {
+    CoreTiming::RemoveEvent(s_finish_init_event);
+    CoreTiming::ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
+  }
+  else
+  {
+    FinishInit();
+  }
+}
+
+void ESDevice::InitializeEmulationState()
+{
+  s_finish_init_event = CoreTiming::RegisterEvent(
+      "IOS-ESFinishInit", [](u64, s64) { GetIOS()->GetES()->FinishInit(); });
+}
+
+void ESDevice::FinalizeEmulationState()
+{
+  s_finish_init_event = nullptr;
+}
+
+void ESDevice::FinishInit()
+{
   if (s_title_to_launch != 0)
   {
     NOTICE_LOG_FMT(IOS, "Re-launching title after IOS reload.");
