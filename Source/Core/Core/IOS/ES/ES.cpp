@@ -127,7 +127,7 @@ void ESDevice::FinishInit()
   if (s_title_to_launch != 0)
   {
     NOTICE_LOG_FMT(IOS, "Re-launching title after IOS reload.");
-    LaunchTitle(s_title_to_launch, true);
+    LaunchTitle(s_title_to_launch, HangPPC::No, true);
     s_title_to_launch = 0;
   }
 }
@@ -270,7 +270,7 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
+bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc, bool skip_reload)
 {
   m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_Launch: Title context changed: (none)");
@@ -290,15 +290,15 @@ bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
     // likely make the system menu crash. Doing this is okay as anyone who has the shop
     // also has the system menu installed, and this behaviour is consistent with what
     // ES does when its DRM system refuses the use of a particular title.
-    return LaunchTitle(Titles::SYSTEM_MENU);
+    return LaunchTitle(Titles::SYSTEM_MENU, hang_ppc);
   }
 
   if (IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
-    return LaunchIOS(title_id);
+    return LaunchIOS(title_id, hang_ppc);
   return LaunchPPCTitle(title_id, skip_reload);
 }
 
-bool ESDevice::LaunchIOS(u64 ios_title_id)
+bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
 {
   // A real Wii goes through several steps before getting to MIOS.
   //
@@ -311,7 +311,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
   if (ios_title_id == Titles::BC)
   {
     NOTICE_LOG_FMT(IOS, "BC: Launching MIOS...");
-    return LaunchIOS(Titles::MIOS);
+    return LaunchIOS(Titles::MIOS, hang_ppc);
   }
 
   // IOS checks whether the system title is installed and returns an error if it isn't.
@@ -323,7 +323,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
     const ES::TicketReader ticket = FindSignedTicket(ios_title_id);
     ES::Content content;
     if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
-        !m_ios.BootIOS(ios_title_id, GetContentPath(ios_title_id, content)))
+        !m_ios.BootIOS(ios_title_id, hang_ppc, GetContentPath(ios_title_id, content)))
     {
       PanicAlertFmtT("Could not launch IOS {0:016x} because it is missing from the NAND.\n"
                      "The emulated software will likely hang now.",
@@ -333,7 +333,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
     return true;
   }
 
-  return m_ios.BootIOS(ios_title_id);
+  return m_ios.BootIOS(ios_title_id, hang_ppc);
 }
 
 bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
@@ -364,7 +364,7 @@ bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
   {
     s_title_to_launch = title_id;
     const u64 required_ios = tmd.GetIOSId();
-    return LaunchTitle(required_ios);
+    return LaunchTitle(required_ios, HangPPC::Yes);
   }
 
   m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);

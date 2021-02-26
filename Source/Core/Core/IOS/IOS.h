@@ -97,6 +97,12 @@ enum class MemorySetupType
   Full,
 };
 
+enum class HangPPC : bool
+{
+  No = false,
+  Yes = true,
+};
+
 void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type);
 
 void WriteReturnValue(s32 value, u32 address);
@@ -132,7 +138,8 @@ public:
   u16 GetGidForPPC() const;
 
   bool BootstrapPPC(const std::string& boot_content_path);
-  bool BootIOS(u64 ios_title_id, const std::string& boot_content_path = "");
+  bool BootIOS(u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
+               const std::string& boot_content_path = {});
   void InitIPC();
   u32 GetVersion() const;
 

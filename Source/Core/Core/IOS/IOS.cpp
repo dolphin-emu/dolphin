@@ -433,7 +433,7 @@ static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_path)
+bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string& boot_content_path)
 {
   // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
   // IPC is not resumed if the boot fails for any reason.
@@ -452,6 +452,9 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
     if (!elf.LoadIntoMemory(true))
       return false;
   }
+
+  if (hang_ppc == HangPPC::Yes)
+    ResetAndPausePPC();
 
   if (Core::IsRunningAndStarted())
     CoreTiming::ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);

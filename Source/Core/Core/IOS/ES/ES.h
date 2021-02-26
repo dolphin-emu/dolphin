@@ -47,7 +47,7 @@ public:
   static void FinalizeEmulationState();
 
   ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
-  bool LaunchTitle(u64 title_id, bool skip_reload = false);
+  bool LaunchTitle(u64 title_id, HangPPC hang_ppc = HangPPC::No, bool skip_reload = false);
 
   void DoState(PointerWrap& p) override;
 
@@ -346,7 +346,7 @@ private:
   ContextArray::iterator FindActiveContext(s32 fd);
   ContextArray::iterator FindInactiveContext();
 
-  bool LaunchIOS(u64 ios_title_id);
+  bool LaunchIOS(u64 ios_title_id, HangPPC hang_ppc);
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
