@@ -9,14 +9,14 @@
 
 namespace Common::Debug
 {
-MemoryPatch::MemoryPatch(u32 address_, std::vector<u8> value_)
-    : address(address_), value(std::move(value_))
+MemoryPatch::MemoryPatch(u32 address_, std::vector<u8> value)
+    : address(address_), patch_value(std::move(value)), original_value()
 {
 }
 
-MemoryPatch::MemoryPatch(u32 address_, u32 value_)
-    : MemoryPatch(address_, {static_cast<u8>(value_ >> 24), static_cast<u8>(value_ >> 16),
-                             static_cast<u8>(value_ >> 8), static_cast<u8>(value_)})
+MemoryPatch::MemoryPatch(u32 address_, u32 value)
+    : MemoryPatch(address_, {static_cast<u8>(value >> 24), static_cast<u8>(value >> 16),
+                             static_cast<u8>(value >> 8), static_cast<u8>(value)})
 {
 }
 
@@ -79,6 +79,7 @@ void MemoryPatches::DisablePatch(std::size_t index)
     return;
   m_patches[index].is_enabled = MemoryPatch::State::Disabled;
   Patch(index);
+  m_patches[index].original_value.clear();
 }
 
 bool MemoryPatches::HasEnabledPatch(u32 address) const

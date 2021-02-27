@@ -23,7 +23,8 @@ struct MemoryPatch
   MemoryPatch(u32 address_, u32 value_);
 
   u32 address;
-  std::vector<u8> value;
+  std::vector<u8> patch_value;
+  std::vector<u8> original_value;
   State is_enabled = State::Enabled;
 };
 

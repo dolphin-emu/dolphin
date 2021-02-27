@@ -76,12 +76,12 @@ void MemoryPatchWidget::CreateWidgets()
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
-  m_table->setColumnCount(3);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  const QStringList header{{tr("Active"), tr("Address"), tr("Value")}};
+  const QStringList header{{tr("Active"), tr("Address"), tr("Patch value"), tr("Original value")}};
+  m_table->setColumnCount(header.size());
   m_table->setHorizontalHeaderLabels(header);
   m_table->verticalHeader()->hide();
 
@@ -157,11 +157,18 @@ void MemoryPatchWidget::Update()
 
     std::ostringstream oss;
     oss << std::hex << std::setfill('0');
-    for (u8 b : patch.value)
+    for (u8 b : patch.patch_value)
     {
       oss << std::setw(2) << static_cast<u32>(b);
     }
     m_table->setItem(patch_id, 2, create_item(QString::fromStdString(oss.str())));
+
+    oss.str("");
+    for (u8 b : patch.original_value)
+    {
+      oss << std::setw(2) << static_cast<u32>(b);
+    }
+    m_table->setItem(patch_id, 3, create_item(QString::fromStdString(oss.str())));
 
     patch_id += 1;
   }
