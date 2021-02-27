@@ -87,48 +87,22 @@ Configuration::Configuration(const std::string& json_file)
 
 Configuration::~Configuration() = default;
 
-bool Configuration::GenerateTextures(const IniFile::Section* sec,
-                                     const std::string& controller_name) const
+bool Configuration::GenerateTextures(const IniFile& file,
+                                     const std::vector<std::string>& controller_names) const
 {
   bool any_dirty = false;
   for (const auto& texture_data : m_dynamic_input_textures)
   {
-    any_dirty |= GenerateTexture(sec, controller_name, texture_data);
+    any_dirty |= GenerateTexture(file, controller_names, texture_data);
   }
 
   return any_dirty;
 }
 
-bool Configuration::GenerateTexture(const IniFile::Section* sec, const std::string& controller_name,
+bool Configuration::GenerateTexture(const IniFile& file,
+                                    const std::vector<std::string>& controller_names,
                                     const Data& texture_data) const
 {
-  std::string device_name;
-  if (!sec->Get("Device", &device_name))
-  {
-    return false;
-  }
-
-  auto emulated_controls_iter = texture_data.m_emulated_controllers.find(controller_name);
-  if (emulated_controls_iter == texture_data.m_emulated_controllers.end())
-  {
-    return false;
-  }
-
-  bool device_found = true;
-  auto host_devices_iter = texture_data.m_host_devices.find(device_name);
-  if (host_devices_iter == texture_data.m_host_devices.end())
-  {
-    // If we fail to find our exact device,
-    // it's possible the creator doesn't care (single player game)
-    // and has used a wildcard for any device
-    host_devices_iter = texture_data.m_host_devices.find("");
-
-    if (host_devices_iter == texture_data.m_host_devices.end())
-    {
-      device_found = false;
-    }
-  }
-
   // Two copies of the loaded texture
   // The first one is used as a fallback if a key or device isn't mapped
   // the second one is used as the final image to write to the textures directory
@@ -136,61 +110,88 @@ bool Configuration::GenerateTexture(const IniFile::Section* sec, const std::stri
   auto image_to_write = original_image;
 
   bool dirty = false;
-  for (auto& [emulated_key, rects] : emulated_controls_iter->second)
-  {
-    // TODO: Remove this line when we move to C++20
-    auto& rects_ref = rects;
-    auto apply_original = [&] {
-      for (const auto& rect : rects_ref)
-      {
-        CopyImageRegion(*original_image, *image_to_write, rect, rect);
-        dirty = true;
-      }
-    };
 
-    if (!device_found)
+  for (const auto& controller_name : controller_names)
+  {
+    auto* sec = file.GetSection(controller_name);
+    if (!sec)
     {
-      // If we get here, that means the controller is set to a
-      // device not exposed to the pack
-      // We still apply the original image, in case the user
-      // switched devices and wants to see the changes
-      apply_original();
       continue;
     }
 
-    std::string host_key;
-    sec->Get(emulated_key, &host_key);
-
-    const auto input_image_iter = host_devices_iter->second.find(host_key);
-    if (input_image_iter == host_devices_iter->second.end())
+    std::string device_name;
+    if (!sec->Get("Device", &device_name))
     {
-      apply_original();
+      continue;
     }
-    else
+
+    auto emulated_controls_iter = texture_data.m_emulated_controllers.find(controller_name);
+    if (emulated_controls_iter == texture_data.m_emulated_controllers.end())
     {
-      const auto host_key_image = LoadImage(m_base_path + input_image_iter->second);
+      continue;
+    }
 
-      for (const auto& rect : rects)
+    bool device_found = true;
+    auto host_devices_iter = texture_data.m_host_devices.find(device_name);
+    if (host_devices_iter == texture_data.m_host_devices.end())
+    {
+      // If we fail to find our exact device,
+      // it's possible the creator doesn't care (single player game)
+      // and has used a wildcard for any device
+      host_devices_iter = texture_data.m_host_devices.find("");
+
+      if (host_devices_iter == texture_data.m_host_devices.end())
       {
-        InputCommon::ImagePixelData pixel_data;
-        if (host_key_image->width == rect.GetWidth() && host_key_image->height == rect.GetHeight())
-        {
-          pixel_data = *host_key_image;
-        }
-        else if (texture_data.m_preserve_aspect_ratio)
-        {
-          pixel_data = ResizeKeepAspectRatio(ResizeMode::Nearest, *host_key_image, rect.GetWidth(),
-                                             rect.GetHeight(), Pixel{0, 0, 0, 0});
-        }
-        else
-        {
-          pixel_data =
-              Resize(ResizeMode::Nearest, *host_key_image, rect.GetWidth(), rect.GetHeight());
-        }
+        device_found = false;
+      }
+    }
 
-        CopyImageRegion(pixel_data, *image_to_write, Rect{0, 0, rect.GetWidth(), rect.GetHeight()},
-                        rect);
+    for (auto& [emulated_key, rects] : emulated_controls_iter->second)
+    {
+      if (!device_found)
+      {
+        // If we get here, that means the controller is set to a
+        // device not exposed to the pack
         dirty = true;
+        continue;
+      }
+
+      std::string host_key;
+      sec->Get(emulated_key, &host_key);
+
+      const auto input_image_iter = host_devices_iter->second.find(host_key);
+      if (input_image_iter == host_devices_iter->second.end())
+      {
+        dirty = true;
+      }
+      else
+      {
+        const auto host_key_image = LoadImage(m_base_path + input_image_iter->second);
+
+        for (const auto& rect : rects)
+        {
+          InputCommon::ImagePixelData pixel_data;
+          if (host_key_image->width == rect.GetWidth() &&
+              host_key_image->height == rect.GetHeight())
+          {
+            pixel_data = *host_key_image;
+          }
+          else if (texture_data.m_preserve_aspect_ratio)
+          {
+            pixel_data =
+                ResizeKeepAspectRatio(ResizeMode::Nearest, *host_key_image, rect.GetWidth(),
+                                      rect.GetHeight(), Pixel{0, 0, 0, 0});
+          }
+          else
+          {
+            pixel_data =
+                Resize(ResizeMode::Nearest, *host_key_image, rect.GetWidth(), rect.GetHeight());
+          }
+
+          CopyImageRegion(pixel_data, *image_to_write,
+                          Rect{0, 0, rect.GetWidth(), rect.GetHeight()}, rect);
+          dirty = true;
+        }
       }
     }
   }

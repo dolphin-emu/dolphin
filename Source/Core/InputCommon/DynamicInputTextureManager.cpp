@@ -40,13 +40,13 @@ void DynamicInputTextureManager::Load()
   }
 }
 
-void DynamicInputTextureManager::GenerateTextures(const IniFile::Section* sec,
-                                                  const std::string& controller_name)
+void DynamicInputTextureManager::GenerateTextures(const IniFile& file,
+                                                  const std::vector<std::string>& controller_names)
 {
   bool any_dirty = false;
   for (const auto& configuration : m_configuration)
   {
-    any_dirty |= configuration.GenerateTextures(sec, controller_name);
+    any_dirty |= configuration.GenerateTextures(file, controller_names);
   }
 
   if (any_dirty && g_renderer && Core::GetState() != Core::State::Starting)

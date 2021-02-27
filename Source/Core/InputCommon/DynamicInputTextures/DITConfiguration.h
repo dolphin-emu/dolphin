@@ -19,10 +19,11 @@ class Configuration
 public:
   explicit Configuration(const std::string& json_file);
   ~Configuration();
-  bool GenerateTextures(const IniFile::Section* sec, const std::string& controller_name) const;
+  bool GenerateTextures(const IniFile& file,
+                        const std::vector<std::string>& controller_names) const;
 
 private:
-  bool GenerateTexture(const IniFile::Section* sec, const std::string& controller_name,
+  bool GenerateTexture(const IniFile& file, const std::vector<std::string>& controller_names,
                        const Data& texture_data) const;
 
   std::vector<Data> m_dynamic_input_textures;
