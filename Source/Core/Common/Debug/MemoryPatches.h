@@ -43,6 +43,8 @@ public:
   void DisablePatch(std::size_t index);
   bool HasEnabledPatch(u32 address) const;
   void RemovePatch(std::size_t index);
+  void LoadFromStrings(const std::vector<std::string>& patches);
+  std::vector<std::string> SaveToStrings() const;
   void ClearPatches();
 
 protected:

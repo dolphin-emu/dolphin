@@ -176,6 +176,16 @@ void PPCDebugInterface::RemovePatch(std::size_t index)
   m_patches.RemovePatch(index);
 }
 
+void PPCDebugInterface::LoadPatchesFromStrings(const std::vector<std::string>& patches)
+{
+  m_patches.LoadFromStrings(patches);
+}
+
+std::vector<std::string> PPCDebugInterface::SavePatchesToStrings() const
+{
+  return m_patches.SaveToStrings();
+}
+
 void PPCDebugInterface::ClearPatches()
 {
   m_patches.ClearPatches();

@@ -7,15 +7,18 @@
 #include <iomanip>
 #include <sstream>
 
+#include <QFileDialog>
 #include <QHeaderView>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
 
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -93,6 +96,8 @@ void MemoryPatchWidget::CreateWidgets()
   m_toggle_on_off = m_toolbar->addAction(tr("On/Off"), this, &MemoryPatchWidget::OnToggleOnOff);
   m_delete = m_toolbar->addAction(tr("Delete"), this, &MemoryPatchWidget::OnDelete);
   m_clear = m_toolbar->addAction(tr("Clear"), this, &MemoryPatchWidget::OnClear);
+  m_load = m_toolbar->addAction(tr("Load from file"), this, &MemoryPatchWidget::OnLoadFromFile);
+  m_save = m_toolbar->addAction(tr("Save to file"), this, &MemoryPatchWidget::OnSaveToFile);
 
   QWidget* widget = new QWidget;
   widget->setLayout(layout);
@@ -106,6 +111,8 @@ void MemoryPatchWidget::UpdateIcons()
   m_toggle_on_off->setIcon(Resources::GetScaledThemeIcon("debugger_breakpoint"));
   m_delete->setIcon(Resources::GetScaledThemeIcon("debugger_delete"));
   m_clear->setIcon(Resources::GetScaledThemeIcon("debugger_clear"));
+  m_load->setIcon(Resources::GetScaledThemeIcon("debugger_load"));
+  m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
 }
 
 void MemoryPatchWidget::UpdateButtonsEnabled()
@@ -117,6 +124,8 @@ void MemoryPatchWidget::UpdateButtonsEnabled()
   m_toggle_on_off->setEnabled(is_enabled);
   m_delete->setEnabled(is_enabled);
   m_clear->setEnabled(is_enabled);
+  m_load->setEnabled(is_enabled);
+  m_save->setEnabled(is_enabled);
 }
 
 void MemoryPatchWidget::closeEvent(QCloseEvent*)
@@ -211,4 +220,54 @@ void MemoryPatchWidget::OnToggleOnOff()
 
   emit MemoryPatchesChanged();
   Update();
+}
+
+void MemoryPatchWidget::OnLoadFromFile()
+{
+  const QString path = QFileDialog::getOpenFileName(this, tr("Load patch file"), QString(),
+                                                    tr("Dolphin Patch File (*.patch)"));
+
+  if (path.isEmpty())
+    return;
+
+  std::ifstream ifs;
+  File::OpenFStream(ifs, path.toStdString(), std::ios_base::in);
+  if (!ifs)
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load patch file '%1'").arg(path));
+    return;
+  }
+
+  std::string line;
+  std::vector<std::string> patches;
+  while (std::getline(ifs, line))
+    patches.push_back(line);
+  ifs.close();
+
+  PowerPC::debug_interface.ClearPatches();
+  PowerPC::debug_interface.LoadPatchesFromStrings(patches);
+
+  emit MemoryPatchesChanged();
+  Update();
+}
+
+void MemoryPatchWidget::OnSaveToFile()
+{
+  const QString path = QFileDialog::getSaveFileName(this, tr("Save patch file"), QString(),
+                                                    tr("Dolphin Patch File (*.patch)"));
+
+  if (path.isEmpty())
+    return;
+
+  std::ofstream out;
+  File::OpenFStream(out, path.toStdString(), std::ios::out);
+  if (!out)
+  {
+    ModalMessageBox::warning(this, tr("Error"),
+                             tr("Failed to save patch file to path '%1'").arg(path));
+  }
+
+  for (auto& patch : PowerPC::debug_interface.SavePatchesToStrings())
+    out << patch << std::endl;
+  out.close();
 }

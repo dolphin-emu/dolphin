@@ -50,6 +50,8 @@ public:
   virtual void DisablePatch(std::size_t index) = 0;
   virtual bool HasEnabledPatch(u32 address) const = 0;
   virtual void RemovePatch(std::size_t index) = 0;
+  virtual void LoadPatchesFromStrings(const std::vector<std::string>& watches) = 0;
+  virtual std::vector<std::string> SavePatchesToStrings() const = 0;
   virtual void ClearPatches() = 0;
 
   // Threads

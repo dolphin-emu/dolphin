@@ -52,6 +52,8 @@ public:
   void DisablePatch(std::size_t index) override;
   bool HasEnabledPatch(u32 address) const override;
   void RemovePatch(std::size_t index) override;
+  void LoadPatchesFromStrings(const std::vector<std::string>& patches) override;
+  std::vector<std::string> SavePatchesToStrings() const override;
   void ClearPatches() override;
 
   // Threads
