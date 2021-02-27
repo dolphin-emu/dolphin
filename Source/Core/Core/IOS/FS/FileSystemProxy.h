@@ -35,7 +35,13 @@ public:
   s32 Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {},
             Ticks ticks = {});
   s32 Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks = {});
+
   FS::Result<FS::FileStatus> GetFileStatus(u64 fd, Ticks ticks = {});
+  FS::ResultCode RenameFile(FS::Uid uid, FS::Gid gid, const std::string& old_path,
+                            const std::string& new_path, Ticks ticks = {});
+  FS::ResultCode DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks = {});
+  FS::ResultCode CreateFile(FS::Uid uid, FS::Gid gid, const std::string& path,
+                            FS::FileAttribute attribute, FS::Modes modes, Ticks ticks = {});
 
   template <typename T>
   s32 Read(u64 fd, T* data, size_t count, Ticks ticks = {})
