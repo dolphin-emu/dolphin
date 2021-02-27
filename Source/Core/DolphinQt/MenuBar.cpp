@@ -1297,6 +1297,8 @@ void MenuBar::GenerateSymbolsFromRSO()
 
 void MenuBar::GenerateSymbolsFromRSOAuto()
 {
+  constexpr u32 MAX_NAME_LENGTH = 256;
+
   constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
   const AddressSpace::Accessors* accessors =
       AddressSpace::GetAccessors(AddressSpace::Type::Effective);
@@ -1313,24 +1315,64 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
 
       if (!found_addr.has_value())
         break;
+
       next = *found_addr + 1;
 
-      // Get the beginning of the string
-      found_addr = accessors->Search(*found_addr, reinterpret_cast<const u8*>(""), 1, false);
-      if (!found_addr.has_value())
+      auto read_string_rev_until_non_ascii = [found_addr]() {
+        std::string str;
+
+        while (true)
+        {
+          const auto res = PowerPC::HostRead_U8(*found_addr - (static_cast<u32>(str.size()) + 1));
+          if (!std::isprint(res))
+          {
+            break;
+          }
+
+          str += static_cast<char>(res);
+        }
+
+        return str;
+      };
+
+      const auto name = read_string_rev_until_non_ascii();
+      auto found = false;
+      u32 module_name_length = 0;
+
+      // Look for the Module Name Offset Field
+      for (u32 i = 0; i < name.length(); ++i)
+      {
+        const auto lookup_addr = (*found_addr - static_cast<u32>(name.length())) + i;
+
+        const std::array<u8, 4> ref = {
+            static_cast<u8>(lookup_addr >> 24), static_cast<u8>(lookup_addr >> 16),
+            static_cast<u8>(lookup_addr >> 8), static_cast<u8>(lookup_addr)
+        };
+
+        // Get the field (Module Name Offset) that point to the string
+        const auto module_name_offset_addr =
+            accessors->Search(lookup_addr, ref.data(), ref.size(), false);
+        if (!module_name_offset_addr.has_value())
+          continue;
+
+        // The next 4 bytes should be the module name length
+        module_name_length = accessors->ReadU32(*module_name_offset_addr + 4);
+        if (module_name_length == ((name.length() - i) + str.length()))
+        {
+          found_addr = module_name_offset_addr;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found)
         continue;
 
-      // Get the string reference
-      const u32 ref_addr = *found_addr + 1;
-      const std::array<u8, 4> ref = {static_cast<u8>(ref_addr >> 24),
-                                     static_cast<u8>(ref_addr >> 16),
-                                     static_cast<u8>(ref_addr >> 8), static_cast<u8>(ref_addr)};
-      found_addr = accessors->Search(ref_addr, ref.data(), ref.size(), false);
-      if (!found_addr.has_value() || *found_addr < 16)
-        continue;
+      const auto module_name_offset = accessors->ReadU32(*found_addr);
 
       // Go to the beginning of the RSO header
-      matches.emplace_back(*found_addr - 16, PowerPC::HostGetString(ref_addr, 128));
+      matches.emplace_back(*found_addr - 16,
+          PowerPC::HostGetString(module_name_offset, module_name_length));
     }
   }
 
