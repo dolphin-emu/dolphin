@@ -33,6 +33,8 @@ private:
   void OnDelete();
   void OnClear();
   void OnToggleOnOff();
+  void OnLoadFromFile();
+  void OnSaveToFile();
 
   void UpdateIcons();
   void UpdateButtonsEnabled();
@@ -42,4 +44,6 @@ private:
   QAction* m_delete;
   QAction* m_clear;
   QAction* m_toggle_on_off;
+  QAction* m_load;
+  QAction* m_save;
 };
