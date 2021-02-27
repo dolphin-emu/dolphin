@@ -721,6 +721,63 @@ void HostWrite_F64(const double var, const u32 address)
   HostWrite_U64(integral, address);
 }
 
+template <typename T>
+static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAddressSpace space)
+{
+  if (!HostIsRAMAddress(address, space))
+    return TryWriteResult();
+
+  switch (space)
+  {
+  case RequestedAddressSpace::Effective:
+    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    return TryWriteResult(!!MSR.DR);
+  case RequestedAddressSpace::Physical:
+    WriteToHardware<XCheckTLBFlag::NoException, T, true>(address, var);
+    return TryWriteResult(false);
+  case RequestedAddressSpace::Virtual:
+    if (!MSR.DR)
+      return TryWriteResult();
+    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    return TryWriteResult(true);
+  }
+
+  assert(0);
+  return TryWriteResult();
+}
+
+TryWriteResult HostTryWriteU8(const u8 var, const u32 address, RequestedAddressSpace space)
+{
+  return HostTryWriteUX<u8>(var, address, space);
+}
+
+TryWriteResult HostTryWriteU16(const u16 var, const u32 address, RequestedAddressSpace space)
+{
+  return HostTryWriteUX<u16>(var, address, space);
+}
+
+TryWriteResult HostTryWriteU32(const u32 var, const u32 address, RequestedAddressSpace space)
+{
+  return HostTryWriteUX<u32>(var, address, space);
+}
+
+TryWriteResult HostTryWriteU64(const u64 var, const u32 address, RequestedAddressSpace space)
+{
+  return HostTryWriteUX<u64>(var, address, space);
+}
+
+TryWriteResult HostTryWriteF32(const float var, const u32 address, RequestedAddressSpace space)
+{
+  const u32 integral = Common::BitCast<u32>(var);
+  return HostTryWriteU32(integral, address, space);
+}
+
+TryWriteResult HostTryWriteF64(const double var, const u32 address, RequestedAddressSpace space)
+{
+  const u64 integral = Common::BitCast<u64>(var);
+  return HostTryWriteU64(integral, address, space);
+}
+
 std::string HostGetString(u32 address, size_t size)
 {
   std::string s;

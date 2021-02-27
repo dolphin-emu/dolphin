@@ -83,12 +83,46 @@ TryReadResult<std::string>
 HostTryReadString(u32 address, size_t size = 0,
                   RequestedAddressSpace space = RequestedAddressSpace::Effective);
 
+// Writes a value to emulated memory using the currently active MMU settings.
+// If the write fails (eg. address does not correspond to a mapped address in the current address
+// space), a PanicAlert will be shown to the user.
 void HostWrite_U8(u8 var, u32 address);
 void HostWrite_U16(u16 var, u32 address);
 void HostWrite_U32(u32 var, u32 address);
 void HostWrite_U64(u64 var, u32 address);
 void HostWrite_F32(float var, u32 address);
 void HostWrite_F64(double var, u32 address);
+
+struct TryWriteResult
+{
+  // whether the write succeeded; if false, the other fields should not be touched
+  bool success;
+
+  // whether the address had to be translated (given address was treated as virtual) or not (given
+  // address was treated as physical)
+  bool translated;
+
+  TryWriteResult() : success(false) {}
+  TryWriteResult(bool translated_) : success(true), translated(translated_) {}
+  explicit operator bool() const { return success; }
+};
+
+// Try to a write a value to memory at the given address in the given memory space.
+// If the write succeeds, the returned TryWriteResult contains information on whether the given
+// address had to be translated or not. Unlike the HostWrite functions, this does not raise a
+// user-visible alert on failure.
+TryWriteResult HostTryWriteU8(u8 var, const u32 address,
+                              RequestedAddressSpace space = RequestedAddressSpace::Effective);
+TryWriteResult HostTryWriteU16(u16 var, const u32 address,
+                               RequestedAddressSpace space = RequestedAddressSpace::Effective);
+TryWriteResult HostTryWriteU32(u32 var, const u32 address,
+                               RequestedAddressSpace space = RequestedAddressSpace::Effective);
+TryWriteResult HostTryWriteU64(u64 var, const u32 address,
+                               RequestedAddressSpace space = RequestedAddressSpace::Effective);
+TryWriteResult HostTryWriteF32(float var, const u32 address,
+                               RequestedAddressSpace space = RequestedAddressSpace::Effective);
+TryWriteResult HostTryWriteF64(double var, const u32 address,
+                               RequestedAddressSpace space = RequestedAddressSpace::Effective);
 
 // Returns whether a read or write to the given address will resolve to a RAM access in the given
 // address space.
