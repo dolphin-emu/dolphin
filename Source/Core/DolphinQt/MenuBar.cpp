@@ -5,6 +5,7 @@
 #include "DolphinQt/MenuBar.h"
 
 #include <cinttypes>
+#include <future>
 
 #include <QAction>
 #include <QActionGroup>
@@ -52,6 +53,7 @@
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
@@ -1297,48 +1299,26 @@ void MenuBar::GenerateSymbolsFromRSO()
 
 void MenuBar::GenerateSymbolsFromRSOAuto()
 {
-  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
-  const AddressSpace::Accessors* accessors =
-      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
-  std::vector<std::pair<u32, std::string>> matches;
+  ParallelProgressDialog progress(tr("Modules found: %1").arg(0), tr("Cancel"), 0, 0, this);
+  progress.GetRaw()->setWindowTitle(tr("Detecting RSO Modules"));
+  progress.GetRaw()->setMinimumDuration(1000 * 10);
+  progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
-  // Find filepath to elf/plf commonly used by RSO modules
-  for (const auto& str : search_for)
-  {
-    u32 next = 0;
-    while (true)
-    {
-      auto found_addr =
-          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+  auto future = std::async(std::launch::async, [&progress, this]() -> RSOVector {
+    progress.SetValue(0);
+    auto matches = DetectRSOModules(progress);
+    progress.Reset();
 
-      if (!found_addr.has_value())
-        break;
-      next = *found_addr + 1;
+    return matches;
+  });
+  progress.GetRaw()->exec();
 
-      // Get the beginning of the string
-      found_addr = accessors->Search(*found_addr, reinterpret_cast<const u8*>(""), 1, false);
-      if (!found_addr.has_value())
-        continue;
-
-      // Get the string reference
-      const u32 ref_addr = *found_addr + 1;
-      const std::array<u8, 4> ref = {static_cast<u8>(ref_addr >> 24),
-                                     static_cast<u8>(ref_addr >> 16),
-                                     static_cast<u8>(ref_addr >> 8), static_cast<u8>(ref_addr)};
-      found_addr = accessors->Search(ref_addr, ref.data(), ref.size(), false);
-      if (!found_addr.has_value() || *found_addr < 16)
-        continue;
-
-      // Go to the beginning of the RSO header
-      matches.emplace_back(*found_addr - 16, PowerPC::HostGetString(ref_addr, 128));
-    }
-  }
+  auto matches = future.get();
 
   QStringList items;
   for (const auto& match : matches)
   {
     const QString item = QLatin1String("%1 %2");
-
     items << item.arg(QString::number(match.first, 16), QString::fromStdString(match.second));
   }
 
@@ -1366,6 +1346,107 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(address));
   }
+}
+
+RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
+{
+  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
+
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+
+  RSOVector matches;
+
+  // Find filepath to elf/plf commonly used by RSO modules
+  for (const auto& str : search_for)
+  {
+    u32 next = 0;
+    while (true)
+    {
+      if (progress.WasCanceled())
+      {
+        return matches;
+      }
+
+      auto found_addr =
+          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+
+      if (!found_addr.has_value())
+        break;
+
+      next = *found_addr + 1;
+
+      // Non-null data can precede the module name.
+      // Get the maximum name length that a module could have.
+      auto get_max_module_name_len = [found_addr] {
+        constexpr u32 MODULE_NAME_MAX_LENGTH = 260;
+        u32 len = 0;
+
+        for (; len < MODULE_NAME_MAX_LENGTH; ++len)
+        {
+          const auto res = PowerPC::HostRead_U8(*found_addr - (len + 1));
+          if (!std::isprint(res))
+          {
+            break;
+          }
+        }
+
+        return len;
+      };
+
+      if (progress.WasCanceled())
+      {
+        return matches;
+      }
+
+      const auto max_name_length = get_max_module_name_len();
+      auto found = false;
+      u32 module_name_length = 0;
+
+      // Look for the Module Name Offset Field based on each possible length
+      for (u32 i = 0; i < max_name_length; ++i)
+      {
+        if (progress.WasCanceled())
+        {
+          return matches;
+        }
+
+        const auto lookup_addr = (*found_addr - max_name_length) + i;
+
+        const std::array<u8, 4> ref = {
+            static_cast<u8>(lookup_addr >> 24), static_cast<u8>(lookup_addr >> 16),
+            static_cast<u8>(lookup_addr >> 8), static_cast<u8>(lookup_addr)};
+
+        // Get the field (Module Name Offset) that point to the string
+        const auto module_name_offset_addr =
+            accessors->Search(lookup_addr, ref.data(), ref.size(), false);
+        if (!module_name_offset_addr.has_value())
+          continue;
+
+        // The next 4 bytes should be the module name length
+        module_name_length = accessors->ReadU32(*module_name_offset_addr + 4);
+        if (module_name_length == max_name_length - i + str.length())
+        {
+          found_addr = module_name_offset_addr;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found)
+        continue;
+
+      const auto module_name_offset = accessors->ReadU32(*found_addr);
+
+      // Go to the beginning of the RSO header
+      matches.emplace_back(*found_addr - 16,
+                           PowerPC::HostGetString(module_name_offset, module_name_length));
+
+      progress.SetLabelText(tr("Modules found: %1").arg(matches.size()));
+    }
+  }
+
+  return matches;
 }
 
 void MenuBar::LoadSymbolMap()
