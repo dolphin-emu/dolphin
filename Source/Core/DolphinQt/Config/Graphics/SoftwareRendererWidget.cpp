@@ -166,8 +166,8 @@ void SoftwareRendererWidget::AddDescriptions()
       QT_TR_NOOP("Show various rendering statistics.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURES_DESCRIPTION[] =
-      QT_TR_NOOP("Dump decoded game textures to User/Dump/Textures/<game_id>/.<br><br "
-                 "/><dolphin_emphasis>If unsure, leave "
+      QT_TR_NOOP("Dump decoded game textures to "
+                 "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_OBJECTS_DESCRIPTION[] =
       QT_TR_NOOP("Dump objects to User/Dump/Objects/.<br><br><dolphin_emphasis>If unsure, leave "
