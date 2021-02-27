@@ -391,7 +391,6 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
 
   check.start_address = addr;
   check.end_address = addr;
-  check.is_enabled = true;
   check.is_ranged = false;
   check.is_break_on_read = on_read;
   check.is_break_on_write = on_write;
@@ -412,7 +411,6 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
 
   check.start_address = from;
   check.end_address = to;
-  check.is_enabled = true;
   check.is_ranged = true;
   check.is_break_on_read = on_read;
   check.is_break_on_write = on_write;
