@@ -151,6 +151,8 @@ struct Ticket
 static_assert(sizeof(Ticket) == 0x2A4, "Ticket has the wrong size");
 #pragma pack(pop)
 
+constexpr u32 MAX_TMD_SIZE = 0x49e4;
+
 class SignedBlobReader
 {
 public:

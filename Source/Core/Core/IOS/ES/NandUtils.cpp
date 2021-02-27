@@ -393,4 +393,47 @@ std::string ESDevice::GetContentPath(const u64 title_id, const ES::Content& cont
   }
   return fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content.id);
 }
+
+s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks)
+{
+  auto& fs = *m_ios.GetFSDevice();
+  const std::string tmp_path = "/tmp/" + PathToFileName(path);
+
+  auto result = fs.CreateFile(PID_KERNEL, PID_KERNEL, tmp_path, {},
+                              {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}, ticks);
+  if (result != FS::ResultCode::Success)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to create temporary file {}: {}", tmp_path, result);
+    return FS::ConvertResult(result);
+  }
+
+  const auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmp_path, FS::Mode::ReadWrite, {}, ticks);
+  if (fd < 0)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to open temporary file {}: {}", tmp_path, fd);
+    return fd;
+  }
+
+  if (fs.Write(fd, data.data(), u32(data.size()), {}, ticks) != s32(data.size()))
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to write to temporary file {}", tmp_path);
+    return ES_EIO;
+  }
+
+  if (const auto ret = fs.Close(fd, ticks); ret != IPC_SUCCESS)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to close temporary file {}", tmp_path);
+    return ret;
+  }
+
+  result = fs.RenameFile(PID_KERNEL, PID_KERNEL, tmp_path, path, ticks);
+  if (result != FS::ResultCode::Success)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to move launch file to final destination ({}): {}", path, result);
+    return FS::ConvertResult(result);
+  }
+
+  return IPC_SUCCESS;
+}
+
 }  // namespace IOS::HLE
