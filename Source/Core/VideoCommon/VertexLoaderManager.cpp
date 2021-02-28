@@ -15,9 +15,11 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -302,79 +304,86 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 {
   bool update_global_state = !is_preprocess;
   CPState* state = is_preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
-  switch (sub_cmd & 0xF0)
+  switch (sub_cmd & CP_COMMAND_MASK)
   {
-  case 0x30:
+  case MATINDEX_A:
     if (update_global_state)
       VertexShaderManager::SetTexMatrixChangedA(value);
     break;
 
-  case 0x40:
+  case MATINDEX_B:
     if (update_global_state)
       VertexShaderManager::SetTexMatrixChangedB(value);
     break;
 
-  case 0x50:
+  case VCD_LO:
     state->vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
     state->vtx_desc.Hex |= value;
-    state->attr_dirty = BitSet32::AllTrue(8);
+    state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
     state->bases_dirty = true;
     break;
 
-  case 0x60:
+  case VCD_HI:
     state->vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
     state->vtx_desc.Hex |= (u64)value << 17;
-    state->attr_dirty = BitSet32::AllTrue(8);
+    state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
     state->bases_dirty = true;
     break;
 
-  case 0x70:
-    ASSERT((sub_cmd & 0x0F) < 8);
-    state->vtx_attr[sub_cmd & 7].g0.Hex = value;
-    state->attr_dirty[sub_cmd & 7] = true;
+  case CP_VAT_REG_A:
+    if ((sub_cmd - CP_VAT_REG_A) >= CP_NUM_VAT_REG)
+      WARN_LOG_FMT(VIDEO, "CP_VAT_REG_A: Invalid VAT {}", sub_cmd - CP_VAT_REG_A);
+    state->vtx_attr[sub_cmd & CP_VAT_MASK].g0.Hex = value;
+    state->attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
-  case 0x80:
-    ASSERT((sub_cmd & 0x0F) < 8);
-    state->vtx_attr[sub_cmd & 7].g1.Hex = value;
-    state->attr_dirty[sub_cmd & 7] = true;
+  case CP_VAT_REG_B:
+    if ((sub_cmd - CP_VAT_REG_B) >= CP_NUM_VAT_REG)
+      WARN_LOG_FMT(VIDEO, "CP_VAT_REG_B: Invalid VAT {}", sub_cmd - CP_VAT_REG_B);
+    state->vtx_attr[sub_cmd & CP_VAT_MASK].g1.Hex = value;
+    state->attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
-  case 0x90:
-    ASSERT((sub_cmd & 0x0F) < 8);
-    state->vtx_attr[sub_cmd & 7].g2.Hex = value;
-    state->attr_dirty[sub_cmd & 7] = true;
+  case CP_VAT_REG_C:
+    if ((sub_cmd - CP_VAT_REG_C) >= CP_NUM_VAT_REG)
+      WARN_LOG_FMT(VIDEO, "CP_VAT_REG_C: Invalid VAT {}", sub_cmd - CP_VAT_REG_C);
+    state->vtx_attr[sub_cmd & CP_VAT_MASK].g2.Hex = value;
+    state->attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
   // Pointers to vertex arrays in GC RAM
-  case 0xA0:
-    state->array_bases[sub_cmd & 0xF] = value & CommandProcessor::GetPhysicalAddressMask();
+  case ARRAY_BASE:
+    state->array_bases[sub_cmd & CP_ARRAY_MASK] =
+        value & CommandProcessor::GetPhysicalAddressMask();
     state->bases_dirty = true;
     break;
 
-  case 0xB0:
-    state->array_strides[sub_cmd & 0xF] = value & 0xFF;
+  case ARRAY_STRIDE:
+    state->array_strides[sub_cmd & CP_ARRAY_MASK] = value & 0xFF;
     break;
+
+  default:
+    WARN_LOG_FMT(VIDEO, "Unknown CP register {:02x} set to {:08x}", sub_cmd, value);
   }
 }
 
 void FillCPMemoryArray(u32* memory)
 {
-  memory[0x30] = g_main_cp_state.matrix_index_a.Hex;
-  memory[0x40] = g_main_cp_state.matrix_index_b.Hex;
-  memory[0x50] = (u32)g_main_cp_state.vtx_desc.Hex;
-  memory[0x60] = (u32)(g_main_cp_state.vtx_desc.Hex >> 17);
+  memory[MATINDEX_A] = g_main_cp_state.matrix_index_a.Hex;
+  memory[MATINDEX_B] = g_main_cp_state.matrix_index_b.Hex;
+  memory[VCD_LO] = (u32)g_main_cp_state.vtx_desc.Hex;
+  memory[VCD_HI] = (u32)(g_main_cp_state.vtx_desc.Hex >> 17);
 
-  for (int i = 0; i < 8; ++i)
+  for (int i = 0; i < CP_NUM_VAT_REG; ++i)
   {
-    memory[0x70 + i] = g_main_cp_state.vtx_attr[i].g0.Hex;
-    memory[0x80 + i] = g_main_cp_state.vtx_attr[i].g1.Hex;
-    memory[0x90 + i] = g_main_cp_state.vtx_attr[i].g2.Hex;
+    memory[CP_VAT_REG_A + i] = g_main_cp_state.vtx_attr[i].g0.Hex;
+    memory[CP_VAT_REG_B + i] = g_main_cp_state.vtx_attr[i].g1.Hex;
+    memory[CP_VAT_REG_C + i] = g_main_cp_state.vtx_attr[i].g2.Hex;
   }
 
-  for (int i = 0; i < 16; ++i)
+  for (int i = 0; i < CP_NUM_ARRAYS; ++i)
   {
-    memory[0xA0 + i] = g_main_cp_state.array_bases[i];
-    memory[0xB0 + i] = g_main_cp_state.array_strides[i];
+    memory[ARRAY_BASE + i] = g_main_cp_state.array_bases[i];
+    memory[ARRAY_STRIDE + i] = g_main_cp_state.array_strides[i];
   }
 }

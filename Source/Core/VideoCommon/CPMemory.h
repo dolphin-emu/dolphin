@@ -7,6 +7,38 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
+enum
+{
+  // These commands use the high nybble for the command itself, and the lower nybble is an argument.
+  // TODO: However, Dolphin's implementation (in LoadCPReg) and YAGCD disagree about what values are
+  // valid for the lower nybble.
+
+  // YAGCD says 0x30 only; LoadCPReg allows any
+  MATINDEX_A = 0x30,
+  // YAGCD says 0x40 only; LoadCPReg allows any
+  MATINDEX_B = 0x40,
+  // YAGCD says 0x50-0x57 for distinct VCDs; LoadCPReg allows any for a single VCD
+  VCD_LO = 0x50,
+  // YAGCD says 0x60-0x67 for distinct VCDs; LoadCPReg allows any for a single VCD
+  VCD_HI = 0x60,
+  // YAGCD and LoadCPReg both agree that only 0x70-0x77 are valid
+  CP_VAT_REG_A = 0x70,
+  // YAGCD and LoadCPReg both agree that only 0x80-0x87 are valid
+  CP_VAT_REG_B = 0x80,
+  // YAGCD and LoadCPReg both agree that only 0x90-0x97 are valid
+  CP_VAT_REG_C = 0x90,
+  // YAGCD and LoadCPReg agree that 0xa0-0xaf are valid
+  ARRAY_BASE = 0xa0,
+  // YAGCD and LoadCPReg agree that 0xb0-0xbf are valid
+  ARRAY_STRIDE = 0xb0,
+
+  CP_COMMAND_MASK = 0xf0,
+  CP_NUM_VAT_REG = 0x08,
+  CP_VAT_MASK = 0x07,
+  CP_NUM_ARRAYS = 0x10,
+  CP_ARRAY_MASK = 0x0f,
+};
+
 // Vertex array numbers
 enum
 {
@@ -242,18 +274,18 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-  u32 array_bases[16];
-  u32 array_strides[16];
+  u32 array_bases[CP_NUM_ARRAYS];
+  u32 array_strides[CP_NUM_ARRAYS];
   TMatrixIndexA matrix_index_a;
   TMatrixIndexB matrix_index_b;
   TVtxDesc vtx_desc;
   // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
-  VAT vtx_attr[8];
+  VAT vtx_attr[CP_NUM_VAT_REG];
 
   // Attributes that actually belong to VertexLoaderManager:
   BitSet32 attr_dirty;
   bool bases_dirty;
-  VertexLoaderBase* vertex_loaders[8];
+  VertexLoaderBase* vertex_loaders[CP_NUM_VAT_REG];
   int last_id;
 };
 
