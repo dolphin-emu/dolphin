@@ -1040,6 +1040,9 @@
     <ClCompile Include="PrimeHack\EmuVariableManager.cpp">
       <Filter>PrimeHack</Filter>
     </ClCompile>
+    <ClCompile Include="PrimeHack\Mods\PortalSkipMP2.cpp">
+      <Filter>PrimeHack\Mods</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1845,6 +1848,12 @@
     </ClInclude>
     <ClInclude Include="PrimeHack\EmuVariableManager.h">
       <Filter>PrimeHack</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Mods\FriendVouchers.h">
+      <Filter>PrimeHack\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Mods\PortalSkipMP2.h">
+      <Filter>PrimeHack\Mods</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

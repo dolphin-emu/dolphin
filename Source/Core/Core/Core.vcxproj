@@ -377,6 +377,7 @@
     <ClCompile Include="PrimeHack\Mods\FpsControls.cpp" />
     <ClCompile Include="PrimeHack\Mods\ContextSensitiveControls.cpp" />
     <ClCompile Include="PrimeHack\Mods\Noclip.cpp" />
+    <ClCompile Include="PrimeHack\Mods\PortalSkipMP2.cpp" />
     <ClCompile Include="PrimeHack\Mods\SpringballButton.cpp" />
     <ClCompile Include="PrimeHack\Mods\ViewModifier.cpp" />
     <ClCompile Include="PrimeHack\PrimeUtils.cpp" />
@@ -694,8 +695,10 @@
     <ClInclude Include="PrimeHack\Mods\DisableBloom.h" />
     <ClInclude Include="PrimeHack\Mods\FpsControls.h" />
     <ClInclude Include="PrimeHack\Mods\ContextSensitiveControls.h" />
+    <ClInclude Include="PrimeHack\Mods\FriendVouchers.h" />
     <ClInclude Include="PrimeHack\Mods\Invulnerability.h" />
     <ClInclude Include="PrimeHack\Mods\Noclip.h" />
+    <ClInclude Include="PrimeHack\Mods\PortalSkipMP2.h" />
     <ClInclude Include="PrimeHack\Mods\RestoreDashing.h" />
     <ClInclude Include="PrimeHack\Mods\SkipCutscene.h" />
     <ClInclude Include="PrimeHack\Mods\SpringballButton.h" />
