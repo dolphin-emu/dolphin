@@ -376,6 +376,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
       new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Grapple Lasso", "Grapple Lasso"));
 
   m_primehack_misc->AddSetting(
+    &m_primehack_tapping_grapple, {"Tap Grapple Repeatedly To Pull", nullptr, nullptr, _trans("Tap Grapple Repeatedly To Pull")}, false);
+
+  m_primehack_misc->AddSetting(
     &m_primehack_improved_motions, {"Improved Motion Controls", nullptr, nullptr, _trans("Improved Motion Controls")}, true);
 
   Reset();
@@ -721,6 +724,11 @@ bool Wiimote::CheckVisorScrollCtrl(bool direction)
 bool Wiimote::CheckGrappleCtrl()
 {
   return m_primehack_misc->controls[1].get()->control_ref->State() > 0.5;
+}
+
+bool Wiimote::CheckUseGrappleTapping()
+{
+  return m_primehack_tapping_grapple.GetValue();
 }
 
 bool Wiimote::IsGrappleBinded()

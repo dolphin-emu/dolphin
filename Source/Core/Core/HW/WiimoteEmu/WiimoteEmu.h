@@ -145,6 +145,7 @@ public:
   bool CheckVisorScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
   bool CheckGrappleCtrl();
+  bool CheckUseGrappleTapping();
   bool IsGrappleBinded();
   bool CheckImprovedMotions();
   bool PrimeControllerMode();
@@ -310,6 +311,7 @@ private:
   ControllerEmu::SettingValue<bool> m_primehack_visor_menu;
 
   ControllerEmu::SettingValue<bool> m_primehack_improved_motions;
+  ControllerEmu::SettingValue<bool> m_primehack_tapping_grapple;
   ControllerEmu::SettingValue<bool> m_primehack_movereticle;
 
   static constexpr u8 STICK_GATE_RADIUS = 0x60;

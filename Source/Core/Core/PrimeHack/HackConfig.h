@@ -25,6 +25,7 @@ bool CheckRight();
 bool CheckJump();
 
 bool CheckGrappleCtl();
+bool GrappleTappingMode();
 bool GrappleCtlBound();
 
 void SetEFBToTexture(bool toggle);

@@ -548,25 +548,35 @@ void FpsControls::mp3_handle_lasso(u32 cplayer_address)
         grapple_button_down = false;
 
         grapple_swap_axis = !grapple_swap_axis;
+
+        // 0.45 for repeated taps. 1 will instantly complete the grapple.
+        grapple_force += GrappleTappingMode() ? 0.45f : 1.0f;
       }
 
       if (grapple_tugging) {
-        grapple_frame_delta++;
+        constexpr float force_delta = 0.045f;
 
-        constexpr float margin = 0.05f;
-        if (grapple_hand_pos > (1.f - margin) && grapple_hand_pos < (1.f + margin)) {
-          grapple_frame_delta = 0;
-
-          // State 4 completes the grapple (e.g pull door from frame)
-          prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 4);
-          grapple_tugging = false;
+        // Use tapping/force method
+        if (grapple_force > 0) {
+          grapple_hand_pos += force_delta;
+          grapple_force -= force_delta;
         }
         else {
-          grapple_hand_pos = Lerp(0.f, 1.f, grapple_frame_delta / 15);
+          grapple_hand_pos -= 0.050f;
+          grapple_force = 0;
+        }
 
-          // Swap the axises for a little variance in the animation.
-          prime::GetVariableManager()->set_variable(grapple_swap_axis ? "grapple_hand_x" : "grapple_hand_y", grapple_hand_pos);
-          prime::GetVariableManager()->set_variable(grapple_swap_axis ? "grapple_hand_y" : "grapple_hand_x", grapple_hand_pos / 4);
+        grapple_hand_pos = std::clamp(grapple_hand_pos, 0.f, 1.0f);
+
+        prime::GetVariableManager()->set_variable("grapple_hand_x", grapple_hand_pos);
+        prime::GetVariableManager()->set_variable("grapple_hand_y", grapple_hand_pos / 4);
+
+        if (grapple_hand_pos == 1.0f) {
+          // State 4 completes the grapple (e.g pull door from frame)
+          prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 4);
+        } else {
+          // State 2 "holds" the grapple for lasso/voltage.
+          prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 2);
         }
       }
     } 
@@ -576,7 +586,8 @@ void FpsControls::mp3_handle_lasso(u32 cplayer_address)
     prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 0);
 
     grapple_initial_cooldown = 0;
-    grapple_frame_delta, grapple_hand_pos = 0;
+    grapple_hand_pos = 0;
+    grapple_force = 0;
     grapple_button_down, grapple_tugging = false;
   }
 }

@@ -113,6 +113,7 @@ bool CheckRight();
 bool CheckJump();
 
 bool CheckGrapple();
+bool UseGrappleTapping();
 bool GrappleCtlBound();
 bool PrimeUseController();
 

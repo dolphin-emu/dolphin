@@ -251,6 +251,12 @@ bool CheckGrapple() {
   return wiimote->CheckGrappleCtrl();
 }
 
+bool UseGrappleTapping() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckUseGrappleTapping();
+}
+
 bool GrappleCtlBound() {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 

@@ -121,6 +121,10 @@ bool CheckGrappleCtl() {
   return Wiimote::CheckGrapple();
 }
 
+bool GrappleTappingMode() {
+  return Wiimote::UseGrappleTapping();
+}
+
 bool GrappleCtlBound() {
   return Wiimote::GrappleCtlBound();
 }
