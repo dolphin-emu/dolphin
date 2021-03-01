@@ -18,6 +18,7 @@
 
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include "UICommon/X11Utils.h"
 #include "VideoCommon/RenderBase.h"
@@ -47,7 +48,7 @@ private:
   Display* m_display = nullptr;
   Window m_window = {};
   Cursor m_blank_cursor = None;
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
   X11Utils::XRRConfiguration* m_xrr_config = nullptr;
 #endif
   int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
@@ -58,7 +59,7 @@ private:
 
 PlatformX11::~PlatformX11()
 {
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
   delete m_xrr_config;
 #endif
 
@@ -105,7 +106,7 @@ bool PlatformX11::Init()
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
     X11Utils::InhibitScreensaver(m_window, true);
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
   m_xrr_config = new X11Utils::XRRConfiguration(m_display, m_window);
 #endif
 
@@ -125,7 +126,7 @@ bool PlatformX11::Init()
   if (Config::Get(Config::MAIN_FULLSCREEN))
   {
     m_window_fullscreen = X11Utils::ToggleFullscreen(m_display, m_window);
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
     m_xrr_config->ToggleDisplayMode(True);
 #endif
     ProcessEvents();
@@ -209,7 +210,7 @@ void PlatformX11::ProcessEvents()
       {
         m_window_fullscreen = !m_window_fullscreen;
         X11Utils::ToggleFullscreen(m_display, m_window);
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
         m_xrr_config->ToggleDisplayMode(m_window_fullscreen);
 #endif
         UpdateWindowPosition();
