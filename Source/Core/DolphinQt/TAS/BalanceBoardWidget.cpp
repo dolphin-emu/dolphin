@@ -22,28 +22,44 @@ BalanceBoardWidget::BalanceBoardWidget(QWidget* parent) : QWidget(parent)
 void BalanceBoardWidget::SetTR(double top_right)
 {
   m_top_right = top_right;
-  emit ChangedTotal(TotalWeight());
+  if (m_reentrance_level < MAX_REENTRANCE)
+  {
+    const ReentranceBlocker blocker(this);
+    emit ChangedTotal(TotalWeight());
+  }
   update();
 }
 
 void BalanceBoardWidget::SetBR(double bottom_right)
 {
   m_bottom_right = bottom_right;
-  emit ChangedTotal(TotalWeight());
+  if (m_reentrance_level < MAX_REENTRANCE)
+  {
+    const ReentranceBlocker blocker(this);
+    emit ChangedTotal(TotalWeight());
+  }
   update();
 }
 
 void BalanceBoardWidget::SetTL(double top_left)
 {
   m_top_left = top_left;
-  emit ChangedTotal(TotalWeight());
+  if (m_reentrance_level < MAX_REENTRANCE)
+  {
+    const ReentranceBlocker blocker(this);
+    emit ChangedTotal(TotalWeight());
+  }
   update();
 }
 
 void BalanceBoardWidget::SetBL(double bottom_left)
 {
   m_bottom_left = bottom_left;
-  emit ChangedTotal(TotalWeight());
+  if (m_reentrance_level < MAX_REENTRANCE)
+  {
+    const ReentranceBlocker blocker(this);
+    emit ChangedTotal(TotalWeight());
+  }
   update();
 }
 
@@ -65,16 +81,20 @@ void BalanceBoardWidget::SetTotal(double total)
     m_top_left = total / 4;
     m_bottom_left = total / 4;
   }
-  emit ChangedTR(m_top_right);
-  emit ChangedBR(m_bottom_right);
-  emit ChangedTL(m_top_left);
-  emit ChangedBL(m_bottom_left);
-
-  const double new_total = TotalWeight();
-  if (new_total != total)
+  if (m_reentrance_level < MAX_REENTRANCE)
   {
-    // This probably shouldn't happen, and I probably should round out numbers a bit closer
-    emit ChangedTotal(new_total);
+    const ReentranceBlocker blocker(this);
+    emit ChangedTR(m_top_right);
+    emit ChangedBR(m_bottom_right);
+    emit ChangedTL(m_top_left);
+    emit ChangedBL(m_bottom_left);
+
+    const double new_total = TotalWeight();
+    if (new_total != total)
+    {
+      // This probably shouldn't happen, and I probably should round out numbers a bit closer
+      emit ChangedTotal(new_total);
+    }
   }
   update();
 }
@@ -146,9 +166,13 @@ void BalanceBoardWidget::handleMouseEvent(QMouseEvent* event)
     m_bottom_left = total * (1 - com_x - com_y) / 4;
   }
 
-  emit ChangedTR(m_top_right);
-  emit ChangedBR(m_bottom_right);
-  emit ChangedTL(m_top_left);
-  emit ChangedBL(m_bottom_left);
+  if (m_reentrance_level < MAX_REENTRANCE)
+  {
+    const ReentranceBlocker blocker(this);
+    emit ChangedTR(m_top_right);
+    emit ChangedBR(m_bottom_right);
+    emit ChangedTL(m_top_left);
+    emit ChangedBL(m_bottom_left);
+  }
   update();
 }

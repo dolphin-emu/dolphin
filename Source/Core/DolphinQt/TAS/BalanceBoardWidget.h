@@ -41,4 +41,22 @@ private:
   double m_top_left = 0;
   double m_bottom_left = 0;
   bool m_ignore_movement = false;
+  // Allow reentering when < max.  Needed to keep changes to total from changing individual values
+  // from changing total... eventually causing a stack overflow.
+  u32 m_reentrance_level = 0;
+  constexpr static u32 MAX_REENTRANCE = 2;
+
+  class ReentranceBlocker
+  {
+  public:
+    // Does not check MAX_REENTRANCE; only increments/decrements via RAII.
+    ReentranceBlocker(BalanceBoardWidget* owner) : m_owner(owner) { m_owner->m_reentrance_level++; }
+    ~ReentranceBlocker() { m_owner->m_reentrance_level--; }
+
+  private:
+    ReentranceBlocker(const ReentranceBlocker& other) = delete;
+    ReentranceBlocker& operator=(const ReentranceBlocker& other) = delete;
+
+    BalanceBoardWidget* const m_owner;
+  };
 };
