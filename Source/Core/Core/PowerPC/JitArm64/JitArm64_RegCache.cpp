@@ -457,7 +457,8 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       // Load the high 64bits from the file and insert them in to the high 64bits of the host
       // register
       const ARM64Reg tmp_reg = GetReg();
-      m_float_emit->LDR(64, IndexType::Unsigned, tmp_reg, PPC_REG, u32(PPCSTATE_OFF_PS1(preg)));
+      m_float_emit->LDR(64, IndexType::Unsigned, tmp_reg, PPC_REG,
+                        static_cast<s32>(PPCSTATE_OFF_PS1(preg)));
       m_float_emit->INS(64, host_reg, 1, tmp_reg, 0);
       UnlockRegister(tmp_reg);
 
@@ -511,7 +512,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     }
     reg.SetDirty(false);
     m_float_emit->LDR(load_size, IndexType::Unsigned, host_reg, PPC_REG,
-                      u32(PPCSTATE_OFF_PS0(preg)));
+                      static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
     return host_reg;
   }
   default:
@@ -559,7 +560,8 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
       // store.
       // It would take longer to do an insert to a temporary and a 64bit store than to just do this.
-      m_float_emit->STR(128, IndexType::Unsigned, flush_reg, PPC_REG, u32(PPCSTATE_OFF_PS0(preg)));
+      m_float_emit->STR(128, IndexType::Unsigned, flush_reg, PPC_REG,
+                        static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
       break;
     case RegType::DuplicatedSingle:
       flush_reg = GetReg();
@@ -567,7 +569,8 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       [[fallthrough]];
     case RegType::Duplicated:
       // Store PSR1 (which is equal to PSR0) in memory.
-      m_float_emit->STR(64, IndexType::Unsigned, flush_reg, PPC_REG, u32(PPCSTATE_OFF_PS1(preg)));
+      m_float_emit->STR(64, IndexType::Unsigned, flush_reg, PPC_REG,
+                        static_cast<s32>(PPCSTATE_OFF_PS1(preg)));
       break;
     default:
       // All other types doesn't store anything in PSR1.
@@ -695,7 +698,7 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
     if (dirty)
     {
       m_float_emit->STR(store_size, IndexType::Unsigned, host_reg, PPC_REG,
-                        u32(PPCSTATE_OFF_PS0(preg)));
+                        static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
     }
 
     if (!maintain_state)
@@ -711,12 +714,14 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
       if (PPCSTATE_OFF_PS0(preg) <= 504)
       {
         m_float_emit->STP(64, IndexType::Signed, host_reg, host_reg, PPC_REG,
-                          PPCSTATE_OFF_PS0(preg));
+                          static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
       }
       else
       {
-        m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG, u32(PPCSTATE_OFF_PS0(preg)));
-        m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG, u32(PPCSTATE_OFF_PS1(preg)));
+        m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG,
+                          static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
+        m_float_emit->STR(64, IndexType::Unsigned, host_reg, PPC_REG,
+                          static_cast<s32>(PPCSTATE_OFF_PS1(preg)));
       }
     }
 
