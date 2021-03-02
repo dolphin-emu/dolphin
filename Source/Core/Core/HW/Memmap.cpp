@@ -175,6 +175,7 @@ struct PhysicalMemoryRegion
     WII_ONLY = 2,
   } flags;
   u32 shm_position;
+  bool active;
 };
 
 struct LogicalMemoryView
@@ -223,30 +224,9 @@ struct LogicalMemoryView
 //
 // TODO: The actual size of RAM is 24MB; the other 8MB shouldn't be backed by actual memory.
 // TODO: Do we want to handle the mirrors of the GC RAM?
-static std::array<PhysicalMemoryRegion, 4> physical_regions;
+static std::array<PhysicalMemoryRegion, 4> s_physical_regions;
 
 static std::vector<LogicalMemoryView> logical_mapped_entries;
-
-static u32 GetFlags()
-{
-  bool wii = SConfig::GetInstance().bWii;
-  bool bMMU = SConfig::GetInstance().bMMU;
-  bool bFakeVMEM = false;
-#ifndef _ARCH_32
-  // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
-  // The fake VMEM hack's address space is above the memory space that we
-  // allocate on 32bit targets, so disable it there.
-  bFakeVMEM = !wii && !bMMU;
-#endif
-
-  u32 flags = 0;
-  if (wii)
-    flags |= PhysicalMemoryRegion::WII_ONLY;
-  if (bFakeVMEM)
-    flags |= PhysicalMemoryRegion::FAKE_VMEM;
-
-  return flags;
-}
 
 void Init()
 {
@@ -272,28 +252,43 @@ void Init()
   s_exram_size = MathUtil::NextPowerOf2(GetExRamSizeReal());
   s_exram_mask = GetExRamSize() - 1;
 
-  physical_regions[0] = {&m_pRAM, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS};
-  physical_regions[1] = {&m_pL1Cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS};
-  physical_regions[2] = {&m_pFakeVMEM, 0x7E000000, GetFakeVMemSize(),
-                         PhysicalMemoryRegion::FAKE_VMEM};
-  physical_regions[3] = {&m_pEXRAM, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY};
+  s_physical_regions[0] = {&m_pRAM, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, false};
+  s_physical_regions[1] = {&m_pL1Cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS,
+                           false};
+  s_physical_regions[2] = {&m_pFakeVMEM, 0x7E000000, GetFakeVMemSize(),
+                           PhysicalMemoryRegion::FAKE_VMEM, false};
+  s_physical_regions[3] = {&m_pEXRAM, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY,
+                           false};
 
-  bool wii = SConfig::GetInstance().bWii;
-  u32 flags = GetFlags();
+  const bool wii = SConfig::GetInstance().bWii;
+  const bool mmu = SConfig::GetInstance().bMMU;
+
+  bool fake_vmem = false;
+#ifndef _ARCH_32
+  // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
+  // The fake VMEM hack's address space is above the memory space that we
+  // allocate on 32bit targets, so disable it there.
+  fake_vmem = !wii && !mmu;
+#endif
+
   u32 mem_size = 0;
-  for (PhysicalMemoryRegion& region : physical_regions)
+  for (PhysicalMemoryRegion& region : s_physical_regions)
   {
-    if ((flags & region.flags) != region.flags)
+    if (!wii && (region.flags & PhysicalMemoryRegion::WII_ONLY))
       continue;
+    if (!fake_vmem && (region.flags & PhysicalMemoryRegion::FAKE_VMEM))
+      continue;
+
     region.shm_position = mem_size;
+    region.active = true;
     mem_size += region.size;
   }
   g_arena.GrabSHMSegment(mem_size);
 
   // Create an anonymous view of the physical memory
-  for (PhysicalMemoryRegion& region : physical_regions)
+  for (const PhysicalMemoryRegion& region : s_physical_regions)
   {
-    if ((flags & region.flags) != region.flags)
+    if (!region.active)
       continue;
 
     *region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size);
@@ -320,7 +315,6 @@ void Init()
 
 bool InitFastmemArena()
 {
-  u32 flags = GetFlags();
   physical_base = Common::MemArena::FindMemoryBase();
 
   if (!physical_base)
@@ -329,9 +323,9 @@ bool InitFastmemArena()
     return false;
   }
 
-  for (PhysicalMemoryRegion& region : physical_regions)
+  for (const PhysicalMemoryRegion& region : s_physical_regions)
   {
-    if ((flags & region.flags) != region.flags)
+    if (!region.active)
       continue;
 
     u8* base = physical_base + region.physical_address;
@@ -372,7 +366,7 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
       // TODO: Merge adjacent mappings to make this faster.
       u32 logical_size = PowerPC::BAT_PAGE_SIZE;
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
-      for (const auto& physical_region : physical_regions)
+      for (const auto& physical_region : s_physical_regions)
       {
         u32 mapping_address = physical_region.physical_address;
         u32 mapping_end = mapping_address + physical_region.size;
@@ -419,11 +413,11 @@ void Shutdown()
   ShutdownFastmemArena();
 
   m_IsInitialized = false;
-  u32 flags = GetFlags();
-  for (PhysicalMemoryRegion& region : physical_regions)
+  for (const PhysicalMemoryRegion& region : s_physical_regions)
   {
-    if ((flags & region.flags) != region.flags)
+    if (!region.active)
       continue;
+
     g_arena.ReleaseView(*region.out_pointer, region.size);
     *region.out_pointer = nullptr;
   }
@@ -437,10 +431,9 @@ void ShutdownFastmemArena()
   if (!is_fastmem_arena_initialized)
     return;
 
-  u32 flags = GetFlags();
-  for (PhysicalMemoryRegion& region : physical_regions)
+  for (const PhysicalMemoryRegion& region : s_physical_regions)
   {
-    if ((flags & region.flags) != region.flags)
+    if (!region.active)
       continue;
 
     u8* base = physical_base + region.physical_address;
