@@ -368,6 +368,9 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
       u32 translated_address = dbat_table[i] & PowerPC::BAT_RESULT_MASK;
       for (const auto& physical_region : s_physical_regions)
       {
+        if (!physical_region.active)
+          continue;
+
         u32 mapping_address = physical_region.physical_address;
         u32 mapping_end = mapping_address + physical_region.size;
         u32 intersection_start = std::max(mapping_address, translated_address);
