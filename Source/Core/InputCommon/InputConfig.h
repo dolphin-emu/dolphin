@@ -31,8 +31,7 @@ public:
   template <typename T, typename... Args>
   void CreateController(Args&&... args)
   {
-    OnControllerCreated(
-        *m_controllers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...)));
+    m_controllers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
   }
 
   ControllerEmu::EmulatedController* GetController(int index);
@@ -48,8 +47,9 @@ public:
   void RegisterHotplugCallback();
   void UnregisterHotplugCallback();
 
+  void GenerateControllerTextures(const IniFile& file);
+
 private:
-  void OnControllerCreated(ControllerEmu::EmulatedController& controller);
   ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
   const std::string m_ini_name;
