@@ -18,6 +18,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
+#include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -299,7 +300,9 @@ void Init()
 
     if (!*region.out_pointer)
     {
-      PanicAlertFmt("MemoryMap_Setup: Failed finding a memory base.");
+      PanicAlertFmt(
+          "Memory::Init(): Failed to create view for physical region at 0x{:08X} (size 0x{:08X}).",
+          region.physical_address, region.size);
       exit(0);
     }
   }
@@ -321,7 +324,10 @@ bool InitFastmemArena()
   physical_base = Common::MemArena::FindMemoryBase();
 
   if (!physical_base)
+  {
+    PanicAlertFmt("Memory::InitFastmemArena(): Failed finding a memory base.");
     return false;
+  }
 
   for (PhysicalMemoryRegion& region : physical_regions)
   {
@@ -333,6 +339,9 @@ bool InitFastmemArena()
 
     if (base != view)
     {
+      PanicAlertFmt("Memory::InitFastmemArena(): Failed to map memory region at 0x{:08X} "
+                    "(size 0x{:08X}) into physical fastmem region.",
+                    region.physical_address, region.size);
       return false;
     }
   }
@@ -379,7 +388,9 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
           void* mapped_pointer = g_arena.CreateView(position, mapped_size, base);
           if (!mapped_pointer)
           {
-            PanicAlertFmt("MemoryMap_Setup: Failed finding a memory base.");
+            PanicAlertFmt("Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
+                          "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                          intersection_start, mapped_size, logical_address);
             exit(0);
           }
           logical_mapped_entries.push_back({mapped_pointer, mapped_size});
