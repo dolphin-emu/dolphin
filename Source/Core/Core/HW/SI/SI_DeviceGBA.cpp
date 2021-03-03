@@ -253,7 +253,7 @@ void GBASockServer::Send(const u8* si_buffer)
     Disconnect();
 }
 
-int GBASockServer::Receive(u8* si_buffer)
+int GBASockServer::Receive(u8* si_buffer, u8 bytes)
 {
   if (!m_client)
     return 0;
@@ -267,8 +267,7 @@ int GBASockServer::Receive(u8* si_buffer)
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
-  sf::Socket::Status recv_stat =
-      m_client->receive(recv_data.data(), recv_data.size(), num_received);
+  sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
@@ -284,6 +283,21 @@ int GBASockServer::Receive(u8* si_buffer)
   for (size_t i = 0; i < recv_data.size(); i++)
     si_buffer[i] = recv_data[i];
   return static_cast<int>(std::min(num_received, recv_data.size()));
+}
+
+void GBASockServer::Flush()
+{
+  if (!m_client || !m_booted)
+    return;
+
+  size_t num_received = 1;
+  u8 byte;
+  while (num_received)
+  {
+    sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
+    if (recv_stat == sf::Socket::Disconnected)
+      break;
+  }
 }
 
 CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(device, device_number)
@@ -329,7 +343,23 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::ReceiveResponse:
   {
-    int num_data_received = m_sock_server.Receive(buffer);
+    u8 bytes = 1;
+    switch (m_last_cmd)
+    {
+    case CMD_RESET:
+    case CMD_STATUS:
+      bytes = 3;
+      break;
+    case CMD_READ:
+      bytes = 5;
+      break;
+    default:
+      break;
+    }
+    int num_data_received = m_sock_server.Receive(buffer, bytes);
+    if (m_last_cmd == CMD_STATUS && num_data_received == 3)
+      m_sock_server.Flush();
+
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)
     {
