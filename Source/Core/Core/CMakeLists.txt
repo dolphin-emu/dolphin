@@ -430,6 +430,8 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
   PowerPC/Interpreter/Interpreter.cpp
   PowerPC/Interpreter/Interpreter.h
+	PowerPC/JitCommon/DivUtils.cpp
+	PowerPC/JitCommon/DivUtils.h
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitAsmCommon.h
   PowerPC/JitCommon/JitBase.cpp
