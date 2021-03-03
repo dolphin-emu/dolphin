@@ -202,18 +202,6 @@ static bool IsSameController(const Proto::MessageType::PortInfo& a,
          std::tie(b.pad_id, b.pad_state, b.model, b.connection_type, b.pad_mac_address);
 }
 
-static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, std::size_t size,
-                                             std::size_t& received, sf::IpAddress& remoteAddress,
-                                             unsigned short& remotePort, sf::Time timeout)
-{
-  sf::SocketSelector selector;
-  selector.add(socket);
-  if (selector.wait(timeout))
-    return socket.receive(data, size, received, remoteAddress, remotePort);
-  else
-    return sf::Socket::NotReady;
-}
-
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
@@ -242,32 +230,50 @@ static void HotplugThreadFunc()
       }
     }
 
+    sf::SocketSelector selector;
     for (auto& server : s_servers)
     {
-      // Receive controller port info
-      using namespace std::chrono;
-      using namespace std::chrono_literals;
+      selector.add(server.m_socket);
+    }
+
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+    const auto timeout = s_next_listports - SteadyClock::now();
+
+    // Selector's wait treats a timeout of zero as infinite timeout, which we don't want
+    const auto timeout_ms = std::max(duration_cast<milliseconds>(timeout), 1ms);
+    if (!selector.wait(sf::milliseconds(timeout_ms.count())))
+    {
+      continue;
+    }
+
+    for (auto& server : s_servers)
+    {
+      if (!selector.isReady(server.m_socket))
+      {
+        continue;
+      }
+
       Proto::Message<Proto::MessageType::FromServer> msg;
-      const auto timeout = s_next_listports - SteadyClock::now();
-      // ReceiveWithTimeout treats a timeout of zero as infinite timeout, which we don't want
-      const auto timeout_ms = std::max(duration_cast<milliseconds>(timeout), 1ms);
       std::size_t received_bytes;
       sf::IpAddress sender;
       u16 port;
-      if (ReceiveWithTimeout(server.m_socket, &msg, sizeof(msg), received_bytes, sender, port,
-                             sf::milliseconds(timeout_ms.count())) == sf::Socket::Status::Done)
+      if (server.m_socket.receive(&msg, sizeof(msg), received_bytes, sender, port) !=
+          sf::Socket::Status::Done)
       {
-        if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
+        continue;
+      }
+
+      if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
+      {
+        const bool port_changed =
+            !IsSameController(*port_info, server.m_port_info[port_info->pad_id]);
         {
-          const bool port_changed =
-              !IsSameController(*port_info, server.m_port_info[port_info->pad_id]);
-          {
-            std::lock_guard lock{server.m_port_info_mutex};
-            server.m_port_info[port_info->pad_id] = *port_info;
-          }
-          if (port_changed)
-            PopulateDevices();
+          std::lock_guard lock{server.m_port_info_mutex};
+          server.m_port_info[port_info->pad_id] = *port_info;
         }
+        if (port_changed)
+          PopulateDevices();
       }
     }
   }
