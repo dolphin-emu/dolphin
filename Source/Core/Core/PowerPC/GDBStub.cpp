@@ -859,7 +859,7 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
   INFO_LOG_FMT(GDB_STUB, "Waiting for gdb to connect...");
 
   sock = accept(tmpsock, client_addr, client_addrlen);
-  if (sock < 0)
+  if (sock == -1) 
     ERROR_LOG_FMT(GDB_STUB, "Failed to accept gdb client");
   INFO_LOG_FMT(GDB_STUB, "Client connected.");
 
@@ -869,10 +869,18 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
   close(tmpsock);
 #endif
   tmpsock = -1;
+
+#ifdef _WIN32
+  if (!gdb_active())
+    WSACleanup();
+#endif
 }
 
 void gdb_deinit()
 {
+  if (!gdb_active())
+    return;
+
   if (tmpsock != -1)
   {
     shutdown(tmpsock, SHUT_RDWR);
