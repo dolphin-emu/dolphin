@@ -271,11 +271,9 @@ jmethodID GetBooleanSupplierGet()
 
 }  // namespace IDCache
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
   s_java_vm = vm;
 
@@ -382,7 +380,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   return JNI_VERSION;
 }
 
-void JNI_OnUnload(JavaVM* vm, void* reserved)
+JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
 {
   JNIEnv* env;
   if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
@@ -400,7 +398,4 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_network_helper_class);
   env->DeleteGlobalRef(s_boolean_supplier_class);
 }
-
-#ifdef __cplusplus
 }
-#endif
