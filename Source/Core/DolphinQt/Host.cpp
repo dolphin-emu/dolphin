@@ -32,7 +32,7 @@
 
 Host::Host()
 {
-  State::SetOnAfterLoadCallback([this] { Host_UpdateDisasmDialog(); });
+  State::SetOnAfterLoadCallback([] { Host_UpdateDisasmDialog(); });
 }
 
 Host::~Host()
