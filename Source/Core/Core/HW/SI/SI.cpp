@@ -286,7 +286,7 @@ static void GenerateSIInterrupt(SIInterruptType type)
 constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
 
 // Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
-constexpr u32 ConvertSILengthField(u32 field)
+constexpr s32 ConvertSILengthField(u32 field)
 {
   return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
 }
@@ -295,19 +295,19 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   if (s_com_csr.TSTART)
   {
-    const u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
-    const u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
+    const s32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
+    const s32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
     const std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
     const std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    const u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
+    const s32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
 
     DEBUG_LOG_FMT(SERIALINTERFACE,
                   "RunSIBuffer  chan: {}  request_length: {}  expected_response_length: {}  "
                   "actual_response_length: {}",
                   s_com_csr.CHANNEL, request_length, expected_response_length,
                   actual_response_length);
-    if (expected_response_length != actual_response_length)
+    if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
       std::ostringstream ss;
       for (u8 b : request_copy)
@@ -331,6 +331,8 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     if (actual_response_length != 0)
     {
       s_com_csr.TSTART = 0;
+      if (actual_response_length < 0)
+        SetNoResponse(s_com_csr.CHANNEL);
       GenerateSIInterrupt(INT_TCINT);
     }
     else
