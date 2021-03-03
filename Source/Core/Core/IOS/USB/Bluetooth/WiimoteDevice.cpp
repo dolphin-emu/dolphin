@@ -725,11 +725,11 @@ void WiimoteDevice::SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_ou
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
 }
 
-constexpr u8 SDP_UINT8 = 0x08;
-constexpr u8 SDP_UINT16 = 0x09;
+[[maybe_unused]] constexpr u8 SDP_UINT8 = 0x08;
+[[maybe_unused]] constexpr u8 SDP_UINT16 = 0x09;
 constexpr u8 SDP_UINT32 = 0x0A;
 constexpr u8 SDP_SEQ8 = 0x35;
-constexpr u8 SDP_SEQ16 = 0x36;
+[[maybe_unused]] constexpr u8 SDP_SEQ16 = 0x36;
 
 void WiimoteDevice::SDPSendServiceSearchResponse(u16 cid, u16 transaction_id,
                                                  u8* service_search_pattern,
