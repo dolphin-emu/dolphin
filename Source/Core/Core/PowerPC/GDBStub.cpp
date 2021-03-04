@@ -834,7 +834,8 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
                              sockaddr* client_addr, socklen_t* client_addrlen)
 {
 #ifdef _WIN32
-  WSAStartup(MAKEWORD(2, 2), &InitData);
+  if (!gdb_active())
+    WSAStartup(MAKEWORD(2, 2), &InitData);
 #endif
 
   memset(bp_x, 0, sizeof bp_x);
