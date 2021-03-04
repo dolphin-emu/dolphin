@@ -4,6 +4,7 @@
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
+#include <optional>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -23,6 +24,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "Common/Logging/Log.h"
+#include "Common/SocketContext.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
@@ -30,6 +32,11 @@ typedef SSIZE_T ssize_t;
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PowerPC.h"
+
+namespace
+{
+std::optional<Common::SocketContext> s_socket_context;
+}  // namespace
 
 #define GDB_BFR_MAX 10000
 #define GDB_MAX_BP 10
@@ -791,10 +798,6 @@ void gdb_handle_exception()
   }
 }
 
-#ifdef _WIN32
-WSADATA InitData;
-#endif
-
 // exported functions
 
 static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
@@ -833,10 +836,7 @@ void gdb_init(u32 port)
 static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
                              sockaddr* client_addr, socklen_t* client_addrlen)
 {
-#ifdef _WIN32
-  WSAStartup(MAKEWORD(2, 2), &InitData);
-#endif
-
+  s_socket_context.emplace();
   memset(bp_x, 0, sizeof bp_x);
   memset(bp_r, 0, sizeof bp_r);
   memset(bp_w, 0, sizeof bp_w);
@@ -884,9 +884,7 @@ void gdb_deinit()
     sock = -1;
   }
 
-#ifdef _WIN32
-  WSACleanup();
-#endif
+  s_socket_context.reset();
 }
 
 bool gdb_active()
