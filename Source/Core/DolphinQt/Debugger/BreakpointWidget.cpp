@@ -22,6 +22,16 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+// Qt constants
+namespace
+{
+enum CustomRole
+{
+  ADDRESS_ROLE = Qt::UserRole,
+  IS_MEMCHECK_ROLE
+};
+}
+
 BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Breakpoints"));
@@ -167,7 +177,8 @@ void BreakpointWidget::Update()
 
     auto* active = create_item(bp.is_enabled ? tr("on") : tr("off"));
 
-    active->setData(Qt::UserRole, bp.address);
+    active->setData(ADDRESS_ROLE, bp.address);
+    active->setData(IS_MEMCHECK_ROLE, false);
 
     m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("BP")));
@@ -200,7 +211,8 @@ void BreakpointWidget::Update()
     m_table->setRowCount(i + 1);
     auto* active =
         create_item(mbp.is_enabled && (mbp.break_on_hit || mbp.log_on_hit) ? tr("on") : tr("off"));
-    active->setData(Qt::UserRole, mbp.start_address);
+    active->setData(ADDRESS_ROLE, mbp.start_address);
+    active->setData(IS_MEMCHECK_ROLE, true);
 
     m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("MBP")));
@@ -240,15 +252,24 @@ void BreakpointWidget::Update()
 
 void BreakpointWidget::OnDelete()
 {
-  if (m_table->selectedItems().empty())
+  const auto selected_items = m_table->selectedItems();
+  if (selected_items.empty())
     return;
 
-  auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
+  const auto item = selected_items.constFirst();
+  const auto address = item->data(ADDRESS_ROLE).toUInt();
+  const bool is_memcheck = item->data(IS_MEMCHECK_ROLE).toBool();
 
-  PowerPC::breakpoints.Remove(address);
-  Settings::Instance().blockSignals(true);
-  PowerPC::memchecks.Remove(address);
-  Settings::Instance().blockSignals(false);
+  if (is_memcheck)
+  {
+    Settings::Instance().blockSignals(true);
+    PowerPC::memchecks.Remove(address);
+    Settings::Instance().blockSignals(false);
+  }
+  else
+  {
+    PowerPC::breakpoints.Remove(address);
+  }
 
   emit BreakpointsChanged();
   Update();
@@ -321,39 +342,36 @@ void BreakpointWidget::OnContextMenu()
   }
 
   const auto& selected_item = selected_items.constFirst();
-  const auto bp_address = static_cast<u32>(selected_item->data(Qt::UserRole).toUInt());
-
-  auto is_memory_breakpoint = false;
+  const auto bp_address = static_cast<u32>(selected_item->data(ADDRESS_ROLE).toUInt());
+  const auto is_memory_breakpoint = selected_item->data(IS_MEMCHECK_ROLE).toBool();
 
   auto* menu = new QMenu(this);
 
-  const auto& inst_breakpoints = PowerPC::breakpoints.GetBreakPoints();
-  const auto bp_iter =
-      std::find_if(inst_breakpoints.begin(), inst_breakpoints.end(),
-                   [bp_address](const auto& bp) { return bp.address == bp_address; });
-  if (bp_iter != inst_breakpoints.end())
+  if (!is_memory_breakpoint)
   {
+    const auto& inst_breakpoints = PowerPC::breakpoints.GetBreakPoints();
+    const auto bp_iter =
+        std::find_if(inst_breakpoints.begin(), inst_breakpoints.end(),
+                     [bp_address](const auto& bp) { return bp.address == bp_address; });
+    if (bp_iter == inst_breakpoints.end())
+      return;
+
     menu->addAction(bp_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
       PowerPC::breakpoints.ToggleBreakPoint(bp_address);
 
       emit BreakpointsChanged();
       Update();
     });
+    menu->addAction(tr("Go to"), [this, bp_address] { emit SelectedBreakpoint(bp_address); });
   }
   else
   {
-    // It should be a memory breakpoint
     const auto& memory_breakpoints = PowerPC::memchecks.GetMemChecks();
     const auto mb_iter =
         std::find_if(memory_breakpoints.begin(), memory_breakpoints.end(),
                      [bp_address](const auto& bp) { return bp.start_address == bp_address; });
-
     if (mb_iter == memory_breakpoints.end())
-    {
       return;
-    }
-
-    is_memory_breakpoint = true;
 
     menu->addAction(mb_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
       PowerPC::memchecks.ToggleBreakPoint(bp_address);
@@ -363,10 +381,6 @@ void BreakpointWidget::OnContextMenu()
     });
   }
 
-  if (!is_memory_breakpoint)
-  {
-    menu->addAction(tr("Go to"), [this, bp_address]() { emit SelectedBreakpoint(bp_address); });
-  }
   menu->exec(QCursor::pos());
 }
 
