@@ -1484,6 +1484,12 @@ void Jit64::divwx(UGeckoInstruction inst)
         SHR(32, Rd, Imm8(31));
         SAR(32, R(RSCRATCH), Imm8(m.shift));
       }
+      else if (m.multiplier > 0)
+      {
+        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        SHR(32, R(RSCRATCH), Imm8(31));
+        SAR(64, R(Rd), Imm8(32 + m.shift));
+      }
       else
       {
         IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(m.multiplier));
