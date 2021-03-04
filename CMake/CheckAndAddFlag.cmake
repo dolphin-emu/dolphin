@@ -29,20 +29,27 @@ function(check_and_add_flag var flag)
 
   set(is_c "$<COMPILE_LANGUAGE:C>")
   set(is_cxx "$<COMPILE_LANGUAGE:CXX>")
+  set(test_flags_c)
+  set(test_flags_cxx)
 
   # The Visual Studio generators don't support COMPILE_LANGUAGE
   # So we fail all the C flags and only actually test CXX ones
   if(CMAKE_GENERATOR MATCHES "Visual Studio")
     set(is_c "0")
     set(is_cxx "1")
+  else()
+    # Otherwise assume the compile follows GCC syntax
+    # and fail when the option is known but invalid.
+    set(test_flags_c "${test_flags_c}-Werror ")
+    set(test_flags_cxx "${test_flags_cxx}-Werror ")
   endif()
 
-  check_c_compiler_flag(${flag} FLAG_C_${var})
+  check_c_compiler_flag("${test_flags_c}${flag}" FLAG_C_${var})
   if(FLAG_C_${var})
     add_compile_options("$<$<AND:${is_c},${genexp_config_test}>:${flag}>")
   endif()
 
-  check_cxx_compiler_flag(${flag} FLAG_CXX_${var})
+  check_cxx_compiler_flag("${test_flags_cxx}${flag}" FLAG_CXX_${var})
   if(FLAG_CXX_${var})
     add_compile_options("$<$<AND:${is_cxx},${genexp_config_test}>:${flag}>")
   endif()
