@@ -1566,7 +1566,6 @@ void Jit64::divwx(UGeckoInstruction inst)
 
     SetJumpTarget(overflow);
     SAR(32, eax, Imm8(31));
-    MOV(32, Rd, eax);
     if (inst.OE)
     {
       GenerateConstantOverflow(true);
@@ -1578,12 +1577,13 @@ void Jit64::divwx(UGeckoInstruction inst)
 
     CDQ();
     IDIV(32, Rb);
-    MOV(32, Rd, eax);
     if (inst.OE)
     {
       GenerateConstantOverflow(false);
     }
+
     SetJumpTarget(done);
+    MOV(32, Rd, eax);
   }
   if (inst.Rc)
     ComputeRC(d);
