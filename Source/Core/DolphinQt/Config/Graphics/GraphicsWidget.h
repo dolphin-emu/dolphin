@@ -6,15 +6,10 @@
 
 #include <QWidget>
 
-class QFormLayout;
-
 class GraphicsWidget : public QWidget
 {
   Q_OBJECT
 protected:
   virtual void LoadSettings() = 0;
   virtual void SaveSettings() = 0;
-
-private:
-  QFormLayout* m_main_layout;
 };
