@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/SocketContext.h"
 #include "Core/IOS/Device.h"
 
 #ifdef _WIN32
@@ -65,7 +66,6 @@ class NetIPTopDevice : public Device
 {
 public:
   NetIPTopDevice(Kernel& ios, const std::string& device_name);
-  virtual ~NetIPTopDevice();
 
   void DoState(PointerWrap& p) override;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
@@ -99,8 +99,6 @@ private:
   IPCReply HandleGetAddressInfoRequest(const IOCtlVRequest& request);
   IPCReply HandleICMPPingRequest(const IOCtlVRequest& request);
 
-#ifdef _WIN32
-  WSADATA InitData;
-#endif
+  Common::SocketContext m_socket_context;
 };
 }  // namespace IOS::HLE

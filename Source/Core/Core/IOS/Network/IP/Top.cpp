@@ -65,17 +65,6 @@ enum SOResultCode : s32
 NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name)
 {
-#ifdef _WIN32
-  const int ret = WSAStartup(MAKEWORD(2, 2), &InitData);
-  INFO_LOG_FMT(IOS_NET, "WSAStartup: {}", ret);
-#endif
-}
-
-NetIPTopDevice::~NetIPTopDevice()
-{
-#ifdef _WIN32
-  WSACleanup();
-#endif
 }
 
 void NetIPTopDevice::DoState(PointerWrap& p)
