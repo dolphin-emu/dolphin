@@ -1460,6 +1460,25 @@ void Jit64::divwx(UGeckoInstruction inst)
 
       SetJumpTarget(done);
     }
+    else if (divisor == 2 || divisor == -2)
+    {
+      X64Reg tmp = RSCRATCH;
+      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
+        tmp = Ra.GetSimpleReg();
+      else
+        MOV(32, R(tmp), Ra);
+
+      MOV(32, Rd, R(tmp));
+      SHR(32, Rd, Imm8(31));
+      ADD(32, Rd, R(tmp));
+      SAR(32, Rd, Imm8(1));
+
+      if (divisor < 0)
+        NEG(32, Rd);
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
     else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-divisor))
     {
       u32 abs_val = std::abs(divisor);
