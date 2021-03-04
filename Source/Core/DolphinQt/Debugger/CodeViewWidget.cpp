@@ -338,9 +338,19 @@ void CodeViewWidget::Update()
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
-      bp_item->setData(
-          Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2)));
+      auto icon =
+          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
+      if (!PowerPC::breakpoints.IsBreakPointEnable(addr))
+      {
+        QPixmap disabled_icon(icon.size());
+        disabled_icon.fill(Qt::transparent);
+        QPainter p(&disabled_icon);
+        p.setOpacity(0.20);
+        p.drawPixmap(0, 0, icon);
+        p.end();
+        icon = disabled_icon;
+      }
+      bp_item->setData(Qt::DecorationRole, icon);
     }
 
     setItem(i, CODE_VIEW_COLUMN_BREAKPOINT, bp_item);
