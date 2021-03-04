@@ -171,151 +171,166 @@ void FIFOAnalyzer::UpdateDetails()
   if (!FifoPlayer::GetInstance().IsPlaying())
     return;
 
-  auto items = m_tree_widget->selectedItems();
+  const auto items = m_tree_widget->selectedItems();
 
   if (items.isEmpty() || items[0]->data(0, OBJECT_ROLE).isNull())
     return;
 
-  int frame_nr = items[0]->data(0, FRAME_ROLE).toInt();
-  int object_nr = items[0]->data(0, OBJECT_ROLE).toInt();
+  const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
+  const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
 
   const auto& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u8* objectdata_start = &fifo_frame.fifoData[frame_info.objectStarts[object_nr]];
-  const u8* objectdata_end = &fifo_frame.fifoData[frame_info.objectEnds[object_nr]];
-  const u8* objectdata = objectdata_start;
-  const std::ptrdiff_t obj_offset =
-      objectdata_start - &fifo_frame.fifoData[frame_info.objectStarts[0]];
+  // Note that frame_info.objectStarts[object_nr] is the start of the primitive data,
+  // but we want to start with the register updates which happen before that.
+  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
+  const u32 object_nonprim_size = frame_info.objectStarts[object_nr] - object_start;
+  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
 
-  int cmd = *objectdata++;
-  int stream_size = Common::swap16(objectdata);
-  objectdata += 2;
+  const u8* const object = &fifo_frame.fifoData[object_start];
+
+  u32 object_offset = 0;
+  while (object_offset < object_nonprim_size)
+  {
+    QString new_label;
+    const u32 start_offset = object_offset;
+    m_object_data_offsets.push_back(start_offset);
+
+    const u8 command = object[object_offset++];
+    switch (command)
+    {
+    case OpcodeDecoder::GX_NOP:
+      new_label = QStringLiteral("NOP");
+      break;
+
+    case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
+      new_label = QStringLiteral("GX_CMD_UNKNOWN_METRICS");
+      break;
+
+    case OpcodeDecoder::GX_CMD_INVL_VC:
+      new_label = QStringLiteral("GX_CMD_INVL_VC");
+      break;
+
+    case OpcodeDecoder::GX_LOAD_CP_REG:
+    {
+      const u8 cmd2 = object[object_offset++];
+      const u32 value = Common::swap32(&object[object_offset]);
+      object_offset += 4;
+
+      const auto [name, desc] = GetCPRegInfo(cmd2, value);
+      ASSERT(!name.empty());
+
+      new_label = QStringLiteral("CP  %1  %2  %3")
+                      .arg(cmd2, 2, 16, QLatin1Char('0'))
+                      .arg(value, 8, 16, QLatin1Char('0'))
+                      .arg(QString::fromStdString(name));
+    }
+    break;
+
+    case OpcodeDecoder::GX_LOAD_XF_REG:
+    {
+      const auto [name, desc] = GetXFTransferInfo(&object[object_offset]);
+      const u32 cmd2 = Common::swap32(&object[object_offset]);
+      object_offset += 4;
+      ASSERT(!name.empty());
+
+      const u8 stream_size = ((cmd2 >> 16) & 15) + 1;
+
+      new_label = QStringLiteral("XF  %1  ").arg(cmd2, 8, 16, QLatin1Char('0'));
+
+      for (u8 i = 0; i < stream_size; i++)
+      {
+        const u32 value = Common::swap32(&object[object_offset]);
+        object_offset += 4;
+
+        new_label += QStringLiteral("%1 ").arg(value, 8, 16, QLatin1Char('0'));
+      }
+
+      new_label += QStringLiteral("  ") + QString::fromStdString(name);
+    }
+    break;
+
+    case OpcodeDecoder::GX_LOAD_INDX_A:
+      new_label = QStringLiteral("LOAD INDX A");
+      object_offset += 4;
+      break;
+    case OpcodeDecoder::GX_LOAD_INDX_B:
+      new_label = QStringLiteral("LOAD INDX B");
+      object_offset += 4;
+      break;
+    case OpcodeDecoder::GX_LOAD_INDX_C:
+      new_label = QStringLiteral("LOAD INDX C");
+      object_offset += 4;
+      break;
+    case OpcodeDecoder::GX_LOAD_INDX_D:
+      new_label = QStringLiteral("LOAD INDX D");
+      object_offset += 4;
+      break;
+
+    case OpcodeDecoder::GX_CMD_CALL_DL:
+      // The recorder should have expanded display lists into the fifo stream and skipped the
+      // call to start them
+      // That is done to make it easier to track where memory is updated
+      ASSERT(false);
+      object_offset += 8;
+      new_label = QStringLiteral("CALL DL");
+      break;
+
+    case OpcodeDecoder::GX_LOAD_BP_REG:
+    {
+      const u8 cmd2 = object[object_offset++];
+      const u32 cmddata = Common::swap24(&object[object_offset]);
+      object_offset += 3;
+
+      const auto [name, desc] = GetBPRegInfo(cmd2, cmddata);
+      ASSERT(!name.empty());
+
+      new_label = QStringLiteral("BP  %1  %2  %3")
+                      .arg(cmd2, 2, 16, QLatin1Char('0'))
+                      .arg(cmddata, 6, 16, QLatin1Char('0'))
+                      .arg(QString::fromStdString(name));
+    }
+    break;
+
+    default:
+      new_label = tr("Unexpected 0x80 call? Aborting...");
+      object_offset = object_nonprim_size;
+      break;
+    }
+    new_label = QStringLiteral("%1:  ").arg(object_start + start_offset, 8, 16, QLatin1Char('0')) +
+                new_label;
+    m_detail_list->addItem(new_label);
+  }
+
+  // Object primitive data
+  ASSERT(object_offset == object_nonprim_size);
+  m_object_data_offsets.push_back(object_offset);
+
+  const u8 cmd = object[object_offset++];
+  const u16 vertex_count = Common::swap16(&object[object_offset]);
+  object_offset += 2;
+
+  const u32 object_prim_size = object_size - object_offset;
+
   QString new_label = QStringLiteral("%1:  %2 %3  ")
-                          .arg(obj_offset, 8, 16, QLatin1Char('0'))
+                          .arg(object_start + object_offset, 8, 16, QLatin1Char('0'))
                           .arg(cmd, 2, 16, QLatin1Char('0'))
-                          .arg(stream_size, 4, 16, QLatin1Char('0'));
-  if (stream_size && ((objectdata_end - objectdata) % stream_size))
-    new_label += tr("NOTE: Stream size doesn't match actual data length\n");
+                          .arg(vertex_count, 4, 16, QLatin1Char('0'));
 
-  while (objectdata < objectdata_end)
-    new_label += QStringLiteral("%1").arg(*objectdata++, 2, 16, QLatin1Char('0'));
+  while (object_offset < object_size)
+  {
+    u32 byte = object[object_offset++];
+    new_label += QStringLiteral("%1").arg(byte, 2, 16, QLatin1Char('0'));
+  }
+
+  if (vertex_count != 0 && (object_prim_size % vertex_count) != 0)
+  {
+    new_label += QLatin1Char{'\n'};
+    new_label += tr("NOTE: Stream size doesn't match actual data length");
+  }
 
   m_detail_list->addItem(new_label);
-  m_object_data_offsets.push_back(0);
-
-  // Between objectdata_end and next_objdata_start, there are register setting commands
-  if (object_nr + 1 < static_cast<int>(frame_info.objectStarts.size()))
-  {
-    const u8* next_objdata_start = &fifo_frame.fifoData[frame_info.objectStarts[object_nr + 1]];
-    while (objectdata < next_objdata_start)
-    {
-      m_object_data_offsets.push_back(objectdata - objectdata_start);
-      int new_offset = objectdata - &fifo_frame.fifoData[frame_info.objectStarts[0]];
-      int command = *objectdata++;
-      switch (command)
-      {
-      case OpcodeDecoder::GX_NOP:
-        new_label = QStringLiteral("NOP");
-        break;
-
-      case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
-        new_label = QStringLiteral("GX_CMD_UNKNOWN_METRICS");
-        break;
-
-      case OpcodeDecoder::GX_CMD_INVL_VC:
-        new_label = QStringLiteral("GX_CMD_INVL_VC");
-        break;
-
-      case OpcodeDecoder::GX_LOAD_CP_REG:
-      {
-        u32 cmd2 = *objectdata++;
-        u32 value = Common::swap32(objectdata);
-        objectdata += 4;
-        const auto [name, desc] = GetCPRegInfo(cmd2, value);
-        ASSERT(!name.empty());
-
-        new_label = QStringLiteral("CP  %1  %2  %3")
-                        .arg(cmd2, 2, 16, QLatin1Char('0'))
-                        .arg(value, 8, 16, QLatin1Char('0'))
-                        .arg(QString::fromStdString(name));
-      }
-      break;
-
-      case OpcodeDecoder::GX_LOAD_XF_REG:
-      {
-        const auto [name, desc] = GetXFTransferInfo(objectdata);
-        u32 cmd2 = Common::swap32(objectdata);
-        objectdata += 4;
-        ASSERT(!name.empty());
-
-        u8 streamSize = ((cmd2 >> 16) & 15) + 1;
-
-        const u8* stream_start = objectdata;
-        const u8* stream_end = stream_start + streamSize * 4;
-
-        new_label = QStringLiteral("XF  %1  ").arg(cmd2, 8, 16, QLatin1Char('0'));
-        while (objectdata < stream_end)
-        {
-          new_label += QStringLiteral("%1").arg(*objectdata++, 2, 16, QLatin1Char('0'));
-
-          if (((objectdata - stream_start) % 4) == 0)
-            new_label += QLatin1Char(' ');
-        }
-
-        new_label += QStringLiteral("  ") + QString::fromStdString(name);
-      }
-      break;
-
-      case OpcodeDecoder::GX_LOAD_INDX_A:
-      case OpcodeDecoder::GX_LOAD_INDX_B:
-      case OpcodeDecoder::GX_LOAD_INDX_C:
-      case OpcodeDecoder::GX_LOAD_INDX_D:
-      {
-        objectdata += 4;
-        new_label = (command == OpcodeDecoder::GX_LOAD_INDX_A) ?
-                        QStringLiteral("LOAD INDX A") :
-                        (command == OpcodeDecoder::GX_LOAD_INDX_B) ?
-                        QStringLiteral("LOAD INDX B") :
-                        (command == OpcodeDecoder::GX_LOAD_INDX_C) ? QStringLiteral("LOAD INDX C") :
-                                                                     QStringLiteral("LOAD INDX D");
-      }
-      break;
-
-      case OpcodeDecoder::GX_CMD_CALL_DL:
-        // The recorder should have expanded display lists into the fifo stream and skipped the
-        // call to start them
-        // That is done to make it easier to track where memory is updated
-        ASSERT(false);
-        objectdata += 8;
-        new_label = QStringLiteral("CALL DL");
-        break;
-
-      case OpcodeDecoder::GX_LOAD_BP_REG:
-      {
-        const u8 cmd2 = *objectdata++;
-        const u32 cmddata = Common::swap24(objectdata);
-        objectdata += 3;
-
-        const auto [name, desc] = GetBPRegInfo(cmd2, cmddata);
-        ASSERT(!name.empty());
-
-        new_label = QStringLiteral("BP  %1  %2  %3")
-                        .arg(cmd2, 2, 16, QLatin1Char('0'))
-                        .arg(cmddata, 6, 16, QLatin1Char('0'))
-                        .arg(QString::fromStdString(name));
-      }
-      break;
-
-      default:
-        new_label = tr("Unexpected 0x80 call? Aborting...");
-        objectdata = static_cast<const u8*>(next_objdata_start);
-        break;
-      }
-      new_label = QStringLiteral("%1:  ").arg(new_offset, 8, 16, QLatin1Char('0')) + new_label;
-      m_detail_list->addItem(new_label);
-    }
-  }
 }
 
 void FIFOAnalyzer::BeginSearch()
@@ -474,20 +489,20 @@ void FIFOAnalyzer::UpdateDescription()
   if (!FifoPlayer::GetInstance().IsPlaying())
     return;
 
-  auto items = m_tree_widget->selectedItems();
+  const auto items = m_tree_widget->selectedItems();
 
   if (items.isEmpty() || m_object_data_offsets.empty())
     return;
 
-  int frame_nr = items[0]->data(0, FRAME_ROLE).toInt();
-  int object_nr = items[0]->data(0, OBJECT_ROLE).toInt();
-  int entry_nr = m_detail_list->currentRow();
+  const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
+  const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
+  const u32 entry_nr = m_detail_list->currentRow();
 
-  const AnalyzedFrameInfo& frame = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
+  const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u8* cmddata =
-      &fifo_frame.fifoData[frame.objectStarts[object_nr]] + m_object_data_offsets[entry_nr];
+  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
+  const u8* cmddata = &fifo_frame.fifoData[object_start + m_object_data_offsets[entry_nr]];
 
   // TODO: Not sure whether we should bother translating the descriptions
 
