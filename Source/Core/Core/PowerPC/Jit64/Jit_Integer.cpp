@@ -1460,6 +1460,27 @@ void Jit64::divwx(UGeckoInstruction inst)
 
       SetJumpTarget(done);
     }
+    else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-divisor))
+    {
+      u32 abs_val = std::abs(divisor);
+
+      X64Reg tmp = RSCRATCH;
+      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
+        tmp = Ra.GetSimpleReg();
+      else
+        MOV(32, R(tmp), Ra);
+
+      TEST(32, R(tmp), R(tmp));
+      LEA(32, Rd, MDisp(tmp, abs_val - 1));
+      CMOVcc(32, Rd, R(tmp), CC_NS);
+      SAR(32, Rd, Imm8(IntLog2(abs_val)));
+
+      if (divisor < 0)
+        NEG(32, Rd);
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
     else
     {
       // Optimize signed 32-bit integer division by a constant
