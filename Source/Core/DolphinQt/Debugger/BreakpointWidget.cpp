@@ -250,6 +250,7 @@ void BreakpointWidget::OnDelete()
   PowerPC::memchecks.Remove(address);
   Settings::Instance().blockSignals(false);
 
+  emit BreakpointsChanged();
   Update();
 }
 
@@ -261,6 +262,8 @@ void BreakpointWidget::OnClear()
   Settings::Instance().blockSignals(false);
 
   m_table->setRowCount(0);
+
+  emit BreakpointsChanged();
   Update();
 }
 
@@ -295,6 +298,7 @@ void BreakpointWidget::OnLoad()
     Settings::Instance().blockSignals(false);
   }
 
+  emit BreakpointsChanged();
   Update();
 }
 
@@ -331,6 +335,8 @@ void BreakpointWidget::OnContextMenu()
   {
     menu->addAction(bp_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
       PowerPC::breakpoints.ToggleBreakPoint(bp_address);
+
+      emit BreakpointsChanged();
       Update();
     });
   }
@@ -351,6 +357,8 @@ void BreakpointWidget::OnContextMenu()
 
     menu->addAction(mb_iter->is_enabled ? tr("Disable") : tr("Enable"), [this, &bp_address]() {
       PowerPC::memchecks.ToggleBreakPoint(bp_address);
+
+      emit BreakpointsChanged();
       Update();
     });
   }
@@ -371,6 +379,7 @@ void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on
 {
   PowerPC::breakpoints.Add(addr, temp, break_on_hit, log_on_hit);
 
+  emit BreakpointsChanged();
   Update();
 }
 
@@ -391,6 +400,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   PowerPC::memchecks.Add(check);
   Settings::Instance().blockSignals(false);
 
+  emit BreakpointsChanged();
   Update();
 }
 
@@ -411,5 +421,6 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   PowerPC::memchecks.Add(check);
   Settings::Instance().blockSignals(false);
 
+  emit BreakpointsChanged();
   Update();
 }
