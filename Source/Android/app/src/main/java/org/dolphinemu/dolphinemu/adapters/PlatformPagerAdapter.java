@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -18,6 +19,7 @@ import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment;
 public class PlatformPagerAdapter extends FragmentPagerAdapter
 {
   private Context mContext;
+  private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener;
 
   private final static int[] TAB_ICONS =
           {
@@ -26,17 +28,19 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
                   R.drawable.ic_folder
           };
 
-  public PlatformPagerAdapter(FragmentManager fm, Context context)
+  public PlatformPagerAdapter(FragmentManager fm, Context context,
+          SwipeRefreshLayout.OnRefreshListener onRefreshListener)
   {
     super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
     mContext = context;
+    mOnRefreshListener = onRefreshListener;
   }
 
   @NonNull
   @Override
   public Fragment getItem(int position)
   {
-    return PlatformGamesFragment.newInstance(Platform.fromPosition(position));
+    return PlatformGamesFragment.newInstance(Platform.fromPosition(position), mOnRefreshListener);
   }
 
   @Override

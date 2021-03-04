@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -28,6 +29,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
+import org.dolphinemu.dolphinemu.utils.Action1;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -38,7 +40,8 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
  * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
-public final class MainActivity extends AppCompatActivity implements MainView
+public final class MainActivity extends AppCompatActivity
+        implements MainView, SwipeRefreshLayout.OnRefreshListener
 {
   private ViewPager mViewPager;
   private Toolbar mToolbar;
@@ -79,6 +82,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
   {
     super.onResume();
 
+    boolean cacheAlreadyLoading = GameFileCacheService.isLoading();
+
     if (DirectoryInitialization.shouldStart(this))
     {
       DirectoryInitialization.start(this);
@@ -90,16 +95,18 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
-    refetchMetadata();
+    forEachPlatformGamesView(PlatformGamesView::refetchMetadata);
 
-    if (sShouldRescanLibrary)
+    if (sShouldRescanLibrary && !cacheAlreadyLoading)
     {
-      GameFileCacheService.startRescan(this);
+      new AfterDirectoryInitializationRunner().run(this, false, () ->
+      {
+        setRefreshing(true);
+        GameFileCacheService.startRescan(this);
+      });
     }
-    else
-    {
-      sShouldRescanLibrary = true;
-    }
+
+    sShouldRescanLibrary = true;
   }
 
   @Override
@@ -266,26 +273,42 @@ public final class MainActivity extends AppCompatActivity implements MainView
     return mPresenter.handleOptionSelection(item.getItemId(), this);
   }
 
-  public void showGames()
+  /**
+   * Called when the user requests a refresh by swiping down.
+   */
+  @Override
+  public void onRefresh()
   {
-    for (Platform platform : Platform.values())
-    {
-      PlatformGamesView fragment = getPlatformGamesView(platform);
-      if (fragment != null)
-      {
-        fragment.showGames();
-      }
-    }
+    setRefreshing(true);
+    GameFileCacheService.startRescan(this);
   }
 
-  private void refetchMetadata()
+  /**
+   * Shows or hides the loading indicator.
+   */
+  @Override
+  public void setRefreshing(boolean refreshing)
+  {
+    forEachPlatformGamesView(view -> view.setRefreshing(refreshing));
+  }
+
+  /**
+   * To be called when the game file cache is updated.
+   */
+  @Override
+  public void showGames()
+  {
+    forEachPlatformGamesView(PlatformGamesView::showGames);
+  }
+
+  private void forEachPlatformGamesView(Action1<PlatformGamesView> action)
   {
     for (Platform platform : Platform.values())
     {
       PlatformGamesView fragment = getPlatformGamesView(platform);
       if (fragment != null)
       {
-        fragment.refetchMetadata();
+        action.call(fragment);
       }
     }
   }
@@ -302,7 +325,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
   private void setPlatformTabsAndStartGameFileCacheService()
   {
     PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-            getSupportFragmentManager(), this);
+            getSupportFragmentManager(), this, this);
     mViewPager.setAdapter(platformPagerAdapter);
     mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
     mTabLayout.setupWithViewPager(mViewPager);
