@@ -142,6 +142,7 @@
     <ClInclude Include="Common\Semaphore.h" />
     <ClInclude Include="Common\SettingsHandler.h" />
     <ClInclude Include="Common\SFMLHelper.h" />
+    <ClInclude Include="Common\SocketContext.h" />
     <ClInclude Include="Common\SPSCQueue.h" />
     <ClInclude Include="Common\StringUtil.h" />
     <ClInclude Include="Common\Swap.h" />
@@ -718,6 +719,7 @@
     <ClCompile Include="Common\SDCardUtil.cpp" />
     <ClCompile Include="Common\SettingsHandler.cpp" />
     <ClCompile Include="Common\SFMLHelper.cpp" />
+    <ClCompile Include="Common\SocketContext.cpp" />
     <ClCompile Include="Common\StringUtil.cpp" />
     <ClCompile Include="Common\SymbolDB.cpp" />
     <ClCompile Include="Common\Thread.cpp" />
