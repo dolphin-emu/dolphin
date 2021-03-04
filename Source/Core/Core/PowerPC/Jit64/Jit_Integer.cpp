@@ -16,10 +16,12 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/JitCommon/DivUtils.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
+using namespace JitCommon;
 
 void Jit64::GenerateConstantOverflow(s64 val)
 {
@@ -1412,6 +1414,88 @@ void Jit64::divwx(UGeckoInstruction inst)
         GenerateConstantOverflow(false);
 
       SetJumpTarget(done);
+    }
+  }
+  else if (gpr.IsImm(b))
+  {
+    // Constant divisor
+    const s32 divisor = gpr.SImm32(b);
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+
+    // Handle 0, 1, and -1 explicitly
+    if (divisor == 0)
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+      SAR(32, Rd, Imm8(31));
+      if (inst.OE)
+        GenerateConstantOverflow(true);
+    }
+    else if (divisor == 1)
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (divisor == -1)
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+
+      CMP(32, Rd, Imm32(0x80000000));
+      const FixupBranch normal = J_CC(CC_NE);
+
+      MOV(32, Rd, Imm32(0xFFFFFFFF));
+      if (inst.OE)
+        GenerateConstantOverflow(true);
+      const FixupBranch done = J();
+
+      SetJumpTarget(normal);
+      NEG(32, Rd);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+
+      SetJumpTarget(done);
+    }
+    else
+    {
+      // Optimize signed 32-bit integer division by a constant
+      Magic m = SignedDivisionConstants(divisor);
+
+      MOVSX(64, 32, RSCRATCH, Ra);
+
+      if (divisor > 0 && m.multiplier < 0)
+      {
+        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        SHR(64, Rd, Imm8(32));
+        ADD(32, Rd, R(RSCRATCH));
+        SHR(32, R(RSCRATCH), Imm8(31));
+        SAR(32, Rd, Imm8(m.shift));
+      }
+      else if (divisor < 0 && m.multiplier > 0)
+      {
+        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        SHR(64, R(RSCRATCH), Imm8(32));
+        SUB(32, R(RSCRATCH), Rd);
+        MOV(32, Rd, R(RSCRATCH));
+        SHR(32, Rd, Imm8(31));
+        SAR(32, R(RSCRATCH), Imm8(m.shift));
+      }
+      else
+      {
+        IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(m.multiplier));
+        MOV(64, Rd, R(RSCRATCH));
+        SHR(64, R(RSCRATCH), Imm8(63));
+        SAR(64, R(Rd), Imm8(32 + m.shift));
+      }
+
+      ADD(32, Rd, R(RSCRATCH));
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
     }
   }
   else
