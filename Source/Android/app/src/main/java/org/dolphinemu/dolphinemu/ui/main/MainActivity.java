@@ -23,6 +23,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
@@ -127,10 +128,17 @@ public final class MainActivity extends AppCompatActivity
   protected void onStop()
   {
     super.onStop();
+
     if (isChangingConfigurations())
     {
       skipRescanningLibrary();
     }
+    else if (DirectoryInitialization.areDolphinDirectoriesReady())
+    {
+      // If the currently selected platform tab changed, save it to disk
+      NativeConfig.save(NativeConfig.LAYER_BASE);
+    }
+
     StartupHandler.setSessionTime(this);
   }
 
@@ -335,16 +343,7 @@ public final class MainActivity extends AppCompatActivity
       public void onTabSelected(@NonNull TabLayout.Tab tab)
       {
         super.onTabSelected(tab);
-
-        try (Settings settings = new Settings())
-        {
-          settings.loadSettings();
-
-          IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
-
-          // Context is set to null to avoid toasts
-          settings.saveSettings(null, null);
-        }
+        IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE, tab.getPosition());
       }
     });
 

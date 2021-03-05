@@ -279,4 +279,9 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
+
+  public void setBooleanGlobal(int layer, boolean newValue)
+  {
+    NativeConfig.setBoolean(layer, mFile, mSection, mKey, newValue);
+  }
 }
