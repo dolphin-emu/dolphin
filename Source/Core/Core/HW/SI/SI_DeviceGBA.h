@@ -28,7 +28,8 @@ public:
   bool IsConnected();
   void ClockSync();
   void Send(const u8* si_buffer);
-  int Receive(u8* si_buffer);
+  int Receive(u8* si_buffer, u8 bytes);
+  void Flush();
 
 private:
   void Disconnect();
