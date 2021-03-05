@@ -202,6 +202,8 @@ private:
     bool HandleExceptions(const u8* data, size_t bytes_allocated, size_t bytes_written,
                           size_t* bytes_used, bool align);
 
+    size_t GetOutBytesWrittenExcludingExceptions() const;
+
     DecompressionBuffer m_in;
     DecompressionBuffer m_out;
     size_t m_in_bytes_read = 0;
