@@ -110,6 +110,8 @@ add_library(common
   SettingsHandler.h
   SFMLHelper.cpp
   SFMLHelper.h
+  SocketContext.cpp
+  SocketContext.h
   SPSCQueue.h
   StringUtil.cpp
   StringUtil.h
