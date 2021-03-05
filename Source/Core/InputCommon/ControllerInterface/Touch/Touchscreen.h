@@ -15,9 +15,9 @@ private:
   class Button : public Input
   {
   public:
-    std::string GetName() const;
+    std::string GetName() const override;
     Button(int pad_id, ButtonManager::ButtonType index) : m_pad_id(pad_id), m_index(index) {}
-    ControlState GetState() const;
+    ControlState GetState() const override;
 
   private:
     const int m_pad_id;
@@ -26,13 +26,13 @@ private:
   class Axis : public Input
   {
   public:
-    std::string GetName() const;
+    std::string GetName() const override;
     bool IsDetectable() const override { return false; }
     Axis(int pad_id, ButtonManager::ButtonType index, float neg = 1.0f)
         : m_pad_id(pad_id), m_index(index), m_neg(neg)
     {
     }
-    ControlState GetState() const;
+    ControlState GetState() const override;
 
   private:
     const int m_pad_id;
@@ -56,8 +56,8 @@ private:
 public:
   Touchscreen(int pad_id, bool accelerometer_enabled, bool gyroscope_enabled);
   ~Touchscreen() {}
-  std::string GetName() const;
-  std::string GetSource() const;
+  std::string GetName() const override;
+  std::string GetSource() const override;
 
 private:
   const int m_pad_id;
