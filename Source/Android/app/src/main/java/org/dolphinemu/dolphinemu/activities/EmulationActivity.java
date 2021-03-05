@@ -44,16 +44,13 @@ import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
-import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
-import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
-import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.io.File;
 import java.lang.annotation.Retention;
@@ -245,14 +242,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
 
-    if (TvUtil.isLeanback(getApplicationContext()))
-    {
-      TvMainActivity.skipRescanningLibrary();
-    }
-    else
-    {
-      MainActivity.skipRescanningLibrary();
-    }
+    MainPresenter.skipRescanningLibrary();
 
     if (savedInstanceState == null)
     {
@@ -414,7 +404,7 @@ public final class EmulationActivity extends AppCompatActivity
     if (requestCode == REQUEST_CHANGE_DISC)
     {
       // If the user picked a file, as opposed to just backing out.
-      if (resultCode == MainActivity.RESULT_OK)
+      if (resultCode == RESULT_OK)
       {
         NativeLibrary.ChangeDisc(result.getData().toString());
       }

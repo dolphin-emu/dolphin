@@ -28,7 +28,6 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -42,8 +41,6 @@ import java.util.Collection;
 public final class TvMainActivity extends FragmentActivity
         implements MainView, SwipeRefreshLayout.OnRefreshListener
 {
-  private static boolean sShouldRescanLibrary = true;
-
   private final MainPresenter mPresenter = new MainPresenter(this, this);
 
   private SwipeRefreshLayout mSwipeRefresh;
@@ -74,7 +71,7 @@ public final class TvMainActivity extends FragmentActivity
   {
     super.onResume();
 
-    boolean cacheAlreadyLoading = GameFileCacheService.isLoading();
+    mPresenter.onResume();
 
     if (DirectoryInitialization.shouldStart(this))
     {
@@ -82,22 +79,9 @@ public final class TvMainActivity extends FragmentActivity
       GameFileCacheService.startLoad(this);
     }
 
-    mPresenter.addDirIfNeeded();
-
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
     refetchMetadata();
-
-    if (sShouldRescanLibrary && !cacheAlreadyLoading)
-    {
-      new AfterDirectoryInitializationRunner().run(this, false, () ->
-      {
-        setRefreshing(true);
-        GameFileCacheService.startRescan(this);
-      });
-    }
-
-    sShouldRescanLibrary = true;
   }
 
   @Override
@@ -118,10 +102,12 @@ public final class TvMainActivity extends FragmentActivity
   protected void onStop()
   {
     super.onStop();
+
     if (isChangingConfigurations())
     {
-      skipRescanningLibrary();
+      MainPresenter.skipRescanningLibrary();
     }
+
     StartupHandler.setSessionTime(this);
   }
 
@@ -247,7 +233,7 @@ public final class TvMainActivity extends FragmentActivity
     super.onActivityResult(requestCode, resultCode, result);
 
     // If the user picked a file, as opposed to just backing out.
-    if (resultCode == MainActivity.RESULT_OK)
+    if (resultCode == RESULT_OK)
     {
       Uri uri = result.getData();
       switch (requestCode)
@@ -282,7 +268,7 @@ public final class TvMainActivity extends FragmentActivity
     }
     else
     {
-      skipRescanningLibrary();
+      MainPresenter.skipRescanningLibrary();
     }
   }
 
@@ -397,10 +383,5 @@ public final class TvMainActivity extends FragmentActivity
             new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
 
     return new ListRow(header, rowItems);
-  }
-
-  public static void skipRescanningLibrary()
-  {
-    sShouldRescanLibrary = false;
   }
 }

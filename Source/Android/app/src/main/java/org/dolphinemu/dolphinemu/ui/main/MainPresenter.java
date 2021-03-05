@@ -36,6 +36,8 @@ public final class MainPresenter
   public static final int REQUEST_WAD_FILE = 4;
   public static final int REQUEST_WII_SAVE_FILE = 5;
 
+  private static boolean sShouldRescanLibrary = true;
+
   private final MainView mView;
   private final Context mContext;
   private BroadcastReceiver mBroadcastReceiver = null;
@@ -122,13 +124,24 @@ public final class MainPresenter
     return false;
   }
 
-  public void addDirIfNeeded()
+  public void onResume()
   {
     if (mDirToAdd != null)
     {
       GameFileCache.addGameFolder(mDirToAdd);
       mDirToAdd = null;
     }
+
+    if (sShouldRescanLibrary && !GameFileCacheService.isLoading())
+    {
+      new AfterDirectoryInitializationRunner().run(mContext, false, () ->
+      {
+        mView.setRefreshing(true);
+        GameFileCacheService.startRescan(mContext);
+      });
+    }
+
+    sShouldRescanLibrary = true;
   }
 
   /**
@@ -262,5 +275,10 @@ public final class MainPresenter
         }
       });
     }, mContext.getResources().getString(progressMessage)).start();
+  }
+
+  public static void skipRescanningLibrary()
+  {
+    sShouldRescanLibrary = false;
   }
 }
