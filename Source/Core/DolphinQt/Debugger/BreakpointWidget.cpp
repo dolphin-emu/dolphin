@@ -6,6 +6,7 @@
 
 #include <QHeaderView>
 #include <QMenu>
+#include <QSignalBlocker>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -262,9 +263,8 @@ void BreakpointWidget::OnDelete()
 
   if (is_memcheck)
   {
-    Settings::Instance().blockSignals(true);
+    const QSignalBlocker blocker(Settings::Instance());
     PowerPC::memchecks.Remove(address);
-    Settings::Instance().blockSignals(false);
   }
   else
   {
@@ -278,9 +278,10 @@ void BreakpointWidget::OnDelete()
 void BreakpointWidget::OnClear()
 {
   PowerPC::debug_interface.ClearAllBreakpoints();
-  Settings::Instance().blockSignals(true);
-  PowerPC::debug_interface.ClearAllMemChecks();
-  Settings::Instance().blockSignals(false);
+  {
+    const QSignalBlocker blocker(Settings::Instance());
+    PowerPC::debug_interface.ClearAllMemChecks();
+  }
 
   m_table->setRowCount(0);
 
@@ -314,9 +315,8 @@ void BreakpointWidget::OnLoad()
   if (ini.GetLines("MemoryBreakPoints", &new_mcs, false))
   {
     PowerPC::memchecks.Clear();
-    Settings::Instance().blockSignals(true);
+    const QSignalBlocker blocker(Settings::Instance());
     PowerPC::memchecks.AddFromStrings(new_mcs);
-    Settings::Instance().blockSignals(false);
   }
 
   emit BreakpointsChanged();
@@ -410,9 +410,10 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
 
-  Settings::Instance().blockSignals(true);
-  PowerPC::memchecks.Add(check);
-  Settings::Instance().blockSignals(false);
+  {
+    const QSignalBlocker blocker(Settings::Instance());
+    PowerPC::memchecks.Add(check);
+  }
 
   emit BreakpointsChanged();
   Update();
@@ -431,9 +432,10 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
 
-  Settings::Instance().blockSignals(true);
-  PowerPC::memchecks.Add(check);
-  Settings::Instance().blockSignals(false);
+  {
+    const QSignalBlocker blocker(Settings::Instance());
+    PowerPC::memchecks.Add(check);
+  }
 
   emit BreakpointsChanged();
   Update();
