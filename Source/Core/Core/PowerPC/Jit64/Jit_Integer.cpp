@@ -1447,8 +1447,8 @@ void Jit64::divwx(UGeckoInstruction inst)
       if (d != a)
         MOV(32, Rd, Ra);
 
-      CMP(32, Rd, Imm32(0x80000000));
-      const FixupBranch normal = J_CC(CC_NE);
+      NEG(32, Rd);
+      const FixupBranch normal = J_CC(CC_NO);
 
       MOV(32, Rd, Imm32(0xFFFFFFFF));
       if (inst.OE)
@@ -1456,7 +1456,6 @@ void Jit64::divwx(UGeckoInstruction inst)
       const FixupBranch done = J();
 
       SetJumpTarget(normal);
-      NEG(32, Rd);
       if (inst.OE)
         GenerateConstantOverflow(false);
 
