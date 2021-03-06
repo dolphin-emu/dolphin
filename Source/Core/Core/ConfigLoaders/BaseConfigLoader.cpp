@@ -68,8 +68,7 @@ void SaveToSYSCONF(Config::LayerType layer, std::function<bool(const Config::Loc
         setting.config_info);
   }
 
-  if (SConfig::GetInstance().bEnableCustomRTC)
-    sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
+  sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
 
   // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
   // shutdown commands in the State Transition Manager (STM).

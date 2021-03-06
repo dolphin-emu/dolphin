@@ -136,8 +136,7 @@ CEXIIPL::CEXIIPL()
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
   g_SRAM.settings.language = SConfig::GetInstance().SelectedLanguage;
-  if (SConfig::GetInstance().bEnableCustomRTC)
-    g_SRAM.settings.rtc_bias = 0;
+  g_SRAM.settings.rtc_bias = 0;
   FixSRAMChecksums();
 }
 
