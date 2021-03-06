@@ -446,11 +446,12 @@ void NetPlayDialog::OnStart()
   settings.m_EnableCheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
   settings.m_SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
   settings.m_OverrideRegionSettings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
-  settings.m_ProgressiveScan = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  settings.m_PAL60 = Config::Get(Config::SYSCONF_PAL60);
   settings.m_DSPHLE = Config::Get(Config::MAIN_DSP_HLE);
   settings.m_DSPEnableJIT = Config::Get(Config::MAIN_DSP_JIT);
   settings.m_WriteToMemcard = m_save_sd_action->isChecked();
+  settings.m_Mem1Size = Config::Get(Config::MAIN_MEM1_SIZE);
+  settings.m_Mem2Size = Config::Get(Config::MAIN_MEM2_SIZE);
+  settings.m_FallbackRegion = Config::Get(Config::MAIN_FALLBACK_REGION);
   settings.m_CopyWiiSave = m_load_wii_action->isChecked();
   settings.m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   settings.m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
@@ -460,6 +461,17 @@ void NetPlayDialog::OnStart()
       static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_B));
   // There's no way the BBA is going to sync, disable it
   settings.m_EXIDevice[2] = ExpansionInterface::EXIDEVICE_NONE;
+
+  for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
+  {
+    std::visit(
+        [&](auto* info) {
+          static_assert(sizeof(info->GetDefaultValue()) <= sizeof(u32));
+          settings.m_SYSCONFSettings[i] = static_cast<u32>(Config::Get(*info));
+        },
+        Config::SYSCONF_SETTINGS[i].config_info);
+  }
+
   settings.m_EFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   settings.m_BBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
   settings.m_ForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);

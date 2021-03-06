@@ -6,9 +6,15 @@
 
 #include <array>
 #include <vector>
+
 #include "Common/CommonTypes.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace DiscIO
+{
+enum class Region;
+}
 namespace IOS::HLE::FS
 {
 class FileSystem;
@@ -27,15 +33,19 @@ struct NetSettings
   bool m_EnableCheats;
   int m_SelectedLanguage;
   bool m_OverrideRegionSettings;
-  bool m_ProgressiveScan;
-  bool m_PAL60;
   bool m_DSPHLE;
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
+  u32 m_Mem1Size;
+  u32 m_Mem2Size;
+  DiscIO::Region m_FallbackRegion;
   bool m_CopyWiiSave;
   bool m_OCEnable;
   float m_OCFactor;
   std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
+
+  std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings;
+
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
   bool m_ForceProgressive;
@@ -76,6 +86,7 @@ struct NetSettings
   bool m_DeferEFBCopies;
   bool m_EFBAccessTileSize;
   bool m_EFBAccessDeferInvalidation;
+
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
   bool m_SyncCodes;

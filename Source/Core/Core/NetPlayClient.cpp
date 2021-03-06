@@ -654,11 +654,18 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_EnableCheats;
       packet >> m_net_settings.m_SelectedLanguage;
       packet >> m_net_settings.m_OverrideRegionSettings;
-      packet >> m_net_settings.m_ProgressiveScan;
-      packet >> m_net_settings.m_PAL60;
       packet >> m_net_settings.m_DSPEnableJIT;
       packet >> m_net_settings.m_DSPHLE;
       packet >> m_net_settings.m_WriteToMemcard;
+      packet >> m_net_settings.m_Mem1Size;
+      packet >> m_net_settings.m_Mem2Size;
+
+      {
+        std::underlying_type_t<DiscIO::Region> tmp;
+        packet >> tmp;
+        m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
+      }
+
       packet >> m_net_settings.m_CopyWiiSave;
       packet >> m_net_settings.m_OCEnable;
       packet >> m_net_settings.m_OCFactor;
@@ -669,6 +676,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         packet >> tmp;
         device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
       }
+
+      for (u32& value : m_net_settings.m_SYSCONFSettings)
+        packet >> value;
 
       packet >> m_net_settings.m_EFBAccessEnable;
       packet >> m_net_settings.m_BBoxEnable;
