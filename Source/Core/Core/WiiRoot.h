@@ -15,6 +15,8 @@ enum class RestoreReason
 void InitializeWiiRoot(bool use_temporary);
 void ShutdownWiiRoot();
 
+bool WiiRootIsTemporary();
+
 void BackupWiiSettings();
 void RestoreWiiSettings(RestoreReason reason);
 

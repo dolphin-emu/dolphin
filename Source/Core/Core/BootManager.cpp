@@ -433,11 +433,23 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
-  // Ensure any new settings are written to the SYSCONF
   if (StartUp.bWii)
   {
-    Core::BackupWiiSettings();
-    ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+    const bool want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
+    Core::InitializeWiiRoot(want_determinism);
+
+    // Ensure any new settings are written to the SYSCONF
+    if (!want_determinism)
+    {
+      Core::BackupWiiSettings();
+      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+    }
+    else
+    {
+      ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta, [](const Config::Location& location) {
+        return Config::GetActiveLayerForConfig(location) >= Config::LayerType::Movie;
+      });
+    }
   }
 
   const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
@@ -486,8 +498,14 @@ static void RestoreSYSCONF()
 
 void RestoreConfig()
 {
-  Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
-  RestoreSYSCONF();
+  Core::ShutdownWiiRoot();
+
+  if (!Core::WiiRootIsTemporary())
+  {
+    Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
+    RestoreSYSCONF();
+  }
+
   Config::ClearCurrentRunLayer();
   Config::RemoveLayer(Config::LayerType::Movie);
   Config::RemoveLayer(Config::LayerType::Netplay);
