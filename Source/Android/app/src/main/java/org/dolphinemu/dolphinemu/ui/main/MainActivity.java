@@ -47,7 +47,6 @@ public final class MainActivity extends AppCompatActivity
   private Toolbar mToolbar;
   private TabLayout mTabLayout;
   private FloatingActionButton mFab;
-  private static boolean sShouldRescanLibrary = true;
 
   private final MainPresenter mPresenter = new MainPresenter(this, this);
 
@@ -82,7 +81,7 @@ public final class MainActivity extends AppCompatActivity
   {
     super.onResume();
 
-    boolean cacheAlreadyLoading = GameFileCacheService.isLoading();
+    mPresenter.onResume();
 
     if (DirectoryInitialization.shouldStart(this))
     {
@@ -91,22 +90,9 @@ public final class MainActivity extends AppCompatActivity
               .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
 
-    mPresenter.addDirIfNeeded();
-
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
     forEachPlatformGamesView(PlatformGamesView::refetchMetadata);
-
-    if (sShouldRescanLibrary && !cacheAlreadyLoading)
-    {
-      new AfterDirectoryInitializationRunner().run(this, false, () ->
-      {
-        setRefreshing(true);
-        GameFileCacheService.startRescan(this);
-      });
-    }
-
-    sShouldRescanLibrary = true;
   }
 
   @Override
@@ -129,7 +115,7 @@ public final class MainActivity extends AppCompatActivity
     super.onStop();
     if (isChangingConfigurations())
     {
-      skipRescanningLibrary();
+      MainPresenter.skipRescanningLibrary();
     }
     StartupHandler.setSessionTime(this);
   }
@@ -201,7 +187,7 @@ public final class MainActivity extends AppCompatActivity
     super.onActivityResult(requestCode, resultCode, result);
 
     // If the user picked a file, as opposed to just backing out.
-    if (resultCode == MainActivity.RESULT_OK)
+    if (resultCode == RESULT_OK)
     {
       Uri uri = result.getData();
       switch (requestCode)
@@ -236,7 +222,7 @@ public final class MainActivity extends AppCompatActivity
     }
     else
     {
-      skipRescanningLibrary();
+      MainPresenter.skipRescanningLibrary();
     }
   }
 
@@ -352,10 +338,5 @@ public final class MainActivity extends AppCompatActivity
 
     showGames();
     GameFileCacheService.startLoad(this);
-  }
-
-  public static void skipRescanningLibrary()
-  {
-    sShouldRescanLibrary = false;
   }
 }
