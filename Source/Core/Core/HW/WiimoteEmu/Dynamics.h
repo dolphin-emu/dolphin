@@ -15,6 +15,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
+#include "InputCommon/ControllerEmu/ControlGroup/SensorBar.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu

@@ -53,6 +53,7 @@ enum class WiimoteGroup
   IMUAccelerometer,
   IMUGyroscope,
   IMUPoint,
+  SensorBar,
 };
 
 enum class NunchukGroup;
@@ -257,6 +258,7 @@ private:
   ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
   ControllerEmu::IMUGyroscope* m_imu_gyroscope;
   ControllerEmu::IMUCursor* m_imu_ir;
+  ControllerEmu::SensorBar* m_sensor_bar;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
