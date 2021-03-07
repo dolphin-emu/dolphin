@@ -47,6 +47,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
+#include "InputCommon/ControllerEmu/ControlGroup/SensorBar.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu
@@ -238,6 +239,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);
 
+  groups.emplace_back(m_sensor_bar =
+                          new ControllerEmu::SensorBar("SensorBar", _trans("Sensor Bar")));
+
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
@@ -337,6 +341,8 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
     return m_imu_gyroscope;
   case WiimoteGroup::IMUPoint:
     return m_imu_ir;
+  case WiimoteGroup::SensorBar:
+    return m_sensor_bar;
   default:
     assert(false);
     return nullptr;
