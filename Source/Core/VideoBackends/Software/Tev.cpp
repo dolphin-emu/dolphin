@@ -172,11 +172,11 @@ static inline s16 Clamp1024(s16 in)
   return in > 1023 ? 1023 : (in < -1024 ? -1024 : in);
 }
 
-void Tev::SetRasColor(int colorChan, int swaptable)
+void Tev::SetRasColor(RasColorChan colorChan, int swaptable)
 {
   switch (colorChan)
   {
-  case 0:  // Color0
+  case RasColorChan::Color0:
   {
     const u8* color = Color[0];
     RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
@@ -186,7 +186,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
     RasColor[ALP_C] = color[bpmem.tevksel[swaptable].swap2];
   }
   break;
-  case 1:  // Color1
+  case RasColorChan::Color1:
   {
     const u8* color = Color[1];
     RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
@@ -196,7 +196,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
     RasColor[ALP_C] = color[bpmem.tevksel[swaptable].swap2];
   }
   break;
-  case 5:  // alpha bump
+  case RasColorChan::AlphaBump:
   {
     for (s16& comp : RasColor)
     {
@@ -204,7 +204,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
     }
   }
   break;
-  case 6:  // alpha bump normalized
+  case RasColorChan::NormalizedAlphaBump:
   {
     const u8 normalized = AlphaBump | AlphaBump >> 5;
     for (s16& comp : RasColor)
@@ -213,8 +213,11 @@ void Tev::SetRasColor(int colorChan, int swaptable)
     }
   }
   break;
-  default:  // zero
+  default:
   {
+    if (colorChan != RasColorChan::Zero)
+      PanicAlertFmt("Invalid ras color channel: {}", colorChan);
+
     for (s16& comp : RasColor)
     {
       comp = 0;
@@ -226,22 +229,24 @@ void Tev::SetRasColor(int colorChan, int swaptable)
 
 void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
-  for (int i = 0; i < 3; i++)
+  for (int i = BLU_C; i <= RED_C; i++)
   {
-    const InputRegType& InputReg = inputs[BLU_C + i];
+    const InputRegType& InputReg = inputs[i];
 
     const u16 c = InputReg.c + (InputReg.c >> 7);
 
     s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-    temp <<= m_ScaleLShiftLUT[cc.shift];
-    temp += (cc.shift == 3) ? 0 : (cc.op == 1) ? 127 : 128;
+    temp <<= m_ScaleLShiftLUT[u32(cc.scale.Value())];
+    temp += (cc.scale == TevScale::Divide2) ? 0 : (cc.op == TevOp::Sub) ? 127 : 128;
     temp >>= 8;
-    temp = cc.op ? -temp : temp;
+    temp = cc.op == TevOp::Sub ? -temp : temp;
 
-    s32 result = ((InputReg.d + m_BiasLUT[cc.bias]) << m_ScaleLShiftLUT[cc.shift]) + temp;
-    result = result >> m_ScaleRShiftLUT[cc.shift];
+    s32 result = ((InputReg.d + m_BiasLUT[u32(cc.bias.Value())])
+                  << m_ScaleLShiftLUT[u32(cc.scale.Value())]) +
+                 temp;
+    result = result >> m_ScaleRShiftLUT[u32(cc.scale.Value())];
 
-    Reg[cc.dest][BLU_C + i] = result;
+    Reg[u32(cc.dest.Value())][i] = result;
   }
 }
 
@@ -249,56 +254,38 @@ void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const Inpu
 {
   for (int i = BLU_C; i <= RED_C; i++)
   {
-    switch ((cc.shift << 1) | cc.op | 8)  // encoded compare mode
+    u32 a, b;
+    switch (cc.compare_mode)
     {
-    case TEVCMP_R8_GT:
-      Reg[cc.dest][i] = inputs[i].d + ((inputs[RED_C].a > inputs[RED_C].b) ? inputs[i].c : 0);
+    case TevCompareMode::R8:
+      a = inputs[RED_C].a;
+      b = inputs[RED_C].b;
       break;
 
-    case TEVCMP_R8_EQ:
-      Reg[cc.dest][i] = inputs[i].d + ((inputs[RED_C].a == inputs[RED_C].b) ? inputs[i].c : 0);
+    case TevCompareMode::GR16:
+      a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+      b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
       break;
 
-    case TEVCMP_GR16_GT:
-    {
-      const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-      Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
-    }
-    break;
-
-    case TEVCMP_GR16_EQ:
-    {
-      const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-      Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
-    }
-    break;
-
-    case TEVCMP_BGR24_GT:
-    {
-      const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-      Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
-    }
-    break;
-
-    case TEVCMP_BGR24_EQ:
-    {
-      const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-      const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-      Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
-    }
-    break;
-
-    case TEVCMP_RGB8_GT:
-      Reg[cc.dest][i] = inputs[i].d + ((inputs[i].a > inputs[i].b) ? inputs[i].c : 0);
+    case TevCompareMode::BGR24:
+      a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+      b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
       break;
 
-    case TEVCMP_RGB8_EQ:
-      Reg[cc.dest][i] = inputs[i].d + ((inputs[i].a == inputs[i].b) ? inputs[i].c : 0);
+    case TevCompareMode::RGB8:
+      a = inputs[i].a;
+      b = inputs[i].b;
       break;
+
+    default:
+      PanicAlertFmt("Invalid compare mode {}", cc.compare_mode);
+      continue;
     }
+
+    if (cc.comparison == TevComparison::GT)
+      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
+    else
+      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
   }
 }
 
@@ -309,95 +296,76 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
   const u16 c = InputReg.c + (InputReg.c >> 7);
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-  temp <<= m_ScaleLShiftLUT[ac.shift];
-  temp += (ac.shift != 3) ? 0 : (ac.op == 1) ? 127 : 128;
-  temp = ac.op ? (-temp >> 8) : (temp >> 8);
+  temp <<= m_ScaleLShiftLUT[u32(ac.scale.Value())];
+  temp += (ac.scale != TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
+  temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
-  s32 result = ((InputReg.d + m_BiasLUT[ac.bias]) << m_ScaleLShiftLUT[ac.shift]) + temp;
-  result = result >> m_ScaleRShiftLUT[ac.shift];
+  s32 result =
+      ((InputReg.d + m_BiasLUT[u32(ac.bias.Value())]) << m_ScaleLShiftLUT[u32(ac.scale.Value())]) +
+      temp;
+  result = result >> m_ScaleRShiftLUT[u32(ac.scale.Value())];
 
-  Reg[ac.dest][ALP_C] = result;
+  Reg[u32(ac.dest.Value())][ALP_C] = result;
 }
 
 void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
 {
-  switch ((ac.shift << 1) | ac.op | 8)  // encoded compare mode
+  u32 a, b;
+  switch (ac.compare_mode)
   {
-  case TEVCMP_R8_GT:
-    Reg[ac.dest][ALP_C] =
-        inputs[ALP_C].d + ((inputs[RED_C].a > inputs[RED_C].b) ? inputs[ALP_C].c : 0);
+  case TevCompareMode::R8:
+    a = inputs[RED_C].a;
+    b = inputs[RED_C].b;
     break;
 
-  case TEVCMP_R8_EQ:
-    Reg[ac.dest][ALP_C] =
-        inputs[ALP_C].d + ((inputs[RED_C].a == inputs[RED_C].b) ? inputs[ALP_C].c : 0);
+  case TevCompareMode::GR16:
+    a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+    b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
     break;
 
-  case TEVCMP_GR16_GT:
-  {
-    const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-    Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
-  }
-  break;
-
-  case TEVCMP_GR16_EQ:
-  {
-    const u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    const u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-    Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
-  }
-  break;
-
-  case TEVCMP_BGR24_GT:
-  {
-    const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-    Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
-  }
-  break;
-
-  case TEVCMP_BGR24_EQ:
-  {
-    const u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
-    const u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
-    Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
-  }
-  break;
-
-  case TEVCMP_A8_GT:
-    Reg[ac.dest][ALP_C] =
-        inputs[ALP_C].d + ((inputs[ALP_C].a > inputs[ALP_C].b) ? inputs[ALP_C].c : 0);
+  case TevCompareMode::BGR24:
+    a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+    b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
     break;
 
-  case TEVCMP_A8_EQ:
-    Reg[ac.dest][ALP_C] =
-        inputs[ALP_C].d + ((inputs[ALP_C].a == inputs[ALP_C].b) ? inputs[ALP_C].c : 0);
+  case TevCompareMode::A8:
+    a = inputs[ALP_C].a;
+    b = inputs[ALP_C].b;
     break;
+
+  default:
+    PanicAlertFmt("Invalid compare mode {}", ac.compare_mode);
+    return;
   }
+
+  if (ac.comparison == TevComparison::GT)
+    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
+  else
+    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 }
 
-static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
+static bool AlphaCompare(int alpha, int ref, CompareMode comp)
 {
   switch (comp)
   {
-  case AlphaTest::ALWAYS:
+  case CompareMode::Always:
     return true;
-  case AlphaTest::NEVER:
+  case CompareMode::Never:
     return false;
-  case AlphaTest::LEQUAL:
+  case CompareMode::LEqual:
     return alpha <= ref;
-  case AlphaTest::LESS:
+  case CompareMode::Less:
     return alpha < ref;
-  case AlphaTest::GEQUAL:
+  case CompareMode::GEqual:
     return alpha >= ref;
-  case AlphaTest::GREATER:
+  case CompareMode::Greater:
     return alpha > ref;
-  case AlphaTest::EQUAL:
+  case CompareMode::Equal:
     return alpha == ref;
-  case AlphaTest::NEQUAL:
+  case CompareMode::NEqual:
     return alpha != ref;
   default:
+    PanicAlertFmt("Invalid compare mode {}", comp);
     return true;
   }
 }
@@ -409,38 +377,40 @@ static bool TevAlphaTest(int alpha)
 
   switch (bpmem.alpha_test.logic)
   {
-  case 0:
-    return comp0 && comp1;  // and
-  case 1:
-    return comp0 || comp1;  // or
-  case 2:
-    return comp0 ^ comp1;  // xor
-  case 3:
-    return !(comp0 ^ comp1);  // xnor
+  case AlphaTestOp::And:
+    return comp0 && comp1;
+  case AlphaTestOp::Or:
+    return comp0 || comp1;
+  case AlphaTestOp::Xor:
+    return comp0 ^ comp1;
+  case AlphaTestOp::Xnor:
+    return !(comp0 ^ comp1);
   default:
+    PanicAlertFmt("Invalid AlphaTestOp {}", bpmem.alpha_test.logic);
     return true;
   }
 }
 
-static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
+static inline s32 WrapIndirectCoord(s32 coord, IndTexWrap wrapMode)
 {
   switch (wrapMode)
   {
-  case ITW_OFF:
+  case IndTexWrap::ITW_OFF:
     return coord;
-  case ITW_256:
+  case IndTexWrap::ITW_256:
     return (coord & ((256 << 7) - 1));
-  case ITW_128:
+  case IndTexWrap::ITW_128:
     return (coord & ((128 << 7) - 1));
-  case ITW_64:
+  case IndTexWrap::ITW_64:
     return (coord & ((64 << 7) - 1));
-  case ITW_32:
+  case IndTexWrap::ITW_32:
     return (coord & ((32 << 7) - 1));
-  case ITW_16:
+  case IndTexWrap::ITW_16:
     return (coord & ((16 << 7) - 1));
-  case ITW_0:
+  case IndTexWrap::ITW_0:
     return 0;
   default:
+    PanicAlertFmt("Invalid indirect wrap mode {}", wrapMode);
     return 0;
   }
 }
@@ -455,56 +425,59 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
   // alpha bump select
   switch (indirect.bs)
   {
-  case ITBA_OFF:
+  case IndTexBumpAlpha::Off:
     AlphaBump = 0;
     break;
-  case ITBA_S:
+  case IndTexBumpAlpha::S:
     AlphaBump = indmap[TextureSampler::ALP_SMP];
     break;
-  case ITBA_T:
+  case IndTexBumpAlpha::T:
     AlphaBump = indmap[TextureSampler::BLU_SMP];
     break;
-  case ITBA_U:
+  case IndTexBumpAlpha::U:
     AlphaBump = indmap[TextureSampler::GRN_SMP];
     break;
+  default:
+    PanicAlertFmt("Invalid alpha bump {}", indirect.bs);
+    return;
   }
 
   // bias select
-  const s16 biasValue = indirect.fmt == ITF_8 ? -128 : 1;
+  const s16 biasValue = indirect.fmt == IndTexFormat::ITF_8 ? -128 : 1;
   s16 bias[3];
-  bias[0] = indirect.bias & 1 ? biasValue : 0;
-  bias[1] = indirect.bias & 2 ? biasValue : 0;
-  bias[2] = indirect.bias & 4 ? biasValue : 0;
+  bias[0] = indirect.bias_s ? biasValue : 0;
+  bias[1] = indirect.bias_t ? biasValue : 0;
+  bias[2] = indirect.bias_u ? biasValue : 0;
 
   // format
   switch (indirect.fmt)
   {
-  case ITF_8:
+  case IndTexFormat::ITF_8:
     indcoord[0] = indmap[TextureSampler::ALP_SMP] + bias[0];
     indcoord[1] = indmap[TextureSampler::BLU_SMP] + bias[1];
     indcoord[2] = indmap[TextureSampler::GRN_SMP] + bias[2];
     AlphaBump = AlphaBump & 0xf8;
     break;
-  case ITF_5:
+  case IndTexFormat::ITF_5:
     indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x1f) + bias[0];
     indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x1f) + bias[1];
     indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x1f) + bias[2];
     AlphaBump = AlphaBump & 0xe0;
     break;
-  case ITF_4:
+  case IndTexFormat::ITF_4:
     indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x0f) + bias[0];
     indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x0f) + bias[1];
     indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x0f) + bias[2];
     AlphaBump = AlphaBump & 0xf0;
     break;
-  case ITF_3:
+  case IndTexFormat::ITF_3:
     indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x07) + bias[0];
     indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x07) + bias[1];
     indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x07) + bias[2];
     AlphaBump = AlphaBump & 0xf8;
     break;
   default:
-    PanicAlertFmt("Tev::Indirect");
+    PanicAlertFmt("Invalid indirect format {}", indirect.fmt);
     return;
   }
 
@@ -648,8 +621,8 @@ void Tev::Draw()
     }
 
     // set konst for this stage
-    const int kc = kSel.getKC(stageOdd);
-    const int ka = kSel.getKA(stageOdd);
+    const auto kc = u32(kSel.getKC(stageOdd));
+    const auto ka = u32(kSel.getKA(stageOdd));
     StageKonst[RED_C] = *(m_KonstLUT[kc][RED_C]);
     StageKonst[GRN_C] = *(m_KonstLUT[kc][GRN_C]);
     StageKonst[BLU_C] = *(m_KonstLUT[kc][BLU_C]);
@@ -662,43 +635,43 @@ void Tev::Draw()
     InputRegType inputs[4];
     for (int i = 0; i < 3; i++)
     {
-      inputs[BLU_C + i].a = *m_ColorInputLUT[cc.a][i];
-      inputs[BLU_C + i].b = *m_ColorInputLUT[cc.b][i];
-      inputs[BLU_C + i].c = *m_ColorInputLUT[cc.c][i];
-      inputs[BLU_C + i].d = *m_ColorInputLUT[cc.d][i];
+      inputs[BLU_C + i].a = *m_ColorInputLUT[u32(cc.a.Value())][i];
+      inputs[BLU_C + i].b = *m_ColorInputLUT[u32(cc.b.Value())][i];
+      inputs[BLU_C + i].c = *m_ColorInputLUT[u32(cc.c.Value())][i];
+      inputs[BLU_C + i].d = *m_ColorInputLUT[u32(cc.d.Value())][i];
     }
-    inputs[ALP_C].a = *m_AlphaInputLUT[ac.a];
-    inputs[ALP_C].b = *m_AlphaInputLUT[ac.b];
-    inputs[ALP_C].c = *m_AlphaInputLUT[ac.c];
-    inputs[ALP_C].d = *m_AlphaInputLUT[ac.d];
+    inputs[ALP_C].a = *m_AlphaInputLUT[u32(ac.a.Value())];
+    inputs[ALP_C].b = *m_AlphaInputLUT[u32(ac.b.Value())];
+    inputs[ALP_C].c = *m_AlphaInputLUT[u32(ac.c.Value())];
+    inputs[ALP_C].d = *m_AlphaInputLUT[u32(ac.d.Value())];
 
-    if (cc.bias != 3)
+    if (cc.bias != TevBias::Compare)
       DrawColorRegular(cc, inputs);
     else
       DrawColorCompare(cc, inputs);
 
     if (cc.clamp)
     {
-      Reg[cc.dest][RED_C] = Clamp255(Reg[cc.dest][RED_C]);
-      Reg[cc.dest][GRN_C] = Clamp255(Reg[cc.dest][GRN_C]);
-      Reg[cc.dest][BLU_C] = Clamp255(Reg[cc.dest][BLU_C]);
+      Reg[u32(cc.dest.Value())][RED_C] = Clamp255(Reg[u32(cc.dest.Value())][RED_C]);
+      Reg[u32(cc.dest.Value())][GRN_C] = Clamp255(Reg[u32(cc.dest.Value())][GRN_C]);
+      Reg[u32(cc.dest.Value())][BLU_C] = Clamp255(Reg[u32(cc.dest.Value())][BLU_C]);
     }
     else
     {
-      Reg[cc.dest][RED_C] = Clamp1024(Reg[cc.dest][RED_C]);
-      Reg[cc.dest][GRN_C] = Clamp1024(Reg[cc.dest][GRN_C]);
-      Reg[cc.dest][BLU_C] = Clamp1024(Reg[cc.dest][BLU_C]);
+      Reg[u32(cc.dest.Value())][RED_C] = Clamp1024(Reg[u32(cc.dest.Value())][RED_C]);
+      Reg[u32(cc.dest.Value())][GRN_C] = Clamp1024(Reg[u32(cc.dest.Value())][GRN_C]);
+      Reg[u32(cc.dest.Value())][BLU_C] = Clamp1024(Reg[u32(cc.dest.Value())][BLU_C]);
     }
 
-    if (ac.bias != 3)
+    if (ac.bias != TevBias::Compare)
       DrawAlphaRegular(ac, inputs);
     else
       DrawAlphaCompare(ac, inputs);
 
     if (ac.clamp)
-      Reg[ac.dest][ALP_C] = Clamp255(Reg[ac.dest][ALP_C]);
+      Reg[u32(ac.dest.Value())][ALP_C] = Clamp255(Reg[u32(ac.dest.Value())][ALP_C]);
     else
-      Reg[ac.dest][ALP_C] = Clamp1024(Reg[ac.dest][ALP_C]);
+      Reg[u32(ac.dest.Value())][ALP_C] = Clamp1024(Reg[u32(ac.dest.Value())][ALP_C]);
 
 #if ALLOW_TEV_DUMPS
     if (g_ActiveConfig.bDumpTevStages)
@@ -712,8 +685,8 @@ void Tev::Draw()
   // convert to 8 bits per component
   // the results of the last tev stage are put onto the screen,
   // regardless of the used destination register - TODO: Verify!
-  const u32 color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
-  const u32 alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
+  const u32 color_index = u32(bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest.Value());
+  const u32 alpha_index = u32(bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest.Value());
   u8 output[4] = {(u8)Reg[alpha_index][ALP_C], (u8)Reg[color_index][BLU_C],
                   (u8)Reg[color_index][GRN_C], (u8)Reg[color_index][RED_C]};
 
@@ -721,34 +694,36 @@ void Tev::Draw()
     return;
 
   // z texture
-  if (bpmem.ztex2.op)
+  if (bpmem.ztex2.op != ZTexOp::Disabled)
   {
     u32 ztex = bpmem.ztex1.bias;
     switch (bpmem.ztex2.type)
     {
-    case 0:  // 8 bit
+    case ZTexFormat::U8:
       ztex += TexColor[ALP_C];
       break;
-    case 1:  // 16 bit
+    case ZTexFormat::U16:
       ztex += TexColor[ALP_C] << 8 | TexColor[RED_C];
       break;
-    case 2:  // 24 bit
+    case ZTexFormat::U24:
       ztex += TexColor[RED_C] << 16 | TexColor[GRN_C] << 8 | TexColor[BLU_C];
       break;
+    default:
+      PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type);
     }
 
-    if (bpmem.ztex2.op == ZTEXTURE_ADD)
+    if (bpmem.ztex2.op == ZTexOp::Add)
       ztex += Position[2];
 
     Position[2] = ztex & 0x00ffffff;
   }
 
   // fog
-  if (bpmem.fog.c_proj_fsel.fsel)
+  if (bpmem.fog.c_proj_fsel.fsel != FogType::Off)
   {
     float ze;
 
-    if (bpmem.fog.c_proj_fsel.proj == 0)
+    if (bpmem.fog.c_proj_fsel.proj == FogProjection::Perspective)
     {
       // perspective
       // ze = A/(B - (Zs >> B_SHF))
@@ -804,17 +779,17 @@ void Tev::Draw()
 
     switch (bpmem.fog.c_proj_fsel.fsel)
     {
-    case 4:  // exp
+    case FogType::Exp:
       fog = 1.0f - pow(2.0f, -8.0f * fog);
       break;
-    case 5:  // exp2
+    case FogType::ExpSq:
       fog = 1.0f - pow(2.0f, -8.0f * fog * fog);
       break;
-    case 6:  // backward exp
+    case FogType::BackwardsExp:
       fog = 1.0f - fog;
       fog = pow(2.0f, -8.0f * fog);
       break;
-    case 7:  // backward exp2
+    case FogType::BackwardsExpSq:
       fog = 1.0f - fog;
       fog = pow(2.0f, -8.0f * fog * fog);
       break;

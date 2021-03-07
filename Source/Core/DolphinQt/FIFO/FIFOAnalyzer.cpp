@@ -23,7 +23,9 @@
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/XFStructs.h"
 
 constexpr int FRAME_ROLE = Qt::UserRole;
 constexpr int OBJECT_ROLE = Qt::UserRole + 1;
@@ -224,17 +226,22 @@ void FIFOAnalyzer::UpdateDetails()
         u32 cmd2 = *objectdata++;
         u32 value = Common::swap32(objectdata);
         objectdata += 4;
+        const auto [name, desc] = GetCPRegInfo(cmd2, value);
+        ASSERT(!name.empty());
 
-        new_label = QStringLiteral("CP  %1  %2")
+        new_label = QStringLiteral("CP  %1  %2  %3")
                         .arg(cmd2, 2, 16, QLatin1Char('0'))
-                        .arg(value, 8, 16, QLatin1Char('0'));
+                        .arg(value, 8, 16, QLatin1Char('0'))
+                        .arg(QString::fromStdString(name));
       }
       break;
 
       case OpcodeDecoder::GX_LOAD_XF_REG:
       {
+        const auto [name, desc] = GetXFTransferInfo(objectdata);
         u32 cmd2 = Common::swap32(objectdata);
         objectdata += 4;
+        ASSERT(!name.empty());
 
         u8 streamSize = ((cmd2 >> 16) & 15) + 1;
 
@@ -249,6 +256,8 @@ void FIFOAnalyzer::UpdateDetails()
           if (((objectdata - stream_start) % 4) == 0)
             new_label += QLatin1Char(' ');
         }
+
+        new_label += QStringLiteral("  ") + QString::fromStdString(name);
       }
       break;
 
@@ -278,11 +287,17 @@ void FIFOAnalyzer::UpdateDetails()
 
       case OpcodeDecoder::GX_LOAD_BP_REG:
       {
-        u32 cmd2 = Common::swap32(objectdata);
-        objectdata += 4;
-        new_label = QStringLiteral("BP  %1 %2")
-                        .arg(cmd2 >> 24, 2, 16, QLatin1Char('0'))
-                        .arg(cmd2 & 0xFFFFFF, 6, 16, QLatin1Char('0'));
+        const u8 cmd2 = *objectdata++;
+        const u32 cmddata = Common::swap24(objectdata);
+        objectdata += 3;
+
+        const auto [name, desc] = GetBPRegInfo(cmd2, cmddata);
+        ASSERT(!name.empty());
+
+        new_label = QStringLiteral("BP  %1  %2  %3")
+                        .arg(cmd2, 2, 16, QLatin1Char('0'))
+                        .arg(cmddata, 6, 16, QLatin1Char('0'))
+                        .arg(QString::fromStdString(name));
       }
       break;
 
@@ -467,14 +482,14 @@ void FIFOAnalyzer::UpdateDescription()
   QString text;
   if (*cmddata == OpcodeDecoder::GX_LOAD_BP_REG)
   {
-    std::string name;
-    std::string desc;
-    GetBPRegInfo(cmddata + 1, &name, &desc);
+    const u8 cmd = *(cmddata + 1);
+    const u32 value = Common::swap24(cmddata + 2);
+
+    const auto [name, desc] = GetBPRegInfo(cmd, value);
+    ASSERT(!name.empty());
 
     text = tr("BP register ");
-    text += name.empty() ?
-                QStringLiteral("UNKNOWN_%1").arg(*(cmddata + 1), 2, 16, QLatin1Char('0')) :
-                QString::fromStdString(name);
+    text += QString::fromStdString(name);
     text += QLatin1Char{'\n'};
 
     if (desc.empty())
@@ -484,11 +499,34 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (*cmddata == OpcodeDecoder::GX_LOAD_CP_REG)
   {
+    const u8 cmd = *(cmddata + 1);
+    const u32 value = Common::swap32(cmddata + 2);
+
+    const auto [name, desc] = GetCPRegInfo(cmd, value);
+    ASSERT(!name.empty());
+
     text = tr("CP register ");
+    text += QString::fromStdString(name);
+    text += QLatin1Char{'\n'};
+
+    if (desc.empty())
+      text += tr("No description available");
+    else
+      text += QString::fromStdString(desc);
   }
   else if (*cmddata == OpcodeDecoder::GX_LOAD_XF_REG)
   {
+    const auto [name, desc] = GetXFTransferInfo(cmddata + 1);
+    ASSERT(!name.empty());
+
     text = tr("XF register ");
+    text += QString::fromStdString(name);
+    text += QLatin1Char{'\n'};
+
+    if (desc.empty())
+      text += tr("No description available");
+    else
+      text += QString::fromStdString(desc);
   }
   else
   {

@@ -49,21 +49,17 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
   const VAT& vtxAttr = cpMem.vtxAttr[vatIndex];
 
   // Colors
-  const std::array<u64, 2> colDesc{
-      vtxDesc.Color0,
-      vtxDesc.Color1,
-  };
-  const std::array<u32, 2> colComp{
+  const std::array<ColorFormat, 2> colComp{
       vtxAttr.g0.Color0Comp,
       vtxAttr.g0.Color1Comp,
   };
 
-  const std::array<u32, 8> tcElements{
+  const std::array<TexComponentCount, 8> tcElements{
       vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements,
       vtxAttr.g1.Tex3CoordElements, vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
       vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements,
   };
-  const std::array<u32, 8> tcFormat{
+  const std::array<ComponentFormat, 8> tcFormat{
       vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat,
       vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
       vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat,
@@ -72,21 +68,20 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
   std::array<int, 21> sizes{};
 
   // Add position and texture matrix indices
-  u64 vtxDescHex = cpMem.vtxDesc.Hex;
-  for (int i = 0; i < 9; ++i)
+  sizes[0] = vtxDesc.low.PosMatIdx;
+  for (size_t i = 0; i < vtxDesc.low.TexMatIdx.Size(); ++i)
   {
-    sizes[i] = vtxDescHex & 1;
-    vtxDescHex >>= 1;
+    sizes[i + 1] = vtxDesc.low.TexMatIdx[i];
   }
 
   // Position
-  sizes[9] = VertexLoader_Position::GetSize(vtxDesc.Position, vtxAttr.g0.PosFormat,
+  sizes[9] = VertexLoader_Position::GetSize(vtxDesc.low.Position, vtxAttr.g0.PosFormat,
                                             vtxAttr.g0.PosElements);
 
   // Normals
-  if (vtxDesc.Normal != NOT_PRESENT)
+  if (vtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.g0.NormalFormat,
+    sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.low.Normal, vtxAttr.g0.NormalFormat,
                                              vtxAttr.g0.NormalElements, vtxAttr.g0.NormalIndex3);
   }
   else
@@ -95,33 +90,33 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
   }
 
   // Colors
-  for (size_t i = 0; i < colDesc.size(); i++)
+  for (size_t i = 0; i < vtxDesc.low.Color.Size(); i++)
   {
     int size = 0;
 
-    switch (colDesc[i])
+    switch (vtxDesc.low.Color[i])
     {
-    case NOT_PRESENT:
+    case VertexComponentFormat::NotPresent:
       break;
-    case DIRECT:
+    case VertexComponentFormat::Direct:
       switch (colComp[i])
       {
-      case FORMAT_16B_565:
+      case ColorFormat::RGB565:
         size = 2;
         break;
-      case FORMAT_24B_888:
+      case ColorFormat::RGB888:
         size = 3;
         break;
-      case FORMAT_32B_888x:
+      case ColorFormat::RGB888x:
         size = 4;
         break;
-      case FORMAT_16B_4444:
+      case ColorFormat::RGBA4444:
         size = 2;
         break;
-      case FORMAT_24B_6666:
+      case ColorFormat::RGBA6666:
         size = 3;
         break;
-      case FORMAT_32B_8888:
+      case ColorFormat::RGBA8888:
         size = 4;
         break;
       default:
@@ -129,10 +124,10 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
         break;
       }
       break;
-    case INDEX8:
+    case VertexComponentFormat::Index8:
       size = 1;
       break;
-    case INDEX16:
+    case VertexComponentFormat::Index16:
       size = 2;
       break;
     }
@@ -141,11 +136,10 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
   }
 
   // Texture coordinates
-  vtxDescHex = vtxDesc.Hex >> 17;
   for (size_t i = 0; i < tcFormat.size(); i++)
   {
-    sizes[13 + i] = VertexLoader_TextCoord::GetSize(vtxDescHex & 3, tcFormat[i], tcElements[i]);
-    vtxDescHex >>= 2;
+    sizes[13 + i] =
+        VertexLoader_TextCoord::GetSize(vtxDesc.high.TexCoord[i], tcFormat[i], tcElements[i]);
   }
 
   return sizes;
@@ -267,13 +261,11 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
   switch (subCmd & 0xF0)
   {
   case 0x50:
-    cpMem.vtxDesc.Hex &= ~0x1FFFF;  // keep the Upper bits
-    cpMem.vtxDesc.Hex |= value;
+    cpMem.vtxDesc.low.Hex = value;
     break;
 
   case 0x60:
-    cpMem.vtxDesc.Hex &= 0x1FFFF;  // keep the lower 17Bits
-    cpMem.vtxDesc.Hex |= (u64)value << 17;
+    cpMem.vtxDesc.high.Hex = value;
     break;
 
   case 0x70:

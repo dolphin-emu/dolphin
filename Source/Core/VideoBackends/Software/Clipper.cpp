@@ -489,13 +489,16 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
 
   backface = normalZDir <= 0.0f;
 
-  if ((bpmem.genMode.cullmode & 1) && !backface)  // cull frontfacing
+  // TODO: Are these tests / the definition of backface above backwards?
+  if ((bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All) &&
+      !backface)  // cull frontfacing
   {
     INCSTAT(g_stats.this_frame.num_triangles_culled)
     return false;
   }
 
-  if ((bpmem.genMode.cullmode & 2) && backface)  // cull backfacing
+  if ((bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All) &&
+      backface)  // cull backfacing
   {
     INCSTAT(g_stats.this_frame.num_triangles_culled)
     return false;

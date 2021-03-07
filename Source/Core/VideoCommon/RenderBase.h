@@ -232,8 +232,8 @@ public:
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 bits) {}
 
-  PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
-  void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
+  PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
+  void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
   bool EFBHasAlphaChannel() const;
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
@@ -343,7 +343,7 @@ protected:
 private:
   std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
 
-  PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
+  PixelFormat m_prev_efb_format = PixelFormat::INVALID_FMT;
   unsigned int m_efb_scale = 1;
 
   // These will be set on the first call to SetWindowSize.

@@ -173,7 +173,7 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   const TexMode1& tm1 = texUnit.texMode1[subTexmap];
 
   float sDelta, tDelta;
-  if (tm0.diag_lod)
+  if (tm0.diag_lod == LODType::Diagonal)
   {
     float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
     float* uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
@@ -199,7 +199,8 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   bias >>= 1;
   lod += bias;
 
-  *linear = ((lod > 0 && (tm0.min_filter & 4)) || (lod <= 0 && tm0.mag_filter));
+  *linear = ((lod > 0 && tm0.min_filter == FilterMode::Linear) ||
+             (lod <= 0 && tm0.mag_filter == FilterMode::Linear));
 
   // NOTE: The order of comparisons for this clamp check matters.
   if (lod > static_cast<s32>(tm1.max_lod))

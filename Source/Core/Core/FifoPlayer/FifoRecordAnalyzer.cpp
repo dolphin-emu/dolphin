@@ -6,6 +6,7 @@
 
 #include <algorithm>
 
+#include "Common/MsgHandler.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
@@ -44,14 +45,28 @@ void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, const u8* vertexData, 
                                           int numVertices)
 {
   // Skip if not indexed array
-  int arrayType = (s_CpMem.vtxDesc.Hex >> (9 + (arrayIndex * 2))) & 3;
-  if (arrayType < 2)
+  VertexComponentFormat arrayType;
+  if (arrayIndex == ARRAY_POSITION)
+    arrayType = s_CpMem.vtxDesc.low.Position;
+  else if (arrayIndex == ARRAY_NORMAL)
+    arrayType = s_CpMem.vtxDesc.low.Normal;
+  else if (arrayIndex == ARRAY_COLOR || arrayIndex == ARRAY_COLOR2)
+    arrayType = s_CpMem.vtxDesc.low.Color[arrayIndex - ARRAY_COLOR];
+  else if (arrayIndex >= ARRAY_POSITION && arrayIndex < ARRAY_POSITION + 8)
+    arrayType = s_CpMem.vtxDesc.high.TexCoord[arrayIndex - ARRAY_POSITION];
+  else
+  {
+    PanicAlertFmt("Invalid arrayIndex {}", arrayIndex);
+    return;
+  }
+
+  if (!IsIndexed(arrayType))
     return;
 
   int maxIndex = 0;
 
   // Determine min and max indices
-  if (arrayType == INDEX8)
+  if (arrayType == VertexComponentFormat::Index8)
   {
     for (int i = 0; i < numVertices; ++i)
     {

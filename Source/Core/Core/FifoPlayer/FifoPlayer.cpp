@@ -467,22 +467,22 @@ void FifoPlayer::LoadRegisters()
   }
 
   regs = m_File->GetCPMem();
-  LoadCPReg(0x30, regs[0x30]);
-  LoadCPReg(0x40, regs[0x40]);
-  LoadCPReg(0x50, regs[0x50]);
-  LoadCPReg(0x60, regs[0x60]);
+  LoadCPReg(MATINDEX_A, regs[MATINDEX_A]);
+  LoadCPReg(MATINDEX_B, regs[MATINDEX_B]);
+  LoadCPReg(VCD_LO, regs[VCD_LO]);
+  LoadCPReg(VCD_HI, regs[VCD_HI]);
 
-  for (int i = 0; i < 8; ++i)
+  for (int i = 0; i < CP_NUM_VAT_REG; ++i)
   {
-    LoadCPReg(0x70 + i, regs[0x70 + i]);
-    LoadCPReg(0x80 + i, regs[0x80 + i]);
-    LoadCPReg(0x90 + i, regs[0x90 + i]);
+    LoadCPReg(CP_VAT_REG_A + i, regs[CP_VAT_REG_A + i]);
+    LoadCPReg(CP_VAT_REG_B + i, regs[CP_VAT_REG_B + i]);
+    LoadCPReg(CP_VAT_REG_C + i, regs[CP_VAT_REG_C + i]);
   }
 
-  for (int i = 0; i < 16; ++i)
+  for (int i = 0; i < CP_NUM_ARRAYS; ++i)
   {
-    LoadCPReg(0xa0 + i, regs[0xa0 + i]);
-    LoadCPReg(0xb0 + i, regs[0xb0 + i]);
+    LoadCPReg(ARRAY_BASE + i, regs[ARRAY_BASE + i]);
+    LoadCPReg(ARRAY_STRIDE + i, regs[ARRAY_STRIDE + i]);
   }
 
   regs = m_File->GetXFMem();

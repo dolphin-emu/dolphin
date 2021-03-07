@@ -353,7 +353,7 @@ void VertexShaderManager::SetConstants()
 
     switch (xfmem.projection.type)
     {
-    case GX_PERSPECTIVE:
+    case ProjectionType::Perspective:
     {
       const Common::Vec2 fov =
           g_freelook_camera.IsActive() ? g_freelook_camera.GetFieldOfView() : Common::Vec2{1, 1};
@@ -382,7 +382,7 @@ void VertexShaderManager::SetConstants()
     }
     break;
 
-    case GX_ORTHOGRAPHIC:
+    case ProjectionType::Orthographic:
     {
       g_fProjectionMatrix[0] = rawProjection[0];
       g_fProjectionMatrix[1] = 0.0f;
@@ -419,7 +419,7 @@ void VertexShaderManager::SetConstants()
 
     auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
 
-    if (g_freelook_camera.IsActive() && xfmem.projection.type == GX_PERSPECTIVE)
+    if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
       corrected_matrix *= g_freelook_camera.GetView();
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
@@ -618,9 +618,9 @@ void VertexShaderManager::SetVertexFormat(u32 components)
 
   // The default alpha channel seems to depend on the number of components in the vertex format.
   // If the vertex attribute has an alpha channel, zero is used, otherwise one.
-  const u32 color_chan_alpha =
-      (g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color0Elements ^ 1) |
-      ((g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color1Elements ^ 1) << 1);
+  const auto g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
+  const u32 color_chan_alpha = (g0.Color0Elements == ColorComponentCount::RGB ? 1 : 0) |
+                               (g0.Color1Elements == ColorComponentCount::RGB ? 2 : 0);
   if (color_chan_alpha != constants.color_chan_alpha)
   {
     constants.color_chan_alpha = color_chan_alpha;

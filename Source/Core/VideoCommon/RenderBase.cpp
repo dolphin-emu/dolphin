@@ -171,7 +171,7 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
 
 bool Renderer::EFBHasAlphaChannel() const
 {
-  return m_prev_efb_format == PEControl::RGBA6_Z24;
+  return m_prev_efb_format == PixelFormat::RGBA6_Z24;
 }
 
 void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
@@ -197,15 +197,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     // check what to do with the alpha channel (GX_PokeAlphaRead)
     PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
 
-    if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
+    if (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24)
     {
       color = RGBA8ToRGBA6ToRGBA8(color);
     }
-    else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+    else if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
     {
       color = RGBA8ToRGB565ToRGBA8(color);
     }
-    if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
+    if (bpmem.zcontrol.pixel_format != PixelFormat::RGBA6_Z24)
     {
       color |= 0xFF000000;
     }
@@ -231,7 +231,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       depth = 1.0f - depth;
 
     u32 ret = 0;
-    if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+    if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
     {
       // if Z is in 16 bit format you must return a 16 bit integer
       ret = std::clamp<u32>(static_cast<u32>(depth * 65536.0f), 0, 0xFFFF);
@@ -994,10 +994,10 @@ bool Renderer::RecompileImGuiPipeline()
   pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
   pconfig.blending_state = RenderState::GetNoBlendingBlendState();
   pconfig.blending_state.blendenable = true;
-  pconfig.blending_state.srcfactor = BlendMode::SRCALPHA;
-  pconfig.blending_state.dstfactor = BlendMode::INVSRCALPHA;
-  pconfig.blending_state.srcfactoralpha = BlendMode::ZERO;
-  pconfig.blending_state.dstfactoralpha = BlendMode::ONE;
+  pconfig.blending_state.srcfactor = SrcBlendFactor::SrcAlpha;
+  pconfig.blending_state.dstfactor = DstBlendFactor::InvSrcAlpha;
+  pconfig.blending_state.srcfactoralpha = SrcBlendFactor::Zero;
+  pconfig.blending_state.dstfactoralpha = DstBlendFactor::One;
   pconfig.framebuffer_state.color_texture_format = m_backbuffer_format;
   pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
   pconfig.framebuffer_state.samples = 1;
@@ -1697,7 +1697,7 @@ bool Renderer::UseVertexDepthRange() const
     return false;
 
   // We need a full depth range if a ztexture is used.
-  if (bpmem.ztex2.type != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest)
+  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
     return true;
 
   // If an inverted depth range is unsupported, we also need to check if the range is inverted.

@@ -166,9 +166,9 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
 
   // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
   // channel to 0xFF. This hopefully allows us to use the fast path in most cases.
-  if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16 ||
-      bpmem.zcontrol.pixel_format == PEControl::RGB8_Z24 ||
-      bpmem.zcontrol.pixel_format == PEControl::Z24)
+  if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16 ||
+      bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
+      bpmem.zcontrol.pixel_format == PixelFormat::Z24)
   {
     // Force alpha writes, and clear the alpha channel. This is different to the other backends,
     // where the existing values of the alpha channel are preserved.

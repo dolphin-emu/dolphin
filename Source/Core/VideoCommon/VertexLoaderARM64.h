@@ -9,6 +9,9 @@
 #include "VideoCommon/VertexLoaderBase.h"
 
 class DataReader;
+enum class VertexComponentFormat;
+enum class ComponentFormat;
+enum class ColorFormat;
 
 class VertexLoaderARM64 : public VertexLoaderBase, public Arm64Gen::ARM64CodeBlock
 {
@@ -25,10 +28,11 @@ private:
   u32 m_dst_ofs = 0;
   Arm64Gen::FixupBranch m_skip_vertex;
   Arm64Gen::ARM64FloatEmitter m_float_emit;
-  void GetVertexAddr(int array, u64 attribute, Arm64Gen::ARM64Reg reg);
-  s32 GetAddressImm(int array, u64 attribute, Arm64Gen::ARM64Reg reg, u32 align);
-  int ReadVertex(u64 attribute, int format, int count_in, int count_out, bool dequantize,
-                 u8 scaling_exponent, AttributeFormat* native_format, s32 offset = -1);
-  void ReadColor(u64 attribute, int format, s32 offset);
+  void GetVertexAddr(int array, VertexComponentFormat attribute, Arm64Gen::ARM64Reg reg);
+  s32 GetAddressImm(int array, VertexComponentFormat attribute, Arm64Gen::ARM64Reg reg, u32 align);
+  int ReadVertex(VertexComponentFormat attribute, ComponentFormat format, int count_in,
+                 int count_out, bool dequantize, u8 scaling_exponent,
+                 AttributeFormat* native_format, s32 offset = -1);
+  void ReadColor(VertexComponentFormat attribute, ColorFormat format, s32 offset);
   void GenerateVertexLoader();
 };
