@@ -60,22 +60,23 @@ public:
   template <typename FormatContext>
   auto format(const T& e, FormatContext& ctx)
   {
-    const auto value = static_cast<std::underlying_type_t<T>>(e);
+    const auto value_s = static_cast<std::underlying_type_t<T>>(e);      // Possibly signed
+    const auto value_u = static_cast<std::make_unsigned_t<T>>(value_s);  // Always unsigned
+    const bool has_name = value_s >= 0 && value_u < size && m_names[value_u] != nullptr;
 
     if (!formatting_for_shader)
     {
-      if (value >= 0 && value < size && m_names[value] != nullptr)
-        return fmt::format_to(ctx.out(), "{} ({})", m_names[value], value);
+      if (has_name)
+        return fmt::format_to(ctx.out(), "{} ({})", m_names[value_u], value_s);
       else
-        return fmt::format_to(ctx.out(), "Invalid ({})", value);
+        return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
     }
     else
     {
-      if (value >= 0 && value < size && m_names[value] != nullptr)
-        return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value, m_names[value]);
+      if (has_name)
+        return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[value_u]);
       else
-        return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */",
-                              static_cast<std::make_unsigned_t<T>>(value));
+        return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */", value_u);
     }
   }
 
