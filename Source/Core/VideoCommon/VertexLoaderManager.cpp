@@ -16,6 +16,8 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -322,22 +324,34 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
   switch (sub_cmd & CP_COMMAND_MASK)
   {
   case MATINDEX_A:
+    if (sub_cmd != MATINDEX_A)
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+
     if (update_global_state)
       VertexShaderManager::SetTexMatrixChangedA(value);
     break;
 
   case MATINDEX_B:
+    if (sub_cmd != MATINDEX_B)
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+
     if (update_global_state)
       VertexShaderManager::SetTexMatrixChangedB(value);
     break;
 
   case VCD_LO:
+    if (sub_cmd != VCD_LO)  // Stricter than YAGCD
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+
     state->vtx_desc.low.Hex = value;
     state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
     state->bases_dirty = true;
     break;
 
   case VCD_HI:
+    if (sub_cmd != VCD_HI)  // Stricter than YAGCD
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+
     state->vtx_desc.high.Hex = value;
     state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
     state->bases_dirty = true;
@@ -345,21 +359,30 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   case CP_VAT_REG_A:
     if ((sub_cmd - CP_VAT_REG_A) >= CP_NUM_VAT_REG)
+    {
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_A: Invalid VAT {}", sub_cmd - CP_VAT_REG_A);
+    }
     state->vtx_attr[sub_cmd & CP_VAT_MASK].g0.Hex = value;
     state->attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
   case CP_VAT_REG_B:
     if ((sub_cmd - CP_VAT_REG_B) >= CP_NUM_VAT_REG)
+    {
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_B: Invalid VAT {}", sub_cmd - CP_VAT_REG_B);
+    }
     state->vtx_attr[sub_cmd & CP_VAT_MASK].g1.Hex = value;
     state->attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
   case CP_VAT_REG_C:
     if ((sub_cmd - CP_VAT_REG_C) >= CP_NUM_VAT_REG)
+    {
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_C: Invalid VAT {}", sub_cmd - CP_VAT_REG_C);
+    }
     state->vtx_attr[sub_cmd & CP_VAT_MASK].g2.Hex = value;
     state->attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
@@ -376,6 +399,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
     break;
 
   default:
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_CP_COMMAND);
     WARN_LOG_FMT(VIDEO, "Unknown CP register {:02x} set to {:08x}", sub_cmd, value);
   }
 }

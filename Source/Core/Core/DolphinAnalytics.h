@@ -61,6 +61,15 @@ enum class GameQuirk
 
   USES_WD_UNIMPLEMENTED_IOCTL,
 
+  // Some games use invalid/unknown graphics commands (see e.g. bug 10931).
+  // These are different from unknown opcodes: it is known that a BP/CP/XF command is being used,
+  // but the command itself is not understood.
+  USES_UNKNOWN_BP_COMMAND,
+  USES_UNKNOWN_CP_COMMAND,
+  USES_UNKNOWN_XF_COMMAND,
+  // YAGCD and Dolphin's implementation disagree about what is valid in some cases
+  USES_MAYBE_INVALID_CP_COMMAND,
+
   COUNT,
 };
 
