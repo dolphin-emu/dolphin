@@ -15,6 +15,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
+#include "InputCommon/ControllerEmu/ControlGroup/SensorBar.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu
@@ -45,6 +46,10 @@ struct IMUCursorState
 
   // Rotation of world around device.
   Common::Quaternion rotation;
+  // Orientation of device in world, relative to sensor bar
+  Common::Vec3 orientation;
+  // Position of device in world, relative to sensor bar
+  Common::Vec3 position;
 
   float recentered_pitch = {};
 };
@@ -86,7 +91,9 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
-                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);
+                      ControllerEmu::IMUGyroscope* imu_gyroscope_group,
+                      ControllerEmu::SensorBar* sensor_bar_group,
+                      float time_elapsed);
 
 // Convert m/s/s acceleration data to the format used by Wiimote/Nunchuk (10-bit unsigned integers).
 WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g, u16 one_g);

@@ -47,6 +47,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
+#include "InputCommon/ControllerEmu/ControlGroup/SensorBar.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu
@@ -238,6 +239,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);
 
+  groups.emplace_back(m_sensor_bar =
+                          new ControllerEmu::SensorBar("SensorBar", _trans("Sensor Bar")));
+
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
@@ -337,6 +341,8 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
     return m_imu_gyroscope;
   case WiimoteGroup::IMUPoint:
     return m_imu_ir;
+  case WiimoteGroup::SensorBar:
+    return m_sensor_bar;
   default:
     assert(false);
     return nullptr;
@@ -724,7 +730,7 @@ void Wiimote::StepDynamics()
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
+  EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope, m_sensor_bar,
                    1.f / ::Wiimote::UPDATE_FREQ);
 }
 
@@ -745,7 +751,7 @@ Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) co
                              m_point_state.angular_velocity + extra_angular_velocity);
 }
 
-Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
+Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation, const Common::Vec3& position) const
 {
   // Includes positional and rotational effects of:
   // Point, Swing, Tilt, Shake
@@ -755,7 +761,7 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
          Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
                                         GetRotationalMatrix(-m_point_state.angle) *
                                         GetRotationalMatrix(-m_swing_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
+         Common::Matrix44::Translate(position - m_swing_state.position - m_point_state.position);         
 }
 
 Common::Quaternion Wiimote::GetOrientation() const
@@ -782,9 +788,8 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(Common::Matrix33::FromQuaternion(
-      m_imu_cursor_state.rotation *
-      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
+  return GetTransformation(GetRotationalMatrix(m_imu_cursor_state.orientation),
+                           m_imu_cursor_state.position);
 }
 
 }  // namespace WiimoteEmu

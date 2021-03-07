@@ -28,6 +28,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="Core\PowerPC\JitCommon\DivUtils.h" />
   </ItemGroup>
   <ItemGroup>

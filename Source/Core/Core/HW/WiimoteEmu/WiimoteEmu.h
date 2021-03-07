@@ -33,6 +33,7 @@ class IMUGyroscope;
 class IMUCursor;
 class ModifySettingsButton;
 class Output;
+class SensorBar;
 class Tilt;
 }  // namespace ControllerEmu
 
@@ -53,6 +54,7 @@ enum class WiimoteGroup
   IMUAccelerometer,
   IMUGyroscope,
   IMUPoint,
+  SensorBar,
 };
 
 enum class NunchukGroup;
@@ -159,7 +161,7 @@ private:
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
   Common::Matrix44
-  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
+  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity(), const Common::Vec3& position = Common::Vec3(0.f, 0.f, 0.f)) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Quaternion GetOrientation() const;
@@ -257,6 +259,7 @@ private:
   ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
   ControllerEmu::IMUGyroscope* m_imu_gyroscope;
   ControllerEmu::IMUCursor* m_imu_ir;
+  ControllerEmu::SensorBar* m_sensor_bar;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
