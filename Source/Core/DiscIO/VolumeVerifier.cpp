@@ -378,7 +378,10 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
     m_redump_verification = false;
 }
 
-VolumeVerifier::~VolumeVerifier() = default;
+VolumeVerifier::~VolumeVerifier()
+{
+  WaitForAsyncOperations();
+}
 
 void VolumeVerifier::Start()
 {
