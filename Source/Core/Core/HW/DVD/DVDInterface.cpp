@@ -36,6 +36,7 @@
 #include "Core/Movie.h"
 
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
@@ -164,6 +165,7 @@ static u8 s_dtk_buffer_length = 0;  // TODO: figure out how this affects the reg
 // Disc drive state
 static DriveState s_drive_state;
 static DriveError s_error_code;
+static u64 s_disc_end_offset;
 
 // Disc drive timing
 static u64 s_read_buffer_start_time;
@@ -425,6 +427,33 @@ void Shutdown()
   DVDThread::Stop();
 }
 
+static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
+{
+  u64 size = disc.GetSize();
+
+  if (disc.IsSizeAccurate())
+  {
+    if (size == DiscIO::MINI_DVD_SIZE)
+      return DiscIO::MINI_DVD_SIZE;
+  }
+  else
+  {
+    size = DiscIO::GetBiggestReferencedOffset(disc);
+  }
+
+  const bool should_be_mini_dvd =
+      disc.GetVolumeType() == DiscIO::Platform::GameCubeDisc || disc.IsDatelDisc();
+
+  // We always return standard DVD sizes here, not DVD-R sizes.
+  // RVT-R (devkit) consoles can't read the extra megabytes there are on RVT-R (DVD-R) discs.
+  if (should_be_mini_dvd && size <= DiscIO::MINI_DVD_SIZE)
+    return DiscIO::MINI_DVD_SIZE;
+  else if (size <= DiscIO::SL_DVD_R_SIZE)
+    return DiscIO::SL_DVD_SIZE;
+  else
+    return DiscIO::DL_DVD_SIZE;
+}
+
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
@@ -433,6 +462,10 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 
   if (has_disc)
   {
+    s_disc_end_offset = GetDiscEndOffset(*disc);
+    if (!disc->IsSizeAccurate())
+      WARN_LOG_FMT(DVDINTERFACE, "Unknown disc size, guessing {0} bytes", s_disc_end_offset);
+
     const DiscIO::BlobReader& blob = disc->GetBlobReader();
     if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
     {
@@ -763,20 +796,11 @@ static bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_lengt
     dvd_length = output_length;
   }
 
-  // Many Wii games intentionally try to read from an offset which is just past the end of a regular
-  // DVD but just before the end of a DVD-R, displaying "Error #001" and failing to boot if the read
-  // succeeds (see https://wiibrew.org/wiki//dev/di#0x8D_DVDLowUnencryptedRead for more details).
-  // It would be nice if we simply could rely on DiscIO for letting us know whether a read is out
-  // of bounds, but this unfortunately doesn't work when using a disc image format that doesn't
-  // store the original size of the disc, most notably WBFS. Instead, we have a little hack here:
-  // reject all non-partition reads that come from IOS that go past the offset 0x50000. IOS only
-  // allows non-partition reads if they are before 0x50000 or if they are in one of the two small
-  // areas 0x118240000-0x118240020 and 0x1FB4E0000-0x1FB4E0020 (both of which only are used for
-  // Error #001 checks), so the only thing we disallow with this hack that actually should be
-  // allowed is non-partition reads in the 0x118240000-0x118240020 area on dual-layer discs.
-  // In practice, dual-layer games don't attempt to do non-partition reads in that area.
-  if (reply_type == ReplyType::IOS && partition == DiscIO::PARTITION_NONE &&
-      dvd_offset + dvd_length > 0x50000)
+  // Many Wii games intentionally try to read from an offset which is just past the end of a
+  // regular DVD but just before the end of a DVD-R, displaying "Error #001" and failing to boot
+  // if the read succeeds, so it's critical that we set the correct error code for such reads.
+  // See https://wiibrew.org/wiki//dev/di#0x8D_DVDLowUnencryptedRead for details on Error #001.
+  if (dvd_offset + dvd_length > s_disc_end_offset)
   {
     SetDriveError(DriveError::BlockOOB);
     *interrupt_type = DIInterruptType::DEINT;
