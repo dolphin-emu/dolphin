@@ -523,12 +523,11 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   bool invalid_header = false;
   bool blank_contents = false;
   std::vector<u8> disc_header(0x80);
-  constexpr u32 WII_MAGIC = 0x5D1C9EA3;
   if (!m_volume.Read(0, disc_header.size(), disc_header.data(), partition))
   {
     invalid_header = true;
   }
-  else if (Common::swap32(disc_header.data() + 0x18) != WII_MAGIC)
+  else if (Common::swap32(disc_header.data() + 0x18) != WII_DISC_MAGIC)
   {
     for (size_t i = 0; i < disc_header.size(); i += 4)
     {
