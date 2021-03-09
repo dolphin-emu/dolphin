@@ -34,8 +34,6 @@
 
 namespace DiscIO
 {
-class FileInfo;
-
 template <typename T>
 struct Hashes
 {
@@ -154,8 +152,6 @@ private:
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
   void CheckVolumeSize();
-  u64 GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const;
-  u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void CheckSuperPaperMario();
   void SetUpHashing();

@@ -8,10 +8,12 @@
 #include <locale>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO
@@ -118,6 +120,84 @@ std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition)
     return std::nullopt;
 
   return volume.ReadSwappedAndShifted(0x428, partition);
+}
+
+u64 GetBiggestReferencedOffset(const Volume& volume)
+{
+  std::vector<Partition> partitions = volume.GetPartitions();
+
+  // If a partition doesn't seem to contain any valid data, skip it.
+  // This can happen when certain programs that create WBFS files scrub the entirety of
+  // the Masterpiece partitions in Super Smash Bros. Brawl without removing them from
+  // the partition table. https://bugs.dolphin-emu.org/issues/8733
+  constexpr u32 WII_MAGIC = 0x5D1C9EA3;
+  const auto it =
+      std::remove_if(partitions.begin(), partitions.end(), [&](const Partition& partition) {
+        return volume.ReadSwapped<u32>(0x18, partition) != WII_MAGIC;
+      });
+  partitions.erase(it, partitions.end());
+
+  if (partitions.empty())
+    partitions.push_back(PARTITION_NONE);
+
+  return GetBiggestReferencedOffset(volume, partitions);
+}
+
+static u64 GetBiggestReferencedOffset(const Volume& volume, const FileInfo& file_info)
+{
+  if (file_info.IsDirectory())
+  {
+    u64 biggest_offset = 0;
+    for (const FileInfo& f : file_info)
+      biggest_offset = std::max(biggest_offset, GetBiggestReferencedOffset(volume, f));
+    return biggest_offset;
+  }
+  else
+  {
+    return file_info.GetOffset() + file_info.GetSize();
+  }
+}
+
+u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition>& partitions)
+{
+  const u64 disc_header_size = volume.GetVolumeType() == Platform::GameCubeDisc ? 0x460 : 0x50000;
+  u64 biggest_offset = disc_header_size;
+  for (const Partition& partition : partitions)
+  {
+    if (partition != PARTITION_NONE)
+    {
+      const u64 offset = volume.PartitionOffsetToRawOffset(0x440, partition);
+      biggest_offset = std::max(biggest_offset, offset);
+    }
+
+    const std::optional<u64> dol_offset = GetBootDOLOffset(volume, partition);
+    if (dol_offset)
+    {
+      const std::optional<u64> dol_size = GetBootDOLSize(volume, partition, *dol_offset);
+      if (dol_size)
+      {
+        const u64 offset = volume.PartitionOffsetToRawOffset(*dol_offset + *dol_size, partition);
+        biggest_offset = std::max(biggest_offset, offset);
+      }
+    }
+
+    const std::optional<u64> fst_offset = GetFSTOffset(volume, partition);
+    const std::optional<u64> fst_size = GetFSTSize(volume, partition);
+    if (fst_offset && fst_size)
+    {
+      const u64 offset = volume.PartitionOffsetToRawOffset(*fst_offset + *fst_size, partition);
+      biggest_offset = std::max(biggest_offset, offset);
+    }
+
+    const FileSystem* fs = volume.GetFileSystem(partition);
+    if (fs)
+    {
+      const u64 offset_in_partition = GetBiggestReferencedOffset(volume, fs->GetRoot());
+      const u64 offset = volume.PartitionOffsetToRawOffset(offset_in_partition, partition);
+      biggest_offset = std::max(biggest_offset, offset);
+    }
+  }
+  return biggest_offset;
 }
 
 }  // namespace DiscIO

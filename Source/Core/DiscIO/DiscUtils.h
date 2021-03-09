@@ -6,13 +6,21 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
 namespace DiscIO
 {
+class FileInfo;
 struct Partition;
 class Volume;
+
+constexpr u64 MINI_DVD_SIZE = 1459978240;  // GameCube
+constexpr u64 SL_DVD_SIZE = 4699979776;    // Wii retail
+constexpr u64 SL_DVD_R_SIZE = 4707319808;  // Wii RVT-R
+constexpr u64 DL_DVD_SIZE = 8511160320;    // Wii retail
+constexpr u64 DL_DVD_R_SIZE = 8543666176;  // Wii RVT-R
 
 constexpr u32 PARTITION_DATA = 0;
 constexpr u32 PARTITION_UPDATE = 1;
@@ -26,4 +34,7 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset);
 std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition);
 std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition);
-}
+
+u64 GetBiggestReferencedOffset(const Volume& volume);
+u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition>& partitions);
+}  // namespace DiscIO

@@ -358,12 +358,6 @@ RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& has
   return {Status::Unknown, Common::GetStringT("Unknown disc")};
 }
 
-constexpr u64 MINI_DVD_SIZE = 1459978240;  // GameCube
-constexpr u64 SL_DVD_SIZE = 4699979776;    // Wii retail
-constexpr u64 SL_DVD_R_SIZE = 4707319808;  // Wii RVT-R
-constexpr u64 DL_DVD_SIZE = 8511160320;    // Wii retail
-constexpr u64 DL_DVD_R_SIZE = 8543666176;  // Wii RVT-R
-
 constexpr u64 BLOCK_SIZE = 0x20000;
 
 VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
@@ -397,7 +391,7 @@ void VolumeVerifier::Start()
   const std::vector<Partition> partitions = CheckPartitions();
 
   if (IsDisc(m_volume.GetVolumeType()))
-    m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
+    m_biggest_referenced_offset = GetBiggestReferencedOffset(m_volume, partitions);
 
   CheckMisc();
 
@@ -819,63 +813,6 @@ void VolumeVerifier::CheckVolumeSize()
         }
       }
     }
-  }
-}
-
-u64 VolumeVerifier::GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const
-{
-  const u64 disc_header_size = m_volume.GetVolumeType() == Platform::GameCubeDisc ? 0x460 : 0x50000;
-  u64 biggest_offset = disc_header_size;
-  for (const Partition& partition : partitions)
-  {
-    if (partition != PARTITION_NONE)
-    {
-      const u64 offset = m_volume.PartitionOffsetToRawOffset(0x440, partition);
-      biggest_offset = std::max(biggest_offset, offset);
-    }
-
-    const std::optional<u64> dol_offset = GetBootDOLOffset(m_volume, partition);
-    if (dol_offset)
-    {
-      const std::optional<u64> dol_size = GetBootDOLSize(m_volume, partition, *dol_offset);
-      if (dol_size)
-      {
-        const u64 offset = m_volume.PartitionOffsetToRawOffset(*dol_offset + *dol_size, partition);
-        biggest_offset = std::max(biggest_offset, offset);
-      }
-    }
-
-    const std::optional<u64> fst_offset = GetFSTOffset(m_volume, partition);
-    const std::optional<u64> fst_size = GetFSTSize(m_volume, partition);
-    if (fst_offset && fst_size)
-    {
-      const u64 offset = m_volume.PartitionOffsetToRawOffset(*fst_offset + *fst_size, partition);
-      biggest_offset = std::max(biggest_offset, offset);
-    }
-
-    const FileSystem* fs = m_volume.GetFileSystem(partition);
-    if (fs)
-    {
-      const u64 offset =
-          m_volume.PartitionOffsetToRawOffset(GetBiggestReferencedOffset(fs->GetRoot()), partition);
-      biggest_offset = std::max(biggest_offset, offset);
-    }
-  }
-  return biggest_offset;
-}
-
-u64 VolumeVerifier::GetBiggestReferencedOffset(const FileInfo& file_info) const
-{
-  if (file_info.IsDirectory())
-  {
-    u64 biggest_offset = 0;
-    for (const FileInfo& f : file_info)
-      biggest_offset = std::max(biggest_offset, GetBiggestReferencedOffset(f));
-    return biggest_offset;
-  }
-  else
-  {
-    return file_info.GetOffset() + file_info.GetSize();
   }
 }
 
