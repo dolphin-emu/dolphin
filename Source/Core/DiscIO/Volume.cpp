@@ -20,6 +20,7 @@
 
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeGC.h"
@@ -87,14 +88,10 @@ std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<char16_t>
 
 static std::unique_ptr<VolumeDisc> CreateDisc(std::unique_ptr<BlobReader>& reader)
 {
-  // Check for Wii
-  const std::optional<u32> wii_magic = reader->ReadSwapped<u32>(0x18);
-  if (wii_magic == u32(0x5D1C9EA3))
+  if (reader->ReadSwapped<u32>(0x18) == WII_DISC_MAGIC)
     return std::make_unique<VolumeWii>(std::move(reader));
 
-  // Check for GC
-  const std::optional<u32> gc_magic = reader->ReadSwapped<u32>(0x1C);
-  if (gc_magic == u32(0xC2339F3D))
+  if (reader->ReadSwapped<u32>(0x1C) == GAMECUBE_DISC_MAGIC)
     return std::make_unique<VolumeGC>(std::move(reader));
 
   // No known magic words found

@@ -28,6 +28,7 @@
 #include "Core/Boot/DolReader.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -653,8 +654,8 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
   }
   else
   {
-    m_is_wii = Common::swap32(&m_disc_header[0x18]) == 0x5d1c9ea3;
-    const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == 0xc2339f3d;
+    m_is_wii = Common::swap32(&m_disc_header[0x18]) == WII_DISC_MAGIC;
+    const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == GAMECUBE_DISC_MAGIC;
     if (m_is_wii == is_gc)
       ERROR_LOG_FMT(DISCIO, "Couldn't detect disc type based on {}", boot_bin_path);
   }
