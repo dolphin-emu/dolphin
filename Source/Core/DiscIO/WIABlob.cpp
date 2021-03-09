@@ -30,7 +30,7 @@
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/LaggedFibonacciGenerator.h"
 #include "DiscIO/MultithreadedCompressor.h"

@@ -12,7 +12,7 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 
