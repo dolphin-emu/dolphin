@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -16,12 +18,11 @@ namespace ControllerEmu
 class SensorBar : public ControlGroup
 {
 public:
+  using StateData = Common::Vec3;
+
   SensorBar(std::string name, std::string ui_name);
 
-  // Yaw movement in radians.
-  ControlState GetTotalYaw() const;
-
-private:
-  SettingValue<double> m_yaw_setting;
+  StateData GetDisplacement() const;
+  StateData GetOrientation() const;
 };
 }  // namespace ControllerEmu

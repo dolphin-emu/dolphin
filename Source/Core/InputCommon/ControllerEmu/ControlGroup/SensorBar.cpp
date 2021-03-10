@@ -17,8 +17,7 @@
 namespace ControllerEmu
 {
 SensorBar::SensorBar(std::string name_, std::string ui_name_)
-    : ControlGroup(
-          std::move(name_), std::move(ui_name_), GroupType::SensorBar,
+    : ControlGroup(std::move(name_), std::move(ui_name_), GroupType::SensorBar,
 #ifdef ANDROID
           // Enabling this on Android devices which have an accelerometer and gyroscope prevents
           // touch controls from being used for pointing, and touch controls generally work better
@@ -27,23 +26,22 @@ SensorBar::SensorBar(std::string name_, std::string ui_name_)
           ControlGroup::DefaultValue::Enabled)
 #endif
 {
-  AddInput(Translate, _trans("Recenter"));
-
-  // Default values chosen to reach screen edges in most games including the Wii Menu.
-
-  AddSetting(&m_yaw_setting,
-             // i18n: Refers to an amount of rotational movement about the "yaw" axis.
-             {_trans("Total Yaw"),
-              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
-              _trans("°"),
-              // i18n: Refers to emulated wii remote movements.
-              _trans("Clamping of rotation about the yaw axis.")},
-             25, 0, 360);
+  AddInput(Translate, _trans("Displacement X"));
+  AddInput(Translate, _trans("Displacement Y"));
+  AddInput(Translate, _trans("Displacement Z"));
+  AddInput(Translate, _trans("Pitch"));
+  AddInput(Translate, _trans("Roll"));
+  AddInput(Translate, _trans("Yaw"));
 }
 
-ControlState SensorBar::GetTotalYaw() const
+auto SensorBar::GetDisplacement() const -> StateData
 {
-  return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
+  return StateData(controls[0]->GetState(), controls[1]->GetState(), controls[2]->GetState());
+}
+
+auto SensorBar::GetOrientation() const -> StateData
+{
+  return StateData(controls[3]->GetState(), controls[4]->GetState(), controls[5]->GetState());
 }
 
 }  // namespace ControllerEmu
