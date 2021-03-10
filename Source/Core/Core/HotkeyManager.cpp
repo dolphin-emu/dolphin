@@ -44,7 +44,10 @@ constexpr std::array<const char*, 125> s_hotkey_labels{{
 
     _trans("Decrease Emulation Speed"),
     _trans("Increase Emulation Speed"),
-    _trans("Disable Emulation Speed Limit"),
+    // i18n: Here, "(Hold)" refers to the fact that the key must be held
+    // continuously to have an effect, rather than pressing it once
+    // and pressing it again later.
+    _trans("Disable Emulation Speed Limit (Hold)"),
 
     _trans("Frame Advance"),
     _trans("Frame Advance Decrease Speed"),
