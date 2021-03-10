@@ -33,6 +33,7 @@ class IMUGyroscope;
 class IMUCursor;
 class ModifySettingsButton;
 class Output;
+class SensorBar;
 class Tilt;
 }  // namespace ControllerEmu
 

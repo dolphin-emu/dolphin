@@ -23,8 +23,7 @@ SensorBar::SensorBar(std::string name_, std::string ui_name_)
           // touch controls from being used for pointing, and touch controls generally work better
           ControlGroup::DefaultValue::Disabled)
 #else
-          // Most users probably won't have the setup for this
-          ControlGroup::DefaultValue::Disabled)
+          ControlGroup::DefaultValue::Enabled)
 #endif
 {
   AddInput(Translate, _trans("Displacement X"));
@@ -35,12 +34,12 @@ SensorBar::SensorBar(std::string name_, std::string ui_name_)
   AddInput(Translate, _trans("Yaw"));
 }
 
-auto SensorBar::GetDisplacement() const -> StateData
+std::optional<SensorBar::StateData> SensorBar::GetDisplacement() const
 {
   return StateData(controls[0]->GetState(), controls[1]->GetState(), controls[2]->GetState());
 }
 
-auto SensorBar::GetOrientation() const -> StateData
+std::optional<SensorBar::StateData> SensorBar::GetOrientation() const
 {
   return StateData(controls[3]->GetState(), controls[4]->GetState(), controls[5]->GetState());
 }

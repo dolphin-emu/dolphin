@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "Common/MathUtil.h"
@@ -22,7 +23,7 @@ public:
 
   SensorBar(std::string name, std::string ui_name);
 
-  StateData GetDisplacement() const;
-  StateData GetOrientation() const;
+  std::optional<StateData> GetDisplacement() const;
+  std::optional<StateData> GetOrientation() const;
 };
 }  // namespace ControllerEmu

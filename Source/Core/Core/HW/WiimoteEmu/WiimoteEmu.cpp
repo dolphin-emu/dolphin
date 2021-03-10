@@ -730,7 +730,7 @@ void Wiimote::StepDynamics()
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
+  EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope, m_sensor_bar,
                    1.f / ::Wiimote::UPDATE_FREQ);
 }
 

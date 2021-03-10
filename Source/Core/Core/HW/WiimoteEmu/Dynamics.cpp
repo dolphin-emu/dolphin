@@ -310,42 +310,54 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
 
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
-                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
+                      ControllerEmu::IMUGyroscope* imu_gyroscope_group,
+                      ControllerEmu::SensorBar* sensor_bar_group, float time_elapsed)
 {
   const auto ang_vel = imu_gyroscope_group->GetState();
 
-  // Reset if pointing is disabled or we have no gyro data.
-  if (!imu_ir_group->enabled || !ang_vel.has_value())
+  // Reset if sensor bar simulation is disabled and also pointing is disabled or can't be simulated because we have no gyro data.
+  if (!sensor_bar_group->enabled && (!imu_ir_group->enabled || !ang_vel.has_value()))
   {
     *state = {};
     return;
   }
 
-  // Apply rotation from gyro data.
-  const auto gyro_rotation = GetRotationFromGyroscope(*ang_vel * -1 * time_elapsed);
-  state->rotation = gyro_rotation * state->rotation;
-
-  // If we have some non-zero accel data use it to adjust gyro drift.
-  constexpr auto ACCEL_WEIGHT = 0.02f;
-  auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
-  if (accel.LengthSquared())
-    state->rotation = ComplementaryFilter(state->rotation, accel, ACCEL_WEIGHT);
-
-  // Clamp yaw within configured bounds.
-  const auto yaw = GetYaw(state->rotation);
-  const auto max_yaw = float(imu_ir_group->GetTotalYaw() / 2);
-  auto target_yaw = std::clamp(yaw, -max_yaw, max_yaw);
-
-  // Handle the "Recenter" button being pressed.
-  if (imu_ir_group->controls[0]->GetState<bool>())
+  if (sensor_bar_group->enabled) // need: "&& new data was received in the last update"
   {
-    state->recentered_pitch = GetPitch(state->rotation);
-    target_yaw = 0;
+    //const auto sensor_bar_rotation = sensor_bar_group->GetOrientation();
+    //state->rotation = Common::Quaternion{1, sensor_bar_rotation.x / 2, sensor_bar_rotation.y / 2,
+//                                         sensor_bar_rotation.z / 2};
+    *state = {};
+    return;
   }
+  else
+  {
+    // Apply rotation from gyro data.
+    const auto gyro_rotation = GetRotationFromGyroscope(*ang_vel * -1 * time_elapsed);
+    state->rotation = gyro_rotation * state->rotation;
 
-  // Adjust yaw as needed.
-  if (yaw != target_yaw)
-    state->rotation *= Common::Quaternion::RotateZ(target_yaw - yaw);
+    // If we have some non-zero accel data use it to adjust gyro drift.
+    constexpr auto ACCEL_WEIGHT = 0.02f;
+    auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
+    if (accel.LengthSquared())
+      state->rotation = ComplementaryFilter(state->rotation, accel, ACCEL_WEIGHT);
+
+    // Clamp yaw within configured bounds.
+    const auto yaw = GetYaw(state->rotation);
+    const auto max_yaw = float(imu_ir_group->GetTotalYaw() / 2);
+    auto target_yaw = std::clamp(yaw, -max_yaw, max_yaw);
+
+    // Handle the "Recenter" button being pressed.
+    if (imu_ir_group->controls[0]->GetState<bool>())
+    {
+      state->recentered_pitch = GetPitch(state->rotation);
+      target_yaw = 0;
+    }
+
+    // Adjust yaw as needed.
+    if (yaw != target_yaw)
+      state->rotation *= Common::Quaternion::RotateZ(target_yaw - yaw);
+  }
 
   // Normalize for floating point inaccuracies.
   state->rotation = state->rotation.Normalized();
