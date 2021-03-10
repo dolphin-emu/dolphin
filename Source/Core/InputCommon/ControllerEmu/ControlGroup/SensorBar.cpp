@@ -23,7 +23,8 @@ SensorBar::SensorBar(std::string name_, std::string ui_name_)
           // touch controls from being used for pointing, and touch controls generally work better
           ControlGroup::DefaultValue::Disabled)
 #else
-          ControlGroup::DefaultValue::Enabled)
+          // Most users probably won't have the setup for this
+          ControlGroup::DefaultValue::Disabled)
 #endif
 {
   AddInput(Translate, _trans("Displacement X"));
