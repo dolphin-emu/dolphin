@@ -17,16 +17,16 @@ void FifoRecordAnalyzer::Initialize(const u32* cpMem)
 {
   s_DrawingObject = false;
 
-  FifoAnalyzer::LoadCPReg(0x50, *(cpMem + 0x50), s_CpMem);
-  FifoAnalyzer::LoadCPReg(0x60, *(cpMem + 0x60), s_CpMem);
-  for (int i = 0; i < 8; ++i)
-    FifoAnalyzer::LoadCPReg(0x70 + i, *(cpMem + 0x70 + i), s_CpMem);
+  FifoAnalyzer::LoadCPReg(VCD_LO, cpMem[VCD_LO], s_CpMem);
+  FifoAnalyzer::LoadCPReg(VCD_HI, cpMem[VCD_HI], s_CpMem);
+  for (u32 i = 0; i < CP_NUM_VAT_REG; ++i)
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_A + i, cpMem[CP_VAT_REG_A + i], s_CpMem);
 
-  const u32* const bases_start = cpMem + 0xA0;
+  const u32* const bases_start = cpMem + ARRAY_BASE;
   const u32* const bases_end = bases_start + s_CpMem.arrayBases.size();
   std::copy(bases_start, bases_end, s_CpMem.arrayBases.begin());
 
-  const u32* const strides_start = cpMem + 0xB0;
+  const u32* const strides_start = cpMem + ARRAY_STRIDE;
   const u32* const strides_end = strides_start + s_CpMem.arrayStrides.size();
   std::copy(strides_start, strides_end, s_CpMem.arrayStrides.begin());
 }

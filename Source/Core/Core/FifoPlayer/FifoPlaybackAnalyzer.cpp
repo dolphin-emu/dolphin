@@ -25,14 +25,14 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
                                          std::vector<AnalyzedFrameInfo>& frameInfo)
 {
   u32* cpMem = file->GetCPMem();
-  FifoAnalyzer::LoadCPReg(0x50, cpMem[0x50], s_CpMem);
-  FifoAnalyzer::LoadCPReg(0x60, cpMem[0x60], s_CpMem);
+  FifoAnalyzer::LoadCPReg(VCD_LO, cpMem[VCD_LO], s_CpMem);
+  FifoAnalyzer::LoadCPReg(VCD_HI, cpMem[VCD_HI], s_CpMem);
 
-  for (int i = 0; i < 8; ++i)
+  for (u32 i = 0; i < CP_NUM_VAT_REG; ++i)
   {
-    FifoAnalyzer::LoadCPReg(0x70 + i, cpMem[0x70 + i], s_CpMem);
-    FifoAnalyzer::LoadCPReg(0x80 + i, cpMem[0x80 + i], s_CpMem);
-    FifoAnalyzer::LoadCPReg(0x90 + i, cpMem[0x90 + i], s_CpMem);
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_A + i, cpMem[CP_VAT_REG_A + i], s_CpMem);
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_B + i, cpMem[CP_VAT_REG_B + i], s_CpMem);
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_C + i, cpMem[CP_VAT_REG_C + i], s_CpMem);
   }
 
   frameInfo.clear();
