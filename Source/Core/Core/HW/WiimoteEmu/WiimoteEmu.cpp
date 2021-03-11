@@ -751,7 +751,7 @@ Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity) co
                              m_point_state.angular_velocity + extra_angular_velocity);
 }
 
-Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
+Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation, const Common::Vec3& position) const
 {
   // Includes positional and rotational effects of:
   // Point, Swing, Tilt, Shake
@@ -761,7 +761,8 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
          Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
                                         GetRotationalMatrix(-m_point_state.angle) *
                                         GetRotationalMatrix(-m_swing_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
+         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position) *
+         Common::Matrix44::Translate(position);
 }
 
 Common::Quaternion Wiimote::GetOrientation() const
@@ -790,7 +791,7 @@ Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
   return GetTransformation(Common::Matrix33::FromQuaternion(
       m_imu_cursor_state.rotation *
-      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
+      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)), m_imu_cursor_state.position);
 }
 
 }  // namespace WiimoteEmu

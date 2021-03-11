@@ -46,6 +46,8 @@ struct IMUCursorState
 
   // Rotation of world around device.
   Common::Quaternion rotation;
+  // Position of device in world
+  Common::Vec3 position;
 
   float recentered_pitch = {};
 };

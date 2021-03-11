@@ -23,7 +23,7 @@ public:
 
   SensorBar(std::string name, std::string ui_name);
 
-  std::optional<StateData> GetDisplacement() const;
-  std::optional<StateData> GetOrientation() const;
+  StateData GetDisplacement() const;
+  StateData GetOrientation() const;
 };
 }  // namespace ControllerEmu
