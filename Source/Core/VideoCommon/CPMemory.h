@@ -319,8 +319,8 @@ union UVAT_group0
   BitField<22, 3, ComponentFormat> Tex0CoordFormat;
   BitField<25, 5, u32> Tex0Frac;
   // 30:31
-  BitField<30, 1, u32> ByteDequant;
-  BitField<31, 1, u32> NormalIndex3;
+  BitField<30, 1, bool, u32> ByteDequant;
+  BitField<31, 1, bool, u32> NormalIndex3;
 };
 template <>
 struct fmt::formatter<UVAT_group0>
@@ -376,7 +376,7 @@ union UVAT_group1
   BitField<27, 1, TexComponentCount> Tex4CoordElements;
   BitField<28, 3, ComponentFormat> Tex4CoordFormat;
   // 31
-  BitField<31, 1, u32> VCacheEnhance;
+  BitField<31, 1, bool, u32> VCacheEnhance;
 };
 template <>
 struct fmt::formatter<UVAT_group1>
