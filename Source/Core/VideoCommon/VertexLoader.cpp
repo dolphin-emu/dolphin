@@ -205,98 +205,16 @@ void VertexLoader::CompileVertexTranslator()
     m_native_vtx_decl.colors[i].components = 4;
     m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
     m_native_vtx_decl.colors[i].integer = false;
-    switch (m_VtxDesc.low.Color[i])
-    {
-    case VertexComponentFormat::NotPresent:
-      break;
-    case VertexComponentFormat::Direct:
-      switch (m_VtxAttr.color[i].Comp)
-      {
-      case ColorFormat::RGB565:
-        m_VertexSize += 2;
-        WriteCall(Color_ReadDirect_16b_565);
-        break;
-      case ColorFormat::RGB888:
-        m_VertexSize += 3;
-        WriteCall(Color_ReadDirect_24b_888);
-        break;
-      case ColorFormat::RGB888x:
-        m_VertexSize += 4;
-        WriteCall(Color_ReadDirect_32b_888x);
-        break;
-      case ColorFormat::RGBA4444:
-        m_VertexSize += 2;
-        WriteCall(Color_ReadDirect_16b_4444);
-        break;
-      case ColorFormat::RGBA6666:
-        m_VertexSize += 3;
-        WriteCall(Color_ReadDirect_24b_6666);
-        break;
-      case ColorFormat::RGBA8888:
-        m_VertexSize += 4;
-        WriteCall(Color_ReadDirect_32b_8888);
-        break;
-      default:
-        ASSERT(0);
-        break;
-      }
-      break;
-    case VertexComponentFormat::Index8:
-      m_VertexSize += 1;
-      switch (m_VtxAttr.color[i].Comp)
-      {
-      case ColorFormat::RGB565:
-        WriteCall(Color_ReadIndex8_16b_565);
-        break;
-      case ColorFormat::RGB888:
-        WriteCall(Color_ReadIndex8_24b_888);
-        break;
-      case ColorFormat::RGB888x:
-        WriteCall(Color_ReadIndex8_32b_888x);
-        break;
-      case ColorFormat::RGBA4444:
-        WriteCall(Color_ReadIndex8_16b_4444);
-        break;
-      case ColorFormat::RGBA6666:
-        WriteCall(Color_ReadIndex8_24b_6666);
-        break;
-      case ColorFormat::RGBA8888:
-        WriteCall(Color_ReadIndex8_32b_8888);
-        break;
-      default:
-        ASSERT(0);
-        break;
-      }
-      break;
-    case VertexComponentFormat::Index16:
-      m_VertexSize += 2;
-      switch (m_VtxAttr.color[i].Comp)
-      {
-      case ColorFormat::RGB565:
-        WriteCall(Color_ReadIndex16_16b_565);
-        break;
-      case ColorFormat::RGB888:
-        WriteCall(Color_ReadIndex16_24b_888);
-        break;
-      case ColorFormat::RGB888x:
-        WriteCall(Color_ReadIndex16_32b_888x);
-        break;
-      case ColorFormat::RGBA4444:
-        WriteCall(Color_ReadIndex16_16b_4444);
-        break;
-      case ColorFormat::RGBA6666:
-        WriteCall(Color_ReadIndex16_24b_6666);
-        break;
-      case ColorFormat::RGBA8888:
-        WriteCall(Color_ReadIndex16_32b_8888);
-        break;
-      default:
-        ASSERT(0);
-        break;
-      }
-      break;
-    }
-    // Common for the three bottom cases
+
+    m_VertexSize += VertexLoader_Color::GetSize(m_VtxDesc.low.Color[i], m_VtxAttr.color[i].Comp);
+    TPipelineFunction pFunc =
+        VertexLoader_Color::GetFunction(m_VtxDesc.low.Color[i], m_VtxAttr.color[i].Comp);
+
+    if (pFunc != nullptr)
+      WriteCall(pFunc);
+    else
+      ASSERT(m_VtxDesc.low.Color[i] == VertexComponentFormat::NotPresent);
+
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
       components |= VB_HAS_COL0 << i;
