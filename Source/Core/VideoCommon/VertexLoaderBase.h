@@ -60,15 +60,17 @@ struct hash<VertexLoaderUID>
 class VertexLoaderBase
 {
 public:
+  static u32 GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
+  static u32 GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
   static std::unique_ptr<VertexLoaderBase> CreateVertexLoader(const TVtxDesc& vtx_desc,
                                                               const VAT& vtx_attr);
   virtual ~VertexLoaderBase() {}
   virtual int RunVertices(DataReader src, DataReader dst, int count) = 0;
 
   // per loader public state
-  int m_VertexSize = 0;  // number of bytes of a raw GC vertex
   PortableVertexDeclaration m_native_vtx_decl{};
-  u32 m_native_components = 0;
+  const u32 m_vertex_size;  // number of bytes of a raw GC vertex
+  const u32 m_native_components;
 
   // used by VertexLoaderManager
   NativeVertexFormat* m_native_vertex_format = nullptr;
@@ -76,7 +78,10 @@ public:
 
 protected:
   VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
-      : m_VtxDesc{vtx_desc}, m_VtxAttr{vtx_attr} {};
+      : m_VtxDesc{vtx_desc}, m_VtxAttr{vtx_attr}, m_vertex_size{GetVertexSize(vtx_desc, vtx_attr)},
+        m_native_components{GetVertexComponents(vtx_desc, vtx_attr)}
+  {
+  }
 
   // GC vertex format
   const VAT m_VtxAttr;

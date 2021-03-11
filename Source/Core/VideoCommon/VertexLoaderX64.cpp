@@ -418,7 +418,6 @@ void VertexLoaderX64::GenerateVertexLoader()
     MOV(32, MPIC(VertexLoaderManager::position_matrix_index, count_reg, SCALE_4), R(scratch1));
     SetJumpTarget(dont_store);
 
-    m_native_components |= VB_HAS_POSMTXIDX;
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
@@ -457,10 +456,6 @@ void VertexLoaderX64::GenerateVertexLoader()
       data.AddMemOffset(ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3,
                                    true, scaling_exponent, &m_native_vtx_decl.normals[i]));
     }
-
-    m_native_components |= VB_HAS_NRM0;
-    if (m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT)
-      m_native_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
   }
 
   for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
@@ -469,7 +464,6 @@ void VertexLoaderX64::GenerateVertexLoader()
     {
       data = GetVertexAddr(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i]);
       ReadColor(data, m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
-      m_native_components |= VB_HAS_COL0 << i;
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
@@ -489,11 +483,9 @@ void VertexLoaderX64::GenerateVertexLoader()
       ReadVertex(data, m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
                  m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant,
                  scaling_exponent, &m_native_vtx_decl.texcoords[i]);
-      m_native_components |= VB_HAS_UV0 << i;
     }
     if (m_VtxDesc.low.TexMatIdx[i])
     {
-      m_native_components |= VB_HAS_TEXMTXIDX0 << i;
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
       m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
@@ -544,7 +536,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     RET();
   }
 
-  m_VertexSize = m_src_ofs;
+  ASSERT(m_vertex_size == m_src_ofs);
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 

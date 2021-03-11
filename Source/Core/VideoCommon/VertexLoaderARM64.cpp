@@ -423,7 +423,6 @@ void VertexLoaderARM64::GenerateVertexLoader()
     STR(IndexType::Unsigned, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
     SetJumpTarget(dont_store);
 
-    m_native_components |= VB_HAS_POSMTXIDX;
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
@@ -486,10 +485,6 @@ void VertexLoaderARM64::GenerateVertexLoader()
       else
         offset += bytes_read;
     }
-
-    m_native_components |= VB_HAS_NRM0;
-    if (m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT)
-      m_native_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
   }
 
   for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
@@ -508,7 +503,6 @@ void VertexLoaderARM64::GenerateVertexLoader()
       s32 offset = GetAddressImm(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i],
                                  EncodeRegTo64(scratch1_reg), align);
       ReadColor(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i), offset);
-      m_native_components |= VB_HAS_COL0 << i;
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
@@ -527,8 +521,6 @@ void VertexLoaderARM64::GenerateVertexLoader()
     int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::S ? 1 : 2;
     if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
     {
-      m_native_components |= VB_HAS_UV0 << i;
-
       int elem_size = GetElementSize(m_VtxAttr.GetTexFormat(i));
       int load_bytes = elem_size * (elements + 2);
       int load_size = GetLoadSize(load_bytes);
@@ -543,7 +535,6 @@ void VertexLoaderARM64::GenerateVertexLoader()
     }
     if (m_VtxDesc.low.TexMatIdx[i])
     {
-      m_native_components |= VB_HAS_TEXMTXIDX0 << i;
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
       m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
@@ -609,7 +600,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   FlushIcache();
 
-  m_VertexSize = m_src_ofs;
+  ASSERT(m_vertex_size == m_src_ofs);
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 

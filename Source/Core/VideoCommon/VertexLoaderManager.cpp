@@ -247,7 +247,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
   VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 
-  int size = count * loader->m_VertexSize;
+  int size = count * loader->m_vertex_size;
   if ((int)src.size() < size)
     return -1;
 
