@@ -12,6 +12,7 @@
 #include "Core/FreeLookConfig.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/FreeLookCamera.h"
@@ -60,6 +61,19 @@ enum FieldOfViewButtons
   DecreaseY,
 };
 }
+
+namespace GyroButtons
+{
+enum GyroButtons
+{
+  PitchUp,
+  PitchDown,
+  RollLeft,
+  RollRight,
+  YawLeft,
+  YawRight,
+};
+}
 }  // namespace
 
 FreeLookController::FreeLookController(const unsigned int index) : m_index(index)
@@ -89,6 +103,9 @@ FreeLookController::FreeLookController(const unsigned int index) : m_index(index
   m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease X"));
   m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Increase Y"));
   m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease Y"));
+
+  groups.emplace_back(m_rotation_gyro = new ControllerEmu::IMUGyroscope(
+                          _trans("Incremental Rotation"), _trans("Incremental Rotation")));
 }
 
 std::string FreeLookController::GetName() const
@@ -125,6 +142,35 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
                                       hotkey_string({"Shift", "`Axis Z+`"}));
   m_fov_buttons->SetControlExpression(FieldOfViewButtons::DecreaseY,
                                       hotkey_string({"Shift", "`Axis Z-`"}));
+
+#if defined HAVE_X11 && HAVE_X11
+  m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
+                                        "if(`Click 3`,`RelativeMouse Y-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
+                                        "if(`Click 3`,`RelativeMouse Y+` * 0.10, 0)");
+#else
+  m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
+                                        "if(`Click 1`,`RelativeMouse Y-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
+                                        "if(`Click 1`,`RelativeMouse Y+` * 0.10, 0)");
+#endif
+
+  m_rotation_gyro->SetControlExpression(GyroButtons::RollLeft,
+                                        "if(`Click 2`,`RelativeMouse X-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::RollRight,
+                                        "if(`Click 2`,`RelativeMouse X+` * 0.10, 0)");
+
+#if defined HAVE_X11 && HAVE_X11
+  m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
+                                        "if(`Click 3`,`RelativeMouse X-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
+                                        "if(`Click 3`,`RelativeMouse X+` * 0.10, 0)");
+#else
+  m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
+                                        "if(`Click 1`,`RelativeMouse X-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
+                                        "if(`Click 1`,`RelativeMouse X+` * 0.10, 0)");
+#endif
 }
 
 ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) const
@@ -139,6 +185,8 @@ ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) c
     return m_fov_buttons;
   case FreeLookGroup::Other:
     return m_other_buttons;
+  case FreeLookGroup::Rotation:
+    return m_rotation_gyro;
   default:
     return nullptr;
   }
@@ -151,6 +199,28 @@ void FreeLookController::Update()
 
   const auto lock = GetStateLock();
 
+  float dt = 1.0;
+  if (m_last_free_look_rotate_time)
+  {
+    using seconds = std::chrono::duration<float, std::ratio<1>>;
+    dt = std::chrono::duration_cast<seconds>(std::chrono::steady_clock::now() -
+                                             *m_last_free_look_rotate_time)
+             .count();
+  }
+  m_last_free_look_rotate_time = std::chrono::steady_clock::now();
+
+  const auto gyro_motion_rad_velocity =
+      m_rotation_gyro->GetState() ? *m_rotation_gyro->GetState() : Common::Vec3{};
+
+  // Due to gyroscope implementation we need to swap the yaw and roll values
+  // and because of the different axis used for Wii and the PS3 motion directions,
+  // we need to invert the yaw and roll as well
+  const Common::Vec3 gyro_motion_rad_velocity_converted{
+      gyro_motion_rad_velocity.x, gyro_motion_rad_velocity.z * -1, gyro_motion_rad_velocity.y * -1};
+  const auto gyro_motion_quat =
+      Common::Quaternion::RotateXYZ(gyro_motion_rad_velocity_converted * dt);
+
+  g_freelook_camera.Rotate(gyro_motion_quat);
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
     g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed());
 
