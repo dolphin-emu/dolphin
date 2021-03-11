@@ -38,6 +38,7 @@
 #include <QTableView>
 #include <QUrl>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -576,8 +577,18 @@ void GameList::OpenContainingFolder()
   if (!game)
     return;
 
-  QUrl url = QUrl::fromLocalFile(
-      QFileInfo(QString::fromStdString(game->GetFilePath())).dir().absolutePath());
+  // Remove everything after the last separator in the game's path, resulting in the parent
+  // directory path with a trailing separator. Keeping the trailing separator prevents Windows from
+  // mistakenly opening a .bat or .exe file in the grandparent folder when that file has the same
+  // base name as the folder (See https://bugs.dolphin-emu.org/issues/12411).
+  std::string parent_directory_path;
+  SplitPath(game->GetFilePath(), &parent_directory_path, nullptr, nullptr);
+  if (parent_directory_path.empty())
+  {
+    return;
+  }
+
+  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(parent_directory_path));
   QDesktopServices::openUrl(url);
 }
 
