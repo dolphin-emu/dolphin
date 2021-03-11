@@ -34,12 +34,12 @@ SensorBar::SensorBar(std::string name_, std::string ui_name_)
   AddInput(Translate, _trans("Yaw"));
 }
 
-std::optional<SensorBar::StateData> SensorBar::GetDisplacement() const
+auto SensorBar::GetDisplacement() const -> StateData
 {
   return StateData(controls[0]->GetState(), controls[1]->GetState(), controls[2]->GetState());
 }
 
-std::optional<SensorBar::StateData> SensorBar::GetOrientation() const
+auto SensorBar::GetOrientation() const -> StateData
 {
   return StateData(controls[3]->GetState(), controls[4]->GetState(), controls[5]->GetState());
 }

@@ -84,6 +84,9 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
 IMUCursorState::IMUCursorState() : rotation{Common::Quaternion::Identity()}
 {
 }
+//IMUCursorState::IMUCursorState() : position{Common::Vec3(0.f, 0.f, 2.f)}
+//{
+//}
 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
                   float time_elapsed)
@@ -324,10 +327,12 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
 
   if (sensor_bar_group->enabled) // need: "&& new data was received in the last update"
   {
-    //const auto sensor_bar_rotation = sensor_bar_group->GetOrientation();
-    //state->rotation = Common::Quaternion{1, sensor_bar_rotation.x / 2, sensor_bar_rotation.y / 2,
-//                                         sensor_bar_rotation.z / 2};
-    *state = {};
+    const auto sensor_bar_rotation = sensor_bar_group->GetOrientation();
+    const auto sensor_bar_position = sensor_bar_group->GetDisplacement();
+    state->rotation = Common::Quaternion{1, sensor_bar_rotation.x / 2, sensor_bar_rotation.y / 2,
+                                         sensor_bar_rotation.z / 2};
+    state->position =
+        Common::Vec3{sensor_bar_position.x, sensor_bar_position.y, sensor_bar_position.z};
     return;
   }
   else

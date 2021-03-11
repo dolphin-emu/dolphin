@@ -161,7 +161,7 @@ private:
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
   Common::Matrix44
-  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
+  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity(), const Common::Vec3& position = Common::Vec3(0.f, 0.f, 0.f)) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Quaternion GetOrientation() const;
