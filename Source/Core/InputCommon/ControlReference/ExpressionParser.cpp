@@ -461,20 +461,24 @@ class VariableExpression : public Expression
 public:
   VariableExpression(std::string name) : m_name(name) {}
 
-  ControlState GetValue() const override { return *m_value_ptr; }
+  ControlState GetValue() const override { return m_variable_ptr ? *m_variable_ptr : 0; }
 
-  void SetValue(ControlState value) override { *m_value_ptr = value; }
+  void SetValue(ControlState value) override
+  {
+    if (m_variable_ptr)
+      *m_variable_ptr = value;
+  }
 
   int CountNumControls() const override { return 1; }
 
   void UpdateReferences(ControlEnvironment& env) override
   {
-    m_value_ptr = env.GetVariablePtr(m_name);
+    m_variable_ptr = env.GetVariablePtr(m_name);
   }
 
 protected:
   const std::string m_name;
-  ControlState* m_value_ptr{};
+  std::shared_ptr<ControlState> m_variable_ptr;
 };
 
 class HotkeyExpression : public Expression
@@ -621,9 +625,30 @@ Device::Output* ControlEnvironment::FindOutput(ControlQualifier qualifier) const
   return device->FindOutput(qualifier.control_name);
 }
 
-ControlState* ControlEnvironment::GetVariablePtr(const std::string& name)
+std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::string& name)
 {
-  return &m_variables[name];
+  // Do not accept an empty string as key, even if the expression parser already prevents this case.
+  if (name.empty())
+    return nullptr;
+  std::shared_ptr<ControlState>& variable = m_variables[name];
+  // If new, make a shared ptr
+  if (!variable)
+  {
+    variable = std::make_shared<ControlState>();
+  }
+  return variable;
+}
+
+void ControlEnvironment::CleanUnusedVariables()
+{
+  for (auto it = m_variables.begin(); it != m_variables.end();)
+  {
+    // Don't count ourselves as reference
+    if (it->second.use_count() <= 1)
+      m_variables.erase(it++);
+    else
+      ++it;
+  }
 }
 
 ParseResult ParseResult::MakeEmptyResult()
@@ -785,7 +810,10 @@ private:
     }
     case TOK_VARIABLE:
     {
-      return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
+      if (tok.data.empty())
+        return ParseResult::MakeErrorResult(tok, _trans("Expected variable name."));
+      else
+        return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
     }
     case TOK_LPAREN:
     {

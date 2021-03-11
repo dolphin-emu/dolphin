@@ -143,7 +143,7 @@ public:
 class ControlEnvironment
 {
 public:
-  using VariableContainer = std::map<std::string, ControlState>;
+  using VariableContainer = std::map<std::string, std::shared_ptr<ControlState>>;
 
   ControlEnvironment(const Core::DeviceContainer& container_, const Core::DeviceQualifier& default_,
                      VariableContainer& vars)
@@ -154,7 +154,10 @@ public:
   std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier) const;
   Core::Device::Input* FindInput(ControlQualifier qualifier) const;
   Core::Device::Output* FindOutput(ControlQualifier qualifier) const;
-  ControlState* GetVariablePtr(const std::string& name);
+  // Returns an existing variable by the specified name if already existing. Creates it otherwise.
+  std::shared_ptr<ControlState> GetVariablePtr(const std::string& name);
+
+  void CleanUnusedVariables();
 
 private:
   VariableContainer& m_variables;
