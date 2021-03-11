@@ -668,15 +668,20 @@ void FIFOAnalyzer::UpdateDescription()
 
     const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
     const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
-    const u32 vertex_size = VertexLoaderBase::GetVertexSize(vtx_desc, vtx_attr);
+    const auto component_sizes = VertexLoaderBase::GetVertexComponentSizes(vtx_desc, vtx_attr);
 
     u32 i = 3;
     for (u32 vertex_num = 0; vertex_num < vertex_count; vertex_num++)
     {
       text += QLatin1Char{'\n'};
-      // TODO: format each vertex nicely
-      for (u32 vertex_off = 0; vertex_off < vertex_size; vertex_off++)
-        text += QStringLiteral("%1").arg(cmddata[i++], 2, 16, QLatin1Char('0'));
+      for (u32 comp_size : component_sizes)
+      {
+        for (u32 comp_off = 0; comp_off < comp_size; comp_off++)
+        {
+          text += QStringLiteral("%1").arg(cmddata[i++], 2, 16, QLatin1Char('0'));
+        }
+        text += QLatin1Char{' '};
+      }
     }
   }
   else

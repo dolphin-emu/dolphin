@@ -97,29 +97,45 @@ private:
   std::vector<u8> buffer_b;
 };
 
-u32 VertexLoaderBase::GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+template <class Function>
+static void GetComponentSizes(const TVtxDesc& vtx_desc, const VAT& vtx_attr, Function f)
 {
-  u32 size = 0;
   if (vtx_desc.low.PosMatIdx)
-    size++;
+    f(1);
   for (auto texmtxidx : vtx_desc.low.TexMatIdx)
   {
     if (texmtxidx)
-      size++;
+      f(1);
   }
-  size += VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
-                                         vtx_attr.g0.PosElements);
-  size += VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
-                                       vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
+  const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
+                                                      vtx_attr.g0.PosElements);
+  if (pos_size != 0)
+    f(pos_size);
+  const u32 norm_size =
+      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
+                                   vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
+  if (norm_size != 0)
+    f(norm_size);
   for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
   {
-    size += VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
+    const u32 color_size =
+        VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
+    if (color_size != 0)
+      f(color_size);
   }
   for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
   {
-    size += VertexLoader_TextCoord::GetSize(vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i),
-                                            vtx_attr.GetTexElements(i));
+    const u32 tc_size = VertexLoader_TextCoord::GetSize(
+        vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
+    if (tc_size != 0)
+      f(tc_size);
   }
+}
+
+u32 VertexLoaderBase::GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+{
+  u32 size = 0;
+  GetComponentSizes(vtx_desc, vtx_attr, [&size](u32 s) { size += s; });
   return size;
 }
 
@@ -151,6 +167,14 @@ u32 VertexLoaderBase::GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& v
       components |= VB_HAS_UV0 << i;
   }
   return components;
+}
+
+std::vector<u32> VertexLoaderBase::GetVertexComponentSizes(const TVtxDesc& vtx_desc,
+                                                           const VAT& vtx_attr)
+{
+  std::vector<u32> sizes;
+  GetComponentSizes(vtx_desc, vtx_attr, [&sizes](u32 s) { sizes.push_back(s); });
+  return sizes;
 }
 
 std::unique_ptr<VertexLoaderBase> VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc,
