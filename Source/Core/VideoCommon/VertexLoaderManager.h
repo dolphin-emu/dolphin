@@ -38,9 +38,6 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess);
 
-// For debugging
-std::string VertexLoadersToString();
-
 NativeVertexFormat* GetCurrentVertexFormat();
 
 // Resolved pointers to array bases. Used by vertex loaders.

@@ -114,34 +114,6 @@ struct entry
 };
 }  // namespace
 
-std::string VertexLoadersToString()
-{
-  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
-  std::vector<entry> entries;
-
-  size_t total_size = 0;
-  for (const auto& map_entry : s_vertex_loader_map)
-  {
-    entry e = {map_entry.second->ToString(),
-               static_cast<u64>(map_entry.second->m_numLoadedVertices)};
-
-    total_size += e.text.size() + 1;
-    entries.push_back(std::move(e));
-  }
-
-  sort(entries.begin(), entries.end());
-
-  std::string dest;
-  dest.reserve(total_size);
-  for (const entry& entry : entries)
-  {
-    dest += entry.text;
-    dest += '\n';
-  }
-
-  return dest;
-}
-
 void MarkAllDirty()
 {
   g_main_cp_state.attr_dirty = BitSet32::AllTrue(8);

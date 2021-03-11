@@ -67,11 +67,6 @@ public:
 
   virtual bool IsInitialized() = 0;
 
-  // For debugging / profiling
-  std::string ToString() const;
-
-  virtual std::string GetName() const = 0;
-
   // per loader public state
   int m_VertexSize = 0;  // number of bytes of a raw GC vertex
   PortableVertexDeclaration m_native_vtx_decl{};

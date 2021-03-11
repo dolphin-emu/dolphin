@@ -524,6 +524,16 @@ struct VAT
   UVAT_group1 g1;
   UVAT_group2 g2;
 };
+template <>
+struct fmt::formatter<VAT>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const VAT& vat, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "{}\n{}\n{}", vat.g0, vat.g1, vat.g2);
+  }
+};
 
 class VertexLoaderBase;
 

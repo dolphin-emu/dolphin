@@ -73,46 +73,6 @@ void VertexLoaderBase::SetVAT(const VAT& vat)
   m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
 };
 
-std::string VertexLoaderBase::ToString() const
-{
-  std::string dest;
-  dest.reserve(250);
-
-  dest += GetName();
-  dest += ": ";
-
-  dest += fmt::format("{}b skin: {} P: {} {}-{} ", m_VertexSize, m_VtxDesc.low.PosMatIdx,
-                      m_VtxAttr.PosElements, m_VtxDesc.low.Position, m_VtxAttr.PosFormat);
-
-  if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
-  {
-    dest += fmt::format("Nrm: {} {}-{} ", m_VtxAttr.NormalElements, m_VtxDesc.low.Normal,
-                        m_VtxAttr.NormalFormat);
-  }
-
-  for (size_t i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
-  {
-    if (g_main_cp_state.vtx_desc.low.Color[i] == VertexComponentFormat::NotPresent)
-      continue;
-
-    const auto& color = m_VtxAttr.color[i];
-    dest += fmt::format("C{}: {} {}-{} ", i, color.Elements, g_main_cp_state.vtx_desc.low.Color[i],
-                        color.Comp);
-  }
-
-  for (size_t i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
-  {
-    if (g_main_cp_state.vtx_desc.high.TexCoord[i] == VertexComponentFormat::NotPresent)
-      continue;
-
-    const auto& tex_coord = m_VtxAttr.texCoord[i];
-    dest += fmt::format("T{}: {} {}-{} ", i, tex_coord.Elements,
-                        g_main_cp_state.vtx_desc.high.TexCoord[i], tex_coord.Format);
-  }
-  dest += fmt::format(" - {} v", m_numLoadedVertices);
-  return dest;
-}
-
 // a hacky implementation to compare two vertex loaders
 class VertexLoaderTester : public VertexLoaderBase
 {
@@ -178,7 +138,6 @@ public:
     m_numLoadedVertices += count;
     return count_a;
   }
-  std::string GetName() const override { return "CompareLoader"; }
   bool IsInitialized() override { return m_initialized; }
 
 private:
