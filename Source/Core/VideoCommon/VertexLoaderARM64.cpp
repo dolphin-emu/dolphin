@@ -25,6 +25,20 @@ constexpr ARM64Reg stride_reg = ARM64Reg::X11;
 constexpr ARM64Reg arraybase_reg = ARM64Reg::X10;
 constexpr ARM64Reg scale_reg = ARM64Reg::X9;
 
+static constexpr int GetLoadSize(int load_bytes)
+{
+  if (load_bytes == 1)
+    return 1;
+  else if (load_bytes <= 2)
+    return 2;
+  else if (load_bytes <= 4)
+    return 4;
+  else if (load_bytes <= 8)
+    return 8;
+  else
+    return 16;
+}
+
 alignas(16) static const float scale_factors[] = {
     1.0 / (1ULL << 0),  1.0 / (1ULL << 1),  1.0 / (1ULL << 2),  1.0 / (1ULL << 3),
     1.0 / (1ULL << 4),  1.0 / (1ULL << 5),  1.0 / (1ULL << 6),  1.0 / (1ULL << 7),
@@ -120,8 +134,7 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
 
   int elem_size = GetElementSize(format);
   int load_bytes = elem_size * count_in;
-  int load_size =
-      load_bytes == 1 ? 1 : load_bytes <= 2 ? 2 : load_bytes <= 4 ? 4 : load_bytes <= 8 ? 8 : 16;
+  int load_size = GetLoadSize(load_bytes);
   load_size <<= 3;
   elem_size <<= 3;
 
@@ -434,8 +447,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     int elem_size = GetElementSize(m_VtxAttr.PosFormat);
     int pos_elements = m_VtxAttr.PosElements == CoordComponentCount::XY ? 2 : 3;
     int load_bytes = elem_size * pos_elements;
-    int load_size =
-        load_bytes == 1 ? 1 : load_bytes <= 2 ? 2 : load_bytes <= 4 ? 4 : load_bytes <= 8 ? 8 : 16;
+    int load_size = GetLoadSize(load_bytes);
     load_size <<= 3;
 
     s32 offset = GetAddressImm(ARRAY_POSITION, m_VtxDesc.low.Position, EncodeRegTo64(scratch1_reg),
@@ -458,9 +470,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
         int elem_size = GetElementSize(m_VtxAttr.NormalFormat);
 
         int load_bytes = elem_size * 3;
-        int load_size = load_bytes == 1 ?
-                            1 :
-                            load_bytes <= 2 ? 2 : load_bytes <= 4 ? 4 : load_bytes <= 8 ? 8 : 16;
+        int load_size = GetLoadSize(load_bytes);
 
         offset = GetAddressImm(ARRAY_NORMAL, m_VtxDesc.low.Normal, EncodeRegTo64(scratch1_reg),
                                load_size << 3);
@@ -523,9 +533,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
       int elem_size = GetElementSize(m_VtxAttr.texCoord[i].Format);
       int load_bytes = elem_size * (elements + 2);
-      int load_size = load_bytes == 1 ?
-                          1 :
-                          load_bytes <= 2 ? 2 : load_bytes <= 4 ? 4 : load_bytes <= 8 ? 8 : 16;
+      int load_size = GetLoadSize(load_bytes);
       load_size <<= 3;
 
       s32 offset = GetAddressImm(ARRAY_TEXCOORD0 + int(i), m_VtxDesc.high.TexCoord[i],
