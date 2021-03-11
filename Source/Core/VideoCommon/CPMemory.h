@@ -317,7 +317,7 @@ union UVAT_group0
   // 21:29
   BitField<21, 1, TexComponentCount> Tex0CoordElements;
   BitField<22, 3, ComponentFormat> Tex0CoordFormat;
-  BitField<25, 5, u32> Tex0Frac;
+  BitField<25, 5, u8, u32> Tex0Frac;
   // 30:31
   BitField<30, 1, bool, u32> ByteDequant;
   BitField<31, 1, bool, u32> NormalIndex3;
@@ -363,15 +363,15 @@ union UVAT_group1
   // 0:8
   BitField<0, 1, TexComponentCount> Tex1CoordElements;
   BitField<1, 3, ComponentFormat> Tex1CoordFormat;
-  BitField<4, 5, u32> Tex1Frac;
+  BitField<4, 5, u8, u32> Tex1Frac;
   // 9:17
   BitField<9, 1, TexComponentCount> Tex2CoordElements;
   BitField<10, 3, ComponentFormat> Tex2CoordFormat;
-  BitField<13, 5, u32> Tex2Frac;
+  BitField<13, 5, u8, u32> Tex2Frac;
   // 18:26
   BitField<18, 1, TexComponentCount> Tex3CoordElements;
   BitField<19, 3, ComponentFormat> Tex3CoordFormat;
-  BitField<22, 5, u32> Tex3Frac;
+  BitField<22, 5, u8, u32> Tex3Frac;
   // 27:30
   BitField<27, 1, TexComponentCount> Tex4CoordElements;
   BitField<28, 3, ComponentFormat> Tex4CoordFormat;
@@ -410,19 +410,19 @@ union UVAT_group2
 {
   u32 Hex;
   // 0:4
-  BitField<0, 5, u32> Tex4Frac;
+  BitField<0, 5, u8, u32> Tex4Frac;
   // 5:13
   BitField<5, 1, TexComponentCount> Tex5CoordElements;
   BitField<6, 3, ComponentFormat> Tex5CoordFormat;
-  BitField<9, 5, u32> Tex5Frac;
+  BitField<9, 5, u8, u32> Tex5Frac;
   // 14:22
   BitField<14, 1, TexComponentCount> Tex6CoordElements;
   BitField<15, 3, ComponentFormat> Tex6CoordFormat;
-  BitField<18, 5, u32> Tex6Frac;
+  BitField<18, 5, u8, u32> Tex6Frac;
   // 23:31
   BitField<23, 1, TexComponentCount> Tex7CoordElements;
   BitField<24, 3, ComponentFormat> Tex7CoordFormat;
-  BitField<27, 5, u32> Tex7Frac;
+  BitField<27, 5, u8, u32> Tex7Frac;
 };
 template <>
 struct fmt::formatter<UVAT_group2>
@@ -450,30 +450,123 @@ struct fmt::formatter<UVAT_group2>
   }
 };
 
-struct ColorAttr
+struct VAT
 {
-  ColorComponentCount Elements;
-  ColorFormat Comp;
-};
+  UVAT_group0 g0;
+  UVAT_group1 g1;
+  UVAT_group2 g2;
 
-struct TexAttr
-{
-  TexComponentCount Elements;
-  ComponentFormat Format;
-  u8 Frac;
+  constexpr ColorComponentCount GetColorElements(size_t idx) const
+  {
+    switch (idx)
+    {
+    case 0:
+      return g0.Color0Elements;
+    case 1:
+      return g0.Color1Elements;
+    default:
+      PanicAlertFmt("Invalid color index {}", idx);
+      return ColorComponentCount::RGB;
+    }
+  }
+  constexpr ColorFormat GetColorFormat(size_t idx) const
+  {
+    switch (idx)
+    {
+    case 0:
+      return g0.Color0Comp;
+    case 1:
+      return g0.Color1Comp;
+    default:
+      PanicAlertFmt("Invalid color index {}", idx);
+      return ColorFormat::RGB565;
+    }
+  }
+  constexpr TexComponentCount GetTexElements(size_t idx) const
+  {
+    switch (idx)
+    {
+    case 0:
+      return g0.Tex0CoordElements;
+    case 1:
+      return g1.Tex1CoordElements;
+    case 2:
+      return g1.Tex2CoordElements;
+    case 3:
+      return g1.Tex3CoordElements;
+    case 4:
+      return g1.Tex4CoordElements;
+    case 5:
+      return g2.Tex5CoordElements;
+    case 6:
+      return g2.Tex6CoordElements;
+    case 7:
+      return g2.Tex7CoordElements;
+    default:
+      PanicAlertFmt("Invalid tex coord index {}", idx);
+      return TexComponentCount::S;
+    }
+  }
+  constexpr ComponentFormat GetTexFormat(size_t idx) const
+  {
+    switch (idx)
+    {
+    case 0:
+      return g0.Tex0CoordFormat;
+    case 1:
+      return g1.Tex1CoordFormat;
+    case 2:
+      return g1.Tex2CoordFormat;
+    case 3:
+      return g1.Tex3CoordFormat;
+    case 4:
+      return g1.Tex4CoordFormat;
+    case 5:
+      return g2.Tex5CoordFormat;
+    case 6:
+      return g2.Tex6CoordFormat;
+    case 7:
+      return g2.Tex7CoordFormat;
+    default:
+      PanicAlertFmt("Invalid tex coord index {}", idx);
+      return ComponentFormat::UByte;
+    }
+  }
+  constexpr u8 GetTexFrac(size_t idx) const
+  {
+    switch (idx)
+    {
+    case 0:
+      return g0.Tex0Frac;
+    case 1:
+      return g1.Tex1Frac;
+    case 2:
+      return g1.Tex2Frac;
+    case 3:
+      return g1.Tex3Frac;
+    case 4:
+      return g2.Tex4Frac;
+    case 5:
+      return g2.Tex5Frac;
+    case 6:
+      return g2.Tex6Frac;
+    case 7:
+      return g2.Tex7Frac;
+    default:
+      PanicAlertFmt("Invalid tex coord index {}", idx);
+      return 0;
+    }
+  }
 };
-
-struct TVtxAttr
+template <>
+struct fmt::formatter<VAT>
 {
-  CoordComponentCount PosElements;
-  ComponentFormat PosFormat;
-  u8 PosFrac;
-  NormalComponentCount NormalElements;
-  ComponentFormat NormalFormat;
-  ColorAttr color[2];
-  TexAttr texCoord[8];
-  bool ByteDequant;
-  u8 NormalIndex3;
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const VAT& vat, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "{}\n{}\n{}", vat.g0, vat.g1, vat.g2);
+  }
 };
 
 // Matrix indices
@@ -515,23 +608,6 @@ struct fmt::formatter<TMatrixIndexB>
   {
     return format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
                      m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
-  }
-};
-
-struct VAT
-{
-  UVAT_group0 g0;
-  UVAT_group1 g1;
-  UVAT_group2 g2;
-};
-template <>
-struct fmt::formatter<VAT>
-{
-  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
-  template <typename FormatContext>
-  auto format(const VAT& vat, FormatContext& ctx)
-  {
-    return format_to(ctx.out(), "{}\n{}\n{}", vat.g0, vat.g1, vat.g2);
   }
 };
 

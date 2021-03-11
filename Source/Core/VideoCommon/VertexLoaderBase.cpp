@@ -26,53 +26,6 @@
 #include "VideoCommon/VertexLoaderARM64.h"
 #endif
 
-VertexLoaderBase::VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
-    : m_VtxDesc{vtx_desc}, m_vat{vtx_attr}
-{
-  SetVAT(vtx_attr);
-}
-
-void VertexLoaderBase::SetVAT(const VAT& vat)
-{
-  m_VtxAttr.PosElements = vat.g0.PosElements;
-  m_VtxAttr.PosFormat = vat.g0.PosFormat;
-  m_VtxAttr.PosFrac = vat.g0.PosFrac;
-  m_VtxAttr.NormalElements = vat.g0.NormalElements;
-  m_VtxAttr.NormalFormat = vat.g0.NormalFormat;
-  m_VtxAttr.color[0].Elements = vat.g0.Color0Elements;
-  m_VtxAttr.color[0].Comp = vat.g0.Color0Comp;
-  m_VtxAttr.color[1].Elements = vat.g0.Color1Elements;
-  m_VtxAttr.color[1].Comp = vat.g0.Color1Comp;
-  m_VtxAttr.texCoord[0].Elements = vat.g0.Tex0CoordElements;
-  m_VtxAttr.texCoord[0].Format = vat.g0.Tex0CoordFormat;
-  m_VtxAttr.texCoord[0].Frac = vat.g0.Tex0Frac;
-  m_VtxAttr.ByteDequant = vat.g0.ByteDequant;
-  m_VtxAttr.NormalIndex3 = vat.g0.NormalIndex3;
-
-  m_VtxAttr.texCoord[1].Elements = vat.g1.Tex1CoordElements;
-  m_VtxAttr.texCoord[1].Format = vat.g1.Tex1CoordFormat;
-  m_VtxAttr.texCoord[1].Frac = vat.g1.Tex1Frac;
-  m_VtxAttr.texCoord[2].Elements = vat.g1.Tex2CoordElements;
-  m_VtxAttr.texCoord[2].Format = vat.g1.Tex2CoordFormat;
-  m_VtxAttr.texCoord[2].Frac = vat.g1.Tex2Frac;
-  m_VtxAttr.texCoord[3].Elements = vat.g1.Tex3CoordElements;
-  m_VtxAttr.texCoord[3].Format = vat.g1.Tex3CoordFormat;
-  m_VtxAttr.texCoord[3].Frac = vat.g1.Tex3Frac;
-  m_VtxAttr.texCoord[4].Elements = vat.g1.Tex4CoordElements;
-  m_VtxAttr.texCoord[4].Format = vat.g1.Tex4CoordFormat;
-
-  m_VtxAttr.texCoord[4].Frac = vat.g2.Tex4Frac;
-  m_VtxAttr.texCoord[5].Elements = vat.g2.Tex5CoordElements;
-  m_VtxAttr.texCoord[5].Format = vat.g2.Tex5CoordFormat;
-  m_VtxAttr.texCoord[5].Frac = vat.g2.Tex5Frac;
-  m_VtxAttr.texCoord[6].Elements = vat.g2.Tex6CoordElements;
-  m_VtxAttr.texCoord[6].Format = vat.g2.Tex6CoordFormat;
-  m_VtxAttr.texCoord[6].Frac = vat.g2.Tex6Frac;
-  m_VtxAttr.texCoord[7].Elements = vat.g2.Tex7CoordElements;
-  m_VtxAttr.texCoord[7].Format = vat.g2.Tex7CoordFormat;
-  m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
-};
-
 // a hacky implementation to compare two vertex loaders
 class VertexLoaderTester : public VertexLoaderBase
 {
@@ -130,8 +83,8 @@ public:
       ERROR_LOG_FMT(VIDEO,
                     "The two vertex loaders have loaded different data "
                     "(guru meditation {:#010x}, {:#010x}, {:#010x}, {:#010x}, {:#010x}).",
-                    m_VtxDesc.low.Hex, m_VtxDesc.high.Hex, m_vat.g0.Hex, m_vat.g1.Hex,
-                    m_vat.g2.Hex);
+                    m_VtxDesc.low.Hex, m_VtxDesc.high.Hex, m_VtxAttr.g0.Hex, m_VtxAttr.g1.Hex,
+                    m_VtxAttr.g2.Hex);
     }
 
     memcpy(dst.GetPointer(), buffer_a.data(), count_a * m_native_vtx_decl.stride);

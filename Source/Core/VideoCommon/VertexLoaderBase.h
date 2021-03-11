@@ -77,11 +77,10 @@ public:
   int m_numLoadedVertices = 0;
 
 protected:
-  VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
-  void SetVAT(const VAT& vat);
+  VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+      : m_VtxDesc{vtx_desc}, m_VtxAttr{vtx_attr} {};
 
   // GC vertex format
-  TVtxAttr m_VtxAttr;  // VAT decoded into easy format
-  TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
-  VAT m_vat;
+  const VAT m_VtxAttr;
+  const TVtxDesc m_VtxDesc;
 };
