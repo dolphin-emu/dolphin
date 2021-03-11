@@ -45,9 +45,6 @@ static OpArg MPIC(const void* ptr)
 VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
     : VertexLoaderBase(vtx_desc, vtx_att)
 {
-  if (!IsInitialized())
-    return;
-
   AllocCodeSpace(4096);
   ClearCodeSpace();
   GenerateVertexLoader();

@@ -53,9 +53,6 @@ alignas(16) static const float scale_factors[] = {
 VertexLoaderARM64::VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
     : VertexLoaderBase(vtx_desc, vtx_att), m_float_emit(this)
 {
-  if (!IsInitialized())
-    return;
-
   AllocCodeSpace(4096);
   ClearCodeSpace();
   GenerateVertexLoader();

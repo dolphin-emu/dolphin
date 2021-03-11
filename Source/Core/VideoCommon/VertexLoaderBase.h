@@ -65,8 +65,6 @@ public:
   virtual ~VertexLoaderBase() {}
   virtual int RunVertices(DataReader src, DataReader dst, int count) = 0;
 
-  virtual bool IsInitialized() = 0;
-
   // per loader public state
   int m_VertexSize = 0;  // number of bytes of a raw GC vertex
   PortableVertexDeclaration m_native_vtx_decl{};

@@ -19,7 +19,6 @@ public:
   VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_att);
 
 protected:
-  bool IsInitialized() override { return true; }
   int RunVertices(DataReader src, DataReader dst, int count) override;
 
 private:
