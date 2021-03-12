@@ -52,6 +52,7 @@ public:
   void MoveForward(float amt);
 
   void Rotate(const Common::Vec3& amt);
+  void Rotate(const Common::Quaternion& amt);
 
   void IncreaseFovX(float fov);
   void IncreaseFovY(float fov);

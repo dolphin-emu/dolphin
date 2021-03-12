@@ -102,15 +102,20 @@ public:
 
   void Rotate(const Common::Vec3& amt) override
   {
+    if (amt.Length() == 0)
+      return;
+
     m_rotation += amt;
 
     using Common::Quaternion;
-    const auto quat =
+    m_rotate_quat =
         (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
-    Rotate(quat);
   }
 
-  void Rotate(const Common::Quaternion& quat) override { m_rotate_quat = quat; }
+  void Rotate(const Common::Quaternion& quat) override
+  {
+    Rotate(Common::FromQuaternionToEuler(quat));
+  }
 
   void Reset() override
   {
@@ -153,15 +158,20 @@ public:
 
   void Rotate(const Common::Vec3& amt) override
   {
+    if (amt.Length() == 0)
+      return;
+
     m_rotation += amt;
 
     using Common::Quaternion;
-    const auto quat =
+    m_rotate_quat =
         (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
-    Rotate(quat);
   }
 
-  void Rotate(const Common::Quaternion& quat) override { m_rotate_quat = quat; }
+  void Rotate(const Common::Quaternion& quat) override
+  {
+    Rotate(Common::FromQuaternionToEuler(quat));
+  }
 
   void Reset() override
   {
@@ -241,6 +251,12 @@ void FreeLookCamera::MoveForward(float amt)
 }
 
 void FreeLookCamera::Rotate(const Common::Vec3& amt)
+{
+  m_camera_controller->Rotate(amt);
+  m_dirty = true;
+}
+
+void FreeLookCamera::Rotate(const Common::Quaternion& amt)
 {
   m_camera_controller->Rotate(amt);
   m_dirty = true;
