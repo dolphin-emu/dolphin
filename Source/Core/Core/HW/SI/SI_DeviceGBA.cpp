@@ -220,7 +220,11 @@ void GBASockServer::ClockSync()
 bool GBASockServer::Connect()
 {
   if (!IsConnected())
+  {
     m_client = GetNextSock();
+    if (m_client)
+      m_client->setBlocking(false);
+  }
   return IsConnected();
 }
 
@@ -239,10 +243,7 @@ void GBASockServer::Send(const u8* si_buffer)
     send_data[i] = si_buffer[i];
 
   u8 cmd = send_data[0];
-  if (cmd != CMD_STATUS)
-    m_booted = true;
 
-  m_client->setBlocking(false);
   sf::Socket::Status status;
   if (cmd == CMD_WRITE)
     status = m_client->send(send_data.data(), send_data.size());
@@ -279,6 +280,7 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
     m_booted = false;
     return 0;
   }
+  m_booted = true;
 
   for (size_t i = 0; i < recv_data.size(); i++)
     si_buffer[i] = recv_data[i];
@@ -287,7 +289,7 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
 
 void GBASockServer::Flush()
 {
-  if (!m_client || !m_booted)
+  if (!m_client)
     return;
 
   size_t num_received = 1;
@@ -295,7 +297,7 @@ void GBASockServer::Flush()
   while (num_received)
   {
     sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
-    if (recv_stat == sf::Socket::Disconnected)
+    if (recv_stat != sf::Socket::Done)
       break;
   }
 }
@@ -317,6 +319,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
       NOTICE_LOG_FMT(SERIALINTERFACE, "{} cmd {:02x} [> {:02x}{:02x}{:02x}{:02x}]", m_device_number,
                      buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 #endif
+      m_sock_server.Flush();  // Clear out any replies we might have timed out waiting for
       m_sock_server.Send(buffer);
     }
     else
@@ -328,7 +331,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     m_last_cmd = buffer[0];
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
-    [[fallthrough]];
+    return 0;
   }
 
   case NextAction::WaitTransferTime:
@@ -357,8 +360,6 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
       break;
     }
     int num_data_received = m_sock_server.Receive(buffer, bytes);
-    if (m_last_cmd == CMD_STATUS && num_data_received == 3)
-      m_sock_server.Flush();
 
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)
