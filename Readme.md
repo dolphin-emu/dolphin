@@ -19,7 +19,7 @@ Alternatively, launch Dolphin from a command line with e.g. `./Dolphin.exe --scr
 to automatically add a script at startup.
 
 Start a game for the above script to output text.
-To be able to see the script's output, enable the `Scripting` log type in the logging configuration (View -> Show Log Configuration).
+To be able to see the script's output, enable the `Scripting` log type in the logging configuration (View -> Show Log Configuration) and set the verbosity to "Error" or lower (not "Notice").
 Everything printed to `stdout` or `stderr` will then be visible in the log (View -> Show Log).
 
 
