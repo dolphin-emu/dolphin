@@ -29,6 +29,8 @@
 #define OS_SUPPORTS_UPDATER
 #endif
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 namespace
 {
 bool s_update_triggered = false;
