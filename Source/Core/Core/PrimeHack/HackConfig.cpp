@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Common/IniFile.h"
+
 #include "Core/PrimeHack/PrimeUtils.h"
 #include "Core/PrimeHack/EmuVariableManager.h"
 
@@ -21,13 +22,14 @@
 #include "Core/PrimeHack/Mods/FriendVouchers.h"
 #include "Core/PrimeHack/Mods/PortalSkipMP2.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/GCPad.h"
 #include "Core/ConfigManager.h"
 #include "Core/Config/GraphicsSettings.h"
+
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include "VideoCommon/VideoConfig.h"
 
 namespace prime {
@@ -39,6 +41,7 @@ float camera_fov;
 bool inverted_x = false;
 bool inverted_y = false;
 HackManager hack_mgr;
+AddressDB addr_db;
 EmuVariableManager var_mgr;
 bool is_running = false;
 CameraLock lock_camera = CameraLock::Unlocked;
@@ -47,6 +50,9 @@ bool reticle_lock = false;
 
 void InitializeHack() {
   if (is_running) return; is_running = true;
+  PrimeMod::set_hack_manager(GetHackManager());
+  PrimeMod::set_address_database(GetAddressDB());
+  init_db(*GetAddressDB());
 
   // Create all mods
   hack_mgr.add_mod("auto_efb", std::make_unique<AutoEFB>());
@@ -75,7 +81,6 @@ void InitializeHack() {
   hack_mgr.enable_mod("fps_controls");
   hack_mgr.enable_mod("springball_button");
   hack_mgr.enable_mod("context_sensitive_controls");
-  hack_mgr.enable_mod("portal_skip_mp2");
 }
 
 bool CheckBeamCtl(int beam_num) {
@@ -315,6 +320,10 @@ CameraLock GetLockCamera() {
 
 std::tuple<bool, bool> GetMenuOptions() {
   return Wiimote::GetBVMenuOptions();
+}
+
+AddressDB* GetAddressDB() {
+  return &addr_db;
 }
 
 EmuVariableManager* GetVariableManager() {

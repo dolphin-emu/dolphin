@@ -20,6 +20,7 @@ public:
   void enable_mod(std::string const &name);
   void set_mod_enabled(std::string const &name, bool enabled);
   bool is_mod_active(std::string const &name);
+  void reset_mod(std::string const &name);
 
   // Saves the enablements of all mods (single internal state)
   void save_mod_states();
@@ -28,6 +29,10 @@ public:
   void restore_mod_states();
   // Disables all mods and restores original instructions immediately
   void revert_all_code_changes();
+
+  void shutdown();
+
+  PrimeMod *get_mod(std::string const& name);
 
 private:
   Game active_game;

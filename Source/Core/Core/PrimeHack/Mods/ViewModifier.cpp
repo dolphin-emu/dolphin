@@ -26,11 +26,6 @@ void ViewModifier::run_mod(Game game, Region region) {
   }
 }
 
-void ViewModifier::disable_culling(u32 start_point) {
-  write_invalidate(start_point, 0x38600001);
-  write_invalidate(start_point + 0x4, 0x4e800020);
-}
-
 void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value) {
   float left = 0.25f;
   float forward = 0.30f;
@@ -42,18 +37,14 @@ void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_addres
       if (fov > 125) {
         left = 0.22f;
         forward = -0.02f;
-
         apply_znear = true;
-      }
-      else if (fov >= 75) {
+      } else if (fov >= 75) {
         float factor = (fov - 75) / (125 - 75);
         left = Lerp(left, 0.22f, factor);
         forward = Lerp(forward, -0.02f, factor);
-
         apply_znear = true;
       }
-    }
-    else {
+    } else {
       std::tie<float, float, float>(left, forward, up) = GetArmXYZ();
       apply_znear = true;
     }
@@ -69,145 +60,201 @@ void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_addres
 }
 
 void ViewModifier::run_mod_mp1() {
-  const u32 camera_ptr = read32(mp1_static.camera_ptr_address);
-  const u32 camera_offset = ((read32(
-    mp1_static.active_camera_offset_address) >> 16) & 0x3ff) << 3;
-  const u32 camera_address = read32(camera_ptr + camera_offset + 4);
+  LOOKUP(static_fov_fp);
+  LOOKUP(static_fov_tp);
+  LOOKUP(gun_pos);
 
-  const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera_address + 0x164);
-  writef32(fov, mp1_static.global_fov1_address);
-  writef32(fov, mp1_static.global_fov2_address);
-
-  adjust_viewmodel(fov, mp1_static.gun_pos_address, camera_address + 0x168,
-    0x3d200000);
-
-  if (GetCulling() || GetFov() > 101.f) {
-    disable_culling(mp1_static.culling_address);
+  LOOKUP_DYN(object_list);
+  if (object_list == 0) {
+    return;
   }
 
-  DevInfo("Camera_Addr", "%08X", camera_address);
+  LOOKUP_DYN(camera_manager);
+  if (camera_manager == 0) {
+    return;
+  }
+
+  u16 camera_id = read16(camera_manager);
+  if (camera_id == 0xffff) {
+    return;
+  }
+
+  const u32 camera = read32(object_list + ((camera_id & 0x3ff) << 3) + 4);
+  if (!mem_check(camera)) {
+    return;
+  }
+
+  const float fov = std::min(GetFov(), 170.f);
+  writef32(fov, camera + 0x164);
+  writef32(fov, static_fov_fp);
+  writef32(fov, static_fov_tp);
+
+  adjust_viewmodel(fov, gun_pos, camera + 0x168, 0x3d200000);
+  set_code_group_state("culling", (GetCulling() || GetFov() > 101.f) ? ModState::ENABLED : ModState::DISABLED);
+
+  DevInfo("camera", "%08X", camera);
 }
 
 void ViewModifier::run_mod_mp1_gc() {
   u8 version = read8(0x80000007);
-
   if (version != 0) {
     return;
   }
 
-  const u16 camera_uid = read16(mp1_gc_static.camera_mgr_address);
-  if (camera_uid == -1) {
+  LOOKUP(fov_fp_offset);
+  LOOKUP(fov_tp_offset);
+  LOOKUP(gun_pos);
+  
+  LOOKUP_DYN(object_list);
+  if (object_list == 0) {
     return;
   }
 
-  const u32 camera_offset = (camera_uid & 0x3ff) << 3;
-  const u32 camera_address = read32(read32(mp1_gc_static.object_list_address) + 4 + camera_offset);
-  if (!mem_check(camera_address)) {
+  LOOKUP_DYN(camera_manager);
+  if (camera_manager == 0) {
     return;
   }
+
+  const u16 camera_uid = read16(camera_manager);
+  if (camera_uid == 0xffff) {
+    return;
+  }
+
+  const u32 camera = read32(object_list + ((camera_uid & 0x3ff) << 3) + 4);
+  if (!mem_check(camera)) {
+    return;
+  }
+
   // PAL added some stuff related to SFX in CActor, affects all derived
-  const u32 pal_offset = GetHackManager()->get_active_region() == Region::PAL ? 0x10 : 0;
+  const u32 pal_offset = hack_mgr->get_active_region() == Region::PAL ? 0x10 : 0;
 
   const u32 r13 = GPR(13);
   const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera_address + 0x15c + pal_offset);
-  writef32(fov, r13 + mp1_gc_static.global_fov1_table_off);
-  writef32(fov, r13 + mp1_gc_static.global_fov2_table_off);
+  writef32(fov, camera + 0x15c + pal_offset);
+  writef32(fov, r13 + fov_fp_offset);
+  writef32(fov, r13 + fov_tp_offset);
 
-  adjust_viewmodel(fov, mp1_gc_static.gun_pos_address, camera_address + 0x160 + pal_offset,
+  adjust_viewmodel(fov, gun_pos, camera + 0x160 + pal_offset,
     0x3d200000);
 
-  if (GetCulling() || GetFov() > 101.f) {
-    disable_culling(mp1_gc_static.culling_address);
-  }
+  set_code_group_state("culling", (GetCulling() || GetFov() > 101.f) ? ModState::ENABLED : ModState::DISABLED);
+  DevInfo("camera", "%08X", camera);
 }
 
 void ViewModifier::run_mod_mp2() {
-  u32 camera_ptr = read32(mp2_static.camera_ptr_address);
-  if (!mem_check(camera_ptr) || read32(mp2_static.load_state_address) != 1) {
+  LOOKUP(state_manager);
+  LOOKUP(tweakgun);
+
+  LOOKUP_DYN(object_list);
+  if (object_list == 0) {
     return;
   }
-  u32 camera_offset =
-    ((read32(read32(mp2_static.camera_offset_address)) >> 16) & 0x3ff) << 3;
-  u32 camera_offset_tp =
-    ((read32(read32(mp2_static.camera_offset_address) + 0x0a) >> 16) & 0x3ff)
-    << 3;
-  u32 camera_base = read32(camera_ptr + camera_offset + 4);
-  u32 camera_base_tp = read32(camera_ptr + camera_offset_tp + 4);
-  const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera_base + 0x1e8);
-  writef32(fov, camera_base_tp + 0x1e8);
 
-  adjust_viewmodel(fov, read32(read32(mp2_static.tweakgun_ptr_address)) + 0x4c,
-    camera_base + 0x1c4, 0x3d200000);
-
-  if (GetCulling() || GetFov() > 101.f) {
-    disable_culling(mp2_static.culling_address);
+  LOOKUP_DYN(camera_manager);
+  if (camera_manager == 0) {
+    return;
   }
 
-  DevInfo("Camera_Base", "%08X", camera_base);
+  if (read32(state_manager + 0x153c) != 1) {
+    return;
+  }
+
+  u16 camera_id = read16(camera_manager);
+  if (camera_id == 0xffff) {
+    return;
+  }
+  const u32 camera = read32(object_list + ((camera_id & 0x3ff) << 3) + 4);
+  
+  const float fov = std::min(GetFov(), 170.f);
+  writef32(fov, camera + 0x1e8);
+
+  adjust_viewmodel(fov, read32(read32(tweakgun)) + 0x4c, camera + 0x1c4, 0x3d200000);
+
+  set_code_group_state("culling", (GetCulling() || GetFov() > 101.f) ? ModState::ENABLED : ModState::DISABLED);
+  DevInfo("camera", "%08X", camera);
 }
 
 void ViewModifier::run_mod_mp2_gc() {
-  u32 world_address = read32(mp2_gc_static.state_mgr_address + 0x1604);
-  if (!mem_check(world_address)) {
+  LOOKUP(state_manager);
+  LOOKUP(tweakgun_offset);
+
+  LOOKUP_DYN(world);
+  if (world == 0) {
     return;
   }
   // World loading phase == 4 -> complete
-  if (read32(world_address + 0x4) != 4) {
+  if (read32(world + 0x4) != 4) {
     return;
   }
 
-  u32 camera_mgr = read32(mp2_gc_static.state_mgr_address + 0x151c);
-  if (!mem_check(camera_mgr)) {
+  LOOKUP_DYN(camera_manager);
+  if (camera_manager == 0) {
     return;
   }
-  u32 camera_offset = ((read16(camera_mgr + 0x14)) & 0x3ff) << 3;
-  u32 object_list = read32(mp2_gc_static.state_mgr_address + 0x810) + 4;
-  u32 camera_base = read32(object_list + camera_offset);
 
+  LOOKUP_DYN(object_list);
+  if (object_list == 0) {
+    return;
+  }
+
+  const u16 camera_id = read16(camera_manager);
+  if (camera_id == 0xffff) {
+    return;
+  }
+
+  const u32 camera = read32(object_list + ((camera_id & 0x3ff) << 3) + 4);
   const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera_base + 0x1f0);
-  adjust_viewmodel(fov, read32(read32(GPR(13) - mp2_gc_static.gun_tweak_offset)) + 0x50,
-    camera_base + 0x1cc, 0x3d200000);
+  writef32(fov, camera + 0x1f0);
+  adjust_viewmodel(fov, read32(read32(GPR(13) + tweakgun_offset)) + 0x50, camera + 0x1cc, 0x3d200000);
 
-  if (GetCulling() || GetFov() > 101.f) {
-    disable_culling(mp2_gc_static.culling_address);
-  }
-
-  DevInfo("Camera_Base", "%08X", camera_base);
+  set_code_group_state("culling", (GetCulling() || GetFov() > 101.f) ? ModState::ENABLED : ModState::DISABLED);
+  DevInfo("camera", "%08X", camera);
 }
 
 void ViewModifier::run_mod_mp3() {
-  u32 camera_fov = read32(
-    read32(
-      read32(read32(mp3_static.camera_ptr_address) + 0x1010) + 0x1c) +
-    0x178);
-  u32 camera_fov_tp = read32(
-    read32(
-      read32(read32(mp3_static.camera_ptr_address) + 0x1010) + 0x24) +
-    0x178);
+  LOOKUP(state_manager);
+  LOOKUP(tweakgun);
 
-  const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera_fov + 0x1c);
-  writef32(fov, camera_fov_tp + 0x1c);
-  writef32(fov, camera_fov + 0x18);
-  writef32(fov, camera_fov_tp + 0x18);
-
-  u32 cgame_camera = read32(
-    read32(
-      read32(
-        read32(camera_fov + 0x68) + 0x0c) + 0x18) + 0x14);
-
-  adjust_viewmodel(fov, read32(read32(mp3_static.tweakgun_address))
-    + 0xe0, cgame_camera + 0x8C, 0x3dcccccd);
-
-  if (GetCulling() || GetFov() > 96.f) {
-    disable_culling(mp3_static.culling_address);
+  LOOKUP_DYN(camera_manager);
+  if (camera_manager == 0) {
+    return;
   }
 
-  DevInfo("CGame_Camera", "%08X", cgame_camera);
+  LOOKUP_DYN(object_list);
+  if (object_list == 0) {
+    return;
+  }
+
+  // Until vmcalls are implemented, this code can't be executed early
+  // enough not to cause a flicker as FOV gets updated on recognizing
+  // a new camera
+  const u16 camera_id = read16(camera_manager);
+  if (camera_id == 0xffff) {
+    return;
+  }
+  const float fov = std::min(GetFov(), 170.f);
+
+  // This will be a temporary measure, these don't seem to change but
+  // bugs could arise?
+  const u16 known_camera_uids[] = {3, 4, 6};
+  for (int i = 0; i < sizeof(known_camera_uids) / sizeof(u16); i++) {
+    const u32 camera = read32(object_list + ((known_camera_uids[i] & 0x7ff) << 3) + 4);
+    if (!mem_check(camera)) {
+      return;
+    }
+
+    const u32 camera_params = read32(camera + 0x178);
+    writef32(fov, camera_params + 0x1c);
+    writef32(fov, camera_params + 0x18);
+  }
+  // best guess on the name here
+  LOOKUP_DYN(perspective_info);
+  adjust_viewmodel(fov, read32(read32(tweakgun)) + 0xe0, perspective_info + 0x8c, 0x3dcccccd);
+
+  set_code_group_state("culling", (GetCulling() || GetFov() > 96.f) ? ModState::ENABLED : ModState::DISABLED);
+  
+  const u32 camera = read32(object_list + ((camera_id & 0x7ff) << 3) + 4);
+  DevInfo("camera", "%08X", camera);
 }
 
 bool ViewModifier::init_mod(Game game, Region region) {
@@ -236,131 +283,80 @@ bool ViewModifier::init_mod(Game game, Region region) {
 
 void ViewModifier::init_mod_mp1(Region region) {
   if (region == Region::NTSC_U) {
-    mp1_static.camera_ptr_address = 0x804bfc30;
-    mp1_static.active_camera_offset_address = 0x804c4a08;
-    mp1_static.global_fov1_address = 0x805c0e38;
-    mp1_static.global_fov2_address = 0x805c0e3c;
-    mp1_static.gun_pos_address = 0x804ddae4;
-    mp1_static.culling_address = 0x802c7dbc;
+    add_code_change(0x802c7dbc, 0x38600001, "culling");
+    add_code_change(0x802c7dbc + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::PAL) {
+    add_code_change(0x802c8024, 0x38600001, "culling");
+    add_code_change(0x802c8024 + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x802c7a3c, 0x38600001, "culling");
+    add_code_change(0x802c7a3c + 0x4, 0x4e800020, "culling");
   }
-  else if (region == Region::PAL) {
-    mp1_static.camera_ptr_address = 0x804c3b70;
-    mp1_static.active_camera_offset_address = 0x804c8948;
-    mp1_static.global_fov1_address = 0x805c5178;
-    mp1_static.global_fov2_address = 0x805c517c;
-    mp1_static.gun_pos_address = 0x804e1a24;
-    mp1_static.culling_address = 0x802c8024;
-  }
-  else if (region == Region::NTSC_J) {
-    mp1_static.camera_ptr_address = 0x804bfeb0;
-    mp1_static.active_camera_offset_address = 0x804c4c88;
-    mp1_static.global_fov1_address = 0x80641138;
-    mp1_static.global_fov2_address = 0x8064113c;
-    mp1_static.gun_pos_address = 0x804d398c;
-    mp1_static.culling_address = 0x802c7a3c;
-  }
-
 }
 
 void ViewModifier::init_mod_mp1_gc(Region region) {
-  u8 version = PowerPC::HostRead_U8(0x80000007);
+  u8 version = read8(0x80000007);
 
   if (region == Region::NTSC_U) {
     if (version == 0) {
-      mp1_gc_static.camera_mgr_address = 0x8045c5b4;
-      mp1_gc_static.object_list_address = 0x8045a9b8;
-      mp1_gc_static.global_fov1_table_off = -0x7ff0;
-      mp1_gc_static.global_fov2_table_off = -0x7fec;
-      mp1_gc_static.gun_pos_address = 0x8045bce8;
-      mp1_gc_static.culling_address = 0x80337a24;
+      add_code_change(0x80337a24, 0x38600001, "culling");
+      add_code_change(0x80337a24 + 0x4, 0x4e800020, "culling");
     }
+  } else if (region == Region::PAL) {
+    add_code_change(0x80320424, 0x38600001, "culling");
+    add_code_change(0x80320424 + 0x4, 0x4e800020, "culling");
   }
-  else if (region == Region::PAL) {
-    //statemgr 803e2088
-    mp1_gc_static.camera_mgr_address = 0x803e44dc;
-    mp1_gc_static.object_list_address = 0x803e2898;
-    mp1_gc_static.global_fov1_table_off = -0x7fe8;
-    mp1_gc_static.global_fov2_table_off = -0x7fe4;
-    //tweakgun 803e3bc8
-    mp1_gc_static.gun_pos_address = 0x803e3bc8 + 0x4c;
-    mp1_gc_static.culling_address = 0x80320424;
-  }
-  else {}
 }
 
 void ViewModifier::init_mod_mp2(Region region) {
   if (region == Region::NTSC_U) {
-    mp2_static.camera_ptr_address = 0x804e7af8;
-    mp2_static.camera_offset_address = 0x804eb9ac;
-    mp2_static.tweakgun_ptr_address = 0x805cb274;
-    mp2_static.culling_address = 0x802c8114;
-    mp2_static.load_state_address = 0x804e8824;
+    add_code_change(0x802c8114, 0x38600001, "culling");
+    add_code_change(0x802c8114 + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x802c6a28, 0x38600001, "culling");
+    add_code_change(0x802c6a28 + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::PAL) {
+    add_code_change(0x802ca730, 0x38600001, "culling");
+    add_code_change(0x802ca730 + 0x4, 0x4e800020, "culling");
   }
-  else if (region == Region::NTSC_J) {
-    mp2_static.camera_ptr_address = 0x804e9cb0;
-    mp2_static.camera_offset_address = 0x804ec19c;
-    mp2_static.tweakgun_ptr_address = 0x805cba54;
-    mp2_static.culling_address = 0x802c6a28;
-    mp2_static.load_state_address = 0x804e9014;
-  }
-  else if (region == Region::PAL) {
-    mp2_static.camera_ptr_address = 0x804eef48;
-    mp2_static.camera_offset_address = 0x804f2f4c;
-    mp2_static.tweakgun_ptr_address = 0x805d2cdc;
-    mp2_static.culling_address = 0x802ca730;
-    mp2_static.load_state_address = 0x804efc74;
-  }
-  else {}
 }
 
 void ViewModifier::init_mod_mp2_gc(Region region) {
   if (region == Region::NTSC_U) {
     add_code_change(0x801b0b38, 0x60000000);
-
-    mp2_gc_static.state_mgr_address = 0x803db6e0;
-    mp2_gc_static.gun_tweak_offset = 0x6e1c;
-    mp2_gc_static.culling_address = 0x802f84c0;
-  }
-  else if (region == Region::PAL) {
+    add_code_change(0x802f84c0, 0x38600001, "culling");
+    add_code_change(0x802f84c0 + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::PAL) {
     add_code_change(0x801b0e44, 0x60000000);
-
-    mp2_gc_static.state_mgr_address = 0x803dc900;
-    mp2_gc_static.gun_tweak_offset = 0x6e14;
-    mp2_gc_static.culling_address = 0x802f8818;
+    add_code_change(0x802f8818, 0x38600001, "culling");
+    add_code_change(0x802f8818 + 0x4, 0x4e800020, "culling");
   }
-  else {}
 }
 
 void ViewModifier::init_mod_mp3(Region region) {
   if (region == Region::NTSC_U) {
-    mp3_static.camera_ptr_address = 0x805c6c68;
-    mp3_static.tweakgun_address = 0x8066f87c;
-    mp3_static.culling_address = 0x8031490c;
+    add_code_change(0x8007f3dc, 0x60000000);
+    add_code_change(0x8009d058, 0x60000000);
+    add_code_change(0x8031490c, 0x38600001, "culling");
+    add_code_change(0x8031490c + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::PAL) {
+    add_code_change(0x8007f3dc, 0x60000000);
+    add_code_change(0x8009d058, 0x60000000);
+    add_code_change(0x80314038, 0x38600001, "culling");
+    add_code_change(0x80314038 + 0x4, 0x4e800020, "culling");
   }
-  else if (region == Region::PAL) {
-    mp3_static.camera_ptr_address = 0x805c7598;
-    mp3_static.tweakgun_address = 0x806730fc;
-    mp3_static.culling_address = 0x80314038;
-  }
-  else {}
 }
   
 void ViewModifier::init_mod_mp3_standalone(Region region) {
   if (region == Region::NTSC_U) {
-    mp3_static.camera_ptr_address = 0x805c4f94;
-    mp3_static.tweakgun_address = 0x8067d78c;
-    mp3_static.culling_address = 0x80316a1c;
+    add_code_change(0x80316a1c, 0x38600001, "culling");
+    add_code_change(0x80316a1c + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::PAL) {
+    add_code_change(0x80318170, 0x38600001, "culling");
+    add_code_change(0x80318170 + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x8031a4b4, 0x38600001, "culling");
+    add_code_change(0x8031a4b4 + 0x4, 0x4e800020, "culling");
   }
-  else if (region == Region::NTSC_J) {
-    mp3_static.camera_ptr_address = 0x805caa58;
-    mp3_static.tweakgun_address = 0x806835fc;
-    mp3_static.culling_address = 0x8031a4b4;
-  }
-  else if (region == Region::PAL) {
-    mp3_static.camera_ptr_address = 0x805c7598;
-    mp3_static.tweakgun_address = 0x8067fdac;
-    mp3_static.culling_address = 0x80318170;
-  }
-  else {}
 }
 }  // namespace prime

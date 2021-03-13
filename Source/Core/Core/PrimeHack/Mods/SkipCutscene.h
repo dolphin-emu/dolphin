@@ -9,88 +9,63 @@ public:
   bool init_mod(Game game, Region region) override {
     u8 version = read8(0x80000007);
 
-    switch (game)
-    {
+    switch (game) {
     case Game::PRIME_1:
-      if (region == Region::NTSC_U)
-      {
+      if (region == Region::NTSC_U) {
         add_return_one(0x800cf054);
-      }
-      else if (region == Region::NTSC_J)
-      {
-        add_return_one(0x800cf3e4);
-      }
-      else if (region == Region::PAL)
-      {
+      } else if (region == Region::PAL) {
         add_return_one(0x800cf174);
+      } else if (region == Region::NTSC_J) {
+        add_return_one(0x800cf3e4);
       }
       break;
     case Game::PRIME_1_GCN:
-      if (region == Region::NTSC_U)
-      {
+      if (region == Region::NTSC_U) {
         if (version == 0) {
           add_return_one(0x801d5528);
-        }
-        else if (version == 2) {
+        } else if (version == 2) {
           add_return_one(0x8015204c);
         }
-      }
-      else if (region == Region::PAL)
-      {
+      } else if (region == Region::PAL) {
         add_return_one(0x801c6640);
       }
       break;
     case Game::PRIME_2:
-      if (region == Region::NTSC_U)
-      {
+      if (region == Region::NTSC_U) {
         add_return_one(0x800bc4d0);
-      }
-      else if (region == Region::NTSC_J)
-      {
-        add_return_one(0x800bbb68);
-      }
-      else if (region == Region::PAL)
-      {
+      } else if (region == Region::PAL) {
         add_return_one(0x800bdb9c);
+      } else if (region == Region::NTSC_J) {
+        add_return_one(0x800bbb68);
       }
       break;
     case Game::PRIME_2_GCN:
-      if (region == Region::NTSC_U)
-      {
+      if (region == Region::NTSC_U) {
         add_return_one(0x80142340);
-      }
-      else if (region == Region::PAL)
-      {
+      } else if (region == Region::PAL) {
         add_return_one(0x8014257c);
       }
       break;
     case Game::PRIME_3:
-      if (region == Region::NTSC_U)
-      {
+      if (region == Region::NTSC_U) {
         add_return_one(0x800b9f30);
-      }
-      else if (region == Region::PAL)
-      {
+      } else if (region == Region::PAL) {
         add_return_one(0x800b9f30);
       }
       break;
     case Game::PRIME_3_STANDALONE:
-      if (region == Region::NTSC_U)
-      {
+      if (region == Region::NTSC_U) {
         add_return_one(0x800bb930);
-      }
-      else if (region == Region::NTSC_J)
-      {
-        add_return_one(0x800bc10c);
-      }
-      else if (region == Region::PAL)
-      {
+      } else if (region == Region::PAL) {
         add_return_one(0x800bbd24);
+      } else if (region == Region::NTSC_J) {
+        add_return_one(0x800bc10c);
       }
       break;
     }
     return true;
   }
+  void on_state_change(ModState old_state) override {}
 
 private:
   void add_return_one(u32 start_point) {

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Core/PrimeHack/HackManager.h"
+#include "Core/PrimeHack/AddressDB.h"
 #include "Core/PrimeHack/EmuVariableManager.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -76,5 +77,6 @@ double GetVerticalAxis();
 std::tuple<bool, bool> GetMenuOptions();
 
 HackManager *GetHackManager();
+AddressDB *GetAddressDB();
 EmuVariableManager *GetVariableManager();
 }

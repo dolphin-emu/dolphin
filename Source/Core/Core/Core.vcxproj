@@ -369,6 +369,8 @@
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
+    <ClCompile Include="PrimeHack\AddressDB.cpp" />
+    <ClCompile Include="PrimeHack\AddressDBInit.cpp" />
     <ClCompile Include="PrimeHack\EmuVariableManager.cpp" />
     <ClCompile Include="PrimeHack\HackConfig.cpp" />
     <ClCompile Include="PrimeHack\HackManager.cpp" />
@@ -380,6 +382,7 @@
     <ClCompile Include="PrimeHack\Mods\PortalSkipMP2.cpp" />
     <ClCompile Include="PrimeHack\Mods\SpringballButton.cpp" />
     <ClCompile Include="PrimeHack\Mods\ViewModifier.cpp" />
+    <ClCompile Include="PrimeHack\PrimeMod.cpp" />
     <ClCompile Include="PrimeHack\PrimeUtils.cpp" />
     <ClCompile Include="PrimeHack\Transform.cpp" />
     <ClCompile Include="State.cpp" />
@@ -687,6 +690,7 @@
     <ClInclude Include="PowerPC\PPCSymbolDB.h" />
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
+    <ClInclude Include="PrimeHack\AddressDB.h" />
     <ClInclude Include="PrimeHack\EmuVariableManager.h" />
     <ClInclude Include="PrimeHack\HackConfig.h" />
     <ClInclude Include="PrimeHack\HackManager.h" />

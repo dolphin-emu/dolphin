@@ -17,9 +17,9 @@ class ViewModifier : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override;
   bool init_mod(Game game, Region region) override;
+  void on_state_change(ModState old_state) override {}
 
 private:
-  void disable_culling(u32 start_point);
   void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value);
 
   void run_mod_mp1();
@@ -34,47 +34,6 @@ private:
   void init_mod_mp2_gc(Region region);
   void init_mod_mp3(Region region);
   void init_mod_mp3_standalone(Region region);
-
-  union {
-    struct {
-      u32 camera_ptr_address;
-      u32 active_camera_offset_address;
-      u32 global_fov1_address;
-      u32 global_fov2_address;
-      u32 gun_pos_address;
-      u32 culling_address;
-    } mp1_static;
-
-    struct {
-      u32 camera_ptr_address;
-      u32 camera_offset_address;
-      u32 tweakgun_ptr_address;
-      u32 culling_address;
-      u32 load_state_address;
-    } mp2_static;
-
-    struct {
-      u32 camera_ptr_address;
-      u32 tweakgun_address;
-      u32 culling_address;
-    } mp3_static;
-
-    struct {
-      u32 camera_mgr_address;
-      u32 object_list_address;
-      // global first & third person FOV
-      u32 global_fov1_table_off;
-      u32 global_fov2_table_off;
-      u32 gun_pos_address;
-      u32 culling_address;
-    } mp1_gc_static;
-
-    struct {
-      u32 state_mgr_address;
-      u32 gun_tweak_offset;
-      u32 culling_address;
-    } mp2_gc_static;
-  };
 };
 
 }

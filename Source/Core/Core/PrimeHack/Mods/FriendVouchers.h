@@ -31,6 +31,8 @@ namespace prime {
 
       return true;
     }
+    
+  void on_state_change(ModState old_state) override {}
 
   private:
     u32 extras_arr_addr;

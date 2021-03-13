@@ -43,7 +43,7 @@ struct vec3 {
 struct Transform {
   float m[3][4];
   Transform();
-  Transform(float yaw, float pitch, float roll) { build_rotation(yaw, pitch, roll); }
+  Transform(float yaw) { build_rotation(yaw); }
   Transform(u32 address) { read_from(address); }
 
   vec3 right() const {
@@ -72,7 +72,7 @@ struct Transform {
   vec3 operator*(vec3 const& rhs) const;
   Transform operator*(Transform const &rhs) const;
   Transform& operator*=(Transform const &rhs);
-  void build_rotation(float yaw, float pitch, float roll);
+  void build_rotation(float yaw);
   
   void read_from(u32 address);
   void write_to(u32 address);

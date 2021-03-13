@@ -5,37 +5,20 @@
 namespace prime {
 
 void SpringballButton::run_mod(Game game, Region region) {  
-  u32 actual_cplayer_address;
+  LOOKUP_DYN(player);
+  if (player == 0) {
+    return;
+  }
   switch (game) {
   case Game::PRIME_1:
-    springball_check(cplayer_address + 0x2f4, cplayer_address + 0x25c);
-    DevInfo("CPlayer", "%08X", cplayer_address);
+    springball_check(player + 0x2f4, player + 0x25c);
     break;
   case Game::PRIME_2:
-    actual_cplayer_address = read32(cplayer_address);
-    springball_check(actual_cplayer_address + 0x374, actual_cplayer_address + 0x2c4);
-    DevInfo("CPlayer", "%08X", cplayer_address);
+    springball_check(player + 0x374, player + 0x2c4);
     break;
   case Game::PRIME_3:
-    actual_cplayer_address = read32(read32(read32(cplayer_address) + 0x04) + 0x2184);
-    springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
-    DevInfo("CPlayer", "%08X", cplayer_address);
-    break;
   case Game::PRIME_3_STANDALONE:
-    switch (region)
-    {
-    case Region::NTSC_U:
-      actual_cplayer_address = read32(read32(cplayer_address) + 0x2184);
-      springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
-      DevInfo("CPlayer", "%08X", cplayer_address);
-      break;
-    case Region::NTSC_J:
-    case Region::PAL:
-      actual_cplayer_address = read32(read32(read32(cplayer_address) + 0x04) + 0x2184);
-      springball_check(actual_cplayer_address + 0x358, actual_cplayer_address + 0x29c);
-      DevInfo("CPlayer", "%08X", cplayer_address);
-      break;
-    }
+    springball_check(player + 0x358, player + 0x29c);
     break;
   default:
     break;
@@ -43,57 +26,41 @@ void SpringballButton::run_mod(Game game, Region region) {
 }
 
 bool SpringballButton::init_mod(Game game, Region region) {
+  prime::GetVariableManager()->register_variable("springball_trigger");
+
   switch (game) {
   case Game::PRIME_1:
     if (region == Region::NTSC_U) {
-      cplayer_address = 0x804d3c20;
       springball_code(0x801476d0);
-    }
-    else if (region == Region::PAL) {
-      cplayer_address = 0x804d7b60;
+    } else if (region == Region::PAL) {
       springball_code(0x80147820);
-    }
-    else { // region == Region::NTSC_J
-      cplayer_address = 0x804d3ea0;
+    } else if (region == Region::NTSC_J) {
       springball_code(0x80147cd0);
     }
     break;
   case Game::PRIME_2:
     if (region == Region::NTSC_U) {
-      cplayer_address = 0x804e87dc;
       springball_code(0x8010bd98);
-    }
-    else if (region == Region::NTSC_J) {
-      cplayer_address = 0x804e8fcc;
-      springball_code(0x8010b368);
-    }
-    else if (region == Region::PAL) {
-      cplayer_address = 0x804efc2c;
+    } else if (region == Region::PAL) {
       springball_code(0x8010d440);
+    } else if (region == Region::NTSC_J) {
+      springball_code(0x8010b368);
     }
     break;
   case Game::PRIME_3:
     if (region == Region::NTSC_U) {
-      cplayer_address = 0x805c6c6c;
       springball_code(0x801077d4);
-    }
-    else if (region == Region::PAL) {
-      cplayer_address = 0x805ca0ec;
+    } else if (region == Region::PAL) {
       springball_code(0x80107120);
     }
     break;
   case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U) {
-      cplayer_address = 0x805c4f98;
       springball_code(0x8010c984);
-    }
-    else if (region == Region::NTSC_J) {
-      cplayer_address = 0x805caa5c;
-      springball_code(0x8010d49c);
-    }
-    else if (region == Region::PAL) {
-      cplayer_address = 0x805c759c;
+    } else if (region == Region::PAL) {
       springball_code(0x8010ced4);
+    } else if (region == Region::NTSC_J) {
+      springball_code(0x8010d49c);
     }
     break;
   default:
@@ -115,13 +82,14 @@ void SpringballButton::springball_code(u32 start_point) {
 }
 
 void SpringballButton::springball_check(u32 ball_address, u32 movement_address) {
-  if (CheckSpringBallCtl())
-  {
-    u32 ball_state = read32(ball_address);
-    u32 movement_state = read32(movement_address);
+  if (CheckSpringBallCtl()) {
+    const u32 ball_state = read32(ball_address);
+    const u32 movement_state = read32(movement_address);
 
-    if ((ball_state == 1 || ball_state == 2) && movement_state == 0)
-      prime::GetVariableManager()->set_variable("springball_trigger", (u8) 1);
+    if ((ball_state == 1 || ball_state == 2) && movement_state == 0) { 
+      prime::GetVariableManager()->set_variable("springball_trigger", u8{ 1 });
+    }
   }
 }
+
 }

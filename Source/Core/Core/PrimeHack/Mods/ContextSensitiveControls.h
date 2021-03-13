@@ -9,12 +9,13 @@ class ContextSensitiveControls : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override;
   bool init_mod(Game game, Region region) override;
+  void on_state_change(ModState old_state) override {}
 
 private:
   u32 motion_vtf_address;
   u32 cplayer_ptr_address;
 
-  const std::set<u32> blacklisted_editor_ids = {
+  const std::set<u32> radio_editor_ids = {
     // Ship Radio IDs
     0x180263, 0x0D0853,
     0x1003F0, 0x02072F,

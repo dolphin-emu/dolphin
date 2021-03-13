@@ -17,12 +17,10 @@ class PortalSkipMP2 : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override;
   bool init_mod(Game game, Region region) override;
+  void on_state_change(ModState old_state) override {}
 
 private:
   std::map<u32, std::vector<PortalControl>> portal_control_map;
-
-  u32 state_mgr_address;
-  u32 world_id_address;
 };
 
 }

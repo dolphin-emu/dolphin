@@ -19,6 +19,9 @@ public:
 
   void register_variable(const std::string& name);
   std::pair<u32, u32> make_lis_ori(u32 gpr_num, const std::string& name);
+
+  void reset_variables();
+
 private:
   std::map<std::string, u32> variables_list;
 };

@@ -6,7 +6,7 @@
 #include <cmath>
 #include <sstream>
 
-#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PrimeHack/HackConfig.h"
 #include "InputCommon/GenericMouse.h"
 #include "VideoCommon/RenderBase.h"

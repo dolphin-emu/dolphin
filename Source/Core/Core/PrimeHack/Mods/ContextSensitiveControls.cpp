@@ -14,13 +14,9 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
     return;
   }
 
-  u32 obj_list_iterator = 0;
-  if (game == Game::PRIME_3_STANDALONE && region == Region::NTSC_U) {
-    obj_list_iterator = read32(read32(cplayer_ptr_address) + 0x1018) + 4;
-  } else {
-    obj_list_iterator = read32(read32(cplayer_ptr_address - 4) + 0x1018) + 4;
-  }
-  const u32 base = obj_list_iterator;
+  LOOKUP_DYN(object_list);
+  LOOKUP(motion_vf);
+  u32 obj_list_iterator = object_list + 4;
 
   for (int i = 0; i < 1024; i++) {
     u32 entity = read32(obj_list_iterator);
@@ -37,7 +33,7 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
       u32 vft_func = read32(vf_table + 0xc);
 
       // Accept function for this specific object type ("RTTI" checking)
-      if (vft_func == motion_vtf_address) {
+      if (vft_func == motion_vf) {
         u32 puzzle_state = read32(entity + 0x14c);
 
         if (ImprovedMotionControls()) {
@@ -55,12 +51,16 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
           }
         }
 
+        if (puzzle_state > 0) {
+          DevInfo("Puzzle Info", "addr: %x (state: %x)", entity, puzzle_state);
+        }
+
         if (LockCameraInPuzzles()) {
           if (puzzle_state > 0) {
             // Clear the first byte, since we do not account for the layer ID.
             u32 id = read32(entity + 0xC) & ~(0xFF << 24);
             // If the id isn't ship radios
-            if (blacklisted_editor_ids.find(id) == blacklisted_editor_ids.end()) {
+            if (radio_editor_ids.find(id) == radio_editor_ids.end()) {
               SetLockCamera(Centre);
             }
             else {
@@ -69,17 +69,17 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
             }
           }
         }  
-      } else if (vft_func == motion_vtf_address + 0x38) {
-        // If the vtf is for rotary, confirm this needs to be controlled
+      } else if (vft_func == motion_vf + 0x38) {
+        // If the vf is for rotary, confirm this needs to be controlled
         if (read32(entity + 0x204) == 1) {
           float velocity = 0;
-
-          if (CheckRight())
+          if (CheckRight()) {
             velocity = 0.04f;
-          if (CheckLeft())
+          }
+          if (CheckLeft()) {
             velocity -= 0.04f;
-
-          writef32(velocity, 0x80004170);
+          }
+          prime::GetVariableManager()->set_variable("rotary_velocity", velocity);
         }
       }
     }
@@ -89,7 +89,7 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
       break;
     }
 
-    obj_list_iterator = (base + next_id * 8);
+    obj_list_iterator = ((object_list + 4) + next_id * 8);
   }
 }
 
@@ -102,46 +102,28 @@ bool ContextSensitiveControls::init_mod(Game game, Region region) {
   case Game::PRIME_3:
     if (region == Region::NTSC_U) {
       // Take control of the rotary puzzles
-      add_code_change(0x801F806C, lis);
-      add_code_change(0x801F8074, ori);
-      add_code_change(0x801F807C, 0xC02C0000);
-
-      cplayer_ptr_address = 0x805c6c6c;
-      motion_vtf_address = 0x802e0dac;
-    }
-    else if (region == Region::PAL) {
-      add_code_change(0x801F7B4C, lis);
-      add_code_change(0x801F7B54, ori);
-      add_code_change(0x801F7B5C, 0xC02C0000);
-
-      cplayer_ptr_address = 0x805ca0ec;
-      motion_vtf_address = 0x802e0a88;
+      add_code_change(0x801f806c, lis);
+      add_code_change(0x801f8074, ori);
+      add_code_change(0x801f807c, 0xc02c0000);
+    } else if (region == Region::PAL) {
+      add_code_change(0x801f7b4c, lis);
+      add_code_change(0x801f7b54, ori);
+      add_code_change(0x801f7b5c, 0xc02c0000);
     }
     break;
   case Game::PRIME_3_STANDALONE:
     if (region == Region::NTSC_U) {
       add_code_change(0x801fb544, lis);
       add_code_change(0x801fb54c, ori);
-      add_code_change(0x801fb554, 0xC02C0000);
-
-      cplayer_ptr_address = 0x805c4f98;
-      motion_vtf_address = 0x802e2508;
-    }
-    else if (region == Region::NTSC_J) {
+      add_code_change(0x801fb554, 0xc02c0000);
+    } else if (region == Region::NTSC_J) {
       add_code_change(0x801fdb5c, lis);
       add_code_change(0x801fdb64, ori);
-      add_code_change(0x801fdb6c, 0xC02C0000);
-
-      cplayer_ptr_address = 0x805caa5c;
-      motion_vtf_address = 0x802e5ed8;
-    }
-    else if (region == Region::PAL) {
+      add_code_change(0x801fdb6c, 0xc02c0000);
+    } else if (region == Region::PAL) {
       add_code_change(0x801fc5a8, lis);
       add_code_change(0x801fc5b0, ori);
-      add_code_change(0x801fc5b8, 0xC02C0000);
-
-      cplayer_ptr_address = 0x805c759c;
-      motion_vtf_address = 0x802e3be4;
+      add_code_change(0x801fc5b8, 0xc02c0000);
     }
     break;
   default:

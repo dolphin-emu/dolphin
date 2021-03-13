@@ -81,4 +81,8 @@ namespace prime {
 
     return std::pair<u32, u32>(lis, ori);
   }
+
+  void EmuVariableManager::reset_variables() {
+    variables_list.clear();
+  }
 }; // namespace prime

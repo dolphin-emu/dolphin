@@ -470,6 +470,7 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
   PrimeHack/PrimeUtils.cpp
   PrimeHack/PrimeUtils.h
+  PrimeHack/PrimeMod.cpp
   PrimeHack/Mods/AutoEFB.cpp
   PrimeHack/Mods/CutBeamFxMP1.cpp
   PrimeHack/Mods/DisableBloom.h
@@ -486,6 +487,8 @@ add_library(core
   PrimeHack/HackConfig.cpp
   PrimeHack/HackManager.cpp
   PrimeHack/Transform.cpp
+  PrimeHack/AddressDB.cpp
+  PrimeHack/AddressDBInit.cpp
 )
 
 if(_M_X86)

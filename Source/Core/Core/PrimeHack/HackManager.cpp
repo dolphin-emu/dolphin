@@ -2,11 +2,13 @@
 
 #include "Core/PrimeHack/HackConfig.h"
 #include "Core/PrimeHack/PrimeUtils.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/ConfigManager.h"
-#include "InputCommon/GenericMouse.h"
 
-#pragma optimize("", off)
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
+
+#include "Core/ConfigManager.h"
+
+#include "InputCommon/GenericMouse.h"
 
 namespace prime {
 HackManager::HackManager()
@@ -98,6 +100,10 @@ void HackManager::run_active_mods() {
       active_game = Game::PRIME_2_GCN;
       active_region = Region::NTSC_U;
     }
+    else if (region_code == FOURCC('R', 'M', '3', 'J')) {
+      active_game = Game::PRIME_3_STANDALONE;
+      active_region = Region::NTSC_J;
+    }
     else if (region_code == FOURCC('G', '2', 'M', 'P')) {
       active_game = Game::PRIME_2_GCN;
       active_region = Region::PAL;
@@ -105,10 +111,6 @@ void HackManager::run_active_mods() {
     else if (region_code == FOURCC('R', 'M', '3', 'E')) {
       active_game = Game::PRIME_3_STANDALONE;
       active_region = Region::NTSC_U;
-    }
-    else if (region_code == FOURCC('R', 'M', '3', 'J')) {
-      active_game = Game::PRIME_3_STANDALONE;
-      active_region = Region::NTSC_J;
     }
     else if (region_code == FOURCC('R', 'M', '3', 'P')) {
       active_game = Game::PRIME_3_STANDALONE;
@@ -125,6 +127,7 @@ void HackManager::run_active_mods() {
     for (auto& mod : mods) {
       mod.second->reset_mod();
     }
+    GetVariableManager()->reset_variables();
   }
 
   ClrDevInfo(); // Clear the dev info stream before the mods print again.
@@ -144,7 +147,7 @@ void HackManager::run_active_mods() {
         mod.second->apply_instruction_changes();
       }
     }
-
+      
     last_game = active_game;
     last_region = active_region;
     for (auto& mod : mods) {
@@ -157,8 +160,7 @@ void HackManager::run_active_mods() {
   prime::g_mouse_input->ResetDeltas();
 }
 
-void HackManager::update_mod_states()
-{
+void HackManager::update_mod_states() {
   set_mod_enabled("auto_efb", UseMPAutoEFB());
   set_mod_enabled("disable_bloom", GetBloom());
   set_mod_enabled("cut_beam_fx_mp1", GetEnableSecondaryGunFX());
@@ -182,8 +184,7 @@ void HackManager::update_mod_states()
 
   if (ImprovedMotionControls()) {
     enable_mod("context_sensitive_controls");
-  }
-  else {
+  } else {
     auto result = mods.find("context_sensitive_controls");
     if (result == mods.end()) {
       return;
@@ -229,6 +230,14 @@ bool HackManager::is_mod_active(std::string const& name) {
   return result->second->mod_state() != ModState::DISABLED;
 }
 
+void HackManager::reset_mod(std::string const &name) {
+  auto result = mods.find(name);
+  if (result == mods.end()) {
+    return;
+  }
+  result->second->reset_mod();
+}
+
 void HackManager::save_mod_states() {
   for (auto& mod : mods) {
     mod_state_backup[mod.first] = mod.second->mod_state();
@@ -255,4 +264,21 @@ void HackManager::revert_all_code_changes() {
     }
   }
 }
+
+void HackManager::shutdown() {
+  for (auto& mod : mods) {
+    mod.second->reset_mod();
+  }
+  last_game = Game::INVALID_GAME;
+  last_region = Region::INVALID_REGION;
+}
+
+PrimeMod *HackManager::get_mod(std::string const& name) {
+  auto result = mods.find(name);
+  if (result == mods.end()) {
+    return nullptr;
+  }
+  return result->second.get();
+}
+
 }

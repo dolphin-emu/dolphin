@@ -30,45 +30,12 @@ private:
   bool has_control_mp2_gc();
   bool has_control_mp3();
 
-  union {
-    struct {
-      u32 cplayer_address;
-      u32 object_list_ptr_address;
-      u32 camera_uid_address;
-      u32 control_flag_address;
-    } mp1_static;
-
-    struct {
-      u32 cplayer_address;
-      u32 state_mgr_address;
-      u32 camera_uid_address;
-    } mp1_gc_static;
-
-    struct {
-      u32 cplayer_ptr_address;
-      u32 object_list_ptr_address;
-      u32 camera_uid_address;
-      u32 control_flag_address;
-      u32 load_state_address;
-    } mp2_static;
-
-    struct {
-      u32 state_mgr_address;
-    } mp2_gc_static;
-
-    struct {
-      u32 state_mgr_ptr_address;
-      u32 cam_uid_ptr_address;
-    } mp3_static;
-  };
-
   u64 old_matexclude_list;
 
   Transform player_tf;
-  bool had_control = true;
-
-  // mp2 demands it
   vec3 player_vec;
+
+  bool had_control = true;
 };
 
 }
