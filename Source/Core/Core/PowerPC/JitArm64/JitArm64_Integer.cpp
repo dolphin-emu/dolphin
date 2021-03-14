@@ -1456,13 +1456,12 @@ void JitArm64::srawx(UGeckoInstruction inst)
       }
 
       CSET(WA, CC_NEQ);
-
       ComputeCarry(WA);
 
       gpr.Unlock(WA);
     }
   }
-  else if (!js.op->wantsCA)
+  else
   {
     gpr.BindToRegister(a, a == b || a == s);
 
@@ -1472,47 +1471,14 @@ void JitArm64::srawx(UGeckoInstruction inst)
     ASRV(EncodeRegTo64(WA), EncodeRegTo64(WA), EncodeRegTo64(gpr.R(b)));
     LSR(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(WA), 32);
 
+    if (js.op->wantsCA)
+    {
+      TST(gpr.R(a), WA);
+      CSET(WA, CC_NEQ);
+      ComputeCarry(WA);
+    }
+
     gpr.Unlock(WA);
-  }
-  else
-  {
-    gpr.BindToRegister(a, a == b || a == s);
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg WB = gpr.GetReg();
-    ARM64Reg WC = gpr.GetReg();
-    ARM64Reg RB = gpr.R(b);
-    ARM64Reg RS = gpr.R(s);
-
-    ANDI2R(WA, RB, 32);
-    FixupBranch bit_is_not_zero = TBNZ(RB, 5);
-
-    ANDSI2R(WC, RB, 31);
-    MOV(WB, RS);
-    FixupBranch is_zero = B(CC_EQ);
-
-    ASRV(WB, RS, WC);
-    FixupBranch bit_is_zero = TBZ(RS, 31);
-
-    MOVI2R(WA, 32);
-    SUB(WC, WA, WC);
-    LSLV(WC, RS, WC);
-    CMP(WC, 0);
-    CSET(WA, CC_NEQ);
-    FixupBranch end = B();
-
-    SetJumpTarget(bit_is_not_zero);
-    CMP(RS, 0);
-    CSET(WA, CC_LT);
-    CSINV(WB, ARM64Reg::WZR, ARM64Reg::WZR, CC_GE);
-
-    SetJumpTarget(is_zero);
-    SetJumpTarget(bit_is_zero);
-    SetJumpTarget(end);
-
-    MOV(gpr.R(a), WB);
-    ComputeCarry(WA);
-
-    gpr.Unlock(WA, WB, WC);
   }
 
   if (inst.Rc)
