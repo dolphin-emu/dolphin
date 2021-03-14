@@ -58,6 +58,16 @@ public:
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
   }
 
+  void RotateExact(const Common::Vec3& amt) override
+  {
+    RotateIncremental(Common::Quaternion::RotateXYZ(amt));
+  }
+
+  void RotateExact(const Common::Quaternion& quat) override
+  {
+    m_mat = Common::Matrix44::FromQuaternion(quat);
+  }
+
   void RotateIncremental(const Common::Vec3& amt) override
   {
     RotateIncremental(Common::Quaternion::RotateXYZ(amt));
@@ -101,6 +111,23 @@ public:
   {
     const Common::Vec3 forward = m_rotate_quat.Conjugate() * Common::Vec3{0, 0, 1};
     m_position += forward * amt;
+  }
+
+  void RotateExact(const Common::Vec3& amt) override
+  {
+    if (amt.Length() == 0)
+      return;
+
+    m_rotation = amt;
+
+    using Common::Quaternion;
+    m_rotate_quat =
+        (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
+  }
+
+  void RotateExact(const Common::Quaternion& quat) override
+  {
+    RotateExact(Common::FromQuaternionToEuler(quat));
   }
 
   void RotateIncremental(const Common::Vec3& amt) override
@@ -157,6 +184,23 @@ public:
   {
     m_distance += -1 * amt;
     m_distance = std::clamp(m_distance, 0.0f, m_distance);
+  }
+
+  void RotateExact(const Common::Vec3& amt) override
+  {
+    if (amt.Length() == 0)
+      return;
+
+    m_rotation = amt;
+
+    using Common::Quaternion;
+    m_rotate_quat =
+        (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
+  }
+
+  void RotateExact(const Common::Quaternion& quat) override
+  {
+    RotateExact(Common::FromQuaternionToEuler(quat));
   }
 
   void RotateIncremental(const Common::Vec3& amt) override
@@ -250,6 +294,18 @@ void FreeLookCamera::MoveHorizontal(float amt)
 void FreeLookCamera::MoveForward(float amt)
 {
   m_camera_controller->MoveForward(amt);
+  m_dirty = true;
+}
+
+void FreeLookCamera::RotateExact(const Common::Vec3& amt)
+{
+  m_camera_controller->RotateExact(amt);
+  m_dirty = true;
+}
+
+void FreeLookCamera::RotateExact(const Common::Quaternion& amt)
+{
+  m_camera_controller->RotateExact(amt);
   m_dirty = true;
 }
 

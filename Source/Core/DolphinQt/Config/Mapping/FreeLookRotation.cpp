@@ -43,6 +43,11 @@ void FreeLookRotation::CreateMainLayout()
                      FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Rotation)),
       1, 0);
 
+  m_main_layout->addWidget(
+      CreateGroupBox(tr("Exact Rotation"),
+                     FreeLook::GetInputGroup(GetPort(), FreeLookGroup::RotationExact)),
+      2, 0);
+
   setLayout(m_main_layout);
 }
 

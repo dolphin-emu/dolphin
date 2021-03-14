@@ -74,6 +74,16 @@ enum GyroButtons
   YawRight,
 };
 }
+
+namespace RotationButtons
+{
+enum RotationButtons
+{
+  Pitch,
+  Roll,
+  Yaw,
+};
+}
 }  // namespace
 
 FreeLookController::FreeLookController(const unsigned int index) : m_index(index)
@@ -106,6 +116,19 @@ FreeLookController::FreeLookController(const unsigned int index) : m_index(index
 
   groups.emplace_back(m_rotation_gyro = new ControllerEmu::IMUGyroscope(
                           _trans("Incremental Rotation"), _trans("Incremental Rotation")));
+
+  groups.emplace_back(m_exact_rotation_group = new ControllerEmu::ControlGroup(
+                          _trans("Exact Rotation"), _trans("Exact Rotation")));
+
+  m_exact_rotation_group->AddSetting(
+      &m_pitch, {_trans("Pitch"), _trans("rad"), _trans("The exact pitch of the camera")}, 0.0,
+      -MathUtil::TAU, MathUtil::TAU);
+  m_exact_rotation_group->AddSetting(
+      &m_yaw, {_trans("Yaw"), _trans("rad"), _trans("The exact yaw of the camera")}, 0.0,
+      -MathUtil::TAU, MathUtil::TAU);
+  m_exact_rotation_group->AddSetting(
+      &m_roll, {_trans("Roll"), _trans("rad"), _trans("The exact yaw of the camera")}, 0.0,
+      -MathUtil::TAU, MathUtil::TAU);
 }
 
 std::string FreeLookController::GetName() const
@@ -187,6 +210,8 @@ ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) c
     return m_other_buttons;
   case FreeLookGroup::Rotation:
     return m_rotation_gyro;
+  case FreeLookGroup::RotationExact:
+    return m_exact_rotation_group;
   default:
     return nullptr;
   }
@@ -208,6 +233,17 @@ void FreeLookController::Update()
              .count();
   }
   m_last_free_look_rotate_time = std::chrono::steady_clock::now();
+
+  if (m_pitch.GetValue() != m_last_pitch || m_yaw.GetValue() != m_last_yaw ||
+      m_roll.GetValue() != m_last_roll)
+  {
+    m_last_pitch = m_pitch.GetValue();
+    m_last_yaw = m_yaw.GetValue();
+    m_last_roll = m_roll.GetValue();
+    g_freelook_camera.RotateExact(Common::Vec3{static_cast<float>(m_pitch.GetValue()),
+                                               static_cast<float>(m_yaw.GetValue()),
+                                               static_cast<float>(m_roll.GetValue())});
+  }
 
   const auto gyro_motion_rad_velocity =
       m_rotation_gyro->GetState() ? *m_rotation_gyro->GetState() : Common::Vec3{};
