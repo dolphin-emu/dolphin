@@ -16,6 +16,15 @@
 
 using namespace Arm64Gen;
 
+#define CARRY_IF_NEEDED(inst_without_carry, inst_with_carry, ...)                                  \
+  do                                                                                               \
+  {                                                                                                \
+    if (js.op->wantsCA)                                                                            \
+      inst_with_carry(__VA_ARGS__);                                                                \
+    else                                                                                           \
+      inst_without_carry(__VA_ARGS__);                                                             \
+  } while (0)
+
 void JitArm64::ComputeRC0(ARM64Reg reg)
 {
   gpr.BindCRToRegister(0, false);
@@ -733,7 +742,7 @@ void JitArm64::addic(UGeckoInstruction inst)
   {
     gpr.BindToRegister(d, d == a);
     ARM64Reg WA = gpr.GetReg();
-    ADDSI2R(gpr.R(d), gpr.R(a), simm, WA);
+    CARRY_IF_NEEDED(ADDI2R, ADDSI2R, gpr.R(d), gpr.R(a), simm, WA);
     gpr.Unlock(WA);
 
     ComputeCarry();
@@ -854,7 +863,7 @@ void JitArm64::addzex(UGeckoInstruction inst)
     ARM64Reg WA = d == a ? gpr.GetReg() : gpr.R(d);
 
     LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-    ADDS(gpr.R(d), gpr.R(a), WA);
+    CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), WA);
     ComputeCarry();
 
     if (d == a)
@@ -865,14 +874,14 @@ void JitArm64::addzex(UGeckoInstruction inst)
   case CarryFlag::InHostCarry:
   {
     gpr.BindToRegister(d, d == a);
-    ADCS(gpr.R(d), gpr.R(a), ARM64Reg::WZR);
+    CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), ARM64Reg::WZR);
     ComputeCarry();
     break;
   }
   case CarryFlag::ConstantTrue:
   {
     gpr.BindToRegister(d, d == a);
-    ADDS(gpr.R(d), gpr.R(a), 1);
+    CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), 1);
     ComputeCarry();
     break;
   }
@@ -1004,13 +1013,13 @@ void JitArm64::subfex(UGeckoInstruction inst)
       else
         MVN(WA, gpr.R(a));
 
-      ADCS(gpr.R(d), WA, gpr.R(b));
+      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), WA, gpr.R(b));
       ComputeCarry();
       break;
     }
     case CarryFlag::ConstantTrue:
     {
-      SUBS(gpr.R(d), gpr.R(b), gpr.R(a));
+      CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
       ComputeCarry();
       break;
     }
@@ -1021,7 +1030,7 @@ void JitArm64::subfex(UGeckoInstruction inst)
       else
         MVN(WA, gpr.R(a));
 
-      ADDS(gpr.R(d), WA, gpr.R(b));
+      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), WA, gpr.R(b));
       ComputeCarry();
       break;
     }
@@ -1058,7 +1067,7 @@ void JitArm64::subfcx(UGeckoInstruction inst)
     gpr.BindToRegister(d, d == a || d == b);
 
     // d = b - a
-    SUBS(gpr.R(d), gpr.R(b), gpr.R(a));
+    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
 
     ComputeCarry();
 
@@ -1084,7 +1093,7 @@ void JitArm64::subfzex(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
     MVN(gpr.R(d), gpr.R(a));
-    ADDS(gpr.R(d), gpr.R(d), WA);
+    CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(d), WA);
     ComputeCarry();
     gpr.Unlock(WA);
     break;
@@ -1092,13 +1101,13 @@ void JitArm64::subfzex(UGeckoInstruction inst)
   case CarryFlag::InHostCarry:
   {
     MVN(gpr.R(d), gpr.R(a));
-    ADCS(gpr.R(d), gpr.R(d), ARM64Reg::WZR);
+    CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(d), ARM64Reg::WZR);
     ComputeCarry();
     break;
   }
   case CarryFlag::ConstantTrue:
   {
-    NEGS(gpr.R(d), gpr.R(a));
+    CARRY_IF_NEEDED(NEG, NEGS, gpr.R(d), gpr.R(a));
     ComputeCarry();
     break;
   }
@@ -1136,7 +1145,7 @@ void JitArm64::subfic(UGeckoInstruction inst)
     // d = imm - a
     ARM64Reg WA = gpr.GetReg();
     MOVI2R(WA, imm);
-    SUBS(gpr.R(d), WA, gpr.R(a));
+    CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), WA, gpr.R(a));
     gpr.Unlock(WA);
 
     ComputeCarry();
@@ -1226,7 +1235,7 @@ void JitArm64::addex(UGeckoInstruction inst)
     }
     case CarryFlag::InHostCarry:
     {
-      ADCS(gpr.R(d), gpr.R(a), gpr.R(b));
+      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), gpr.R(b));
       ComputeCarry();
       break;
     }
@@ -1247,7 +1256,7 @@ void JitArm64::addex(UGeckoInstruction inst)
       }
       else
       {
-        ADDSI2R(gpr.R(d), gpr.R(a), imm, WA);
+        CARRY_IF_NEEDED(ADDI2R, ADDSI2R, gpr.R(d), gpr.R(a), imm, WA);
         ComputeCarry();
       }
       gpr.Unlock(WA);
@@ -1256,7 +1265,7 @@ void JitArm64::addex(UGeckoInstruction inst)
     }
     case CarryFlag::ConstantFalse:
     {
-      ADDS(gpr.R(d), gpr.R(a), gpr.R(b));
+      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
       ComputeCarry();
       break;
     }
@@ -1288,7 +1297,7 @@ void JitArm64::addcx(UGeckoInstruction inst)
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
-    ADDS(gpr.R(d), gpr.R(a), gpr.R(b));
+    CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
 
     ComputeCarry();
     if (inst.Rc)
