@@ -926,8 +926,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   js.downcountAmount = 0;
   js.skipInstructions = 0;
-  js.carryFlagSet = false;
-  js.carryFlagInverted = false;
+  js.carryFlag = CarryFlag::InPPCState;
   js.constantGqr.clear();
 
   // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
