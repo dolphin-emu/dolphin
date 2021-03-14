@@ -1401,13 +1401,14 @@ void JitArm64::srawx(UGeckoInstruction inst)
     {
       gpr.BindToRegister(a, a == s);
 
-      ASR(gpr.R(a), gpr.R(s), 31);
-
       if (js.op->wantsCA)
       {
+        // Set the carry flag to the sign bit of s
         CMN(gpr.R(s), gpr.R(s));
         ComputeCarry();
       }
+
+      ASR(gpr.R(a), gpr.R(s), 31);
     }
     else if (amount == 0)
     {
