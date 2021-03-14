@@ -233,7 +233,7 @@ private:
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u64 imm);
   void ComputeCarry(Arm64Gen::ARM64Reg reg);  // reg must contain 0 or 1
-  void ComputeCarry(bool Carry);
+  void ComputeCarry(bool carry);
   void ComputeCarry();
   void FlushCarry();
 
