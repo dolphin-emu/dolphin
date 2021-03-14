@@ -220,7 +220,7 @@ void FreeLookController::Update()
   const auto gyro_motion_quat =
       Common::Quaternion::RotateXYZ(gyro_motion_rad_velocity_converted * dt);
 
-  g_freelook_camera.Rotate(gyro_motion_quat);
+  g_freelook_camera.RotateIncremental(gyro_motion_quat);
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
     g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed() * dt);
 

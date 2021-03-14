@@ -31,8 +31,8 @@ public:
 
   virtual void MoveForward(float amt) = 0;
 
-  virtual void Rotate(const Common::Vec3& amt) = 0;
-  virtual void Rotate(const Common::Quaternion& quat) = 0;
+  virtual void RotateIncremental(const Common::Vec3& amt) = 0;
+  virtual void RotateIncremental(const Common::Quaternion& quat) = 0;
 
   virtual void Reset() = 0;
 
@@ -51,8 +51,8 @@ public:
   void MoveHorizontal(float amt);
   void MoveForward(float amt);
 
-  void Rotate(const Common::Vec3& amt);
-  void Rotate(const Common::Quaternion& amt);
+  void RotateIncremental(const Common::Vec3& amt);
+  void RotateIncremental(const Common::Quaternion& amt);
 
   void IncreaseFovX(float fov);
   void IncreaseFovY(float fov);

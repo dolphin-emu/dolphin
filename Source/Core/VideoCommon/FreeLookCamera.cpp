@@ -58,9 +58,12 @@ public:
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
   }
 
-  void Rotate(const Common::Vec3& amt) override { Rotate(Common::Quaternion::RotateXYZ(amt)); }
+  void RotateIncremental(const Common::Vec3& amt) override
+  {
+    RotateIncremental(Common::Quaternion::RotateXYZ(amt));
+  }
 
-  void Rotate(const Common::Quaternion& quat) override
+  void RotateIncremental(const Common::Quaternion& quat) override
   {
     m_mat = Common::Matrix44::FromQuaternion(quat) * m_mat;
   }
@@ -100,7 +103,7 @@ public:
     m_position += forward * amt;
   }
 
-  void Rotate(const Common::Vec3& amt) override
+  void RotateIncremental(const Common::Vec3& amt) override
   {
     if (amt.Length() == 0)
       return;
@@ -112,9 +115,9 @@ public:
         (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
   }
 
-  void Rotate(const Common::Quaternion& quat) override
+  void RotateIncremental(const Common::Quaternion& quat) override
   {
-    Rotate(Common::FromQuaternionToEuler(quat));
+    RotateIncremental(Common::FromQuaternionToEuler(quat));
   }
 
   void Reset() override
@@ -156,7 +159,7 @@ public:
     m_distance = std::clamp(m_distance, 0.0f, m_distance);
   }
 
-  void Rotate(const Common::Vec3& amt) override
+  void RotateIncremental(const Common::Vec3& amt) override
   {
     if (amt.Length() == 0)
       return;
@@ -168,9 +171,9 @@ public:
         (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
   }
 
-  void Rotate(const Common::Quaternion& quat) override
+  void RotateIncremental(const Common::Quaternion& quat) override
   {
-    Rotate(Common::FromQuaternionToEuler(quat));
+    RotateIncremental(Common::FromQuaternionToEuler(quat));
   }
 
   void Reset() override
@@ -250,15 +253,15 @@ void FreeLookCamera::MoveForward(float amt)
   m_dirty = true;
 }
 
-void FreeLookCamera::Rotate(const Common::Vec3& amt)
+void FreeLookCamera::RotateIncremental(const Common::Vec3& amt)
 {
-  m_camera_controller->Rotate(amt);
+  m_camera_controller->RotateIncremental(amt);
   m_dirty = true;
 }
 
-void FreeLookCamera::Rotate(const Common::Quaternion& amt)
+void FreeLookCamera::RotateIncremental(const Common::Quaternion& amt)
 {
-  m_camera_controller->Rotate(amt);
+  m_camera_controller->RotateIncremental(amt);
   m_dirty = true;
 }
 
