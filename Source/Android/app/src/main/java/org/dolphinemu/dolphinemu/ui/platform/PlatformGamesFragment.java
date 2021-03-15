@@ -26,21 +26,15 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
   private SwipeRefreshLayout mSwipeRefresh;
   private SwipeRefreshLayout.OnRefreshListener mOnRefreshListener;
 
-  public static PlatformGamesFragment newInstance(Platform platform,
-          SwipeRefreshLayout.OnRefreshListener onRefreshListener)
+  public static PlatformGamesFragment newInstance(Platform platform)
   {
-    PlatformGamesFragment fragment = new PlatformGamesFragment(onRefreshListener);
+    PlatformGamesFragment fragment = new PlatformGamesFragment();
 
     Bundle args = new Bundle();
     args.putSerializable(ARG_PLATFORM, platform);
 
     fragment.setArguments(args);
     return fragment;
-  }
-
-  public PlatformGamesFragment(SwipeRefreshLayout.OnRefreshListener onRefreshListener)
-  {
-    mOnRefreshListener = onRefreshListener;
   }
 
   @Override
@@ -108,6 +102,14 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
   public void refetchMetadata()
   {
     mAdapter.refetchMetadata();
+  }
+
+  public void setOnRefreshListener(@Nullable SwipeRefreshLayout.OnRefreshListener listener)
+  {
+    mOnRefreshListener = listener;
+
+    if (mSwipeRefresh != null)
+      mSwipeRefresh.setOnRefreshListener(listener);
   }
 
   public void setRefreshing(boolean refreshing)

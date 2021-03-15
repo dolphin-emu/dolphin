@@ -40,7 +40,11 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
   @Override
   public Fragment getItem(int position)
   {
-    return PlatformGamesFragment.newInstance(Platform.fromPosition(position), mOnRefreshListener);
+    Platform platform = Platform.fromPosition(position);
+
+    PlatformGamesFragment fragment = PlatformGamesFragment.newInstance(platform);
+    fragment.setOnRefreshListener(mOnRefreshListener);
+    return fragment;
   }
 
   @Override
