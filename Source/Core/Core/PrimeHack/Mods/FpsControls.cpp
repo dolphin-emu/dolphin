@@ -57,6 +57,7 @@ void FpsControls::run_mod(Game game, Region region) {
     run_mod_mp2(region);
     break;
   case Game::PRIME_3:
+  case Game::PRIME_3_STANDALONE:
     run_mod_mp3(game, region);
     break;
   case Game::PRIME_1_GCN:
@@ -64,9 +65,6 @@ void FpsControls::run_mod(Game game, Region region) {
     break;
   case Game::PRIME_2_GCN:
     run_mod_mp2_gc();
-    break;
-  case Game::PRIME_3_STANDALONE:
-    run_mod_mp3(game, region);
     break;
   default:
     break;
@@ -129,8 +127,8 @@ void FpsControls::calculate_pitch_locked(Game game, Region region) {
     case Game::PRIME_2_GCN:
       camera_xf_offset = 0x24;
       break;
-    case Game::PRIME_3_STANDALONE:
     case Game::PRIME_3:
+    case Game::PRIME_3_STANDALONE:
       camera_xf_offset = 0x3c;
       break;
   }
@@ -729,8 +727,8 @@ void FpsControls::CheckBeamVisorSetting(Game game)
   case Game::PRIME_1:
   case Game::PRIME_2:
     set_code_group_state("beam_menu", beam ? ModState::DISABLED : ModState::ENABLED);
-  case Game::PRIME_3_STANDALONE: 
   case Game::PRIME_3:
+  case Game::PRIME_3_STANDALONE:
     set_code_group_state("visor_menu", visor ? ModState::DISABLED : ModState::ENABLED);
     break;
   default:
