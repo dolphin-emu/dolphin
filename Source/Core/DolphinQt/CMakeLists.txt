@@ -73,6 +73,10 @@ add_executable(dolphin-emu
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
   Config/FilesystemWidget.h
+  Config/FreeLookOptionsWidget.cpp
+  Config/FreeLookOptionsWidget.h
+  Config/FreeLookOptionsWindow.cpp
+  Config/FreeLookOptionsWindow.h
   Config/FreeLookWidget.cpp
   Config/FreeLookWidget.h
   Config/FreeLookWindow.cpp
