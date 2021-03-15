@@ -4,10 +4,13 @@
 
 #include "Core/FreeLookManager.h"
 
+#include <optional>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 
+#include "Core/Config/FreeLookSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FreeLookConfig.h"
 
@@ -62,7 +65,10 @@ enum FieldOfViewButtons
 }
 }  // namespace
 
-FreeLookController::FreeLookController(const unsigned int index) : m_index(index)
+FreeLookController::FreeLookController(const unsigned int index,
+                                       const Config::Info<float>& fov_horizontal,
+                                       const Config::Info<float>& fov_vertical)
+    : m_index(index), m_fov_horizontal(fov_horizontal), m_fov_vertical(fov_vertical)
 {
   groups.emplace_back(m_move_buttons = new ControllerEmu::Buttons(_trans("Move")));
 
@@ -149,49 +155,92 @@ void FreeLookController::Update()
   if (!g_freelook_camera.IsActive())
     return;
 
-  const auto lock = GetStateLock();
+  // Save off fov changes and reset
+  // since they trigger config changes
+  // which can cause a deadlock with the state lock
+  std::optional<bool> should_increase_fov_x;
+  std::optional<bool> should_increase_fov_y;
+  bool should_reset = false;
+  {
+    const auto lock = GetStateLock();
 
-  if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
-    g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed());
+    if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
+      g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed());
 
-  if (m_move_buttons->controls[MoveButtons::Down]->GetState<bool>())
-    g_freelook_camera.MoveVertical(g_freelook_camera.GetSpeed());
+    if (m_move_buttons->controls[MoveButtons::Down]->GetState<bool>())
+      g_freelook_camera.MoveVertical(g_freelook_camera.GetSpeed());
 
-  if (m_move_buttons->controls[MoveButtons::Left]->GetState<bool>())
-    g_freelook_camera.MoveHorizontal(g_freelook_camera.GetSpeed());
+    if (m_move_buttons->controls[MoveButtons::Left]->GetState<bool>())
+      g_freelook_camera.MoveHorizontal(g_freelook_camera.GetSpeed());
 
-  if (m_move_buttons->controls[MoveButtons::Right]->GetState<bool>())
-    g_freelook_camera.MoveHorizontal(-g_freelook_camera.GetSpeed());
+    if (m_move_buttons->controls[MoveButtons::Right]->GetState<bool>())
+      g_freelook_camera.MoveHorizontal(-g_freelook_camera.GetSpeed());
 
-  if (m_move_buttons->controls[MoveButtons::Forward]->GetState<bool>())
-    g_freelook_camera.MoveForward(g_freelook_camera.GetSpeed());
+    if (m_move_buttons->controls[MoveButtons::Forward]->GetState<bool>())
+      g_freelook_camera.MoveForward(g_freelook_camera.GetSpeed());
 
-  if (m_move_buttons->controls[MoveButtons::Backward]->GetState<bool>())
-    g_freelook_camera.MoveForward(-g_freelook_camera.GetSpeed());
+    if (m_move_buttons->controls[MoveButtons::Backward]->GetState<bool>())
+      g_freelook_camera.MoveForward(-g_freelook_camera.GetSpeed());
 
-  if (m_fov_buttons->controls[FieldOfViewButtons::IncreaseX]->GetState<bool>())
-    g_freelook_camera.IncreaseFovX(g_freelook_camera.GetFovStepSize());
+    if (m_fov_buttons->controls[FieldOfViewButtons::IncreaseX]->GetState<bool>())
+      should_increase_fov_x = true;
 
-  if (m_fov_buttons->controls[FieldOfViewButtons::DecreaseX]->GetState<bool>())
-    g_freelook_camera.IncreaseFovX(-1.0f * g_freelook_camera.GetFovStepSize());
+    if (m_fov_buttons->controls[FieldOfViewButtons::DecreaseX]->GetState<bool>())
+      should_increase_fov_x = false;
 
-  if (m_fov_buttons->controls[FieldOfViewButtons::IncreaseY]->GetState<bool>())
-    g_freelook_camera.IncreaseFovY(g_freelook_camera.GetFovStepSize());
+    if (m_fov_buttons->controls[FieldOfViewButtons::IncreaseY]->GetState<bool>())
+      should_increase_fov_y = true;
 
-  if (m_fov_buttons->controls[FieldOfViewButtons::DecreaseY]->GetState<bool>())
-    g_freelook_camera.IncreaseFovY(-1.0f * g_freelook_camera.GetFovStepSize());
+    if (m_fov_buttons->controls[FieldOfViewButtons::DecreaseY]->GetState<bool>())
+      should_increase_fov_y = false;
 
-  if (m_speed_buttons->controls[SpeedButtons::Decrease]->GetState<bool>())
-    g_freelook_camera.ModifySpeed(1.0f / 1.1f);
+    if (m_speed_buttons->controls[SpeedButtons::Decrease]->GetState<bool>())
+      g_freelook_camera.ModifySpeed(1.0f / 1.1f);
 
-  if (m_speed_buttons->controls[SpeedButtons::Increase]->GetState<bool>())
-    g_freelook_camera.ModifySpeed(1.1f);
+    if (m_speed_buttons->controls[SpeedButtons::Increase]->GetState<bool>())
+      g_freelook_camera.ModifySpeed(1.1f);
 
-  if (m_speed_buttons->controls[SpeedButtons::Reset]->GetState<bool>())
-    g_freelook_camera.ResetSpeed();
+    if (m_speed_buttons->controls[SpeedButtons::Reset]->GetState<bool>())
+      g_freelook_camera.ResetSpeed();
 
-  if (m_other_buttons->controls[OtherButtons::ResetView]->GetState<bool>())
+    if (m_other_buttons->controls[OtherButtons::ResetView]->GetState<bool>())
+      should_reset = true;
+  }
+
+  if (should_increase_fov_x)
+  {
+    if (*should_increase_fov_x)
+    {
+      ::Config::SetBaseOrCurrent(m_fov_horizontal, Config::Get(m_fov_horizontal) +
+                                                       g_freelook_camera.GetFovStepSize());
+    }
+    else
+    {
+      ::Config::SetBaseOrCurrent(m_fov_horizontal, Config::Get(m_fov_horizontal) +
+                                                       -1.0f * g_freelook_camera.GetFovStepSize());
+    }
+  }
+
+  if (should_increase_fov_y)
+  {
+    if (*should_increase_fov_y)
+    {
+      ::Config::SetBaseOrCurrent(m_fov_vertical,
+                                 Config::Get(m_fov_vertical) + g_freelook_camera.GetFovStepSize());
+    }
+    else
+    {
+      ::Config::SetBaseOrCurrent(m_fov_vertical, Config::Get(m_fov_vertical) +
+                                                     -1.0f * g_freelook_camera.GetFovStepSize());
+    }
+  }
+
+  if (should_reset)
+  {
+    ::Config::SetBaseOrCurrent(m_fov_horizontal, 1.0f);
+    ::Config::SetBaseOrCurrent(m_fov_vertical, 1.0f);
     g_freelook_camera.Reset();
+  }
 }
 
 namespace FreeLook
@@ -213,7 +262,8 @@ void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
   {
-    s_config.CreateController<FreeLookController>(0);
+    s_config.CreateController<FreeLookController>(0, ::Config::FL1_FOV_HORIZONTAL,
+                                                  ::Config::FL1_FOV_VERTICAL);
   }
 
   s_config.RegisterHotplugCallback();
