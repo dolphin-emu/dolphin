@@ -365,7 +365,7 @@ static void StopHotplugThread()
 
   // Write something to efd so that select() stops blocking.
   const uint64_t value = 1;
-  static_cast<void>(write(s_wakeup_eventfd, &value, sizeof(uint64_t)));
+  static_cast<void>(!write(s_wakeup_eventfd, &value, sizeof(uint64_t)));
 
   s_hotplug_thread.join();
   close(s_wakeup_eventfd);
@@ -525,7 +525,7 @@ bool evdevDevice::AddNode(std::string devnode, int fd, libevdev* dev)
     ie.code = FF_AUTOCENTER;
     ie.value = 0;
 
-    static_cast<void>(write(fd, &ie, sizeof(ie)));
+    static_cast<void>(!write(fd, &ie, sizeof(ie)));
   }
 
   // Constant FF effect
@@ -725,7 +725,7 @@ void evdevDevice::Effect::UpdateEffect()
       play.code = m_effect.id;
       play.value = 1;
 
-      static_cast<void>(write(m_fd, &play, sizeof(play)));
+      static_cast<void>(!write(m_fd, &play, sizeof(play)));
     }
     else
     {

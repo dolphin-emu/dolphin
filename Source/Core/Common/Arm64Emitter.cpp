@@ -26,9 +26,6 @@ namespace Arm64Gen
 {
 namespace
 {
-const int kWRegSizeInBits = 32;
-const int kXRegSizeInBits = 64;
-
 uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
   return value & -(int64_t)value;
@@ -88,6 +85,8 @@ std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
     negate = true;
     value = ~value;
   }
+
+  constexpr int kWRegSizeInBits = 32;
 
   if (width == kWRegSizeInBits)
   {
