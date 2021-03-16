@@ -82,14 +82,14 @@ public final class MainActivity extends AppCompatActivity
   {
     super.onResume();
 
-    mPresenter.onResume();
-
     if (DirectoryInitialization.shouldStart(this))
     {
       DirectoryInitialization.start(this);
       new AfterDirectoryInitializationRunner()
               .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
+
+    mPresenter.onResume();
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
