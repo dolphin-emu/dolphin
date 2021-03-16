@@ -26,7 +26,7 @@ public:
     ResetCodePtr();
 
     const u8* fn = GetCodePtr();
-    MOVI2R(W0, value);
+    MOVI2R(ARM64Reg::W0, value);
     RET();
 
     FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
@@ -40,7 +40,7 @@ public:
     ResetCodePtr();
 
     const u8* fn = GetCodePtr();
-    MOVI2R(X0, value);
+    MOVI2R(ARM64Reg::X0, value);
     RET();
 
     FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));

@@ -18,11 +18,11 @@
 // Dedicated host registers
 
 // memory base register
-constexpr Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::X28;
+constexpr Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::ARM64Reg::X28;
 // ppcState pointer
-constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::X29;
+constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::ARM64Reg::X29;
 // PC register when calling the dispatcher
-constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::W26;
+constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::ARM64Reg::W26;
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
@@ -84,13 +84,13 @@ public:
     m_type = RegType::Immediate;
     m_value = imm;
 
-    m_reg = Arm64Gen::INVALID_REG;
+    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   }
   void Flush()
   {
     // Invalidate any previous information
     m_type = RegType::NotLoaded;
-    m_reg = Arm64Gen::INVALID_REG;
+    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -104,8 +104,8 @@ public:
 
 private:
   // For REG_REG
-  RegType m_type = RegType::NotLoaded;               // store type
-  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;  // host register we are in
+  RegType m_type = RegType::NotLoaded;                         // store type
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;  // host register we are in
 
   // For REG_IMM
   u32 m_value = 0;  // IMM value
@@ -130,7 +130,7 @@ public:
   bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
 
 private:
-  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   bool m_locked = false;
 };
 
