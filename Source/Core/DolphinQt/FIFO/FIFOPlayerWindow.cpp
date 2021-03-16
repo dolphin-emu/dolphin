@@ -50,10 +50,11 @@ FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QDialog(parent)
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    if (state == Core::State::Running)
+    if (state == Core::State::Running && m_emu_state != Core::State::Paused)
       OnEmulationStarted();
     else if (state == Core::State::Uninitialized)
       OnEmulationStopped();
+    m_emu_state = state;
   });
 }
 

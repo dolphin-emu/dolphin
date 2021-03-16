@@ -6,6 +6,8 @@
 
 #include <QDialog>
 
+#include "Core/Core.h"
+
 class QCheckBox;
 class QDialogButtonBox;
 class QLabel;
@@ -62,4 +64,5 @@ private:
   QDialogButtonBox* m_button_box;
 
   FIFOAnalyzer* m_analyzer;
+  Core::State m_emu_state = Core::State::Uninitialized;
 };
