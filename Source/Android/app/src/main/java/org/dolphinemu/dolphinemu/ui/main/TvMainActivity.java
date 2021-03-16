@@ -71,13 +71,13 @@ public final class TvMainActivity extends FragmentActivity
   {
     super.onResume();
 
-    mPresenter.onResume();
-
     if (DirectoryInitialization.shouldStart(this))
     {
       DirectoryInitialization.start(this);
       GameFileCacheService.startLoad(this);
     }
+
+    mPresenter.onResume();
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...

@@ -132,7 +132,7 @@ public final class MainPresenter
       mDirToAdd = null;
     }
 
-    if (sShouldRescanLibrary && !GameFileCacheService.isLoading())
+    if (sShouldRescanLibrary && !GameFileCacheService.isRescanning())
     {
       new AfterDirectoryInitializationRunner().run(mContext, false, () ->
       {
