@@ -7,11 +7,15 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <QMenuBar>
 #include <QPointer>
 
+#include "Common/CommonTypes.h"
+
 class QMenu;
+class ParallelProgressDialog;
 
 namespace Core
 {
@@ -27,6 +31,9 @@ namespace UICommon
 {
 class GameFile;
 }
+
+using RSOPairEntry = std::pair<u32, std::string>;
+using RSOVector = std::vector<RSOPairEntry>;
 
 class MenuBar final : public QMenuBar
 {
@@ -155,6 +162,7 @@ private:
   void GenerateSymbolsFromSignatureDB();
   void GenerateSymbolsFromRSO();
   void GenerateSymbolsFromRSOAuto();
+  RSOVector DetectRSOModules(ParallelProgressDialog& progress);
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
   void LoadBadSymbolMap();
