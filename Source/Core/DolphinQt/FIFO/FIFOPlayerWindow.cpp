@@ -304,6 +304,8 @@ void FIFOPlayerWindow::OnFIFOLoaded()
   m_frame_range_to->setMaximum(frame_count);
   m_object_range_to->setMaximum(object_count);
 
+  m_frame_range_from->setValue(0);
+  m_object_range_from->setValue(0);
   m_frame_range_to->setValue(frame_count);
   m_object_range_to->setValue(object_count);
 
