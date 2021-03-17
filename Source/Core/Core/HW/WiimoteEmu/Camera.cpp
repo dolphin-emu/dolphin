@@ -88,6 +88,15 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
       Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };
 
+  INFO_LOG_FMT(DVDINTERFACE, "fov.x, fov.y: {} {}", field_of_view.x, field_of_view.y);
+  const Matrix44 rxtaubyfour = Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4)));
+  INFO_LOG_FMT(DVDINTERFACE, "RotateX_44: {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+               rxtaubyfour.data[0], rxtaubyfour.data[1], rxtaubyfour.data[2], rxtaubyfour.data[3],
+               rxtaubyfour.data[4], rxtaubyfour.data[5], rxtaubyfour.data[6], rxtaubyfour.data[7],
+               rxtaubyfour.data[8], rxtaubyfour.data[9], rxtaubyfour.data[10], rxtaubyfour.data[11],
+               rxtaubyfour.data[12], rxtaubyfour.data[13], rxtaubyfour.data[14],
+               rxtaubyfour.data[15]);
+
   const auto camera_view =
       Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
       Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
@@ -101,7 +110,11 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
   std::array<CameraPoint, leds.size()> camera_points;
 
   std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
+    INFO_LOG_FMT(DVDINTERFACE, "v: {} {} {}", v.x, v.y, v.z);
+    //INFO_LOG_FMT(DVDINTERFACE, "Vec4(v, 1.0): {} {} {} {]", Vec4(v, 1.0).x, Vec4(v, 1.0).y,
+    //             Vec4(v, 1.0).z, Vec4(v, 1.0).w);
     const auto point = camera_view * Vec4(v, 1.0);
+    INFO_LOG_FMT(DVDINTERFACE, "point: {} {} {} {}", point.x, point.y, point.z, point.w);
 
     // Check if LED is behind camera.
     if (point.z > 0)
@@ -111,6 +124,8 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
       const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
       const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
+
+      INFO_LOG_FMT(DVDINTERFACE, "camera point: {} {} {}", x, y, point_size);
 
       if (x >= 0 && y >= 0 && x < CAMERA_RES_X && y < CAMERA_RES_Y)
         return CameraPoint{{u16(x), u16(y)}, u8(point_size)};
@@ -131,6 +146,9 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
       irdata.SetObject2(camera_points[i * 2 + 1].position);
 
       Common::BitCastPtr<IRBasic>(&data[i * sizeof(IRBasic)]) = irdata;
+
+      INFO_LOG_FMT(DVDINTERFACE, "IR_MODE_BASIC: {} {} {} {} {} {} {} {}", irdata.x1, irdata.x1hi, irdata.y1,
+                   irdata.y1hi, irdata.x2, irdata.x2hi, irdata.y2, irdata.y2hi);
     }
     break;
   case IR_MODE_EXTENDED:
@@ -145,6 +163,9 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
         irdata.size = p.size;
 
         Common::BitCastPtr<IRExtended>(&data[i * sizeof(IRExtended)]) = irdata;
+
+        INFO_LOG_FMT(DVDINTERFACE, "IR_MODE_EXTENDED: {} {} {} {} {}", irdata.x, irdata.xhi, irdata.y,
+                     irdata.yhi, irdata.size);
       }
     }
     break;
