@@ -46,6 +46,8 @@ struct IMUCursorState
 
   // Rotation of world around device.
   Common::Quaternion rotation;
+  // For testing
+  Common::Vec3 orientation;
   // Position of device in world
   Common::Vec3 position;
 

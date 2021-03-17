@@ -756,13 +756,31 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
   // Includes positional and rotational effects of:
   // Point, Swing, Tilt, Shake
 
+  INFO_LOG_FMT(DVDINTERFACE, "extra_rotation: {} {} {} {} {} {} {} {} {}", extra_rotation.data[0],
+               extra_rotation.data[1], extra_rotation.data[2], extra_rotation.data[3],
+               extra_rotation.data[4], extra_rotation.data[5], extra_rotation.data[6],
+               extra_rotation.data[7], extra_rotation.data[8]);
+  INFO_LOG_FMT(DVDINTERFACE, "position: {} {} {}", position.x, position.y, position.z);
+
+  const auto test =
+      Common::Matrix44::FromMatrix33(extra_rotation) * Common::Matrix44::Translate(position);
+  INFO_LOG_FMT(DVDINTERFACE, "GetTransformation: {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+               test.data[0], test.data[1], test.data[2], test.data[3], test.data[4], test.data[5],
+               test.data[6], test.data[7], test.data[8], test.data[9], test.data[10], test.data[11],
+               test.data[12], test.data[13], test.data[14], test.data[15]);
+
+
   // TODO: Think about and clean up matrix order + make nunchuk match.
-  return Common::Matrix44::Translate(-m_shake_state.position) *
+  return test;
+
+    //Common::Matrix44::Translate(position) * Common::Matrix44::FromMatrix33(extra_rotation);
+  
+      /*   Common::Matrix44::Translate(-m_shake_state.position) *
          Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
                                         GetRotationalMatrix(-m_point_state.angle) *
                                         GetRotationalMatrix(-m_swing_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position) *
-         Common::Matrix44::Translate(position);
+         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);*/
+         
 }
 
 Common::Quaternion Wiimote::GetOrientation() const
@@ -789,9 +807,10 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(Common::Matrix33::FromQuaternion(
-      m_imu_cursor_state.rotation *
-      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)), m_imu_cursor_state.position);
+  //INFO_LOG_FMT(DVDINTERFACE, "{} {} {}", m_imu_cursor_state.orientation.x, m_imu_cursor_state.orientation.y, m_imu_cursor_state.orientation.z);
+  return GetTransformation(GetRotationalMatrix(m_imu_cursor_state.orientation),
+                           m_imu_cursor_state.position);
+  //return GetTransformation(Common::Matrix33::FromQuaternion(m_imu_cursor_state.rotation), m_imu_cursor_state.position);
 }
 
 }  // namespace WiimoteEmu

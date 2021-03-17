@@ -329,6 +329,7 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
   {
     const auto sensor_bar_rotation = sensor_bar_group->GetOrientation();
     const auto sensor_bar_position = sensor_bar_group->GetDisplacement();
+    state->orientation = sensor_bar_rotation;
     state->rotation = Common::Quaternion{1, sensor_bar_rotation.x / 2, sensor_bar_rotation.y / 2,
                                          sensor_bar_rotation.z / 2};
     state->position =
