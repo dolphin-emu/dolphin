@@ -78,8 +78,8 @@ private:
   std::optional<FreeLook::ControlType> m_current_type;
   std::unique_ptr<CameraController> m_camera_controller;
 
-  float m_fov_step_size = 0.025f;
-  float m_speed = 1.0f;
+  float m_min_fov_multiplier = 0.025f;
+  float m_speed = 60.0f;
 };
 
 extern FreeLookCamera g_freelook_camera;
