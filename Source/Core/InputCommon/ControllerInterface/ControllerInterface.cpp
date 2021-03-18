@@ -270,7 +270,13 @@ void ControllerInterface::UpdateInput()
   {
     std::lock_guard lk(m_devices_mutex, std::adopt_lock);
     for (const auto& d : m_devices)
-      d->UpdateInput();
+    {
+      // Don't update devices that aren't referenced anywhere else
+      if (d.use_count() > 1)
+      {
+        d->UpdateInput();
+      }
+    }
   }
 }
 
