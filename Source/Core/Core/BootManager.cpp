@@ -433,13 +433,14 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
+  Core::UpdateWantDeterminism(/*initial*/ true);
+
   if (StartUp.bWii)
   {
-    const bool want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
-    Core::InitializeWiiRoot(want_determinism);
+    Core::InitializeWiiRoot(Core::WantsDeterminism());
 
     // Ensure any new settings are written to the SYSCONF
-    if (!want_determinism)
+    if (!Core::WantsDeterminism())
     {
       Core::BackupWiiSettings();
       ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
