@@ -139,7 +139,7 @@ void HotkeyScheduler::Run()
 
   while (!m_stop_requested.IsSet())
   {
-    Common::SleepCurrentThread(1000 / 60);
+    Common::SleepCurrentThread(5);
 
     g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::FreeLook);
     g_controller_interface.UpdateInput();
