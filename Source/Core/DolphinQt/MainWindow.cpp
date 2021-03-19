@@ -1675,19 +1675,12 @@ void MainWindow::OnStopRecording()
 
 void MainWindow::OnExportRecording()
 {
-  bool was_paused = Core::GetState() == Core::State::Paused;
-
-  if (!was_paused)
-    Core::SetState(Core::State::Paused);
-
-  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
-
-  if (!dtm_file.isEmpty())
-    Movie::SaveRecording(dtm_file.toStdString());
-
-  if (!was_paused)
-    Core::SetState(Core::State::Running);
+  Core::RunAsCPUThread([this] {
+    QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"),
+                                                    QString(), tr("Dolphin TAS Movies (*.dtm)"));
+    if (!dtm_file.isEmpty())
+      Movie::SaveRecording(dtm_file.toStdString());
+  });
 }
 
 void MainWindow::OnActivateChat()
