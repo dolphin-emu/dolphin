@@ -658,6 +658,12 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(R.string.other, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.GFX_FAST_DEPTH_CALC, R.string.fast_depth_calculation,
             R.string.fast_depth_calculation_description));
+    sl.add(new InvertedCheckBoxSetting(BooleanSetting.GFX_HACK_BBOX_ENABLE, R.string.disable_bbox,
+            R.string.disable_bbox_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.GFX_HACK_VERTEX_ROUDING, R.string.vertex_rounding,
+            R.string.vertex_rounding_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.GFX_SAVE_TEXTURE_CACHE_TO_STATE,
+            R.string.texture_cache_to_state, R.string.texture_cache_to_state_description));
   }
 
   private void addLogConfigurationSettings(ArrayList<SettingsItem> sl)
