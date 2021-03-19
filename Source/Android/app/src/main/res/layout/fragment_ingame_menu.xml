@@ -15,6 +15,8 @@
         tools:text="The Legend of Zelda: The Wind Waker"
         android:textColor="@android:color/white"
         android:textSize="20sp"
+        android:maxLines="@integer/game_title_lines"
+        android:ellipsize="end"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="32dp"
         android:layout_marginBottom="16dp"/>
