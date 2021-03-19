@@ -63,26 +63,29 @@ void Jit64::GenerateOverflow()
 
 void Jit64::FinalizeCarry(CCFlags cond)
 {
-  js.carryFlagSet = false;
-  js.carryFlagInverted = false;
+  js.carryFlag = CarryFlag::InPPCState;
   if (js.op->wantsCA)
   {
     // Not actually merging instructions, but the effect is equivalent (we can't have
     // breakpoints/etc in between).
     if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
     {
-      if (cond == CC_C || cond == CC_NC)
+      if (cond == CC_C)
       {
-        js.carryFlagInverted = cond == CC_NC;
+        js.carryFlag = CarryFlag::InHostCarry;
+      }
+      else if (cond == CC_NC)
+      {
+        js.carryFlag = CarryFlag::InHostCarryInverted;
       }
       else
       {
         // convert the condition to a carry flag (is there a better way?)
         SETcc(cond, R(RSCRATCH));
         SHR(8, R(RSCRATCH), Imm8(1));
+        js.carryFlag = CarryFlag::InHostCarry;
       }
       LockFlags();
-      js.carryFlagSet = true;
     }
     else
     {
@@ -94,8 +97,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
 // Unconditional version
 void Jit64::FinalizeCarry(bool ca)
 {
-  js.carryFlagSet = false;
-  js.carryFlagInverted = false;
+  js.carryFlag = CarryFlag::InPPCState;
   if (js.op->wantsCA)
   {
     if (CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags)
@@ -105,7 +107,7 @@ void Jit64::FinalizeCarry(bool ca)
       else
         CLC();
       LockFlags();
-      js.carryFlagSet = true;
+      js.carryFlag = CarryFlag::InHostCarry;
     }
     else if (ca)
     {
@@ -1475,7 +1477,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
   int d = inst.RD;
   bool same_input_sub = !add && regsource && a == b;
 
-  if (!js.carryFlagSet)
+  if (js.carryFlag == CarryFlag::InPPCState)
     JitGetAndClearCAOV(inst.OE);
   else
     UnlockFlags();
@@ -1488,7 +1490,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
     RegCache::Realize(Rd);
 
     // Convert carry to borrow
-    if (!js.carryFlagInverted)
+    if (js.carryFlag != CarryFlag::InHostCarryInverted)
       CMC();
     SBB(32, Rd, Rd);
     invertedCarry = true;
@@ -1499,7 +1501,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
     RCX64Reg Rd = gpr.Bind(d, RCMode::ReadWrite);
     RegCache::Realize(Ra, Rd);
 
-    if (!js.carryFlagInverted)
+    if (js.carryFlag != CarryFlag::InHostCarryInverted)
       CMC();
     SBB(32, Rd, Ra);
     invertedCarry = true;
@@ -1519,14 +1521,14 @@ void Jit64::arithXex(UGeckoInstruction inst)
       NOT(32, Rd);
     // if the source is an immediate, we can invert carry by going from add -> sub and doing src =
     // -1 - src
-    if (js.carryFlagInverted && source.IsImm())
+    if (js.carryFlag == CarryFlag::InHostCarryInverted && source.IsImm())
     {
       SBB(32, Rd, Imm32(-1 - source.SImm32()));
       invertedCarry = true;
     }
     else
     {
-      if (js.carryFlagInverted)
+      if (js.carryFlag == CarryFlag::InHostCarryInverted)
         CMC();
       ADC(32, Rd, source);
     }
