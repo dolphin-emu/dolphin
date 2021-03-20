@@ -61,6 +61,7 @@ DolphinAnalytics& DolphinAnalytics::Instance()
 
 void DolphinAnalytics::ReloadConfig()
 {
+#if defined(USE_ANALYTICS) && USE_ANALYTICS
   std::lock_guard lk{m_reporter_mutex};
 
   // Install the HTTP backend if analytics support is enabled.
@@ -81,6 +82,7 @@ void DolphinAnalytics::ReloadConfig()
   {
     GenerateNewIdentity();
   }
+#endif
 }
 
 void DolphinAnalytics::GenerateNewIdentity()

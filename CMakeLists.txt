@@ -44,7 +44,7 @@ option(LIBRETRO "Build as a libretro library" OFF)
 #    launch).
 #  * The Dolphin team relies on the data in order to understand the behavior
 #    of our software in the wild.
-option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
+option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" OFF)
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
