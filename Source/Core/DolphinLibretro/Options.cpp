@@ -192,5 +192,6 @@ Option<bool> loadCustomTextures("dolphin_load_custom_textures", "Load Custom Tex
 Option<bool> cheatsEnabled("dolphin_cheats_enabled", "Internal Cheats Enabled", false);
 Option<int> textureCacheAccuracy("dolphin_texture_cache_accuracy", "Texture Cache Accuracy",
                                  {{"Fast", 128}, {"Middle", 512}, {"Safe", 0}});
+Option<bool> osdEnabled("dolphin_osd_enabled", "OSD Enabled", true);
 }  // namespace Options
 }  // namespace Libretro
