@@ -12,7 +12,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DriveBlob.h"
 
@@ -146,7 +145,7 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* o
       !ReadFile(m_disc_handle, out_ptr, static_cast<DWORD>(GetSectorSize() * num_blocks),
                 &bytes_read, nullptr))
   {
-    PanicAlertFmtT("Disc Read Error");
+    ERROR_LOG_FMT(DISCIO, "Disc Read Error");
     return false;
   }
   return bytes_read == GetSectorSize() * num_blocks;
