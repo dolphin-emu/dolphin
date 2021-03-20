@@ -83,7 +83,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
   else if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
   else
-    PanicAlertFmt("{} - illegal block number {}", __func__, block_num);
+    ERROR_LOG_FMT(DISCIO, "{} - illegal block number {}", __func__, block_num);
   return 0;
 }
 
@@ -96,7 +96,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   if (offset & (1ULL << 63))
   {
     if (comp_block_size != m_header.block_size)
-      PanicAlertFmt("Uncompressed block with wrong size");
+      ERROR_LOG_FMT(DISCIO, "Uncompressed block with wrong size");
     uncompressed = true;
     offset &= ~(1ULL << 63);
   }
@@ -107,8 +107,8 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   m_file.Seek(offset, SEEK_SET);
   if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
   {
-    PanicAlertFmtT("The disc image \"{0}\" is truncated, some of the data is missing.",
-                   m_file_name);
+    ERROR_LOG_FMT(DISCIO, "The disc image \"{}\" is truncated, some of the data is missing.",
+                  m_file_name);
     m_file.Clear();
     return false;
   }
@@ -117,9 +117,10 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
   if (block_hash != m_hashes[block_num])
   {
-    PanicAlertFmtT("The disc image \"{0}\" is corrupt.\n"
-                   "Hash of block {1} is {2:08x} instead of {3:08x}.",
-                   m_file_name, block_num, block_hash, m_hashes[block_num]);
+    ERROR_LOG_FMT(DISCIO,
+                  "The disc image \"{}\" is corrupt.\n"
+                  "Hash of block {} is {:08x} instead of {:08x}.",
+                  m_file_name, block_num, block_hash, m_hashes[block_num]);
   }
 
   if (uncompressed)
@@ -133,7 +134,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     z.avail_in = comp_block_size;
     if (z.avail_in > m_header.block_size)
     {
-      PanicAlertFmt("We have a problem");
+      ERROR_LOG_FMT(DISCIO, "Compressed block size is larger than uncompressed block size");
     }
     z.next_out = out_ptr;
     z.avail_out = m_header.block_size;
@@ -144,12 +145,12 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     {
       // this seem to fire wrongly from time to time
       // to be sure, don't use compressed isos :P
-      PanicAlertFmt("Failure reading block {} - out of data and not at end.", block_num);
+      ERROR_LOG_FMT(DISCIO, "Failure reading block {} - out of data and not at end.", block_num);
     }
     inflateEnd(&z);
     if (uncomp_size != m_header.block_size)
     {
-      PanicAlertFmt("Wrong block size");
+      ERROR_LOG_FMT(DISCIO, "Wrong block size");
       return false;
     }
   }
