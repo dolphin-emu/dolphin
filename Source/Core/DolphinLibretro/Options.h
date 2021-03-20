@@ -117,5 +117,6 @@ extern Option<bool> loadCustomTextures;
 extern Option<bool> WiimoteContinuousScanning;
 extern Option<bool> cheatsEnabled;
 extern Option<int> textureCacheAccuracy;
+extern Option<bool> osdEnabled;
 }  // namespace Options
 }  // namespace Libretro
