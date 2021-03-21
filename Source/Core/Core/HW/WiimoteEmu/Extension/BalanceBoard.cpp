@@ -8,6 +8,8 @@
 #include <cassert>
 #include <cstring>
 
+#include <zlib.h>
+
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -167,60 +169,15 @@ double BalanceBoardExt::ConvertToKilograms(u16 sensor_weight)
 
 void BalanceBoardExt::ComputeCalibrationChecksum()
 {
-  std::array<u8, 0x1c> data;
+  u32 crc = crc32(0L, Z_NULL, 0);
+  crc = crc32(crc, &m_reg.calibration[4], 0xc);   // Skip the first 4 bytes
+  crc = crc32(crc, &m_reg.calibration2[0], 0xc);  // Skip the last 4 bytes (the CRC itself)
+  crc = crc32(crc, &m_reg.calibration[0], 2);     // Hash 2 of the bytes skipped earlier
+  crc = crc32(crc, &m_reg.calibration3[0], 2);
 
-  data[0x00] = m_reg.calibration[0x4];
-  data[0x01] = m_reg.calibration[0x5];
-  data[0x02] = m_reg.calibration[0x6];
-  data[0x03] = m_reg.calibration[0x7];
-  data[0x04] = m_reg.calibration[0x8];
-  data[0x05] = m_reg.calibration[0x9];
-  data[0x06] = m_reg.calibration[0xa];
-  data[0x07] = m_reg.calibration[0xb];
-  data[0x08] = m_reg.calibration[0xc];
-  data[0x09] = m_reg.calibration[0xd];
-  data[0x0a] = m_reg.calibration[0xe];
-  data[0x0b] = m_reg.calibration[0xf];
-  data[0x0c] = m_reg.calibration2[0x0];
-  data[0x0d] = m_reg.calibration2[0x1];
-  data[0x0e] = m_reg.calibration2[0x2];
-  data[0x0f] = m_reg.calibration2[0x3];
-  data[0x10] = m_reg.calibration2[0x4];
-  data[0x11] = m_reg.calibration2[0x5];
-  data[0x12] = m_reg.calibration2[0x6];
-  data[0x13] = m_reg.calibration2[0x7];
-  data[0x14] = m_reg.calibration2[0x8];
-  data[0x15] = m_reg.calibration2[0x9];
-  data[0x16] = m_reg.calibration2[0xa];
-  data[0x17] = m_reg.calibration2[0xb];
-  data[0x18] = m_reg.calibration[0];
-  data[0x19] = m_reg.calibration[1];
-  data[0x1a] = m_reg.calibration3[0];
-  data[0x1b] = m_reg.calibration3[1];
-
-  constexpr u32 CRC_POLYNOMIAL = 0xEDB88320;  // Reversed
-
-  u32 result = 0xffffffff;
-  for (auto byte : data)
-  {
-    // This could be cached into a table (and usually is), but since this is called infrequently and
-    // on a small number of bytes, don't bother.
-    u32 remainder = (byte ^ (result & 0xff));
-    for (auto bit = 0; bit < 8; bit++)
-    {
-      if (remainder & 1)
-        remainder = (remainder >> 1) ^ CRC_POLYNOMIAL;
-      else
-        remainder = remainder >> 1;
-    }
-
-    result = (result >> 8) ^ remainder;
-  }
-  result ^= 0xffffffff;
-
-  m_reg.calibration2[0x0c] = u8(result >> 24);
-  m_reg.calibration2[0x0d] = u8(result >> 16);
-  m_reg.calibration2[0x0e] = u8(result >> 8);
-  m_reg.calibration2[0x0f] = u8(result);
+  m_reg.calibration2[0x0c] = u8(crc >> 24);
+  m_reg.calibration2[0x0d] = u8(crc >> 16);
+  m_reg.calibration2[0x0e] = u8(crc >> 8);
+  m_reg.calibration2[0x0f] = u8(crc);
 }
 }  // namespace WiimoteEmu
