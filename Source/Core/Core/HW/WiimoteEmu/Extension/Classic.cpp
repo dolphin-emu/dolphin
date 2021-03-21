@@ -113,7 +113,8 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 
   // left stick
   {
-    const ControllerEmu::AnalogStick::StateData left_stick_state = m_left_stick->GetState();
+    const ControllerEmu::AnalogStick::StateData left_stick_state =
+        m_left_stick->GetState(m_input_override_function);
 
     const u8 x = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.x * LEFT_STICK_RADIUS));
     const u8 y = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.y * LEFT_STICK_RADIUS));
@@ -123,7 +124,8 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 
   // right stick
   {
-    const ControllerEmu::AnalogStick::StateData right_stick_data = m_right_stick->GetState();
+    const ControllerEmu::AnalogStick::StateData right_stick_data =
+        m_right_stick->GetState(m_input_override_function);
 
     const u8 x = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.x * RIGHT_STICK_RADIUS));
     const u8 y = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.y * RIGHT_STICK_RADIUS));
@@ -135,19 +137,20 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 
   // triggers
   {
-    ControlState trigs[2] = {0, 0};
-    m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), trigs);
+    ControlState triggers[2] = {0, 0};
+    m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), triggers,
+                         m_input_override_function);
 
-    const u8 lt = static_cast<u8>(trigs[0] * TRIGGER_RANGE);
-    const u8 rt = static_cast<u8>(trigs[1] * TRIGGER_RANGE);
+    const u8 lt = static_cast<u8>(triggers[0] * TRIGGER_RANGE);
+    const u8 rt = static_cast<u8>(triggers[1] * TRIGGER_RANGE);
 
     classic_data.SetLeftTrigger(lt);
     classic_data.SetRightTrigger(rt);
   }
 
   // buttons and dpad
-  m_buttons->GetState(&buttons, classic_button_bitmasks.data());
-  m_dpad->GetState(&buttons, classic_dpad_bitmasks.data());
+  m_buttons->GetState(&buttons, classic_button_bitmasks.data(), m_input_override_function);
+  m_dpad->GetState(&buttons, classic_dpad_bitmasks.data(), m_input_override_function);
 
   classic_data.SetButtons(buttons);
 

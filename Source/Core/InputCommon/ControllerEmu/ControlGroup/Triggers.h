@@ -26,6 +26,7 @@ public:
   explicit Triggers(const std::string& name);
 
   StateData GetState() const;
+  StateData GetState(const InputOverrideFunction& override_func) const;
 
 private:
   SettingValue<double> m_deadzone_setting;

@@ -5,6 +5,7 @@
 
 #include <array>
 #include <numeric>
+#include <optional>
 #include <string>
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
@@ -146,6 +147,10 @@ public:
   // Active extension number is exposed for TAS.
   ExtensionNumber GetActiveExtensionNumber() const;
 
+  static Common::Vec3
+  OverrideVec3(const ControllerEmu::ControlGroup* control_group, Common::Vec3 vec,
+               const ControllerEmu::InputOverrideFunction& input_override_function);
+
 private:
   // Used only for error generation:
   static constexpr u8 EEPROM_I2C_ADDR = 0x50;
@@ -161,11 +166,10 @@ private:
   void BuildDesiredWiimoteState(DesiredWiimoteState* target_state);
 
   // Returns simulated accelerometer data in m/s^2.
-  Common::Vec3 GetAcceleration(
-      Common::Vec3 extra_acceleration = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION))) const;
+  Common::Vec3 GetAcceleration(Common::Vec3 extra_acceleration) const;
 
   // Returns simulated gyroscope data in radians/s.
-  Common::Vec3 GetAngularVelocity(Common::Vec3 extra_angular_velocity = {}) const;
+  Common::Vec3 GetAngularVelocity(Common::Vec3 extra_angular_velocity) const;
 
   // Returns the transformation of the world around the wiimote.
   // Used for simulating camera data and for rotating acceleration data.
@@ -176,6 +180,10 @@ private:
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Quaternion GetOrientation() const;
 
+  std::optional<Common::Vec3> OverrideVec3(const ControllerEmu::ControlGroup* control_group,
+                                           std::optional<Common::Vec3> optional_vec) const;
+  Common::Vec3 OverrideVec3(const ControllerEmu::ControlGroup* control_group,
+                            Common::Vec3 vec) const;
   Common::Vec3 GetTotalAcceleration() const;
   Common::Vec3 GetTotalAngularVelocity() const;
   Common::Matrix44 GetTotalTransformation() const;

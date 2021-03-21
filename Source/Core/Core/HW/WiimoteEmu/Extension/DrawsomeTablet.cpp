@@ -47,7 +47,7 @@ void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_st
   constexpr double CENTER_X = (MAX_X + MIN_X) / 2.0;
   constexpr double CENTER_Y = (MAX_Y + MIN_Y) / 2.0;
 
-  const auto stylus_state = m_stylus->GetState();
+  const auto stylus_state = m_stylus->GetState(m_input_override_function);
   const auto stylus_x = u16(std::lround(CENTER_X + stylus_state.x * (MAX_X - CENTER_X)));
   const auto stylus_y = u16(std::lround(CENTER_Y + stylus_state.y * (MAX_Y - CENTER_Y)));
 
@@ -74,7 +74,7 @@ void DrawsomeTablet::BuildDesiredExtensionState(DesiredExtensionState* target_st
   // Pressure (0 - 0x7ff):
   constexpr u16 MAX_PRESSURE = 0x7ff;
 
-  const auto touch_state = m_touch->GetState();
+  const auto touch_state = m_touch->GetState(m_input_override_function);
   const auto pressure = u16(std::lround(touch_state.data[0] * MAX_PRESSURE));
 
   tablet_data.pressure1 = u8(pressure);

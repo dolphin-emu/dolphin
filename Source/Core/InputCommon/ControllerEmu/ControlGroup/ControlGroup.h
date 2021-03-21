@@ -5,14 +5,18 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {
@@ -26,6 +30,9 @@ class NumericSetting;
 
 template <typename T>
 class SettingValue;
+
+using InputOverrideFunction = std::function<std::optional<ControlState>(
+    const std::string_view group_name, const std::string_view control_name, ControlState state)>;
 
 enum class GroupType
 {

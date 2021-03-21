@@ -15,6 +15,7 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class ControllerInterface;
@@ -184,6 +185,9 @@ public:
   void SetDefaultDevice(const std::string& device);
   void SetDefaultDevice(ciface::Core::DeviceQualifier devq);
 
+  void SetInputOverrideFunction(InputOverrideFunction override_func);
+  void ClearInputOverrideFunction();
+
   void UpdateReferences(const ControllerInterface& devi);
   void UpdateSingleControlReference(const ControllerInterface& devi, ControlReference* ref);
 
@@ -227,6 +231,8 @@ protected:
   // TODO: Wiimote attachments actually end up using their parent controller value for this,
   // so theirs won't be used (and thus shouldn't even exist).
   ciface::ExpressionParser::ControlEnvironment::VariableContainer m_expression_vars;
+
+  InputOverrideFunction m_input_override_function;
 
   void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);
 
