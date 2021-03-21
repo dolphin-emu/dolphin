@@ -6,7 +6,6 @@
 
 #include <array>
 #include <cstring>
-#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -189,15 +188,4 @@ void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
-
-// Done this way to avoid mixing of core and gui code
-using GCManipFunction = std::function<void(GCPadStatus*, int)>;
-using WiiManipFunction = std::function<void(WiimoteCommon::DataReportBuilder&, int, int,
-                                            const WiimoteEmu::EncryptionKey&)>;
-
-void SetGCInputManip(GCManipFunction);
-void SetWiiInputManip(WiiManipFunction);
-void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
-void CallWiiInputManip(WiimoteCommon::DataReportBuilder& rpt, int controllerID, int ext,
-                       const WiimoteEmu::EncryptionKey& key);
 }  // namespace Movie
