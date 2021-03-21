@@ -623,6 +623,7 @@ void JitArm64::Jit(u32)
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
+    Common::JITPageWriteDisableExecuteEnable();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
