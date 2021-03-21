@@ -516,6 +516,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{&Movie::Shutdown};
 
+  AudioCommon::InitSoundStream();
+  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
+
   HW::Init();
 
   Common::ScopeGuard hw_guard{[] {
@@ -566,8 +569,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // it's now ok to initialize any custom textures
   HiresTexture::Update();
 
-  AudioCommon::InitSoundStream();
-  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
+  AudioCommon::PostInitSoundStream();
 
   // The hardware is initialized.
   s_hardware_initialized = true;
