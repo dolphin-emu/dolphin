@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 
 #include "Common/IniFile.h"
 
@@ -169,4 +170,15 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
     SetDefaultDevice(default_device_string);
   }
 }
+
+void EmulatedController::SetInputOverrideFunction(InputOverrideFunction override_func)
+{
+  m_input_override_function = std::move(override_func);
+}
+
+void EmulatedController::ClearInputOverrideFunction()
+{
+  m_input_override_function = {};
+}
+
 }  // namespace ControllerEmu

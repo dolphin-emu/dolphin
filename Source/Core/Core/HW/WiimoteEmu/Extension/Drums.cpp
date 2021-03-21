@@ -97,18 +97,19 @@ void Drums::Update()
 
   // Stick.
   {
-    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
+    const ControllerEmu::AnalogStick::StateData stick_state =
+        m_stick->GetState(m_input_override_function);
 
     drum_data.stick_x = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
     drum_data.stick_y = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
   }
 
   // Buttons.
-  m_buttons->GetState(&drum_data.buttons, drum_button_bitmasks.data());
+  m_buttons->GetState(&drum_data.buttons, drum_button_bitmasks.data(), m_input_override_function);
 
   // Drum pads.
   u8 current_pad_input = 0;
-  m_pads->GetState(&current_pad_input, drum_pad_bitmasks.data());
+  m_pads->GetState(&current_pad_input, drum_pad_bitmasks.data(), m_input_override_function);
   m_new_pad_hits |= ~m_prev_pad_input & current_pad_input;
   m_prev_pad_input = current_pad_input;
 

@@ -83,15 +83,30 @@ ControlState Cursor::GetGateRadiusAtAngle(double ang) const
 
 Cursor::StateData Cursor::GetState(const bool adjusted)
 {
-  if (!adjusted)
-  {
-    const auto raw_input = GetReshapableState(false);
+  const ReshapeData input = GetReshapableState(adjusted);
+  const StateData state = adjusted ? UpdateState(input) : StateData{input.x, input.y};
+  return state;
+}
 
-    return {raw_input.x, raw_input.y};
-  }
+Cursor::StateData Cursor::GetState(const bool adjusted,
+                                   const ControllerEmu::InputOverrideFunction& override_func)
+{
+  if (!override_func)
+    return GetState(adjusted);
 
-  const auto input = GetReshapableState(true);
+  const ReshapeData input = GetReshapableState(adjusted);
+  StateData state = adjusted ? UpdateState(input) : StateData{input.x, input.y};
 
+  if (const std::optional<ControlState> x_override = override_func(name, X_INPUT_OVERRIDE, state.x))
+    state.x = *x_override;
+  if (const std::optional<ControlState> y_override = override_func(name, Y_INPUT_OVERRIDE, state.y))
+    state.y = *y_override;
+
+  return state;
+}
+
+Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
+{
   // TODO: Using system time is ugly.
   // Kill this after state is moved into wiimote rather than this class.
   const auto now = Clock::now();

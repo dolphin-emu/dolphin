@@ -85,7 +85,8 @@ void Turntable::Update()
 
   // stick
   {
-    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
+    const ControllerEmu::AnalogStick::StateData stick_state =
+        m_stick->GetState(m_input_override_function);
 
     tt_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
     tt_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
@@ -93,7 +94,7 @@ void Turntable::Update()
 
   // left table
   {
-    const ControllerEmu::Slider::StateData lt = m_left_table->GetState();
+    const ControllerEmu::Slider::StateData lt = m_left_table->GetState(m_input_override_function);
     const s8 tt = static_cast<s8>(lt.value * TABLE_RANGE);
 
     tt_data.ltable1 = tt;
@@ -102,7 +103,7 @@ void Turntable::Update()
 
   // right table
   {
-    const ControllerEmu::Slider::StateData rt = m_right_table->GetState();
+    const ControllerEmu::Slider::StateData rt = m_right_table->GetState(m_input_override_function);
     const s8 tt = static_cast<s8>(rt.value * TABLE_RANGE);
 
     tt_data.rtable1 = tt;
@@ -113,7 +114,7 @@ void Turntable::Update()
 
   // effect dial
   {
-    const auto dial_state = m_effect_dial->GetState();
+    const auto dial_state = m_effect_dial->GetState(m_input_override_function);
     const u8 dial = static_cast<u8>(dial_state.value * EFFECT_DIAL_RANGE) + EFFECT_DIAL_CENTER;
 
     tt_data.dial1 = dial;
@@ -122,13 +123,13 @@ void Turntable::Update()
 
   // crossfade slider
   {
-    const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState();
+    const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState(m_input_override_function);
 
     tt_data.slider = static_cast<u8>((cfs.value * CROSSFADE_RANGE) + CROSSFADE_CENTER);
   }
 
   // buttons
-  m_buttons->GetState(&tt_data.bt, turntable_button_bitmasks.data());
+  m_buttons->GetState(&tt_data.bt, turntable_button_bitmasks.data(), m_input_override_function);
 
   // flip button bits :/
   tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
