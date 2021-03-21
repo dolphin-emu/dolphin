@@ -8,6 +8,8 @@
 #include <optional>
 #include <string>
 
+#include "Common/Common.h"
+
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 #include "Core/HW/WiimoteEmu/Camera.h"
@@ -112,6 +114,20 @@ public:
   static constexpr u16 BUTTON_A = 0x0800;
   static constexpr u16 BUTTON_MINUS = 0x1000;
   static constexpr u16 BUTTON_HOME = 0x8000;
+
+  static constexpr const char* BUTTONS_GROUP = _trans("Buttons");
+  static constexpr const char* DPAD_GROUP = _trans("D-Pad");
+  static constexpr const char* ACCELEROMETER_GROUP = "IMUAccelerometer";
+  static constexpr const char* GYROSCOPE_GROUP = "IMUGyroscope";
+  static constexpr const char* IR_GROUP = "IR";
+
+  static constexpr const char* A_BUTTON = "A";
+  static constexpr const char* B_BUTTON = "B";
+  static constexpr const char* ONE_BUTTON = "1";
+  static constexpr const char* TWO_BUTTON = "2";
+  static constexpr const char* MINUS_BUTTON = "-";
+  static constexpr const char* PLUS_BUTTON = "+";
+  static constexpr const char* HOME_BUTTON = "Home";
 
   explicit Wiimote(unsigned int index);
   ~Wiimote();

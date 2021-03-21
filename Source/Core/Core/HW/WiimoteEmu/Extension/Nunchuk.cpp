@@ -37,14 +37,13 @@ constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
 Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "Z");
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, C_BUTTON);
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, Z_BUTTON);
 
   // stick
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
-  groups.emplace_back(m_stick =
-                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
+  groups.emplace_back(m_stick = new ControllerEmu::OctagonAnalogStick(STICK_GROUP, gate_radius));
 
   // swing
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
@@ -59,7 +58,7 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 
   // accelerometer
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
-                          "IMUAccelerometer", _trans("Accelerometer")));
+                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
 }
 
 void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)

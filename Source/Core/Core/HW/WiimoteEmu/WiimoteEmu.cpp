@@ -11,6 +11,7 @@
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -63,10 +64,6 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
-
-constexpr std::array<std::string_view, 7> named_buttons{
-    "A", "B", "1", "2", "-", "+", "Home",
-};
 
 void Wiimote::Reset()
 {
@@ -212,24 +209,23 @@ void Wiimote::Reset()
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
   // Buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (auto& named_button : named_buttons)
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  for (auto& named_button : {A_BUTTON, B_BUTTON, ONE_BUTTON, TWO_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
-    std::string_view ui_name = (named_button == "Home") ? "HOME" : named_button;
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(named_button),
-                        std::string(ui_name));
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
   }
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // Pointing (IR)
   // i18n: "Point" refers to the action of pointing a Wii Remote.
-  groups.emplace_back(m_ir = new ControllerEmu::Cursor("IR", _trans("Point")));
+  groups.emplace_back(m_ir = new ControllerEmu::Cursor(IR_GROUP, _trans("Point")));
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
   groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
-                          "IMUAccelerometer", _trans("Accelerometer")));
+                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
   groups.emplace_back(m_imu_gyroscope =
-                          new ControllerEmu::IMUGyroscope("IMUGyroscope", _trans("Gyroscope")));
+                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
   groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
 
   const auto fov_default =
@@ -273,7 +269,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // D-Pad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);

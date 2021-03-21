@@ -36,62 +36,47 @@ static const u16 trigger_bitmasks[] = {
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
                                     PAD_BUTTON_RIGHT};
 
-static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start"};
-
-static const char* const named_triggers[] = {
-    // i18n: The left trigger button (labeled L on real controllers)
-    _trans("L"),
-    // i18n: The right trigger button (labeled R on real controllers)
-    _trans("R"),
-    // i18n: The left trigger button (labeled L on real controllers) used as an analog input
-    _trans("L-Analog"),
-    // i18n: The right trigger button (labeled R on real controllers) used as an analog input
-    _trans("R-Analog")};
-
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (const char* named_button : named_buttons)
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  for (const char* named_button : {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, Z_BUTTON})
   {
-    const bool is_start = named_button == std::string("Start");
-    const ControllerEmu::Translatability translate =
-        is_start ? ControllerEmu::Translate : ControllerEmu::DoNotTranslate;
-    // i18n: The START/PAUSE button on GameCube controllers
-    std::string ui_name = is_start ? _trans("START") : named_button;
-    m_buttons->AddInput(translate, named_button, std::move(ui_name));
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, named_button);
   }
+  // i18n: The START/PAUSE button on GameCube controllers
+  m_buttons->AddInput(ControllerEmu::Translate, START_BUTTON, _trans("START"));
 
   // sticks
   groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
-                          "Main Stick", _trans("Control Stick"), MAIN_STICK_GATE_RADIUS));
+                          MAIN_STICK_GROUP, _trans("Control Stick"), MAIN_STICK_GATE_RADIUS));
   groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
-                          "C-Stick", _trans("C Stick"), C_STICK_GATE_RADIUS));
+                          C_STICK_GROUP, _trans("C Stick"), C_STICK_GATE_RADIUS));
 
   // triggers
-  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
-  for (const char* named_trigger : named_triggers)
+  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
+  for (const char* named_trigger : {L_DIGITAL, R_DIGITAL, L_ANALOG, R_ANALOG})
   {
     m_triggers->AddInput(ControllerEmu::Translate, named_trigger);
   }
 
   // rumble
-  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
+  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
   m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // Microphone
-  groups.emplace_back(m_mic = new ControllerEmu::Buttons(_trans("Microphone")));
+  groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
   m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
 
   // dpad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);
   }
 
   // options
-  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(OPTIONS_GROUP));
   m_options->AddSetting(
       &m_always_connected_setting,
       // i18n: Treat a controller as always being connected regardless of what

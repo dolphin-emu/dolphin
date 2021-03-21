@@ -6,18 +6,25 @@
 #include "DolphinQt/TAS/TASInputWindow.h"
 
 class QGroupBox;
+class QHideEvent;
+class QShowEvent;
 class QSpinBox;
 class TASCheckBox;
-struct GCPadStatus;
 
 class GCTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:
-  explicit GCTASInputWindow(QWidget* parent, int num);
-  void GetValues(GCPadStatus* pad);
+  explicit GCTASInputWindow(QWidget* parent, int controller_id);
+
+  void hideEvent(QHideEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
+  int m_controller_id;
+
+  InputOverrider m_overrider;
+
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
   TASCheckBox* m_x_button;

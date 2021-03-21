@@ -39,32 +39,9 @@ constexpr std::array<u16, 9> classic_button_bitmasks{{
     Classic::BUTTON_HOME,
 }};
 
-constexpr std::array<std::string_view, 9> classic_button_names{{
-    "A",
-    "B",
-    "X",
-    "Y",
-    "ZL",
-    "ZR",
-    "-",
-    "+",
-    "Home",
-}};
-
 constexpr std::array<u16, 2> classic_trigger_bitmasks{{
     Classic::TRIGGER_L,
     Classic::TRIGGER_R,
-}};
-
-constexpr std::array<const char*, 4> classic_trigger_names{{
-    // i18n: The left trigger button (labeled L on real controllers)
-    _trans("L"),
-    // i18n: The right trigger button (labeled R on real controllers)
-    _trans("R"),
-    // i18n: The left trigger button (labeled L on real controllers) used as an analog input
-    _trans("L-Analog"),
-    // i18n: The right trigger button (labeled R on real controllers) used as an analog input
-    _trans("R-Analog"),
 }};
 
 constexpr std::array<u16, 4> classic_dpad_bitmasks{{
@@ -77,30 +54,30 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
 Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
 {
   // buttons
-  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (auto& button_name : classic_button_names)
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(BUTTONS_GROUP));
+  for (auto& button_name :
+       {A_BUTTON, B_BUTTON, X_BUTTON, Y_BUTTON, ZL_BUTTON, ZR_BUTTON, MINUS_BUTTON, PLUS_BUTTON})
   {
-    std::string_view ui_name = (button_name == "Home") ? "HOME" : button_name;
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(button_name),
-                        std::string(ui_name));
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, button_name);
   }
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
 
   // sticks
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RADIUS;
   groups.emplace_back(m_left_stick =
-                          new ControllerEmu::OctagonAnalogStick(_trans("Left Stick"), gate_radius));
-  groups.emplace_back(
-      m_right_stick = new ControllerEmu::OctagonAnalogStick(_trans("Right Stick"), gate_radius));
+                          new ControllerEmu::OctagonAnalogStick(LEFT_STICK_GROUP, gate_radius));
+  groups.emplace_back(m_right_stick =
+                          new ControllerEmu::OctagonAnalogStick(RIGHT_STICK_GROUP, gate_radius));
 
   // triggers
-  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
-  for (const char* trigger_name : classic_trigger_names)
+  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(TRIGGERS_GROUP));
+  for (const char* trigger_name : {L_DIGITAL, R_DIGITAL, L_ANALOG, R_ANALOG})
   {
     m_triggers->AddInput(ControllerEmu::Translate, trigger_name);
   }
 
   // dpad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);
