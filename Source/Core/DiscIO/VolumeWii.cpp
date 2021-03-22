@@ -24,7 +24,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
@@ -92,7 +91,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         {
           // This check is normally done by ES in ES_DiVerify, but that would happen too late
           // (after allocating the buffer), so we do the check here.
-          PanicAlertFmt("Invalid TMD size");
+          ERROR_LOG_FMT(DISCIO, "Invalid TMD size");
           return INVALID_TMD;
         }
         std::vector<u8> tmd_buffer(*tmd_size);
