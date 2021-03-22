@@ -265,10 +265,14 @@
     <string name="immediate_xfb_description">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
     <string name="skip_duplicate_xfbs">Skip Presenting Duplicate Frames</string>
     <string name="skip_duplicate_xfbs_description">Skips presentation of duplicate frames. This may improve performance on low-end devices, while making frame pacing less consistent. If unsure, leave this checked.</string>
-    <string name="disable_destination_alpha">Disable Destination Alpha</string>
-    <string name="disable_destination_alpha_description">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>
-    <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values.</string>
+    <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values. Causes issues in a few games, but can result in a decent speed increase depending on the game and/or GPU. If unsure, leave this checked.</string>
+    <string name="disable_bbox">Disable Bounding Box</string>
+    <string name="disable_bbox_description">Disables bounding box emulation. This may improve GPU performance significantly, but some games will break. If unsure, leave this checked.</string>
+    <string name="vertex_rounding">Vertex Rounding</string>
+    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
+    <string name="texture_cache_to_state">Save Texture Cache to State</string>
+    <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
