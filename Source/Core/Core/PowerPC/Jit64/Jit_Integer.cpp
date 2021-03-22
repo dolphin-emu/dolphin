@@ -16,10 +16,12 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/JitCommon/DivUtils.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
+using namespace JitCommon;
 
 void Jit64::GenerateConstantOverflow(s64 val)
 {
@@ -42,9 +44,9 @@ void Jit64::GenerateConstantOverflow(bool overflow)
 }
 
 // We could do overflow branchlessly, but unlike carry it seems to be quite a bit rarer.
-void Jit64::GenerateOverflow()
+void Jit64::GenerateOverflow(Gen::CCFlags cond)
 {
-  FixupBranch jno = J_CC(CC_NO);
+  FixupBranch jno = J_CC(cond);
   // XER[OV/SO] = 1
   MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
   FixupBranch exit = J();
@@ -1342,6 +1344,207 @@ void Jit64::divwx(UGeckoInstruction inst)
         GenerateConstantOverflow(false);
     }
   }
+  else if (gpr.IsImm(a))
+  {
+    // Constant dividend
+    const u32 dividend = gpr.Imm32(a);
+
+    if (dividend == 0)
+    {
+      if (inst.OE)
+      {
+        RCOpArg Rb = gpr.Use(b, RCMode::Read);
+        RegCache::Realize(Rb);
+
+        CMP_or_TEST(32, Rb, Imm32(0));
+        GenerateOverflow(CC_NZ);
+      }
+
+      // Zero divided by anything is always zero
+      gpr.SetImmediate32(d, 0);
+    }
+    else
+    {
+      RCX64Reg Rb = gpr.Bind(b, RCMode::Read);
+      RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+      // no register choice
+      RCX64Reg eax = gpr.Scratch(EAX);
+      RCX64Reg edx = gpr.Scratch(EDX);
+      RegCache::Realize(Rb, Rd, eax, edx);
+
+      // Check for divisor == 0
+      TEST(32, Rb, Rb);
+
+      FixupBranch normal_path;
+
+      if (dividend == 0x80000000)
+      {
+        // Divisor is 0, proceed to overflow case
+        const FixupBranch overflow = J_CC(CC_Z);
+        // Otherwise, check for divisor == -1
+        CMP(32, Rb, Imm32(0xFFFFFFFF));
+        normal_path = J_CC(CC_NE);
+
+        SetJumpTarget(overflow);
+      }
+      else
+      {
+        // Divisor is not 0, take normal path
+        normal_path = J_CC(CC_NZ);
+        // Otherwise, proceed to overflow case
+      }
+
+      // Set Rd to all ones or all zeroes
+      if (dividend & 0x80000000)
+        MOV(32, Rd, Imm32(0xFFFFFFFF));
+      else
+        XOR(32, Rd, Rd);
+
+      if (inst.OE)
+        GenerateConstantOverflow(true);
+
+      const FixupBranch done = J();
+
+      SetJumpTarget(normal_path);
+
+      MOV(32, eax, Imm32(dividend));
+      CDQ();
+      IDIV(32, Rb);
+      MOV(32, Rd, eax);
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+
+      SetJumpTarget(done);
+    }
+  }
+  else if (gpr.IsImm(b))
+  {
+    // Constant divisor
+    const s32 divisor = gpr.SImm32(b);
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+
+    // Handle 0, 1, and -1 explicitly
+    if (divisor == 0)
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+      SAR(32, Rd, Imm8(31));
+      if (inst.OE)
+        GenerateConstantOverflow(true);
+    }
+    else if (divisor == 1)
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (divisor == -1)
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+
+      NEG(32, Rd);
+      const FixupBranch normal = J_CC(CC_NO);
+
+      MOV(32, Rd, Imm32(0xFFFFFFFF));
+      if (inst.OE)
+        GenerateConstantOverflow(true);
+      const FixupBranch done = J();
+
+      SetJumpTarget(normal);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+
+      SetJumpTarget(done);
+    }
+    else if (divisor == 2 || divisor == -2)
+    {
+      X64Reg tmp = RSCRATCH;
+      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
+        tmp = Ra.GetSimpleReg();
+      else
+        MOV(32, R(tmp), Ra);
+
+      MOV(32, Rd, R(tmp));
+      SHR(32, Rd, Imm8(31));
+      ADD(32, Rd, R(tmp));
+      SAR(32, Rd, Imm8(1));
+
+      if (divisor < 0)
+        NEG(32, Rd);
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-divisor))
+    {
+      u32 abs_val = std::abs(divisor);
+
+      X64Reg tmp = RSCRATCH;
+      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
+        tmp = Ra.GetSimpleReg();
+      else
+        MOV(32, R(tmp), Ra);
+
+      TEST(32, R(tmp), R(tmp));
+      LEA(32, Rd, MDisp(tmp, abs_val - 1));
+      CMOVcc(32, Rd, R(tmp), CC_NS);
+      SAR(32, Rd, Imm8(IntLog2(abs_val)));
+
+      if (divisor < 0)
+        NEG(32, Rd);
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else
+    {
+      // Optimize signed 32-bit integer division by a constant
+      Magic m = SignedDivisionConstants(divisor);
+
+      MOVSX(64, 32, RSCRATCH, Ra);
+
+      if (divisor > 0 && m.multiplier < 0)
+      {
+        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        SHR(64, Rd, Imm8(32));
+        ADD(32, Rd, R(RSCRATCH));
+        SHR(32, R(RSCRATCH), Imm8(31));
+        SAR(32, Rd, Imm8(m.shift));
+      }
+      else if (divisor < 0 && m.multiplier > 0)
+      {
+        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        SHR(64, R(RSCRATCH), Imm8(32));
+        SUB(32, R(RSCRATCH), Rd);
+        MOV(32, Rd, R(RSCRATCH));
+        SHR(32, Rd, Imm8(31));
+        SAR(32, R(RSCRATCH), Imm8(m.shift));
+      }
+      else if (m.multiplier > 0)
+      {
+        IMUL(64, Rd, R(RSCRATCH), Imm32(m.multiplier));
+        SHR(32, R(RSCRATCH), Imm8(31));
+        SAR(64, R(Rd), Imm8(32 + m.shift));
+      }
+      else
+      {
+        IMUL(64, RSCRATCH, R(RSCRATCH), Imm32(m.multiplier));
+        MOV(64, Rd, R(RSCRATCH));
+        SHR(64, R(RSCRATCH), Imm8(63));
+        SAR(64, R(Rd), Imm8(32 + m.shift));
+      }
+
+      ADD(32, Rd, R(RSCRATCH));
+
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+  }
   else
   {
     RCOpArg Ra = gpr.Use(a, RCMode::Read);
@@ -1364,7 +1567,6 @@ void Jit64::divwx(UGeckoInstruction inst)
 
     SetJumpTarget(overflow);
     SAR(32, eax, Imm8(31));
-    MOV(32, Rd, eax);
     if (inst.OE)
     {
       GenerateConstantOverflow(true);
@@ -1376,12 +1578,13 @@ void Jit64::divwx(UGeckoInstruction inst)
 
     CDQ();
     IDIV(32, Rb);
-    MOV(32, Rd, eax);
     if (inst.OE)
     {
       GenerateConstantOverflow(false);
     }
+
     SetJumpTarget(done);
+    MOV(32, Rd, eax);
   }
   if (inst.Rc)
     ComputeRC(d);
