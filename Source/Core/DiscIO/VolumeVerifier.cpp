@@ -357,7 +357,7 @@ RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& has
   return {Status::Unknown, Common::GetStringT("Unknown disc")};
 }
 
-constexpr u64 BLOCK_SIZE = 0x20000;
+constexpr u64 DEFAULT_READ_SIZE = 0x20000;  // Arbitrary value
 
 VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
                                Hashes<bool> hashes_to_calculate)
@@ -585,13 +585,25 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   // Prepare for hash verification in the Process step
   if (m_volume.SupportsIntegrityCheck())
   {
-    u64 offset = m_volume.PartitionOffsetToRawOffset(0, partition);
-    const std::optional<u64> size =
-        m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE);
-    const u64 end_offset = offset + size.value_or(0);
+    const u64 data_size =
+        m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE).value_or(0);
+    const size_t blocks = static_cast<size_t>(data_size / VolumeWii::BLOCK_TOTAL_SIZE);
 
-    for (size_t i = 0; offset < end_offset; ++i, offset += VolumeWii::BLOCK_TOTAL_SIZE)
-      m_blocks.emplace_back(BlockToVerify{partition, offset, i});
+    if (data_size % VolumeWii::BLOCK_TOTAL_SIZE != 0)
+    {
+      std::string text = Common::FmtFormatT(
+          "The data size for the {0} partition is not evenly divisible by the block size.", name);
+      AddProblem(Severity::Low, std::move(text));
+    }
+
+    u64 offset = m_volume.PartitionOffsetToRawOffset(0, partition);
+    for (size_t block_index = 0; block_index < blocks;
+         block_index += VolumeWii::BLOCKS_PER_GROUP, offset += VolumeWii::GROUP_TOTAL_SIZE)
+    {
+      m_groups.emplace_back(
+          GroupToVerify{partition, offset, block_index,
+                        std::min(block_index + VolumeWii::BLOCKS_PER_GROUP, blocks)});
+    }
 
     m_block_errors.emplace(partition, 0);
   }
@@ -753,7 +765,7 @@ void VolumeVerifier::CheckVolumeSize()
     }
   }
 
-  if (m_content_index != m_content_offsets.size() || m_block_index != m_blocks.size() ||
+  if (m_content_index != m_content_offsets.size() || m_group_index != m_groups.size() ||
       (volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
   {
     const bool second_layer_missing = is_disc && volume_size_roughly_known &&
@@ -1020,8 +1032,8 @@ void VolumeVerifier::SetUpHashing()
     m_scrubber.SetupScrub(&m_volume);
   }
 
-  std::sort(m_blocks.begin(), m_blocks.end(),
-            [](const BlockToVerify& b1, const BlockToVerify& b2) { return b1.offset < b2.offset; });
+  std::sort(m_groups.begin(), m_groups.end(),
+            [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
 
   if (m_hashes_to_calculate.crc32)
     m_crc32_context = crc32(0, nullptr, 0);
@@ -1049,8 +1061,8 @@ void VolumeVerifier::WaitForAsyncOperations() const
     m_sha1_future.wait();
   if (m_content_future.valid())
     m_content_future.wait();
-  if (m_block_future.valid())
-    m_block_future.wait();
+  if (m_group_future.valid())
+    m_group_future.wait();
 }
 
 bool VolumeVerifier::ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read)
@@ -1086,8 +1098,8 @@ void VolumeVerifier::Process()
 
   IOS::ES::Content content{};
   bool content_read = false;
-  bool block_read = false;
-  u64 bytes_to_read = BLOCK_SIZE;
+  bool group_read = false;
+  u64 bytes_to_read = DEFAULT_READ_SIZE;
   u64 excess_bytes = 0;
   if (m_content_index < m_content_offsets.size() &&
       m_content_offsets[m_content_index] == m_progress)
@@ -1107,20 +1119,22 @@ void VolumeVerifier::Process()
   {
     bytes_to_read = std::min(bytes_to_read, m_content_offsets[m_content_index] - m_progress);
   }
-  else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset == m_progress)
+  else if (m_group_index < m_groups.size() && m_groups[m_group_index].offset == m_progress)
   {
-    bytes_to_read = VolumeWii::BLOCK_TOTAL_SIZE;
-    block_read = true;
+    const size_t blocks =
+        m_groups[m_group_index].block_index_end - m_groups[m_group_index].block_index_start;
+    bytes_to_read = VolumeWii::BLOCK_TOTAL_SIZE * blocks;
+    group_read = true;
 
-    if (m_block_index + 1 < m_blocks.size() &&
-        m_blocks[m_block_index + 1].offset < m_progress + bytes_to_read)
+    if (m_group_index + 1 < m_groups.size() &&
+        m_groups[m_group_index + 1].offset < m_progress + bytes_to_read)
     {
-      excess_bytes = m_progress + bytes_to_read - m_blocks[m_block_index + 1].offset;
+      excess_bytes = m_progress + bytes_to_read - m_groups[m_group_index + 1].offset;
     }
   }
-  else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset > m_progress)
+  else if (m_group_index < m_groups.size() && m_groups[m_group_index].offset > m_progress)
   {
-    bytes_to_read = std::min(bytes_to_read, m_blocks[m_block_index].offset - m_progress);
+    bytes_to_read = std::min(bytes_to_read, m_groups[m_group_index].offset - m_progress);
   }
 
   if (m_progress + bytes_to_read > m_max_progress)
@@ -1133,7 +1147,7 @@ void VolumeVerifier::Process()
       excess_bytes -= bytes_over_max;
   }
 
-  const bool is_data_needed = m_calculating_any_hash || content_read || block_read;
+  const bool is_data_needed = m_calculating_any_hash || content_read || group_read;
   const bool read_succeeded = is_data_needed && ReadChunkAndWaitForAsyncOperations(bytes_to_read);
 
   if (!read_succeeded)
@@ -1185,33 +1199,40 @@ void VolumeVerifier::Process()
     m_content_index++;
   }
 
-  if (block_read)
+  if (group_read)
   {
-    m_block_future = std::async(std::launch::async, [this, read_succeeded,
-                                                     block_index = m_block_index] {
-      const BlockToVerify& block = m_blocks[block_index];
-      if (read_succeeded &&
-          m_volume.CheckBlockIntegrity(block.block_index, m_data, block.partition))
+    m_group_future = std::async(std::launch::async, [this, read_succeeded,
+                                                     group_index = m_group_index] {
+      const GroupToVerify& group = m_groups[group_index];
+      u64 offset_in_group = 0;
+      for (u64 block_index = group.block_index_start; block_index < group.block_index_end;
+           ++block_index, offset_in_group += VolumeWii::BLOCK_TOTAL_SIZE)
       {
-        m_biggest_verified_offset =
-            std::max(m_biggest_verified_offset, block.offset + VolumeWii::BLOCK_TOTAL_SIZE);
-      }
-      else
-      {
-        if (m_scrubber.CanBlockBeScrubbed(block.offset))
+        const u64 block_offset = group.offset + offset_in_group;
+
+        if (read_succeeded && m_volume.CheckBlockIntegrity(
+                                  block_index, m_data.data() + offset_in_group, group.partition))
         {
-          WARN_LOG_FMT(DISCIO, "Integrity check failed for unused block at {:#x}", block.offset);
-          m_unused_block_errors[block.partition]++;
+          m_biggest_verified_offset =
+              std::max(m_biggest_verified_offset, block_offset + VolumeWii::BLOCK_TOTAL_SIZE);
         }
         else
         {
-          WARN_LOG_FMT(DISCIO, "Integrity check failed for block at {:#x}", block.offset);
-          m_block_errors[block.partition]++;
+          if (m_scrubber.CanBlockBeScrubbed(block_offset))
+          {
+            WARN_LOG_FMT(DISCIO, "Integrity check failed for unused block at {:#x}", block_offset);
+            m_unused_block_errors[group.partition]++;
+          }
+          else
+          {
+            WARN_LOG_FMT(DISCIO, "Integrity check failed for block at {:#x}", block_offset);
+            m_block_errors[group.partition]++;
+          }
         }
       }
     });
 
-    m_block_index++;
+    m_group_index++;
   }
 
   m_progress += byte_increment;
