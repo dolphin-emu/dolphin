@@ -6,7 +6,6 @@
 
 #include <future>
 #include <map>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -177,8 +176,8 @@ private:
   mbedtls_md5_context m_md5_context;
   mbedtls_sha1_context m_sha1_context;
 
+  u64 m_excess_bytes = 0;
   std::vector<u8> m_data;
-  std::mutex m_volume_mutex;
   std::future<void> m_crc32_future;
   std::future<void> m_md5_future;
   std::future<void> m_sha1_future;
