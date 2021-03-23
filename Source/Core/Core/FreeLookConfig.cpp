@@ -43,6 +43,9 @@ void Config::Refresh()
   }
 
   camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
+  camera_config.fov_horizontal = ::Config::Get(::Config::FL1_FOV_HORIZONTAL);
+  camera_config.fov_vertical = ::Config::Get(::Config::FL1_FOV_VERTICAL);
+
   enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED);
 }
 }  // namespace FreeLook

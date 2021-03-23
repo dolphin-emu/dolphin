@@ -43,7 +43,7 @@ class FreeLookCamera
 {
 public:
   FreeLookCamera();
-  void SetControlType(FreeLook::ControlType type);
+  void UpdateConfig(const FreeLook::CameraConfig& config);
   Common::Matrix44 GetView();
   Common::Vec2 GetFieldOfView() const;
 
@@ -53,8 +53,6 @@ public:
 
   void Rotate(const Common::Vec3& amt);
 
-  void IncreaseFovX(float fov);
-  void IncreaseFovY(float fov);
   float GetFovStepSize() const;
 
   void Reset();
@@ -71,6 +69,7 @@ public:
   bool IsActive() const;
 
 private:
+  void SetControlType(FreeLook::ControlType type);
   bool m_dirty = false;
   float m_fov_x = 1.0f;
   float m_fov_y = 1.0f;

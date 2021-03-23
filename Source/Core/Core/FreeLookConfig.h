@@ -21,6 +21,8 @@ enum class ControlType : int
 struct CameraConfig
 {
   ControlType control_type;
+  float fov_horizontal;
+  float fov_vertical;
 };
 
 // NEVER inherit from this class.

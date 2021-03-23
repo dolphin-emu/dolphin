@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 class InputConfig;
@@ -39,7 +40,8 @@ ControllerEmu::ControlGroup* GetInputGroup(int pad_num, FreeLookGroup group);
 class FreeLookController final : public ControllerEmu::EmulatedController
 {
 public:
-  explicit FreeLookController(unsigned int index);
+  FreeLookController(unsigned int index, const Config::Info<float>& fov_horizontal,
+                     const Config::Info<float>& fov_vertical);
 
   std::string GetName() const override;
   void LoadDefaults(const ControllerInterface& ciface) override;
@@ -48,6 +50,9 @@ public:
   void Update();
 
 private:
+  const Config::Info<float>& m_fov_horizontal;
+  const Config::Info<float>& m_fov_vertical;
+
   ControllerEmu::Buttons* m_move_buttons;
   ControllerEmu::Buttons* m_speed_buttons;
   ControllerEmu::Buttons* m_fov_buttons;

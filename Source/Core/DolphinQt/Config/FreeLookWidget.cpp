@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "DolphinQt/Config/FreeLookOptionsWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -36,6 +37,7 @@ void FreeLookWidget::CreateLayout()
       tr("Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If unsure, "
          "leave this unchecked.</dolphin_emphasis>"));
   m_freelook_controller_configure_button = new QPushButton(tr("Configure Controller"));
+  m_freelook_options_configure_button = new QPushButton(tr("Configure Options"));
 
   m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
                                                Config::FL1_CONTROL_TYPE);
@@ -65,6 +67,7 @@ void FreeLookWidget::CreateLayout()
   hlayout->addWidget(new QLabel(tr("Camera 1")));
   hlayout->addWidget(m_freelook_control_type);
   hlayout->addWidget(m_freelook_controller_configure_button);
+  hlayout->addWidget(m_freelook_options_configure_button);
 
   layout->addWidget(m_enable_freelook);
   layout->addLayout(hlayout);
@@ -77,6 +80,8 @@ void FreeLookWidget::ConnectWidgets()
 {
   connect(m_freelook_controller_configure_button, &QPushButton::clicked, this,
           &FreeLookWidget::OnFreeLookControllerConfigured);
+  connect(m_freelook_options_configure_button, &QPushButton::clicked, this,
+          &FreeLookWidget::OnFreeLookOptionsConfigured);
   connect(m_enable_freelook, &QCheckBox::clicked, this, &FreeLookWidget::SaveSettings);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     const QSignalBlocker blocker(this);
@@ -95,12 +100,24 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
   window->show();
 }
 
+void FreeLookWidget::OnFreeLookOptionsConfigured()
+{
+  if (m_freelook_options_configure_button != QObject::sender())
+    return;
+  const int index = 0;
+  FreeLookOptionsWindow* window = new FreeLookOptionsWindow(this, index);
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
+}
+
 void FreeLookWidget::LoadSettings()
 {
   const bool checked = Config::Get(Config::FREE_LOOK_ENABLED);
   m_enable_freelook->setChecked(checked);
   m_freelook_control_type->setEnabled(checked);
   m_freelook_controller_configure_button->setEnabled(checked);
+  m_freelook_options_configure_button->setEnabled(checked);
 }
 
 void FreeLookWidget::SaveSettings()
@@ -109,4 +126,5 @@ void FreeLookWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::FREE_LOOK_ENABLED, checked);
   m_freelook_control_type->setEnabled(checked);
   m_freelook_controller_configure_button->setEnabled(checked);
+  m_freelook_options_configure_button->setEnabled(checked);
 }

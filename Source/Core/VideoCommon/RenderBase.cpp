@@ -111,7 +111,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
   CalculateTargetSize();
 
   m_is_game_widescreen = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
-  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
+  g_freelook_camera.UpdateConfig(FreeLook::GetActiveConfig().camera_config);
 }
 
 Renderer::~Renderer() = default;
@@ -407,7 +407,7 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
 
-  g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
+  g_freelook_camera.UpdateConfig(FreeLook::GetActiveConfig().camera_config);
 
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);

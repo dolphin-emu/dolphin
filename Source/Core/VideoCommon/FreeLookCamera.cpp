@@ -189,6 +189,17 @@ FreeLookCamera::FreeLookCamera()
   SetControlType(FreeLook::ControlType::SixAxis);
 }
 
+void FreeLookCamera::UpdateConfig(const FreeLook::CameraConfig& config)
+{
+  SetControlType(config.control_type);
+  if (config.fov_horizontal != m_fov_x || config.fov_vertical != m_fov_y)
+  {
+    m_fov_x = config.fov_horizontal;
+    m_fov_y = config.fov_vertical;
+    m_dirty = true;
+  }
+}
+
 void FreeLookCamera::SetControlType(FreeLook::ControlType type)
 {
   if (m_current_type && *m_current_type == type)
@@ -246,18 +257,6 @@ void FreeLookCamera::Rotate(const Common::Vec3& amt)
   m_dirty = true;
 }
 
-void FreeLookCamera::IncreaseFovX(float fov)
-{
-  m_fov_x += fov;
-  m_fov_x = std::clamp(m_fov_x, m_fov_step_size, m_fov_x);
-}
-
-void FreeLookCamera::IncreaseFovY(float fov)
-{
-  m_fov_y += fov;
-  m_fov_y = std::clamp(m_fov_y, m_fov_step_size, m_fov_y);
-}
-
 float FreeLookCamera::GetFovStepSize() const
 {
   return m_fov_step_size;
@@ -266,9 +265,6 @@ float FreeLookCamera::GetFovStepSize() const
 void FreeLookCamera::Reset()
 {
   m_camera_controller->Reset();
-  m_fov_x = 1.0f;
-  m_fov_y = 1.0f;
-  m_dirty = true;
 }
 
 void FreeLookCamera::ModifySpeed(float multiplier)

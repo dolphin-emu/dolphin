@@ -17,5 +17,7 @@ const Info<bool> FREE_LOOK_ENABLED{{System::FreeLook, "General", "Enabled"}, fal
 // FreeLook.Controller1
 const Info<FreeLook::ControlType> FL1_CONTROL_TYPE{{System::FreeLook, "Camera1", "ControlType"},
                                                    FreeLook::ControlType::SixAxis};
+const Info<float> FL1_FOV_HORIZONTAL{{System::FreeLook, "Camera1", "FovHorizontal"}, 1.0f};
+const Info<float> FL1_FOV_VERTICAL{{System::FreeLook, "Camera1", "FovVertical"}, 1.0f};
 
 }  // namespace Config
