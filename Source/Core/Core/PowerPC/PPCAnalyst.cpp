@@ -196,8 +196,8 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
-  int a_flags = a_info->flags;
-  int b_flags = b_info->flags;
+  u64 a_flags = a_info->flags;
+  u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
   if (SConfig::GetInstance().bEnableDebugging &&
