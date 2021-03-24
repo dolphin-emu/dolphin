@@ -23,7 +23,15 @@ public:
 
   SensorBar(std::string name, std::string ui_name);
 
-  StateData GetDisplacement() const;
-  StateData GetOrientation() const;
+  Common::Vec3 GetIRCameraDisplacement();
+  Common::Vec3 GetIRCameraOrientation();
+
+  SettingValue<double> m_ir_camera_displacement_x_setting;
+  SettingValue<double> m_ir_camera_displacement_y_setting;
+  SettingValue<double> m_ir_camera_displacement_z_setting;
+  SettingValue<double> m_ir_camera_pitch_setting;
+  SettingValue<double> m_ir_camera_roll_setting;
+  SettingValue<double> m_ir_camera_yaw_setting;
+  SettingValue<double> m_input_confidence;
 };
 }  // namespace ControllerEmu

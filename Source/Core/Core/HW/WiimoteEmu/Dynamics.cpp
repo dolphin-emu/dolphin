@@ -327,13 +327,13 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
 
   if (sensor_bar_group->enabled) // need: "&& new data was received in the last update"
   {
-    const auto sensor_bar_rotation = sensor_bar_group->GetOrientation();
-    const auto sensor_bar_position = sensor_bar_group->GetDisplacement();
-    state->orientation = sensor_bar_rotation;
-    state->rotation = Common::Quaternion{1, sensor_bar_rotation.x / 2, sensor_bar_rotation.y / 2,
-                                         sensor_bar_rotation.z / 2};
+    const auto ir_camera_rotation = sensor_bar_group->GetIRCameraOrientation();
+    const auto ir_camera_position = sensor_bar_group->GetIRCameraDisplacement();
+    state->orientation = ir_camera_rotation;
+    state->rotation = Common::Quaternion{1, ir_camera_rotation.x / 2, ir_camera_rotation.y / 2,
+                                         ir_camera_rotation.z / 2};
     state->position =
-        Common::Vec3{sensor_bar_position.x, sensor_bar_position.y, sensor_bar_position.z};
+        Common::Vec3{ir_camera_position.x, ir_camera_position.y, ir_camera_position.z};
     return;
   }
   else

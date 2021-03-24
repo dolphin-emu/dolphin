@@ -26,22 +26,84 @@ SensorBar::SensorBar(std::string name_, std::string ui_name_)
           ControlGroup::DefaultValue::Enabled)
 #endif
 {
-  AddInput(Translate, _trans("Displacement X"));
-  AddInput(Translate, _trans("Displacement Y"));
-  AddInput(Translate, _trans("Displacement Z"));
-  AddInput(Translate, _trans("Pitch"));
-  AddInput(Translate, _trans("Roll"));
-  AddInput(Translate, _trans("Yaw"));
+  AddSetting(
+      &m_ir_camera_displacement_x_setting,
+      // i18n: Refers to the positional offset of an emulated wiimote's IR camera compared to the
+      // sensor bar.
+      {_trans("IR Camera X"),
+       // i18n: The symbol for meters.
+       _trans("m"),
+       // i18n: Refers to the emulated Wii remote.
+       _trans(
+           "How far the Wiimote's IR camera is to the right of the sensor bar's center.")},
+      0, -10, 10);
+  AddSetting(
+      &m_ir_camera_displacement_y_setting,
+      // i18n: Refers to the positional offset of an emulated wiimote's IR camera compared to the
+      // sensor bar.
+      {_trans("IR Camera Y"),
+       // i18n: The symbol for meters.
+       _trans("m"),
+       // i18n: Refers to the emulated Wii remote.
+       _trans(
+           "How far the Wiimote's IR camera is back from the sensor bar's center.")},
+      0, -10, 10);
+  AddSetting(
+      &m_ir_camera_displacement_z_setting,
+      // i18n: Refers to the positional offset of an emulated wiimote's IR camera compared to the
+      // sensor bar.
+      {_trans("IR Camera Z"),
+       // i18n: The symbol for meters.
+       _trans("m"),
+       // i18n: Refers to the emulated Wii remote.
+       _trans("How far the Wiimote's IR camera is above the sensor bar's center.")},
+      0, -10, 10);
+  AddSetting(&m_ir_camera_pitch_setting,
+             // i18n: Refers to the orientation of an emulated wiimote's IR camera.
+             {_trans("IR Camera Pitch"),
+              // i18n: The degrees symbol.
+              _trans("°"),
+              // i18n: Refers to the method used to pass position and orientation data to Dolphin.
+              _trans("The pitch of the Wiimote's IR camera.")},
+             0, -360, 360);
+  AddSetting(&m_ir_camera_roll_setting,
+             // i18n: Refers to the orientation of an emulated wiimote's IR camera
+             {_trans("IR Camera Roll"),
+              // i18n: The degrees symbol.
+              _trans("°"),
+              // i18n: Refers to the method used to pass position and orientation data to Dolphin.
+              _trans("The roll of the Wiimote's IR camera.")},
+             0, -360, 360);
+  AddSetting(&m_ir_camera_yaw_setting,
+             // i18n: Refers to the orientation of an emulated wiimote's IR camera.
+             {_trans("IR Camera Yaw"),
+              // i18n: The degrees symbol.
+              _trans("°"),
+              // i18n: Refers to the method used to pass position and orientation data to Dolphin.
+              _trans("The yaw of the Wiimote's IR camera.")},
+             0, -360, 360);
+  AddSetting(&m_input_confidence,
+             // i18n: Refers to how much confidence there is in the camera position and orientation being correct.
+             {_trans("Input Confidence"),
+              // i18n: The symbol for percent.
+              _trans("%"),
+              // i18n: Refers to the method used to pass position and orientation data to Dolphin.
+              _trans("How confident Dolphin should be that the above data is accurate.")},
+             100, 0, 100);
 }
 
-auto SensorBar::GetDisplacement() const -> StateData
+Common::Vec3 SensorBar::GetIRCameraDisplacement()
 {
-  return StateData(controls[0]->GetState(), controls[1]->GetState(), controls[2]->GetState());
+  return Common::Vec3(m_ir_camera_displacement_x_setting.GetValue(),
+                      m_ir_camera_displacement_y_setting.GetValue(),
+                      m_ir_camera_displacement_z_setting.GetValue());
 }
 
-auto SensorBar::GetOrientation() const -> StateData
+Common::Vec3 SensorBar::GetIRCameraOrientation()
 {
-  return StateData(controls[3]->GetState(), controls[4]->GetState(), controls[5]->GetState());
+  return Common::Vec3(m_ir_camera_pitch_setting.GetValue() * MathUtil::TAU / 360,
+                      m_ir_camera_roll_setting.GetValue() * MathUtil::TAU / 360,
+                      m_ir_camera_yaw_setting.GetValue() * MathUtil::TAU / 360);
 }
 
 }  // namespace ControllerEmu
