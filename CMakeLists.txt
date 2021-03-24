@@ -53,6 +53,11 @@ option(FASTLOG "Enable all logs" OFF)
 option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 option(OPROFILING "Enable profiling" OFF)
 
+if (MSVC)
+   set(CMAKE_CXX_FLAGS_DEBUG   "/MTd")
+   set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+endif()
+
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
