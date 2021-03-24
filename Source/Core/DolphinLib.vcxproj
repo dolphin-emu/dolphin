@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
@@ -26,12 +26,6 @@
     <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
       <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.cpp" />
