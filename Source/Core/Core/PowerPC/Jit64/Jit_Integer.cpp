@@ -1464,12 +1464,21 @@ void Jit64::divwx(UGeckoInstruction inst)
     else if (divisor == 2 || divisor == -2)
     {
       X64Reg tmp = RSCRATCH;
-      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
-        tmp = Ra.GetSimpleReg();
-      else
+      if (!Ra.IsSimpleReg())
+      {
         MOV(32, R(tmp), Ra);
+        MOV(32, Rd, R(tmp));
+      }
+      else if (d == a)
+      {
+        MOV(32, R(tmp), Ra);
+      }
+      else
+      {
+        MOV(32, Rd, Ra);
+        tmp = Ra.GetSimpleReg();
+      }
 
-      MOV(32, Rd, R(tmp));
       SHR(32, Rd, Imm8(31));
       ADD(32, Rd, R(tmp));
       SAR(32, Rd, Imm8(1));
