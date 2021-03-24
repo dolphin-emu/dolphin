@@ -153,8 +153,9 @@ void JitArm64::GenerateAsm()
   SetJumpTarget(bail);
   do_timing = GetCodePtr();
   // Write the current PC out to PPCSTATE
-  STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  STR(IndexType::Unsigned, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+  static_assert(PPCSTATE_OFF(pc) <= 252);
+  static_assert(PPCSTATE_OFF(pc) + 4 == PPCSTATE_OFF(npc));
+  STP(IndexType::Signed, DISPATCHER_PC, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
