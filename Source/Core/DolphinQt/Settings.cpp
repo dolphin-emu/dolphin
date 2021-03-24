@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Settings.h"
 
+#include <atomic>
+
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -41,8 +43,21 @@ Settings::Settings()
     QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
   });
 
-  Config::AddConfigChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
+  Config::AddConfigChangedCallback([this] {
+    static std::atomic<bool> do_once{true};
+    if (do_once.exchange(false))
+    {
+      // Calling ConfigChanged() with a "delay" can have risks, for example, if from
+      // code we change some configs that result in Qt greying out some setting, we could
+      // end up editing that setting before its greyed out, sending out an event,
+      // which might not be expected or handled by the code, potentially crashing.
+      // The only safe option would be to wait on the Qt thread to have finished executing this.
+      QueueOnObject(this, [this] {
+        do_once = true;
+        emit ConfigChanged();
+      });
+    }
+  });
 
   g_controller_interface.RegisterDevicesChangedCallback(
       [this] { QueueOnObject(this, [this] { emit DevicesChanged(); }); });
