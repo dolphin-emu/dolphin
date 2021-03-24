@@ -971,36 +971,62 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     op.fprIsStoreSafe = fprIsStoreSafe;
     if (op.fregOut >= 0)
     {
-      fprIsSingle[op.fregOut] = false;
-      fprIsDuplicated[op.fregOut] = false;
-      fprIsStoreSafe[op.fregOut] = false;
-      // Single, duplicated, and doesn't need PPC_FP.
       if (op.opinfo->type == OpType::SingleFP)
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
-        fprIsStoreSafe[op.fregOut] = true;
       }
-      // Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
-      // TODO: if we go directly from a load to store, skip conversion entirely?
-      // TODO: if we go directly from a load to a float instruction, and the value isn't used
-      // for anything else, we can skip PPC_FP on a load too.
-      if (!strncmp(op.opinfo->opname, "lfs", 3))
+      else if (!strncmp(op.opinfo->opname, "lfs", 3))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
       }
-      // Paired are still floats, but the top/bottom halves may differ.
-      if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
+      else if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
       {
         fprIsSingle[op.fregOut] = true;
-        fprIsStoreSafe[op.fregOut] = true;
+        fprIsDuplicated[op.fregOut] = false;
       }
-      // Careful: changing the float mode in a block breaks this optimization, since
-      // a previous float op might have had had FTZ off while the later store has FTZ
-      // on. So, discard all information we have.
+      else
+      {
+        fprIsSingle[op.fregOut] = false;
+        fprIsDuplicated[op.fregOut] = false;
+      }
+
       if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      {
+        // Careful: changing the float mode in a block breaks the store-safe optimization,
+        // since a previous float op might have had FTZ off while the later store has FTZ on.
+        // So, discard all information we have.
         fprIsStoreSafe = BitSet32(0);
+      }
+      else if (op.opinfo->flags &
+               (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
+      {
+        // If the instruction copies bits between registers (without flushing denormals to zero
+        // or turning SNaN into QNaN), the output is store-safe if the inputs are.
+
+        BitSet32 bitexact_inputs;
+        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
+          bitexact_inputs[code->inst.FA] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
+          bitexact_inputs[code->inst.FB] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
+          bitexact_inputs[code->inst.FC] = true;
+
+        fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
+      }
+      else
+      {
+        // Other FPU instructions are store-safe if they perform a single-precision
+        // arithmetic operation.
+
+        // TODO: if we go directly from a load to store, skip conversion entirely?
+        // TODO: if we go directly from a load to a float instruction, and the value isn't used
+        // for anything else, we can use fast single -> double conversion after the load.
+
+        fprIsStoreSafe[op.fregOut] =
+            (op.opinfo->type == OpType::SingleFP || op.opinfo->type == OpType::PS);
+      }
     }
 
     if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
