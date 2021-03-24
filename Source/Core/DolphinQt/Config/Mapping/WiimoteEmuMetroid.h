@@ -6,28 +6,31 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
-class QRadioButton;
+class QComboBox;
 class QLabel;
-class PrimeHackModes;
+class QRadioButton;
+class WiimoteEmuExtension;
 
-class PrimeHackEmuWii final : public MappingWidget
+class WiimoteEmuMetroid final : public MappingWidget
 {
+  
 public:
-  explicit PrimeHackEmuWii(MappingWindow* window);
+  explicit WiimoteEmuMetroid(MappingWindow* window, WiimoteEmuExtension* extension);
 
   InputConfig* GetConfig() override;
 
-  QGroupBox* controller_box;
+  QGroupBox* camera_control;
   QRadioButton* m_radio_mouse;
   QRadioButton* m_radio_controller;
-
 private:
   void LoadSettings() override;
   void SaveSettings() override;
-
   void CreateMainLayout();
-  void Connect(MappingWindow* window);
+  void Connect();
+
   void OnDeviceSelected();
   void ConfigChanged();
   void Update();
+
+  WiimoteEmuExtension* m_extension_widget;
 };

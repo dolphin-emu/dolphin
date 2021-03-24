@@ -61,6 +61,20 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
                           "IMUAccelerometer", _trans("Accelerometer")));
 }
 
+void Nunchuk::ChangeUIPrimeHack(bool useMetroidUI)
+{
+  if (using_metroid_ui == useMetroidUI)
+    return;
+
+  m_buttons->controls.clear();
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string("C"),
+    std::string(useMetroidUI ? "Morph Ball" : "C"));
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string("Z"),
+    std::string(useMetroidUI ? "Lock-On" : "Z"));
+
+  using_metroid_ui = useMetroidUI;
+}
+
 void Nunchuk::Update()
 {
   DataFormat nc_data = {};

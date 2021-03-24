@@ -41,6 +41,7 @@ public:
     MAPPING_GC_MICROPHONE,
     // Wii
     MAPPING_WIIMOTE_EMU,
+    MAPPING_WIIMOTE_METROID,
     // Hotkeys
     MAPPING_HOTKEYS
   };

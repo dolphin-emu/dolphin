@@ -17,6 +17,7 @@
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/Speaker.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
 class PointerWrap;
 
@@ -133,6 +134,9 @@ public:
   ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const;
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
 
+  void ChangeUIPrimeHack(bool useMetroidUI);
+  Nunchuk* GetNunchuk();
+
   void Update() override;
   void EventLinked() override;
   void EventUnlinked() override;
@@ -164,6 +168,8 @@ public:
   ExtensionNumber GetActiveExtensionNumber() const;
 
 private:
+  bool using_metroid_ui = false;
+
   // Used only for error generation:
   static constexpr u8 EEPROM_I2C_ADDR = 0x50;
 

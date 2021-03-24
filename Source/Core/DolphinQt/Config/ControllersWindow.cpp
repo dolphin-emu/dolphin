@@ -185,7 +185,7 @@ void ControllersWindow::CreateWiimoteLayout()
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
     auto* wm_button = m_wiimote_buttons[i] = new QPushButton(tr("Configure"));
 
-    for (const auto& item : {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote")})
+    for (const auto& item : {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote"), tr("Metroid (Wii Remote)")})
       wm_box->addItem(item);
 
     int wm_row = m_wiimote_layout->rowCount();
@@ -310,7 +310,7 @@ void ControllersWindow::UpdateDisabledWiimoteControls()
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
     m_wiimote_boxes[i]->setEnabled(enable_emu_bt);
 
-    const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1;
+    const bool is_emu_wiimote = m_wiimote_boxes[i]->currentIndex() == 1 || m_wiimote_boxes[i]->currentIndex() == 3;
     m_wiimote_buttons[i]->setEnabled(enable_emu_bt && is_emu_wiimote);
   }
 
@@ -446,6 +446,11 @@ void ControllersWindow::OnWiimoteConfigure()
     return;
   case 1:  // Emulated Wii Remote
     type = MappingWindow::Type::MAPPING_WIIMOTE_EMU;
+    Wiimote::ChangeUIPrimeHack(static_cast<int>(index), false);
+    break;
+  case 3:  // Metroid (Wii Remote)
+    type = MappingWindow::Type::MAPPING_WIIMOTE_METROID;
+    Wiimote::ChangeUIPrimeHack(static_cast<int>(index), true);
     break;
   default:
     return;

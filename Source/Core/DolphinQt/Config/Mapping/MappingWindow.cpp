@@ -38,6 +38,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuGeneral.h"
+#include "DolphinQt/Config/Mapping/WiimoteEmuMetroid.h"
 #include "DolphinQt/Config/Mapping/PrimeHackEmuWii.h"
 #include "DolphinQt/Config/Mapping/PrimeHackEmuGC.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
@@ -418,6 +419,20 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
     // Hide tabs by default. "Nunchuk" selection triggers an event to show them.
     ShowExtensionMotionTabs(false);
+
+    break;
+  }
+  case Type::MAPPING_WIIMOTE_METROID:
+  {
+    setWindowTitle(tr("Wii Remote (Metroid) %1").arg(GetPort() + 1));
+
+    auto* extension = new WiimoteEmuExtension(this);
+
+    // 1 for Nunchuk
+    extension->ChangeExtensionType(1);
+    widget = new WiimoteEmuMetroid(this, extension);
+
+    AddWidget(tr("General"), widget);
 
     break;
   }

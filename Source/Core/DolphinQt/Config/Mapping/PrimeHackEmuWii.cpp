@@ -16,6 +16,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
 
 #include "Core/PrimeHack/HackConfig.h"
 
@@ -46,7 +47,7 @@ void PrimeHackEmuWii::CreateMainLayout()
   combo_hbox->setSpacing(10);
 
   combo_hbox->addWidget(new QLabel(tr("Mouse")));
-  combo_hbox->addWidget(m_radio_button = new QRadioButton());
+  combo_hbox->addWidget(m_radio_mouse = new QRadioButton());
   combo_hbox->addSpacing(95);
   combo_hbox->addWidget(new QLabel(tr("Controller")));
   combo_hbox->addWidget(m_radio_controller = new QRadioButton());
@@ -102,7 +103,7 @@ void PrimeHackEmuWii::Connect(MappingWindow* window)
 {
   connect(window, &MappingWindow::ConfigChanged, this, &PrimeHackEmuWii::ConfigChanged);
   connect(window, &MappingWindow::Update, this, &PrimeHackEmuWii::Update);
-  connect(m_radio_button, &QRadioButton::toggled, this,
+  connect(m_radio_mouse, &QRadioButton::toggled, this,
     &PrimeHackEmuWii::OnDeviceSelected);
   connect(m_radio_controller, &QRadioButton::toggled, this,
     &PrimeHackEmuWii::OnDeviceSelected);
@@ -113,13 +114,12 @@ void PrimeHackEmuWii::OnDeviceSelected()
   auto* ce_modes = static_cast<ControllerEmu::PrimeHackModes*>(
     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
 
-  ce_modes->SetSelectedDevice(m_radio_button->isChecked() ? 0 : 1);
-  controller_box->setEnabled(!m_radio_button->isChecked());
+  ce_modes->SetSelectedDevice(m_radio_mouse->isChecked() ? 0 : 1);
+  controller_box->setEnabled(!m_radio_mouse->isChecked());
 
   ConfigChanged();
   SaveSettings();
 }
-
 
 void PrimeHackEmuWii::ConfigChanged()
 {
@@ -136,7 +136,7 @@ void PrimeHackEmuWii::Update()
 
   if (m_radio_controller->isChecked() != checked) {
     m_radio_controller->setChecked(checked);
-    m_radio_button->setChecked(!checked);
+    m_radio_mouse->setChecked(!checked);
   }
 }
 
@@ -154,11 +154,11 @@ void PrimeHackEmuWii::LoadSettings()
   checked = modes->GetSelectedDevice() == 0;
 #else
   checked = 1;
-  m_radio_button->setEnabled(false);
+  m_radio_mouse->setEnabled(false);
   m_radio_controller->setEnabled(false);
 #endif
 
-  m_radio_button->setChecked(checked);
+  m_radio_mouse->setChecked(checked);
   m_radio_controller->setChecked(!checked);
   controller_box->setEnabled(!checked);
 }

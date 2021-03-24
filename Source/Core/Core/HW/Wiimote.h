@@ -51,6 +51,7 @@ enum class WiimoteSource
   None = 0,
   Emulated = 1,
   Real = 2,
+  Metroid = 3,
 };
 
 namespace WiimoteCommon
@@ -99,6 +100,7 @@ ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
                                                     WiimoteEmu::DrawsomeTabletGroup group);
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group);
 
+void ChangeUIPrimeHack(int number, bool useMetroidUI);
 
 bool CheckVisor(int visor_count);
 bool CheckBeam(int beam_count);

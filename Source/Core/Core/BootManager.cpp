@@ -306,7 +306,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
         controls_section->Get(fmt::format("WiimoteSource{}", i), &source, -1);
         if (source != -1 && WiimoteCommon::GetSource(i) != WiimoteSource(source) &&
             WiimoteSource(source) >= WiimoteSource::None &&
-            WiimoteSource(source) <= WiimoteSource::Real)
+            WiimoteSource(source) <= WiimoteSource::Metroid)
         {
           config_cache.bSetWiimoteSource[i] = true;
           WiimoteCommon::SetSource(i, WiimoteSource(source));
@@ -316,7 +316,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       if (source != -1 &&
           WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) != WiimoteSource(source) &&
           (WiimoteSource(source) == WiimoteSource::None ||
-           WiimoteSource(source) == WiimoteSource::Real))
+           WiimoteSource(source) == WiimoteSource::Metroid))
       {
         config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
         WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, WiimoteSource(source));

@@ -107,6 +107,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionInput.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuMetroid.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="Config\NewPatchDialog.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingIndicator.h" />
     <ClInclude Include="Config\Mapping\MappingNumeric.h" />
+    <ClInclude Include="Config\Mapping\WiimoteEmuMetroid.h" />
     <ClInclude Include="Config\NewPatchDialog.h" />
     <ClInclude Include="Config\PatchesWidget.h" />
     <ClInclude Include="Config\Mapping\HotkeyPrimeHack.h" />

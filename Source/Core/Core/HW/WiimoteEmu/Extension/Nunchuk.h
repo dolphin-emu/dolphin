@@ -150,6 +150,8 @@ public:
 
   Nunchuk();
 
+  void ChangeUIPrimeHack(bool useMetroidUI);
+
   void Update() override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
@@ -170,6 +172,8 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
+  bool using_metroid_ui = false;
+
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::Shake* m_shake;

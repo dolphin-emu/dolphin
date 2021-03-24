@@ -69,8 +69,16 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
 
+static const u16 metroid_button_bitmasks[] = {
+    Wiimote::BUTTON_A,     Wiimote::BUTTON_B,    Wiimote::BUTTON_ONE, Wiimote::BUTTON_TWO,
+    Wiimote::BUTTON_MINUS, Wiimote::BUTTON_PLUS, Wiimote::PAD_DOWN};
+
 constexpr std::array<std::string_view, 7> named_buttons{
     "A", "B", "1", "2", "-", "+", "Home",
+};
+
+constexpr std::array<std::string_view, 7> metroid_named_buttons{
+  "Shoot / Select", "Jump / Cancel", "Map", "Menu / Hint", "Visor Menu \nMenu -", "Beam Menu \nHypermode \nMenu +", "Missile",
 };
 
 static const char* const prime_beams[] = {"Beam 1", "Beam 2", "Beam 3", "Beam 4"};
@@ -384,6 +392,31 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   Reset();
 }
 
+void Wiimote::ChangeUIPrimeHack(bool useMetroidUI)
+{
+  if (using_metroid_ui == useMetroidUI)
+    return;
+
+  m_buttons->controls.clear();
+  for (int i = 0; i < 7; i++)
+  {
+    std::string_view ui_name = useMetroidUI ? metroid_named_buttons[i] : named_buttons[i];
+
+    if (ui_name == "Home")
+      ui_name = "HOME";
+
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(named_buttons[i]),
+      std::string(ui_name));
+  }
+
+  using_metroid_ui = useMetroidUI;
+}
+
+Nunchuk* Wiimote::GetNunchuk()
+{
+  return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[ExtensionNumber::NUNCHUK].get());
+}
+
 std::string Wiimote::GetName() const
 {
   if (m_index == WIIMOTE_BALANCE_BOARD)
@@ -513,8 +546,13 @@ void Wiimote::UpdateButtonsStatus()
 {
   m_status.buttons.hex = 0;
 
-  m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
-  m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  if (using_metroid_ui) {
+    m_buttons->GetState(&m_status.buttons.hex, metroid_button_bitmasks);
+  }
+  else {
+    m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
+    m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  }
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
@@ -694,9 +732,15 @@ bool Wiimote::IsButtonPressed()
 {
   u16 buttons = 0;
   const auto lock = GetStateLock();
-  m_buttons->GetState(&buttons, button_bitmasks);
-  m_dpad->GetState(&buttons, dpad_bitmasks);
 
+  if (using_metroid_ui) {
+    m_buttons->GetState(&buttons, metroid_button_bitmasks);
+  }
+  else {
+    m_buttons->GetState(&buttons, button_bitmasks);
+    m_dpad->GetState(&buttons, dpad_bitmasks);
+  }
+  
   return buttons != 0;
 }
 
@@ -800,7 +844,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
   // DPad
   // Missiles
-  m_dpad->SetControlExpression(1, "F");
+  if (using_metroid_ui)
+    m_buttons->SetControlExpression(6, "F");
+  else
+    m_dpad->SetControlExpression(1, "F");
 
   // Motion Source
   m_imu_ir->enabled = false;

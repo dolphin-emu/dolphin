@@ -787,7 +787,7 @@ void LoadSettings()
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
     unsigned int source = 0;
-    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Emulated));
+    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Metroid));
     WiimoteCommon::SetSource(i, WiimoteSource(source));
   }
 

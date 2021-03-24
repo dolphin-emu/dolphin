@@ -11,6 +11,7 @@
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -21,7 +22,6 @@
 #include "InputCommon/InputConfig.h"
 
 #include "Core/PrimeHack/HackConfig.h"
-#include <Core/HW/WiimoteEmu/Extension/Nunchuk.h>
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
 static std::array<u8, MAX_BBMOTES> s_last_connect_request_counter;
@@ -71,6 +71,7 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
   switch (GetSource(index))
   {
   case WiimoteSource::Emulated:
+  case WiimoteSource::Metroid:
     hid_source = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
     break;
 
@@ -195,6 +196,14 @@ void Resume()
 void Pause()
 {
   WiimoteReal::Pause();
+}
+
+void ChangeUIPrimeHack(int number, bool useMetroidUI)
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number));
+
+  wiimote->ChangeUIPrimeHack(useMetroidUI);
+  wiimote->GetNunchuk()->ChangeUIPrimeHack(useMetroidUI);
 }
 
 bool CheckVisor(int visorcount)
@@ -334,7 +343,7 @@ void DoState(PointerWrap& p)
     auto state_wiimote_source = u8(source);
     p.Do(state_wiimote_source);
 
-    if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
+    if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated || WiimoteSource(state_wiimote_source) == WiimoteSource::Metroid)
     {
       // Sync complete state of emulated wiimotes.
       static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
