@@ -25,6 +25,7 @@ public:
 
   Common::Vec3 GetIRCameraDisplacement();
   Common::Vec3 GetIRCameraOrientation();
+  double GetInputConfidence();
 
   SettingValue<double> m_ir_camera_displacement_x_setting;
   SettingValue<double> m_ir_camera_displacement_y_setting;

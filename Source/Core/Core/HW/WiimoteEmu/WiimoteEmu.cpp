@@ -756,17 +756,12 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
   // Includes positional and rotational effects of:
   // Point, Swing, Tilt, Shake
 
-  return Common::Matrix44::FromMatrix33(extra_rotation) * Common::Matrix44::Translate(position);
-
   // TODO: Think about and clean up matrix order + make nunchuk match.
-    //Common::Matrix44::Translate(position) * Common::Matrix44::FromMatrix33(extra_rotation);
-  
-      /*   Common::Matrix44::Translate(-m_shake_state.position) *
+  return Common::Matrix44::Translate(-m_shake_state.position) *
          Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
                                         GetRotationalMatrix(-m_point_state.angle) *
                                         GetRotationalMatrix(-m_swing_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);*/
-         
+         Common::Matrix44::Translate(position - m_swing_state.position - m_point_state.position);         
 }
 
 Common::Quaternion Wiimote::GetOrientation() const
@@ -793,8 +788,8 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(GetRotationalMatrix(m_imu_cursor_state.orientation),
-                           m_imu_cursor_state.position);
+  return GetTransformation(Common::Matrix33::FromQuaternion(m_imu_cursor_state.rotation) * GetRotationalMatrix(m_imu_cursor_state.orientation),
+                           m_imu_cursor_state.position + m_point_state.position);
 }
 
 }  // namespace WiimoteEmu
