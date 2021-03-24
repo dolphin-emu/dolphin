@@ -106,4 +106,9 @@ Common::Vec3 SensorBar::GetIRCameraOrientation()
                       m_ir_camera_yaw_setting.GetValue() * MathUtil::TAU / 360);
 }
 
+double SensorBar::GetInputConfidence()
+{
+  return m_input_confidence.GetValue();
+}
+
 }  // namespace ControllerEmu
