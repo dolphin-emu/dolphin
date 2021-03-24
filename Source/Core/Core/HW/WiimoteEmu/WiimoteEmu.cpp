@@ -788,8 +788,8 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(Common::Matrix33::FromQuaternion(m_imu_cursor_state.rotation) * GetRotationalMatrix(m_imu_cursor_state.orientation),
-                           m_imu_cursor_state.position + m_point_state.position);
+  return GetTransformation(GetRotationalMatrix(m_imu_cursor_state.orientation),
+                           m_imu_cursor_state.position);
 }
 
 }  // namespace WiimoteEmu
