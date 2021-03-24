@@ -153,6 +153,9 @@ void Init()
   s_aid_sample_rate = Get32KHzSampleRate();
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
+
+  g_sound_stream->GetMixer()->SetDMAInputSampleRate(GetAIDSampleRate());
+  g_sound_stream->GetMixer()->SetStreamInputSampleRate(GetAISSampleRate());
 }
 
 void Shutdown()
