@@ -62,8 +62,8 @@ u8* m_pFakeVMEM;
 
 // s_ram_size is the amount allocated by the emulator, whereas s_ram_size_real
 // is what will be reported in lowmem, and thus used by emulated software.
-// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
-// always be set to 24MB.
+// Note: Writing to lowmem is done by IPL. If using retail IPL and the OnionConfig
+// value "MAIN_RAM_OVERRIDE_ENABLE" is false, it will always be set to 24MB.
 static u32 s_ram_size_real;
 static u32 s_ram_size;
 static u32 s_ram_mask;
@@ -73,8 +73,8 @@ static u32 s_L1_cache_size;
 static u32 s_L1_cache_mask;
 static u32 s_io_size;
 // s_exram_size is the amount allocated by the emulator, whereas s_exram_size_real
-// is what gets used by emulated software.  If using retail IOS, it will
-// always be set to 64MB.
+// is what gets used by emulated software.  If using retail IOS and the OnionConfig
+// value "MAIN_RAM_OVERRIDE_ENABLE" is false, it will always be set to 64MB.
 static u32 s_exram_size_real;
 static u32 s_exram_size;
 static u32 s_exram_mask;

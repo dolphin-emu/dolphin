@@ -33,7 +33,7 @@ namespace fs = std::filesystem;
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Swap.h"
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
@@ -60,6 +60,14 @@ namespace fs = std::filesystem;
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
+
+// CRC32 hashes of the IPL file, obtained from Redump
+constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
+constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
+constexpr u32 NTSC_v1_2 = 0x86573808;
+constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
+constexpr u32 PAL_v1_0 = 0x4F319F43;
+constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
@@ -310,19 +318,46 @@ bool CBoot::LoadMapFromFilename()
   return false;
 }
 
+static void RAMOverrideForIPLMemoryValues(std::string& data, const u32 ipl_hash)
+{
+  if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+    return;
+
+  // Pre-calculate the new values.
+  const s16 mem1_p_size = Common::swap16(Memory::GetRamSizeReal() >> 16);
+  const u32 nop = Common::swap32(0x60000000);
+
+  // [lis	r0, 0x0180] <-- This instruction in retail IPLs prepares the Physical MEM1 Size value
+  // to be stored at 0x80000028.  The following code replaces the SIMM field and nothing else.
+  // [ori r9, r9, 0x0003] <-- The value 3 in r9 later starts an EXI DMA read to copy BS2, which
+  // clobbers the patched version. NOPing the instruction leaves r9 set to 0, which makes it
+  // think the EXI transfer finished immediately, skipping it.
+  switch (ipl_hash)
+  {
+  case NTSC_v1_0:
+  case NTSC_v1_1:
+  case PAL_v1_0:
+  case MPAL_v1_1:
+    std::memcpy(data.data() + 0xCB6, &mem1_p_size, sizeof(mem1_p_size));  // 0x820 + 0x494 + 2
+    std::memcpy(data.data() + 0x5FC, &nop, sizeof(nop));                  // 0x100 + 0x4fc
+    break;
+  case NTSC_v1_2:
+  case PAL_v1_2:
+    std::memcpy(data.data() + 0xCB2, &mem1_p_size, sizeof(mem1_p_size));  // 0x820 + 0x490 + 2
+    std::memcpy(data.data() + 0x5FC, &nop, sizeof(nop));                  // 0x100 + 0x4fc
+    break;
+  default:
+    PanicAlertT("Emulated Memory Size Override is not supported for unrecognized IPL dumps.\n"
+                "Either acquire a known good dump, or choose to skip the IPL altogether.");
+    break;
+  }
+}
+
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 {
-  // CRC32 hashes of the IPL file, obtained from Redump
-  constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
-  constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
-  constexpr u32 NTSC_v1_2 = 0x86573808;
-  constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
-  constexpr u32 PAL_v1_0 = 0x4F319F43;
-  constexpr u32 PAL_v1_2 = 0xAD1B7F16;
-
   // Load the whole ROM dump
   std::string data;
   if (!File::ReadFileToString(boot_rom_filename, data))
@@ -360,6 +395,9 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 
   // Run the descrambler over the encrypted section containing BS1/BS2
   ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
+
+  // Assembly edit known IPLs before passing them to emulator memory (if RAM Override is enabled)
+  RAMOverrideForIPLMemoryValues(data, ipl_hash);
 
   // TODO: Execution is supposed to start at 0xFFF00000, not 0x81200000;
   // copying the initial boot code to 0x81200000 is a hack.
