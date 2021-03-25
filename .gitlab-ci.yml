@@ -15,13 +15,9 @@ variables:
 
 .core-linux-defs:
   extends: .core-defs
-  variables:
-    CORE_ARGS: -DLIBRETRO=ON -DENABLE_QT=OFF
 
 .core-windows-defs:
   extends: .core-defs
-  variables:
-    CORE_ARGS: -DLIBRETRO=ON -DENABLE_QT=OFF
 
 # Inclusion templates, required for the build to work
 include:
