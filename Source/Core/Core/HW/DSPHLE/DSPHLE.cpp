@@ -79,15 +79,16 @@ void DSPHLE::SwapUCode(u32 crc)
 {
   m_mail_handler.Clear();
 
-  if (m_last_ucode == nullptr)
+  if (m_last_ucode && UCodeInterface::GetCRC(m_last_ucode.get()) == crc)
   {
-    m_last_ucode = std::move(m_ucode);
-    m_ucode = UCodeFactory(crc, this, m_wii);
-    m_ucode->Initialize();
+    m_ucode = std::move(m_last_ucode);
   }
   else
   {
-    m_ucode = std::move(m_last_ucode);
+    if (!m_last_ucode)
+      m_last_ucode = std::move(m_ucode);
+    m_ucode = UCodeFactory(crc, this, m_wii);
+    m_ucode->Initialize();
   }
 }
 
