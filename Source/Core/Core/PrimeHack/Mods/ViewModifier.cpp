@@ -27,6 +27,7 @@ void ViewModifier::run_mod(Game game, Region region) {
 }
 
 void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value) {
+  bool is_mp3_standalone_us = hack_mgr->get_active_game() == Game::PRIME_3_STANDALONE && hack_mgr->get_active_region() == Region::NTSC_U;
   float left = 0.25f;
   float forward = 0.30f;
   float up = -0.35f;
@@ -38,10 +39,17 @@ void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_addres
         left = 0.22f;
         forward = -0.02f;
         apply_znear = true;
+        if (is_mp3_standalone_us) {
+          forward = 0.05f;
+          up = -0.36f;
+        }
       } else if (fov >= 75) {
         float factor = (fov - 75) / (125 - 75);
         left = Lerp(left, 0.22f, factor);
         forward = Lerp(forward, -0.02f, factor);
+        if (is_mp3_standalone_us) {
+          up = Lerp(up, -0.48f, factor);
+        }
         apply_znear = true;
       }
     } else {
@@ -349,12 +357,18 @@ void ViewModifier::init_mod_mp3(Region region) {
   
 void ViewModifier::init_mod_mp3_standalone(Region region) {
   if (region == Region::NTSC_U) {
+    add_code_change(0x8007f504, 0x60000000);
+    add_code_change(0x8009cfc4, 0x60000000);
     add_code_change(0x80316a1c, 0x38600001, "culling");
     add_code_change(0x80316a1c + 0x4, 0x4e800020, "culling");
   } else if (region == Region::PAL) {
+    add_code_change(0x8007f7a0, 0x60000000);
+    add_code_change(0x8009d41c, 0x60000000);
     add_code_change(0x80318170, 0x38600001, "culling");
     add_code_change(0x80318170 + 0x4, 0x4e800020, "culling");
   } else if (region == Region::NTSC_J) {
+    add_code_change(0x8007f934, 0x60000000);
+    add_code_change(0x8009d5b0, 0x60000000);
     add_code_change(0x8031a4b4, 0x38600001, "culling");
     add_code_change(0x8031a4b4 + 0x4, 0x4e800020, "culling");
   }
