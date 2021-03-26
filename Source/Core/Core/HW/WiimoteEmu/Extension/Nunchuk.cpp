@@ -202,11 +202,6 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   m_stick->SetControlExpression(1, "S | DOWN");   // Pull
   m_stick->SetControlExpression(2, "A | LEFT");   // Tilt left
   m_stick->SetControlExpression(3, "D | RIGHT");  // Tilt right
-  // Grapple lasso controls (Only used in Prime 3)
-  m_tilt->SetControlExpression(0, "`Axis Y-`");   // Swing up
-  m_tilt->SetControlExpression(1, "`Axis Y+`");   // Swing dowm
-  m_swing->SetControlExpression(0, "`Axis Y-`");  // Push
-  m_swing->SetControlExpression(1, "`Axis Y+`");  // Pull
 
   // Because our defaults use keyboard input, set calibration shape to a square.
   m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
@@ -214,7 +209,7 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   // Morph Ball
   m_buttons->SetControlExpression(0, "LCONTROL");
   // Lock/Sacn/Spider Ball
-  m_buttons->SetControlExpression(1, "`Shift");
+  m_buttons->SetControlExpression(1, "`Click 1`");
 
   // Shake (Only used in Prime 3, may need revision
   m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");

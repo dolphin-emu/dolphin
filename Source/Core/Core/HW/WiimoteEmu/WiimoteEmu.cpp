@@ -871,7 +871,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_beams->SetControlExpression(4, "!E & `Axis Z+`"); // Next beam
   m_primehack_beams->SetControlExpression(5, "!E & `Axis Z-`"); // Previous beam
 
-                                                                    // Visors (Combination keys strongly recommended)
+  // Visors (Combination keys strongly recommended)
   m_primehack_visors->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
   m_primehack_visors->SetControlExpression(1, "E & `1`");
   m_primehack_visors->SetControlExpression(2, "E & `2`");
@@ -880,6 +880,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_visors->SetControlExpression(5, "E & `Axis Z-`"); // Previous visor
                                                                     // Misc. Defaults
   m_primehack_misc->SetControlExpression(0, "Alt"); // Spring Ball
+  m_primehack_misc->SetControlExpression(1, "Shift"); // Grapple Lasso
 }
 
 Extension* Wiimote::GetNoneExtension() const

@@ -77,7 +77,6 @@ void InitializeHack() {
     return;
   }
 
-
   hack_mgr.enable_mod("fps_controls");
   hack_mgr.enable_mod("springball_button");
   hack_mgr.enable_mod("context_sensitive_controls");
