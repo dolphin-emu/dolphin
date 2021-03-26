@@ -224,7 +224,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
       // Determine offset of each element that might be a vertex array
       // The first 9 elements are never vertex arrays so we just accumulate their sizes.
       int offset = std::accumulate(sizes.begin(), sizes.begin() + 9, 0u);
-      std::array<int, 12> offsets;
+      std::array<int, NUM_VERTEX_COMPONENT_ARRAYS> offsets;
       for (size_t i = 0; i < offsets.size(); ++i)
       {
         offsets[i] = offset;

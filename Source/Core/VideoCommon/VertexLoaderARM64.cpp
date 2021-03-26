@@ -497,7 +497,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
           m_VtxAttr.color[i].Comp == ColorFormat::RGBA4444)
         align = 2;
 
-      s32 offset = GetAddressImm(ARRAY_COLOR + int(i), m_VtxDesc.low.Color[i],
+      s32 offset = GetAddressImm(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i],
                                  EncodeRegTo64(scratch1_reg), align);
       ReadColor(m_VtxDesc.low.Color[i], m_VtxAttr.color[i].Comp, offset);
       m_native_components |= VB_HAS_COL0 << i;
