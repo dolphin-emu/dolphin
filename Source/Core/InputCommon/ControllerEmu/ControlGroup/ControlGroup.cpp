@@ -143,6 +143,13 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
     sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);
   }
 
+  if (type == GroupType::Buttons) {
+    // Load D-Pad Down into Missiles control
+    if (use_metroid_ui) {
+      sec->Set("D-Pad/Down", controls[6]->control_ref->GetExpression(), "");
+    }
+  }
+
   // extensions
   if (type == GroupType::Attachments)
   {
