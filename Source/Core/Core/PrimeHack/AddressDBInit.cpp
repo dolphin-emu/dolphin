@@ -125,13 +125,13 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_3, "cursor", "cursor_base", {rt0, rt(0xc54, 0xd04, 0xc54), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3, "powerups_array", "player", {mrt1(0x35a8), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3, "boss_name", "boss_info_base", {rt0, mrt1(0x6e0), mrt1(0x24), mrt1(0x150), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_3, "boss_status", "boss_info_base", {rt0, mrt1(0x6e0), mrt1(0x24), mrt1(0xb3)});
   addr_db.register_dynamic_address(Game::PRIME_3, "firstperson_pitch", "player", {mrt1(0x784)});
   addr_db.register_dynamic_address(Game::PRIME_3, "active_visor", "powerups_array", {mrt1(0x34)});
   addr_db.register_dynamic_address(Game::PRIME_3, "beamvisor_menu_state", "beamvisor_menu_base", {rt0, mrt1(0x300)});
-  addr_db.register_dynamic_address(Game::PRIME_3, "lockon_type", "player", { mrt1(0x370) });
-  addr_db.register_dynamic_address(Game::PRIME_3, "grapple_state", "player", {mrt1(0x378)});
   addr_db.register_dynamic_address(Game::PRIME_3, "angular_momentum", "player", {mrt1(0x174)});
   addr_db.register_dynamic_address(Game::PRIME_3, "ball_state", "player", {mrt1(0x358)});
+  addr_db.register_dynamic_address(Game::PRIME_3, "lockon_type", "player", {mrt1(0x370)});
 
   addr_db.register_address(Game::PRIME_3_STANDALONE, "state_manager", 0x805c4f98, 0x805c7598, 0x805caa58); // +0x1010 object list
   addr_db.register_address(Game::PRIME_3_STANDALONE, "tweakgun", 0x8067d78c, 0x8067fdb4, 0x806835fc);
@@ -151,13 +151,12 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "cursor", "cursor_base", {rt0, mrt1(0xc54), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "powerups_array", "player", {rt(0x35a0, 0x35a0, 0x35a8), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "boss_name", "boss_info_base", {rt0, mrt1(0x6e0), mrt1(0x24), mrt1(0x150), rt0});
-  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "boss_status", "boss_info_base", { rt0, mrt1(0x6e0), mrt1(0x24), mrt1(0xb3) });
+  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "boss_status", "boss_info_base", {rt0, mrt1(0x6e0), mrt1(0x24), mrt1(0xb3)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "firstperson_pitch", "player", {rt(0x77c, 0x77c, 0x784)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "beamvisor_menu_state", "beamvisor_menu_base", {rt0, mrt1(0x1708)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "active_visor", "powerups_array", {mrt1(0x34)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "angular_momentum", "player", {mrt1(0x174)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "ball_state", "player", {mrt1(0x358)});
-  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "lockon_type", "player", { mrt1(0x370) });
-  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "grapple_state", "player", {rt(0, 0x378, 0x378)});
+  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "lockon_type", "player", {mrt1(0x370)});
 }
 }

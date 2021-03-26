@@ -27,7 +27,7 @@ void ViewModifier::run_mod(Game game, Region region) {
 }
 
 void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value) {
-  bool is_mp3_standalone_us = hack_mgr->get_active_game() == Game::PRIME_3_STANDALONE && hack_mgr->get_active_region() == Region::NTSC_U;
+  //bool is_mp3_standalone_us = hack_mgr->get_active_game() == Game::PRIME_3_STANDALONE && hack_mgr->get_active_region() == Region::NTSC_U;
   float left = 0.25f;
   float forward = 0.30f;
   float up = -0.35f;
@@ -39,17 +39,17 @@ void ViewModifier::adjust_viewmodel(float fov, u32 arm_address, u32 znear_addres
         left = 0.22f;
         forward = -0.02f;
         apply_znear = true;
-        if (is_mp3_standalone_us) {
-          forward = 0.05f;
-          up = -0.36f;
-        }
+        //if (is_mp3_standalone_us) {
+        //  forward = 0.05f;
+        //  up = -0.36f;
+        //}
       } else if (fov >= 75) {
         float factor = (fov - 75) / (125 - 75);
         left = Lerp(left, 0.22f, factor);
         forward = Lerp(forward, -0.02f, factor);
-        if (is_mp3_standalone_us) {
-          up = Lerp(up, -0.48f, factor);
-        }
+        //if (is_mp3_standalone_us) {
+        //  up = Lerp(up, -0.48f, factor);
+        //}
         apply_znear = true;
       }
     } else {

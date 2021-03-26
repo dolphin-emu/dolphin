@@ -530,7 +530,7 @@ void FpsControls::mp3_handle_cursor(bool lock) {
 }
 
 
-void FpsControls::mp3_handle_lasso(bool is_using_grapple_lasso_or_voltage)
+void FpsControls::mp3_handle_lasso(u32 grapple_state_addr)
 {
   if (GrappleCtlBound()) {
     set_code_group_state("grapple_lasso", ModState::ENABLED);
@@ -549,7 +549,7 @@ void FpsControls::mp3_handle_lasso(bool is_using_grapple_lasso_or_voltage)
   // 1 => Locked On
   // 2 => Grapple Lasso(/Voltage)
   // 3 => Grapple Swing
-  if (is_using_grapple_lasso_or_voltage) {
+  if (read8(grapple_state_addr) == 2) {
     if (grapple_initial_cooldown == 0) {
       grapple_initial_cooldown = Common::Timer::GetTimeMs();
     }
@@ -652,8 +652,8 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
 
   // Compare based on boss name string, Meta Ridley only appears once
   if (is_boss_metaridley) {
-    // if boss has died
-    if (read8(boss_status) == 10) {
+    // If boss is dead
+    if (read8(boss_status) == 8) {
       set_state(ModState::ENABLED);
       mp3_handle_cursor(true);
     } else {
@@ -668,12 +668,10 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
   LOOKUP_DYN(firstperson_pitch);
   LOOKUP_DYN(angular_momentum);
   LOOKUP_DYN(beamvisor_menu_state);
-  LOOKUP_DYN(grapple_state);
   LOOKUP_DYN(lockon_type);
   LOOKUP(lockon_state);
-  bool is_using_any_grapple = is_mp3_standalone_us ? read32(lockon_type) > 1 : read8(grapple_state);
   bool beamvisor_menu = read32(beamvisor_menu_state) == 3;
-  if (!is_using_any_grapple && read8(lockon_state) || beamvisor_menu) {
+  if (read8(lockon_state) == 1 || beamvisor_menu) {
     write32(0, angular_momentum);
     calculate_pitch_locked(active_game, active_region);
 
@@ -687,7 +685,7 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
   }
 
   // Handle grapple lasso bind
-  mp3_handle_lasso(is_mp3_standalone_us ? read32(lockon_type) == 2 : read8(grapple_state));
+  mp3_handle_lasso(lockon_state);
 
   // Lock Camera according to ContextSensitiveControls and interpolate to pitch 0
   if (prime::GetLockCamera() != Unlocked) {
