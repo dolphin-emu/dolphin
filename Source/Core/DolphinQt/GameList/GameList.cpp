@@ -856,9 +856,16 @@ void GameList::ConsiderViewChange()
 void GameList::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Return && GetSelectedGame() != nullptr)
-    emit GameSelected();
+  {
+    if (event->modifiers() == Qt::AltModifier)
+      OpenProperties();
+    else
+      emit GameSelected();
+  }
   else
+  {
     QStackedWidget::keyPressEvent(event);
+  }
 }
 
 void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
