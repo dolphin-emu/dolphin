@@ -787,7 +787,7 @@ void FpsControls::add_beam_change_code_mp1(u32 start_point) {
   add_code_change(start_point + 0x20, 0x7f59d378, "beam_change");  // mr     r25, r26        ; copy expected beam to other reg
   add_code_change(start_point + 0x24, 0x38600000, "beam_change");  // li     r3, 0           ; reset flag
   add_code_change(start_point + 0x28, 0x90640000, "beam_change");  // stw    r3, 0(r4)       ;
-  add_code_change(start_point + 0x2c, 0x48000044, "beam_change");  // b      0x3c            ; jump forward to beam assign
+  add_code_change(start_point + 0x2c, 0x4800003c, "beam_change");  // b      0x3c            ; jump forward to beam assign
 }
 
 void FpsControls::add_beam_change_code_mp2(u32 start_point) {
@@ -806,7 +806,7 @@ void FpsControls::add_beam_change_code_mp2(u32 start_point) {
   add_code_change(start_point + 0x20, 0x7ffefb78, "beam_change");  // mr     r30, r31        ; copy expected beam to other reg
   add_code_change(start_point + 0x24, 0x38600000, "beam_change");  // li     r3, 0           ; reset flag
   add_code_change(start_point + 0x28, 0x90640000, "beam_change");  // stw    r3, 0(r4)       ;
-  add_code_change(start_point + 0x2c, 0x48000048, "beam_change");  // b      0x40            ; jump forward to beam assign
+  add_code_change(start_point + 0x2c, 0x48000040, "beam_change");  // b      0x40            ; jump forward to beam assign
 }
 
 void FpsControls::add_grapple_slide_code_mp3(u32 start_point) {
