@@ -77,6 +77,15 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
     c->control_ref->range /= 100;
   }
 
+  if (type == GroupType::Buttons) {
+    // Load D-Pad Down into Missiles control
+    if (use_metroid_ui) {
+      std::string expression;
+      sec->Get("D-Pad/Down", &expression, "");
+      controls[6]->control_ref->SetExpression(std::move(expression));
+    }
+  }
+
   // extensions
   if (type == GroupType::Attachments)
   {
@@ -112,7 +121,6 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
     sec->Get(base + name + "/Mode", &i, "0");
     ext->SetSelectedDevice(stoi(i));
   }
-
 }
 
 void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,

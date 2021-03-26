@@ -66,11 +66,8 @@ void Nunchuk::ChangeUIPrimeHack(bool useMetroidUI)
   if (using_metroid_ui == useMetroidUI)
     return;
 
-  m_buttons->controls.clear();
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string("C"),
-    std::string(useMetroidUI ? "Morph Ball" : "C"));
-  m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string("Z"),
-    std::string(useMetroidUI ? "Lock-On" : "Z"));
+  m_buttons->controls[0]->ui_name = useMetroidUI ? "Morph Ball" : "C";
+  m_buttons->controls[1]->ui_name = useMetroidUI ? "Lock-On" : "Z";
 
   using_metroid_ui = useMetroidUI;
 }

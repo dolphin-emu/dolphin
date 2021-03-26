@@ -397,7 +397,9 @@ void Wiimote::ChangeUIPrimeHack(bool useMetroidUI)
   if (using_metroid_ui == useMetroidUI)
     return;
 
-  m_buttons->controls.clear();
+  // Swap D-Pad Down (Missile) and HOME
+  std::swap(m_buttons->controls[6], m_dpad->controls[1]);
+
   for (int i = 0; i < 7; i++)
   {
     std::string_view ui_name = useMetroidUI ? metroid_named_buttons[i] : named_buttons[i];
@@ -405,11 +407,16 @@ void Wiimote::ChangeUIPrimeHack(bool useMetroidUI)
     if (ui_name == "Home")
       ui_name = "HOME";
 
-    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(named_buttons[i]),
-      std::string(ui_name));
+    m_buttons->controls[i]->ui_name = _trans(ui_name);
+  }
+
+  if (!useMetroidUI) {
+    // Make sure to revert the D-Pad name
+    m_dpad->controls[1]->ui_name = _trans(named_directions[1]);
   }
 
   using_metroid_ui = useMetroidUI;
+  m_buttons->use_metroid_ui = useMetroidUI;
 }
 
 Nunchuk* Wiimote::GetNunchuk()
@@ -915,12 +922,18 @@ void Wiimote::SetRumble(bool on)
 
 void Wiimote::StepDynamics()
 {
-  EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
-                   1.f / ::Wiimote::UPDATE_FREQ);
+  // Ensure no motion settings interfere with PrimeHack
+  if (using_metroid_ui) {
+    m_point_state.position = {0, 2.f, 0}; // Centre
+  }
+  else {
+    EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
+    EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
+    EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
+    EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
+    EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
+      1.f / ::Wiimote::UPDATE_FREQ);
+  }
 }
 
 Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration) const

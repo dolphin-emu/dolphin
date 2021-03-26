@@ -68,7 +68,8 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
 {
   HIDWiimote* hid_source = nullptr;
 
-  switch (GetSource(index))
+  WiimoteSource src = GetSource(index);
+  switch (src)
   {
   case WiimoteSource::Emulated:
   case WiimoteSource::Metroid:
@@ -82,6 +83,8 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
   default:
     break;
   }
+
+  Wiimote::ChangeUIPrimeHack(index, src == WiimoteSource::Metroid);
 
   return hid_source;
 }
