@@ -52,8 +52,8 @@ void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, const u8* vertexData, 
     arrayType = s_CpMem.vtxDesc.low.Normal;
   else if (arrayIndex >= ARRAY_COLOR0 && arrayIndex < ARRAY_COLOR0 + NUM_COLOR_ARRAYS)
     arrayType = s_CpMem.vtxDesc.low.Color[arrayIndex - ARRAY_COLOR0];
-  else if (arrayIndex >= ARRAY_POSITION && arrayIndex < ARRAY_POSITION + 8)
-    arrayType = s_CpMem.vtxDesc.high.TexCoord[arrayIndex - ARRAY_POSITION];
+  else if (arrayIndex >= ARRAY_TEXCOORD0 && arrayIndex < ARRAY_TEXCOORD0 + NUM_TEXCOORD_ARRAYS)
+    arrayType = s_CpMem.vtxDesc.high.TexCoord[arrayIndex - ARRAY_TEXCOORD0];
   else
   {
     PanicAlertFmt("Invalid arrayIndex {}", arrayIndex);
