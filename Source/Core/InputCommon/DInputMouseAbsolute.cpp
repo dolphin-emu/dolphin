@@ -65,8 +65,8 @@ void DInputMouse::UpdateInput()
   if (cur_time - last_update > 250)
   {
     m_mo_device->GetDeviceState(sizeof(DIMOUSESTATE2), &state_prev);
-    last_update = cur_time;
   }
+  last_update = cur_time;
 
   // Retrieve input data from our device
   HRESULT hr = m_mo_device->GetDeviceState(sizeof(DIMOUSESTATE2), &input_temp);
