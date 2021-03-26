@@ -670,7 +670,7 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
   LOOKUP_DYN(lockon_type);
   LOOKUP(lockon_state);
   bool beamvisor_menu = read32(beamvisor_menu_state) == 3;
-  if (read8(lockon_type) == 1 || beamvisor_menu) {
+  if ((read32(lockon_type) == 0 && read8(lockon_state)) || read32(lockon_type) == 1 || beamvisor_menu) {
     write32(0, angular_momentum);
     calculate_pitch_locked(active_game, active_region);
 

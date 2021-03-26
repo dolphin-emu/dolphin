@@ -114,6 +114,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3, "cursor_dlg_enabled", 0x805c8d77, 0x805cc1d7);
   addr_db.register_address(Game::PRIME_3, "boss_info_base", 0x8066e1ec, 0x80671a6c);
   addr_db.register_address(Game::PRIME_3, "beamvisor_menu_base", 0x8066fcfc, 0x8067357c);
+  addr_db.register_address(Game::PRIME_3, "lockon_state", 0x805c6db7, 0x805ca237);
   addr_db.register_address(Game::PRIME_3, "gun_lag_toc_offset", -0x5ff0, -0x6000);
   addr_db.register_address(Game::PRIME_3, "powerups_size", 12, 12, 12);
   addr_db.register_address(Game::PRIME_3, "powerups_offset", 0x58, 0x58, 0x58);
@@ -139,6 +140,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3_STANDALONE, "cursor_dlg_enabled", 0x805c70c7, 0x805c96df, 0x805ccbd7);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "boss_info_base", 0x8067c0e4, 0x8067e70c, 0x80681f54);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "beamvisor_menu_base", 0x8067dc0c, 0x80680234, 0x80683a7c);
+  addr_db.register_address(Game::PRIME_3_STANDALONE, "lockon_state", 0x805c50e7, 0x805c76e7, 0x805caba7);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "gun_lag_toc_offset", -0x5fb0, -0x5f98, -0x5f68);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "powerups_size", 12, 12, 12);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "powerups_offset", 0x58, 0x58, 0x58);
