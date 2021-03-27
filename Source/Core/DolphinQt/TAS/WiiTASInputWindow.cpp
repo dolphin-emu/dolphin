@@ -463,21 +463,14 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   UpdateExt();
 }
 
-WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote()
+WiimoteEmu::WiimoteBase* WiiTASInputWindow::GetWiimote()
 {
-  return static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(m_num));
-}
-
-ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments()
-{
-  return static_cast<ControllerEmu::Attachments*>(
-      GetWiimote()->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments));
+  return static_cast<WiimoteEmu::WiimoteBase*>(Wiimote::GetConfig()->GetController(m_num));
 }
 
 WiimoteEmu::Extension* WiiTASInputWindow::GetExtension()
 {
-  return static_cast<WiimoteEmu::Extension*>(
-      GetAttachments()->GetAttachmentList()[m_active_extension].get());
+  return GetWiimote()->GetActiveExtension();
 }
 
 void WiiTASInputWindow::UpdateExt()
@@ -568,7 +561,7 @@ void WiiTASInputWindow::hideEvent(QHideEvent* event)
 
 void WiiTASInputWindow::showEvent(QShowEvent* event)
 {
-  WiimoteEmu::Wiimote* wiimote = GetWiimote();
+  WiimoteEmu::WiimoteBase* wiimote = GetWiimote();
 
   if (m_active_extension != WiimoteEmu::ExtensionNumber::CLASSIC)
     wiimote->SetInputOverrideFunction(m_wiimote_overrider.GetInputOverrideFunction());

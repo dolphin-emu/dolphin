@@ -17,13 +17,8 @@ class TASSpinBox;
 namespace WiimoteEmu
 {
 class Extension;
-class Wiimote;
+class WiimoteBase;
 }  // namespace WiimoteEmu
-
-namespace ControllerEmu
-{
-class Attachments;
-}
 
 class WiiTASInputWindow : public TASInputWindow
 {
@@ -35,8 +30,7 @@ public:
   void showEvent(QShowEvent* event) override;
 
 private:
-  WiimoteEmu::Wiimote* GetWiimote();
-  ControllerEmu::Attachments* GetAttachments();
+  WiimoteEmu::WiimoteBase* GetWiimote();
   WiimoteEmu::Extension* GetExtension();
 
   void UpdateExt();

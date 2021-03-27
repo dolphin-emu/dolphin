@@ -42,6 +42,7 @@ public:
     MAPPING_GC_MICROPHONE,
     // Wii
     MAPPING_WIIMOTE_EMU,
+    MAPPING_BALANCE_BOARD_EMU,
     // Hotkeys
     MAPPING_HOTKEYS,
     // Freelook

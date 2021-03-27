@@ -32,7 +32,7 @@ enum class ShinkansenGroup;
 enum class BalanceBoardGroup;
 }  // namespace WiimoteEmu
 
-enum
+enum : u8
 {
   WIIMOTE_CHAN_0 = 0,
   WIIMOTE_CHAN_1,

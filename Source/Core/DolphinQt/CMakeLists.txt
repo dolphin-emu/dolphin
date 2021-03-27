@@ -110,6 +110,8 @@ add_executable(dolphin-emu
   Config/LogConfigWidget.h
   Config/LogWidget.cpp
   Config/LogWidget.h
+  Config/Mapping/BalanceBoardGeneral.cpp
+  Config/Mapping/BalanceBoardGeneral.h
   Config/Mapping/FreeLookGeneral.cpp
   Config/Mapping/FreeLookGeneral.h
   Config/Mapping/FreeLookRotation.cpp
