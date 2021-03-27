@@ -195,8 +195,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 
     default:
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_XF_COMMAND);
-      if (newValue != 0)  // Ignore writes of zero.
-        WARN_LOG_FMT(VIDEO, "Unknown XF Reg: {:x}={:x}", address, newValue);
+      WARN_LOG_FMT(VIDEO, "Unknown XF Reg: {:x}={:x}", address, newValue);
       break;
     }
 
