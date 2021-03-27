@@ -68,15 +68,11 @@ constexpr std::array<std::string_view, 7> named_buttons{
     "A", "B", "1", "2", "-", "+", "Home",
 };
 
-void Wiimote::Reset()
+void WiimoteBase::Reset()
 {
-  SetRumble(false);
-
   // Wiimote starts in non-continuous CORE mode:
   m_reporting_mode = InputReportID::ReportCore;
   m_reporting_continuous = false;
-
-  m_speaker_mute = false;
 
   // EEPROM
   std::string eeprom_file = (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin");
@@ -101,7 +97,63 @@ void Wiimote::Reset()
     file.read(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
     file.close();
   }
-  else if (m_index != WIIMOTE_BALANCE_BOARD)
+  else
+  {
+    LoadDefaultEeprom();
+  }
+
+  m_read_request = {};
+
+  // Initialize i2c bus:
+  m_i2c_bus.Reset();
+
+  // Reset extension connections to NONE:
+  m_is_motion_plus_attached = false;
+  m_active_extension = ExtensionNumber::NONE;
+  m_extension_port.AttachExtension(GetNoneExtension());
+  m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+
+  // Switch to desired M+ status and extension (if any).
+  // M+ and EXT are reset on attachment.
+  // This also ensures that the balance board extension is attached if needed.
+  HandleExtensionSwap();
+
+  m_status = {};
+  // This will suppress a status report on connect when an extension is already attached.
+  // TODO: I am not 100% sure if this is proper.
+  m_status.extension = m_extension_port.IsDeviceConnected();
+}
+
+void Wiimote::Reset()
+{
+  SetRumble(false);
+  m_speaker_mute = false;
+
+  WiimoteBase::Reset();
+
+  // Initialize i2c bus:
+  if (m_index != WIIMOTE_BALANCE_BOARD)
+  {
+    m_i2c_bus.AddSlave(&m_speaker_logic);
+    m_i2c_bus.AddSlave(&m_camera_logic);
+  }
+
+  // Reset sub-devices.
+  m_speaker_logic.Reset();
+  m_camera_logic.Reset();
+
+  // Dynamics:
+  m_swing_state = {};
+  m_tilt_state = {};
+  m_point_state = {};
+  m_shake_state = {};
+
+  m_imu_cursor_state = {};
+}
+
+void Wiimote::LoadDefaultEeprom()
+{
+  if (m_index != WIIMOTE_BALANCE_BOARD)
   {
     // Load some default data.
     // Note that the balance board starts with all-0 EEPROM, while regular remotes have some data.
@@ -160,47 +212,9 @@ void Wiimote::Reset()
       file.close();
     }
   }
-
-  m_read_request = {};
-
-  // Initialize i2c bus:
-  m_i2c_bus.Reset();
-  if (m_index != WIIMOTE_BALANCE_BOARD)
-  {
-    m_i2c_bus.AddSlave(&m_speaker_logic);
-    m_i2c_bus.AddSlave(&m_camera_logic);
-  }
-
-  // Reset extension connections to NONE:
-  m_is_motion_plus_attached = false;
-  m_active_extension = ExtensionNumber::NONE;
-  m_extension_port.AttachExtension(GetNoneExtension());
-  m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
-
-  // Switch to desired M+ status and extension (if any).
-  // M+ and EXT are reset on attachment.
-  // This also ensures that the balance board extension is attached if needed.
-  HandleExtensionSwap();
-
-  // Reset sub-devices.
-  m_speaker_logic.Reset();
-  m_camera_logic.Reset();
-
-  m_status = {};
-  // This will suppress a status report on connect when an extension is already attached.
-  // TODO: I am not 100% sure if this is proper.
-  m_status.extension = m_extension_port.IsDeviceConnected();
-
-  // Dynamics:
-  m_swing_state = {};
-  m_tilt_state = {};
-  m_point_state = {};
-  m_shake_state = {};
-
-  m_imu_cursor_state = {};
 }
 
-Wiimote::Wiimote(const unsigned int index) : m_index(index)
+Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
 {
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -408,7 +422,7 @@ ControllerEmu::ControlGroup* Wiimote::GetBalanceBoardGroup(BalanceBoardGroup gro
       ->GetGroup(group);
 }
 
-bool Wiimote::ProcessExtensionPortEvent()
+bool WiimoteBase::ProcessExtensionPortEvent()
 {
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
   // data reporting is disabled and the Data Reporting Mode must be reset before new data can
@@ -436,24 +450,8 @@ void Wiimote::UpdateButtonsStatus()
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
-void Wiimote::Update()
+void WiimoteBase::Update()
 {
-  const auto lock = GetStateLock();
-
-  // Hotkey / settings modifier
-  // Data is later accessed in IsSideways and IsUpright
-  m_hotkeys->UpdateState();
-
-  // Update our motion simulations.
-  StepDynamics();
-
-  // Update buttons in the status struct which is sent in 99% of input reports.
-  // FYI: Movies only sync button updates in data reports.
-  if (!Core::WantsDeterminism())
-  {
-    UpdateButtonsStatus();
-  }
-
   // If a new extension is requested in the GUI the change will happen here.
   HandleExtensionSwap();
 
@@ -487,7 +485,32 @@ void Wiimote::Update()
   SendDataReport();
 }
 
-void Wiimote::SendDataReport()
+void Wiimote::Update()
+{
+  const auto lock = GetStateLock();
+
+  // Hotkey / settings modifier
+  // Data is later accessed in IsSideways and IsUpright
+  m_hotkeys->UpdateState();
+
+  // Update our motion simulations.
+  StepDynamics();
+
+  m_camera_logic.Update(GetTotalTransformation(),
+                        Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+                            float(MathUtil::TAU));
+
+  // Update buttons in the status struct which is sent in 99% of input reports.
+  // FYI: Movies only sync button updates in data reports.
+  if (!Core::WantsDeterminism())
+  {
+    UpdateButtonsStatus();
+  }
+
+  WiimoteBase::Update();
+}
+
+void WiimoteBase::SendDataReport()
 {
   Movie::SetPolledDevice();
 
@@ -538,12 +561,6 @@ void Wiimote::SendDataReport()
     // IR Camera:
     if (rpt_builder.HasIR())
     {
-      // Note: Camera logic currently contains no changing state so we can just update it here.
-      // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation(),
-                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
-                                360 * float(MathUtil::TAU));
-
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
           CameraLogic::REPORT_DATA_OFFSET + rpt_builder.GetIRDataFormatOffset();
@@ -694,17 +711,17 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
 }
 
-Extension* Wiimote::GetNoneExtension() const
+Extension* WiimoteBase::GetNoneExtension() const
 {
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
 }
 
-Extension* Wiimote::GetActiveExtension() const
+Extension* WiimoteBase::GetActiveExtension() const
 {
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
 }
 
-EncryptionKey Wiimote::GetExtensionEncryptionKey() const
+EncryptionKey WiimoteBase::GetExtensionEncryptionKey() const
 {
   if (ExtensionNumber::NONE == GetActiveExtensionNumber())
     return {};

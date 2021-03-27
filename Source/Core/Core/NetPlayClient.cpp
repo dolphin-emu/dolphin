@@ -2495,7 +2495,8 @@ bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int pad_num, GCPa
   return false;
 }
 
-bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode)
+bool WiimoteEmu::WiimoteBase::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size,
+                                                     u8 reporting_mode)
 {
   std::lock_guard lk(NetPlay::crit_netplay_client);
 

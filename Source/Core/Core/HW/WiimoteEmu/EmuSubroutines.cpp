@@ -24,7 +24,7 @@ namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
 
-void Wiimote::HandleReportMode(const OutputReportMode& dr)
+void WiimoteBase::HandleReportMode(const OutputReportMode& dr)
 {
   if (!DataReportBuilder::IsValidMode(dr.mode))
   {
@@ -46,7 +46,8 @@ void Wiimote::HandleReportMode(const OutputReportMode& dr)
 
 // Tests that we have enough bytes for the report before we run the handler.
 template <typename T, typename H>
-void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size)
+void WiimoteBase::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt,
+                                u32 size)
 {
   if (size < sizeof(T))
   {
@@ -57,17 +58,17 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
   (this->*handler)(Common::BitCastPtr<T>(rpt.data));
 }
 
-void Wiimote::EventLinked()
+void WiimoteBase::EventLinked()
 {
   Reset();
 }
 
-void Wiimote::EventUnlinked()
+void WiimoteBase::EventUnlinked()
 {
   Reset();
 }
 
-void Wiimote::InterruptDataOutput(const u8* data, u32 size)
+void WiimoteBase::InterruptDataOutput(const u8* data, u32 size)
 {
   if (size == 0)
   {
@@ -86,7 +87,7 @@ void Wiimote::InterruptDataOutput(const u8* data, u32 size)
 
   // WiiBrew:
   // In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
-  InvokeHandler<OutputReportRumble>(&Wiimote::HandleReportRumble, rpt, rpt_size);
+  InvokeHandler<OutputReportRumble>(&WiimoteBase::HandleReportRumble, rpt, rpt_size);
 
   switch (rpt.rpt_id)
   {
@@ -94,34 +95,34 @@ void Wiimote::InterruptDataOutput(const u8* data, u32 size)
     // This is handled above.
     break;
   case OutputReportID::LED:
-    InvokeHandler<OutputReportLeds>(&Wiimote::HandleReportLeds, rpt, rpt_size);
+    InvokeHandler<OutputReportLeds>(&WiimoteBase::HandleReportLeds, rpt, rpt_size);
     break;
   case OutputReportID::ReportMode:
-    InvokeHandler<OutputReportMode>(&Wiimote::HandleReportMode, rpt, rpt_size);
+    InvokeHandler<OutputReportMode>(&WiimoteBase::HandleReportMode, rpt, rpt_size);
     break;
   case OutputReportID::IRLogicEnable:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable, rpt, rpt_size);
+    InvokeHandler<OutputReportEnableFeature>(&WiimoteBase::HandleIRLogicEnable, rpt, rpt_size);
     break;
   case OutputReportID::SpeakerEnable:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerEnable, rpt, rpt_size);
+    InvokeHandler<OutputReportEnableFeature>(&WiimoteBase::HandleSpeakerEnable, rpt, rpt_size);
     break;
   case OutputReportID::RequestStatus:
-    InvokeHandler<OutputReportRequestStatus>(&Wiimote::HandleRequestStatus, rpt, rpt_size);
+    InvokeHandler<OutputReportRequestStatus>(&WiimoteBase::HandleRequestStatus, rpt, rpt_size);
     break;
   case OutputReportID::WriteData:
-    InvokeHandler<OutputReportWriteData>(&Wiimote::HandleWriteData, rpt, rpt_size);
+    InvokeHandler<OutputReportWriteData>(&WiimoteBase::HandleWriteData, rpt, rpt_size);
     break;
   case OutputReportID::ReadData:
-    InvokeHandler<OutputReportReadData>(&Wiimote::HandleReadData, rpt, rpt_size);
+    InvokeHandler<OutputReportReadData>(&WiimoteBase::HandleReadData, rpt, rpt_size);
     break;
   case OutputReportID::SpeakerData:
-    InvokeHandler<OutputReportSpeakerData>(&Wiimote::HandleSpeakerData, rpt, rpt_size);
+    InvokeHandler<OutputReportSpeakerData>(&WiimoteBase::HandleSpeakerData, rpt, rpt_size);
     break;
   case OutputReportID::SpeakerMute:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerMute, rpt, rpt_size);
+    InvokeHandler<OutputReportEnableFeature>(&WiimoteBase::HandleSpeakerMute, rpt, rpt_size);
     break;
   case OutputReportID::IRLogicEnable2:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable2, rpt, rpt_size);
+    InvokeHandler<OutputReportEnableFeature>(&WiimoteBase::HandleIRLogicEnable2, rpt, rpt_size);
     break;
   default:
     PanicAlertFmt("HidOutputReport: Unknown report ID {:#04x}", rpt.rpt_id);
@@ -129,7 +130,7 @@ void Wiimote::InterruptDataOutput(const u8* data, u32 size)
   }
 }
 
-void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
+void WiimoteBase::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 {
   TypedInputData<InputReportAck> rpt(InputReportID::Ack);
   auto& ack = rpt.payload;
@@ -254,7 +255,7 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 }
 
-void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
+void WiimoteBase::HandleWriteData(const OutputReportWriteData& wd)
 {
   if (m_read_request.size)
   {
@@ -403,7 +404,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
   // More investigation is needed.
 }
 
-void Wiimote::HandleReadData(const OutputReportReadData& rd)
+void WiimoteBase::HandleReadData(const OutputReportReadData& rd)
 {
   if (m_read_request.size)
   {
@@ -433,7 +434,7 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   // FYI: No "ACK" is sent under normal situations.
 }
 
-bool Wiimote::ProcessReadDataRequest()
+bool WiimoteBase::ProcessReadDataRequest()
 {
   // Limit the amt to 16 bytes
   // AyuanX: the MTU is 640B though... what a waste!
@@ -547,29 +548,17 @@ bool Wiimote::ProcessReadDataRequest()
   return true;
 }
 
-void Wiimote::DoState(PointerWrap& p)
+void WiimoteBase::DoState(PointerWrap& p)
 {
   // No need to sync. Index will not change.
   // p.Do(m_index);
 
-  // No need to sync. This is not wiimote state.
-  // p.Do(m_sensor_bar_on_top);
-
   p.Do(m_reporting_mode);
   p.Do(m_reporting_continuous);
-
-  p.Do(m_speaker_mute);
 
   p.Do(m_status);
   p.Do(m_eeprom);
   p.Do(m_read_request);
-
-  // Sub-devices:
-  m_speaker_logic.DoState(p);
-  m_camera_logic.DoState(p);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    m_camera_logic.SetEnabled(m_status.ir);
 
   p.Do(m_is_motion_plus_attached);
   p.Do(m_active_extension);
@@ -585,6 +574,22 @@ void Wiimote::DoState(PointerWrap& p)
   if (m_active_extension != ExtensionNumber::NONE)
     GetActiveExtension()->DoState(p);
 
+  p.DoMarker("WiimoteBase");
+}
+
+void Wiimote::DoState(PointerWrap& p)
+{
+  WiimoteBase::DoState(p);
+
+  p.Do(m_speaker_mute);
+
+  // Sub-devices:
+  m_speaker_logic.DoState(p);
+  m_camera_logic.DoState(p);
+
+  if (p.GetMode() == PointerWrap::MODE_READ)
+    m_camera_logic.SetEnabled(m_status.ir);
+
   // Dynamics
   p.Do(m_swing_state);
   p.Do(m_tilt_state);
@@ -595,11 +600,6 @@ void Wiimote::DoState(PointerWrap& p)
   // (m_imu_cursor_state)
 
   p.DoMarker("Wiimote");
-}
-
-ExtensionNumber Wiimote::GetActiveExtensionNumber() const
-{
-  return m_active_extension;
 }
 
 }  // namespace WiimoteEmu
