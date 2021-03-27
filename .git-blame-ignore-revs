@@ -9,3 +9,17 @@
 
 # Reformat Android code
 248ee12aed057acd0bdd310359c328e8d4fd5e5a
+
+# Enum and struct indentation cleanup
+40182a48a56b8e294e126c64f5f37910a40c67cd
+ebb48d019eec1c29a37a406e2db16d7565367faa
+
+# SVN line-ending conversion
+30c883bcfc65761dc9fb61fea16a25fb61a7e220
+
+# Trailing whitespace
+c579637eafb9e9eb7f83711569254bd8da6d09d2
+664c8d30a055f4762a2a60be77c1c8eaec1a5d85
+
+# Additional reformatting
+40bb9974f21878e64fb03d70e717cb996bf13a29
