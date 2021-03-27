@@ -4,6 +4,9 @@
 #include "Core\ConfigManager.h"
 
 int win_x = 0, win_y = 0;
+// UNUSED -- Intended for XInput2
+int win_w, win_h;
+void* win_hdl;
 
 namespace prime
 {
