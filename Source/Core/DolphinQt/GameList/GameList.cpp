@@ -685,7 +685,7 @@ bool GameList::AddShortcutToDesktop()
   if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop)))
     return false;
 
-  std::string game_name = game->GetLongName();
+  std::string game_name = game->GetName(Core::TitleDatabase());
   // Sanitize the string by removing all characters that cannot be used in NTFS file names
   game_name.erase(std::remove_if(game_name.begin(), game_name.end(),
                                  [](char ch) {
