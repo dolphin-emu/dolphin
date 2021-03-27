@@ -131,26 +131,22 @@ void GetProfileResults(Profiler::ProfileStats* prof_stats)
   prof_stats->timecost_sum = 0;
   prof_stats->block_stats.clear();
 
-  Core::State old_state = Core::GetState();
-  if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Paused);
+  Core::RunAsCPUThread([&prof_stats] {
+    QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
+    g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
+      const auto& data = block.profile_data;
+      u64 cost = data.downcountCounter;
+      u64 timecost = data.ticCounter;
+      // Todo: tweak.
+      if (data.runCount >= 1)
+        prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
+                                             block.codeSize);
+      prof_stats->cost_sum += cost;
+      prof_stats->timecost_sum += timecost;
+    });
 
-  QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-  g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
-    const auto& data = block.profile_data;
-    u64 cost = data.downcountCounter;
-    u64 timecost = data.ticCounter;
-    // Todo: tweak.
-    if (data.runCount >= 1)
-      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, data.runCount,
-                                           block.codeSize);
-    prof_stats->cost_sum += cost;
-    prof_stats->timecost_sum += timecost;
+    sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
   });
-
-  sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
-  if (old_state == Core::State::Running)
-    Core::SetState(Core::State::Running);
 }
 
 int GetHostCode(u32* address, const u8** code, u32* code_size)
