@@ -325,7 +325,13 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
   {
   case MATINDEX_A:
     if (sub_cmd != MATINDEX_A)
+    {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+      WARN_LOG_FMT(VIDEO,
+                   "CP MATINDEX_A: an exact value of {:02x} was expected "
+                   "but instead a value of {:02x} was seen",
+                   MATINDEX_A, sub_cmd);
+    }
 
     if (update_global_state)
       VertexShaderManager::SetTexMatrixChangedA(value);
@@ -333,7 +339,13 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   case MATINDEX_B:
     if (sub_cmd != MATINDEX_B)
+    {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+      WARN_LOG_FMT(VIDEO,
+                   "CP MATINDEX_B: an exact value of {:02x} was expected "
+                   "but instead a value of {:02x} was seen",
+                   MATINDEX_B, sub_cmd);
+    }
 
     if (update_global_state)
       VertexShaderManager::SetTexMatrixChangedB(value);
@@ -341,7 +353,13 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   case VCD_LO:
     if (sub_cmd != VCD_LO)  // Stricter than YAGCD
+    {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+      WARN_LOG_FMT(VIDEO,
+                   "CP VCD_LO: an exact value of {:02x} was expected "
+                   "but instead a value of {:02x} was seen",
+                   VCD_LO, sub_cmd);
+    }
 
     state->vtx_desc.low.Hex = value;
     state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
@@ -350,7 +368,13 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   case VCD_HI:
     if (sub_cmd != VCD_HI)  // Stricter than YAGCD
+    {
       DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_MAYBE_INVALID_CP_COMMAND);
+      WARN_LOG_FMT(VIDEO,
+                   "CP VCD_HI: an exact value of {:02x} was expected "
+                   "but instead a value of {:02x} was seen",
+                   VCD_HI, sub_cmd);
+    }
 
     state->vtx_desc.high.Hex = value;
     state->attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
