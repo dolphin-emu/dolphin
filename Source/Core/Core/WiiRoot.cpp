@@ -202,11 +202,16 @@ void InitializeWiiRoot(bool use_temporary)
 
 void ShutdownWiiRoot()
 {
-  if (!s_temp_wii_root.empty())
+  if (WiiRootIsTemporary())
   {
     File::DeleteDirRecursively(s_temp_wii_root);
     s_temp_wii_root.clear();
   }
+}
+
+bool WiiRootIsTemporary()
+{
+  return !s_temp_wii_root.empty();
 }
 
 void BackupWiiSettings()
@@ -282,7 +287,7 @@ void InitializeWiiFileSystemContents()
   if (!CopySysmenuFilesToFS(fs.get(), File::GetSysDirectory() + WII_USER_DIR, ""))
     WARN_LOG_FMT(CORE, "Failed to copy initial System Menu files to the NAND");
 
-  if (s_temp_wii_root.empty())
+  if (!WiiRootIsTemporary())
     return;
 
   // Generate a SYSCONF with default settings for the temporary Wii NAND.
@@ -294,7 +299,7 @@ void InitializeWiiFileSystemContents()
 
 void CleanUpWiiFileSystemContents()
 {
-  if (s_temp_wii_root.empty() || !SConfig::GetInstance().bEnableMemcardSdWriting ||
+  if (!WiiRootIsTemporary() || !SConfig::GetInstance().bEnableMemcardSdWriting ||
       NetPlay::GetWiiSyncFS())
   {
     return;
