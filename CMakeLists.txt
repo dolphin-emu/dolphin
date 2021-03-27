@@ -299,13 +299,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
 
-  # Set -fno-objc-exceptions, for consistency with -fno-exceptions earlier.
+  # Set FMT_EXCEPTIONS = 0, for consistency with -fno-exceptions earlier.
   # If we set only -fno-exceptions, fmt fails to compile when included from
   # Objective-C++ because fmt tries try to use throw because __EXCEPTIONS is defined.
-  #
-  # TODO: Only enable this for Objective-C(++).
-  # We get warnings if we enable this when building regular C(++) code.
-  check_and_add_flag(NO_OBJC_EXCEPTIONS -fno-objc-exceptions)
+  add_definitions(-DFMT_EXCEPTIONS=0)
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
