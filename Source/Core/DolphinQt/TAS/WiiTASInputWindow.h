@@ -17,13 +17,8 @@ class TASSpinBox;
 namespace WiimoteEmu
 {
 class Extension;
-class Wiimote;
+class WiimoteBase;
 }  // namespace WiimoteEmu
-
-namespace ControllerEmu
-{
-class Attachments;
-}
 
 class WiiTASInputWindow : public TASInputWindow
 {
@@ -38,8 +33,7 @@ public:
   void UpdateMotionPlus(bool attached);
 
 private:
-  WiimoteEmu::Wiimote* GetWiimote();
-  ControllerEmu::Attachments* GetAttachments();
+  WiimoteEmu::WiimoteBase* GetWiimote();
   WiimoteEmu::Extension* GetExtension();
 
   void LoadExtensionAndMotionPlus();

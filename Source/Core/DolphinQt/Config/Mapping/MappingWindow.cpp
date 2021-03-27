@@ -24,6 +24,7 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "DolphinQt/Config/Mapping/BalanceBoardGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
 #include "DolphinQt/Config/Mapping/GBAPadEmu.h"
@@ -446,6 +447,13 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
         AddWidget(EXTENSION_MOTION_INPUT_TAB_NAME, extension_motion_input);
     // Hide tabs by default. "Nunchuk" selection triggers an event to show them.
     ShowExtensionMotionTabs(false);
+    break;
+  }
+  case Type::MAPPING_BALANCE_BOARD_EMU:
+  {
+    widget = new BalanceBoardGeneral(this);
+    setWindowTitle(tr("Balance Board"));
+    AddWidget(tr("General and Options"), widget);
     break;
   }
   case Type::MAPPING_HOTKEYS:

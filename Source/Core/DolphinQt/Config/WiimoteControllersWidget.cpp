@@ -260,7 +260,10 @@ void WiimoteControllersWidget::OnWiimoteConfigure(size_t index)
   case 2:  // Real Wii Remote
     return;
   case 1:  // Emulated Wii Remote
-    type = MappingWindow::Type::MAPPING_WIIMOTE_EMU;
+    if (index == WIIMOTE_BALANCE_BOARD)
+      type = MappingWindow::Type::MAPPING_BALANCE_BOARD_EMU;
+    else
+      type = MappingWindow::Type::MAPPING_WIIMOTE_EMU;
     break;
   default:
     return;

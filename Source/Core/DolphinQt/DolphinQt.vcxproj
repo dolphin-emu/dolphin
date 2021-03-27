@@ -90,6 +90,7 @@
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
+    <ClCompile Include="Config\Mapping\BalanceBoardGeneral.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookRotation.cpp" />
     <ClCompile Include="Config\Mapping\GBAPadEmu.cpp" />
@@ -313,6 +314,7 @@
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
+    <QtMoc Include="Config\Mapping\BalanceBoardGeneral.h" />
     <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
     <QtMoc Include="Config\Mapping\FreeLookRotation.h" />
     <QtMoc Include="Config\Mapping\GBAPadEmu.h" />

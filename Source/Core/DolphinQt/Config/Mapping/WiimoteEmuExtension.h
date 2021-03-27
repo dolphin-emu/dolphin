@@ -34,7 +34,6 @@ private:
   void CreateDrawsomeTabletLayout();
   void CreateTaTaConLayout();
   void CreateShinkansenLayout();
-  void CreateBalanceBoardLayout();
   void CreateMainLayout();
 
   // Main
@@ -49,5 +48,4 @@ private:
   QGroupBox* m_drawsome_tablet_box;
   QGroupBox* m_tatacon_box;
   QGroupBox* m_shinkansen_box;
-  QGroupBox* m_balance_board_box;
 };

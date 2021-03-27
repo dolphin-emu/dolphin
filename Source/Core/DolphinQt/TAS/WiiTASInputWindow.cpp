@@ -432,21 +432,14 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   setLayout(layout);
 }
 
-WiimoteEmu::Wiimote* WiiTASInputWindow::GetWiimote()
+WiimoteEmu::WiimoteBase* WiiTASInputWindow::GetWiimote()
 {
-  return static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(m_num));
-}
-
-ControllerEmu::Attachments* WiiTASInputWindow::GetAttachments()
-{
-  return static_cast<ControllerEmu::Attachments*>(
-      GetWiimote()->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments));
+  return static_cast<WiimoteEmu::WiimoteBase*>(Wiimote::GetConfig()->GetController(m_num));
 }
 
 WiimoteEmu::Extension* WiiTASInputWindow::GetExtension()
 {
-  return static_cast<WiimoteEmu::Extension*>(
-      GetAttachments()->GetAttachmentList()[m_active_extension].get());
+  return GetWiimote()->GetActiveExtension();
 }
 
 void WiiTASInputWindow::UpdateExtension(const int extension)
@@ -473,7 +466,7 @@ void WiiTASInputWindow::UpdateMotionPlus(const bool attached)
 
 void WiiTASInputWindow::LoadExtensionAndMotionPlus()
 {
-  WiimoteEmu::Wiimote* const wiimote = GetWiimote();
+  WiimoteEmu::WiimoteBase* const wiimote = GetWiimote();
 
   if (Core::IsRunning(Core::System::GetInstance()))
   {
@@ -514,7 +507,7 @@ void WiiTASInputWindow::LoadExtensionAndMotionPlus()
         QueueOnObject(this, [this, attached] { UpdateMotionPlus(attached); });
       });
   m_attachment_callback_id =
-      GetAttachments()->GetAttachmentSetting().AddCallback([this](const int extension_index) {
+      wiimote->GetAttachmentSetting().AddCallback([this](const int extension_index) {
         QueueOnObject(this, [this, extension_index] { UpdateExtension(extension_index); });
       });
 }
@@ -606,13 +599,13 @@ void WiiTASInputWindow::UpdateControlVisibility()
 
 void WiiTASInputWindow::hideEvent(QHideEvent* const event)
 {
-  WiimoteEmu::Wiimote* const wiimote = GetWiimote();
+  WiimoteEmu::WiimoteBase* const wiimote = GetWiimote();
 
   wiimote->ClearInputOverrideFunction();
   wiimote->GetMotionPlusSetting().RemoveCallback(m_motion_plus_callback_id);
 
   GetExtension()->ClearInputOverrideFunction();
-  GetAttachments()->GetAttachmentSetting().RemoveCallback(m_attachment_callback_id);
+  wiimote->GetAttachmentSetting().RemoveCallback(m_attachment_callback_id);
 
   TASInputWindow::hideEvent(event);
 }
@@ -626,7 +619,7 @@ void WiiTASInputWindow::showEvent(QShowEvent* const event)
 
 void WiiTASInputWindow::UpdateInputOverrideFunction()
 {
-  WiimoteEmu::Wiimote* const wiimote = GetWiimote();
+  WiimoteEmu::WiimoteBase* const wiimote = GetWiimote();
 
   if (m_active_extension != WiimoteEmu::ExtensionNumber::CLASSIC)
     wiimote->SetInputOverrideFunction(m_wiimote_overrider.GetInputOverrideFunction());

@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <cstring>
 
 #include <zlib.h>
@@ -20,30 +19,22 @@
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
 
 namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> balance_board_id{{0x00, 0x00, 0xa4, 0x20, 0x04, 0x02}};
 
-BalanceBoardExt::BalanceBoardExt() : Extension1stParty("BalanceBoard", _trans("Balance Board"))
+BalanceBoardExt::BalanceBoardExt(BalanceBoard* owner)
+    : Extension1stParty("BalanceBoard", _trans("Balance Board")), m_owner(owner)
 {
-  // balance
-  groups.emplace_back(
-      m_balance = new ControllerEmu::AnalogStick(
-          _trans("Balance"), std::make_unique<ControllerEmu::SquareStickGate>(1.0)));
-  groups.emplace_back(m_weight = new ControllerEmu::Triggers(_trans("Weight")));
-  m_weight->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::Translatability::Translate, _trans("Weight")));
 }
 
 void BalanceBoardExt::BuildDesiredExtensionState(DesiredExtensionState* target_state)
 {
-  const ControllerEmu::AnalogStick::StateData balance_state = m_balance->GetState();
-  const ControllerEmu::Triggers::StateData weight_state = m_weight->GetState();
+  const ControllerEmu::AnalogStick::StateData balance_state = m_owner->m_balance->GetState();
+  const ControllerEmu::Triggers::StateData weight_state = m_owner->m_weight->GetState();
   const auto weight = weight_state.data[0];
 
   const double total_weight = DEFAULT_WEIGHT * weight;  // kilograms
@@ -110,35 +101,9 @@ void BalanceBoardExt::Reset()
   ComputeCalibrationChecksum();
 }
 
-ControllerEmu::ControlGroup* BalanceBoardExt::GetGroup(BalanceBoardGroup group)
-{
-  switch (group)
-  {
-  case BalanceBoardGroup::Balance:
-    return m_balance;
-  case BalanceBoardGroup::Weight:
-    return m_weight;
-  default:
-    assert(false);
-    return nullptr;
-  }
-}
-
 void BalanceBoardExt::DoState(PointerWrap& p)
 {
   EncryptedExtension::DoState(p);
-}
-
-void BalanceBoardExt::LoadDefaults(const ControllerInterface& ciface)
-{
-  // Balance
-  m_balance->SetControlExpression(0, "I");  // up
-  m_balance->SetControlExpression(1, "K");  // down
-  m_balance->SetControlExpression(2, "J");  // left
-  m_balance->SetControlExpression(3, "L");  // right
-
-  // Because our defaults use keyboard input, set calibration shape to a square.
-  m_balance->SetCalibrationFromGate(ControllerEmu::SquareStickGate(.5));
 }
 
 u16 BalanceBoardExt::ConvertToSensorWeight(double weight_in_kilos)
