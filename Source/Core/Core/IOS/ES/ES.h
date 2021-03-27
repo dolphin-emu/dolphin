@@ -43,8 +43,11 @@ class ESDevice final : public Device
 public:
   ESDevice(Kernel& ios, const std::string& device_name);
 
+  static void InitializeEmulationState();
+  static void FinalizeEmulationState();
+
   ReturnCode DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
-  bool LaunchTitle(u64 title_id, bool skip_reload = false);
+  bool LaunchTitle(u64 title_id, HangPPC hang_ppc = HangPPC::No);
 
   void DoState(PointerWrap& p) override;
 
@@ -343,8 +346,8 @@ private:
   ContextArray::iterator FindActiveContext(s32 fd);
   ContextArray::iterator FindInactiveContext();
 
-  bool LaunchIOS(u64 ios_title_id);
-  bool LaunchPPCTitle(u64 title_id, bool skip_reload);
+  bool LaunchIOS(u64 ios_title_id, HangPPC hang_ppc);
+  bool LaunchPPCTitle(u64 title_id);
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
@@ -364,7 +367,13 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
+  void FinishInit();
+
   std::string GetContentPath(u64 title_id, const ES::Content& content, Ticks ticks = {}) const;
+
+  s32 WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks = {});
+  s32 WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks = {});
+  bool BootstrapPPC();
 
   struct OpenedContent
   {
@@ -380,5 +389,6 @@ private:
 
   ContextArray m_contexts;
   TitleContext m_title_context{};
+  std::string m_pending_ppc_boot_content_path;
 };
 }  // namespace IOS::HLE

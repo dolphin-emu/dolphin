@@ -706,19 +706,23 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
   if (Core::IsRunning())
-  {
-    // TODO: have a callback mechanism for title changes?
-    if (!g_symbolDB.IsEmpty())
-    {
-      g_symbolDB.Clear();
-      Host_NotifyMapLoaded();
-    }
-    CBoot::LoadMapFromFilename();
-    HLE::Reload();
-    PatchEngine::Reload();
-    HiresTexture::Update();
     DolphinAnalytics::Instance().ReportGameStart();
+}
+
+void SConfig::OnNewTitleLoad()
+{
+  if (!Core::IsRunning())
+    return;
+
+  if (!g_symbolDB.IsEmpty())
+  {
+    g_symbolDB.Clear();
+    Host_NotifyMapLoaded();
   }
+  CBoot::LoadMapFromFilename();
+  HLE::Reload();
+  PatchEngine::Reload();
+  HiresTexture::Update();
 }
 
 void SConfig::LoadDefaults()
