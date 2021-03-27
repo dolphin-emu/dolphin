@@ -69,6 +69,9 @@ enum class GameQuirk
   USES_UNKNOWN_XF_COMMAND,
   // YAGCD and Dolphin's implementation disagree about what is valid in some cases
   USES_MAYBE_INVALID_CP_COMMAND,
+  // These commands are used by a few games (e.g. bug 12461), and seem to relate to perf queries.
+  // Track them separately.
+  USES_CP_PERF_COMMAND,
 
   COUNT,
 };

@@ -323,6 +323,18 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
   CPState* state = is_preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
   switch (sub_cmd & CP_COMMAND_MASK)
   {
+  case UNKNOWN_00:
+  case UNKNOWN_10:
+  case UNKNOWN_20:
+    if (!(sub_cmd == UNKNOWN_20 && value == 0))
+    {
+      // All titles using libogc or the official SDK issue 0x20 with value=0 on startup
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_CP_PERF_COMMAND);
+      DEBUG_LOG_FMT(VIDEO, "Unknown CP command possibly relating to perf queries used: {:02x}",
+                    sub_cmd);
+    }
+    break;
+
   case MATINDEX_A:
     if (sub_cmd != MATINDEX_A)
     {

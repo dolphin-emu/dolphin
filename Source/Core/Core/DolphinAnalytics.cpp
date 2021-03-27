@@ -133,7 +133,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 18> GAME_QUIRKS_NAMES{
+constexpr std::array<const char*, 19> GAME_QUIRKS_NAMES{
     "icache-matters",
     "directly-reads-wiimote-input",
     "uses-DVDLowStopLaser",
@@ -152,6 +152,7 @@ constexpr std::array<const char*, 18> GAME_QUIRKS_NAMES{
     "uses-unknown-cp-command",
     "uses-unknown-xf-command",
     "uses-maybe-invalid-cp-command",
+    "uses-cp-perf-command",
 };
 static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
               "Game quirks names and enum definition are out of sync.");
