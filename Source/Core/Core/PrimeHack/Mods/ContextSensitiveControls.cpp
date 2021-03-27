@@ -2,7 +2,7 @@
 
 #include "Core/PrimeHack/PrimeUtils.h"
 #include "Core/PrimeHack/HackConfig.h"
-#pragma optimize("", off)
+
 namespace prime {
 
 void ContextSensitiveControls::run_mod(Game game, Region region) {
