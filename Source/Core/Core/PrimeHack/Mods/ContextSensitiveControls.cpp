@@ -2,7 +2,7 @@
 
 #include "Core/PrimeHack/PrimeUtils.h"
 #include "Core/PrimeHack/HackConfig.h"
-
+#pragma optimize("", off)
 namespace prime {
 
 void ContextSensitiveControls::run_mod(Game game, Region region) {
@@ -18,7 +18,7 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
   LOOKUP(motion_vf);
   u32 obj_list_iterator = object_list + 4;
 
-  for (int i = 0; i < 1024; i++) {
+  for (int i = 0; i < 2048; i++) {
     u32 entity = read32(obj_list_iterator);
     u32 entity_flags = read32(entity + 0x38);
 
