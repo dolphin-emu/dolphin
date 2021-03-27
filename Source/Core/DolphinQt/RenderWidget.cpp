@@ -175,6 +175,9 @@ bool RenderWidget::event(QEvent* event)
 
     // Window Centre for PrimeHack mouselock.
     SET_RENDER_CENTRE((pos().x() + (size().width() / 2)), (pos().y() + (size().height() / 2)));
+    win_w = size().width() / 2;
+    win_h = size().height() / 2;
+    win_hdl = reinterpret_cast<void*>(winId());
     break;
   }  
   case QEvent::KeyPress:
@@ -234,6 +237,9 @@ bool RenderWidget::event(QEvent* event)
 
     // Window Centre for PrimeHack mouselock.
     SET_RENDER_CENTRE((pos().x() + ((new_size.width() * dpr) / 2)), (pos().y() + ((new_size.height() * dpr) / 2)));
+    win_w = size().width() / 2;
+    win_h = size().height() / 2;
+    win_hdl = reinterpret_cast<void*>(winId());
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
