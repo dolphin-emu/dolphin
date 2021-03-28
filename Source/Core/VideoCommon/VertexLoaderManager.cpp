@@ -47,7 +47,7 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
-u8* cached_arraybases[12];
+u8* cached_arraybases[NUM_VERTEX_COMPONENT_ARRAYS];
 
 void Init()
 {
@@ -88,8 +88,8 @@ void UpdateVertexArrayPointers()
   for (size_t i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
-      cached_arraybases[ARRAY_COLOR + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_COLOR + i]);
+      cached_arraybases[ARRAY_COLOR0 + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_COLOR0 + i]);
   }
 
   for (size_t i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)

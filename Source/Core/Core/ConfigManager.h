@@ -197,6 +197,10 @@ struct SConfig
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
   void SetRunningGameMetadata(const std::string& game_id);
+  // Reloads title-specific map files, patches, custom textures, etc.
+  // This should only be called after the new title has been loaded into memory.
+  static void OnNewTitleLoad();
+
   void LoadDefaults();
   static std::string MakeGameID(std::string_view file_name);
   // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions

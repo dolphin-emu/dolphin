@@ -64,9 +64,10 @@ namespace IOS::HLE
 static std::unique_ptr<EmulationKernel> s_ios;
 
 constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
-constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_sdio_notify;
+static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
+static CoreTiming::EventType* s_event_finish_ios_boot;
 
 constexpr u32 ADDR_MEM1_SIZE = 0x3100;
 constexpr u32 ADDR_MEM1_SIM_SIZE = 0x3104;
@@ -137,6 +138,12 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
     return true;
   }
 
+  // This region is typically used to store constants (e.g. game ID, console type, ...)
+  // and system information (see below).
+  constexpr u32 LOW_MEM1_REGION_START = 0;
+  constexpr u32 LOW_MEM1_REGION_SIZE = 0x3fff;
+  Memory::Memset(LOW_MEM1_REGION_START, 0, LOW_MEM1_REGION_SIZE);
+
   Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
   Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
   Memory::Write_U32(target_imv->mem1_end, ADDR_MEM1_END);
@@ -168,6 +175,28 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   RAMOverrideForIOSMemoryValues(setup_type);
 
   return true;
+}
+
+// On a real console, the Starlet resets the PPC and holds it in reset limbo
+// by asserting the PPC's HRESET signal (via HW_RESETS).
+// We will simulate that by resetting MSR and putting the PPC into an infinite loop.
+// The memory write will not be observable since the PPC is not running any code...
+static void ResetAndPausePPC()
+{
+  // This should be cleared when the PPC is released so that the write is not observable.
+  Memory::Write_U32(0x48000000, 0x00000000);  // b 0x0
+  PowerPC::Reset();
+  PC = 0;
+}
+
+static void ReleasePPC()
+{
+  Memory::Write_U32(0, 0);
+  // HLE the bootstub that jumps to 0x3400.
+  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
+  // The state of other CPU registers (like the BAT registers) doesn't matter much
+  // because the realmode code at 0x3400 initializes everything itself anyway.
+  PC = 0x3400;
 }
 
 void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
@@ -260,9 +289,6 @@ EmulationKernel::EmulationKernel(u64 title_id) : Kernel(title_id)
     return;
   }
 
-  // IOS re-inits IPC and sends a dummy ack during its boot process.
-  EnqueueIPCAcknowledgement(0);
-
   AddCoreDevices();
   AddStaticDevices();
 }
@@ -317,18 +343,19 @@ u16 Kernel::GetGidForPPC() const
   return m_ppc_gid;
 }
 
-static std::vector<u8> ReadBootContent(FS::FileSystem* fs, const std::string& path, size_t max_size)
+static std::vector<u8> ReadBootContent(FSDevice* fs, const std::string& path, size_t max_size,
+                                       Ticks ticks = {})
 {
-  const auto file = fs->OpenFile(0, 0, path, FS::Mode::Read);
-  if (!file)
+  const s64 fd = fs->Open(0, 0, path, FS::Mode::Read, {}, ticks);
+  if (fd < 0)
     return {};
 
-  const size_t file_size = file->GetStatus()->size;
+  const size_t file_size = fs->GetFileStatus(fd, ticks)->size;
   if (max_size != 0 && file_size > max_size)
     return {};
 
   std::vector<u8> buffer(file_size);
-  if (!file->Read(buffer.data(), buffer.size()))
+  if (!fs->Read(fd, buffer.data(), buffer.size(), ticks))
     return {};
   return buffer;
 }
@@ -337,7 +364,10 @@ static std::vector<u8> ReadBootContent(FS::FileSystem* fs, const std::string& pa
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
 bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
-  const DolReader dol{ReadBootContent(m_fs.get(), boot_content_path, 0)};
+  // Seeking and processing overhead is ignored as most time is spent reading from the NAND.
+  u64 ticks = 0;
+
+  const DolReader dol{ReadBootContent(GetFSDevice().get(), boot_content_path, 0, &ticks)};
 
   if (!dol.IsValid())
     return false;
@@ -345,15 +375,14 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
   if (!SetupMemory(m_title_id, MemorySetupType::Full))
     return false;
 
+  // Reset the PPC and pause its execution until we're ready.
+  ResetAndPausePPC();
+
   if (!dol.LoadIntoMemory())
     return false;
 
-  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
-  // The state of other CPU registers (like the BAT registers) doesn't matter much
-  // because the realmode code at 0x3400 initializes everything itself anyway.
-  MSR.Hex = 0;
-  PC = 0x3400;
-
+  INFO_LOG_FMT(IOS, "BootstrapPPC: {}", boot_content_path);
+  CoreTiming::ScheduleEvent(ticks, s_event_finish_ppc_bootstrap);
   return true;
 }
 
@@ -382,6 +411,21 @@ private:
   std::vector<u8> m_bytes;
 };
 
+static void FinishIOSBoot(u64 ios_title_id)
+{
+  // Shut down the active IOS first before switching to the new one.
+  s_ios.reset();
+  s_ios = std::make_unique<EmulationKernel>(ios_title_id);
+}
+
+static constexpr SystemTimers::TimeBaseTick GetIOSBootTicks(u32 version)
+{
+  // Older IOS versions are monolithic so the main ELF is much larger and takes longer to load.
+  if (version < 28)
+    return 16'000'000_tbticks;
+  return 2'600'000_tbticks;
+}
+
 // Similar to syscall 0x42 (ios_boot); this is used to change the current active IOS.
 // IOS writes the new version to 0x3140 before restarting, but it does *not* poke any
 // of the other constants to the memory. Warning: this resets the kernel instance.
@@ -389,14 +433,18 @@ private:
 // Passing a boot content path is optional because we do not require IOSes
 // to be installed at the moment. If one is passed, the boot binary must exist
 // on the NAND, or the call will fail like on a Wii.
-bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_path)
+bool Kernel::BootIOS(const u64 ios_title_id, HangPPC hang_ppc, const std::string& boot_content_path)
 {
+  // IOS suspends regular PPC<->ARM IPC before loading a new IOS.
+  // IPC is not resumed if the boot fails for any reason.
+  m_ipc_paused = true;
+
   if (!boot_content_path.empty())
   {
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    ARMBinary binary{ReadBootContent(m_fs.get(), boot_content_path, 0xB00000)};
+    ARMBinary binary{ReadBootContent(GetFSDevice().get(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 
@@ -405,10 +453,24 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
       return false;
   }
 
-  // Shut down the active IOS first before switching to the new one.
-  s_ios.reset();
-  s_ios = std::make_unique<EmulationKernel>(ios_title_id);
+  if (hang_ppc == HangPPC::Yes)
+    ResetAndPausePPC();
+
+  if (Core::IsRunningAndStarted())
+    CoreTiming::ScheduleEvent(GetIOSBootTicks(GetVersion()), s_event_finish_ios_boot, ios_title_id);
+  else
+    FinishIOSBoot(ios_title_id);
+
   return true;
+}
+
+void Kernel::InitIPC()
+{
+  if (s_ios == nullptr)
+    return;
+
+  INFO_LOG_FMT(IOS, "IPC initialised.");
+  GenerateAck(0);
 }
 
 void Kernel::AddDevice(std::unique_ptr<Device> device)
@@ -658,17 +720,9 @@ void Kernel::EnqueueIPCReply(const Request& request, const s32 return_value, s64
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
 }
 
-void Kernel::EnqueueIPCAcknowledgement(u32 address, int cycles_in_future)
-{
-  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue,
-                            address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
-}
-
 void Kernel::HandleIPCEvent(u64 userdata)
 {
-  if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
-    m_ack_queue.push_back(static_cast<u32>(userdata));
-  else if (userdata & ENQUEUE_REQUEST_FLAG)
+  if (userdata & ENQUEUE_REQUEST_FLAG)
     m_request_queue.push_back(static_cast<u32>(userdata));
   else
     m_reply_queue.push_back(static_cast<u32>(userdata));
@@ -678,7 +732,7 @@ void Kernel::HandleIPCEvent(u64 userdata)
 
 void Kernel::UpdateIPC()
 {
-  if (!IsReady())
+  if (m_ipc_paused || !IsReady())
     return;
 
   if (!m_request_queue.empty())
@@ -696,14 +750,6 @@ void Kernel::UpdateIPC()
     GenerateReply(m_reply_queue.front());
     DEBUG_LOG_FMT(IOS, "<<-- Reply to IPC Request @ {:#010x}", m_reply_queue.front());
     m_reply_queue.pop_front();
-    return;
-  }
-
-  if (!m_ack_queue.empty())
-  {
-    GenerateAck(m_ack_queue.front());
-    WARN_LOG_FMT(IOS, "<<-- Double-ack to IPC Request @ {:#010x}", m_ack_queue.front());
-    m_ack_queue.pop_front();
     return;
   }
 }
@@ -740,6 +786,7 @@ void Kernel::DoState(PointerWrap& p)
   p.Do(m_request_queue);
   p.Do(m_reply_queue);
   p.Do(m_last_reply_time);
+  p.Do(m_ipc_paused);
   p.Do(m_title_id);
   p.Do(m_ppc_uid);
   p.Do(m_ppc_gid);
@@ -809,6 +856,13 @@ IOSC& Kernel::GetIOSC()
   return m_iosc;
 }
 
+static void FinishPPCBootstrap(u64 userdata, s64 cycles_late)
+{
+  ReleasePPC();
+  SConfig::OnNewTitleLoad();
+  INFO_LOG_FMT(IOS, "Bootstrapping done.");
+}
+
 void Init()
 {
   s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", [](u64 userdata, s64) {
@@ -826,6 +880,14 @@ void Init()
       device->EventNotify();
   });
 
+  ESDevice::InitializeEmulationState();
+
+  s_event_finish_ppc_bootstrap =
+      CoreTiming::RegisterEvent("IOSFinishPPCBootstrap", FinishPPCBootstrap);
+
+  s_event_finish_ios_boot = CoreTiming::RegisterEvent(
+      "IOSFinishIOSBoot", [](u64 ios_title_id, s64) { FinishIOSBoot(ios_title_id); });
+
   DIDevice::s_finish_executing_di_command =
       CoreTiming::RegisterEvent("FinishDICommand", DIDevice::FinishDICommandCallback);
 
@@ -842,6 +904,7 @@ void Init()
 void Shutdown()
 {
   s_ios.reset();
+  ESDevice::FinalizeEmulationState();
 }
 
 EmulationKernel* GetIOS()

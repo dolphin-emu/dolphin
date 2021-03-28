@@ -18,9 +18,12 @@
 #include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
@@ -30,9 +33,6 @@ namespace IOS::HLE
 {
 namespace
 {
-// Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
-u64 s_title_to_launch;
-
 struct DirectoryToCreate
 {
   const char* path;
@@ -54,6 +54,31 @@ constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
     {"/meta", 0, public_modes, SYSMENU_UID, SYSMENU_GID},
     {"/wfs", 0, {FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None}, PID_UNKNOWN, PID_UNKNOWN},
 }};
+
+constexpr const char LAUNCH_FILE_PATH[] = "/sys/launch.sys";
+constexpr const char SPACE_FILE_PATH[] = "/sys/space.sys";
+constexpr size_t SPACE_FILE_SIZE = sizeof(u64) + sizeof(ES::TicketView) + ES::MAX_TMD_SIZE;
+
+CoreTiming::EventType* s_finish_init_event;
+CoreTiming::EventType* s_reload_ios_for_ppc_launch_event;
+CoreTiming::EventType* s_bootstrap_ppc_for_launch_event;
+
+constexpr SystemTimers::TimeBaseTick GetESBootTicks(u32 ios_version)
+{
+  if (ios_version < 28)
+    return 22'000'000_tbticks;
+
+  // Starting from IOS28, ES needs to load additional modules when it starts
+  // since the main ELF only contains the kernel and core modules.
+  if (ios_version < 57)
+    return 33'000'000_tbticks;
+
+  // These versions have extra modules that make them noticeably slower to load.
+  if (ios_version == 57 || ios_version == 58 || ios_version == 59)
+    return 39'000'000_tbticks;
+
+  return 37'000'000_tbticks;
+}
 }  // namespace
 
 ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
@@ -77,11 +102,57 @@ ESDevice::ESDevice(Kernel& ios, const std::string& device_name) : Device(ios, de
 
   FinishAllStaleImports();
 
-  if (s_title_to_launch != 0)
+  if (Core::IsRunningAndStarted())
   {
-    NOTICE_LOG_FMT(IOS, "Re-launching title after IOS reload.");
-    LaunchTitle(s_title_to_launch, true);
-    s_title_to_launch = 0;
+    CoreTiming::RemoveEvent(s_finish_init_event);
+    CoreTiming::ScheduleEvent(GetESBootTicks(m_ios.GetVersion()), s_finish_init_event);
+  }
+  else
+  {
+    FinishInit();
+  }
+}
+
+void ESDevice::InitializeEmulationState()
+{
+  s_finish_init_event = CoreTiming::RegisterEvent(
+      "IOS-ESFinishInit", [](u64, s64) { GetIOS()->GetES()->FinishInit(); });
+  s_reload_ios_for_ppc_launch_event =
+      CoreTiming::RegisterEvent("IOS-ESReloadIOSForPPCLaunch", [](u64 ios_id, s64) {
+        GetIOS()->GetES()->LaunchTitle(ios_id, HangPPC::Yes);
+      });
+  s_bootstrap_ppc_for_launch_event = CoreTiming::RegisterEvent(
+      "IOS-ESBootstrapPPCForLaunch", [](u64, s64) { GetIOS()->GetES()->BootstrapPPC(); });
+}
+
+void ESDevice::FinalizeEmulationState()
+{
+  s_finish_init_event = nullptr;
+  s_reload_ios_for_ppc_launch_event = nullptr;
+  s_bootstrap_ppc_for_launch_event = nullptr;
+}
+
+void ESDevice::FinishInit()
+{
+  m_ios.InitIPC();
+
+  std::optional<u64> pending_launch_title_id;
+
+  {
+    const auto launch_file =
+        m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read);
+    if (launch_file)
+    {
+      u64 id;
+      if (launch_file->Read(&id, 1).Succeeded())
+        pending_launch_title_id = id;
+    }
+  }
+
+  if (pending_launch_title_id.has_value())
+  {
+    NOTICE_LOG_FMT(IOS, "Re-launching title {:016x} after IOS reload.", *pending_launch_title_id);
+    LaunchTitle(*pending_launch_title_id, HangPPC::No);
   }
 }
 
@@ -223,7 +294,7 @@ IPCReply ESDevice::SetUID(u32 uid, const IOCtlVRequest& request)
   return IPCReply(IPC_SUCCESS);
 }
 
-bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
+bool ESDevice::LaunchTitle(u64 title_id, HangPPC hang_ppc)
 {
   m_title_context.Clear();
   INFO_LOG_FMT(IOS_ES, "ES_Launch: Title context changed: (none)");
@@ -243,15 +314,15 @@ bool ESDevice::LaunchTitle(u64 title_id, bool skip_reload)
     // likely make the system menu crash. Doing this is okay as anyone who has the shop
     // also has the system menu installed, and this behaviour is consistent with what
     // ES does when its DRM system refuses the use of a particular title.
-    return LaunchTitle(Titles::SYSTEM_MENU);
+    return LaunchTitle(Titles::SYSTEM_MENU, hang_ppc);
   }
 
   if (IsTitleType(title_id, ES::TitleType::System) && title_id != Titles::SYSTEM_MENU)
-    return LaunchIOS(title_id);
-  return LaunchPPCTitle(title_id, skip_reload);
+    return LaunchIOS(title_id, hang_ppc);
+  return LaunchPPCTitle(title_id);
 }
 
-bool ESDevice::LaunchIOS(u64 ios_title_id)
+bool ESDevice::LaunchIOS(u64 ios_title_id, HangPPC hang_ppc)
 {
   // A real Wii goes through several steps before getting to MIOS.
   //
@@ -264,7 +335,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
   if (ios_title_id == Titles::BC)
   {
     NOTICE_LOG_FMT(IOS, "BC: Launching MIOS...");
-    return LaunchIOS(Titles::MIOS);
+    return LaunchIOS(Titles::MIOS, hang_ppc);
   }
 
   // IOS checks whether the system title is installed and returns an error if it isn't.
@@ -276,7 +347,7 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
     const ES::TicketReader ticket = FindSignedTicket(ios_title_id);
     ES::Content content;
     if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
-        !m_ios.BootIOS(ios_title_id, GetContentPath(ios_title_id, content)))
+        !m_ios.BootIOS(ios_title_id, hang_ppc, GetContentPath(ios_title_id, content)))
     {
       PanicAlertFmtT("Could not launch IOS {0:016x} because it is missing from the NAND.\n"
                      "The emulated software will likely hang now.",
@@ -286,12 +357,27 @@ bool ESDevice::LaunchIOS(u64 ios_title_id)
     return true;
   }
 
-  return m_ios.BootIOS(ios_title_id);
+  return m_ios.BootIOS(ios_title_id, hang_ppc);
 }
 
-bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
+s32 ESDevice::WriteLaunchFile(const ES::TMDReader& tmd, Ticks ticks)
 {
-  const ES::TMDReader tmd = FindInstalledTMD(title_id);
+  m_ios.GetFSDevice()->DeleteFile(PID_KERNEL, PID_KERNEL, SPACE_FILE_PATH, ticks);
+
+  std::vector<u8> launch_data(sizeof(u64) + sizeof(ES::TicketView));
+  const u64 title_id = tmd.GetTitleId();
+  std::memcpy(launch_data.data(), &title_id, sizeof(title_id));
+  // We're supposed to write a ticket view here, but we don't use it for anything (other than
+  // to take up space in the NAND and slow down launches) so don't bother.
+  launch_data.insert(launch_data.end(), tmd.GetBytes().begin(), tmd.GetBytes().end());
+  return WriteSystemFile(LAUNCH_FILE_PATH, launch_data, ticks);
+}
+
+bool ESDevice::LaunchPPCTitle(u64 title_id)
+{
+  u64 ticks = 0;
+
+  const ES::TMDReader tmd = FindInstalledTMD(title_id, &ticks);
   const ES::TicketReader ticket = FindSignedTicket(title_id);
 
   if (!tmd.IsValid() || !ticket.IsValid())
@@ -312,13 +398,34 @@ bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
 
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
-  // again with the reload skipped, and the PPC will be bootstrapped then.
-  if (!skip_reload)
+  // again and the PPC will be bootstrapped then.
+  //
+  // To keep track of the PPC title launch, a temporary launch file (LAUNCH_FILE_PATH) is used
+  // to store the title ID of the title to launch and its TMD.
+  // The launch file not existing means an IOS reload is required.
+  const auto launch_file_fd = m_ios.GetFSDevice()->Open(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH,
+                                                        FS::Mode::Read, {}, &ticks);
+  if (launch_file_fd < 0)
   {
-    s_title_to_launch = title_id;
+    if (WriteLaunchFile(tmd, &ticks) != IPC_SUCCESS)
+    {
+      PanicAlertFmt("LaunchPPCTitle: Failed to write launch file");
+      return false;
+    }
+
     const u64 required_ios = tmd.GetIOSId();
-    return LaunchTitle(required_ios);
+    if (!Core::IsRunningAndStarted())
+      return LaunchTitle(required_ios, HangPPC::Yes);
+    CoreTiming::RemoveEvent(s_reload_ios_for_ppc_launch_event);
+    CoreTiming::ScheduleEvent(ticks, s_reload_ios_for_ppc_launch_event, required_ios);
+    return true;
   }
+
+  // Otherwise, assume that the PPC title can now be launched directly.
+  // Unlike IOS, we won't bother checking the title ID in the launch file. (It's not useful.)
+  m_ios.GetFSDevice()->Close(launch_file_fd, &ticks);
+  m_ios.GetFSDevice()->DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
+  WriteSystemFile(SPACE_FILE_PATH, std::vector<u8>(SPACE_FILE_SIZE), &ticks);
 
   m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);
   INFO_LOG_FMT(IOS_ES, "LaunchPPCTitle: Title context changed: {:016x}", tmd.GetTitleId());
@@ -336,7 +443,19 @@ bool ESDevice::LaunchPPCTitle(u64 title_id, bool skip_reload)
   if (!tmd.GetContent(tmd.GetBootIndex(), &content))
     return false;
 
-  return m_ios.BootstrapPPC(GetContentPath(tmd.GetTitleId(), content));
+  m_pending_ppc_boot_content_path = GetContentPath(tmd.GetTitleId(), content);
+  if (!Core::IsRunningAndStarted())
+    return BootstrapPPC();
+  CoreTiming::RemoveEvent(s_bootstrap_ppc_for_launch_event);
+  CoreTiming::ScheduleEvent(ticks, s_bootstrap_ppc_for_launch_event);
+  return true;
+}
+
+bool ESDevice::BootstrapPPC()
+{
+  const bool result = m_ios.BootstrapPPC(m_pending_ppc_boot_content_path);
+  m_pending_ppc_boot_content_path = {};
+  return result;
 }
 
 void ESDevice::Context::DoState(PointerWrap& p)
@@ -366,6 +485,8 @@ void ESDevice::DoState(PointerWrap& p)
 
   for (auto& context : m_contexts)
     context.DoState(p);
+
+  p.Do(m_pending_ppc_boot_content_path);
 }
 
 ESDevice::ContextArray::iterator ESDevice::FindActiveContext(s32 fd)

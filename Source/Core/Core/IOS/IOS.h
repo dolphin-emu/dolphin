@@ -97,6 +97,12 @@ enum class MemorySetupType
   Full,
 };
 
+enum class HangPPC : bool
+{
+  No = false,
+  Yes = true,
+};
+
 void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type);
 
 void WriteReturnValue(s32 value, u32 address);
@@ -132,7 +138,9 @@ public:
   u16 GetGidForPPC() const;
 
   bool BootstrapPPC(const std::string& boot_content_path);
-  bool BootIOS(u64 ios_title_id, const std::string& boot_content_path = "");
+  bool BootIOS(u64 ios_title_id, HangPPC hang_ppc = HangPPC::No,
+               const std::string& boot_content_path = {});
+  void InitIPC();
   u32 GetVersion() const;
 
   IOSC& GetIOSC();
@@ -142,7 +150,6 @@ protected:
 
   void ExecuteIPCCommand(u32 address);
   std::optional<IPCReply> HandleIPCCommand(const Request& request);
-  void EnqueueIPCAcknowledgement(u32 address, int cycles_in_future = 0);
 
   void AddDevice(std::unique_ptr<Device> device);
   void AddCoreDevices();
@@ -165,8 +172,8 @@ protected:
   using IPCMsgQueue = std::deque<u32>;
   IPCMsgQueue m_request_queue;  // ppc -> arm
   IPCMsgQueue m_reply_queue;    // arm -> ppc
-  IPCMsgQueue m_ack_queue;      // arm -> ppc
   u64 m_last_reply_time = 0;
+  bool m_ipc_paused = false;
 
   IOSC m_iosc;
   std::shared_ptr<FS::FileSystem> m_fs;

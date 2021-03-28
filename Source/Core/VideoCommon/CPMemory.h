@@ -51,9 +51,14 @@ enum
 {
   ARRAY_POSITION = 0,
   ARRAY_NORMAL = 1,
-  ARRAY_COLOR = 2,
-  ARRAY_COLOR2 = 3,
+  ARRAY_COLOR0 = 2,
+  NUM_COLOR_ARRAYS = 2,
   ARRAY_TEXCOORD0 = 4,
+  NUM_TEXCOORD_ARRAYS = 8,
+
+  // Number of arrays related to vertex components (position, normal, color, tex coord)
+  // Excludes the 4 arrays used for indexed XF loads
+  NUM_VERTEX_COMPONENT_ARRAYS = 12,
 };
 
 // Vertex components

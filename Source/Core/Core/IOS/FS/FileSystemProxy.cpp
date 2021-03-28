@@ -610,15 +610,35 @@ IPCReply FSDevice::GetAttribute(const Handle& handle, const IOCtlRequest& reques
   return GetFSReply(IPC_SUCCESS, ticks);
 }
 
+FS::ResultCode FSDevice::DeleteFile(FS::Uid uid, FS::Gid gid, const std::string& path, Ticks ticks)
+{
+  ticks.Add(IPC_OVERHEAD_TICKS);
+
+  const ResultCode result = m_ios.GetFS()->Delete(uid, gid, path);
+  ticks.Add(GetSuperblockWriteTbTicks(m_ios.GetVersion()));
+  LogResult(result, "Delete({})", path);
+  return result;
+}
+
 IPCReply FSDevice::DeleteFile(const Handle& handle, const IOCtlRequest& request)
 {
   if (request.buffer_in_size < 64)
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
   const std::string path = Memory::GetString(request.buffer_in, 64);
-  const ResultCode result = m_ios.GetFS()->Delete(handle.uid, handle.gid, path);
-  LogResult(result, "Delete({})", path);
-  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
+  return MakeIPCReply(
+      [&](Ticks ticks) { return ConvertResult(DeleteFile(handle.uid, handle.gid, path, ticks)); });
+}
+
+FS::ResultCode FSDevice::RenameFile(FS::Uid uid, FS::Gid gid, const std::string& old_path,
+                                    const std::string& new_path, Ticks ticks)
+{
+  ticks.Add(IPC_OVERHEAD_TICKS);
+
+  const ResultCode result = m_ios.GetFS()->Rename(uid, gid, old_path, new_path);
+  ticks.Add(GetSuperblockWriteTbTicks(m_ios.GetVersion()));
+  LogResult(result, "Rename({}, {})", old_path, new_path);
+  return result;
 }
 
 IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
@@ -628,9 +648,20 @@ IPCReply FSDevice::RenameFile(const Handle& handle, const IOCtlRequest& request)
 
   const std::string old_path = Memory::GetString(request.buffer_in, 64);
   const std::string new_path = Memory::GetString(request.buffer_in + 64, 64);
-  const ResultCode result = m_ios.GetFS()->Rename(handle.uid, handle.gid, old_path, new_path);
-  LogResult(result, "Rename({}, {})", old_path, new_path);
-  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
+  return MakeIPCReply([&](Ticks ticks) {
+    return ConvertResult(RenameFile(handle.uid, handle.gid, old_path, new_path, ticks));
+  });
+}
+
+FS::ResultCode FSDevice::CreateFile(FS::Uid uid, FS::Gid gid, const std::string& path,
+                                    FS::FileAttribute attribute, FS::Modes modes, Ticks ticks)
+{
+  ticks.Add(IPC_OVERHEAD_TICKS);
+
+  const ResultCode result = m_ios.GetFS()->CreateFile(uid, gid, path, attribute, modes);
+  ticks.Add(GetSuperblockWriteTbTicks(m_ios.GetVersion()));
+  LogResult(result, "CreateFile({})", path);
+  return result;
 }
 
 IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
@@ -638,11 +669,10 @@ IPCReply FSDevice::CreateFile(const Handle& handle, const IOCtlRequest& request)
   const auto params = GetParams<ISFSParams>(request);
   if (!params)
     return GetFSReply(ConvertResult(params.Error()));
-
-  const ResultCode result = m_ios.GetFS()->CreateFile(handle.uid, handle.gid, params->path,
-                                                      params->attribute, params->modes);
-  LogResult(result, "CreateFile({})", params->path);
-  return GetReplyForSuperblockOperation(m_ios.GetVersion(), result);
+  return MakeIPCReply([&](Ticks ticks) {
+    return ConvertResult(
+        CreateFile(handle.uid, handle.gid, params->path, params->attribute, params->modes));
+  });
 }
 
 IPCReply FSDevice::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request)

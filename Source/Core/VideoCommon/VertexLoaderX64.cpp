@@ -469,7 +469,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   {
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
-      data = GetVertexAddr(ARRAY_COLOR + int(i), m_VtxDesc.low.Color[i]);
+      data = GetVertexAddr(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i]);
       ReadColor(data, m_VtxDesc.low.Color[i], m_VtxAttr.color[i].Comp);
       m_native_components |= VB_HAS_COL0 << i;
       m_native_vtx_decl.colors[i].components = 4;

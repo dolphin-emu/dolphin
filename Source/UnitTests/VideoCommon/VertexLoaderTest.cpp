@@ -352,7 +352,7 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
   CreateAndCheckSizes(33, 156);
 
-  for (int i = 0; i < 12; i++)
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
   {
     VertexLoaderManager::cached_arraybases[i] = m_src.GetPointer();
     g_main_cp_state.array_strides[i] = 129;
