@@ -581,10 +581,6 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(StringFromFormat("Restore Dashing: %s", new_value ? "Enabled" : "Disabled"));
       }
     }
-    else {
-      SConfig::GetInstance().bPrimeInvulnerability = false;
-      SConfig::GetInstance().bPrimeNoclip = false;
-    }
 
     if (IsHotkey(HK_MOTION_LOCK))
     {

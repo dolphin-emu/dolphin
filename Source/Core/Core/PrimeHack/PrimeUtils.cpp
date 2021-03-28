@@ -251,30 +251,6 @@ std::string GetDevInfo()
   return result;
 }
 
-// To-Do: Refactor this garbage.
-std::tuple<u32, u32, u32, u32> GetCheatsTime()
-{
-  return std::make_tuple(noclip_msg_time, invulnerability_msg_time, cutscene_msg_time, scandash_msg_time);
-}
-
-void AddCheatsTime(int index, u32 time)
-{
-  switch (index)
-  {
-  case 0:
-    noclip_msg_time = Common::Timer::GetTimeMs() + 3000;
-    break;
-  case 1:
-    invulnerability_msg_time = Common::Timer::GetTimeMs() + 3000;
-    break;
-  case 2:
-    cutscene_msg_time = Common::Timer::GetTimeMs() + 3000;
-    break;
-  case 3:
-    scandash_msg_time = Common::Timer::GetTimeMs() + 3000;
-  }
-}
-
 void ClrDevInfo()
 {
   ss = std::stringstream();

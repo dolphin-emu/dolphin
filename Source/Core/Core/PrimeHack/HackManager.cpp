@@ -161,18 +161,31 @@ void HackManager::run_active_mods() {
 }
 
 void HackManager::update_mod_states() {
+  auto& settings = SConfig::GetInstance();
+
   set_mod_enabled("auto_efb", UseMPAutoEFB());
   set_mod_enabled("disable_bloom", GetBloom());
   set_mod_enabled("cut_beam_fx_mp1", GetEnableSecondaryGunFX());
-  set_mod_enabled("noclip", GetNoclip());
-  set_mod_enabled("invulnerability", GetInvulnerability());
-  set_mod_enabled("skip_cutscene", GetSkipCutscene());
-  set_mod_enabled("restore_dashing", GetRestoreDashing());
-  set_mod_enabled("friend_vouchers_cheat", SConfig::GetInstance().bPrimeFriendVouchers);
-  set_mod_enabled("portal_skip_mp2", SConfig::GetInstance().bPrimePortalSkip);
 
+  if (settings.bEnableCheats) {
+    set_mod_enabled("noclip", GetNoclip());
+    set_mod_enabled("invulnerability", GetInvulnerability());
+    set_mod_enabled("skip_cutscene", GetSkipCutscene());
+    set_mod_enabled("restore_dashing", GetRestoreDashing());
+    set_mod_enabled("friend_vouchers_cheat", settings.bPrimeFriendVouchers);
+    set_mod_enabled("portal_skip_mp2", settings.bPrimePortalSkip);
+  }
+  else {
+    disable_mod("noclip");
+    disable_mod("invulnerability");
+    disable_mod("skip_cutscene");
+    disable_mod("restore_dashing");
+    disable_mod("friend_vouchers_cheat");
+    disable_mod("portal_skip_mp2");
+  }
+  
   // Disallow any PrimeHack control mods
-  if (!SConfig::GetInstance().bEnablePrimeHack) {
+  if (!settings.bEnablePrimeHack) {
     disable_mod("fps_controls");
     disable_mod("springball_button");
     disable_mod("context_sensitive_controls");
@@ -181,16 +194,16 @@ void HackManager::update_mod_states() {
   } else {
     enable_mod("fps_controls");
     enable_mod("springball_button");
-  }
 
-  if (ImprovedMotionControls()) {
-    enable_mod("context_sensitive_controls");
-  } else {
-    auto result = mods.find("context_sensitive_controls");
-    if (result == mods.end()) {
-      return;
+    if (ImprovedMotionControls()) {
+      enable_mod("context_sensitive_controls");
+    } else {
+      auto result = mods.find("context_sensitive_controls");
+      if (result == mods.end()) {
+        return;
+      }
+      result->second->set_state(ModState::CODE_DISABLED);
     }
-    result->second->set_state(ModState::CODE_DISABLED);
   }
 }
 

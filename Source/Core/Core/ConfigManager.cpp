@@ -476,7 +476,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("EnableCheats", &bEnableCheats, false);
+  core->Get("EnableCheats", &bEnableCheats, true);
   core->Get("InitialPrimeHackRun", &bInitialPrimeHack, false);
   core->Get("EnablePrimeHack", &bEnablePrimeHack, true);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);

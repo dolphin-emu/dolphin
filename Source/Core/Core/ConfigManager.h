@@ -117,7 +117,7 @@ struct SConfig
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
-  bool bEnableCheats = false;
+  bool bEnableCheats = true;
   bool bEnablePrimeHack = true;
   bool bInitialPrimeHack = false;
   bool bEnableMemcardSdWriting = true;
