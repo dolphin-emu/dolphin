@@ -64,7 +64,8 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
   switch (GetSource(index))
   {
   case WiimoteSource::Emulated:
-    hid_source = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
+    hid_source =
+        static_cast<WiimoteEmu::WiimoteBase*>(::Wiimote::GetConfig()->GetController(index));
     break;
 
   case WiimoteSource::Real:
@@ -157,8 +158,9 @@ void Initialize(InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
-    for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+    for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_WIIMOTES; ++i)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
+    s_config.CreateController<WiimoteEmu::Wiimote>(WIIMOTE_BALANCE_BOARD);
   }
 
   s_config.RegisterHotplugCallback();
@@ -175,7 +177,7 @@ void Initialize(InitializeMode init_mode)
 void ResetAllWiimotes()
 {
   for (int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
-    static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->Reset();
+    static_cast<WiimoteEmu::WiimoteBase*>(s_config.GetController(i))->Reset();
 }
 
 void LoadConfig()
@@ -205,7 +207,7 @@ void DoState(PointerWrap& p)
     if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
     {
       // Sync complete state of emulated wiimotes.
-      static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
+      static_cast<WiimoteEmu::WiimoteBase*>(s_config.GetController(i))->DoState(p);
     }
 
     if (p.GetMode() == PointerWrap::MODE_READ)

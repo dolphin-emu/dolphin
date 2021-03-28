@@ -329,7 +329,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   WiimoteEmu::ExtensionNumber ext = WiimoteEmu::ExtensionNumber::NONE;
   if (Core::IsRunning())
   {
-    ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))
+    ext = static_cast<WiimoteEmu::WiimoteBase*>(Wiimote::GetConfig()->GetController(num))
               ->GetActiveExtensionNumber();
   }
   else if (num == WIIMOTE_BALANCE_BOARD)
