@@ -447,6 +447,17 @@
         <item>-1</item>
     </integer-array>
 
+    <string-array name="synchronizeGpuThreadEntries">
+        <item>Never</item>
+        <item>On Idle Skipping</item>
+        <item>Always</item>
+    </string-array>
+    <integer-array name="synchronizeGpuThreadValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="motionControlsEntries">
         <item>Use Device Sensors (With Pointer Emulation)</item>
         <item>Use Device Sensors (Without Pointer Emulation)</item>
