@@ -100,8 +100,8 @@ void Drums::Update()
     const ControllerEmu::AnalogStick::StateData stick_state =
         m_stick->GetState(m_input_override_function);
 
-    drum_data.stick_x = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
-    drum_data.stick_y = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
+    drum_data.stick_x = MapFloat<u8>(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
+    drum_data.stick_y = MapFloat<u8>(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
   }
 
   // Buttons.
