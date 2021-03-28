@@ -205,13 +205,14 @@ public:
   static constexpr u8 STICK_GATE_RADIUS = 0x61;
 
   static constexpr u8 CAL_STICK_CENTER = 0x80;
-  static constexpr u8 CAL_STICK_RANGE = 0x7f;
+  static constexpr u8 CAL_STICK_RADIUS = 0x7f;
+  static constexpr u8 CAL_STICK_RANGE = 0xff;
 
   static constexpr u8 LEFT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS);
-  static constexpr u8 LEFT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS);
+  static constexpr u8 LEFT_STICK_RANGE = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS);
 
   static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
-  static constexpr u8 RIGHT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
+  static constexpr u8 RIGHT_STICK_RANGE = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
 
   static constexpr u8 TRIGGER_RANGE = 0x1F;
 

@@ -86,7 +86,7 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   }
 
   // sticks
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RANGE;
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RADIUS;
   groups.emplace_back(m_left_stick =
                           new ControllerEmu::OctagonAnalogStick(_trans("Left Stick"), gate_radius));
   groups.emplace_back(
@@ -116,8 +116,8 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
     const ControllerEmu::AnalogStick::StateData left_stick_state =
         m_left_stick->GetState(m_input_override_function);
 
-    const u8 x = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.x * LEFT_STICK_RADIUS));
-    const u8 y = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.y * LEFT_STICK_RADIUS));
+    const u8 x = MapFloat<u8>(left_stick_state.x, LEFT_STICK_CENTER, 0, LEFT_STICK_RANGE);
+    const u8 y = MapFloat<u8>(left_stick_state.y, LEFT_STICK_CENTER, 0, LEFT_STICK_RANGE);
 
     classic_data.SetLeftStick({x, y});
   }
@@ -127,8 +127,8 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
     const ControllerEmu::AnalogStick::StateData right_stick_data =
         m_right_stick->GetState(m_input_override_function);
 
-    const u8 x = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.x * RIGHT_STICK_RADIUS));
-    const u8 y = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.y * RIGHT_STICK_RADIUS));
+    const u8 x = MapFloat<u8>(right_stick_data.x, RIGHT_STICK_CENTER, 0, RIGHT_STICK_RANGE);
+    const u8 y = MapFloat<u8>(right_stick_data.y, RIGHT_STICK_CENTER, 0, RIGHT_STICK_RANGE);
 
     classic_data.SetRightStick({x, y});
   }
@@ -141,8 +141,8 @@ void Classic::BuildDesiredExtensionState(DesiredExtensionState* target_state)
     m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), triggers,
                          m_input_override_function);
 
-    const u8 lt = static_cast<u8>(triggers[0] * TRIGGER_RANGE);
-    const u8 rt = static_cast<u8>(triggers[1] * TRIGGER_RANGE);
+    const u8 lt = MapFloat<u8>(triggers[0], 0, 0, TRIGGER_RANGE);
+    const u8 rt = MapFloat<u8>(triggers[1], 0, 0, TRIGGER_RANGE);
 
     classic_data.SetLeftTrigger(lt);
     classic_data.SetRightTrigger(rt);

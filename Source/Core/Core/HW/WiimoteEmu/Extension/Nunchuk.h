@@ -166,6 +166,7 @@ public:
 
   static constexpr u8 STICK_CENTER = 0x80;
   static constexpr u8 STICK_RADIUS = 0x7F;
+  static constexpr u8 STICK_RANGE = 0xFF;
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 

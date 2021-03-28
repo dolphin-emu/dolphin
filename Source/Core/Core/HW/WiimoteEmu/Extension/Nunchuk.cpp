@@ -70,8 +70,8 @@ void Nunchuk::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   bool override_occurred = false;
   const ControllerEmu::AnalogStick::StateData stick_state =
       m_stick->GetState(m_input_override_function, &override_occurred);
-  nc_data.jx = u8(STICK_CENTER + stick_state.x * STICK_RADIUS);
-  nc_data.jy = u8(STICK_CENTER + stick_state.y * STICK_RADIUS);
+  nc_data.jx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
+  nc_data.jy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
 
   if (!override_occurred)
   {

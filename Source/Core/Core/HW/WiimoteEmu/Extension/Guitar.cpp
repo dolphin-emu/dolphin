@@ -104,8 +104,8 @@ void Guitar::BuildDesiredExtensionState(DesiredExtensionState* target_state)
     const ControllerEmu::AnalogStick::StateData stick_state =
         m_stick->GetState(m_input_override_function);
 
-    guitar_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
-    guitar_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
+    guitar_data.sx = MapFloat<u8>(stick_state.x, STICK_CENTER, 0, STICK_RANGE);
+    guitar_data.sy = MapFloat<u8>(stick_state.y, STICK_CENTER, 0, STICK_RANGE);
   }
 
   // slider bar
@@ -126,7 +126,7 @@ void Guitar::BuildDesiredExtensionState(DesiredExtensionState* target_state)
   // whammy bar
   const ControllerEmu::Triggers::StateData whammy_state =
       m_whammy->GetState(m_input_override_function);
-  guitar_data.whammy = static_cast<u8>(whammy_state.data[0] * 0x1F);
+  guitar_data.whammy = MapFloat<u8>(whammy_state.data[0], 0, 0, 0x1F);
 
   // buttons
   m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data(), m_input_override_function);

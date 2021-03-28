@@ -87,6 +87,8 @@ void Drums::BuildDesiredExtensionState(DesiredExtensionState* target_state)
     const ControllerEmu::AnalogStick::StateData stick_state =
         m_stick->GetState(m_input_override_function);
 
+    state.stick_x = MapFloat<u8>(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
+    state.stick_y = MapFloat<u8>(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
     state.stick_x = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
     state.stick_y = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
   }

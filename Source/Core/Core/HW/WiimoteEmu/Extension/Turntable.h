@@ -78,6 +78,7 @@ public:
   static constexpr int STICK_BIT_COUNT = 6;
   static constexpr u8 STICK_CENTER = (1 << STICK_BIT_COUNT) / 2;
   static constexpr u8 STICK_RADIUS = STICK_CENTER - 1;
+  static constexpr u8 STICK_RANGE = (1 << STICK_BIT_COUNT) - 1;
   // TODO: Test real hardware. Is this accurate?
   static constexpr u8 STICK_GATE_RADIUS = 0x16;
 
@@ -86,11 +87,11 @@ public:
 
   static constexpr int EFFECT_DIAL_BIT_COUNT = 5;
   static constexpr u8 EFFECT_DIAL_CENTER = (1 << EFFECT_DIAL_BIT_COUNT) / 2;
-  static constexpr u8 EFFECT_DIAL_RANGE = EFFECT_DIAL_CENTER - 1;
+  static constexpr u8 EFFECT_DIAL_RANGE = (1 << EFFECT_DIAL_BIT_COUNT) - 1;
 
   static constexpr int CROSSFADE_BIT_COUNT = 4;
   static constexpr u8 CROSSFADE_CENTER = (1 << CROSSFADE_BIT_COUNT) / 2;
-  static constexpr u8 CROSSFADE_RANGE = CROSSFADE_CENTER - 1;
+  static constexpr u8 CROSSFADE_RANGE = (1 << CROSSFADE_BIT_COUNT) - 1;
 
 private:
   ControllerEmu::Buttons* m_buttons;
