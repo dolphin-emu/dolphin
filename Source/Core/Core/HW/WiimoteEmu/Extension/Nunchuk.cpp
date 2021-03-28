@@ -207,9 +207,18 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
   // Morph Ball
+#ifdef HAVE_X11
+  m_buttons->SetControlExpression(0, "`Control_L`");
+#else
   m_buttons->SetControlExpression(0, "LCONTROL");
+#endif
+
   // Lock/Sacn/Spider Ball
+#ifdef HAVE_X11
+  m_buttons->SetControlExpression(1, "`Click 3`");
+#else
   m_buttons->SetControlExpression(1, "`Click 1`");
+#endif
 
   // Shake (Only used in Prime 3, may need revision
   m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");

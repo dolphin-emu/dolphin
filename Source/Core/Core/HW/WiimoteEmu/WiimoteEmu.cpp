@@ -36,8 +36,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 
-#include "Core/HW/WiimoteEmu/PrimeHack.h"
-
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -835,7 +833,12 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   EmulatedController::LoadDefaults(ciface);
 
   // Fire
+#ifdef HAVE_X11
+  m_buttons->SetControlExpression(0, "`Click 1` | RETURN");
+#else
   m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
+#endif
+
   // Jump
   m_buttons->SetControlExpression(1, "SPACE");
 
@@ -843,8 +846,11 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(2, "TAB");
 
   // Pause menu
+#ifdef HAVE_X11
+  m_buttons->SetControlExpression(3, "`dead_grave`");
+#else
   m_buttons->SetControlExpression(3, "GRAVE");
-
+#endif
   // +-
   m_buttons->SetControlExpression(4, "E");
   m_buttons->SetControlExpression(5, "R");
