@@ -969,16 +969,17 @@ void MenuBar::AddSymbolsMenu()
   generate->addAction(tr("RSO Modules"), this, &MenuBar::GenerateSymbolsFromRSO);
   m_symbols->addSeparator();
 
-  m_symbols->addAction(tr("&Load Symbol Map"), this, &MenuBar::LoadSymbolMap);
-  m_symbols->addAction(tr("&Save Symbol Map"), this, &MenuBar::SaveSymbolMap);
-  m_symbols->addSeparator();
-
+  m_symbols->addAction(tr("&Load Default Symbol Map"), this, &MenuBar::LoadDefaultSymbolMap);
   m_symbols->addAction(tr("Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
   m_symbols->addAction(tr("Load &Bad Map File..."), this, &MenuBar::LoadBadSymbolMap);
-  m_symbols->addAction(tr("Save Symbol Map &As..."), this, &MenuBar::SaveSymbolMapAs);
   m_symbols->addSeparator();
 
-  m_symbols->addAction(tr("Sa&ve Code"), this, &MenuBar::SaveCode);
+  m_symbols->addAction(tr("&Save Default Symbol Map"), this, &MenuBar::SaveDefaultSymbolMap);
+  m_symbols->addAction(tr("Save Symbol Map &As..."), this, &MenuBar::SaveOtherSymbolMap);
+  m_symbols->addSeparator();
+
+  m_symbols->addAction(tr("Sa&ve Default Code Map"), this, &MenuBar::SaveDefaultCodeMap);
+  m_symbols->addAction(tr("Save &Code Map As..."), this, &MenuBar::SaveOtherCodeMap);
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("C&reate Signature File..."), this, &MenuBar::CreateSignatureFile);
@@ -1239,15 +1240,30 @@ void MenuBar::ClearSymbols()
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
-                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
+  if (!PPCAnalyst::HostFindFunctions(
+          Memory::MEM1_BASE_ADDR, Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB))
+  {
+    ModalMessageBox::warning(
+        this, tr("Error"),
+        tr("The emulated CPU's data address translation or instruction address translation is "
+           "currently disabled."));
+    return;
+  }
+
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
-                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
+  if (!PPCAnalyst::HostFindFunctions(
+          Memory::MEM1_BASE_ADDR, Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB))
+  {
+    ModalMessageBox::warning(
+        this, tr("Error"),
+        tr("The emulated CPU's data address translation or instruction address translation is "
+           "currently disabled."));
+    return;
+  }
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
@@ -1449,40 +1465,58 @@ RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
   return matches;
 }
 
-void MenuBar::LoadSymbolMap()
+void MenuBar::LoadDefaultSymbolMap()
 {
   std::string existing_map_file, writable_map_file;
-  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+  CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
-  if (!map_exists)
+  TryLoadMapFile(QString::fromStdString(existing_map_file));
+}
+
+void MenuBar::LoadOtherSymbolMap()
+{
+  const QString filepath = QFileDialog::getOpenFileName(
+      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      tr("Dolphin Map File (*.map)"));
+
+  if (filepath.isEmpty())
+    return;
+
+  TryLoadMapFile(filepath);
+}
+
+void MenuBar::LoadBadSymbolMap()
+{
+  const QString filepath = QFileDialog::getOpenFileName(
+      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      tr("Dolphin Map File (*.map)"));
+
+  if (filepath.isEmpty())
+    return;
+
+  TryLoadMapFile(filepath, true);
+}
+
+void MenuBar::TryLoadMapFile(const QString& path, const bool bad)
+{
+  File::IOFile f(path.toStdString(), "r");
+  if (!f)
   {
-    g_symbolDB.Clear();
-    PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR + 0x1300000,
-                              Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
-    SignatureDB db(SignatureDB::HandlerType::DSY);
-    if (db.Load(File::GetSysDirectory() + TOTALDB))
-      db.Apply(&g_symbolDB);
-
-    ModalMessageBox::warning(this, tr("Warning"),
-                             tr("'%1' not found, scanning for common functions instead")
-                                 .arg(QString::fromStdString(writable_map_file)));
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to open map file '%1'").arg(path));
+    return;
   }
-  else
+  if (!g_symbolDB.HostLoadMap(f, bad))
   {
-    const QString existing_map_file_path = QString::fromStdString(existing_map_file);
-
-    if (!TryLoadMapFile(existing_map_file_path))
-      return;
-
-    ModalMessageBox::information(this, tr("Information"),
-                                 tr("Loaded symbols from '%1'").arg(existing_map_file_path));
+    ModalMessageBox::warning(
+        this, tr("Error"),
+        tr("The emulated CPU's data address translation or instruction address translation is "
+           "currently disabled."));
+    return;
   }
-
-  HLE::PatchFunctions();
   emit NotifySymbolsUpdated();
 }
 
-void MenuBar::SaveSymbolMap()
+void MenuBar::SaveDefaultSymbolMap()
 {
   std::string existing_map_file, writable_map_file;
   CBoot::FindMapFile(&existing_map_file, &writable_map_file);
@@ -1490,39 +1524,7 @@ void MenuBar::SaveSymbolMap()
   TrySaveSymbolMap(QString::fromStdString(writable_map_file));
 }
 
-void MenuBar::LoadOtherSymbolMap()
-{
-  const QString file = QFileDialog::getOpenFileName(
-      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
-      tr("Dolphin Map File (*.map)"));
-
-  if (file.isEmpty())
-    return;
-
-  if (!TryLoadMapFile(file))
-    return;
-
-  HLE::PatchFunctions();
-  emit NotifySymbolsUpdated();
-}
-
-void MenuBar::LoadBadSymbolMap()
-{
-  const QString file = QFileDialog::getOpenFileName(
-      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
-      tr("Dolphin Map File (*.map)"));
-
-  if (file.isEmpty())
-    return;
-
-  if (!TryLoadMapFile(file, true))
-    return;
-
-  HLE::PatchFunctions();
-  emit NotifySymbolsUpdated();
-}
-
-void MenuBar::SaveSymbolMapAs()
+void MenuBar::SaveOtherSymbolMap()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
   const QString file = QFileDialog::getSaveFileName(
@@ -1536,7 +1538,19 @@ void MenuBar::SaveSymbolMapAs()
   TrySaveSymbolMap(file);
 }
 
-void MenuBar::SaveCode()
+void MenuBar::TrySaveSymbolMap(const QString& path)
+{
+  File::IOFile f(path.toStdString(), "w");
+  if (!f)
+  {
+    ModalMessageBox::warning(this, tr("Error"),
+                             tr("Failed to save symbol map to path '%1'").arg(path));
+    return;
+  }
+  g_symbolDB.SaveSymbolMap(f);
+}
+
+void MenuBar::SaveDefaultCodeMap()
 {
   std::string existing_map_file, writable_map_file;
   CBoot::FindMapFile(&existing_map_file, &writable_map_file);
@@ -1544,32 +1558,40 @@ void MenuBar::SaveCode()
   const std::string path =
       writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
-  if (!g_symbolDB.SaveCodeMap(path))
+  TrySaveCodeMap(QString::fromStdString(path));
+}
+
+void MenuBar::SaveOtherCodeMap()
+{
+  const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
+  const QString file = QFileDialog::getSaveFileName(
+      this, tr("Save map file"),
+      QString::fromStdString(File::GetUserPath(D_MAPS_IDX) + "/" + title_id_str + "_code.map"),
+      tr("Dolphin Map File (*.map)"));
+
+  if (file.isEmpty())
+    return;
+
+  TrySaveCodeMap(file);
+}
+
+void MenuBar::TrySaveCodeMap(const QString& path)
+{
+  File::IOFile f(path.toStdString(), "w");
+  if (!f)
+  {
+    ModalMessageBox::warning(this, tr("Error"),
+                             tr("Failed to save code map to path '%1'").arg(path));
+    return;
+  }
+  if (!g_symbolDB.HostSaveCodeMap(f))
   {
     ModalMessageBox::warning(
         this, tr("Error"),
-        tr("Failed to save code map to path '%1'").arg(QString::fromStdString(path)));
-  }
-}
-
-bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
-{
-  if (!g_symbolDB.LoadMap(path.toStdString(), bad))
-  {
-    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
-    return false;
-  }
-
-  return true;
-}
-
-void MenuBar::TrySaveSymbolMap(const QString& path)
-{
-  if (g_symbolDB.SaveSymbolMap(path.toStdString()))
+        tr("The emulated CPU's data address translation or instruction address translation is "
+           "currently disabled."));
     return;
-
-  ModalMessageBox::warning(this, tr("Error"),
-                           tr("Failed to save symbol map to path '%1'").arg(path));
+  }
 }
 
 void MenuBar::CreateSignatureFile()

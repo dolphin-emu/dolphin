@@ -299,15 +299,17 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
 
 bool CBoot::LoadMapFromFilename()
 {
-  std::string strMapFilename;
-  bool found = FindMapFile(&strMapFilename, nullptr);
-  if (found && g_symbolDB.LoadMap(strMapFilename))
-  {
-    UpdateDebugger_MapLoaded();
-    return true;
-  }
+  std::string path;
+  FindMapFile(&path, nullptr);
 
-  return false;
+  File::IOFile f(path, "r");
+  if (!f)
+    return false;
+
+  g_symbolDB.LoadMap(f);
+  UpdateDebugger_MapLoaded();
+
+  return true;
 }
 
 // If ipl.bin is not found, this function does *some* of what BS1 does:

@@ -63,10 +63,10 @@ bool Load()
     g_symbolDB.Clear();
     Host_NotifyMapLoaded();
   }
-  if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
+  File::IOFile f(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map", "r");
+  if (f)
   {
-    ::HLE::Clear();
-    ::HLE::PatchFunctions();
+    g_symbolDB.LoadMap(f);
     Host_NotifyMapLoaded();
   }
 

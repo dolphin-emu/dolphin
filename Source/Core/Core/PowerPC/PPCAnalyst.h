@@ -221,8 +221,9 @@ private:
   u32 m_options = 0;
 };
 
-void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db);
-bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size = 0);
+bool HostFindFunctions(u32 start_addr, u32 end_addr, PPCSymbolDB* func_db);
+void FindFunctions(u32 start_addr, u32 end_addr, PPCSymbolDB* func_db);
+bool AnalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size = 0);
 bool ReanalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size = 0);
 
 }  // namespace PPCAnalyst

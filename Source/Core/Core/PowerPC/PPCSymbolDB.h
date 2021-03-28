@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/IOFile.h"
 #include "Common/SymbolDB.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -21,7 +22,7 @@ public:
   ~PPCSymbolDB() override;
 
   Common::Symbol* AddFunction(u32 start_addr) override;
-  void AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
+  bool AddKnownSymbol(u32 start_addr, u32 size, const std::string& name,
                       Common::Symbol::Type type = Common::Symbol::Type::Function);
 
   Common::Symbol* GetSymbolFromAddr(u32 addr) override;
@@ -29,10 +30,11 @@ public:
   std::string GetDescription(u32 addr);
 
   void FillInCallers();
-
-  bool LoadMap(const std::string& filename, bool bad = false);
-  bool SaveSymbolMap(const std::string& filename) const;
-  bool SaveCodeMap(const std::string& filename) const;
+  bool HostLoadMap(File::IOFile& f, bool bad = false);
+  void LoadMap(File::IOFile& f, bool bad = false);
+  void SaveSymbolMap(File::IOFile& f) const;
+  bool HostSaveCodeMap(File::IOFile& f) const;
+  void SaveCodeMap(File::IOFile& f) const;
 
   void PrintCalls(u32 funcAddr) const;
   void PrintCallers(u32 funcAddr) const;

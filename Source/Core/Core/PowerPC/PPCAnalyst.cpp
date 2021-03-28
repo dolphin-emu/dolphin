@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -74,10 +75,10 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
+bool AnalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size)
 {
   if (func.name.empty())
-    func.Rename(fmt::format("zz_{:08x}_", startAddr));
+    func.Rename(fmt::format("zz_{:08x}_", start_addr));
   if (func.analyzed)
     return true;  // No error, just already did it.
 
@@ -86,9 +87,9 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   func.size = 0;
   func.flags = Common::FFLAG_LEAF;
 
-  u32 farthestInternalBranchTarget = startAddr;
+  u32 farthestInternalBranchTarget = start_addr;
   int numInternalBranches = 0;
-  for (u32 addr = startAddr; true; addr += 4)
+  for (u32 addr = start_addr; true; addr += 4)
   {
     func.size += 4;
     if (func.size >= JitBase::code_buffer_size * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))
@@ -96,10 +97,10 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
 
     if (max_size && func.size > max_size)
     {
-      func.address = startAddr;
+      func.address = start_addr;
       func.analyzed = true;
       func.size -= 4;
-      func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
+      func.hash = HashSignatureDB::ComputeCodeChecksum(start_addr, addr - 4);
       if (numInternalBranches == 0)
         func.flags |= Common::FFLAG_STRAIGHT;
       return true;
@@ -119,9 +120,9 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
         // A final blr!
         // We're done! Looks like we have a neat valid function. Perfect.
         // Let's calc the checksum and get outta here
-        func.address = startAddr;
+        func.address = start_addr;
         func.analyzed = true;
-        func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
+        func.hash = HashSignatureDB::ComputeCodeChecksum(start_addr, addr);
         if (numInternalBranches == 0)
           func.flags |= Common::FFLAG_STRAIGHT;
         return true;
@@ -142,7 +143,8 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
         if (target == INVALID_BRANCH_TARGET)
           continue;
 
-        const bool is_external = target < startAddr || (max_size && target >= startAddr + max_size);
+        const bool is_external =
+            target < start_addr || (max_size && target >= start_addr + max_size);
         if (instr.LK || is_external)
         {
           // Found a function call
@@ -357,15 +359,32 @@ static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
   }
 }
 
-void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
+// Returns false if the Machine State Register is in a bad state.
+// Virtual address translation is required for finding functions.
+bool HostFindFunctions(u32 start_addr, u32 end_addr, PPCSymbolDB* func_db)
+{
+  bool retval = true;
+  Core::RunAsCPUThread([&retval, &start_addr, &end_addr, &func_db] {
+    if (!MSR.DR || !MSR.IR)
+    {
+      retval = false;
+      return;
+    }
+    FindFunctions(start_addr, end_addr, func_db);
+  });
+  return retval;
+}
+
+void FindFunctions(u32 start_addr, u32 end_addr, PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
-  FindFunctionsFromBranches(startAddr, endAddr, func_db);
+  FindFunctionsFromBranches(start_addr, end_addr, func_db);
   FindFunctionsFromHandlers(func_db);
   FindFunctionsAfterReturnInstruction(func_db);
 
   // Step 2:
   func_db->FillInCallers();
+  func_db->Index();
 
   int numLeafs = 0, numNice = 0, numUnNice = 0;
   int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
