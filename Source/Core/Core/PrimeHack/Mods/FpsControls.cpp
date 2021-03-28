@@ -544,63 +544,62 @@ void FpsControls::mp3_handle_lasso(u32 grapple_state_addr)
     set_code_group_state("grapple_lasso_animation", ModState::DISABLED);
   }
 
+  // This is outside of the grapple detection so that people can quickly tap the bind to pull rather than wait.
+  bool holding_grapple = prime::CheckGrappleCtl();
+
   // If currently locked onto a grapple point. This must be seperate from lock-on for grapple swing.
   // 1 => Locked On
   // 2 => Grapple Lasso(/Voltage)
   // 3 => Grapple Swing
   if (read32(grapple_state_addr) == 2) {
-    if (grapple_initial_cooldown == 0) {
-      grapple_initial_cooldown = Common::Timer::GetTimeMs();
+    if (holding_grapple && !grapple_button_state) {
+      grapple_button_state = true;
+
+      grapple_swap_axis = !grapple_swap_axis;
+
+      // 0.45 for repeated taps. 1 will instantly complete the grapple.
+      if (GrappleTappingMode())
+        grapple_force += 0.40f;
     }
-    else if (Common::Timer::GetTimeMs() > grapple_initial_cooldown + 800) {
-      if (prime::CheckGrappleCtl()) {
-        grapple_button_down = true;
-      } else if (grapple_button_down) {
-        grapple_tugging = true;
-        grapple_button_down = false;
+    else if (!holding_grapple) {
+      grapple_button_state = false;
 
-        grapple_swap_axis = !grapple_swap_axis;
+      if (!GrappleTappingMode())
+        grapple_force += 1.f;
+    }
 
-        // 0.45 for repeated taps. 1 will instantly complete the grapple.
-        grapple_force += GrappleTappingMode() ? 0.45f : 1.0f;
-      }
+    constexpr float force_delta = 0.045f;
 
-      if (grapple_tugging) {
-        constexpr float force_delta = 0.045f;
+    // Use tapping/force method
+    if (grapple_force > 0) {
+      grapple_hand_pos += force_delta;
+      grapple_force -= force_delta;
+    }
+    else {
+      grapple_hand_pos -= 0.045f;
+      grapple_force = 0;
+    }
 
-        // Use tapping/force method
-        if (grapple_force > 0) {
-          grapple_hand_pos += force_delta;
-          grapple_force -= force_delta;
-        }
-        else {
-          grapple_hand_pos -= 0.050f;
-          grapple_force = 0;
-        }
+    grapple_hand_pos = std::clamp(grapple_hand_pos, 0.f, 1.0f);
 
-        grapple_hand_pos = std::clamp(grapple_hand_pos, 0.f, 1.0f);
+    prime::GetVariableManager()->set_variable("grapple_hand_x", grapple_hand_pos);
+    prime::GetVariableManager()->set_variable("grapple_hand_y", grapple_hand_pos / 4);
 
-        prime::GetVariableManager()->set_variable("grapple_hand_x", grapple_hand_pos);
-        prime::GetVariableManager()->set_variable("grapple_hand_y", grapple_hand_pos / 4);
-
-        if (grapple_hand_pos >= 1.0f) {
-          // State 4 completes the grapple (e.g pull door from frame)
-          prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 4);
-        } else {
-          // State 2 "holds" the grapple for lasso/voltage.
-          prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 2);
-        }
-      }
-    } 
+    if (grapple_hand_pos >= 1.0f) {
+      // State 4 completes the grapple (e.g pull door from frame)
+      prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 4);
+    } else {
+      // State 2 "holds" the grapple for lasso/voltage.
+      prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 2);
+    }
   } else {
     prime::GetVariableManager()->set_variable("grapple_hand_x", 0.f);
     prime::GetVariableManager()->set_variable("grapple_hand_y", 0.f);
     prime::GetVariableManager()->set_variable("grapple_lasso_state", (u32) 0);
 
-    grapple_initial_cooldown = 0;
     grapple_hand_pos = 0;
     grapple_force = 0;
-    grapple_button_down, grapple_tugging = false;
+    grapple_button_state = false;
   }
 }
 
