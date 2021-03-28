@@ -249,6 +249,11 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("PerfMapDir", m_perfDir);
   core->Set("EnableCustomRTC", bEnableCustomRTC);
   core->Set("CustomRTCValue", m_customRTCValue);
+
+  // PrimeHack
+  core->Set("PrimeSkipMP2Portal", bPrimePortalSkip);
+  core->Set("PrimeSkippableCutscenes", bPrimeSkipCutscene);
+  core->Set("PrimeRestoreScanDash", bPrimeRestoreDashing);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -519,6 +524,11 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
+
+  // PrimeHack
+  core->Get("PrimeSkipMP2Portal", &bPrimePortalSkip, false);
+  core->Get("PrimeSkippableCutscenes", &bPrimeSkipCutscene, false);
+  core->Get("PrimeRestoreScanDash", &bPrimeRestoreDashing, false);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

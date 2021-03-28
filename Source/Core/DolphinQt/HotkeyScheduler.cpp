@@ -582,8 +582,6 @@ void HotkeyScheduler::Run()
       }
     }
     else {
-      SConfig::GetInstance().bPrimeRestoreDashing = false;
-      SConfig::GetInstance().bPrimeSkipCutscene = false;
       SConfig::GetInstance().bPrimeInvulnerability = false;
       SConfig::GetInstance().bPrimeNoclip = false;
     }

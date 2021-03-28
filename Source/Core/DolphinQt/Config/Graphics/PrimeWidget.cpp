@@ -26,7 +26,7 @@
 
 #include "VideoCommon/VideoConfig.h"
 #include "Core/PrimeHack/HackConfig.h"
-#include <Core/Core.h>
+#include "Core/Core.h"
 
 PrimeWidget::PrimeWidget(GraphicsWindow* parent)
 {

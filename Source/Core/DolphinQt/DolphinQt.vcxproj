@@ -118,6 +118,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="Config\NewPatchDialog.cpp" />
     <ClCompile Include="Config\PatchesWidget.cpp" />
+    <ClCompile Include="Config\PrimeCheatsWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipCheckBox.cpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="Config\Mapping\PrimeHackEmuGC.h" />
     <ClInclude Include="Config\Mapping\PrimeHackEmuWii.h" />
     <ClInclude Include="Config\Graphics\PrimeWidget.h" />
+    <ClInclude Include="Config\PrimeCheatsWidget.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\FlowLayout.h" />

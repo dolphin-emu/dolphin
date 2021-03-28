@@ -152,6 +152,7 @@ struct SConfig
   bool bPrimeInvulnerability = false;
   bool bPrimeSkipCutscene = false;
   bool bPrimeRestoreDashing = false;
+  bool bPrimePortalSkip = false;
 
   // Interface settings
   bool bConfirmStop = false;

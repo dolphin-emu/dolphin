@@ -33,6 +33,7 @@
 
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/GeckoCodeWidget.h"
+#include "DolphinQt/Config/PrimeCheatsWidget.h"
 #include "DolphinQt/Settings.h"
 
 constexpr u32 MAX_RESULTS = 50;
@@ -196,6 +197,7 @@ void CheatsManager::OnStateChanged(Core::State state)
         m_ar_code = new ARCodeWidget(*m_game_file, false);
         m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
         m_tab_widget->insertTab(1, new GeckoCodeWidget(*m_game_file, false), tr("Gecko Codes"));
+        m_tab_widget->insertTab(2, new PrimeCheatsWidget(), tr("PrimeHack"));
       }
     }
   }
