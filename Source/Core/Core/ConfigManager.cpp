@@ -254,6 +254,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("PrimeSkipMP2Portal", bPrimePortalSkip);
   core->Set("PrimeSkippableCutscenes", bPrimeSkipCutscene);
   core->Set("PrimeRestoreScanDash", bPrimeRestoreDashing);
+  core->Set("PrimeFriendVouchers", bPrimeFriendVouchers);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -529,6 +530,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("PrimeSkipMP2Portal", &bPrimePortalSkip, false);
   core->Get("PrimeSkippableCutscenes", &bPrimeSkipCutscene, false);
   core->Get("PrimeRestoreScanDash", &bPrimeRestoreDashing, false);
+  core->Get("PrimeFriendVouchers", &bPrimeFriendVouchers, true);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -778,6 +780,8 @@ void SConfig::LoadDefaults()
   bJITSystemRegistersOff = false;
   bJITBranchOff = false;
   bJITRegisterCacheOff = false;
+
+  bPrimeFriendVouchers = true;
 
   ResetRunningGameMetadata();
 }

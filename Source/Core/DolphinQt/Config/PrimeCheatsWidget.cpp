@@ -29,12 +29,14 @@ void PrimeCheatsWidget::CreateWidgets()
   m_checkbox_skipcutscenes = new QCheckBox(tr("Skippable Cutscenes"));
   m_checkbox_scandash = new QCheckBox(tr("Restore Scan Dash"));
   m_checkbox_skipportalmp2 = new QCheckBox(tr("Skip MP2 Portal Cutscene (Trilogy Only)"));
+  m_checkbox_friendvouchers = new QCheckBox(tr("Remove Friend Vouchers Requirement (Trilogy Only)"));
 
   layout->addWidget(m_checkbox_noclip);
   layout->addWidget(m_checkbox_invulnerability);
   layout->addWidget(m_checkbox_skipcutscenes);
   layout->addWidget(m_checkbox_scandash);
   layout->addWidget(m_checkbox_skipportalmp2);
+  layout->addWidget(m_checkbox_friendvouchers);
 
   main_layout->addWidget(group_box);
   main_layout->addStretch();
@@ -49,6 +51,7 @@ void PrimeCheatsWidget::ConnectWidgets()
   connect(m_checkbox_skipcutscenes, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
   connect(m_checkbox_scandash, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
   connect(m_checkbox_skipportalmp2, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
+  connect(m_checkbox_friendvouchers, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
 }
 
 void PrimeCheatsWidget::OnSaveConfig()
@@ -59,7 +62,8 @@ void PrimeCheatsWidget::OnSaveConfig()
   settings.bPrimeSkipCutscene = m_checkbox_skipcutscenes->isChecked();
   settings.bPrimeRestoreDashing = m_checkbox_scandash->isChecked();
   settings.bPrimePortalSkip = m_checkbox_skipportalmp2->isChecked();
-  
+  settings.bPrimeFriendVouchers = m_checkbox_friendvouchers->isChecked();
+
   settings.SaveSettings();
 }
 
@@ -71,6 +75,7 @@ void PrimeCheatsWidget::OnLoadConfig()
   m_checkbox_skipcutscenes->setChecked(settings.bPrimeSkipCutscene);
   m_checkbox_scandash->setChecked(settings.bPrimeRestoreDashing);
   m_checkbox_skipportalmp2->setChecked(settings.bPrimePortalSkip);
+  m_checkbox_friendvouchers->setChecked(settings.bPrimeFriendVouchers);
 }
 
 void PrimeCheatsWidget::AddDescriptions()
@@ -85,10 +90,13 @@ void PrimeCheatsWidget::AddDescriptions()
     QT_TR_NOOP("Re-enable the ability to dash with the scan visor. This is a speed-running trick in the original release, and was subsequently patched in later releases.");
   static const char TR_SKIPPORTAL[] =
     QT_TR_NOOP("Skips having to watch the portal cutscenes in Metroid Prime 2 (Trilogy), allowing you to teleport immediately.");
+  static const char TR_FRIENDVOUCHERS[] =
+    QT_TR_NOOP("Removes the friend voucher cost from all purchasable extras. This is on by default as friend-vouchers are impossible to obtain.");
 
   m_checkbox_noclip->setToolTip(tr(TR_NOCLIP));
   m_checkbox_invulnerability->setToolTip(tr(TR_INVULNERABILITY));
   m_checkbox_skipcutscenes->setToolTip(tr(TR_SKIPCUTSCENES));
   m_checkbox_scandash->setToolTip(tr(TR_SCANDASH));
   m_checkbox_skipportalmp2->setToolTip(tr(TR_SKIPPORTAL));
+  m_checkbox_friendvouchers->setToolTip(tr(TR_FRIENDVOUCHERS));
 }

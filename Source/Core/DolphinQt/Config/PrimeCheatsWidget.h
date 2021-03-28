@@ -21,4 +21,5 @@ private:
   QCheckBox* m_checkbox_skipcutscenes;
   QCheckBox* m_checkbox_scandash;
   QCheckBox* m_checkbox_skipportalmp2;
+  QCheckBox* m_checkbox_friendvouchers;
 };

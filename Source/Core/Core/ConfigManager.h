@@ -153,6 +153,7 @@ struct SConfig
   bool bPrimeSkipCutscene = false;
   bool bPrimeRestoreDashing = false;
   bool bPrimePortalSkip = false;
+  bool bPrimeFriendVouchers = true;
 
   // Interface settings
   bool bConfirmStop = false;
