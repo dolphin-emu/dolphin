@@ -12,10 +12,10 @@ namespace DSP::JIT
 {
 DSPEmitter::~DSPEmitter() = default;
 
-std::unique_ptr<DSPEmitter> CreateDSPEmitter()
+std::unique_ptr<DSPEmitter> CreateDSPEmitter([[maybe_unused]] DSPCore& dsp)
 {
 #if defined(_M_X86) || defined(_M_X86_64)
-  return std::make_unique<x64::DSPEmitter>();
+  return std::make_unique<x64::DSPEmitter>(dsp);
 #else
   return std::make_unique<DSPEmitterNull>();
 #endif

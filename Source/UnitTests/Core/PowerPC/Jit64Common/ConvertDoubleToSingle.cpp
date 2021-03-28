@@ -14,6 +14,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace
@@ -109,7 +110,7 @@ TEST(Jit64, ConvertDoubleToSingle)
     const u32 expected = ConvertToSingle(input);
     const u32 actual = routines.wrapped_cdts(input);
 
-    printf("%016llx -> %08x == %08x\n", input, actual, expected);
+    fmt::print("{:016x} -> {:08x} == {:08x}\n", input, actual, expected);
 
     EXPECT_EQ(expected, actual);
   }

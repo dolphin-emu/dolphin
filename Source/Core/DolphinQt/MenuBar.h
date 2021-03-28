@@ -91,6 +91,7 @@ signals:
   void ConfigureAudio();
   void ConfigureControllers();
   void ConfigureHotkeys();
+  void ConfigureFreelook();
 
   // View
   void ShowList();

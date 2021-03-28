@@ -45,7 +45,7 @@ long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* in
 {
   CEXIMic* mic = static_cast<CEXIMic*>(user_data);
 
-  std::lock_guard<std::mutex> lk(mic->ring_lock);
+  std::lock_guard lk(mic->ring_lock);
 
   const s16* buff_in = static_cast<const s16*>(input_buffer);
   for (long i = 0; i < nframes; i++)
@@ -121,7 +121,7 @@ void CEXIMic::StreamStop()
 
 void CEXIMic::StreamReadOne()
 {
-  std::lock_guard<std::mutex> lk(ring_lock);
+  std::lock_guard lk(ring_lock);
 
   if (samples_avail >= buff_size_samples)
   {

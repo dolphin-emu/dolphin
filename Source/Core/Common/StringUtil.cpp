@@ -35,12 +35,16 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
+#if defined(__NetBSD__)
+#define LIBICONV_PLUG
+#endif
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
 #endif
 
-#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) &&       \
+    !defined(__NetBSD__)
 static locale_t GetCLocale()
 {
   static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
@@ -133,11 +137,11 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
     c_locale = _create_locale(LC_ALL, "C");
   writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   writtenCount = vsnprintf(out, outsize, format, args);
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 #endif
@@ -174,7 +178,7 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
@@ -183,7 +187,7 @@ std::string StringFromFormatV(const char* format, va_list args)
     buf = nullptr;
   }
 
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -524,8 +528,13 @@ std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_v
     while (src_bytes != 0)
     {
       size_t const iconv_result =
-          iconv(conv_desc, (char**)(&src_buffer), &src_bytes, &dst_buffer, &dst_bytes);
-
+#if defined(__OpenBSD__) || defined(__NetBSD__)
+          iconv(conv_desc, reinterpret_cast<const char**>(&src_buffer), &src_bytes, &dst_buffer,
+                &dst_bytes);
+#else
+          iconv(conv_desc, const_cast<char**>(reinterpret_cast<const char**>(&src_buffer)),
+                &src_bytes, &dst_buffer, &dst_bytes);
+#endif
       if ((size_t)-1 == iconv_result)
       {
         if (EILSEQ == errno || EINVAL == errno)

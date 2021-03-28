@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <atomic>
 #include <list>
 #include <map>
 #include <mutex>
@@ -17,6 +18,7 @@ using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
 static u32 s_callback_guards = 0;
+static std::atomic<u64> s_config_version = 0;
 
 static std::shared_mutex s_layers_rw_lock;
 
@@ -31,7 +33,7 @@ static void AddLayerInternal(std::shared_ptr<Layer> layer)
     const Config::LayerType layer_type = layer->GetLayer();
     s_layers.insert_or_assign(layer_type, std::move(layer));
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
@@ -59,7 +61,7 @@ void RemoveLayer(LayerType layer)
 
     s_layers.erase(layer);
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void AddConfigChangedCallback(ConfigChangedCallback func)
@@ -67,13 +69,23 @@ void AddConfigChangedCallback(ConfigChangedCallback func)
   s_callbacks.emplace_back(std::move(func));
 }
 
-void InvokeConfigChangedCallbacks()
+void OnConfigChanged()
 {
+  // Increment the config version to invalidate caches.
+  // To ensure that getters do not return stale data, this should always be done
+  // even when callbacks are suppressed.
+  s_config_version.fetch_add(1, std::memory_order_relaxed);
+
   if (s_callback_guards)
     return;
 
   for (const auto& callback : s_callbacks)
     callback();
+}
+
+u64 GetConfigVersion()
+{
+  return s_config_version.load(std::memory_order_relaxed);
 }
 
 // Explicit load and save of layers
@@ -85,7 +97,7 @@ void Load()
     for (auto& layer : s_layers)
       layer.second->Load();
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void Save()
@@ -96,7 +108,7 @@ void Save()
     for (auto& layer : s_layers)
       layer.second->Save();
   }
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 void Init()
@@ -207,7 +219,7 @@ ConfigChangeCallbackGuard::~ConfigChangeCallbackGuard()
   if (--s_callback_guards)
     return;
 
-  InvokeConfigChangedCallbacks();
+  OnConfigChanged();
 }
 
 }  // namespace Config

@@ -17,8 +17,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 124;  // Last changed in PR 9097
+constexpr u32 STATE_VERSION = 128;  // Last changed in PR 9366
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -99,11 +99,11 @@ enum
   STATE_LOAD = 2,
 };
 
-static bool g_use_compression = true;
+static bool s_use_compression = true;
 
 void EnableCompression(bool compression)
 {
-  g_use_compression = compression;
+  s_use_compression = compression;
 }
 
 // Returns true if state version matches current Dolphin state version, false otherwise.
@@ -307,7 +307,7 @@ struct CompressAndDumpState_args
 
 static void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
-  std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
+  std::lock_guard lk(*save_args.buffer_mutex);
 
   // ScopeGuard is used here to ensure that g_compressAndDumpStateSyncEvent.Set()
   // will be called and that it will happen after the IOFile is closed.
@@ -358,7 +358,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   // Setting up the header
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.gameID, std::size(header.gameID));
-  header.size = g_use_compression ? (u32)buffer_size : 0;
+  header.size = s_use_compression ? (u32)buffer_size : 0;
   header.time = Common::Timer::GetDoubleTime();
 
   f.WriteArray(&header, 1);
@@ -419,7 +419,7 @@ void SaveAs(const std::string& filename, bool wait)
 
         // Then actually do the write.
         {
-          std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+          std::lock_guard lk(g_cs_current_buffer);
           g_current_buffer.resize(buffer_size);
           ptr = &g_current_buffer[0];
           p.SetMode(PointerWrap::MODE_WRITE);
@@ -455,14 +455,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
 {
   Flush();
   File::IOFile f(filename, "rb");
-  if (!f)
-  {
-    Core::DisplayMessage("State not found", 2000);
-    return false;
-  }
-
-  f.ReadArray(&header, 1);
-  return true;
+  return f.ReadArray(&header, 1);
 }
 
 std::string GetInfoStringOfSlot(int slot, bool translate)
@@ -493,14 +486,13 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 {
   Flush();
   File::IOFile f(filename, "rb");
-  if (!f)
+
+  StateHeader header;
+  if (!f.ReadArray(&header, 1))
   {
     Core::DisplayMessage("State not found", 2000);
     return;
   }
-
-  StateHeader header;
-  f.ReadArray(&header, 1);
 
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
@@ -576,7 +568,7 @@ void LoadAs(const std::string& filename)
         // Save temp buffer for undo load state
         if (!Movie::IsJustStartingRecordingInputFromSaveState())
         {
-          std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+          std::lock_guard lk(g_cs_undo_load_buffer);
           SaveToBuffer(g_undo_load_buffer);
           if (Movie::IsMovieActive())
             Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
@@ -649,12 +641,12 @@ void Shutdown()
   // this gives a better guarantee to free the allocated memory right NOW (as opposed to, actually,
   // never)
   {
-    std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+    std::lock_guard lk(g_cs_current_buffer);
     std::vector<u8>().swap(g_current_buffer);
   }
 
   {
-    std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+    std::lock_guard lk(g_cs_undo_load_buffer);
     std::vector<u8>().swap(g_undo_load_buffer);
   }
 }
@@ -716,7 +708,7 @@ void Flush()
 // Load the last state before loading the state
 void UndoLoadState()
 {
-  std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+  std::lock_guard lk(g_cs_undo_load_buffer);
   if (!g_undo_load_buffer.empty())
   {
     if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))

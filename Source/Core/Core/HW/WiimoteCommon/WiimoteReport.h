@@ -89,8 +89,7 @@ struct OutputReportLeds
 
   u8 rumble : 1;
   u8 ack : 1;
-  // This field must be named to work around a msvc bug.
-  u8 _padding : 2;
+  u8 : 2;
   u8 leds : 4;
 };
 static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");

@@ -10,6 +10,8 @@ static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 static JavaVM* s_java_vm;
 
+static jclass s_string_class;
+
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
 static jmethodID s_do_rumble;
@@ -44,11 +46,18 @@ static jmethodID s_compress_cb_run;
 static jclass s_content_handler_class;
 static jmethodID s_content_handler_open_fd;
 static jmethodID s_content_handler_delete;
+static jmethodID s_content_handler_get_size_and_is_directory;
+static jmethodID s_content_handler_get_display_name;
+static jmethodID s_content_handler_get_child_names;
+static jmethodID s_content_handler_do_file_search;
 
 static jclass s_network_helper_class;
 static jmethodID s_network_helper_get_network_ip_address;
 static jmethodID s_network_helper_get_network_prefix_length;
 static jmethodID s_network_helper_get_network_gateway;
+
+static jclass s_boolean_supplier_class;
+static jmethodID s_boolean_supplier_get;
 
 namespace IDCache
 {
@@ -73,6 +82,11 @@ JNIEnv* GetEnvForThread()
     JNIEnv* env = nullptr;
   } owned;
   return owned.env;
+}
+
+jclass GetStringClass()
+{
+  return s_string_class;
 }
 
 jclass GetNativeLibraryClass()
@@ -210,6 +224,26 @@ jmethodID GetContentHandlerDelete()
   return s_content_handler_delete;
 }
 
+jmethodID GetContentHandlerGetSizeAndIsDirectory()
+{
+  return s_content_handler_get_size_and_is_directory;
+}
+
+jmethodID GetContentHandlerGetDisplayName()
+{
+  return s_content_handler_get_display_name;
+}
+
+jmethodID GetContentHandlerGetChildNames()
+{
+  return s_content_handler_get_child_names;
+}
+
+jmethodID GetContentHandlerDoFileSearch()
+{
+  return s_content_handler_do_file_search;
+}
+
 jclass GetNetworkHelperClass()
 {
   return s_network_helper_class;
@@ -229,6 +263,12 @@ jmethodID GetNetworkHelperGetNetworkGateway()
 {
   return s_network_helper_get_network_gateway;
 }
+
+jmethodID GetBooleanSupplierGet()
+{
+  return s_boolean_supplier_get;
+}
+
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -242,6 +282,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   JNIEnv* env;
   if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
     return JNI_ERR;
+
+  const jclass string_class = env->FindClass("java/lang/String");
+  s_string_class = reinterpret_cast<jclass>(env->NewGlobalRef(string_class));
 
   const jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
@@ -306,6 +349,15 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
                                                      "(Ljava/lang/String;Ljava/lang/String;)I");
   s_content_handler_delete =
       env->GetStaticMethodID(s_content_handler_class, "delete", "(Ljava/lang/String;)Z");
+  s_content_handler_get_size_and_is_directory = env->GetStaticMethodID(
+      s_content_handler_class, "getSizeAndIsDirectory", "(Ljava/lang/String;)J");
+  s_content_handler_get_display_name = env->GetStaticMethodID(
+      s_content_handler_class, "getDisplayName", "(Ljava/lang/String;)Ljava/lang/String;");
+  s_content_handler_get_child_names = env->GetStaticMethodID(
+      s_content_handler_class, "getChildNames", "(Ljava/lang/String;Z)[Ljava/lang/String;");
+  s_content_handler_do_file_search =
+      env->GetStaticMethodID(s_content_handler_class, "doFileSearch",
+                             "(Ljava/lang/String;[Ljava/lang/String;Z)[Ljava/lang/String;");
 
   const jclass network_helper_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");
@@ -316,6 +368,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->GetStaticMethodID(s_network_helper_class, "GetNetworkPrefixLength", "()I");
   s_network_helper_get_network_gateway =
       env->GetStaticMethodID(s_network_helper_class, "GetNetworkGateway", "()I");
+
+  const jclass boolean_supplier_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/BooleanSupplier");
+  s_boolean_supplier_class = reinterpret_cast<jclass>(env->NewGlobalRef(boolean_supplier_class));
+  s_boolean_supplier_get = env->GetMethodID(s_boolean_supplier_class, "get", "()Z");
 
   return JNI_VERSION;
 }

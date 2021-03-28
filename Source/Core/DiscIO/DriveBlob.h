@@ -8,7 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "DiscIO/Blob.h"
 
 #ifdef _WIN32

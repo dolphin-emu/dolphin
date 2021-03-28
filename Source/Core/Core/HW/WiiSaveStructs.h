@@ -101,7 +101,8 @@ public:
   };
 
   virtual ~Storage() = default;
-  virtual bool SaveExists() { return true; }
+  virtual bool SaveExists() const = 0;
+  virtual bool EraseSave() = 0;
   virtual std::optional<Header> ReadHeader() = 0;
   virtual std::optional<BkHeader> ReadBkHeader() = 0;
   virtual std::optional<std::vector<SaveFile>> ReadFiles() = 0;

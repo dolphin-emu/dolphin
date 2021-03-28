@@ -21,8 +21,4 @@ extern const Info<bool> MAIN_USE_GAME_COVERS;
 extern const Info<bool> MAIN_FOCUSED_HOTKEYS;
 extern const Info<bool> MAIN_RECURSIVE_ISO_PATHS;
 
-// UI.Android
-
-extern const Info<int> MAIN_LAST_PLATFORM_TAB;
-
 }  // namespace Config

@@ -34,6 +34,7 @@ TEST(UniqueID, UniqueEnough)
 TEST(IsMMIOAddress, SpecialAddresses)
 {
   const std::string profile_path = File::CreateTempDir();
+  ASSERT_FALSE(profile_path.empty());
   UICommon::SetUserDirectory(profile_path);
   Config::Init();
   SConfig::Init();

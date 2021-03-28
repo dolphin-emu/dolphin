@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 

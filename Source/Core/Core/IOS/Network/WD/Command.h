@@ -4,23 +4,65 @@
 
 #pragma once
 
+#include <deque>
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
+#include "Common/Network.h"
+#include "Common/Swap.h"
 #include "Core/IOS/Device.h"
+
+namespace IOS::HLE::WD
+{
+// Values 2, 4, 5, 6 exist as well but are not known to be used by games, the Mii Channel
+// or the system menu.
+enum class Mode
+{
+  NotInitialized = 0,
+  // Used by games to broadcast DS programs or to communicate with a DS more generally.
+  DSCommunications = 1,
+  Unknown2 = 2,
+  // AOSS (https://en.wikipedia.org/wiki/AOSS) is a WPS-like feature.
+  // This is only known to be used by the system menu.
+  AOSSAccessPointScan = 3,
+  Unknown4 = 4,
+  Unknown5 = 5,
+  Unknown6 = 6,
+};
+
+constexpr bool IsValidMode(Mode mode)
+{
+  return mode >= Mode::DSCommunications && mode <= Mode::Unknown6;
+}
+}  // namespace IOS::HLE::WD
 
 namespace IOS::HLE::Device
 {
 class NetWDCommand : public Device
 {
 public:
+  enum class ResultCode : u32
+  {
+    InvalidFd = 0x80008000,
+    IllegalParameter = 0x80008001,
+    UnavailableCommand = 0x80008002,
+    DriverError = 0x80008003,
+  };
+
   NetWDCommand(Kernel& ios, const std::string& device_name);
 
+  IPCCommandResult Open(const OpenRequest& request) override;
+  IPCCommandResult Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  void Update() override;
+  bool IsOpened() const override { return true; }
+  void DoState(PointerWrap& p) override;
 
 private:
   enum
   {
+    IOCTLV_WD_INVALID = 0x1000,
     IOCTLV_WD_GET_MODE = 0x1001,          // WD_GetMode
     IOCTLV_WD_SET_LINKSTATE = 0x1002,     // WD_SetLinkState
     IOCTLV_WD_GET_LINKSTATE = 0x1003,     // WD_GetLinkState
@@ -89,14 +131,45 @@ private:
 
   struct Info
   {
-    u8 mac[6];
-    u16 ntr_allowed_channels;
-    u16 unk8;
-    char country[2];
-    u32 unkc;
-    char wlversion[0x50];
-    u8 unk[0x30];
+    Common::MACAddress mac{};
+    Common::BigEndianValue<u16> enabled_channels{};
+    Common::BigEndianValue<u16> nitro_allowed_channels{};
+    std::array<char, 4> country_code{};
+    u8 channel{};
+    bool initialised{};
+    std::array<char, 0x80> wl_version{};
   };
+  static_assert(sizeof(Info) == 0x90);
 #pragma pack(pop)
+
+  enum class Status
+  {
+    Idle,
+    ScanningForAOSSAccessPoint,
+    ScanningForDS,
+  };
+
+  void ProcessRecvRequests();
+  void HandleStateChange();
+  static Status GetTargetStatusForMode(WD::Mode mode);
+
+  IPCCommandResult SetLinkState(const IOCtlVRequest& request);
+  IPCCommandResult GetLinkState(const IOCtlVRequest& request) const;
+  IPCCommandResult Disassociate(const IOCtlVRequest& request);
+  IPCCommandResult GetInfo(const IOCtlVRequest& request) const;
+
+  s32 m_ipc_owner_fd = -1;
+  WD::Mode m_mode = WD::Mode::NotInitialized;
+  u32 m_buffer_flags{};
+
+  Status m_status = Status::Idle;
+  Status m_target_status = Status::Idle;
+
+  u16 m_nitro_enabled_channels{};
+  Info m_info;
+
+  Common::Flag m_clear_all_requests;
+  std::deque<u32> m_recv_frame_requests;
+  std::deque<u32> m_recv_notification_requests;
 };
 }  // namespace IOS::HLE::Device

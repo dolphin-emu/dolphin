@@ -231,30 +231,51 @@ void Shutdown()
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
+  static constexpr u16 WMASK_NONE = 0x0000;
+  static constexpr u16 WMASK_AR_INFO = 0x007f;
+  static constexpr u16 WMASK_AR_REFRESH = 0x07ff;
+  static constexpr u16 WMASK_AR_HI_RESTRICT = 0x03ff;
+  static constexpr u16 WMASK_AR_CNT_DIR_BIT = 0x8000;
+  static constexpr u16 WMASK_AUDIO_HI_RESTRICT_GCN = 0x03ff;
+  static constexpr u16 WMASK_AUDIO_HI_RESTRICT_WII = 0x1fff;
+  static constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
+
   // Declare all the boilerplate direct MMIOs.
   struct
   {
     u32 addr;
     u16* ptr;
-    bool align_writes_on_32_bytes;
+    u16 wmask;
   } directly_mapped_vars[] = {
-      {AR_INFO, &s_ARAM_Info.Hex},
-      {AR_MODE, &s_AR_MODE},
-      {AR_REFRESH, &s_AR_REFRESH},
-      {AR_DMA_MMADDR_H, MMIO::Utils::HighPart(&s_arDMA.MMAddr)},
-      {AR_DMA_MMADDR_L, MMIO::Utils::LowPart(&s_arDMA.MMAddr), true},
-      {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&s_arDMA.ARAddr)},
-      {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&s_arDMA.ARAddr), true},
-      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.Hex)},
+      // This register is read-only
+      {AR_MODE, &s_AR_MODE, WMASK_NONE},
+
+      // For these registers, only some bits can be set
+      {AR_INFO, &s_ARAM_Info.Hex, WMASK_AR_INFO},
+      {AR_REFRESH, &s_AR_REFRESH, WMASK_AR_REFRESH},
+
+      // For AR_DMA_*_H registers, only bits 0x03ff can be set
+      // For AR_DMA_*_L registers, only bits 0xffe0 can be set
+      {AR_DMA_MMADDR_H, MMIO::Utils::HighPart(&s_arDMA.MMAddr), WMASK_AR_HI_RESTRICT},
+      {AR_DMA_MMADDR_L, MMIO::Utils::LowPart(&s_arDMA.MMAddr), WMASK_LO_ALIGN_32BIT},
+      {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&s_arDMA.ARAddr), WMASK_AR_HI_RESTRICT},
+      {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&s_arDMA.ARAddr), WMASK_LO_ALIGN_32BIT},
+      // For this register, the topmost (dir) bit can also be set
+      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.Hex),
+       WMASK_AR_HI_RESTRICT | WMASK_AR_CNT_DIR_BIT},
       // AR_DMA_CNT_L triggers DMA
-      {AUDIO_DMA_START_HI, MMIO::Utils::HighPart(&s_audioDMA.SourceAddress)},
-      {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&s_audioDMA.SourceAddress)},
+
+      // For AUDIO_DMA_START_HI, only bits 0x03ff can be set on GCN and 0x1fff on Wii
+      // For AUDIO_DMA_START_LO, only bits 0xffe0 can be set
+      // AUDIO_DMA_START_HI requires a complex write handler
+      {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&s_audioDMA.SourceAddress), WMASK_LO_ALIGN_32BIT},
   };
   for (auto& mapped_var : directly_mapped_vars)
   {
-    u16 write_mask = mapped_var.align_writes_on_32_bytes ? 0xFFE0 : 0xFFFF;
     mmio->Register(base | mapped_var.addr, MMIO::DirectRead<u16>(mapped_var.ptr),
-                   MMIO::DirectWrite<u16>(mapped_var.ptr, write_mask));
+                   mapped_var.wmask != WMASK_NONE ?
+                       MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask) :
+                       MMIO::InvalidWrite<u16>());
   }
 
   // DSP mail MMIOs call DSP emulator functions to get results or write data.
@@ -340,8 +361,16 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // ARAM MMIO controlling the DMA start.
   mmio->Register(base | AR_DMA_CNT_L, MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.Hex)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   s_arDMA.Cnt.Hex = (s_arDMA.Cnt.Hex & 0xFFFF0000) | (val & ~31);
+                   s_arDMA.Cnt.Hex = (s_arDMA.Cnt.Hex & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
                    Do_ARAM_DMA();
+                 }));
+
+  mmio->Register(base | AUDIO_DMA_START_HI,
+                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&s_audioDMA.SourceAddress)),
+                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
+                   *MMIO::Utils::HighPart(&s_audioDMA.SourceAddress) =
+                       val & (SConfig::GetInstance().bWii ? WMASK_AUDIO_HI_RESTRICT_WII :
+                                                            WMASK_AUDIO_HI_RESTRICT_GCN);
                  }));
 
   // Audio DMA MMIO controlling the DMA start.

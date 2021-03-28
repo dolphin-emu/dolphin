@@ -36,13 +36,14 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/FreeLookManager.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -83,7 +84,6 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/VideoConfig.h"
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
@@ -485,6 +485,15 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       NetPlay::SetupWiimotes();
   }
 
+  if (init_controllers)
+  {
+    FreeLook::Initialize();
+  }
+  else
+  {
+    FreeLook::LoadInputConfig();
+  }
+
   Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
     if (!init_controllers)
       return;
@@ -494,6 +503,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       Wiimote::ResetAllWiimotes();
       Wiimote::Shutdown();
     }
+
+    FreeLook::Shutdown();
 
     ResetRumble();
 
@@ -523,6 +534,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     PatchEngine::Shutdown();
     HLE::Clear();
+    PowerPC::debug_interface.Clear();
   }};
 
   VideoBackendBase::PopulateBackendInfo();
@@ -1017,7 +1029,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop)
 
   bool send_message = false;
   {
-    std::lock_guard<std::mutex> guard(s_host_jobs_lock);
+    std::lock_guard guard(s_host_jobs_lock);
     send_message = s_host_jobs_queue.empty();
     s_host_jobs_queue.emplace(HostJob{std::move(job), run_during_stop});
   }
@@ -1031,7 +1043,7 @@ void HostDispatchJobs()
   // WARNING: This should only run on the Host Thread.
   // NOTE: This function is potentially re-entrant. If a job calls
   //   Core::Stop for instance then we'll enter this a second time.
-  std::unique_lock<std::mutex> guard(s_host_jobs_lock);
+  std::unique_lock guard(s_host_jobs_lock);
   while (!s_host_jobs_queue.empty())
   {
     HostJob job = std::move(s_host_jobs_queue.front());

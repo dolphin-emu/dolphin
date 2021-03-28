@@ -6,10 +6,12 @@
 
 #include <cstddef>
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
+#include "Core/IOS/ES/Formats.h"
 
 // Small utility functions for common Wii related tasks.
 
@@ -21,6 +23,16 @@ class VolumeWAD;
 namespace IOS::HLE
 {
 class Kernel;
+}
+
+namespace IOS::HLE::FS
+{
+class FileSystem;
+}
+
+namespace IOS::HLE::Device
+{
+class ES;
 }
 
 namespace WiiUtils
@@ -39,6 +51,18 @@ bool InstallWAD(const std::string& wad_path);
 bool UninstallTitle(u64 title_id);
 
 bool IsTitleInstalled(u64 title_id);
+
+// Checks if there's a title.tmd imported for the given title ID.
+bool IsTMDImported(IOS::HLE::FS::FileSystem& fs, u64 title_id);
+
+// Searches for a TMD matching the given title ID in /title/00000001/00000002/data/tmds.sys.
+// Returns it if it exists, otherwise returns an empty invalid TMD.
+IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id);
+
+// Checks if there's a title.tmd imported for the given title ID. If there is not, we attempt to
+// re-import it from the TMDs stored in /title/00000001/00000002/data/tmds.sys.
+// Returns true if, after this function call, we have an imported title.tmd, or false if not.
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::Device::ES& es, u64 title_id);
 
 enum class UpdateResult
 {

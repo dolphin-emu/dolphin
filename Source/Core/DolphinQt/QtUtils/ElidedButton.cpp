@@ -4,7 +4,6 @@
 
 #include "DolphinQt/QtUtils/ElidedButton.h"
 
-#include <QFontMetrics>
 #include <QStyleOptionButton>
 #include <QStylePainter>
 

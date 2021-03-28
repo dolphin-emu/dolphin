@@ -18,10 +18,10 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/Analytics.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"

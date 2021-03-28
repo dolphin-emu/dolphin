@@ -28,8 +28,8 @@ namespace fs = std::filesystem;
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -157,6 +157,15 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
   std::string path = paths.front();
   if (paths.size() == 1)
     paths.clear();
+
+#ifdef ANDROID
+  if (extension.empty() && IsPathAndroidContent(path))
+  {
+    const std::string display_name = GetAndroidContentDisplayName(path);
+    SplitPath(display_name, nullptr, nullptr, &extension);
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+  }
+#endif
 
   static const std::unordered_set<std::string> disc_image_extensions = {
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};

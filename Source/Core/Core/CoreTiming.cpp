@@ -141,7 +141,7 @@ void Init()
 
 void Shutdown()
 {
-  std::lock_guard<std::mutex> lk(s_ts_write_lock);
+  std::lock_guard lk(s_ts_write_lock);
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
@@ -149,7 +149,7 @@ void Shutdown()
 
 void DoState(PointerWrap& p)
 {
-  std::lock_guard<std::mutex> lk(s_ts_write_lock);
+  std::lock_guard lk(s_ts_write_lock);
   p.Do(g.slice_length);
   p.Do(g.global_timer);
   p.Do(s_idled_cycles);
@@ -265,7 +265,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
                     *event_type->name);
     }
 
-    std::lock_guard<std::mutex> lk(s_ts_write_lock);
+    std::lock_guard lk(s_ts_write_lock);
     s_ts_queue.Push(Event{g.global_timer + cycles_into_future, 0, userdata, event_type});
   }
 }
@@ -380,6 +380,7 @@ void Idle()
     Fifo::FlushGpu();
   }
 
+  PowerPC::UpdatePerformanceMonitor(PowerPC::ppcState.downcount, 0, 0);
   s_idled_cycles += DowncountToCycles(PowerPC::ppcState.downcount);
   PowerPC::ppcState.downcount = 0;
 }

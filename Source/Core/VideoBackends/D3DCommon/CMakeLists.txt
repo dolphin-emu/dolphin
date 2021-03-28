@@ -1,6 +1,6 @@
 add_library(videod3dcommon
-  Common.cpp
-  Common.h
+  D3DCommon.cpp
+  D3DCommon.h
   Shader.cpp
   Shader.h
   SwapChain.cpp

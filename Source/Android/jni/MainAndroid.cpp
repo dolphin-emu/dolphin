@@ -31,12 +31,12 @@
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
@@ -45,7 +45,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/State.h"
-#include "Core/WiiUtils.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -594,14 +593,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadLogger
                                                                                        jclass)
 {
   Common::Log::LogManager::Init();
-}
-
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallWAD(JNIEnv* env,
-                                                                                   jclass,
-                                                                                   jstring jFile)
-{
-  const std::string path = GetJString(env, jFile);
-  return static_cast<jboolean>(WiiUtils::InstallWAD(path));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertDiscImage(

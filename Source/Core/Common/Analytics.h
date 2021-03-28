@@ -43,7 +43,7 @@
 namespace Common
 {
 // Generic interface for an analytics reporting backends. The main
-// implementation used in Dolphin can be found in Core/Analytics.h.
+// implementation used in Dolphin can be found in Core/DolphinAnalytics.h.
 class AnalyticsReportingBackend
 {
 public:

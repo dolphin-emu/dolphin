@@ -7,7 +7,7 @@
 #include <wrl/client.h>
 
 #include "Common/MsgHandler.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 
 namespace DX12
 {

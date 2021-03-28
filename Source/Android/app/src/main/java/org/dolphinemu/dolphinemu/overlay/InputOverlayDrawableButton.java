@@ -114,6 +114,11 @@ public final class InputOverlayDrawableButton
     mPressedStateBitmap.setBounds(left, top, right, bottom);
   }
 
+  public void setOpacity(int value)
+  {
+    mDefaultStateBitmap.setAlpha(value);
+  }
+
   public Rect getBounds()
   {
     return mDefaultStateBitmap.getBounds();

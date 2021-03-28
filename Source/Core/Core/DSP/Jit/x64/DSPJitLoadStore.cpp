@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
@@ -65,8 +64,8 @@ void DSPEmitter::lrs(const UDSPInstruction opc)
 // Move value from data memory pointed by address M to register $D.
 void DSPEmitter::lr(const UDSPInstruction opc)
 {
-  int reg = opc & 0x1F;
-  u16 address = dsp_imem_read(m_compile_pc + 1);
+  const int reg = opc & 0x1F;
+  const u16 address = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   dmem_read_imm(address);
   dsp_op_write_reg(reg, EAX);
   dsp_conditional_extend_accum(reg);
@@ -78,10 +77,10 @@ void DSPEmitter::lr(const UDSPInstruction opc)
 // Store value from register $S to a memory pointed by address M.
 void DSPEmitter::sr(const UDSPInstruction opc)
 {
-  u8 reg = opc & 0x1F;
-  u16 address = dsp_imem_read(m_compile_pc + 1);
+  const u8 reg = opc & 0x1F;
+  const u16 address = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
 
-  X64Reg tmp1 = m_gpr.GetFreeXReg();
+  const X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   dsp_op_read_reg(reg, tmp1);
   dmem_write_imm(address, tmp1);
@@ -96,10 +95,10 @@ void DSPEmitter::sr(const UDSPInstruction opc)
 // M (M is 8-bit value sign extended).
 void DSPEmitter::si(const UDSPInstruction opc)
 {
-  u16 address = (s8)opc;
-  u16 imm = dsp_imem_read(m_compile_pc + 1);
+  const u16 address = static_cast<s8>(opc);
+  const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
 
-  X64Reg tmp1 = m_gpr.GetFreeXReg();
+  const X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   MOV(32, R(tmp1), Imm32((u32)imm));
   dmem_write_imm(address, tmp1);

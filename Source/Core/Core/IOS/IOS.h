@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -110,14 +111,14 @@ protected:
   void AddDevice(std::unique_ptr<Device::Device> device);
   void AddCoreDevices();
   void AddStaticDevices();
-  std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
+  std::shared_ptr<Device::Device> GetDeviceByName(std::string_view device_name);
   s32 GetFreeDeviceID();
   IPCCommandResult OpenDevice(OpenRequest& request);
 
   bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;
   static constexpr u8 IPC_MAX_FDS = 0x18;
-  std::map<std::string, std::shared_ptr<Device::Device>> m_device_map;
+  std::map<std::string, std::shared_ptr<Device::Device>, std::less<>> m_device_map;
   std::mutex m_device_map_mutex;
   // TODO: make this fdmap per process.
   std::array<std::shared_ptr<Device::Device>, IPC_MAX_FDS> m_fdmap;
@@ -144,7 +145,7 @@ public:
 
   // Get a resource manager by name.
   // This only works for devices which are part of the device map.
-  std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
+  std::shared_ptr<Device::Device> GetDeviceByName(std::string_view device_name);
 };
 
 // Used for controlling and accessing an IOS instance that is tied to emulation.

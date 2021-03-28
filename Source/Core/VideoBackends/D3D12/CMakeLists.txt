@@ -1,30 +1,30 @@
 add_library(videod3d12
-  BoundingBox.cpp
-  BoundingBox.h
+  D3D12BoundingBox.cpp
+  D3D12BoundingBox.h
+  D3D12PerfQuery.cpp
+  D3D12PerfQuery.h
+  D3D12Renderer.cpp
+  D3D12Renderer.h
+  D3D12StreamBuffer.cpp
+  D3D12StreamBuffer.h
+  D3D12SwapChain.cpp
+  D3D12SwapChain.h
+  D3D12VertexManager.cpp
+  D3D12VertexManager.h
   DescriptorAllocator.cpp
   DescriptorAllocator.h
   DescriptorHeapManager.cpp
   DescriptorHeapManager.h
-  DXContext.cpp
-  DXContext.h
-  DXPipeline.cpp
-  DXPipeline.h
-  DXShader.cpp
-  DXShader.h
-  DXTexture.cpp
-  DXTexture.h
-  DXVertexFormat.cpp
-  DXVertexFormat.h
-  PerfQuery.cpp
-  PerfQuery.h
-  Renderer.cpp
-  Renderer.h
-  StreamBuffer.cpp
-  StreamBuffer.h
-  SwapChain.cpp
-  SwapChain.h
-  VertexManager.cpp
-  VertexManager.h
+  DX12Context.cpp
+  DX12Context.h
+  DX12Pipeline.cpp
+  DX12Pipeline.h
+  DX12Shader.cpp
+  DX12Shader.h
+  DX12Texture.cpp
+  DX12Texture.h
+  DX12VertexFormat.cpp
+  DX12VertexFormat.h
   VideoBackend.cpp
   VideoBackend.h
 )

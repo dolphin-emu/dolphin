@@ -10,7 +10,7 @@
 
 #include "Common/Event.h"
 #include "Common/Flag.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 #ifdef _WIN32
 #include <Windows.h>

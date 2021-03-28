@@ -167,7 +167,7 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   // HCI commands to the Bluetooth adapter
   case USB::IOCTLV_USBV0_CTRLMSG:
   {
-    std::lock_guard<std::mutex> lk(m_transfers_mutex);
+    std::lock_guard lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     const u16 opcode = Common::swap16(Memory::Read_U16(cmd->data_address));
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
@@ -210,7 +210,7 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   case USB::IOCTLV_USBV0_BLKMSG:
   case USB::IOCTLV_USBV0_INTRMSG:
   {
-    std::lock_guard<std::mutex> lk(m_transfers_mutex);
+    std::lock_guard lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0IntrMessage>(m_ios, request);
     if (request.request == USB::IOCTLV_USBV0_INTRMSG)
     {
@@ -594,7 +594,7 @@ bool BluetoothReal::OpenDevice(libusb_device* device)
 // The callbacks are called from libusb code on a separate thread.
 void BluetoothReal::HandleCtrlTransfer(libusb_transfer* tr)
 {
-  std::lock_guard<std::mutex> lk(m_transfers_mutex);
+  std::lock_guard lk(m_transfers_mutex);
   if (!m_current_transfers.count(tr))
     return;
 
@@ -620,7 +620,7 @@ void BluetoothReal::HandleCtrlTransfer(libusb_transfer* tr)
 
 void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
 {
-  std::lock_guard<std::mutex> lk(m_transfers_mutex);
+  std::lock_guard lk(m_transfers_mutex);
   if (!m_current_transfers.count(tr))
     return;
 

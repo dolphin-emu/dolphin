@@ -56,6 +56,13 @@ Quaternion Quaternion::RotateZ(float rad)
   return Rotate(rad, Vec3(0, 0, 1));
 }
 
+Quaternion Quaternion::RotateXYZ(const Vec3& rads)
+{
+  const auto length = rads.Length();
+  return length ? Common::Quaternion::Rotate(length, rads / length) :
+                  Common::Quaternion::Identity();
+}
+
 Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
 {
   const auto sin_angle_2 = std::sin(rad / 2);
@@ -267,6 +274,11 @@ Matrix44 Matrix44::FromMatrix33(const Matrix33& m33)
   }
   mtx.data[15] = 1.0f;
   return mtx;
+}
+
+Matrix44 Matrix44::FromQuaternion(const Quaternion& q)
+{
+  return FromMatrix33(Matrix33::FromQuaternion(q));
 }
 
 Matrix44 Matrix44::FromArray(const std::array<float, 16>& arr)

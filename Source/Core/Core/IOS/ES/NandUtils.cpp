@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -163,7 +164,9 @@ std::vector<u64> ES::GetTitlesWithTickets() const
   return title_ids;
 }
 
-std::vector<IOS::ES::Content> ES::GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd) const
+std::vector<IOS::ES::Content>
+ES::GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd,
+                             CheckContentHashes check_content_hashes) const
 {
   if (!tmd.IsValid())
     return {};
@@ -174,10 +177,29 @@ std::vector<IOS::ES::Content> ES::GetStoredContentsFromTMD(const IOS::ES::TMDRea
   std::vector<IOS::ES::Content> stored_contents;
 
   std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [this, &tmd, &map](const IOS::ES::Content& content) {
+               [this, &tmd, &map, check_content_hashes](const IOS::ES::Content& content) {
+                 const auto fs = m_ios.GetFS();
+
                  const std::string path = GetContentPath(tmd.GetTitleId(), content, map);
-                 return !path.empty() &&
-                        m_ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
+                 if (path.empty())
+                   return false;
+
+                 // Check whether the content file exists.
+                 const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
+                 if (!file.Succeeded())
+                   return false;
+
+                 // If content hash checks are disabled, all we have to do is check for existence.
+                 if (check_content_hashes == CheckContentHashes::No)
+                   return true;
+
+                 // Otherwise, check whether the installed content SHA1 matches the expected hash.
+                 std::vector<u8> content_data(file->GetStatus()->size);
+                 if (!file->Read(content_data.data(), content_data.size()))
+                   return false;
+                 std::array<u8, 20> sha1{};
+                 mbedtls_sha1_ret(content_data.data(), content_data.size(), sha1.data());
+                 return sha1 == content.sha1;
                });
 
   return stored_contents;

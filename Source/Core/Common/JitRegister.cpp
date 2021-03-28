@@ -13,7 +13,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32

@@ -14,8 +14,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
-#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
+#include "Core/DolphinAnalytics.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"

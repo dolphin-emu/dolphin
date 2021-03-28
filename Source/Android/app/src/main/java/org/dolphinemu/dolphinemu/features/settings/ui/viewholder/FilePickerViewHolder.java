@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -12,6 +13,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
 public final class FilePickerViewHolder extends SettingViewHolder
 {
@@ -20,6 +22,8 @@ public final class FilePickerViewHolder extends SettingViewHolder
 
   private TextView mTextSettingName;
   private TextView mTextSettingDescription;
+
+  private Drawable mDefaultBackground;
 
   public FilePickerViewHolder(View itemView, SettingsAdapter adapter)
   {
@@ -31,6 +35,8 @@ public final class FilePickerViewHolder extends SettingViewHolder
   {
     mTextSettingName = root.findViewById(R.id.text_setting_name);
     mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+
+    mDefaultBackground = root.getBackground();
   }
 
   @Override
@@ -38,6 +44,17 @@ public final class FilePickerViewHolder extends SettingViewHolder
   {
     mFilePicker = (FilePicker) item;
     mItem = item;
+
+    String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
+
+    if (FileBrowserHelper.isPathEmptyOrValid(path))
+    {
+      itemView.setBackground(mDefaultBackground);
+    }
+    else
+    {
+      itemView.setBackgroundResource(R.drawable.invalid_setting_background);
+    }
 
     mTextSettingName.setText(item.getNameId());
 
@@ -47,8 +64,6 @@ public final class FilePickerViewHolder extends SettingViewHolder
     }
     else
     {
-      String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
-
       if (TextUtils.isEmpty(path))
       {
         String defaultPathRelative = mFilePicker.getDefaultPathRelativeToUserDirectory();
@@ -73,13 +88,14 @@ public final class FilePickerViewHolder extends SettingViewHolder
       return;
     }
 
+    int position = getAdapterPosition();
     if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
     {
-      getAdapter().onFilePickerDirectoryClick(mItem);
+      getAdapter().onFilePickerDirectoryClick(mItem, position);
     }
     else
     {
-      getAdapter().onFilePickerFileClick(mItem);
+      getAdapter().onFilePickerFileClick(mItem, position);
     }
 
     setStyle(mTextSettingName, mItem);

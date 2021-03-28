@@ -42,8 +42,6 @@ private:
   GraphicsBool* m_dump_efb_target;
   GraphicsBool* m_disable_vram_copies;
   GraphicsBool* m_load_custom_textures;
-  GraphicsBool* m_enable_freelook;
-  GraphicsChoice* m_freelook_control_type;
 
   // Texture dumping
   GraphicsBool* m_dump_textures;

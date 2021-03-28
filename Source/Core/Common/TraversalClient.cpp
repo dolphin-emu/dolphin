@@ -48,32 +48,32 @@ void TraversalClient::ReconnectToServer()
   }
   m_ServerAddress.port = m_port;
 
-  m_State = Connecting;
+  m_State = State::Connecting;
 
   TraversalPacket hello = {};
-  hello.type = TraversalPacketHelloFromClient;
+  hello.type = TraversalPacketType::HelloFromClient;
   hello.helloFromClient.protoVersion = TraversalProtoVersion;
   SendTraversalPacket(hello);
   if (m_Client)
     m_Client->OnTraversalStateChanged();
 }
 
-static ENetAddress MakeENetAddress(TraversalInetAddress* address)
+static ENetAddress MakeENetAddress(const TraversalInetAddress& address)
 {
-  ENetAddress eaddr;
-  if (address->isIPV6)
+  ENetAddress eaddr{};
+  if (address.isIPV6)
   {
     eaddr.port = 0;  // no support yet :(
   }
   else
   {
-    eaddr.host = address->address[0];
-    eaddr.port = ntohs(address->port);
+    eaddr.host = address.address[0];
+    eaddr.port = ntohs(address.port);
   }
   return eaddr;
 }
 
-void TraversalClient::ConnectToClient(const std::string& host)
+void TraversalClient::ConnectToClient(std::string_view host)
 {
   if (host.size() > sizeof(TraversalHostId))
   {
@@ -81,8 +81,8 @@ void TraversalClient::ConnectToClient(const std::string& host)
     return;
   }
   TraversalPacket packet = {};
-  packet.type = TraversalPacketConnectPlease;
-  memcpy(packet.connectPlease.hostId.data(), host.c_str(), host.size());
+  packet.type = TraversalPacketType::ConnectPlease;
+  memcpy(packet.connectPlease.hostId.data(), host.data(), host.size());
   m_ConnectRequestId = SendTraversalPacket(packet);
   m_PendingConnect = true;
 }
@@ -129,7 +129,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
   u8 ok = 1;
   switch (packet->type)
   {
-  case TraversalPacketAck:
+  case TraversalPacketType::Ack:
     if (!packet->ack.ok)
     {
       OnFailure(FailureReason::ServerForgotAboutUs);
@@ -144,8 +144,8 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       }
     }
     break;
-  case TraversalPacketHelloFromServer:
-    if (m_State != Connecting)
+  case TraversalPacketType::HelloFromServer:
+    if (!IsConnecting())
       break;
     if (!packet->helloFromServer.ok)
     {
@@ -153,14 +153,14 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       break;
     }
     m_HostId = packet->helloFromServer.yourHostId;
-    m_State = Connected;
+    m_State = State::Connected;
     if (m_Client)
       m_Client->OnTraversalStateChanged();
     break;
-  case TraversalPacketPleaseSendPacket:
+  case TraversalPacketType::PleaseSendPacket:
   {
     // security is overrated.
-    ENetAddress addr = MakeENetAddress(&packet->pleaseSendPacket.address);
+    ENetAddress addr = MakeENetAddress(packet->pleaseSendPacket.address);
     if (addr.port != 0)
     {
       char message[] = "Hello from Dolphin Netplay...";
@@ -176,8 +176,8 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     }
     break;
   }
-  case TraversalPacketConnectReady:
-  case TraversalPacketConnectFailed:
+  case TraversalPacketType::ConnectReady:
+  case TraversalPacketType::ConnectFailed:
   {
     if (!m_PendingConnect || packet->connectReady.requestId != m_ConnectRequestId)
       break;
@@ -187,8 +187,8 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     if (!m_Client)
       break;
 
-    if (packet->type == TraversalPacketConnectReady)
-      m_Client->OnConnectReady(MakeENetAddress(&packet->connectReady.address));
+    if (packet->type == TraversalPacketType::ConnectReady)
+      m_Client->OnConnectReady(MakeENetAddress(packet->connectReady.address));
     else
       m_Client->OnConnectFailed(packet->connectFailed.reason);
     break;
@@ -197,10 +197,10 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     WARN_LOG_FMT(NETPLAY, "Received unknown packet with type {}", packet->type);
     break;
   }
-  if (packet->type != TraversalPacketAck)
+  if (packet->type != TraversalPacketType::Ack)
   {
     TraversalPacket ack = {};
-    ack.type = TraversalPacketAck;
+    ack.type = TraversalPacketType::Ack;
     ack.requestId = packet->requestId;
     ack.ack.ok = ok;
 
@@ -214,7 +214,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
 
 void TraversalClient::OnFailure(FailureReason reason)
 {
-  m_State = Failure;
+  m_State = State::Failure;
   m_FailureReason = reason;
 
   if (m_Client)
@@ -257,10 +257,10 @@ void TraversalClient::HandleResends()
 void TraversalClient::HandlePing()
 {
   const u32 now = enet_time_get();
-  if (m_State == Connected && now - m_PingTime >= 500)
+  if (IsConnected() && now - m_PingTime >= 500)
   {
     TraversalPacket ping = {};
-    ping.type = TraversalPacketPing;
+    ping.type = TraversalPacketType::Ping;
     ping.ping.hostId = m_HostId;
     SendTraversalPacket(ping);
     m_PingTime = now;

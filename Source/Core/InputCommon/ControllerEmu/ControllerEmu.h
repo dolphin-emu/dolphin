@@ -16,7 +16,7 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/DynamicInputTextureManager.h"
 
 class ControllerInterface;
@@ -220,7 +220,7 @@ public:
   }
 
 protected:
-  // TODO: Wiimote attachment has its own member that isn't being used..
+  // TODO: Wiimote attachment has its own member that isn't being used.
   ciface::ExpressionParser::ControlEnvironment::VariableContainer m_expression_vars;
 
   void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);

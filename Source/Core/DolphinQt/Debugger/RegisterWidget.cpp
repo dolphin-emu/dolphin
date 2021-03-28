@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include <QActionGroup>
 #include <QHeaderView>
 #include <QMenu>
 #include <QTableWidget>

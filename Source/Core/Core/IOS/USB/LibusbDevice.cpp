@@ -351,14 +351,14 @@ static const std::map<u8, const char*> s_transfer_types = {
 void LibusbDevice::TransferEndpoint::AddTransfer(std::unique_ptr<TransferCommand> command,
                                                  libusb_transfer* transfer)
 {
-  std::lock_guard<std::mutex> lk{m_transfers_mutex};
+  std::lock_guard lk{m_transfers_mutex};
   m_transfers.emplace(transfer, std::move(command));
 }
 
 void LibusbDevice::TransferEndpoint::HandleTransfer(libusb_transfer* transfer,
                                                     std::function<s32(const TransferCommand&)> fn)
 {
-  std::lock_guard<std::mutex> lk{m_transfers_mutex};
+  std::lock_guard lk{m_transfers_mutex};
   const auto iterator = m_transfers.find(transfer);
   if (iterator == m_transfers.cend())
   {
@@ -396,7 +396,7 @@ void LibusbDevice::TransferEndpoint::HandleTransfer(libusb_transfer* transfer,
 
 void LibusbDevice::TransferEndpoint::CancelTransfers()
 {
-  std::lock_guard<std::mutex> lk(m_transfers_mutex);
+  std::lock_guard lk(m_transfers_mutex);
   if (m_transfers.empty())
     return;
   INFO_LOG_FMT(IOS_USB, "Cancelling {} transfer(s)", m_transfers.size());

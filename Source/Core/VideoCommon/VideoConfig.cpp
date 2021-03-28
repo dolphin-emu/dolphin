@@ -92,8 +92,6 @@ void VideoConfig::Refresh()
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
   bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
-  bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
-  iFreelookControlType = Config::Get(Config::GFX_FREE_LOOK_CONTROL_TYPE);
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);

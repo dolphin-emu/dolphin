@@ -20,9 +20,10 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
@@ -85,12 +86,22 @@ void MemoryWidget::CreateWidgets()
   //// Sidebar
 
   // Search
+  auto* m_address_splitter = new QSplitter(Qt::Horizontal);
+
   m_search_address = new QLineEdit;
+  m_search_offset = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
 
   m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_offset->setPlaceholderText(tr("Offset"));
   m_data_edit->setPlaceholderText(tr("Value"));
+
+  m_address_splitter->addWidget(m_search_address);
+  m_address_splitter->addWidget(m_search_offset);
+  m_address_splitter->setHandleWidth(1);
+  m_address_splitter->setCollapsible(0, false);
+  m_address_splitter->setStretchFactor(1, 2);
 
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
@@ -183,16 +194,23 @@ void MemoryWidget::CreateWidgets()
 
   sidebar->setLayout(sidebar_layout);
 
-  sidebar_layout->addWidget(m_search_address);
+  sidebar_layout->addWidget(m_address_splitter);
   sidebar_layout->addWidget(m_data_edit);
-  sidebar_layout->addWidget(m_find_ascii);
-  sidebar_layout->addWidget(m_find_hex);
+
+  auto* types_layout = new QHBoxLayout;
+  types_layout->addWidget(m_find_ascii);
+  types_layout->addItem(new QSpacerItem(20, 1));
+  types_layout->addWidget(m_find_hex);
+  types_layout->setAlignment(Qt::AlignCenter);
+  sidebar_layout->addLayout(types_layout);
+
   sidebar_layout->addWidget(m_set_value);
-  sidebar_layout->addItem(new QSpacerItem(1, 32));
+  sidebar_layout->addItem(new QSpacerItem(1, 20));
   sidebar_layout->addWidget(m_dump_mram);
   sidebar_layout->addWidget(m_dump_exram);
   sidebar_layout->addWidget(m_dump_aram);
   sidebar_layout->addWidget(m_dump_fake_vmem);
+  sidebar_layout->addItem(new QSpacerItem(1, 15));
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addWidget(address_space_group);
   sidebar_layout->addWidget(datatype_group);
@@ -222,6 +240,7 @@ void MemoryWidget::CreateWidgets()
 void MemoryWidget::ConnectWidgets()
 {
   connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_offset, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
 
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
   connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
@@ -424,25 +443,35 @@ void MemoryWidget::SetAddress(u32 address)
 
 void MemoryWidget::OnSearchAddress()
 {
-  bool good;
-  u32 addr = m_search_address->text().toUInt(&good, 16);
+  bool good_addr, good_offset;
+  // Returns 0 if conversion fails
+  const u32 addr = m_search_address->text().toUInt(&good_addr, 16);
+  const u32 offset = m_search_offset->text().toUInt(&good_offset, 16);
 
-  QFont font;
-  QPalette palette;
+  QFont addr_font, offset_font;
+  QPalette addr_palette, offset_palette;
 
-  if (good || m_search_address->text().isEmpty())
+  if (good_addr || m_search_address->text().isEmpty())
   {
-    if (good)
-      m_memory_view->SetAddress(addr);
+    if (good_addr)
+      m_memory_view->SetAddress(addr + offset);
   }
   else
   {
-    font.setBold(true);
-    palette.setColor(QPalette::Text, Qt::red);
+    addr_font.setBold(true);
+    addr_palette.setColor(QPalette::Text, Qt::red);
   }
 
-  m_search_address->setFont(font);
-  m_search_address->setPalette(palette);
+  if (!good_offset && !m_search_offset->text().isEmpty())
+  {
+    offset_font.setBold(true);
+    offset_palette.setColor(QPalette::Text, Qt::red);
+  }
+
+  m_search_address->setFont(addr_font);
+  m_search_address->setPalette(addr_palette);
+  m_search_offset->setFont(offset_font);
+  m_search_offset->setPalette(offset_palette);
 }
 
 void MemoryWidget::ValidateSearchValue()
@@ -468,12 +497,23 @@ void MemoryWidget::ValidateSearchValue()
 
 void MemoryWidget::OnSetValue()
 {
-  bool good_address;
+  if (!Core::IsRunning())
+    return;
+
+  bool good_address, good_offset;
+  // Returns 0 if conversion fails
   u32 addr = m_search_address->text().toUInt(&good_address, 16);
+  addr += m_search_offset->text().toUInt(&good_offset, 16);
 
   if (!good_address)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
+    return;
+  }
+
+  if (!good_offset)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
     return;
   }
 
@@ -625,7 +665,8 @@ void MemoryWidget::FindValue(bool next)
   if (!m_search_address->text().isEmpty())
   {
     // skip the quoted address so we don't potentially refind the last result
-    addr = m_search_address->text().toUInt(nullptr, 16) + (next ? 1 : -1);
+    addr = m_search_address->text().toUInt(nullptr, 16) +
+           m_search_offset->text().toUInt(nullptr, 16) + (next ? 1 : -1);
   }
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
@@ -640,6 +681,7 @@ void MemoryWidget::FindValue(bool next)
     u32 offset = *found_addr;
 
     m_search_address->setText(QStringLiteral("%1").arg(offset, 8, 16, QLatin1Char('0')));
+    m_search_offset->clear();
 
     m_memory_view->SetAddress(offset);
 

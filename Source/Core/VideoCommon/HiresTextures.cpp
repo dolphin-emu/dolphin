@@ -18,10 +18,10 @@
 #include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
-#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/IOFile.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"

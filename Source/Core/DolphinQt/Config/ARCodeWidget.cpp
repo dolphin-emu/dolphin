@@ -89,7 +89,7 @@ void ARCodeWidget::ConnectWidgets()
 
 void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
 {
-  m_ar_codes[m_code_list->row(item)].active = (item->checkState() == Qt::Checked);
+  m_ar_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
     ActionReplay::ApplyCodes(m_ar_codes);
@@ -159,7 +159,7 @@ void ARCodeWidget::UpdateList()
 
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
                    Qt::ItemIsDragEnabled);
-    item->setCheckState(ar.active ? Qt::Checked : Qt::Unchecked);
+    item->setCheckState(ar.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);
@@ -190,7 +190,7 @@ void ARCodeWidget::AddCode(ActionReplay::ARCode code)
 void ARCodeWidget::OnCodeAddClicked()
 {
   ActionReplay::ARCode ar;
-  ar.active = true;
+  ar.enabled = true;
 
   CheatCodeEditor ed(this);
   ed.SetARCode(&ar);

@@ -52,7 +52,7 @@ public class Analytics
   {
     try (Settings settings = new Settings())
     {
-      settings.loadSettings(null);
+      settings.loadSettings();
 
       BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled);
       BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true);

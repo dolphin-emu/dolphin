@@ -39,6 +39,10 @@ class ScopeInit final
 public:
   ScopeInit() : m_profile_path(File::CreateTempDir())
   {
+    if (!UserDirectoryExists())
+    {
+      return;
+    }
     Core::DeclareAsCPUThread();
     UICommon::SetUserDirectory(m_profile_path);
     Config::Init();
@@ -48,6 +52,10 @@ public:
   }
   ~ScopeInit()
   {
+    if (!UserDirectoryExists())
+    {
+      return;
+    }
     CoreTiming::Shutdown();
     PowerPC::Shutdown();
     SConfig::Shutdown();
@@ -55,6 +63,7 @@ public:
     Core::UndeclareAsCPUThread();
     File::DeleteDirRecursively(m_profile_path);
   }
+  bool UserDirectoryExists() const { return !m_profile_path.empty(); }
 
 private:
   std::string m_profile_path;
@@ -77,6 +86,7 @@ static void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0,
 TEST(CoreTiming, BasicOrder)
 {
   ScopeInit guard;
+  ASSERT_TRUE(guard.UserDirectoryExists());
 
   CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -127,6 +137,7 @@ TEST(CoreTiming, SharedSlot)
   using namespace SharedSlotTest;
 
   ScopeInit guard;
+  ASSERT_TRUE(guard.UserDirectoryExists());
 
   CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", FifoCallback<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", FifoCallback<1>);
@@ -156,6 +167,7 @@ TEST(CoreTiming, SharedSlot)
 TEST(CoreTiming, PredictableLateness)
 {
   ScopeInit guard;
+  ASSERT_TRUE(guard.UserDirectoryExists());
 
   CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -190,6 +202,7 @@ TEST(CoreTiming, ChainScheduling)
   using namespace ChainSchedulingTest;
 
   ScopeInit guard;
+  ASSERT_TRUE(guard.UserDirectoryExists());
 
   CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -245,6 +258,7 @@ TEST(CoreTiming, ScheduleIntoPast)
   using namespace ScheduleIntoPastTest;
 
   ScopeInit guard;
+  ASSERT_TRUE(guard.UserDirectoryExists());
 
   s_cb_next = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
@@ -282,6 +296,7 @@ TEST(CoreTiming, ScheduleIntoPast)
 TEST(CoreTiming, Overclocking)
 {
   ScopeInit guard;
+  ASSERT_TRUE(guard.UserDirectoryExists());
 
   CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);

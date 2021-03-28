@@ -16,8 +16,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -191,7 +191,7 @@ void MemoryCard::FlushThread()
     }
 
     {
-      std::unique_lock<std::mutex> l(m_flush_mutex);
+      std::unique_lock l(m_flush_mutex);
       memcpy(&m_flush_buffer[0], &m_memcard_data[0], m_memory_card_size);
     }
     file.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
@@ -232,7 +232,7 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
   }
 
   {
-    std::unique_lock<std::mutex> l(m_flush_mutex);
+    std::unique_lock l(m_flush_mutex);
     memcpy(&m_memcard_data[dest_address], src_address, length);
   }
   MakeDirty();
@@ -248,7 +248,7 @@ void MemoryCard::ClearBlock(u32 address)
   }
   else
   {
-    std::unique_lock<std::mutex> l(m_flush_mutex);
+    std::unique_lock l(m_flush_mutex);
     memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
   }
   MakeDirty();
@@ -257,7 +257,7 @@ void MemoryCard::ClearBlock(u32 address)
 void MemoryCard::ClearAll()
 {
   {
-    std::unique_lock<std::mutex> l(m_flush_mutex);
+    std::unique_lock l(m_flush_mutex);
     memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
   }
   MakeDirty();

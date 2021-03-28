@@ -5,7 +5,6 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
@@ -36,8 +35,8 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 // S16 mode.
 void DSPEmitter::lri(const UDSPInstruction opc)
 {
-  u8 reg = opc & 0x1F;
-  u16 imm = dsp_imem_read(m_compile_pc + 1);
+  const u8 reg = opc & 0x1F;
+  const u16 imm = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
 }

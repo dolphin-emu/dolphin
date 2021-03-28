@@ -235,7 +235,7 @@ Kernel::Kernel()
 Kernel::~Kernel()
 {
   {
-    std::lock_guard<std::mutex> lock(m_device_map_mutex);
+    std::lock_guard lock(m_device_map_mutex);
     m_device_map.clear();
   }
 
@@ -409,7 +409,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
 void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
 {
   ASSERT(device->GetDeviceType() == Device::Device::DeviceType::Static);
-  m_device_map[device->GetDeviceName()] = std::move(device);
+  m_device_map.insert_or_assign(device->GetDeviceName(), std::move(device));
 }
 
 void Kernel::AddCoreDevices()
@@ -417,7 +417,7 @@ void Kernel::AddCoreDevices()
   m_fs = FS::MakeFileSystem();
   ASSERT(m_fs);
 
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
   AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
   AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
   AddDevice(std::make_unique<Device::DolphinDevice>(*this, "/dev/dolphin"));
@@ -425,7 +425,7 @@ void Kernel::AddCoreDevices()
 
 void Kernel::AddStaticDevices()
 {
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
 
   const Feature features = GetFeatures(GetVersion());
 
@@ -505,14 +505,14 @@ s32 Kernel::GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<Device::Device> Kernel::GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> Kernel::GetDeviceByName(std::string_view device_name)
 {
-  std::lock_guard<std::mutex> lock(m_device_map_mutex);
+  std::lock_guard lock(m_device_map_mutex);
   const auto iterator = m_device_map.find(device_name);
   return iterator != m_device_map.end() ? iterator->second : nullptr;
 }
 
-std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(std::string_view device_name)
 {
   return Kernel::GetDeviceByName(device_name);
 }

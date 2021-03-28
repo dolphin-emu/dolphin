@@ -5,6 +5,7 @@ add_library(main SHARED
   IniFile.cpp
   MainAndroid.cpp
   NativeConfig.cpp
+  WiiUtils.cpp
 )
 
 target_link_libraries(main

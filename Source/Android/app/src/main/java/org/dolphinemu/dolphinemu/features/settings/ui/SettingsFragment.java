@@ -35,7 +35,8 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
   static
   {
-    titles.put(MenuTag.CONFIG, R.string.preferences_settings);
+    titles.put(MenuTag.SETTINGS, R.string.preferences_settings);
+    titles.put(MenuTag.CONFIG, R.string.config);
     titles.put(MenuTag.CONFIG_GENERAL, R.string.general_submenu);
     titles.put(MenuTag.CONFIG_INTERFACE, R.string.interface_submenu);
     titles.put(MenuTag.CONFIG_AUDIO, R.string.audio_submenu);
@@ -43,10 +44,10 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.CONFIG_GAME_CUBE, R.string.gamecube_submenu);
     titles.put(MenuTag.CONFIG_WII, R.string.wii_submenu);
     titles.put(MenuTag.CONFIG_ADVANCED, R.string.advanced_submenu);
-    titles.put(MenuTag.WIIMOTE, R.string.grid_menu_wiimote_settings);
+    titles.put(MenuTag.WIIMOTE, R.string.wiimote_settings);
     titles.put(MenuTag.WIIMOTE_EXTENSION, R.string.wiimote_extensions);
-    titles.put(MenuTag.GCPAD_TYPE, R.string.grid_menu_gcpad_settings);
-    titles.put(MenuTag.GRAPHICS, R.string.grid_menu_graphics_settings);
+    titles.put(MenuTag.GCPAD_TYPE, R.string.gcpad_settings);
+    titles.put(MenuTag.GRAPHICS, R.string.graphics_settings);
     titles.put(MenuTag.HACKS, R.string.hacks_submenu);
     titles.put(MenuTag.CONFIG_LOG, R.string.log_submenu);
     titles.put(MenuTag.DEBUG, R.string.debug_submenu);

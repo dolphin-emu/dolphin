@@ -16,6 +16,9 @@ import java.io.File;
  */
 public final class SettingsFile
 {
+  public static final String KEY_ISO_PATH_BASE = "ISOPath";
+  public static final String KEY_ISO_PATHS = "ISOPaths";
+
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
   public static final String KEY_GCPAD_G_TYPE = "PadType";

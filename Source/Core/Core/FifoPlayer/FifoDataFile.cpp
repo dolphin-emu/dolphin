@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"

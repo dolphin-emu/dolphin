@@ -6,11 +6,12 @@
 
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <type_traits>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Version.h"
 
 // On disk format:
@@ -72,9 +73,10 @@ public:
       // good header, read some key/value pairs
       K key;
 
-      V* value = nullptr;
+      std::unique_ptr<V[]> value = nullptr;
       u32 value_size = 0;
       u32 entry_number = 0;
+      u64 last_valid_value_start = m_file.Tell();
 
       while (m_file.ReadArray(&value_size, 1))
       {
@@ -82,14 +84,15 @@ public:
         if (next_extent > file_size)
           break;
 
-        delete[] value;
-        value = new V[value_size];
+        // TODO: use make_unique_for_overwrite in C++20
+        value = std::unique_ptr<V[]>(new V[value_size]);
 
         // read key/value and pass to reader
-        if (m_file.ReadArray(&key, 1) && m_file.ReadArray(value, value_size) &&
+        if (m_file.ReadArray(&key, 1) && m_file.ReadArray(value.get(), value_size) &&
             m_file.ReadArray(&entry_number, 1) && entry_number == m_num_entries + 1)
         {
-          reader.Read(key, value, value_size);
+          last_valid_value_start = m_file.Tell();
+          reader.Read(key, value.get(), value_size);
         }
         else
         {
@@ -99,8 +102,8 @@ public:
         m_num_entries++;
       }
       m_file.Clear();
+      m_file.Seek(last_valid_value_start, SEEK_SET);
 
-      delete[] value;
       return m_num_entries;
     }
 

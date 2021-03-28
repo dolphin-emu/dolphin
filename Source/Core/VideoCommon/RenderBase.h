@@ -411,7 +411,7 @@ private:
 
   // Fills the frame dump staging texture with the current XFB texture.
   void DumpCurrentFrame(const AbstractTexture* src_texture,
-                        const MathUtil::Rectangle<int>& src_rect, u64 ticks);
+                        const MathUtil::Rectangle<int>& src_rect, u64 ticks, int frame_number);
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
   void DumpFrameData(const u8* data, int w, int h, int stride);

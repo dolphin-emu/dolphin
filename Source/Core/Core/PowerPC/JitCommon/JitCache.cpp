@@ -270,11 +270,6 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
   }
 }
 
-u32* JitBaseBlockCache::GetBlockBitSet() const
-{
-  return valid_block.m_valid_block.get();
-}
-
 void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)
 {
 }

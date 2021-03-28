@@ -151,7 +151,11 @@ QSize FlowLayout::minimumSize() const
   for (const auto& item : m_item_list)
     size = size.expandedTo(item->minimumSize());
 
-  size += QSize(2 * margin(), 2 * margin());
+  // Any direction's margin works, as they all set the same within the constructor.
+  int margin = 0;
+  getContentsMargins(&margin, nullptr, nullptr, nullptr);
+
+  size += QSize(2 * margin, 2 * margin);
   return size;
 }
 

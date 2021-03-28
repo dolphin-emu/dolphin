@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{d79392f7-06d6-4b4b-a39f-4d587c215d3a}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <Import Project="DolphinLib.props" />
+  <ImportGroup Condition="'$(Platform)'=='x64'">
+    <Import Project="DolphinLib.x64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Platform)'=='ARM64'">
+    <Import Project="DolphinLib.ARM64.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\PrimeHack\AddressDB.cpp" />
+    <ClCompile Include="Core\PrimeHack\AddressDBInit.cpp" />
+    <ClCompile Include="Core\PrimeHack\EmuVariableManager.cpp" />
+    <ClCompile Include="Core\PrimeHack\HackConfig.cpp" />
+    <ClCompile Include="Core\PrimeHack\HackManager.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\AutoEFB.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\ContextSensitiveControls.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\CutBeamFxMP1.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\FpsControls.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\Noclip.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\PortalSkipMP2.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\SpringballButton.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\ViewModifier.cpp" />
+    <ClCompile Include="Core\PrimeHack\PrimeMod.cpp" />
+    <ClCompile Include="Core\PrimeHack\PrimeUtils.cpp" />
+    <ClCompile Include="Core\PrimeHack\Transform.cpp" />
+    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackModes.cpp" />
+    <ClCompile Include="InputCommon\DInputMouseAbsolute.cpp" />
+    <ClCompile Include="InputCommon\GenericMouse.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\PrimeHack\AddressDB.h" />
+    <ClInclude Include="Core\PrimeHack\EmuVariableManager.h" />
+    <ClInclude Include="Core\PrimeHack\HackConfig.h" />
+    <ClInclude Include="Core\PrimeHack\HackManager.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\AutoEFB.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\ContextSensitiveControls.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\CutBeamFxMP1.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\DisableBloom.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\FpsControls.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\FriendVouchers.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\Invulnerability.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\Noclip.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\PortalSkipMP2.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\RestoreDashing.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\SkipCutscene.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\SpringballButton.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\ViewModifier.h" />
+    <ClInclude Include="Core\PrimeHack\PrimeMod.h" />
+    <ClInclude Include="Core\PrimeHack\PrimeUtils.h" />
+    <ClInclude Include="Core\PrimeHack\Transform.h" />
+    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackModes.h" />
+    <ClInclude Include="InputCommon\DInputMouseAbsolute.h" />
+    <ClInclude Include="InputCommon\GenericMouse.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

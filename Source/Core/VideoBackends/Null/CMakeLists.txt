@@ -1,13 +1,13 @@
 add_library(videonull
   NullBackend.cpp
+  NullRender.cpp
+  NullRender.h
   NullTexture.cpp
   NullTexture.h
+  NullVertexManager.cpp
+  NullVertexManager.h
   PerfQuery.h
-  Render.cpp
-  Render.h
   TextureCache.h
-  VertexManager.cpp
-  VertexManager.h
   VideoBackend.h
 )
 

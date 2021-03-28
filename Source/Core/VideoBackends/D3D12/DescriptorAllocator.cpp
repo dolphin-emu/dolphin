@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
-#include "VideoBackends/D3D12/DXContext.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12
 {

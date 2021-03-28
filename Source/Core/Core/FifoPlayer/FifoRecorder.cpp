@@ -20,7 +20,7 @@ FifoRecorder::FifoRecorder() = default;
 
 void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 {
-  std::lock_guard<std::recursive_mutex> lk(m_mutex);
+  std::lock_guard lk(m_mutex);
 
   m_File = std::make_unique<FifoDataFile>();
 
@@ -57,7 +57,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
 void FifoRecorder::StopRecording()
 {
-  std::lock_guard<std::recursive_mutex> lk(m_mutex);
+  std::lock_guard lk(m_mutex);
   m_RequestedRecordingEnd = true;
 }
 
@@ -97,7 +97,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
     m_CurrentFrame.fifoData = m_FifoData;
 
     {
-      std::lock_guard<std::recursive_mutex> lk(m_mutex);
+      std::lock_guard lk(m_mutex);
 
       // Copy frame to file
       // The file will be responsible for freeing the memory allocated for each frame's fifoData
@@ -155,7 +155,7 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
 void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 {
   // m_IsRecording is assumed to be true at this point, otherwise this function would not be called
-  std::lock_guard<std::recursive_mutex> lk(m_mutex);
+  std::lock_guard lk(m_mutex);
 
   m_FrameEnded = true;
 
@@ -198,7 +198,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
                                   const u32* xfRegs, u32 xfRegsSize, const u8* texMem)
 {
-  std::lock_guard<std::recursive_mutex> lk(m_mutex);
+  std::lock_guard lk(m_mutex);
 
   if (m_File)
   {

@@ -100,12 +100,16 @@ void GameCubePane::CreateWidgets()
 
   // Add SP1 devices
 
-  for (const auto& entry :
-       {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
-        std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
-        std::make_pair(tr("Broadband Adapter (TAP)"), ExpansionInterface::EXIDEVICE_ETH),
-        std::make_pair(tr("Broadband Adapter (XLink Kai)"),
-                       ExpansionInterface::EXIDEVICE_ETHXLINK)})
+  std::vector<std::pair<QString, ExpansionInterface::TEXIDevices>> sp1Entries{
+      std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
+      std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
+      std::make_pair(tr("Broadband Adapter (TAP)"), ExpansionInterface::EXIDEVICE_ETH),
+      std::make_pair(tr("Broadband Adapter (XLink Kai)"), ExpansionInterface::EXIDEVICE_ETHXLINK)};
+#if defined(__APPLE__)
+  sp1Entries.emplace_back(std::make_pair(tr("Broadband Adapter (tapserver)"),
+                                         ExpansionInterface::EXIDEVICE_ETHTAPSERVER));
+#endif
+  for (const auto& entry : sp1Entries)
   {
     m_slot_combos[2]->addItem(entry.first, entry.second);
   }

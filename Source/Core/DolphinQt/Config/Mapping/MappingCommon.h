@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class QString;
 class OutputReference;

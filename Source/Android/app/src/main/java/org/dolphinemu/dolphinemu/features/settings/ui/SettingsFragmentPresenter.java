@@ -1,8 +1,10 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
@@ -15,7 +17,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.LegacyIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
@@ -120,6 +122,10 @@ public final class SettingsFragmentPresenter
 
     switch (mMenuTag)
     {
+      case SETTINGS:
+        addTopLevelSettings(sl);
+        break;
+
       case CONFIG:
         addConfigSettings(sl);
         break;
@@ -214,6 +220,21 @@ public final class SettingsFragmentPresenter
     mView.showSettingsList(mSettingsList);
   }
 
+  private void addTopLevelSettings(ArrayList<SettingsItem> sl)
+  {
+    sl.add(new SubmenuSetting(R.string.config, MenuTag.CONFIG));
+    sl.add(new SubmenuSetting(R.string.graphics_settings, MenuTag.GRAPHICS));
+
+    if (!NativeLibrary.IsRunning())
+    {
+      sl.add(new SubmenuSetting(R.string.gcpad_settings, MenuTag.GCPAD_TYPE));
+      if (mSettings.isWii())
+        sl.add(new SubmenuSetting(R.string.wiimote_settings, MenuTag.WIIMOTE));
+    }
+
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
+  }
+
   private void addConfigSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new SubmenuSetting(R.string.general_submenu, MenuTag.CONFIG_GENERAL));
@@ -225,7 +246,6 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(R.string.debug_submenu, MenuTag.DEBUG));
-    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -246,6 +266,17 @@ public final class SettingsFragmentPresenter
 
   private void addInterfaceSettings(ArrayList<SettingsItem> sl)
   {
+    // Hide the orientation setting if the device only supports one orientation. Old devices which
+    // support both portrait and landscape may report support for neither, so we use ==, not &&.
+    PackageManager packageManager = DolphinApplication.getAppContext().getPackageManager();
+    if (packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_PORTRAIT) ==
+            packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_LANDSCAPE))
+    {
+      sl.add(new SingleChoiceSetting(IntSetting.MAIN_EMULATION_ORIENTATION,
+              R.string.emulation_screen_orientation, 0, R.array.orientationEntries,
+              R.array.orientationValues));
+    }
+
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_USE_PANIC_HANDLERS, R.string.panic_handlers,
             R.string.panic_handlers_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
@@ -500,7 +531,6 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(R.string.graphics_enhancements_and_hacks, 0));
     sl.add(new SubmenuSetting(R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(R.string.hacks_submenu, MenuTag.HACKS));
-    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -780,8 +810,8 @@ public final class SettingsFragmentPresenter
     }
     else
     {
-      extension = new WiimoteProfileSetting(mGameID, wiimoteNumber - 4, Settings.SECTION_PROFILE,
-              SettingsFile.KEY_WIIMOTE_EXTENSION, defaultExtension);
+      extension = new WiimoteProfileStringSetting(mGameID, wiimoteNumber - 4,
+              Settings.SECTION_PROFILE, SettingsFile.KEY_WIIMOTE_EXTENSION, defaultExtension);
     }
 
     sl.add(new StringSingleChoiceSetting(extension, R.string.wiimote_extensions, 0,

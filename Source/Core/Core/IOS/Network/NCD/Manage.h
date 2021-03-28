@@ -20,6 +20,8 @@ public:
 
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
+  void DoState(PointerWrap& p) override;
+
 private:
   enum
   {
@@ -34,5 +36,6 @@ private:
   };
 
   Net::WiiNetConfig config;
+  u32 m_ipc_fd = 0;
 };
 }  // namespace IOS::HLE::Device

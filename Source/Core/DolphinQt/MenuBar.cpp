@@ -7,6 +7,7 @@
 #include <cinttypes>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDialog>
@@ -528,6 +529,7 @@ void MenuBar::AddOptionsMenu()
   m_controllers_action =
       options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+  options_menu->addAction(tr("&Free Look Settings"), this, &MenuBar::ConfigureFreelook);
 
   options_menu->addSeparator();
 
@@ -1065,19 +1067,39 @@ void MenuBar::ImportWiiSave()
   if (file.isEmpty())
     return;
 
-  bool cancelled = false;
   auto can_overwrite = [&] {
-    bool yes = ModalMessageBox::question(
-                   this, tr("Save Import"),
-                   tr("Save data for this title already exists in the NAND. Consider backing up "
-                      "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
-    cancelled = !yes;
-    return yes;
+    return ModalMessageBox::question(
+               this, tr("Save Import"),
+               tr("Save data for this title already exists in the NAND. Consider backing up "
+                  "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
   };
-  if (WiiSave::Import(file.toStdString(), can_overwrite))
-    ModalMessageBox::information(this, tr("Save Import"), tr("Successfully imported save files."));
-  else if (!cancelled)
-    ModalMessageBox::critical(this, tr("Save Import"), tr("Failed to import save files."));
+
+  const auto result = WiiSave::Import(file.toStdString(), can_overwrite);
+  switch (result)
+  {
+  case WiiSave::CopyResult::Success:
+    ModalMessageBox::information(this, tr("Save Import"), tr("Successfully imported save file."));
+    break;
+  case WiiSave::CopyResult::CorruptedSource:
+    ModalMessageBox::critical(this, tr("Save Import"),
+                              tr("Failed to import save file. The given file appears to be "
+                                 "corrupted or is not a valid Wii save."));
+    break;
+  case WiiSave::CopyResult::TitleMissing:
+    ModalMessageBox::critical(
+        this, tr("Save Import"),
+        tr("Failed to import save file. Please launch the game once, then try again."));
+    break;
+  case WiiSave::CopyResult::Cancelled:
+    break;
+  default:
+    ModalMessageBox::critical(
+        this, tr("Save Import"),
+        tr("Failed to import save file. Your NAND may be corrupt, or something is preventing "
+           "access to files within it. Try repairing your NAND (Tools -> Manage NAND -> Check "
+           "NAND...), then import the save again."));
+    break;
+  }
 }
 
 void MenuBar::ExportWiiSaves()

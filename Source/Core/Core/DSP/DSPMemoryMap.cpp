@@ -3,86 +3,81 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/DSPMemoryMap.h"
-
 #include "Common/Logging/Log.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPTables.h"
 
 namespace DSP
 {
-u16 dsp_imem_read(u16 addr)
+u16 SDSP::ReadIMEM(u16 address) const
 {
-  switch (addr >> 12)
+  switch (address >> 12)
   {
   case 0:  // 0xxx IRAM
-    return g_dsp.iram[addr & DSP_IRAM_MASK];
+    return iram[address & DSP_IRAM_MASK];
 
   case 8:  // 8xxx IROM - contains code to receive code for IRAM, and a bunch of mixing loops.
-    return g_dsp.irom[addr & DSP_IROM_MASK];
+    return irom[address & DSP_IROM_MASK];
 
   default:  // Unmapped/non-existing memory
-    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Executing from invalid ({:04x}) memory", g_dsp.pc,
-                  addr);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Executing from invalid ({:04x}) memory", pc, address);
     return 0;
   }
 }
 
-u16 dsp_dmem_read(u16 addr)
+u16 SDSP::ReadDMEM(u16 address)
 {
-  switch (addr >> 12)
+  switch (address >> 12)
   {
   case 0x0:  // 0xxx DRAM
-    return g_dsp.dram[addr & DSP_DRAM_MASK];
+    return dram[address & DSP_DRAM_MASK];
 
   case 0x1:  // 1xxx COEF
-    DEBUG_LOG_FMT(DSPLLE, "{:04x} : Coefficient Read @ {:04x}", g_dsp.pc, addr);
-    return g_dsp.coef[addr & DSP_COEF_MASK];
+    DEBUG_LOG_FMT(DSPLLE, "{:04x} : Coefficient Read @ {:04x}", pc, address);
+    return coef[address & DSP_COEF_MASK];
 
   case 0xf:  // Fxxx HW regs
-    return gdsp_ifx_read(addr);
+    return ReadIFX(address);
 
   default:  // Unmapped/non-existing memory
-    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Read from UNKNOWN ({:04x}) memory", g_dsp.pc, addr);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Read from UNKNOWN ({:04x}) memory", pc, address);
     return 0;
   }
 }
 
-void dsp_dmem_write(u16 addr, u16 val)
+void SDSP::WriteDMEM(u16 address, u16 value)
 {
-  switch (addr >> 12)
+  switch (address >> 12)
   {
   case 0x0:  // 0xxx DRAM
-    g_dsp.dram[addr & DSP_DRAM_MASK] = val;
+    dram[address & DSP_DRAM_MASK] = value;
     break;
 
   case 0xf:  // Fxxx HW regs
-    gdsp_ifx_write(addr, val);
+    WriteIFX(address, value);
     break;
 
   default:  // Unmapped/non-existing memory
-    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Write to UNKNOWN ({:04x}) memory", g_dsp.pc, addr);
+    ERROR_LOG_FMT(DSPLLE, "{:04x} DSP ERROR: Write to UNKNOWN ({:04x}) memory", pc, address);
     break;
   }
 }
 
-u16 dsp_fetch_code()
+u16 SDSP::FetchInstruction()
 {
-  u16 opc = dsp_imem_read(g_dsp.pc);
-
-  g_dsp.pc++;
+  const u16 opc = PeekInstruction();
+  pc++;
   return opc;
 }
 
-u16 dsp_peek_code()
+u16 SDSP::PeekInstruction() const
 {
-  return dsp_imem_read(g_dsp.pc);
+  return ReadIMEM(pc);
 }
 
-void dsp_skip_inst()
+void SDSP::SkipInstruction()
 {
-  g_dsp.pc += GetOpTemplate(dsp_peek_code())->size;
+  pc += GetOpTemplate(PeekInstruction())->size;
 }
 }  // namespace DSP

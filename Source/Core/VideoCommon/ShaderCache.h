@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/LinearDiskCache.h"
 
 #include "VideoCommon/AbstractPipeline.h"

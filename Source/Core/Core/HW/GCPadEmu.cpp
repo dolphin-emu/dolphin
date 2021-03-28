@@ -277,10 +277,10 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(2, "A | LEFT");   // Left
   m_main_stick->SetControlExpression(3, "D | RIGHT");  // Right
 #elif __APPLE__
-  m_main_stick->SetControlExpression(0, "Up Arrow");     // Up
-  m_main_stick->SetControlExpression(1, "Down Arrow");   // Down
-  m_main_stick->SetControlExpression(2, "Left Arrow");   // Left
-  m_main_stick->SetControlExpression(3, "Right Arrow");  // Right
+  m_main_stick->SetControlExpression(0, "`Up Arrow`");     // Up
+  m_main_stick->SetControlExpression(1, "`Down Arrow`");   // Down
+  m_main_stick->SetControlExpression(2, "`Left Arrow`");   // Left
+  m_main_stick->SetControlExpression(3, "`Right Arrow`");  // Right
 #else
   m_main_stick->SetControlExpression(0, "W | Up");     // Up
   m_main_stick->SetControlExpression(1, "S | Down");   // Down

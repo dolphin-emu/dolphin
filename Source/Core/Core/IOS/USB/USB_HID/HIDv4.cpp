@@ -80,7 +80,7 @@ IPCCommandResult USB_HIDv4::CancelInterrupt(const IOCtlRequest& request)
 
 IPCCommandResult USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
 {
-  std::lock_guard<std::mutex> lk{m_devicechange_hook_address_mutex};
+  std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (request.buffer_out == 0 || request.buffer_out_size != 0x600)
     return GetDefaultReply(IPC_EINVAL);
 
@@ -96,7 +96,7 @@ IPCCommandResult USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
 
 IPCCommandResult USB_HIDv4::Shutdown(const IOCtlRequest& request)
 {
-  std::lock_guard<std::mutex> lk{m_devicechange_hook_address_mutex};
+  std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request != 0)
   {
     Memory::Write_U32(0xffffffff, m_devicechange_hook_request->buffer_out);
@@ -140,7 +140,7 @@ void USB_HIDv4::DoState(PointerWrap& p)
 
 std::shared_ptr<USB::Device> USB_HIDv4::GetDeviceByIOSID(const s32 ios_id) const
 {
-  std::lock_guard<std::mutex> lk{m_id_map_mutex};
+  std::lock_guard lk{m_id_map_mutex};
   const auto iterator = m_ios_ids.find(ios_id);
   if (iterator == m_ios_ids.cend())
     return nullptr;
@@ -150,7 +150,7 @@ std::shared_ptr<USB::Device> USB_HIDv4::GetDeviceByIOSID(const s32 ios_id) const
 void USB_HIDv4::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> device)
 {
   {
-    std::lock_guard<std::mutex> id_map_lock{m_id_map_mutex};
+    std::lock_guard id_map_lock{m_id_map_mutex};
     if (event == ChangeEvent::Inserted)
     {
       s32 new_id = 0;
@@ -168,7 +168,7 @@ void USB_HIDv4::OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> d
   }
 
   {
-    std::lock_guard<std::mutex> lk{m_devicechange_hook_address_mutex};
+    std::lock_guard lk{m_devicechange_hook_address_mutex};
     TriggerDeviceChangeReply();
   }
 }
@@ -184,7 +184,7 @@ void USB_HIDv4::TriggerDeviceChangeReply()
     return;
 
   {
-    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    std::lock_guard lk(m_devices_mutex);
     const u32 dest = m_devicechange_hook_request->buffer_out;
     u32 offset = 0;
     for (const auto& device : m_devices)
@@ -242,7 +242,7 @@ static std::vector<u8> GetDescriptors(const USB::Device& device)
 
 std::vector<u8> USB_HIDv4::GetDeviceEntry(const USB::Device& device) const
 {
-  std::lock_guard<std::mutex> id_map_lock{m_id_map_mutex};
+  std::lock_guard id_map_lock{m_id_map_mutex};
 
   // The structure for a device section is as follows:
   //   0-4 bytes: total size of the device data, including the size and the device ID

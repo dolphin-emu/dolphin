@@ -20,8 +20,8 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 
 #ifdef _WIN32
@@ -78,18 +78,39 @@ FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 #else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    AndroidContentInit(path);
+  else
+#endif
+    m_exists = stat(path.c_str(), &m_stat) == 0;
 }
 
 FileInfo::FileInfo(const char* path)
 {
-  m_exists = stat(path, &m_stat) == 0;
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    AndroidContentInit(path);
+  else
+#endif
+    m_exists = stat(path, &m_stat) == 0;
 }
 #endif
 
 FileInfo::FileInfo(int fd)
 {
-  m_exists = fstat(fd, &m_stat);
+  m_exists = fstat(fd, &m_stat) == 0;
 }
+
+#ifdef ANDROID
+void FileInfo::AndroidContentInit(const std::string& path)
+{
+  const jlong result = GetAndroidContentSizeAndIsDirectory(path);
+  m_exists = result != -1;
+  m_stat.st_mode = result == -2 ? S_IFDIR : S_IFREG;
+  m_stat.st_size = result >= 0 ? result : 0;
+}
+#endif
 
 bool FileInfo::Exists() const
 {
@@ -135,7 +156,7 @@ bool IsFile(const std::string& path)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename)
+bool Delete(const std::string& filename, IfAbsentBehavior behavior)
 {
   INFO_LOG_FMT(COMMON, "Delete: file {}", filename);
 
@@ -154,7 +175,10 @@ bool Delete(const std::string& filename)
   // Return true because we care about the file not being there, not the actual delete.
   if (!file_info.Exists())
   {
-    WARN_LOG_FMT(COMMON, "Delete: {} does not exist", filename);
+    if (behavior == IfAbsentBehavior::ConsoleWarning)
+    {
+      WARN_LOG_FMT(COMMON, "Delete: {} does not exist", filename);
+    }
     return true;
   }
 
@@ -253,9 +277,19 @@ bool CreateFullPath(const std::string& fullPath)
 }
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string& filename)
+bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
 {
   INFO_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
+
+  // Return true because we care about the directory not being there, not the actual delete.
+  if (!File::Exists(filename))
+  {
+    if (behavior == IfAbsentBehavior::ConsoleWarning)
+    {
+      WARN_LOG_FMT(COMMON, "DeleteDir: {} does not exist", filename);
+    }
+    return true;
+  }
 
   // check if a directory
   if (!IsDirectory(filename))
@@ -463,14 +497,47 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   {
     const std::string virtual_name(TStrToUTF8(ffd.cFileName));
 #else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return parent_entry;
+  DIR* dirp = nullptr;
+
+#ifdef ANDROID
+  std::vector<std::string> child_names;
+  if (IsPathAndroidContent(directory))
+  {
+    child_names = GetAndroidContentChildNames(directory);
+  }
+  else
+#endif
+  {
+    dirp = opendir(directory.c_str());
+    if (!dirp)
+      return parent_entry;
+  }
+
+#ifdef ANDROID
+  auto it = child_names.cbegin();
+#endif
 
   // non Windows loop
-  while (dirent* result = readdir(dirp))
+  while (true)
   {
-    const std::string virtual_name(result->d_name);
+    std::string virtual_name;
+
+#ifdef ANDROID
+    if (!dirp)
+    {
+      if (it == child_names.cend())
+        break;
+      virtual_name = *it;
+      ++it;
+    }
+    else
+#endif
+    {
+      dirent* result = readdir(dirp);
+      if (!result)
+        break;
+      virtual_name = result->d_name;
+    }
 #endif
     if (virtual_name == "." || virtual_name == "..")
       continue;
@@ -501,7 +568,8 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   FindClose(hFind);
 #else
   }
-  closedir(dirp);
+  if (dirp)
+    closedir(dirp);
 #endif
 
   return parent_entry;
@@ -853,6 +921,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
     s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
         s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
+    s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
     s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
     s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
     s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;

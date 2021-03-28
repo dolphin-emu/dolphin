@@ -16,11 +16,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Core/Analytics.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"

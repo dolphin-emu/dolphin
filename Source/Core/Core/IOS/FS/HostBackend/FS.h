@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Core/IOS/FS/FileSystem.h"
 
 namespace IOS::HLE::FS

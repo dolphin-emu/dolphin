@@ -32,16 +32,19 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   bool use_c = op5 >= 25;  // fmul and all kind of fmaddXX
   bool use_b = op5 != 25;  // fmul uses no B
 
-  bool inputs_are_singles = fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
-                            (!use_c || fpr.IsSingle(c, !packed));
+  const auto inputs_are_singles_func = [&] {
+    return fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
+           (!use_c || fpr.IsSingle(c, !packed));
+  };
+  const bool inputs_are_singles = inputs_are_singles_func();
 
   ARM64Reg VA{}, VB{}, VC{}, VD{};
 
   if (packed)
   {
-    RegType type = inputs_are_singles ? REG_REG_SINGLE : REG_REG;
-    u8 size = inputs_are_singles ? 32 : 64;
-    ARM64Reg (*reg_encoder)(ARM64Reg) = inputs_are_singles ? EncodeRegToDouble : EncodeRegToQuad;
+    const RegType type = inputs_are_singles ? RegType::Single : RegType::Register;
+    const u8 size = inputs_are_singles ? 32 : 64;
+    const auto reg_encoder = inputs_are_singles ? EncodeRegToDouble : EncodeRegToQuad;
 
     VA = reg_encoder(fpr.R(a, type));
     if (use_b)
@@ -71,10 +74,12 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   }
   else
   {
-    RegType type = (inputs_are_singles && single) ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-    RegType type_out = single ? (inputs_are_singles ? REG_DUP_SINGLE : REG_DUP) : REG_LOWER_PAIR;
-    ARM64Reg (*reg_encoder)(ARM64Reg) =
-        (inputs_are_singles && single) ? EncodeRegToSingle : EncodeRegToDouble;
+    const RegType type =
+        (inputs_are_singles && single) ? RegType::LowerPairSingle : RegType::LowerPair;
+    const RegType type_out =
+        single ? (inputs_are_singles ? RegType::DuplicatedSingle : RegType::Duplicated) :
+                 RegType::LowerPair;
+    const auto reg_encoder = (inputs_are_singles && single) ? EncodeRegToSingle : EncodeRegToDouble;
 
     VA = reg_encoder(fpr.R(a, type));
     if (use_b)
@@ -116,7 +121,12 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   }
 
   if (single || packed)
+  {
+    ASSERT_MSG(DYNA_REC, inputs_are_singles == inputs_are_singles_func(),
+               "Register allocation turned singles into doubles in the middle of fp_arith");
+
     fpr.FixSinglePrecision(d);
+  }
 }
 
 void JitArm64::fp_logic(UGeckoInstruction inst)
@@ -125,8 +135,9 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
 
-  u32 b = inst.FB, d = inst.FD;
-  u32 op10 = inst.SUBOP10;
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
+  const u32 op10 = inst.SUBOP10;
 
   bool packed = inst.OPCD == 4;
 
@@ -134,16 +145,16 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
   if (op10 == 72 && b == d)
     return;
 
-  bool single = fpr.IsSingle(b, !packed);
-  u8 size = single ? 32 : 64;
+  const bool single = fpr.IsSingle(b, !packed);
+  const u8 size = single ? 32 : 64;
 
   if (packed)
   {
-    RegType type = single ? REG_REG_SINGLE : REG_REG;
-    ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToDouble : EncodeRegToQuad;
+    const RegType type = single ? RegType::Single : RegType::Register;
+    const auto reg_encoder = single ? EncodeRegToDouble : EncodeRegToQuad;
 
-    ARM64Reg VB = reg_encoder(fpr.R(b, type));
-    ARM64Reg VD = reg_encoder(fpr.RW(d, type));
+    const ARM64Reg VB = reg_encoder(fpr.R(b, type));
+    const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
     switch (op10)
     {
@@ -167,11 +178,11 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
   }
   else
   {
-    RegType type = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-    ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToSingle : EncodeRegToDouble;
+    const RegType type = single ? RegType::LowerPairSingle : RegType::LowerPair;
+    const auto reg_encoder = single ? EncodeRegToSingle : EncodeRegToDouble;
 
-    ARM64Reg VB = fpr.R(b, type);
-    ARM64Reg VD = fpr.RW(d, type);
+    const ARM64Reg VB = fpr.R(b, type);
+    const ARM64Reg VD = fpr.RW(d, type);
 
     switch (op10)
     {
@@ -193,6 +204,9 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
       break;
     }
   }
+
+  ASSERT_MSG(DYNA_REC, single == fpr.IsSingle(b, !packed),
+             "Register allocation turned singles into doubles in the middle of fp_logic");
 }
 
 void JitArm64::fselx(UGeckoInstruction inst)
@@ -201,28 +215,38 @@ void JitArm64::fselx(UGeckoInstruction inst)
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
 
-  u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+  const u32 a = inst.FA;
+  const u32 b = inst.FB;
+  const u32 c = inst.FC;
+  const u32 d = inst.FD;
 
-  if (fpr.IsSingle(a, true))
+  const bool a_single = fpr.IsSingle(a, true);
+  if (a_single)
   {
-    ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR_SINGLE);
+    const ARM64Reg VA = fpr.R(a, RegType::LowerPairSingle);
     m_float_emit.FCMPE(EncodeRegToSingle(VA));
   }
   else
   {
-    ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR);
+    const ARM64Reg VA = fpr.R(a, RegType::LowerPair);
     m_float_emit.FCMPE(EncodeRegToDouble(VA));
   }
 
-  bool single = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
-  RegType type = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-  ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToSingle : EncodeRegToDouble;
+  ASSERT_MSG(DYNA_REC, a_single == fpr.IsSingle(a, true),
+             "Register allocation turned singles into doubles in the middle of fselx");
 
-  ARM64Reg VB = fpr.R(b, type);
-  ARM64Reg VC = fpr.R(c, type);
-  ARM64Reg VD = fpr.RW(d, type);
+  const bool b_and_c_singles = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
+  const RegType type = b_and_c_singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const auto reg_encoder = b_and_c_singles ? EncodeRegToSingle : EncodeRegToDouble;
+
+  const ARM64Reg VB = fpr.R(b, type);
+  const ARM64Reg VC = fpr.R(c, type);
+  const ARM64Reg VD = fpr.RW(d, type);
 
   m_float_emit.FCSEL(reg_encoder(VD), reg_encoder(VC), reg_encoder(VB), CC_GE);
+
+  ASSERT_MSG(DYNA_REC, b_and_c_singles == (fpr.IsSingle(b, true) && fpr.IsSingle(c, true)),
+             "Register allocation turned singles into doubles in the middle of fselx");
 }
 
 void JitArm64::frspx(UGeckoInstruction inst)
@@ -232,24 +256,29 @@ void JitArm64::frspx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
-  u32 b = inst.FB, d = inst.FD;
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
 
-  if (fpr.IsSingle(b, true))
+  const bool single = fpr.IsSingle(b, true);
+  if (single)
   {
     // Source is already in single precision, so no need to do anything but to copy to PSR1.
-    ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR_SINGLE);
-    ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
+    const ARM64Reg VB = fpr.R(b, RegType::LowerPairSingle);
+    const ARM64Reg VD = fpr.RW(d, RegType::DuplicatedSingle);
 
     if (b != d)
       m_float_emit.FMOV(EncodeRegToSingle(VD), EncodeRegToSingle(VB));
   }
   else
   {
-    ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
-    ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
+    const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
+    const ARM64Reg VD = fpr.RW(d, RegType::DuplicatedSingle);
 
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
   }
+
+  ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
+             "Register allocation turned singles into doubles in the middle of frspx");
 }
 
 void JitArm64::fcmpX(UGeckoInstruction inst)
@@ -258,18 +287,19 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
-  u32 a = inst.FA, b = inst.FB;
-  int crf = inst.CRFD;
+  const u32 a = inst.FA;
+  const u32 b = inst.FB;
+  const int crf = inst.CRFD;
 
-  bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true);
-  RegType type = singles ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-  ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToSingle : EncodeRegToDouble;
+  const bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true);
+  const RegType type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const auto reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
 
-  ARM64Reg VA = reg_encoder(fpr.R(a, type));
-  ARM64Reg VB = reg_encoder(fpr.R(b, type));
+  const ARM64Reg VA = reg_encoder(fpr.R(a, type));
+  const ARM64Reg VB = reg_encoder(fpr.R(b, type));
 
   gpr.BindCRToRegister(crf, false);
-  ARM64Reg XA = gpr.CR(crf);
+  const ARM64Reg XA = gpr.CR(crf);
 
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
@@ -312,6 +342,9 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
     SetJumpTarget(continue3);
   }
   SetJumpTarget(continue1);
+
+  ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a, true) && fpr.IsSingle(b, true)),
+             "Register allocation turned singles into doubles in the middle of fcmpX");
 }
 
 void JitArm64::fctiwzx(UGeckoInstruction inst)
@@ -320,14 +353,15 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
 
-  u32 b = inst.FB, d = inst.FD;
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
 
-  bool single = fpr.IsSingle(b, true);
+  const bool single = fpr.IsSingle(b, true);
 
-  ARM64Reg VB = fpr.R(b, single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR);
-  ARM64Reg VD = fpr.RW(d);
+  const ARM64Reg VB = fpr.R(b, single ? RegType::LowerPairSingle : RegType::LowerPair);
+  const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
 
-  ARM64Reg V0 = fpr.GetReg();
+  const ARM64Reg V0 = fpr.GetReg();
 
   // Generate 0xFFF8000000000000ULL
   m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF000000000000ULL);
@@ -335,17 +369,20 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 
   if (single)
   {
-    m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), ROUND_Z);
+    m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), RoundingMode::Z);
   }
   else
   {
-    ARM64Reg V1 = gpr.GetReg();
+    const ARM64Reg V1 = gpr.GetReg();
 
-    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), ROUND_Z);
+    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), RoundingMode::Z);
     m_float_emit.FMOV(EncodeRegToSingle(VD), V1);
 
     gpr.Unlock(V1);
   }
   m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
   fpr.Unlock(V0);
+
+  ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
+             "Register allocation turned singles into doubles in the middle of fctiwzx");
 }

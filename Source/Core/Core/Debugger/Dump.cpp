@@ -8,7 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 
 CDump::CDump(const std::string& filename) : m_pData(nullptr)
 {

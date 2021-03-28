@@ -955,6 +955,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Need to set the image's position
     overlayDrawable.setPosition(drawableX, drawableY);
+    overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.getIntGlobal() * 255 / 100);
 
     return overlayDrawable;
   }
@@ -1039,6 +1040,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Need to set the image's position
     overlayDrawable.setPosition(drawableX, drawableY);
+    overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.getIntGlobal() * 255 / 100);
 
     return overlayDrawable;
   }
@@ -1104,6 +1106,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Need to set the image's position
     overlayDrawable.setPosition(drawableX, drawableY);
+    overlayDrawable.setOpacity(IntSetting.MAIN_CONTROL_OPACITY.getIntGlobal() * 255 / 100);
 
     return overlayDrawable;
   }

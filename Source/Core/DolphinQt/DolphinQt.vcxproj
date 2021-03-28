@@ -37,6 +37,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;rpcrt4.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -53,12 +54,16 @@
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
+    <ClCompile Include="Config\CommonControllersWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\FreeLookWidget.cpp" />
+    <ClCompile Include="Config\FreeLookWindow.cpp" />
+    <ClCompile Include="Config\GamecubeControllersWidget.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />
     <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
@@ -80,6 +85,7 @@
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
+    <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
@@ -120,6 +126,7 @@
     <ClCompile Include="Config\ToolTipControls\ToolTipSlider.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipSpinBox.cpp" />
     <ClCompile Include="Config\VerifyWidget.cpp" />
+    <ClCompile Include="Config\WiimoteControllersWidget.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
@@ -231,12 +238,16 @@
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
+    <QtMoc Include="Config\CommonControllersWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\FreeLookWidget.h" />
+    <QtMoc Include="Config\FreeLookWindow.h" />
+    <QtMoc Include="Config\GamecubeControllersWidget.h" />
     <QtMoc Include="Config\GameConfigHighlighter.h" />
     <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
@@ -257,6 +268,7 @@
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
+    <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
     <QtMoc Include="Config\Mapping\GCMicrophone.h" />
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />
@@ -289,6 +301,7 @@
     <ClInclude Include="Config\ToolTipControls\ToolTipSpinBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipWidget.h" />
     <QtMoc Include="Config\VerifyWidget.h" />
+    <QtMoc Include="Config\WiimoteControllersWidget.h" />
     <QtMoc Include="ConvertDialog.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
     <QtMoc Include="Debugger\CodeViewWidget.h" />
@@ -360,73 +373,17 @@
     <ResourceCompile Include="DolphinQt.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)AudioCommon\AudioCommon.vcxproj">
-      <Project>{54aa7840-5beb-4a0c-9452-74ba4cc7fd44}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
-      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
+      <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
       <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
-      <Project>{e54cf649-140e-4255-81a5-30a673c1fb36}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)DiscIO\DiscIO.vcxproj">
-      <Project>{160bdc25-5626-4b0d-bdd8-2953d9777fb5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)InputCommon\InputCommon.vcxproj">
-      <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
-      <Project>{604C8368-F34A-4D55-82C8-CC92A0C13254}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
-      <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\D3D12\D3D12.vcxproj">
-      <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
-      <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj" Condition="'$(Platform)'!='ARM64'">
-      <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj" Condition="'$(Platform)'!='ARM64'">
-      <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
-      <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
-      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(DolphinRootDir)Languages\Languages.vcxproj">
       <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
-      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
-      <Project>{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)imgui\imgui.vcxproj">
-      <Project>{4c3b2264-ea73-4a7b-9cfe-65b0fd635ebb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
-      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
-      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
-      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
-      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
-    </ProjectReference>
   </ItemGroup>
+  <Import Project="$(ExternalsDir)ExternalsReferenceAll.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->

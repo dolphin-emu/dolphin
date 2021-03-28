@@ -20,6 +20,11 @@
   <PropertyGroup>
     <OutDir>$(BinaryOutputDir)</OutDir>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <msgfmt Include="po\ar.po" />
     <msgfmt Include="po\ca.po" />

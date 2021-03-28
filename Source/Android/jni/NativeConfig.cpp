@@ -14,8 +14,9 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 constexpr jint LAYER_BASE_OR_CURRENT = 0;
-constexpr jint LAYER_LOCAL_GAME = 1;
-constexpr jint LAYER_ACTIVE = 2;
+constexpr jint LAYER_BASE = 1;
+constexpr jint LAYER_LOCAL_GAME = 2;
+constexpr jint LAYER_ACTIVE = 3;
 
 static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, jstring key)
 {
@@ -60,6 +61,10 @@ static std::shared_ptr<Config::Layer> GetLayer(jint layer, const Config::Locatio
       layer_type = Config::LayerType::CurrentRun;
     break;
 
+  case LAYER_BASE:
+    layer_type = Config::LayerType::Base;
+    break;
+
   case LAYER_LOCAL_GAME:
     layer_type = Config::LayerType::LocalGame;
     break;
@@ -86,7 +91,7 @@ template <typename T>
 static void Set(jint layer, const Config::Location& location, T value)
 {
   GetLayer(layer, location)->Set(location, value);
-  Config::InvokeConfigChangedCallbacks();
+  Config::OnConfigChanged();
 }
 
 #ifdef __cplusplus
@@ -123,7 +128,12 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_unloadGameIn
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_save(
     JNIEnv*, jclass, jint layer)
 {
-  return GetLayer(layer, {})->Save();
+  const std::shared_ptr<Config::Layer> layer_ptr = GetLayer(layer, {});
+
+  // Workaround for the Settings class carrying around a legacy map of settings it always saves
+  layer_ptr->MarkAsDirty();
+
+  return layer_ptr->Save();
 }
 
 JNIEXPORT jboolean JNICALL

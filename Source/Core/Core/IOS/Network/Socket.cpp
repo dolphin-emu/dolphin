@@ -17,13 +17,13 @@
 #include <sys/select.h>
 #endif
 
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
 #define ERRORCODE(name) WSA##name
@@ -460,15 +460,10 @@ void WiiSocket::Update(bool read, bool write, bool except)
             int ret = mbedtls_ssl_write(&Device::NetSSL::_SSL[sslID].ctx,
                                         Memory::GetPointer(BufferOut2), BufferOutSize2);
 
-            if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE) && ret > 0)
-            {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_write.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
-            }
-
             if (ret >= 0)
             {
+              PowerPC::debug_interface.NetworkLogger()->LogWrite(Memory::GetPointer(BufferOut2),
+                                                                 ret);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -498,15 +493,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
             int ret = mbedtls_ssl_read(&Device::NetSSL::_SSL[sslID].ctx,
                                        Memory::GetPointer(BufferIn2), BufferInSize2);
 
-            if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) && ret > 0)
-            {
-              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetGameID() + "_read.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
-            }
-
             if (ret >= 0)
             {
+              PowerPC::debug_interface.NetworkLogger()->LogRead(Memory::GetPointer(BufferIn2), ret);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }

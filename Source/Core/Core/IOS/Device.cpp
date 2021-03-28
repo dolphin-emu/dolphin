@@ -78,7 +78,8 @@ IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
 
 const IOCtlVRequest::IOVector* IOCtlVRequest::GetVector(size_t index) const
 {
-  ASSERT(index < (in_vectors.size() + io_vectors.size()));
+  if (index >= in_vectors.size() + io_vectors.size())
+    return nullptr;
   if (index < in_vectors.size())
     return &in_vectors[index];
   return &io_vectors[index - in_vectors.size()];

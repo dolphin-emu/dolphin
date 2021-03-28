@@ -80,19 +80,6 @@ void AdvancedWidget::CreateWidgets()
 
   utility_layout->addWidget(m_dump_efb_target, 1, 1);
 
-  // Freelook
-  auto* freelook_box = new QGroupBox(tr("Free Look"));
-  auto* freelook_layout = new QGridLayout();
-  freelook_box->setLayout(freelook_layout);
-
-  m_enable_freelook = new GraphicsBool(tr("Enable"), Config::GFX_FREE_LOOK);
-  m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
-                                               Config::GFX_FREE_LOOK_CONTROL_TYPE);
-
-  freelook_layout->addWidget(m_enable_freelook, 0, 0);
-  freelook_layout->addWidget(new QLabel(tr("Control Type:")), 1, 0);
-  freelook_layout->addWidget(m_freelook_control_type, 1, 1);
-
   // Texture dumping
   auto* texture_dump_box = new QGroupBox(tr("Texture Dumping"));
   auto* texture_dump_layout = new QGridLayout();
@@ -155,7 +142,6 @@ void AdvancedWidget::CreateWidgets()
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
-  main_layout->addWidget(freelook_box);
   main_layout->addWidget(texture_dump_box);
   main_layout->addWidget(dump_box);
   main_layout->addWidget(misc_box);
@@ -170,7 +156,6 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
-  connect(m_enable_freelook, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
@@ -180,8 +165,6 @@ void AdvancedWidget::LoadSettings()
   m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
 
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
-
-  m_freelook_control_type->setEnabled(Config::Get(Config::GFX_FREE_LOOK));
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
 }
@@ -192,8 +175,6 @@ void AdvancedWidget::SaveSettings()
   m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
 
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
-
-  m_freelook_control_type->setEnabled(Config::Get(Config::GFX_FREE_LOOK));
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
 }
@@ -226,21 +207,22 @@ void AdvancedWidget::AddDescriptions()
                  "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
-                 "User/Dump/Textures/<game_id>/.<br><br><dolphin_emphasis>If unsure, leave "
+                 "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump mipmapped game textures to "
-      "User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary "
+      "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary mipmapped textures if "
+      "'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
   static const char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump base game textures to "
-      "User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary "
+      "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Loads custom textures from User/Load/Textures/<game_id>/ and "
-                 "User/Load/DynamicInputTextures/<game_id>/.<br><br><dolphin_emphasis>If "
+      QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
+                 "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
                  "unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
@@ -267,22 +249,6 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
-  static const char TR_FREE_LOOK_DESCRIPTION[] = QT_TR_NOOP(
-      "Allows manipulation of the in-game camera. Move the mouse while holding the right button "
-      "to pan or middle button to roll.<br><br>Use the WASD keys while holding SHIFT to move "
-      "the "
-      "camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
-      "to reset the camera or SHIFT+F to reset the speed.<br><br><dolphin_emphasis>If unsure, "
-      "leave this unchecked.</dolphin_emphasis>");
-  static const char TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION[] = QT_TR_NOOP(
-      "Changes the in-game camera type during freelook.<br><br>"
-      "Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero "
-      "gravity. This is the most powerful freelook option but is the most challenging to use.<br "
-      "/><br>"
-      "First Person: Controls the free camera similarly to a first person video game. The camera "
-      "can rotate and travel, but roll is impossible. Easy to use, but limiting.<br><br>"
-      "Orbital: Rotates the free camera around the original camera. Has no lateral movement, only "
-      "rotation and you may zoom up to the camera's origin point.");
   static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
       "Crops the picture from its native aspect ratio to 4:3 or "
       "16:9.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -329,9 +295,6 @@ void AdvancedWidget::AddDescriptions()
 #endif
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
-  m_enable_freelook->SetDescription(tr(TR_FREE_LOOK_DESCRIPTION));
-  m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
-  m_freelook_control_type->SetDescription(tr(TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
 #ifdef _WIN32
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));

@@ -154,7 +154,8 @@ LogManager::LogManager()
   m_log[MEMMAP] = {"MI", "Memory Interface & Memory Map"};
   m_log[NETPLAY] = {"NETPLAY", "Netplay"};
   m_log[OSHLE] = {"HLE", "OSHLE"};
-  m_log[OSREPORT] = {"OSREPORT", "OSReport"};
+  m_log[OSREPORT] = {"OSREPORT", "OSReport EXI"};
+  m_log[OSREPORT_HLE] = {"OSREPORT_HLE", "OSReport HLE"};
   m_log[PAD] = {"PAD", "Pad"};
   m_log[PIXELENGINE] = {"PE", "Pixel Engine"};
   m_log[PROCESSORINTERFACE] = {"PI", "Processor Interface"};

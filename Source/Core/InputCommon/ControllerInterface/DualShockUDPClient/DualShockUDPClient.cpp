@@ -28,6 +28,8 @@
 
 namespace ciface::DualShockUDPClient
 {
+constexpr std::string_view DUALSHOCKUDP_SOURCE_NAME = "DSUClient";
+
 namespace Settings
 {
 const Config::Info<std::string> SERVER_ADDRESS{
@@ -317,7 +319,7 @@ static void Restart()
     }
   }
 
-  PopulateDevices();  // remove devices
+  PopulateDevices();  // Only removes devices
 
   if (s_servers_enabled && !s_servers.empty())
     StartHotplugThread();
@@ -386,11 +388,14 @@ void PopulateDevices()
 {
   INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
 
+  // s_servers has already been updated so we can't use it to know which devices we removed,
+  // also it's good to remove all of them before adding new ones so that their id will be set
+  // correctly if they have the same name
+  g_controller_interface.RemoveDevice(
+      [](const auto* dev) { return dev->GetSource() == DUALSHOCKUDP_SOURCE_NAME; });
+
   for (auto& server : s_servers)
   {
-    g_controller_interface.RemoveDevice(
-        [&server](const auto* dev) { return dev->GetName() == server.m_description; });
-
     std::lock_guard lock{server.m_port_info_mutex};
     for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
     {
@@ -478,7 +483,7 @@ std::string Device::GetName() const
 
 std::string Device::GetSource() const
 {
-  return "DSUClient";
+  return std::string(DUALSHOCKUDP_SOURCE_NAME);
 }
 
 void Device::UpdateInput()

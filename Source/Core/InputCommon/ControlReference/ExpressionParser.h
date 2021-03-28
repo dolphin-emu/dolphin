@@ -9,7 +9,7 @@
 #include <optional>
 #include <string>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ciface::ExpressionParser
 {

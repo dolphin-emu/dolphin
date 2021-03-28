@@ -14,6 +14,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 namespace
@@ -98,7 +99,7 @@ TEST(Jit64, Frsqrte)
 
     u64 actual = routines.wrapped_frsqrte(ivalue, fpscr);
 
-    printf("%016llx -> %016llx == %016llx\n", ivalue, actual, expected);
+    fmt::print("{:016x} -> {:016x} == {:016x}\n", ivalue, actual, expected);
 
     EXPECT_EQ(expected, actual);
   }

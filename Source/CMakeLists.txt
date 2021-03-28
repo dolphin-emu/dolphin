@@ -93,6 +93,12 @@ else()
   if (HAS_STRINGOP_TRUNCATION_WARNING)
     check_and_add_flag(NO_STRINGOP_TRUNCATION -Wno-stringop-truncation)
   endif()
+
+  # Format string issues that the compiler can detect should be compile time errors.
+  check_cxx_compiler_flag(-Wformat HAS_FORMAT_WARNING)
+  if (HAS_FORMAT_WARNING)
+    check_and_add_flag(FORMAT_WARNING_TO_ERROR -Werror=format)
+  endif()
 endif()
 
 # These aren't actually needed for C11/C++11

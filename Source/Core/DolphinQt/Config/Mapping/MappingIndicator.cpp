@@ -24,7 +24,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -415,8 +415,18 @@ void TiltIndicator::Draw()
 {
   WiimoteEmu::EmulateTilt(&m_motion_state, &m_group, 1.f / INDICATOR_UPDATE_FREQ);
 
-  const auto adj_coord =
-      Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
+  auto adj_coord = Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
+
+  // Angle values after dividing by pi.
+  constexpr auto norm_180_deg = 1;
+  constexpr auto norm_360_deg = 2;
+
+  // Angle may extend beyond 180 degrees when wrapping around.
+  // Apply modulo to draw within the indicator.
+  // Scale down the value a bit so +1 does not become -1.
+  adj_coord *= 0.9999f;
+  adj_coord.x = std::fmod(adj_coord.x + norm_360_deg + norm_180_deg, norm_360_deg) - norm_180_deg;
+  adj_coord.y = std::fmod(adj_coord.y + norm_360_deg + norm_180_deg, norm_360_deg) - norm_180_deg;
 
   DrawReshapableInput(m_group, TILT_GATE_COLOR,
                       (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
@@ -582,9 +592,13 @@ void ShakeMappingIndicator::Draw()
   p.scale(1.0, -1.0);
 
   // Deadzone.
-  p.setPen(GetDeadZonePen());
-  p.setBrush(GetDeadZoneBrush(p));
-  p.drawRect(-1.0, 0, 2, m_shake_group.GetDeadzone());
+  const double deadzone = m_shake_group.GetDeadzone();
+  if (deadzone > 0.0)
+  {
+    p.setPen(GetDeadZonePen());
+    p.setBrush(GetDeadZoneBrush(p));
+    p.drawRect(QRectF(-1, 0, 2, deadzone));
+  }
 
   // Raw input.
   const auto raw_coord = m_shake_group.GetState(false);

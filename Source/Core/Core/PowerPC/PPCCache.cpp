@@ -8,7 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
-#include "Core/Analytics.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"

@@ -29,9 +29,10 @@ public final class GameFileCacheService extends IntentService
   private static final String ACTION_RESCAN = "org.dolphinemu.dolphinemu.RESCAN_GAME_FILE_CACHE";
 
   private static GameFileCache gameFileCache = null;
-  private static AtomicReference<GameFile[]> gameFiles = new AtomicReference<>(new GameFile[]{});
-  private static AtomicBoolean hasLoadedCache = new AtomicBoolean(false);
-  private static AtomicBoolean hasScannedLibrary = new AtomicBoolean(false);
+  private static final AtomicReference<GameFile[]> gameFiles =
+          new AtomicReference<>(new GameFile[]{});
+  private static final AtomicBoolean hasLoadedCache = new AtomicBoolean(false);
+  private static final AtomicBoolean hasScannedLibrary = new AtomicBoolean(false);
 
   public GameFileCacheService()
   {
@@ -166,7 +167,7 @@ public final class GameFileCacheService extends IntentService
     {
       synchronized (gameFileCache)
       {
-        boolean changed = gameFileCache.scanLibrary(this);
+        boolean changed = gameFileCache.scanLibrary();
         if (changed)
           updateGameFileArray();
         hasScannedLibrary.set(true);

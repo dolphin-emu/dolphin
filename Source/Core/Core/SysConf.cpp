@@ -10,8 +10,8 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -211,45 +211,45 @@ bool SysConf::Save() const
   return result == IOS::HLE::FS::ResultCode::Success;
 }
 
-SysConf::Entry::Entry(Type type_, const std::string& name_) : type(type_), name(name_)
+SysConf::Entry::Entry(Type type_, std::string name_) : type(type_), name(std::move(name_))
 {
   if (type != Type::SmallArray && type != Type::BigArray)
     bytes.resize(GetNonArrayEntrySize(type));
 }
 
-SysConf::Entry::Entry(Type type_, const std::string& name_, std::vector<u8> bytes_)
-    : type(type_), name(name_), bytes(std::move(bytes_))
+SysConf::Entry::Entry(Type type_, std::string name_, std::vector<u8> bytes_)
+    : type(type_), name(std::move(name_)), bytes(std::move(bytes_))
 {
 }
 
-void SysConf::AddEntry(Entry&& entry)
+SysConf::Entry& SysConf::AddEntry(Entry&& entry)
 {
-  m_entries.emplace_back(std::move(entry));
+  return m_entries.emplace_back(std::move(entry));
 }
 
-SysConf::Entry* SysConf::GetEntry(const std::string& key)
-{
-  const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
-                                     [&key](const auto& entry) { return entry.name == key; });
-  return iterator != m_entries.end() ? &*iterator : nullptr;
-}
-
-const SysConf::Entry* SysConf::GetEntry(const std::string& key) const
+SysConf::Entry* SysConf::GetEntry(std::string_view key)
 {
   const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
                                      [&key](const auto& entry) { return entry.name == key; });
   return iterator != m_entries.end() ? &*iterator : nullptr;
 }
 
-SysConf::Entry* SysConf::GetOrAddEntry(const std::string& key, Entry::Type type)
+const SysConf::Entry* SysConf::GetEntry(std::string_view key) const
+{
+  const auto iterator = std::find_if(m_entries.begin(), m_entries.end(),
+                                     [&key](const auto& entry) { return entry.name == key; });
+  return iterator != m_entries.end() ? &*iterator : nullptr;
+}
+
+SysConf::Entry* SysConf::GetOrAddEntry(std::string_view key, Entry::Type type)
 {
   if (Entry* entry = GetEntry(key))
     return entry;
-  AddEntry({type, key});
-  return GetEntry(key);
+
+  return &AddEntry({type, std::string(key)});
 }
 
-void SysConf::RemoveEntry(const std::string& key)
+void SysConf::RemoveEntry(std::string_view key)
 {
   m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(),
                                  [&key](const auto& entry) { return entry.name == key; }),

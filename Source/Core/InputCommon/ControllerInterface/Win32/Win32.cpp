@@ -28,8 +28,10 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARA
 {
   if (message == WM_INPUT_DEVICE_CHANGE)
   {
-    ciface::DInput::PopulateDevices(s_hwnd);
-    ciface::XInput::PopulateDevices();
+    g_controller_interface.PlatformPopulateDevices([] {
+      ciface::DInput::PopulateDevices(s_hwnd);
+      ciface::XInput::PopulateDevices();
+    });
     s_done_populating.Set();
   }
 
