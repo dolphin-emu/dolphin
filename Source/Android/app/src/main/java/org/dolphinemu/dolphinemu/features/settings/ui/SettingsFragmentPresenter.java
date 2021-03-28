@@ -668,8 +668,8 @@ public final class SettingsFragmentPresenter
 
   private void addLogConfigurationSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new CheckBoxSetting(BooleanSetting.LOGGER_WRITE_TO_FILE, R.string.enable_logging,
-            R.string.enable_logging_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.LOGGER_WRITE_TO_FILE, R.string.log_to_file,
+            R.string.log_to_file_description));
     sl.add(new SingleChoiceSetting(IntSetting.LOGGER_VERBOSITY, R.string.log_verbosity, 0,
             getLogVerbosityEntries(), getLogVerbosityValues()));
     sl.add(new RunRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
