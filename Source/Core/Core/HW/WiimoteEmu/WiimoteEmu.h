@@ -204,6 +204,8 @@ protected:
   MotionPlus m_motion_plus;
   bool m_is_motion_plus_attached = false;
 
+  ControllerEmu::SettingValue<double> m_battery_setting;
+
 private:
   WiimoteCommon::InputReportID m_reporting_mode = WiimoteCommon::InputReportID::ReportDisabled;
   bool m_reporting_continuous = false;
@@ -324,7 +326,6 @@ private:
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
-  ControllerEmu::SettingValue<double> m_battery_setting;
   ControllerEmu::SettingValue<bool> m_motion_plus_setting;
   ControllerEmu::SettingValue<double> m_fov_x_setting;
   ControllerEmu::SettingValue<double> m_fov_y_setting;
