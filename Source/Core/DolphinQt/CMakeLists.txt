@@ -85,6 +85,8 @@ add_executable(dolphin-emu
   Config/GameConfigHighlighter.h
   Config/GameConfigWidget.cpp
   Config/GameConfigWidget.h
+  Config/PrimeCheatsWidget.cpp
+  Config/PrimeCheatsWidget.h
   Config/GeckoCodeWidget.cpp
   Config/GeckoCodeWidget.h
   Config/Graphics/AdvancedWidget.cpp

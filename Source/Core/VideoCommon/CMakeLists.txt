@@ -126,6 +126,7 @@ add_library(videocommon
   XFMemory.h
   XFStructs.cpp
   XFStructs.h
+	PrimePixelErrorTextures.h
 )
 
 target_link_libraries(videocommon
