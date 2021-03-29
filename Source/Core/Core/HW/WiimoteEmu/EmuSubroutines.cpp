@@ -334,7 +334,7 @@ void Wiimote::HandleReportRumble(const WiimoteCommon::OutputReportRumble& rpt)
   // FYI: A real wiimote never seems to ACK a rumble report:
 }
 
-void Wiimote::HandleReportLeds(const WiimoteCommon::OutputReportLeds& rpt)
+void WiimoteBase::HandleReportLeds(const WiimoteCommon::OutputReportLeds& rpt)
 {
   m_status.leds = rpt.leds;
 

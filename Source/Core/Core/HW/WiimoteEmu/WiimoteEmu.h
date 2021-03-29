@@ -121,7 +121,7 @@ protected:
   virtual Common::Vec3 GetTotalAngularVelocity() const = 0;
 
   virtual void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) = 0;
-  virtual void HandleReportLeds(const WiimoteCommon::OutputReportLeds&) = 0;
+  virtual void HandleReportLeds(const WiimoteCommon::OutputReportLeds&);
   virtual void HandleReportMode(const WiimoteCommon::OutputReportMode&);
   virtual void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&);
   virtual void HandleReadData(const WiimoteCommon::OutputReportReadData&);
@@ -269,7 +269,6 @@ public:
 
 protected:
   void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) override;
-  void HandleReportLeds(const WiimoteCommon::OutputReportLeds&) override;
   void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&) override;
