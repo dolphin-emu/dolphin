@@ -123,7 +123,7 @@ protected:
   virtual void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) = 0;
   virtual void HandleReportLeds(const WiimoteCommon::OutputReportLeds&) = 0;
   virtual void HandleReportMode(const WiimoteCommon::OutputReportMode&);
-  virtual void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&) = 0;
+  virtual void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&);
   virtual void HandleReadData(const WiimoteCommon::OutputReportReadData&);
   virtual void HandleWriteData(const WiimoteCommon::OutputReportWriteData&);
   virtual void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&) = 0;
@@ -270,7 +270,6 @@ public:
 protected:
   void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) override;
   void HandleReportLeds(const WiimoteCommon::OutputReportLeds&) override;
-  void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&) override;
   void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&) override;

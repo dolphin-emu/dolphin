@@ -233,7 +233,7 @@ void Wiimote::HandleExtensionSwap()
   }
 }
 
-void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
+void WiimoteBase::HandleRequestStatus(const OutputReportRequestStatus&)
 {
   // FYI: buttons are updated in Update() for determinism
 
