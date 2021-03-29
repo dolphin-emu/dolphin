@@ -28,7 +28,7 @@ namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> balance_board_id{{0x00, 0x00, 0xa4, 0x20, 0x04, 0x02}};
 
-BalanceBoard::BalanceBoard() : Extension1stParty("BalanceBoard", _trans("Balance Board"))
+BalanceBoardExt::BalanceBoardExt() : Extension1stParty("BalanceBoard", _trans("Balance Board"))
 {
   // balance
   groups.emplace_back(
@@ -39,7 +39,7 @@ BalanceBoard::BalanceBoard() : Extension1stParty("BalanceBoard", _trans("Balance
       new ControllerEmu::Input(ControllerEmu::Translate, _trans("Weight")));
 }
 
-void BalanceBoard::Update()
+void BalanceBoardExt::Update()
 {
   const ControllerEmu::AnalogStick::StateData balance_state = m_balance->GetState();
   const ControllerEmu::Triggers::StateData weight_state = m_weight->GetState();
@@ -64,7 +64,7 @@ void BalanceBoard::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = bb_data;
 }
 
-void BalanceBoard::Reset()
+void BalanceBoardExt::Reset()
 {
   EncryptedExtension::Reset();
 
@@ -104,7 +104,7 @@ void BalanceBoard::Reset()
   ComputeCalibrationChecksum();
 }
 
-ControllerEmu::ControlGroup* BalanceBoard::GetGroup(BalanceBoardGroup group)
+ControllerEmu::ControlGroup* BalanceBoardExt::GetGroup(BalanceBoardGroup group)
 {
   switch (group)
   {
@@ -118,12 +118,12 @@ ControllerEmu::ControlGroup* BalanceBoard::GetGroup(BalanceBoardGroup group)
   }
 }
 
-void BalanceBoard::DoState(PointerWrap& p)
+void BalanceBoardExt::DoState(PointerWrap& p)
 {
   EncryptedExtension::DoState(p);
 }
 
-void BalanceBoard::LoadDefaults(const ControllerInterface& ciface)
+void BalanceBoardExt::LoadDefaults(const ControllerInterface& ciface)
 {
   // Balance
   m_balance->SetControlExpression(0, "I");  // up
@@ -135,7 +135,7 @@ void BalanceBoard::LoadDefaults(const ControllerInterface& ciface)
   m_balance->SetCalibrationFromGate(ControllerEmu::SquareStickGate(.5));
 }
 
-u16 BalanceBoard::ConvertToSensorWeight(double weight_in_kilos)
+u16 BalanceBoardExt::ConvertToSensorWeight(double weight_in_kilos)
 {
   // Note: this is the weight on a single sensor, so these ranges make more sense
   // (if all sensors read 34 kilos, then the overall weight would be 136 kilos or 300 pounds...)
@@ -149,7 +149,7 @@ u16 BalanceBoard::ConvertToSensorWeight(double weight_in_kilos)
   }
 }
 
-double BalanceBoard::ConvertToKilograms(u16 sensor_weight)
+double BalanceBoardExt::ConvertToKilograms(u16 sensor_weight)
 {
   if (sensor_weight < WEIGHT_17_KG)
   {
@@ -161,7 +161,7 @@ double BalanceBoard::ConvertToKilograms(u16 sensor_weight)
   }
 }
 
-void BalanceBoard::ComputeCalibrationChecksum()
+void BalanceBoardExt::ComputeCalibrationChecksum()
 {
   u32 crc = crc32(0L, Z_NULL, 0);
   crc = crc32(crc, &m_reg.calibration[4], 0xc);   // Skip the first 4 bytes

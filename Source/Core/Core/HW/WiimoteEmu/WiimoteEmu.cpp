@@ -269,7 +269,7 @@ Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoard>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
@@ -417,7 +417,7 @@ ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 
 ControllerEmu::ControlGroup* Wiimote::GetBalanceBoardGroup(BalanceBoardGroup group) const
 {
-  return static_cast<BalanceBoard*>(
+  return static_cast<BalanceBoardExt*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
       ->GetGroup(group);
 }

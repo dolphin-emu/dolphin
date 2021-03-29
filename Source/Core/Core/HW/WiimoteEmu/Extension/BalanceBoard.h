@@ -25,7 +25,7 @@ enum class BalanceBoardGroup
   Weight
 };
 
-class BalanceBoard : public Extension1stParty
+class BalanceBoardExt : public Extension1stParty
 {
 public:
   struct DataFormat
@@ -40,7 +40,7 @@ public:
   };
   static_assert(sizeof(DataFormat) == 12, "Wrong size");
 
-  BalanceBoard();
+  BalanceBoardExt();
 
   void Update() override;
   void Reset() override;

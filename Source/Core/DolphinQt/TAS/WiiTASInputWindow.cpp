@@ -605,31 +605,31 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
 
   if (rpt.HasExt() && m_balance_board_box->isVisible())
   {
-    using WiimoteEmu::BalanceBoard;
+    using WiimoteEmu::BalanceBoardExt;
 
     u8* const ext_data = rpt.GetExtDataPtr();
-    BalanceBoard::DataFormat bb_data = Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data);
+    BalanceBoardExt::DataFormat bb_data = Common::BitCastPtr<BalanceBoardExt::DataFormat>(ext_data);
 
     // TODO: Reading the existing values, but then just clobbering them instead of using them if
     // controller input is enabled
-    double top_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.top_right));
-    double bottom_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.bottom_right));
-    double top_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.top_left));
-    double bottom_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.bottom_left));
+    double top_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb_data.top_right));
+    double bottom_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb_data.bottom_right));
+    double top_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb_data.top_left));
+    double bottom_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb_data.bottom_left));
 
     top_right = m_top_right_balance_value->value();
     bottom_right = m_bottom_right_balance_value->value();
     top_left = m_top_left_balance_value->value();
     bottom_left = m_bottom_left_balance_value->value();
 
-    bb_data.top_right = Common::swap16(BalanceBoard::ConvertToSensorWeight(top_right));
-    bb_data.bottom_right = Common::swap16(BalanceBoard::ConvertToSensorWeight(bottom_right));
-    bb_data.top_left = Common::swap16(BalanceBoard::ConvertToSensorWeight(top_left));
-    bb_data.bottom_left = Common::swap16(BalanceBoard::ConvertToSensorWeight(bottom_left));
-    bb_data.temperature = BalanceBoard::TEMPERATURE;
+    bb_data.top_right = Common::swap16(BalanceBoardExt::ConvertToSensorWeight(top_right));
+    bb_data.bottom_right = Common::swap16(BalanceBoardExt::ConvertToSensorWeight(bottom_right));
+    bb_data.top_left = Common::swap16(BalanceBoardExt::ConvertToSensorWeight(top_left));
+    bb_data.bottom_left = Common::swap16(BalanceBoardExt::ConvertToSensorWeight(bottom_left));
+    bb_data.temperature = BalanceBoardExt::TEMPERATURE;
     bb_data.battery = 0x83;
 
-    Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data) = bb_data;
-    key.Encrypt(ext_data, 0, sizeof(BalanceBoard::DataFormat));
+    Common::BitCastPtr<BalanceBoardExt::DataFormat>(ext_data) = bb_data;
+    key.Encrypt(ext_data, 0, sizeof(BalanceBoardExt::DataFormat));
   }
 }

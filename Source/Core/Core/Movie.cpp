@@ -772,14 +772,14 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
   {
     const u8* const extData = rpt.GetExtDataPtr();
 
-    BalanceBoard::DataFormat bb;
+    BalanceBoardExt::DataFormat bb;
     memcpy(&bb, extData, sizeof(bb));
     key.Decrypt((u8*)&bb, 0, sizeof(bb));
 
-    double top_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb.top_right));
-    double bottom_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb.bottom_right));
-    double top_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb.top_left));
-    double bottom_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb.bottom_left));
+    double top_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.top_right));
+    double bottom_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.bottom_right));
+    double top_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.top_left));
+    double bottom_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.bottom_left));
 
     display_str += fmt::format(" TR:{:5.2f}kg BR:{:5.2f}kg TL:{:5.2f}kg BL:{:5.2f}kg", top_right,
                                bottom_right, top_left, bottom_left);
