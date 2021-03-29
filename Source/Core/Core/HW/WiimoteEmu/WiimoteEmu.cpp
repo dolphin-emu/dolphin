@@ -323,8 +323,6 @@ Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
 
 std::string Wiimote::GetName() const
 {
-  if (m_index == WIIMOTE_BALANCE_BOARD)
-    return "BalanceBoard";
   return fmt::format("Wiimote{}", 1 + m_index);
 }
 
@@ -415,7 +413,7 @@ ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
       ->GetGroup(group);
 }
 
-ControllerEmu::ControlGroup* Wiimote::GetBalanceBoardGroup(BalanceBoardGroup group) const
+ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGroup group) const
 {
   return static_cast<BalanceBoardExt*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())

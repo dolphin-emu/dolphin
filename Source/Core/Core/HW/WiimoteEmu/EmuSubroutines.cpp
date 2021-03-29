@@ -602,4 +602,38 @@ void Wiimote::DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
 }
 
+// TODO: Are these implemented correctly?  How does the balance board actually handle missing
+// hardware?
+void BalanceBoard::HandleReportRumble(const WiimoteCommon::OutputReportRumble& rpt)
+{
+  // rpt.ack does not exist ("A real wiimote never seems to ACK a rumble report")
+  SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+}
+void BalanceBoard::HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
+{
+  if (rpt.ack)
+    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+}
+void BalanceBoard::HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature& rpt)
+{
+  if (rpt.ack)
+    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+}
+void BalanceBoard::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& rpt)
+{
+  if (rpt.ack)
+    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+}
+void BalanceBoard::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
+{
+  if (rpt.ack)
+    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+}
+void BalanceBoard::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rpt)
+{
+  // rpt.ack does not exist
+  // ("Speaker data reports normally do not ACK but I have seen them ACK with error codes")
+  SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+}
+
 }  // namespace WiimoteEmu

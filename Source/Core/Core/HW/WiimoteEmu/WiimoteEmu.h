@@ -259,8 +259,6 @@ public:
   ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const;
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
 
-  ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
-
   void Update() override;
   bool IsButtonPressed() override;
 
@@ -342,5 +340,32 @@ private:
   PositionalState m_shake_state;
 
   IMUCursorState m_imu_cursor_state;
+};
+
+class BalanceBoard final : public WiimoteBase
+{
+public:
+  explicit BalanceBoard(u8 index) : WiimoteBase(index) { Reset(); }
+
+  ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
+
+  std::string GetName() const override { return "BalanceBoard"; }
+  bool IsButtonPressed() override { return false; }
+  void LoadDefaultEeprom() override {}
+
+protected:
+  void UpdateButtonsStatus() override {}  // TODO
+
+  Common::Vec3 GetTotalAcceleration() const { return {}; }
+  Common::Vec3 GetTotalAngularVelocity() const { return {}; }
+
+  void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) override;
+  void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
+  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&) override;
+  void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&) override;
+  void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
+  void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) override;
+
+  void HandleExtensionSwap() override {}
 };
 }  // namespace WiimoteEmu
