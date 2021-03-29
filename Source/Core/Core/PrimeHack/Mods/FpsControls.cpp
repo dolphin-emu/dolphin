@@ -529,7 +529,6 @@ void FpsControls::mp3_handle_cursor(bool lock) {
   }
 }
 
-
 void FpsControls::mp3_handle_lasso(u32 grapple_state_addr)
 {
   if (GrappleCtlBound()) {

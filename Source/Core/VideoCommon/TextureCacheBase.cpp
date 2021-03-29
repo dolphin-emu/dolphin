@@ -50,6 +50,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/PrimePixelErrorTextures.h"
 
 static const u64 TEXHASH_INVALID = 0;
 // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
@@ -1346,6 +1347,39 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   TexAddrCache::iterator unconverted_copy = textures_by_address.end();
   TexAddrCache::iterator unreinterpreted_copy = textures_by_address.end();
 
+  std::string basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
+    width, height, texformat, use_mipmaps, true);
+
+  constexpr u8 empty_tex[4] = {};
+  bool is_prime_pixel = std::find(prime_pixel_textures.begin(), prime_pixel_textures.end(), basename) != prime_pixel_textures.end();
+  if (is_prime_pixel) {
+    if (iter == iter_range.second) {
+      const TextureConfig config(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
+      TCacheEntry* entry = AllocateCacheEntry(config);
+
+      if (!entry)
+        return nullptr;
+
+      entry->texture->Load(1, 1, 1, expandedWidth, empty_tex, 4);
+
+      entry->SetGeneralParameters(address, texture_size, full_format, false);
+      entry->SetDimensions(1, 1, 1);
+      entry->SetHashes(base_hash, full_hash);
+      entry->is_custom_tex = true;
+      entry->SetNotCopy();
+
+      textures_by_address.emplace(address, entry);
+
+      return entry;
+    }
+    else {
+      TCacheEntry* entry = iter->second;
+      entry->texture->FinishedRendering();
+
+      return entry;
+    }
+  }
+
   while (iter != iter_range.second)
   {
     TCacheEntry* entry = iter->second;
@@ -1619,13 +1653,6 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   entry->memory_stride = entry->BytesPerRow();
   entry->SetNotCopy();
 
-  std::string basename;
-  if (g_ActiveConfig.bDumpTextures && !hires_tex)
-  {
-    basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
-                                         width, height, texformat, use_mipmaps, true);
-  }
-
   if (hires_tex)
   {
     for (u32 level_index = 1; level_index != texLevels; ++level_index)
@@ -1669,7 +1696,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
         TexDecoder_Decode(dst_buffer, mip_src_data, expanded_mip_width, expanded_mip_height,
                           texformat, tlut, tlutfmt);
         entry->texture->Load(level, mip_width, mip_height, expanded_mip_width, dst_buffer,
-                             decoded_mip_size);
+          decoded_mip_size);
 
         arbitrary_mip_detector.AddLevel(mip_width, mip_height, expanded_mip_width, dst_buffer);
 
