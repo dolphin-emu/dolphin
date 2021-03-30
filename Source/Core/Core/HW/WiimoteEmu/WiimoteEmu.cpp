@@ -68,6 +68,8 @@ constexpr std::array<std::string_view, 7> named_buttons{
     "A", "B", "1", "2", "-", "+", "Home",
 };
 
+static const u16 bboard_bitmasks[] = {Wiimote::BUTTON_A};
+
 void WiimoteBase::Reset()
 {
   // Wiimote starts in non-continuous CORE mode:
@@ -214,6 +216,21 @@ void Wiimote::LoadDefaultEeprom()
   }
 }
 
+WiimoteBase::WiimoteBase(const u8 index) : m_index(index) {
+  // Extension
+  groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Classic>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Guitar>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
+}
+
 Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
 {
   // Buttons
@@ -258,19 +275,7 @@ Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);
 
-  // Extension
-  groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Classic>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Guitar>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
-
+  // Attachments
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
   // Rumble
@@ -410,13 +415,6 @@ ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup
 ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 {
   return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
-      ->GetGroup(group);
-}
-
-ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGroup group) const
-{
-  return static_cast<BalanceBoardExt*>(
-             m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
       ->GetGroup(group);
 }
 
@@ -814,6 +812,55 @@ Common::Matrix44 Wiimote::GetTotalTransformation() const
   return GetTransformation(Common::Matrix33::FromQuaternion(
       m_imu_cursor_state.rotation *
       Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
+}
+
+BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index) {
+  // Buttons
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
+  m_buttons->AddInput(ControllerEmu::Translate, "Power");
+
+  // Options
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+
+  m_options->AddSetting(&m_battery_setting,
+                        {_trans("Battery"),
+                         // i18n: The percent symbol.
+                         _trans("%")},
+                        95, 0, 100);
+
+  Reset();
+}
+
+ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGroup group) const
+{
+  switch (group)
+  {
+  case BalanceBoardGroup::Buttons:
+    return m_buttons;
+  case BalanceBoardGroup::Options:
+    return m_options;
+  default:
+    return static_cast<BalanceBoardExt*>(
+               m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
+        ->GetGroup(group);
+  }
+}
+
+bool BalanceBoard::IsButtonPressed()
+{
+  u16 buttons = 0;
+  const auto lock = GetStateLock();
+  m_buttons->GetState(&buttons, bboard_bitmasks);
+
+  return buttons != 0;
+}
+
+// Update buttons in status struct from user input.
+void BalanceBoard::UpdateButtonsStatus()
+{
+  m_status.buttons.hex = 0;
+
+  m_buttons->GetState(&m_status.buttons.hex, bboard_bitmasks);
 }
 
 }  // namespace WiimoteEmu

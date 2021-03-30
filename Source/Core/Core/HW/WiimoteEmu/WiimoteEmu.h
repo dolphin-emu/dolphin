@@ -55,6 +55,14 @@ enum class WiimoteGroup
   IMUPoint,
 };
 
+enum class BalanceBoardGroup
+{
+  Buttons,
+  Balance,
+  Weight,
+  Options,
+};
+
 enum class NunchukGroup;
 enum class ClassicGroup;
 enum class GuitarGroup;
@@ -92,7 +100,7 @@ public:
   static constexpr u8 ACCEL_ZERO_G = 0x80;
   static constexpr u8 ACCEL_ONE_G = 0x9A;
 
-  WiimoteBase(u8 index) : m_index(index) {}
+  WiimoteBase(u8 index);
 
   virtual void Update() override;
   void EventLinked() override;
@@ -345,16 +353,16 @@ private:
 class BalanceBoard final : public WiimoteBase
 {
 public:
-  explicit BalanceBoard(u8 index) : WiimoteBase(index) { Reset(); }
+  explicit BalanceBoard(u8 index);
 
   ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
 
   std::string GetName() const override { return "BalanceBoard"; }
-  bool IsButtonPressed() override { return false; }
+  bool IsButtonPressed() override;
   void LoadDefaultEeprom() override {}
 
 protected:
-  void UpdateButtonsStatus() override {}  // TODO
+  void UpdateButtonsStatus() override;
 
   Common::Vec3 GetTotalAcceleration() const { return {}; }
   Common::Vec3 GetTotalAngularVelocity() const { return {}; }
@@ -367,5 +375,9 @@ protected:
   void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) override;
 
   void HandleExtensionSwap() override {}
+
+private:
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::ControlGroup* m_options;
 };
 }  // namespace WiimoteEmu

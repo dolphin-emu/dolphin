@@ -19,11 +19,7 @@ class Triggers;
 
 namespace WiimoteEmu
 {
-enum class BalanceBoardGroup
-{
-  Balance,
-  Weight
-};
+enum class BalanceBoardGroup;
 
 class BalanceBoardExt : public Extension1stParty
 {
