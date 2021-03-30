@@ -408,37 +408,37 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 
   // General hotkeys
   set_key_expression(HK_OPEN, hotkey_string({"Ctrl", "O"}));
-  set_key_expression(HK_PLAY_PAUSE, "F10");
+  set_key_expression(HK_PLAY_PAUSE, hotkey_string({"F10"}));
 #ifdef _WIN32
-  set_key_expression(HK_STOP, "ESCAPE");
+  set_key_expression(HK_STOP, hotkey_string({"ESCAPE"}));
   set_key_expression(HK_FULLSCREEN, hotkey_string({"Alt", "RETURN"}));
 #else
-  set_key_expression(HK_STOP, "Escape");
+  set_key_expression(HK_STOP, hotkey_string({"Escape"}));
   set_key_expression(HK_FULLSCREEN, hotkey_string({"Alt", "Return"}));
 #endif
-  set_key_expression(HK_STEP, "F11");
+  set_key_expression(HK_STEP, hotkey_string({"F11"}));
   set_key_expression(HK_STEP_OVER, hotkey_string({"Shift", "F10"}));
   set_key_expression(HK_STEP_OUT, hotkey_string({"Shift", "F11"}));
   set_key_expression(HK_BP_TOGGLE, hotkey_string({"Shift", "F9"}));
-  set_key_expression(HK_SCREENSHOT, "F9");
+  set_key_expression(HK_SCREENSHOT, hotkey_string({"F9"}));
   set_key_expression(HK_WIIMOTE1_CONNECT, hotkey_string({"Alt", "F5"}));
   set_key_expression(HK_WIIMOTE2_CONNECT, hotkey_string({"Alt", "F6"}));
   set_key_expression(HK_WIIMOTE3_CONNECT, hotkey_string({"Alt", "F7"}));
   set_key_expression(HK_WIIMOTE4_CONNECT, hotkey_string({"Alt", "F8"}));
   set_key_expression(HK_BALANCEBOARD_CONNECT, hotkey_string({"Alt", "F9"}));
 #ifdef _WIN32
-  set_key_expression(HK_TOGGLE_THROTTLE, "TAB");
+  set_key_expression(HK_TOGGLE_THROTTLE, hotkey_string({"TAB"}));
 #else
-  set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
+  set_key_expression(HK_TOGGLE_THROTTLE, hotkey_string({"Tab"}));
 #endif
 
   // Savestates
   for (int i = 0; i < 8; i++)
   {
-    set_key_expression(HK_LOAD_STATE_SLOT_1 + i, fmt::format("F{}", i + 1));
+    set_key_expression(HK_LOAD_STATE_SLOT_1 + i, hotkey_string({fmt::format("F{}", i + 1)}));
     set_key_expression(HK_SAVE_STATE_SLOT_1 + i,
                        hotkey_string({"Shift", fmt::format("F{}", i + 1)}));
   }
-  set_key_expression(HK_UNDO_LOAD_STATE, "F12");
+  set_key_expression(HK_UNDO_LOAD_STATE, hotkey_string({"F12"}));
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
 }
