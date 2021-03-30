@@ -685,7 +685,18 @@ bool GameList::AddShortcutToDesktop()
   if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop)))
     return false;
 
-  const auto& game_name = game->GetLongName();
+  std::string game_name = game->GetName(Core::TitleDatabase());
+  // Sanitize the string by removing all characters that cannot be used in NTFS file names
+  game_name.erase(std::remove_if(game_name.begin(), game_name.end(),
+                                 [](char ch) {
+                                   static constexpr char illegal_characters[] = {
+                                       '<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
+                                   return std::find(std::begin(illegal_characters),
+                                                    std::end(illegal_characters),
+                                                    ch) != std::end(illegal_characters);
+                                 }),
+                  game_name.end());
+
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
   auto persist_file = shell_link.try_query<IPersistFile>();
   if (!persist_file)
