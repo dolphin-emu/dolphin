@@ -374,7 +374,7 @@ protected:
   void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) override;
 
-  void HandleExtensionSwap() override {}
+  void HandleExtensionSwap() override;
 
 private:
   ControllerEmu::Buttons* m_buttons;

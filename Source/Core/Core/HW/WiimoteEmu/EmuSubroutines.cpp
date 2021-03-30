@@ -144,24 +144,6 @@ void WiimoteBase::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 
 void Wiimote::HandleExtensionSwap()
 {
-  if (WIIMOTE_BALANCE_BOARD == m_index)
-  {
-    // Prevent M+ or anything else silly from being attached to a balance board.
-    if (m_is_motion_plus_attached)
-    {
-      m_is_motion_plus_attached = false;
-      m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
-    }
-    // Also force the BB "extension".
-    if (m_active_extension != ExtensionNumber::BALANCE_BOARD)
-    {
-      m_active_extension = ExtensionNumber::BALANCE_BOARD;
-      m_extension_port.AttachExtension(GetActiveExtension());
-      GetActiveExtension()->Reset();
-    }
-    return;
-  }
-
   ExtensionNumber desired_extension_number =
       static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment());
 
@@ -602,38 +584,55 @@ void Wiimote::DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
 }
 
+void BalanceBoard::HandleExtensionSwap()
+{
+  // Prevent M+ or anything else silly from being attached to a balance board.
+  if (m_is_motion_plus_attached)
+  {
+    m_is_motion_plus_attached = false;
+    m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+  }
+  // Also force the BB "extension".
+  if (m_active_extension != ExtensionNumber::BALANCE_BOARD)
+  {
+    m_active_extension = ExtensionNumber::BALANCE_BOARD;
+    m_extension_port.AttachExtension(GetActiveExtension());
+    GetActiveExtension()->Reset();
+  }
+}
+
 // TODO: Are these implemented correctly?  How does the balance board actually handle missing
 // hardware?
+// Seems like using Nack causes things not to work, so Success probably is correct.
 void BalanceBoard::HandleReportRumble(const WiimoteCommon::OutputReportRumble& rpt)
 {
   // rpt.ack does not exist ("A real wiimote never seems to ACK a rumble report")
-  SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
 }
 void BalanceBoard::HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
+  // Not called?
   if (rpt.ack)
-    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+    SendAck(OutputReportID::IRLogicEnable, ErrorCode::Success);
 }
 void BalanceBoard::HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
   if (rpt.ack)
-    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+    SendAck(OutputReportID::IRLogicEnable2, ErrorCode::Success);
 }
 void BalanceBoard::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
   if (rpt.ack)
-    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+    SendAck(OutputReportID::SpeakerMute, ErrorCode::Success);
 }
 void BalanceBoard::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
   if (rpt.ack)
-    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
+    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);
 }
 void BalanceBoard::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rpt)
 {
   // rpt.ack does not exist
   // ("Speaker data reports normally do not ACK but I have seen them ACK with error codes")
-  SendAck(OutputReportID::SpeakerEnable, ErrorCode::Nack);
 }
 
 }  // namespace WiimoteEmu
