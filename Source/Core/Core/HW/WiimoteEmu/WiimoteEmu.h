@@ -353,6 +353,8 @@ private:
 class BalanceBoard final : public WiimoteBase
 {
 public:
+  static constexpr u16 BUTTON_POWER = Wiimote::BUTTON_A;
+
   explicit BalanceBoard(u8 index);
 
   ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;

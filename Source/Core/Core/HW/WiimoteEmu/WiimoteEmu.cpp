@@ -68,7 +68,7 @@ constexpr std::array<std::string_view, 7> named_buttons{
     "A", "B", "1", "2", "-", "+", "Home",
 };
 
-static const u16 bboard_bitmasks[] = {Wiimote::BUTTON_A};
+static const u16 bboard_bitmasks[] = {BalanceBoard::BUTTON_POWER};
 
 void WiimoteBase::Reset()
 {
