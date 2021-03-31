@@ -109,17 +109,6 @@ void WiimoteBase::Reset()
   // Initialize i2c bus:
   m_i2c_bus.Reset();
 
-  // Reset extension connections to NONE:
-  m_is_motion_plus_attached = false;
-  m_active_extension = ExtensionNumber::NONE;
-  m_extension_port.AttachExtension(GetNoneExtension());
-  m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
-
-  // Switch to desired M+ status and extension (if any).
-  // M+ and EXT are reset on attachment.
-  // This also ensures that the balance board extension is attached if needed.
-  HandleExtensionSwap();
-
   m_status = {};
   // This will suppress a status report on connect when an extension is already attached.
   // TODO: I am not 100% sure if this is proper.
@@ -130,6 +119,17 @@ void Wiimote::Reset()
 {
   SetRumble(false);
   m_speaker_mute = false;
+
+  // Reset extension connections to NONE:
+  m_is_motion_plus_attached = false;
+  m_active_extension = ExtensionNumber::NONE;
+  m_extension_port.AttachExtension(GetNoneExtension());
+  m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+
+  // Switch to desired M+ status and extension (if any).
+  // M+ and EXT are reset on attachment.
+  // This also ensures that the balance board extension is attached if needed.
+  HandleExtensionSwap();
 
   WiimoteBase::Reset();
 
@@ -216,19 +216,8 @@ void Wiimote::LoadDefaultEeprom()
   }
 }
 
-WiimoteBase::WiimoteBase(const u8 index) : m_index(index) {
-  // Extension
-  groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Classic>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Guitar>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
+WiimoteBase::WiimoteBase(const u8 index) : m_index(index)
+{
 }
 
 Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
@@ -276,6 +265,17 @@ Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
                        fov_default.y, 0.01, 180);
 
   // Attachments
+  groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Classic>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Guitar>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
   // Rumble
@@ -448,21 +448,6 @@ void Wiimote::UpdateButtonsStatus()
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void WiimoteBase::Update()
 {
-  // If a new extension is requested in the GUI the change will happen here.
-  HandleExtensionSwap();
-
-  // Allow extension to perform any regular duties it may need.
-  // (e.g. Nunchuk motion simulation step)
-  // Input is prepared here too.
-  // TODO: Separate input preparation from Update.
-  GetActiveExtension()->Update();
-
-  if (m_is_motion_plus_attached)
-  {
-    // M+ has some internal state that must processed.
-    m_motion_plus.Update();
-  }
-
   // Returns true if a report was sent.
   if (ProcessExtensionPortEvent())
   {
@@ -483,6 +468,23 @@ void WiimoteBase::Update()
 
 void Wiimote::Update()
 {
+  // If a new extension is requested in the GUI the change will happen here.
+  HandleExtensionSwap();
+
+  // Allow extension to perform any regular duties it may need.
+  // (e.g. Nunchuk motion simulation step)
+  // Input is prepared here too.
+  // TODO: Separate input preparation from Update.
+  GetActiveExtension()->Update();
+
+  if (m_is_motion_plus_attached)
+  {
+    // M+ has some internal state that must processed.
+    m_motion_plus.Update();
+    // TODO: Make input preparation triggered by bus read.
+    m_motion_plus.PrepareInput(GetTotalAngularVelocity());
+  }
+
   const auto lock = GetStateLock();
 
   // Hotkey / settings modifier
@@ -526,7 +528,8 @@ void WiimoteBase::SendDataReport()
   DataReportBuilder rpt_builder(m_reporting_mode);
 
   if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey()))
+      Movie::PlayWiimote(m_index, rpt_builder, GetActiveExtensionNumber(),
+                         GetExtensionEncryptionKey()))
   {
     // Update buttons in status struct from movie:
     rpt_builder.GetCoreData(&m_status.buttons);
@@ -580,11 +583,10 @@ void WiimoteBase::SendDataReport()
       // TODO: Separate extension input data preparation from Update.
       // GetActiveExtension()->PrepareInput();
 
-      if (m_is_motion_plus_attached)
-      {
-        // TODO: Make input preparation triggered by bus read.
-        m_motion_plus.PrepareInput(GetTotalAngularVelocity());
-      }
+      // if (m_is_motion_plus_attached)
+      // {
+      //   m_motion_plus.PrepareInput(GetTotalAngularVelocity());
+      // }
 
       u8* ext_data = rpt_builder.GetExtDataPtr();
       const u8 ext_size = rpt_builder.GetExtDataSize();
@@ -597,7 +599,8 @@ void WiimoteBase::SendDataReport()
       }
     }
 
-    Movie::CallWiiInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
+    Movie::CallWiiInputManip(rpt_builder, m_index, GetActiveExtensionNumber(),
+                             GetExtensionEncryptionKey());
   }
 
   if (NetPlay::IsNetPlayRunning())
@@ -609,7 +612,8 @@ void WiimoteBase::SendDataReport()
     rpt_builder.GetCoreData(&m_status.buttons);
   }
 
-  Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
+  Movie::CheckWiimoteStatus(m_index, rpt_builder, GetActiveExtensionNumber(),
+                            GetExtensionEncryptionKey());
 
   // Send the report:
   InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
@@ -707,17 +711,17 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
 }
 
-Extension* WiimoteBase::GetNoneExtension() const
+Extension* Wiimote::GetNoneExtension() const
 {
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
 }
 
-Extension* WiimoteBase::GetActiveExtension() const
+Extension* Wiimote::GetActiveExtension() const
 {
   return static_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
 }
 
-EncryptionKey WiimoteBase::GetExtensionEncryptionKey() const
+EncryptionKey Wiimote::GetExtensionEncryptionKey() const
 {
   if (ExtensionNumber::NONE == GetActiveExtensionNumber())
     return {};
@@ -814,7 +818,20 @@ Common::Matrix44 Wiimote::GetTotalTransformation() const
       Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
 }
 
-BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index) {
+void BalanceBoard::Update()
+{
+  m_ext.Update();
+  WiimoteBase::Update();
+}
+
+void BalanceBoard::Reset()
+{
+  m_extension_port.AttachExtension(&m_ext);
+  m_ext.Reset();
+}
+
+BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index)
+{
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->AddInput(ControllerEmu::Translate, "Power");
@@ -840,9 +857,7 @@ ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGrou
   case BalanceBoardGroup::Options:
     return m_options;
   default:
-    return static_cast<BalanceBoardExt*>(
-               m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
-        ->GetGroup(group);
+    return m_ext.GetGroup(group);
   }
 }
 

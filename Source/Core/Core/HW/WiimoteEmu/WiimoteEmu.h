@@ -13,6 +13,7 @@
 #include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
@@ -113,7 +114,7 @@ public:
   virtual void DoState(PointerWrap& p);
 
   // Active extension number is exposed for TAS.
-  ExtensionNumber GetActiveExtensionNumber() const { return m_active_extension; }
+  virtual ExtensionNumber GetActiveExtensionNumber() const = 0;
 
 protected:
   // Used only for error generation:
@@ -143,12 +144,7 @@ protected:
   template <typename T, typename H>
   void InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size);
 
-  virtual void HandleExtensionSwap() = 0;
-
   void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err);
-
-  Extension* GetActiveExtension() const;
-  Extension* GetNoneExtension() const;
 
 private:
   bool ProcessExtensionPortEvent();
@@ -158,7 +154,7 @@ private:
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // TODO: Kill this nonsensical function used for TAS:
-  EncryptionKey GetExtensionEncryptionKey() const;
+  virtual EncryptionKey GetExtensionEncryptionKey() const = 0;
 
   struct ReadRequest
   {
@@ -203,14 +199,10 @@ private:
 protected:
   I2CBus m_i2c_bus;
 
-  ControllerEmu::Attachments* m_attachments;
   ExtensionPort m_extension_port{&m_i2c_bus};
 
   // Wiimote index, 0-3
   const u8 m_index;
-
-  MotionPlus m_motion_plus;
-  bool m_is_motion_plus_attached = false;
 
   ControllerEmu::SettingValue<double> m_battery_setting;
 
@@ -220,8 +212,6 @@ private:
 
 protected:
   WiimoteCommon::InputReportStatus m_status;
-
-  ExtensionNumber m_active_extension = NONE;
 
 private:
   bool m_eeprom_dirty = false;
@@ -275,6 +265,12 @@ public:
 
   void DoState(PointerWrap& p) override;
 
+  Extension* GetActiveExtension() const;
+  Extension* GetNoneExtension() const;
+  EncryptionKey GetExtensionEncryptionKey() const override;
+
+  ExtensionNumber GetActiveExtensionNumber() const override { return m_active_extension; }
+
 protected:
   void HandleReportRumble(const WiimoteCommon::OutputReportRumble&) override;
   void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
@@ -283,7 +279,6 @@ protected:
   void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) override;
 
-  void HandleExtensionSwap() override;
   void UpdateButtonsStatus() override;
 
   Common::Vec3 GetTotalAcceleration() const override;
@@ -291,6 +286,7 @@ protected:
 
 private:
   void StepDynamics();
+  void HandleExtensionSwap();
 
   // Returns simulated accelerometer data in m/s^2.
   Common::Vec3 GetAcceleration(
@@ -323,7 +319,7 @@ private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
-  // ControllerEmu::Attachments* m_attachments;
+  ControllerEmu::Attachments* m_attachments;
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
   ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
@@ -340,6 +336,10 @@ private:
   CameraLogic m_camera_logic;
 
   bool m_speaker_mute;
+
+  ExtensionNumber m_active_extension = NONE;
+  MotionPlus m_motion_plus;
+  bool m_is_motion_plus_attached = false;
 
   // Dynamics:
   MotionState m_swing_state;
@@ -358,8 +358,19 @@ public:
   ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
 
   std::string GetName() const override { return "BalanceBoard"; }
+
+  void Update() override;
   bool IsButtonPressed() override;
+
+  void Reset() override;
   void LoadDefaultEeprom() override {}
+
+  void DoState(PointerWrap& p) override;
+
+  ExtensionNumber GetActiveExtensionNumber() const override
+  {
+    return ExtensionNumber::BALANCE_BOARD;
+  }
 
 protected:
   void UpdateButtonsStatus() override;
@@ -374,9 +385,10 @@ protected:
   void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&) override;
   void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&) override;
 
-  void HandleExtensionSwap() override;
-
 private:
+  EncryptionKey GetExtensionEncryptionKey() const { return m_ext.ext_key; }
+  BalanceBoardExt m_ext;
+
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::ControlGroup* m_options;
 };

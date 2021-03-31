@@ -42,7 +42,7 @@ public:
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
-  ControllerEmu::ControlGroup* GetGroup(BalanceBoardGroup group);
+  ControllerEmu::ControlGroup* GetGroup(BalanceBoardGroup group) const;
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 

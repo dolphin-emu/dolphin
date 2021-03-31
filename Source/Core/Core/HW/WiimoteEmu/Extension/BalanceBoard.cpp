@@ -104,7 +104,7 @@ void BalanceBoardExt::Reset()
   ComputeCalibrationChecksum();
 }
 
-ControllerEmu::ControlGroup* BalanceBoardExt::GetGroup(BalanceBoardGroup group)
+ControllerEmu::ControlGroup* BalanceBoardExt::GetGroup(BalanceBoardGroup group) const
 {
   switch (group)
   {

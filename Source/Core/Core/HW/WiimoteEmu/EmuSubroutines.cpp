@@ -542,6 +542,15 @@ void WiimoteBase::DoState(PointerWrap& p)
   p.Do(m_eeprom);
   p.Do(m_read_request);
 
+  p.DoMarker("WiimoteBase");
+}
+
+void Wiimote::DoState(PointerWrap& p)
+{
+  WiimoteBase::DoState(p);
+
+  p.Do(m_speaker_mute);
+
   p.Do(m_is_motion_plus_attached);
   p.Do(m_active_extension);
 
@@ -555,15 +564,6 @@ void WiimoteBase::DoState(PointerWrap& p)
 
   if (m_active_extension != ExtensionNumber::NONE)
     GetActiveExtension()->DoState(p);
-
-  p.DoMarker("WiimoteBase");
-}
-
-void Wiimote::DoState(PointerWrap& p)
-{
-  WiimoteBase::DoState(p);
-
-  p.Do(m_speaker_mute);
 
   // Sub-devices:
   m_speaker_logic.DoState(p);
@@ -584,21 +584,11 @@ void Wiimote::DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
 }
 
-void BalanceBoard::HandleExtensionSwap()
+void BalanceBoard::DoState(PointerWrap& p)
 {
-  // Prevent M+ or anything else silly from being attached to a balance board.
-  if (m_is_motion_plus_attached)
-  {
-    m_is_motion_plus_attached = false;
-    m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
-  }
-  // Also force the BB "extension".
-  if (m_active_extension != ExtensionNumber::BALANCE_BOARD)
-  {
-    m_active_extension = ExtensionNumber::BALANCE_BOARD;
-    m_extension_port.AttachExtension(GetActiveExtension());
-    GetActiveExtension()->Reset();
-  }
+  WiimoteBase::DoState(p);
+  m_ext.DoState(p);
+  p.DoMarker("BalanceBoard");
 }
 
 // TODO: Are these implemented correctly?  How does the balance board actually handle missing
