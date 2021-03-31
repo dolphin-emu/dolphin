@@ -23,9 +23,15 @@ bool ListProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right)
 
   // If two items are otherwise equal, compare them by their title
   const auto right_title =
-      sourceModel()->index(right.row(), GameListModel::COL_TITLE).data().toString();
+      sourceModel()
+          ->index(right.row(), static_cast<int>(GameListModel::Column::COL_TITLE))
+          .data()
+          .toString();
   const auto left_title =
-      sourceModel()->index(left.row(), GameListModel::COL_TITLE).data().toString();
+      sourceModel()
+          ->index(left.row(), static_cast<int>(GameListModel::Column::COL_TITLE))
+          .data()
+          .toString();
 
   if (sortOrder() == Qt::AscendingOrder)
     return left_title < right_title;

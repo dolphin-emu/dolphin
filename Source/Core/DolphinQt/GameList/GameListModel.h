@@ -44,7 +44,7 @@ public:
   // Using a custom sort role as it sometimes differs slightly from the default Qt::DisplayRole.
   static constexpr int SORT_ROLE = Qt::UserRole;
 
-  enum
+  enum class Column
   {
     COL_PLATFORM = 0,
     COL_BANNER,
