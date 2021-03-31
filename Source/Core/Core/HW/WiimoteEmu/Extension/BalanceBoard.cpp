@@ -125,6 +125,9 @@ void BalanceBoardExt::DoState(PointerWrap& p)
 
 void BalanceBoardExt::LoadDefaults(const ControllerInterface& ciface)
 {
+  // Weight
+  m_weight->SetControlExpression(0, "SPACE");
+
   // Balance
   m_balance->SetControlExpression(0, "I");  // up
   m_balance->SetControlExpression(1, "K");  // down
