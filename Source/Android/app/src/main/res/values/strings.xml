@@ -286,11 +286,13 @@
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
+    <string name="synchronize_gpu_thread">Synchronize GPU Thread</string>
+    <string name="synchronize_gpu_thread_description">Synchronizing the GPU thread reduces the risk of games crashing or becoming unstable with dual core enabled, but can also reduce the performance gain of dual core. If unsure, select \"On Idle Skipping\". Selecting \"Never\" is risky and not recommended!</string>
 
     <!-- Log Configuration -->
     <string name="log_submenu">Log</string>
-    <string name="enable_logging">Enable Logging</string>
-    <string name="enable_logging_description">Log messages from enabled log types to dolphin-emu/Logs/. Will decrease performance.</string>
+    <string name="log_to_file">Write Logs to File</string>
+    <string name="log_to_file_description">Log messages from enabled log types to the Logs folder. Will decrease performance.</string>
     <string name="log_verbosity">Verbosity</string>
     <string name="log_enable_all">Enable all Log Types</string>
     <string name="log_enable_all_confirmation">Are you sure you want to enable all log types?</string>
@@ -354,7 +356,7 @@
     <string name="preferences_game_properties">Game Properties</string>
     <string name="preferences_extensions">Extension Bindings</string>
     <string name="game_ini_junk_title">Junk Data Found</string>
-    <string name="game_ini_junk_question">The settings file for this game contains junk data created by an old version of Dolphin. Would you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
+    <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
     <string name="game_details_country">Country</string>
     <string name="game_details_company">Company</string>
     <string name="game_details_game_id">Game ID</string>
