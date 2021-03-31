@@ -816,6 +816,14 @@ Common::Matrix44 Wiimote::GetTotalTransformation() const
       Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
 }
 
+void BalanceBoard::LoadDefaults(const ControllerInterface& ciface)
+{
+  EmulatedController::LoadDefaults(ciface);
+
+  m_buttons->SetControlExpression(0, "`P`");  // Power
+  m_ext.LoadDefaults(ciface);
+}
+
 void BalanceBoard::Update()
 {
   m_ext.Update();

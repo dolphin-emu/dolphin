@@ -360,6 +360,7 @@ public:
   ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
 
   std::string GetName() const override { return "BalanceBoard"; }
+  void LoadDefaults(const ControllerInterface& ciface) override;
 
   void Update() override;
   bool IsButtonPressed() override;
