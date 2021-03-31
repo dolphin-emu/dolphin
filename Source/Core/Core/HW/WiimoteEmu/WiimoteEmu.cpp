@@ -47,6 +47,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
+#include "InputCommon/ControllerEmu/ControlGroup/SensorBar.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu
@@ -238,6 +239,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);
 
+  groups.emplace_back(m_sensor_bar =
+                          new ControllerEmu::SensorBar("SensorBar", _trans("Sensor Bar")));
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
@@ -337,6 +340,8 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
     return m_imu_gyroscope;
   case WiimoteGroup::IMUPoint:
     return m_imu_ir;
+  case WiimoteGroup::SensorBar:
+    return m_sensor_bar;
   default:
     assert(false);
     return nullptr;
@@ -526,9 +531,17 @@ void Wiimote::SendDataReport()
     {
       // Note: Camera logic currently contains no changing state so we can just update it here.
       // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation(),
-                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
-                                360 * float(MathUtil::TAU));
+      if (m_sensor_bar->enabled)
+      {
+        m_camera_logic.UpdateFromSensorBarPoints(m_sensor_bar->GetState());
+      }
+      else
+      {
+        m_camera_logic.UpdateFromCameraTransform(
+            GetTotalTransformation(),
+            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) / 360 *
+                float(MathUtil::TAU));
+      }
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =

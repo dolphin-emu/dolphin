@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
@@ -454,6 +454,7 @@
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\IMUGyroscope.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\MixedTriggers.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\ModifySettingsButton.h" />
+    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\Slider.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\Tilt.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\Triggers.h" />
@@ -1028,6 +1029,7 @@
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\IMUGyroscope.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\MixedTriggers.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\ModifySettingsButton.cpp" />
+    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\SensorBar.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\Slider.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\Tilt.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\Triggers.cpp" />

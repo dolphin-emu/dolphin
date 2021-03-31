@@ -9,6 +9,7 @@
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
+#include "InputCommon/ControllerEmu/ControlGroup/SensorBar.h"
 
 namespace Common
 {
@@ -88,14 +89,28 @@ struct IRFull : IRExtended
 };
 static_assert(sizeof(IRFull) == 9, "Wrong size");
 
+struct CameraPoint
+{
+  IRBasic::IRObject position;
+  u8 size;
+};
+
 class CameraLogic : public I2CSlave
 {
 public:
   // OEM sensor bar distance between LED clusters in meters.
   static constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
 
+  // FYI: A real wiimote normally only returns 1 point for each LED cluster (2 total).
+  // Sending all 4 points can actually cause some stuttering issues.
+  static constexpr int NUM_POINTS = 2;
+
   static constexpr int CAMERA_RES_X = 1024;
   static constexpr int CAMERA_RES_Y = 768;
+
+  // Range from 0-15. Small values (2-4) seem to be very typical.
+  // This is reduced based on distance from sensor bar.
+  static constexpr int MAX_POINT_SIZE = 15;
 
   // Jordan: I calculate the FOV at 42 degrees horizontally and having a 4:3 aspect ratio.
   // This is 31.5 degrees vertically.
@@ -112,7 +127,9 @@ public:
 
   void Reset();
   void DoState(PointerWrap& p);
-  void Update(const Common::Matrix44& transform, Common::Vec2 field_of_view);
+  void UpdateFromSensorBarPoints(const ControllerEmu::SensorBar::StateData& state);
+  void UpdateFromCameraTransform(const Common::Matrix44& transform, Common::Vec2 field_of_view);
+  void Update(std::array<CameraPoint, NUM_POINTS> camera_points);
   void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;

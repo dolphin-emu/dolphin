@@ -53,35 +53,39 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   return RawWrite(&m_reg_data, addr, count, data_in);
 }
 
-void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+void CameraLogic::UpdateFromSensorBarPoints(const ControllerEmu::SensorBar::StateData& state)
 {
-  // IR data is read from offset 0x37 on real hardware.
-  auto& data = m_reg_data.camera_data;
-  data.fill(0xff);
+  std::array<CameraPoint, 2> camera_points;
+  if (state.size1 <= 0)
+  {
+    camera_points[0] = CameraPoint{{0xffff, 0xffff}, 0xff};
+  }
+  else
+  {
+    camera_points[0] =
+        CameraPoint{{u16((1 - state.x1) * CAMERA_RES_X / 2), u16((1 - state.y1) * CAMERA_RES_Y / 2)},
+      u8(std::lround(MAX_POINT_SIZE * state.size1))};
+  }
+  if (state.size2 <= 0)
+  {
+    camera_points[1] = CameraPoint{{0xffff, 0xffff}, 0xff};
+  }
+  else
+  {
+    camera_points[1] =
+        CameraPoint{{u16((1 - state.x2) * CAMERA_RES_X / 2), u16((1 - state.y2) * CAMERA_RES_Y / 2)},
+                    u8(std::lround(MAX_POINT_SIZE * state.size2))};
+  }
 
-  constexpr u8 OBJECT_TRACKING_ENABLE = 0x08;
+  CameraLogic::Update(camera_points);
+}
 
-  // If Address 0x30 is not 0x08 the camera will return 0xFFs.
-  // The Wii seems to write 0x01 here before changing modes/sensitivities.
-  if (m_reg_data.enable_object_tracking != OBJECT_TRACKING_ENABLE)
-    return;
-
-  // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
-  if (!IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
-    return;
-
+void CameraLogic::UpdateFromCameraTransform(const Common::Matrix44& transform, Common::Vec2 field_of_view)
+{
   using Common::Matrix33;
   using Common::Matrix44;
   using Common::Vec3;
   using Common::Vec4;
-
-  // FYI: A real wiimote normally only returns 1 point for each LED cluster (2 total).
-  // Sending all 4 points can actually cause some stuttering issues.
-  constexpr int NUM_POINTS = 2;
-
-  // Range from 0-15. Small values (2-4) seem to be very typical.
-  // This is reduced based on distance from sensor bar.
-  constexpr int MAX_POINT_SIZE = 15;
 
   const std::array<Vec3, NUM_POINTS> leds{
       Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
@@ -91,12 +95,6 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
   const auto camera_view =
       Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
       Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
-
-  struct CameraPoint
-  {
-    IRBasic::IRObject position;
-    u8 size;
-  };
 
   std::array<CameraPoint, leds.size()> camera_points;
 
@@ -119,6 +117,26 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
     // 0xFFFFs are interpreted as "not visible".
     return CameraPoint{{0xffff, 0xffff}, 0xff};
   });
+
+  CameraLogic::Update(camera_points);
+}
+
+void CameraLogic::Update(std::array<CameraPoint, NUM_POINTS> camera_points)
+{
+  // IR data is read from offset 0x37 on real hardware.
+  auto& data = m_reg_data.camera_data;
+  data.fill(0xff);
+
+  constexpr u8 OBJECT_TRACKING_ENABLE = 0x08;
+
+  // If Address 0x30 is not 0x08 the camera will return 0xFFs.
+  // The Wii seems to write 0x01 here before changing modes/sensitivities.
+  if (m_reg_data.enable_object_tracking != OBJECT_TRACKING_ENABLE)
+    return;
+
+  // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
+  if (!IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
+    return;
 
   switch (m_reg_data.mode)
   {
