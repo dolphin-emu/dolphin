@@ -128,7 +128,6 @@ void Wiimote::Reset()
 
   // Switch to desired M+ status and extension (if any).
   // M+ and EXT are reset on attachment.
-  // This also ensures that the balance board extension is attached if needed.
   HandleExtensionSwap();
 
   WiimoteBase::Reset();
@@ -275,7 +274,6 @@ Wiimote::Wiimote(const u8 index) : WiimoteBase(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
-  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
   // Rumble
