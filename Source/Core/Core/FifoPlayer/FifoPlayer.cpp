@@ -198,14 +198,19 @@ u32 FifoPlayer::GetMaxObjectCount() const
   return result;
 }
 
-u32 FifoPlayer::GetFrameObjectCount() const
+u32 FifoPlayer::GetFrameObjectCount(u32 frame) const
 {
-  if (m_CurrentFrame < m_FrameInfo.size())
+  if (frame < m_FrameInfo.size())
   {
-    return (u32)(m_FrameInfo[m_CurrentFrame].objectStarts.size());
+    return static_cast<u32>(m_FrameInfo[frame].objectStarts.size());
   }
 
   return 0;
+}
+
+u32 FifoPlayer::GetCurrentFrameObjectCount() const
+{
+  return GetFrameObjectCount(m_CurrentFrame);
 }
 
 void FifoPlayer::SetFrameRangeStart(u32 start)

@@ -262,7 +262,7 @@ void FIFOPlayerWindow::UpdateInfo()
     m_info_label->setText(
         tr("%1 frame(s)\n%2 object(s)\nCurrent Frame: %3")
             .arg(QString::number(file->GetFrameCount()),
-                 QString::number(FifoPlayer::GetInstance().GetFrameObjectCount()),
+                 QString::number(FifoPlayer::GetInstance().GetCurrentFrameObjectCount()),
                  QString::number(FifoPlayer::GetInstance().GetCurrentFrameNum())));
     return;
   }

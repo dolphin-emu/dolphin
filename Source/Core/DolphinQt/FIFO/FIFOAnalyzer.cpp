@@ -139,23 +139,22 @@ void FIFOAnalyzer::UpdateTree()
 
   auto* file = FifoPlayer::GetInstance().GetFile();
 
-  int object_count = FifoPlayer::GetInstance().GetFrameObjectCount();
-  int frame_count = file->GetFrameCount();
-
-  for (int i = 0; i < frame_count; i++)
+  const u32 frame_count = file->GetFrameCount();
+  for (u32 frame = 0; frame < frame_count; frame++)
   {
-    auto* frame_item = new QTreeWidgetItem({tr("Frame %1").arg(i)});
+    auto* frame_item = new QTreeWidgetItem({tr("Frame %1").arg(frame)});
 
     recording_item->addChild(frame_item);
 
-    for (int j = 0; j < object_count; j++)
+    const u32 object_count = FifoPlayer::GetInstance().GetFrameObjectCount(frame);
+    for (u32 object = 0; object < object_count; object++)
     {
-      auto* object_item = new QTreeWidgetItem({tr("Object %1").arg(j)});
+      auto* object_item = new QTreeWidgetItem({tr("Object %1").arg(object)});
 
       frame_item->addChild(object_item);
 
-      object_item->setData(0, FRAME_ROLE, i);
-      object_item->setData(0, OBJECT_ROLE, j);
+      object_item->setData(0, FRAME_ROLE, frame);
+      object_item->setData(0, OBJECT_ROLE, object);
     }
   }
 }
