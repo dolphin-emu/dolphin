@@ -623,12 +623,6 @@ void JitArm64::Jit(u32)
 
 void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
-  if (em_address == 0)
-  {
-    Core::SetState(Core::State::Paused);
-    WARN_LOG_FMT(DYNA_REC, "ERROR: Compiling at 0. LR={:08x} CTR={:08x}", LR, CTR);
-  }
-
   js.isLastInstruction = false;
   js.firstFPInstructionFound = false;
   js.assumeNoPairedQuantize = false;
