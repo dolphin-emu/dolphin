@@ -29,12 +29,12 @@ s32 ESDevice::OpenContent(const ES::TMDReader& tmd, u16 content_index, u32 uid, 
       continue;
 
     const std::string path = GetContentPath(title_id, content, ticks);
-    s64 fd = m_ios.GetFSDevice()->Open(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read, {}, ticks);
-    if (fd < 0)
-      return fd;
+    auto fd = m_ios.GetFSDevice()->Open(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read, {}, ticks);
+    if (fd.Get() < 0)
+      return fd.Get();
 
     entry.m_opened = true;
-    entry.m_fd = fd;
+    entry.m_fd = fd.Release();
     entry.m_content = content;
     entry.m_title_id = title_id;
     entry.m_uid = uid;

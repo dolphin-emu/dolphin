@@ -27,13 +27,12 @@ namespace IOS::HLE
 {
 static ES::TMDReader FindTMD(FSDevice& fs, const std::string& tmd_path, Ticks ticks)
 {
-  const s64 fd = fs.Open(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read, {}, ticks);
-  if (fd < 0)
+  const auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read, {}, ticks);
+  if (fd.Get() < 0)
     return {};
-  Common::ScopeGuard guard{[&] { fs.Close(fd, ticks); }};
 
-  std::vector<u8> tmd_bytes(fs.GetFileStatus(fd, ticks)->size);
-  if (!fs.Read(fd, tmd_bytes.data(), tmd_bytes.size(), ticks))
+  std::vector<u8> tmd_bytes(fs.GetFileStatus(fd.Get(), ticks)->size);
+  if (!fs.Read(fd.Get(), tmd_bytes.data(), tmd_bytes.size(), ticks))
     return {};
 
   return ES::TMDReader{std::move(tmd_bytes)};
@@ -407,20 +406,20 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
     return FS::ConvertResult(result);
   }
 
-  const auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmp_path, FS::Mode::ReadWrite, {}, ticks);
-  if (fd < 0)
+  auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmp_path, FS::Mode::ReadWrite, {}, ticks);
+  if (fd.Get() < 0)
   {
-    ERROR_LOG_FMT(IOS_ES, "Failed to open temporary file {}: {}", tmp_path, fd);
-    return fd;
+    ERROR_LOG_FMT(IOS_ES, "Failed to open temporary file {}: {}", tmp_path, fd.Get());
+    return fd.Get();
   }
 
-  if (fs.Write(fd, data.data(), u32(data.size()), {}, ticks) != s32(data.size()))
+  if (fs.Write(fd.Get(), data.data(), u32(data.size()), {}, ticks) != s32(data.size()))
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to write to temporary file {}", tmp_path);
     return ES_EIO;
   }
 
-  if (const auto ret = fs.Close(fd, ticks); ret != IPC_SUCCESS)
+  if (const auto ret = fs.Close(fd.Release(), ticks); ret != IPC_SUCCESS)
   {
     ERROR_LOG_FMT(IOS_ES, "Failed to close temporary file {}", tmp_path);
     return ret;

@@ -24,12 +24,40 @@ constexpr FS::Fd INVALID_FD = 0xffffffff;
 class FSDevice : public Device
 {
 public:
+  class ScopedFd
+  {
+  public:
+    ScopedFd(FSDevice* fs, s64 fd, Ticks tick_tracker = {})
+        : m_fs{fs}, m_fd{fd}, m_tick_tracker{tick_tracker}
+    {
+    }
+
+    ~ScopedFd()
+    {
+      if (m_fd >= 0)
+        m_fs->Close(m_fd, m_tick_tracker);
+    }
+
+    ScopedFd(const ScopedFd&) = delete;
+    ScopedFd(ScopedFd&&) = delete;
+    ScopedFd& operator=(const ScopedFd&) = delete;
+    ScopedFd& operator=(ScopedFd&&) = delete;
+
+    s64 Get() const { return m_fd; }
+    s64 Release() { return std::exchange(m_fd, -1); }
+
+  private:
+    FSDevice* m_fs{};
+    s64 m_fd = -1;
+    Ticks m_tick_tracker{};
+  };
+
   FSDevice(Kernel& ios, const std::string& device_name);
 
   // These are the equivalent of the IPC command handlers so IPC overhead is included
   // in timing calculations.
-  s64 Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
-           std::optional<u32> ipc_fd = {}, Ticks ticks = {});
+  ScopedFd Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
+                std::optional<u32> ipc_fd = {}, Ticks ticks = {});
   s32 Close(u64 fd, Ticks ticks = {});
   s32 Read(u64 fd, u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {}, Ticks ticks = {});
   s32 Write(u64 fd, const u8* data, u32 size, std::optional<u32> ipc_buffer_addr = {},
