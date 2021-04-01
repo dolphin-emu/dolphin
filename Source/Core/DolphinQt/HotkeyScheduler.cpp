@@ -139,10 +139,14 @@ void HotkeyScheduler::Run()
 
   while (!m_stop_requested.IsSet())
   {
-    Common::SleepCurrentThread(1000 / 60);
+    Common::SleepCurrentThread(5);
 
-    if (Core::GetState() == Core::State::Uninitialized || Core::GetState() == Core::State::Paused)
-      g_controller_interface.UpdateInput();
+    g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::FreeLook);
+    g_controller_interface.UpdateInput();
+    FreeLook::UpdateInput();
+
+    g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
+    g_controller_interface.UpdateInput();
 
     if (!HotkeyManagerEmu::IsEnabled())
       continue;
@@ -545,8 +549,6 @@ void HotkeyScheduler::Run()
       Config::SetCurrent(Config::FREE_LOOK_ENABLED, new_value);
       OSD::AddMessage(StringFromFormat("Free Look: %s", new_value ? "Enabled" : "Disabled"));
     }
-
-    FreeLook::UpdateInput();
 
     // Savestates
     for (u32 i = 0; i < State::NUM_STATES; i++)

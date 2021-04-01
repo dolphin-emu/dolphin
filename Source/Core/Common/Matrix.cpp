@@ -4,6 +4,8 @@
 
 #include "Common/Matrix.h"
 
+#include "Common/MathUtil.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -119,6 +121,32 @@ Vec3 operator*(const Quaternion& lhs, const Vec3& rhs)
 {
   const auto result = lhs * Quaternion(0, rhs.x, rhs.y, rhs.z) * lhs.Conjugate();
   return Vec3(result.data.x, result.data.y, result.data.z);
+}
+
+Vec3 FromQuaternionToEuler(const Quaternion& q)
+{
+  Vec3 result;
+
+  const float qx = q.data.x;
+  const float qy = q.data.y;
+  const float qz = q.data.z;
+  const float qw = q.data.w;
+
+  const float sinr_cosp = 2 * (qw * qx + qy * qz);
+  const float cosr_cosp = 1 - 2 * (qx * qx + qy * qy);
+  result.x = std::atan2(sinr_cosp, cosr_cosp);
+
+  const float sinp = 2 * (qw * qy - qz * qx);
+  if (std::abs(sinp) >= 1)
+    result.y = std::copysign(MathUtil::PI / 2, sinp);  // use 90 degrees if out of range
+  else
+    result.y = std::asin(sinp);
+
+  const float siny_cosp = 2 * (qw * qz + qx * qy);
+  const float cosy_cosp = 1 - 2 * (qy * qy + qz * qz);
+  result.z = std::atan2(siny_cosp, cosy_cosp);
+
+  return result;
 }
 
 Matrix33 Matrix33::Identity()

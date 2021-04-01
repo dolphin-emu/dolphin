@@ -339,6 +339,7 @@ void BluetoothEmuDevice::Update()
 
   if (now - m_last_ticks > interval)
   {
+    g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Bluetooth);
     g_controller_interface.UpdateInput();
     for (auto& wiimote : m_wiimotes)
       wiimote->UpdateInput();

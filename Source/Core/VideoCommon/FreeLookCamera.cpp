@@ -102,15 +102,20 @@ public:
 
   void Rotate(const Common::Vec3& amt) override
   {
+    if (amt.Length() == 0)
+      return;
+
     m_rotation += amt;
 
     using Common::Quaternion;
-    const auto quat =
+    m_rotate_quat =
         (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
-    Rotate(quat);
   }
 
-  void Rotate(const Common::Quaternion& quat) override { m_rotate_quat = quat; }
+  void Rotate(const Common::Quaternion& quat) override
+  {
+    Rotate(Common::FromQuaternionToEuler(quat));
+  }
 
   void Reset() override
   {
@@ -153,15 +158,20 @@ public:
 
   void Rotate(const Common::Vec3& amt) override
   {
+    if (amt.Length() == 0)
+      return;
+
     m_rotation += amt;
 
     using Common::Quaternion;
-    const auto quat =
+    m_rotate_quat =
         (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
-    Rotate(quat);
   }
 
-  void Rotate(const Common::Quaternion& quat) override { m_rotate_quat = quat; }
+  void Rotate(const Common::Quaternion& quat) override
+  {
+    Rotate(Common::FromQuaternionToEuler(quat));
+  }
 
   void Reset() override
   {
@@ -246,21 +256,27 @@ void FreeLookCamera::Rotate(const Common::Vec3& amt)
   m_dirty = true;
 }
 
+void FreeLookCamera::Rotate(const Common::Quaternion& amt)
+{
+  m_camera_controller->Rotate(amt);
+  m_dirty = true;
+}
+
 void FreeLookCamera::IncreaseFovX(float fov)
 {
   m_fov_x += fov;
-  m_fov_x = std::clamp(m_fov_x, m_fov_step_size, m_fov_x);
+  m_fov_x = std::clamp(m_fov_x, m_min_fov_multiplier, m_fov_x);
 }
 
 void FreeLookCamera::IncreaseFovY(float fov)
 {
   m_fov_y += fov;
-  m_fov_y = std::clamp(m_fov_y, m_fov_step_size, m_fov_y);
+  m_fov_y = std::clamp(m_fov_y, m_min_fov_multiplier, m_fov_y);
 }
 
 float FreeLookCamera::GetFovStepSize() const
 {
-  return m_fov_step_size;
+  return 1.5f;
 }
 
 void FreeLookCamera::Reset()
@@ -271,14 +287,15 @@ void FreeLookCamera::Reset()
   m_dirty = true;
 }
 
-void FreeLookCamera::ModifySpeed(float multiplier)
+void FreeLookCamera::ModifySpeed(float amt)
 {
-  m_speed *= multiplier;
+  m_speed += amt;
+  m_speed = std::clamp(m_speed, 0.0f, m_speed);
 }
 
 void FreeLookCamera::ResetSpeed()
 {
-  m_speed = 1.0f;
+  m_speed = 60.0f;
 }
 
 float FreeLookCamera::GetSpeed() const

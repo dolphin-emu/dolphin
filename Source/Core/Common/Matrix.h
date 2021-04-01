@@ -359,6 +359,8 @@ public:
 Quaternion operator*(Quaternion lhs, const Quaternion& rhs);
 Vec3 operator*(const Quaternion& lhs, const Vec3& rhs);
 
+Vec3 FromQuaternionToEuler(const Quaternion& q);
+
 class Matrix33
 {
 public:
