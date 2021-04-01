@@ -262,6 +262,11 @@ void Init(CPUCore cpu_core)
     breakpoints.ClearAllTemporary();
 }
 
+void vmcall_noop(u32 param) {
+  const u32 pc = PC;
+  WARN_LOG_FMT(POWERPC, "Executed unhandled vmcall, PC={:#x} VMTI={}", pc, param);
+}
+
 void Reset()
 {
   ppcState.pagetable_base = 0;
@@ -270,6 +275,10 @@ void Reset()
 
   ResetRegisters();
   ppcState.iCache.Reset();
+
+  for (vm_call& fn : ppcState.vmcall_table) {
+    fn = vmcall_noop;
+  }
 }
 
 void ScheduleInvalidateCacheThreadSafe(u32 address)
@@ -291,6 +300,10 @@ void Shutdown()
   JitInterface::Shutdown();
   s_interpreter->Shutdown();
   s_cpu_core_base = nullptr;
+}
+
+void RegisterVmcall(int index, vm_call pfn) {
+  ppcState.vmcall_table[index] = pfn;
 }
 
 CoreMode GetMode()

@@ -141,7 +141,7 @@ static std::array<GekkoOPTemplate, 4> table4_3 =
 	{39, Interpreter::psq_stux,     {"psq_stux", OpType::StorePS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 }};
 
-static std::array<GekkoOPTemplate, 13> table19 =
+static std::array<GekkoOPTemplate, 14> table19 =
 {{
 	{528, Interpreter::bcctrx,      {"bcctrx", OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
 	{16,  Interpreter::bclrx,       {"bclrx",  OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
@@ -158,6 +158,7 @@ static std::array<GekkoOPTemplate, 13> table19 =
 	{0,   Interpreter::mcrf,        {"mcrf",   OpType::System, FL_EVIL | FL_SET_CRn, 1, 0, 0, 0}},
 
 	{50,  Interpreter::rfi,         {"rfi",    OpType::System, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 2, 0, 0, 0}},
+  {51,  Interpreter::vmcall,      {"vmcall", OpType::System, FL_ENDBLOCK, 1, 0, 0, 0}},
 }};
 
 static std::array<GekkoOPTemplate, 107> table31 =
