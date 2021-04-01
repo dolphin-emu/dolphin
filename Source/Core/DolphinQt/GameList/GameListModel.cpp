@@ -61,19 +61,19 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
 
   switch (static_cast<Column>(index.column()))
   {
-  case Column::COL_PLATFORM:
+  case Column::Platform:
     if (role == Qt::DecorationRole)
       return Resources::GetPlatform(game.GetPlatform());
     if (role == SORT_ROLE)
       return static_cast<int>(game.GetPlatform());
     break;
-  case Column::COL_COUNTRY:
+  case Column::Country:
     if (role == Qt::DecorationRole)
       return Resources::GetCountry(game.GetCountry());
     if (role == SORT_ROLE)
       return static_cast<int>(game.GetCountry());
     break;
-  case Column::COL_BANNER:
+  case Column::Banner:
     if (role == Qt::DecorationRole)
     {
       // GameCube banners are 96x32, but Wii banners are 192x64.
@@ -88,7 +88,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       return banner;
     }
     break;
-  case Column::COL_TITLE:
+  case Column::Title:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       QString name = QString::fromStdString(game.GetName(m_title_database));
@@ -124,11 +124,11 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       return name;
     }
     break;
-  case Column::COL_ID:
+  case Column::ID:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
       return QString::fromStdString(game.GetGameID());
     break;
-  case Column::COL_DESCRIPTION:
+  case Column::Description:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       return QString::fromStdString(
@@ -136,18 +136,18 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
           .replace(QLatin1Char('\n'), QLatin1Char(' '));
     }
     break;
-  case Column::COL_MAKER:
+  case Column::Maker:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       return QString::fromStdString(
           game.GetMaker(UICommon::GameFile::Variant::LongAndPossiblyCustom));
     }
     break;
-  case Column::COL_FILE_NAME:
+  case Column::FileName:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
       return QString::fromStdString(game.GetFileName());
     break;
-  case Column::COL_FILE_PATH:
+  case Column::FilePath:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       QString file_path = QDir::toNativeSeparators(
@@ -157,7 +157,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       return file_path;
     }
     break;
-  case Column::COL_SIZE:
+  case Column::Size:
     if (role == Qt::DisplayRole)
     {
       std::string str = UICommon::FormatSize(game.GetFileSize());
@@ -171,24 +171,24 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == SORT_ROLE)
       return static_cast<quint64>(game.GetFileSize());
     break;
-  case Column::COL_FILE_FORMAT:
+  case Column::FileFormat:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
       return QString::fromStdString(game.GetFileFormatName());
     break;
-  case Column::COL_BLOCK_SIZE:
+  case Column::BlockSize:
     if (role == Qt::DisplayRole)
       return QString::fromStdString(UICommon::FormatSize(game.GetBlockSize()));
     if (role == SORT_ROLE)
       return static_cast<quint64>(game.GetBlockSize());
     break;
-  case Column::COL_COMPRESSION:
+  case Column::Compression:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       const QString compression = QString::fromStdString(game.GetCompressionMethod());
       return compression.isEmpty() ? tr("No Compression") : compression;
     }
     break;
-  case Column::COL_TAGS:
+  case Column::Tags:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
     {
       auto tags = GetGameTags(game.GetFilePath());
@@ -208,29 +208,29 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
 
   switch (static_cast<Column>(section))
   {
-  case Column::COL_TITLE:
+  case Column::Title:
     return tr("Title");
-  case Column::COL_ID:
+  case Column::ID:
     return tr("ID");
-  case Column::COL_BANNER:
+  case Column::Banner:
     return tr("Banner");
-  case Column::COL_DESCRIPTION:
+  case Column::Description:
     return tr("Description");
-  case Column::COL_MAKER:
+  case Column::Maker:
     return tr("Maker");
-  case Column::COL_FILE_NAME:
+  case Column::FileName:
     return tr("File Name");
-  case Column::COL_FILE_PATH:
+  case Column::FilePath:
     return tr("File Path");
-  case Column::COL_SIZE:
+  case Column::Size:
     return tr("Size");
-  case Column::COL_FILE_FORMAT:
+  case Column::FileFormat:
     return tr("File Format");
-  case Column::COL_BLOCK_SIZE:
+  case Column::BlockSize:
     return tr("Block Size");
-  case Column::COL_COMPRESSION:
+  case Column::Compression:
     return tr("Compression");
-  case Column::COL_TAGS:
+  case Column::Tags:
     return tr("Tags");
   }
   return QVariant();
@@ -247,7 +247,7 @@ int GameListModel::columnCount(const QModelIndex& parent) const
 {
   if (parent.isValid())
     return 0;
-  return static_cast<int>(Column::NUM_COLS);
+  return static_cast<int>(Column::Count);
 }
 
 bool GameListModel::ShouldDisplayGameListItem(int index) const

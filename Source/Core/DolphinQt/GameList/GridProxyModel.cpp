@@ -20,7 +20,7 @@ const QSize LARGE_BANNER_SIZE(144, 48);
 GridProxyModel::GridProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
 {
   setSortCaseSensitivity(Qt::CaseInsensitive);
-  sort(static_cast<int>(GameListModel::Column::COL_TITLE));
+  sort(static_cast<int>(GameListModel::Column::Title));
 }
 
 QVariant GridProxyModel::data(const QModelIndex& i, int role) const
@@ -29,8 +29,7 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
   if (role == Qt::DisplayRole)
   {
     return sourceModel()->data(
-        sourceModel()->index(source_index.row(),
-                             static_cast<int>(GameListModel::Column::COL_TITLE)),
+        sourceModel()->index(source_index.row(), static_cast<int>(GameListModel::Column::Title)),
         Qt::DisplayRole);
   }
   else if (role == Qt::DecorationRole)
@@ -46,7 +45,7 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
     {
       QPixmap banner = model
                            ->data(model->index(source_index.row(),
-                                               static_cast<int>(GameListModel::Column::COL_BANNER)),
+                                               static_cast<int>(GameListModel::Column::Banner)),
                                   Qt::DecorationRole)
                            .value<QPixmap>();
 
