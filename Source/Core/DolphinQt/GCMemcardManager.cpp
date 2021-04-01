@@ -5,7 +5,6 @@
 #include "DolphinQt/GCMemcardManager.h"
 
 #include <algorithm>
-#include <cassert>
 #include <string>
 #include <vector>
 
@@ -29,6 +28,7 @@
 #include <QTimer>
 #include <QToolButton>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -387,7 +387,7 @@ static QString GetFormatDescription(Memcard::SavefileFormat format)
   case Memcard::SavefileFormat::SAV:
     return QObject::tr("Datel MaxDrive/Pro files");
   default:
-    assert(0);
+    ASSERT(0);
     return QObject::tr("Native GCI File");
   }
 }

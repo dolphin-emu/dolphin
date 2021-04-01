@@ -5,12 +5,12 @@
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cinttypes>
 #include <cstring>
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonFuncs.h"
@@ -240,7 +240,7 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
     else
     {
       // should never reach here
-      assert(0);
+      ASSERT(false);
     }
   }
 
@@ -329,7 +329,7 @@ bool GCMemcard::Save()
 
 static std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size)
 {
-  assert(size % 2 == 0);
+  ASSERT(size % 2 == 0);
   u16 csum = 0;
   u16 inv_csum = 0;
 
@@ -779,7 +779,7 @@ GCMemcardErrorCode BlockAlloc::CheckForErrors(u16 size_mbits) const
   {
     // check if free block count matches the actual amount of free blocks in m_map
     const u16 total_available_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
-    assert(total_available_blocks <= m_map.size());
+    ASSERT(total_available_blocks <= m_map.size());
     u16 blocks_in_use = 0;
     for (size_t i = 0; i < total_available_blocks; ++i)
     {

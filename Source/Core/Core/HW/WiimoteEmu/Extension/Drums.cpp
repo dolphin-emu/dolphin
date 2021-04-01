@@ -4,9 +4,9 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 
-#include <cassert>
 #include <type_traits>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -199,7 +199,7 @@ ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
   case DrumsGroup::Stick:
     return m_stick;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

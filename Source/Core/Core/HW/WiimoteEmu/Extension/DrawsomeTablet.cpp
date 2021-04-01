@@ -5,8 +5,8 @@
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 
 #include <array>
-#include <cassert>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -101,7 +101,7 @@ ControllerEmu::ControlGroup* DrawsomeTablet::GetGroup(DrawsomeTabletGroup group)
   case DrawsomeTabletGroup::Touch:
     return m_touch;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

@@ -5,12 +5,12 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
-#include <cassert>
 #include <memory>
 #include <string_view>
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -338,7 +338,7 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
   case WiimoteGroup::IMUPoint:
     return m_imu_ir;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }
