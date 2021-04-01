@@ -23,6 +23,7 @@ class PointerWrap;
 
 namespace ControllerEmu
 {
+class AnalogStick;
 class Attachments;
 class Buttons;
 class ControlGroup;
@@ -35,6 +36,7 @@ class IMUCursor;
 class ModifySettingsButton;
 class Output;
 class Tilt;
+class Triggers;
 }  // namespace ControllerEmu
 
 namespace WiimoteEmu
@@ -352,6 +354,8 @@ private:
 
 class BalanceBoard final : public WiimoteBase
 {
+  friend class BalanceBoardExt;
+
 public:
   static constexpr u16 BUTTON_POWER = Wiimote::BUTTON_A;
 
@@ -390,9 +394,11 @@ protected:
 
 private:
   EncryptionKey GetExtensionEncryptionKey() const { return m_ext.ext_key; }
-  BalanceBoardExt m_ext;
+  BalanceBoardExt m_ext{this};
 
   ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::AnalogStick* m_balance;
+  ControllerEmu::Triggers* m_weight;
   ControllerEmu::ControlGroup* m_options;
 };
 }  // namespace WiimoteEmu

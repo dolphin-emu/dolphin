@@ -39,6 +39,7 @@
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -49,6 +50,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
 
 namespace WiimoteEmu
 {
@@ -821,7 +823,18 @@ void BalanceBoard::LoadDefaults(const ControllerInterface& ciface)
   EmulatedController::LoadDefaults(ciface);
 
   m_buttons->SetControlExpression(0, "`P`");  // Power
-  m_ext.LoadDefaults(ciface);
+
+  // Weight
+  m_weight->SetControlExpression(0, "SPACE");
+
+  // Balance
+  m_balance->SetControlExpression(0, "I");  // up
+  m_balance->SetControlExpression(1, "K");  // down
+  m_balance->SetControlExpression(2, "J");  // left
+  m_balance->SetControlExpression(3, "L");  // right
+
+  // Because our defaults use keyboard input, set calibration shape to a square.
+  m_balance->SetCalibrationFromGate(ControllerEmu::SquareStickGate(.5));
 }
 
 void BalanceBoard::Update()
@@ -841,6 +854,16 @@ BalanceBoard::BalanceBoard(const u8 index) : WiimoteBase(index)
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->AddInput(ControllerEmu::Translate, "Power");
+
+  // Balance
+  groups.emplace_back(
+      m_balance = new ControllerEmu::AnalogStick(
+          _trans("Balance"), std::make_unique<ControllerEmu::SquareStickGate>(1.0)));
+  groups.emplace_back(m_weight = new ControllerEmu::Triggers(_trans("Weight")));
+
+  // Weight
+  m_weight->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Weight")));
 
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
@@ -862,8 +885,13 @@ ControllerEmu::ControlGroup* BalanceBoard::GetBalanceBoardGroup(BalanceBoardGrou
     return m_buttons;
   case BalanceBoardGroup::Options:
     return m_options;
+  case BalanceBoardGroup::Balance:
+    return m_balance;
+  case BalanceBoardGroup::Weight:
+    return m_weight;
   default:
-    return m_ext.GetGroup(group);
+    ASSERT(false);
+    return nullptr;
   }
 }
 

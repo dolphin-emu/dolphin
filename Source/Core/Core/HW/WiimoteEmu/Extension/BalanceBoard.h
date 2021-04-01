@@ -10,17 +10,15 @@
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
-namespace ControllerEmu
-{
-class AnalogStick;
-class ControlGroup;
-class Triggers;
-}  // namespace ControllerEmu
-
 namespace WiimoteEmu
 {
+class BalanceBoard;
 enum class BalanceBoardGroup;
 
+// NOTE: Although the balance board is implemented as an extension (which matches how the actual
+// balance board works), the actual controls are not registered in the same way as other extensions;
+// instead, WiimoteEmu::BalanceBoard has all of the controls and some are also used by the
+// extension.
 class BalanceBoardExt : public Extension1stParty
 {
 public:
@@ -36,15 +34,11 @@ public:
   };
   static_assert(sizeof(DataFormat) == 12, "Wrong size");
 
-  BalanceBoardExt();
+  BalanceBoardExt(BalanceBoard* owner);
 
   void Update() override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
-
-  ControllerEmu::ControlGroup* GetGroup(BalanceBoardGroup group) const;
-
-  void LoadDefaults(const ControllerInterface& ciface) override;
 
   static u16 ConvertToSensorWeight(double weight_in_kilos);
   static double ConvertToKilograms(u16 sensor_weight);
@@ -67,7 +61,6 @@ private:
   static constexpr u16 LOW_WEIGHT_DELTA = WEIGHT_17_KG - WEIGHT_0_KG;
   static constexpr u16 HIGH_WEIGHT_DELTA = WEIGHT_34_KG - WEIGHT_17_KG;
 
-  ControllerEmu::AnalogStick* m_balance;
-  ControllerEmu::Triggers* m_weight;
+  const BalanceBoard* m_owner;
 };
 }  // namespace WiimoteEmu
