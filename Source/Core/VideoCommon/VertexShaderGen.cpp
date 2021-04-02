@@ -498,6 +498,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
                 "o.clipDist1 = clipDist1;\n");
     }
   }
+  else
+  {
+    // Same depth adjustment for Sonic. Without depth clamping, it unfortunately
+    // affects non-clipping uses of depth too.
+    out.Write("o.pos.z = o.pos.z * (1.0 - 1e-7);\n");
+  }
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will
   // override it with the correct values if not then early z culling will improve speed.
