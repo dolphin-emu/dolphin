@@ -9,22 +9,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-
-#include "Core/Core.h"
-#include "Core/HW/GCPad.h"
-#include "Core/HW/GCPadEmu.h"
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Extension/Classic.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ButtonManager
 {
@@ -698,39 +686,6 @@ float GetAxisValue(int pad_id, ButtonType axis)
     }
   }
   return value;
-}
-
-double GetInputRadiusAtAngle(int pad_id, ButtonType stick, double angle)
-{
-  // To avoid a crash, don't access controllers before they've been initialized by the boot process
-  if (!Core::IsRunningAndStarted())
-    return 0;
-
-  ControllerEmu::ControlGroup* group;
-
-  switch (stick)
-  {
-  case STICK_MAIN:
-    group = Pad::GetGroup(pad_id, PadGroup::MainStick);
-    break;
-  case STICK_C:
-    group = Pad::GetGroup(pad_id, PadGroup::CStick);
-    break;
-  case NUNCHUK_STICK:
-    group = Wiimote::GetNunchukGroup(pad_id, WiimoteEmu::NunchukGroup::Stick);
-    break;
-  case CLASSIC_STICK_LEFT:
-    group = Wiimote::GetClassicGroup(pad_id, WiimoteEmu::ClassicGroup::LeftStick);
-    break;
-  case CLASSIC_STICK_RIGHT:
-    group = Wiimote::GetClassicGroup(pad_id, WiimoteEmu::ClassicGroup::RightStick);
-    break;
-  default:
-    ASSERT(false);
-    return 0;
-  }
-
-  return static_cast<ControllerEmu::ReshapableInput*>(group)->GetInputRadiusAtAngle(angle);
 }
 
 bool GamepadEvent(const std::string& dev, int button, int action)
