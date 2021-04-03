@@ -324,7 +324,7 @@ std::tuple<double, double> GetPrimeStickXY()
   return wiimote->GetPrimeStickXY();
 }
 
-std::tuple<double, double, bool, bool, bool> PrimeSettings()
+std::tuple<double, double, bool, bool, bool, bool> PrimeSettings()
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 

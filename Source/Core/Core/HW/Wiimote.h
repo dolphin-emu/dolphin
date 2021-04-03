@@ -125,7 +125,7 @@ bool CheckPitchRecentre();
 std::tuple<double, double> GetPrimeStickXY();
 std::tuple<bool, bool> GetBVMenuOptions();
 
-std::tuple<double, double, bool, bool, bool> PrimeSettings();
+std::tuple<double, double, bool, bool, bool, bool> PrimeSettings();
 
 
 bool NetPlay_GetButtonPress(int wiimote, bool pressed);
