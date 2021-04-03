@@ -5,17 +5,14 @@ import android.os.Handler;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.features.input.InputOverrider;
 
 import java.util.ArrayList;
 
 public class InputOverlayPointer
 {
-  public static final int DOUBLE_TAP_A = 0;
-  public static final int DOUBLE_TAP_B = 1;
-  public static final int DOUBLE_TAP_2 = 2;
-  public static final int DOUBLE_TAP_CLASSIC_A = 3;
-
-  private final float[] axes = {0f, 0f};
+  private float mCurrentX = 0.0f;
+  private float mCurrentY = 0.0f;
 
   private float mGameCenterX;
   private float mGameCenterY;
@@ -23,7 +20,7 @@ public class InputOverlayPointer
   private float mGameHeightHalfInv;
 
   private boolean doubleTap = false;
-  private int doubleTapButton;
+  private int doubleTapControl;
   private int trackId = -1;
 
   public static ArrayList<Integer> DOUBLE_TAP_OPTIONS = new ArrayList<>();
@@ -36,9 +33,9 @@ public class InputOverlayPointer
     DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.CLASSIC_BUTTON_A);
   }
 
-  public InputOverlayPointer(Rect surfacePosition, int button)
+  public InputOverlayPointer(Rect surfacePosition, int doubleTapControl)
   {
-    doubleTapButton = button;
+    this.doubleTapControl = doubleTapControl;
 
     mGameCenterX = (surfacePosition.left + surfacePosition.right) / 2.0f;
     mGameCenterY = (surfacePosition.top + surfacePosition.bottom) / 2.0f;
@@ -86,18 +83,16 @@ public class InputOverlayPointer
     if (trackId == -1)
       return;
 
-    axes[0] = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
-    axes[1] = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
+    mCurrentX = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
+    mCurrentY = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
   }
 
   private void touchPress()
   {
     if (doubleTap)
     {
-      NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
-              doubleTapButton, NativeLibrary.ButtonState.PRESSED);
-      new Handler().postDelayed(() -> NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
-              doubleTapButton, NativeLibrary.ButtonState.RELEASED), 50);
+      InputOverrider.setControlState(0, doubleTapControl, 1.0);
+      new Handler().postDelayed(() -> InputOverrider.setControlState(0, doubleTapControl, 0.0), 50);
     }
     else
     {
@@ -106,13 +101,13 @@ public class InputOverlayPointer
     }
   }
 
-  public float[] getAxisValues()
+  public float getX()
   {
-    float[] iraxes = {0f, 0f, 0f, 0f};
-    iraxes[1] = axes[0];
-    iraxes[0] = axes[0];
-    iraxes[3] = axes[1];
-    iraxes[2] = axes[1];
-    return iraxes;
+    return mCurrentX;
+  }
+
+  public float getY()
+  {
+    return mCurrentY;
   }
 }
