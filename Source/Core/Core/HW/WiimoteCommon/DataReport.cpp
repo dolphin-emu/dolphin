@@ -2,11 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cassert>
+#include "Core/HW/WiimoteCommon/DataReport.h"
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/MathUtil.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
 
 namespace WiimoteCommon
 {
@@ -308,7 +308,7 @@ std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID r
     ptr = std::make_unique<ReportInterleave2>();
     break;
   default:
-    assert(false);
+    ASSERT(false);
     break;
   }
 

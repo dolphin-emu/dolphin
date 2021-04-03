@@ -5,9 +5,9 @@
 #include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 
 #include <array>
-#include <cassert>
 #include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -80,7 +80,7 @@ ControllerEmu::ControlGroup* TaTaCon::GetGroup(TaTaConGroup group)
   case TaTaConGroup::Rim:
     return m_rim;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

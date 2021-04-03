@@ -1,10 +1,10 @@
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
 #include <array>
-#include <cassert>
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/NandPaths.h"
@@ -330,7 +330,7 @@ std::string GetDefaultExtension(SavefileFormat format)
   case SavefileFormat::SAV:
     return ".sav";
   default:
-    assert(0);
+    ASSERT(false);
     return ".gci";
   }
 }

@@ -5,7 +5,6 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -2026,7 +2025,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
     }
   }
 
-  assert(nw.data.size() == size);
+  ASSERT(nw.data.size() == size);
   std::copy(nw.data.begin(), nw.data.end(), data);
   return true;
 }

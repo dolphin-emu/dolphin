@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControlReference/ExpressionParser.h"
+
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <functional>
 #include <iostream>
@@ -14,10 +15,10 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 
-#include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControlReference/FunctionExpression.h"
 
 namespace ciface::ExpressionParser
@@ -384,7 +385,7 @@ public:
       return std::max(std::min(1 - lval, rval), std::min(lval, 1 - rval));
     }
     default:
-      assert(false);
+      ASSERT(false);
       return 0;
     }
   }
@@ -823,7 +824,7 @@ private:
     case TOK_COMMA:
       return 8;
     default:
-      assert(false);
+      ASSERT(false);
       return 0;
     }
   }
