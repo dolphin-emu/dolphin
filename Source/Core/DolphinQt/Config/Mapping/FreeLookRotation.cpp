@@ -40,7 +40,7 @@ void FreeLookRotation::CreateMainLayout()
 
   m_main_layout->addWidget(
       CreateGroupBox(tr("Incremental Rotation (rad/sec)"),
-                     FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Rotation)),
+                     FreeLook::GetInputGroup(GetPort(), FreeLookGroup::RotationIncremental)),
       1, 0);
 
   m_main_layout->addWidget(

@@ -114,7 +114,7 @@ FreeLookController::FreeLookController(const unsigned int index) : m_index(index
   m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Increase Y"));
   m_fov_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease Y"));
 
-  groups.emplace_back(m_rotation_gyro = new ControllerEmu::IMUGyroscope(
+  groups.emplace_back(m_incremental_rotation_gyro = new ControllerEmu::IMUGyroscope(
                           _trans("Incremental Rotation"), _trans("Incremental Rotation")));
 
   groups.emplace_back(m_exact_rotation_group = new ControllerEmu::ControlGroup(
@@ -167,32 +167,32 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
                                       hotkey_string({"Shift", "`Axis Z-`"}));
 
 #if defined HAVE_X11 && HAVE_X11
-  m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
-                                        "if(`Click 3`,`RelativeMouse Y-` * 0.10, 0)");
-  m_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
-                                        "if(`Click 3`,`RelativeMouse Y+` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
+                                                    "if(`Click 3`,`RelativeMouse Y-` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
+                                                    "if(`Click 3`,`RelativeMouse Y+` * 0.10, 0)");
 #else
-  m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
-                                        "if(`Click 1`,`RelativeMouse Y-` * 0.10, 0)");
-  m_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
-                                        "if(`Click 1`,`RelativeMouse Y+` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
+                                                    "if(`Click 1`,`RelativeMouse Y-` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
+                                                    "if(`Click 1`,`RelativeMouse Y+` * 0.10, 0)");
 #endif
 
-  m_rotation_gyro->SetControlExpression(GyroButtons::RollLeft,
-                                        "if(`Click 2`,`RelativeMouse X-` * 0.10, 0)");
-  m_rotation_gyro->SetControlExpression(GyroButtons::RollRight,
-                                        "if(`Click 2`,`RelativeMouse X+` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::RollLeft,
+                                                    "if(`Click 2`,`RelativeMouse X-` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::RollRight,
+                                                    "if(`Click 2`,`RelativeMouse X+` * 0.10, 0)");
 
 #if defined HAVE_X11 && HAVE_X11
-  m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
-                                        "if(`Click 3`,`RelativeMouse X-` * 0.10, 0)");
-  m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
-                                        "if(`Click 3`,`RelativeMouse X+` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
+                                                    "if(`Click 3`,`RelativeMouse X-` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
+                                                    "if(`Click 3`,`RelativeMouse X+` * 0.10, 0)");
 #else
-  m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
-                                        "if(`Click 1`,`RelativeMouse X-` * 0.10, 0)");
-  m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
-                                        "if(`Click 1`,`RelativeMouse X+` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
+                                                    "if(`Click 1`,`RelativeMouse X-` * 0.10, 0)");
+  m_incremental_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
+                                                    "if(`Click 1`,`RelativeMouse X+` * 0.10, 0)");
 #endif
 }
 
@@ -208,8 +208,8 @@ ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) c
     return m_fov_buttons;
   case FreeLookGroup::Other:
     return m_other_buttons;
-  case FreeLookGroup::Rotation:
-    return m_rotation_gyro;
+  case FreeLookGroup::RotationIncremental:
+    return m_incremental_rotation_gyro;
   case FreeLookGroup::RotationExact:
     return m_exact_rotation_group;
   default:
@@ -245,8 +245,9 @@ void FreeLookController::Update()
                                                static_cast<float>(m_roll.GetValue())});
   }
 
-  const auto gyro_motion_rad_velocity =
-      m_rotation_gyro->GetState() ? *m_rotation_gyro->GetState() : Common::Vec3{};
+  const auto gyro_motion_rad_velocity = m_incremental_rotation_gyro->GetState() ?
+                                            *m_incremental_rotation_gyro->GetState() :
+                                            Common::Vec3{};
 
   // Due to gyroscope implementation we need to swap the yaw and roll values
   // and because of the different axis used for Wii and the PS3 motion directions,

@@ -26,7 +26,7 @@ enum class FreeLookGroup
   Speed,
   FieldOfView,
   Other,
-  Rotation,
+  RotationIncremental,
   RotationExact,
 };
 
@@ -59,7 +59,7 @@ private:
   ControllerEmu::Buttons* m_speed_buttons;
   ControllerEmu::Buttons* m_fov_buttons;
   ControllerEmu::Buttons* m_other_buttons;
-  ControllerEmu::IMUGyroscope* m_rotation_gyro;
+  ControllerEmu::IMUGyroscope* m_incremental_rotation_gyro;
   ControllerEmu::ControlGroup* m_exact_rotation_group;
 
   ControllerEmu::SettingValue<double> m_pitch;
