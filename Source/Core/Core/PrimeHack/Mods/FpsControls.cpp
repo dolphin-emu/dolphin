@@ -835,7 +835,7 @@ void FpsControls::add_grapple_lasso_code_mp3(u32 func1, u32 func2, u32 func3) {
   add_code_change(func1 + 0xC, 0xC04B0000, "grapple_lasso");  // lfs f2, 0(r11)
 
                                                               // Skips the game's checks and lets us control grapple lasso ourselves.
-  add_code_change(func1 + 0x8, 0x40800160, "grapple_lasso"); // first conditional branch changed to jmp to end
+  add_code_change(func1 + 0x8, 0x40800158, "grapple_lasso"); // first conditional branch changed to jmp to end
   add_code_change(func1 + 0x18, 0x40810148, "grapple_lasso"); // second conditional branch changed to jmp to end
   add_code_change(func1 + 0x54, 0x4800010C, "grapple_lasso"); // end of 'yellow' segment jmp to end
 
