@@ -750,7 +750,7 @@ void RequestRefreshInfo()
 static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
-  if (!IsRunning())
+  if (!IsRunningAndStarted())
     return true;
 
   bool was_unpaused = true;
