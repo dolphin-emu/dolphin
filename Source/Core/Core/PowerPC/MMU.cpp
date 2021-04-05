@@ -980,14 +980,16 @@ void SDRUpdated()
 {
   u32 htabmask = SDR1_HTABMASK(PowerPC::ppcState.spr[SPR_SDR]);
   if (!Common::IsValidLowMask(htabmask))
-  {
-    return;
-  }
+    WARN_LOG_FMT(POWERPC, "Invalid HTABMASK: 0b{:032b}", htabmask);
+
+  // While 6xx_pem.pdf §7.6.1.1 mentions that the number of trailing zeros in HTABORG
+  // must be equal to the number of trailing ones in the mask (i.e. HTABORG must be
+  // properly aligned), this is actually not a hard requirement. Real hardware will just OR
+  // the base address anyway. Ignoring SDR changes would lead to incorrect emulation.
   u32 htaborg = SDR1_HTABORG(PowerPC::ppcState.spr[SPR_SDR]);
   if (htaborg & htabmask)
-  {
-    return;
-  }
+    WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
+
   PowerPC::ppcState.pagetable_base = htaborg << 16;
   PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
