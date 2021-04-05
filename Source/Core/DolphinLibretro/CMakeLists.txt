@@ -40,19 +40,36 @@ if (MSVC)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DELAYLOAD:OpenGL32.dll /DELAYLOAD:DInput8.dll")
 endif()
 
-if(LIBRETRO_STATIC)
-   target_link_libraries(dolphin_libretro PRIVATE
-      Delayimp.lib
-      core
-      uicommon
-      ${LIBS}
-      "-static-libgcc -static-libstdc++"
-   )
+if(MSVC)
+	if(LIBRETRO_STATIC)
+		 target_link_libraries(dolphin_libretro PRIVATE
+				Delayimp.lib
+				core
+				uicommon
+				${LIBS}
+				"-static-libgcc -static-libstdc++"
+		 )
+	else()
+		 target_link_libraries(dolphin_libretro PRIVATE
+				Delayimp.lib
+				core
+				uicommon
+				${LIBS}
+		 )
+	endif()
 else()
-   target_link_libraries(dolphin_libretro PRIVATE
-      Delayimp.lib
-      core
-      uicommon
-      ${LIBS}
-   )
+	if(LIBRETRO_STATIC)
+		 target_link_libraries(dolphin_libretro PRIVATE
+				core
+				uicommon
+				${LIBS}
+				"-static-libgcc -static-libstdc++"
+		 )
+	else()
+		 target_link_libraries(dolphin_libretro PRIVATE
+				core
+				uicommon
+				${LIBS}
+		 )
+	endif()
 endif()
