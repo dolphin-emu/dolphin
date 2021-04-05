@@ -1113,7 +1113,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
-  u32 pte1 = Common::swap32((VSID << 7) | api | PTE1_V);
+  u32 pte1 = (VSID << 7) | api | PTE1_V;
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1121,7 +1121,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
     if (hash_func == 1)
     {
       hash = ~hash;
-      pte1 |= PTE1_H << 24;
+      pte1 |= PTE1_H;
     }
 
     u32 pteg_addr =
@@ -1129,7 +1129,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      u32 pteg = Common::swap32(Memory::Read_U32(pteg_addr));
+      const u32 pteg = Memory::Read_U32(pteg_addr);
 
       if (pte1 == pteg)
       {
