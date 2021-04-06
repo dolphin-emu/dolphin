@@ -28,7 +28,7 @@ void PrimeCheatsWidget::CreateWidgets()
   m_checkbox_invulnerability = new QCheckBox(tr("Invulnerability"));
   m_checkbox_skipcutscenes = new QCheckBox(tr("Skippable Cutscenes"));
   m_checkbox_scandash = new QCheckBox(tr("Restore Scan Dash"));
-  m_checkbox_skipportalmp2 = new QCheckBox(tr("Skip MP2 Portal Cutscene (Trilogy Only)"));
+  m_checkbox_skipportalmp2 = new QCheckBox(tr("Skip MP2 Portal Cutscene"));
   m_checkbox_friendvouchers = new QCheckBox(tr("Remove Friend Vouchers Requirement (Trilogy Only)"));
   m_checkbox_hudmemo = new QCheckBox(tr("Disable Hud Popup on Pickup Acquire"));
 
