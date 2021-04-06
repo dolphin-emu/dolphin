@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 class InputConfig;
 
@@ -26,6 +27,7 @@ enum class FreeLookGroup
   FieldOfView,
   Other,
   Rotation,
+  PositionOffset,
 };
 
 namespace FreeLook
@@ -54,6 +56,19 @@ public:
 
 private:
   ControllerEmu::Buttons* m_move_buttons;
+
+  // The following position offsets are doubles
+  // but used as floats in the camera system
+  // This is done because the settings and qt
+  // controls are in double format
+  ControllerEmu::SettingValue<double> m_pos_x;
+  double m_pos_last_x;
+  ControllerEmu::SettingValue<double> m_pos_y;
+  double m_pos_last_y;
+  ControllerEmu::SettingValue<double> m_pos_z;
+  double m_pos_last_z;
+  ControllerEmu::ControlGroup* m_position_offset_group;
+
   ControllerEmu::Buttons* m_speed_buttons;
   ControllerEmu::Buttons* m_fov_buttons;
   ControllerEmu::Buttons* m_other_buttons;

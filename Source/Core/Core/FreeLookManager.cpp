@@ -87,6 +87,19 @@ FreeLookController::FreeLookController(const unsigned int index) : m_index(index
   m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Forward"));
   m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Backward"));
 
+  groups.emplace_back(m_position_offset_group = new ControllerEmu::ControlGroup(
+                          _trans("Position Offset"), _trans("Position Offset")));
+
+  m_position_offset_group->AddSetting(
+      &m_pos_x, {_trans("X"), _trans("unit"), _trans("The x offset for the camera")}, 0.0,
+      std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+  m_position_offset_group->AddSetting(
+      &m_pos_y, {_trans("Y"), _trans("unit"), _trans("The y offset for the camera")}, 0.0,
+      std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+  m_position_offset_group->AddSetting(
+      &m_pos_z, {_trans("Z"), _trans("unit"), _trans("The z offset for the camera")}, 0.0,
+      std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+
   groups.emplace_back(m_speed_buttons = new ControllerEmu::Buttons(_trans("Speed")));
 
   m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease"));
@@ -187,6 +200,8 @@ ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) c
     return m_other_buttons;
   case FreeLookGroup::Rotation:
     return m_rotation_gyro;
+  case FreeLookGroup::PositionOffset:
+    return m_position_offset_group;
   default:
     return nullptr;
   }
@@ -221,6 +236,18 @@ void FreeLookController::Update()
       Common::Quaternion::RotateXYZ(gyro_motion_rad_velocity_converted * dt);
 
   g_freelook_camera.Rotate(gyro_motion_quat);
+
+  if (m_pos_x.GetValue() != m_pos_last_x || m_pos_y.GetValue() != m_pos_last_y ||
+      m_pos_z.GetValue() != m_pos_last_z)
+  {
+    m_pos_last_x = m_pos_x.GetValue();
+    m_pos_last_y = m_pos_y.GetValue();
+    m_pos_last_z = m_pos_z.GetValue();
+    g_freelook_camera.SetPositionOffset(Common::Vec3{static_cast<float>(m_pos_x.GetValue()),
+                                                     static_cast<float>(m_pos_y.GetValue()),
+                                                     static_cast<float>(m_pos_z.GetValue())});
+  }
+
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
     g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed() * dt);
 
