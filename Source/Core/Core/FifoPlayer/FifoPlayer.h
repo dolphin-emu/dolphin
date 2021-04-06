@@ -134,6 +134,7 @@ private:
   void LoadXFMem16(u16 address, const u32* data);
 
   bool ShouldLoadBP(u8 address);
+  bool ShouldLoadXF(u8 address);
 
   static bool IsIdleSet();
   static bool IsHighWatermarkSet();

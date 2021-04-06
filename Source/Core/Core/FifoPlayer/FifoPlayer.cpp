@@ -491,7 +491,10 @@ void FifoPlayer::LoadRegisters()
 
   regs = m_File->GetXFRegs();
   for (int i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
-    LoadXFReg(i, regs[i]);
+  {
+    if (ShouldLoadXF(i))
+      LoadXFReg(i, regs[i]);
+  }
 }
 
 void FifoPlayer::LoadTextureMemory()
@@ -569,6 +572,16 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
   default:
     return true;
   }
+}
+
+bool FifoPlayer::ShouldLoadXF(u8 reg)
+{
+  // Ignore unknown addresses
+  u16 address = reg + 0x1000;
+  return !(address == XFMEM_UNKNOWN_1007 ||
+           (address >= XFMEM_UNKNOWN_GROUP_1_START && address <= XFMEM_UNKNOWN_GROUP_1_END) ||
+           (address >= XFMEM_UNKNOWN_GROUP_2_START && address <= XFMEM_UNKNOWN_GROUP_2_END) ||
+           (address >= XFMEM_UNKNOWN_GROUP_3_START && address <= XFMEM_UNKNOWN_GROUP_3_END));
 }
 
 bool FifoPlayer::IsIdleSet()

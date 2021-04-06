@@ -20,6 +20,13 @@ enum
   // TODO: However, Dolphin's implementation (in LoadCPReg) and YAGCD disagree about what values are
   // valid for the lower nybble.
 
+  // YAGCD mentions 0x20 as "?", and does not mention the others
+  // Libogc has 0x00 and 0x20, where 0x00 is tied to GX_ClearVCacheMetric and 0x20 related to
+  // cpPerfMode. 0x10 may be GX_SetVCacheMetric, but that function is empty. In any case, these all
+  // are probably for perf queries, and no title seems to actually need a full implementation.
+  UNKNOWN_00 = 0x00,
+  UNKNOWN_10 = 0x10,
+  UNKNOWN_20 = 0x20,
   // YAGCD says 0x30 only; LoadCPReg allows any
   MATINDEX_A = 0x30,
   // YAGCD says 0x40 only; LoadCPReg allows any
