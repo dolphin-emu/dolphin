@@ -109,7 +109,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   // they are not present. So ensure they exist and create them if they don't.
   const bool shop_logs_exist = [&] {
     const std::array<u8, 32> dummy_data{};
-    for (const std::string& path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
+    for (const std::string path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
     {
       constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
       if (fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, 0,
