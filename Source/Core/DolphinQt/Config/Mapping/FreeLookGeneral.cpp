@@ -20,14 +20,12 @@ void FreeLookGeneral::CreateMainLayout()
   auto* layout = new QGridLayout;
 
   layout->addWidget(
-      CreateGroupBox(tr("Move"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Move)), 0, 0);
-  layout->addWidget(
-      CreateGroupBox(tr("Speed"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Speed)), 0, 1);
+      CreateGroupBox(tr("Speed"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Speed)), 0, 0);
   layout->addWidget(CreateGroupBox(tr("Field of View"),
                                    FreeLook::GetInputGroup(GetPort(), FreeLookGroup::FieldOfView)),
-                    0, 2);
+                    0, 1);
   layout->addWidget(
-      CreateGroupBox(tr("Other"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Other)), 0, 3);
+      CreateGroupBox(tr("Other"), FreeLook::GetInputGroup(GetPort(), FreeLookGroup::Other)), 0, 2);
 
   setLayout(layout);
 }

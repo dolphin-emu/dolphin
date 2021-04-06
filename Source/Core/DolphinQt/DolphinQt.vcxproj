@@ -80,6 +80,7 @@
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\FreeLookPosition.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookRotation.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
@@ -255,6 +256,7 @@
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
+    <QtMoc Include="Config\Mapping\FreeLookPosition.h" />
     <QtMoc Include="Config\Mapping\FreeLookRotation.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
     <QtMoc Include="Config\Mapping\GCMicrophone.h" />
