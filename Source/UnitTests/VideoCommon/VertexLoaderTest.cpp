@@ -12,6 +12,7 @@
 
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
+#include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -148,7 +149,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
       -0x8000,
       -0x80,
       -1,
-      -0,
+      -0.0,
       0,
       1,
       123,
@@ -180,16 +181,16 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     switch (format)
     {
     case ComponentFormat::UByte:
-      Input((u8)value);
+      Input(MathUtil::SaturatingCast<u8>(value));
       break;
     case ComponentFormat::Byte:
-      Input((s8)value);
+      Input(MathUtil::SaturatingCast<s8>(value));
       break;
     case ComponentFormat::UShort:
-      Input((u16)value);
+      Input(MathUtil::SaturatingCast<u16>(value));
       break;
     case ComponentFormat::Short:
-      Input((s16)value);
+      Input(MathUtil::SaturatingCast<s16>(value));
       break;
     case ComponentFormat::Float:
       Input(value);
@@ -206,20 +207,20 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     switch (format)
     {
     case ComponentFormat::UByte:
-      f = (u8)*iter++;
-      g = (u8)*iter++;
+      f = MathUtil::SaturatingCast<u8>(*iter++);
+      g = MathUtil::SaturatingCast<u8>(*iter++);
       break;
     case ComponentFormat::Byte:
-      f = (s8)*iter++;
-      g = (s8)*iter++;
+      f = MathUtil::SaturatingCast<s8>(*iter++);
+      g = MathUtil::SaturatingCast<s8>(*iter++);
       break;
     case ComponentFormat::UShort:
-      f = (u16)*iter++;
-      g = (u16)*iter++;
+      f = MathUtil::SaturatingCast<u16>(*iter++);
+      g = MathUtil::SaturatingCast<u16>(*iter++);
       break;
     case ComponentFormat::Short:
-      f = (s16)*iter++;
-      g = (s16)*iter++;
+      f = MathUtil::SaturatingCast<s16>(*iter++);
+      g = MathUtil::SaturatingCast<s16>(*iter++);
       break;
     case ComponentFormat::Float:
       f = *iter++;
