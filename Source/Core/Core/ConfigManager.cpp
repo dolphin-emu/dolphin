@@ -33,6 +33,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/DefaultLocale.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
@@ -472,7 +473,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
   core->Get("EnableCheats", &bEnableCheats, false);
-  core->Get("SelectedLanguage", &SelectedLanguage, 0);
+  core->Get("SelectedLanguage", &SelectedLanguage,
+            DiscIO::ToGameCubeLanguage(Config::GetDefaultLanguage()));
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
   core->Get("AudioLatency", &iLatency, 20);
@@ -963,12 +965,11 @@ DiscIO::Region SConfig::GetFallbackRegion()
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
-  int language_value;
+  DiscIO::Language language;
   if (wii)
-    language_value = Config::Get(Config::SYSCONF_LANGUAGE);
+    language = static_cast<DiscIO::Language>(Config::Get(Config::SYSCONF_LANGUAGE));
   else
-    language_value = SConfig::GetInstance().SelectedLanguage + 1;
-  DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
+    language = DiscIO::FromGameCubeLanguage(SConfig::GetInstance().SelectedLanguage);
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
   if (language > DiscIO::Language::Unknown || language < DiscIO::Language::Japanese)

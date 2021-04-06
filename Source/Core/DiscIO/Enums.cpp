@@ -126,6 +126,22 @@ bool IsNTSC(Region region)
   return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
 }
 
+int ToGameCubeLanguage(Language language)
+{
+  if (language < Language::English || language > Language::Dutch)
+    return 0;
+  else
+    return static_cast<int>(language) - 1;
+}
+
+Language FromGameCubeLanguage(int language)
+{
+  if (language < 0 || language > 5)
+    return Language::Unknown;
+  else
+    return static_cast<Language>(language + 1);
+}
+
 // Increment CACHE_REVISION (GameFileCache.cpp) if the code below is modified
 
 Country TypicalCountryForRegion(Region region)

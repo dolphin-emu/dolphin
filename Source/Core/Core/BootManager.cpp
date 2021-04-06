@@ -393,9 +393,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
   if (!StartUp.bOverrideRegionSettings)
   {
-    const int gc_language =
-        static_cast<int>(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region));
-    StartUp.SelectedLanguage = gc_language - (gc_language > 0);
+    StartUp.SelectedLanguage =
+        DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region));
 
     if (StartUp.bWii)
     {

@@ -10,6 +10,8 @@
 #include <cstring>
 #include <signal.h>
 #include <string>
+#include <vector>
+
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -48,9 +50,15 @@ static void signal_handler(int)
   s_platform->RequestShutdown();
 }
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  return {};
+}
+
 void Host_NotifyMapLoaded()
 {
 }
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }

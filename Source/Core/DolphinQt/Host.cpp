@@ -6,6 +6,7 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
+#include <QLocale>
 
 #include <imgui.h>
 
@@ -93,6 +94,17 @@ void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
     g_renderer->ResizeSurface();
+}
+
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  const QStringList ui_languages = QLocale::system().uiLanguages();
+  std::vector<std::string> converted_languages(ui_languages.size());
+
+  for (int i = 0; i < ui_languages.size(); ++i)
+    converted_languages[i] = ui_languages[i].toStdString();
+
+  return converted_languages;
 }
 
 void Host_Message(HostMessageID id)

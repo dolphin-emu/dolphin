@@ -166,6 +166,7 @@
     <ClInclude Include="Core\BootManager.h" />
     <ClInclude Include="Core\CheatCodes.h" />
     <ClInclude Include="Core\CommonTitles.h" />
+    <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
@@ -737,6 +738,7 @@
     <ClCompile Include="Core\Boot\DolReader.cpp" />
     <ClCompile Include="Core\Boot\ElfReader.cpp" />
     <ClCompile Include="Core\BootManager.cpp" />
+    <ClCompile Include="Core\Config\DefaultLocale.cpp" />
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
     <ClCompile Include="Core\Config\MainSettings.cpp" />
