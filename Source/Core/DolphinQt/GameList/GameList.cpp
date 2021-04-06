@@ -145,33 +145,41 @@ void GameList::MakeListView()
   connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnSectionResized);
 
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
-    m_list->sortByColumn(GameListModel::COL_TITLE, Qt::AscendingOrder);
+    m_list->sortByColumn(static_cast<int>(GameListModel::Column::Title), Qt::AscendingOrder);
 
-  hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_FILE_PATH, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_FILE_FORMAT, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_BLOCK_SIZE, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_COMPRESSION, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_TAGS, QHeaderView::Interactive);
+  const auto SetResizeMode = [&hor_header](const GameListModel::Column column,
+                                           const QHeaderView::ResizeMode mode) {
+    hor_header->setSectionResizeMode(static_cast<int>(column), mode);
+  };
+  {
+    using Column = GameListModel::Column;
+    using Mode = QHeaderView::ResizeMode;
+    SetResizeMode(Column::Platform, Mode::Fixed);
+    SetResizeMode(Column::Banner, Mode::Fixed);
+    SetResizeMode(Column::Title, Mode::Interactive);
+    SetResizeMode(Column::Description, Mode::Interactive);
+    SetResizeMode(Column::Maker, Mode::Interactive);
+    SetResizeMode(Column::ID, Mode::Fixed);
+    SetResizeMode(Column::Country, Mode::Fixed);
+    SetResizeMode(Column::Size, Mode::Fixed);
+    SetResizeMode(Column::FileName, Mode::Interactive);
+    SetResizeMode(Column::FilePath, Mode::Interactive);
+    SetResizeMode(Column::FileFormat, Mode::Fixed);
+    SetResizeMode(Column::BlockSize, Mode::Fixed);
+    SetResizeMode(Column::Compression, Mode::Fixed);
+    SetResizeMode(Column::Tags, Mode::Interactive);
+
+    // Cells have 3 pixels of padding, so the width of these needs to be image width + 6. Banners
+    // are 96 pixels wide, platform and country icons are 32 pixels wide.
+    m_list->setColumnWidth(static_cast<int>(Column::Banner), 102);
+    m_list->setColumnWidth(static_cast<int>(Column::Platform), 38);
+    m_list->setColumnWidth(static_cast<int>(Column::Country), 38);
+    m_list->setColumnWidth(static_cast<int>(Column::Size), 85);
+    m_list->setColumnWidth(static_cast<int>(Column::ID), 70);
+  }
 
   // There's some odd platform-specific behavior with default minimum section size
   hor_header->setMinimumSectionSize(38);
-
-  // Cells have 3 pixels of padding, so the width of these needs to be image width + 6. Banners are
-  // 96 pixels wide, platform and country icons are 32 pixels wide.
-  m_list->setColumnWidth(GameListModel::COL_BANNER, 102);
-  m_list->setColumnWidth(GameListModel::COL_PLATFORM, 38);
-  m_list->setColumnWidth(GameListModel::COL_COUNTRY, 38);
-  m_list->setColumnWidth(GameListModel::COL_SIZE, 85);
-  m_list->setColumnWidth(GameListModel::COL_ID, 70);
 
   UpdateColumnVisibility();
 
@@ -192,26 +200,26 @@ GameList::~GameList()
 
 void GameList::UpdateColumnVisibility()
 {
-  m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
-  m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
-  m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
-  m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
-                          !SConfig::GetInstance().m_showDescriptionColumn);
-  m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
-  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
-  m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
-  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
-  m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
-                          !SConfig::GetInstance().m_showFileNameColumn);
-  m_list->setColumnHidden(GameListModel::COL_FILE_PATH,
-                          !SConfig::GetInstance().m_showFilePathColumn);
-  m_list->setColumnHidden(GameListModel::COL_FILE_FORMAT,
-                          !SConfig::GetInstance().m_showFileFormatColumn);
-  m_list->setColumnHidden(GameListModel::COL_BLOCK_SIZE,
-                          !SConfig::GetInstance().m_showBlockSizeColumn);
-  m_list->setColumnHidden(GameListModel::COL_COMPRESSION,
-                          !SConfig::GetInstance().m_showCompressionColumn);
-  m_list->setColumnHidden(GameListModel::COL_TAGS, !SConfig::GetInstance().m_showTagsColumn);
+  const auto& config = SConfig::GetInstance();
+  const auto SetVisiblity = [this](const GameListModel::Column column, const bool is_visible) {
+    m_list->setColumnHidden(static_cast<int>(column), !is_visible);
+  };
+
+  using Column = GameListModel::Column;
+  SetVisiblity(Column::Platform, config.m_showSystemColumn);
+  SetVisiblity(Column::Banner, config.m_showBannerColumn);
+  SetVisiblity(Column::Title, config.m_showTitleColumn);
+  SetVisiblity(Column::Description, config.m_showDescriptionColumn);
+  SetVisiblity(Column::Maker, config.m_showMakerColumn);
+  SetVisiblity(Column::ID, config.m_showIDColumn);
+  SetVisiblity(Column::Country, config.m_showRegionColumn);
+  SetVisiblity(Column::Size, config.m_showSizeColumn);
+  SetVisiblity(Column::FileName, config.m_showFileNameColumn);
+  SetVisiblity(Column::FilePath, config.m_showFilePathColumn);
+  SetVisiblity(Column::FileFormat, config.m_showFileFormatColumn);
+  SetVisiblity(Column::BlockSize, config.m_showBlockSizeColumn);
+  SetVisiblity(Column::Compression, config.m_showCompressionColumn);
+  SetVisiblity(Column::Tags, config.m_showTagsColumn);
 }
 
 void GameList::MakeEmptyView()
@@ -881,23 +889,25 @@ void GameList::keyPressEvent(QKeyEvent* event)
 
 void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
 {
-  static const QMap<QString, int> rowname_to_col_index = {
-      {tr("Platform"), GameListModel::COL_PLATFORM},
-      {tr("Banner"), GameListModel::COL_BANNER},
-      {tr("Title"), GameListModel::COL_TITLE},
-      {tr("Description"), GameListModel::COL_DESCRIPTION},
-      {tr("Maker"), GameListModel::COL_MAKER},
-      {tr("File Name"), GameListModel::COL_FILE_NAME},
-      {tr("File Path"), GameListModel::COL_FILE_PATH},
-      {tr("Game ID"), GameListModel::COL_ID},
-      {tr("Region"), GameListModel::COL_COUNTRY},
-      {tr("File Size"), GameListModel::COL_SIZE},
-      {tr("File Format"), GameListModel::COL_FILE_FORMAT},
-      {tr("Block Size"), GameListModel::COL_BLOCK_SIZE},
-      {tr("Compression"), GameListModel::COL_COMPRESSION},
-      {tr("Tags"), GameListModel::COL_TAGS}};
+  using Column = GameListModel::Column;
+  static const QMap<QString, Column> rowname_to_column = {
+      {tr("Platform"), Column::Platform},
+      {tr("Banner"), Column::Banner},
+      {tr("Title"), Column::Title},
+      {tr("Description"), Column::Description},
+      {tr("Maker"), Column::Maker},
+      {tr("File Name"), Column::FileName},
+      {tr("File Path"), Column::FilePath},
+      {tr("Game ID"), Column::ID},
+      {tr("Region"), Column::Country},
+      {tr("File Size"), Column::Size},
+      {tr("File Format"), Column::FileFormat},
+      {tr("Block Size"), Column::BlockSize},
+      {tr("Compression"), Column::Compression},
+      {tr("Tags"), Column::Tags},
+  };
 
-  m_list->setColumnHidden(rowname_to_col_index[row], !visible);
+  m_list->setColumnHidden(static_cast<int>(rowname_to_column[row]), !visible);
 }
 
 void GameList::OnGameListVisibilityChanged()
@@ -973,7 +983,7 @@ void GameList::OnHeaderViewChanged()
   std::vector<int> candidate_columns;
 
   // Iterate through all columns
-  for (int i = 0; i < GameListModel::NUM_COLS; i++)
+  for (int i = 0; i < static_cast<int>(GameListModel::Column::Count); i++)
   {
     if (m_list->isColumnHidden(i))
       continue;
