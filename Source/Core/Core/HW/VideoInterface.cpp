@@ -763,7 +763,7 @@ static void BeginField(FieldType field, u64 ticks)
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
   bool potentially_interlaced_xfb =
-      m_PictureConfiguration.WPL != 0 &&
+      m_PictureConfiguration.WPL &&
       ((m_PictureConfiguration.STD / m_PictureConfiguration.WPL) == 2);
   // Are there an odd number of half-lines per field (definition of interlaced video)
   bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
