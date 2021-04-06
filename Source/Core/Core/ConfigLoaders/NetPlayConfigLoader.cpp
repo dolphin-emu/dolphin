@@ -67,6 +67,7 @@ public:
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.m_PerfQueriesEnable);
     layer->Set(Config::MAIN_FPRF, m_settings.m_FPRF);
     layer->Set(Config::MAIN_ACCURATE_NANS, m_settings.m_AccurateNaNs);
+    layer->Set(Config::MAIN_DISABLE_ICACHE, m_settings.m_DisableICache);
     layer->Set(Config::MAIN_SYNC_ON_SKIP_IDLE, m_settings.m_SyncOnSkipIdle);
     layer->Set(Config::MAIN_SYNC_GPU, m_settings.m_SyncGPU);
     layer->Set(Config::MAIN_SYNC_GPU_MAX_DISTANCE, m_settings.m_SyncGpuMaxDistance);

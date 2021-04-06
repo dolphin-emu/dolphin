@@ -485,6 +485,7 @@ void NetPlayDialog::OnStart()
   settings.m_PerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
   settings.m_FPRF = Config::Get(Config::MAIN_FPRF);
   settings.m_AccurateNaNs = Config::Get(Config::MAIN_ACCURATE_NANS);
+  settings.m_DisableICache = Config::Get(Config::MAIN_DISABLE_ICACHE);
   settings.m_SyncOnSkipIdle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
   settings.m_SyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
   settings.m_SyncGpuMaxDistance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
