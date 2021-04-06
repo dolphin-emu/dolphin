@@ -456,6 +456,10 @@ void FifoPlayer::LoadMemory()
   LoadRegisters();
   LoadTextureMemory();
   FlushWGP();
+
+  // Exclude the initial register setup from frame timing
+  PowerPC::ppcState.downcount = 0;
+  CoreTiming::Advance();
 }
 
 void FifoPlayer::LoadRegisters()
