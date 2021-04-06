@@ -27,6 +27,26 @@ void write32(u32 var, u32 addr);
 void write64(u64 var, u32 addr);
 void writef32(float var, u32 addr);
 
+constexpr u32 kBranchOffsetMask = 0x3fffffc;
+constexpr u32 gen_branch(const u32 src, const u32 dst) { return 0x48000000 | (((dst) - (src)) & kBranchOffsetMask); }
+constexpr u32 gen_branch_link(const u32 src, const u32 dst) { return gen_branch(src, dst) | (u32{1}); }
+constexpr u32 gen_lis(const u32 dst_gpr, const u16 val) {
+  return (0b001111 << 26) | (dst_gpr << 21) | (0 << 16) | val;
+}
+constexpr u32 gen_ori(const u32 dst_gpr, const u32 src_gpr, const u16 val) {
+  return (0b011000 << 26) | (dst_gpr << 21) | (src_gpr << 16) | val;
+}
+constexpr u32 get_branch_offset(u32 instr) {
+  u32 offset_masked = instr & kBranchOffsetMask;
+  if (offset_masked & 0x2000000) {
+    offset_masked |= 0xfc000000;
+  }
+  return offset_masked;
+}
+constexpr u32 gen_vmcall(const u32 call_idx, const u32 param) {
+  return (0b010011 << 26) | ((call_idx & 0x3ff) << 16) | ((param & 0x1f) << 11) | ((0b0000110011) << 1) | (0b0);
+}
+
 constexpr float kTurnrateRatio = 0.00498665500569808449206349206349f;
 
 int get_beam_switch(std::array<int, 4> const& beams);

@@ -132,6 +132,9 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_3, "angular_momentum", "player", {mrt1(0x174)});
   addr_db.register_dynamic_address(Game::PRIME_3, "ball_state", "player", {mrt1(0x358)});
   addr_db.register_dynamic_address(Game::PRIME_3, "lockon_type", "player", {mrt1(0x370)});
+  addr_db.register_dynamic_address(Game::PRIME_3, "audio_manager", "state_manager", {mrt1(0x250), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_3, "audio_fadein_time", "audio_manager", {mrt1(0x308)});
+  addr_db.register_dynamic_address(Game::PRIME_3, "audio_fade_mode", "audio_manager", {mrt1(0x310)});
 
   addr_db.register_address(Game::PRIME_3_STANDALONE, "state_manager", 0x805c4f98, 0x805c7598, 0x805caa58); // +0x1010 object list
   addr_db.register_address(Game::PRIME_3_STANDALONE, "tweakgun", 0x8067d78c, 0x8067fdb4, 0x806835fc);
@@ -158,5 +161,8 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "angular_momentum", "player", {mrt1(0x174)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "ball_state", "player", {mrt1(0x358)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "lockon_type", "player", {mrt1(0x370)});
+  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "audio_manager", "state_manager", {mrt1(0x250), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "audio_fadein_time", "audio_manager", {mrt1(0x308)});
+  addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "audio_fade_mode", "audio_manager", {mrt1(0x310)});
 }
 }

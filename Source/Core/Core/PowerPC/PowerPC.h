@@ -197,7 +197,9 @@ void Reset();
 void Shutdown();
 void DoState(PointerWrap& p);
 void ScheduleInvalidateCacheThreadSafe(u32 address);
-void RegisterVmcall(int index, vm_call pfn);
+void RegisterVmcallWithIndex(int index, vm_call pfn);
+int RegisterVmcall(vm_call pfn);
+void VmcallDefaultFn(u32 param);
 
 CoreMode GetMode();
 // [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or Core::State::Uninitialized

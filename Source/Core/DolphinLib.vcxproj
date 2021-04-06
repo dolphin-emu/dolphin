@@ -41,6 +41,7 @@
     <ClCompile Include="Core\PrimeHack\Mods\AutoEFB.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\ContextSensitiveControls.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\CutBeamFxMP1.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\DisableHudMemoPopup.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\FpsControls.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\Noclip.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\PortalSkipMP2.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="Core\PrimeHack\Mods\ContextSensitiveControls.h" />
     <ClInclude Include="Core\PrimeHack\Mods\CutBeamFxMP1.h" />
     <ClInclude Include="Core\PrimeHack\Mods\DisableBloom.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\DisableHudMemoPopup.h" />
     <ClInclude Include="Core\PrimeHack\Mods\FpsControls.h" />
     <ClInclude Include="Core\PrimeHack\Mods\FriendVouchers.h" />
     <ClInclude Include="Core\PrimeHack\Mods\Invulnerability.h" />

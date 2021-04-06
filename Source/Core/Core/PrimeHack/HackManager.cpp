@@ -174,6 +174,7 @@ void HackManager::update_mod_states() {
     set_mod_enabled("restore_dashing", GetRestoreDashing());
     set_mod_enabled("friend_vouchers_cheat", settings.bPrimeFriendVouchers);
     set_mod_enabled("portal_skip_mp2", settings.bPrimePortalSkip);
+    set_mod_enabled("disable_hudmemo_popup", settings.bDisableHudMemoPopup);
   }
   else {
     disable_mod("noclip");

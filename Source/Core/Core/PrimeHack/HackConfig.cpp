@@ -21,6 +21,7 @@
 #include "Core/PrimeHack/Mods/ContextSensitiveControls.h"
 #include "Core/PrimeHack/Mods/FriendVouchers.h"
 #include "Core/PrimeHack/Mods/PortalSkipMP2.h"
+#include "Core/PrimeHack/Mods/DisableHudMemoPopup.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -69,6 +70,7 @@ void InitializeHack() {
   hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
   hack_mgr.add_mod("portal_skip_mp2", std::make_unique<PortalSkipMP2>());
   hack_mgr.add_mod("friend_vouchers_cheat", std::make_unique<FriendVouchers>());
+  hack_mgr.add_mod("disable_hudmemo_popup", std::make_unique<DisableHudMemoPopup>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
