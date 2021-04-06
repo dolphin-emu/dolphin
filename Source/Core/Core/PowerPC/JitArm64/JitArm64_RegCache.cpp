@@ -24,6 +24,12 @@ void Arm64RegCache::Init(ARM64XEmitter* emitter)
   GetAllocationOrder();
 }
 
+void Arm64RegCache::DiscardRegisters(BitSet32 regs)
+{
+  for (int j : regs)
+    DiscardRegister(j);
+}
+
 ARM64Reg Arm64RegCache::GetReg()
 {
   // If we have no registers left, dump the most stale register first
@@ -96,8 +102,8 @@ void Arm64RegCache::FlushMostStaleRegister()
     const auto& reg = m_guest_registers[i];
     const u32 last_used = reg.GetLastUsed();
 
-    if (last_used > most_stale_amount &&
-        (reg.GetType() != RegType::NotLoaded && reg.GetType() != RegType::Immediate))
+    if (last_used > most_stale_amount && reg.GetType() != RegType::NotLoaded &&
+        reg.GetType() != RegType::Discarded && reg.GetType() != RegType::Immediate)
     {
       most_stale_preg = i;
       most_stale_amount = last_used;
@@ -105,6 +111,16 @@ void Arm64RegCache::FlushMostStaleRegister()
   }
 
   FlushRegister(most_stale_preg, false);
+}
+
+void Arm64RegCache::DiscardRegister(size_t preg)
+{
+  OpArg& reg = m_guest_registers[preg];
+  ARM64Reg host_reg = reg.GetReg();
+
+  reg.Discard();
+  if (host_reg != ARM64Reg::INVALID_REG)
+    UnlockRegister(host_reg);
 }
 
 // GPR Cache
@@ -284,6 +300,9 @@ ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)
     return host_reg;
   }
   break;
+  case RegType::Discarded:
+    ASSERT_MSG(DYNA_REC, false, "Attempted to read discarded register");
+    break;
   case RegType::NotLoaded:  // Register isn't loaded at /all/
   {
     // This is a bit annoying. We try to keep these preloaded as much as possible
@@ -318,14 +337,18 @@ void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load)
   const size_t bitsize = guest_reg.bitsize;
 
   reg.ResetLastUsed();
-
   reg.SetDirty(true);
-  if (reg.GetType() == RegType::NotLoaded)
+
+  const RegType reg_type = reg.GetType();
+  if (reg_type == RegType::NotLoaded || reg_type == RegType::Discarded)
   {
     const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     reg.Load(host_reg);
     if (do_load)
+    {
+      ASSERT_MSG(DYNA_REC, reg_type != RegType::Discarded, "Attempted to load a discarded value");
       m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
+    }
   }
 }
 
@@ -407,10 +430,9 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
   {
     const RegType reg_type = m_guest_registers[i].GetType();
 
-    if (reg_type != RegType::NotLoaded && reg_type != RegType::Immediate)
+    if (reg_type != RegType::NotLoaded && reg_type != RegType::Discarded &&
+        reg_type != RegType::Immediate)
     {
-      // XXX: Determine if we can keep a register in the lower 64bits
-      // Which will allow it to be callee saved.
       FlushRegister(i, mode == FlushMode::MaintainState);
     }
   }
@@ -497,6 +519,9 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     }
     return host_reg;
   }
+  case RegType::Discarded:
+    ASSERT_MSG(DYNA_REC, false, "Attempted to read discarded register");
+    break;
   case RegType::NotLoaded:  // Register isn't loaded at /all/
   {
     host_reg = GetReg();
@@ -536,7 +561,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
   reg.SetDirty(true);
 
   // If not loaded at all, just alloc a new one.
-  if (reg.GetType() == RegType::NotLoaded)
+  if (reg.GetType() == RegType::NotLoaded || reg.GetType() == RegType::Discarded)
   {
     reg.Load(GetReg(), type);
     return reg.GetReg();
@@ -637,8 +662,8 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
     const OpArg& reg = m_guest_registers[i];
     const RegType reg_type = reg.GetType();
 
-    if ((reg_type != RegType::NotLoaded && reg_type != RegType::Immediate) &&
-        reg.GetReg() == host_reg)
+    if (reg_type != RegType::NotLoaded && reg_type != RegType::Discarded &&
+        reg_type != RegType::Immediate && reg.GetReg() == host_reg)
     {
       FlushRegister(i, false);
       return;
