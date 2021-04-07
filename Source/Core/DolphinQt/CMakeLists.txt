@@ -20,6 +20,8 @@ add_executable(dolphin-emu
   CheatsManager.h
   ConvertDialog.cpp
   ConvertDialog.h
+	CVarsWindow.cpp
+	CVarsWindow.h
   DiscordHandler.cpp
   DiscordHandler.h
   DiscordJoinRequestDialog.cpp
