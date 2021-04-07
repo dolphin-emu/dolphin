@@ -44,7 +44,7 @@ public:
   Common::Matrix44 GetView() override
   {
     return Common::Matrix44::FromQuaternion(m_rotate_quat) *
-           Common::Matrix44::Translate(m_position);
+           Common::Matrix44::Translate(m_position + m_offset);
   }
 
   void MoveVertical(float amt) override
@@ -61,6 +61,8 @@ public:
   {
     m_position += m_rotate_quat.Conjugate() * Common::Vec3{0, 0, amt};
   }
+
+  void SetPositionOffset(const Common::Vec3& offset) override { m_offset = offset; }
 
   void Rotate(const Common::Vec3& amt) override { Rotate(Common::Quaternion::RotateXYZ(amt)); }
 
@@ -79,11 +81,13 @@ public:
   {
     p.Do(m_rotate_quat);
     p.Do(m_position);
+    p.Do(m_offset);
   }
 
 private:
   Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
   Common::Vec3 m_position = Common::Vec3{};
+  Common::Vec3 m_offset = Common::Vec3{};
 };
 
 class FPSController final : public CameraController
@@ -92,7 +96,7 @@ public:
   Common::Matrix44 GetView() override
   {
     return Common::Matrix44::FromQuaternion(m_rotate_quat) *
-           Common::Matrix44::Translate(m_position);
+           Common::Matrix44::Translate(m_position + m_offset);
   }
 
   void MoveVertical(float amt) override
@@ -112,6 +116,8 @@ public:
     const Common::Vec3 forward = m_rotate_quat.Conjugate() * Common::Vec3{0, 0, 1};
     m_position += forward * amt;
   }
+
+  void SetPositionOffset(const Common::Vec3& offset) override { m_offset = offset; }
 
   void Rotate(const Common::Vec3& amt) override
   {
@@ -142,12 +148,14 @@ public:
     p.Do(m_rotation);
     p.Do(m_rotate_quat);
     p.Do(m_position);
+    p.Do(m_offset);
   }
 
 private:
   Common::Vec3 m_rotation = Common::Vec3{};
   Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
   Common::Vec3 m_position = Common::Vec3{};
+  Common::Vec3 m_offset = Common::Vec3{};
 };
 
 class OrbitalController final : public CameraController
@@ -156,7 +164,8 @@ public:
   Common::Matrix44 GetView() override
   {
     return Common::Matrix44::Translate(Common::Vec3{0, 0, -m_distance}) *
-           Common::Matrix44::FromQuaternion(m_rotate_quat);
+           Common::Matrix44::FromQuaternion(m_rotate_quat) *
+           Common::Matrix44::Translate(m_focal_point);
   }
 
   void MoveVertical(float) override {}
@@ -168,6 +177,8 @@ public:
     m_distance += -1 * amt;
     m_distance = std::clamp(m_distance, 0.0f, m_distance);
   }
+
+  void SetPositionOffset(const Common::Vec3& offset) override { m_focal_point = offset; }
 
   void Rotate(const Common::Vec3& amt) override
   {
@@ -191,6 +202,7 @@ public:
     m_rotation = Common::Vec3{};
     m_rotate_quat = Common::Quaternion::Identity();
     m_distance = 0;
+    m_focal_point = Common::Vec3{};
   }
 
   void DoState(PointerWrap& p) override
@@ -198,12 +210,14 @@ public:
     p.Do(m_rotation);
     p.Do(m_rotate_quat);
     p.Do(m_distance);
+    p.Do(m_focal_point);
   }
 
 private:
   float m_distance = 0;
   Common::Vec3 m_rotation = Common::Vec3{};
   Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
+  Common::Vec3 m_focal_point = Common::Vec3{};
 };
 }  // namespace
 
@@ -260,6 +274,12 @@ void FreeLookCamera::MoveHorizontal(float amt)
 void FreeLookCamera::MoveForward(float amt)
 {
   m_camera_controller->MoveForward(amt);
+  m_dirty = true;
+}
+
+void FreeLookCamera::SetPositionOffset(const Common::Vec3& offset)
+{
+  m_camera_controller->SetPositionOffset(offset);
   m_dirty = true;
 }
 

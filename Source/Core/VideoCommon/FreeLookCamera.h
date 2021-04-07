@@ -28,8 +28,8 @@ public:
 
   virtual void MoveVertical(float amt) = 0;
   virtual void MoveHorizontal(float amt) = 0;
-
   virtual void MoveForward(float amt) = 0;
+  virtual void SetPositionOffset(const Common::Vec3& offset) = 0;
 
   virtual void Rotate(const Common::Vec3& amt) = 0;
   virtual void Rotate(const Common::Quaternion& quat) = 0;
@@ -50,6 +50,7 @@ public:
   void MoveVertical(float amt);
   void MoveHorizontal(float amt);
   void MoveForward(float amt);
+  void SetPositionOffset(const Common::Vec3& offset);
 
   void Rotate(const Common::Vec3& amt);
   void Rotate(const Common::Quaternion& amt);
