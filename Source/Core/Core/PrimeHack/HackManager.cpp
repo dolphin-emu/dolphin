@@ -139,11 +139,11 @@ void HackManager::run_active_mods() {
       if (!mod.second->is_initialized()) {
         bool was_init = mod.second->init_mod(active_game, active_region);
         if (was_init) {
-          mod.second->save_original_instructions();
           mod.second->mark_initialized();
         }
       }
       if (mod.second->should_apply_changes()) {
+        mod.second->update_original_instructions();
         mod.second->apply_instruction_changes();
       }
     }

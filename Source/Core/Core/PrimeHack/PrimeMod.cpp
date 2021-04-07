@@ -58,8 +58,10 @@ void PrimeMod::set_code_group_state(const std::string& group_name, ModState new_
 void PrimeMod::reset_mod() {
   code_changes.clear();
   original_instructions.clear();
+  pending_change_backups.clear();
   current_active_changes.clear();
   initialized = false;
+  on_reset();
 }
 
 void PrimeMod::set_state(ModState new_state) {
@@ -68,19 +70,13 @@ void PrimeMod::set_state(ModState new_state) {
   on_state_change(original);
 }
 
-void PrimeMod::save_original_instructions() {
-  for (CodeChange const& change : code_changes) {
-    original_instructions.emplace_back(change.address,
-      PowerPC::HostRead_Instruction(change.address));
-  }
-}
-
 void PrimeMod::add_code_change(u32 addr, u32 code, std::string_view group) {
   if (group != "") {
     group_change& cg = code_groups[std::string(group)];
     std::get<0>(cg).push_back(code_changes.size());
     std::get<1>(cg) = ModState::ENABLED;
   }
+  pending_change_backups.emplace_back(addr);
   code_changes.emplace_back(addr, code);
   current_active_changes.emplace_back(addr, code);
 }
@@ -90,9 +86,11 @@ void PrimeMod::set_code_change(u32 address, u32 var) {
   current_active_changes[address].var = var;
 }
 
-void PrimeMod::update_active_changes() {
-  current_active_changes.resize(code_changes.size());
-  std::copy(code_changes.begin(), code_changes.end(), current_active_changes.begin());
+void PrimeMod::update_original_instructions() {
+  for (u32 addr : pending_change_backups) {
+    original_instructions.emplace_back(addr, PowerPC::HostRead_Instruction(addr));
+  }
+  pending_change_backups.clear();
 }
 
 u32 PrimeMod::lookup_address(std::string_view name) {

@@ -81,4 +81,13 @@ std::tuple<bool, bool> GetMenuOptions();
 HackManager *GetHackManager();
 AddressDB *GetAddressDB();
 EmuVariableManager *GetVariableManager();
+
+bool ModPending();
+void ClearPendingModfile();
+std::string GetPendingModfile();
+void SetPendingModfile(std::string const& path);
+
+bool ModSuspended();
+void SuspendMod();
+void ResumeMod();
 }

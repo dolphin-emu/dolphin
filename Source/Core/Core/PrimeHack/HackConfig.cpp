@@ -22,6 +22,7 @@
 #include "Core/PrimeHack/Mods/FriendVouchers.h"
 #include "Core/PrimeHack/Mods/PortalSkipMP2.h"
 #include "Core/PrimeHack/Mods/DisableHudMemoPopup.h"
+#include "Core/PrimeHack/Mods/ElfModLoader.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -48,6 +49,9 @@ EmuVariableManager var_mgr;
 bool is_running = false;
 CameraLock lock_camera = CameraLock::Unlocked;
 bool reticle_lock = false;
+
+std::string pending_modfile = "";
+bool mod_suspended = false;
 }
 
 void InitializeHack() {
@@ -71,6 +75,7 @@ void InitializeHack() {
   hack_mgr.add_mod("portal_skip_mp2", std::make_unique<PortalSkipMP2>());
   hack_mgr.add_mod("friend_vouchers_cheat", std::make_unique<FriendVouchers>());
   hack_mgr.add_mod("disable_hudmemo_popup", std::make_unique<DisableHudMemoPopup>());
+  hack_mgr.add_mod("elf_mod_loader", std::make_unique<ElfModLoader>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
@@ -83,6 +88,7 @@ void InitializeHack() {
   hack_mgr.enable_mod("fps_controls");
   hack_mgr.enable_mod("springball_button");
   hack_mgr.enable_mod("context_sensitive_controls");
+  hack_mgr.enable_mod("elf_mod_loader");
 }
 
 bool CheckBeamCtl(int beam_num) {
@@ -343,5 +349,33 @@ EmuVariableManager* GetVariableManager() {
 
 HackManager* GetHackManager() {
   return &hack_mgr;
+}
+
+bool ModPending() {
+  return !pending_modfile.empty();
+}
+
+void ClearPendingModfile() {
+  pending_modfile.clear();
+}
+
+std::string GetPendingModfile() {
+  return pending_modfile;
+}
+
+void SetPendingModfile(std::string const& path) {
+  pending_modfile = path;
+}
+
+bool ModSuspended() {
+  return mod_suspended;
+}
+
+void SuspendMod() {
+  mod_suspended = true;
+}
+
+void ResumeMod() {
+  mod_suspended = false;
 }
 }  // namespace prime

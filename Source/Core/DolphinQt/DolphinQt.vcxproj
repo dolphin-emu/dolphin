@@ -129,6 +129,7 @@
     <ClCompile Include="Config\VerifyWidget.cpp" />
     <ClCompile Include="Config\WiimoteControllersWidget.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
+    <ClCompile Include="CVarsWindow.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
@@ -296,6 +297,7 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
+    <QtMoc Include="CVarsWindow.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipCheckBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipComboBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipRadioButton.h" />
