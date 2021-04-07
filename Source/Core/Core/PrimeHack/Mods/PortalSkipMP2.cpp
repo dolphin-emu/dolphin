@@ -3,8 +3,6 @@
 #include "Core/PrimeHack/PrimeUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#pragma optimize("", off)
-
 namespace prime {
 namespace {
 constexpr u32 kAgonWorldId = 0x42b935e4;

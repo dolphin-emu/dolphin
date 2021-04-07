@@ -10,7 +10,7 @@
 #include <fstream>
 #include <regex>
 #include <vector>
-#pragma optimize("", off)
+
 namespace prime {
 namespace {
 using Symbol = Common::Symbol;
@@ -226,6 +226,76 @@ CVar* ElfModLoader::get_cvar(std::string const& name) {
     return nullptr;
   }
   return &result->second;
+}
+
+void ElfModLoader::load_presets(std::string const& path) {
+  std::ifstream preset_file(path);
+
+  if (!preset_file.is_open()) {
+    // TODO: log error to user (log & OSD)
+    return;
+  }
+
+  while (!preset_file.eof()) {
+    std::string line;
+    std::getline(preset_file, line);
+
+    std::regex rx("^\\s*(\\w+)\\s*=\\s*(.*)$");
+    std::smatch matches;
+    if (std::regex_match(line, matches, rx)) {
+      if (matches.size() < 3) {
+        continue;
+      }
+
+      std::string var_name = matches[1];
+      std::string var_val = matches[2];
+      auto var_it = cvar_map.find(var_name);
+      if (var_it == cvar_map.end()) {
+        continue;
+      }
+
+      const u32 var_addr = var_it->second.addr;
+      switch (var_it->second.type) {
+      case CVarType::BOOLEAN:
+        if (var_val == "true") {
+          write8(true, var_addr);
+        } else if (var_val == "false") {
+          write8(false, var_addr);
+        }
+        break;
+      case CVarType::INT8: {
+          u8 val = static_cast<u8>(strtoul(var_val.c_str(), nullptr, 10));
+          write8(val, var_addr);
+        }
+        break;
+      case CVarType::INT16: {
+          u16 val = static_cast<u16>(strtoul(var_val.c_str(), nullptr, 10));
+          write16(val, var_addr);
+        }
+        break;
+      case CVarType::INT32: {
+          u32 val = strtoul(var_val.c_str(), nullptr, 10);
+          write32(val, var_addr);
+        }
+        break;
+      case CVarType::INT64: {
+          u64 val = strtoull(var_val.c_str(), nullptr, 10);
+          write64(val, var_addr);
+        }
+        break;
+      case CVarType::FLOAT32: {
+          float val = strtof(var_val.c_str(), nullptr);
+          writef32(val, var_addr);
+        }
+        break;
+      case CVarType::FLOAT64: {
+          double val = strtod(var_val.c_str(), nullptr);
+          write64(val, *reinterpret_cast<u64*>(&val));
+        }
+        break;
+      }
+    }
+  }
 }
 
 std::optional<CodeChange> ElfModLoader::parse_code(std::string const& str) {

@@ -28,6 +28,7 @@ public:
   bool write_cvar(std::string const& name, void* data);
   bool get_cvar_val(std::string const& name, void* data_out, size_t out_sz);
   CVar* get_cvar(std::string const& name);
+  void load_presets(std::string const& path);
 
 private:
   enum class LoadState {

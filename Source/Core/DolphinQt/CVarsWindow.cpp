@@ -8,6 +8,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QDialogButtonBox>
+#include <QMenuBar>
+#include <QFileDialog>
 
 CVarListModel::CVarListModel(QObject* parent) : QAbstractTableModel(parent) {
   load_cvars();
@@ -142,6 +144,7 @@ void CVarListModel::load_cvars() {
 
 CVarsWindow::CVarsWindow(QWidget* parent) : QDialog(parent), list_model(this) {
   setWindowTitle(tr("CVars"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   cvar_list = new QTableView(this);
   cvar_list->setModel(&list_model);
@@ -168,8 +171,14 @@ CVarsWindow::CVarsWindow(QWidget* parent) : QDialog(parent), list_model(this) {
   cvar_list->setSizeAdjustPolicy(QAbstractScrollArea::AdjustIgnored);
   cvar_list->setMinimumSize(QSize(min_width, 300));
 
+  QMenuBar* menu_bar = new QMenuBar(this);
+  auto* file_menu = menu_bar->addMenu(tr("File"));
+  file_menu->addAction(tr("Load CVar Presets"), this, &CVarsWindow::load_presets);
+  file_menu->addAction(tr("Save CVar Presets"), this, &CVarsWindow::save_presets);
+
   QVBoxLayout* vbox_layout = new QVBoxLayout(this);
   vbox_layout->addWidget(cvar_list);
+  vbox_layout->setMenuBar(menu_bar);
 
   setLayout(vbox_layout);
   layout()->setSizeConstraint(QLayout::SetFixedSize);
@@ -177,7 +186,65 @@ CVarsWindow::CVarsWindow(QWidget* parent) : QDialog(parent), list_model(this) {
   connect(cvar_list, &QTableView::doubleClicked, this, &CVarsWindow::CVarClicked);
 }
 
+void CVarsWindow::save_presets() {
+  QString path = QFileDialog::getSaveFileName(this, tr("Save CVar Configuration to File"), QString(),
+                                              tr("CFG file (*.cfg);; All Files (*)"));
+
+  std::ofstream file_out(path.toStdString(), std::ios::trunc);
+  if (!file_out.is_open()) {
+    return;
+  }
+
+  for (auto const* var : list_model.get_var_list()) {
+    std::ostringstream line;
+    line << var->name << "=";
+    switch (var->type) {
+    case prime::CVarType::BOOLEAN:
+      line << (prime::read8(var->addr) ? "true" : "false");
+      break;
+    case prime::CVarType::INT8:
+      line << prime::read8(var->addr);
+      break;
+    case prime::CVarType::INT16:
+      line << prime::read16(var->addr);
+      break;
+    case prime::CVarType::INT32:
+      line << prime::read32(var->addr);
+      break;
+    case prime::CVarType::INT64:
+      line << prime::read64(var->addr);
+      break;
+    case prime::CVarType::FLOAT32:
+      line << prime::readf32(var->addr);
+      break;
+    case prime::CVarType::FLOAT64: {
+        u64 tmp = prime::read64(var->addr);
+        line << *reinterpret_cast<double*>(&tmp);
+      }
+      break;
+    }
+    file_out << line.str() << "\n";
+  }
+  file_out.close();
+}
+
+void CVarsWindow::load_presets() {
+  QString path = QFileDialog::getOpenFileName(this, tr("Select CFG file to load"), QString(),
+                                                tr("CFG file (*.cfg);; All Files (*)"));
+  prime::ElfModLoader* mod = static_cast<prime::ElfModLoader*>(prime::GetHackManager()->get_mod("elf_mod_loader"));
+  if (mod == nullptr) {
+    return;
+  }
+  mod->load_presets(path.toStdString());
+  
+  list_model.update_memread();
+  emit list_model.dataChanged(list_model.index(0, 0), list_model.index(list_model.cvar_count(), 3));
+}
+
 CVarEditDialog::CVarEditDialog(prime::CVar* in_var, QWidget* parent) : QDialog(parent), var(in_var) {
+  setWindowTitle(tr("Set CVar..."));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
   QVBoxLayout* layout = new QVBoxLayout(this);
   QLabel* cvar_label = new QLabel(this);
   cvar_label->setText(QString(tr("Set value for CVar %1")).arg(tr(in_var->name.c_str())));

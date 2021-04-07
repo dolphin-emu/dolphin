@@ -37,6 +37,7 @@ public:
   prime::CVar* get_var(int row) {
     return cvar_list[row];
   }
+  std::vector<prime::CVar*> const& get_var_list() { return cvar_list; } 
   void update_memread();
 
 private:
@@ -65,6 +66,8 @@ class CVarsWindow final : public QDialog {
 public:
   explicit CVarsWindow(QWidget* parent = nullptr);
 
+  void load_presets();
+  void save_presets();
   void on_value_entry(prime::CVar* var, QString const& val);
 private:
   QTableView* cvar_list;
