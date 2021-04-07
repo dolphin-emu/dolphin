@@ -41,36 +41,49 @@ class SixAxisController final : public CameraController
 public:
   SixAxisController() = default;
 
-  Common::Matrix44 GetView() override { return m_mat; }
+  Common::Matrix44 GetView() override
+  {
+    return Common::Matrix44::FromQuaternion(m_rotate_quat) *
+           Common::Matrix44::Translate(m_position);
+  }
 
   void MoveVertical(float amt) override
   {
-    m_mat = Common::Matrix44::Translate(Common::Vec3{0, amt, 0}) * m_mat;
+    m_position += m_rotate_quat.Conjugate() * Common::Vec3{0, amt, 0};
   }
 
   void MoveHorizontal(float amt) override
   {
-    m_mat = Common::Matrix44::Translate(Common::Vec3{amt, 0, 0}) * m_mat;
+    m_position += m_rotate_quat.Conjugate() * Common::Vec3{amt, 0, 0};
   }
 
   void MoveForward(float amt) override
   {
-    m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
+    m_position += m_rotate_quat.Conjugate() * Common::Vec3{0, 0, amt};
   }
 
   void Rotate(const Common::Vec3& amt) override { Rotate(Common::Quaternion::RotateXYZ(amt)); }
 
   void Rotate(const Common::Quaternion& quat) override
   {
-    m_mat = Common::Matrix44::FromQuaternion(quat) * m_mat;
+    m_rotate_quat = (quat * m_rotate_quat).Normalized();
   }
 
-  void Reset() override { m_mat = Common::Matrix44::Identity(); }
+  void Reset() override
+  {
+    m_rotate_quat = Common::Quaternion::Identity();
+    m_position = Common::Vec3{};
+  }
 
-  void DoState(PointerWrap& p) override { p.Do(m_mat); }
+  void DoState(PointerWrap& p) override
+  {
+    p.Do(m_rotate_quat);
+    p.Do(m_position);
+  }
 
 private:
-  Common::Matrix44 m_mat = Common::Matrix44::Identity();
+  Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
+  Common::Vec3 m_position = Common::Vec3{};
 };
 
 class FPSController final : public CameraController
