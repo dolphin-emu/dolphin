@@ -980,14 +980,16 @@ void SDRUpdated()
 {
   u32 htabmask = SDR1_HTABMASK(PowerPC::ppcState.spr[SPR_SDR]);
   if (!Common::IsValidLowMask(htabmask))
-  {
-    return;
-  }
+    WARN_LOG_FMT(POWERPC, "Invalid HTABMASK: 0b{:032b}", htabmask);
+
+  // While 6xx_pem.pdf §7.6.1.1 mentions that the number of trailing zeros in HTABORG
+  // must be equal to the number of trailing ones in the mask (i.e. HTABORG must be
+  // properly aligned), this is actually not a hard requirement. Real hardware will just OR
+  // the base address anyway. Ignoring SDR changes would lead to incorrect emulation.
   u32 htaborg = SDR1_HTABORG(PowerPC::ppcState.spr[SPR_SDR]);
   if (htaborg & htabmask)
-  {
-    return;
-  }
+    WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
+
   PowerPC::ppcState.pagetable_base = htaborg << 16;
   PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
@@ -1111,7 +1113,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
-  u32 pte1 = Common::swap32((VSID << 7) | api | PTE1_V);
+  u32 pte1 = (VSID << 7) | api | PTE1_V;
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1119,7 +1121,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
     if (hash_func == 1)
     {
       hash = ~hash;
-      pte1 |= PTE1_H << 24;
+      pte1 |= PTE1_H;
     }
 
     u32 pteg_addr =
@@ -1127,7 +1129,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      u32 pteg = Common::swap32(Memory::Read_U32(pteg_addr));
+      const u32 pteg = Memory::Read_U32(pteg_addr);
 
       if (pte1 == pteg)
       {
