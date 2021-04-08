@@ -164,7 +164,6 @@ void HackManager::update_mod_states() {
   auto& settings = SConfig::GetInstance();
 
   set_mod_enabled("auto_efb", UseMPAutoEFB());
-  set_mod_enabled("disable_bloom", GetBloom());
   set_mod_enabled("cut_beam_fx_mp1", GetEnableSecondaryGunFX());
 
   if (settings.bEnableCheats) {

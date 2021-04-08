@@ -133,6 +133,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3, "gun_lag_toc_offset", -0x5ff0, -0x6000);
   addr_db.register_address(Game::PRIME_3, "powerups_size", 12, 12, 12);
   addr_db.register_address(Game::PRIME_3, "powerups_offset", 0x58, 0x58, 0x58);
+  addr_db.register_address(Game::PRIME_3, "bloom_offset", 0x8058b018, 0x8058da58);
   addr_db.register_dynamic_address(Game::PRIME_3, "camera_manager", "state_manager", {mrt1(0x10), mrt1(0xc), mrt1(0x16)});
   addr_db.register_dynamic_address(Game::PRIME_3, "perspective_info", "camera_manager", {mrt1(0x2), mrt1(0x14), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3, "object_list", "state_manager", {rt0, mrt1(0x1010), rt0});
@@ -162,6 +163,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3_STANDALONE, "gun_lag_toc_offset", -0x5fb0, -0x5f98, -0x5f68);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "powerups_size", 12, 12, 12);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "powerups_offset", 0x58, 0x58, 0x58);
+  addr_db.register_address(Game::PRIME_3_STANDALONE, "bloom_offset", 0x80589410);
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "camera_manager", "state_manager", {mrt1(0x10), mrt1(0xc), mrt1(0x16)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "perspective_info", "camera_manager", {mrt1(0x2), mrt1(0x14), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "object_list", "state_manager", {rt0, mrt1(0x1010), rt0});
