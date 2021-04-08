@@ -259,8 +259,7 @@ void Init()
       return Config::Get(Config::MAIN_MEM2_SIZE);
     return Memory::MEM2_SIZE_RETAIL;
   };
-  // Force a minimum for our silly elf mod loader :)
-  s_ram_size_real = std::max(get_mem1_size(), u32{1 << 25});
+  s_ram_size_real = get_mem1_size();
   s_ram_size = MathUtil::NextPowerOf2(GetRamSizeReal());
   s_ram_mask = GetRamSize() - 1;
   s_fakevmem_size = 0x02000000;

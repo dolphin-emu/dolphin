@@ -1588,6 +1588,8 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     add_code_change(0x80015ee0, 0x52b63672, "show_crosshair"); // rlwimi r22, r21, 6, 25, 25 (00000001)
     add_code_change(0x80015ee4, 0x9add1268, "show_crosshair"); // stb r22, 0x1268(r29)
     add_code_change(0x80015ee8, 0x4e800020, "show_crosshair"); // blr
+
+    add_code_change(0x800614f8, 0xc022d3e8);
   } else if (region == Region::PAL) {
     add_code_change(0x801b03c0, 0x48000050);
     add_code_change(0x801af264, 0x60000000);
@@ -1607,6 +1609,8 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     add_code_change(0x80015f7c, 0x52b63672, "show_crosshair"); // rlwimi r22, r21, 6, 25, 25 (00000001)
     add_code_change(0x80015f80, 0x9add1268, "show_crosshair"); // stb r22, 0x1268(r29)
     add_code_change(0x80015f84, 0x4e800020, "show_crosshair"); // blr
+
+    add_code_change(0x800615f8, 0xc022d3c0);
   } else {}
 }
 
