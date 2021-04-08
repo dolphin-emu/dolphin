@@ -27,6 +27,8 @@
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
 
+#include "Core/PrimeHack/HackConfig.h"
+
 namespace HW
 {
 void Init()
@@ -61,6 +63,8 @@ void Init()
 
 void Shutdown()
 {
+  prime::GetHackManager()->shutdown();
+
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
