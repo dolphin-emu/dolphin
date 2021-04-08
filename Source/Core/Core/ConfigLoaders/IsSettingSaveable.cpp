@@ -34,9 +34,10 @@ bool IsSettingSaveable(const Config::Location& config_location)
     }
   }
 
-  static constexpr std::array<const Config::Location*, 17> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 18> s_setting_saveable = {
       // Main.Core
 
+      &Config::MAIN_GC_EMPTY_DRIVE_IS_CLOSED.GetLocation(),
       &Config::MAIN_DEFAULT_ISO.GetLocation(),
       &Config::MAIN_MEMCARD_A_PATH.GetLocation(),
       &Config::MAIN_MEMCARD_B_PATH.GetLocation(),

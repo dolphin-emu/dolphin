@@ -50,6 +50,9 @@ void GameCubePane::CreateWidgets()
 {
   QVBoxLayout* layout = new QVBoxLayout(this);
 
+  m_empty_drive_is_closed = new QCheckBox(
+      tr("Report disc drive as closed when empty (shows GameCube logo sequence)"), this);
+
   // IPL Settings
   QGroupBox* ipl_box = new QGroupBox(tr("IPL Settings"), this);
   QGridLayout* ipl_layout = new QGridLayout(ipl_box);
@@ -126,6 +129,7 @@ void GameCubePane::CreateWidgets()
 
   layout->addWidget(ipl_box);
   layout->addWidget(device_box);
+  layout->addWidget(m_empty_drive_is_closed);
 
   layout->addStretch();
 
@@ -134,6 +138,8 @@ void GameCubePane::CreateWidgets()
 
 void GameCubePane::ConnectWidgets()
 {
+  connect(m_empty_drive_is_closed, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
+
   // IPL Settings
   connect(m_skip_main_menu, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
   connect(m_language_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -317,6 +323,8 @@ void GameCubePane::LoadSettings()
 {
   const SConfig& params = SConfig::GetInstance();
 
+  m_empty_drive_is_closed->setChecked(Config::Get(Config::MAIN_GC_EMPTY_DRIVE_IS_CLOSED));
+
   // IPL Settings
   m_skip_main_menu->setChecked(params.bHLE_BS2);
   m_language_combo->setCurrentIndex(m_language_combo->findData(params.SelectedLanguage));
@@ -354,6 +362,9 @@ void GameCubePane::SaveSettings()
   Config::ConfigChangeCallbackGuard config_guard;
 
   SConfig& params = SConfig::GetInstance();
+
+  Config::SetBaseOrCurrent(Config::MAIN_GC_EMPTY_DRIVE_IS_CLOSED,
+                           m_empty_drive_is_closed->isChecked());
 
   // IPL Settings
   params.bHLE_BS2 = m_skip_main_menu->isChecked();
