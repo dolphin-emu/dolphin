@@ -94,9 +94,7 @@ static void Set(jint layer, const Config::Location& location, T value)
   Config::OnConfigChanged();
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_isSettingSaveable(
@@ -210,7 +208,4 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_Na
 {
   return Set(layer, GetLocation(env, file, section, key), value);
 }
-
-#ifdef __cplusplus
 }
-#endif

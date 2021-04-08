@@ -42,6 +42,7 @@ add_library(common
   DynamicLibrary.h
   ENetUtil.cpp
   ENetUtil.h
+  EnumFormatter.h
   Event.h
   FileSearch.cpp
   FileSearch.h
@@ -110,6 +111,8 @@ add_library(common
   SettingsHandler.h
   SFMLHelper.cpp
   SFMLHelper.h
+  SocketContext.cpp
+  SocketContext.h
   SPSCQueue.h
   StringUtil.cpp
   StringUtil.h

@@ -6,7 +6,6 @@
 
 #include <future>
 #include <map>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -34,8 +33,6 @@
 
 namespace DiscIO
 {
-class FileInfo;
-
 template <typename T>
 struct Hashes
 {
@@ -138,11 +135,12 @@ public:
   const Result& GetResult() const;
 
 private:
-  struct BlockToVerify
+  struct GroupToVerify
   {
     Partition partition;
     u64 offset;
-    u64 block_index;
+    size_t block_index_start;
+    size_t block_index_end;
   };
 
   std::vector<Partition> CheckPartitions();
@@ -154,8 +152,6 @@ private:
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
   void CheckVolumeSize();
-  u64 GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const;
-  u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void CheckSuperPaperMario();
   void SetUpHashing();
@@ -181,20 +177,20 @@ private:
   mbedtls_md5_context m_md5_context;
   mbedtls_sha1_context m_sha1_context;
 
+  u64 m_excess_bytes = 0;
   std::vector<u8> m_data;
-  std::mutex m_volume_mutex;
   std::future<void> m_crc32_future;
   std::future<void> m_md5_future;
   std::future<void> m_sha1_future;
   std::future<void> m_content_future;
-  std::future<void> m_block_future;
+  std::future<void> m_group_future;
 
   DiscScrubber m_scrubber;
   IOS::ES::TicketReader m_ticket;
   std::vector<u64> m_content_offsets;
   u16 m_content_index = 0;
-  std::vector<BlockToVerify> m_blocks;
-  size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition
+  std::vector<GroupToVerify> m_groups;
+  size_t m_group_index = 0;  // Index in m_groups, not index in a specific partition
   std::map<Partition, size_t> m_block_errors;
   std::map<Partition, size_t> m_unused_block_errors;
 

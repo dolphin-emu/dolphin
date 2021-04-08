@@ -494,12 +494,13 @@ Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
 
 Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[index])));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st) + sizeof(SDSP::r.st[0]) * index));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs[index])));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
+                                     sizeof(SDSP::reg_stack_ptrs[0]) * index));
 }
 
 }  // namespace DSP::JIT::x64

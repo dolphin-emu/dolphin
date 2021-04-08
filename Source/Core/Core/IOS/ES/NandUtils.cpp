@@ -6,7 +6,6 @@
 #include <array>
 #include <cctype>
 #include <functional>
-#include <iterator>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -17,38 +16,41 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-static IOS::ES::TMDReader FindTMD(FS::FileSystem* fs, u64 title_id, const std::string& tmd_path)
+static ES::TMDReader FindTMD(FSDevice& fs, const std::string& tmd_path, Ticks ticks)
 {
-  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read);
-  if (!file)
+  const s64 fd = fs.Open(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Read, {}, ticks);
+  if (fd < 0)
+    return {};
+  Common::ScopeGuard guard{[&] { fs.Close(fd, ticks); }};
+
+  std::vector<u8> tmd_bytes(fs.GetFileStatus(fd, ticks)->size);
+  if (!fs.Read(fd, tmd_bytes.data(), tmd_bytes.size(), ticks))
     return {};
 
-  std::vector<u8> tmd_bytes(file->GetStatus()->size);
-  if (!file->Read(tmd_bytes.data(), tmd_bytes.size()))
-    return {};
-
-  return IOS::ES::TMDReader{std::move(tmd_bytes)};
+  return ES::TMDReader{std::move(tmd_bytes)};
 }
 
-IOS::ES::TMDReader ES::FindImportTMD(u64 title_id) const
+ES::TMDReader ESDevice::FindImportTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(m_ios.GetFS().get(), title_id,
-                 Common::GetImportTitlePath(title_id) + "/content/title.tmd");
+  return FindTMD(*m_ios.GetFSDevice(), Common::GetImportTitlePath(title_id) + "/content/title.tmd",
+                 ticks);
 }
 
-IOS::ES::TMDReader ES::FindInstalledTMD(u64 title_id) const
+ES::TMDReader ESDevice::FindInstalledTMD(u64 title_id, Ticks ticks) const
 {
-  return FindTMD(m_ios.GetFS().get(), title_id, Common::GetTMDFileName(title_id));
+  return FindTMD(*m_ios.GetFSDevice(), Common::GetTMDFileName(title_id), ticks);
 }
 
-IOS::ES::TicketReader ES::FindSignedTicket(u64 title_id) const
+ES::TicketReader ESDevice::FindSignedTicket(u64 title_id) const
 {
   const std::string path = Common::GetTicketFileName(title_id);
   const auto ticket_file = m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Read);
@@ -59,7 +61,7 @@ IOS::ES::TicketReader ES::FindSignedTicket(u64 title_id) const
   if (!ticket_file->Read(signed_ticket.data(), signed_ticket.size()))
     return {};
 
-  return IOS::ES::TicketReader{std::move(signed_ticket)};
+  return ES::TicketReader{std::move(signed_ticket)};
 }
 
 static bool IsValidPartOfTitleID(const std::string& string)
@@ -112,17 +114,17 @@ static std::vector<u64> GetTitlesInTitleOrImport(FS::FileSystem* fs, const std::
   return title_ids;
 }
 
-std::vector<u64> ES::GetInstalledTitles() const
+std::vector<u64> ESDevice::GetInstalledTitles() const
 {
   return GetTitlesInTitleOrImport(m_ios.GetFS().get(), "/title");
 }
 
-std::vector<u64> ES::GetTitleImports() const
+std::vector<u64> ESDevice::GetTitleImports() const
 {
   return GetTitlesInTitleOrImport(m_ios.GetFS().get(), "/import");
 }
 
-std::vector<u64> ES::GetTitlesWithTickets() const
+std::vector<u64> ESDevice::GetTitlesWithTickets() const
 {
   const auto fs = m_ios.GetFS();
   const auto entries = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, "/ticket");
@@ -164,23 +166,22 @@ std::vector<u64> ES::GetTitlesWithTickets() const
   return title_ids;
 }
 
-std::vector<IOS::ES::Content>
-ES::GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd,
-                             CheckContentHashes check_content_hashes) const
+std::vector<ES::Content>
+ESDevice::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
+                                   CheckContentHashes check_content_hashes) const
 {
   if (!tmd.IsValid())
     return {};
 
-  const IOS::ES::SharedContentMap map{m_ios.GetFS()};
-  const std::vector<IOS::ES::Content> contents = tmd.GetContents();
+  const std::vector<ES::Content> contents = tmd.GetContents();
 
-  std::vector<IOS::ES::Content> stored_contents;
+  std::vector<ES::Content> stored_contents;
 
   std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [this, &tmd, &map, check_content_hashes](const IOS::ES::Content& content) {
+               [this, &tmd, check_content_hashes](const ES::Content& content) {
                  const auto fs = m_ios.GetFS();
 
-                 const std::string path = GetContentPath(tmd.GetTitleId(), content, map);
+                 const std::string path = GetContentPath(tmd.GetTitleId(), content);
                  if (path.empty())
                    return false;
 
@@ -205,7 +206,7 @@ ES::GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd,
   return stored_contents;
 }
 
-u32 ES::GetSharedContentsCount() const
+u32 ESDevice::GetSharedContentsCount() const
 {
   const auto entries = m_ios.GetFS()->ReadDirectory(PID_KERNEL, PID_KERNEL, "/shared1");
   return static_cast<u32>(
@@ -215,9 +216,9 @@ u32 ES::GetSharedContentsCount() const
       }));
 }
 
-std::vector<std::array<u8, 20>> ES::GetSharedContents() const
+std::vector<std::array<u8, 20>> ESDevice::GetSharedContents() const
 {
-  const IOS::ES::SharedContentMap map{m_ios.GetFS()};
+  const ES::SharedContentMap map{m_ios.GetFSDevice()};
   return map.GetHashes();
 }
 
@@ -242,7 +243,7 @@ constexpr FS::Modes title_dir_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS
 constexpr FS::Modes content_dir_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None};
 constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
 
-bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
+bool ESDevice::CreateTitleDirectories(u64 title_id, u16 group_id) const
 {
   const auto fs = m_ios.GetFS();
 
@@ -267,7 +268,7 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
     return false;
   }
 
-  IOS::ES::UIDSys uid_sys{fs};
+  ES::UIDSys uid_sys{m_ios.GetFSDevice()};
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (fs->SetMetadata(0, data_dir, uid, group_id, 0, data_dir_modes) != FS::ResultCode::Success)
   {
@@ -278,7 +279,7 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
   return true;
 }
 
-bool ES::InitImport(const IOS::ES::TMDReader& tmd)
+bool ESDevice::InitImport(const ES::TMDReader& tmd)
 {
   if (!CreateTitleDirectories(tmd.GetTitleId(), tmd.GetGroupId()))
     return false;
@@ -310,7 +311,7 @@ bool ES::InitImport(const IOS::ES::TMDReader& tmd)
   return true;
 }
 
-bool ES::FinishImport(const IOS::ES::TMDReader& tmd)
+bool ESDevice::FinishImport(const ES::TMDReader& tmd)
 {
   const auto fs = m_ios.GetFS();
   const u64 title_id = tmd.GetTitleId();
@@ -343,7 +344,7 @@ bool ES::FinishImport(const IOS::ES::TMDReader& tmd)
   return true;
 }
 
-bool ES::WriteImportTMD(const IOS::ES::TMDReader& tmd)
+bool ESDevice::WriteImportTMD(const ES::TMDReader& tmd)
 {
   const auto fs = m_ios.GetFS();
   const std::string tmd_path = "/tmp/title.tmd";
@@ -358,7 +359,7 @@ bool ES::WriteImportTMD(const IOS::ES::TMDReader& tmd)
   return fs->Rename(PID_KERNEL, PID_KERNEL, tmd_path, dest) == FS::ResultCode::Success;
 }
 
-void ES::FinishStaleImport(u64 title_id)
+void ESDevice::FinishStaleImport(u64 title_id)
 {
   const auto fs = m_ios.GetFS();
   const auto import_tmd = FindImportTMD(title_id);
@@ -374,24 +375,65 @@ void ES::FinishStaleImport(u64 title_id)
   }
 }
 
-void ES::FinishAllStaleImports()
+void ESDevice::FinishAllStaleImports()
 {
   const std::vector<u64> titles = GetTitleImports();
   for (const u64& title_id : titles)
     FinishStaleImport(title_id);
 }
 
-std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& content,
-                               const IOS::ES::SharedContentMap& content_map) const
+std::string ESDevice::GetContentPath(const u64 title_id, const ES::Content& content,
+                                     Ticks ticks) const
 {
   if (content.IsShared())
+  {
+    ES::SharedContentMap content_map{m_ios.GetFSDevice()};
+    ticks.Add(content_map.GetTicks());
     return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
+  }
   return fmt::format("{}/{:08x}.app", Common::GetTitleContentPath(title_id), content.id);
 }
 
-std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& content) const
+s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& data, Ticks ticks)
 {
-  IOS::ES::SharedContentMap map{m_ios.GetFS()};
-  return GetContentPath(title_id, content, map);
+  auto& fs = *m_ios.GetFSDevice();
+  const std::string tmp_path = "/tmp/" + PathToFileName(path);
+
+  auto result = fs.CreateFile(PID_KERNEL, PID_KERNEL, tmp_path, {},
+                              {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}, ticks);
+  if (result != FS::ResultCode::Success)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to create temporary file {}: {}", tmp_path, result);
+    return FS::ConvertResult(result);
+  }
+
+  const auto fd = fs.Open(PID_KERNEL, PID_KERNEL, tmp_path, FS::Mode::ReadWrite, {}, ticks);
+  if (fd < 0)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to open temporary file {}: {}", tmp_path, fd);
+    return fd;
+  }
+
+  if (fs.Write(fd, data.data(), u32(data.size()), {}, ticks) != s32(data.size()))
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to write to temporary file {}", tmp_path);
+    return ES_EIO;
+  }
+
+  if (const auto ret = fs.Close(fd, ticks); ret != IPC_SUCCESS)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to close temporary file {}", tmp_path);
+    return ret;
+  }
+
+  result = fs.RenameFile(PID_KERNEL, PID_KERNEL, tmp_path, path, ticks);
+  if (result != FS::ResultCode::Success)
+  {
+    ERROR_LOG_FMT(IOS_ES, "Failed to move launch file to final destination ({}): {}", path, result);
+    return FS::ConvertResult(result);
+  }
+
+  return IPC_SUCCESS;
 }
-}  // namespace IOS::HLE::Device
+
+}  // namespace IOS::HLE

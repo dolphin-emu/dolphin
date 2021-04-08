@@ -1303,17 +1303,21 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_EnableCheats;
   spac << m_settings.m_SelectedLanguage;
   spac << m_settings.m_OverrideRegionSettings;
-  spac << m_settings.m_ProgressiveScan;
-  spac << m_settings.m_PAL60;
   spac << m_settings.m_DSPEnableJIT;
   spac << m_settings.m_DSPHLE;
   spac << m_settings.m_WriteToMemcard;
+  spac << m_settings.m_Mem1Size;
+  spac << m_settings.m_Mem2Size;
+  spac << static_cast<std::underlying_type_t<DiscIO::Region>>(m_settings.m_FallbackRegion);
   spac << m_settings.m_CopyWiiSave;
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
 
   for (auto& device : m_settings.m_EXIDevice)
     spac << device;
+
+  for (u32 value : m_settings.m_SYSCONFSettings)
+    spac << value;
 
   spac << m_settings.m_EFBAccessEnable;
   spac << m_settings.m_BBoxEnable;

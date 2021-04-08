@@ -182,7 +182,7 @@ void PixelShaderManager::SetConstants()
     // Destination alpha is only enabled if alpha writes are enabled. Force entire uniform to zero
     // when disabled.
     u32 dstalpha = bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable &&
-                           bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 ?
+                           bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 ?
                        bpmem.dstalpha.hex :
                        0;
 
@@ -270,7 +270,7 @@ void PixelShaderManager::SetAlphaTestChanged()
   // TODO: we could optimize this further and check the actual constants,
   // i.e. "a <= 0" and "a >= 255" will always pass.
   u32 alpha_test =
-      bpmem.alpha_test.TestResult() != AlphaTest::PASS ? bpmem.alpha_test.hex | 1 << 31 : 0;
+      bpmem.alpha_test.TestResult() != AlphaTestResult::Pass ? bpmem.alpha_test.hex | 1 << 31 : 0;
   if (constants.alphaTest != alpha_test)
   {
     constants.alphaTest = alpha_test;
@@ -362,25 +362,26 @@ void PixelShaderManager::SetZTextureTypeChanged()
 {
   switch (bpmem.ztex2.type)
   {
-  case TEV_ZTEX_TYPE_U8:
+  case ZTexFormat::U8:
     constants.zbias[0][0] = 0;
     constants.zbias[0][1] = 0;
     constants.zbias[0][2] = 0;
     constants.zbias[0][3] = 1;
     break;
-  case TEV_ZTEX_TYPE_U16:
+  case ZTexFormat::U16:
     constants.zbias[0][0] = 1;
     constants.zbias[0][1] = 0;
     constants.zbias[0][2] = 0;
     constants.zbias[0][3] = 256;
     break;
-  case TEV_ZTEX_TYPE_U24:
+  case ZTexFormat::U24:
     constants.zbias[0][0] = 65536;
     constants.zbias[0][1] = 256;
     constants.zbias[0][2] = 1;
     constants.zbias[0][3] = 0;
     break;
   default:
+    PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type);
     break;
   }
   dirty = true;
@@ -457,8 +458,9 @@ void PixelShaderManager::SetZModeControl()
 {
   u32 late_ztest = bpmem.UseLateDepthTest();
   u32 rgba6_format =
-      (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ? 1 :
-                                                                                                 0;
+      (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor) ?
+          1 :
+          0;
   u32 dither = rgba6_format && bpmem.blendmode.dither;
   if (constants.late_ztest != late_ztest || constants.rgba6_format != rgba6_format ||
       constants.dither != dither)

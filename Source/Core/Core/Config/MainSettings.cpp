@@ -156,6 +156,11 @@ const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES{
 const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA{{System::Main, "Network", "SSLDumpRootCA"}, false};
 const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{{System::Main, "Network", "SSLDumpPeerCert"},
                                                  false};
+const Info<bool> MAIN_NETWORK_DUMP_AS_PCAP{{System::Main, "Network", "DumpAsPCAP"}, false};
+// Default value based on:
+//  - [RFC 1122] 4.2.3.5 TCP Connection Failures (at least 3 minutes)
+//  - https://dolp.in/pr8759 hwtest (3 minutes and 10 seconds)
+const Info<int> MAIN_NETWORK_TIMEOUT{{System::Main, "Network", "NetworkTimeout"}, 190};
 
 // Main.Interface
 

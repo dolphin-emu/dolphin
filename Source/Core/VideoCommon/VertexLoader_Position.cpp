@@ -200,12 +200,15 @@ constexpr u32 s_table_read_position_vertex_size[4][8][2] = {
 };
 }  // Anonymous namespace
 
-u32 VertexLoader_Position::GetSize(u64 type, u32 format, u32 elements)
+u32 VertexLoader_Position::GetSize(VertexComponentFormat type, ComponentFormat format,
+                                   CoordComponentCount elements)
 {
-  return s_table_read_position_vertex_size[type][format][elements];
+  return s_table_read_position_vertex_size[u32(type)][u32(format)][u32(elements)];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(u64 type, u32 format, u32 elements)
+TPipelineFunction VertexLoader_Position::GetFunction(VertexComponentFormat type,
+                                                     ComponentFormat format,
+                                                     CoordComponentCount elements)
 {
-  return s_table_read_position[type][format][elements];
+  return s_table_read_position[u32(type)][u32(format)][u32(elements)];
 }

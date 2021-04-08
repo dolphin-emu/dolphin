@@ -25,7 +25,6 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/IOS/IOS.h"
 #include "Core/State.h"
-#include "Core/WiiRoot.h"
 
 #include "Core/PrimeHack/HackConfig.h"
 
@@ -54,8 +53,6 @@ void Init()
 
   if (SConfig::GetInstance().bWii)
   {
-    // The NAND should only be initialised once per emulation session.
-    Core::InitializeWiiRoot(Core::WantsDeterminism());
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
   }
@@ -68,7 +65,6 @@ void Shutdown()
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
-  Core::ShutdownWiiRoot();
 
   SystemTimers::Shutdown();
   CPU::Shutdown();

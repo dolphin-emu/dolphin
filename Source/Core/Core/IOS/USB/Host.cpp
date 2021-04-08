@@ -25,7 +25,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -33,7 +33,7 @@ USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, devi
 
 USBHost::~USBHost() = default;
 
-IPCCommandResult USBHost::Open(const OpenRequest& request)
+std::optional<IPCReply> USBHost::Open(const OpenRequest& request)
 {
   if (!m_has_initialised && !Core::WantsDeterminism())
   {
@@ -43,7 +43,7 @@ IPCCommandResult USBHost::Open(const OpenRequest& request)
     GetScanThread().WaitForFirstScan();
     m_has_initialised = true;
   }
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 void USBHost::UpdateWantDeterminism(const bool new_want_determinism)
@@ -213,18 +213,18 @@ void USBHost::ScanThread::Stop()
   m_host->DispatchHooks(hooks);
 }
 
-IPCCommandResult USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
-                                         std::function<s32()> submit) const
+std::optional<IPCReply> USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
+                                                std::function<s32()> submit) const
 {
   if (!device)
-    return GetDefaultReply(IPC_ENOENT);
+    return IPCReply(IPC_ENOENT);
 
   const s32 ret = submit();
   if (ret == IPC_SUCCESS)
-    return GetNoReply();
+    return std::nullopt;
 
   ERROR_LOG_FMT(IOS_USB, "[{:04x}:{:04x}] Failed to submit transfer (request {}): {}",
                 device->GetVid(), device->GetPid(), request, device->GetErrorName(ret));
-  return GetDefaultReply(ret <= 0 ? ret : IPC_EINVAL);
+  return IPCReply(ret <= 0 ? ret : IPC_EINVAL);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

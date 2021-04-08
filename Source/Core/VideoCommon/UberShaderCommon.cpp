@@ -39,26 +39,26 @@ void WriteLightingFunction(ShaderCode& out)
             "  float dist, dist2, attn;\n"
             "\n"
             "  switch (attnfunc) {{\n");
-  out.Write("  case {}u: // LIGNTATTN_NONE\n", LIGHTATTN_NONE);
-  out.Write("  case {}u: // LIGHTATTN_DIR\n", LIGHTATTN_DIR);
+  out.Write("  case {:s}:\n", AttenuationFunc::None);
+  out.Write("  case {:s}:\n", AttenuationFunc::Dir);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = 1.0;\n"
             "    if (length(ldir) == 0.0)\n"
             "      ldir = normal;\n"
             "    break;\n\n");
-  out.Write("  case {}u: // LIGHTATTN_SPEC\n", LIGHTATTN_SPEC);
+  out.Write("  case {:s}:\n", AttenuationFunc::Spec);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = (dot(normal, ldir) >= 0.0) ? max(0.0, dot(normal, " I_LIGHTS
             "[index].dir.xyz)) : 0.0;\n"
             "    cosAttn = " I_LIGHTS "[index].cosatt.xyz;\n");
-  out.Write("    if (diffusefunc == {}u) // LIGHTDIF_NONE\n", LIGHTDIF_NONE);
+  out.Write("    if (diffusefunc == {:s})\n", DiffuseFunc::None);
   out.Write("      distAttn = " I_LIGHTS "[index].distatt.xyz;\n"
             "    else\n"
             "      distAttn = normalize(" I_LIGHTS "[index].distatt.xyz);\n"
             "    attn = max(0.0, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
             "float3(1.0, attn, attn*attn));\n"
             "    break;\n\n");
-  out.Write("  case {}u: // LIGHTATTN_SPOT\n", LIGHTATTN_SPOT);
+  out.Write("  case {:s}:\n", AttenuationFunc::Spot);
   out.Write("    ldir = " I_LIGHTS "[index].pos.xyz - pos.xyz;\n"
             "    dist2 = dot(ldir, ldir);\n"
             "    dist = sqrt(dist2);\n"
@@ -75,12 +75,12 @@ void WriteLightingFunction(ShaderCode& out)
             "  }}\n"
             "\n"
             "  switch (diffusefunc) {{\n");
-  out.Write("  case {}u: // LIGHTDIF_NONE\n", LIGHTDIF_NONE);
+  out.Write("  case {:s}:\n", DiffuseFunc::None);
   out.Write("    return int4(round(attn * float4(" I_LIGHTS "[index].color)));\n\n");
-  out.Write("  case {}u: // LIGHTDIF_SIGN\n", LIGHTDIF_SIGN);
+  out.Write("  case {:s}:\n", DiffuseFunc::Sign);
   out.Write("    return int4(round(attn * dot(ldir, normal) * float4(" I_LIGHTS
             "[index].color)));\n\n");
-  out.Write("  case {}u: // LIGHTDIF_CLAMP\n", LIGHTDIF_CLAMP);
+  out.Write("  case {:s}:\n", DiffuseFunc::Clamp);
   out.Write("    return int4(round(attn * max(0.0, dot(ldir, normal)) * float4(" I_LIGHTS
             "[index].color)));\n\n");
   out.Write("  default:\n"

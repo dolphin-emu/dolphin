@@ -5,10 +5,15 @@
 #include "DolphinQt/Debugger/NetworkWidget.h"
 
 #include <QCheckBox>
+#include <QComboBox>
+#include <QDesktopServices>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
+#include <QLabel>
+#include <QPushButton>
 #include <QTableWidget>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #ifdef _WIN32
@@ -18,6 +23,7 @@
 #include <sys/types.h>
 #endif
 
+#include "Common/FileUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
@@ -191,7 +197,8 @@ void NetworkWidget::CreateWidgets()
   widget->setLayout(layout);
   layout->addWidget(CreateSocketTableGroup());
   layout->addWidget(CreateSSLContextGroup());
-  layout->addWidget(CreateSSLOptionsGroup());
+  layout->addWidget(CreateDumpOptionsGroup());
+  layout->addWidget(CreateSecurityOptionsGroup());
   layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
   setWidget(widget);
 
@@ -200,6 +207,8 @@ void NetworkWidget::CreateWidgets()
 
 void NetworkWidget::ConnectWidgets()
 {
+  connect(m_dump_format_combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &NetworkWidget::OnDumpFormatComboChanged);
   connect(m_dump_ssl_read_checkbox, &QCheckBox::stateChanged, [](int state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_DUMP_READ, state == Qt::Checked);
   });
@@ -214,6 +223,11 @@ void NetworkWidget::ConnectWidgets()
   });
   connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
+  });
+  connect(m_open_dump_folder, &QPushButton::pressed, [] {
+    const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
+    const QUrl url = QUrl::fromLocalFile(QString::fromStdString(location));
+    QDesktopServices::openUrl(url);
   });
 }
 
@@ -238,11 +252,11 @@ void NetworkWidget::Update()
   {
     m_ssl_table->insertRow(ssl_id);
     s32 host_fd = -1;
-    if (IOS::HLE::Device::IsSSLIDValid(ssl_id) &&
-        IOS::HLE::Device::NetSSL::_SSL[ssl_id].ctx.p_bio != nullptr)
+    if (IOS::HLE::IsSSLIDValid(ssl_id))
     {
-      host_fd =
-          static_cast<mbedtls_net_context*>(IOS::HLE::Device::NetSSL::_SSL[ssl_id].ctx.p_bio)->fd;
+      const auto& ssl = IOS::HLE::NetSSLDevice::_SSL[ssl_id];
+      host_fd = ssl.hostfd;
+      m_ssl_table->setItem(ssl_id, 5, new QTableWidgetItem(QString::fromStdString(ssl.hostname)));
     }
     m_ssl_table->setItem(ssl_id, 0, new QTableWidgetItem(QString::number(ssl_id)));
     m_ssl_table->setItem(ssl_id, 1, GetSocketDomain(host_fd));
@@ -252,12 +266,30 @@ void NetworkWidget::Update()
   }
   m_ssl_table->resizeColumnsToContents();
 
-  m_dump_ssl_read_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ));
-  m_dump_ssl_write_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE));
+  const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
+  const bool is_ssl_read = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ);
+  const bool is_ssl_write = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
+
+  m_dump_ssl_read_checkbox->setChecked(is_ssl_read);
+  m_dump_ssl_write_checkbox->setChecked(is_ssl_write);
   m_dump_root_ca_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA));
   m_dump_peer_cert_checkbox->setChecked(Config::Get(Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT));
   m_verify_certificates_checkbox->setChecked(
       Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES));
+
+  const int combo_index = int([is_pcap, is_ssl_read, is_ssl_write]() -> FormatComboId {
+    if (is_pcap)
+      return FormatComboId::PCAP;
+    else if (is_ssl_read && is_ssl_write)
+      return FormatComboId::BinarySSL;
+    else if (is_ssl_read)
+      return FormatComboId::BinarySSLRead;
+    else if (is_ssl_write)
+      return FormatComboId::BinarySSLWrite;
+    else
+      return FormatComboId::None;
+  }());
+  m_dump_format_combo->setCurrentIndex(combo_index);
 }
 
 QGroupBox* NetworkWidget::CreateSocketTableGroup()
@@ -290,7 +322,7 @@ QGroupBox* NetworkWidget::CreateSSLContextGroup()
   ssl_context_group->setLayout(ssl_context_layout);
 
   m_ssl_table = new QTableWidget();
-  QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name")};
+  QStringList header{tr("ID"), tr("Domain"), tr("Type"), tr("State"), tr("Name"), tr("Hostname")};
   m_ssl_table->setColumnCount(header.size());
 
   m_ssl_table->setHorizontalHeaderLabels(header);
@@ -305,25 +337,98 @@ QGroupBox* NetworkWidget::CreateSSLContextGroup()
   return ssl_context_group;
 }
 
-QGroupBox* NetworkWidget::CreateSSLOptionsGroup()
+QGroupBox* NetworkWidget::CreateDumpOptionsGroup()
 {
-  QGroupBox* ssl_options_group = new QGroupBox(tr("SSL options"));
-  QGridLayout* ssl_options_layout = new QGridLayout;
-  ssl_options_group->setLayout(ssl_options_layout);
+  auto* dump_options_group = new QGroupBox(tr("Dump options"));
+  auto* dump_options_layout = new QVBoxLayout;
+  dump_options_group->setLayout(dump_options_layout);
 
-  m_dump_ssl_read_checkbox = new QCheckBox(tr("Dump SSL read"));
-  m_dump_ssl_write_checkbox = new QCheckBox(tr("Dump SSL write"));
+  m_dump_format_combo = CreateDumpFormatCombo();
+  m_dump_format_combo->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  m_dump_ssl_read_checkbox = new QCheckBox(tr("Dump decrypted SSL reads"));
+  m_dump_ssl_write_checkbox = new QCheckBox(tr("Dump decrypted SSL writes"));
   // i18n: CA stands for certificate authority
-  m_dump_root_ca_checkbox = new QCheckBox(tr("Dump root CA"));
+  m_dump_root_ca_checkbox = new QCheckBox(tr("Dump root CA certificates"));
   m_dump_peer_cert_checkbox = new QCheckBox(tr("Dump peer certificates"));
+  m_open_dump_folder = new QPushButton(tr("Open dump folder"));
+  m_open_dump_folder->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+  auto* combo_label = new QLabel(tr("Network dump format:"));
+  combo_label->setBuddy(m_dump_format_combo);
+  auto* combo_layout = new QHBoxLayout;
+  combo_layout->addWidget(combo_label);
+  const int combo_label_space =
+      combo_label->fontMetrics().boundingRect(QStringLiteral("__")).width();
+  combo_layout->addItem(new QSpacerItem(combo_label_space, 0));
+  combo_layout->addWidget(m_dump_format_combo);
+  combo_layout->addStretch();
+  dump_options_layout->addLayout(combo_layout);
+
+  dump_options_layout->addWidget(m_dump_ssl_read_checkbox);
+  dump_options_layout->addWidget(m_dump_ssl_write_checkbox);
+  dump_options_layout->addWidget(m_dump_root_ca_checkbox);
+  dump_options_layout->addWidget(m_dump_peer_cert_checkbox);
+  dump_options_layout->addWidget(m_open_dump_folder);
+
+  dump_options_layout->setSpacing(1);
+  return dump_options_group;
+}
+
+QGroupBox* NetworkWidget::CreateSecurityOptionsGroup()
+{
+  auto* security_options_group = new QGroupBox(tr("Security options"));
+  auto* security_options_layout = new QVBoxLayout;
+  security_options_group->setLayout(security_options_layout);
+
   m_verify_certificates_checkbox = new QCheckBox(tr("Verify certificates"));
+  security_options_layout->addWidget(m_verify_certificates_checkbox);
 
-  ssl_options_layout->addWidget(m_dump_ssl_read_checkbox, 0, 0);
-  ssl_options_layout->addWidget(m_dump_ssl_write_checkbox, 1, 0);
-  ssl_options_layout->addWidget(m_verify_certificates_checkbox, 2, 0);
-  ssl_options_layout->addWidget(m_dump_root_ca_checkbox, 0, 1);
-  ssl_options_layout->addWidget(m_dump_peer_cert_checkbox, 1, 1);
+  security_options_layout->setSpacing(1);
+  return security_options_group;
+}
 
-  ssl_options_layout->setSpacing(1);
-  return ssl_options_group;
+QComboBox* NetworkWidget::CreateDumpFormatCombo()
+{
+  auto* combo = new QComboBox();
+
+  combo->insertItem(int(FormatComboId::None), tr("None"));
+  // i18n: PCAP is a file format
+  combo->insertItem(int(FormatComboId::PCAP), tr("PCAP"));
+  combo->insertItem(int(FormatComboId::BinarySSL), tr("Binary SSL"));
+  combo->insertItem(int(FormatComboId::BinarySSLRead), tr("Binary SSL (read)"));
+  combo->insertItem(int(FormatComboId::BinarySSLWrite), tr("Binary SSL (write)"));
+
+  return combo;
+}
+
+void NetworkWidget::OnDumpFormatComboChanged(int index)
+{
+  const auto combo_id = static_cast<FormatComboId>(index);
+
+  switch (combo_id)
+  {
+  case FormatComboId::PCAP:
+    break;
+  case FormatComboId::BinarySSL:
+    m_dump_ssl_read_checkbox->setChecked(true);
+    m_dump_ssl_write_checkbox->setChecked(true);
+    break;
+  case FormatComboId::BinarySSLRead:
+    m_dump_ssl_read_checkbox->setChecked(true);
+    m_dump_ssl_write_checkbox->setChecked(false);
+    break;
+  case FormatComboId::BinarySSLWrite:
+    m_dump_ssl_read_checkbox->setChecked(false);
+    m_dump_ssl_write_checkbox->setChecked(true);
+    break;
+  default:
+    m_dump_ssl_read_checkbox->setChecked(false);
+    m_dump_ssl_write_checkbox->setChecked(false);
+    break;
+  }
+  // Enable raw or decrypted SSL choices for PCAP
+  const bool is_pcap = combo_id == FormatComboId::PCAP;
+  m_dump_ssl_read_checkbox->setEnabled(is_pcap);
+  m_dump_ssl_write_checkbox->setEnabled(is_pcap);
+  Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_AS_PCAP, is_pcap);
 }

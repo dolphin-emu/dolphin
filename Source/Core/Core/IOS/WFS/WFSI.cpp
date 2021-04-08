@@ -94,13 +94,11 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   }
 }
 
-namespace Device
-{
-WFSI::WFSI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+WFSIDevice::WFSIDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
-void WFSI::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
 {
   m_current_title_id = tid;
   m_current_group_id = gid;
@@ -109,7 +107,7 @@ void WFSI::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
   m_current_group_id_str = GroupIdStr(gid);
 }
 
-void WFSI::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
 {
   m_import_title_id = tid;
   m_import_group_id = gid;
@@ -118,7 +116,7 @@ void WFSI::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
   m_import_group_id_str = GroupIdStr(gid);
 }
 
-void WFSI::FinalizePatchInstall()
+void WFSIDevice::FinalizePatchInstall()
 {
   const std::string current_title_dir = fmt::format("/vol/{}/title/{}/{}", m_device_name,
                                                     m_current_group_id_str, m_current_title_id_str);
@@ -126,7 +124,7 @@ void WFSI::FinalizePatchInstall()
   File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
 }
 
-IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_error_code = IPC_SUCCESS;
 
@@ -152,7 +150,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
                    WFS::NativePath(content_dir + "/_default.dol"));
     }
 
-    if (!IOS::ES::IsValidTMDSize(tmd_size))
+    if (!ES::IsValidTMDSize(tmd_size))
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large ({})", tmd_size);
       return_error_code = IPC_EINVAL;
@@ -163,7 +161,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     Memory::CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    const IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
+    const ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
     if (!ticket.IsValid())
     {
       return_error_code = -11028;
@@ -195,7 +193,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
     // Initializes the IV from the index of the content in the TMD contents.
     const u32 content_id = Memory::Read_U32(request.buffer_in + 8);
-    IOS::ES::Content content_info;
+    ES::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
       WARN_LOG_FMT(IOS_WFS, "{}: Content id {:08x} not found", ioctl_name, content_id);
@@ -351,10 +349,10 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     return_error_code = -3;
     if (homedir_path_len > 0x1FD)
       break;
-    auto device = IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
+    auto device = GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
     if (!device)
       break;
-    std::static_pointer_cast<IOS::HLE::Device::WFSSRV>(device)->SetHomeDir(homedir_path);
+    std::static_pointer_cast<WFSSRVDevice>(device)->SetHomeDir(homedir_path);
     return_error_code = IPC_SUCCESS;
     break;
   }
@@ -391,7 +389,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       break;
     }
 
-    const IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
+    const ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
     SetCurrentTitleIdAndGroupId(tmd.GetTitleId(), tmd.GetGroupId());
     break;
   }
@@ -548,10 +546,10 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  return GetDefaultReply(return_error_code);
+  return IPCReply(return_error_code);
 }
 
-u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
+u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
 {
   const std::string path = fmt::format("/vol/{}/title/{}/{}/meta/{:016x}.tmd", m_device_name,
                                        GroupIdStr(group_id), TitleIdStr(title_id), subtitle_id);
@@ -576,7 +574,7 @@ static s32 DeleteTemporaryFiles(const std::string& device_name, u64 title_id)
   return IPC_SUCCESS;
 }
 
-s32 WFSI::CancelTitleImport(bool continue_install)
+s32 WFSIDevice::CancelTitleImport(bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -590,7 +588,7 @@ s32 WFSI::CancelTitleImport(bool continue_install)
   return IPC_SUCCESS;
 }
 
-s32 WFSI::CancelPatchImport(bool continue_install)
+s32 WFSIDevice::CancelPatchImport(bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -614,5 +612,4 @@ s32 WFSI::CancelPatchImport(bool continue_install)
 
   return IPC_SUCCESS;
 }
-}  // namespace Device
 }  // namespace IOS::HLE

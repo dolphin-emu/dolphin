@@ -231,8 +231,6 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Drain any left over jobs
   HostDispatchJobs();
 
-  Core::UpdateWantDeterminism(/*initial*/ true);
-
   INFO_LOG_FMT(BOOT, "Starting core = {} mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
   INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
@@ -516,6 +514,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{&Movie::Shutdown};
 
+  AudioCommon::InitSoundStream();
+  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
+
   HW::Init();
 
   Common::ScopeGuard hw_guard{[] {
@@ -566,8 +567,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // it's now ok to initialize any custom textures
   HiresTexture::Update();
 
-  AudioCommon::InitSoundStream();
-  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
+  AudioCommon::PostInitSoundStream();
 
   // The hardware is initialized.
   s_hardware_initialized = true;
@@ -590,7 +590,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     return;
 
   // Initialise Wii filesystem contents.
-  // This is done here after Boot and not in HW to ensure that we operate
+  // This is done here after Boot and not in BootManager to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
   Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
   if (SConfig::GetInstance().bWii)
@@ -732,26 +732,14 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
-  const bool bPaused = GetState() == State::Paused;
-
-  SetState(State::Paused);
-
-  g_renderer->SaveScreenshot(GenerateScreenshotName());
-
-  if (!bPaused)
-    SetState(State::Running);
+  Core::RunAsCPUThread([] { g_renderer->SaveScreenshot(GenerateScreenshotName()); });
 }
 
 void SaveScreenShot(std::string_view name)
 {
-  const bool bPaused = GetState() == State::Paused;
-
-  SetState(State::Paused);
-
-  g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
-
-  if (!bPaused)
-    SetState(State::Running);
+  Core::RunAsCPUThread([&name] {
+    g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
+  });
 }
 
 void RequestRefreshInfo()

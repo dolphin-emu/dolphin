@@ -39,6 +39,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_finali
   delete GetPointer(env, obj);
 }
 
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_getSize(JNIEnv* env,
+                                                                                  jobject obj)
+{
+  return static_cast<jint>(GetPointer(env, obj)->GetSize());
+}
+
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFileCache_getAllGames(JNIEnv* env, jobject obj)
 {

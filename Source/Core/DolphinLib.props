@@ -45,6 +45,7 @@
     <ClInclude Include="Common\DebugInterface.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENetUtil.h" />
+    <ClInclude Include="Common\EnumFormatter.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FileSearch.h" />
     <ClInclude Include="Common\FileUtil.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="Common\Semaphore.h" />
     <ClInclude Include="Common\SettingsHandler.h" />
     <ClInclude Include="Common\SFMLHelper.h" />
+    <ClInclude Include="Common\SocketContext.h" />
     <ClInclude Include="Common\SPSCQueue.h" />
     <ClInclude Include="Common\StringUtil.h" />
     <ClInclude Include="Common\Swap.h" />
@@ -415,6 +417,7 @@
     <ClInclude Include="DiscIO\DirectoryBlob.h" />
     <ClInclude Include="DiscIO\DiscExtractor.h" />
     <ClInclude Include="DiscIO\DiscScrubber.h" />
+    <ClInclude Include="DiscIO\DiscUtils.h" />
     <ClInclude Include="DiscIO\DriveBlob.h" />
     <ClInclude Include="DiscIO\Enums.h" />
     <ClInclude Include="DiscIO\FileBlob.h" />
@@ -475,7 +478,9 @@
     <ClInclude Include="InputCommon\ControlReference\ControlReference.h" />
     <ClInclude Include="InputCommon\ControlReference\ExpressionParser.h" />
     <ClInclude Include="InputCommon\ControlReference\FunctionExpression.h" />
-    <ClInclude Include="InputCommon\DynamicInputTextureConfiguration.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITConfiguration.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITData.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITSpecification.h" />
     <ClInclude Include="InputCommon\DynamicInputTextureManager.h" />
     <ClInclude Include="InputCommon\GCAdapter.h" />
     <ClInclude Include="InputCommon\GCPadStatus.h" />
@@ -716,6 +721,7 @@
     <ClCompile Include="Common\SDCardUtil.cpp" />
     <ClCompile Include="Common\SettingsHandler.cpp" />
     <ClCompile Include="Common\SFMLHelper.cpp" />
+    <ClCompile Include="Common\SocketContext.cpp" />
     <ClCompile Include="Common\StringUtil.cpp" />
     <ClCompile Include="Common\SymbolDB.cpp" />
     <ClCompile Include="Common\Thread.cpp" />
@@ -986,6 +992,7 @@
     <ClCompile Include="DiscIO\DirectoryBlob.cpp" />
     <ClCompile Include="DiscIO\DiscExtractor.cpp" />
     <ClCompile Include="DiscIO\DiscScrubber.cpp" />
+    <ClCompile Include="DiscIO\DiscUtils.cpp" />
     <ClCompile Include="DiscIO\DriveBlob.cpp" />
     <ClCompile Include="DiscIO\Enums.cpp" />
     <ClCompile Include="DiscIO\FileBlob.cpp" />
@@ -1041,7 +1048,8 @@
     <ClCompile Include="InputCommon\ControlReference\ControlReference.cpp" />
     <ClCompile Include="InputCommon\ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="InputCommon\ControlReference\FunctionExpression.cpp" />
-    <ClCompile Include="InputCommon\DynamicInputTextureConfiguration.cpp" />
+    <ClCompile Include="InputCommon\DynamicInputTextures\DITConfiguration.cpp" />
+    <ClCompile Include="InputCommon\DynamicInputTextures\DITSpecification.cpp" />
     <ClCompile Include="InputCommon\DynamicInputTextureManager.cpp" />
     <ClCompile Include="InputCommon\GCAdapter.cpp" />
     <ClCompile Include="InputCommon\ImageOperations.cpp" />
@@ -1199,5 +1207,8 @@
     <ClCompile Include="VideoCommon\VideoState.cpp" />
     <ClCompile Include="VideoCommon\XFMemory.cpp" />
     <ClCompile Include="VideoCommon\XFStructs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Common\BitField.natvis" />
   </ItemGroup>
 </Project>

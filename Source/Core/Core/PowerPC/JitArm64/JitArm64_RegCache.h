@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Arm64Emitter.h"
@@ -17,18 +18,29 @@
 // Dedicated host registers
 
 // memory base register
-constexpr Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::X28;
+constexpr Arm64Gen::ARM64Reg MEM_REG = Arm64Gen::ARM64Reg::X28;
 // ppcState pointer
-constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::X29;
+constexpr Arm64Gen::ARM64Reg PPC_REG = Arm64Gen::ARM64Reg::X29;
 // PC register when calling the dispatcher
-constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::W26;
+constexpr Arm64Gen::ARM64Reg DISPATCHER_PC = Arm64Gen::ARM64Reg::W26;
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
+#define PPCSTATE_OFF_ARRAY(elem, i)                                                                \
+  (offsetof(PowerPC::PowerPCState, elem[0]) + sizeof(PowerPC::PowerPCState::elem[0]) * (i))
+
+#define PPCSTATE_OFF_GPR(i) PPCSTATE_OFF_ARRAY(gpr, i)
+#define PPCSTATE_OFF_CR(i) PPCSTATE_OFF_ARRAY(cr.fields, i)
+#define PPCSTATE_OFF_SR(i) PPCSTATE_OFF_ARRAY(sr, i)
+#define PPCSTATE_OFF_SPR(i) PPCSTATE_OFF_ARRAY(spr, i)
+
+static_assert(std::is_same_v<decltype(PowerPC::PowerPCState::ps[0]), PowerPC::PairedSingle&>);
+#define PPCSTATE_OFF_PS0(i) (PPCSTATE_OFF_ARRAY(ps, i) + offsetof(PowerPC::PairedSingle, ps0))
+#define PPCSTATE_OFF_PS1(i) (PPCSTATE_OFF_ARRAY(ps, i) + offsetof(PowerPC::PairedSingle, ps1))
+
 // Some asserts to make sure we will be able to load everything
-static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
-static_assert((PPCSTATE_OFF(ps[0].ps0) % 8) == 0,
-              "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
+static_assert(PPCSTATE_OFF_SPR(1023) <= 16380, "LDR(32bit) can't reach the last SPR");
+static_assert((PPCSTATE_OFF_PS0(0) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
 static_assert(PPCSTATE_OFF(xer_ca) < 4096, "STRB can't store xer_ca!");
 static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 
@@ -72,13 +84,13 @@ public:
     m_type = RegType::Immediate;
     m_value = imm;
 
-    m_reg = Arm64Gen::INVALID_REG;
+    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   }
   void Flush()
   {
     // Invalidate any previous information
     m_type = RegType::NotLoaded;
-    m_reg = Arm64Gen::INVALID_REG;
+    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
 
     // Arbitrarily large value that won't roll over on a lot of increments
     m_last_used = 0xFFFF;
@@ -92,8 +104,8 @@ public:
 
 private:
   // For REG_REG
-  RegType m_type = RegType::NotLoaded;               // store type
-  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;  // host register we are in
+  RegType m_type = RegType::NotLoaded;                         // store type
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;  // host register we are in
 
   // For REG_IMM
   u32 m_value = 0;  // IMM value
@@ -118,7 +130,7 @@ public:
   bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
 
 private:
-  Arm64Gen::ARM64Reg m_reg = Arm64Gen::INVALID_REG;
+  Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   bool m_locked = false;
 };
 

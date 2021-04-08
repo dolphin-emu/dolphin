@@ -30,9 +30,6 @@ enum
 {
   SLOT_A = 0,
   SLOT_B = 1,
-  GCI = 0,
-  SAV = 0x80,
-  GCS = 0x110,
 };
 
 enum class GCMemcardGetSaveDataRetVal
@@ -45,26 +42,10 @@ enum class GCMemcardGetSaveDataRetVal
 enum class GCMemcardImportFileRetVal
 {
   SUCCESS,
-  FAIL,
   NOMEMCARD,
   OUTOFDIRENTRIES,
   OUTOFBLOCKS,
   TITLEPRESENT,
-  INVALIDFILESIZE,
-  GCSFAIL,
-  SAVFAIL,
-  OPENFAIL,
-  LENGTHFAIL,
-};
-
-enum class GCMemcardExportFileRetVal
-{
-  SUCCESS,
-  FAIL,
-  NOMEMCARD,
-  OPENFAIL,
-  WRITEFAIL,
-  UNUSED,
 };
 
 enum class GCMemcardRemoveFileRetVal
@@ -400,6 +381,12 @@ static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 static_assert(std::is_trivially_copyable_v<BlockAlloc>);
 #pragma pack(pop)
 
+struct Savefile
+{
+  DEntry dir_entry;
+  std::vector<GCMBlock> blocks;
+};
+
 class GCMemcard
 {
 private:
@@ -418,8 +405,6 @@ private:
   int m_active_bat;
 
   GCMemcard();
-
-  GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
 
   const Directory& GetActiveDirectory() const;
   const BlockAlloc& GetActiveBat() const;
@@ -496,25 +481,14 @@ public:
 
   GCMemcardGetSaveDataRetVal GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
-  // adds the file to the directory and copies its contents
-  GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  // Adds the given savefile to the memory card, if possible.
+  GCMemcardImportFileRetVal ImportFile(const Savefile& savefile);
+
+  // Fetches the savefile at the given directory index, if any.
+  std::optional<Savefile> ExportFile(u8 index) const;
 
   // delete a file from the directory
   GCMemcardRemoveFileRetVal RemoveFile(u8 index);
-
-  // reads a save from another memcard, and imports the data into this memcard
-  GCMemcardImportFileRetVal CopyFrom(const GCMemcard& source, u8 index);
-
-  // reads a .gci/.gcs/.sav file and calls ImportFile
-  GCMemcardImportFileRetVal ImportGci(const std::string& inputFile);
-
-  // writes a .gci file to disk containing index
-  GCMemcardExportFileRetVal ExportGci(u8 index, const std::string& fileName,
-                                      const std::string& directory) const;
-
-  // GCI files are untouched, SAV files are byteswapped
-  // GCS files have the block count set, default is 1 (For export as GCS)
-  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
 
   // reads the banner image
   std::optional<std::vector<u32>> ReadBannerRGBA8(u8 index) const;

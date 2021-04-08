@@ -331,11 +331,24 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
 
       // Fix blocking error codes
-      if (!nonBlock)
+      if (!nonBlock && it->net_type == IOCTL_SO_CONNECT)
       {
-        if (it->net_type == IOCTL_SO_CONNECT && ReturnValue == -SO_EISCONN)
+        switch (ReturnValue)
         {
+        case -SO_EAGAIN:
+        case -SO_EALREADY:
+        case -SO_EINPROGRESS:
+          if (std::chrono::steady_clock::now() > GetTimeout())
+          {
+            ReturnValue = -SO_ENETUNREACH;
+            ResetTimeout();
+          }
+          break;
+        case -SO_EISCONN:
           ReturnValue = SO_SUCCESS;
+          [[fallthrough]];
+        default:
+          ResetTimeout();
         }
       }
     }
@@ -374,13 +387,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
       if (it->is_ssl)
       {
         int sslID = Memory::Read_U32(BufferOut) - 1;
-        if (IOS::HLE::Device::IsSSLIDValid(sslID))
+        if (IsSSLIDValid(sslID))
         {
           switch (it->ssl_type)
           {
           case IOCTLV_NET_SSL_DOHANDSHAKE:
           {
-            mbedtls_ssl_context* ctx = &Device::NetSSL::_SSL[sslID].ctx;
+            mbedtls_ssl_context* ctx = &NetSSLDevice::_SSL[sslID].ctx;
             const int ret = mbedtls_ssl_handshake(ctx);
             if (ret != 0)
             {
@@ -457,13 +470,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_WRITE:
           {
-            int ret = mbedtls_ssl_write(&Device::NetSSL::_SSL[sslID].ctx,
-                                        Memory::GetPointer(BufferOut2), BufferOutSize2);
+            WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
+            const int ret =
+                mbedtls_ssl_write(&ssl->ctx, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogWrite(Memory::GetPointer(BufferOut2),
-                                                                 ret);
+              PowerPC::debug_interface.NetworkLogger()->LogSSLWrite(Memory::GetPointer(BufferOut2),
+                                                                    ret, ssl->hostfd);
               // Return bytes written or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -490,12 +504,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_READ:
           {
-            int ret = mbedtls_ssl_read(&Device::NetSSL::_SSL[sslID].ctx,
-                                       Memory::GetPointer(BufferIn2), BufferInSize2);
+            WII_SSL* ssl = &NetSSLDevice::_SSL[sslID];
+            const int ret =
+                mbedtls_ssl_read(&ssl->ctx, Memory::GetPointer(BufferIn2), BufferInSize2);
 
             if (ret >= 0)
             {
-              PowerPC::debug_interface.NetworkLogger()->LogRead(Memory::GetPointer(BufferIn2), ret);
+              PowerPC::debug_interface.NetworkLogger()->LogSSLRead(Memory::GetPointer(BufferIn2),
+                                                                   ret, ssl->hostfd);
               // Return bytes read or SSL_ERR_ZERO if none
               WriteReturnValue((ret == 0) ? SSL_ERR_ZERO : ret, BufferIn);
             }
@@ -553,10 +569,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
             WiiSockMan::Convert(*wii_name, local_name);
           }
 
-          const int ret = sendto(fd, data, BufferInSize, flags,
-                                 has_destaddr ? (struct sockaddr*)&local_name : nullptr,
-                                 has_destaddr ? sizeof(sockaddr) : 0);
+          auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
+          socklen_t tolen = has_destaddr ? sizeof(sockaddr) : 0;
+          const int ret = sendto(fd, data, BufferInSize, flags, to, tolen);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
+          if (ret > 0)
+            PowerPC::debug_interface.NetworkLogger()->LogWrite(data, ret, fd, to);
 
           INFO_LOG_FMT(IOS_NET,
                        "{} = {} Socket: {:08x}, BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}), "
@@ -599,11 +617,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 #endif
           socklen_t addrlen = sizeof(sockaddr_in);
-          const int ret = recvfrom(fd, data, data_len, flags,
-                                   BufferOutSize2 ? (struct sockaddr*)&local_name : nullptr,
-                                   BufferOutSize2 ? &addrlen : nullptr);
+          auto* from = BufferOutSize2 ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
+          socklen_t* fromlen = BufferOutSize2 ? &addrlen : nullptr;
+          const int ret = recvfrom(fd, data, data_len, flags, from, fromlen);
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
+          if (ret > 0)
+            PowerPC::debug_interface.NetworkLogger()->LogRead(data, ret, fd, from);
 
           INFO_LOG_FMT(IOS_NET,
                        "{}({}, {}) Socket: {:08X}, Flags: {:08X}, "
@@ -653,6 +673,21 @@ void WiiSocket::Update(bool read, bool write, bool except)
   }
 }
 
+const WiiSocket::Timeout& WiiSocket::GetTimeout()
+{
+  if (!timeout.has_value())
+  {
+    timeout = std::chrono::steady_clock::now() +
+              std::chrono::seconds(Config::Get(Config::MAIN_NETWORK_TIMEOUT));
+  }
+  return *timeout;
+}
+
+void WiiSocket::ResetTimeout()
+{
+  timeout.reset();
+}
+
 void WiiSocket::DoSock(Request request, NET_IOCTL type)
 {
   sockop so = {request, false};
@@ -694,6 +729,7 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     WiiSocket& sock = WiiSockets[wii_fd];
     sock.SetFd(fd);
     sock.SetWiiFd(wii_fd);
+    PowerPC::debug_interface.NetworkLogger()->OnNewSocket(fd);
 
 #ifdef __APPLE__
     int opt_no_sigpipe = 1;

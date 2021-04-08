@@ -125,7 +125,12 @@ void RegisterWidget::ShowContextMenu()
 
     // i18n: This kind of "watch" is used for watching emulated memory.
     // It's not related to timekeeping devices.
-    menu->addAction(tr("Add to &watch"), this,
+    menu->addAction(tr("Add to &watch"), this, [this, item] {
+      const u32 address = item->GetValue();
+      const QString name = QStringLiteral("reg_%1").arg(address, 8, 16, QLatin1Char('0'));
+      emit RequestWatch(name, address);
+    });
+    menu->addAction(tr("Add memory &breakpoint"), this,
                     [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
     menu->addAction(tr("View &memory"), this,
                     [this, item] { emit RequestViewInMemory(item->GetValue()); });

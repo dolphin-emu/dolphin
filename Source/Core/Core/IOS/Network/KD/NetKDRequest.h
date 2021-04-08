@@ -10,18 +10,18 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 // KD is the IOS module responsible for implementing WiiConnect24 functionality.
 // It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
 // JavaScript-like language while the Wii is in standby mode.
-class NetKDRequest : public Device
+class NetKDRequestDevice : public Device
 {
 public:
-  NetKDRequest(Kernel& ios, const std::string& device_name);
-  ~NetKDRequest() override;
+  NetKDRequestDevice(Kernel& ios, const std::string& device_name);
+  ~NetKDRequestDevice() override;
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
 private:
   enum
@@ -66,4 +66,4 @@ private:
 
   NWC24::NWC24Config config;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -207,7 +207,7 @@ static T ReadFromHardware(u32 em_address)
 
   // TODO: Make sure these are safe for unaligned addresses.
 
-  if ((em_address & 0xF8000000) == 0x00000000)
+  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
@@ -226,7 +226,8 @@ static T ReadFromHardware(u32 em_address)
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  if (Memory::m_pL1Cache && (em_address >> 28) == 0xE &&
+      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
     T value;
     std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
@@ -296,7 +297,7 @@ static void WriteToHardware(u32 em_address, const T data)
 
   // TODO: Make sure these are safe for unaligned addresses.
 
-  if ((em_address & 0xF8000000) == 0x00000000)
+  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
@@ -315,7 +316,8 @@ static void WriteToHardware(u32 em_address, const T data)
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
+      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
     const T swapped_data = bswap(data);
     std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
@@ -665,15 +667,24 @@ static bool IsRAMAddress(u32 address, bool translate)
   }
 
   u32 segment = address >> 28;
-  if (segment == 0x0 && (address & 0x0FFFFFFF) < Memory::GetRamSizeReal())
+  if (Memory::m_pRAM && segment == 0x0 && (address & 0x0FFFFFFF) < Memory::GetRamSizeReal())
+  {
     return true;
+  }
   else if (Memory::m_pEXRAM && segment == 0x1 &&
            (address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+  {
     return true;
+  }
   else if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  {
     return true;
-  else if (segment == 0xE && (address < (0xE0000000 + Memory::GetL1CacheSize())))
+  }
+  else if (Memory::m_pL1Cache && segment == 0xE &&
+           (address < (0xE0000000 + Memory::GetL1CacheSize())))
+  {
     return true;
+  }
   return false;
 }
 

@@ -4,11 +4,14 @@
 
 #include "Core/ConfigManager.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <climits>
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <variant>
 
 #include <fmt/format.h>
@@ -671,6 +674,11 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
   }
 }
 
+void SConfig::SetRunningGameMetadata(const std::string& game_id)
+{
+  SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown);
+}
+
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                                      u64 title_id, u16 revision, DiscIO::Region region)
 {
@@ -716,19 +724,23 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
 
   if (Core::IsRunning())
-  {
-    // TODO: have a callback mechanism for title changes?
-    if (!g_symbolDB.IsEmpty())
-    {
-      g_symbolDB.Clear();
-      Host_NotifyMapLoaded();
-    }
-    CBoot::LoadMapFromFilename();
-    HLE::Reload();
-    PatchEngine::Reload();
-    HiresTexture::Update();
     DolphinAnalytics::Instance().ReportGameStart();
+}
+
+void SConfig::OnNewTitleLoad()
+{
+  if (!Core::IsRunning())
+    return;
+
+  if (!g_symbolDB.IsEmpty())
+  {
+    g_symbolDB.Clear();
+    Host_NotifyMapLoaded();
   }
+  CBoot::LoadMapFromFilename();
+  HLE::Reload();
+  PatchEngine::Reload();
+  HiresTexture::Update();
 }
 
 void SConfig::LoadDefaults()
@@ -791,6 +803,15 @@ void SConfig::LoadDefaults()
 bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
 {
   return m_usb_passthrough_devices.find(vid_pid) != m_usb_passthrough_devices.end();
+}
+
+// Static method to make a simple game ID for elf/dol files
+std::string SConfig::MakeGameID(std::string_view file_name)
+{
+  size_t lastdot = file_name.find_last_of(".");
+  if (lastdot == std::string::npos)
+    return "ID-" + std::string(file_name);
+  return "ID-" + std::string(file_name.substr(0, lastdot));
 }
 
 // The reason we need this function is because some memory card code
@@ -862,6 +883,13 @@ struct SetGameMetadata
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
+
+    // Set DOL/ELF game ID appropriately
+    std::string executable_path = executable.path;
+    constexpr char BACKSLASH = '\\';
+    constexpr char FORWARDSLASH = '/';
+    std::replace(executable_path.begin(), executable_path.end(), BACKSLASH, FORWARDSLASH);
+    config->SetRunningGameMetadata(SConfig::MakeGameID(PathToFileName(executable_path)));
 
     Host_TitleChanged();
 

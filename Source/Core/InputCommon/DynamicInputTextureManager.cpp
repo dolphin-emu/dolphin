@@ -10,9 +10,11 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 
-#include "InputCommon/DynamicInputTextureConfiguration.h"
+#include "InputCommon/DynamicInputTextures/DITConfiguration.h"
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/RenderBase.h"
 
 namespace InputCommon
 {
@@ -38,12 +40,16 @@ void DynamicInputTextureManager::Load()
   }
 }
 
-void DynamicInputTextureManager::GenerateTextures(const IniFile::Section* sec,
-                                                  const std::string& controller_name)
+void DynamicInputTextureManager::GenerateTextures(const IniFile& file,
+                                                  const std::vector<std::string>& controller_names)
 {
+  bool any_dirty = false;
   for (const auto& configuration : m_configuration)
   {
-    configuration.GenerateTextures(sec, controller_name);
+    any_dirty |= configuration.GenerateTextures(file, controller_names);
   }
+
+  if (any_dirty && g_renderer && Core::GetState() != Core::State::Starting)
+    g_renderer->ForceReloadTextures();
 }
 }  // namespace InputCommon

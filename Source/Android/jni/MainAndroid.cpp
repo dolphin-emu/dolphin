@@ -196,9 +196,7 @@ static std::string GetAnalyticValue(const std::string& key)
   return stdvalue;
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv*,
                                                                                      jclass)
@@ -703,7 +701,4 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked
 
   return ToJString(env, description);
 }
-
-#ifdef __cplusplus
 }
-#endif

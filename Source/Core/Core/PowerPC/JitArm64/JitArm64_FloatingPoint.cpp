@@ -303,7 +303,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
-  ORR(XA, ZR, 32, 0, true);
+  ORR(XA, ARM64Reg::ZR, 32, 0, true);
 
   m_float_emit.FCMP(VA, VB);
 

@@ -30,8 +30,6 @@ struct DeviceInfo
 };
 }  // namespace USB
 
-namespace Device
-{
 // /dev/usb/oh0
 class OH0 final : public USBHost
 {
@@ -39,27 +37,27 @@ public:
   OH0(Kernel& ios, const std::string& device_name);
   ~OH0() override;
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
   std::pair<ReturnCode, u64> DeviceOpen(u16 vid, u16 pid);
   void DeviceClose(u64 device_id);
-  IPCCommandResult DeviceIOCtl(u64 device_id, const IOCtlRequest& request);
-  IPCCommandResult DeviceIOCtlV(u64 device_id, const IOCtlVRequest& request);
+  std::optional<IPCReply> DeviceIOCtl(u64 device_id, const IOCtlRequest& request);
+  std::optional<IPCReply> DeviceIOCtlV(u64 device_id, const IOCtlVRequest& request);
 
   void DoState(PointerWrap& p) override;
 
 private:
-  IPCCommandResult CancelInsertionHook(const IOCtlRequest& request);
-  IPCCommandResult GetDeviceList(const IOCtlVRequest& request) const;
-  IPCCommandResult GetRhDesca(const IOCtlRequest& request) const;
-  IPCCommandResult GetRhPortStatus(const IOCtlVRequest& request) const;
-  IPCCommandResult SetRhPortStatus(const IOCtlVRequest& request);
-  IPCCommandResult RegisterRemovalHook(u64 device_id, const IOCtlRequest& request);
-  IPCCommandResult RegisterInsertionHook(const IOCtlVRequest& request);
-  IPCCommandResult RegisterInsertionHookWithID(const IOCtlVRequest& request);
-  IPCCommandResult RegisterClassChangeHook(const IOCtlVRequest& request);
+  IPCReply CancelInsertionHook(const IOCtlRequest& request);
+  IPCReply GetDeviceList(const IOCtlVRequest& request) const;
+  IPCReply GetRhDesca(const IOCtlRequest& request) const;
+  IPCReply GetRhPortStatus(const IOCtlVRequest& request) const;
+  IPCReply SetRhPortStatus(const IOCtlVRequest& request);
+  std::optional<IPCReply> RegisterRemovalHook(u64 device_id, const IOCtlRequest& request);
+  std::optional<IPCReply> RegisterInsertionHook(const IOCtlVRequest& request);
+  std::optional<IPCReply> RegisterInsertionHookWithID(const IOCtlVRequest& request);
+  std::optional<IPCReply> RegisterClassChangeHook(const IOCtlVRequest& request);
   s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& request);
 
   bool HasDeviceWithVidPid(u16 vid, u16 pid) const;
@@ -85,5 +83,4 @@ private:
 
   ScanThread m_scan_thread{this};
 };
-}  // namespace Device
 }  // namespace IOS::HLE

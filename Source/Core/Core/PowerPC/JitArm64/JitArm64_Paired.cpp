@@ -123,8 +123,8 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   const ARM64Reg VB = reg_encoder(fpr.R(b, type));
   const ARM64Reg VC = reg_encoder(fpr.R(c, type));
   const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
-  ARM64Reg V0Q = INVALID_REG;
-  ARM64Reg V0 = INVALID_REG;
+  ARM64Reg V0Q = ARM64Reg::INVALID_REG;
+  ARM64Reg V0 = ARM64Reg::INVALID_REG;
   if (d != b && (d == a || d == c))
   {
     V0Q = fpr.GetReg();
@@ -262,7 +262,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
 
   fpr.FixSinglePrecision(d);
 
-  if (V0Q != INVALID_REG)
+  if (V0Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V0Q);
 }
 

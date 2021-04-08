@@ -37,9 +37,9 @@ constexpr bool IsValidMode(Mode mode)
 }
 }  // namespace IOS::HLE::WD
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-class NetWDCommand : public Device
+class NetWDCommandDevice : public Device
 {
 public:
   enum class ResultCode : u32
@@ -50,11 +50,11 @@ public:
     DriverError = 0x80008003,
   };
 
-  NetWDCommand(Kernel& ios, const std::string& device_name);
+  NetWDCommandDevice(Kernel& ios, const std::string& device_name);
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
   void Update() override;
   bool IsOpened() const override { return true; }
   void DoState(PointerWrap& p) override;
@@ -153,10 +153,10 @@ private:
   void HandleStateChange();
   static Status GetTargetStatusForMode(WD::Mode mode);
 
-  IPCCommandResult SetLinkState(const IOCtlVRequest& request);
-  IPCCommandResult GetLinkState(const IOCtlVRequest& request) const;
-  IPCCommandResult Disassociate(const IOCtlVRequest& request);
-  IPCCommandResult GetInfo(const IOCtlVRequest& request) const;
+  IPCReply SetLinkState(const IOCtlVRequest& request);
+  IPCReply GetLinkState(const IOCtlVRequest& request) const;
+  IPCReply Disassociate(const IOCtlVRequest& request);
+  IPCReply GetInfo(const IOCtlVRequest& request) const;
 
   s32 m_ipc_owner_fd = -1;
   WD::Mode m_mode = WD::Mode::NotInitialized;
@@ -172,4 +172,4 @@ private:
   std::deque<u32> m_recv_frame_requests;
   std::deque<u32> m_recv_notification_requests;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

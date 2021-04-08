@@ -338,9 +338,19 @@ void CodeViewWidget::Update()
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
-      bp_item->setData(
-          Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2)));
+      auto icon =
+          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
+      if (!PowerPC::breakpoints.IsBreakPointEnable(addr))
+      {
+        QPixmap disabled_icon(icon.size());
+        disabled_icon.fill(Qt::transparent);
+        QPainter p(&disabled_icon);
+        p.setOpacity(0.20);
+        p.drawPixmap(0, 0, icon);
+        p.end();
+        icon = disabled_icon;
+      }
+      bp_item->setData(Qt::DecorationRole, icon);
     }
 
     setItem(i, CODE_VIEW_COLUMN_BREAKPOINT, bp_item);
@@ -442,8 +452,19 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
     return;
 
   m_address = address;
-  if (update == SetAddressUpdate::WithUpdate)
+  switch (update)
+  {
+  case SetAddressUpdate::WithoutUpdate:
+    return;
+  case SetAddressUpdate::WithUpdate:
+    // Update the CodeViewWidget
     Update();
+    break;
+  case SetAddressUpdate::WithDetailedUpdate:
+    // Update the CodeWidget's views (code view, function calls/callers, ...)
+    emit UpdateCodeWidget();
+    break;
+  }
 }
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
@@ -611,7 +632,7 @@ void CodeViewWidget::OnFollowBranch()
   if (!branch_addr)
     return;
 
-  SetAddress(branch_addr, SetAddressUpdate::WithUpdate);
+  SetAddress(branch_addr, SetAddressUpdate::WithDetailedUpdate);
 }
 
 void CodeViewWidget::OnRenameSymbol()
@@ -785,7 +806,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
       ToggleBreakpoint();
     else
-      SetAddress(addr, SetAddressUpdate::WithUpdate);
+      SetAddress(addr, SetAddressUpdate::WithDetailedUpdate);
 
     Update();
     break;

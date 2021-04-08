@@ -403,27 +403,27 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("  float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n"
             "  uint texMtxInfo = xfmem_texMtxInfo(texgen);\n");
   out.Write("  switch ({}) {{\n", BitfieldExtract("texMtxInfo", TexMtxInfo().sourcerow));
-  out.Write("  case {}u: // XF_SRCGEOM_INROW\n", XF_SRCGEOM_INROW);
+  out.Write("  case {:s}:\n", SourceRow::Geom);
   out.Write("    coord.xyz = rawpos.xyz;\n");
   out.Write("    break;\n\n");
-  out.Write("  case {}u: // XF_SRCNORMAL_INROW\n", XF_SRCNORMAL_INROW);
+  out.Write("  case {:s}:\n", SourceRow::Normal);
   out.Write(
       "    coord.xyz = ((components & {}u /* VB_HAS_NRM0 */) != 0u) ? rawnorm0.xyz : coord.xyz;",
       VB_HAS_NRM0);
   out.Write("    break;\n\n");
-  out.Write("  case {}u: // XF_SRCBINORMAL_T_INROW\n", XF_SRCBINORMAL_T_INROW);
+  out.Write("  case {:s}:\n", SourceRow::BinormalT);
   out.Write(
       "    coord.xyz = ((components & {}u /* VB_HAS_NRM1 */) != 0u) ? rawnorm1.xyz : coord.xyz;",
       VB_HAS_NRM1);
   out.Write("    break;\n\n");
-  out.Write("  case {}u: // XF_SRCBINORMAL_B_INROW\n", XF_SRCBINORMAL_B_INROW);
+  out.Write("  case {:s}:\n", SourceRow::BinormalB);
   out.Write(
       "    coord.xyz = ((components & {}u /* VB_HAS_NRM2 */) != 0u) ? rawnorm2.xyz : coord.xyz;",
       VB_HAS_NRM2);
   out.Write("    break;\n\n");
   for (u32 i = 0; i < 8; i++)
   {
-    out.Write("  case {}u: // XF_SRCTEX{}_INROW\n", XF_SRCTEX0_INROW + i, i);
+    out.Write("  case {:s}:\n", static_cast<SourceRow>(static_cast<u32>(SourceRow::Tex0) + i));
     out.Write(
         "    coord = ((components & {}u /* VB_HAS_UV{} */) != 0u) ? float4(rawtex{}.x, rawtex{}.y, "
         "1.0, 1.0) : coord;\n",
@@ -434,8 +434,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "\n");
 
   out.Write("  // Input form of AB11 sets z element to 1.0\n");
-  out.Write("  if ({} == {}u) // inputform == XF_TEXINPUT_AB11\n",
-            BitfieldExtract("texMtxInfo", TexMtxInfo().inputform), XF_TEXINPUT_AB11);
+  out.Write("  if ({} == {:s}) // inputform == AB11\n",
+            BitfieldExtract("texMtxInfo", TexMtxInfo().inputform), TexInputForm::AB11);
   out.Write("    coord.z = 1.0f;\n"
             "\n");
 
@@ -444,7 +444,7 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("  float3 output_tex;\n"
             "  switch (texgentype)\n"
             "  {{\n");
-  out.Write("  case {}u: // XF_TEXGEN_EMBOSS_MAP\n", XF_TEXGEN_EMBOSS_MAP);
+  out.Write("  case {:s}:\n", TexGenType::EmbossMap);
   out.Write("    {{\n");
   out.Write("      uint light = {};\n",
             BitfieldExtract("texMtxInfo", TexMtxInfo().embosslightshift));
@@ -462,13 +462,14 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "      }}\n"
             "    }}\n"
             "    break;\n\n");
-  out.Write("  case {}u: // XF_TEXGEN_COLOR_STRGBC0\n", XF_TEXGEN_COLOR_STRGBC0);
+  out.Write("  case {:s}:\n", TexGenType::Color0);
   out.Write("    output_tex.xyz = float3(o.colors_0.x, o.colors_0.y, 1.0);\n"
             "    break;\n\n");
-  out.Write("  case {}u: // XF_TEXGEN_COLOR_STRGBC1\n", XF_TEXGEN_COLOR_STRGBC1);
+  out.Write("  case {:s}:\n", TexGenType::Color1);
   out.Write("    output_tex.xyz = float3(o.colors_1.x, o.colors_1.y, 1.0);\n"
             "    break;\n\n");
-  out.Write("  default:  // Also XF_TEXGEN_REGULAR\n"
+  out.Write("  case {:s}:\n", TexGenType::Regular);
+  out.Write("  default:\n"
             "    {{\n");
   out.Write("      if ((components & ({}u /* VB_HAS_TEXMTXIDX0 */ << texgen)) != 0u) {{\n",
             VB_HAS_TEXMTXIDX0);
@@ -480,8 +481,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
     out.Write("        case {}u: tmp = int(rawtex{}.z); break;\n", i, i);
   out.Write("        }}\n"
             "\n");
-  out.Write("        if ({} == {}u) {{\n", BitfieldExtract("texMtxInfo", TexMtxInfo().projection),
-            XF_TEXPROJ_STQ);
+  out.Write("        if ({} == {:s}) {{\n", BitfieldExtract("texMtxInfo", TexMtxInfo().projection),
+            TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TRANSFORMMATRICES "[tmp]),\n"
             "                                  dot(coord, " I_TRANSFORMMATRICES "[tmp + 1]),\n"
             "                                  dot(coord, " I_TRANSFORMMATRICES "[tmp + 2]));\n"
@@ -491,8 +492,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "                                  1.0);\n"
             "        }}\n"
             "      }} else {{\n");
-  out.Write("        if ({} == {}u) {{\n", BitfieldExtract("texMtxInfo", TexMtxInfo().projection),
-            XF_TEXPROJ_STQ);
+  out.Write("        if ({} == {:s}) {{\n", BitfieldExtract("texMtxInfo", TexMtxInfo().projection),
+            TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TEXMATRICES "[3u * texgen]),\n"
             "                                  dot(coord, " I_TEXMATRICES "[3u * texgen + 1u]),\n"
             "                                  dot(coord, " I_TEXMATRICES "[3u * texgen + 2u]));\n"
@@ -526,8 +527,7 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   // When q is 0, the GameCube appears to have a special case
   // This can be seen in devkitPro's neheGX Lesson08 example for Wii
   // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
-  out.Write("  if (texgentype == {}u && output_tex.z == 0.0) // XF_TEXGEN_REGULAR\n",
-            XF_TEXGEN_REGULAR);
+  out.Write("  if (texgentype == {:s} && output_tex.z == 0.0)\n", TexGenType::Regular);
   out.Write(
       "    output_tex.xy = clamp(output_tex.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n"
       "\n");

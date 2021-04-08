@@ -46,6 +46,7 @@ private:
   void OnNewBreakpoint();
   void OnLoad();
   void OnSave();
+  void OnContextMenu();
 
   void UpdateIcons();
 

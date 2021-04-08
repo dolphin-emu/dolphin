@@ -272,6 +272,7 @@ void MemoryWidget::ConnectWidgets()
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
+  connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)

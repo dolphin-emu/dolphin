@@ -408,10 +408,10 @@ void VertexManagerBase::Flush()
   for (u32 i = 0; i < xfmem.numTexGen.numTexGens; ++i)
   {
     TexMtxInfo tinfo = xfmem.texMtxInfo[i];
-    if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
+    if (tinfo.texgentype != TexGenType::EmbossMap)
       tinfo.hex &= 0x7ff;
-    if (tinfo.texgentype != XF_TEXGEN_REGULAR)
-      tinfo.projection = 0;
+    if (tinfo.texgentype != TexGenType::Regular)
+      tinfo.projection = TexSize::ST;
 
     PRIM_LOG("txgen{}: proj={}, input={}, gentype={}, srcrow={}, embsrc={}, emblght={}, "
              "postmtx={}, postnorm={}",
@@ -430,7 +430,7 @@ void VertexManagerBase::Flush()
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
   if (!SConfig::GetInstance().bWii)
   {
-    const bool is_perspective = xfmem.projection.type == GX_PERSPECTIVE;
+    const bool is_perspective = xfmem.projection.type == ProjectionType::Perspective;
 
     auto& counts =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;

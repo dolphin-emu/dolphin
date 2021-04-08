@@ -14,7 +14,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
@@ -23,14 +23,14 @@ USB_HIDv5::~USB_HIDv5()
   m_scan_thread.Stop();
 }
 
-IPCCommandResult USB_HIDv5::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> USB_HIDv5::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV5_GETVERSION:
     Memory::Write_U32(USBV5_VERSION, request.buffer_out);
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_GETDEVICECHANGE:
     return GetDeviceChange(request);
   case USB::IOCTL_USBV5_SHUTDOWN:
@@ -39,7 +39,7 @@ IPCCommandResult USB_HIDv5::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return GetDeviceInfo(device, request); });
   case USB::IOCTL_USBV5_ATTACHFINISH:
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV5_SUSPEND_RESUME:
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return SuspendResume(device, request); });
@@ -48,11 +48,11 @@ IPCCommandResult USB_HIDv5::IOCtl(const IOCtlRequest& request)
                              [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   }
 }
 
-IPCCommandResult USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
 {
   request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
@@ -63,12 +63,12 @@ IPCCommandResult USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
   {
     // IOS does not check the number of vectors, but let's do that to avoid out-of-bounds reads.
     if (request.in_vectors.size() + request.io_vectors.size() != 2)
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     std::lock_guard lock{m_usbv5_devices_mutex};
     USBV5Device* device = GetUSBV5Device(request.in_vectors[0].address);
     if (!device)
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
     auto host_device = GetDeviceById(device->host_id);
     if (request.request == USB::IOCTLV_USBV5_CTRLMSG)
       host_device->Attach();
@@ -78,7 +78,7 @@ IPCCommandResult USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
                           [&, this]() { return SubmitTransfer(*device, *host_device, request); });
   }
   default:
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   }
 }
 
@@ -109,7 +109,7 @@ s32 USB_HIDv5::SubmitTransfer(USBV5Device& device, USB::Device& host_device,
   }
 }
 
-IPCCommandResult USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
 {
   const u8 value = Memory::Read_U8(request.buffer_in + 8);
   u8 endpoint = 0;
@@ -130,13 +130,13 @@ IPCCommandResult USB_HIDv5::CancelEndpoint(USBV5Device& device, const IOCtlReque
   }
 
   GetDeviceById(device.host_id)->CancelTransfer(endpoint);
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
+IPCReply USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlRequest& request)
 {
   if (request.buffer_out == 0 || request.buffer_out_size != 0x60)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   const std::shared_ptr<USB::Device> host_device = GetDeviceById(device.host_id);
   const u8 alt_setting = Memory::Read_U8(request.buffer_in + 8);
@@ -161,7 +161,7 @@ IPCCommandResult USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlReques
                                   interface.bAlternateSetting == alt_setting;
                          });
   if (it == interfaces.end())
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   it->Swap();
   Memory::CopyToEmu(request.buffer_out + 68, &*it, sizeof(*it));
 
@@ -186,7 +186,7 @@ IPCCommandResult USB_HIDv5::GetDeviceInfo(USBV5Device& device, const IOCtlReques
     }
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 bool USB_HIDv5::ShouldAddDevice(const USB::Device& device) const
@@ -196,4 +196,4 @@ bool USB_HIDv5::ShouldAddDevice(const USB::Device& device) const
   constexpr u8 HID_CLASS = 0x03;
   return device.HasClass(HID_CLASS);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

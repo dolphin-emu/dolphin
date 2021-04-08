@@ -17,29 +17,32 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   const char* swizzle = alpha ? "a" : "rgb";
   const char* swizzle_components = (alpha) ? "" : "3";
 
-  const u32 attnfunc = (uid_data.attnfunc >> (2 * litchan_index)) & 0x3;
-  const u32 diffusefunc = (uid_data.diffusefunc >> (2 * litchan_index)) & 0x3;
+  const auto attnfunc =
+      static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * litchan_index)) & 0x3);
+  const auto diffusefunc =
+      static_cast<DiffuseFunc>((uid_data.diffusefunc >> (2 * litchan_index)) & 0x3);
 
   switch (attnfunc)
   {
-  case LIGHTATTN_NONE:
-  case LIGHTATTN_DIR:
+  case AttenuationFunc::None:
+  case AttenuationFunc::Dir:
     object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
     object.Write("attn = 1.0;\n");
     object.Write("if (length(ldir) == 0.0)\n\t ldir = _norm0;\n");
     break;
-  case LIGHTATTN_SPEC:
+  case AttenuationFunc::Spec:
     object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
     object.Write("attn = (dot(_norm0, ldir) >= 0.0) ? max(0.0, dot(_norm0, " LIGHT_DIR
                  ".xyz)) : 0.0;\n",
                  LIGHT_DIR_PARAMS(index));
     object.Write("cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
     object.Write("distAttn = {}(" LIGHT_DISTATT ".xyz);\n",
-                 (diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
+                 (diffusefunc == DiffuseFunc::None) ? "" : "normalize",
+                 LIGHT_DISTATT_PARAMS(index));
     object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
                  "float3(1.0, attn, attn*attn));\n");
     break;
-  case LIGHTATTN_SPOT:
+  case AttenuationFunc::Spot:
     object.Write("ldir = " LIGHT_POS ".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
     object.Write("dist2 = dot(ldir, ldir);\n"
                  "dist = sqrt(dist2);\n"
@@ -56,14 +59,14 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 
   switch (diffusefunc)
   {
-  case LIGHTDIF_NONE:
+  case DiffuseFunc::None:
     object.Write("lacc.{} += int{}(round(attn * float{}(" LIGHT_COL ")));\n", swizzle,
                  swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
-  case LIGHTDIF_SIGN:
-  case LIGHTDIF_CLAMP:
+  case DiffuseFunc::Sign:
+  case DiffuseFunc::Clamp:
     object.Write("lacc.{} += int{}(round(attn * {}dot(ldir, _norm0)) * float{}(" LIGHT_COL ")));\n",
-                 swizzle, swizzle_components, diffusefunc != LIGHTDIF_SIGN ? "max(0.0," : "(",
+                 swizzle, swizzle_components, diffusefunc != DiffuseFunc::Sign ? "max(0.0," : "(",
                  swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   default:
@@ -151,23 +154,23 @@ void GetLightingShaderUid(LightingUidData& uid_data)
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
-    uid_data.matsource |= xfmem.color[j].matsource << j;
-    uid_data.matsource |= xfmem.alpha[j].matsource << (j + 2);
+    uid_data.matsource |= static_cast<u32>(xfmem.color[j].matsource.Value()) << j;
+    uid_data.matsource |= static_cast<u32>(xfmem.alpha[j].matsource.Value()) << (j + 2);
     uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
     uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j + 2);
 
     if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
     {
-      uid_data.ambsource |= xfmem.color[j].ambsource << j;
-      uid_data.attnfunc |= xfmem.color[j].attnfunc << (2 * j);
-      uid_data.diffusefunc |= xfmem.color[j].diffusefunc << (2 * j);
+      uid_data.ambsource |= static_cast<u32>(xfmem.color[j].ambsource.Value()) << j;
+      uid_data.attnfunc |= static_cast<u32>(xfmem.color[j].attnfunc.Value()) << (2 * j);
+      uid_data.diffusefunc |= static_cast<u32>(xfmem.color[j].diffusefunc.Value()) << (2 * j);
       uid_data.light_mask |= xfmem.color[j].GetFullLightMask() << (8 * j);
     }
     if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
     {
-      uid_data.ambsource |= xfmem.alpha[j].ambsource << (j + 2);
-      uid_data.attnfunc |= xfmem.alpha[j].attnfunc << (2 * (j + 2));
-      uid_data.diffusefunc |= xfmem.alpha[j].diffusefunc << (2 * (j + 2));
+      uid_data.ambsource |= static_cast<u32>(xfmem.alpha[j].ambsource.Value()) << (j + 2);
+      uid_data.attnfunc |= static_cast<u32>(xfmem.alpha[j].attnfunc.Value()) << (2 * (j + 2));
+      uid_data.diffusefunc |= static_cast<u32>(xfmem.alpha[j].diffusefunc.Value()) << (2 * (j + 2));
       uid_data.light_mask |= xfmem.alpha[j].GetFullLightMask() << (8 * (j + 2));
     }
   }

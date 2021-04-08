@@ -83,6 +83,12 @@
     <ClInclude Include="InputCommon\GenericMouse.h" />
     <ClInclude Include="VideoCommon\PrimePixelErrorTextures.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\PowerPC\JitCommon\DivUtils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\PowerPC\JitCommon\DivUtils.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

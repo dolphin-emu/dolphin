@@ -41,12 +41,12 @@ static void SetPixelAlphaOnly(u32 offset, u8 a)
 {
   switch (bpmem.zcontrol.pixel_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::Z24:
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::Z24:
+  case PixelFormat::RGB565_Z16:
     // do nothing
     break;
-  case PEControl::RGBA6_Z24:
+  case PixelFormat::RGBA6_Z24:
   {
     u32 a32 = a;
     u32* dst = (u32*)&efb[offset];
@@ -56,8 +56,7 @@ static void SetPixelAlphaOnly(u32 offset, u8 a)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}",
-                  static_cast<int>(bpmem.zcontrol.pixel_format));
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
     break;
   }
 }
@@ -66,8 +65,8 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
 {
   switch (bpmem.zcontrol.pixel_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::Z24:
   {
     u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
@@ -76,7 +75,7 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
     *dst = val;
   }
   break;
-  case PEControl::RGBA6_Z24:
+  case PixelFormat::RGBA6_Z24:
   {
     u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
@@ -87,7 +86,7 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
     *dst = val;
   }
   break;
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
   {
     INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
     u32 src = *(u32*)rgb;
@@ -98,8 +97,7 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}",
-                  static_cast<int>(bpmem.zcontrol.pixel_format));
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
     break;
   }
 }
@@ -108,8 +106,8 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
 {
   switch (bpmem.zcontrol.pixel_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::Z24:
   {
     u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
@@ -118,7 +116,7 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
     *dst = val;
   }
   break;
-  case PEControl::RGBA6_Z24:
+  case PixelFormat::RGBA6_Z24:
   {
     u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
@@ -130,7 +128,7 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
     *dst = val;
   }
   break;
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
   {
     INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
     u32 src = *(u32*)color;
@@ -141,8 +139,7 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}",
-                  static_cast<int>(bpmem.zcontrol.pixel_format));
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
     break;
   }
 }
@@ -154,23 +151,22 @@ static u32 GetPixelColor(u32 offset)
 
   switch (bpmem.zcontrol.pixel_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::Z24:
     return 0xff | ((src & 0x00ffffff) << 8);
 
-  case PEControl::RGBA6_Z24:
+  case PixelFormat::RGBA6_Z24:
     return Convert6To8(src & 0x3f) |                // Alpha
            Convert6To8((src >> 6) & 0x3f) << 8 |    // Blue
            Convert6To8((src >> 12) & 0x3f) << 16 |  // Green
            Convert6To8((src >> 18) & 0x3f) << 24;   // Red
 
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
     INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
     return 0xff | ((src & 0x00ffffff) << 8);
 
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}",
-                  static_cast<int>(bpmem.zcontrol.pixel_format));
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
     return 0;
   }
 }
@@ -179,9 +175,9 @@ static void SetPixelDepth(u32 offset, u32 depth)
 {
   switch (bpmem.zcontrol.pixel_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::RGBA6_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::RGBA6_Z24:
+  case PixelFormat::Z24:
   {
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
@@ -189,7 +185,7 @@ static void SetPixelDepth(u32 offset, u32 depth)
     *dst = val;
   }
   break;
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
   {
     INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
     u32* dst = (u32*)&efb[offset];
@@ -199,8 +195,7 @@ static void SetPixelDepth(u32 offset, u32 depth)
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}",
-                  static_cast<int>(bpmem.zcontrol.pixel_format));
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
     break;
   }
 }
@@ -211,59 +206,58 @@ static u32 GetPixelDepth(u32 offset)
 
   switch (bpmem.zcontrol.pixel_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::RGBA6_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::RGBA6_Z24:
+  case PixelFormat::Z24:
   {
     depth = (*(u32*)&efb[offset]) & 0x00ffffff;
   }
   break;
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
   {
     INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
     depth = (*(u32*)&efb[offset]) & 0x00ffffff;
   }
   break;
   default:
-    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}",
-                  static_cast<int>(bpmem.zcontrol.pixel_format));
+    ERROR_LOG_FMT(VIDEO, "Unsupported pixel format: {}", bpmem.zcontrol.pixel_format);
     break;
   }
 
   return depth;
 }
 
-static u32 GetSourceFactor(u8* srcClr, u8* dstClr, BlendMode::BlendFactor mode)
+static u32 GetSourceFactor(u8* srcClr, u8* dstClr, SrcBlendFactor mode)
 {
   switch (mode)
   {
-  case BlendMode::ZERO:
+  case SrcBlendFactor::Zero:
     return 0;
-  case BlendMode::ONE:
+  case SrcBlendFactor::One:
     return 0xffffffff;
-  case BlendMode::DSTCLR:
+  case SrcBlendFactor::DstClr:
     return *(u32*)dstClr;
-  case BlendMode::INVDSTCLR:
+  case SrcBlendFactor::InvDstClr:
     return 0xffffffff - *(u32*)dstClr;
-  case BlendMode::SRCALPHA:
+  case SrcBlendFactor::SrcAlpha:
   {
     u8 alpha = srcClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
-  case BlendMode::INVSRCALPHA:
+  case SrcBlendFactor::InvSrcAlpha:
   {
     u8 alpha = 0xff - srcClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
-  case BlendMode::DSTALPHA:
+  case SrcBlendFactor::DstAlpha:
   {
     u8 alpha = dstClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
-  case BlendMode::INVDSTALPHA:
+  case SrcBlendFactor::InvDstAlpha:
   {
     u8 alpha = 0xff - dstClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
@@ -274,37 +268,37 @@ static u32 GetSourceFactor(u8* srcClr, u8* dstClr, BlendMode::BlendFactor mode)
   return 0;
 }
 
-static u32 GetDestinationFactor(u8* srcClr, u8* dstClr, BlendMode::BlendFactor mode)
+static u32 GetDestinationFactor(u8* srcClr, u8* dstClr, DstBlendFactor mode)
 {
   switch (mode)
   {
-  case BlendMode::ZERO:
+  case DstBlendFactor::Zero:
     return 0;
-  case BlendMode::ONE:
+  case DstBlendFactor::One:
     return 0xffffffff;
-  case BlendMode::SRCCLR:
+  case DstBlendFactor::SrcClr:
     return *(u32*)srcClr;
-  case BlendMode::INVSRCCLR:
+  case DstBlendFactor::InvSrcClr:
     return 0xffffffff - *(u32*)srcClr;
-  case BlendMode::SRCALPHA:
+  case DstBlendFactor::SrcAlpha:
   {
     u8 alpha = srcClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
-  case BlendMode::INVSRCALPHA:
+  case DstBlendFactor::InvSrcAlpha:
   {
     u8 alpha = 0xff - srcClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
-  case BlendMode::DSTALPHA:
+  case DstBlendFactor::DstAlpha:
   {
     u8 alpha = dstClr[ALP_C] & 0xff;
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
     return factor;
   }
-  case BlendMode::INVDSTALPHA:
+  case DstBlendFactor::InvDstAlpha:
   {
     u8 alpha = 0xff - dstClr[ALP_C];
     u32 factor = alpha << 24 | alpha << 16 | alpha << 8 | alpha;
@@ -337,56 +331,56 @@ static void BlendColor(u8* srcClr, u8* dstClr)
   }
 }
 
-static void LogicBlend(u32 srcClr, u32* dstClr, BlendMode::LogicOp op)
+static void LogicBlend(u32 srcClr, u32* dstClr, LogicOp op)
 {
   switch (op)
   {
-  case BlendMode::CLEAR:
+  case LogicOp::Clear:
     *dstClr = 0;
     break;
-  case BlendMode::AND:
+  case LogicOp::And:
     *dstClr = srcClr & *dstClr;
     break;
-  case BlendMode::AND_REVERSE:
+  case LogicOp::AndReverse:
     *dstClr = srcClr & (~*dstClr);
     break;
-  case BlendMode::COPY:
+  case LogicOp::Copy:
     *dstClr = srcClr;
     break;
-  case BlendMode::AND_INVERTED:
+  case LogicOp::AndInverted:
     *dstClr = (~srcClr) & *dstClr;
     break;
-  case BlendMode::NOOP:
+  case LogicOp::NoOp:
     // Do nothing
     break;
-  case BlendMode::XOR:
+  case LogicOp::Xor:
     *dstClr = srcClr ^ *dstClr;
     break;
-  case BlendMode::OR:
+  case LogicOp::Or:
     *dstClr = srcClr | *dstClr;
     break;
-  case BlendMode::NOR:
+  case LogicOp::Nor:
     *dstClr = ~(srcClr | *dstClr);
     break;
-  case BlendMode::EQUIV:
+  case LogicOp::Equiv:
     *dstClr = ~(srcClr ^ *dstClr);
     break;
-  case BlendMode::INVERT:
+  case LogicOp::Invert:
     *dstClr = ~*dstClr;
     break;
-  case BlendMode::OR_REVERSE:
+  case LogicOp::OrReverse:
     *dstClr = srcClr | (~*dstClr);
     break;
-  case BlendMode::COPY_INVERTED:
+  case LogicOp::CopyInverted:
     *dstClr = ~srcClr;
     break;
-  case BlendMode::OR_INVERTED:
+  case LogicOp::OrInverted:
     *dstClr = (~srcClr) | *dstClr;
     break;
-  case BlendMode::NAND:
+  case LogicOp::Nand:
     *dstClr = ~(srcClr & *dstClr);
     break;
-  case BlendMode::SET:
+  case LogicOp::Set:
     *dstClr = 0xffffffff;
     break;
   }
@@ -404,7 +398,7 @@ static void SubtractBlend(u8* srcClr, u8* dstClr)
 static void Dither(u16 x, u16 y, u8* color)
 {
   // No blending for RGB8 mode
-  if (!bpmem.blendmode.dither || bpmem.zcontrol.pixel_format != PEControl::PixelFormat::RGBA6_Z24)
+  if (!bpmem.blendmode.dither || bpmem.zcontrol.pixel_format != PixelFormat::RGBA6_Z24)
     return;
 
   // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
@@ -662,33 +656,33 @@ bool ZCompare(u16 x, u16 y, u32 z)
 
   switch (bpmem.zmode.func)
   {
-  case ZMode::NEVER:
+  case CompareMode::Never:
     pass = false;
     break;
-  case ZMode::LESS:
+  case CompareMode::Less:
     pass = z < depth;
     break;
-  case ZMode::EQUAL:
+  case CompareMode::Equal:
     pass = z == depth;
     break;
-  case ZMode::LEQUAL:
+  case CompareMode::LEqual:
     pass = z <= depth;
     break;
-  case ZMode::GREATER:
+  case CompareMode::Greater:
     pass = z > depth;
     break;
-  case ZMode::NEQUAL:
+  case CompareMode::NEqual:
     pass = z != depth;
     break;
-  case ZMode::GEQUAL:
+  case CompareMode::GEqual:
     pass = z >= depth;
     break;
-  case ZMode::ALWAYS:
+  case CompareMode::Always:
     pass = true;
     break;
   default:
     pass = false;
-    ERROR_LOG_FMT(VIDEO, "Bad Z compare mode {}", static_cast<int>(bpmem.zmode.func));
+    ERROR_LOG_FMT(VIDEO, "Bad Z compare mode {}", bpmem.zmode.func);
     break;
   }
 

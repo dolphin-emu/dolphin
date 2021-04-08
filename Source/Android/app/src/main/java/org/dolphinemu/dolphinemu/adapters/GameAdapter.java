@@ -155,16 +155,6 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
     GameViewHolder holder = (GameViewHolder) view.getTag();
     String gameId = holder.gameFile.getGameId();
 
-    if (gameId.isEmpty())
-    {
-      AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
-      builder.setTitle("Game Settings");
-      builder.setMessage("Files without game IDs don't support game-specific settings.");
-
-      builder.show();
-      return true;
-    }
-
     GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile);
     ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
             .add(fragment, GamePropertiesDialog.TAG).commit();

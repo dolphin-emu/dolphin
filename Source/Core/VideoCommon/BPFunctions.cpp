@@ -184,8 +184,8 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
   auto pixel_format = bpmem.zcontrol.pixel_format;
 
   // (1): Disable unused color channels
-  if (pixel_format == PEControl::RGB8_Z24 || pixel_format == PEControl::RGB565_Z16 ||
-      pixel_format == PEControl::Z24)
+  if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||
+      pixel_format == PixelFormat::Z24)
   {
     alphaEnable = false;
   }
@@ -196,11 +196,11 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
     u32 z = bpmem.clearZValue;
 
     // (2) drop additional accuracy
-    if (pixel_format == PEControl::RGBA6_Z24)
+    if (pixel_format == PixelFormat::RGBA6_Z24)
     {
       color = RGBA8ToRGBA6ToRGBA8(color);
     }
-    else if (pixel_format == PEControl::RGB565_Z16)
+    else if (pixel_format == PixelFormat::RGB565_Z16)
     {
       color = RGBA8ToRGB565ToRGBA8(color);
       z = Z24ToZ16ToZ24(z);
@@ -228,29 +228,28 @@ void OnPixelFormatChange()
   const auto new_format = bpmem.zcontrol.pixel_format;
   g_renderer->StorePixelFormat(new_format);
 
-  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", static_cast<int>(new_format),
-                static_cast<int>(bpmem.zcontrol.zformat));
+  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat);
 
   // no need to reinterpret pixel data in these cases
-  if (new_format == old_format || old_format == PEControl::INVALID_FMT)
+  if (new_format == old_format || old_format == PixelFormat::INVALID_FMT)
     return;
 
   // Check for pixel format changes
   switch (old_format)
   {
-  case PEControl::RGB8_Z24:
-  case PEControl::Z24:
+  case PixelFormat::RGB8_Z24:
+  case PixelFormat::Z24:
   {
     // Z24 and RGB8_Z24 are treated equal, so just return in this case
-    if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
+    if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
       return;
 
-    if (new_format == PEControl::RGBA6_Z24)
+    if (new_format == PixelFormat::RGBA6_Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGBA6);
       return;
     }
-    else if (new_format == PEControl::RGB565_Z16)
+    else if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB8ToRGB565);
       return;
@@ -258,14 +257,14 @@ void OnPixelFormatChange()
   }
   break;
 
-  case PEControl::RGBA6_Z24:
+  case PixelFormat::RGBA6_Z24:
   {
-    if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
+    if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB8);
       return;
     }
-    else if (new_format == PEControl::RGB565_Z16)
+    else if (new_format == PixelFormat::RGB565_Z16)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGBA6ToRGB565);
       return;
@@ -273,14 +272,14 @@ void OnPixelFormatChange()
   }
   break;
 
-  case PEControl::RGB565_Z16:
+  case PixelFormat::RGB565_Z16:
   {
-    if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
+    if (new_format == PixelFormat::RGB8_Z24 || new_format == PixelFormat::Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGB8);
       return;
     }
-    else if (new_format == PEControl::RGBA6_Z24)
+    else if (new_format == PixelFormat::RGBA6_Z24)
     {
       g_renderer->ReinterpretPixelData(EFBReinterpretType::RGB565ToRGBA6);
       return;
@@ -292,8 +291,7 @@ void OnPixelFormatChange()
     break;
   }
 
-  ERROR_LOG_FMT(VIDEO, "Unhandled EFB format change: {} to {}", static_cast<int>(old_format),
-                static_cast<int>(new_format));
+  ERROR_LOG_FMT(VIDEO, "Unhandled EFB format change: {} to {}", old_format, new_format);
 }
 
 void SetInterlacingMode(const BPCmd& bp)
@@ -305,17 +303,15 @@ void SetInterlacingMode(const BPCmd& bp)
   {
     // SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
     // just before this cmd
-    static constexpr std::string_view action[] = {"don't adjust", "adjust"};
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", action[bpmem.fieldmode.texLOD],
-                  action[bpmem.lineptwidth.lineaspect]);
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD,
+                  bpmem.lineptwidth.adjust_for_aspect_ratio);
   }
   break;
   case BPMEM_FIELDMASK:
   {
     // Determines if fields will be written to EFB (always computed)
-    static constexpr std::string_view action[] = {"skip", "write"};
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", action[bpmem.fieldmask.even],
-                  action[bpmem.fieldmask.odd]);
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even,
+                  bpmem.fieldmask.odd);
   }
   break;
   default:

@@ -62,8 +62,6 @@ V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
 }
 }  // namespace USB
 
-namespace Device
-{
 namespace
 {
 #pragma pack(push, 1)
@@ -115,10 +113,10 @@ USBV5ResourceManager::USBV5Device* USBV5ResourceManager::GetUSBV5Device(u32 in_b
   return usbv5_device;
 }
 
-IPCCommandResult USBV5ResourceManager::GetDeviceChange(const IOCtlRequest& request)
+std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest& request)
 {
   if (request.buffer_out_size != 0x180 || m_devicechange_hook_request)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   m_devicechange_hook_request = std::make_unique<IOCtlRequest>(request.address);
@@ -128,28 +126,27 @@ IPCCommandResult USBV5ResourceManager::GetDeviceChange(const IOCtlRequest& reque
     TriggerDeviceChangeReply();
     m_devicechange_first_call = false;
   }
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult USBV5ResourceManager::SetAlternateSetting(USBV5Device& device,
-                                                           const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SetAlternateSetting(USBV5Device& device, const IOCtlRequest& request)
 {
   const auto host_device = GetDeviceById(device.host_id);
   if (!host_device->AttachAndChangeInterface(device.interface_number))
-    return GetDefaultReply(-1);
+    return IPCReply(-1);
 
   const u8 alt_setting = Memory::Read_U8(request.buffer_in + 2 * sizeof(s32));
 
   const bool success = host_device->SetAltSetting(alt_setting) == 0;
-  return GetDefaultReply(success ? IPC_SUCCESS : IPC_EINVAL);
+  return IPCReply(success ? IPC_SUCCESS : IPC_EINVAL);
 }
 
-IPCCommandResult USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
 {
   if (request.buffer_in != 0 || request.buffer_in_size != 0 || request.buffer_out != 0 ||
       request.buffer_out_size != 0)
   {
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   }
 
   std::lock_guard lk{m_devicechange_hook_address_mutex};
@@ -158,11 +155,10 @@ IPCCommandResult USBV5ResourceManager::Shutdown(const IOCtlRequest& request)
     m_ios.EnqueueIPCReply(*m_devicechange_hook_request, IPC_SUCCESS);
     m_devicechange_hook_request.reset();
   }
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult USBV5ResourceManager::SuspendResume(USBV5Device& device,
-                                                     const IOCtlRequest& request)
+IPCReply USBV5ResourceManager::SuspendResume(USBV5Device& device, const IOCtlRequest& request)
 {
   const auto host_device = GetDeviceById(device.host_id);
   const s32 resumed = Memory::Read_U32(request.buffer_in + 8);
@@ -171,19 +167,19 @@ IPCCommandResult USBV5ResourceManager::SuspendResume(USBV5Device& device,
   // platform-independant way (libusb does not support power management).
   INFO_LOG_FMT(IOS_USB, "[{:04x}:{:04x} {}] Received {} command", host_device->GetVid(),
                host_device->GetPid(), device.interface_number, resumed == 0 ? "suspend" : "resume");
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlRequest& request,
-                                                         Handler handler)
+std::optional<IPCReply> USBV5ResourceManager::HandleDeviceIOCtl(const IOCtlRequest& request,
+                                                                Handler handler)
 {
   if (request.buffer_in == 0 || request.buffer_in_size != 0x20)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   std::lock_guard lock{m_usbv5_devices_mutex};
   USBV5Device* device = GetUSBV5Device(request.buffer_in);
   if (!device)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
   return handler(*device);
 }
 
@@ -274,5 +270,4 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
   m_devicechange_hook_request.reset();
   INFO_LOG_FMT(IOS_USB, "{} USBv5 device(s), including interfaces", num_devices);
 }
-}  // namespace Device
 }  // namespace IOS::HLE

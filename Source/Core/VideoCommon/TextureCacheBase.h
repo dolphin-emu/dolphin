@@ -50,8 +50,8 @@ struct TextureAndTLUTFormat
 
 struct EFBCopyParams
 {
-  EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
-                bool yuv_, bool copy_filter_)
+  EFBCopyParams(PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_, bool yuv_,
+                bool copy_filter_)
       : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
         copy_filter(copy_filter_)
   {
@@ -63,7 +63,7 @@ struct EFBCopyParams
            std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.copy_filter);
   }
 
-  PEControl::PixelFormat efb_format;
+  PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;

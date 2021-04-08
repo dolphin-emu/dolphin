@@ -504,7 +504,7 @@ static void EncodeRGBA6(u8* dst, const u8* src, EFBCopyFormat format, bool yuv)
     break;
 
   default:
-    PanicAlertFmt("Unknown texture copy format: {:#x}\n", format);
+    PanicAlertFmt("Unknown texture copy format: {}\n", format);
     break;
   }
 }
@@ -743,7 +743,7 @@ static void EncodeRGBA6halfscale(u8* dst, const u8* src, EFBCopyFormat format, b
     break;
 
   default:
-    PanicAlertFmt("Unknown texture copy format: {:#x}\n", format);
+    PanicAlertFmt("Unknown texture copy format: {}\n", format);
     break;
   }
 }
@@ -960,7 +960,7 @@ static void EncodeRGB8(u8* dst, const u8* src, EFBCopyFormat format, bool yuv)
     break;
 
   default:
-    PanicAlertFmt("Unknown texture copy format: {:#x}\n", format);
+    PanicAlertFmt("Unknown texture copy format: {}\n", format);
     break;
   }
 }
@@ -1192,7 +1192,7 @@ static void EncodeRGB8halfscale(u8* dst, const u8* src, EFBCopyFormat format, bo
     break;
 
   default:
-    PanicAlertFmt("Unknown texture copy format: {:#x}\n", format);
+    PanicAlertFmt("Unknown texture copy format: {}\n", format);
     break;
   }
 }
@@ -1300,7 +1300,7 @@ static void EncodeZ24(u8* dst, const u8* src, EFBCopyFormat format)
     break;
 
   default:
-    PanicAlertFmt("Unknown texture copy format: {:#x}\n", format);
+    PanicAlertFmt("Unknown texture copy format: {}\n", format);
     break;
   }
 }
@@ -1414,7 +1414,7 @@ static void EncodeZ24halfscale(u8* dst, const u8* src, EFBCopyFormat format)
     break;
 
   default:
-    PanicAlertFmt("Unknown texture copy format: {:#x}\n", format);
+    PanicAlertFmt("Unknown texture copy format: {}\n", format);
     break;
   }
 }
@@ -1431,16 +1431,16 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
   {
     switch (params.efb_format)
     {
-    case PEControl::RGBA6_Z24:
+    case PixelFormat::RGBA6_Z24:
       EncodeRGBA6halfscale(dst, src, params.copy_format, params.yuv);
       break;
-    case PEControl::RGB8_Z24:
+    case PixelFormat::RGB8_Z24:
       EncodeRGB8halfscale(dst, src, params.copy_format, params.yuv);
       break;
-    case PEControl::RGB565_Z16:
+    case PixelFormat::RGB565_Z16:
       EncodeRGB8halfscale(dst, src, params.copy_format, params.yuv);
       break;
-    case PEControl::Z24:
+    case PixelFormat::Z24:
       EncodeZ24halfscale(dst, src, params.copy_format);
       break;
     default:
@@ -1451,16 +1451,16 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
   {
     switch (params.efb_format)
     {
-    case PEControl::RGBA6_Z24:
+    case PixelFormat::RGBA6_Z24:
       EncodeRGBA6(dst, src, params.copy_format, params.yuv);
       break;
-    case PEControl::RGB8_Z24:
+    case PixelFormat::RGB8_Z24:
       EncodeRGB8(dst, src, params.copy_format, params.yuv);
       break;
-    case PEControl::RGB565_Z16:
+    case PixelFormat::RGB565_Z16:
       EncodeRGB8(dst, src, params.copy_format, params.yuv);
       break;
-    case PEControl::Z24:
+    case PixelFormat::Z24:
       EncodeZ24(dst, src, params.copy_format);
       break;
     default:

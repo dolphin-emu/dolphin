@@ -56,7 +56,10 @@ void UpdateSource(unsigned int index)
   if (!ios)
     return;
 
-  const auto bluetooth = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+  if (s_wiimote_sources[index] != WiimoteSource::Emulated)
+    return;
+
+  const auto bluetooth = std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(
       ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
   if (!bluetooth)
     return;

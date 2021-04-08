@@ -62,30 +62,30 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
       {
-        m_float_emit.FCVT(32, 64, D0, RS);
-        m_float_emit.REV32(8, D0, D0);
-        m_float_emit.STR(32, D0, MEM_REG, addr);
+        m_float_emit.FCVT(32, 64, ARM64Reg::D0, RS);
+        m_float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
+        m_float_emit.STR(32, ARM64Reg::D0, MEM_REG, addr);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
       {
-        m_float_emit.REV32(8, D0, RS);
-        m_float_emit.STR(32, D0, MEM_REG, addr);
+        m_float_emit.REV32(8, ARM64Reg::D0, RS);
+        m_float_emit.STR(32, ARM64Reg::D0, MEM_REG, addr);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2)
       {
-        m_float_emit.FCVTN(32, D0, RS);
-        m_float_emit.REV32(8, D0, D0);
-        m_float_emit.STR(64, Q0, MEM_REG, addr);
+        m_float_emit.FCVTN(32, ARM64Reg::D0, RS);
+        m_float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
+        m_float_emit.STR(64, ARM64Reg::Q0, MEM_REG, addr);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
       {
-        m_float_emit.REV32(8, D0, RS);
-        m_float_emit.STR(64, Q0, MEM_REG, addr);
+        m_float_emit.REV32(8, ARM64Reg::D0, RS);
+        m_float_emit.STR(64, ARM64Reg::Q0, MEM_REG, addr);
       }
       else
       {
-        m_float_emit.REV64(8, Q0, RS);
-        m_float_emit.STR(64, Q0, MEM_REG, addr);
+        m_float_emit.REV64(8, ARM64Reg::Q0, RS);
+        m_float_emit.STR(64, ARM64Reg::Q0, MEM_REG, addr);
       }
     }
     else if (flags & BackPatchInfo::FLAG_LOAD && flags & BackPatchInfo::FLAG_MASK_FLOAT)
@@ -103,7 +103,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      ARM64Reg temp = W0;
+      ARM64Reg temp = ARM64Reg::W0;
       if (flags & BackPatchInfo::FLAG_SIZE_32)
         REV32(temp, RS);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
@@ -120,8 +120,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     {
       // This literally only stores 32bytes of zeros to the target address
       ADD(addr, addr, MEM_REG);
-      STP(IndexType::Signed, ZR, ZR, addr, 0);
-      STP(IndexType::Signed, ZR, ZR, addr, 16);
+      STP(IndexType::Signed, ARM64Reg::ZR, ARM64Reg::ZR, addr, 0);
+      STP(IndexType::Signed, ARM64Reg::ZR, ARM64Reg::ZR, addr, 16);
     }
     else
     {
@@ -179,112 +179,112 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
 
     ABI_PushRegisters(gprs_to_push);
-    m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
+    m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
     if (flags & BackPatchInfo::FLAG_STORE && flags & BackPatchInfo::FLAG_MASK_FLOAT)
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
       {
-        m_float_emit.FCVT(32, 64, D0, RS);
-        m_float_emit.UMOV(32, W0, Q0, 0);
-        MOVP2R(X8, &PowerPC::Write_U32);
-        BLR(X8);
+        m_float_emit.FCVT(32, 64, ARM64Reg::D0, RS);
+        m_float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
+        BLR(ARM64Reg::X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
       {
-        m_float_emit.UMOV(32, W0, RS, 0);
-        MOVP2R(X8, &PowerPC::Write_U32);
-        BLR(X8);
+        m_float_emit.UMOV(32, ARM64Reg::W0, RS, 0);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
+        BLR(ARM64Reg::X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2)
       {
-        m_float_emit.FCVTN(32, D0, RS);
-        m_float_emit.UMOV(64, X0, D0, 0);
-        ROR(X0, X0, 32);
-        MOVP2R(X8, &PowerPC::Write_U64);
-        BLR(X8);
+        m_float_emit.FCVTN(32, ARM64Reg::D0, RS);
+        m_float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::D0, 0);
+        ROR(ARM64Reg::X0, ARM64Reg::X0, 32);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
+        BLR(ARM64Reg::X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
       {
-        m_float_emit.UMOV(64, X0, RS, 0);
-        ROR(X0, X0, 32);
-        MOVP2R(X8, &PowerPC::Write_U64);
-        BLR(X8);
+        m_float_emit.UMOV(64, ARM64Reg::X0, RS, 0);
+        ROR(ARM64Reg::X0, ARM64Reg::X0, 32);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
+        BLR(ARM64Reg::X8);
       }
       else
       {
-        MOVP2R(X8, &PowerPC::Write_U64);
-        m_float_emit.UMOV(64, X0, RS, 0);
-        BLR(X8);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
+        m_float_emit.UMOV(64, ARM64Reg::X0, RS, 0);
+        BLR(ARM64Reg::X8);
       }
     }
     else if (flags & BackPatchInfo::FLAG_LOAD && flags & BackPatchInfo::FLAG_MASK_FLOAT)
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
       {
-        MOVP2R(X8, &PowerPC::Read_U32);
-        BLR(X8);
-        m_float_emit.INS(32, RS, 0, X0);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U32);
+        BLR(ARM64Reg::X8);
+        m_float_emit.INS(32, RS, 0, ARM64Reg::X0);
       }
       else
       {
-        MOVP2R(X8, &PowerPC::Read_F64);
-        BLR(X8);
-        m_float_emit.INS(64, RS, 0, X0);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Read_F64);
+        BLR(ARM64Reg::X8);
+        m_float_emit.INS(64, RS, 0, ARM64Reg::X0);
       }
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      MOV(W0, RS);
+      MOV(ARM64Reg::W0, RS);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVP2R(X8, &PowerPC::Write_U32);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVP2R(X8, &PowerPC::Write_U16);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U16);
       else
-        MOVP2R(X8, &PowerPC::Write_U8);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
 
-      BLR(X8);
+      BLR(ARM64Reg::X8);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      MOVP2R(X8, &PowerPC::ClearCacheLine);
-      BLR(X8);
+      MOVP2R(ARM64Reg::X8, &PowerPC::ClearCacheLine);
+      BLR(ARM64Reg::X8);
     }
     else
     {
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVP2R(X8, &PowerPC::Read_U32);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVP2R(X8, &PowerPC::Read_U16);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U16);
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
-        MOVP2R(X8, &PowerPC::Read_U8);
+        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U8);
 
-      BLR(X8);
+      BLR(ARM64Reg::X8);
 
       if (!(flags & BackPatchInfo::FLAG_REVERSE))
       {
-        MOV(RS, W0);
+        MOV(RS, ARM64Reg::W0);
       }
       else
       {
         if (flags & BackPatchInfo::FLAG_SIZE_32)
-          REV32(RS, W0);
+          REV32(RS, ARM64Reg::W0);
         else if (flags & BackPatchInfo::FLAG_SIZE_16)
-          REV16(RS, W0);
+          REV16(RS, ARM64Reg::W0);
       }
 
       if (flags & BackPatchInfo::FLAG_EXTEND)
         SXTH(RS, RS);
     }
 
-    m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
+    m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
     ABI_PopRegisters(gprs_to_push);
   }
 
   if (in_far_code)
   {
-    RET(X30);
+    RET(ARM64Reg::X30);
     SwitchToNearCode();
   }
 }

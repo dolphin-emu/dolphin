@@ -88,6 +88,8 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
 
   const auto timer = new QTimer(button);
 
+  timer->setSingleShot(true);
+
   button->connect(timer, &QTimer::timeout, [button, filter] {
     button->releaseMouse();
     button->releaseKeyboard();

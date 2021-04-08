@@ -31,6 +31,7 @@
 
 namespace
 {
+bool s_update_triggered = false;
 #ifdef _WIN32
 
 const char UPDATER_FILENAME[] = "Updater.exe";
@@ -201,6 +202,14 @@ void AutoUpdateChecker::CheckForUpdate()
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
                                       AutoUpdateChecker::RestartMode restart_mode)
 {
+  // Check to make sure we don't already have an update triggered
+  if (s_update_triggered)
+  {
+    WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
+    return;
+  }
+
+  s_update_triggered = true;
 #ifdef OS_SUPPORTS_UPDATER
   std::map<std::string, std::string> updater_flags;
   updater_flags["this-manifest-url"] = info.this_manifest_url;

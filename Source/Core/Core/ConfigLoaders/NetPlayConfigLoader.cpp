@@ -39,9 +39,21 @@ public:
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
     layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
+    layer->Set(Config::MAIN_MEM2_SIZE, m_settings.m_Mem2Size);
+    layer->Set(Config::MAIN_FALLBACK_REGION, m_settings.m_FallbackRegion);
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
-    layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_settings.m_ProgressiveScan);
-    layer->Set(Config::SYSCONF_PAL60, m_settings.m_PAL60);
+
+    for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
+    {
+      std::visit(
+          [&](auto* info) {
+            layer->Set(*info, static_cast<decltype(info->GetDefaultValue())>(
+                                  m_settings.m_SYSCONFSettings[i]));
+          },
+          Config::SYSCONF_SETTINGS[i].config_info);
+    }
+
     layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, m_settings.m_EFBAccessEnable);
     layer->Set(Config::GFX_HACK_BBOX_ENABLE, m_settings.m_BBoxEnable);
     layer->Set(Config::GFX_HACK_FORCE_PROGRESSIVE, m_settings.m_ForceProgressive);
@@ -60,12 +72,14 @@ public:
     layer->Set(Config::MAIN_SYNC_GPU_MAX_DISTANCE, m_settings.m_SyncGpuMaxDistance);
     layer->Set(Config::MAIN_SYNC_GPU_MIN_DISTANCE, m_settings.m_SyncGpuMinDistance);
     layer->Set(Config::MAIN_SYNC_GPU_OVERCLOCK, m_settings.m_SyncGpuOverclock);
+
     layer->Set(Config::MAIN_JIT_FOLLOW_BRANCH, m_settings.m_JITFollowBranch);
     layer->Set(Config::MAIN_FAST_DISC_SPEED, m_settings.m_FastDiscSpeed);
     layer->Set(Config::MAIN_MMU, m_settings.m_MMU);
     layer->Set(Config::MAIN_FASTMEM, m_settings.m_Fastmem);
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
     layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
+
     layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
     layer->Set(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE, m_settings.m_EFBAccessTileSize);
     layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);

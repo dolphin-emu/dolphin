@@ -17,13 +17,6 @@ class FileInfo;
 struct Partition;
 class Volume;
 
-constexpr u32 PARTITION_DATA = 0;
-constexpr u32 PARTITION_UPDATE = 1;
-constexpr u32 PARTITION_CHANNEL = 2;  // Mario Kart Wii, Wii Fit, Wii Fit Plus, Rabbids Go Home
-constexpr u32 PARTITION_INSTALL = 3;  // Dragon Quest X only
-
-std::string NameForPartitionType(u32 partition_type, bool include_prefix);
-
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
              u8* buffer, u64 max_buffer_size, u64 offset_in_file = 0);
 u64 ReadFile(const Volume& volume, const Partition& partition, std::string_view path, u8* buffer,
@@ -61,15 +54,10 @@ bool ExportHeader(const Volume& volume, const Partition& partition,
                   const std::string& export_filename);
 bool ExportBI2Data(const Volume& volume, const Partition& partition,
                    const std::string& export_filename);
-std::optional<u64> GetApploaderSize(const Volume& volume, const Partition& partition);
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename);
-std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition);
-std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset);
 bool ExportDOL(const Volume& volume, const Partition& partition,
                const std::string& export_filename);
-std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition);
-std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition);
 bool ExportFST(const Volume& volume, const Partition& partition,
                const std::string& export_filename);
 

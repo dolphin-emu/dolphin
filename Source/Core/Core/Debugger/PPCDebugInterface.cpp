@@ -4,9 +4,11 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -181,9 +183,13 @@ Common::Debug::Threads PPCDebugInterface::GetThreads() const
   if (!active_thread->IsValid())
     return threads;
 
-  const auto insert_threads = [&threads](u32 addr, auto get_next_addr) {
+  std::vector<u32> visited_addrs{{active_thread->GetAddress()}};
+  const auto insert_threads = [&threads, &visited_addrs](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::HostIsRAMAddress(addr))
     {
+      if (std::find(visited_addrs.begin(), visited_addrs.end(), addr) != visited_addrs.end())
+        break;
+      visited_addrs.push_back(addr);
       auto thread = std::make_unique<Core::Debug::OSThreadView>(addr);
       if (!thread->IsValid())
         break;
@@ -388,14 +394,23 @@ std::shared_ptr<Core::NetworkCaptureLogger> PPCDebugInterface::NetworkLogger()
 {
   const bool has_ssl = Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ) ||
                        Config::Get(Config::MAIN_NETWORK_SSL_DUMP_WRITE);
-  const auto current_capture_type =
-      has_ssl ? Core::NetworkCaptureType::Raw : Core::NetworkCaptureType::None;
+  const bool is_pcap = Config::Get(Config::MAIN_NETWORK_DUMP_AS_PCAP);
+  const auto current_capture_type = [&] {
+    if (is_pcap)
+      return Core::NetworkCaptureType::PCAP;
+    if (has_ssl)
+      return Core::NetworkCaptureType::Raw;
+    return Core::NetworkCaptureType::None;
+  }();
 
   if (m_network_logger && m_network_logger->GetCaptureType() == current_capture_type)
     return m_network_logger;
 
   switch (current_capture_type)
   {
+  case Core::NetworkCaptureType::PCAP:
+    m_network_logger = std::make_shared<Core::PCAPSSLCaptureLogger>();
+    break;
   case Core::NetworkCaptureType::Raw:
     m_network_logger = std::make_shared<Core::BinarySSLCaptureLogger>();
     break;

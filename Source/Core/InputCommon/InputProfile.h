@@ -45,7 +45,8 @@ private:
                                                           const std::vector<std::string>& profiles,
                                                           InputConfig* device_configuration);
   void UpdateToProfile(const std::string& profile_filename,
-                       ControllerEmu::EmulatedController* controller);
+                       ControllerEmu::EmulatedController* controller,
+                       InputConfig* device_configuration);
   std::string GetWiimoteInputProfilesForGame(int controller_index);
 
   int m_wiimote_profile_index = 0;

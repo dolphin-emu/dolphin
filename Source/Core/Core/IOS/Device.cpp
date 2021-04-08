@@ -142,8 +142,6 @@ void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LOG
   Dump("Unknown IOCtlV - " + description, type, level);
 }
 
-namespace Device
-{
 Device::Device(Kernel& ios, const std::string& device_name, const DeviceType type)
     : m_ios(ios), m_name(device_name), m_device_type(type)
 {
@@ -162,19 +160,19 @@ void Device::DoStateShared(PointerWrap& p)
   p.Do(m_is_active);
 }
 
-IPCCommandResult Device::Open(const OpenRequest& request)
+std::optional<IPCReply> Device::Open(const OpenRequest& request)
 {
   m_is_active = true;
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply{IPC_SUCCESS};
 }
 
-IPCCommandResult Device::Close(u32 fd)
+std::optional<IPCReply> Device::Close(u32 fd)
 {
   m_is_active = false;
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply{IPC_SUCCESS};
 }
 
-IPCCommandResult Device::Unsupported(const Request& request)
+std::optional<IPCReply> Device::Unsupported(const Request& request)
 {
   static const std::map<IPCCommandType, std::string_view> names{{
       {IPC_CMD_READ, "Read"},
@@ -185,28 +183,6 @@ IPCCommandResult Device::Unsupported(const Request& request)
   }};
 
   WARN_LOG_FMT(IOS, "{} does not support {}()", m_name, names.at(request.command));
-  return GetDefaultReply(IPC_EINVAL);
+  return IPCReply{IPC_EINVAL};
 }
-
-// Returns an IPCCommandResult for a reply with an average reply time for devices
-// Please avoid using this function if more accurate timings are known.
-IPCCommandResult Device::GetDefaultReply(const s32 return_value)
-{
-  // Based on a hardware test, a device takes at least ~2700 ticks to reply to an IPC request.
-  // Depending on how much work a command performs, this can take much longer (10000+)
-  // especially if the NAND filesystem is accessed.
-  //
-  // Because we currently don't emulate timing very accurately, we should not return
-  // the minimum possible reply time (~960 ticks from the kernel or ~2700 from devices)
-  // but an average time, otherwise we are going to be much too fast in most cases.
-  return {return_value, true, 4000 * SystemTimers::TIMER_RATIO};
-}
-
-// Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply
-// later. This takes no return value because it won't be used.
-IPCCommandResult Device::GetNoReply()
-{
-  return {IPC_SUCCESS, false, 0};
-}
-}  // namespace Device
 }  // namespace IOS::HLE

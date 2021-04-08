@@ -27,6 +27,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
@@ -380,10 +381,10 @@ std::vector<u8> TicketReader::GetRawTicket(u64 ticket_id_to_find) const
 {
   for (size_t i = 0; i < GetNumberOfTickets(); ++i)
   {
-    const auto ticket_begin = m_bytes.begin() + sizeof(IOS::ES::Ticket) * i;
-    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(IOS::ES::Ticket, ticket_id));
+    const auto ticket_begin = m_bytes.begin() + sizeof(ES::Ticket) * i;
+    const u64 ticket_id = Common::swap64(&*ticket_begin + offsetof(ES::Ticket, ticket_id));
     if (ticket_id == ticket_id_to_find)
-      return std::vector<u8>(ticket_begin, ticket_begin + sizeof(IOS::ES::Ticket));
+      return std::vector<u8>(ticket_begin, ticket_begin + sizeof(ES::Ticket));
   }
   return {};
 }
@@ -521,17 +522,21 @@ struct SharedContentMap::Entry
 };
 
 constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
-SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
+SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FSDevice> fs)
+    : m_fs_device{fs}, m_fs{fs->GetFS()}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
   Entry entry;
-  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read);
-  while (file && file->Read(&entry, 1))
+  s64 fd = fs->Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+  if (fd < 0)
+    return;
+  while (fs->Read(fd, &entry, 1, &m_ticks) == sizeof(entry))
   {
     m_entries.push_back(entry);
     m_last_id++;
   }
+  fs->Close(fd, &m_ticks);
 }
 
 SharedContentMap::~SharedContentMap() = default;
@@ -600,32 +605,34 @@ bool SharedContentMap::WriteEntries() const
          HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(const HLE::FS::FileHandle& file)
+static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks)
 {
   u64 title_id = 0;
-  if (!file.Read(&title_id, 1))
+  if (fs.Read(fd, &title_id, 1, ticks) != sizeof(title_id))
     return {};
 
   u32 uid = 0;
-  if (!file.Read(&uid, 1))
+  if (fs.Read(fd, &uid, 1, ticks) != sizeof(uid))
     return {};
 
   return {Common::swap32(uid), Common::swap64(title_id)};
 }
 
 constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
-UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
+UIDSys::UIDSys(std::shared_ptr<HLE::FSDevice> fs) : m_fs_device{fs}, m_fs{fs->GetFS()}
 {
-  if (const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))
+  s64 fd = fs->Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+  if (fd >= 0)
   {
     while (true)
     {
-      std::pair<u32, u64> entry = ReadUidSysEntry(*file);
+      std::pair<u32, u64> entry = ReadUidSysEntry(*fs, fd, &m_ticks);
       if (!entry.first && !entry.second)
         break;
 
       m_entries.insert(std::move(entry));
     }
+    fs->Close(fd, &m_ticks);
   }
 
   if (m_entries.empty())

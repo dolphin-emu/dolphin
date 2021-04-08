@@ -322,6 +322,7 @@
         <item>Russia</item>
         <item>Spain</item>
         <item>Taiwan</item>
+        <item>World</item>
         <item>Unknown</item>
     </string-array>
 
@@ -444,6 +445,17 @@
         <item>8</item>
         <item>1</item>
         <item>-1</item>
+    </integer-array>
+
+    <string-array name="synchronizeGpuThreadEntries">
+        <item>Never</item>
+        <item>On Idle Skipping</item>
+        <item>Always</item>
+    </string-array>
+    <integer-array name="synchronizeGpuThreadValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </integer-array>
 
     <string-array name="motionControlsEntries">

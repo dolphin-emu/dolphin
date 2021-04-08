@@ -2,6 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
+#include <QCoreApplication>
+#include <shlobj.h>
+#include <wil/com.h>
+
+// This file uses some identifiers which are defined as macros in Windows headers.
+// Include and undefine the macros first thing we do to solve build errors.
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
+#endif
+
 #include "DolphinQt/GameList/GameList.h"
 
 #include <algorithm>
@@ -26,6 +38,7 @@
 #include <QTableView>
 #include <QUrl>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Config/MainSettings.h"
@@ -52,20 +65,6 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "UICommon/GameFile.h"
-
-#ifdef _WIN32
-#include <QCoreApplication>
-#include <shlobj.h>
-#include <wil/com.h>
-
-// This file uses some identifiers which are defined as macros in Windows headers.
-// Undefine them for the intellisense parser to solve some red squiggles.
-#ifdef __INTELLISENSE__
-#ifdef DeleteFile
-#undef DeleteFile
-#endif
-#endif
-#endif
 
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
@@ -318,14 +317,13 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto game = GetSelectedGame();
     DiscIO::Platform platform = game->GetPlatform();
-
+    menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
     if (platform != DiscIO::Platform::ELFOrDOL)
     {
-      menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
-
-      menu->addSeparator();
     }
+
+    menu->addSeparator();
 
     if (DiscIO::IsDisc(platform))
     {
@@ -503,7 +501,8 @@ void GameList::OpenWiki()
     return;
 
   QString game_id = QString::fromStdString(game->GetGameID());
-  QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
+  QString url =
+      QStringLiteral("https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }
 
@@ -578,8 +577,18 @@ void GameList::OpenContainingFolder()
   if (!game)
     return;
 
-  QUrl url = QUrl::fromLocalFile(
-      QFileInfo(QString::fromStdString(game->GetFilePath())).dir().absolutePath());
+  // Remove everything after the last separator in the game's path, resulting in the parent
+  // directory path with a trailing separator. Keeping the trailing separator prevents Windows from
+  // mistakenly opening a .bat or .exe file in the grandparent folder when that file has the same
+  // base name as the folder (See https://bugs.dolphin-emu.org/issues/12411).
+  std::string parent_directory_path;
+  SplitPath(game->GetFilePath(), &parent_directory_path, nullptr, nullptr);
+  if (parent_directory_path.empty())
+  {
+    return;
+  }
+
+  const QUrl url = QUrl::fromLocalFile(QString::fromStdString(parent_directory_path));
   QDesktopServices::openUrl(url);
 }
 
@@ -676,7 +685,18 @@ bool GameList::AddShortcutToDesktop()
   if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, KF_FLAG_NO_ALIAS, nullptr, &desktop)))
     return false;
 
-  const auto& game_name = game->GetLongName();
+  std::string game_name = game->GetName(Core::TitleDatabase());
+  // Sanitize the string by removing all characters that cannot be used in NTFS file names
+  game_name.erase(std::remove_if(game_name.begin(), game_name.end(),
+                                 [](char ch) {
+                                   static constexpr char illegal_characters[] = {
+                                       '<', '>', ':', '\"', '/', '\\', '|', '?', '*'};
+                                   return std::find(std::begin(illegal_characters),
+                                                    std::end(illegal_characters),
+                                                    ch) != std::end(illegal_characters);
+                                 }),
+                  game_name.end());
+
   std::wstring desktop_path = std::wstring(desktop.get()) + UTF8ToTStr("\\" + game_name + ".lnk");
   auto persist_file = shell_link.try_query<IPersistFile>();
   if (!persist_file)
@@ -847,9 +867,16 @@ void GameList::ConsiderViewChange()
 void GameList::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Return && GetSelectedGame() != nullptr)
-    emit GameSelected();
+  {
+    if (event->modifiers() == Qt::AltModifier)
+      OpenProperties();
+    else
+      emit GameSelected();
+  }
   else
+  {
     QStackedWidget::keyPressEvent(event);
+  }
 }
 
 void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)

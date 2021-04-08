@@ -29,6 +29,7 @@ struct TMemCheck
   u32 start_address = 0;
   u32 end_address = 0;
 
+  bool is_enabled = true;
   bool is_ranged = false;
 
   bool is_break_on_read = false;
@@ -57,6 +58,7 @@ public:
 
   // is address breakpoint
   bool IsAddressBreakPoint(u32 address) const;
+  bool IsBreakPointEnable(u32 adresss) const;
   bool IsTempBreakPoint(u32 address) const;
   bool IsBreakPointBreakOnHit(u32 address) const;
   bool IsBreakPointLogOnHit(u32 address) const;
@@ -65,6 +67,9 @@ public:
   void Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit);
   void Add(u32 address, bool temp = false);
   void Add(const TBreakPoint& bp);
+
+  // Modify Breakpoint
+  bool ToggleBreakPoint(u32 address);
 
   // Remove Breakpoint
   void Remove(u32 address);
@@ -87,6 +92,8 @@ public:
   void AddFromStrings(const TMemChecksStr& mc_strings);
 
   void Add(const TMemCheck& memory_check);
+
+  bool ToggleBreakPoint(u32 address);
 
   // memory breakpoint
   TMemCheck* GetMemCheck(u32 address, size_t size = 1);

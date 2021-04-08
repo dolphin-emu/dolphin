@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -23,7 +23,17 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class GameFileCacheService extends IntentService
 {
-  public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_UPDATED";
+  /**
+   * This is broadcast when the contents of the cache change.
+   */
+  public static final String CACHE_UPDATED = "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_UPDATED";
+
+  /**
+   * This is broadcast when the service is done with all requested work, regardless of whether
+   * the contents of the cache actually changed. (Maybe the cache was already up to date.)
+   */
+  public static final String DONE_LOADING =
+          "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_DONE_LOADING";
 
   private static final String ACTION_LOAD = "org.dolphinemu.dolphinemu.LOAD_GAME_FILE_CACHE";
   private static final String ACTION_RESCAN = "org.dolphinemu.dolphinemu.RESCAN_GAME_FILE_CACHE";
@@ -31,8 +41,8 @@ public final class GameFileCacheService extends IntentService
   private static GameFileCache gameFileCache = null;
   private static final AtomicReference<GameFile[]> gameFiles =
           new AtomicReference<>(new GameFile[]{});
-  private static final AtomicBoolean hasLoadedCache = new AtomicBoolean(false);
-  private static final AtomicBoolean hasScannedLibrary = new AtomicBoolean(false);
+  private static final AtomicInteger unhandledIntents = new AtomicInteger(0);
+  private static final AtomicInteger unhandledRescanIntents = new AtomicInteger(0);
 
   public GameFileCacheService()
   {
@@ -96,14 +106,20 @@ public final class GameFileCacheService extends IntentService
       return new String[]{gameFile.getPath(), secondFile.getPath()};
   }
 
-  public static boolean hasLoadedCache()
+  /**
+   * Returns true if in the process of either loading the cache or rescanning.
+   */
+  public static boolean isLoading()
   {
-    return hasLoadedCache.get();
+    return unhandledIntents.get() != 0;
   }
 
-  public static boolean hasScannedLibrary()
+  /**
+   * Returns true if in the process of rescanning.
+   */
+  public static boolean isRescanning()
   {
-    return hasScannedLibrary.get();
+    return unhandledRescanIntents.get() != 0;
   }
 
   private static void startService(Context context, String action)
@@ -119,6 +135,8 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startLoad(Context context)
   {
+    unhandledIntents.getAndIncrement();
+
     new AfterDirectoryInitializationRunner().run(context, false,
             () -> startService(context, ACTION_LOAD));
   }
@@ -130,6 +148,9 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startRescan(Context context)
   {
+    unhandledIntents.getAndIncrement();
+    unhandledRescanIntents.getAndIncrement();
+
     new AfterDirectoryInitializationRunner().run(context, false,
             () -> startService(context, ACTION_RESCAN));
   }
@@ -156,23 +177,49 @@ public final class GameFileCacheService extends IntentService
       {
         gameFileCache = temp;
         gameFileCache.load();
-        updateGameFileArray();
-        hasLoadedCache.set(true);
-        sendBroadcast();
+        if (gameFileCache.getSize() != 0)
+        {
+          updateGameFileArray();
+          sendBroadcast(CACHE_UPDATED);
+        }
       }
     }
 
     // Rescan the file system and update the game list cache with the results
-    if (ACTION_RESCAN.equals(intent.getAction()) && gameFileCache != null)
+    if (ACTION_RESCAN.equals(intent.getAction()))
     {
-      synchronized (gameFileCache)
+      if (gameFileCache != null)
       {
-        boolean changed = gameFileCache.scanLibrary();
-        if (changed)
-          updateGameFileArray();
-        hasScannedLibrary.set(true);
-        sendBroadcast();
+        synchronized (gameFileCache)
+        {
+          boolean changed = gameFileCache.update();
+          if (changed)
+          {
+            updateGameFileArray();
+            sendBroadcast(CACHE_UPDATED);
+          }
+
+          boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
+          if (additionalMetadataChanged)
+          {
+            updateGameFileArray();
+            sendBroadcast(CACHE_UPDATED);
+          }
+
+          if (changed || additionalMetadataChanged)
+          {
+            gameFileCache.save();
+          }
+        }
       }
+
+      unhandledRescanIntents.decrementAndGet();
+    }
+
+    int intentsLeft = unhandledIntents.decrementAndGet();
+    if (intentsLeft == 0)
+    {
+      sendBroadcast(DONE_LOADING);
     }
   }
 
@@ -183,8 +230,8 @@ public final class GameFileCacheService extends IntentService
     gameFiles.set(gameFilesTemp);
   }
 
-  private void sendBroadcast()
+  private void sendBroadcast(String action)
   {
-    LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BROADCAST_ACTION));
+    LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(action));
   }
 }

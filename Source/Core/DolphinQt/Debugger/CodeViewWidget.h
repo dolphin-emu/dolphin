@@ -25,7 +25,8 @@ public:
   enum class SetAddressUpdate
   {
     WithUpdate,
-    WithoutUpdate
+    WithoutUpdate,
+    WithDetailedUpdate
   };
 
   explicit CodeViewWidget();
@@ -49,6 +50,7 @@ signals:
   void ShowMemory(u32 address);
   void SymbolsChanged();
   void BreakpointsChanged();
+  void UpdateCodeWidget();
 
 private:
   enum class ReplaceWith

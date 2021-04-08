@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
+
 #include <algorithm>
+
+#include <fmt/format.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
-#include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
 // (lower would be more sensitive) user can lower sensitivity by setting range
 // seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
@@ -19,6 +22,30 @@
 
 namespace ciface::DInput
 {
+class RelativeMouseAxis final : public Core::Device::RelativeInput
+{
+public:
+  std::string GetName() const override
+  {
+    return fmt::format("RelativeMouse {}{}", char('X' + m_index), (m_scale > 0) ? '+' : '-');
+  }
+
+  RelativeMouseAxis(u8 index, bool positive, const RelativeMouseState* state)
+      : m_state(*state), m_index(index), m_scale(positive * 2 - 1)
+  {
+  }
+
+  ControlState GetState() const override
+  {
+    return ControlState(m_state.GetValue().data[m_index] * m_scale);
+  }
+
+private:
+  const RelativeMouseState& m_state;
+  const u8 m_index;
+  const s8 m_scale;
+};
+
 static const struct
 {
   const BYTE code;
@@ -108,9 +135,17 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
     AddInput(new Axis(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
     AddInput(new Axis(i, ax, -(2 == i) ? 1 : MOUSE_AXIS_SENSITIVITY));
   }
+
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
     AddInput(new Cursor(!!(i & 2), (&m_state_in.cursor.x)[i / 2], !!(i & 1)));
+
+  // Raw relative mouse movement.
+  for (unsigned int i = 0; i != mouse_caps.dwAxes; ++i)
+  {
+    AddInput(new RelativeMouseAxis(i, false, &m_state_in.relative_mouse));
+    AddInput(new RelativeMouseAxis(i, true, &m_state_in.relative_mouse));
+  }
 }
 
 void KeyboardMouse::UpdateCursorInput()
@@ -147,6 +182,8 @@ void KeyboardMouse::UpdateInput()
   {
     // set axes to zero
     m_state_in.mouse = {};
+    m_state_in.relative_mouse = {};
+
     // skip this input state
     m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   }
@@ -162,14 +199,17 @@ void KeyboardMouse::UpdateInput()
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
     m_mo_device->Acquire();
 
-  if (SUCCEEDED(kb_hr) && SUCCEEDED(mo_hr))
+  if (SUCCEEDED(mo_hr))
   {
+    m_state_in.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
+    m_state_in.relative_mouse.Update();
+
     // need to smooth out the axes, otherwise it doesn't work for shit
     for (unsigned int i = 0; i < 3; ++i)
       ((&m_state_in.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
 
     // copy over the buttons
-    memcpy(m_state_in.mouse.rgbButtons, tmp_mouse.rgbButtons, sizeof(m_state_in.mouse.rgbButtons));
+    std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
 
     UpdateCursorInput();
   }
