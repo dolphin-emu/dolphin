@@ -183,6 +183,10 @@ bool GetBloom() {
   return Config::Get(Config::DISABLE_BLOOM);
 }
 
+bool GetReduceBloom() {
+  return Config::Get(Config::REDUCE_BLOOM);
+}
+
 bool GetEnableSecondaryGunFX() {
   return Config::Get(Config::ENABLE_SECONDARY_GUNFX);
 }

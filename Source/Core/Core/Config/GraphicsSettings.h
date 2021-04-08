@@ -131,6 +131,7 @@ extern const Info<bool> GFX_PERF_QUERIES_ENABLE;
 extern const Info<bool> AUTO_EFB;
 extern const Info<bool> LOCKCAMERA_IN_PUZZLES;
 extern const Info<bool> DISABLE_BLOOM;
+extern const Info<bool> REDUCE_BLOOM;
 extern const Info<int> FOV;
 extern const Info<bool> TOGGLE_ARM_REPOSITION;
 extern const Info<bool> TOGGLE_CULLING;

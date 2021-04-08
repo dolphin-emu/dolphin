@@ -34,7 +34,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     }
   }
 
-  static constexpr std::array<const Config::Location*, 29> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 30> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.GetLocation(),
@@ -74,6 +74,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::ARMPOSITION_FORWARDBACK.GetLocation(),
       &Config::TOGGLE_CULLING.GetLocation(),
       &Config::DISABLE_BLOOM.GetLocation(),
+      &Config::REDUCE_BLOOM.GetLocation(),
       &Config::FOV.GetLocation(),
       &Config::ENABLE_SECONDARY_GUNFX.GetLocation(),
       &Config::GC_SHOW_CROSSHAIR.GetLocation(),

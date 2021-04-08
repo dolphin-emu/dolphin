@@ -53,6 +53,7 @@ void PrimeWidget::CreateWidgets()
 
   m_autoefb = new GraphicsBool(tr("Auto Toggle EFB copies to Texture"), Config::AUTO_EFB);
   m_disable_bloom = new GraphicsBool(tr("Disable Bloom"), Config::DISABLE_BLOOM);
+  m_reduce_bloom = new GraphicsBool(tr("Reduce Bloom [Metroid Prime 3]"), Config::REDUCE_BLOOM);
   m_motions_lock = new GraphicsBool(tr("Lock Camera in Motion Puzzles"), Config::LOCKCAMERA_IN_PUZZLES);
   m_toggle_arm_position = new GraphicsBool(tr("Toggle Viewmodel Adjustment"), Config::TOGGLE_ARM_REPOSITION);
   m_toggle_culling = new GraphicsBool(tr("Disable Culling"), Config::TOGGLE_CULLING);
@@ -63,8 +64,9 @@ void PrimeWidget::CreateWidgets()
   graphics_layout->addWidget(m_motions_lock, 1, 0);
   graphics_layout->addWidget(m_toggle_secondaryFX, 2, 0);
   graphics_layout->addWidget(m_disable_bloom, 3, 0);
-  graphics_layout->addWidget(m_toggle_arm_position, 4, 0);
-  graphics_layout->addWidget(m_toggle_culling, 5, 0);
+  graphics_layout->addWidget(m_reduce_bloom, 4, 0);
+  graphics_layout->addWidget(m_toggle_arm_position, 5, 0);
+  graphics_layout->addWidget(m_toggle_culling, 6, 0);
 
   m_fov_axis = new GraphicsSlider(1, 170, Config::FOV);
   m_fov_axis->setMinimum(1);
@@ -226,8 +228,10 @@ void PrimeWidget::AddDescriptions()
   static const char TR_GUNEFFECTS[] =
     QT_TR_NOOP("Reintroduce the original secondary gun effects that were in the GameCube version of Metroid Prime 1\n"
                 "These effects were disabled and cut in the Trilogy but still remained as unused assets.");
-  static const char TR_BLOOM[] =
+  static const char TR_DISABLE_BLOOM[] =
     QT_TR_NOOP("Disables Bloom.\n\nSource: TheHatedGravity and dreamsyntax.");
+  static const char TR_REDUCE_BLOOM[] =
+    QT_TR_NOOP("Reduces Bloom. Upscaling the resolution massively exaggerates the bloom, especially in Prime 3. This option fixes this.");
   static const char TR_TOGGLE_ARM_POSITION[] =
     QT_TR_NOOP("Toggles repositioning of Samus's arms in the viewmodel. Repositioning her arms is visually beneficial for high Field Of Views.");
   static const char TR_TOGGLE_CULL[] =
@@ -253,7 +257,8 @@ void PrimeWidget::AddDescriptions()
   m_autoefb->SetDescription(tr(TR_AUTO_EFB));
   m_motions_lock->SetDescription(tr(TR_MOTION_LOCK));
   m_toggle_secondaryFX->SetDescription(tr(TR_GUNEFFECTS));
-  m_disable_bloom->SetDescription(tr(TR_BLOOM));
+  m_disable_bloom->SetDescription(tr(TR_DISABLE_BLOOM));
+  m_reduce_bloom->SetDescription(tr(TR_REDUCE_BLOOM));
   m_toggle_culling->SetDescription(tr(TR_TOGGLE_CULL));
   m_toggle_arm_position->SetDescription(tr(TR_TOGGLE_ARM_POSITION));
   m_manual_arm_position->SetDescription(tr(TR_MANUAL_POSITION));

@@ -34,6 +34,7 @@ private:
 
   // Misc
   GraphicsBool* m_disable_bloom;
+  GraphicsBool* m_reduce_bloom;
   GraphicsBool* m_motions_lock;
   GraphicsBool* m_autoefb;
   GraphicsBool* m_toggle_culling;
