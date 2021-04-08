@@ -38,7 +38,7 @@ PrimeWidget::PrimeWidget(GraphicsWindow* parent)
   ArmPositionModeChanged(m_manual_arm_position->isChecked());
 
   m_select_colour->setStyleSheet(tr("border: 1px solid #") + QString::number(Config::Get(Config::GC_CROSSHAIR_COLOR_RGBA) & 0xFFFFFF00, 16) + tr(";"));
-
+  m_reduce_bloom->setEnabled(!m_disable_bloom->isChecked()); 
 }
 
 void PrimeWidget::CreateWidgets()
@@ -181,6 +181,11 @@ void PrimeWidget::ConnectWidgets()
       m_auto_arm_position->setEnabled(checked); 
       m_manual_arm_position->setEnabled(checked); 
       PrimeWidget::ArmPositionModeChanged(m_manual_arm_position->isChecked());
+    });
+  connect(m_disable_bloom, &QCheckBox::clicked, this,
+    [=](bool checked)
+    {
+      m_reduce_bloom->setEnabled(!checked); 
     });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
     [=](Core::State state)
