@@ -45,6 +45,7 @@ class ThreadWidget;
 class ToolBar;
 class WatchWidget;
 class WiiTASInputWindow;
+class CVarsWindow;
 
 namespace DiscIO
 {
@@ -143,6 +144,8 @@ private:
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true);
 
+  void OpenCVarsMenu();
+
   void ShowSettingsWindow();
   void ShowGeneralWindow();
   void ShowAudioWindow();
@@ -216,6 +219,7 @@ private:
   FIFOPlayerWindow* m_fifo_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
+  CVarsWindow* m_cvars_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;

@@ -28,8 +28,9 @@ void PrimeCheatsWidget::CreateWidgets()
   m_checkbox_invulnerability = new QCheckBox(tr("Invulnerability"));
   m_checkbox_skipcutscenes = new QCheckBox(tr("Skippable Cutscenes"));
   m_checkbox_scandash = new QCheckBox(tr("Restore Scan Dash"));
-  m_checkbox_skipportalmp2 = new QCheckBox(tr("Skip MP2 Portal Cutscene (Trilogy Only)"));
+  m_checkbox_skipportalmp2 = new QCheckBox(tr("Skip MP2 Portal Cutscene"));
   m_checkbox_friendvouchers = new QCheckBox(tr("Remove Friend Vouchers Requirement (Trilogy Only)"));
+  m_checkbox_hudmemo = new QCheckBox(tr("Disable Hud Popup on Pickup Acquire"));
 
   layout->addWidget(m_checkbox_noclip);
   layout->addWidget(m_checkbox_invulnerability);
@@ -37,6 +38,7 @@ void PrimeCheatsWidget::CreateWidgets()
   layout->addWidget(m_checkbox_scandash);
   layout->addWidget(m_checkbox_skipportalmp2);
   layout->addWidget(m_checkbox_friendvouchers);
+  layout->addWidget(m_checkbox_hudmemo);
 
   main_layout->addWidget(group_box);
   main_layout->addStretch();
@@ -52,6 +54,7 @@ void PrimeCheatsWidget::ConnectWidgets()
   connect(m_checkbox_scandash, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
   connect(m_checkbox_skipportalmp2, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
   connect(m_checkbox_friendvouchers, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
+  connect(m_checkbox_hudmemo, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
 }
 
 void PrimeCheatsWidget::OnSaveConfig()
@@ -63,6 +66,7 @@ void PrimeCheatsWidget::OnSaveConfig()
   settings.bPrimeRestoreDashing = m_checkbox_scandash->isChecked();
   settings.bPrimePortalSkip = m_checkbox_skipportalmp2->isChecked();
   settings.bPrimeFriendVouchers = m_checkbox_friendvouchers->isChecked();
+  settings.bDisableHudMemoPopup = m_checkbox_hudmemo->isChecked();
 
   settings.SaveSettings();
 }
@@ -76,6 +80,7 @@ void PrimeCheatsWidget::OnLoadConfig()
   m_checkbox_scandash->setChecked(settings.bPrimeRestoreDashing);
   m_checkbox_skipportalmp2->setChecked(settings.bPrimePortalSkip);
   m_checkbox_friendvouchers->setChecked(settings.bPrimeFriendVouchers);
+  m_checkbox_hudmemo->setChecked(settings.bDisableHudMemoPopup);
 }
 
 void PrimeCheatsWidget::AddDescriptions()

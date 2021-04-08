@@ -34,6 +34,9 @@ public:
   // Syscall Instruction
   static void sc(UGeckoInstruction inst);
 
+  // VMCall Instruction
+  static void vmcall(UGeckoInstruction inst);
+
   // Floating Point Instructions
   static void faddsx(UGeckoInstruction inst);
   static void fdivsx(UGeckoInstruction inst);

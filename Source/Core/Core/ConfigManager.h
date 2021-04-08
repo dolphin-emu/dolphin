@@ -154,6 +154,7 @@ struct SConfig
   bool bPrimeRestoreDashing = false;
   bool bPrimePortalSkip = false;
   bool bPrimeFriendVouchers = true;
+  bool bDisableHudMemoPopup = false;
 
   // Interface settings
   bool bConfirmStop = false;

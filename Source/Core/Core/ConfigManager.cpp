@@ -255,6 +255,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("PrimeSkippableCutscenes", bPrimeSkipCutscene);
   core->Set("PrimeRestoreScanDash", bPrimeRestoreDashing);
   core->Set("PrimeFriendVouchers", bPrimeFriendVouchers);
+  core->Set("PrimeDisableHudMemo", bDisableHudMemoPopup);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -531,6 +532,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("PrimeSkippableCutscenes", &bPrimeSkipCutscene, false);
   core->Get("PrimeRestoreScanDash", &bPrimeRestoreDashing, false);
   core->Get("PrimeFriendVouchers", &bPrimeFriendVouchers, true);
+  core->Get("PrimeDisableHudMemo", &bDisableHudMemoPopup, false);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

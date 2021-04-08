@@ -67,7 +67,6 @@ void ContextSensitiveControls::run_mod(Game game, Region region) {
         }
         // motion_vf + 0x38 is combination locks
       } else if (vft_func == motion_vf + 0x38 || vf_table == dna_scanner_vftable) {
-        // If the vf is for rotary, confirm this needs to be controlled
         float velocity = 0;
         if (CheckRight()) {
           velocity = 0.04f;

@@ -90,6 +90,7 @@ private:
   static void mtfsb(u32 in, int n);
   static void ps(u32 inst);
   static void ps_mem(u32 inst);
+  static void vmcall(u32 inst);
 
   static u32* DoDisassembly(bool big_endian);
 

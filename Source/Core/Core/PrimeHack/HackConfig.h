@@ -54,6 +54,8 @@ float GetSensitivity();
 void SetSensitivity(float sensitivity);
 float GetCursorSensitivity();
 void SetCursorSensitivity(float sensitivity);
+bool ScaleCursorSensitivity();
+void SetScaleCursorSensitivity(bool scale);
 float GetFov();
 bool InvertedY();
 void SetInvertedY(bool inverted);
@@ -79,4 +81,13 @@ std::tuple<bool, bool> GetMenuOptions();
 HackManager *GetHackManager();
 AddressDB *GetAddressDB();
 EmuVariableManager *GetVariableManager();
+
+bool ModPending();
+void ClearPendingModfile();
+std::string GetPendingModfile();
+void SetPendingModfile(std::string const& path);
+
+bool ModSuspended();
+void SuspendMod();
+void ResumeMod();
 }

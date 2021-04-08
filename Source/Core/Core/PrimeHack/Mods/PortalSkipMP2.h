@@ -19,6 +19,8 @@ public:
   bool init_mod(Game game, Region region) override;
   void on_state_change(ModState old_state) override {}
 
+  void fix_portal_terminal_layer_bits();
+
 private:
   std::map<u32, std::vector<PortalControl>> portal_control_map;
 };

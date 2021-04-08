@@ -139,11 +139,11 @@ void HackManager::run_active_mods() {
       if (!mod.second->is_initialized()) {
         bool was_init = mod.second->init_mod(active_game, active_region);
         if (was_init) {
-          mod.second->save_original_instructions();
           mod.second->mark_initialized();
         }
       }
       if (mod.second->should_apply_changes()) {
+        mod.second->update_original_instructions();
         mod.second->apply_instruction_changes();
       }
     }
@@ -174,6 +174,7 @@ void HackManager::update_mod_states() {
     set_mod_enabled("restore_dashing", GetRestoreDashing());
     set_mod_enabled("friend_vouchers_cheat", settings.bPrimeFriendVouchers);
     set_mod_enabled("portal_skip_mp2", settings.bPrimePortalSkip);
+    set_mod_enabled("disable_hudmemo_popup", settings.bDisableHudMemoPopup);
   }
   else {
     disable_mod("noclip");

@@ -29,7 +29,6 @@ private:
   float calculate_yaw_vel();
   void handle_beam_visor_switch(std::array<int, 4> const &beams,
                                 std::array<std::tuple<int, int>, 4> const& visors);
-  void mp3_handle_cursor(bool lock);
   void mp3_handle_lasso(u32 grapple_state_addr);
 
   void run_mod_menu(Game game, Region region);

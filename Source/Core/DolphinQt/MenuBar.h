@@ -116,6 +116,9 @@ signals:
   // Synbols
   void NotifySymbolsUpdated();
 
+  // Mod Loader
+  void OpenCVarsMenu();
+
 private:
   void OnEmulationStateChanged(Core::State state);
 
@@ -139,6 +142,7 @@ private:
   void AddMovieMenu();
   void AddJITMenu();
   void AddSymbolsMenu();
+  void AddModLoaderMenu();
 
   void UpdateStateSlotMenu();
 

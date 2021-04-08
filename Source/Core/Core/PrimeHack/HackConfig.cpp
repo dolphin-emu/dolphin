@@ -21,6 +21,8 @@
 #include "Core/PrimeHack/Mods/ContextSensitiveControls.h"
 #include "Core/PrimeHack/Mods/FriendVouchers.h"
 #include "Core/PrimeHack/Mods/PortalSkipMP2.h"
+#include "Core/PrimeHack/Mods/DisableHudMemoPopup.h"
+#include "Core/PrimeHack/Mods/ElfModLoader.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -40,12 +42,16 @@ float camera_fov;
 
 bool inverted_x = false;
 bool inverted_y = false;
+bool scale_cursor_sens = false;
 HackManager hack_mgr;
 AddressDB addr_db;
 EmuVariableManager var_mgr;
 bool is_running = false;
 CameraLock lock_camera = CameraLock::Unlocked;
 bool reticle_lock = false;
+
+std::string pending_modfile = "";
+bool mod_suspended = false;
 }
 
 void InitializeHack() {
@@ -68,6 +74,8 @@ void InitializeHack() {
   hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
   hack_mgr.add_mod("portal_skip_mp2", std::make_unique<PortalSkipMP2>());
   hack_mgr.add_mod("friend_vouchers_cheat", std::make_unique<FriendVouchers>());
+  hack_mgr.add_mod("disable_hudmemo_popup", std::make_unique<DisableHudMemoPopup>());
+  hack_mgr.add_mod("elf_mod_loader", std::make_unique<ElfModLoader>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
@@ -80,6 +88,7 @@ void InitializeHack() {
   hack_mgr.enable_mod("fps_controls");
   hack_mgr.enable_mod("springball_button");
   hack_mgr.enable_mod("context_sensitive_controls");
+  hack_mgr.enable_mod("elf_mod_loader");
 }
 
 bool CheckBeamCtl(int beam_num) {
@@ -204,19 +213,20 @@ std::tuple<float, float, float> GetArmXYZ() {
 
 void UpdateHackSettings() {
   double camera, cursor;
-  bool invertx, inverty, lock = false;
+  bool invertx, inverty, scale_sens = false, lock = false;
 
   if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN)
     std::tie<double, double, bool, bool>(camera, cursor, invertx, inverty) =
       Pad::PrimeSettings();
   else
-    std::tie<double, double, bool, bool, bool>(camera, cursor, invertx, inverty, lock) =
+    std::tie<double, double, bool, bool, bool>(camera, cursor, invertx, inverty, scale_sens, lock) =
       Wiimote::PrimeSettings();
 
   SetSensitivity((float)camera);
   SetCursorSensitivity((float)cursor);
   SetInvertedX(invertx);
   SetInvertedY(inverty);
+  SetScaleCursorSensitivity(scale_sens);
   SetReticleLock(lock);
 }
 
@@ -264,6 +274,14 @@ bool InvertedX() {
 
 void SetInvertedX(bool inverted) {
   inverted_x = inverted;
+}
+
+bool ScaleCursorSensitivity() {
+  return scale_cursor_sens;
+}
+
+void SetScaleCursorSensitivity(bool scale) {
+  scale_cursor_sens = scale;
 }
 
 bool CheckPitchRecentre() {
@@ -331,5 +349,33 @@ EmuVariableManager* GetVariableManager() {
 
 HackManager* GetHackManager() {
   return &hack_mgr;
+}
+
+bool ModPending() {
+  return !pending_modfile.empty();
+}
+
+void ClearPendingModfile() {
+  pending_modfile.clear();
+}
+
+std::string GetPendingModfile() {
+  return pending_modfile;
+}
+
+void SetPendingModfile(std::string const& path) {
+  pending_modfile = path;
+}
+
+bool ModSuspended() {
+  return mod_suspended;
+}
+
+void SuspendMod() {
+  mod_suspended = true;
+}
+
+void ResumeMod() {
+  mod_suspended = false;
 }
 }  // namespace prime

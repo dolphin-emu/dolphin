@@ -168,7 +168,6 @@ void PrimeWidget::ToggleShowCrosshair(bool mode)
   m_select_colour->setEnabled(mode);
 }
 
-#pragma optimize("", off)
 void PrimeWidget::ConnectWidgets()
 {
   connect(m_toggle_gc_show_crosshair, &GraphicsBool::clicked, this, [=](bool checked) {PrimeWidget::ToggleShowCrosshair(checked); });
@@ -212,7 +211,6 @@ void PrimeWidget::ConnectWidgets()
     Config::SetBaseOrCurrent(Config::GC_CROSSHAIR_COLOR_RGBA, 0x4b7ea331);
   });
 }
-#pragma optimize("", on)
 
 void PrimeWidget::LoadSettings() {}
 
