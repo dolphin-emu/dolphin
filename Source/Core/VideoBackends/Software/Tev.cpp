@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -559,8 +560,15 @@ void Tev::Draw()
     const int stageNum2 = stageNum >> 1;
     const int stageOdd = stageNum & 1;
 
-    const u32 texcoordSel = bpmem.tevindref.getTexCoord(stageNum);
+    u32 texcoordSel = bpmem.tevindref.getTexCoord(stageNum);
     const u32 texmap = bpmem.tevindref.getTexMap(stageNum);
+
+    // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
+    // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
+    // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
+    // the number of tex gens to 2 (bug 11462).
+    if (texcoordSel >= bpmem.genMode.numtexgens)
+      texcoordSel = 0;
 
     const TEXSCALE& texscale = bpmem.texscale[stageNum2];
     const s32 scaleS = stageOdd ? texscale.ss1 : texscale.ss0;
@@ -592,8 +600,13 @@ void Tev::Draw()
     const TevStageCombiner::ColorCombiner& cc = bpmem.combiners[stageNum].colorC;
     const TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[stageNum].alphaC;
 
-    const int texcoordSel = order.getTexCoord(stageOdd);
-    const int texmap = order.getTexMap(stageOdd);
+    u32 texcoordSel = order.getTexCoord(stageOdd);
+    const u32 texmap = order.getTexMap(stageOdd);
+
+    // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
+    // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
+    if (texcoordSel >= bpmem.genMode.numtexgens)
+      texcoordSel = 0;
 
     Indirect(stageNum, Uv[texcoordSel].s, Uv[texcoordSel].t);
 
@@ -603,8 +616,17 @@ void Tev::Draw()
       // RGBA
       u8 texel[4];
 
-      TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum],
-                             texmap, texel);
+      if (bpmem.genMode.numtexgens > 0)
+      {
+        TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum],
+                               TextureLinear[stageNum], texmap, texel);
+      }
+      else
+      {
+        // It seems like the result is always black when no tex coords are enabled, but further
+        // hardware testing is needed.
+        std::memset(texel, 0, 4);
+      }
 
 #if ALLOW_TEV_DUMPS
       if (g_ActiveConfig.bDumpTevTextureFetches)
