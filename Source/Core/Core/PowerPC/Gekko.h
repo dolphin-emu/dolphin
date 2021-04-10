@@ -399,6 +399,7 @@ union UReg_MSR
 };
 
 #define FPRF_SHIFT 12
+#define FPRF_WIDTH 5
 #define FPRF_MASK (0x1F << FPRF_SHIFT)
 
 // FPSCR exception flags
