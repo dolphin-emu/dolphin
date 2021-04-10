@@ -12,8 +12,6 @@ PrimeCheatsWidget::PrimeCheatsWidget()
   CreateWidgets();
   ConnectWidgets();
   AddDescriptions();
-
-  OnLoadConfig();
 }
 
 void PrimeCheatsWidget::CreateWidgets()
@@ -97,6 +95,8 @@ void PrimeCheatsWidget::AddDescriptions()
     QT_TR_NOOP("Skips having to watch the portal cutscenes in Metroid Prime 2 (Trilogy), allowing you to teleport immediately.");
   static const char TR_FRIENDVOUCHERS[] =
     QT_TR_NOOP("Removes the friend voucher cost from all purchasable extras. This is on by default as friend-vouchers are impossible to obtain.");
+  static const char TR_HUDMEMO[] =
+    QT_TR_NOOP("Removes the item pickup screen and explanation screen for powerups.");
 
   m_checkbox_noclip->setToolTip(tr(TR_NOCLIP));
   m_checkbox_invulnerability->setToolTip(tr(TR_INVULNERABILITY));
@@ -104,4 +104,15 @@ void PrimeCheatsWidget::AddDescriptions()
   m_checkbox_scandash->setToolTip(tr(TR_SCANDASH));
   m_checkbox_skipportalmp2->setToolTip(tr(TR_SKIPPORTAL));
   m_checkbox_friendvouchers->setToolTip(tr(TR_FRIENDVOUCHERS));
+  m_checkbox_hudmemo->setToolTip(tr(TR_HUDMEMO));
+}
+
+void PrimeCheatsWidget::showEvent(QShowEvent*)
+{
+  OnLoadConfig();
+}
+
+void PrimeCheatsWidget::enterEvent(QEvent*)
+{
+  OnLoadConfig();
 }
