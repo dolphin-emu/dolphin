@@ -38,6 +38,8 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
+#include "SocketServer.h"
+
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
 {
@@ -169,6 +171,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   UICommon::SetUserDirectory(static_cast<const char*>(options.get("user")));
   UICommon::CreateDirectories();
   UICommon::Init();
+
+  std::thread(SocketServer::main).detach();
+
   Resources::Init();
   Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
 
