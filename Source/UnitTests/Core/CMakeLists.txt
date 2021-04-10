@@ -24,6 +24,7 @@ elseif(_M_ARM_64)
   add_dolphin_test(PowerPCTest
     PowerPC/DivUtilsTest.cpp
     PowerPC/JitArm64/ConvertSingleDouble.cpp
+    PowerPC/JitArm64/FPRF.cpp
     PowerPC/JitArm64/MovI2R.cpp
   )
 else()
