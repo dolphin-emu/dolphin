@@ -35,7 +35,7 @@ private:
   void run_mod_mp1(Region region);
   void run_mod_mp2(Region region);
   void run_mod_mp3(Game game, Region region);
-  void run_mod_mp1_gc();
+  void run_mod_mp1_gc(Region region);
   void run_mod_mp2_gc();
 
   void CheckBeamVisorSetting(Game game);
@@ -66,7 +66,6 @@ private:
 
   // Required due to MP3
   bool has_beams;
-  bool fighting_ridley;
 
   // We store our pitch value interally to have full control over it
   float pitch;

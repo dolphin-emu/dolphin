@@ -334,6 +334,10 @@ void ViewModifier::init_mod_mp2_gc(Region region) {
     add_code_change(0x801b0b38, 0x60000000);
     add_code_change(0x802f84c0, 0x38600001, "culling");
     add_code_change(0x802f84c0 + 0x4, 0x4e800020, "culling");
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x801b28f0, 0x60000000);
+    add_code_change(0x802faa28, 0x38600001, "culling");
+    add_code_change(0x802faa28 + 0x4, 0x4e800020, "culling");
   } else if (region == Region::PAL) {
     add_code_change(0x801b0e44, 0x60000000);
     add_code_change(0x802f8818, 0x38600001, "culling");
