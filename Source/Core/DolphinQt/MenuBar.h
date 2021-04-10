@@ -127,6 +127,7 @@ private:
   void OnEmulationStateChanged(Core::State state);
 
   void AddFileMenu();
+  void StartServer();
   void AddDVDBackupMenu(QMenu* file_menu);
 
   void AddEmulationMenu();
@@ -194,6 +195,7 @@ private:
   QAction* m_exit_action;
   QAction* m_change_disc;
   QAction* m_eject_disc;
+  QAction* m_start_server;
   QMenu* m_backup_menu;
 
   // Tools

@@ -38,6 +38,7 @@
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;rpcrt4.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Windows</SubSystem>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -181,6 +182,7 @@
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
+    <ClCompile Include="SocketServer.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\IRWidget.cpp" />
     <ClCompile Include="TAS\StickWidget.cpp" />
@@ -191,6 +193,7 @@
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Translation.cpp" />
     <ClCompile Include="Updater.cpp" />
+    <ClCompile Include="WebServer.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
   </ItemGroup>
   <!--
@@ -217,8 +220,10 @@
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="SocketServer.h" />
     <ClInclude Include="TAS\TASSlider.h" />
     <ClInclude Include="Translation.h" />
+    <ClInclude Include="WebServer.h" />
     <ClInclude Include="WiiUpdate.h" />
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="CheatsManager.h" />

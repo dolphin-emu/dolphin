@@ -59,7 +59,7 @@
 
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
-
+#include "SocketServer.h"
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
 QString MenuBar::GetSignatureSelector() const
@@ -213,6 +213,8 @@ void MenuBar::AddFileMenu()
 
   m_change_disc = file_menu->addAction(tr("Change &Disc..."), this, &MenuBar::ChangeDisc);
   m_eject_disc = file_menu->addAction(tr("&Eject Disc"), this, &MenuBar::EjectDisc);
+  m_start_server = file_menu->addAction(tr("Start Server"), this, &MenuBar::StartServer);
+  m_start_server->setEnabled(true);
 
   AddDVDBackupMenu(file_menu);
 
@@ -220,6 +222,14 @@ void MenuBar::AddFileMenu()
 
   m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
   m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
+}
+
+void MenuBar::StartServer()
+{
+
+  std::thread(SocketServer::main).detach();
+  
+  m_start_server->setEnabled(false);
 }
 
 void MenuBar::AddToolsMenu()
