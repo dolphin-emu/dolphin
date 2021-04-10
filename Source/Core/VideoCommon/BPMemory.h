@@ -600,13 +600,13 @@ struct fmt::formatter<TEXSCALE>
 union RAS1_IREF
 {
   BitField<0, 3, u32> bi0;  // Indirect tex stage 0 ntexmap
-  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexmap
+  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexcoord
   BitField<6, 3, u32> bi1;
   BitField<9, 3, u32> bc1;
   BitField<12, 3, u32> bi2;
-  BitField<15, 3, u32> bc3;  // Typo?
-  BitField<18, 3, u32> bi4;
-  BitField<21, 3, u32> bc4;
+  BitField<15, 3, u32> bc2;
+  BitField<18, 3, u32> bi3;
+  BitField<21, 3, u32> bc3;
   u32 hex;
 
   u32 getTexCoord(int i) const { return (hex >> (6 * i + 3)) & 7; }
@@ -625,8 +625,8 @@ struct fmt::formatter<RAS1_IREF>
                      "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
                      "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
                      "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
-                     indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc3,
-                     indref.bi4, indref.bc4);
+                     indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
+                     indref.bi3, indref.bc3);
   }
 };
 
