@@ -3039,28 +3039,31 @@ void ARM64FloatEmitter::FMOV(ARM64Reg Rd, ARM64Reg Rn, bool top)
   {
     EmitScalar1Source(0, 0, IsDouble(Rd), 0, Rd, Rn);
   }
+  else if (IsGPR(Rd) != IsGPR(Rn))
+  {
+    const ARM64Reg gpr = IsGPR(Rn) ? Rn : Rd;
+    const ARM64Reg fpr = IsGPR(Rn) ? Rd : Rn;
+
+    const int sf = Is64Bit(gpr) ? 1 : 0;
+    const int type = Is64Bit(gpr) ? (top ? 2 : 1) : 0;
+    const int rmode = top ? 1 : 0;
+    const int opcode = IsGPR(Rn) ? 7 : 6;
+
+    ASSERT_MSG(DYNA_REC, !top || IsQuad(fpr), "FMOV: top can only be used with quads");
+
+    // TODO: Should this check be more lenient? Sometimes you do want to do things like
+    // read the lower 32 bits of a double
+    ASSERT_MSG(DYNA_REC,
+               (!Is64Bit(gpr) && IsSingle(fpr)) ||
+                   (Is64Bit(gpr) && ((IsDouble(fpr) && !top) || (IsQuad(fpr) && top))),
+               "FMOV: Mismatched sizes");
+
+    Write32((sf << 31) | (0x1e << 24) | (type << 22) | (1 << 21) | (rmode << 19) | (opcode << 16) |
+            (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+  }
   else
   {
-    ASSERT_MSG(DYNA_REC, !IsQuad(Rd) && !IsQuad(Rn), "FMOV can't move to/from quads");
-    int rmode = 0;
-    int opcode = 6;
-    int sf = 0;
-    if (IsSingle(Rd) && !Is64Bit(Rn) && !top)
-    {
-      // GPR to scalar single
-      opcode |= 1;
-    }
-    else if (!Is64Bit(Rd) && IsSingle(Rn) && !top)
-    {
-      // Scalar single to GPR - defaults are correct
-    }
-    else
-    {
-      // TODO
-      ASSERT_MSG(DYNA_REC, 0, "FMOV: Unhandled case");
-    }
-    Write32((sf << 31) | (0x1e2 << 20) | (rmode << 19) | (opcode << 16) | (DecodeReg(Rn) << 5) |
-            DecodeReg(Rd));
+    ASSERT_MSG(DYNA_REC, 0, "FMOV: Unsupported case");
   }
 }
 
