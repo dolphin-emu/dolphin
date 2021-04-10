@@ -155,6 +155,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3_STANDALONE, "state_manager", 0x805c4f98, 0x805c7598, 0x805caa58); // +0x1010 object list
   addr_db.register_address(Game::PRIME_3_STANDALONE, "tweakgun", 0x8067d78c, 0x8067fdb4, 0x806835fc);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "motion_vf", 0x802e2508, 0x802e3be4, 0x802e5ed8);
+  addr_db.register_address(Game::PRIME_3_STANDALONE, "dna_scanner_vftable", 0x80599b50);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "cursor_base", 0x8067dc18, 0x80680240, 0x80683a88);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "cursor_dlg_enabled", 0x805c70c7, 0x805c96df, 0x805ccbd7);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "boss_info_base", 0x8067c0e4, 0x8067e70c, 0x80681f54);
