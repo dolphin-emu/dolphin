@@ -291,6 +291,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     list(APPEND CMAKE_PREFIX_PATH "/usr")
   endif()
 
+  # Prevents Xcode from overriding the -fno-strict-aliasing flag
+  set(CMAKE_XCODE_ATTRIBUTE_GCC_STRICT_ALIASING NO)
+
   # Specify target CPUs.
   check_and_add_flag(HAVE_MSSSE3 -mssse3)
   check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
