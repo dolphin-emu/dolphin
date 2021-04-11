@@ -1252,12 +1252,24 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (ac.dest >= TevOutput::Color0)
     out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
 
-  out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n",
-            tev_c_input_table[u32(cc.a.Value())], tev_a_input_table[u32(ac.a.Value())]);
-  out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n",
-            tev_c_input_table[u32(cc.b.Value())], tev_a_input_table[u32(ac.b.Value())]);
-  out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n",
-            tev_c_input_table[u32(cc.c.Value())], tev_a_input_table[u32(ac.c.Value())]);
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
+  {
+    out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[u32(cc.a.Value())],
+              tev_a_input_table[u32(ac.a.Value())]);
+    out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", tev_c_input_table[u32(cc.b.Value())],
+              tev_a_input_table[u32(ac.b.Value())]);
+    out.Write("\ttevin_c = int4({} & 255, {} & 255);\n", tev_c_input_table[u32(cc.c.Value())],
+              tev_a_input_table[u32(ac.c.Value())]);
+  }
+  else
+  {
+    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n",
+              tev_c_input_table[u32(cc.a.Value())], tev_a_input_table[u32(ac.a.Value())]);
+    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n",
+              tev_c_input_table[u32(cc.b.Value())], tev_a_input_table[u32(ac.b.Value())]);
+    out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n",
+              tev_c_input_table[u32(cc.c.Value())], tev_a_input_table[u32(ac.c.Value())]);
+  }
   out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[u32(cc.d.Value())],
             tev_a_input_table[u32(ac.d.Value())]);
 
