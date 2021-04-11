@@ -288,9 +288,24 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     m_swap_chain->SetNextFullscreenState(m_swap_chain->GetCurrentFullscreenState());
   }
 
-  VkResult res = g_command_buffer_mgr->CheckLastPresentFail() ?
-                     g_command_buffer_mgr->GetLastPresentResult() :
-                     m_swap_chain->AcquireNextImage();
+  const bool present_fail = g_command_buffer_mgr->CheckLastPresentFail();
+  VkResult res = present_fail ? g_command_buffer_mgr->GetLastPresentResult() :
+                                m_swap_chain->AcquireNextImage();
+
+  if (res == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT &&
+      !m_swap_chain->GetCurrentFullscreenState())
+  {
+    // AMD's binary driver as of 21.3 seems to return exclusive fullscreen lost even when it was
+    // never requested, so long as the caller requested it to be application controlled. Handle
+    // this ignoring the lost result and just continuing as normal if we never acquired it.
+    res = VK_SUCCESS;
+    if (present_fail)
+    {
+      // We still need to acquire an image.
+      res = m_swap_chain->AcquireNextImage();
+    }
+  }
+
   if (res != VK_SUCCESS)
   {
     // Execute cmdbuffer before resizing, as the last frame could still be presenting.
@@ -315,9 +330,9 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     }
 
     res = m_swap_chain->AcquireNextImage();
+    if (res != VK_SUCCESS)
+      PanicAlertFmt("Failed to grab image from swap chain: {:#010X}", res);
   }
-  if (res != VK_SUCCESS)
-    PanicAlertFmt("Failed to grab image from swap chain");
 
   // Transition from undefined (or present src, but it can be substituted) to
   // color attachment ready for writing. These transitions must occur outside
