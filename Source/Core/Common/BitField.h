@@ -155,8 +155,8 @@ public:
 
   constexpr T Value() const { return Value(std::is_signed<T>()); }
   constexpr operator T() const { return Value(); }
-  constexpr std::size_t StartBit() const { return position; }
-  constexpr std::size_t NumBits() const { return bits; }
+  static constexpr std::size_t StartBit() { return position; }
+  static constexpr std::size_t NumBits() { return bits; }
 
 private:
   // Unsigned version of StorageType

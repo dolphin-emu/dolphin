@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/TypeUtils.h"
 
 class ShaderCode;
 enum class APIType;
@@ -29,10 +30,11 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
                          std::string_view out_color_1_var);
 
 // bitfieldExtract generator for BitField types
-template <typename T>
-std::string BitfieldExtract(std::string_view source, T type)
+template <auto ptr_to_bitfield_member>
+std::string BitfieldExtract(std::string_view source)
 {
-  return fmt::format("bitfieldExtract({}, {}, {})", source, static_cast<u32>(type.StartBit()),
-                     static_cast<u32>(type.NumBits()));
+  using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
+  return fmt::format("bitfieldExtract({}, {}, {})", source, static_cast<u32>(BitFieldT::StartBit()),
+                     static_cast<u32>(BitFieldT::NumBits()));
 }
 }  // namespace UberShader
