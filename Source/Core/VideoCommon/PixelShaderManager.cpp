@@ -336,9 +336,7 @@ void PixelShaderManager::SetIndTexScaleChanged(bool high)
 
 void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
-  int scale = ((u32)bpmem.indmtx[matrixidx].col0.s0 << 0) |
-              ((u32)bpmem.indmtx[matrixidx].col1.s1 << 2) |
-              ((u32)bpmem.indmtx[matrixidx].col2.s2 << 4);
+  const u8 scale = bpmem.indmtx[matrixidx].GetScale();
 
   // xyz - static matrix
   // w - dynamic matrix scale / 128

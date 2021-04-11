@@ -806,7 +806,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("      uint fmt = {};\n", BitfieldExtract<&TevStageIndirect::fmt>("tevind"));
     out.Write("      uint bias = {};\n", BitfieldExtract<&TevStageIndirect::bias>("tevind"));
     out.Write("      uint bt = {};\n", BitfieldExtract<&TevStageIndirect::bt>("tevind"));
-    out.Write("      uint mid = {};\n", BitfieldExtract<&TevStageIndirect::mid>("tevind"));
+    out.Write("      uint matrix_index = {};\n",
+              BitfieldExtract<&TevStageIndirect::matrix_index>("tevind"));
+    out.Write("      uint matrix_id = {};\n",
+              BitfieldExtract<&TevStageIndirect::matrix_id>("tevind"));
     out.Write("\n");
     out.Write("      int3 indcoord;\n");
     LookupIndirectTexture("indcoord", "bt");
@@ -846,12 +849,12 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "\n"
               "      // Matrix multiply\n"
               "      int2 indtevtrans = int2(0, 0);\n"
-              "      if ((mid & 3u) != 0u)\n"
+              "      if (matrix_index != 0u)\n"
               "      {{\n"
-              "        uint mtxidx = 2u * ((mid & 3u) - 1u);\n"
+              "        uint mtxidx = 2u * (matrix_index - 1u);\n"
               "        int shift = " I_INDTEXMTX "[mtxidx].w;\n"
               "\n"
-              "        switch (mid >> 2)\n"
+              "        switch (matrix_id)\n"
               "        {{\n"
               "        case 0u: // 3x2 S0.10 matrix\n"
               "          indtevtrans = int2(idot(" I_INDTEXMTX

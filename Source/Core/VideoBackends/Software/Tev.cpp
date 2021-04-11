@@ -485,20 +485,16 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
   // matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits
   // of the result.
-  const int indmtxid = indirect.mid & 3;
-  if (indmtxid)
+  if (indirect.matrix_index != IndMtxIndex::Off)
   {
-    const IND_MTX& indmtx = bpmem.indmtx[indmtxid - 1];
-    const int scale =
-        ((u32)indmtx.col0.s0 << 0) | ((u32)indmtx.col1.s1 << 2) | ((u32)indmtx.col2.s2 << 4);
+    const IND_MTX& indmtx = bpmem.indmtx[static_cast<u32>(indirect.matrix_index.Value()) - 1];
 
-    int shift;
+    const int shift = 17 - indmtx.GetScale();
 
-    switch (indirect.mid & 12)
+    switch (indirect.matrix_id)
     {
-    case 0:
+    case IndMtxId::Indirect:
       // matrix values are S0.10, output format is S17.7, so divide by 8
-      shift = (17 - scale);
       indtevtrans[0] = (indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] +
                         indmtx.col2.me * indcoord[2]) >>
                        3;
@@ -506,24 +502,28 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
                         indmtx.col2.mf * indcoord[2]) >>
                        3;
       break;
-    case 4:  // s matrix
+    case IndMtxId::S:
       // s is S17.7, matrix elements are divided by 256, output is S17.7, so divide by 256. - TODO:
       // Maybe, since s is actually stored as S24, we should divide by 256*64?
-      shift = (17 - scale);
       indtevtrans[0] = s * indcoord[0] / 256;
       indtevtrans[1] = t * indcoord[0] / 256;
       break;
-    case 8:  // t matrix
-      shift = (17 - scale);
+    case IndMtxId::T:
       indtevtrans[0] = s * indcoord[1] / 256;
       indtevtrans[1] = t * indcoord[1] / 256;
       break;
     default:
+      PanicAlertFmt("Invalid indirect matrix ID {}", indirect.matrix_id);
       return;
     }
 
     indtevtrans[0] = shift >= 0 ? indtevtrans[0] >> shift : indtevtrans[0] << -shift;
     indtevtrans[1] = shift >= 0 ? indtevtrans[1] >> shift : indtevtrans[1] << -shift;
+  }
+  else
+  {
+    // If matrix_index is Off (0), matrix_id should be Indirect (0)
+    ASSERT(indirect.matrix_id == IndMtxId::Indirect);
   }
 
   if (indirect.fb_addprev)

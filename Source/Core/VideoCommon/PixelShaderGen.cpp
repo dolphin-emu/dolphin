@@ -991,7 +991,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       // TODO: Should we reset alphabump to 0 here?
     }
 
-    if (tevind.mid != 0)
+    if (tevind.matrix_index != IndMtxIndex::Off)
     {
       // format
       static constexpr std::array<const char*, 4> tev_ind_fmt_mask{
@@ -1038,11 +1038,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
                   tev_ind_bias_add[u32(tevind.fmt.Value())]);
       }
 
+      // Multiplied by 2 because each matrix has two rows.
+      // Note also that the 4th column of the matrix contains the scale factor.
+      const u32 mtxidx = 2 * (static_cast<u32>(tevind.matrix_index.Value()) - 1);
+
       // multiply by offset matrix and scale - calculations are likely to overflow badly,
       // yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
-      if (tevind.mid <= 3)
+      if (tevind.matrix_id == IndMtxId::Indirect)
       {
-        const u32 mtxidx = 2 * (tevind.mid - 1);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans{} = int2(idot(" I_INDTEXMTX
@@ -1064,10 +1067,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
-      else if (tevind.mid <= 7 && has_tex_coord)
-      {  // s matrix
-        ASSERT(tevind.mid >= 5);
-        const u32 mtxidx = 2 * (tevind.mid - 5);
+      else if (tevind.matrix_id == IndMtxId::S)
+      {
+        ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n,
@@ -1086,10 +1088,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
-      else if (tevind.mid <= 11 && has_tex_coord)
-      {  // t matrix
-        ASSERT(tevind.mid >= 9);
-        const u32 mtxidx = 2 * (tevind.mid - 9);
+      else if (tevind.matrix_id == IndMtxId::T)
+      {
+        ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n,
@@ -1112,11 +1113,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       else
       {
         out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
+        ASSERT(false);  // Unknown value for matrix_id
       }
     }
     else
     {
       out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
+      // If matrix_index is Off (0), matrix_id should be Indirect (0)
+      ASSERT(tevind.matrix_id == IndMtxId::Indirect);
     }
 
     // ---------
