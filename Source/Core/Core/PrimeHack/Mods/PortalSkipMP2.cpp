@@ -150,7 +150,10 @@ bool PortalSkipMP2::init_mod(Game game, Region region) {
     } else if (region == Region::PAL) {
       add_code_change(0x801e8e60, fix_vmc, "disable_portal_cutscene");
       add_code_change(0x801e8e74, 0x48000114, "disable_portal_cutscene");
-    } 
+    } else { // region == Region::NTSC_J
+      add_code_change(0x801e5948, fix_vmc, "disable_portal_cutscene");
+      add_code_change(0x801e5950, 0x48000114, "disable_portal_cutscene");
+    }
   } else if (game == Game::PRIME_2_GCN) {
     const int fix_portal_terminal_fn = PowerPC::RegisterVmcall(fix_layer_bits);
     const u32 fix_vmc = gen_vmcall(fix_portal_terminal_fn, 0);
@@ -160,7 +163,10 @@ bool PortalSkipMP2::init_mod(Game game, Region region) {
     } else if (region == Region::PAL) {
       add_code_change(0x800b7228, fix_vmc, "disable_portal_cutscene");
       add_code_change(0x800b7240, 0x48000120, "disable_portal_cutscene");
-    } 
+    } else { // region == Region::NTSC_J
+      add_code_change(0x800b7f24, fix_vmc, "disable_portal_cutscene");
+      add_code_change(0x800b7f3c, 0x48000120, "disable_portal_cutscene");
+    }
   } else {
     return true;
   }

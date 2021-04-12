@@ -63,7 +63,7 @@ void FpsControls::run_mod(Game game, Region region) {
     run_mod_mp3(game, region);
     break;
   case Game::PRIME_1_GCN:
-    run_mod_mp1_gc();
+    run_mod_mp1_gc(region);
     break;
   case Game::PRIME_2_GCN:
     run_mod_mp2_gc();
@@ -303,7 +303,7 @@ void FpsControls::run_mod_mp1(Region region) {
   }
 }
 
-void FpsControls::run_mod_mp1_gc() {
+void FpsControls::run_mod_mp1_gc(Region region) {
   u8 version = read8(0x80000007);
   if (version != 0) {
     return;
@@ -360,6 +360,14 @@ void FpsControls::run_mod_mp1_gc() {
     writef32(0, (tweak_player + 0x84) + i * 4);
     writef32(0, (tweak_player + 0x84) + i * 4 - 32);
   }
+
+  LOOKUP_DYN(freelook_rotation_speed);
+  LOOKUP_DYN(air_transitional_friction);
+
+  // Freelook rotation speed tweak
+  write32(0x4f800000, freelook_rotation_speed);
+  // Air translational friction changes to make diagonal strafe match normal speed
+  writef32(0.25f, air_transitional_friction);
 }
 
 void FpsControls::run_mod_mp2(Region region) {
@@ -1465,7 +1473,6 @@ void FpsControls::init_mod_mp1_gc(Region region) {
       add_code_change(0x80014820, 0x4e800020);
       add_code_change(0x8000e73c, 0x60000000);
       add_code_change(0x8000f810, 0x48000244);
-      add_code_change(0x8045c488, 0x4f800000);
       // When attached to a grapple point and spinning around it
       // the player's yaw is adjusted, this ensures only position is updated
       // Grapple point yaw fix
@@ -1489,7 +1496,6 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80015258, 0x4e800020);
     add_code_change(0x8000ec64, 0x60000000);
     add_code_change(0x8000fd20, 0x4800022c);
-    add_code_change(0x803e43b4, 0x4f800000);
     // Grapple point yaw fix
     add_code_change(0x8016fc54, 0x7fa3eb78);
     add_code_change(0x8016fc58, 0x38810064); // 6c-8 = 64
@@ -1501,7 +1507,6 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80017880, 0x53173672, "show_crosshair"); // rlwimi r23, r24, 6, 25, 25 (00000001)
     add_code_change(0x80017884, 0x9afd09d4, "show_crosshair"); // stb r23, 0x9d4(r29)
     add_code_change(0x80017888, 0x4e800020, "show_crosshair"); // blr
-
 
     add_strafe_code_mp1_pal();
   } else {}
@@ -1572,11 +1577,11 @@ void FpsControls::init_mod_mp2_gc(Region region) {
   if (region == Region::NTSC_U) {
     add_code_change(0x801b00b4, 0x48000050);
     add_code_change(0x801aef58, 0x60000000);
-    //add_code_change(0x80015ed8, 0x4e800020);
     add_code_change(0x800129c8, 0x4e800020);
     add_code_change(0x801af160, 0x60000000);
     add_code_change(0x801b0248, 0x48000078);
     add_code_change(0x801af450, 0x48000a34);
+    // Enable strafing with left/right on L-Stick
     add_code_change(0x8018846c, 0xc022a5b0);
     add_code_change(0x80188104, 0x4800000c);
     // Grapple point yaw fix
@@ -1590,15 +1595,36 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     add_code_change(0x80015ee8, 0x4e800020, "show_crosshair"); // blr
 
     add_code_change(0x800614f8, 0xc022d3e8);
+  } else if (region == Region::NTSC_J) {
+    add_code_change(0x801b1e6c, 0x48000050);
+    add_code_change(0x801b0d10, 0x60000000);
+    add_code_change(0x80013414, 0x4e800020);
+    add_code_change(0x801b0f18, 0x60000000);
+    add_code_change(0x801b2000, 0x48000078);
+    add_code_change(0x801b1208, 0x48000a34);
+    // Enable strafing with left/right on L-Stick
+    add_code_change(0x80189f70, 0xc022a5c8);
+    add_code_change(0x80189c08, 0x4800000c);
+    // Grapple point yaw fix
+    add_code_change(0x8011e918, 0x389d0054);
+    add_code_change(0x8011e91c, 0x4bf2cd91);
+
+    add_code_change(0x8001695c, 0x3aa00001, "show_crosshair"); // li r21, 1
+    add_code_change(0x80016960, 0x8add1268, "show_crosshair"); // lbz r22, 0x1268(r29)
+    add_code_change(0x80016964, 0x52b63672, "show_crosshair"); // rlwimi r22, r21, 6, 25, 25 (00000001)
+    add_code_change(0x80016968, 0x9add1268, "show_crosshair"); // stb r22, 0x1268(r29)
+    add_code_change(0x8001696c, 0x4e800020, "show_crosshair"); // blr
+
+    add_code_change(0x80061fc0, 0xc022d400);
   } else if (region == Region::PAL) {
     add_code_change(0x801b03c0, 0x48000050);
     add_code_change(0x801af264, 0x60000000);
-    //add_code_change(0x80015f74, 0x4e800020);
     add_code_change(0x80012a2c, 0x4e800020);
     add_code_change(0x801af46c, 0x60000000);
     add_code_change(0x801b0554, 0x48000078);
     add_code_change(0x801af75c, 0x48000a34);
-    add_code_change(0x80188754, 0xc022d16c);
+    // Enable strafing with left/right on L-Stick
+    add_code_change(0x80188754, 0xc022a5a0);
     add_code_change(0x801883ec, 0x4800000c);
     // Grapple point yaw fix
     add_code_change(0x8011dbf8, 0x389d0054);
@@ -1610,7 +1636,7 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     add_code_change(0x80015f80, 0x9add1268, "show_crosshair"); // stb r22, 0x1268(r29)
     add_code_change(0x80015f84, 0x4e800020, "show_crosshair"); // blr
 
-    add_code_change(0x800615f8, 0xc022d3c0);
+    add_code_change(0x800615f8, 0xc022d3c0); // not c022d3d8 ???
   } else {}
 }
 
@@ -1696,24 +1722,26 @@ void FpsControls::init_mod_mp3_standalone(Region region) {
     // Steps over bounds checking on the reticle
     add_code_change(0x80017290, 0x48000120);
   } else if (region == Region::NTSC_J) {
-    // Out of comission, fix me!!
-    //add_code_change(0x80081018, 0xec010072);
-    //add_code_change(0x80153ed4, 0x60000000);
-    //add_code_change(0x80153eac, 0x60000000);
-    //add_code_change(0x8013a054, 0x60000000);
-    //add_code_change(0x8013969c, 0x60000000);
-    //add_code_change(0x8000ae44, 0x4bffaa3d);
-    //add_code_change(0x8008129c, 0x60000000);
-    //add_code_change(0x80080320, 0x480000e4);
-    //add_code_change(0x80184fd4, 0x60000000);
+    add_code_change(0x80081018, 0xec010072);
+    add_code_change(0x80153ed4, 0x60000000);
+    add_code_change(0x80153eac, 0x60000000);
+    add_code_change(0x8013a054, 0x60000000);
+    add_code_change(0x8013969c, 0x60000000);
+    add_code_change(0x8000ae44, 0x4bffaa3d);
+    add_code_change(0x8008129c, 0x60000000);
+    add_code_change(0x80080320, 0x480000e4);
+    add_code_change(0x80184fd4, 0x60000000);
 
-    //add_code_change(0x80075f0c, 0x80061958, "visor_menu");
+    add_code_change(0x80075f0c, 0x80061958, "visor_menu");
 
-    //// Grapple Lasso
-    //add_grapple_lasso_code_mp3(0x800E003C, 0x80176B20, 0x80177908);
+    // Grapple Lasso
+    add_grapple_lasso_code_mp3(0x800E003C, 0x80176B20, 0x80177908);
 
-    //add_control_state_hook_mp3(0x80005880, Region::NTSC_J);
-    //add_grapple_slide_code_mp3(0x801849e8);
+    add_control_state_hook_mp3(0x80005880, Region::NTSC_J);
+    add_grapple_slide_code_mp3(0x801849e8);
+
+    // Steps over bounds checking on the reticle
+    add_code_change(0x80017258, 0x48000120);
   } else if (region == Region::PAL) {
     add_code_change(0x80080e84, 0xec010072);
     add_code_change(0x80152d50, 0x60000000);
@@ -1732,6 +1760,9 @@ void FpsControls::init_mod_mp3_standalone(Region region) {
 
     add_control_state_hook_mp3(0x80005880, Region::PAL);
     add_grapple_slide_code_mp3(0x801837dc);
+
+    // Steps over bounds checking on the reticle
+    add_code_change(0x80017258, 0x48000120);
   } else {}
   has_beams = false;
 }

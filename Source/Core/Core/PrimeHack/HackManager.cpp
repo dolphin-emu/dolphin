@@ -100,6 +100,10 @@ void HackManager::run_active_mods() {
       active_game = Game::PRIME_2_GCN;
       active_region = Region::NTSC_U;
     }
+    else if (region_code == FOURCC('G', '2', 'M', 'J')) {
+      active_game = Game::PRIME_2_GCN;
+      active_region = Region::NTSC_J;
+    }
     else if (region_code == FOURCC('G', '2', 'M', 'P')) {
       active_game = Game::PRIME_2_GCN;
       active_region = Region::PAL;

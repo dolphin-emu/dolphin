@@ -61,6 +61,8 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "angular_vel", "player", {rt(0x14c, 0x15c, 0)});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "firstperson_pitch", "player", {rt(0x3ec, 0x3fc, 0)});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "ball_state", "player", {rt(0x2f4, 0x304, 0)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN, "freelook_rotation_speed", "tweak_player", { mrt1(0x280) });
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN, "air_transitional_friction", "tweak_player", { mrt1(0x180) });
 
   // object list = state mgr + x810
   // camera mgr = state mgr + x870
@@ -100,14 +102,14 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_2, "area_layers_vector", "state_manager", {mrt1(0x1e38), mrt1(0x8), rt0});
 
 
-  addr_db.register_address(Game::PRIME_2_GCN, "state_manager", 0x803db6e0, 0x803dc900);
-  addr_db.register_address(Game::PRIME_2_GCN, "tweakgun_offset", -0x6e1c, -0x6e14);
-  addr_db.register_address(Game::PRIME_2_GCN, "tweak_player_offset", -0x6e3c, -0x6e34);
-  addr_db.register_address(Game::PRIME_2_GCN, "tweakgui_offset", -0x6e20, -0x6e18);
-  addr_db.register_address(Game::PRIME_2_GCN, "conn_vec_offset", 0x14, 0x14);
-  addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_vec_offset", 0x3c, 0x3c);
-  addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_fire_size", 0x18, 0x18);
-  addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_time_offset", 0x10, 0x10);
+  addr_db.register_address(Game::PRIME_2_GCN, "state_manager", 0x803db6e0, 0x803dc900, 0x803de690);
+  addr_db.register_address(Game::PRIME_2_GCN, "tweakgun_offset", -0x6e1c, -0x6e14, -0x6ddc);
+  addr_db.register_address(Game::PRIME_2_GCN, "tweak_player_offset", -0x6e3c, -0x6e34, -0x6dfc);
+  addr_db.register_address(Game::PRIME_2_GCN, "tweakgui_offset", -0x6e20, -0x6e18, -0x6de0);
+  addr_db.register_address(Game::PRIME_2_GCN, "conn_vec_offset", 0x14, 0x14, 0x14);
+  addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_vec_offset", 0x3c, 0x3c, 0x3c);
+  addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_fire_size", 0x18, 0x18, 0x18);
+  addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_time_offset", 0x10, 0x10, 0x10);
   addr_db.register_dynamic_address(Game::PRIME_2_GCN, "camera_manager", "state_manager", {mrt1(0x151c), mrt1(0x14)});
   addr_db.register_dynamic_address(Game::PRIME_2_GCN, "object_list", "state_manager", {mrt1(0x810), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2_GCN, "world", "state_manager", {mrt1(0x1604), rt0});
@@ -155,7 +157,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3_STANDALONE, "state_manager", 0x805c4f98, 0x805c7598, 0x805caa58); // +0x1010 object list
   addr_db.register_address(Game::PRIME_3_STANDALONE, "tweakgun", 0x8067d78c, 0x8067fdb4, 0x806835fc);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "motion_vf", 0x802e2508, 0x802e3be4, 0x802e5ed8);
-  addr_db.register_address(Game::PRIME_3_STANDALONE, "dna_scanner_vftable", 0x80599b50);
+  addr_db.register_address(Game::PRIME_3_STANDALONE, "dna_scanner_vftable", 0x80599b50, 0x8059c140, 0x8059f580);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "cursor_base", 0x8067dc18, 0x80680240, 0x80683a88);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "cursor_dlg_enabled", 0x805c70c7, 0x805c96df, 0x805ccbd7);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "boss_info_base", 0x8067c0e4, 0x8067e70c, 0x80681f54);
@@ -164,7 +166,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_3_STANDALONE, "gun_lag_toc_offset", -0x5fb0, -0x5f98, -0x5f68);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "powerups_size", 12, 12, 12);
   addr_db.register_address(Game::PRIME_3_STANDALONE, "powerups_offset", 0x58, 0x58, 0x58);
-  addr_db.register_address(Game::PRIME_3_STANDALONE, "bloom_offset", 0x80589410);
+  addr_db.register_address(Game::PRIME_3_STANDALONE, "bloom_offset", 0x80589410, 0x8058b9d8, 0x8058edd8);
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "camera_manager", "state_manager", {mrt1(0x10), mrt1(0xc), mrt1(0x16)});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "perspective_info", "camera_manager", {mrt1(0x2), mrt1(0x14), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3_STANDALONE, "object_list", "state_manager", {rt0, mrt1(0x1010), rt0});

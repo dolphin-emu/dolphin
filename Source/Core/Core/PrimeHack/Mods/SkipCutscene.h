@@ -42,6 +42,8 @@ public:
     case Game::PRIME_2_GCN:
       if (region == Region::NTSC_U) {
         add_return_one(0x80142340);
+      } else if (region == Region::NTSC_J) {
+        add_return_one(0x80143330);
       } else if (region == Region::PAL) {
         add_return_one(0x8014257c);
       }
