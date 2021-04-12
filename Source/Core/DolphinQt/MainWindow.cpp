@@ -57,6 +57,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 
 #include "DiscIO/NANDImporter.h"
 
@@ -1723,12 +1724,8 @@ void MainWindow::ShowTASInput()
 
 void MainWindow::OnConnectWiiRemote(int id)
 {
-  const auto ios = IOS::HLE::GetIOS();
-  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
-    return;
   Core::RunAsCPUThread([&] {
-    if (const auto bt = std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(
-            ios->GetDeviceByName("/dev/usb/oh1/57e/305")))
+    if (const auto bt = WiiUtils::GetBluetoothEmuDevice())
     {
       const auto wm = bt->AccessWiimoteByIndex(id);
       wm->Activate(!wm->IsConnected());

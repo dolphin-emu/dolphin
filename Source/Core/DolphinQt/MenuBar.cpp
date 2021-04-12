@@ -1023,12 +1023,8 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
   }
 
-  const auto ios = IOS::HLE::GetIOS();
-  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(
-                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
-                        nullptr;
-  const bool enable_wiimotes =
-      emulation_started && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
+  const auto bt = WiiUtils::GetBluetoothEmuDevice();
+  const bool enable_wiimotes = emulation_started && bt != nullptr;
 
   for (std::size_t i = 0; i < m_wii_remotes.size(); i++)
   {

@@ -62,6 +62,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
 
@@ -469,16 +470,13 @@ void ChangeWiiPads(bool instantly)
   if (instantly && (s_controllers >> 4) == controllers)
     return;
 
-  const auto ios = IOS::HLE::GetIOS();
-  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(
-                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
-                        nullptr;
+  const auto bt = WiiUtils::GetBluetoothEmuDevice();
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
     WiimoteCommon::SetSource(i, is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
+    if (bt != nullptr)
       bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
 }

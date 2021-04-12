@@ -36,6 +36,8 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/IOS/Uids.h"
 #include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
@@ -956,5 +958,25 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
 bool RepairNAND(IOS::HLE::Kernel& ios)
 {
   return !CheckNAND(ios, true).bad;
+}
+
+static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
+{
+  auto* ios = IOS::HLE::GetIOS();
+  return ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
+}
+
+std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice()
+{
+  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+    return nullptr;
+  return std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(GetBluetoothDevice());
+}
+
+std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice()
+{
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+    return nullptr;
+  return std::static_pointer_cast<IOS::HLE::BluetoothRealDevice>(GetBluetoothDevice());
 }
 }  // namespace WiiUtils
