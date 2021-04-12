@@ -1360,10 +1360,10 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
       if (!entry)
         return nullptr;
 
-      entry->texture->Load(1, 1, 1, expandedWidth, empty_tex, 4);
+      entry->texture->Load(0, 1, 1, expandedWidth, empty_tex, 4);
 
       entry->SetGeneralParameters(address, texture_size, full_format, false);
-      entry->SetDimensions(1, 1, 1);
+      entry->SetDimensions(1, 1, 0);
       entry->SetHashes(base_hash, full_hash);
       entry->is_custom_tex = true;
       entry->SetNotCopy();

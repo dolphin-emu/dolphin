@@ -66,7 +66,7 @@ void FpsControls::run_mod(Game game, Region region) {
     run_mod_mp1_gc(region);
     break;
   case Game::PRIME_2_GCN:
-    run_mod_mp2_gc();
+    run_mod_mp2_gc(region);
     break;
   default:
     break;
@@ -329,7 +329,7 @@ void FpsControls::run_mod_mp1_gc(Region region) {
   const u32 orbit_state_val = read32(orbit_state);
   if (orbit_state_val != ORBIT_STATE_GRAPPLE &&
     orbit_state_val != 0) {
-    calculate_pitch_locked(Game::PRIME_1_GCN, GetHackManager()->get_active_region());
+    calculate_pitch_locked(Game::PRIME_1_GCN, region);
     LOOKUP_DYN(firstperson_pitch);
     writef32(FpsControls::pitch, firstperson_pitch);
 
@@ -463,7 +463,7 @@ void FpsControls::run_mod_mp2(Region region) {
   }
 }
 
-void FpsControls::run_mod_mp2_gc() {
+void FpsControls::run_mod_mp2_gc(Region region) {
   LOOKUP_DYN(world);
   if (world == 0) {
     return;
@@ -492,7 +492,7 @@ void FpsControls::run_mod_mp2_gc() {
   LOOKUP_DYN(firstperson_pitch);
   if (read32(orbit_state) != ORBIT_STATE_GRAPPLE &&
       read32(orbit_state) != 0) {
-    calculate_pitch_locked(Game::PRIME_2_GCN, GetHackManager()->get_active_region());
+    calculate_pitch_locked(Game::PRIME_2_GCN, region);
     writef32(FpsControls::pitch, firstperson_pitch);
     return;
   }
@@ -598,7 +598,7 @@ void FpsControls::mp3_handle_lasso(u32 grapple_state_addr) {
 
 // this game is
 void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
-  const bool is_mp3_standalone_us = hack_mgr->get_active_game() == Game::PRIME_3_STANDALONE && hack_mgr->get_active_region() == Region::NTSC_U;
+  const bool is_mp3_standalone_us = active_game == Game::PRIME_3_STANDALONE && active_region == Region::NTSC_U;
   CheckBeamVisorSetting(active_game);
 
   if (GrappleCtlBound()) {

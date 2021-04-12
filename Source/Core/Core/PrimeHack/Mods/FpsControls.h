@@ -36,7 +36,7 @@ private:
   void run_mod_mp2(Region region);
   void run_mod_mp3(Game game, Region region);
   void run_mod_mp1_gc(Region region);
-  void run_mod_mp2_gc();
+  void run_mod_mp2_gc(Region region);
 
   void CheckBeamVisorSetting(Game game);
 
