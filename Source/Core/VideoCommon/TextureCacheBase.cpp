@@ -1347,35 +1347,6 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   TexAddrCache::iterator unconverted_copy = textures_by_address.end();
   TexAddrCache::iterator unreinterpreted_copy = textures_by_address.end();
 
-  constexpr u8 empty_tex[4] = {};
-  if (base_hash == PRIME1_PIXEL_HASH || base_hash == PRIME2_PIXEL_HASH) {
-    if (iter == iter_range.second) {
-      const TextureConfig config(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
-      TCacheEntry* entry = AllocateCacheEntry(config);
-
-      if (!entry)
-        return nullptr;
-
-      entry->texture->Load(0, 1, 1, expandedWidth, empty_tex, 4);
-
-      entry->SetGeneralParameters(address, texture_size, full_format, false);
-      entry->SetDimensions(1, 1, 0);
-      entry->SetHashes(base_hash, full_hash);
-      entry->is_custom_tex = true;
-      entry->SetNotCopy();
-
-      textures_by_address.emplace(address, entry);
-
-      return entry;
-    }
-    else {
-      TCacheEntry* entry = iter->second;
-      entry->texture->FinishedRendering();
-
-      return entry;
-    }
-  }
-
   while (iter != iter_range.second)
   {
     TCacheEntry* entry = iter->second;
@@ -1567,7 +1538,9 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
   const bool decode_on_gpu = !hires_tex && g_ActiveConfig.UseGPUTextureDecoding() &&
-                             !(from_tmem && texformat == TextureFormat::RGBA8);
+                             !(from_tmem && texformat == TextureFormat::RGBA8) &&
+                             base_hash != PRIME1_PIXEL_HASH &&
+                             base_hash != PRIME2_PIXEL_HASH;
 
   // create the entry/texture
   const TextureConfig config(width, height, texLevels, 1, 1,
@@ -1626,7 +1599,12 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
         TexDecoder_DecodeRGBA8FromTmem(dst_buffer, src_data, src_data_gb, expandedWidth,
                                        expandedHeight);
       }
-
+      if (base_hash == PRIME1_PIXEL_HASH || base_hash == PRIME2_PIXEL_HASH) {
+        memset(dst_buffer, 0, 4);
+        memset(dst_buffer + expandedWidth * 4 - 4, 0, 4);
+        memset(dst_buffer + (expandedWidth * (expandedHeight - 1) * 4), 0, 4);
+        memset(dst_buffer + (expandedWidth * expandedHeight * 4) - 4, 0, 4);
+      }
       entry->texture->Load(0, width, height, expandedWidth, dst_buffer, decoded_texture_size);
 
       arbitrary_mip_detector.AddLevel(width, height, expandedWidth, dst_buffer);
@@ -1698,6 +1676,14 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
         const u32 decoded_mip_size = expanded_mip_width * sizeof(u32) * expanded_mip_height;
         TexDecoder_Decode(dst_buffer, mip_src_data, expanded_mip_width, expanded_mip_height,
                           texformat, tlut, tlutfmt);
+
+        if (base_hash == PRIME1_PIXEL_HASH || base_hash == PRIME2_PIXEL_HASH) {
+          memset(dst_buffer, 0, 4);
+          memset(dst_buffer + expanded_mip_width * 4 - 4, 0, 4);
+          memset(dst_buffer + (expanded_mip_width * (expanded_mip_height - 1) * 4), 0, 4);
+          memset(dst_buffer + (expanded_mip_width * expanded_mip_height * 4) - 4, 0, 4);
+        }
+
         entry->texture->Load(level, mip_width, mip_height, expanded_mip_width, dst_buffer,
           decoded_mip_size);
 
