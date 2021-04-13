@@ -544,6 +544,11 @@ float2 GetWindowResolution()
   return window_resolution.xy;
 }
 
+float2 GetInvWindowResolution()
+{
+  return window_resolution.zw;
+}
+
 float2 GetResolution()
 {
   return resolution.xy;
@@ -673,7 +678,8 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       {static_cast<float>(src_tex->GetWidth()), static_cast<float>(src_tex->GetHeight()),
        rcp_src_width, rcp_src_height},
       {static_cast<float>(window_rect.GetWidth()), static_cast<float>(window_rect.GetHeight()),
-       0.0f, 0.0f},
+       1.0f / static_cast<float>(window_rect.GetWidth()),
+       1.0f / static_cast<float>(window_rect.GetHeight())},
       {static_cast<float>(src.left) * rcp_src_width, static_cast<float>(src.top) * rcp_src_height,
        static_cast<float>(src.GetWidth()) * rcp_src_width,
        static_cast<float>(src.GetHeight()) * rcp_src_height},
