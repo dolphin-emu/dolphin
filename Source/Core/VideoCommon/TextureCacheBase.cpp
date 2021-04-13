@@ -1347,12 +1347,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   TexAddrCache::iterator unconverted_copy = textures_by_address.end();
   TexAddrCache::iterator unreinterpreted_copy = textures_by_address.end();
 
-  std::string basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
-    width, height, texformat, use_mipmaps, true);
-
   constexpr u8 empty_tex[4] = {};
-  bool is_prime_pixel = std::find(prime_pixel_textures.begin(), prime_pixel_textures.end(), basename) != prime_pixel_textures.end();
-  if (is_prime_pixel) {
+  if (base_hash == PRIME1_PIXEL_HASH || base_hash == PRIME2_PIXEL_HASH) {
     if (iter == iter_range.second) {
       const TextureConfig config(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0);
       TCacheEntry* entry = AllocateCacheEntry(config);
@@ -1652,6 +1648,13 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   entry->is_custom_tex = hires_tex != nullptr;
   entry->memory_stride = entry->BytesPerRow();
   entry->SetNotCopy();
+
+  std::string basename;
+  if (g_ActiveConfig.bDumpTextures && !hires_tex)
+  {
+    basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
+      width, height, texformat, use_mipmaps, true);
+  }
 
   if (hires_tex)
   {
