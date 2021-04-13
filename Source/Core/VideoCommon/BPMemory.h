@@ -911,6 +911,8 @@ union GenMode
   BitField<7, 1, u32> unused;              // 1 bit unused?
   BitField<8, 1, bool, u32> flat_shading;  // unconfirmed
   BitField<9, 1, bool, u32> multisampling;
+  // This value is 1 less than the actual number (0-15 map to 1-16).
+  // In other words there is always at least 1 tev stage
   BitField<10, 4, u32> numtevstages;
   BitField<14, 2, CullMode> cullmode;
   BitField<16, 3, u32> numindstages;
@@ -937,7 +939,7 @@ struct fmt::formatter<GenMode>
                      "ZFreeze: {}",
                      mode.numtexgens, mode.numcolchans, mode.unused,
                      mode.flat_shading ? "Yes" : "No", mode.multisampling ? "Yes" : "No",
-                     mode.numtevstages, mode.cullmode, mode.numindstages,
+                     mode.numtevstages + 1, mode.cullmode, mode.numindstages,
                      mode.zfreeze ? "Yes" : "No");
   }
 };
