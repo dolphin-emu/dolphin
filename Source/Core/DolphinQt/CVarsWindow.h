@@ -35,13 +35,13 @@ public:
   int cvar_count() { return static_cast<int>(cvar_list.size()); }
   void get_column_widths(QFont const& font, std::array<int, NUM_COLS>& width_out);
   prime::CVar* get_var(int row) {
-    return cvar_list[row];
+    return &cvar_list[row];
   }
-  std::vector<prime::CVar*> const& get_var_list() { return cvar_list; } 
+  std::vector<prime::CVar> const& get_var_list() { return cvar_list; } 
   void update_memread();
 
 private:
-  std::vector<prime::CVar*> cvar_list;
+  std::vector<prime::CVar> cvar_list;
   std::vector<QVariant> cached_vals;
 };
 

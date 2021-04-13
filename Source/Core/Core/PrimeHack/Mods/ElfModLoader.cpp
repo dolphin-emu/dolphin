@@ -193,9 +193,9 @@ void ElfModLoader::update_bat_regs() {
   }
 }
 
-void ElfModLoader::get_cvarlist(std::vector<CVar*>& vars_out) {
+void ElfModLoader::get_cvarlist(std::vector<CVar>& vars_out) {
   for (auto& entry : cvar_map) {
-    vars_out.push_back(&entry.second);
+    vars_out.push_back(entry.second);
   }
 }
 

@@ -24,7 +24,7 @@ public:
   void on_state_change(ModState old_state) override {}
   void on_reset() override { clear_active_mod(); }
 
-  void get_cvarlist(std::vector<CVar*>& vars_out);
+  void get_cvarlist(std::vector<CVar>& vars_out);
   bool write_cvar(std::string const& name, void* data);
   bool get_cvar_val(std::string const& name, void* data_out, size_t out_sz);
   CVar* get_cvar(std::string const& name);

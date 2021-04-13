@@ -30,30 +30,30 @@ void CVarListModel::get_column_widths(QFont const& font, std::array<int, CVarLis
 
 void CVarListModel::update_memread() {
   cached_vals.clear();
-  const auto get_value = [](prime::CVar* var) -> QVariant {
-    switch (var->type) {
+  const auto get_value = [](prime::CVar const& var) -> QVariant {
+    switch (var.type) {
     case prime::CVarType::INT8:
-      return prime::read8(var->addr);
+      return prime::read8(var.addr);
     case prime::CVarType::INT16:
-      return prime::read16(var->addr);
+      return prime::read16(var.addr);
     case prime::CVarType::INT32:
-      return prime::read32(var->addr);
+      return prime::read32(var.addr);
     case prime::CVarType::INT64:
-      return prime::read64(var->addr);
+      return prime::read64(var.addr);
     case prime::CVarType::FLOAT32:
-      return prime::readf32(var->addr);
+      return prime::readf32(var.addr);
     case prime::CVarType::FLOAT64: {
-      u64 tmp = prime::read64(var->addr);
+      u64 tmp = prime::read64(var.addr);
       return *reinterpret_cast<double*>(&tmp);
     }
     case prime::CVarType::BOOLEAN:
-      return static_cast<bool>(prime::read8(var->addr));
+      return static_cast<bool>(prime::read8(var.addr));
     default:
       return 0u;
     }
   };
 
-  for (auto* var : cvar_list) {
+  for (auto const& var : cvar_list) {
     cached_vals.push_back(get_value(var));
   }
 }
@@ -66,8 +66,8 @@ QVariant CVarListModel::data(const QModelIndex& index, int role) const {
     return QVariant();
   }
 
-  const auto get_typename = [](prime::CVar* var) -> QVariant {
-    switch (var->type) {
+  const auto get_typename = [](prime::CVar const& var) -> QVariant {
+    switch (var.type) {
     case prime::CVarType::INT8:
       return QString::fromStdString("int8");
     case prime::CVarType::INT16:
@@ -89,7 +89,7 @@ QVariant CVarListModel::data(const QModelIndex& index, int role) const {
 
   switch (index.column()) {
   case COL_NAME:
-    return QString::fromStdString(cvar_list[index.row()]->name);
+    return QString::fromStdString(cvar_list[index.row()].name);
   case COL_VALUE:
     if (index.row() < cached_vals.size()) {
       return cached_vals[index.row()];
@@ -195,30 +195,30 @@ void CVarsWindow::save_presets() {
     return;
   }
 
-  for (auto const* var : list_model.get_var_list()) {
+  for (auto const& var : list_model.get_var_list()) {
     std::ostringstream line;
-    line << var->name << "=";
-    switch (var->type) {
+    line << var.name << "=";
+    switch (var.type) {
     case prime::CVarType::BOOLEAN:
-      line << (prime::read8(var->addr) ? "true" : "false");
+      line << (prime::read8(var.addr) ? "true" : "false");
       break;
     case prime::CVarType::INT8:
-      line << prime::read8(var->addr);
+      line << prime::read8(var.addr);
       break;
     case prime::CVarType::INT16:
-      line << prime::read16(var->addr);
+      line << prime::read16(var.addr);
       break;
     case prime::CVarType::INT32:
-      line << prime::read32(var->addr);
+      line << prime::read32(var.addr);
       break;
     case prime::CVarType::INT64:
-      line << prime::read64(var->addr);
+      line << prime::read64(var.addr);
       break;
     case prime::CVarType::FLOAT32:
-      line << prime::readf32(var->addr);
+      line << prime::readf32(var.addr);
       break;
     case prime::CVarType::FLOAT64: {
-        u64 tmp = prime::read64(var->addr);
+        u64 tmp = prime::read64(var.addr);
         line << *reinterpret_cast<double*>(&tmp);
       }
       break;
