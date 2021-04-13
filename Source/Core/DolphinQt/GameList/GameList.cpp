@@ -12,6 +12,9 @@
 #ifdef DeleteFile
 #undef DeleteFile
 #endif
+#ifdef interface
+#undef interface
+#endif
 #endif
 
 #include "DolphinQt/GameList/GameList.h"
