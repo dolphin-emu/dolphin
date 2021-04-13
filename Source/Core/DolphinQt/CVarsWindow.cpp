@@ -10,6 +10,8 @@
 #include <QDialogButtonBox>
 #include <QMenuBar>
 #include <QFileDialog>
+#include <QFontMetrics>
+#include <QtGlobal>
 
 CVarListModel::CVarListModel(QObject* parent) : QAbstractTableModel(parent) {
   load_cvars();
@@ -22,7 +24,11 @@ void CVarListModel::get_column_widths(QFont const& font, std::array<int, CVarLis
     int col_size = 0;
     for (int j = 0; j < cvar_list.size(); j++) {
       auto text = data(index(j, i));
+#if QT_VERSION >= 0x050b00
       col_size = std::max(col_size, fm.horizontalAdvance(text.toString()));
+#else
+      col_size = std::max(col_size, fm.width(text.toString()));
+#endif
     }
     width_out[i] = col_size;
   }
@@ -39,7 +45,7 @@ void CVarListModel::update_memread() {
     case prime::CVarType::INT32:
       return prime::read32(var.addr);
     case prime::CVarType::INT64:
-      return prime::read64(var.addr);
+      return qulonglong{prime::read64(var.addr)};
     case prime::CVarType::FLOAT32:
       return prime::readf32(var.addr);
     case prime::CVarType::FLOAT64: {
