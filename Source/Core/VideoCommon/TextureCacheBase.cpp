@@ -438,28 +438,48 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
   const bool skip_readback = p.GetMode() == PointerWrap::MODE_MEASURE;
   p.DoPOD(config);
 
-  std::vector<u8> texture_data;
   if (skip_readback || CheckReadbackTexture(config.width, config.height, config.format))
   {
-    // Save out each layer of the texture to the staging texture, and then
-    // append it onto the end of the vector. This gives us all the sub-images
-    // in one single buffer which can be written out to the save state.
+    // First, measure the amount of memory needed.
+    u32 total_size = 0;
     for (u32 layer = 0; layer < config.layers; layer++)
     {
       for (u32 level = 0; level < config.levels; level++)
       {
         u32 level_width = std::max(config.width >> level, 1u);
         u32 level_height = std::max(config.height >> level, 1u);
-        auto rect = tex->GetConfig().GetMipRect(level);
-        if (!skip_readback)
+
+        u32 stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+        u32 size = stride * level_height;
+
+        total_size += size;
+      }
+    }
+
+    // Set aside total_size bytes of space for the textures.
+    // When measuring, this will be set aside and not written to,
+    // but when writing we'll use this pointer directly to avoid
+    // needing to allocate/free an extra buffer.
+    u8* texture_data = p.DoExternal(total_size);
+
+    if (!skip_readback)
+    {
+      // Save out each layer of the texture to the pointer.
+      for (u32 layer = 0; layer < config.layers; layer++)
+      {
+        for (u32 level = 0; level < config.levels; level++)
+        {
+          u32 level_width = std::max(config.width >> level, 1u);
+          u32 level_height = std::max(config.height >> level, 1u);
+          auto rect = tex->GetConfig().GetMipRect(level);
           m_readback_texture->CopyFromTexture(tex, rect, layer, level, rect);
 
-        size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
-        size_t size = stride * level_height;
-        size_t start = texture_data.size();
-        texture_data.resize(texture_data.size() + size);
-        if (!skip_readback)
-          m_readback_texture->ReadTexels(rect, &texture_data[start], static_cast<u32>(stride));
+          u32 stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+          u32 size = stride * level_height;
+          m_readback_texture->ReadTexels(rect, texture_data, stride);
+
+          texture_data += size;
+        }
       }
     }
   }
@@ -467,8 +487,6 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
   {
     PanicAlertFmt("Failed to create staging texture for serialization");
   }
-
-  p.Do(texture_data);
 }
 
 std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTexture(PointerWrap& p)
@@ -476,10 +494,12 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
   TextureConfig config;
   p.Do(config);
 
-  std::vector<u8> texture_data;
-  p.Do(texture_data);
+  // Read in the size from the save state, then texture data will point to
+  // a region of size total_size where textures are stored.
+  u32 total_size = 0;
+  u8* texture_data = p.DoExternal(total_size);
 
-  if (p.GetMode() != PointerWrap::MODE_READ || texture_data.empty())
+  if (p.GetMode() != PointerWrap::MODE_READ || total_size == 0)
     return std::nullopt;
 
   auto tex = AllocateTexture(config);
@@ -498,7 +518,7 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
       const u32 level_height = std::max(config.height >> level, 1u);
       const size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
       const size_t size = stride * level_height;
-      if ((start + size) > texture_data.size())
+      if ((start + size) > total_size)
       {
         ERROR_LOG_FMT(VIDEO, "Insufficient texture data for layer {} level {}", layer, level);
         return tex;
