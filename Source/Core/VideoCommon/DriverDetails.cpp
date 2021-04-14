@@ -122,6 +122,10 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_SLOW_CACHED_READBACK_MEMORY, -1.0, -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_VECTOR_BITWISE_AND,
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_VECTOR_BITWISE_AND,
+     -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;
