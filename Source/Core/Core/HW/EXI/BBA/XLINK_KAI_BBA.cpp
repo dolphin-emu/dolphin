@@ -58,6 +58,10 @@ bool CEXIETHERNET::XLinkNetworkInterface::Activate()
 
 void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
 {
+  // Is the BBA Active? If not skip shutdown
+  if (!IsActivated())
+    return;
+
   // Send d; to tell XLink we want to disconnect cleanly
   // disconnect;optional_locally_unique_name;optional_padding
   std::string cmd =
