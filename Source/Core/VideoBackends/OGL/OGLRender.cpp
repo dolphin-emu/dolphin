@@ -882,6 +882,11 @@ void Renderer::BBoxWriteImpl(int index, u16 value)
   BoundingBox::Set(index, swapped_value);
 }
 
+void Renderer::BBoxFlushImpl()
+{
+  BoundingBox::Flush();
+}
+
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
 {
