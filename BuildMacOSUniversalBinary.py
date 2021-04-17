@@ -24,16 +24,12 @@ Running this script will:
 """
 
 import argparse
-import copy
 import filecmp
 import glob
-import json  # Used to print config
+import json
 import os
 import shutil
 import subprocess
-import sys
-
-# #BEGIN CONFIG# #
 
 # The config variables listed below are the defaults, but they can be
 # overridden by command line arguments see parse_args(), or run:
@@ -64,7 +60,7 @@ DEFAULT_CONFIG = {
     # running corrupted binaries and allows for access to the extended
     # permisions needed for ARM builds
     "codesign_identity":  '-',
-    # Etitlements file to use for code signing
+    # Entitlements file to use for code signing
     "entitlements": "../Source/Core/DolphinQt/DolphinEmu.entitlements",
 
     # Minimum macOS version for each architecture slice
@@ -72,7 +68,6 @@ DEFAULT_CONFIG = {
     "x86_64_mac_os_deployment_target": "10.12.0"
 
 }
-# # END CONFIG # #
 
 # Architectures to build for. This is explicity left out of the command line
 # config options for several reasons:
@@ -83,7 +78,7 @@ DEFAULT_CONFIG = {
 ARCHITECTURES = ["x86_64", "arm64"]
 
 
-def parse_args(default_conf=DEFAULT_CONFIG):
+def parse_args(conf=DEFAULT_CONFIG):
     """
     Parses the command line arguments into a config dictionary.
     """
@@ -94,49 +89,49 @@ def parse_args(default_conf=DEFAULT_CONFIG):
     parser.add_argument(
         '--target',
         help='Build target in generated project files',
-        default=default_conf["build_target"],
+        default=conf["build_target"],
         dest="build_target")
 
     parser.add_argument(
         '--dst_app',
         help='Directory where universal binary will be stored',
-        default=default_conf["dst_app"])
+        default=conf["dst_app"])
 
     parser.add_argument(
         '--entitlements',
         help='Path to .entitlements file for code signing',
-        default=default_conf["entitlements"])
+        default=conf["entitlements"])
 
     parser.add_argument(
         '--codesign',
         help='Code signing identity to use to sign the applications',
-        default=default_conf["codesign_identity"],
+        default=conf["codesign_identity"],
         dest="codesign_identity")
 
     for arch in ARCHITECTURES:
         parser.add_argument(
              '--{}_pkg_config'.format(arch),
              help="Folder containing .pc files for {} libraries".format(arch),
-             default=default_conf[arch+"_pkg_config_path"],
+             default=conf[arch+"_pkg_config_path"],
              dest=arch+"_pkg_config_path")
 
         parser.add_argument(
              '--{}_qt5_path'.format(arch),
              help="Install path for {} qt5 libraries".format(arch),
-             default=default_conf[arch+"_qt5_path"])
+             default=conf[arch+"_qt5_path"])
 
         parser.add_argument(
              '--{}_mac_os_deployment_target'.format(arch),
              help="Deployment architecture for {} slice".format(arch),
-             default=default_conf[arch+"_mac_os_deployment_target"])
+             default=conf[arch+"_mac_os_deployment_target"])
 
     return vars(parser.parse_args())
 
 
 def lipo(path0, path1, dst):
     if subprocess.call(['lipo', '-create', '-output', dst, path0, path1]) != 0:
-        print("WARNING: {} and {} can not be lipo'd, keeping {}"
-              .format(path0, path1, path0))
+        print("WARNING: {0} and {1} can not be lipo'd, keeping {0}"
+              .format(path0, path1))
 
         shutil.copy(path0, dst)
 
@@ -156,34 +151,29 @@ def recursiveMergeBinaries(src0, src1, dst):
        the source trees
     """
 
-    # loop over all files in src0
     for newpath0 in glob.glob(src0+"/*"):
         filename = os.path.basename(newpath0)
         newpath1 = os.path.join(src1, filename)
         new_dst_path = os.path.join(dst, filename)
         if os.path.islink(newpath0):
-            # symlinks will be fixed after files are resolved
+            # Symlinks will be fixed after files are resolved
             continue
 
         if not os.path.exists(newpath1):
-            # copy files that don't exist in path1
             shutil.copy(newpath0, new_dst_path)
             continue
 
         if os.path.isdir(newpath1):
             os.mkdir(new_dst_path)
-            # recurse into directories
             recursiveMergeBinaries(newpath0, newpath1, new_dst_path)
             continue
 
         if filecmp.cmp(newpath0, newpath1):
-            # copy files that are the same
             shutil.copy(newpath0, new_dst_path)
         else:
-            # lipo together files that are different
             lipo(newpath0, newpath1, new_dst_path)
 
-    # loop over files in src1 and copy missing things over to dst
+    # Loop over files in src1 and copy missing things over to dst
     for newpath1 in glob.glob(src1+"/*"):
         filename = os.path.basename(newpath0)
         newpath0 = os.path.join(src0, filename)
@@ -191,14 +181,14 @@ def recursiveMergeBinaries(src0, src1, dst):
         if not os.path.exists(newpath0) and not os.path.islink(newpath1):
             shutil.copytree(newpath1, new_dst_path)
 
-    # fix up symlinks for path0
+    # Fix up symlinks for path0
     for newpath0 in glob.glob(src0+"/*"):
         filename = os.path.basename(newpath0)
         new_dst_path = os.path.join(dst, filename)
         if os.path.islink(newpath0):
             relative_path = os.path.relpath(os.path.realpath(newpath0), src0)
             os.symlink(relative_path, new_dst_path)
-    # fix up symlinks for path1
+    # Fix up symlinks for path1
     for newpath1 in glob.glob(src1+"/*"):
         filename = os.path.basename(newpath1)
         new_dst_path = os.path.join(dst, filename)
@@ -216,17 +206,15 @@ def build(config):
     print("Building config:")
     print(json.dumps(config, indent=4))
 
-    dst_app = config["dst_app"]
     # Configure and build single architecture builds for each architecture
     for arch in ARCHITECTURES:
-        # Create build directory for architecture
         if not os.path.exists(arch):
             os.mkdir(arch)
-        # Setup environment variables for build
-        envs = os.environ.copy()
-        envs['PKG_CONFIG_PATH'] = config[arch+"_pkg_config_path"]
-        envs['Qt5_DIR'] = config[arch+"_qt5_path"]
-        envs['CMAKE_OSX_ARCHITECTURES'] = arch
+
+        env = os.environ.copy()
+        env['PKG_CONFIG_PATH'] = config[arch+"_pkg_config_path"]
+        env['Qt5_DIR'] = config[arch+"_qt5_path"]
+        env['CMAKE_OSX_ARCHITECTURES'] = arch
 
         subprocess.check_call([
                 'arch', '-'+arch,
@@ -239,7 +227,7 @@ def build(config):
                 + config['codesign_identity'],
                 '-DMACOS_CODE_SIGNING="ON"'
             ],
-            env=envs, cwd=arch)
+            env=env, cwd=arch)
 
         # Build project
         subprocess.check_call(['xcodebuild',
@@ -247,17 +235,19 @@ def build(config):
                                '-target', config["build_target"],
                                '-configuration', 'Release'], cwd=arch)
 
-    # Source binary trees to merge together
-    src_app0 = ARCHITECTURES[0]+"/Binaries/release"
-    src_app1 = ARCHITECTURES[1]+"/Binaries/release"
+    dst_app = config["dst_app"]
 
     if os.path.exists(dst_app):
         shutil.rmtree(dst_app)
 
+    # Create and codesign the universal binary/
     os.mkdir(dst_app)
-    # create univeral binary
+
+    # Source binary trees to merge together
+    src_app0 = ARCHITECTURES[0]+"/Binaries/release"
+    src_app1 = ARCHITECTURES[1]+"/Binaries/release"
+
     recursiveMergeBinaries(src_app0, src_app1, dst_app)
-    # codesign the universal binary
     for path in glob.glob(dst_app+"/*"):
         subprocess.check_call([
             'codesign',
@@ -265,7 +255,7 @@ def build(config):
             '--force',
             '-s',
             config["codesign_identity"],
-            '--options', 'runtime',
+            '--options=runtime',
             '--entitlements', config["entitlements"],
             '--deep',
             '--verbose=2',
