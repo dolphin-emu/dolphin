@@ -63,6 +63,7 @@ public:
 
   u16 BBoxReadImpl(int index) override;
   void BBoxWriteImpl(int index, u16 value) override;
+  void BBoxFlushImpl() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;
