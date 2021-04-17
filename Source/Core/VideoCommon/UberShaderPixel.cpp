@@ -150,17 +150,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // Uniform index -> texture coordinates
   if (numTexgen > 0)
   {
-    if (ApiType != APIType::D3D)
-    {
-      out.Write("float3 selectTexCoord(uint index) {{\n");
-    }
-    else
-    {
-      out.Write("float3 selectTexCoord(uint index");
-      for (u32 i = 0; i < numTexgen; i++)
-        out.Write(", float3 tex{}", i);
-      out.Write(") {{\n");
-    }
+    out.Write("int2 selectTexCoord(uint index");
+    for (u32 i = 0; i < numTexgen; i++)
+      out.Write(", int2 fixpoint_uv{}", i);
+    out.Write(") {{\n");
 
     if (ApiType == APIType::D3D)
     {
@@ -168,11 +161,11 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       for (u32 i = 0; i < numTexgen; i++)
       {
         out.Write("  case {}u:\n"
-                  "    return tex{};\n",
+                  "    return fixpoint_uv{};\n",
                   i, i);
       }
       out.Write("  default:\n"
-                "    return float3(0.0, 0.0, 0.0);\n"
+                "    return int2(0, 0);\n"
                 "  }}\n");
     }
     else
@@ -182,16 +175,16 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       if (numTexgen > 2)
         out.Write("    if (index < 2u) {{\n");
       if (numTexgen > 1)
-        out.Write("      return (index == 0u) ? tex0 : tex1;\n");
+        out.Write("      return (index == 0u) ? fixpoint_uv0 : fixpoint_uv1;\n");
       else
-        out.Write("      return (index == 0u) ? tex0 : float3(0.0, 0.0, 0.0);\n");
+        out.Write("      return (index == 0u) ? fixpoint_uv0 : int2(0, 0);\n");
       if (numTexgen > 2)
       {
         out.Write("    }} else {{\n");  // >= 2
         if (numTexgen > 3)
-          out.Write("      return (index == 2u) ? tex2 : tex3;\n");
+          out.Write("      return (index == 2u) ? fixpoint_uv2 : fixpoint_uv3;\n");
         else
-          out.Write("      return (index == 2u) ? tex2 : float3(0.0, 0.0, 0.0);\n");
+          out.Write("      return (index == 2u) ? fixpoint_uv2 : int2(0, 0);\n");
         out.Write("    }}\n");
       }
       if (numTexgen > 4)
@@ -200,16 +193,16 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         if (numTexgen > 6)
           out.Write("    if (index < 6u) {{\n");
         if (numTexgen > 5)
-          out.Write("      return (index == 4u) ? tex4 : tex5;\n");
+          out.Write("      return (index == 4u) ? fixpoint_uv4 : fixpoint_uv5;\n");
         else
-          out.Write("      return (index == 4u) ? tex4 : float3(0.0, 0.0, 0.0);\n");
+          out.Write("      return (index == 4u) ? fixpoint_uv4 : int2(0, 0);\n");
         if (numTexgen > 6)
         {
           out.Write("    }} else {{\n");  // >= 6 <= 8
           if (numTexgen > 7)
-            out.Write("      return (index == 6u) ? tex6 : tex7;\n");
+            out.Write("      return (index == 6u) ? fixpoint_uv6 : fixpoint_uv7;\n");
           else
-            out.Write("      return (index == 6u) ? tex6 : float3(0.0, 0.0, 0.0);\n");
+            out.Write("      return (index == 6u) ? fixpoint_uv6 : int2(0, 0);\n");
           out.Write("    }}\n");
         }
         out.Write("  }}\n");
@@ -293,9 +286,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "  {{\n"
               "    uint texcoord = bitfieldExtract(iref, 0, 3);\n"
               "    uint texmap = bitfieldExtract(iref, 8, 3);\n"
-              "    float3 uv = getTexCoord(texcoord);\n"
-              "    int2 fixedPoint_uv = int2((uv.z == 0.0 ? uv.xy : (uv.xy / uv.z)) * " I_TEXDIMS
-              "[texcoord].zw);\n"
+              "    int2 fixedPoint_uv = getTexCoord(texcoord);\n"
               "\n"
               "    if (({} & 1u) == 0u)\n"
               "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].xy;\n"
@@ -666,21 +657,14 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "\n");
   }
 
-  // Since the texture coodinate variables aren't global, we need to pass
-  // them to the select function in D3D.
+  // Since the fixed-point texture coodinate variables aren't global, we need to pass
+  // them to the select function.  This applies to all backends.
   if (numTexgen > 0)
   {
-    if (ApiType != APIType::D3D)
-    {
-      out.Write("#define getTexCoord(index) selectTexCoord((index))\n\n");
-    }
-    else
-    {
-      out.Write("#define getTexCoord(index) selectTexCoord((index)");
-      for (u32 i = 0; i < numTexgen; i++)
-        out.Write(", tex{}", i);
-      out.Write(")\n\n");
-    }
+    out.Write("#define getTexCoord(index) selectTexCoord((index)");
+    for (u32 i = 0; i < numTexgen; i++)
+      out.Write(", fixpoint_uv{}", i);
+    out.Write(")\n\n");
   }
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
@@ -788,11 +772,18 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
   {
-    out.Write("    uint tex_coord = {};\n",
+    for (u32 i = 0; i < numTexgen; i++)
+    {
+      out.Write("    int2 fixpoint_uv{} = int2(", i);
+      out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
+      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      // TODO: S24 overflows here?
+    }
+
+    out.Write("\n"
+              "    uint tex_coord = {};\n",
               BitfieldExtract<&TwoTevStageOrders::texcoord0>("ss.order"));
-    out.Write("    float3 uv = getTexCoord(tex_coord);\n"
-              "    int2 fixedPoint_uv = int2((uv.z == 0.0 ? uv.xy : (uv.xy / uv.z)) * " I_TEXDIMS
-              "[tex_coord].zw);\n"
+    out.Write("    int2 fixedPoint_uv = getTexCoord(tex_coord);\n"
               "\n"
               "    bool texture_enabled = (ss.order & {}u) != 0u;\n",
               1 << TwoTevStageOrders().enable0.StartBit());
