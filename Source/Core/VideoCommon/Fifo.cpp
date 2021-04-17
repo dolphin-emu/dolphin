@@ -580,6 +580,16 @@ static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
     CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
 }
 
+void SyncGPUForRegisterAccess()
+{
+  SyncGPU(SyncGPUReason::Other);
+
+  if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
+    RunGpuOnCpu(GPU_TIME_SLOT_SIZE);
+  else if (SConfig::GetInstance().bSyncGPU)
+    WaitForGpuThread(GPU_TIME_SLOT_SIZE);
+}
+
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
 void Prepare()
 {
