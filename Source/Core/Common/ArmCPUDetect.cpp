@@ -8,14 +8,12 @@
 #include <string>
 #include <thread>
 
-#ifndef __APPLE__
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE__)
 #ifndef __FreeBSD__
 #include <asm/hwcap.h>
 #endif
 #include <sys/auxv.h>
 #include <unistd.h>
-#endif
 #endif
 
 #include <fmt/format.h>
