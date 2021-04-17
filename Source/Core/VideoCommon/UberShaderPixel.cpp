@@ -148,6 +148,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   }
 
   // Uniform index -> texture coordinates
+  // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
+  // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
+  // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
+  // the number of tex gens to 2 (bug 11462).
   if (numTexgen > 0)
   {
     out.Write("int2 selectTexCoord(uint index");
@@ -165,11 +169,14 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
                   i, i);
       }
       out.Write("  default:\n"
-                "    return int2(0, 0);\n"
+                "    return fixpoint_uv0;\n"
                 "  }}\n");
     }
     else
     {
+      out.Write("  if (index >= {}u) {{\n", numTexgen);
+      out.Write("    return fixpoint_uv0;\n"
+                "  }}\n");
       if (numTexgen > 4)
         out.Write("  if (index < 4u) {{\n");
       if (numTexgen > 2)
@@ -177,32 +184,32 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       if (numTexgen > 1)
         out.Write("      return (index == 0u) ? fixpoint_uv0 : fixpoint_uv1;\n");
       else
-        out.Write("      return (index == 0u) ? fixpoint_uv0 : int2(0, 0);\n");
+        out.Write("      return fixpoint_uv0;\n");
       if (numTexgen > 2)
       {
-        out.Write("    }} else {{\n");  // >= 2
+        out.Write("    }} else {{\n");  // >= 2 < min(4, numTexgen)
         if (numTexgen > 3)
           out.Write("      return (index == 2u) ? fixpoint_uv2 : fixpoint_uv3;\n");
         else
-          out.Write("      return (index == 2u) ? fixpoint_uv2 : int2(0, 0);\n");
+          out.Write("      return fixpoint_uv2;\n");
         out.Write("    }}\n");
       }
       if (numTexgen > 4)
       {
-        out.Write("  }} else {{\n");  // >= 4 <= 8
+        out.Write("  }} else {{\n");  // >= 4 < min(8, numTexgen)
         if (numTexgen > 6)
           out.Write("    if (index < 6u) {{\n");
         if (numTexgen > 5)
           out.Write("      return (index == 4u) ? fixpoint_uv4 : fixpoint_uv5;\n");
         else
-          out.Write("      return (index == 4u) ? fixpoint_uv4 : int2(0, 0);\n");
+          out.Write("      return fixpoint_uv4;\n");
         if (numTexgen > 6)
         {
-          out.Write("    }} else {{\n");  // >= 6 <= 8
+          out.Write("    }} else {{\n");  // >= 6 < min(8, numTexgen)
           if (numTexgen > 7)
             out.Write("      return (index == 6u) ? fixpoint_uv6 : fixpoint_uv7;\n");
           else
-            out.Write("      return (index == 6u) ? fixpoint_uv6 : int2(0, 0);\n");
+            out.Write("      return fixpoint_uv6;\n");
           out.Write("    }}\n");
         }
         out.Write("  }}\n");
