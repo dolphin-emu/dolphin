@@ -314,9 +314,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   set(CMAKE_XCODE_ATTRIBUTE_GCC_STRICT_ALIASING NO)
 
   # Specify target CPUs.
-  check_and_add_flag(HAVE_MSSSE3 -mssse3)
-  check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
-
+  if(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    check_and_add_flag(HAVE_MSSSE3 -mssse3)
+    check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
+  endif()
   # Linker flags.
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
