@@ -40,7 +40,7 @@ void* AllocateExecutableMemory(size_t size)
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
   int map_flags = MAP_ANON | MAP_PRIVATE;
-#if defined(_M_ARM_64) && defined(__APPLE__)
+#if defined(__APPLE__)
   // This check is in place to prepare for x86_64 MAP_JIT support. While MAP_JIT did exist
   // prior to 10.14, it had restrictions on the number of JIT allocations that were removed
   // in 10.14.
