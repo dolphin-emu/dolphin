@@ -17,6 +17,8 @@ project(dolphin-emu)
 # unique name here.
 set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
 
+set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update track. If empty, disables auto-update.")
+
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   option(ENABLE_X11 "Enables X11 Support" ON)
 endif()
