@@ -361,7 +361,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   uid_data->bounding_box &= host_config.bounding_box & host_config.backend_bbox;
 }
 
-void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type, u32 num_texgens,
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
                                   const ShaderHostConfig& host_config, bool bounding_box)
 {
   // dot product for integer vectors
@@ -546,8 +546,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
             uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
-  WritePixelShaderCommonHeader(out, api_type, uid_data->genMode_numtexgens, host_config,
-                               uid_data->bounding_box);
+  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
 
   if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
