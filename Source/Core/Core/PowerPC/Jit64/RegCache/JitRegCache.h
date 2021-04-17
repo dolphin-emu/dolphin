@@ -171,6 +171,7 @@ public:
   RCForkGuard Fork();
   void Discard(BitSet32 pregs);
   void Flush(BitSet32 pregs = BitSet32::AllTrue(32));
+  void Reset(BitSet32 pregs);
   void Revert();
   void Commit();
 

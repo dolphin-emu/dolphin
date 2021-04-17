@@ -436,6 +436,16 @@ void RegCache::Flush(BitSet32 pregs)
   }
 }
 
+void RegCache::Reset(BitSet32 pregs)
+{
+  for (preg_t i : pregs)
+  {
+    ASSERT_MSG(DYNAREC, !m_regs[i].IsAway(),
+               "Attempted to reset a loaded register (did you mean to flush it?)");
+    m_regs[i].SetFlushed();
+  }
+}
+
 void RegCache::Revert()
 {
   ASSERT(IsAllUnlocked());

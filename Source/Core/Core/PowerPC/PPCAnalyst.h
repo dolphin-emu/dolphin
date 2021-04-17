@@ -67,6 +67,16 @@ struct CodeOp  // 16B
   // (The reason why we can't always do this is because some games rely on the exact bits of
   // denormals and SNaNs being preserved as long as no arithmetic operation is performed on them.)
   BitSet32 fprIsStoreSafe;
+
+  BitSet32 GetFregsOut() const
+  {
+    BitSet32 result;
+
+    if (fregOut >= 0)
+      result[fregOut] = true;
+
+    return result;
+  }
 };
 
 struct BlockStats

@@ -161,6 +161,11 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   MOVI2R(ARM64Reg::W0, inst.hex);
   BLR(ARM64Reg::X8);
 
+  // If the instruction wrote to any registers which were marked as discarded,
+  // we must mark them as no longer discarded
+  gpr.ResetRegisters(js.op->regsOut);
+  fpr.ResetRegisters(js.op->GetFregsOut());
+
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     if (js.isLastInstruction)
