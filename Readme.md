@@ -69,7 +69,7 @@ application bundle using the following steps:
 
 1. `mkdir build`
 2. `cd build`
-3. `python ../BuildMacOSUniveralBinary.py`
+3. `python ../BuildMacOSUniversalBinary.py`
 4. Universal binaries will be available in the `universal` folder
 
 Doing this requires installation of library dependencies for both x64 and ARM (or universal library

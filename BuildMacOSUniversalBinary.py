@@ -175,11 +175,14 @@ def recursiveMergeBinaries(src0, src1, dst):
 
     # Loop over files in src1 and copy missing things over to dst
     for newpath1 in glob.glob(src1+"/*"):
-        filename = os.path.basename(newpath0)
+        filename = os.path.basename(newpath1)
         newpath0 = os.path.join(src0, filename)
         new_dst_path = os.path.join(dst, filename)
-        if not os.path.exists(newpath0) and not os.path.islink(newpath1):
-            shutil.copytree(newpath1, new_dst_path)
+        if (not os.path.exists(newpath0)) and (not os.path.islink(newpath1)):
+            if os.path.isdir(newpath1):
+                shutil.copytree(newpath1, new_dst_path)
+            else:
+                shutil.copy(newpath1, new_dst_path)
 
     # Fix up symlinks for path0
     for newpath0 in glob.glob(src0+"/*"):
