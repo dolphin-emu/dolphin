@@ -381,8 +381,9 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
 
     u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
-    while (written < burstEnd)
-      GPFifo::FastWrite8(data[written++]);
+    std::copy(data + written, data + burstEnd, PowerPC::ppcState.gather_pipe_ptr);
+    PowerPC::ppcState.gather_pipe_ptr += burstEnd - written;
+    written = burstEnd;
 
     GPFifo::Write8(data[written++]);
 
