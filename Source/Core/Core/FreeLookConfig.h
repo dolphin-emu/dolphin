@@ -31,6 +31,7 @@ struct Config final
 
   CameraConfig camera_config;
   bool enabled;
+  bool enabled_2d;
 };
 
 Config& GetConfig();
