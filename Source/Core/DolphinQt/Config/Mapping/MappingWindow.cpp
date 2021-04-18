@@ -22,6 +22,7 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
+#include "DolphinQt/Config/Mapping/FreeLook2DGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
 #include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
@@ -439,6 +440,13 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("General"), widget);
     AddWidget(tr("Rotation"), new FreeLookRotation(this));
     setWindowTitle(tr("Free Look Controller %1").arg(GetPort() + 1));
+  }
+  break;
+  case Type::MAPPING_FREELOOK_2D:
+  {
+    widget = new FreeLook2DGeneral(this);
+    AddWidget(tr("General"), widget);
+    setWindowTitle(tr("Free Look 2D Controller %1").arg(GetPort() + 1));
   }
   break;
   default:
