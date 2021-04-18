@@ -35,6 +35,7 @@ public final class MainPresenter
   public static final int REQUEST_SD_FILE = 3;
   public static final int REQUEST_WAD_FILE = 4;
   public static final int REQUEST_WII_SAVE_FILE = 5;
+  public static final int REQUEST_NAND_BIN_FILE = 6;
 
   private static boolean sShouldRescanLibrary = true;
 
@@ -119,6 +120,11 @@ public final class MainPresenter
         new AfterDirectoryInitializationRunner().run(context, true,
                 () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
         return true;
+
+      case R.id.menu_import_nand_backup:
+        new AfterDirectoryInitializationRunner().run(context, true,
+                () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
+        return true;
     }
 
     return false;
@@ -184,7 +190,7 @@ public final class MainPresenter
 
   public void installWAD(String path)
   {
-    runOnThreadAndShowResult(R.string.import_in_progress, () ->
+    runOnThreadAndShowResult(R.string.import_in_progress, 0, () ->
     {
       boolean success = WiiUtils.installWAD(path);
       int message = success ? R.string.wad_install_success : R.string.wad_install_failure;
@@ -198,7 +204,7 @@ public final class MainPresenter
 
     CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
 
-    runOnThreadAndShowResult(R.string.import_in_progress, () ->
+    runOnThreadAndShowResult(R.string.import_in_progress, 0, () ->
     {
       BooleanSupplier canOverwrite = () ->
       {
@@ -248,13 +254,38 @@ public final class MainPresenter
     });
   }
 
-  private void runOnThreadAndShowResult(int progressMessage, Supplier<String> f)
+  public void importNANDBin(String path)
+  {
+    AlertDialog.Builder builder =
+            new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+
+    builder.setMessage(R.string.nand_import_warning);
+    builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
+    builder.setPositiveButton(R.string.yes, (dialog, i) ->
+    {
+      dialog.dismiss();
+
+      runOnThreadAndShowResult(R.string.import_in_progress, R.string.do_not_close_app, () ->
+      {
+        // ImportNANDBin doesn't provide any result value, unfortunately...
+        // It does however show a panic alert if something goes wrong.
+        WiiUtils.importNANDBin(path);
+        return null;
+      });
+    });
+
+    builder.show();
+  }
+
+  private void runOnThreadAndShowResult(int progressTitle, int progressMessage, Supplier<String> f)
   {
     final Activity mainPresenterActivity = (Activity) mContext;
 
     AlertDialog progressDialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
             .create();
-    progressDialog.setTitle(progressMessage);
+    progressDialog.setTitle(progressTitle);
+    if (progressMessage != 0)
+      progressDialog.setMessage(mContext.getResources().getString(progressMessage));
     progressDialog.setCancelable(false);
     progressDialog.show();
 
