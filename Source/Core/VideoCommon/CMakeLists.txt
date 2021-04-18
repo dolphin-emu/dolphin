@@ -35,6 +35,8 @@ add_library(videocommon
   FramebufferShaderGen.h
   FreeLookCamera.cpp
   FreeLookCamera.h
+  FreeLookCamera2D.cpp
+  FreeLookCamera2D.h
   GeometryShaderGen.cpp
   GeometryShaderGen.h
   GeometryShaderManager.cpp
