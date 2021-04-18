@@ -11,6 +11,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.widget.Toast;
 
 import androidx.annotation.Keep;
@@ -46,11 +47,13 @@ public class Java_GCAdapter
         {
           if (!manager.hasPermission(dev))
           {
-            Intent intent = new Intent();
-            PendingIntent pend_intent;
-            intent.setClass(context, USBPermService.class);
-            pend_intent = PendingIntent.getService(context, 0, intent, 0);
-            manager.requestPermission(dev, pend_intent);
+            Intent intent = new Intent(context, USBPermService.class);
+
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+                    PendingIntent.FLAG_IMMUTABLE : 0;
+            PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, flags);
+
+            manager.requestPermission(dev, pendingIntent);
           }
         }
       }
