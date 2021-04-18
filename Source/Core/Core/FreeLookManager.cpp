@@ -16,6 +16,7 @@
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/FreeLookCamera2D.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 namespace
@@ -72,6 +73,26 @@ enum GyroButtons
   RollRight,
   YawLeft,
   YawRight,
+};
+}
+
+namespace StretchButtons
+{
+enum StretchButtons
+{
+  IncreaseX,
+  DecreaseX,
+  IncreaseY,
+  DecreaseY,
+};
+}
+
+namespace ZoomButtons
+{
+enum ZoomButtons
+{
+  Increase,
+  Decrease,
 };
 }
 }  // namespace
@@ -264,19 +285,140 @@ void FreeLookController::Update()
     g_freelook_camera.Reset();
 }
 
+FreeLook2DController::FreeLook2DController(const unsigned int index) : m_index(index)
+{
+  groups.emplace_back(m_move_buttons = new ControllerEmu::Buttons(_trans("Move")));
+
+  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Up"));
+  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Down"));
+  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Left"));
+  m_move_buttons->AddInput(ControllerEmu::Translate, _trans("Right"));
+
+  groups.emplace_back(m_speed_buttons = new ControllerEmu::Buttons(_trans("Speed")));
+
+  m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease"));
+  m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Increase"));
+  m_speed_buttons->AddInput(ControllerEmu::Translate, _trans("Reset"));
+
+  groups.emplace_back(m_other_buttons = new ControllerEmu::Buttons(_trans("Other")));
+
+  m_other_buttons->AddInput(ControllerEmu::Translate, _trans("Reset View"));
+
+  groups.emplace_back(m_stretch_buttons = new ControllerEmu::Buttons(_trans("Stretch")));
+
+  m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Increase X"));
+  m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease X"));
+  m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Increase Y"));
+  m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease Y"));
+}
+
+std::string FreeLook2DController::GetName() const
+{
+  return std::string("FreeLook2D") + char('1' + m_index);
+}
+
+ControllerEmu::ControlGroup* FreeLook2DController::GetGroup(FreeLook2DGroup group) const
+{
+  switch (group)
+  {
+  case FreeLook2DGroup::Move:
+    return m_move_buttons;
+  case FreeLook2DGroup::Speed:
+    return m_speed_buttons;
+  case FreeLook2DGroup::Stretch:
+    return m_stretch_buttons;
+  case FreeLook2DGroup::Other:
+    return m_other_buttons;
+  default:
+    return nullptr;
+  }
+}
+
+void FreeLook2DController::Update()
+{
+  if (!g_freelook_camera_2d.IsActive())
+    return;
+
+  auto* camera_controller = g_freelook_camera_2d.GetController();
+  if (camera_controller->SupportsInput())
+  {
+    UpdateInput(static_cast<CameraController2DInput*>(camera_controller));
+  }
+}
+
+void FreeLook2DController::UpdateInput(CameraController2DInput* camera_controller)
+{
+  float dt = 1.0;
+  if (m_last_free_look_rotate_time)
+  {
+    using seconds = std::chrono::duration<float, std::ratio<1>>;
+    dt = std::chrono::duration_cast<seconds>(std::chrono::steady_clock::now() -
+                                             *m_last_free_look_rotate_time)
+             .count();
+  }
+  m_last_free_look_rotate_time = std::chrono::steady_clock::now();
+
+  const auto lock = GetStateLock();
+
+  if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
+    camera_controller->MoveVertical(camera_controller->GetSpeed() * dt);
+
+  if (m_move_buttons->controls[MoveButtons::Down]->GetState<bool>())
+    camera_controller->MoveVertical(-camera_controller->GetSpeed() * dt);
+
+  if (m_move_buttons->controls[MoveButtons::Left]->GetState<bool>())
+    camera_controller->MoveHorizontal(-camera_controller->GetSpeed() * dt);
+
+  if (m_move_buttons->controls[MoveButtons::Right]->GetState<bool>())
+    camera_controller->MoveHorizontal(camera_controller->GetSpeed() * dt);
+
+  if (m_stretch_buttons->controls[StretchButtons::IncreaseX]->GetState<bool>())
+    camera_controller->IncreaseStretchX(camera_controller->GetStretchMultiplierSize() * dt);
+
+  if (m_stretch_buttons->controls[StretchButtons::DecreaseX]->GetState<bool>())
+    camera_controller->IncreaseStretchX(-1.0f * camera_controller->GetStretchMultiplierSize() * dt);
+
+  if (m_stretch_buttons->controls[StretchButtons::IncreaseY]->GetState<bool>())
+    camera_controller->IncreaseStretchY(camera_controller->GetStretchMultiplierSize() * dt);
+
+  if (m_stretch_buttons->controls[StretchButtons::DecreaseY]->GetState<bool>())
+    camera_controller->IncreaseStretchY(-1.0f * camera_controller->GetStretchMultiplierSize() * dt);
+
+  if (m_speed_buttons->controls[SpeedButtons::Decrease]->GetState<bool>())
+    camera_controller->ModifySpeed(camera_controller->GetSpeed() * -0.9 * dt);
+
+  if (m_speed_buttons->controls[SpeedButtons::Increase]->GetState<bool>())
+    camera_controller->ModifySpeed(camera_controller->GetSpeed() * 1.1 * dt);
+
+  if (m_speed_buttons->controls[SpeedButtons::Reset]->GetState<bool>())
+    camera_controller->ResetSpeed();
+
+  if (m_other_buttons->controls[OtherButtons::ResetView]->GetState<bool>())
+    camera_controller->Reset();
+}
+
 namespace FreeLook
 {
 static InputConfig s_config("FreeLookController", _trans("FreeLook"), "FreeLookController");
+static InputConfig s_config_2d("FreeLook2DController", _trans("FreeLook2D"),
+                               "FreeLook2DController");
 InputConfig* GetInputConfig()
 {
   return &s_config;
 }
 
+InputConfig* Get2DInputConfig()
+{
+  return &s_config_2d;
+}
+
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
+  s_config_2d.UnregisterHotplugCallback();
 
   s_config.ClearControllers();
+  s_config_2d.ClearControllers();
 }
 
 void Initialize()
@@ -286,11 +428,18 @@ void Initialize()
     s_config.CreateController<FreeLookController>(0);
   }
 
+  if (s_config_2d.ControllersNeedToBeCreated())
+  {
+    s_config_2d.CreateController<FreeLook2DController>(0);
+  }
+
   s_config.RegisterHotplugCallback();
+  s_config_2d.RegisterHotplugCallback();
 
   FreeLook::GetConfig().Refresh();
 
   s_config.LoadConfig(true);
+  s_config_2d.LoadConfig(true);
 }
 
 void LoadInputConfig()
@@ -298,9 +447,14 @@ void LoadInputConfig()
   s_config.LoadConfig(true);
 }
 
+void Load2DInputConfig()
+{
+  s_config_2d.LoadConfig(true);
+}
+
 bool IsInitialized()
 {
-  return !s_config.ControllersNeedToBeCreated();
+  return !s_config.ControllersNeedToBeCreated() && !s_config_2d.ControllersNeedToBeCreated();
 }
 
 ControllerEmu::ControlGroup* GetInputGroup(int pad_num, FreeLookGroup group)
@@ -308,11 +462,21 @@ ControllerEmu::ControlGroup* GetInputGroup(int pad_num, FreeLookGroup group)
   return static_cast<FreeLookController*>(s_config.GetController(pad_num))->GetGroup(group);
 }
 
+ControllerEmu::ControlGroup* Get2DInputGroup(int pad_num, FreeLook2DGroup group)
+{
+  return static_cast<FreeLook2DController*>(s_config_2d.GetController(pad_num))->GetGroup(group);
+}
+
 void UpdateInput()
 {
   for (int i = 0; i < s_config.GetControllerCount(); i++)
   {
     static_cast<FreeLookController*>(s_config.GetController(i))->Update();
+  }
+
+  for (int i = 0; i < s_config_2d.GetControllerCount(); i++)
+  {
+    static_cast<FreeLook2DController*>(s_config_2d.GetController(i))->Update();
   }
 }
 
