@@ -74,6 +74,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     {
     case 534:  // lwbrx
       byte_reversed = true;
+      [[fallthrough]];
     case 23:  // lwzx
     case 55:  // lwzux
       accessSize = 32;
@@ -87,6 +88,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
       break;
     case 790:  // lhbrx
       byte_reversed = true;
+      [[fallthrough]];
     case 279:  // lhzx
     case 311:  // lhzux
       accessSize = 16;
