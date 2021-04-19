@@ -513,8 +513,10 @@ void PerspectiveDivide(OutputVertexData* vertex)
   Vec3& screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
+  screen.x =
+      projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2;
+  screen.y =
+      projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper

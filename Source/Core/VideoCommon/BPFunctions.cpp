@@ -39,19 +39,29 @@ void SetGenerationMode()
 
 void SetScissor()
 {
-  /* NOTE: the minimum value here for the scissor rect and offset is -342.
-   * GX internally adds on an offset of 342 to both the offset and scissor
-   * coords to ensure that the register was always unsigned.
+  /* NOTE: the minimum value here for the scissor rect is -342.
+   * GX SDK functions internally add an offset of 342 to scissor coords to
+   * ensure that the register was always unsigned.
    *
    * The code that was here before tried to "undo" this offset, but
    * since we always take the difference, the +342 added to both
    * sides cancels out. */
 
-  /* The scissor offset is always even, so to save space, the scissor offset
-   * register is scaled down by 2. So, if somebody calls
-   * GX_SetScissorBoxOffset(20, 20); the registers will be set to 10, 10. */
-  const int xoff = bpmem.scissorOffset.x * 2;
-  const int yoff = bpmem.scissorOffset.y * 2;
+  /* NOTE: With a positive scissor offset, the scissor rect is shifted left and/or up;
+   * With a negative scissor offset, the scissor rect is shifted right and/or down.
+   *
+   * GX SDK functions internally add an offset of 342 to scissor offset.
+   * The scissor offset is always even, so to save space, the scissor offset register
+   * is scaled down by 2. So, if somebody calls GX_SetScissorBoxOffset(20, 20);
+   * the registers will be set to ((20 + 342) / 2 = 181, 181).
+   *
+   * The scissor offset register is 10bit signed [-512, 511].
+   * e.g. In Super Mario Galaxy 1 and 2, during the "Boss roar effect",
+   * for a scissor offset of (0, -464), the scissor offset register will be set to
+   * (171, (-464 + 342) / 2 = -61).
+   */
+  s32 xoff = bpmem.scissorOffset.x * 2;
+  s32 yoff = bpmem.scissorOffset.y * 2;
 
   MathUtil::Rectangle<int> native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
                                      bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
@@ -65,10 +75,10 @@ void SetScissor()
 
 void SetViewport()
 {
-  int scissor_x_off = bpmem.scissorOffset.x * 2;
-  int scissor_y_off = bpmem.scissorOffset.y * 2;
-  float x = g_renderer->EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissor_x_off);
-  float y = g_renderer->EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_off);
+  s32 xoff = bpmem.scissorOffset.x * 2;
+  s32 yoff = bpmem.scissorOffset.y * 2;
+  float x = g_renderer->EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - xoff);
+  float y = g_renderer->EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - yoff);
 
   float width = g_renderer->EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float height = g_renderer->EFBToScaledYf(-2.0f * xfmem.viewport.ht);
