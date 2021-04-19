@@ -158,6 +158,7 @@ public:
         // However, if we're not in the STATE_DONE state any more, the event should also be
         // triggered so that we'll skip the next waiting call quite fast.
         m_done_event.Set();
+        [[fallthrough]];
 
       case STATE_DONE:
         // We're done now. So time to check if we want to sleep or if we want to stay in a busy
@@ -173,6 +174,7 @@ public:
           // Busy loop.
           break;
         }
+        [[fallthrough]];
 
       case STATE_SLEEPING:
         // Just relax
