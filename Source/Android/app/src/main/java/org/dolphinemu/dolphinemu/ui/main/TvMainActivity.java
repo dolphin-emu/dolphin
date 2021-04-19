@@ -264,6 +264,11 @@ public final class TvMainActivity extends FragmentActivity
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
                   () -> mPresenter.importWiiSave(result.getData().toString()));
           break;
+
+        case MainPresenter.REQUEST_NAND_BIN_FILE:
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
+                  () -> mPresenter.importNANDBin(result.getData().toString()));
+          break;
       }
     }
     else
@@ -377,6 +382,10 @@ public final class TvMainActivity extends FragmentActivity
     rowItems.add(new TvSettingsItem(R.id.menu_import_wii_save,
             R.drawable.ic_folder,
             R.string.grid_menu_import_wii_save));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_import_nand_backup,
+            R.drawable.ic_folder,
+            R.string.grid_menu_import_nand_backup));
 
     // Create a header for this row.
     HeaderItem header =
