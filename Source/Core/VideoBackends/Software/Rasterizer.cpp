@@ -306,22 +306,22 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   s32 maxy = (std::max(std::max(Y1, Y2), Y3) + 0xF) >> 4;
 
   // scissor
-  int xoff = bpmem.scissorOffset.x * 2 - 342;
-  int yoff = bpmem.scissorOffset.y * 2 - 342;
+  s32 xoff = bpmem.scissorOffset.x * 2;
+  s32 yoff = bpmem.scissorOffset.y * 2;
 
-  s32 scissorLeft = bpmem.scissorTL.x - xoff - 342;
+  s32 scissorLeft = bpmem.scissorTL.x - xoff;
   if (scissorLeft < 0)
     scissorLeft = 0;
 
-  s32 scissorTop = bpmem.scissorTL.y - yoff - 342;
+  s32 scissorTop = bpmem.scissorTL.y - yoff;
   if (scissorTop < 0)
     scissorTop = 0;
 
-  s32 scissorRight = bpmem.scissorBR.x - xoff - 341;
+  s32 scissorRight = bpmem.scissorBR.x - xoff + 1;
   if (scissorRight > s32(EFB_WIDTH))
     scissorRight = EFB_WIDTH;
 
-  s32 scissorBottom = bpmem.scissorBR.y - yoff - 341;
+  s32 scissorBottom = bpmem.scissorBR.y - yoff + 1;
   if (scissorBottom > s32(EFB_HEIGHT))
     scissorBottom = EFB_HEIGHT;
 
