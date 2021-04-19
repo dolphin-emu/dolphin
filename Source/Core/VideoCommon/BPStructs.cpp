@@ -217,14 +217,14 @@ static void BPWritten(const BPCmd& bp)
     u32 destAddr = bpmem.copyTexDest << 5;
     u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
-    MathUtil::Rectangle<int> srcRect;
-    srcRect.left = static_cast<int>(bpmem.copyTexSrcXY.x);
-    srcRect.top = static_cast<int>(bpmem.copyTexSrcXY.y);
+    MathUtil::Rectangle<s32> srcRect;
+    srcRect.left = bpmem.copyTexSrcXY.x;
+    srcRect.top = bpmem.copyTexSrcXY.y;
 
     // Here Width+1 like Height, otherwise some textures are corrupted already since the native
     // resolution.
-    srcRect.right = static_cast<int>(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-    srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+    srcRect.right = bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1;
+    srcRect.bottom = bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1;
 
     // Since the copy X and Y coordinates/sizes are 10-bit, the game can configure a copy region up
     // to 1024x1024. Hardware tests have found that the number of bytes written does not depend on
@@ -238,21 +238,21 @@ static void BPWritten(const BPCmd& bp)
     // writing the junk data, we don't write anything to RAM at all for over-sized copies, and clamp
     // to the EFB borders for over-offset copies. The arcade virtual console games (e.g. 1942) are
     // known for configuring these out-of-range copies.
-    int copy_width = srcRect.GetWidth();
-    int copy_height = srcRect.GetHeight();
-    if (srcRect.right > s32(EFB_WIDTH) || srcRect.bottom > s32(EFB_HEIGHT))
+    u32 copy_width = srcRect.GetWidth();
+    u32 copy_height = srcRect.GetHeight();
+    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
     {
       WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", copy_width,
                    copy_height, srcRect.left, srcRect.top, destStride);
 
       // Adjust the copy size to fit within the EFB. So that we don't end up with a stretched image,
       // instead of clamping the source rectangle, we reduce it by the over-sized amount.
-      if (copy_width > s32(EFB_WIDTH))
+      if (copy_width > EFB_WIDTH)
       {
         srcRect.right -= copy_width - EFB_WIDTH;
         copy_width = EFB_WIDTH;
       }
-      if (copy_height > s32(EFB_HEIGHT))
+      if (copy_height > EFB_HEIGHT)
       {
         srcRect.bottom -= copy_height - EFB_HEIGHT;
         copy_height = EFB_HEIGHT;
@@ -1010,8 +1010,8 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
 
   case BPMEM_SCISSOROFFSET:  // 0x59
   {
-    const X10Y10 xy{.hex = cmddata};
-    return std::make_pair(RegName(BPMEM_EFB_TL),
+    const S32X10Y10 xy{.hex = cmddata};
+    return std::make_pair(RegName(BPMEM_SCISSOROFFSET),
                           fmt::format("Scissor X offset: {}\nScissor Y offset: {}", xy.x, xy.y));
   }
 

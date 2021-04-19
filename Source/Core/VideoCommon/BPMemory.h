@@ -993,6 +993,12 @@ union X10Y10
   BitField<10, 10, u32> y;
   u32 hex;
 };
+union S32X10Y10
+{
+  BitField<0, 10, s32> x;
+  BitField<10, 10, s32> y;
+  u32 hex;
+};
 
 // Framebuffer/pixel stuff (incl fog)
 enum class SrcBlendFactor : u32
@@ -1949,7 +1955,7 @@ struct BPMemory
   u32 boundbox0;                      // 55
   u32 boundbox1;                      // 56
   u32 unknown7[2];                    // 57,58
-  X10Y10 scissorOffset;               // 59
+  S32X10Y10 scissorOffset;            // 59
   u32 unknown8[6];                    // 5a,5b,5c,5d, 5e,5f
   BPS_TmemConfig tmem_config;         // 60-66
   u32 metric;                         // 67
