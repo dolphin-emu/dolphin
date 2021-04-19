@@ -287,6 +287,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // ======================
   const auto LookupIndirectTexture = [&out, stereo](std::string_view out_var_name,
                                                     std::string_view in_index_name) {
+    // in_index_name is the indirect stage, not the tev stage
+    // bpmem_iref is packed differently from RAS1_IREF
     out.Write("{{\n"
               "  uint iref = bpmem_iref({});\n"
               "  if ( iref != 0u)\n"
@@ -304,6 +306,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "[texmap].xy, {})).abg;\n",
               in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
               stereo ? "float(layer)" : "0.0");
+    // There is always a bit set in bpmem_iref if the data is valid (matrix is not off, and the
+    // indirect texture stage is enabled). If the matrix is off, the result doesn't matter; if the
+    // indirect texture stage is disabled, the result is undefined (and produces a glitchy pattern
+    // on hardware, different from this).
     out.Write("  }}\n"
               "  else\n"
               "  {{\n"
