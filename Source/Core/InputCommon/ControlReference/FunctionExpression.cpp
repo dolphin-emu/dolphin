@@ -636,6 +636,57 @@ private:
   mutable Clock::time_point m_release_time = Clock::now();
 };
 
+// usage: ntimes(input, n = 1)
+class NTimesExpression : public FunctionExpression
+{
+private:
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    if (args.size() == 1 || args.size() == 2)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, times = 1"};
+  }
+
+  ControlState GetValue() const override
+  {
+    if (m_running)
+    {
+      m_loops++;
+      if (m_loops >= m_times * 2 - 1)
+        m_running = false;
+
+      if (m_loops % 2 == 1)
+        return m_input;
+      else
+        return 0.0;
+    }
+    else if (m_zeroed && GetArg(0).GetValue() != 0.0)
+    {
+      m_input = GetArg(0).GetValue();
+      m_times = GetArg(1).GetValue();
+      m_running = true;
+      m_loops = 1;
+      m_zeroed = false;
+      return m_input;
+    }
+    else
+    {
+      if (GetArg(0).GetValue() == 0.0)
+        m_zeroed = true;
+      return 0.0;
+    }
+  }
+
+private:
+  mutable bool m_zeroed = true;
+  mutable bool m_running = false;
+  mutable int m_loops = 0;
+  mutable ControlState m_input = 0.0;
+  mutable int m_times = 0;
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
 {
   if (name == "not")
@@ -684,6 +735,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
     return std::make_unique<RelativeExpression>();
   if (name == "pulse")
     return std::make_unique<PulseExpression>();
+  if (name == "ntimes")
+    return std::make_unique<NTimesExpression>();
 
   return nullptr;
 }

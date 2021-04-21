@@ -292,6 +292,7 @@ void IOWindow::CreateMainLayout()
   m_functions_combo->addItem(QStringLiteral("tap"));
   m_functions_combo->addItem(QStringLiteral("relative"));
   m_functions_combo->addItem(QStringLiteral("pulse"));
+  m_functions_combo->addItem(QStringLiteral("ntimes"));
   m_functions_combo->addItem(QStringLiteral("sin"));
   m_functions_combo->addItem(QStringLiteral("cos"));
   m_functions_combo->addItem(QStringLiteral("tan"));
