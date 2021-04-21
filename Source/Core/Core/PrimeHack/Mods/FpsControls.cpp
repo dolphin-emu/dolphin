@@ -207,6 +207,19 @@ void FpsControls::handle_beam_visor_switch(std::array<int, 4> const &beams,
   if (visor_id != -1) {
     if (read32(powerups_array + (visor_off * powerups_size) + powerups_offset)) {
       write32(visor_id, active_visor);
+
+      // Trigger holster animation.
+      // Prime 3 already animates holstering. Gamecube does not need to use the visor controls.
+      if (visor_id == 2) {
+        auto active_game = GetHackManager()->get_active_game();
+        if (active_game == Game::PRIME_1 || active_game == Game::PRIME_2) {
+          LOOKUP_DYN(gun_holster_state);
+          LOOKUP(holster_timer_offset);
+
+          write32(3, gun_holster_state);
+          writef32(0.2f, gun_holster_state + holster_timer_offset); // Holster timer
+        }
+      }
     }
   }
 

@@ -21,6 +21,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_1, "powerups_array_base", 0x804bfcd4, 0x804c3c14, 0x804bff54);
   addr_db.register_address(Game::PRIME_1, "powerups_size", 8, 8, 8);
   addr_db.register_address(Game::PRIME_1, "powerups_offset", 0x30, 0x30, 0x30);
+  addr_db.register_address(Game::PRIME_1, "holster_timer_offset", 0x4, 0x4, 0x4);
   addr_db.register_dynamic_address(Game::PRIME_1, "object_list", "state_manager", {mrt1(0x810), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1, "player", "state_manager", {mrt1(0x84c), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1, "firstperson_pitch", "player", {mrt1(0x3dc)});
@@ -36,6 +37,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_1, "beamvisor_menu_mode", "beamvisor_menu_base", {rt0, rt(0x334, 0x334, 0x340)});
   addr_db.register_dynamic_address(Game::PRIME_1, "powerups_array", "powerups_array_base", {rt0, rt0});
   addr_db.register_dynamic_address(Game::PRIME_1, "active_visor", "powerups_array", {mrt1(0x1c)});
+  addr_db.register_dynamic_address(Game::PRIME_1, "gun_holster_state", "player", {mrt1(0x488)});
 
   // angular momentum z = player+x118
   // pitch = player+x3dc
@@ -82,6 +84,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_2, "seq_timer_vec_offset", 0x34, 0x34, 0x34);
   addr_db.register_address(Game::PRIME_2, "seq_timer_fire_size", 0x14, 0x14, 0x14);
   addr_db.register_address(Game::PRIME_2, "seq_timer_time_offset", 0xc, 0xc, 0xc);
+  addr_db.register_address(Game::PRIME_2, "holster_timer_offset", -0x20, -0x20, -0x20);
   addr_db.register_dynamic_address(Game::PRIME_2, "player", "state_manager", {mrt1(0x14f4), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2, "object_list", "state_manager", {mrt1(0x810), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2, "camera_manager", "state_manager", {mrt1(0x1514), mrt1(0x10)});
@@ -100,7 +103,9 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_2, "world_id", "world_id_ptr", {rt0, rt0});
   addr_db.register_dynamic_address(Game::PRIME_2, "area_id", "state_manager", {mrt1(0x1e44)});
   addr_db.register_dynamic_address(Game::PRIME_2, "area_layers_vector", "state_manager", {mrt1(0x1e38), mrt1(0x8), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_2, "gun_holster_state", "player", {mrt1(0xEA8), mrt1(0x3A4)});
 
+  // Strangely while the holster state is stored in CPlayer in MP1, in MP2 it is placed into a new class.
 
   addr_db.register_address(Game::PRIME_2_GCN, "state_manager", 0x803db6e0, 0x803dc900, 0x803de690);
   addr_db.register_address(Game::PRIME_2_GCN, "tweakgun_offset", -0x6e1c, -0x6e14, -0x6ddc);
