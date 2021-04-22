@@ -108,8 +108,7 @@ private:
   CPU::State AdvanceFrame();
 
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
-  void WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame,
-                      const AnalyzedFrameInfo& info);
+  void WriteFramePart(const FramePart& part, u32* next_mem_update, const FifoFrameInfo& frame);
 
   void WriteAllMemoryUpdates();
   void WriteMemory(const MemoryUpdate& memUpdate);

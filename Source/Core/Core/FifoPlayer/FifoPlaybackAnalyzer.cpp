@@ -46,7 +46,9 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     s_DrawingObject = false;
 
     u32 cmdStart = 0;
-    u32 nextMemUpdate = 0;
+
+    u32 part_start = 0;
+    FifoAnalyzer::CPMemory cpmem;
 
 #if LOG_FIFO_CMDS
     // Debugging
@@ -55,14 +57,6 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
     while (cmdStart < frame.fifoData.size())
     {
-      // Add memory updates that have occurred before this point in the frame
-      while (nextMemUpdate < frame.memoryUpdates.size() &&
-             frame.memoryUpdates[nextMemUpdate].fifoPosition <= cmdStart)
-      {
-        analyzed.memoryUpdates.push_back(frame.memoryUpdates[nextMemUpdate]);
-        ++nextMemUpdate;
-      }
-
       const bool wasDrawing = s_DrawingObject;
       const u32 cmdSize =
           FifoAnalyzer::AnalyzeCommand(&frame.fifoData[cmdStart], DecodeMode::Playback);
@@ -79,9 +73,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       if (cmdSize == 0)
       {
         // Clean up frame analysis
-        analyzed.objectStarts.clear();
-        analyzed.objectCPStates.clear();
-        analyzed.objectEnds.clear();
+        analyzed.parts.clear();
 
         return;
       }
@@ -90,22 +82,28 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       {
         if (s_DrawingObject)
         {
-          analyzed.objectStarts.push_back(cmdStart);
-          analyzed.objectCPStates.push_back(s_CpMem);
+          // Start of primitive data for an object
+          analyzed.AddPart(FramePartType::Commands, part_start, cmdStart, s_CpMem);
+          part_start = cmdStart;
+          // Copy cpmem now, because end_of_primitives isn't triggered until the first opcode after
+          // primitive data, and the first opcode might update cpmem
+          std::memcpy(&cpmem, &s_CpMem, sizeof(FifoAnalyzer::CPMemory));
         }
         else
         {
-          analyzed.objectEnds.push_back(cmdStart);
+          // End of primitive data for an object, and thus end of the object
+          analyzed.AddPart(FramePartType::PrimitiveData, part_start, cmdStart, cpmem);
+          part_start = cmdStart;
         }
       }
 
       cmdStart += cmdSize;
     }
 
-    if (analyzed.objectEnds.size() < analyzed.objectStarts.size())
-      analyzed.objectEnds.push_back(cmdStart);
-
-    ASSERT(analyzed.objectStarts.size() == analyzed.objectCPStates.size());
-    ASSERT(analyzed.objectStarts.size() == analyzed.objectEnds.size());
+    if (part_start != cmdStart)
+    {
+      // Remaining data, usually without any primitives
+      analyzed.AddPart(FramePartType::Commands, part_start, cmdStart, s_CpMem);
+    }
   }
 }

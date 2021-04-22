@@ -3,6 +3,8 @@
 
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
 
+#include <algorithm>
+
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -27,8 +29,12 @@
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/XFStructs.h"
 
+// Values range from 0 to number of frames - 1
 constexpr int FRAME_ROLE = Qt::UserRole;
-constexpr int OBJECT_ROLE = Qt::UserRole + 1;
+// Values range from 0 to number of parts - 1
+constexpr int PART_START_ROLE = Qt::UserRole + 1;
+// Values range from 1 to number of parts
+constexpr int PART_END_ROLE = Qt::UserRole + 2;
 
 FIFOAnalyzer::FIFOAnalyzer()
 {
@@ -144,22 +150,58 @@ void FIFOAnalyzer::UpdateTree()
   auto* file = FifoPlayer::GetInstance().GetFile();
 
   const u32 frame_count = file->GetFrameCount();
+
   for (u32 frame = 0; frame < frame_count; frame++)
   {
     auto* frame_item = new QTreeWidgetItem({tr("Frame %1").arg(frame)});
 
     recording_item->addChild(frame_item);
 
-    const u32 object_count = FifoPlayer::GetInstance().GetFrameObjectCount(frame);
-    for (u32 object = 0; object < object_count; object++)
-    {
-      auto* object_item = new QTreeWidgetItem({tr("Object %1").arg(object)});
+    const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
+    ASSERT(frame_info.parts.size() != 0);
 
+    Common::EnumMap<u32, FramePartType::PrimitiveData> part_counts;
+    u32 part_start = 0;
+
+    for (u32 part_nr = 0; part_nr < frame_info.parts.size(); part_nr++)
+    {
+      const auto& part = frame_info.parts[part_nr];
+
+      const u32 part_type_nr = part_counts[part.m_type];
+      part_counts[part.m_type]++;
+
+      QTreeWidgetItem* object_item = nullptr;
+      if (part.m_type == FramePartType::PrimitiveData)
+        object_item = new QTreeWidgetItem({tr("Object %1").arg(part_type_nr)});
+      // We don't create dedicated labels for FramePartType::Command;
+      // those are grouped with the primitive
+
+      if (object_item != nullptr)
+      {
+        frame_item->addChild(object_item);
+
+        object_item->setData(0, FRAME_ROLE, frame);
+        object_item->setData(0, PART_START_ROLE, part_start);
+        object_item->setData(0, PART_END_ROLE, part_nr);
+
+        part_start = part_nr + 1;
+      }
+    }
+
+    // Final data (the XFB copy)
+    if (part_start != frame_info.parts.size())
+    {
+      QTreeWidgetItem* object_item = new QTreeWidgetItem({tr("Final Data")});
       frame_item->addChild(object_item);
 
       object_item->setData(0, FRAME_ROLE, frame);
-      object_item->setData(0, OBJECT_ROLE, object);
+      object_item->setData(0, PART_START_ROLE, part_start);
+      object_item->setData(0, PART_END_ROLE, u32(frame_info.parts.size() - 1));
     }
+
+    // The counts we computed should match the frame's counts
+    ASSERT(std::equal(frame_info.part_type_counts.begin(), frame_info.part_type_counts.end(),
+                      part_counts.begin()));
   }
 }
 
@@ -196,19 +238,19 @@ void FIFOAnalyzer::UpdateDetails()
 
   const auto items = m_tree_widget->selectedItems();
 
-  if (items.isEmpty() || items[0]->data(0, OBJECT_ROLE).isNull())
+  if (items.isEmpty() || items[0]->data(0, PART_START_ROLE).isNull())
     return;
 
   const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
-  const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
+  const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
+  const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
 
-  const auto& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
+  const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  // Note that frame_info.objectStarts[object_nr] is the start of the primitive data,
-  // but we want to start with the register updates which happen before that.
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+  const u32 object_start = frame_info.parts[start_part_nr].m_start;
+  const u32 object_end = frame_info.parts[end_part_nr].m_end;
+  const u32 object_size = object_end - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
@@ -348,10 +390,9 @@ void FIFOAnalyzer::UpdateDetails()
       if ((command & 0xC0) == 0x80)
       {
         // Object primitive data
-
         const u8 vat = command & OpcodeDecoder::GX_VAT_MASK;
-        const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
-        const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+        const auto& vtx_desc = frame_info.parts[end_part_nr].m_cpmem.vtxDesc;
+        const auto& vtx_attr = frame_info.parts[end_part_nr].m_cpmem.vtxAttr[vat];
 
         const auto name = GetPrimitiveName(command);
 
@@ -396,8 +437,6 @@ void FIFOAnalyzer::UpdateDetails()
     m_detail_list->addItem(new_label);
   }
 
-  ASSERT(object_offset == object_size);
-
   // Needed to ensure the description updates when changing objects
   m_detail_list->setCurrentRow(0);
 }
@@ -412,11 +451,14 @@ void FIFOAnalyzer::BeginSearch()
   const auto items = m_tree_widget->selectedItems();
 
   if (items.isEmpty() || items[0]->data(0, FRAME_ROLE).isNull() ||
-      items[0]->data(0, OBJECT_ROLE).isNull())
+      items[0]->data(0, PART_START_ROLE).isNull())
   {
     m_search_label->setText(tr("Invalid search parameters (no object selected)"));
     return;
   }
+
+  // Having PART_START_ROLE indicates that this is valid
+  const int object_idx = items[0]->parent()->indexOfChild(items[0]);
 
   // TODO: Remove even string length limit
   if (search_str.length() % 2)
@@ -448,13 +490,15 @@ void FIFOAnalyzer::BeginSearch()
   m_search_results.clear();
 
   const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
-  const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
+  const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
+  const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
 
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+  const u32 object_start = frame_info.parts[start_part_nr].m_start;
+  const u32 object_end = frame_info.parts[end_part_nr].m_end;
+  const u32 object_size = object_end - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
@@ -473,7 +517,7 @@ void FIFOAnalyzer::BeginSearch()
     {
       if (std::equal(search_val.begin(), search_val.end(), ptr))
       {
-        m_search_results.emplace_back(frame_nr, object_nr, cmd_nr);
+        m_search_results.emplace_back(frame_nr, object_idx, cmd_nr);
         break;
       }
     }
@@ -527,7 +571,7 @@ void FIFOAnalyzer::ShowSearchResult(size_t index)
   const auto& result = m_search_results[index];
 
   QTreeWidgetItem* object_item =
-      m_tree_widget->topLevelItem(0)->child(result.m_frame)->child(result.m_object);
+      m_tree_widget->topLevelItem(0)->child(result.m_frame)->child(result.m_object_idx);
 
   m_tree_widget->setCurrentItem(object_item);
   m_detail_list->setCurrentRow(result.m_cmd);
@@ -550,17 +594,18 @@ void FIFOAnalyzer::UpdateDescription()
   if (items.isEmpty() || m_object_data_offsets.empty())
     return;
 
-  if (items[0]->data(0, FRAME_ROLE).isNull() || items[0]->data(0, OBJECT_ROLE).isNull())
+  if (items[0]->data(0, FRAME_ROLE).isNull() || items[0]->data(0, PART_START_ROLE).isNull())
     return;
 
   const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
-  const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
+  const u32 start_part_nr = items[0]->data(0, PART_START_ROLE).toUInt();
+  const u32 end_part_nr = items[0]->data(0, PART_END_ROLE).toUInt();
   const u32 entry_nr = m_detail_list->currentRow();
 
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
+  const u32 object_start = frame_info.parts[start_part_nr].m_start;
   const u32 entry_start = m_object_data_offsets[entry_nr];
 
   const u8* cmddata = &fifo_frame.fifoData[object_start + entry_start];
@@ -671,8 +716,8 @@ void FIFOAnalyzer::UpdateDescription()
     text = tr("Primitive %1").arg(name);
     text += QLatin1Char{'\n'};
 
-    const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
-    const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+    const auto& vtx_desc = frame_info.parts[end_part_nr].m_cpmem.vtxDesc;
+    const auto& vtx_attr = frame_info.parts[end_part_nr].m_cpmem.vtxAttr[vat];
     const auto component_sizes = VertexLoaderBase::GetVertexComponentSizes(vtx_desc, vtx_attr);
 
     u32 i = 3;
