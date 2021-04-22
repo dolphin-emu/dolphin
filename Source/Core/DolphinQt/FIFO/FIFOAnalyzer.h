@@ -8,6 +8,7 @@
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"  // For CPMemory
 
 class QGroupBox;
 class QLabel;
@@ -67,6 +68,8 @@ private:
     const u32 m_cmd;
   };
 
+  // Offsets from the start of the object for each command within the currently selected object.
   std::vector<int> m_object_data_offsets;
+
   std::vector<SearchResult> m_search_results;
 };

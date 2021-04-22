@@ -190,7 +190,7 @@ u32 FifoPlayer::GetMaxObjectCount() const
   u32 result = 0;
   for (auto& frame : m_FrameInfo)
   {
-    const u32 count = static_cast<u32>(frame.objectStarts.size());
+    const u32 count = static_cast<u32>(frame.objects.size());
     if (count > result)
       result = count;
   }
@@ -201,7 +201,7 @@ u32 FifoPlayer::GetFrameObjectCount(u32 frame) const
 {
   if (frame < m_FrameInfo.size())
   {
-    return static_cast<u32>(m_FrameInfo[frame].objectStarts.size());
+    return static_cast<u32>(m_FrameInfo[frame].objects.size());
   }
 
   return 0;
@@ -262,53 +262,34 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 
   // Determine start and end objects
-  u32 numObjects = (u32)(info.objectStarts.size());
-  u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
-  u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
+  const u32 num_objects = (u32)(info.objects.size());
+  const u32 draw_start = std::min(num_objects, m_ObjectRangeStart);
+  const u32 draw_end = std::min(num_objects - 1, m_ObjectRangeEnd);
 
-  u32 position = 0;
-  u32 memoryUpdate = 0;
+  u32 memory_update = 0;
 
   // Skip memory updates during frame if true
   if (m_EarlyMemoryUpdates)
   {
-    memoryUpdate = (u32)(frame.memoryUpdates.size());
+    memory_update = (u32)(frame.memoryUpdates.size());
   }
 
-  if (numObjects > 0)
+  for (u32 object_num = 0; object_num < num_objects; object_num++)
   {
-    u32 objectNum = 0;
-
-    // Write fifo data skipping objects before the draw range
-    while (objectNum < drawStart)
+    const auto& object = info.objects[object_num];
+    if (object_num < draw_start || object_num > draw_end)
     {
-      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
-
-      position = info.objectEnds[objectNum];
-      ++objectNum;
+      // If an object is out of range, only apply the commands, not the primitive data.
+      // We need to still apply the commands because commands from earlier objects still apply to
+      // later ones (and generally games will not reconfigure everything for each object).
+      WriteFramePart(object.m_start, object.m_start + object.m_primitive_offset, memory_update,
+                     frame, info);
     }
-
-    // Write objects in draw range
-    if (objectNum < numObjects && drawStart <= drawEnd)
+    else
     {
-      objectNum = drawEnd;
-      WriteFramePart(position, info.objectEnds[objectNum], memoryUpdate, frame, info);
-      position = info.objectEnds[objectNum];
-      ++objectNum;
-    }
-
-    // Write fifo data skipping objects after the draw range
-    while (objectNum < numObjects)
-    {
-      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
-
-      position = info.objectEnds[objectNum];
-      ++objectNum;
+      WriteFramePart(object.m_start, object.m_start + object.m_size, memory_update, frame, info);
     }
   }
-
-  // Write data after the last object
-  WriteFramePart(position, static_cast<u32>(frame.fifoData.size()), memoryUpdate, frame, info);
 
   FlushWGP();
 

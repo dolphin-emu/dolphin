@@ -27,7 +27,9 @@
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/XFStructs.h"
 
+// Values range from 0 to number of frames - 1
 constexpr int FRAME_ROLE = Qt::UserRole;
+// Values range from 0 to number of objects - 1
 constexpr int OBJECT_ROLE = Qt::UserRole + 1;
 
 FIFOAnalyzer::FIFOAnalyzer()
@@ -144,6 +146,7 @@ void FIFOAnalyzer::UpdateTree()
   auto* file = FifoPlayer::GetInstance().GetFile();
 
   const u32 frame_count = file->GetFrameCount();
+
   for (u32 frame = 0; frame < frame_count; frame++)
   {
     auto* frame_item = new QTreeWidgetItem({tr("Frame %1").arg(frame)});
@@ -151,6 +154,7 @@ void FIFOAnalyzer::UpdateTree()
     recording_item->addChild(frame_item);
 
     const u32 object_count = FifoPlayer::GetInstance().GetFrameObjectCount(frame);
+
     for (u32 object = 0; object < object_count; object++)
     {
       auto* object_item = new QTreeWidgetItem({tr("Object %1").arg(object)});
@@ -159,20 +163,6 @@ void FIFOAnalyzer::UpdateTree()
 
       object_item->setData(0, FRAME_ROLE, frame);
       object_item->setData(0, OBJECT_ROLE, object);
-    }
-
-    // There may be data after the final object; include it if so.
-    const auto& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
-    const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame);
-    const u32 last_object_end = (object_count != 0) ? frame_info.objectEnds[object_count - 1] : 0;
-    if (last_object_end < fifo_frame.fifoData.size())
-    {
-      auto* object_item = new QTreeWidgetItem({tr("Remaining data")});
-
-      frame_item->addChild(object_item);
-
-      object_item->setData(0, FRAME_ROLE, frame);
-      object_item->setData(0, OBJECT_ROLE, object_count);
     }
   }
 }
@@ -216,18 +206,13 @@ void FIFOAnalyzer::UpdateDetails()
   const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
   const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
 
-  const auto& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
+  const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  // Note that frame_info.objectStarts[object_nr] is the start of the primitive data,
-  // but we want to start with the register updates which happen before that.
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_end = (object_nr < frame_info.objectEnds.size()) ?
-                             frame_info.objectEnds[object_nr] :
-                             static_cast<u32>(fifo_frame.fifoData.size());
-  const u32 object_size = object_end - object_start;
+  const auto& object_info = frame_info.objects[object_nr];
+  const u32 object_size = object_info.m_size;
 
-  const u8* const object = &fifo_frame.fifoData[object_start];
+  const u8* const object = &fifo_frame.fifoData[object_info.m_start];
 
   u32 object_offset = 0;
   while (object_offset < object_size)
@@ -365,10 +350,11 @@ void FIFOAnalyzer::UpdateDetails()
       if ((command & 0xC0) == 0x80)
       {
         // Object primitive data
+        ASSERT(object_offset >= object_info.m_primitive_offset);
 
         const u8 vat = command & OpcodeDecoder::GX_VAT_MASK;
-        const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
-        const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+        const auto& vtx_desc = object_info.m_cpmem.vtxDesc;
+        const auto& vtx_attr = object_info.m_cpmem.vtxAttr[vat];
 
         const auto name = GetPrimitiveName(command);
 
@@ -408,8 +394,9 @@ void FIFOAnalyzer::UpdateDetails()
       break;
     }
     }
-    new_label = QStringLiteral("%1:  ").arg(object_start + start_offset, 8, 16, QLatin1Char('0')) +
-                new_label;
+    new_label =
+        QStringLiteral("%1:  ").arg(object_info.m_start + start_offset, 8, 16, QLatin1Char('0')) +
+        new_label;
     m_detail_list->addItem(new_label);
   }
 
@@ -470,11 +457,8 @@ void FIFOAnalyzer::BeginSearch()
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_end = (object_nr < frame_info.objectEnds.size()) ?
-                             frame_info.objectEnds[object_nr] :
-                             static_cast<u32>(fifo_frame.fifoData.size());
-  const u32 object_size = object_end - object_start;
+  const u32 object_start = frame_info.objects[object_nr].m_start;
+  const u32 object_size = frame_info.objects[object_nr].m_size;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
@@ -580,10 +564,10 @@ void FIFOAnalyzer::UpdateDescription()
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
+  const auto& object_info = frame_info.objects[object_nr];
   const u32 entry_start = m_object_data_offsets[entry_nr];
 
-  const u8* cmddata = &fifo_frame.fifoData[object_start + entry_start];
+  const u8* cmddata = &fifo_frame.fifoData[object_info.m_start + entry_start];
   const Opcode opcode = static_cast<Opcode>(*cmddata);
 
   // TODO: Not sure whether we should bother translating the descriptions
@@ -691,8 +675,8 @@ void FIFOAnalyzer::UpdateDescription()
     text = tr("Primitive %1").arg(name);
     text += QLatin1Char{'\n'};
 
-    const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
-    const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+    const auto& vtx_desc = object_info.m_cpmem.vtxDesc;
+    const auto& vtx_attr = object_info.m_cpmem.vtxAttr[vat];
     const auto component_sizes = VertexLoaderBase::GetVertexComponentSizes(vtx_desc, vtx_attr);
 
     u32 i = 3;

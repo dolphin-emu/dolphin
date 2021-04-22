@@ -48,6 +48,10 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     u32 cmdStart = 0;
     u32 nextMemUpdate = 0;
 
+    u32 object_start = 0;
+    FifoAnalyzer::CPMemory cpmem;
+    u32 object_primitive_offset = 0;
+
 #if LOG_FIFO_CMDS
     // Debugging
     std::vector<CmdData> prevCmds;
@@ -79,9 +83,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       if (cmdSize == 0)
       {
         // Clean up frame analysis
-        analyzed.objectStarts.clear();
-        analyzed.objectCPStates.clear();
-        analyzed.objectEnds.clear();
+        analyzed.objects.clear();
 
         return;
       }
@@ -90,22 +92,38 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       {
         if (s_DrawingObject)
         {
-          analyzed.objectStarts.push_back(cmdStart);
-          analyzed.objectCPStates.push_back(s_CpMem);
+          // Start of primitive data for an object
+          object_primitive_offset = cmdStart - object_start;
+          // Copy cpmem now, because s_DrawingObject doesn't become false until the first opcode
+          // after primitive data, and the first opcode might update cpmem
+          std::memcpy(&cpmem, &s_CpMem, sizeof(CPMemory));
         }
         else
         {
-          analyzed.objectEnds.push_back(cmdStart);
+          // End of primitive data for an object, and thus end of the object
+          const u32 size = cmdStart - object_start;
+          analyzed.objects.emplace_back(object_start, object_primitive_offset, size, cpmem);
+          object_start = cmdStart;
         }
       }
 
       cmdStart += cmdSize;
     }
 
-    if (analyzed.objectEnds.size() < analyzed.objectStarts.size())
-      analyzed.objectEnds.push_back(cmdStart);
+    if (object_start != cmdStart)
+    {
+      const u32 size = cmdStart - object_start;
 
-    ASSERT(analyzed.objectStarts.size() == analyzed.objectCPStates.size());
-    ASSERT(analyzed.objectStarts.size() == analyzed.objectEnds.size());
+      // Remaining data, usually without any primitives
+      // (if object_primitive_offset >= object_start, the end of the frame was in primitive data,
+      // which probably can't happen since there needs to be an XFB copy)
+      if (object_primitive_offset < object_start)
+      {
+        object_primitive_offset = size;
+        std::memcpy(&cpmem, &s_CpMem, sizeof(CPMemory));
+      }
+
+      analyzed.objects.emplace_back(object_start, object_primitive_offset, size, cpmem);
+    }
   }
 }
