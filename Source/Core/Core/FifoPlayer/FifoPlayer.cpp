@@ -305,6 +305,15 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
     CoreTiming::Idle();
     CoreTiming::Advance();
   }
+
+  FlushWGP();
+
+  // Sleep while the GPU is active
+  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
+  {
+    CoreTiming::Idle();
+    CoreTiming::Advance();
+  }
 }
 
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
