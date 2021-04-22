@@ -150,6 +150,7 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
   void AddModLoaderMenu();
+  void AddPrimeHackMenu();
 
   void UpdateStateSlotMenu();
 

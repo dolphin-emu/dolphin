@@ -85,6 +85,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddSymbolsMenu();
   AddHelpMenu();
   AddModLoaderMenu();
+  AddPrimeHackMenu();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
@@ -631,6 +632,16 @@ void MenuBar::AddModLoaderMenu() {
       prime::ResumeMod();
     }
   });
+}
+
+void MenuBar::AddPrimeHackMenu() {
+  QMenu* primehack_menu = addMenu(tr("PrimeHack"));
+
+  primehack_menu->addAction(tr("&Discord"), this,
+    []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.gg/ZbeKZxDb6W"))); });
+
+  primehack_menu->addAction(tr("&Wiki / Help"), this,
+    []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/shiiion/dolphin/wiki"))); });
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
