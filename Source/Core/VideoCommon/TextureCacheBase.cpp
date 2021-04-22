@@ -47,6 +47,7 @@
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TmemBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1177,9 +1178,23 @@ private:
 TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
+  // FIXME: if and only if it's small enough to fit in TMEM, otherwise we need to hash.
   if (IsValidBindPoint(stage) && bound_textures[stage])
   {
-    return bound_textures[stage];
+    TCacheEntry* entry = bound_textures[stage];
+    // If the TMEM configuration is such that this texture is more or less guarneteed to still
+    // be in TMEM, then we know we can reuse the old entry without even hashing the memory
+    if (TmemBase::IsCached(stage))
+    {
+      return entry;
+    }
+
+    // Otherwise, hash the backing memory and check it's unchanged.
+    // FIXME: this doesn't correctly handle textures from tmem.
+    if (!entry->tmem_only && entry->base_hash == entry->CalculateHash())
+    {
+      return entry;
+    }
   }
 
   const FourTexUnits& tex = bpmem.tex[stage >> 2];
@@ -1208,6 +1223,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
   // We need to keep track of invalided textures until they have actually been replaced or
   // re-loaded
+  TmemBase::Bind(stage, entry->NumBlocksX(), entry->NumBlocksY(), entry->GetNumLevels() > 1,
+                 entry->format == TextureFormat::RGBA8);
   valid_bind_points.set(stage);
 
   return entry;
@@ -2851,17 +2868,20 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
 
 u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
 {
+  // RGBA takes two cache lines per block; all others take one
+  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
+
+  return NumBlocksX() * bytes_per_block;
+}
+
+u32 TextureCacheBase::TCacheEntry::NumBlocksX() const
+{
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
   // Round up source height to multiple of block size
   const u32 actualWidth = Common::AlignUp(native_width, blockW);
 
-  const u32 numBlocksX = actualWidth / blockW;
-
-  // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
-
-  return numBlocksX * bytes_per_block;
+  return actualWidth / blockW;
 }
 
 u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
@@ -2916,6 +2936,7 @@ int TextureCacheBase::TCacheEntry::HashSampleSize() const
 
 u64 TextureCacheBase::TCacheEntry::CalculateHash() const
 {
+  // FIXME: textures from tmem won't get the correct hash.
   u8* ptr = Memory::GetPointer(addr);
   if (memory_stride == BytesPerRow())
   {

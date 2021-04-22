@@ -175,6 +175,7 @@ public:
 
     bool IsEfbCopy() const { return is_efb_copy; }
     bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
+    u32 NumBlocksX() const;
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 

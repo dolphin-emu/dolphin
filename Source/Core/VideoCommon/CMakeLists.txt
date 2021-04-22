@@ -88,6 +88,8 @@ add_library(videocommon
   TextureDecoder.h
   TextureDecoder_Common.cpp
   TextureDecoder_Util.h
+  TmemBase.cpp
+	TmemBase.h
   UberShaderCommon.cpp
   UberShaderCommon.h
   UberShaderPixel.cpp
