@@ -652,7 +652,7 @@ private:
   ControlState GetValue() const override
   {
     const ControlState input = GetArg(0).GetValue();
-    const int times = (GetArgCount() >= 2) ? int(GetArg(1).GetValue()) : 1;
+    const u32 times = GetArgCount() >= 2 ? u32(std::max(GetArg(1).GetValue() + 0.5, 0.0)) : 1;
 
     if (m_running)
     {
@@ -685,9 +685,9 @@ private:
 private:
   mutable bool m_zeroed = true;
   mutable bool m_running = false;
-  mutable int m_loops = 0;
+  mutable u32 m_loops = 0;
   mutable ControlState m_input = 0.0;
-  mutable int m_times = 0;
+  mutable u32 m_times = 0;
 };
 
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
