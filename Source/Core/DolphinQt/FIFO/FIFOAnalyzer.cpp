@@ -160,6 +160,20 @@ void FIFOAnalyzer::UpdateTree()
       object_item->setData(0, FRAME_ROLE, frame);
       object_item->setData(0, OBJECT_ROLE, object);
     }
+
+    // There may be data after the final object; include it if so.
+    const auto& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
+    const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame);
+    const u32 last_object_end = (object_count != 0) ? frame_info.objectEnds[object_count - 1] : 0;
+    if (last_object_end < fifo_frame.fifoData.size())
+    {
+      auto* object_item = new QTreeWidgetItem({tr("Remaining data")});
+
+      frame_item->addChild(object_item);
+
+      object_item->setData(0, FRAME_ROLE, frame);
+      object_item->setData(0, OBJECT_ROLE, object_count);
+    }
   }
 }
 
@@ -208,7 +222,10 @@ void FIFOAnalyzer::UpdateDetails()
   // Note that frame_info.objectStarts[object_nr] is the start of the primitive data,
   // but we want to start with the register updates which happen before that.
   const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+  const u32 object_end = (object_nr < frame_info.objectEnds.size()) ?
+                             frame_info.objectEnds[object_nr] :
+                             static_cast<u32>(fifo_frame.fifoData.size());
+  const u32 object_size = object_end - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
@@ -454,7 +471,10 @@ void FIFOAnalyzer::BeginSearch()
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
   const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+  const u32 object_end = (object_nr < frame_info.objectEnds.size()) ?
+                             frame_info.objectEnds[object_nr] :
+                             static_cast<u32>(fifo_frame.fifoData.size());
+  const u32 object_size = object_end - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
