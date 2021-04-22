@@ -646,13 +646,13 @@ private:
     if (args.size() == 1 || args.size() == 2)
       return ArgumentsAreValid{};
     else
-      return ExpectedArguments{"input, [times = 1]"};
+      return ExpectedArguments{"input, times = 1"};
   }
 
   ControlState GetValue() const override
   {
     const ControlState input = GetArg(0).GetValue();
-    const ControlState times = GetArg(1).GetValue();
+    const int times = (GetArgCount() >= 2) ? int(GetArg(1).GetValue()) : 1;
 
     if (m_running)
     {
