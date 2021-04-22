@@ -636,7 +636,7 @@ private:
   mutable Clock::time_point m_release_time = Clock::now();
 };
 
-// usage: ntimes(input, n = 1)
+// usage: ntimes(input, times = 1)
 class NTimesExpression : public FunctionExpression
 {
 private:
@@ -646,11 +646,14 @@ private:
     if (args.size() == 1 || args.size() == 2)
       return ArgumentsAreValid{};
     else
-      return ExpectedArguments{"input, times = 1"};
+      return ExpectedArguments{"input, [times = 1]"};
   }
 
   ControlState GetValue() const override
   {
+    const ControlState input = GetArg(0).GetValue();
+    const ControlState times = GetArg(1).GetValue();
+
     if (m_running)
     {
       m_loops++;
@@ -662,10 +665,10 @@ private:
       else
         return 0.0;
     }
-    else if (m_zeroed && GetArg(0).GetValue() != 0.0)
+    else if (m_zeroed && input != 0.0)
     {
-      m_input = GetArg(0).GetValue();
-      m_times = GetArg(1).GetValue();
+      m_input = input;
+      m_times = times;
       m_running = true;
       m_loops = 1;
       m_zeroed = false;
@@ -673,7 +676,7 @@ private:
     }
     else
     {
-      if (GetArg(0).GetValue() == 0.0)
+      if (input == 0.0)
         m_zeroed = true;
       return 0.0;
     }
