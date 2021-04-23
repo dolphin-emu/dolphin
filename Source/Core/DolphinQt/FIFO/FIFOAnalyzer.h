@@ -8,7 +8,6 @@
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
-#include "Core/FifoPlayer/FifoAnalyzer.h"  // For CPMemory
 
 class QGroupBox;
 class QLabel;

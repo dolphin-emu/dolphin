@@ -258,19 +258,9 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, DataReader src)
   }
 }
 
-constexpr std::tuple<u32, u32, u32> ExtractIndexedXF(u32 val)
-{
-  const u32 index = val >> 16;
-  const u32 address = val & 0xFFF;  // check mask
-  const u32 size = ((val >> 12) & 0xF) + 1;
-
-  return {index, address, size};
-}
-
 // TODO - verify that it is correct. Seems to work, though.
-void LoadIndexedXF(u32 val, int refarray)
+void LoadIndexedXF(int refarray, u32 index, u16 address, u8 size)
 {
-  const auto [index, address, size] = ExtractIndexedXF(val);
   // load stuff from array to address in xf mem
 
   u32* currData = (u32*)(&xfmem) + address;
@@ -301,10 +291,8 @@ void LoadIndexedXF(u32 val, int refarray)
   }
 }
 
-void PreprocessIndexedXF(u32 val, int refarray)
+void PreprocessIndexedXF(int refarray, u32 index, u16 address, u8 size)
 {
-  const auto [index, address, size] = ExtractIndexedXF(val);
-
   const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] +
                                           g_preprocess_cp_state.array_strides[refarray] * index);
 
@@ -575,13 +563,8 @@ std::string GetXFMemDescription(u32 address, u32 value)
   }
 }
 
-std::pair<std::string, std::string> GetXFTransferInfo(const u8* data)
+std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 transfer_size, const u8* data)
 {
-  const u32 cmd = Common::swap32(data);
-  data += 4;
-  u32 base_address = cmd & 0xFFFF;
-  const u32 transfer_size = ((cmd >> 16) & 15) + 1;
-
   if (base_address > XFMEM_REGISTERS_END)
   {
     return std::make_pair("Invalid XF Transfer", "Base address past end of address space");
@@ -649,10 +632,8 @@ std::pair<std::string, std::string> GetXFTransferInfo(const u8* data)
   return std::make_pair(fmt::to_string(name), fmt::to_string(desc));
 }
 
-std::pair<std::string, std::string> GetXFIndexedLoadInfo(u8 array, u32 value)
+std::pair<std::string, std::string> GetXFIndexedLoadInfo(u8 array, u32 index, u16 address, u8 size)
 {
-  const auto [index, address, size] = ExtractIndexedXF(value);
-
   const auto desc = fmt::format("Load {} bytes to XF address {:03x} from CP array {} row {}", size,
                                 address, array, index);
   fmt::memory_buffer written;

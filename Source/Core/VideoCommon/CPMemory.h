@@ -5,6 +5,7 @@
 
 #include <array>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include "Common/BitField.h"
@@ -607,31 +608,34 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-  u32 array_bases[CP_NUM_ARRAYS];
-  u32 array_strides[CP_NUM_ARRAYS];
+  CPState() = default;
+  explicit CPState(const u32* memory);
+
+  // Mutates the CP state based on the given command and value.
+  void LoadCPReg(u8 sub_cmd, u32 value);
+  // Fills memory with data from CP regs.  There should be space for 0x100 values in memory.
+  void FillCPMemoryArray(u32* memory) const;
+
+  std::array<u32, CP_NUM_ARRAYS> array_bases;
+  std::array<u32, CP_NUM_ARRAYS> array_strides;
   TMatrixIndexA matrix_index_a;
   TMatrixIndexB matrix_index_b;
   TVtxDesc vtx_desc;
   // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
-  VAT vtx_attr[CP_NUM_VAT_REG];
+  std::array<VAT, CP_NUM_VAT_REG> vtx_attr;
 
   // Attributes that actually belong to VertexLoaderManager:
   BitSet32 attr_dirty;
   bool bases_dirty;
-  VertexLoaderBase* vertex_loaders[CP_NUM_VAT_REG];
+  std::array<VertexLoaderBase*, CP_NUM_VAT_REG> vertex_loaders;
   int last_id;
 };
+static_assert(std::is_trivially_copyable_v<CPState>);
 
 class PointerWrap;
 
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
-
-// Might move this into its own file later.
-void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
-
-// Fills memory with data from CP regs
-void FillCPMemoryArray(u32* memory);
 
 void DoCPState(PointerWrap& p);
 
