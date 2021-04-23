@@ -528,15 +528,15 @@ SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FSDevice> fs)
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
   Entry entry;
-  s64 fd = fs->Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
-  if (fd < 0)
+  const auto fd =
+      fs->Open(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+  if (fd.Get() < 0)
     return;
-  while (fs->Read(fd, &entry, 1, &m_ticks) == sizeof(entry))
+  while (fs->Read(fd.Get(), &entry, 1, &m_ticks) == sizeof(entry))
   {
     m_entries.push_back(entry);
     m_last_id++;
   }
-  fs->Close(fd, &m_ticks);
 }
 
 SharedContentMap::~SharedContentMap() = default;
@@ -621,18 +621,18 @@ static std::pair<u32, u64> ReadUidSysEntry(HLE::FSDevice& fs, u64 fd, u64* ticks
 constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
 UIDSys::UIDSys(std::shared_ptr<HLE::FSDevice> fs) : m_fs_device{fs}, m_fs{fs->GetFS()}
 {
-  s64 fd = fs->Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
-  if (fd >= 0)
+  if (const auto fd =
+          fs->Open(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read, {}, &m_ticks);
+      fd.Get() >= 0)
   {
     while (true)
     {
-      std::pair<u32, u64> entry = ReadUidSysEntry(*fs, fd, &m_ticks);
+      std::pair<u32, u64> entry = ReadUidSysEntry(*fs, fd.Get(), &m_ticks);
       if (!entry.first && !entry.second)
         break;
 
       m_entries.insert(std::move(entry));
     }
-    fs->Close(fd, &m_ticks);
   }
 
   if (m_entries.empty())
