@@ -43,12 +43,10 @@ enum class State;
 //    8. The output of fifoplayer would be wrong.
 
 // To keep compatibility with old fifologs, we have this flag which signals texture cache to not
-// bother
-// hashing the memory and just assume the hash matched.
+// bother hashing the memory and just assume the hash matched.
 // At a later point proper efb copy support should be added to fiforecorder and this flag will
-// change
-// based on the version of the .dff file, but until then it will always be true when a fifolog is
-// playing.
+// change based on the version of the .dff file, but until then it will always be true when a
+// fifolog is playing.
 
 // Shitty global to fix a shitty problem
 extern bool IsPlayingBackFifologWithBrokenEFBCopies;
