@@ -273,8 +273,8 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
     }
   }
   Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
-  s_video_buffer_pp_read_ptr = OpcodeDecoder::Run<true>(
-      DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr, false);
+  s_video_buffer_pp_read_ptr = OpcodeDecoder::RunFifo<true>(
+      DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr);
   // This would have to be locked if the GPU thread didn't spin.
   s_video_buffer_write_ptr = write_ptr + len;
 }
@@ -316,7 +316,7 @@ void RunGpuLoop()
           if (write_ptr > seen_ptr)
           {
             s_video_buffer_read_ptr =
-                OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr, false);
+                OpcodeDecoder::RunFifo(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr);
             s_video_buffer_seen_ptr = write_ptr;
           }
         }
@@ -349,8 +349,8 @@ void RunGpuLoop()
                        fifo.CPReadWriteDistance.load(std::memory_order_relaxed) - 32);
 
             u8* write_ptr = s_video_buffer_write_ptr;
-            s_video_buffer_read_ptr = OpcodeDecoder::Run(
-                DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
+            s_video_buffer_read_ptr = OpcodeDecoder::RunFifo(
+                DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted);
 
             fifo.CPReadPointer.store(readPtr, std::memory_order_relaxed);
             fifo.CPReadWriteDistance.fetch_sub(32, std::memory_order_seq_cst);
@@ -466,8 +466,8 @@ static int RunGpuOnCpu(int ticks)
       }
       ReadDataFromFifo(fifo.CPReadPointer.load(std::memory_order_relaxed));
       u32 cycles = 0;
-      s_video_buffer_read_ptr = OpcodeDecoder::Run(
-          DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), &cycles, false);
+      s_video_buffer_read_ptr = OpcodeDecoder::RunFifo(
+          DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), &cycles);
       available_ticks -= cycles;
     }
 

@@ -963,7 +963,7 @@ void Renderer::RecordVideoMemory()
   const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
   u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
-  FillCPMemoryArray(cpmem);
+  g_main_cp_state.FillCPMemoryArray(cpmem);
 
   FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size,
                                              texMem);

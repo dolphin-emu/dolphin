@@ -21,7 +21,6 @@
 
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 

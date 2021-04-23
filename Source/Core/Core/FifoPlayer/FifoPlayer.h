@@ -8,13 +8,14 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/OpcodeDecoding.h"
 
 class FifoDataFile;
 struct MemoryUpdate;
-struct AnalyzedFrameInfo;
 
 namespace CPU
 {
@@ -50,6 +51,37 @@ enum class State;
 
 // Shitty global to fix a shitty problem
 extern bool IsPlayingBackFifologWithBrokenEFBCopies;
+
+enum class FramePartType
+{
+  Commands,
+  PrimitiveData,
+};
+
+struct FramePart
+{
+  constexpr FramePart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
+      : m_type(type), m_start(start), m_end(end), m_cpmem(cpmem)
+  {
+  }
+
+  const FramePartType m_type;
+  const u32 m_start;
+  const u32 m_end;
+  const CPState m_cpmem;
+};
+
+struct AnalyzedFrameInfo
+{
+  std::vector<FramePart> parts;
+  Common::EnumMap<u32, FramePartType::PrimitiveData> part_type_counts;
+
+  void AddPart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
+  {
+    parts.emplace_back(type, start, end, cpmem);
+    part_type_counts[type]++;
+  }
+};
 
 class FifoPlayer
 {
@@ -100,7 +132,6 @@ public:
 
 private:
   class CPUCore;
-
   FifoPlayer();
 
   CPU::State AdvanceFrame();
