@@ -406,6 +406,9 @@ if(WIN32)
                                  $<IF:$<CONFIG:Debug>,--debug,--release>
                                  --no-translations
                                  --no-compiler-runtime
+                                 --no-system-d3d-compiler
+                                 --no-angle
+                                 --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )
 endif()
