@@ -33,6 +33,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+#include <DiscIO/DiscConverter.cpp>
+
 static std::unique_ptr<Platform> s_platform;
 
 static void signal_handler(int)
@@ -48,7 +50,7 @@ static void signal_handler(int)
 
   s_platform->RequestShutdown();
 }
-
+namespace fs = std::filesystem;
 std::vector<std::string> Host_GetPreferredLocales()
 {
   return {};
@@ -152,6 +154,42 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 int main(int argc, char* argv[])
 {
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
+  parser->add_option("-c", "--convert")
+      .action("store")
+      .help("Converts a game to another format [%choices]")
+      .type("string")
+      .set_default("RVZ")
+      .choices({"RVZ", "WIA", "GCZ", "ISO"});
+
+  parser->add_option("-l", "--compression_level")
+      .action("store")
+      .metavar("<int>")
+      .type("int")
+      .set_default(5)
+      .help("Choose the compression level (default: %default) [1-22]");
+
+  parser->add_option("-j", "--remove_junk")
+      .action("store_true")
+      .help("Removes junk data (irreversable) when converting.");
+
+    parser->add_option("-o", "--delete_original")
+      .action("store_true")
+      .help("Removes junk data (irreversable) when converting.");
+
+  parser->add_option("-s", "--src")
+      .action("store")
+      .metavar("<file>")
+      .type("string")
+      .help("The source path to the directory containing files you want to convert or just a "
+            "single file you want to convert.");
+
+  parser->add_option("-d", "--dest")
+      .action("store")
+      .metavar("<file>")
+      .type("string")
+      .help("(Optional) The dest path to save the converted file(s). If --src is a folder, --dest "
+            "must be one too.");
+
   parser->add_option("-p", "--platform")
       .action("store")
       .help("Window platform to use [%choices]")
@@ -207,6 +245,88 @@ int main(int argc, char* argv[])
     boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
     args.erase(args.begin());
     game_specified = true;
+  }
+  else if (options.is_set("convert"))
+  {
+    if (!options.is_set("src"))
+    {
+      fprintf(stderr, "You must set a --src to use --convert\n");
+      return 1;
+    }
+
+    bool delete_original = static_cast<bool>(options.get("delete_original"));
+
+    int compression_level = static_cast<int>(options.get("compression_level"));
+    std::string format = static_cast<const char*>(options.get("convert"));
+
+    cout << "format: " + format << endl;
+
+    DiscIO::BlobType blob_type = DiscIO::BlobType::RVZ;
+
+    if (format == "RVZ" || format == "rvz")
+    {
+      blob_type = DiscIO::BlobType::RVZ;
+      format = "rvz";
+    }
+    else if (format == "ISO" || format == "iso")
+    {
+      blob_type = DiscIO::BlobType::PLAIN;
+      format = "iso";
+    }
+    else if (format == "GCZ" || format == "gcz")
+    {
+      blob_type = DiscIO::BlobType::GCZ;
+      format = "gcz";
+    }
+
+    std::string src = static_cast<const char*>(options.get("src"));
+    std::string dest;
+
+    if (options.is_set("dest"))
+      dest = static_cast<const char*>(options.get("dest"));
+    else
+    {
+      dest = static_cast<const char*>(options.get("src"));
+      dest = dest + "." + format;
+    }    
+
+    std::error_code ec;
+    if (fs::is_directory(src, ec))
+    {
+      // Process as directory batch job.
+      std::string ext(".iso");
+      for (auto& p : fs::recursive_directory_iterator(src))
+      {
+        if (p.path().extension() == ext)
+        {
+          fs::path filename = p.path().stem().string() + "." + format;
+          fs::path dst = dest / filename;
+          //cout << dest << endl;
+          //cout << dst.string() << endl;
+
+          DiscIO::ConvertDisc(p.path().string(), dst.string(), blob_type, compression_level,
+                                  delete_original);
+        }
+      }
+    }
+    if (ec)  // Optional handling of possible errors.
+    {
+      std::cerr << "Error in is_directory: " << ec.message();
+    }
+    if (fs::is_regular_file(src, ec))
+    {
+      cout << dest << endl;
+      DiscIO::ConvertDisc(src, dest, blob_type, compression_level, delete_original);
+
+      // Process a regular file.
+    }
+    if (ec)  // Optional handling of possible errors. Usage of the same ec object works since fs
+             // functions are calling ec.clear() if no errors occur.
+    {
+      std::cerr << "Error in is_regular_file: " << ec.message();
+    }
+
+    return 0;
   }
   else
   {
