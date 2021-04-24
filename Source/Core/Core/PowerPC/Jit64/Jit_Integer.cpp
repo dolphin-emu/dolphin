@@ -1493,15 +1493,39 @@ void Jit64::divwx(UGeckoInstruction inst)
     {
       u32 abs_val = std::abs(divisor);
 
-      X64Reg tmp = RSCRATCH;
-      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
-        tmp = Ra.GetSimpleReg();
-      else
-        MOV(32, R(tmp), Ra);
+      X64Reg dividend, sum, src;
+      CCFlags cond = CC_NS;
 
-      TEST(32, R(tmp), R(tmp));
-      LEA(32, Rd, MDisp(tmp, abs_val - 1));
-      CMOVcc(32, Rd, R(tmp), CC_NS);
+      if (!Ra.IsSimpleReg())
+      {
+        dividend = RSCRATCH;
+        sum = Rd;
+        src = RSCRATCH;
+
+        // Load dividend from memory
+        MOV(32, R(dividend), Ra);
+      }
+      else if (d == a)
+      {
+        // Rd holds the dividend, while RSCRATCH holds the sum
+        // This is opposite of the other cases
+        dividend = Rd;
+        sum = RSCRATCH;
+        src = RSCRATCH;
+        // Negate condition to compensate the swapped values
+        cond = CC_S;
+      }
+      else
+      {
+        // Use dividend from register directly
+        dividend = Ra.GetSimpleReg();
+        sum = Rd;
+        src = dividend;
+      }
+
+      TEST(32, R(dividend), R(dividend));
+      LEA(32, sum, MDisp(dividend, abs_val - 1));
+      CMOVcc(32, Rd, R(src), cond);
       SAR(32, Rd, Imm8(IntLog2(abs_val)));
 
       if (divisor < 0)
