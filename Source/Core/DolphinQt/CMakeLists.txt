@@ -431,7 +431,11 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
 
   foreach(po ${LINGUAS})
     get_filename_component(lang ${po} NAME_WE)
-    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    if(WIN32)
+      set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang})
+    else()
+      set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    endif()
     set(mo ${mo_dir}/dolphin-emu.mo)
 
     target_sources(dolphin-emu PRIVATE ${mo})
@@ -447,7 +451,6 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
       add_custom_command(OUTPUT ${mo}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
         COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-        COMMAND ${CMAKE_COMMAND} -E copy ${mo} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang}/dolphin-emu.mo
         DEPENDS ${po}
       )
     else()
