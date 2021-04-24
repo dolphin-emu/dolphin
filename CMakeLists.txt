@@ -844,6 +844,8 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 #
 if(ENABLE_TESTS)
   message(STATUS "Using static gtest from Externals")
+  # Force gtest to link the C runtime dynamically on Windows in order to avoid runtime mismatches.
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 else()
   message(STATUS "Unit tests are disabled")
