@@ -1375,37 +1375,48 @@ void Jit64::divwx(UGeckoInstruction inst)
       // Check for divisor == 0
       TEST(32, Rb, Rb);
 
-      FixupBranch normal_path;
+      FixupBranch done;
 
-      if (dividend == 0x80000000)
+      if (d == b && (dividend & 0x80000000) == 0 && !inst.OE)
       {
-        // Divisor is 0, proceed to overflow case
-        const FixupBranch overflow = J_CC(CC_Z);
-        // Otherwise, check for divisor == -1
-        CMP(32, Rb, Imm32(0xFFFFFFFF));
-        normal_path = J_CC(CC_NE);
-
-        SetJumpTarget(overflow);
+        // Divisor is 0, skip to the end
+        // No need to explicitly set destination to 0 due to overlapping registers
+        done = J_CC(CC_Z);
+        // Otherwise, proceed to normal path
       }
       else
       {
-        // Divisor is not 0, take normal path
-        normal_path = J_CC(CC_NZ);
-        // Otherwise, proceed to overflow case
+        FixupBranch normal_path;
+        if (dividend == 0x80000000)
+        {
+          // Divisor is 0, proceed to overflow case
+          const FixupBranch overflow = J_CC(CC_Z);
+          // Otherwise, check for divisor == -1
+          CMP(32, Rb, Imm32(0xFFFFFFFF));
+          normal_path = J_CC(CC_NE);
+
+          SetJumpTarget(overflow);
+        }
+        else
+        {
+          // Divisor is not 0, take normal path
+          normal_path = J_CC(CC_NZ);
+          // Otherwise, proceed to overflow case
+        }
+
+        // Set Rd to all ones or all zeroes
+        if (dividend & 0x80000000)
+          MOV(32, Rd, Imm32(0xFFFFFFFF));
+        else if (d != b)
+          XOR(32, Rd, Rd);
+
+        if (inst.OE)
+          GenerateConstantOverflow(true);
+
+        done = J();
+
+        SetJumpTarget(normal_path);
       }
-
-      // Set Rd to all ones or all zeroes
-      if (dividend & 0x80000000)
-        MOV(32, Rd, Imm32(0xFFFFFFFF));
-      else
-        XOR(32, Rd, Rd);
-
-      if (inst.OE)
-        GenerateConstantOverflow(true);
-
-      const FixupBranch done = J();
-
-      SetJumpTarget(normal_path);
 
       MOV(32, eax, Imm32(dividend));
       CDQ();
