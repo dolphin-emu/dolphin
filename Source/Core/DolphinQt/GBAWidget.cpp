@@ -510,7 +510,13 @@ void GBAWidget::mouseMoveEvent(QMouseEvent* event)
 {
   if (!m_moving)
     return;
-  move(event->globalPos() - m_move_pos - (geometry().topLeft() - pos()));
+  auto event_pos =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+      event->globalPosition().toPoint();
+#else
+      event->globalPos();
+#endif
+  move(event_pos - m_move_pos - (geometry().topLeft() - pos()));
 }
 
 void GBAWidget::paintEvent(QPaintEvent* event)

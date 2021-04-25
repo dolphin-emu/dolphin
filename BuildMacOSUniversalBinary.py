@@ -261,7 +261,7 @@ def build(config):
             os.mkdir(arch)
 
         env = os.environ.copy()
-        env["Qt5_DIR"] = config[arch+"_qt5_path"]
+        env["QT_DIR"] = config[arch+"_qt5_path"]
         env["CMAKE_OSX_ARCHITECTURES"] = arch
         env["CMAKE_PREFIX_PATH"] = config[arch+"_cmake_prefix"]
 
