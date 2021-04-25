@@ -419,15 +419,23 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
   gpr.Flush();
   fpr.Flush();
+
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
   }
+
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
+
+  // If the instruction wrote to any registers which were marked as discarded,
+  // we must mark them as no longer discarded
+  gpr.Reset(js.op->regsOut);
+  fpr.Reset(js.op->GetFregsOut());
+
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     if (js.isLastInstruction)

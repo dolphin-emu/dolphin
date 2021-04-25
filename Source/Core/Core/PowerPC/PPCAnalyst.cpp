@@ -957,8 +957,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     {
       gprDiscardable |= op.regsOut;
       gprDiscardable &= ~op.regsIn;
-      if (op.fregOut >= 0)
-        fprDiscardable[op.fregOut] = true;
+      fprDiscardable |= op.GetFregsOut();
       fprDiscardable &= ~op.fregsIn;
     }
     if (strncmp(op.opinfo->opname, "stfd", 4))
