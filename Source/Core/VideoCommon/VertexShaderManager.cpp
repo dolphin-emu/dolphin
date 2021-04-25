@@ -356,7 +356,7 @@ void VertexShaderManager::SetConstants()
     }
   }
 
-  if (bProjectionChanged || g_freelook_camera.IsDirty())
+  if (bProjectionChanged || g_freelook_camera.GetController()->IsDirty())
   {
     bProjectionChanged = false;
 
@@ -435,7 +435,7 @@ void VertexShaderManager::SetConstants()
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 
-    g_freelook_camera.SetClean();
+    g_freelook_camera.GetController()->SetClean();
 
     dirty = true;
   }
