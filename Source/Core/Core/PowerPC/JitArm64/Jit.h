@@ -152,7 +152,20 @@ public:
   void psq_l(UGeckoInstruction inst);
   void psq_st(UGeckoInstruction inst);
 
-private:
+  void ConvertDoubleToSingleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                  Arm64Gen::ARM64Reg src_reg);
+  void ConvertDoubleToSinglePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                 Arm64Gen::ARM64Reg src_reg);
+  void ConvertSingleToDoubleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                  Arm64Gen::ARM64Reg src_reg,
+                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+  void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
+                                 Arm64Gen::ARM64Reg src_reg,
+                                 Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+
+  bool IsFPRStoreSafe(size_t guest_reg) const;
+
+protected:
   struct SlowmemHandler
   {
     Arm64Gen::ARM64Reg dest_reg;
@@ -184,13 +197,17 @@ private:
     nearcode = GetWritableCodePtr();
     SetCodePtrUnsafe(farcode.GetWritableCodePtr());
     AlignCode16();
+    m_in_farcode = true;
   }
 
   void SwitchToNearCode()
   {
     farcode.SetCodePtrUnsafe(GetWritableCodePtr());
     SetCodePtrUnsafe(nearcode);
+    m_in_farcode = false;
   }
+
+  bool IsInFarCode() const { return m_in_farcode; }
 
   // Dump a memory range of code
   void DumpCode(const u8* start, const u8* end);
@@ -215,6 +232,9 @@ private:
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();
+  void GenerateConvertDoubleToSingle();
+  void GenerateConvertSingleToDouble();
+  void GenerateQuantizedLoadStores();
 
   // Profiling
   void BeginTimeProfile(JitBlock* b);
@@ -254,6 +274,7 @@ private:
 
   Arm64Gen::ARM64CodeBlock farcode;
   u8* nearcode;  // Backed up when we switch to far code.
+  bool m_in_farcode = false;
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault = false;

@@ -220,30 +220,28 @@ void JitArm64::fselx(UGeckoInstruction inst)
   const u32 c = inst.FC;
   const u32 d = inst.FD;
 
-  const bool a_single = fpr.IsSingle(a, true);
-  if (a_single)
-  {
-    const ARM64Reg VA = fpr.R(a, RegType::LowerPairSingle);
-    m_float_emit.FCMPE(EncodeRegToSingle(VA));
-  }
-  else
-  {
-    const ARM64Reg VA = fpr.R(a, RegType::LowerPair);
-    m_float_emit.FCMPE(EncodeRegToDouble(VA));
-  }
+  const bool b_and_c_singles = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
+  const RegType b_and_c_type = b_and_c_singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const auto b_and_c_reg_encoder = b_and_c_singles ? EncodeRegToSingle : EncodeRegToDouble;
 
+  const bool a_single = fpr.IsSingle(a, true) && (b_and_c_singles || (a != b && a != c));
+  const RegType a_type = a_single ? RegType::LowerPairSingle : RegType::LowerPair;
+  const auto a_reg_encoder = a_single ? EncodeRegToSingle : EncodeRegToDouble;
+
+  const ARM64Reg VA = fpr.R(a, a_type);
+  const ARM64Reg VB = fpr.R(b, b_and_c_type);
+  const ARM64Reg VC = fpr.R(c, b_and_c_type);
+
+  // If a == d, the RW call below may change the type of a to double. This is okay, because the
+  // actual value in the register is not altered by RW. So let's just assert before calling RW.
   ASSERT_MSG(DYNA_REC, a_single == fpr.IsSingle(a, true),
              "Register allocation turned singles into doubles in the middle of fselx");
 
-  const bool b_and_c_singles = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
-  const RegType type = b_and_c_singles ? RegType::LowerPairSingle : RegType::LowerPair;
-  const auto reg_encoder = b_and_c_singles ? EncodeRegToSingle : EncodeRegToDouble;
+  const ARM64Reg VD = fpr.RW(d, b_and_c_type);
 
-  const ARM64Reg VB = fpr.R(b, type);
-  const ARM64Reg VC = fpr.R(c, type);
-  const ARM64Reg VD = fpr.RW(d, type);
-
-  m_float_emit.FCSEL(reg_encoder(VD), reg_encoder(VC), reg_encoder(VB), CC_GE);
+  m_float_emit.FCMPE(a_reg_encoder(VA));
+  m_float_emit.FCSEL(b_and_c_reg_encoder(VD), b_and_c_reg_encoder(VC), b_and_c_reg_encoder(VB),
+                     CC_GE);
 
   ASSERT_MSG(DYNA_REC, b_and_c_singles == (fpr.IsSingle(b, true) && fpr.IsSingle(c, true)),
              "Register allocation turned singles into doubles in the middle of fselx");
@@ -260,7 +258,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
   const u32 d = inst.FD;
 
   const bool single = fpr.IsSingle(b, true);
-  if (single)
+  if (single && js.fpr_is_store_safe[b])
   {
     // Source is already in single precision, so no need to do anything but to copy to PSR1.
     const ARM64Reg VB = fpr.R(b, RegType::LowerPairSingle);
@@ -268,6 +266,9 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     if (b != d)
       m_float_emit.FMOV(EncodeRegToSingle(VD), EncodeRegToSingle(VB));
+
+    ASSERT_MSG(DYNA_REC, fpr.IsSingle(b, true),
+               "Register allocation turned singles into doubles in the middle of frspx");
   }
   else
   {
@@ -276,9 +277,6 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
   }
-
-  ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
-             "Register allocation turned singles into doubles in the middle of frspx");
 }
 
 void JitArm64::fcmpX(UGeckoInstruction inst)
@@ -385,4 +383,197 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 
   ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
              "Register allocation turned singles into doubles in the middle of fctiwzx");
+}
+
+// Since the following float conversion functions are used in non-arithmetic PPC float
+// instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
+// into QNaNs. This means we can't just use FCVT/FCVTL/FCVTN.
+
+void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
+{
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVT(32, 64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
+
+  FlushCarry();
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
+  BL(cdts);
+  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W1);
+
+  ABI_PopRegisters(gpr_saved);
+}
+
+void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
+{
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVTN(32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
+
+  FlushCarry();
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
+  BL(cdts);
+  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W1);
+
+  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 1);
+  BL(cdts);
+  m_float_emit.INS(32, dest_reg, 1, ARM64Reg::W1);
+
+  ABI_PopRegisters(gpr_saved);
+}
+
+void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
+                                          ARM64Reg scratch_reg)
+{
+  ASSERT(scratch_reg != src_reg);
+
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
+
+  const bool switch_to_farcode = !IsInFarCode();
+
+  FlushCarry();
+
+  // Do we know that the input isn't NaN, and that the input isn't denormal or FPCR.FZ is not set?
+  // (This check unfortunately also catches zeroes)
+
+  FixupBranch fast;
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    m_float_emit.FABS(EncodeRegToSingle(scratch_reg), EncodeRegToSingle(src_reg));
+    m_float_emit.FCMP(EncodeRegToSingle(scratch_reg));
+    fast = B(CCFlags::CC_GT);
+
+    if (switch_to_farcode)
+    {
+      FixupBranch slow = B();
+
+      SwitchToFarCode();
+      SetJumpTarget(slow);
+    }
+  }
+
+  // If no (or if we don't have a scratch register), call the bit-exact routine
+
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
+  BL(cstd);
+  m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
+
+  ABI_PopRegisters(gpr_saved);
+
+  // If yes, do a fast conversion with FCVT
+
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    FixupBranch continue1 = B();
+
+    if (switch_to_farcode)
+      SwitchToNearCode();
+
+    SetJumpTarget(fast);
+
+    m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+
+    SetJumpTarget(continue1);
+  }
+}
+
+void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
+                                         ARM64Reg scratch_reg)
+{
+  ASSERT(scratch_reg != src_reg);
+
+  if (js.fpr_is_store_safe[guest_reg])
+  {
+    m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+    return;
+  }
+
+  const bool switch_to_farcode = !IsInFarCode();
+
+  FlushCarry();
+
+  // Do we know that neither input is NaN, and that neither input is denormal or FPCR.FZ is not set?
+  // (This check unfortunately also catches zeroes)
+
+  FixupBranch fast;
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    // Set each 32-bit element of scratch_reg to 0x0000'0000 or 0xFFFF'FFFF depending on whether
+    // the absolute value of the corresponding element in src_reg compares greater than 0
+    m_float_emit.MOVI(8, EncodeRegToDouble(scratch_reg), 0);
+    m_float_emit.FACGT(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
+                       EncodeRegToDouble(scratch_reg));
+
+    // 0x0000'0000'0000'0000 (zero)     -> 0x0000'0000'0000'0000 (zero)
+    // 0x0000'0000'FFFF'FFFF (denormal) -> 0xFF00'0000'FFFF'FFFF (normal)
+    // 0xFFFF'FFFF'0000'0000 (NaN)      -> 0x00FF'FFFF'0000'0000 (normal)
+    // 0xFFFF'FFFF'FFFF'FFFF (NaN)      -> 0xFFFF'FFFF'FFFF'FFFF (NaN)
+    m_float_emit.INS(8, EncodeRegToDouble(scratch_reg), 7, EncodeRegToDouble(scratch_reg), 0);
+
+    // Is scratch_reg a NaN (0xFFFF'FFFF'FFFF'FFFF)?
+    m_float_emit.FCMP(EncodeRegToDouble(scratch_reg));
+    fast = B(CCFlags::CC_VS);
+
+    if (switch_to_farcode)
+    {
+      FixupBranch slow = B();
+
+      SwitchToFarCode();
+      SetJumpTarget(slow);
+    }
+  }
+
+  // If no (or if we don't have a scratch register), call the bit-exact routine
+
+  // Save X0-X4 and X30 if they're in use
+  const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
+  ABI_PushRegisters(gpr_saved);
+
+  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 1);
+  BL(cstd);
+  m_float_emit.INS(64, dest_reg, 1, ARM64Reg::X0);
+
+  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
+  BL(cstd);
+  m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
+
+  ABI_PopRegisters(gpr_saved);
+
+  // If yes, do a fast conversion with FCVTL
+
+  if (scratch_reg != ARM64Reg::INVALID_REG)
+  {
+    FixupBranch continue1 = B();
+
+    if (switch_to_farcode)
+      SwitchToNearCode();
+
+    SetJumpTarget(fast);
+    m_float_emit.FCVTL(64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+
+    SetJumpTarget(continue1);
+  }
+}
+
+bool JitArm64::IsFPRStoreSafe(size_t guest_reg) const
+{
+  return js.fpr_is_store_safe[guest_reg];
 }

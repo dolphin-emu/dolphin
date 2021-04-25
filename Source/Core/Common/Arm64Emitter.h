@@ -1094,6 +1094,8 @@ public:
   void FCMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn);
   void FCMLE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
   void FCMLT(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+  void FACGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void FACGT(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
   // Conditional select
   void FCSEL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, CCFlags cond);

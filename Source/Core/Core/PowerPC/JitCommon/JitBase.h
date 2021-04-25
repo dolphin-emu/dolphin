@@ -8,6 +8,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
@@ -98,6 +99,7 @@ protected:
     PPCAnalyst::BlockRegStats gpa;
     PPCAnalyst::BlockRegStats fpa;
     PPCAnalyst::CodeOp* op;
+    BitSet32 fpr_is_store_safe;
 
     JitBlock* curBlock;
 

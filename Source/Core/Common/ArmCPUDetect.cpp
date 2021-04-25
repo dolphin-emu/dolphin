@@ -69,6 +69,7 @@ void CPUInfo::Detect()
   CPU64bit = true;
   Mode64bit = true;
   vendor = CPUVendor::ARM;
+  bFlushToZero = true;
 
 #ifdef _WIN32
   num_cores = std::thread::hardware_concurrency();

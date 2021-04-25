@@ -66,7 +66,8 @@ struct CodeOp  // 16B
   // convert between single and double formats by just using the host machine's instruction for it.
   // (The reason why we can't always do this is because some games rely on the exact bits of
   // denormals and SNaNs being preserved as long as no arithmetic operation is performed on them.)
-  BitSet32 fprIsStoreSafe;
+  BitSet32 fprIsStoreSafeBeforeInst;
+  BitSet32 fprIsStoreSafeAfterInst;
 
   BitSet32 GetFregsOut() const
   {

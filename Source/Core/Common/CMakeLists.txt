@@ -199,7 +199,7 @@ if(_M_ARM_64)
     Arm64Emitter.h
     ArmCommon.h
     ArmCPUDetect.cpp
-    GenericFPURoundMode.cpp
+    ArmFPURoundMode.cpp
   )
 else()
   if(_M_X86) #X86
