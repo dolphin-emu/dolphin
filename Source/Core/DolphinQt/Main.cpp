@@ -142,8 +142,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #endif
   const std::vector<std::string> args = parser->args();
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
@@ -154,7 +156,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   QApplication app(argc, argv);
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   // On Windows, Qt 5's default system font (MS Shell Dlg 2) is outdated.
   // Interestingly, the QMenu font is correct and comes from lfMenuFont
   // (Segoe UI on English computers).

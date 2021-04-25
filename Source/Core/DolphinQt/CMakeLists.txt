@@ -1,15 +1,24 @@
-if (NOT Qt5_DIR AND MSVC)
+if (Qt6_DIR)
+	set(Qt_DIR "${Qt6_DIR}")
+endif()
+
+if (Qt5_DIR)
+	set(Qt_DIR "${Qt5_DIR}")
+endif()
+
+if (NOT Qt_DIR AND MSVC)
   if(_M_ARM_64)
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
+    set(Qt_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
   else()
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
+    set(Qt_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
   endif()
 endif()
 
-find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
+find_package(Qt NAMES Qt6 Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt${Qt_VERSION_MAJOR} 5.9 COMPONENTS Core Gui Widgets REQUIRED)
 
-set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
-message(STATUS "Found Qt version ${Qt5Core_VERSION}")
+set_property(TARGET Qt${Qt_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
+message(STATUS "Found Qt version ${Qt_VERSION}")
 
 set(CMAKE_AUTOMOC ON)
 
@@ -346,13 +355,13 @@ PRIVATE
 target_include_directories(dolphin-emu
 PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
+  ${Qt${Qt_VERSION_MAJOR}Gui_PRIVATE_INCLUDE_DIRS}
 )
 
 target_link_libraries(dolphin-emu
 PRIVATE
   core
-  Qt5::Widgets
+  Qt${Qt_VERSION_MAJOR}::Widgets
   uicommon
   imgui
 )
@@ -403,7 +412,7 @@ if(WIN32)
   )
 
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
-  get_target_property(MOC_EXECUTABLE_LOCATION Qt5::moc IMPORTED_LOCATION)
+  get_target_property(MOC_EXECUTABLE_LOCATION Qt${Qt_VERSION_MAJOR}::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
   find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
 
@@ -507,12 +516,18 @@ if(APPLE)
   target_sources(dolphin-emu PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
   set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+  # Plugins have to be manually included with Qt 6
+  if (Qt_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6QMacStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+    find_package(Qt6QCocoaIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+  endif()
+
   # Copy Qt plugins into the bundle
-  get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
+  get_target_property(qtcocoa_location Qt${Qt_VERSION_MAJOR}::QCocoaIntegrationPlugin LOCATION)
   target_sources(dolphin-emu PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
 
-  get_target_property(qtmacstyle_location Qt5::QMacStylePlugin LOCATION)
+  get_target_property(qtmacstyle_location Qt${Qt_VERSION_MAJOR}::QMacStylePlugin LOCATION)
   target_sources(dolphin-emu PRIVATE "${qtmacstyle_location}")
   set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 

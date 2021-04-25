@@ -217,7 +217,7 @@ void MenuBar::AddFileMenu()
   file_menu->addSeparator();
 
   m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
-  m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
+  m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT | Qt::Key_F4)});
 }
 
 void MenuBar::AddToolsMenu()
