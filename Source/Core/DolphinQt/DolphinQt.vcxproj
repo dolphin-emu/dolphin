@@ -58,6 +58,8 @@
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\FreeLookOptionsWindow.cpp" />
+    <ClCompile Include="Config\FreeLookUDPOptionsWidget.cpp" />
     <ClCompile Include="Config\FreeLookWidget.cpp" />
     <ClCompile Include="Config\FreeLookWindow.cpp" />
     <ClCompile Include="Config\GamecubeControllersWidget.cpp" />
@@ -245,6 +247,8 @@
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\FreeLookOptionsWindow.h" />
+    <QtMoc Include="Config\FreeLookUDPOptionsWidget.h" />
     <QtMoc Include="Config\FreeLookWidget.h" />
     <QtMoc Include="Config\FreeLookWindow.h" />
     <QtMoc Include="Config\GamecubeControllersWidget.h" />
