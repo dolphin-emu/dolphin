@@ -8,18 +8,31 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
+#include "Common/CommonTypes.h"
+
 namespace FreeLook
 {
 enum class ControlType : int
 {
   SixAxis,
   FPS,
-  Orbital
+  Orbital,
+  UDP,
+};
+
+struct UDPSettings
+{
+  std::string address;
+  u16 port;
 };
 
 struct CameraConfig
 {
   ControlType control_type;
+  std::optional<UDPSettings> udp_settings;
 };
 
 // NEVER inherit from this class.

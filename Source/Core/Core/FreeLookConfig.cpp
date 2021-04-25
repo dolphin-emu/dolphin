@@ -43,5 +43,11 @@ void Config::Refresh()
 
   camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
   enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED);
+
+  if (camera_config.control_type == ControlType::UDP)
+  {
+    camera_config.udp_settings = UDPSettings{::Config::Get(::Config::FL1_UDP_ADDRESS),
+                                             ::Config::Get(::Config::FL1_UDP_PORT)};
+  }
 }
 }  // namespace FreeLook
