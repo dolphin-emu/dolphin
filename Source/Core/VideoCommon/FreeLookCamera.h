@@ -79,6 +79,14 @@ private:
   bool m_dirty = false;
 };
 
+class CameraControllerGeneric : public CameraController
+{
+public:
+  virtual void Update() = 0;
+
+  bool SupportsInput() const final override { return false; }
+};
+
 class FreeLookCamera
 {
 public:
