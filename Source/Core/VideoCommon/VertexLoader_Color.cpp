@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -174,21 +175,40 @@ void Color_ReadDirect_32b_8888(VertexLoader* loader)
   SetCol(loader, DataReadU32Unswapped());
 }
 
-constexpr TPipelineFunction s_table_read_color[4][6] = {
-    {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    {Color_ReadDirect_16b_565, Color_ReadDirect_24b_888, Color_ReadDirect_32b_888x,
-     Color_ReadDirect_16b_4444, Color_ReadDirect_24b_6666, Color_ReadDirect_32b_8888},
-    {Color_ReadIndex_16b_565<u8>, Color_ReadIndex_24b_888<u8>, Color_ReadIndex_32b_888x<u8>,
-     Color_ReadIndex_16b_4444<u8>, Color_ReadIndex_24b_6666<u8>, Color_ReadIndex_32b_8888<u8>},
-    {Color_ReadIndex_16b_565<u16>, Color_ReadIndex_24b_888<u16>, Color_ReadIndex_32b_888x<u16>,
-     Color_ReadIndex_16b_4444<u16>, Color_ReadIndex_24b_6666<u16>, Color_ReadIndex_32b_8888<u16>},
+using Common::EnumMap;
+
+// These functions are to work around a "too many initializer values" error with nested brackets
+// C++ does not let you write std::array<std::array<u32, 2>, 2> a = {{1, 2}, {3, 4}}
+// (although it does allow std::array<std::array<u32, 2>, 2> b = {1, 2, 3, 4})
+constexpr EnumMap<TPipelineFunction, ColorFormat::RGBA8888>
+f(EnumMap<TPipelineFunction, ColorFormat::RGBA8888> in)
+{
+  return in;
+}
+constexpr EnumMap<u32, ColorFormat::RGBA8888> g(EnumMap<u32, ColorFormat::RGBA8888> in)
+{
+  return in;
+}
+
+template <typename T>
+using Table = EnumMap<EnumMap<T, ColorFormat::RGBA8888>, VertexComponentFormat::Index16>;
+
+constexpr Table<TPipelineFunction> s_table_read_color = {
+    f({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}),
+    f({Color_ReadDirect_16b_565, Color_ReadDirect_24b_888, Color_ReadDirect_32b_888x,
+       Color_ReadDirect_16b_4444, Color_ReadDirect_24b_6666, Color_ReadDirect_32b_8888}),
+    f({Color_ReadIndex_16b_565<u8>, Color_ReadIndex_24b_888<u8>, Color_ReadIndex_32b_888x<u8>,
+       Color_ReadIndex_16b_4444<u8>, Color_ReadIndex_24b_6666<u8>, Color_ReadIndex_32b_8888<u8>}),
+    f({Color_ReadIndex_16b_565<u16>, Color_ReadIndex_24b_888<u16>, Color_ReadIndex_32b_888x<u16>,
+       Color_ReadIndex_16b_4444<u16>, Color_ReadIndex_24b_6666<u16>,
+       Color_ReadIndex_32b_8888<u16>}),
 };
 
-constexpr u32 s_table_read_color_vertex_size[4][6] = {
-    {0, 0, 0, 0, 0, 0},
-    {2, 3, 4, 2, 3, 4},
-    {1, 1, 1, 1, 1, 1},
-    {2, 2, 2, 2, 2, 2},
+constexpr Table<u32> s_table_read_color_vertex_size = {
+    g({0u, 0u, 0u, 0u, 0u, 0u}),
+    g({2u, 3u, 4u, 2u, 3u, 4u}),
+    g({1u, 1u, 1u, 1u, 1u, 1u}),
+    g({2u, 2u, 2u, 2u, 2u, 2u}),
 };
 }  // Anonymous namespace
 
@@ -199,7 +219,7 @@ u32 VertexLoader_Color::GetSize(VertexComponentFormat type, ColorFormat format)
     PanicAlertFmt("Invalid color format {}", format);
     return 0;
   }
-  return s_table_read_color_vertex_size[u32(type)][u32(format)];
+  return s_table_read_color_vertex_size[type][format];
 }
 
 TPipelineFunction VertexLoader_Color::GetFunction(VertexComponentFormat type, ColorFormat format)
@@ -209,5 +229,5 @@ TPipelineFunction VertexLoader_Color::GetFunction(VertexComponentFormat type, Co
     PanicAlertFmt("Invalid color format {}", format);
     return nullptr;
   }
-  return s_table_read_color[u32(type)][u32(format)];
+  return s_table_read_color[type][format];
 }
