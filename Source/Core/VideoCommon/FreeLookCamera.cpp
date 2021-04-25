@@ -286,6 +286,12 @@ void FreeLookCamera::SetControlType(FreeLook::ControlType type)
   m_current_type = type;
 }
 
+void FreeLookCamera::UpdateConfig(const FreeLook::CameraConfig& config)
+{
+  SetControlType(config.control_type);
+  m_camera_controller->UpdateConfig(config);
+}
+
 Common::Matrix44 FreeLookCamera::GetView() const
 {
   return m_camera_controller->GetView();
