@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <array>
+#include "Common/EnumMap.h"
+
 #include <fmt/format.h>
 #include <type_traits>
 
@@ -41,11 +42,15 @@
  *   formatter() : EnumFormatter(names) {}
  * };
  */
-template <auto last_member, typename T = decltype(last_member),
-          size_t size = static_cast<size_t>(last_member) + 1,
-          std::enable_if_t<std::is_enum_v<T>, bool> = true>
+template <auto last_member, typename = decltype(last_member)>
 class EnumFormatter
 {
+  // The second template argument is needed to avoid compile errors from ambiguity with multiple
+  // enums with the same number of members in GCC prior to 8.  See https://godbolt.org/z/xcKaW1seW
+  // and https://godbolt.org/z/hz7Yqq1P5
+  using T = decltype(last_member);
+  static_assert(std::is_enum_v<T>);
+
 public:
   constexpr auto parse(fmt::format_parse_context& ctx)
   {
@@ -61,19 +66,19 @@ public:
   {
     const auto value_s = static_cast<std::underlying_type_t<T>>(e);      // Possibly signed
     const auto value_u = static_cast<std::make_unsigned_t<T>>(value_s);  // Always unsigned
-    const bool has_name = value_s >= 0 && value_u < size && m_names[value_u] != nullptr;
+    const bool has_name = m_names.InBounds(e) && m_names[e] != nullptr;
 
     if (!formatting_for_shader)
     {
       if (has_name)
-        return fmt::format_to(ctx.out(), "{} ({})", m_names[value_u], value_s);
+        return fmt::format_to(ctx.out(), "{} ({})", m_names[e], value_s);
       else
         return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
     }
     else
     {
       if (has_name)
-        return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[value_u]);
+        return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[e]);
       else
         return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */", value_u);
     }
@@ -81,7 +86,7 @@ public:
 
 protected:
   // This is needed because std::array deduces incorrectly if nullptr is included in the list
-  using array_type = std::array<const char*, size>;
+  using array_type = Common::EnumMap<const char*, last_member>;
 
   constexpr explicit EnumFormatter(const array_type names) : m_names(std::move(names)) {}
 
