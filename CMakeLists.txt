@@ -235,6 +235,12 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
+  # Enable function-level linking
+  add_compile_options(/Gy)
+  # Generate intrinsic functions
+  add_compile_options(/Oi)
+  # Disable buffer security check
+  add_compile_options(/GS-)
   # Enforce C++ standard conforming conversion rules to catch possible bugs
   add_compile_options(/permissive-)
   # Remove unreferenced inline functions/data to reduce link time and catch bugs
@@ -254,6 +260,10 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   )
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
+  # Generate debug data
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG")
+  # Eliminate dead code and data
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /OPT:REF /OPT:ICF")
 else()
   add_definitions(-D_DEFAULT_SOURCE)
 
@@ -350,6 +360,11 @@ find_package(Threads)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
       "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo" AND CMAKE_C_COMPILER_ID MATCHES "MSVC")
+  add_compile_options(/GL)
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /LTCG")
 endif()
 
 if(ENABLE_GPROF)
