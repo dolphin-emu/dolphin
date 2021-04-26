@@ -230,18 +230,24 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       depth = 1.0f - depth;
 
-    u32 ret = 0;
+    // Convert to 24bit depth
+    u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
     {
-      // if Z is in 16 bit format you must return a 16 bit integer
-      ret = std::clamp<u32>(static_cast<u32>(depth * 65536.0f), 0, 0xFFFF);
-    }
-    else
-    {
-      ret = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+      // When in RGB565_Z16 mode, EFB Z peeks return a 16bit value, which is presumably a
+      // resolved sample from the MSAA buffer.
+      // Dolphin doesn't currently emulate the 3 sample MSAA mode (and potentially never will)
+      // it just transparently upgrades the framebuffer to 24bit depth and color and whatever
+      // level of MSAA and higher Internal Resolution the user has configured.
+
+      // This is mostly transparent, unless the game does an EFB read.
+      // But we can simply convert the 24bit depth on the fly to the 16bit depth the game expects.
+
+      return CompressZ16(z24depth, bpmem.zcontrol.zformat);
     }
 
-    return ret;
+    return z24depth;
   }
 }
 
