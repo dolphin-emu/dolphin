@@ -117,23 +117,48 @@ bool ImprovedMotionControls() {
 }
   
 bool CheckForward() {
-  return Wiimote::CheckForward();
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::CheckForward();
+  }
+  else {
+    return Wiimote::CheckForward();
+  }
 }
 
 bool CheckBack() {
-  return Wiimote::CheckBack();
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::CheckBack();
+  }
+  else {
+    return Wiimote::CheckBack();
+  }
 }
 
 bool CheckLeft() {
-  return Wiimote::CheckLeft();
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::CheckLeft();
+  }
+  else {
+    return Wiimote::CheckLeft();
+  }
 }
 
 bool CheckRight() {
-  return Wiimote::CheckRight();
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::CheckRight();
+  }
+  else {
+    return Wiimote::CheckRight();
+  }
 }
 
 bool CheckJump() {
-  return Wiimote::CheckJump();
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::CheckJump();
+  }
+  else {
+    return Wiimote::CheckJump();
+  }
 }
 
 bool CheckGrappleCtl() {
