@@ -63,7 +63,7 @@ private:
   void RemoveSuppression(Device::Input* modifier, Device::Input* final_input)
   {
     auto it = m_suppressions.find({final_input, modifier});
-    if ((--it->second) == 0)
+    if (it != m_suppressions.end() && (--it->second) == 0)
       m_suppressions.erase(it);
   }
 
@@ -302,7 +302,7 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
 
   // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
   const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2) {
-    return i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1);
+    return i1 && i2 && (i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1));
   };
 
   return std::any_of(it, it_end, [&](auto& s) {
@@ -316,7 +316,13 @@ HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
                                    const std::unique_ptr<ControlExpression>* final_input)
 {
   for (auto& modifier : *modifiers)
-    ++m_suppressions[{(*final_input)->GetInput(), modifier->GetInput()}];
+  {
+    // Inputs might be null, don't add nullptr to the map
+    if ((*final_input)->GetInput() && modifier->GetInput())
+    {
+      ++m_suppressions[{(*final_input)->GetInput(), modifier->GetInput()}];
+    }
+  }
 
   return Suppressor(std::make_unique<std::function<void()>>([this, modifiers, final_input]() {
                       for (auto& modifier : *modifiers)
@@ -483,6 +489,7 @@ public:
 
   ControlState GetValue() const override
   {
+    // True if we have no modifiers
     const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
                                                [](const std::unique_ptr<ControlExpression>& input) {
                                                  return input->GetValue() > CONDITION_THRESHOLD;
@@ -539,13 +546,13 @@ public:
 
     // We must update our suppression with valid pointers.
     if (m_suppressor)
-      EnableSuppression();
+      EnableSuppression(true);
   }
 
 private:
-  void EnableSuppression() const
+  void EnableSuppression(bool force = false) const
   {
-    if (!m_suppressor)
+    if (!m_suppressor || force)
       m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
   }
 
