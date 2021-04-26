@@ -1480,9 +1480,9 @@ void Jit64::divwx(UGeckoInstruction inst)
       if (inst.OE)
         GenerateConstantOverflow(false);
     }
-    else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-divisor))
+    else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-static_cast<s64>(divisor)))
     {
-      u32 abs_val = std::abs(divisor);
+      const u32 abs_val = static_cast<u32>(std::abs(static_cast<s64>(divisor)));
 
       X64Reg tmp = RSCRATCH;
       if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
