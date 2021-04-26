@@ -503,7 +503,7 @@ public:
       const bool is_suppressed = s_hotkey_suppressions.IsSuppressedIgnoringModifiers(
           m_final_input->GetInput(), m_modifiers);
 
-      if (final_input_state < CONDITION_THRESHOLD)
+      if (final_input_state <= CONDITION_THRESHOLD)
         m_is_blocked = false;
 
       // If some other hotkey suppressed us, require a release of final input to be ready again.
