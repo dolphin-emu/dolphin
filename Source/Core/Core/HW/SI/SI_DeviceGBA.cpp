@@ -43,42 +43,50 @@ enum EJoybusCmds
   CMD_WRITE = 0x15
 };
 
-constexpr auto BITS_PER_SECOND = 115200;
-constexpr auto BYTES_PER_SECOND = BITS_PER_SECOND / 8;
+constexpr auto GC_BITS_PER_SECOND = 200000;
+constexpr auto GBA_BITS_PER_SECOND = 250000;
+constexpr auto GC_STOP_BIT_NS = 6500;
+constexpr auto GBA_STOP_BIT_NS = 14000;
 constexpr auto SEND_MAX_SIZE = 5, RECV_MAX_SIZE = 5;
 
 // --- GameBoy Advance "Link Cable" ---
 
 static int GetTransferTime(u8 cmd)
 {
-  u64 bytes_transferred = 0;
+  u64 gc_bytes_transferred = 1;
+  u64 gba_bytes_transferred = 1;
+  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
 
   switch (cmd)
   {
   case CMD_RESET:
   case CMD_STATUS:
   {
-    bytes_transferred = 4;
+    gba_bytes_transferred = 3;
     break;
   }
   case CMD_READ:
   {
-    bytes_transferred = 6;
+    gba_bytes_transferred = 5;
     break;
   }
   case CMD_WRITE:
   {
-    bytes_transferred = 1;
+    gc_bytes_transferred = 5;
     break;
   }
   default:
   {
-    bytes_transferred = 1;
+    gba_bytes_transferred = 0;
     break;
   }
   }
-  return static_cast<int>(bytes_transferred * SystemTimers::GetTicksPerSecond() /
-                          (std::max(s_num_connected, 1) * BYTES_PER_SECOND));
+
+  u64 cycles =
+      (gba_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GBA_BITS_PER_SECOND) +
+      (gc_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GC_BITS_PER_SECOND) +
+      (stop_bits_ns * SystemTimers::GetTicksPerSecond() / 1000000000LL);
+  return static_cast<int>(cycles);
 }
 
 static void GBAConnectionWaiter()
