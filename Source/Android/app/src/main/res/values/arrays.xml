@@ -5,9 +5,9 @@
 
     <!-- New UI CPU Core selection - Default -->
     <string-array name="emuCoresEntriesX86_64" translatable="false">
-        <item>JIT Recompiler</item>
-        <item>Cached Interpreter</item>
-        <item>Interpreter</item>
+        <item>JIT Recompiler for x86-64 (recommended)</item>
+        <item>Cached Interpreter (slower)</item>
+        <item>Interpreter (slowest)</item>
     </string-array>
     <integer-array name="emuCoresValuesX86_64" translatable="false">
         <item>1</item>
@@ -15,9 +15,9 @@
         <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>JIT ARM64 Recompiler</item>
-        <item>Cached Interpreter</item>
-        <item>Interpreter</item>
+        <item>JIT Recompiler for ARM64 (recommended)</item>
+        <item>Cached Interpreter (slower)</item>
+        <item>Interpreter (slowest)</item>
     </string-array>
     <integer-array name="emuCoresValuesARM64" translatable="false">
         <item>4</item>
