@@ -305,15 +305,12 @@ void MainWindow::InitControllers()
   if (g_controller_interface.IsInit())
     return;
 
-  g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
-  Pad::Initialize();
-  Keyboard::Initialize();
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-  FreeLook::Initialize();
+  UICommon::InitControllers(GetWindowSystemInfo(windowHandle()));
+
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
 
-  // Defaults won't work reliabily without loading and saving the config first
+  // Defaults won't work reliably without loading and saving the config first
 
   Wiimote::LoadConfig();
   Wiimote::GetConfig()->SaveConfig();
@@ -332,12 +329,7 @@ void MainWindow::ShutdownControllers()
 {
   m_hotkey_scheduler->Stop();
 
-  Pad::Shutdown();
-  Keyboard::Shutdown();
-  Wiimote::Shutdown();
-  HotkeyManagerEmu::Shutdown();
-  FreeLook::Shutdown();
-  g_controller_interface.Shutdown();
+  UICommon::ShutdownControllers();
 
   m_hotkey_scheduler->deleteLater();
 }

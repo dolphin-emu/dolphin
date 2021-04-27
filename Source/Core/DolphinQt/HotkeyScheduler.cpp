@@ -43,8 +43,6 @@ constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
-  HotkeyManagerEmu::Initialize();
-  HotkeyManagerEmu::LoadConfig();
   HotkeyManagerEmu::Enable(true);
 }
 

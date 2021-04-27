@@ -8,10 +8,15 @@
 
 #include "Common/CommonTypes.h"
 
+struct WindowSystemInfo;
+
 namespace UICommon
 {
 void Init();
 void Shutdown();
+
+void InitControllers(const WindowSystemInfo& wsi);
+void ShutdownControllers();
 
 #ifdef HAVE_X11
 void InhibitScreenSaver(unsigned long win, bool enable);
