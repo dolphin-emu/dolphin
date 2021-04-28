@@ -27,6 +27,9 @@ class VerifyWidget final : public QWidget
 public:
   explicit VerifyWidget(std::shared_ptr<DiscIO::Volume> volume);
 
+private slots:
+  void OnEmulationStateChanged();
+
 private:
   void CreateWidgets();
   std::pair<QCheckBox*, QLineEdit*> AddHashLine(QFormLayout* layout, QString text);
