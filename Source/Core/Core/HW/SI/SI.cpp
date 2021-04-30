@@ -240,7 +240,6 @@ static void SetNoResponse(u32 channel)
     s_status_reg.NOREP3 = 1;
     break;
   }
-  s_com_csr.COMERR = 1;
 }
 
 static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
@@ -331,6 +330,7 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     if (actual_response_length != 0)
     {
       s_com_csr.TSTART = 0;
+      s_com_csr.COMERR = actual_response_length < 0;
       if (actual_response_length < 0)
         SetNoResponse(s_com_csr.CHANNEL);
       GenerateSIInterrupt(INT_TCINT);
@@ -502,8 +502,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH;
                    s_com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK;
                    s_com_csr.TCINTMSK = tmp_com_csr.TCINTMSK;
-
-                   s_com_csr.COMERR = 0;
 
                    if (tmp_com_csr.RDSTINT)
                      s_com_csr.RDSTINT = 0;
