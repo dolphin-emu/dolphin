@@ -36,20 +36,21 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 {
   DebugUtil::OnObjectBegin();
 
-  u8 primitiveType = 0;
+  using OpcodeDecoder::Primitive;
+  Primitive primitive_type = Primitive::GX_DRAW_QUADS;
   switch (m_current_primitive_type)
   {
   case PrimitiveType::Points:
-    primitiveType = OpcodeDecoder::GX_DRAW_POINTS;
+    primitive_type = Primitive::GX_DRAW_POINTS;
     break;
   case PrimitiveType::Lines:
-    primitiveType = OpcodeDecoder::GX_DRAW_LINES;
+    primitive_type = Primitive::GX_DRAW_LINES;
     break;
   case PrimitiveType::Triangles:
-    primitiveType = OpcodeDecoder::GX_DRAW_TRIANGLES;
+    primitive_type = Primitive::GX_DRAW_TRIANGLES;
     break;
   case PrimitiveType::TriangleStrip:
-    primitiveType = OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP;
+    primitive_type = Primitive::GX_DRAW_TRIANGLE_STRIP;
     break;
   }
 
@@ -57,7 +58,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   if (g_renderer->IsBBoxEnabled())
     g_renderer->BBoxFlush();
 
-  m_setup_unit.Init(primitiveType);
+  m_setup_unit.Init(primitive_type);
 
   // set all states with are stored within video sw
   for (int i = 0; i < 4; i++)

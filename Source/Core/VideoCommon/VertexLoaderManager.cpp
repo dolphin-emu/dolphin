@@ -239,7 +239,8 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
   return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess)
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src,
+                bool is_preprocess)
 {
   if (!count)
     return 0;
@@ -266,7 +267,8 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   // if cull mode is CULL_ALL, tell VertexManager to skip triangles and quads.
   // They still need to go through vertex loading, because we need to calculate a zfreeze refrence
   // slope.
-  bool cullall = (bpmem.genMode.cullmode == CullMode::All && primitive < 5);
+  bool cullall = (bpmem.genMode.cullmode == CullMode::All &&
+                  primitive < OpcodeDecoder::Primitive::GX_DRAW_LINES);
 
   DataReader dst = g_vertex_manager->PrepareForAdditionalData(
       primitive, count, loader->m_native_vtx_decl.stride, cullall);
