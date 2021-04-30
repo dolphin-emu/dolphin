@@ -74,7 +74,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
 
     // parse the videocommon format to our own struct format (m_vertex)
-    SetFormat(g_main_cp_state.last_id, primitiveType);
+    SetFormat();
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
 
     // transform this vertex so that it can be used for rasterization (outVertex)
@@ -98,7 +98,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   DebugUtil::OnObjectEnd();
 }
 
-void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
+void SWVertexLoader::SetFormat()
 {
   // matrix index from xf regs or cp memory?
   if (xfmem.MatrixIndexA.PosNormalMtxIdx != g_main_cp_state.matrix_index_a.PosNormalMtxIdx ||
