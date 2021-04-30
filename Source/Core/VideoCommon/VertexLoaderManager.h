@@ -14,6 +14,11 @@ class DataReader;
 class NativeVertexFormat;
 struct PortableVertexDeclaration;
 
+namespace OpcodeDecoder
+{
+enum class Primitive : u8;
+};
+
 namespace VertexLoaderManager
 {
 using NativeVertexFormatMap =
@@ -35,7 +40,8 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
 NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess);
+int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src,
+                bool is_preprocess);
 
 NativeVertexFormat* GetCurrentVertexFormat();
 

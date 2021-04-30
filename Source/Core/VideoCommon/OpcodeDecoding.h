@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 
 class DataReader;
 
@@ -12,7 +13,7 @@ namespace OpcodeDecoder
 // Global flag to signal if FifoRecorder is active.
 extern bool g_record_fifo_data;
 
-enum
+enum class Opcode
 {
   GX_NOP = 0x00,
   GX_UNKNOWN_RESET = 0x01,
@@ -27,20 +28,20 @@ enum
 
   GX_CMD_CALL_DL = 0x40,
   GX_CMD_UNKNOWN_METRICS = 0x44,
-  GX_CMD_INVL_VC = 0x48
+  GX_CMD_INVL_VC = 0x48,
+
+  GX_PRIMITIVE_START = 0x80,
+  GX_PRIMITIVE_END = 0xbf,
 };
 
-enum
-{
-  GX_PRIMITIVE_MASK = 0x78,
-  GX_PRIMITIVE_SHIFT = 3,
-  GX_VAT_MASK = 0x07
-};
+constexpr u8 GX_PRIMITIVE_MASK = 0x78;
+constexpr u32 GX_PRIMITIVE_SHIFT = 3;
+constexpr u8 GX_VAT_MASK = 0x07;
 
 // These values are the values extracted using GX_PRIMITIVE_MASK
 // and GX_PRIMITIVE_SHIFT.
 // GX_DRAW_QUADS_2 behaves the same way as GX_DRAW_QUADS.
-enum
+enum class Primitive : u8
 {
   GX_DRAW_QUADS = 0x0,           // 0x80
   GX_DRAW_QUADS_2 = 0x1,         // 0x88
@@ -58,3 +59,16 @@ template <bool is_preprocess = false>
 u8* Run(DataReader src, u32* cycles, bool in_display_list);
 
 }  // namespace OpcodeDecoder
+
+template <>
+struct fmt::formatter<OpcodeDecoder::Primitive>
+    : EnumFormatter<OpcodeDecoder::Primitive::GX_DRAW_POINTS>
+{
+  static constexpr array_type names = {
+      "GX_DRAW_QUADS",        "GX_DRAW_QUADS_2 (nonstandard)",
+      "GX_DRAW_TRIANGLES",    "GX_DRAW_TRIANGLE_STRIP",
+      "GX_DRAW_TRIANGLE_FAN", "GX_DRAW_LINES",
+      "GX_DRAW_LINE_STRIP",   "GX_DRAW_POINTS",
+  };
+  formatter() : EnumFormatter(names) {}
+};

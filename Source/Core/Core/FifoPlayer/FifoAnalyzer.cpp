@@ -150,18 +150,19 @@ FifoAnalyzer::CPMemory s_CpMem;
 
 u32 AnalyzeCommand(const u8* data, DecodeMode mode)
 {
+  using OpcodeDecoder::Opcode;
   const u8* dataStart = data;
 
   int cmd = ReadFifo8(data);
 
-  switch (cmd)
+  switch (static_cast<Opcode>(cmd))
   {
-  case OpcodeDecoder::GX_NOP:
-  case OpcodeDecoder::GX_CMD_UNKNOWN_METRICS:
-  case OpcodeDecoder::GX_CMD_INVL_VC:
+  case Opcode::GX_NOP:
+  case Opcode::GX_CMD_UNKNOWN_METRICS:
+  case Opcode::GX_CMD_INVL_VC:
     break;
 
-  case OpcodeDecoder::GX_LOAD_CP_REG:
+  case Opcode::GX_LOAD_CP_REG:
   {
     s_DrawingObject = false;
 
@@ -171,7 +172,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     break;
   }
 
-  case OpcodeDecoder::GX_LOAD_XF_REG:
+  case Opcode::GX_LOAD_XF_REG:
   {
     s_DrawingObject = false;
 
@@ -182,14 +183,14 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     break;
   }
 
-  case OpcodeDecoder::GX_LOAD_INDX_A:
-  case OpcodeDecoder::GX_LOAD_INDX_B:
-  case OpcodeDecoder::GX_LOAD_INDX_C:
-  case OpcodeDecoder::GX_LOAD_INDX_D:
+  case Opcode::GX_LOAD_INDX_A:
+  case Opcode::GX_LOAD_INDX_B:
+  case Opcode::GX_LOAD_INDX_C:
+  case Opcode::GX_LOAD_INDX_D:
   {
     s_DrawingObject = false;
 
-    int array = 0xc + (cmd - OpcodeDecoder::GX_LOAD_INDX_A) / 8;
+    int array = 0xc + (cmd - static_cast<u8>(Opcode::GX_LOAD_INDX_A)) / 8;
     u32 value = ReadFifo32(data);
 
     if (mode == DecodeMode::Record)
@@ -197,7 +198,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     break;
   }
 
-  case OpcodeDecoder::GX_CMD_CALL_DL:
+  case Opcode::GX_CMD_CALL_DL:
     // The recorder should have expanded display lists into the fifo stream and skipped the call to
     // start them
     // That is done to make it easier to track where memory is updated
@@ -205,7 +206,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     data += 8;
     break;
 
-  case OpcodeDecoder::GX_LOAD_BP_REG:
+  case Opcode::GX_LOAD_BP_REG:
   {
     s_DrawingObject = false;
     ReadFifo32(data);

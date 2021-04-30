@@ -102,18 +102,18 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       return finish_up();
 
     const u8 cmd_byte = src.Read<u8>();
-    switch (cmd_byte)
+    switch (static_cast<Opcode>(cmd_byte))
     {
-    case GX_NOP:
+    case Opcode::GX_NOP:
       total_cycles += 6;  // Hm, this means that we scan over nop streams pretty slowly...
       break;
 
-    case GX_UNKNOWN_RESET:
+    case Opcode::GX_UNKNOWN_RESET:
       total_cycles += 6;  // Datel software uses this command
       DEBUG_LOG_FMT(VIDEO, "GX Reset?: {:08x}", cmd_byte);
       break;
 
-    case GX_LOAD_CP_REG:
+    case Opcode::GX_LOAD_CP_REG:
     {
       if (src.size() < 1 + 4)
         return finish_up();
@@ -128,7 +128,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
     break;
 
-    case GX_LOAD_XF_REG:
+    case Opcode::GX_LOAD_XF_REG:
     {
       if (src.size() < 4)
         return finish_up();
@@ -151,10 +151,10 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
     break;
 
-    case GX_LOAD_INDX_A:  // Used for position matrices
-    case GX_LOAD_INDX_B:  // Used for normal matrices
-    case GX_LOAD_INDX_C:  // Used for postmatrices
-    case GX_LOAD_INDX_D:  // Used for lights
+    case Opcode::GX_LOAD_INDX_A:  // Used for position matrices
+    case Opcode::GX_LOAD_INDX_B:  // Used for normal matrices
+    case Opcode::GX_LOAD_INDX_C:  // Used for postmatrices
+    case Opcode::GX_LOAD_INDX_D:  // Used for lights
     {
       if (src.size() < 4)
         return finish_up();
@@ -175,7 +175,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
     break;
 
-    case GX_CMD_CALL_DL:
+    case Opcode::GX_CMD_CALL_DL:
     {
       if (src.size() < 8)
         return finish_up();
@@ -198,18 +198,18 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
     break;
 
-    case GX_CMD_UNKNOWN_METRICS:  // zelda 4 swords calls it and checks the metrics registers after
-                                  // that
+    case Opcode::GX_CMD_UNKNOWN_METRICS:  // zelda 4 swords calls it and checks the metrics
+                                          // registers after that
       total_cycles += 6;
       DEBUG_LOG_FMT(VIDEO, "GX 0x44: {:08x}", cmd_byte);
       break;
 
-    case GX_CMD_INVL_VC:  // Invalidate Vertex Cache
+    case Opcode::GX_CMD_INVL_VC:  // Invalidate Vertex Cache
       total_cycles += 6;
       DEBUG_LOG_FMT(VIDEO, "Invalidate (vertex cache?)");
       break;
 
-    case GX_LOAD_BP_REG:
+    case Opcode::GX_LOAD_BP_REG:
       // In skipped_frame case: We have to let BP writes through because they set
       // tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
       {
@@ -242,7 +242,8 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         const u16 num_vertices = src.Read<u16>();
         const int bytes = VertexLoaderManager::RunVertices(
             cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-            (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src, is_preprocess);
+            static_cast<Primitive>((cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT),
+            num_vertices, src, is_preprocess);
 
         if (bytes < 0)
           return finish_up();
@@ -267,7 +268,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     // Display lists get added directly into the FIFO stream
     if constexpr (!is_preprocess)
     {
-      if (g_record_fifo_data && cmd_byte != GX_CMD_CALL_DL)
+      if (g_record_fifo_data && static_cast<Opcode>(cmd_byte) != Opcode::GX_CMD_CALL_DL)
       {
         const u8* const opcode_end = src.GetPointer();
         FifoRecorder::GetInstance().WriteGPCommand(opcode_start, u32(opcode_end - opcode_start));
