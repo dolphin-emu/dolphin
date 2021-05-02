@@ -234,9 +234,12 @@ def build(config):
         env['CMAKE_OSX_ARCHITECTURES'] = arch
 
         subprocess.check_call([
-                'arch', '-'+arch,
                 'cmake', '../../', '-G', config['generator'],
                 '-DCMAKE_BUILD_TYPE=' + config['build_type'],
+                # System name needs to be specified for CMake to use
+                # the specified CMAKE_SYSTEM_PROCESSOR
+                '-DCMAKE_SYSTEM_NAME=Darwin',
+                '-DCMAKE_SYSTEM_PROCESSOR='+arch,
                 '-DCMAKE_OSX_DEPLOYMENT_TARGET='
                 + config[arch+"_mac_os_deployment_target"],
                 '-DMACOS_CODE_SIGNING_IDENTITY='
@@ -249,8 +252,8 @@ def build(config):
 
         threads = multiprocessing.cpu_count()
         subprocess.check_call(['cmake', '--build', '.',
-                              '--config', config['build_type'],
-                              '--parallel', '{}'.format(threads)], cwd=arch)
+                               '--config', config['build_type'],
+                               '--parallel', '{}'.format(threads)], cwd=arch)
 
     dst_app = config["dst_app"]
 
