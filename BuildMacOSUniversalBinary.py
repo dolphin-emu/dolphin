@@ -27,6 +27,7 @@ import argparse
 import filecmp
 import glob
 import json
+import multiprocessing
 import os
 import shutil
 import subprocess
@@ -65,7 +66,11 @@ DEFAULT_CONFIG = {
 
     # Minimum macOS version for each architecture slice
     "arm64_mac_os_deployment_target":  "11.0.0",
-    "x86_64_mac_os_deployment_target": "10.12.0"
+    "x86_64_mac_os_deployment_target": "10.12.0",
+
+    # CMake Generator to use for building
+    "generator": "Unix Makefiles",
+    "build_type": "Release"
 
 }
 
@@ -91,7 +96,16 @@ def parse_args(conf=DEFAULT_CONFIG):
         help='Build target in generated project files',
         default=conf["build_target"],
         dest="build_target")
-
+    parser.add_argument(
+        '-G',
+        help='CMake Generator to use for creating project files',
+        default=conf["generator"],
+        dest="generator")
+    parser.add_argument(
+        '--build_type',
+        help='CMake build type [Debug, Release, RelWithDebInfo, MinSizeRel]',
+        default=conf["build_type"],
+        dest="build_type")
     parser.add_argument(
         '--dst_app',
         help='Directory where universal binary will be stored',
@@ -221,7 +235,8 @@ def build(config):
 
         subprocess.check_call([
                 'arch', '-'+arch,
-                'cmake', '../../', '-G', 'Xcode',
+                'cmake', '../../', '-G', config['generator'],
+                '-DCMAKE_BUILD_TYPE=' + config['build_type'],
                 '-DCMAKE_OSX_DEPLOYMENT_TARGET='
                 + config[arch+"_mac_os_deployment_target"],
                 '-DMACOS_CODE_SIGNING_IDENTITY='
@@ -232,11 +247,10 @@ def build(config):
             ],
             env=env, cwd=arch)
 
-        # Build project
-        subprocess.check_call(['xcodebuild',
-                               '-project', 'dolphin-emu.xcodeproj',
-                               '-target', config["build_target"],
-                               '-configuration', 'Release'], cwd=arch)
+        threads = multiprocessing.cpu_count()
+        subprocess.check_call(['cmake', '--build', '.',
+                              '--config', config['build_type'],
+                              '--parallel', '{}'.format(threads)], cwd=arch)
 
     dst_app = config["dst_app"]
 
@@ -247,11 +261,14 @@ def build(config):
     os.mkdir(dst_app)
 
     # Source binary trees to merge together
-    src_app0 = ARCHITECTURES[0]+"/Binaries/release"
-    src_app1 = ARCHITECTURES[1]+"/Binaries/release"
+    src_app0 = ARCHITECTURES[0]+"/Binaries/"
+    src_app1 = ARCHITECTURES[1]+"/Binaries/"
 
     recursiveMergeBinaries(src_app0, src_app1, dst_app)
     for path in glob.glob(dst_app+"/*"):
+        if os.path.isdir(path) and os.path.splitext(path) != ".app":
+            continue
+
         subprocess.check_call([
             'codesign',
             '-d',
