@@ -244,7 +244,7 @@ void GeneralWidget::AddDescriptions()
       "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
       "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
-      "feature when to measure the performance of Dolphin.<br><br><dolphin_emphasis>If "
+      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
       "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
       QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
