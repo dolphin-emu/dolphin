@@ -21,7 +21,7 @@
 namespace MappingCommon
 {
 constexpr auto INPUT_DETECT_INITIAL_TIME = std::chrono::seconds(3);
-constexpr auto INPUT_DETECT_CONFIRMATION_TIME = std::chrono::milliseconds(500);
+constexpr auto INPUT_DETECT_CONFIRMATION_TIME = std::chrono::milliseconds(0);
 constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
 
 constexpr auto OUTPUT_TEST_TIME = std::chrono::seconds(2);
