@@ -25,3 +25,7 @@ elseif(_M_ARM_64)
     PowerPC/JitArm64/MovI2R.cpp
   )
 endif()
+
+target_sources(PowerPCTest PRIVATE
+  PowerPC/TestValues.h
+)
