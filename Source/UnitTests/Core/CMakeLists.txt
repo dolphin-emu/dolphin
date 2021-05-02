@@ -25,6 +25,7 @@ elseif(_M_ARM_64)
     PowerPC/DivUtilsTest.cpp
     PowerPC/JitArm64/ConvertSingleDouble.cpp
     PowerPC/JitArm64/FPRF.cpp
+    PowerPC/JitArm64/Fres.cpp
     PowerPC/JitArm64/MovI2R.cpp
   )
 else()

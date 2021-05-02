@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <limits>
+
 #include "Common/Arm64Emitter.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
@@ -198,6 +201,10 @@ void JitArm64::GenerateAsm()
 
 void JitArm64::GenerateCommonAsm()
 {
+  GetAsmRoutines()->fres = GetCodePtr();
+  GenerateFres();
+  JitRegister::Register(GetAsmRoutines()->fres, GetCodePtr(), "JIT_fres");
+
   GetAsmRoutines()->cdts = GetCodePtr();
   GenerateConvertDoubleToSingle();
   JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
@@ -213,6 +220,60 @@ void JitArm64::GenerateCommonAsm()
   JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
 
   GenerateQuantizedLoadStores();
+}
+
+// Input: X1 contains input, and D0 contains result of running the input through AArch64 FRECPE.
+// Output in X0 and memory (PPCState). Clobbers X0-X4 and flags.
+void JitArm64::GenerateFres()
+{
+  // The idea behind this implementation: AArch64's frecpe instruction calculates the exponent and
+  // sign the same way as PowerPC's fresx does. For the special inputs zero, NaN and infinity,
+  // even the mantissa matches. But the mantissa does not match for most other inputs, so in the
+  // normal case we calculate the mantissa using the table-based algorithm from the interpreter.
+
+  UBFX(ARM64Reg::X2, ARM64Reg::X1, 52, 11);  // Grab the exponent
+  m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
+  CMP(ARM64Reg::X2, 895);
+  ANDI2R(ARM64Reg::X3, ARM64Reg::X1, Common::DOUBLE_SIGN);
+  FixupBranch small_exponent = B(CCFlags::CC_LO);
+
+  MOVI2R(ARM64Reg::X4, 1148LL);
+  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  FixupBranch large_exponent = B(CCFlags::CC_HI);
+
+  UBFX(ARM64Reg::X2, ARM64Reg::X1, 47, 5);  // Grab upper part of mantissa
+  MOVP2R(ARM64Reg::X3, &Common::fres_expected);
+  ADD(ARM64Reg::X2, ARM64Reg::X3, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
+  LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
+  UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
+  MOVI2R(ARM64Reg::W4, 1);
+  ANDI2R(ARM64Reg::X0, ARM64Reg::X0, Common::DOUBLE_SIGN | Common::DOUBLE_EXP);
+  MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W4);
+  SUB(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W1, ArithOption(ARM64Reg::W1, ShiftType::LSR, 1));
+  ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
+  RET();
+
+  SetJumpTarget(small_exponent);
+  TSTI2R(ARM64Reg::X1, Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+  FixupBranch zero = B(CCFlags::CC_EQ);
+  MOVI2R(ARM64Reg::X4,
+         Common::BitCast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
+  ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X4);
+  RET();
+
+  SetJumpTarget(zero);
+  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
+  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  SetJumpTarget(skip_set_zx);
+  RET();
+
+  SetJumpTarget(large_exponent);
+  MOVI2R(ARM64Reg::X4, 0x7FF);
+  CMP(ARM64Reg::X2, ARM64Reg::X4);
+  CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
+  RET();
 }
 
 // Input in X0, output in W1, clobbers X0-X3 and flags.

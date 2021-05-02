@@ -116,7 +116,7 @@ constexpr std::array<GekkoOPTemplate, 17> table4_2{{
     {20, &JitArm64::fp_arith},               // ps_sub
     {21, &JitArm64::fp_arith},               // ps_add
     {23, &JitArm64::ps_sel},                 // ps_sel
-    {24, &JitArm64::FallBackToInterpreter},  // ps_res
+    {24, &JitArm64::ps_res},                 // ps_res
     {25, &JitArm64::fp_arith},               // ps_mul
     {26, &JitArm64::FallBackToInterpreter},  // ps_rsqrte
     {28, &JitArm64::ps_maddXX},              // ps_msub
@@ -293,15 +293,15 @@ constexpr std::array<GekkoOPTemplate, 107> table31{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 9> table59{{
-    {18, &JitArm64::fp_arith},               // fdivsx
-    {20, &JitArm64::fp_arith},               // fsubsx
-    {21, &JitArm64::fp_arith},               // faddsx
-    {24, &JitArm64::FallBackToInterpreter},  // fresx
-    {25, &JitArm64::fp_arith},               // fmulsx
-    {28, &JitArm64::fp_arith},               // fmsubsx
-    {29, &JitArm64::fp_arith},               // fmaddsx
-    {30, &JitArm64::fp_arith},               // fnmsubsx
-    {31, &JitArm64::fp_arith},               // fnmaddsx
+    {18, &JitArm64::fp_arith},  // fdivsx
+    {20, &JitArm64::fp_arith},  // fsubsx
+    {21, &JitArm64::fp_arith},  // faddsx
+    {24, &JitArm64::fresx},     // fresx
+    {25, &JitArm64::fp_arith},  // fmulsx
+    {28, &JitArm64::fp_arith},  // fmsubsx
+    {29, &JitArm64::fp_arith},  // fmaddsx
+    {30, &JitArm64::fp_arith},  // fnmsubsx
+    {31, &JitArm64::fp_arith},  // fnmaddsx
 }};
 
 constexpr std::array<GekkoOPTemplate, 15> table63{{
