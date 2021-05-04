@@ -126,6 +126,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
+  m_current_gx_primitive_type = primitive;
   PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
@@ -623,7 +624,7 @@ void VertexManagerBase::UpdatePipelineConfig()
     m_pipeline_config_changed = true;
   }
 
-  GeometryShaderUid gs_uid = GetGeometryShaderUid(GetCurrentPrimitiveType());
+  GeometryShaderUid gs_uid = GetGeometryShaderUid(m_current_primitive_type);
   if (gs_uid != m_current_pipeline_config.gs_uid)
   {
     m_current_pipeline_config.gs_uid = gs_uid;

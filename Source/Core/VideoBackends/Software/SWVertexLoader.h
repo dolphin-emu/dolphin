@@ -19,6 +19,9 @@ public:
   SWVertexLoader();
   ~SWVertexLoader();
 
+  DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
+                                      bool cullall) override;
+
 protected:
   void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
 

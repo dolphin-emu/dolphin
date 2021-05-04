@@ -32,29 +32,21 @@ SWVertexLoader::SWVertexLoader() = default;
 
 SWVertexLoader::~SWVertexLoader() = default;
 
+DataReader SWVertexLoader::PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
+                                                    u32 stride, bool cullall)
+{
+  // Prevent multiple groups of vertices from being batched, as that causes issues with SetupUnit
+  Flush();
+  return VertexManagerBase::PrepareForAdditionalData(primitive, count, stride, cullall);
+}
+
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   DebugUtil::OnObjectBegin();
 
   using OpcodeDecoder::Primitive;
-  Primitive primitive_type = Primitive::GX_DRAW_QUADS;
-  switch (m_current_primitive_type)
-  {
-  case PrimitiveType::Points:
-    primitive_type = Primitive::GX_DRAW_POINTS;
-    break;
-  case PrimitiveType::Lines:
-    primitive_type = Primitive::GX_DRAW_LINES;
-    break;
-  case PrimitiveType::Triangles:
-    primitive_type = Primitive::GX_DRAW_TRIANGLES;
-    break;
-  case PrimitiveType::TriangleStrip:
-    primitive_type = Primitive::GX_DRAW_TRIANGLE_STRIP;
-    break;
-  }
 
-  m_setup_unit.Init(primitive_type);
+  m_setup_unit.Init(m_current_gx_primitive_type);
 
   // set all states with are stored within video sw
   for (int i = 0; i < 4; i++)
@@ -65,9 +57,12 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
   }
 
-  for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
+  // NOTE: The software renderer does not use the index generator (and m_cpu_index_buffer),
+  // as SetupUnit handles the decoding of all primitives so e.g. triangle strips don't need to be
+  // converted to individual triangles.
+  // Thus, we iterate through the number of vertices, not the number of indices.
+  for (u32 index = 0; index < m_index_generator.GetNumVerts(); index++)
   {
-    const u16 index = m_cpu_index_buffer[i];
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
 
     // parse the videocommon format to our own struct format (m_vertex)

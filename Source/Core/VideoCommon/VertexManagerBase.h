@@ -97,10 +97,9 @@ public:
 
   virtual bool Initialize();
 
-  PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
   void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
-  DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
-                                      bool cullall);
+  virtual DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
+                                              u32 stride, bool cullall);
   void FlushData(u32 count, u32 stride);
 
   void Flush();
@@ -188,6 +187,7 @@ protected:
   VideoCommon::GXUberPipelineUid m_current_uber_pipeline_config;
   const AbstractPipeline* m_current_pipeline_object = nullptr;
   PrimitiveType m_current_primitive_type = PrimitiveType::Points;
+  OpcodeDecoder::Primitive m_current_gx_primitive_type = OpcodeDecoder::Primitive::GX_DRAW_POINTS;
   bool m_pipeline_config_changed = true;
   bool m_rasterization_state_changed = true;
   bool m_depth_state_changed = true;

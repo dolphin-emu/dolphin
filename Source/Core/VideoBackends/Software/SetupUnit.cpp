@@ -104,13 +104,12 @@ void SetupUnit::SetupTriStrip()
     return;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  bool wind = (m_VertexCounter & 1);
+  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[wind ? 2 : 1],
+                           m_VertPointer[wind ? 1 : 2]);
 
   m_VertexCounter++;
-  m_VertPointer[2 - (m_VertexCounter & 1)] = m_VertPointer[0];
-  m_VertWritePointer = m_VertPointer[0];
-
-  m_VertPointer[0] = &m_Vertices[(m_VertexCounter + 1) % 3];
+  m_VertWritePointer = m_VertPointer[m_VertexCounter % 3];
 }
 
 void SetupUnit::SetupTriFan()
