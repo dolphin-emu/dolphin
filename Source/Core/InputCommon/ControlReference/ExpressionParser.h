@@ -63,7 +63,9 @@ public:
 enum class ParseStatus
 {
   Successful,
+  // Note that the expression could still work in this case (be valid and return a value)
   SyntaxError,
+  // Will return the default value
   EmptyExpression,
 };
 
@@ -107,6 +109,7 @@ class ControlQualifier
 public:
   bool has_device;
   Core::DeviceQualifier device_qualifier;
+  // Makes no distinction between input and output
   std::string control_name;
 
   ControlQualifier() : has_device(false) {}

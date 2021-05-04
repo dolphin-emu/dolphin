@@ -93,10 +93,15 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->AddSetting(&m_always_connected_setting,
-                        // i18n: Treat a controller as always being connected regardless of what
-                        // devices the user actually has plugged in
-                        _trans("Always Connected"), false);
+  m_options->AddSetting(
+      &m_always_connected_setting,
+      // i18n: Treat a controller as always being connected regardless of what
+      // devices the user actually has plugged in
+      {_trans("Always Connected"), _trans(""),
+       _trans("Always connected if checked.\n"
+              "If unchecked, it will link the emulated controller connection state\n"
+              "to the real default device connection state (if there is one).")},
+      false);
 }
 
 std::string GCPad::GetName() const

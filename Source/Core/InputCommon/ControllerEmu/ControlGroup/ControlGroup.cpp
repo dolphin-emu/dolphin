@@ -44,7 +44,7 @@ void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximu
               // i18n: The percent symbol.
               _trans("%"),
               // i18n: Refers to the dead-zone setting of gamepad inputs.
-              _trans("Input strength to ignore.")},
+              _trans("Input strength to ignore and remap.")},
              0, 0, maximum_deadzone);
 }
 

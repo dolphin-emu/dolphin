@@ -371,6 +371,7 @@ public:
     }
     case TOK_ASSIGN:
     {
+      // Use this carefully as it's extremely powerful and can end up in unforeseen situations
       lhs->SetValue(rhs->GetValue());
       return lhs->GetValue();
     }
@@ -565,6 +566,9 @@ private:
 
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
 // right-hand child. Its intended use is for supporting old-style barewords expressions.
+// Note that if you have a keyboard device as default device and the expression is a single digit
+// number, this will usually resolve in a numerical key instead of a numerical value.
+// Though if this expression belongs to NumericSetting, it will likely be simplifed back to a value.
 class CoalesceExpression : public Expression
 {
 public:
@@ -945,6 +949,7 @@ static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& st
   qualifier.control_name = str;
   qualifier.has_device = false;
 
+  // This control expression will only work (find the specified control) with the default device.
   return std::make_unique<ControlExpression>(qualifier);
 }
 
