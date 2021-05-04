@@ -20,5 +20,7 @@ public:
   IMUAccelerometer(std::string name, std::string ui_name);
 
   std::optional<StateData> GetState() const;
+
+  bool AreInputsBound() const;
 };
 }  // namespace ControllerEmu
