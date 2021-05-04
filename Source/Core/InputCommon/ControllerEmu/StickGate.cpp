@@ -281,7 +281,8 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                      ControlState modifier) const
+                                                      ControlState modifier,
+                                                      ControlState clamp) const
 {
   x -= m_center.x;
   y -= m_center.y;
@@ -326,8 +327,8 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // Scale to the gate shape/radius:
   dist *= gate_max_dist;
 
-  return {std::clamp(std::cos(angle) * dist, -1.0, 1.0),
-          std::clamp(std::sin(angle) * dist, -1.0, 1.0)};
+  return {std::clamp(std::cos(angle) * dist, -clamp, clamp),
+          std::clamp(std::sin(angle) * dist, -clamp, clamp)};
 }
 
 }  // namespace ControllerEmu

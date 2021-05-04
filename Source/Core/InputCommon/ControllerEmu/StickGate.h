@@ -108,7 +108,8 @@ public:
   void SetCenter(ReshapeData center);
 
 protected:
-  ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0) const;
+  ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0,
+                      ControlState clamp = 1.0) const;
 
 private:
   void LoadConfig(IniFile::Section*, const std::string&, const std::string&) override;
