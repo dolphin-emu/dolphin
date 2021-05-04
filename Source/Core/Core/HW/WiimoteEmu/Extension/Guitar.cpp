@@ -107,7 +107,8 @@ void Guitar::Update()
   }
 
   // slider bar
-  if (m_slider_bar->controls[0]->control_ref->BoundCount())
+  if (m_slider_bar->controls[0]->control_ref->BoundCount() &&
+      m_slider_bar->controls[1]->control_ref->BoundCount())
   {
     const ControllerEmu::Slider::StateData slider_data = m_slider_bar->GetState();
 
