@@ -171,7 +171,7 @@ void InputConfig::SaveConfig()
   inifile.Save(ini_filename);
 }
 
-ControllerEmu::EmulatedController* InputConfig::GetController(int index)
+ControllerEmu::EmulatedController* InputConfig::GetController(int index) const
 {
   return m_controllers.at(index).get();
 }
