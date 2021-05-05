@@ -29,9 +29,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\PowerPC\JitCommon\DivUtils.h" />
+    <ClInclude Include="DiscIO\DiscConverter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\PowerPC\JitCommon\DivUtils.cpp" />
+    <ClCompile Include="DiscIO\DiscConverter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
