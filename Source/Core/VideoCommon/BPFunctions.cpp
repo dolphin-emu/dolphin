@@ -222,8 +222,11 @@ void ClearScreen(const MathUtil::Rectangle<int>& rc)
 void OnPixelFormatChange()
 {
   // TODO : Check for Z compression format change
-  // When using 16bit Z, the game may enable a special compression format which we need to handle
-  // If we don't, Z values will be completely screwed up, currently only Star Wars:RS2 uses that.
+  // When using 16bit Z, the game may enable a special compression format which we might need to
+  // handle. Only a few games like RS2 and RS3 even use z compression but it looks like they
+  // always use ZFAR when using 16bit Z (on top of linear 24bit Z)
+
+  // Besides, we currently don't even emulate 16bit depth and force it to 24bit.
 
   /*
    * When changing the EFB format, the pixel data won't get converted to the new format but stays
