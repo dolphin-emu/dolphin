@@ -53,6 +53,7 @@ public:
   void Update();
 
 private:
+  void UpdateInput();
   ControllerEmu::Buttons* m_move_buttons;
   ControllerEmu::Buttons* m_speed_buttons;
   ControllerEmu::Buttons* m_fov_buttons;

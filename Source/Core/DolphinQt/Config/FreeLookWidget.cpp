@@ -13,6 +13,7 @@
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookConfig.h"
 
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -37,8 +38,8 @@ void FreeLookWidget::CreateLayout()
          "leave this unchecked.</dolphin_emphasis>"));
   m_freelook_controller_configure_button = new QPushButton(tr("Configure Controller"));
 
-  m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
-                                               Config::FL1_CONTROL_TYPE);
+  m_freelook_control_type = new GraphicsChoice(
+      {tr("Six Axis"), tr("First Person"), tr("Orbital"), tr("UDP")}, Config::FL1_CONTROL_TYPE);
   m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
   m_freelook_control_type->SetDescription(tr(
       "Changes the in-game camera type during Free Look.<br><br>"
@@ -48,7 +49,9 @@ void FreeLookWidget::CreateLayout()
       "First Person: Controls the free camera similarly to a first person video game. The camera "
       "can rotate and travel, but roll is impossible. Easy to use, but limiting.<br><br>"
       "Orbital: Rotates the free camera around the original camera. Has no lateral movement, only "
-      "rotation and you may zoom up to the camera's origin point."));
+      "rotation and you may zoom up to the camera's origin point."
+      "<br><br>"
+      "UDP: Receives camera movement and rotation from UDP packets. "));
 
   auto* description =
       new QLabel(tr("Free Look allows for manipulation of the in-game camera. "
@@ -89,10 +92,17 @@ void FreeLookWidget::OnFreeLookControllerConfigured()
   if (m_freelook_controller_configure_button != QObject::sender())
     return;
   const int index = 0;
-  MappingWindow* window = new MappingWindow(this, MappingWindow::Type::MAPPING_FREELOOK, index);
-  window->setAttribute(Qt::WA_DeleteOnClose, true);
-  window->setWindowModality(Qt::WindowModality::WindowModal);
-  window->show();
+  QDialog* window;
+  if (Config::Get(Config::FL1_CONTROL_TYPE) == FreeLook::ControlType::UDP)
+  {
+  }
+  else
+  {
+    window = new MappingWindow(this, MappingWindow::Type::MAPPING_FREELOOK, index);
+    window->setAttribute(Qt::WA_DeleteOnClose, true);
+    window->setWindowModality(Qt::WindowModality::WindowModal);
+    window->show();
+  }
 }
 
 void FreeLookWidget::LoadSettings()

@@ -612,6 +612,8 @@
     <ClInclude Include="VideoCommon\FramebufferShaderGen.h" />
     <ClInclude Include="VideoCommon\FrameDump.h" />
     <ClInclude Include="VideoCommon\FreeLookCamera.h" />
+    <ClInclude Include="VideoCommon\FreeLookUDPServer.h" />
+    <ClInclude Include="VideoCommon\FreeLookUDPSpec.h" />
     <ClInclude Include="VideoCommon\GeometryShaderGen.h" />
     <ClInclude Include="VideoCommon\GeometryShaderManager.h" />
     <ClInclude Include="VideoCommon\GXPipelineTypes.h" />
@@ -1166,6 +1168,7 @@
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
     <ClCompile Include="VideoCommon\FreeLookCamera.cpp" />
+    <ClCompile Include="VideoCommon\FreeLookUDPServer.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderManager.cpp" />
     <ClCompile Include="VideoCommon\HiresTextures_DDSLoader.cpp" />
