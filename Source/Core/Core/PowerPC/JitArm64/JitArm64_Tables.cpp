@@ -106,23 +106,23 @@ constexpr std::array<GekkoOPTemplate, 13> table4{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 17> table4_2{{
-    {10, &JitArm64::ps_sumX},                // ps_sum0
-    {11, &JitArm64::ps_sumX},                // ps_sum1
-    {12, &JitArm64::ps_mulsX},               // ps_muls0
-    {13, &JitArm64::ps_mulsX},               // ps_muls1
-    {14, &JitArm64::ps_maddXX},              // ps_madds0
-    {15, &JitArm64::ps_maddXX},              // ps_madds1
-    {18, &JitArm64::fp_arith},               // ps_div
-    {20, &JitArm64::fp_arith},               // ps_sub
-    {21, &JitArm64::fp_arith},               // ps_add
-    {23, &JitArm64::ps_sel},                 // ps_sel
-    {24, &JitArm64::ps_res},                 // ps_res
-    {25, &JitArm64::fp_arith},               // ps_mul
-    {26, &JitArm64::FallBackToInterpreter},  // ps_rsqrte
-    {28, &JitArm64::ps_maddXX},              // ps_msub
-    {29, &JitArm64::ps_maddXX},              // ps_madd
-    {30, &JitArm64::ps_maddXX},              // ps_nmsub
-    {31, &JitArm64::ps_maddXX},              // ps_nmadd
+    {10, &JitArm64::ps_sumX},    // ps_sum0
+    {11, &JitArm64::ps_sumX},    // ps_sum1
+    {12, &JitArm64::ps_mulsX},   // ps_muls0
+    {13, &JitArm64::ps_mulsX},   // ps_muls1
+    {14, &JitArm64::ps_maddXX},  // ps_madds0
+    {15, &JitArm64::ps_maddXX},  // ps_madds1
+    {18, &JitArm64::fp_arith},   // ps_div
+    {20, &JitArm64::fp_arith},   // ps_sub
+    {21, &JitArm64::fp_arith},   // ps_add
+    {23, &JitArm64::ps_sel},     // ps_sel
+    {24, &JitArm64::ps_res},     // ps_res
+    {25, &JitArm64::fp_arith},   // ps_mul
+    {26, &JitArm64::ps_rsqrte},  // ps_rsqrte
+    {28, &JitArm64::ps_maddXX},  // ps_msub
+    {29, &JitArm64::ps_maddXX},  // ps_madd
+    {30, &JitArm64::ps_maddXX},  // ps_nmsub
+    {31, &JitArm64::ps_maddXX},  // ps_nmadd
 }};
 
 constexpr std::array<GekkoOPTemplate, 4> table4_3{{
@@ -324,16 +324,16 @@ constexpr std::array<GekkoOPTemplate, 15> table63{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 10> table63_2{{
-    {18, &JitArm64::fp_arith},               // fdivx
-    {20, &JitArm64::fp_arith},               // fsubx
-    {21, &JitArm64::fp_arith},               // faddx
-    {23, &JitArm64::fselx},                  // fselx
-    {25, &JitArm64::fp_arith},               // fmulx
-    {26, &JitArm64::FallBackToInterpreter},  // frsqrtex
-    {28, &JitArm64::fp_arith},               // fmsubx
-    {29, &JitArm64::fp_arith},               // fmaddx
-    {30, &JitArm64::fp_arith},               // fnmsubx
-    {31, &JitArm64::fp_arith},               // fnmaddx
+    {18, &JitArm64::fp_arith},  // fdivx
+    {20, &JitArm64::fp_arith},  // fsubx
+    {21, &JitArm64::fp_arith},  // faddx
+    {23, &JitArm64::fselx},     // fselx
+    {25, &JitArm64::fp_arith},  // fmulx
+    {26, &JitArm64::frsqrtex},  // frsqrtex
+    {28, &JitArm64::fp_arith},  // fmsubx
+    {29, &JitArm64::fp_arith},  // fmaddx
+    {30, &JitArm64::fp_arith},  // fnmsubx
+    {31, &JitArm64::fp_arith},  // fnmaddx
 }};
 
 constexpr std::array<JitArm64::Instruction, 64> dynaOpTable = [] {

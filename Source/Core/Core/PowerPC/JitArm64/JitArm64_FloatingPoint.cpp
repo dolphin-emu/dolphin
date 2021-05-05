@@ -456,6 +456,32 @@ void JitArm64::fresx(UGeckoInstruction inst)
   m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
 }
 
+void JitArm64::frsqrtex(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
+
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
+
+  const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
+  m_float_emit.FMOV(ARM64Reg::X1, EncodeRegToDouble(VB));
+  m_float_emit.FRSQRTE(ARM64Reg::D0, EncodeRegToDouble(VB));
+
+  BL(GetAsmRoutines()->frsqrte);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
+
+  const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
+  m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
+}
+
 // Since the following float conversion functions are used in non-arithmetic PPC float
 // instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
 // into QNaNs. This means we can't just use FCVT/FCVTL/FCVTN.

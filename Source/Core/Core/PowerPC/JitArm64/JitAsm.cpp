@@ -205,6 +205,10 @@ void JitArm64::GenerateCommonAsm()
   GenerateFres();
   JitRegister::Register(GetAsmRoutines()->fres, GetCodePtr(), "JIT_fres");
 
+  GetAsmRoutines()->frsqrte = GetCodePtr();
+  GenerateFrsqrte();
+  JitRegister::Register(GetAsmRoutines()->frsqrte, GetCodePtr(), "JIT_frsqrte");
+
   GetAsmRoutines()->cdts = GetCodePtr();
   GenerateConvertDoubleToSingle();
   JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cdts");
@@ -273,6 +277,71 @@ void JitArm64::GenerateFres()
   MOVI2R(ARM64Reg::X4, 0x7FF);
   CMP(ARM64Reg::X2, ARM64Reg::X4);
   CSEL(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, CCFlags::CC_EQ);
+  RET();
+}
+
+// Input: X1 contains input, and D0 contains result of running the input through AArch64 FRSQRTE.
+// Output in X0 and memory (PPCState). Clobbers X0-X4 and flags.
+void JitArm64::GenerateFrsqrte()
+{
+  // The idea behind this implementation: AArch64's frsqrte instruction calculates the exponent and
+  // sign the same way as PowerPC's frsqrtex does. For the special inputs zero, negative, NaN and
+  // inf, even the mantissa matches. But the mantissa does not match for most other inputs, so in
+  // the normal case we calculate the mantissa using the table-based algorithm from the interpreter.
+
+  TSTI2R(ARM64Reg::X1, Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+  m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
+  FixupBranch zero = B(CCFlags::CC_EQ);
+  ANDI2R(ARM64Reg::X2, ARM64Reg::X1, Common::DOUBLE_EXP);
+  MOVI2R(ARM64Reg::X3, Common::DOUBLE_EXP);
+  CMP(ARM64Reg::X2, ARM64Reg::X3);
+  FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
+  FixupBranch negative = TBNZ(ARM64Reg::X1, 63);
+  ANDI2R(ARM64Reg::X3, ARM64Reg::X1, Common::DOUBLE_FRAC);
+  FixupBranch normal = CBNZ(ARM64Reg::X2);
+
+  // "Normalize" denormal values
+  CLZ(ARM64Reg::X3, ARM64Reg::X3);
+  SUB(ARM64Reg::X4, ARM64Reg::X3, 11);
+  MOVI2R(ARM64Reg::X2, 0x00C0'0000'0000'0000);
+  LSLV(ARM64Reg::X4, ARM64Reg::X1, ARM64Reg::X4);
+  SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
+  ANDI2R(ARM64Reg::X3, ARM64Reg::X4, Common::DOUBLE_FRAC - 1);
+
+  SetJumpTarget(normal);
+  LSR(ARM64Reg::X2, ARM64Reg::X2, 48);
+  ANDI2R(ARM64Reg::X2, ARM64Reg::X2, 0x10);
+  MOVP2R(ARM64Reg::X1, &Common::frsqrte_expected);
+  ORR(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X8, ShiftType::LSR, 48));
+  EORI2R(ARM64Reg::X2, ARM64Reg::X2, 0x10);
+  ADD(ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
+  LDP(IndexType::Signed, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::X2, 0);
+  UBFX(ARM64Reg::X3, ARM64Reg::X3, 37, 11);
+  ANDI2R(ARM64Reg::X0, ARM64Reg::X0, Common::DOUBLE_SIGN | Common::DOUBLE_EXP);
+  MSUB(ARM64Reg::W3, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::W1);
+  ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 26));
+  RET();
+
+  SetJumpTarget(zero);
+  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_zx = TBNZ(ARM64Reg::W4, 26);
+  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_ZX, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  SetJumpTarget(skip_set_zx);
+  RET();
+
+  SetJumpTarget(nan_or_inf);
+  MOVI2R(ARM64Reg::X3, Common::BitCast<u64>(-std::numeric_limits<double>::infinity()));
+  CMP(ARM64Reg::X1, ARM64Reg::X3);
+  FixupBranch nan_or_positive_inf = B(CCFlags::CC_NEQ);
+
+  SetJumpTarget(negative);
+  LDR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  FixupBranch skip_set_vxsqrt = TBNZ(ARM64Reg::W4, 9);
+  ORRI2R(ARM64Reg::W4, ARM64Reg::W4, FPSCR_FX | FPSCR_VXSQRT, ARM64Reg::W2);
+  STR(IndexType::Unsigned, ARM64Reg::W4, PPC_REG, PPCSTATE_OFF(fpscr));
+  SetJumpTarget(skip_set_vxsqrt);
+  SetJumpTarget(nan_or_positive_inf);
   RET();
 }
 

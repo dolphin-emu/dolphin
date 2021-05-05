@@ -384,3 +384,34 @@ void JitArm64::ps_res(UGeckoInstruction inst)
 
   fpr.FixSinglePrecision(d);
 }
+
+void JitArm64::ps_rsqrte(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITPairedOff);
+  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
+
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
+
+  const ARM64Reg VB = fpr.R(b, RegType::Register);
+  const ARM64Reg VD = fpr.RW(d, RegType::Register);
+
+  m_float_emit.FMOV(ARM64Reg::X1, EncodeRegToDouble(VB));
+  m_float_emit.FRSQRTE(64, ARM64Reg::Q0, EncodeRegToQuad(VB));
+  BL(GetAsmRoutines()->frsqrte);
+  m_float_emit.UMOV(64, ARM64Reg::X1, EncodeRegToQuad(VB), 1);
+  m_float_emit.DUP(64, ARM64Reg::Q0, ARM64Reg::Q0, 1);
+  m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
+  BL(GetAsmRoutines()->frsqrte);
+  m_float_emit.INS(64, EncodeRegToQuad(VD), 1, ARM64Reg::X0);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
+
+  fpr.FixSinglePrecision(d);
+}
