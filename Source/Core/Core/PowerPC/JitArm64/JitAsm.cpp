@@ -201,7 +201,7 @@ void JitArm64::GenerateCommonAsm()
 
   GetAsmRoutines()->cstd = GetCodePtr();
   GenerateConvertSingleToDouble();
-  JitRegister::Register(GetAsmRoutines()->cdts, GetCodePtr(), "JIT_cstd");
+  JitRegister::Register(GetAsmRoutines()->cstd, GetCodePtr(), "JIT_cstd");
 
   GenerateQuantizedLoadStores();
 }
