@@ -17,9 +17,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-24 21:25+0200\n"
-"PO-Revision-Date: 2021-04-01 20:11+0000\n"
-"Last-Translator: Sukharev Andrey <lazy.fremis@gmail.com>\n"
+"POT-Creation-Date: 2021-05-06 09:16+0200\n"
+"PO-Revision-Date: 2021-04-24 19:25+0000\n"
+"Last-Translator: JosJuice\n"
 "Language-Team: Russian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ru/)\n"
 "Language: ru\n"
@@ -1725,7 +1725,7 @@ msgstr "Движок эмуляции ЦП:"
 msgid "CPU Options"
 msgstr "Настройки ЦП"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:58
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:74
 msgid "CRC32:"
 msgstr "CRC32:"
 
@@ -1744,7 +1744,7 @@ msgstr ""
 "возможные подвисания.<br><br><dolphin_emphasis>Если не уверены – оставьте "
 "выключенным.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:85
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:101
 msgid "Calculate"
 msgstr "Вычислить"
 
@@ -1797,7 +1797,7 @@ msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Невозможно создать сессию сетевой игры, пока игра всё ещё запущена!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:59
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:152
 #: Source/Core/DolphinQt/MenuBar.cpp:1298
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:60
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:51
@@ -3795,35 +3795,35 @@ msgstr "Европа"
 msgid "Exit"
 msgstr "Выйти"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:900
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:907
 msgid "Expected + or closing paren."
 msgstr "Ожидался + или закрывающая скобка."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:739
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:746
 msgid "Expected arguments: "
 msgstr "Ожидались аргументы: "
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:867
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:874
 msgid "Expected closing paren."
 msgstr "Ожидалась закрывающая скобка."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:726
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:733
 msgid "Expected comma."
 msgstr "Ожидалась запятая."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:658
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:665
 msgid "Expected end of expression."
 msgstr "Ожидался конец выражения."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:886
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:893
 msgid "Expected name of input."
 msgstr "Ожидалось название ввода."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:877
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:884
 msgid "Expected opening paren."
 msgstr "Ожидалась открывающаяся скобка."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:797
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:804
 msgid "Expected start of expression."
 msgstr "Ожидалось начало выражения."
 
@@ -4599,7 +4599,7 @@ msgstr "Дамп кадров"
 msgid "Frame Range"
 msgstr "Диапазон кадров"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1679
+#: Source/Core/VideoCommon/RenderBase.cpp:1685
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "Изображения с дампами кадра(ов) '{0}' уже существуют. Перезаписать?"
 
@@ -5088,7 +5088,7 @@ msgstr "Скрыть сессии \"В игре\""
 msgid "Hide Incompatible Sessions"
 msgstr "Скрыть несовместимые сессии"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:185
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:201
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:424
 msgid "High"
 msgstr "Высокая"
@@ -5615,7 +5615,7 @@ msgstr "Неверные входные данные для поля \"%1\""
 msgid "Invalid input provided"
 msgstr "Неверные входные данные"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:451
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:457
 msgid "Invalid literal."
 msgstr "Некорректный литерал."
 
@@ -5656,10 +5656,6 @@ msgstr "Италия"
 #: Source/Core/DolphinQt/MenuBar.cpp:807
 msgid "JIT"
 msgstr "JIT"
-
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
-msgid "JIT Arm64 (experimental)"
-msgstr "JIT Arm64 (экспериментальный)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:820
 msgid "JIT Block Linking Off"
@@ -5713,9 +5709,13 @@ msgstr "Отключить JIT (ядро JIT)"
 msgid "JIT Paired Off"
 msgstr "Отключить JIT Paired"
 
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
+msgid "JIT Recompiler for ARM64 (recommended)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
-msgid "JIT Recompiler (recommended)"
-msgstr "JIT-рекомпилятор (рекомендуется)"
+msgid "JIT Recompiler for x86-64 (recommended)"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:951
 msgid "JIT Register Cache Off"
@@ -5725,7 +5725,7 @@ msgstr "Отключить кэш регистров JIT"
 msgid "JIT SystemRegisters Off"
 msgstr "Отключить JIT SystemRegisters"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:855
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:863
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -6127,7 +6127,7 @@ msgstr ""
 msgid "Lost connection to NetPlay server..."
 msgstr "Соединение с сервером сетевой игры потеряно..."
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:179
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:195
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:420
 msgid "Low"
 msgstr "Низкая"
@@ -6140,7 +6140,7 @@ msgstr "Самое низкое"
 msgid "MD5 Checksum"
 msgstr "Контрольная сумма MD5"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:59
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:75
 msgid "MD5:"
 msgstr "MD5:"
 
@@ -6214,7 +6214,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "Может привести к замедлению в меню Wii и некоторых играх."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:229
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:182
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:198
 msgid "Medium"
 msgstr "Среднее"
 
@@ -7182,7 +7182,7 @@ msgstr "Частные"
 msgid "Private and Public"
 msgstr "Частные и открытые"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:47
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:63
 msgid "Problem"
 msgstr "Проблема"
 
@@ -7401,7 +7401,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Если не уверены – выберите Отсутствует.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:66
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:82
 msgid "Redump.org Status:"
 msgstr "Статус на Redump.org:"
 
@@ -7690,7 +7690,7 @@ msgstr "Образ SD-карты (*.raw);;Все файлы (*)"
 msgid "SD Card Path:"
 msgstr "Путь к SD-карте:"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:60
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:76
 msgid "SHA-1:"
 msgstr "SHA-1:"
 
@@ -8287,7 +8287,7 @@ msgstr "Настройки"
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: не удалось создать файл setting.txt"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:47
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:63
 msgid "Severity"
 msgstr "Критичность"
 
@@ -9887,7 +9887,7 @@ msgstr "Вкл./выкл. копии XFB"
 msgid "Toggle XFB Immediate Mode"
 msgstr "Вкл./выкл. немедленный режим XFB"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:920
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:927
 msgid "Tokenizing failed."
 msgstr "Ошибка токенизации."
 
@@ -10360,7 +10360,7 @@ msgstr "Уровень анализа"
 msgid "Verify"
 msgstr "Проверка"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:78
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:94
 msgid "Verify Integrity"
 msgstr "Проверить целостность"
 
@@ -10368,8 +10368,8 @@ msgstr "Проверить целостность"
 msgid "Verify certificates"
 msgstr "Проверять сертификаты"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:138
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:152
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:154
 msgid "Verifying"
 msgstr "Выполняется проверка"
 

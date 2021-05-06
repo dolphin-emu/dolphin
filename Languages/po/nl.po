@@ -23,9 +23,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-24 21:25+0200\n"
-"PO-Revision-Date: 2021-04-24 19:25+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2021-05-06 09:16+0200\n"
+"PO-Revision-Date: 2021-04-25 11:55+0000\n"
+"Last-Translator: Miksel12 <kuijlmike@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
 "Language: nl\n"
@@ -380,7 +380,7 @@ msgstr "&Frame Voorwaarts"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:534
 msgid "&Free Look Settings"
-msgstr "%Vrije Kijk Instellingen"
+msgstr "%Vrije-Kijk Instellingen"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:966
 msgid "&Generate Symbols From"
@@ -1736,7 +1736,7 @@ msgstr "CPU Emulatie Engine:"
 msgid "CPU Options"
 msgstr "CPU Opties"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:58
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:74
 msgid "CRC32:"
 msgstr "CRC32:"
 
@@ -1755,7 +1755,7 @@ msgstr ""
 "stotteringen op.<br><br><dolphin_emphasis>In geval van twijfel leeg laten.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:85
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:101
 msgid "Calculate"
 msgstr "Bereken"
 
@@ -1808,7 +1808,7 @@ msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Kan geen NetPlay-sessie starten als spel nog draait!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:59
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:152
 #: Source/Core/DolphinQt/MenuBar.cpp:1298
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:60
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:51
@@ -3809,35 +3809,35 @@ msgstr "Europa"
 msgid "Exit"
 msgstr "Sluit"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:900
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:907
 msgid "Expected + or closing paren."
 msgstr "+ of haakje sluiten verwacht."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:739
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:746
 msgid "Expected arguments: "
 msgstr "Verwachte argumenten:"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:867
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:874
 msgid "Expected closing paren."
 msgstr "Verwachte haakje dicht."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:726
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:733
 msgid "Expected comma."
 msgstr "Verwachte comma."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:658
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:665
 msgid "Expected end of expression."
 msgstr "Verwachte eind van expressie."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:886
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:893
 msgid "Expected name of input."
 msgstr "Verwachte naam van invoer."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:877
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:884
 msgid "Expected opening paren."
 msgstr "Haakje openen verwacht."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:797
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:804
 msgid "Expected start of expression."
 msgstr "Verwachte start van de expressie."
 
@@ -4607,7 +4607,7 @@ msgstr "Frame Dumping"
 msgid "Frame Range"
 msgstr "Framebereik"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1679
+#: Source/Core/VideoCommon/RenderBase.cpp:1685
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "Frame Dump-afbeelding(en) '{0}' bestaan al. Overschrijven?"
 
@@ -5093,7 +5093,7 @@ msgstr "Verberg In-Game Sessies"
 msgid "Hide Incompatible Sessions"
 msgstr "Verberg Incompatibele Sessies"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:185
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:201
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:424
 msgid "High"
 msgstr "Hoog"
@@ -5618,7 +5618,7 @@ msgstr "Ongeldige invoer voor het veld \"%1\""
 msgid "Invalid input provided"
 msgstr "Ongeldige invoer opgegeven"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:451
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:457
 msgid "Invalid literal."
 msgstr "Ongeldige tekst."
 
@@ -5660,10 +5660,6 @@ msgstr "Italië"
 #: Source/Core/DolphinQt/MenuBar.cpp:807
 msgid "JIT"
 msgstr "JIT"
-
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
-msgid "JIT Arm64 (experimental)"
-msgstr "JIT Arm64 (experimenteel)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:820
 msgid "JIT Block Linking Off"
@@ -5717,9 +5713,13 @@ msgstr "JIT Uit (JIT Core)"
 msgid "JIT Paired Off"
 msgstr "JIT Paired Uit"
 
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
+msgid "JIT Recompiler for ARM64 (recommended)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
-msgid "JIT Recompiler (recommended)"
-msgstr "JIT Recompiler (aanbevolen)"
+msgid "JIT Recompiler for x86-64 (recommended)"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:951
 msgid "JIT Register Cache Off"
@@ -5729,7 +5729,7 @@ msgstr "JIT Register Cache Uit"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SysteemRegisters Uit"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:855
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:863
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -6130,7 +6130,7 @@ msgstr ""
 msgid "Lost connection to NetPlay server..."
 msgstr "Verbinding met NetPlay-server verloren..."
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:179
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:195
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:420
 msgid "Low"
 msgstr "Laag"
@@ -6143,7 +6143,7 @@ msgstr "Laagste"
 msgid "MD5 Checksum"
 msgstr "MD5 Controlesom"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:59
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:75
 msgid "MD5:"
 msgstr "MD5:"
 
@@ -6216,7 +6216,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "Kan leiden tot vertraging van het Wii-menu en een aantal spellen."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:229
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:182
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:198
 msgid "Medium"
 msgstr "Medium"
 
@@ -7188,7 +7188,7 @@ msgstr "Privé"
 msgid "Private and Public"
 msgstr "Privé en Openbaar"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:47
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:63
 msgid "Problem"
 msgstr "Probleem"
 
@@ -7407,7 +7407,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>In geval van twijfel \"Geen\" selecteren.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:66
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:82
 msgid "Redump.org Status:"
 msgstr "Redump.org Status:"
 
@@ -7695,7 +7695,7 @@ msgstr "SD-kaartafbeedling (*.raw);;Alle Bestanden(*)"
 msgid "SD Card Path:"
 msgstr "SD-kaart Pad:"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:60
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:76
 msgid "SHA-1:"
 msgstr "SHA-1:"
 
@@ -8289,7 +8289,7 @@ msgstr "Instellingen"
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMem: Kan setting.txt niet aanmaken"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:47
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:63
 msgid "Severity"
 msgstr "Ernst"
 
@@ -9228,6 +9228,7 @@ msgstr ""
 #: Source/Android/jni/WiiUtils.cpp:78
 msgid "The decryption keys need to be appended to the NAND backup file."
 msgstr ""
+"De decryptie sleutels moeten bijgevoegd worden aan het NAND backupbestand."
 
 #: Source/Core/Core/Movie.cpp:374
 msgid ""
@@ -9901,7 +9902,7 @@ msgstr "Schakel XFB Kopieën Om"
 msgid "Toggle XFB Immediate Mode"
 msgstr "Schakel XFB Onmiddellijke Modus Om"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:920
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:927
 msgid "Tokenizing failed."
 msgstr "Tokeniseren is mislukt."
 
@@ -10377,7 +10378,7 @@ msgstr "Breedsprakigheid"
 msgid "Verify"
 msgstr "Verifieer"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:78
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:94
 msgid "Verify Integrity"
 msgstr "Verifiëer integriteit"
 
@@ -10385,8 +10386,8 @@ msgstr "Verifiëer integriteit"
 msgid "Verify certificates"
 msgstr "Controleer certificaten"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:138
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:152
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:154
 msgid "Verifying"
 msgstr "Verifiëren"
 

@@ -33,7 +33,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-24 21:25+0200\n"
+"POT-Creation-Date: 2021-05-06 09:16+0200\n"
 "PO-Revision-Date: 2021-04-24 19:25+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: German (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -1753,7 +1753,7 @@ msgstr "CPU-Emulations-Engine:"
 msgid "CPU Options"
 msgstr "CPU-Optionen"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:58
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:74
 msgid "CRC32:"
 msgstr "CRC32:"
 
@@ -1771,7 +1771,7 @@ msgstr ""
 "benötigt exponentiell mehr RAM, kann aber auch etwaiges Ruckeln beheben."
 "<br><br><dolphin_emphasis>Im Zweifel deaktiviert lassen.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:85
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:101
 msgid "Calculate"
 msgstr "Berechnen"
 
@@ -1824,7 +1824,7 @@ msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Du kannst keine NetPlay-Session starten, während ein Spiel noch läuft!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:59
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:152
 #: Source/Core/DolphinQt/MenuBar.cpp:1298
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:60
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:51
@@ -3824,35 +3824,35 @@ msgstr "Europa"
 msgid "Exit"
 msgstr "Beenden"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:900
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:907
 msgid "Expected + or closing paren."
 msgstr "Erwartete + oder schließende runde Klammer."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:739
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:746
 msgid "Expected arguments: "
 msgstr "Erwartete Argumente: "
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:867
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:874
 msgid "Expected closing paren."
 msgstr "Erwartete schließende runde Klammer."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:726
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:733
 msgid "Expected comma."
 msgstr "Erwartetes Komma."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:658
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:665
 msgid "Expected end of expression."
 msgstr "Erwartetes Ende des Ausdrucks."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:886
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:893
 msgid "Expected name of input."
 msgstr "Erwarteter Name der Eingabe."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:877
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:884
 msgid "Expected opening paren."
 msgstr "Erwartete öffnende runde Klammer."
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:797
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:804
 msgid "Expected start of expression."
 msgstr "Erwarteter Beginn des Ausdrucks."
 
@@ -4627,7 +4627,7 @@ msgstr "Frame-Dump"
 msgid "Frame Range"
 msgstr "Bildbereich"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1679
+#: Source/Core/VideoCommon/RenderBase.cpp:1685
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "Frame-Dump Bild(er) '{0}' existiert bereits. Überschreiben?"
 
@@ -5114,7 +5114,7 @@ msgstr "In-Game-Sitzungen ausblenden"
 msgid "Hide Incompatible Sessions"
 msgstr "Inkompatible Sitzungen ausblenden"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:185
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:201
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:424
 msgid "High"
 msgstr "Hoch"
@@ -5643,7 +5643,7 @@ msgstr "Ungültige Eingabe für das Feld \"%1\""
 msgid "Invalid input provided"
 msgstr "Ungültige Eingabe eingegeben"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:451
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:457
 msgid "Invalid literal."
 msgstr "Ungültig"
 
@@ -5684,10 +5684,6 @@ msgstr "Italien"
 #: Source/Core/DolphinQt/MenuBar.cpp:807
 msgid "JIT"
 msgstr "JIT"
-
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
-msgid "JIT Arm64 (experimental)"
-msgstr "JIT Arm64 (experimentell)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:820
 msgid "JIT Block Linking Off"
@@ -5741,9 +5737,13 @@ msgstr "JIT Aus (JIT-Kern)"
 msgid "JIT Paired Off"
 msgstr "JIT Gekoppelt Aus"
 
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
+msgid "JIT Recompiler for ARM64 (recommended)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
-msgid "JIT Recompiler (recommended)"
-msgstr "JIT-Recompiler (Empfohlen)"
+msgid "JIT Recompiler for x86-64 (recommended)"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:951
 msgid "JIT Register Cache Off"
@@ -5753,7 +5753,7 @@ msgstr "JIT-Register-Cache Aus"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT-SystemRegister Aus"
 
-#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:855
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:863
 msgid ""
 "JIT failed to find code space after a cache clear. This should never happen. "
 "Please report this incident on the bug tracker. Dolphin will now exit."
@@ -6155,7 +6155,7 @@ msgstr ""
 msgid "Lost connection to NetPlay server..."
 msgstr "Die Verbindung zum NetPlay-Server wurde getrennt..."
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:179
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:195
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:420
 msgid "Low"
 msgstr "Niedrig"
@@ -6168,7 +6168,7 @@ msgstr "Niedrigste"
 msgid "MD5 Checksum"
 msgstr "MD5-Prüfsumme"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:59
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:75
 msgid "MD5:"
 msgstr "MD5:"
 
@@ -6241,7 +6241,7 @@ msgid "May cause slow down in Wii Menu and some games."
 msgstr "Kann zu Verlangsamung im Wii-Menü und einigen Spielen führen."
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:229
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:182
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:198
 msgid "Medium"
 msgstr "Mittel"
 
@@ -7210,7 +7210,7 @@ msgstr "Privat"
 msgid "Private and Public"
 msgstr "Privat und öffentlich"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:47
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:63
 msgid "Problem"
 msgstr "Problem"
 
@@ -7427,7 +7427,7 @@ msgstr ""
 "wendet sie auch bei Belichtung, Shader-Effekten und Texturen an."
 "<br><br><dolphin_emphasis>Im Zweifel, wähle Keine.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:66
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:82
 msgid "Redump.org Status:"
 msgstr "Redump.org Status:"
 
@@ -7715,7 +7715,7 @@ msgstr "SD-Kartenabbild (*.raw);;Alle Dateien (*)"
 msgid "SD Card Path:"
 msgstr "SD-Karten-Pfad:"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:60
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:76
 msgid "SHA-1:"
 msgstr "SHA-1:"
 
@@ -8309,7 +8309,7 @@ msgstr "Einstellungen"
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMem: setting.txt kann nicht erstellt werden"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:47
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:63
 msgid "Severity"
 msgstr "Schweregrad"
 
@@ -9922,7 +9922,7 @@ msgstr "XFB-Kopien umschalten"
 msgid "Toggle XFB Immediate Mode"
 msgstr "Sofortigen XFB-Modus umschalten"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:920
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:927
 msgid "Tokenizing failed."
 msgstr "Tokenisierung fehlgeschlagen."
 
@@ -10396,7 +10396,7 @@ msgstr "Ausführlichkeit"
 msgid "Verify"
 msgstr "Prüfen"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:78
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:94
 msgid "Verify Integrity"
 msgstr "Integrität prüfen"
 
@@ -10404,8 +10404,8 @@ msgstr "Integrität prüfen"
 msgid "Verify certificates"
 msgstr "Zertifikate verifizieren"
 
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
-#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:138
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:152
+#: Source/Core/DolphinQt/Config/VerifyWidget.cpp:154
 msgid "Verifying"
 msgstr "Prüfe"
 
