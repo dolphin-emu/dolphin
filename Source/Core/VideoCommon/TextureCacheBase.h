@@ -284,7 +284,7 @@ private:
 
   void SetBackupConfig(const VideoConfig& config);
 
-  TCacheEntry* GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride, u64 hash);
+  TCacheEntry* GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
   TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt);
 
