@@ -200,6 +200,16 @@ public:
     DoArray(arr, static_cast<u32>(N));
   }
 
+  // The caller is required to inspect the mode of this PointerWrap
+  // and deal with the pointer returned from this function themself.
+  [[nodiscard]] u8* DoExternal(u32& count)
+  {
+    Do(count);
+    u8* current = *ptr;
+    *ptr += count;
+    return current;
+  }
+
   void Do(Common::Flag& flag)
   {
     bool s = flag.IsSet();
