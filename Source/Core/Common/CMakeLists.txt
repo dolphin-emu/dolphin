@@ -125,6 +125,7 @@ add_library(common
   TraversalClient.cpp
   TraversalClient.h
   TraversalProto.h
+  TypeUtils.h
   UPnP.cpp
   UPnP.h
   VariantUtil.h
