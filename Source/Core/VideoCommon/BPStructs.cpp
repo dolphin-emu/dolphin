@@ -240,7 +240,7 @@ static void BPWritten(const BPCmd& bp)
     // known for configuring these out-of-range copies.
     u32 copy_width = srcRect.GetWidth();
     u32 copy_height = srcRect.GetHeight();
-    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
+    if (0 && (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT))
     {
       WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", copy_width,
                    copy_height, srcRect.left, srcRect.top, destStride);
