@@ -13,4 +13,6 @@
 
 #include "Common/CommonTypes.h"
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 bool RunUpdater(std::vector<std::string> args);

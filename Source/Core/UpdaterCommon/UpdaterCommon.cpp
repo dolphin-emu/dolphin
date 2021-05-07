@@ -25,6 +25,8 @@
 #include <sys/types.h>
 #endif
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 namespace
 {
 // Where to log updater output.
