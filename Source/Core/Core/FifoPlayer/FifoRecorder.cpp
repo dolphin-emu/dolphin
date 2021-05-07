@@ -86,8 +86,8 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
   }
   const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
                                                       vtx_attr.g0.PosElements);
-  ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position, offset, vertex_size, num_vertices,
-                         vertex_data);
+  ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position, offset, vertex_size,
+                         num_vertices, vertex_data);
   offset += pos_size;
 
   const u32 norm_size =

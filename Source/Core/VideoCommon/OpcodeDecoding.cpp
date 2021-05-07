@@ -50,9 +50,7 @@ public:
 
     if constexpr (!is_preprocess)
     {
-      // HACK
-      LoadXFReg(count, address,
-                DataReader{const_cast<u8*>(data), const_cast<u8*>(data) + count * sizeof(u32)});
+      LoadXFReg(address, count, data);
 
       INCSTAT(g_stats.this_frame.num_xf_loads);
     }
