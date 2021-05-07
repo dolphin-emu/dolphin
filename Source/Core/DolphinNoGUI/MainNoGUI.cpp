@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  Core::SetOnStateChangedCallback([](Core::State state) {
+  Core::AddOnStateChangedCallback([](Core::State state) {
     if (state == Core::State::Uninitialized)
       s_platform->Stop();
   });

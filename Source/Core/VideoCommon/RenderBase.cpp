@@ -1335,7 +1335,12 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         // Remove stale EFB/XFB copies.
         g_texture_cache->Cleanup(m_frame_count);
-        Core::Callback_FramePresented();
+        const double last_speed_denominator =
+            m_fps_counter.GetDeltaTime() * VideoInterface::GetTargetRefreshRate();
+        // The denominator should always be > 0 but if it's not, just return 1
+        const double last_speed =
+            last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
+        Core::Callback_FramePresented(last_speed);
       }
 
       // Handle any config changes, this gets propagated to the backend.
