@@ -31,3 +31,7 @@ else()
     PowerPC/DivUtilsTest.cpp
   )
 endif()
+
+target_sources(PowerPCTest PRIVATE
+  PowerPC/TestValues.h
+)

@@ -36,6 +36,7 @@
     <ClInclude Include="Core\DSP\DSPTestText.h" />
     <ClInclude Include="Core\DSP\HermesBinary.h" />
     <ClInclude Include="Core\IOS\ES\TestBinaryData.h" />
+    <ClInclude Include="Core\PowerPC\TestValues.h" />
   </ItemGroup>
   <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
