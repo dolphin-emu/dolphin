@@ -206,7 +206,7 @@ private:
 };
 }  // namespace
 
-Common::Vec2 CameraControllerInput::GetFieldOfView() const
+Common::Vec2 CameraControllerInput::GetFieldOfViewMultiplier() const
 {
   return Common::Vec2{m_fov_x_multiplier, m_fov_y_multiplier};
 }
@@ -291,9 +291,9 @@ Common::Matrix44 FreeLookCamera::GetView() const
   return m_camera_controller->GetView();
 }
 
-Common::Vec2 FreeLookCamera::GetFieldOfView() const
+Common::Vec2 FreeLookCamera::GetFieldOfViewMultiplier() const
 {
-  return m_camera_controller->GetFieldOfView();
+  return m_camera_controller->GetFieldOfViewMultiplier();
 }
 
 void FreeLookCamera::DoState(PointerWrap& p)
