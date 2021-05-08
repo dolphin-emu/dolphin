@@ -42,11 +42,9 @@ DEFAULT_CONFIG = {
     # Build Target (dolphin-emu to just build the emulator and skip the tests)
     "build_target": "ALL_BUILD",
 
-    # Locations to pkg config files for arm and x64 libraries
-    # The default values of these paths are taken from the default
-    # paths used for homebrew
-    "arm64_pkg_config_path":  '/opt/homebrew/lib/pkgconfig',
-    "x86_64_pkg_config_path": '/usr/local/lib/pkgconfig',
+    # Location for CMake to search for files(default is for homebrew
+    "arm64_cmake_prefix":  '/opt/homebrew',
+    "x86_64_cmake_prefix": '/usr/local',
 
     # Locations to qt5 directories for arm and x64 libraries
     # The default values of these paths are taken from the default
@@ -124,10 +122,10 @@ def parse_args(conf=DEFAULT_CONFIG):
 
     for arch in ARCHITECTURES:
         parser.add_argument(
-             '--{}_pkg_config'.format(arch),
-             help="Folder containing .pc files for {} libraries".format(arch),
-             default=conf[arch+"_pkg_config_path"],
-             dest=arch+"_pkg_config_path")
+             '--{}_cmake_prefix'.format(arch),
+             help="Folder for cmake to search for packages".format(arch),
+             default=conf[arch+"_cmake_prefix"],
+             dest=arch+"_cmake_prefix")
 
         parser.add_argument(
              '--{}_qt5_path'.format(arch),
@@ -229,9 +227,17 @@ def build(config):
             os.mkdir(arch)
 
         env = os.environ.copy()
-        env['PKG_CONFIG_PATH'] = config[arch+"_pkg_config_path"]
         env['Qt5_DIR'] = config[arch+"_qt5_path"]
         env['CMAKE_OSX_ARCHITECTURES'] = arch
+        env['CMAKE_PREFIX_PATH'] = config[arch+"_cmake_prefix"]
+
+        # Add the other architecture's prefix path to the ignore path so that
+        # CMake doesn't try to pick up the wrong architecture's libraries when
+        # cross compiling.
+        ignore_path = ""
+        for a in ARCHITECTURES:
+            if a != arch:
+                ignore_path = config[a+"_cmake_prefix"]
 
         subprocess.check_call([
                 'cmake', '../../', '-G', config['generator'],
@@ -239,7 +245,9 @@ def build(config):
                 # System name needs to be specified for CMake to use
                 # the specified CMAKE_SYSTEM_PROCESSOR
                 '-DCMAKE_SYSTEM_NAME=Darwin',
+                '-DCMAKE_PREFIX_PATH='+config[arch+'_cmake_prefix'],
                 '-DCMAKE_SYSTEM_PROCESSOR='+arch,
+                '-DCMAKE_IGNORE_PATH='+ignore_path,
                 '-DCMAKE_OSX_DEPLOYMENT_TARGET='
                 + config[arch+"_mac_os_deployment_target"],
                 '-DMACOS_CODE_SIGNING_IDENTITY='
