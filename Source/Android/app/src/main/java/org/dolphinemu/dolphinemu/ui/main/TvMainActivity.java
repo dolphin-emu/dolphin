@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -285,15 +286,13 @@ public final class TvMainActivity extends FragmentActivity
 
     if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
-      if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+      if (grantResults[0] == PackageManager.PERMISSION_DENIED)
       {
-        DirectoryInitialization.start(this);
-        GameFileCacheService.startLoad(this);
+        PermissionsHandler.setWritePermissionDenied();
       }
-      else
-      {
-        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_LONG).show();
-      }
+
+      DirectoryInitialization.start(this);
+      GameFileCacheService.startLoad(this);
     }
   }
 
@@ -312,7 +311,7 @@ public final class TvMainActivity extends FragmentActivity
     ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
     mGameRows.clear();
 
-    if (PermissionsHandler.hasWriteAccess(this))
+    if (!DirectoryInitialization.isWaitingForWriteAccess(this))
     {
       GameFileCacheService.startLoad(this);
     }
