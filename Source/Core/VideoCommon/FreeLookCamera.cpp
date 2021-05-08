@@ -162,7 +162,7 @@ public:
   void MoveForward(float amt) override
   {
     m_distance += -1 * amt;
-    m_distance = std::clamp(m_distance, 0.0f, m_distance);
+    m_distance = std::max(m_distance, MIN_DISTANCE);
   }
 
   void Rotate(const Common::Vec3& amt) override
@@ -187,7 +187,7 @@ public:
     CameraControllerInput::Reset();
     m_rotation = Common::Vec3{};
     m_rotate_quat = Common::Quaternion::Identity();
-    m_distance = 0;
+    m_distance = MIN_DISTANCE;
   }
 
   void DoState(PointerWrap& p) override
@@ -199,7 +199,8 @@ public:
   }
 
 private:
-  float m_distance = 0;
+  static constexpr float MIN_DISTANCE = 0.0f;
+  float m_distance = MIN_DISTANCE;
   Common::Vec3 m_rotation = Common::Vec3{};
   Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
 };
@@ -207,26 +208,26 @@ private:
 
 Common::Vec2 CameraControllerInput::GetFieldOfView() const
 {
-  return Common::Vec2{m_fov_x, m_fov_y};
+  return Common::Vec2{m_fov_x_multiplier, m_fov_y_multiplier};
 }
 
 void CameraControllerInput::DoState(PointerWrap& p)
 {
   p.Do(m_speed);
-  p.Do(m_fov_x);
-  p.Do(m_fov_y);
+  p.Do(m_fov_x_multiplier);
+  p.Do(m_fov_y_multiplier);
 }
 
 void CameraControllerInput::IncreaseFovX(float fov)
 {
-  m_fov_x += fov;
-  m_fov_x = std::clamp(m_fov_x, m_min_fov_multiplier, m_fov_x);
+  m_fov_x_multiplier += fov;
+  m_fov_x_multiplier = std::max(m_fov_x_multiplier, MIN_FOV_MULTIPLIER);
 }
 
 void CameraControllerInput::IncreaseFovY(float fov)
 {
-  m_fov_y += fov;
-  m_fov_y = std::clamp(m_fov_y, m_min_fov_multiplier, m_fov_y);
+  m_fov_y_multiplier += fov;
+  m_fov_y_multiplier = std::max(m_fov_y_multiplier, MIN_FOV_MULTIPLIER);
 }
 
 float CameraControllerInput::GetFovStepSize() const
@@ -236,20 +237,20 @@ float CameraControllerInput::GetFovStepSize() const
 
 void CameraControllerInput::Reset()
 {
-  m_fov_x = 1.0f;
-  m_fov_y = 1.0f;
+  m_fov_x_multiplier = DEFAULT_FOV_MULTIPLIER;
+  m_fov_y_multiplier = DEFAULT_FOV_MULTIPLIER;
   m_dirty = true;
 }
 
 void CameraControllerInput::ModifySpeed(float amt)
 {
   m_speed += amt;
-  m_speed = std::clamp(m_speed, 0.0f, m_speed);
+  m_speed = std::max(m_speed, 0.0f);
 }
 
 void CameraControllerInput::ResetSpeed()
 {
-  m_speed = 60.0f;
+  m_speed = DEFAULT_SPEED;
 }
 
 float CameraControllerInput::GetSpeed() const

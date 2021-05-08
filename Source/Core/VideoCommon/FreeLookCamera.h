@@ -65,11 +65,13 @@ public:
   float GetSpeed() const;
 
 private:
-  float m_fov_x = 1.0f;
-  float m_fov_y = 1.0f;
+  static constexpr float MIN_FOV_MULTIPLIER = 0.025f;
+  static constexpr float DEFAULT_SPEED = 60.0f;
+  static constexpr float DEFAULT_FOV_MULTIPLIER = 1.0f;
 
-  float m_min_fov_multiplier = 0.025f;
-  float m_speed = 60.0f;
+  float m_fov_x_multiplier = DEFAULT_FOV_MULTIPLIER;
+  float m_fov_y_multiplier = DEFAULT_FOV_MULTIPLIER;
+  float m_speed = DEFAULT_SPEED;
   bool m_dirty = false;
 };
 
