@@ -1742,12 +1742,8 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
     return nullptr;
   }
 
-  // Compute total texture size. XFB textures aren't tiled, so this is simple.
-  const u32 total_size = height * stride;
-  const u64 hash = Common::GetHash64(src_data, total_size, 0);
-
   // Do we currently have a version of this XFB copy in VRAM?
-  TCacheEntry* entry = GetXFBFromCache(address, width, height, stride, hash);
+  TCacheEntry* entry = GetXFBFromCache(address, width, height, stride);
   if (entry)
   {
     if (entry->is_xfb_container)
@@ -1763,11 +1759,16 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
   // Create a new VRAM texture, and fill it with the data from guest RAM.
   entry = AllocateCacheEntry(TextureConfig(width, height, 1, 1, 1, AbstractTextureFormat::RGBA8,
                                            AbstractTextureFlag_RenderTarget));
+
+  // Compute total texture size. XFB textures aren't tiled, so this is simple.
+  const u32 total_size = height * stride;
   entry->SetGeneralParameters(address, total_size,
                               TextureAndTLUTFormat(TextureFormat::XFB, TLUTFormat::IA8), true);
   entry->SetDimensions(width, height, 1);
-  entry->SetHashes(hash, hash);
   entry->SetXfbCopy(stride);
+
+  const u64 hash = entry->CalculateHash();
+  entry->SetHashes(hash, hash);
   entry->is_xfb_container = true;
   entry->is_custom_tex = false;
   entry->may_have_overlapping_textures = false;
@@ -1804,7 +1805,7 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
 }
 
 TextureCacheBase::TCacheEntry* TextureCacheBase::GetXFBFromCache(u32 address, u32 width, u32 height,
-                                                                 u32 stride, u64 hash)
+                                                                 u32 stride)
 {
   auto iter_range = textures_by_address.equal_range(address);
   TexAddrCache::iterator iter = iter_range.first;
@@ -1818,15 +1819,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::GetXFBFromCache(u32 address, u3
     if (entry->is_xfb_copy && entry->memory_stride == stride && entry->native_width >= width &&
         entry->native_height >= height && !entry->may_have_overlapping_textures)
     {
-      // But if the dimensions do differ, we must compute the hash on the sub-rectangle.
-      u64 check_hash = hash;
-      if (entry->native_width != width || entry->native_height != height)
-      {
-        check_hash = Common::GetHash64(Memory::GetPointer(entry->addr),
-                                       entry->memory_stride * entry->native_height, 0);
-      }
-
-      if (entry->hash == check_hash && !entry->reference_changed)
+      if (entry->hash == entry->CalculateHash() && !entry->reference_changed)
       {
         return entry;
       }
@@ -2936,29 +2929,31 @@ int TextureCacheBase::TCacheEntry::HashSampleSize() const
 
 u64 TextureCacheBase::TCacheEntry::CalculateHash() const
 {
+  const u32 bytes_per_row = BytesPerRow();
+  const u32 hash_sample_size = HashSampleSize();
   u8* ptr = Memory::GetPointer(addr);
-  if (memory_stride == BytesPerRow())
+  if (memory_stride == bytes_per_row)
   {
-    return Common::GetHash64(ptr, size_in_bytes, HashSampleSize());
+    return Common::GetHash64(ptr, size_in_bytes, hash_sample_size);
   }
   else
   {
-    u32 blocks = NumBlocksY();
+    const u32 num_blocks_y = NumBlocksY();
     u64 temp_hash = size_in_bytes;
 
     u32 samples_per_row = 0;
-    if (HashSampleSize() != 0)
+    if (hash_sample_size != 0)
     {
       // Hash at least 4 samples per row to avoid hashing in a bad pattern, like just on the left
       // side of the efb copy
-      samples_per_row = std::max(HashSampleSize() / blocks, 4u);
+      samples_per_row = std::max(hash_sample_size / num_blocks_y, 4u);
     }
 
-    for (u32 i = 0; i < blocks; i++)
+    for (u32 i = 0; i < num_blocks_y; i++)
     {
       // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
       // canceling each other out
-      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, BytesPerRow(), samples_per_row);
+      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, bytes_per_row, samples_per_row);
       ptr += memory_stride;
     }
     return temp_hash;
