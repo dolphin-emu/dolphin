@@ -2,40 +2,15 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyBooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyIntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileStringSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
-import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InvertedCheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.LogCheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.PercentSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
-import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
-import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
-import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.*;
+import org.dolphinemu.dolphinemu.features.settings.model.view.*;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -191,6 +166,10 @@ public final class SettingsFragmentPresenter
         addDebugSettings(sl);
         break;
 
+      case USER_DATA:
+        addUserDataSettings(sl);
+        break;
+
       case GCPAD_1:
       case GCPAD_2:
       case GCPAD_3:
@@ -251,6 +230,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(mContext, R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(mContext, R.string.debug_submenu, MenuTag.DEBUG));
+    sl.add(new SubmenuSetting(mContext, R.string.user_data_submenu, MenuTag.USER_DATA));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -755,6 +735,24 @@ public final class SettingsFragmentPresenter
             R.string.debug_jitbranchoff, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_REGISTER_CACHE_OFF,
             R.string.debug_jitregistercacheoff, 0));
+  }
+
+  private void addUserDataSettings(ArrayList<SettingsItem> sl)
+  {
+    // This isn't really a setting since you can't edit it,
+    // but the settings activity is probably the most sensible place to put it anyway.
+
+    int userDataTextId = DirectoryInitialization.isUsingLegacyUserDirectory() ?
+            R.string.user_data_old_location : R.string.user_data_new_location;
+
+    sl.add(new TextSetting(mContext, userDataTextId, 0));
+    sl.add(new TextSetting(DirectoryInitialization.getUserDirectory(), ""));
+
+    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            !DirectoryInitialization.isUsingLegacyUserDirectory())
+    {
+      sl.add(new TextSetting(mContext, R.string.user_data_new_location_android_11, 0));
+    }
   }
 
   private void addStereoSettings(ArrayList<SettingsItem> sl)

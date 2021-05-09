@@ -85,6 +85,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         view = inflater.inflate(R.layout.list_item_settings_header, parent, false);
         return new HeaderViewHolder(view, this);
 
+      case SettingsItem.TYPE_TEXT:
+        view = inflater.inflate(R.layout.list_item_settings_text, parent, false);
+        return new HeaderViewHolder(view, this);
+
       case SettingsItem.TYPE_CHECKBOX:
         view = inflater.inflate(R.layout.list_item_setting_checkbox, parent, false);
         return new CheckBoxSettingViewHolder(view, this);
