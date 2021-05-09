@@ -300,6 +300,31 @@ struct fmt::formatter<IndTexBias> : EnumFormatter<IndTexBias::STU>
   formatter() : EnumFormatter({"None", "S", "T", "ST", "U", "SU", "TU", "STU"}) {}
 };
 
+enum class IndMtxIndex : u32
+{
+  Off = 0,
+  Matrix0 = 1,
+  Matrix1 = 2,
+  Matrix2 = 3,
+};
+template <>
+struct fmt::formatter<IndMtxIndex> : EnumFormatter<IndMtxIndex::Matrix2>
+{
+  formatter() : EnumFormatter({"Off", "Matrix 0", "Matrix 1", "Matrix 2"}) {}
+};
+
+enum class IndMtxId : u32
+{
+  Indirect = 0,
+  S = 1,
+  T = 2,
+};
+template <>
+struct fmt::formatter<IndMtxId> : EnumFormatter<IndMtxId::T>
+{
+  formatter() : EnumFormatter({"Indirect", "S", "T"}) {}
+};
+
 // Indirect texture bump alpha
 enum class IndTexBumpAlpha : u32
 {
@@ -335,7 +360,7 @@ union IND_MTXA
 {
   BitField<0, 11, s32> ma;
   BitField<11, 11, s32> mb;
-  BitField<22, 2, u32> s0;  // bits 0-1 of scale factor
+  BitField<22, 2, u8, u32> s0;  // bits 0-1 of scale factor
   u32 hex;
 };
 
@@ -343,7 +368,7 @@ union IND_MTXB
 {
   BitField<0, 11, s32> mc;
   BitField<11, 11, s32> md;
-  BitField<22, 2, u32> s1;  // bits 2-3 of scale factor
+  BitField<22, 2, u8, u32> s1;  // bits 2-3 of scale factor
   u32 hex;
 };
 
@@ -351,7 +376,7 @@ union IND_MTXC
 {
   BitField<0, 11, s32> me;
   BitField<11, 11, s32> mf;
-  BitField<22, 2, u32> s2;  // bits 4-5 of scale factor
+  BitField<22, 2, u8, u32> s2;  // bits 4-5 of scale factor
   u32 hex;
 };
 
@@ -360,6 +385,7 @@ struct IND_MTX
   IND_MTXA col0;
   IND_MTXB col1;
   IND_MTXC col2;
+  u8 GetScale() const { return (col0.s0 << 0) | (col1.s1 << 2) | (col2.s2 << 4); }
 };
 
 union IND_IMASK
@@ -475,8 +501,12 @@ union TevStageIndirect
   BitField<4, 1, bool, u32> bias_s;
   BitField<5, 1, bool, u32> bias_t;
   BitField<6, 1, bool, u32> bias_u;
-  BitField<7, 2, IndTexBumpAlpha> bs;     // Indicates which coordinate will become the 'bump alpha'
-  BitField<9, 4, u32> mid;                // Matrix ID to multiply offsets with
+  BitField<7, 2, IndTexBumpAlpha> bs;  // Indicates which coordinate will become the 'bump alpha'
+  // Indicates which indirect matrix is used when matrix_id is Indirect.
+  // Also always indicates which indirect matrix to use for the scale factor, even with S or T.
+  BitField<9, 2, IndMtxIndex> matrix_index;
+  // Should be set to Indirect (0) if matrix_index is Off (0)
+  BitField<11, 2, IndMtxId> matrix_id;
   BitField<13, 3, IndTexWrap> sw;         // Wrapping factor for S of regular coord
   BitField<16, 3, IndTexWrap> tw;         // Wrapping factor for T of regular coord
   BitField<19, 1, bool, u32> lb_utclod;   // Use modified or unmodified texture
@@ -492,9 +522,9 @@ union TevStageIndirect
 
   u32 fullhex;
 
-  // If bs and mid are zero, the result of the stage is independent of
+  // If bs and matrix are zero, the result of the stage is independent of
   // the texture sample data, so we can skip sampling the texture.
-  bool IsActive() const { return bs != IndTexBumpAlpha::Off || mid != 0; }
+  bool IsActive() const { return bs != IndTexBumpAlpha::Off || matrix_index != IndMtxIndex::Off; }
 };
 template <>
 struct fmt::formatter<TevStageIndirect>
@@ -508,13 +538,15 @@ struct fmt::formatter<TevStageIndirect>
                      "Format: {}\n"
                      "Bias: {}\n"
                      "Bump alpha: {}\n"
+                     "Offset matrix index: {}\n"
                      "Offset matrix ID: {}\n"
                      "Regular coord S wrapping factor: {}\n"
                      "Regular coord T wrapping factor: {}\n"
                      "Use modified texture coordinates for LOD computation: {}\n"
                      "Add texture coordinates from previous TEV stage: {}",
-                     tevind.bt, tevind.fmt, tevind.bias, tevind.bs, tevind.mid, tevind.sw,
-                     tevind.tw, tevind.lb_utclod ? "Yes" : "No", tevind.fb_addprev ? "Yes" : "No");
+                     tevind.bt, tevind.fmt, tevind.bias, tevind.bs, tevind.matrix_index,
+                     tevind.matrix_id, tevind.sw, tevind.tw, tevind.lb_utclod ? "Yes" : "No",
+                     tevind.fb_addprev ? "Yes" : "No");
   }
 };
 
@@ -600,13 +632,13 @@ struct fmt::formatter<TEXSCALE>
 union RAS1_IREF
 {
   BitField<0, 3, u32> bi0;  // Indirect tex stage 0 ntexmap
-  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexmap
+  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexcoord
   BitField<6, 3, u32> bi1;
   BitField<9, 3, u32> bc1;
   BitField<12, 3, u32> bi2;
-  BitField<15, 3, u32> bc3;  // Typo?
-  BitField<18, 3, u32> bi4;
-  BitField<21, 3, u32> bc4;
+  BitField<15, 3, u32> bc2;
+  BitField<18, 3, u32> bi3;
+  BitField<21, 3, u32> bc3;
   u32 hex;
 
   u32 getTexCoord(int i) const { return (hex >> (6 * i + 3)) & 7; }
@@ -625,8 +657,8 @@ struct fmt::formatter<RAS1_IREF>
                      "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
                      "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
                      "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
-                     indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc3,
-                     indref.bi4, indref.bc4);
+                     indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
+                     indref.bi3, indref.bc3);
   }
 };
 
@@ -911,6 +943,8 @@ union GenMode
   BitField<7, 1, u32> unused;              // 1 bit unused?
   BitField<8, 1, bool, u32> flat_shading;  // unconfirmed
   BitField<9, 1, bool, u32> multisampling;
+  // This value is 1 less than the actual number (0-15 map to 1-16).
+  // In other words there is always at least 1 tev stage
   BitField<10, 4, u32> numtevstages;
   BitField<14, 2, CullMode> cullmode;
   BitField<16, 3, u32> numindstages;
@@ -937,7 +971,7 @@ struct fmt::formatter<GenMode>
                      "ZFreeze: {}",
                      mode.numtexgens, mode.numcolchans, mode.unused,
                      mode.flat_shading ? "Yes" : "No", mode.multisampling ? "Yes" : "No",
-                     mode.numtevstages, mode.cullmode, mode.numindstages,
+                     mode.numtevstages + 1, mode.cullmode, mode.numindstages,
                      mode.zfreeze ? "Yes" : "No");
   }
 };
@@ -1912,7 +1946,7 @@ struct BPMemory
   GenMode genMode;
   u32 display_copy_filter[4];  // 01-04
   u32 unknown;                 // 05
-  // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::mid)
+  // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::matrix_index)
   // abc form a 2x3 offset matrix, there's 3 such matrices
   // the 3 offset matrices can either be indirect type, S-type, or T-type
   // 6bit scale factor s is distributed across IND_MTXA/B/C.

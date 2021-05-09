@@ -66,9 +66,9 @@ struct pixel_shader_uid_data
   u32 tevindref_bi1 : 3;
   u32 tevindref_bc1 : 3;
   u32 tevindref_bi2 : 3;
+  u32 tevindref_bc2 : 3;
+  u32 tevindref_bi3 : 3;
   u32 tevindref_bc3 : 3;
-  u32 tevindref_bi4 : 3;
-  u32 tevindref_bc4 : 3;
 
   void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
   {
@@ -84,55 +84,39 @@ struct pixel_shader_uid_data
     }
     else if (index == 2)
     {
-      tevindref_bc3 = texcoord;
+      tevindref_bc2 = texcoord;
       tevindref_bi2 = texmap;
     }
     else if (index == 3)
     {
-      tevindref_bc4 = texcoord;
-      tevindref_bi4 = texmap;
+      tevindref_bc3 = texcoord;
+      tevindref_bi3 = texmap;
     }
   }
 
   u32 GetTevindirefCoord(int index) const
   {
     if (index == 0)
-    {
       return tevindref_bc0;
-    }
     else if (index == 1)
-    {
       return tevindref_bc1;
-    }
     else if (index == 2)
-    {
-      return tevindref_bc3;
-    }
+      return tevindref_bc2;
     else if (index == 3)
-    {
-      return tevindref_bc4;
-    }
+      return tevindref_bc3;
     return 0;
   }
 
   u32 GetTevindirefMap(int index) const
   {
     if (index == 0)
-    {
       return tevindref_bi0;
-    }
     else if (index == 1)
-    {
       return tevindref_bi1;
-    }
     else if (index == 2)
-    {
       return tevindref_bi2;
-    }
     else if (index == 3)
-    {
-      return tevindref_bi4;
-    }
+      return tevindref_bi3;
     return 0;
   }
 
@@ -149,6 +133,7 @@ struct pixel_shader_uid_data
     u32 pad1 : 6;
 
     // TODO: Clean up the swapXY mess
+    // TODO: remove hasindstage, as it no longer does anything useful
     u32 hasindstage : 1;
     u32 tevind : 21;
     u32 tevksel_swap1a : 2;
@@ -174,7 +159,7 @@ using PixelShaderUid = ShaderUid<pixel_shader_uid_data>;
 
 ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data);
-void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type, u32 num_texgens,
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
                                   const ShaderHostConfig& host_config, bool bounding_box);
 void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid);

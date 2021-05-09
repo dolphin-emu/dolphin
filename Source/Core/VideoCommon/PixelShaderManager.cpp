@@ -148,29 +148,18 @@ void PixelShaderManager::SetConstants()
 
     for (u32 i = 0; i < (bpmem.genMode.numtevstages + 1); ++i)
     {
-      u32 stage = bpmem.tevind[i].bt;
-      if (stage < bpmem.genMode.numindstages)
-      {
-        // We set some extra bits so the ubershader can quickly check if these
-        // features are in use.
-        if (bpmem.tevind[i].IsActive())
-          constants.pack1[stage][3] =
-              bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
-        // Note: a tevind of zero just happens to be a passthrough, so no need
-        // to set an extra bit.
-        constants.pack1[i][2] = bpmem.tevind[i].hex;  // TODO: This match shadergen, but videosw
-                                                      // will always wrap.
+      // Note: a tevind of zero just happens to be a passthrough, so no need
+      // to set an extra bit.  Furthermore, wrap and add to previous apply even if there is no
+      // indirect stage.
+      constants.pack1[i][2] = bpmem.tevind[i].hex;
 
-        // The ubershader uses tevind != 0 as a condition whether to calculate texcoords,
-        // even when texture is disabled, instead of the stage < bpmem.genMode.numindstages.
-        // We set an unused bit here to indicate that the stage is active, even if it
-        // is just a pass-through.
-        constants.pack1[i][2] |= 0x80000000;
-      }
-      else
-      {
-        constants.pack1[i][2] = 0;
-      }
+      u32 stage = bpmem.tevind[i].bt;
+
+      // We use an extra bit (1 << 16) to provide a fast way of testing if this feature is in use.
+      // Note also that this is indexed by indirect stage, not by TEV stage.
+      if (bpmem.tevind[i].IsActive() && stage < bpmem.genMode.numindstages)
+        constants.pack1[stage][3] =
+            bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
     }
 
     dirty = true;
@@ -336,9 +325,7 @@ void PixelShaderManager::SetIndTexScaleChanged(bool high)
 
 void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
-  int scale = ((u32)bpmem.indmtx[matrixidx].col0.s0 << 0) |
-              ((u32)bpmem.indmtx[matrixidx].col1.s1 << 2) |
-              ((u32)bpmem.indmtx[matrixidx].col2.s2 << 4);
+  const u8 scale = bpmem.indmtx[matrixidx].GetScale();
 
   // xyz - static matrix
   // w - dynamic matrix scale / 128

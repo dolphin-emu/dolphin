@@ -64,7 +64,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for {} texgens{}{}\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
-  WritePixelShaderCommonHeader(out, ApiType, numTexgen, host_config, bounding_box);
+  WritePixelShaderCommonHeader(out, ApiType, host_config, bounding_box);
   WriteUberShaderCommonHeader(out, ApiType, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -148,19 +148,16 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   }
 
   // Uniform index -> texture coordinates
+  // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
+  // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
+  // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
+  // the number of tex gens to 2 (bug 11462).
   if (numTexgen > 0)
   {
-    if (ApiType != APIType::D3D)
-    {
-      out.Write("float3 selectTexCoord(uint index) {{\n");
-    }
-    else
-    {
-      out.Write("float3 selectTexCoord(uint index");
-      for (u32 i = 0; i < numTexgen; i++)
-        out.Write(", float3 tex{}", i);
-      out.Write(") {{\n");
-    }
+    out.Write("int2 selectTexCoord(uint index");
+    for (u32 i = 0; i < numTexgen; i++)
+      out.Write(", int2 fixpoint_uv{}", i);
+    out.Write(") {{\n");
 
     if (ApiType == APIType::D3D)
     {
@@ -168,48 +165,51 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       for (u32 i = 0; i < numTexgen; i++)
       {
         out.Write("  case {}u:\n"
-                  "    return tex{};\n",
+                  "    return fixpoint_uv{};\n",
                   i, i);
       }
       out.Write("  default:\n"
-                "    return float3(0.0, 0.0, 0.0);\n"
+                "    return fixpoint_uv0;\n"
                 "  }}\n");
     }
     else
     {
+      out.Write("  if (index >= {}u) {{\n", numTexgen);
+      out.Write("    return fixpoint_uv0;\n"
+                "  }}\n");
       if (numTexgen > 4)
         out.Write("  if (index < 4u) {{\n");
       if (numTexgen > 2)
         out.Write("    if (index < 2u) {{\n");
       if (numTexgen > 1)
-        out.Write("      return (index == 0u) ? tex0 : tex1;\n");
+        out.Write("      return (index == 0u) ? fixpoint_uv0 : fixpoint_uv1;\n");
       else
-        out.Write("      return (index == 0u) ? tex0 : float3(0.0, 0.0, 0.0);\n");
+        out.Write("      return fixpoint_uv0;\n");
       if (numTexgen > 2)
       {
-        out.Write("    }} else {{\n");  // >= 2
+        out.Write("    }} else {{\n");  // >= 2 < min(4, numTexgen)
         if (numTexgen > 3)
-          out.Write("      return (index == 2u) ? tex2 : tex3;\n");
+          out.Write("      return (index == 2u) ? fixpoint_uv2 : fixpoint_uv3;\n");
         else
-          out.Write("      return (index == 2u) ? tex2 : float3(0.0, 0.0, 0.0);\n");
+          out.Write("      return fixpoint_uv2;\n");
         out.Write("    }}\n");
       }
       if (numTexgen > 4)
       {
-        out.Write("  }} else {{\n");  // >= 4 <= 8
+        out.Write("  }} else {{\n");  // >= 4 < min(8, numTexgen)
         if (numTexgen > 6)
           out.Write("    if (index < 6u) {{\n");
         if (numTexgen > 5)
-          out.Write("      return (index == 4u) ? tex4 : tex5;\n");
+          out.Write("      return (index == 4u) ? fixpoint_uv4 : fixpoint_uv5;\n");
         else
-          out.Write("      return (index == 4u) ? tex4 : float3(0.0, 0.0, 0.0);\n");
+          out.Write("      return fixpoint_uv4;\n");
         if (numTexgen > 6)
         {
-          out.Write("    }} else {{\n");  // >= 6 <= 8
+          out.Write("    }} else {{\n");  // >= 6 < min(8, numTexgen)
           if (numTexgen > 7)
-            out.Write("      return (index == 6u) ? tex6 : tex7;\n");
+            out.Write("      return (index == 6u) ? fixpoint_uv6 : fixpoint_uv7;\n");
           else
-            out.Write("      return (index == 6u) ? tex6 : float3(0.0, 0.0, 0.0);\n");
+            out.Write("      return fixpoint_uv6;\n");
           out.Write("    }}\n");
         }
         out.Write("  }}\n");
@@ -287,15 +287,15 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // ======================
   const auto LookupIndirectTexture = [&out, stereo](std::string_view out_var_name,
                                                     std::string_view in_index_name) {
+    // in_index_name is the indirect stage, not the tev stage
+    // bpmem_iref is packed differently from RAS1_IREF
     out.Write("{{\n"
               "  uint iref = bpmem_iref({});\n"
               "  if ( iref != 0u)\n"
               "  {{\n"
               "    uint texcoord = bitfieldExtract(iref, 0, 3);\n"
               "    uint texmap = bitfieldExtract(iref, 8, 3);\n"
-              "    float3 uv = getTexCoord(texcoord);\n"
-              "    int2 fixedPoint_uv = int2((uv.z == 0.0 ? uv.xy : (uv.xy / uv.z)) * " I_TEXDIMS
-              "[texcoord].zw);\n"
+              "    int2 fixedPoint_uv = getTexCoord(texcoord);\n"
               "\n"
               "    if (({} & 1u) == 0u)\n"
               "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].xy;\n"
@@ -306,6 +306,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "[texmap].xy, {})).abg;\n",
               in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
               stereo ? "float(layer)" : "0.0");
+    // There is always a bit set in bpmem_iref if the data is valid (matrix is not off, and the
+    // indirect texture stage is enabled). If the matrix is off, the result doesn't matter; if the
+    // indirect texture stage is disabled, the result is undefined (and produces a glitchy pattern
+    // on hardware, different from this).
     out.Write("  }}\n"
               "  else\n"
               "  {{\n"
@@ -666,21 +670,14 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "\n");
   }
 
-  // Since the texture coodinate variables aren't global, we need to pass
-  // them to the select function in D3D.
+  // Since the fixed-point texture coodinate variables aren't global, we need to pass
+  // them to the select function.  This applies to all backends.
   if (numTexgen > 0)
   {
-    if (ApiType != APIType::D3D)
-    {
-      out.Write("#define getTexCoord(index) selectTexCoord((index))\n\n");
-    }
-    else
-    {
-      out.Write("#define getTexCoord(index) selectTexCoord((index)");
-      for (u32 i = 0; i < numTexgen; i++)
-        out.Write(", tex{}", i);
-      out.Write(")\n\n");
-    }
+    out.Write("#define getTexCoord(index) selectTexCoord((index)");
+    for (u32 i = 0; i < numTexgen; i++)
+      out.Write(", fixpoint_uv{}", i);
+    out.Write(")\n\n");
   }
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
@@ -788,11 +785,18 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
   {
-    out.Write("    uint tex_coord = {};\n",
+    for (u32 i = 0; i < numTexgen; i++)
+    {
+      out.Write("    int2 fixpoint_uv{} = int2(", i);
+      out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
+      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      // TODO: S24 overflows here?
+    }
+
+    out.Write("\n"
+              "    uint tex_coord = {};\n",
               BitfieldExtract<&TwoTevStageOrders::texcoord0>("ss.order"));
-    out.Write("    float3 uv = getTexCoord(tex_coord);\n"
-              "    int2 fixedPoint_uv = int2((uv.z == 0.0 ? uv.xy : (uv.xy / uv.z)) * " I_TEXDIMS
-              "[tex_coord].zw);\n"
+    out.Write("    int2 fixedPoint_uv = getTexCoord(tex_coord);\n"
               "\n"
               "    bool texture_enabled = (ss.order & {}u) != 0u;\n",
               1 << TwoTevStageOrders().enable0.StartBit());
@@ -806,7 +810,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("      uint fmt = {};\n", BitfieldExtract<&TevStageIndirect::fmt>("tevind"));
     out.Write("      uint bias = {};\n", BitfieldExtract<&TevStageIndirect::bias>("tevind"));
     out.Write("      uint bt = {};\n", BitfieldExtract<&TevStageIndirect::bt>("tevind"));
-    out.Write("      uint mid = {};\n", BitfieldExtract<&TevStageIndirect::mid>("tevind"));
+    out.Write("      uint matrix_index = {};\n",
+              BitfieldExtract<&TevStageIndirect::matrix_index>("tevind"));
+    out.Write("      uint matrix_id = {};\n",
+              BitfieldExtract<&TevStageIndirect::matrix_id>("tevind"));
     out.Write("\n");
     out.Write("      int3 indcoord;\n");
     LookupIndirectTexture("indcoord", "bt");
@@ -846,12 +853,12 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "\n"
               "      // Matrix multiply\n"
               "      int2 indtevtrans = int2(0, 0);\n"
-              "      if ((mid & 3u) != 0u)\n"
+              "      if (matrix_index != 0u)\n"
               "      {{\n"
-              "        uint mtxidx = 2u * ((mid & 3u) - 1u);\n"
+              "        uint mtxidx = 2u * (matrix_index - 1u);\n"
               "        int shift = " I_INDTEXMTX "[mtxidx].w;\n"
               "\n"
-              "        switch (mid >> 2)\n"
+              "        switch (matrix_id)\n"
               "        {{\n"
               "        case 0u: // 3x2 S0.10 matrix\n"
               "          indtevtrans = int2(idot(" I_INDTEXMTX
