@@ -51,6 +51,6 @@ protected:
   Common::Flag m_shutdown_requested{false};
   Common::Flag m_tried_graceful_shutdown{false};
 
-  bool m_window_focus = true;
+  bool m_window_focus = true;  // Should be made atomic if actually implemented
   bool m_window_fullscreen = false;
 };

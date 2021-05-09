@@ -1113,10 +1113,15 @@ void DoFrameStep()
   }
 }
 
-void UpdateInputGate(bool require_focus)
+void UpdateInputGate(bool require_focus, bool require_full_focus)
 {
-  ControlReference::SetInputGate((!require_focus || Host_RendererHasFocus()) &&
-                                 !Host_UIBlocksControllerState());
+  // If the user accepts background input, controls should pass even if an on screen interface is on
+  const bool focus_passes =
+      !require_focus || (Host_RendererHasFocus() && !Host_UIBlocksControllerState());
+  // Ignore full focus if we don't require basic focus
+  const bool full_focus_passes =
+      !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
+  ControlReference::SetInputGate(focus_passes && full_focus_passes);
 }
 
 }  // namespace Core

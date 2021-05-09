@@ -280,6 +280,17 @@ bool Settings::GetHideCursor() const
   return SConfig::GetInstance().bHideCursor;
 }
 
+void Settings::SetLockCursor(bool lock_cursor)
+{
+  SConfig::GetInstance().bLockCursor = lock_cursor;
+  emit LockCursorChanged();
+}
+
+bool Settings::GetLockCursor() const
+{
+  return SConfig::GetInstance().bLockCursor;
+}
+
 void Settings::SetKeepWindowOnTop(bool top)
 {
   if (IsKeepWindowOnTopEnabled() == top)

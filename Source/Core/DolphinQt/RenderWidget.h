@@ -20,6 +20,10 @@ public:
   bool event(QEvent* event) override;
   void showFullScreen();
   QPaintEngine* paintEngine() const override;
+  bool IsCursorLocked() const { return m_cursor_locked; }
+  void SetCursorLockedOnNextActivation(bool locked = true);
+  void SetWaitingForMessageBox(bool waiting_for_message_box);
+  void SetCursorLocked(bool locked, bool follow_aspect_ratio = true);
 
 signals:
   void EscapePressed();
@@ -32,7 +36,9 @@ signals:
 private:
   void HandleCursorTimer();
   void OnHideCursorChanged();
+  void OnLockCursorChanged();
   void OnKeepOnTopChanged(bool top);
+  void UpdateCursor();
   void PassEventToImGui(const QEvent* event);
   void SetImGuiKeyMap();
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -41,4 +47,8 @@ private:
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;
   QPoint m_last_mouse{};
+  bool m_cursor_locked = false;
+  bool m_lock_cursor_on_next_activation = false;
+  bool m_dont_lock_cursor_on_show = false;
+  bool m_waiting_for_message_box = false;
 };

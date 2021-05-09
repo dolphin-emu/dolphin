@@ -151,6 +151,12 @@ bool Host_RendererHasFocus()
   return true;
 }
 
+bool Host_RendererHasFullFocus()
+{
+  // Mouse cursor locking actually exists in Android but we don't implement (nor need) that
+  return true;
+}
+
 bool Host_RendererIsFullscreen()
 {
   return false;

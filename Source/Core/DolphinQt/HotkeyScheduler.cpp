@@ -213,6 +213,10 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
 
+      // Unlock Cursor
+      if (IsHotkey(HK_UNLOCK_CURSOR))
+        emit UnlockCursor();
+
       auto& settings = Settings::Instance();
 
       // Toggle Chat

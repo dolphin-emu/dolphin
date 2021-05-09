@@ -10,6 +10,10 @@
 
 #include <imgui.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "Common/Common.h"
 
 #include "Core/Config/MainSettings.h"
@@ -49,6 +53,8 @@ Host* Host::GetInstance()
 
 void Host::SetRenderHandle(void* handle)
 {
+  m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
+
   if (m_render_handle == handle)
     return;
 
@@ -61,9 +67,27 @@ void Host::SetRenderHandle(void* handle)
   }
 }
 
+void Host::SetMainWindowHandle(void* handle)
+{
+  m_main_window_handle = handle;
+}
+
 bool Host::GetRenderFocus()
 {
+#ifdef _WIN32
+  // Unfortunately Qt calls SetRenderFocus() with a slight delay compared to what we actually need
+  // to avoid inputs that cause a focus loss to be processed by the emulation
+  if (m_render_to_main)
+    return GetForegroundWindow() == (HWND)m_main_window_handle.load();
+  return GetForegroundWindow() == (HWND)m_render_handle.load();
+#else
   return m_render_focus;
+#endif
+}
+
+bool Host::GetRenderFullFocus()
+{
+  return m_render_full_focus;
 }
 
 void Host::SetRenderFocus(bool focus)
@@ -74,6 +98,11 @@ void Host::SetRenderFocus(bool focus)
       if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
         g_renderer->SetFullscreen(focus);
     });
+}
+
+void Host::SetRenderFullFocus(bool focus)
+{
+  m_render_full_focus = focus;
 }
 
 bool Host::GetRenderFullscreen()
@@ -129,6 +158,11 @@ void Host_UpdateTitle(const std::string& title)
 bool Host_RendererHasFocus()
 {
   return Host::GetInstance()->GetRenderFocus();
+}
+
+bool Host_RendererHasFullFocus()
+{
+  return Host::GetInstance()->GetRenderFullFocus();
 }
 
 bool Host_RendererIsFullscreen()
