@@ -120,6 +120,12 @@
             android:exported="false"
             android:theme="@style/DolphinBase" />
 
+        <activity
+            android:name=".activities.UserDataActivity"
+            android:exported="false"
+            android:label="@string/user_data_submenu"
+            android:theme="@style/DolphinSettingsBase" />
+
         <service
             android:name=".utils.DirectoryInitialization"
             android:exported="false"/>

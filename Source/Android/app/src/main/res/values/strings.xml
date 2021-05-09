@@ -324,6 +324,12 @@
     <string name="debug_jitbranchoff">Jit Branch Disabled</string>
     <string name="debug_jitregistercacheoff">Jit Register Cache Disabled</string>
 
+    <!-- User Data -->
+    <string name="user_data_submenu">User Data</string>
+    <string name="user_data_old_location">Your user data is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
+    <string name="user_data_new_location">Your user data is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
+    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, you can\'t access this location using file manager apps. However, you can access it using the file manager in the system settings, or by connecting your device to a PC.</string>
+
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
     <string name="no">No</string>

@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.UserDataActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
@@ -252,6 +253,8 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(mContext, R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(mContext, R.string.debug_submenu, MenuTag.DEBUG));
+    sl.add(new RunRunnable(mContext, R.string.user_data_submenu, 0, 0, 0,
+            () -> UserDataActivity.launch(mContext)));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)

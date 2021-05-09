@@ -43,6 +43,7 @@ public final class DirectoryInitialization
   private static volatile boolean areDirectoriesAvailable = false;
   private static String userPath;
   private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
+  private static boolean isUsingLegacyUserDirectory = false;
 
   public enum DirectoryInitializationState
   {
@@ -108,7 +109,10 @@ public final class DirectoryInitialization
     if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
       return false;
 
-    File path = preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context) ?
+    isUsingLegacyUserDirectory =
+            preferLegacyUserDirectory(context) && PermissionsHandler.hasWriteAccess(context);
+
+    File path = isUsingLegacyUserDirectory ?
             getLegacyUserDirectoryPath() : context.getExternalFilesDir(null);
 
     if (path == null)
@@ -386,6 +390,11 @@ public final class DirectoryInitialization
     return PermissionsHandler.isExternalStorageLegacy() &&
             !PermissionsHandler.isWritePermissionDenied() &&
             isExternalFilesDirEmpty(context) && legacyUserDirectoryExists();
+  }
+
+  public static boolean isUsingLegacyUserDirectory()
+  {
+    return isUsingLegacyUserDirectory;
   }
 
   public static boolean isWaitingForWriteAccess(Context context)
