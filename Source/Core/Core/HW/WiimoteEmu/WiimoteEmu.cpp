@@ -844,10 +844,16 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Jump
+  // Map screen
+#ifdef HAVE_X11
+  m_buttons->SetControlExpression(1, "Space");
+
+  m_buttons->SetControlExpression(2, "Tab");
+#else
   m_buttons->SetControlExpression(1, "SPACE");
 
-  // Map screen
   m_buttons->SetControlExpression(2, "TAB");
+#endif
 
   // Pause menu
 #ifdef HAVE_X11
