@@ -303,7 +303,7 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
 
   size_t dir_end = full_path.find_last_of("/"
 // Windows needs the : included for something like just "C:" to be considered a directory
-// It also needs to parse escaped backslashes properly
+// It also needs to parse backslashes properly, which may come from external command line options
 #ifdef _WIN32
                                           ":\\"
 #endif
