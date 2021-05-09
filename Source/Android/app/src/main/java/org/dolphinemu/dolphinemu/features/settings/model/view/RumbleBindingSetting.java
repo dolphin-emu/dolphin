@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
 import android.os.Vibrator;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -12,9 +13,10 @@ import org.dolphinemu.dolphinemu.utils.Rumble;
 
 public class RumbleBindingSetting extends InputBindingSetting
 {
-  public RumbleBindingSetting(String file, String section, String key, int titleId, String gameId)
+  public RumbleBindingSetting(Context context, String file, String section, String key, int titleId,
+          String gameId)
   {
-    super(file, section, key, titleId, gameId);
+    super(context, file, section, key, titleId, gameId);
   }
 
   /**

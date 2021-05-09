@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 
 public final class RunRunnable extends SettingsItem
@@ -8,10 +10,10 @@ public final class RunRunnable extends SettingsItem
   private final int mToastTextAfterRun;
   private final Runnable mRunnable;
 
-  public RunRunnable(int titleId, int descriptionId, int alertText, int toastTextAfterRun,
-          Runnable runnable)
+  public RunRunnable(Context context, int titleId, int descriptionId, int alertText,
+          int toastTextAfterRun, Runnable runnable)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
     mAlertText = alertText;
     mToastTextAfterRun = toastTextAfterRun;
     mRunnable = runnable;

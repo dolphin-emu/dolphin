@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
@@ -7,9 +9,9 @@ public final class SubmenuSetting extends SettingsItem
 {
   private MenuTag mMenuKey;
 
-  public SubmenuSetting(int titleId, MenuTag menuKey)
+  public SubmenuSetting(Context context, int titleId, MenuTag menuKey)
   {
-    super(titleId, 0);
+    super(context, titleId, 0);
     mMenuKey = menuKey;
   }
 

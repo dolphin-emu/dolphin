@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -8,9 +10,10 @@ public class CheckBoxSetting extends SettingsItem
 {
   protected AbstractBooleanSetting mSetting;
 
-  public CheckBoxSetting(AbstractBooleanSetting setting, int titleId, int descriptionId)
+  public CheckBoxSetting(Context context, AbstractBooleanSetting setting, int titleId,
+          int descriptionId)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
     mSetting = setting;
   }
 
