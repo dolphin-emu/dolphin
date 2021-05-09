@@ -41,17 +41,7 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
   {
     mItem = (CheckBoxSetting) item;
 
-    // Special case for LogTypes retrieved via JNI since those aren't string references.
-    if (TextUtils.isEmpty(item.getName()) && item instanceof LogCheckBoxSetting)
-    {
-      String key = ((LogCheckBoxSetting) item).getKey();
-      mTextSettingName.setText(SettingsFragmentPresenter.LOG_TYPE_NAMES.get(key));
-    }
-    else
-    {
-      mTextSettingName.setText(item.getName());
-    }
-
+    mTextSettingName.setText(item.getName());
     mTextSettingDescription.setText(item.getDescription());
 
     mCheckbox.setChecked(mItem.isChecked(getAdapter().getSettings()));

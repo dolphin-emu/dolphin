@@ -17,6 +17,13 @@ public class CheckBoxSetting extends SettingsItem
     mSetting = setting;
   }
 
+  public CheckBoxSetting(AbstractBooleanSetting setting, CharSequence title,
+          CharSequence description)
+  {
+    super(title, description);
+    mSetting = setting;
+  }
+
   public boolean isChecked(Settings settings)
   {
     return mSetting.getBoolean(settings);

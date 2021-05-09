@@ -176,6 +176,13 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.onSettingChanged();
   }
 
+  public void notifyAllSettingsChanged()
+  {
+    notifyItemRangeChanged(0, getItemCount());
+
+    mView.onSettingChanged();
+  }
+
   public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
   {
     item.setChecked(getSettings(), checked);
@@ -332,20 +339,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 
     mClickedItem = null;
-  }
-
-  public void setAllLogTypes(boolean value)
-  {
-    Settings settings = mView.getSettings();
-
-    for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
-    {
-      new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
-              false).setBoolean(settings, value);
-    }
-
-    notifyItemRangeChanged(0, getItemCount());
-    mView.onSettingChanged();
   }
 
   public static void clearLog()

@@ -10,6 +10,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
@@ -50,7 +51,7 @@ public final class SettingsFragmentPresenter
   private final SettingsFragmentView mView;
   private final Context mContext;
 
-  public static final LinkedHashMap<String, String> LOG_TYPE_NAMES =
+  private static final LinkedHashMap<String, String> LOG_TYPE_NAMES =
           NativeLibrary.GetLogTypeNames();
 
   public static final String ARG_CONTROLLER_TYPE = "controller_type";
@@ -748,19 +749,16 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.LOGGER_VERBOSITY, R.string.log_verbosity, 0,
             getLogVerbosityEntries(), getLogVerbosityValues()));
     sl.add(new RunRunnable(mContext, R.string.log_enable_all, 0,
-            R.string.log_enable_all_confirmation, 0,
-            () -> mView.getAdapter().setAllLogTypes(true)));
+            R.string.log_enable_all_confirmation, 0, () -> setAllLogTypes(true)));
     sl.add(new RunRunnable(mContext, R.string.log_disable_all, 0,
-            R.string.log_disable_all_confirmation, 0,
-            () -> mView.getAdapter().setAllLogTypes(false)));
+            R.string.log_disable_all_confirmation, 0, () -> setAllLogTypes(false)));
     sl.add(new RunRunnable(mContext, R.string.log_clear, 0, R.string.log_clear_confirmation, 0,
             SettingsAdapter::clearLog));
 
     sl.add(new HeaderSetting(mContext, R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
     {
-      // TitleID is handled by special case in CheckBoxSettingViewHolder.
-      sl.add(new LogCheckBoxSetting(mContext, entry.getKey(), 0, 0));
+      sl.add(new LogCheckBoxSetting(entry.getKey(), entry.getValue(), ""));
     }
   }
 
@@ -1340,5 +1338,18 @@ public final class SettingsFragmentPresenter
     {
       return R.array.logVerbosityValuesMaxLevelInfo;
     }
+  }
+
+  public void setAllLogTypes(boolean value)
+  {
+    Settings settings = mView.getSettings();
+
+    for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
+    {
+      new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
+              false).setBoolean(settings, value);
+    }
+
+    mView.getAdapter().notifyAllSettingsChanged();
   }
 }
