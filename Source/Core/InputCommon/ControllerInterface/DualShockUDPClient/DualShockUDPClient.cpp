@@ -114,7 +114,7 @@ private:
     {
       switch (m_battery)
       {
-      case BatteryState::Charging:
+      case BatteryState::Charging:  // We don't actually know the battery level in this case
       case BatteryState::Charged:
         return BATTERY_INPUT_MAX_VALUE;
       default:
@@ -138,6 +138,8 @@ public:
   std::optional<int> GetPreferredId() const final override;
 
 private:
+  void ResetPadData();
+
   const std::string m_name;
   const int m_index;
   sf::UdpSocket m_socket;
@@ -149,6 +151,11 @@ private:
   int m_touch_y = 0;
   std::string m_server_address;
   u16 m_server_port;
+
+  s16 m_touch_x_min;
+  s16 m_touch_y_min;
+  s16 m_touch_x_max;
+  s16 m_touch_y_max;
 };
 
 using MathUtil::GRAVITY_ACCELERATION;
@@ -528,6 +535,31 @@ Device::Device(std::string name, int index, std::string server_address, u16 serv
   AddInput(new GyroInput("Gyro Roll Right", m_pad_data.gyro_roll_deg_s, gyro_scale));
   AddInput(new GyroInput("Gyro Yaw Left", m_pad_data.gyro_yaw_deg_s, -gyro_scale));
   AddInput(new GyroInput("Gyro Yaw Right", m_pad_data.gyro_yaw_deg_s, gyro_scale));
+
+  AddInput(new BatteryInput(m_pad_data.battery_status));
+
+  m_touch_x_min = 0;
+  m_touch_y_min = 0;
+  // DS4 touchpad max values
+  m_touch_x_max = 1919;
+  m_touch_y_max = 941;
+
+  ResetPadData();
+}
+
+void Device::ResetPadData()
+{
+  m_pad_data = Proto::MessageType::PadDataResponse{};
+
+  // Make sure they start from resting values, not from 0
+  m_touch_x = m_touch_x_min + ((m_touch_x_max - m_touch_x_min) / 2.0);
+  m_touch_y = m_touch_y_min + ((m_touch_y_max - m_touch_y_min) / 2.0);
+  m_pad_data.left_stick_x = 128;
+  m_pad_data.left_stick_y_inverted = 128;
+  m_pad_data.right_stick_x = 128;
+  m_pad_data.right_stick_y_inverted = 128;
+  m_pad_data.touch1.x = m_touch_x;
+  m_pad_data.touch1.y = m_touch_y;
 }
 
 std::string Device::GetName() const
