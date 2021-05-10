@@ -11,6 +11,7 @@
 #include "Common/Swap.h"
 
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
+#include "Core/HW/Memmap.h"
 
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoader.h"
@@ -149,7 +150,7 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
 bool s_DrawingObject;
 FifoAnalyzer::CPMemory s_CpMem;
 
-u32 AnalyzeCommand(const u8* data, DecodeMode mode)
+u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
 {
   const u8* dataStart = data;
 
@@ -199,12 +200,18 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
   }
 
   case OpcodeDecoder::GX_CMD_CALL_DL:
-    // The recorder should have expanded display lists into the fifo stream and skipped the call to
-    // start them
-    // That is done to make it easier to track where memory is updated
-    ASSERT(false);
-    data += 8;
+  {
+    const u32 address = ReadFifo32(data);
+    const u32 count = ReadFifo32(data);
+
+    if (!in_display_list && mode == DecodeMode::Record)
+    {
+      // We need to make sure all memory used by the display list is tracked
+      FifoRecordAnalyzer::ProcessDisplayList(address, count);
+    }
+
     break;
+  }
 
   case OpcodeDecoder::GX_LOAD_BP_REG:
   {

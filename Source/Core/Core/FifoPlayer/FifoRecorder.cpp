@@ -118,17 +118,15 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
 void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate)
 {
   u8* curData;
-  u8* newData;
   if (address & 0x10000000)
   {
     curData = &m_ExRam[address & Memory::GetExRamMask()];
-    newData = &Memory::m_pEXRAM[address & Memory::GetExRamMask()];
   }
   else
   {
     curData = &m_Ram[address & Memory::GetRamMask()];
-    newData = &Memory::m_pRAM[address & Memory::GetRamMask()];
   }
+  u8* newData = Memory::GetPointer(address);
 
   if (!dynamicUpdate && memcmp(curData, newData, size) != 0)
   {
@@ -192,6 +190,50 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
     m_SkipFutureData = true;
     // Signal video backend that it should not call this function when the next frame ends
     m_IsRecording = false;
+
+
+    u32 fifo_bytes = 0;
+    u32 update_bytes = 0;
+    u32 xf_bytes = 0;
+    u32 tex_bytes = 0;
+    u32 vert_bytes = 0;
+    u32 tmem_bytes = 0;
+    u32 dl_bytes = 0;
+    u32 update_overhead = 0;
+
+    for (u32 i=0; i < m_File->GetFrameCount(); i++)
+    {
+      auto frame = m_File->GetFrame(i);
+      fifo_bytes += frame.fifoData.size();
+
+      for (auto &update : frame.memoryUpdates)
+      {
+        update_bytes += update.data.size() + 24;
+        update_overhead += 24;
+        switch (update.type)
+        {
+        case MemoryUpdate::TEXTURE_MAP:
+          tex_bytes += update.data.size() + 24; break;
+        case MemoryUpdate::XF_DATA:
+          xf_bytes += update.data.size() + 24; break;
+        case MemoryUpdate::VERTEX_STREAM:
+          vert_bytes += update.data.size() + 24; break;
+        case MemoryUpdate::TMEM:
+          tmem_bytes += update.data.size() + 24; break;
+        case MemoryUpdate::DISPLAY_LIST:
+          dl_bytes += update.data.size() + 24; break;
+        }
+      }
+    }
+
+    fmt::print("FifoBytes: {}\n", fifo_bytes);
+    fmt::print("Updates: {}\n", update_bytes);
+    fmt::print("TexBytes: {}\n", tex_bytes);
+    fmt::print("XfBytes: {}\n", xf_bytes);
+    fmt::print("VertBytes: {}\n", vert_bytes);
+    fmt::print("TmemBytes: {}\n", tmem_bytes);
+    fmt::print("DlBytes: {}\n", dl_bytes);
+    fmt::print("Overhead: {}\n", update_overhead);
   }
 }
 

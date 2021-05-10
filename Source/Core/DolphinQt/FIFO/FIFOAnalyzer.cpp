@@ -323,13 +323,16 @@ void FIFOAnalyzer::UpdateDetails()
     break;
 
     case OpcodeDecoder::GX_CMD_CALL_DL:
-      // The recorder should have expanded display lists into the fifo stream and skipped the
-      // call to start them
-      // That is done to make it easier to track where memory is updated
-      ASSERT(false);
-      object_offset += 8;
-      new_label = QStringLiteral("CALL DL");
-      break;
+    {
+      const u32 address = Common::swap32(&object[object_offset]);
+      object_offset += 4;
+      const u32 count = Common::swap32(&object[object_offset]);
+      object_offset += 4;
+      new_label = QStringLiteral("CALL DL 0x%1-0x%2")
+                      .arg(address, 8, 16, QLatin1Char('0'))
+                      .arg(address + count, 8, 16, QLatin1Char('0'));
+    }
+     break;
 
     case OpcodeDecoder::GX_LOAD_BP_REG:
     {

@@ -17,7 +17,7 @@ enum class DecodeMode
   Playback,
 };
 
-u32 AnalyzeCommand(const u8* data, DecodeMode mode);
+u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list = false);
 
 struct CPMemory
 {
