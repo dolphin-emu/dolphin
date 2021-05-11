@@ -147,14 +147,14 @@ std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cp
 }
 }  // Anonymous namespace
 
-bool s_DrawingObject;
 FifoAnalyzer::CPMemory s_CpMem;
 
-u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
+u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list, CmdInfo *info_out)
 {
   const u8* dataStart = data;
 
   int cmd = ReadFifo8(data);
+  CmdInfo::Type type = CmdInfo::NORMAL;
 
   switch (cmd)
   {
@@ -165,8 +165,6 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
 
   case OpcodeDecoder::GX_LOAD_CP_REG:
   {
-    s_DrawingObject = false;
-
     u32 cmd2 = ReadFifo8(data);
     u32 value = ReadFifo32(data);
     LoadCPReg(cmd2, value, s_CpMem);
@@ -175,8 +173,6 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
 
   case OpcodeDecoder::GX_LOAD_XF_REG:
   {
-    s_DrawingObject = false;
-
     u32 cmd2 = ReadFifo32(data);
     u8 streamSize = ((cmd2 >> 16) & 15) + 1;
 
@@ -189,8 +185,6 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
   case OpcodeDecoder::GX_LOAD_INDX_C:
   case OpcodeDecoder::GX_LOAD_INDX_D:
   {
-    s_DrawingObject = false;
-
     int array = 0xc + (cmd - OpcodeDecoder::GX_LOAD_INDX_A) / 8;
     u32 value = ReadFifo32(data);
 
@@ -201,7 +195,9 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
 
   case OpcodeDecoder::GX_CMD_CALL_DL:
   {
-    const u32 address = ReadFifo32(data);
+    type = CmdInfo::DL_CALL;
+
+    const u32 address = ReadFifo32(data) & 0x1fffffff;
     const u32 count = ReadFifo32(data);
 
     if (!in_display_list && mode == DecodeMode::Record)
@@ -210,12 +206,16 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
       FifoRecordAnalyzer::ProcessDisplayList(address, count);
     }
 
+    if (info_out) {
+      info_out->display_list_address = address;
+      info_out->display_list_length = count;
+    }
+
     break;
   }
 
   case OpcodeDecoder::GX_LOAD_BP_REG:
   {
-    s_DrawingObject = false;
     ReadFifo32(data);
     break;
   }
@@ -223,7 +223,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
   default:
     if (cmd & 0x80)
     {
-      s_DrawingObject = true;
+      type = CmdInfo::DRAW;
 
       const std::array<int, 21> sizes =
           CalculateVertexElementSizes(cmd & OpcodeDecoder::GX_VAT_MASK, s_CpMem);
@@ -254,13 +254,21 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list)
     }
     else
     {
-      PanicAlertFmt("FifoPlayer: Unknown Opcode ({:#x}).\n", cmd);
+      //PanicAlertFmt("FifoPlayer: Unknown Opcode ({:#x}).\n", cmd);
+      //exit(0);
       return 0;
     }
     break;
   }
 
-  return (u32)(data - dataStart);
+  u32 length = (u32)(data - dataStart);
+
+  if (info_out) {
+    info_out->type = type;
+    info_out->cmd_length = length;
+  }
+
+  return length;
 }
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)

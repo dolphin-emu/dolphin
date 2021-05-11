@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/HW/Memmap.h"
 
 using namespace FifoAnalyzer;
 
@@ -39,14 +40,20 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
   frameInfo.clear();
   frameInfo.resize(file->GetFrameCount());
 
+  // We have a private memory buffer while analyzing
+  auto ram = std::make_unique<u8[]>(file->GetRamSizeReal());
+  auto exram = std::make_unique<u8[]>(file->GetExRamSizeReal());
+  memset(ram.get(), 0, file->GetRamSizeReal());
+  memset(exram.get(), 0, file->GetExRamSizeReal());
+
+  auto getMemPtr = [&](u32 addr) { return (addr & 0x10000000 ? exram.get() : ram.get()) + (addr & 0x0fffffff); };
+
   for (u32 frameIdx = 0; frameIdx < file->GetFrameCount(); ++frameIdx)
   {
     const FifoFrameInfo& frame = file->GetFrame(frameIdx);
     AnalyzedFrameInfo& analyzed = frameInfo[frameIdx];
 
-    s_DrawingObject = false;
 
-    u32 cmdStart = 0;
     u32 nextMemUpdate = 0;
 
 #if LOG_FIFO_CMDS
@@ -54,59 +61,127 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
     std::vector<CmdData> prevCmds;
 #endif
 
-    while (cmdStart < frame.fifoData.size())
+    bool error = false;
+
+    enum Mode {
+      AnalyzePrimaryList,
+      AnalyzeDisplayList,
+      ProcessCPmem,
+    };
+
+    std::function<void(const u8*, size_t, Mode, std::vector<Object>&)> AnalyzeCommands =
+       [&](const u8* data, size_t length, Mode mode, std::vector<Object>& objects)
     {
-      // Add memory updates that have occurred before this point in the frame
-      while (nextMemUpdate < frame.memoryUpdates.size() &&
-             frame.memoryUpdates[nextMemUpdate].fifoPosition <= cmdStart)
+      u32 cmdStart = 0;
+      bool wasDrawing = false;
+
+      while (cmdStart < length)
       {
-        analyzed.memoryUpdates.push_back(frame.memoryUpdates[nextMemUpdate]);
-        ++nextMemUpdate;
-      }
-
-      const bool wasDrawing = s_DrawingObject;
-      const u32 cmdSize =
-          FifoAnalyzer::AnalyzeCommand(&frame.fifoData[cmdStart], DecodeMode::Playback);
-
-#if LOG_FIFO_CMDS
-      CmdData cmdData;
-      cmdData.offset = cmdStart;
-      cmdData.ptr = &frame.fifoData[cmdStart];
-      cmdData.size = cmdSize;
-      prevCmds.push_back(cmdData);
-#endif
-
-      // Check for error
-      if (cmdSize == 0)
-      {
-        // Clean up frame analysis
-        analyzed.objectStarts.clear();
-        analyzed.objectCPStates.clear();
-        analyzed.objectEnds.clear();
-
-        return;
-      }
-
-      if (wasDrawing != s_DrawingObject)
-      {
-        if (s_DrawingObject)
+        // Add memory updates that have occurred before this point in the frame
+        while (mode == AnalyzePrimaryList && nextMemUpdate < frame.memoryUpdates.size() &&
+              frame.memoryUpdates[nextMemUpdate].fifoPosition <= cmdStart)
         {
-          analyzed.objectStarts.push_back(cmdStart);
-          analyzed.objectCPStates.push_back(s_CpMem);
+          auto update = frame.memoryUpdates[nextMemUpdate++];
+          analyzed.memoryUpdates.push_back(update);
+
+          // We need to apply "display list" updates so we can analyze the commands
+          if (update.type == MemoryUpdate::DISPLAY_LIST)
+          {
+            memcpy(getMemPtr(update.address), update.data.data(), update.data.size());
+          }
         }
-        else
+
+        CmdInfo info{};
+        FifoAnalyzer::AnalyzeCommand(&data[cmdStart], DecodeMode::Playback, false, &info);
+
+        if (mode == ProcessCPmem) {
+          cmdStart += info.cmd_length;
+          continue;
+        }
+
+  #if LOG_FIFO_CMDS
+        CmdData cmdData;
+        cmdData.offset = cmdStart;
+        cmdData.ptr = &data[cmdStart];
+        cmdData.size = info.cmd_length;
+        prevCmds.push_back(cmdData);
+  #endif
+
+        // Check for error
+        if (info.cmd_length == 0)
         {
-          analyzed.objectEnds.push_back(cmdStart);
+          error = true;
+          return;
         }
+
+        bool drawing = info.type == CmdInfo::DRAW;
+
+        if (wasDrawing != drawing)
+        {
+          if (drawing)
+          {
+            objects.push_back(Object{cmdStart, 0, s_CpMem});
+          }
+          else
+          {
+            objects.back().end = cmdStart;
+          }
+          wasDrawing = drawing;
+        }
+
+        if (info.type == CmdInfo::DL_CALL && mode == AnalyzePrimaryList)
+        {
+          u8* cmd_data = getMemPtr(info.display_list_address);
+          u32 size = info.display_list_length;
+
+          // Reuse display list if backing memory is unchanged
+          auto it = std::find_if(std::begin(analyzed.displayLists), std::end(analyzed.displayLists), [&](const DisplayList& n) {
+            return n.address == info.display_list_address
+              && n.cmdData.size() == size
+              && memcmp(cmd_data, n.cmdData.data(), size) == 0;
+          });
+
+          if (it == std::end(analyzed.displayLists))
+          {
+            u32 id = analyzed.displayLists.size();
+            analyzed.displayLists.emplace_back(DisplayList{id, info.display_list_address, 1, {}, {}});
+            it = --std::end(analyzed.displayLists);
+
+            // Analyze the displaylist commands for objects the first time we come across it
+            AnalyzeCommands(cmd_data, size, AnalyzeDisplayList, it->objects);
+
+
+            // Copy data out of our memory buffer to the display list object
+            it->cmdData.insert(std::end(it->cmdData), &cmd_data[0], &cmd_data[size]);
+
+          } else
+          {
+            it->refCount++;
+            // The display list might update CPmem, so we need to process it again
+            AnalyzeCommands(cmd_data, size, ProcessCPmem, it->objects);
+          }
+
+          if (error)
+            return;
+
+          analyzed.displayListCalls.push_back(DisplayListCall{cmdStart, it->id});
+        }
+
+        cmdStart += info.cmd_length;
       }
 
-      cmdStart += cmdSize;
+      // Complete the final object
+      if (!objects.empty() && objects.back().end == 0)
+        objects.back().end = length;
+    };
+
+    AnalyzeCommands(frame.fifoData.data(), frame.fifoData.size(), AnalyzePrimaryList, analyzed.objects);
+
+    if (error) {
+      analyzed.objects.clear();
+      analyzed.displayLists.clear();
+      analyzed.displayListCalls.clear();
+      analyzed.memoryUpdates.clear();
     }
-
-    if (analyzed.objectEnds.size() < analyzed.objectStarts.size())
-      analyzed.objectEnds.push_back(cmdStart);
-
-    ASSERT(analyzed.objectStarts.size() == analyzed.objectCPStates.size());
-    ASSERT(analyzed.objectStarts.size() == analyzed.objectEnds.size());
   }
 }

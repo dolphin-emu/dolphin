@@ -30,6 +30,7 @@
 
 constexpr int FRAME_ROLE = Qt::UserRole;
 constexpr int OBJECT_ROLE = Qt::UserRole + 1;
+constexpr int DISPLAYLIST_ROLE = Qt::UserRole + 2;
 
 FIFOAnalyzer::FIFOAnalyzer()
 {
@@ -161,6 +162,31 @@ void FIFOAnalyzer::UpdateTree()
       object_item->setData(0, FRAME_ROLE, frame);
       object_item->setData(0, OBJECT_ROLE, object);
     }
+
+    auto frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
+    const u32 list_count = frame_info.displayLists.size();
+    for (u32 list = 0; list < list_count; list++)
+    {
+      auto* list_item = new QTreeWidgetItem({tr("Display List %1").arg(list)});
+
+      frame_item->addChild(list_item);
+
+      list_item->setData(0, FRAME_ROLE, frame);
+      list_item->setData(0, DISPLAYLIST_ROLE, list);
+
+      auto list_info = frame_info.displayLists[list];
+
+      for (u32 object = 0; object < list_info.objects.size(); object++)
+      {
+         auto* object_item = new QTreeWidgetItem({tr("Object %1").arg(object)});
+
+        list_item->addChild(object_item);
+
+        object_item->setData(0, FRAME_ROLE, frame);
+        object_item->setData(0, OBJECT_ROLE, object);
+        object_item->setData(0, DISPLAYLIST_ROLE, list);
+      }
+    }
   }
 }
 
@@ -204,18 +230,32 @@ void FIFOAnalyzer::UpdateDetails()
   if (items.isEmpty() || items[0]->data(0, OBJECT_ROLE).isNull())
     return;
 
+  bool inDisplayList = !items[0]->data(0, DISPLAYLIST_ROLE).isNull();
+
   const u32 frame_nr = items[0]->data(0, FRAME_ROLE).toUInt();
   const u32 object_nr = items[0]->data(0, OBJECT_ROLE).toUInt();
 
   const auto& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const auto& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
+  auto objects = &frame_info.objects;
+  auto fifo_data = &fifo_frame.fifoData;
+
+  if (inDisplayList) {
+    const u32 list_nr = items[0]->data(0, DISPLAYLIST_ROLE).toUInt();
+    auto& list_info = frame_info.displayLists[list_nr];
+
+    objects = &list_info.objects;
+    fifo_data = &list_info.cmdData;
+  }
+
   // Note that frame_info.objectStarts[object_nr] is the start of the primitive data,
   // but we want to start with the register updates which happen before that.
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+  auto object = (*objects)[object_nr];
+  const u32 object_start = (object_nr == 0 ? 0 : (*objects)[object_nr-1].end);
+  const u32 object_size = object.end - object_start;
 
-  const u8* const object = &fifo_frame.fifoData[object_start];
+  const u8* const object_data = fifo_data->data() + object_start;
 
   u32 object_offset = 0;
   while (object_offset < object_size)
@@ -224,14 +264,14 @@ void FIFOAnalyzer::UpdateDetails()
     const u32 start_offset = object_offset;
     m_object_data_offsets.push_back(start_offset);
 
-    const u8 command = object[object_offset++];
+    const u8 command = object_data[object_offset++];
     switch (command)
     {
     case OpcodeDecoder::GX_NOP:
-      if (object[object_offset] == OpcodeDecoder::GX_NOP)
+      if (object_data[object_offset] == OpcodeDecoder::GX_NOP)
       {
         u32 nop_count = 2;
-        while (object[++object_offset] == OpcodeDecoder::GX_NOP)
+        while (object_data[++object_offset] == OpcodeDecoder::GX_NOP)
           nop_count++;
 
         new_label = QStringLiteral("NOP (%1x)").arg(nop_count);
@@ -252,8 +292,8 @@ void FIFOAnalyzer::UpdateDetails()
 
     case OpcodeDecoder::GX_LOAD_CP_REG:
     {
-      const u8 cmd2 = object[object_offset++];
-      const u32 value = Common::swap32(&object[object_offset]);
+      const u8 cmd2 = object_data[object_offset++];
+      const u32 value = Common::swap32(&object_data[object_offset]);
       object_offset += 4;
 
       const auto [name, desc] = GetCPRegInfo(cmd2, value);
@@ -268,8 +308,8 @@ void FIFOAnalyzer::UpdateDetails()
 
     case OpcodeDecoder::GX_LOAD_XF_REG:
     {
-      const auto [name, desc] = GetXFTransferInfo(&object[object_offset]);
-      const u32 cmd2 = Common::swap32(&object[object_offset]);
+      const auto [name, desc] = GetXFTransferInfo(&object_data[object_offset]);
+      const u32 cmd2 = Common::swap32(&object_data[object_offset]);
       object_offset += 4;
       ASSERT(!name.empty());
 
@@ -279,7 +319,7 @@ void FIFOAnalyzer::UpdateDetails()
 
       for (u8 i = 0; i < stream_size; i++)
       {
-        const u32 value = Common::swap32(&object[object_offset]);
+        const u32 value = Common::swap32(&object_data[object_offset]);
         object_offset += 4;
 
         new_label += QStringLiteral("%1 ").arg(value, 8, 16, QLatin1Char('0'));
@@ -292,7 +332,7 @@ void FIFOAnalyzer::UpdateDetails()
     case OpcodeDecoder::GX_LOAD_INDX_A:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_A, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(ARRAY_XF_A, Common::swap32(&object_data[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX A   %1").arg(QString::fromStdString(desc));
     }
@@ -300,7 +340,7 @@ void FIFOAnalyzer::UpdateDetails()
     case OpcodeDecoder::GX_LOAD_INDX_B:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_B, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(ARRAY_XF_B, Common::swap32(&object_data[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX B   %1").arg(QString::fromStdString(desc));
     }
@@ -308,7 +348,7 @@ void FIFOAnalyzer::UpdateDetails()
     case OpcodeDecoder::GX_LOAD_INDX_C:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_C, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(ARRAY_XF_C, Common::swap32(&object_data[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX C   %1").arg(QString::fromStdString(desc));
     }
@@ -316,7 +356,7 @@ void FIFOAnalyzer::UpdateDetails()
     case OpcodeDecoder::GX_LOAD_INDX_D:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_D, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(ARRAY_XF_D, Common::swap32(&object_data[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX D   %1").arg(QString::fromStdString(desc));
     }
@@ -324,9 +364,9 @@ void FIFOAnalyzer::UpdateDetails()
 
     case OpcodeDecoder::GX_CMD_CALL_DL:
     {
-      const u32 address = Common::swap32(&object[object_offset]);
+      const u32 address = Common::swap32(&object_data[object_offset]);
       object_offset += 4;
-      const u32 count = Common::swap32(&object[object_offset]);
+      const u32 count = Common::swap32(&object_data[object_offset]);
       object_offset += 4;
       new_label = QStringLiteral("CALL DL 0x%1-0x%2")
                       .arg(address, 8, 16, QLatin1Char('0'))
@@ -336,8 +376,8 @@ void FIFOAnalyzer::UpdateDetails()
 
     case OpcodeDecoder::GX_LOAD_BP_REG:
     {
-      const u8 cmd2 = object[object_offset++];
-      const u32 cmddata = Common::swap24(&object[object_offset]);
+      const u8 cmd2 = object_data[object_offset++];
+      const u32 cmddata = Common::swap24(&object_data[object_offset]);
       object_offset += 3;
 
       const auto [name, desc] = GetBPRegInfo(cmd2, cmddata);
@@ -356,12 +396,12 @@ void FIFOAnalyzer::UpdateDetails()
         // Object primitive data
 
         const u8 vat = command & OpcodeDecoder::GX_VAT_MASK;
-        const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
-        const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+        const auto& vtx_desc = object.CPState.vtxDesc;
+        const auto& vtx_attr = object.CPState.vtxAttr[vat];
 
         const auto name = GetPrimitiveName(command);
 
-        const u16 vertex_count = Common::swap16(&object[object_offset]);
+        const u16 vertex_count = Common::swap16(&object_data[object_offset]);
         object_offset += 2;
         const u32 vertex_size = VertexLoaderBase::GetVertexSize(vtx_desc, vtx_attr);
 
@@ -458,8 +498,8 @@ void FIFOAnalyzer::BeginSearch()
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
-  const u32 object_size = frame_info.objectEnds[object_nr] - object_start;
+  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objects[object_nr - 1].end);
+  const u32 object_size = frame_info.objects[object_nr].end - object_start;
 
   const u8* const object = &fifo_frame.fifoData[object_start];
 
@@ -563,7 +603,7 @@ void FIFOAnalyzer::UpdateDescription()
   const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame_nr);
   const FifoFrameInfo& fifo_frame = FifoPlayer::GetInstance().GetFile()->GetFrame(frame_nr);
 
-  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objectEnds[object_nr - 1]);
+  const u32 object_start = (object_nr == 0 ? 0 : frame_info.objects[object_nr - 1].end);
   const u32 entry_start = m_object_data_offsets[entry_nr];
 
   const u8* cmddata = &fifo_frame.fifoData[object_start + entry_start];
@@ -669,8 +709,8 @@ void FIFOAnalyzer::UpdateDescription()
     text += QString::fromStdString(name);
     text += QLatin1Char{'\n'};
 
-    const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
-    const auto& vtx_attr = frame_info.objectCPStates[object_nr].vtxAttr[vat];
+    const auto& vtx_desc = frame_info.objects[object_nr].CPState.vtxDesc;
+    const auto& vtx_attr = frame_info.objects[object_nr].CPState.vtxAttr[vat];
     const auto component_sizes = VertexLoaderBase::GetVertexComponentSizes(vtx_desc, vtx_attr);
 
     u32 i = 3;

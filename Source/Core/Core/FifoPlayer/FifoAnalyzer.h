@@ -17,7 +17,20 @@ enum class DecodeMode
   Playback,
 };
 
-u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list = false);
+struct CmdInfo {
+  enum Type {
+    NORMAL,
+    DRAW,
+    EFB_COPY,
+    DL_CALL
+  };
+  Type type = NORMAL;
+  u32 cmd_length;
+  u32 display_list_address;
+  u32 display_list_length;
+};
+
+u32 AnalyzeCommand(const u8* data, DecodeMode mode, bool in_display_list = false, CmdInfo *info_out = nullptr);
 
 struct CPMemory
 {

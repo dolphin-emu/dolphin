@@ -15,8 +15,6 @@ using namespace FifoAnalyzer;
 
 void FifoRecordAnalyzer::Initialize(const u32* cpMem)
 {
-  s_DrawingObject = false;
-
   FifoAnalyzer::LoadCPReg(VCD_LO, cpMem[VCD_LO], s_CpMem);
   FifoAnalyzer::LoadCPReg(VCD_HI, cpMem[VCD_HI], s_CpMem);
   for (u32 i = 0; i < CP_NUM_VAT_REG; ++i)
