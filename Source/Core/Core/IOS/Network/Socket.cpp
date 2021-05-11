@@ -750,12 +750,31 @@ bool WiiSockMan::IsSocketBlocking(s32 wii_fd) const
 
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
-  if (af != 2 && af != 23)  // AF_INET && AF_INET6
+  if (af == 2)
+  {
+    // AF_INET == 2 is true on all systems I've seen,
+    // but it's not guaranteed. Better set this again.
+    af = AF_INET;
+  }
+  else if (af == 23)
+  {
+    // AF_INET6 == 23 is only true on Wii and on Windows.
+    // On other OSes, AF_INET6 can have a different value.
+    // For example, on Linux it's 10 and on MacOS/iOS it's 30.
+    af = AF_INET6;
+  }
+  else
+  {
+    // Neither an AF_INET nor an AF_INET6 socket.
+    // Unsupported.
     return -SO_EAFNOSUPPORT;
+  }
+
   if (protocol != 0)  // IPPROTO_IP
     return -SO_EPROTONOSUPPORT;
   if (type != 1 && type != 2)  // SOCK_STREAM && SOCK_DGRAM
     return -SO_EPROTOTYPE;
+
   s32 fd = static_cast<s32>(socket(af, type, protocol));
   return AddSocket(fd, false);
 }
