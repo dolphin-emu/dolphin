@@ -52,6 +52,8 @@ std::string_view StripQuotes(std::string_view s);
 
 std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest);
 
+void ReplaceBreaksWithSpaces(std::string& str);
+
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>* = nullptr>
