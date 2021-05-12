@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-The current tooling supported in CMake, Homebrew, and QT5 are insufficient for
+The current tooling supported in CMake, Homebrew, and Qt5 are insufficient for
 creating macOS universal binaries automatically for applications like Dolphin
 which have more complicated build requirements (like different libraries, build
 flags and source files for each target architecture).
@@ -16,10 +16,10 @@ Running this script will:
    already exist)
 3) Build the ARM project for the selected build_target
 4) Build the x64 project for the selected build_target
-5) Generates universal .app packages combining the ARM and x64 packages
-6) Utilizes the lipo tool to combine the binary objects inside each of the
+5) Generate universal .app packages combining the ARM and x64 packages
+6) Use the lipo tool to combine the binary objects inside each of the
    packages into universal binaries
-7) Code signs the final universal binaries using the specified
+7) Code sign the final universal binaries using the specified
    codesign_identity
 """
 
@@ -42,15 +42,15 @@ DEFAULT_CONFIG = {
     # Build Target (dolphin-emu to just build the emulator and skip the tests)
     "build_target": "ALL_BUILD",
 
-    # Location for CMake to search for files(default is for homebrew
-    "arm64_cmake_prefix":  '/opt/homebrew',
-    "x86_64_cmake_prefix": '/usr/local',
+    # Location for CMake to search for files (default is for homebrew)
+    "arm64_cmake_prefix":  "/opt/homebrew",
+    "x86_64_cmake_prefix": "/usr/local",
 
     # Locations to qt5 directories for arm and x64 libraries
     # The default values of these paths are taken from the default
     # paths used for homebrew
-    "arm64_qt5_path":  '/opt/homebrew/opt/qt5',
-    "x86_64_qt5_path": '/usr/local/opt/qt5',
+    "arm64_qt5_path":  "/opt/homebrew/opt/qt5",
+    "x86_64_qt5_path": "/usr/local/opt/qt5",
 
     # Identity to use for code signing. "-" indicates that the app will not
     # be cryptographically signed/notarized but will instead just use a
@@ -58,7 +58,7 @@ DEFAULT_CONFIG = {
     # protect against malicious actors, but it does protect against
     # running corrupted binaries and allows for access to the extended
     # permisions needed for ARM builds
-    "codesign_identity":  '-',
+    "codesign_identity":  "-",
     # Entitlements file to use for code signing
     "entitlements": "../Source/Core/DolphinQt/DolphinEmu.entitlements",
 
@@ -68,7 +68,7 @@ DEFAULT_CONFIG = {
 
     # CMake Generator to use for building
     "generator": "Unix Makefiles",
-    "build_type": "Release"
+    "build_type": "Release",
 
 }
 
@@ -90,65 +90,64 @@ def parse_args(conf=DEFAULT_CONFIG):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument(
-        '--target',
-        help='Build target in generated project files',
+        "--target",
+        help="Build target in generated project files",
         default=conf["build_target"],
         dest="build_target")
     parser.add_argument(
-        '-G',
-        help='CMake Generator to use for creating project files',
+        "-G",
+        help="CMake Generator to use for creating project files",
         default=conf["generator"],
         dest="generator")
     parser.add_argument(
-        '--build_type',
-        help='CMake build type [Debug, Release, RelWithDebInfo, MinSizeRel]',
+        "--build_type",
+        help="CMake build type [Debug, Release, RelWithDebInfo, MinSizeRel]",
         default=conf["build_type"],
         dest="build_type")
     parser.add_argument(
-        '--dst_app',
-        help='Directory where universal binary will be stored',
+        "--dst_app",
+        help="Directory where universal binary will be stored",
         default=conf["dst_app"])
 
     parser.add_argument(
-        '--entitlements',
-        help='Path to .entitlements file for code signing',
+        "--entitlements",
+        help="Path to .entitlements file for code signing",
         default=conf["entitlements"])
 
     parser.add_argument(
-        '--codesign',
-        help='Code signing identity to use to sign the applications',
+        "--codesign",
+        help="Code signing identity to use to sign the applications",
         default=conf["codesign_identity"],
         dest="codesign_identity")
 
     for arch in ARCHITECTURES:
         parser.add_argument(
-             '--{}_cmake_prefix'.format(arch),
-             help="Folder for cmake to search for packages".format(arch),
+             f"--{arch}_cmake_prefix",
+             help="Folder for cmake to search for packages",
              default=conf[arch+"_cmake_prefix"],
              dest=arch+"_cmake_prefix")
 
         parser.add_argument(
-             '--{}_qt5_path'.format(arch),
-             help="Install path for {} qt5 libraries".format(arch),
+             f"--{arch}_qt5_path",
+             help=f"Install path for {arch} qt5 libraries",
              default=conf[arch+"_qt5_path"])
 
         parser.add_argument(
-             '--{}_mac_os_deployment_target'.format(arch),
-             help="Deployment architecture for {} slice".format(arch),
+             f"--{arch}_mac_os_deployment_target",
+             help=f"Deployment architecture for {arch} slice",
              default=conf[arch+"_mac_os_deployment_target"])
 
     return vars(parser.parse_args())
 
 
 def lipo(path0, path1, dst):
-    if subprocess.call(['lipo', '-create', '-output', dst, path0, path1]) != 0:
-        print("WARNING: {0} and {1} can not be lipo'd, keeping {0}"
-              .format(path0, path1))
+    if subprocess.call(["lipo", "-create", "-output", dst, path0, path1]) != 0:
+        print(f"WARNING: {path0} and {path1} cannot be lipo'd")
 
         shutil.copy(path0, dst)
 
 
-def recursiveMergeBinaries(src0, src1, dst):
+def recursive_merge_binaries(src0, src1, dst):
     """
     Merges two build trees together for different architectures into a single
     universal binary.
@@ -177,7 +176,7 @@ def recursiveMergeBinaries(src0, src1, dst):
 
         if os.path.isdir(newpath1):
             os.mkdir(new_dst_path)
-            recursiveMergeBinaries(newpath0, newpath1, new_dst_path)
+            recursive_merge_binaries(newpath0, newpath1, new_dst_path)
             continue
 
         if filecmp.cmp(newpath0, newpath1):
@@ -227,9 +226,9 @@ def build(config):
             os.mkdir(arch)
 
         env = os.environ.copy()
-        env['Qt5_DIR'] = config[arch+"_qt5_path"]
-        env['CMAKE_OSX_ARCHITECTURES'] = arch
-        env['CMAKE_PREFIX_PATH'] = config[arch+"_cmake_prefix"]
+        env["Qt5_DIR"] = config[arch+"_qt5_path"]
+        env["CMAKE_OSX_ARCHITECTURES"] = arch
+        env["CMAKE_PREFIX_PATH"] = config[arch+"_cmake_prefix"]
 
         # Add the other architecture's prefix path to the ignore path so that
         # CMake doesn't try to pick up the wrong architecture's libraries when
@@ -240,28 +239,28 @@ def build(config):
                 ignore_path = config[a+"_cmake_prefix"]
 
         subprocess.check_call([
-                'cmake', '../../', '-G', config['generator'],
-                '-DCMAKE_BUILD_TYPE=' + config['build_type'],
+                "cmake", "../../", "-G", config["generator"],
+                "-DCMAKE_BUILD_TYPE=" + config["build_type"],
                 # System name needs to be specified for CMake to use
                 # the specified CMAKE_SYSTEM_PROCESSOR
-                '-DCMAKE_SYSTEM_NAME=Darwin',
-                '-DCMAKE_PREFIX_PATH='+config[arch+'_cmake_prefix'],
-                '-DCMAKE_SYSTEM_PROCESSOR='+arch,
-                '-DCMAKE_IGNORE_PATH='+ignore_path,
-                '-DCMAKE_OSX_DEPLOYMENT_TARGET='
+                "-DCMAKE_SYSTEM_NAME=Darwin",
+                "-DCMAKE_PREFIX_PATH="+config[arch+"_cmake_prefix"],
+                "-DCMAKE_SYSTEM_PROCESSOR="+arch,
+                "-DCMAKE_IGNORE_PATH="+ignore_path,
+                "-DCMAKE_OSX_DEPLOYMENT_TARGET="
                 + config[arch+"_mac_os_deployment_target"],
-                '-DMACOS_CODE_SIGNING_IDENTITY='
-                + config['codesign_identity'],
-                '-DMACOS_CODE_SIGNING_IDENTITY_UPDATER='
-                + config['codesign_identity'],
+                "-DMACOS_CODE_SIGNING_IDENTITY="
+                + config["codesign_identity"],
+                "-DMACOS_CODE_SIGNING_IDENTITY_UPDATER="
+                + config["codesign_identity"],
                 '-DMACOS_CODE_SIGNING="ON"'
             ],
             env=env, cwd=arch)
 
         threads = multiprocessing.cpu_count()
-        subprocess.check_call(['cmake', '--build', '.',
-                               '--config', config['build_type'],
-                               '--parallel', '{}'.format(threads)], cwd=arch)
+        subprocess.check_call(["cmake", "--build", ".",
+                               "--config", config["build_type"],
+                               "--parallel", f"{threads}"], cwd=arch)
 
     dst_app = config["dst_app"]
 
@@ -275,21 +274,21 @@ def build(config):
     src_app0 = ARCHITECTURES[0]+"/Binaries/"
     src_app1 = ARCHITECTURES[1]+"/Binaries/"
 
-    recursiveMergeBinaries(src_app0, src_app1, dst_app)
+    recursive_merge_binaries(src_app0, src_app1, dst_app)
     for path in glob.glob(dst_app+"/*"):
-        if os.path.isdir(path) and os.path.splitext(path) != ".app":
+        if os.path.isdir(path) and os.path.splitext(path)[1] != ".app":
             continue
 
         subprocess.check_call([
-            'codesign',
-            '-d',
-            '--force',
-            '-s',
+            "codesign",
+            "-d",
+            "--force",
+            "-s",
             config["codesign_identity"],
-            '--options=runtime',
-            '--entitlements', config["entitlements"],
-            '--deep',
-            '--verbose=2',
+            "--options=runtime",
+            "--entitlements", config["entitlements"],
+            "--deep",
+            "--verbose=2",
             path])
 
 
