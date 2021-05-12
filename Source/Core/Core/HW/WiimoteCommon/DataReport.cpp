@@ -335,7 +335,7 @@ InputReportID DataReportBuilder::GetMode() const
 bool DataReportBuilder::IsValidMode(InputReportID mode)
 {
   return (mode >= InputReportID::ReportCore && mode <= InputReportID::ReportCoreAccelIR10Ext6) ||
-         (mode >= InputReportID::ReportExt21 && InputReportID::ReportInterleave2 <= mode);
+         (mode >= InputReportID::ReportExt21 && mode <= InputReportID::ReportInterleave2);
 }
 
 bool DataReportBuilder::HasCore() const
