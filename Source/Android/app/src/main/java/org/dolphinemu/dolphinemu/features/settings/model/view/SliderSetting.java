@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public abstract class SliderSetting extends SettingsItem
@@ -8,9 +10,10 @@ public abstract class SliderSetting extends SettingsItem
   private int mMax;
   private String mUnits;
 
-  public SliderSetting(int nameId, int descriptionId, int min, int max, String units)
+  public SliderSetting(Context context, int nameId, int descriptionId, int min, int max,
+          String units)
   {
-    super(nameId, descriptionId);
+    super(context, nameId, descriptionId);
     mMin = min;
     mMax = max;
     mUnits = units;

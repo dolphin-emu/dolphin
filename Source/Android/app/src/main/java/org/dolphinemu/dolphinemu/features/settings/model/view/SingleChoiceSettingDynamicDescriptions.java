@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -15,11 +17,11 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
   private int mDescriptionValuesId;
   private MenuTag menuTag;
 
-  public SingleChoiceSettingDynamicDescriptions(AbstractIntSetting setting, int titleId,
-          int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+  public SingleChoiceSettingDynamicDescriptions(Context context, AbstractIntSetting setting,
+          int titleId, int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
           int descriptionValuesId, MenuTag menuTag)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
     mSetting = setting;
     mValuesId = valuesId;
     mChoicesId = choicesId;
@@ -28,11 +30,11 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     this.menuTag = menuTag;
   }
 
-  public SingleChoiceSettingDynamicDescriptions(AbstractIntSetting setting, int titleId,
-          int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+  public SingleChoiceSettingDynamicDescriptions(Context context, AbstractIntSetting setting,
+          int titleId, int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
           int descriptionValuesId)
   {
-    this(setting, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
+    this(context, setting, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
             descriptionValuesId, null);
   }
 
