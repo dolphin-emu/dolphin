@@ -359,7 +359,6 @@ void JitArm64::ps_res(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -383,6 +382,8 @@ void JitArm64::ps_res(UGeckoInstruction inst)
   fpr.Unlock(ARM64Reg::Q0);
 
   fpr.FixSinglePrecision(d);
+
+  SetFPRFIfNeeded(true, VD);
 }
 
 void JitArm64::ps_rsqrte(UGeckoInstruction inst)
@@ -390,7 +391,6 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -414,4 +414,6 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   fpr.Unlock(ARM64Reg::Q0);
 
   fpr.FixSinglePrecision(d);
+
+  SetFPRFIfNeeded(true, VD);
 }
