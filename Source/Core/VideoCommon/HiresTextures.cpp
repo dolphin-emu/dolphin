@@ -214,75 +214,24 @@ void HiresTexture::Prefetch()
                   10000);
 }
 
-std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
-                                      size_t tlut_size, u32 width, u32 height, TextureFormat format,
-                                      bool has_mipmaps, bool dump)
+std::string HiresTexture::GenBaseName(TextureInfo& texture_info, bool dump)
 {
   if (!dump && s_textureMap.empty())
     return "";
 
-  // checking for min/max on paletted textures
-  u32 min = 0xffff;
-  u32 max = 0;
-  switch (tlut_size)
-  {
-  case 0:
-    break;
-  case 16 * 2:
-    for (size_t i = 0; i < texture_size; i++)
-    {
-      const u32 low_nibble = texture[i] & 0xf;
-      const u32 high_nibble = texture[i] >> 4;
-
-      min = std::min({min, low_nibble, high_nibble});
-      max = std::max({max, low_nibble, high_nibble});
-    }
-    break;
-  case 256 * 2:
-  {
-    for (size_t i = 0; i < texture_size; i++)
-    {
-      const u32 texture_byte = texture[i];
-
-      min = std::min(min, texture_byte);
-      max = std::max(max, texture_byte);
-    }
-    break;
-  }
-  case 16384 * 2:
-    for (size_t i = 0; i < texture_size; i += sizeof(u16))
-    {
-      const u32 texture_halfword = Common::swap16(texture[i]) & 0x3fff;
-
-      min = std::min(min, texture_halfword);
-      max = std::max(max, texture_halfword);
-    }
-    break;
-  }
-  if (tlut_size > 0)
-  {
-    tlut_size = 2 * (max + 1 - min);
-    tlut += 2 * min;
-  }
-
-  const u64 tex_hash = XXH64(texture, texture_size, 0);
-  const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
-
-  const std::string base_name = fmt::format("{}{}x{}{}_{:016x}", s_format_prefix, width, height,
-                                            has_mipmaps ? "_m" : "", tex_hash);
-  const std::string tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "";
-  const std::string format_name = fmt::format("_{}", static_cast<int>(format));
-  const std::string full_name = base_name + tlut_name + format_name;
+  const auto texture_name_details = texture_info.CalculateTextureName();
 
   // try to match a wildcard template
   if (!dump)
   {
-    const std::string texture_name = fmt::format("{}_${}", base_name, format_name);
+    const std::string texture_name =
+        fmt::format("{}_${}", texture_name_details.base_name, texture_name_details.format_name);
     if (s_textureMap.find(texture_name) != s_textureMap.end())
       return texture_name;
   }
 
   // else generate the complete texture
+  const std::string full_name = texture_name_details.GetFullName();
   if (dump || s_textureMap.find(full_name) != s_textureMap.end())
     return full_name;
 
@@ -304,13 +253,9 @@ u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
   return mip_count;
 }
 
-std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t texture_size,
-                                                   const u8* tlut, size_t tlut_size, u32 width,
-                                                   u32 height, TextureFormat format,
-                                                   bool has_mipmaps)
+std::shared_ptr<HiresTexture> HiresTexture::Search(TextureInfo& texture_info)
 {
-  std::string base_filename =
-      GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
+  const std::string base_filename = GenBaseName(texture_info);
 
   std::lock_guard<std::mutex> lk(s_textureCacheMutex);
 
@@ -320,7 +265,8 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
     return iter->second;
   }
 
-  std::shared_ptr<HiresTexture> ptr(Load(base_filename, width, height));
+  std::shared_ptr<HiresTexture> ptr(
+      Load(base_filename, texture_info.GetRawWidth(), texture_info.GetRawHeight()));
 
   if (ptr && g_ActiveConfig.bCacheHiresTextures)
   {

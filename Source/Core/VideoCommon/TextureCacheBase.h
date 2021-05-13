@@ -21,6 +21,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureInfo.h"
 
 class AbstractFramebuffer;
 class AbstractStagingTexture;
@@ -216,11 +217,7 @@ public:
   TCacheEntry* Load(const u32 stage);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
-  TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const TextureFormat texformat,
-                          const int textureCacheSafetyColorSampleSize, u32 tlutaddr = 0,
-                          TLUTFormat tlutfmt = TLUTFormat::IA8, bool use_mipmaps = false,
-                          u32 tex_levels = 1, bool from_tmem = false, u32 tmem_address_even = 0,
-                          u32 tmem_address_odd = 0);
+  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 
@@ -286,11 +283,11 @@ private:
 
   TCacheEntry* GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
-  TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt);
+  TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, const u8* palette, TLUTFormat tlutfmt);
 
   TCacheEntry* ReinterpretEntry(const TCacheEntry* existing_entry, TextureFormat new_format);
 
-  TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
+  TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, const u8* palette,
                                        TLUTFormat tlutfmt);
   void StitchXFBCopy(TCacheEntry* entry_to_update);
 
