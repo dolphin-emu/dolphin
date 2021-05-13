@@ -29,17 +29,17 @@ struct SCPFifoStruct
   std::atomic<u32> CPBreakpoint;
   std::atomic<u32> SafeCPReadPointer;
 
-  volatile u32 bFF_GPLinkEnable;
-  volatile u32 bFF_GPReadEnable;
-  volatile u32 bFF_BPEnable;
-  volatile u32 bFF_BPInt;
-  volatile u32 bFF_Breakpoint;
+  std::atomic<u32> bFF_GPLinkEnable;
+  std::atomic<u32> bFF_GPReadEnable;
+  std::atomic<u32> bFF_BPEnable;
+  std::atomic<u32> bFF_BPInt;
+  std::atomic<u32> bFF_Breakpoint;
 
-  volatile u32 bFF_LoWatermarkInt;
-  volatile u32 bFF_HiWatermarkInt;
+  std::atomic<u32> bFF_LoWatermarkInt;
+  std::atomic<u32> bFF_HiWatermarkInt;
 
-  volatile u32 bFF_LoWatermark;
-  volatile u32 bFF_HiWatermark;
+  std::atomic<u32> bFF_LoWatermark;
+  std::atomic<u32> bFF_HiWatermark;
 
   void DoState(PointerWrap& p);
 };
