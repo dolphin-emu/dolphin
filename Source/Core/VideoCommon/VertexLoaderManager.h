@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -46,7 +47,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 NativeVertexFormat* GetCurrentVertexFormat();
 
 // Resolved pointers to array bases. Used by vertex loaders.
-extern u8* cached_arraybases[NUM_VERTEX_COMPONENT_ARRAYS];
+extern std::array<u8*, NUM_VERTEX_COMPONENT_ARRAYS> cached_arraybases;
 void UpdateVertexArrayPointers();
 
 // Position cache for zfreeze (3 vertices, 4 floats each to allow SIMD overwrite).
@@ -56,4 +57,11 @@ extern u32 position_matrix_index[4];
 
 // VB_HAS_X. Bitmask telling what vertex components are present.
 extern u32 g_current_components;
+
+extern BitSet8 g_main_vat_dirty;
+extern BitSet8 g_preprocess_vat_dirty;
+extern bool g_bases_dirty;  // Main only
+extern u8 g_current_vat;    // Main only
+extern std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
+extern std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
 }  // namespace VertexLoaderManager

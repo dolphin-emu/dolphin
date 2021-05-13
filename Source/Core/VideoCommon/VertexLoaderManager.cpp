@@ -44,14 +44,21 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
-u8* cached_arraybases[NUM_VERTEX_COMPONENT_ARRAYS];
+std::array<u8*, NUM_VERTEX_COMPONENT_ARRAYS> cached_arraybases;
+
+BitSet8 g_main_vat_dirty;
+BitSet8 g_preprocess_vat_dirty;
+bool g_bases_dirty;  // Main only
+u8 g_current_vat;    // Main only
+std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
+std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
 
 void Init()
 {
   MarkAllDirty();
-  for (auto& map_entry : g_main_cp_state.vertex_loaders)
+  for (auto& map_entry : g_main_vertex_loaders)
     map_entry = nullptr;
-  for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
+  for (auto& map_entry : g_preprocess_vertex_loaders)
     map_entry = nullptr;
   SETSTAT(g_stats.num_vertex_loaders, 0);
 }
@@ -66,7 +73,7 @@ void Clear()
 void UpdateVertexArrayPointers()
 {
   // Anything to update?
-  if (!g_main_cp_state.bases_dirty)
+  if (!g_bases_dirty)
     return;
 
   // Some games such as Burnout 2 can put invalid addresses into
@@ -96,7 +103,7 @@ void UpdateVertexArrayPointers()
           Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_TEXCOORD0 + i]);
   }
 
-  g_main_cp_state.bases_dirty = false;
+  g_bases_dirty = false;
 }
 
 namespace
@@ -111,8 +118,8 @@ struct entry
 
 void MarkAllDirty()
 {
-  g_main_cp_state.attr_dirty = BitSet32::AllTrue(8);
-  g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
+  g_main_vat_dirty = BitSet8::AllTrue(8);
+  g_preprocess_vat_dirty = BitSet8::AllTrue(8);
 }
 
 NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl)
@@ -187,10 +194,12 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
 static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
   CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
-  state->last_id = vtx_attr_group;
+  BitSet8& attr_dirty = preprocess ? g_preprocess_vat_dirty : g_main_vat_dirty;
+  auto& vertex_loaders = preprocess ? g_main_vertex_loaders : g_preprocess_vertex_loaders;
+  g_current_vat = vtx_attr_group;
 
   VertexLoaderBase* loader;
-  if (state->attr_dirty[vtx_attr_group])
+  if (attr_dirty[vtx_attr_group])
   {
     // We are not allowed to create a native vertex format on preprocessing as this is on the wrong
     // thread
@@ -220,12 +229,12 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
         native = g_renderer->CreateNativeVertexFormat(format);
       loader->m_native_vertex_format = native.get();
     }
-    state->vertex_loaders[vtx_attr_group] = loader;
-    state->attr_dirty[vtx_attr_group] = false;
+    vertex_loaders[vtx_attr_group] = loader;
+    attr_dirty[vtx_attr_group] = false;
   }
   else
   {
-    loader = state->vertex_loaders[vtx_attr_group];
+    loader = vertex_loaders[vtx_attr_group];
   }
 
   // Lookup pointers for any vertex arrays.

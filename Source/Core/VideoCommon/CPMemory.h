@@ -623,12 +623,6 @@ struct CPState final
   TVtxDesc vtx_desc;
   // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
   std::array<VAT, CP_NUM_VAT_REG> vtx_attr;
-
-  // Attributes that actually belong to VertexLoaderManager:
-  BitSet32 attr_dirty;
-  bool bases_dirty;
-  std::array<VertexLoaderBase*, CP_NUM_VAT_REG> vertex_loaders;
-  int last_id;
 };
 static_assert(std::is_trivially_copyable_v<CPState>);
 
