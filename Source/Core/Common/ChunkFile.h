@@ -221,10 +221,10 @@ public:
   template <typename T>
   void Do(std::atomic<T>& atomic)
   {
-    T temp = atomic.load();
+    T temp = atomic.load(std::memory_order_relaxed);
     Do(temp);
     if (mode == MODE_READ)
-      atomic.store(temp);
+      atomic.store(temp, std::memory_order_relaxed);
   }
 
   template <typename T>
