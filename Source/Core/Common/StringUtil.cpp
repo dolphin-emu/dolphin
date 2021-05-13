@@ -219,7 +219,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
   return oss.str();
 }
 
-// Turns "  hello " into "hello". Also handles tabs.
+// Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
 std::string_view StripSpaces(std::string_view str)
 {
   const size_t s = str.find_first_not_of(" \t\r\n");
@@ -239,6 +239,13 @@ std::string_view StripQuotes(std::string_view s)
     return s.substr(1, s.size() - 2);
   else
     return s;
+}
+
+// Turns "\n\rhello" into "  hello".
+void ReplaceBreaksWithSpaces(std::string& str)
+{
+  std::replace(str.begin(), str.end(), '\r', ' ');
+  std::replace(str.begin(), str.end(), '\n', ' ');
 }
 
 bool TryParse(const std::string& str, bool* const output)
