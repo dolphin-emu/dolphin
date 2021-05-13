@@ -4,11 +4,14 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
+
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
@@ -203,6 +206,12 @@ void JitArm64::GenerateCommonAsm()
   GenerateConvertSingleToDouble();
   JitRegister::Register(GetAsmRoutines()->cstd, GetCodePtr(), "JIT_cstd");
 
+  GetAsmRoutines()->fprf_single = GetCodePtr();
+  GenerateFPRF(true);
+  GetAsmRoutines()->fprf_double = GetCodePtr();
+  GenerateFPRF(false);
+  JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
+
   GenerateQuantizedLoadStores();
 }
 
@@ -270,6 +279,91 @@ void JitArm64::GenerateConvertSingleToDouble()
   BFI(ARM64Reg::X3, ARM64Reg::X4, 29, 30);
   ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X1);
   RET();
+}
+
+// Input in X0. Outputs to memory (PPCState). Clobbers X0-X4 and flags.
+void JitArm64::GenerateFPRF(bool single)
+{
+  const auto reg_encoder = single ? EncodeRegTo32 : EncodeRegTo64;
+
+  const ARM64Reg input_reg = reg_encoder(ARM64Reg::W0);
+  const ARM64Reg temp_reg = reg_encoder(ARM64Reg::W1);
+  const ARM64Reg exp_reg = reg_encoder(ARM64Reg::W2);
+
+  constexpr ARM64Reg fprf_reg = ARM64Reg::W3;
+  constexpr ARM64Reg fpscr_reg = ARM64Reg::W4;
+
+  const auto INPUT_EXP_MASK = single ? Common::FLOAT_EXP : Common::DOUBLE_EXP;
+  const auto INPUT_FRAC_MASK = single ? Common::FLOAT_FRAC : Common::DOUBLE_FRAC;
+  constexpr u32 OUTPUT_SIGN_MASK = 0xC;
+
+  // This code is duplicated for the most common cases for performance.
+  // For the less common cases, we branch to an existing copy of this code.
+  auto emit_write_fprf_and_ret = [&] {
+    BFI(fpscr_reg, fprf_reg, FPRF_SHIFT, FPRF_WIDTH);
+    STR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
+    RET();
+  };
+
+  // First of all, start the load of the old FPSCR value, in case it takes a while
+  LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
+
+  CMP(input_reg, 0);  // Grab sign bit (conveniently the same bit for floats as for integers)
+  ANDI2R(exp_reg, input_reg, INPUT_EXP_MASK);  // Grab exponent
+
+  // Most branches handle the sign in the same way. Perform that handling before branching
+  MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PN);
+  MOVI2R(ARM64Reg::W1, Common::PPC_FPCLASS_NN);
+  CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W3, CCFlags::CC_LT);
+
+  FixupBranch zero_or_denormal = CBZ(exp_reg);
+
+  // exp != 0
+  MOVI2R(temp_reg, INPUT_EXP_MASK);
+  CMP(exp_reg, temp_reg);
+  FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
+
+  // exp != 0 && exp != EXP_MASK
+  const u8* normal = GetCodePtr();
+  emit_write_fprf_and_ret();
+
+  // exp == 0
+  SetJumpTarget(zero_or_denormal);
+  TSTI2R(input_reg, INPUT_FRAC_MASK);
+  FixupBranch denormal;
+  if (single)
+  {
+    // To match the interpreter, what we output should be based on how the input would be classified
+    // after conversion to double. Converting a denormal single to a double always results in a
+    // normal double, so for denormal singles we need to output PPC_FPCLASS_PN/PPC_FPCLASS_NN.
+    // TODO: Hardware test that the interpreter actually is correct.
+    B(CCFlags::CC_NEQ, normal);
+  }
+  else
+  {
+    denormal = B(CCFlags::CC_NEQ);
+  }
+
+  // exp == 0 && frac == 0
+  LSR(ARM64Reg::W1, fprf_reg, 3);
+  MOVI2R(fprf_reg, Common::PPC_FPCLASS_PZ & ~OUTPUT_SIGN_MASK);
+  BFI(fprf_reg, ARM64Reg::W1, 4, 1);
+  const u8* write_fprf_and_ret = GetCodePtr();
+  emit_write_fprf_and_ret();
+
+  // exp == 0 && frac != 0
+  if (!single)
+    SetJumpTarget(denormal);
+  ORRI2R(fprf_reg, fprf_reg, Common::PPC_FPCLASS_PD & ~OUTPUT_SIGN_MASK);
+  B(write_fprf_and_ret);
+
+  // exp == EXP_MASK
+  SetJumpTarget(nan_or_inf);
+  TSTI2R(input_reg, INPUT_FRAC_MASK);
+  ORRI2R(ARM64Reg::W1, fprf_reg, Common::PPC_FPCLASS_PINF & ~OUTPUT_SIGN_MASK);
+  MOVI2R(ARM64Reg::W2, Common::PPC_FPCLASS_QNAN);
+  CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W2, CCFlags::CC_EQ);
+  B(write_fprf_and_ret);
 }
 
 void JitArm64::GenerateQuantizedLoadStores()

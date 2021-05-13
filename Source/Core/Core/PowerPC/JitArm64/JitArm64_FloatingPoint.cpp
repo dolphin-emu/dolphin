@@ -9,6 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -16,12 +17,25 @@
 
 using namespace Arm64Gen;
 
+void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
+{
+  if (!SConfig::GetInstance().bFPRF || !js.op->wantsFPRF)
+    return;
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+
+  reg = single ? EncodeRegToSingle(reg) : EncodeRegToDouble(reg);
+  m_float_emit.FMOV(single ? ARM64Reg::W0 : ARM64Reg::X0, reg);
+  BL(single ? GetAsmRoutines()->fprf_single : GetAsmRoutines()->fprf_double);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+}
+
 void JitArm64::fp_arith(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
   u32 op5 = inst.SUBOP5;
@@ -120,13 +134,17 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     }
   }
 
-  if (single || packed)
+  const bool outputs_are_singles = single || packed;
+
+  if (outputs_are_singles)
   {
     ASSERT_MSG(DYNA_REC, inputs_are_singles == inputs_are_singles_func(),
                "Register allocation turned singles into doubles in the middle of fp_arith");
 
     fpr.FixSinglePrecision(d);
   }
+
+  SetFPRFIfNeeded(outputs_are_singles, VD);
 }
 
 void JitArm64::fp_logic(UGeckoInstruction inst)
@@ -252,7 +270,6 @@ void JitArm64::frspx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -269,6 +286,8 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     ASSERT_MSG(DYNA_REC, fpr.IsSingle(b, true),
                "Register allocation turned singles into doubles in the middle of frspx");
+
+    SetFPRFIfNeeded(true, VD);
   }
   else
   {
@@ -276,6 +295,8 @@ void JitArm64::frspx(UGeckoInstruction inst)
     const ARM64Reg VD = fpr.RW(d, RegType::DuplicatedSingle);
 
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+
+    SetFPRFIfNeeded(true, VD);
   }
 }
 
@@ -283,7 +304,8 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
+
+  const bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
 
   const u32 a = inst.FA;
   const u32 b = inst.FB;
@@ -298,6 +320,14 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   gpr.BindCRToRegister(crf, false);
   const ARM64Reg XA = gpr.CR(crf);
+
+  ARM64Reg fpscr_reg;
+  if (fprf)
+  {
+    fpscr_reg = gpr.GetReg();
+    LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
+    ANDI2R(fpscr_reg, fpscr_reg, ~FPRF_MASK);
+  }
 
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
@@ -317,11 +347,16 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   // A == B
   ORR(XA, XA, 64 - 63, 0, true);
+  if (fprf)
+    ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_EQ << FPRF_SHIFT);
+
   continue1 = B();
 
   SetJumpTarget(pNaN);
 
   MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
+  if (fprf)
+    ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_SO << FPRF_SHIFT);
 
   if (a != b)
   {
@@ -329,12 +364,16 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
     SetJumpTarget(pGreater);
     ORR(XA, XA, 0, 0, true);
+    if (fprf)
+      ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_GT << FPRF_SHIFT);
 
     continue3 = B();
 
     SetJumpTarget(pLesser);
     ORR(XA, XA, 64 - 62, 1, true);
     ORR(XA, XA, 0, 0, true);
+    if (fprf)
+      ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_LT << FPRF_SHIFT);
 
     SetJumpTarget(continue2);
     SetJumpTarget(continue3);
@@ -343,6 +382,12 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a, true) && fpr.IsSingle(b, true)),
              "Register allocation turned singles into doubles in the middle of fcmpX");
+
+  if (fprf)
+  {
+    STR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
+    gpr.Unlock(fpscr_reg);
+  }
 }
 
 void JitArm64::fctiwzx(UGeckoInstruction inst)
@@ -371,12 +416,12 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   }
   else
   {
-    const ARM64Reg V1 = gpr.GetReg();
+    const ARM64Reg WA = gpr.GetReg();
 
-    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), RoundingMode::Z);
-    m_float_emit.FMOV(EncodeRegToSingle(VD), V1);
+    m_float_emit.FCVTS(WA, EncodeRegToDouble(VB), RoundingMode::Z);
+    m_float_emit.FMOV(EncodeRegToSingle(VD), WA);
 
-    gpr.Unlock(V1);
+    gpr.Unlock(WA);
   }
   m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
   fpr.Unlock(V0);

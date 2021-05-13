@@ -76,7 +76,6 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   const u32 a = inst.FA;
   const u32 c = inst.FC;
@@ -99,6 +98,8 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of ps_mulsX");
 
   fpr.FixSinglePrecision(d);
+
+  SetFPRFIfNeeded(true, VD);
 }
 
 void JitArm64::ps_maddXX(UGeckoInstruction inst)
@@ -106,7 +107,6 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   const u32 a = inst.FA;
   const u32 b = inst.FB;
@@ -257,13 +257,15 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   }
 
+  if (V0Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V0Q);
+
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_maddXX");
 
   fpr.FixSinglePrecision(d);
 
-  if (V0Q != ARM64Reg::INVALID_REG)
-    fpr.Unlock(V0Q);
+  SetFPRFIfNeeded(true, VD);
 }
 
 void JitArm64::ps_sel(UGeckoInstruction inst)
@@ -311,7 +313,6 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   const u32 a = inst.FA;
   const u32 b = inst.FB;
@@ -343,10 +344,12 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
     m_float_emit.INS(size, VD, upper ? 1 : 0, V0, upper ? 1 : 0);
   }
 
+  fpr.Unlock(V0);
+
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_sumX");
 
   fpr.FixSinglePrecision(d);
 
-  fpr.Unlock(V0);
+  SetFPRFIfNeeded(true, VD);
 }
