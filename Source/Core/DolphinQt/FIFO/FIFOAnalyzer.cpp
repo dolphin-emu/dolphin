@@ -154,10 +154,15 @@ void FIFOAnalyzer::UpdateTree()
     recording_item->addChild(frame_item);
 
     const u32 object_count = FifoPlayer::GetInstance().GetFrameObjectCount(frame);
+    const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
 
     for (u32 object = 0; object < object_count; object++)
     {
-      auto* object_item = new QTreeWidgetItem({tr("Object %1").arg(object)});
+      QTreeWidgetItem* object_item;
+      if (frame_info.efb_copies.find(object) != frame_info.efb_copies.end())
+        object_item = new QTreeWidgetItem({tr("EFB copy (Object %1)").arg(object)});
+      else
+        object_item = new QTreeWidgetItem({tr("Object %1").arg(object)});
 
       frame_item->addChild(object_item);
 

@@ -39,32 +39,34 @@ public:
 
   FifoPlaybackAnalyzer(const u32* cpmem) : m_cpmem(cpmem) {}
 
-  void OnXF(u16 address, u8 count, const u8* data) override { m_is_primitive = false; }
-  void OnCP(u8 command, u32 value) override
-  {
-    Callback::OnCP(command, value);
-    m_is_primitive = false;
-  }
-  void OnBP(u8 command, u32 value) override { m_is_primitive = false; }
-  void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override { m_is_primitive = false; }
+  void OnXF(u16 address, u8 count, const u8* data) override {}
+  void OnCP(u8 command, u32 value) override { Callback::OnCP(command, value); }
+  void OnBP(u8 command, u32 value) override;
+  void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override {}
   void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
-                          u16 num_vertices, const u8* vertex_data) override
-  {
-    m_is_primitive = true;
-  }
+                          u16 num_vertices, const u8* vertex_data) override;
   void OnDisplayList(u32 address, u32 size) override
   {
     // Should have been inlined by the recorder
     ASSERT(false);
   }
-  void OnNop(u32 count) override { m_is_primitive = false; }
-  void OnUnknown(u8 opcode, const u8* data) override { m_is_primitive = false; }
+  void OnNop(u32 count) override {}
+  void OnUnknown(u8 opcode, const u8* data) override {}
+
+  void OnCommand(const u8* data, u32 size) override;
 
   CPState& GetCPState() override { return m_cpmem; }
 
+  bool m_start_of_primitives = false;
+  bool m_end_of_primitives = false;
+  bool m_efb_copy = false;
+  // Internal state, copied to above in OnCommand
+  bool m_was_primitive = false;
   bool m_is_primitive = false;
+  bool m_is_copy = false;
   CPState m_cpmem;
 };
+
 void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
                                          std::vector<AnalyzedFrameInfo>& frame_info)
 {
@@ -82,7 +84,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
     u32 object_start = 0;
     CPState cpmem;
-    u32 object_primitive_offset = 0;
+    u32 primitive_start = 0;
 
     while (offset < frame.fifoData.size())
     {
@@ -96,30 +98,43 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
         next_mem_update++;
       }
 
-      const bool was_primitive = analyzer.m_is_primitive;
       const u32 cmd_size = OpcodeDecoder::RunCommand(
           &frame.fifoData[offset], u32(frame.fifoData.size()) - offset, analyzer);
 
-      if (was_primitive != analyzer.m_is_primitive)
+      if (analyzer.m_start_of_primitives)
       {
-        if (analyzer.m_is_primitive)
-        {
-          // Start of primitive data for an object
-          object_primitive_offset = offset - object_start;
-          // Copy cpmem now, because is_primitive doesn't become false until the first opcode after
-          // primitive data, and the first opcode might update cpmem
-          std::memcpy(&cpmem, &analyzer.m_cpmem, sizeof(CPState));
-        }
-        else
-        {
-          // End of primitive data for an object, and thus end of the object
-          const u32 size = offset - object_start;
-          analyzed.objects.emplace_back(object_start, object_primitive_offset, size, cpmem);
-          object_start = offset;
-        }
+        // Start of primitive data for an object
+        // Copy cpmem now, because end_of_primitives isn't triggered until the first opcode after
+        // primitive data, and the first opcode might update cpmem
+        primitive_start = offset;
+        std::memcpy(&cpmem, &analyzer.m_cpmem, sizeof(CPState));
+      }
+      if (analyzer.m_end_of_primitives)
+      {
+        // End of primitive data for an object, and thus end of the object
+        ASSERT(primitive_start >= object_start);
+        const u32 size = offset - object_start;
+        const u32 primitive_offset =
+            (primitive_start >= object_start) ? primitive_start - object_start : size;
+        analyzed.objects.emplace_back(object_start, primitive_offset, size, cpmem);
+        object_start = offset;
       }
 
       offset += cmd_size;
+
+      if (analyzer.m_efb_copy)
+      {
+        analyzed.efb_copies.insert(u32(analyzed.objects.size()));
+
+        // EFB copies lack primitive data.
+        // We also increase the offset beforehand, so that the trigger EFB copy command is included.
+        // Some games have an EFB copy before any primitive data (e.g. F-Zero GX), in which case
+        // both the object start and primitive start are 0.
+        ASSERT(primitive_start <= object_start);
+        const u32 size = offset - object_start;
+        analyzed.objects.emplace_back(object_start, size, size, cpmem);
+        object_start = offset;
+      }
     }
 
     ASSERT(offset == frame.fifoData.size());
@@ -129,17 +144,45 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       const u32 size = offset - object_start;
 
       // Remaining data, usually without any primitives
-      // (if object_primitive_offset >= object_start, the end of the frame was in primitive data,
+      // (if primitive_start >= object_start, the end of the frame was in primitive data,
       // which probably can't happen since there needs to be an XFB copy)
-      if (object_primitive_offset < object_start)
-      {
-        object_primitive_offset = size;
-        std::memcpy(&cpmem, &analyzer.m_cpmem, sizeof(CPState));
-      }
+      const u32 primitive_offset =
+          (primitive_start >= object_start) ? object_start - primitive_start : size;
 
-      analyzed.objects.emplace_back(object_start, object_primitive_offset, size, cpmem);
+      analyzed.objects.emplace_back(object_start, primitive_offset, size, cpmem);
     }
   }
+}
+
+void FifoPlaybackAnalyzer::OnBP(u8 command, u32 value)
+{
+  if (command == BPMEM_TRIGGER_EFB_COPY)
+    m_is_copy = true;
+}
+
+void FifoPlaybackAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
+                                              u32 vertex_size, u16 num_vertices,
+                                              const u8* vertex_data)
+{
+  m_is_primitive = true;
+}
+
+void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
+{
+  m_start_of_primitives = false;
+  m_end_of_primitives = false;
+  m_efb_copy = false;
+
+  if (m_is_primitive && !m_was_primitive)
+    m_start_of_primitives = true;
+  else if (m_was_primitive && !m_is_primitive)
+    m_end_of_primitives = true;
+  else if (m_is_copy)
+    m_efb_copy = true;
+
+  m_was_primitive = m_is_primitive;
+  m_is_primitive = false;
+  m_is_copy = false;
 }
 }  // namespace
 

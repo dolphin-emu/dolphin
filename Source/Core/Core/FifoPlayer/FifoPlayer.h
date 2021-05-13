@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -70,6 +71,7 @@ struct ObjectInfo
 struct AnalyzedFrameInfo
 {
   std::vector<ObjectInfo> objects;
+  std::set<u32> efb_copies;
   std::vector<MemoryUpdate> memoryUpdates;
 };
 
