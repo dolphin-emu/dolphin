@@ -79,22 +79,22 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.1'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.exifinterface:exifinterface:1.3.2'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.3.1'
+    implementation 'com.google.android.material:material:1.3.0'
 
     // Android TV UI libraries.
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
     // For REST calls
-    implementation 'com.android.volley:volley:1.1.1'
+    implementation 'com.android.volley:volley:1.2.0'
 
     // For loading huge screenshots from the disk.
     implementation 'com.squareup.picasso:picasso:2.71828'
@@ -110,7 +110,7 @@ def getVersion() {
                 .trim()
                 .replaceAll(/(-0)?-[^-]+$/, "")
     } catch (Exception e) {
-        logger.error('Cannot find git, defaulting to dummy version number')
+        logger.error(e + ': Cannot find git, defaulting to dummy version number')
     }
 
     return versionNumber
@@ -121,10 +121,10 @@ def getBuildVersionCode() {
     try {
         def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
                 .trim()
-        return Integer.valueOf(versionNumber);
+        return Integer.valueOf(versionNumber)
     } catch (Exception e) {
-        logger.error('Cannot find git, defaulting to dummy version number')
+        logger.error(e + ': Cannot find git, defaulting to dummy version number')
     }
 
-    return 1;
+    return 1
 }
