@@ -58,16 +58,41 @@ public:
   OPCODE_CALLBACK(void OnCP(u8 command, u32 value))
   {
     m_cycles += 12;
+    const u8 sub_command = command & CP_COMMAND_MASK;
     if constexpr (!is_preprocess)
     {
-      // TODO: Move all dirty state checking here or to VertexLoaderManager,
-      // instead of it being in CPState
-      if (command == MATINDEX_A)
+      if (sub_command == MATINDEX_A)
         VertexShaderManager::SetTexMatrixChangedA(value);
-      else if (command == MATINDEX_B)
+      else if (sub_command == MATINDEX_B)
         VertexShaderManager::SetTexMatrixChangedB(value);
+      else if (sub_command == VCD_LO || sub_command == VCD_HI)
+      {
+        VertexLoaderManager::g_main_vat_dirty = BitSet8::AllTrue(CP_NUM_VAT_REG);
+        VertexLoaderManager::g_bases_dirty = true;
+      }
+      else if (sub_command == CP_VAT_REG_A || sub_command == CP_VAT_REG_B ||
+               sub_command == CP_VAT_REG_C)
+      {
+        VertexLoaderManager::g_main_vat_dirty[command & CP_VAT_MASK] = true;
+      }
+      else if (sub_command == ARRAY_BASE)
+      {
+        VertexLoaderManager::g_bases_dirty = true;
+      }
 
       INCSTAT(g_stats.this_frame.num_cp_loads);
+    }
+    else if constexpr (is_preprocess)
+    {
+      if (sub_command == VCD_LO || sub_command == VCD_HI)
+      {
+        VertexLoaderManager::g_preprocess_vat_dirty = BitSet8::AllTrue(CP_NUM_VAT_REG);
+      }
+      else if (sub_command == CP_VAT_REG_A || sub_command == CP_VAT_REG_B ||
+               sub_command == CP_VAT_REG_C)
+      {
+        VertexLoaderManager::g_preprocess_vat_dirty[command & CP_VAT_MASK] = true;
+      }
     }
     GetCPState().LoadCPReg(command, value);
   }

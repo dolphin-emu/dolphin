@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/DolphinAnalytics.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/VertexLoaderManager.h"
 
 // CP state
 CPState g_main_cp_state;
@@ -28,7 +29,7 @@ void DoCPState(PointerWrap& p)
   if (p.mode == PointerWrap::MODE_READ)
   {
     CopyPreprocessCPStateFromMain();
-    g_main_cp_state.bases_dirty = true;
+    VertexLoaderManager::g_bases_dirty = true;
   }
 }
 
@@ -154,8 +155,6 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     }
 
     vtx_desc.low.Hex = value;
-    attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
-    bases_dirty = true;
     break;
 
   case VCD_HI:
@@ -169,8 +168,6 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
     }
 
     vtx_desc.high.Hex = value;
-    attr_dirty = BitSet32::AllTrue(CP_NUM_VAT_REG);
-    bases_dirty = true;
     break;
 
   case CP_VAT_REG_A:
@@ -180,7 +177,6 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_A: Invalid VAT {}", sub_cmd - CP_VAT_REG_A);
     }
     vtx_attr[sub_cmd & CP_VAT_MASK].g0.Hex = value;
-    attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
   case CP_VAT_REG_B:
@@ -190,7 +186,6 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_B: Invalid VAT {}", sub_cmd - CP_VAT_REG_B);
     }
     vtx_attr[sub_cmd & CP_VAT_MASK].g1.Hex = value;
-    attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
   case CP_VAT_REG_C:
@@ -200,14 +195,12 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
       WARN_LOG_FMT(VIDEO, "CP_VAT_REG_C: Invalid VAT {}", sub_cmd - CP_VAT_REG_C);
     }
     vtx_attr[sub_cmd & CP_VAT_MASK].g2.Hex = value;
-    attr_dirty[sub_cmd & CP_VAT_MASK] = true;
     break;
 
   // Pointers to vertex arrays in GC RAM
   case ARRAY_BASE:
     array_bases[static_cast<CPArray>(sub_cmd & CP_ARRAY_MASK)] =
         value & CommandProcessor::GetPhysicalAddressMask();
-    bases_dirty = true;
     break;
 
   case ARRAY_STRIDE:

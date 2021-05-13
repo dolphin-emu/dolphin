@@ -406,7 +406,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   MOV(saved_count, count_reg);
 
   MOVP2R(stride_reg, g_main_cp_state.array_strides.data());
-  MOVP2R(arraybase_reg, VertexLoaderManager::cached_arraybases);
+  MOVP2R(arraybase_reg, VertexLoaderManager::cached_arraybases.data());
 
   if (need_scale)
     MOVP2R(scale_reg, scale_factors);
