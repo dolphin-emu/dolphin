@@ -1271,14 +1271,29 @@ void Jit64::divwux(UGeckoInstruction inst)
           RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
           RegCache::Realize(Ra, Rd);
 
-          if (d == a)
+          magic++;
+
+          // Use smallest magic number and shift amount possible
+          while ((magic & 1) == 0 && shift > 0)
           {
-            MOV(32, R(RSCRATCH), Imm32(magic + 1));
+            magic >>= 1;
+            shift--;
+          }
+
+          // Three-operand IMUL sign extends the immediate to 64 bits, so we may only
+          // use it when the magic number has its most significant bit set to 0
+          if ((magic & 0x80000000) == 0)
+          {
+            IMUL(64, Rd, Ra, Imm32(magic));
+          }
+          else if (d == a)
+          {
+            MOV(32, R(RSCRATCH), Imm32(magic));
             IMUL(64, Rd, R(RSCRATCH));
           }
           else
           {
-            MOV(32, Rd, Imm32(magic + 1));
+            MOV(32, Rd, Imm32(magic));
             IMUL(64, Rd, Ra);
           }
           SHR(64, Rd, Imm8(shift + 32));
