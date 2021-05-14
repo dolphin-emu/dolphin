@@ -445,9 +445,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     return;
   }
 
-  // Automatically hide the tab bar if its redundant (we only have one tab)
-  m_tab_widget->setTabBarAutoHide(true);
-
   widget->LoadSettings();
 
   m_config = widget->GetConfig();

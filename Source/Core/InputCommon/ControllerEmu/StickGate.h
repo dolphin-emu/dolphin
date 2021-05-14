@@ -91,7 +91,7 @@ public:
   virtual ControlState GetVirtualNotchSize() const { return 0.0; };
 
   virtual ControlState GetGateRadiusAtAngle(double angle) const = 0;
-  virtual ReshapeData GetReshapableState(bool adjusted) = 0;
+  virtual ReshapeData GetReshapableState(bool adjusted) const = 0;
   virtual ControlState GetDefaultInputRadiusAtAngle(double ang) const;
 
   void SetCalibrationToDefault();
@@ -109,7 +109,7 @@ public:
 
 protected:
   ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0,
-                      ControlState clamp = 1.0);
+                      ControlState clamp = 1.0) const;
 
 private:
   void LoadConfig(IniFile::Section*, const std::string&, const std::string&) override;

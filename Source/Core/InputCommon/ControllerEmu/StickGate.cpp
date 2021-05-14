@@ -128,7 +128,8 @@ std::optional<u32> SquareStickGate::GetIdealCalibrationSampleCount() const
 ReshapableInput::ReshapableInput(std::string name_, std::string ui_name_, GroupType type_)
     : ControlGroup(std::move(name_), std::move(ui_name_), type_)
 {
-  AddDeadzoneSetting(&m_deadzone_setting, 75);
+  // 50 is not always enough but users can set it to more with an expression
+  AddDeadzoneSetting(&m_deadzone_setting, 50);
 }
 
 ControlState ReshapableInput::GetDeadzoneRadiusAtAngle(double angle) const
@@ -280,13 +281,15 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                      ControlState modifier, ControlState clamp)
+                                                      ControlState modifier,
+                                                      ControlState clamp) const
 {
   x -= m_center.x;
   y -= m_center.y;
 
   // We run this even if both x and y will be zero.
-  // The angle value will be random but dist will stay 0
+  // In that case, std::atan2(0, 0) returns a valid non-NaN value, but the exact value
+  // (which depends on the signs of x and y) does not matter here as dist is zero
 
   // TODO: make the AtAngle functions work with negative angles:
   ControlState angle = std::atan2(y, x) + MathUtil::TAU;
@@ -311,7 +314,11 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // This is affected by the modifier's "range" setting which defaults to 50%.
   if (modifier)
   {
-    dist *= modifier;
+    // TODO: Modifier's range setting gets reset to 100% when the clear button is clicked.
+    // This causes the modifier to not behave how a user might suspect.
+    // Retaining the old scale-by-50% behavior until range is fixed to clear to 50%.
+    dist *= 0.5;
+    // dist *= modifier;
   }
 
   // Apply deadzone as a percentage of the user-defined calibration shape/size:

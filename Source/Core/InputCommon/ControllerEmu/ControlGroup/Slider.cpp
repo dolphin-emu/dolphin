@@ -29,7 +29,7 @@ Slider::Slider(const std::string& name_) : Slider(name_, name_)
 {
 }
 
-Slider::StateData Slider::GetState()
+Slider::StateData Slider::GetState() const
 {
   const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
   const ControlState state = controls[1]->GetState() - controls[0]->GetState();

@@ -431,7 +431,7 @@ void Wiimote::Update()
 
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
-  m_hotkeys->GetState();
+  m_hotkeys->UpdateState();
 
   // Update our motion simulations.
   StepDynamics();

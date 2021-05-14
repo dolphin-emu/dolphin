@@ -12,11 +12,6 @@
 
 namespace ControllerEmu
 {
-// Instead of having two instances of this, we have one with two states,
-// one for the UI and one for the game. Otherwise when bringing up the
-// input settings, it would also affect the cursor state in the game.
-// This is not a problem with other ReshapableInput as they don't
-// cache a state
 class Cursor : public ReshapableInput
 {
 public:
@@ -30,12 +25,11 @@ public:
 
   Cursor(std::string name, std::string ui_name);
 
-  ReshapeData GetReshapableState(bool adjusted) final override;
+  ReshapeData GetReshapableState(bool adjusted) const final override;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
-  StateData GetState(float absolute_time_elapsed, bool is_ui);
-
-  void ResetState(bool is_ui);
+  // Modifies the state
+  StateData GetState(bool adjusted);
 
   // Yaw movement in radians.
   ControlState GetTotalYaw() const;
@@ -54,21 +48,22 @@ private:
   static constexpr int AUTO_HIDE_MS = 2500;
   static constexpr double AUTO_HIDE_DEADZONE = 0.001;
 
-  // Not adjusted by width/height/center.
-  StateData m_state[2];
-  StateData m_prev_result[2];
+  // Not adjusted by width/height/center:
+  StateData m_state;
 
-  int m_auto_hide_timer[2] = {AUTO_HIDE_MS, AUTO_HIDE_MS};
+  // Adjusted:
+  StateData m_prev_result;
+
+  int m_auto_hide_timer = AUTO_HIDE_MS;
 
   using Clock = std::chrono::steady_clock;
-  Clock::time_point m_last_update[2];
+  Clock::time_point m_last_update;
 
   SettingValue<double> m_yaw_setting;
   SettingValue<double> m_pitch_setting;
   SettingValue<double> m_vertical_offset_setting;
 
   SettingValue<bool> m_relative_setting;
-  SettingValue<bool> m_relative_absolute_time_setting;
   SettingValue<bool> m_autohide_setting;
 };
 }  // namespace ControllerEmu

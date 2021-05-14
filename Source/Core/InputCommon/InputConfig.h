@@ -34,7 +34,7 @@ public:
     m_controllers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
   }
 
-  ControllerEmu::EmulatedController* GetController(int index);
+  ControllerEmu::EmulatedController* GetController(int index) const;
   void ClearControllers();
   bool ControllersNeedToBeCreated() const;
   bool IsControllerControlledByGamepadDevice(int index) const;

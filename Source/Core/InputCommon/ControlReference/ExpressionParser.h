@@ -13,8 +13,6 @@
 
 namespace ciface::ExpressionParser
 {
-using namespace ciface::Core;
-
 enum TokenType
 {
   TOK_WHITESPACE,
@@ -65,7 +63,9 @@ public:
 enum class ParseStatus
 {
   Successful,
+  // Note that the expression could still work in this case (be valid and return a value)
   SyntaxError,
+  // Will return the default value
   EmptyExpression,
 };
 
@@ -109,6 +109,7 @@ class ControlQualifier
 public:
   bool has_device;
   Core::DeviceQualifier device_qualifier;
+  // Makes no distinction between input and output
   std::string control_name;
 
   ControlQualifier() : has_device(false) {}
@@ -168,7 +169,6 @@ public:
   virtual ControlState GetValue() const = 0;
   virtual void SetValue(ControlState state) = 0;
   virtual int CountNumControls() const = 0;
-  virtual Device::FocusFlags GetFocusFlags() const { return Device::FocusFlags::Default; }
   virtual void UpdateReferences(ControlEnvironment& finder) = 0;
 };
 

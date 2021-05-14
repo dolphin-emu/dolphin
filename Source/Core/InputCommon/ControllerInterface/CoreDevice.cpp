@@ -15,7 +15,6 @@
 
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Core
 {
@@ -445,10 +444,5 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
   }
 
   return detections;
-}
-
-Device::InputChannel Device::Input::GetCurrentInputChannel() const
-{
-  return ControllerInterface::GetCurrentInputChannel();
 }
 }  // namespace ciface::Core

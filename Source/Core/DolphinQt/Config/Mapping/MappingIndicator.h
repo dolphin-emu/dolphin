@@ -106,10 +106,7 @@ private:
 class CursorIndicator : public ReshapableInputIndicator
 {
 public:
-  explicit CursorIndicator(ControllerEmu::Cursor& cursor) : m_cursor_group(cursor)
-  {
-    m_cursor_group.ResetState(true);
-  }
+  explicit CursorIndicator(ControllerEmu::Cursor& cursor) : m_cursor_group(cursor) {}
 
 private:
   void Draw() override;

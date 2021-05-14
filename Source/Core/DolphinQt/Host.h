@@ -23,12 +23,10 @@ public:
   static Host* GetInstance();
 
   bool GetRenderFocus();
-  bool GetRenderFullFocus();
   bool GetRenderFullscreen();
 
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
-  void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void ResizeSurface(int new_width, int new_height);
   void RequestNotifyMapLoaded();
@@ -45,6 +43,5 @@ private:
 
   std::atomic<void*> m_render_handle{nullptr};
   std::atomic<bool> m_render_focus{false};
-  std::atomic<bool> m_render_full_focus{false};
   std::atomic<bool> m_render_fullscreen{false};
 };

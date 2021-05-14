@@ -55,11 +55,6 @@ private:
     std::string GetName() const override { return name; }
     Button(unsigned int index, unsigned int* buttons);
     ControlState GetState() const override;
-    FocusFlags GetFocusFlags() const override
-    {
-      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus) |
-                        u8(FocusFlags::IgnoreOnFocusChanged));
-    }
 
   private:
     const unsigned int* m_buttons;
@@ -74,10 +69,6 @@ private:
     bool IsDetectable() const override { return false; }
     Cursor(u8 index, bool positive, const float* cursor);
     ControlState GetState() const override;
-    FocusFlags GetFocusFlags() const override
-    {
-      return FocusFlags((u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus)));
-    }
 
   private:
     const float* m_cursor;
@@ -86,7 +77,6 @@ private:
     std::string name;
   };
 
-  // TODO: copy new implementation from DInputKeyboardMouse.cpp
   class Axis : public Input
   {
   public:
@@ -94,10 +84,6 @@ private:
     bool IsDetectable() const override { return false; }
     Axis(u8 index, bool positive, const float* axis);
     ControlState GetState() const override;
-    FocusFlags GetFocusFlags() const override
-    {
-      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus));
-    }
 
   private:
     const float* m_axis;

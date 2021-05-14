@@ -320,7 +320,7 @@ void CEXIIPL::TransferByte(u8& data)
       if (!m_command.is_write())
       {
         u32 dev_addr = DEV_ADDR_CURSOR(ROM);
-        // Technically we should descramble here if descrambling logic is enabled.
+        // Technically we should descramble here iff descrambling logic is enabled.
         // At the moment, we pre-decrypt the whole thing and
         // ignore the "enabled" bit - see CEXIIPL::CEXIIPL
         data = m_rom[dev_addr];

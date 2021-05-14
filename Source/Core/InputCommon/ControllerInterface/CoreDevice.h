@@ -61,40 +61,6 @@ public:
     virtual bool IsMatchingName(std::string_view name) const;
   };
 
-  // A set of flags we can define to determine whether this control should be
-  // read (or written), or ignored/blocked, based on our current game app/window focus.
-  // As of now they are only used by inputs but nothing prevents us from implementing them
-  // on outputs, and they are not limited to focus, if we came up with new blocking conditions.
-  //
-  // These flags are per Control, but they will get summed up with other expressions
-  // from the same ControlReference. This is because checking them per input/output
-  // would have been too complicated, expensive, and ultimately, useless.
-  // So they are in order of priority, and some of them are mutually exclusive.
-  // Users can use function expressions to customize the focus requirements of a
-  // ControlReference, but we manually hardcode them in some Inputs (e.g. mouse) so
-  // users don't have to bother in most cases, as it's easy to understand as a concept.
-  enum class FocusFlags : u8
-  {
-    // The input is only passed if we have focus (or the user accepts
-    // background input)
-    RequireFocus = 0x01,
-    // The input is only passed if we have "full" focus, which means the mouse
-    // has been locked into the game window. Ignored if mouse locking is off
-    RequireFullFocus = 0x02,
-    // Some inputs are able to make you lose or gain focus or full focus,
-    // for example a mouse click, or the Windows key. When these are pressed
-    // and there is a window focus change, ignore them for the time being,
-    // as the user didn't want the application to react
-    IgnoreOnFocusChanged = 0x04,
-    // Forces the input to be passed even if we have no focus,
-    // useful for things like battery level. This is not 0 because it needs
-    // higher priority over other flags
-    IgnoreFocus = 0x80,
-
-    // Even expressions that are fixed should return this
-    Default = RequireFocus
-  };
-
   //
   // Input
   //
@@ -107,17 +73,15 @@ public:
     // undesirable behavior in our mapping logic.
     virtual bool IsDetectable() const { return true; }
 
-    virtual FocusFlags GetFocusFlags() const { return FocusFlags::Default; }
-
     // Implementations should return a value from 0.0 to 1.0 across their normal range.
     // One input should be provided for each "direction". (e.g. 2 for each axis)
-    // If possible, negative values may be returned in situations where an opposing input
-    // is activated. (e.g. When an underlying axis, X, is currently negative, "Axis X-",
-    // will return a positive value and "Axis X+" may return a negative value.)
+    // If possible, negative values may be returned in situations where an opposing input is
+    // activated. (e.g. When an underlying axis, X, is currently negative, "Axis X-", will return a
+    // positive value and "Axis X+" may return a negative value.)
     // Doing so is solely to allow our input detection logic to better detect false positives.
     // This is necessary when making use of "FullAnalogSurface" as multiple inputs will be seen
-    // increasing from 0.0 to 1.0 as a user tries to map just one. The negative values provide
-    // a view of the underlying axis. (Negative values are clamped off before they reach
+    // increasing from 0.0 to 1.0 as a user tries to map just one. The negative values provide a
+    // view of the underlying axis. (Negative values are clamped off before they reach
     // expression-parser or controller-emu)
     virtual ControlState GetState() const = 0;
 

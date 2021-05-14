@@ -237,7 +237,7 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
       device->SetId(id);
     }
 
-    NOTICE_LOG_FMT(SERIALINTERFACE, "Added device: {}", device->GetQualifiedName());
+    NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Added device: {}", device->GetQualifiedName());
     m_devices.emplace_back(std::move(device));
   }
 
@@ -252,7 +252,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
     auto it = std::remove_if(m_devices.begin(), m_devices.end(), [&callback](const auto& dev) {
       if (callback(dev.get()))
       {
-        NOTICE_LOG_FMT(SERIALINTERFACE, "Removed device: {}", dev->GetQualifiedName());
+        NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Removed device: {}", dev->GetQualifiedName());
         return true;
       }
       return false;
@@ -265,16 +265,14 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
 }
 
 // Update input for all devices if lock can be acquired without waiting.
-void ControllerInterface::UpdateInput(bool update_fake_relative_axes)
+void ControllerInterface::UpdateInput()
 {
   // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
   if (m_devices_mutex.try_lock())
   {
     std::lock_guard lk(m_devices_mutex, std::adopt_lock);
-    should_update_fake_relative_axes = update_fake_relative_axes;
     for (const auto& d : m_devices)
       d->UpdateInput();
-    should_update_fake_relative_axes = false;
   }
 }
 

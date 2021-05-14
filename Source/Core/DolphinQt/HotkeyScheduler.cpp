@@ -156,12 +156,12 @@ void HotkeyScheduler::Run()
     if (Core::GetState() != Core::State::Stopping)
     {
       // Obey window focus (config permitting) before checking hotkeys.
-      InputReference::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS), false, true);
+      Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
 
       HotkeyManagerEmu::GetStatus();
 
       // Everything else on the host thread (controller config dialog) should always get input.
-      InputReference::SetInputGateOpen();
+      ControlReference::SetInputGate(true);
 
       if (!Core::IsRunningAndStarted())
         continue;
@@ -212,10 +212,6 @@ void HotkeyScheduler::Run()
       // Exit
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
-
-      // Unlock Cursor
-      if (IsHotkey(HK_UNLOCK_CURSOR))
-        emit UnlockCursor();
 
       auto& settings = Settings::Instance();
 
