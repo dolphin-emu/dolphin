@@ -11,7 +11,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"

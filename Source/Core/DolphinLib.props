@@ -16,9 +16,6 @@
     <ClInclude Include="Common\Align.h" />
     <ClInclude Include="Common\Analytics.h" />
     <ClInclude Include="Common\Assert.h" />
-    <ClInclude Include="Common\Atomic_GCC.h" />
-    <ClInclude Include="Common\Atomic_Win32.h" />
-    <ClInclude Include="Common\Atomic.h" />
     <ClInclude Include="Common\BitField.h" />
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
