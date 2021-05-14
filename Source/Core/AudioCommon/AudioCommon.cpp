@@ -60,49 +60,33 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 
 void InitSoundStream()
 {
+  std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
+
+  std::string backend = SConfig::GetInstance().sBackend;
+  g_sound_stream = CreateSoundStreamForBackend(backend);
+  g_selected_sound_stream_failed = false;
+
+  if (!g_sound_stream)
   {
-    WARN_LOG_FMT(AUDIO, "Unknown backend {}, using {} instead.", backend, GetDefaultSoundBackend());
+    WARN_LOG_FMT(AUDIO, "Unknown backend {}, using {} instead (default)", backend,
+                  GetDefaultSoundBackend());
     backend = GetDefaultSoundBackend();
-    g_sound_stream = CreateSoundStreamForBackend(GetDefaultSoundBackend());
+    g_sound_stream = CreateSoundStreamForBackend(backend);
   }
 
   if (!g_sound_stream || !g_sound_stream->Init())
   {
-    WARN_LOG_FMT(AUDIO, "Could not initialize backend {}, using {} instead.", backend,
-                 BACKEND_NULLSOUND);
+    WARN_LOG_FMT(AUDIO, "Could not initialize backend {}, using {} instead", backend,
+                  NullSound::GetName());
     g_sound_stream = std::make_unique<NullSound>();
-    g_sound_stream->Init();
+    g_sound_stream->Init();  // NullSound can't fail
+    g_selected_sound_stream_failed = true;
   }
 }
 
+// This needs to be called after AudioInterface::Init where input sample rates are set
 void PostInitSoundStream()
 {
-  // This needs to be called after AudioInterface::Init where input sample rates are set
-  UpdateSoundStream();
-    std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
-
-    std::string backend = SConfig::GetInstance().sBackend;
-    g_sound_stream = CreateSoundStreamForBackend(backend);
-    g_selected_sound_stream_failed = false;
-
-    if (!g_sound_stream)
-    {
-      WARN_LOG_FMT(AUDIO, "Unknown backend {}, using {} instead (default)", backend,
-               GetDefaultSoundBackend());
-      backend = GetDefaultSoundBackend();
-      g_sound_stream = CreateSoundStreamForBackend(backend);
-    }
-
-    if (!g_sound_stream || !g_sound_stream->Init())
-    {
-      WARN_LOG_FMT(AUDIO, "Could not initialize backend {}, using {} instead", backend,
-               NullSound::GetName());
-      g_sound_stream = std::make_unique<NullSound>();
-      g_sound_stream->Init();  // NullSound can't fail
-      g_selected_sound_stream_failed = true;
-    }
-  }
-
   UpdateSoundStreamSettings(true);
   // This can fail, but we don't really care as it just won't produce any sounds,
   // also the user might be able to fix it up by changing their device settings
@@ -110,13 +94,6 @@ void PostInitSoundStream()
   // Note that when we start a game, this is called here, but then it's called with false
   // and true again, so basically the backend is "restarted" with every emulation state change
   SetSoundStreamRunning(true, true);
-
-  //To review: are these still needed after merge with master?
-  // Ideally these two calls would be done in AudioInterface::Init so that we don't
-  // need to have a dependency on AudioInterface here, but this has to be done
-  // after creating g_sound_stream (above) and before starting audio dumping (below)
-  g_sound_stream->GetMixer()->SetDMAInputSampleRate(AudioInterface::GetAIDSampleRate());
-  g_sound_stream->GetMixer()->SetStreamingInputSampleRate(AudioInterface::GetAISSampleRate());
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_started)
     StartAudioDump();

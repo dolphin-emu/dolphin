@@ -45,7 +45,8 @@ Mixer::Mixer(u32 sample_rate)
 
 Mixer::~Mixer()
 {
-  INFO_LOG_FMT(AUDIO_INTERFACE, "Mixer is initialized");
+  INFO_LOG_FMT(AUDIO_INTERFACE, "Mixer is uninitialized");
+  Core::RemoveOnStateChangedCallback(&m_on_state_changed_handle);
 }
 
 void Mixer::SetPaused(bool paused)

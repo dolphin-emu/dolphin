@@ -89,8 +89,8 @@ private:
   {
   public:
     MixerFifo(Mixer* mixer, unsigned sample_rate, bool big_endians, bool constantly_pushed = true)
-        : m_mixer(mixer), m_input_sample_rate(sample_rate),
-          m_big_endians(big_endians), m_constantly_pushed(constantly_pushed)
+        : m_mixer(mixer), m_input_sample_rate(sample_rate), m_constantly_pushed(constantly_pushed),
+          m_big_endians(big_endians)
     {
     }
     void DoState(PointerWrap& p);
@@ -191,7 +191,7 @@ private:
 
   u32 m_sample_rate;  // Only changed by main or emulation thread when the backend is not running
   bool m_stretching = false;
-  bool m_update_surround_latency = false;
+  bool m_update_surround_latency = false; //To delete?
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
 

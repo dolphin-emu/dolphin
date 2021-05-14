@@ -2,6 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
+    <ClInclude Include="AudioCommon\AudioSpeedCounter.h" />
     <ClInclude Include="AudioCommon\AudioStretcher.h" />
     <ClInclude Include="AudioCommon\CubebStream.h" />
     <ClInclude Include="AudioCommon\CubebUtils.h" />
@@ -667,12 +668,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AudioCommon\AudioCommon.cpp" />
+    <ClCompile Include="AudioCommon\AudioSpeedCounter.cpp" />
     <ClCompile Include="AudioCommon\AudioStretcher.cpp" />
     <ClCompile Include="AudioCommon\CubebStream.cpp" />
     <ClCompile Include="AudioCommon\CubebUtils.cpp" />
     <ClCompile Include="AudioCommon\Mixer.cpp" />
     <ClCompile Include="AudioCommon\NullSoundStream.cpp" />
     <ClCompile Include="AudioCommon\OpenALStream.cpp" />
+    <ClCompile Include="AudioCommon\SoundStream.cpp" />
     <ClCompile Include="AudioCommon\SurroundDecoder.cpp" />
     <ClCompile Include="AudioCommon\WASAPIStream.cpp" />
     <ClCompile Include="AudioCommon\WaveFile.cpp" />

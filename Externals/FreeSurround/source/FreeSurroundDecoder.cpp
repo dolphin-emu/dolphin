@@ -92,7 +92,7 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
         memcpy(&outbuf[i], &outbuf[prev_size - C], sizeof(float) * C);
     }
   }
-  for (unsigned int k = 0; k < std::min(C, unsigned int(signal.size())); k++)
+  for (unsigned int k = 0; k < std::min(C, static_cast<unsigned int>(signal.size())); k++)
     signal[k].resize(N);
   signal.resize(C, std::vector<cplx>(N));
 
