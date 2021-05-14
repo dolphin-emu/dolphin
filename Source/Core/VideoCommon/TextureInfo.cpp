@@ -4,6 +4,7 @@
 
 #include "VideoCommon/TextureInfo.h"
 
+#include <fmt/format.h>
 #include <xxhash.h>
 
 #include "Common/Align.h"
@@ -95,6 +96,11 @@ TextureInfo::TextureInfo(const u8* ptr, const u8* tlut_ptr, u32 address,
   }
 }
 
+std::string TextureInfo::NameDetails::GetFullName() const
+{
+  return fmt::format("{}_{}{}_{}", base_name, texture_name, tlut_name, format_name);
+}
+
 TextureInfo::NameDetails TextureInfo::CalculateTextureName()
 {
   if (!m_ptr)
@@ -151,10 +157,11 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName()
   const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
   NameDetails result;
-  result.base_name = fmt::format("{}{}x{}{}_{:016x}", format_prefix, m_raw_width, m_raw_height,
-                                 m_mipmaps_enabled ? "_m" : "", tex_hash);
+  result.base_name = fmt::format("{}{}x{}{}", format_prefix, m_raw_width, m_raw_height,
+                                 m_mipmaps_enabled ? "_m" : "");
+  result.texture_name = fmt::format("{:016x}", tex_hash);
   result.tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "";
-  result.format_name = fmt::format("_{}", static_cast<int>(m_texture_format));
+  result.format_name = fmt::to_string(static_cast<int>(m_texture_format));
 
   return result;
 }
