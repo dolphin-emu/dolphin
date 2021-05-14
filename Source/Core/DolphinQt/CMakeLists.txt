@@ -370,6 +370,11 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
   )
 
+  # Copy license.txt
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/license.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/license.txt"
+  )
+
   # Copy qt.conf
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
@@ -401,6 +406,9 @@ if(WIN32)
                                  $<IF:$<CONFIG:Debug>,--debug,--release>
                                  --no-translations
                                  --no-compiler-runtime
+                                 --no-system-d3d-compiler
+                                 --no-angle
+                                 --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )
 endif()
@@ -423,7 +431,11 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
 
   foreach(po ${LINGUAS})
     get_filename_component(lang ${po} NAME_WE)
-    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    if(WIN32)
+      set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang})
+    else()
+      set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    endif()
     set(mo ${mo_dir}/dolphin-emu.mo)
 
     target_sources(dolphin-emu PRIVATE ${mo})
@@ -439,7 +451,6 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
       add_custom_command(OUTPUT ${mo}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
         COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-        COMMAND ${CMAKE_COMMAND} -E copy ${mo} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang}/dolphin-emu.mo
         DEPENDS ${po}
       )
     else()

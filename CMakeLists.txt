@@ -124,11 +124,6 @@ if (WIN32)
   elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
     string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
   endif()
-
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 # setup CCache
@@ -240,6 +235,12 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
+  # Enable function-level linking
+  add_compile_options(/Gy)
+  # Generate intrinsic functions
+  add_compile_options(/Oi)
+  # Disable buffer security check
+  add_compile_options(/GS-)
   # Enforce C++ standard conforming conversion rules to catch possible bugs
   add_compile_options(/permissive-)
   # Remove unreferenced inline functions/data to reduce link time and catch bugs
@@ -259,6 +260,10 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   )
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
+  # Generate debug data
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG")
+  # Eliminate dead code and data
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /OPT:REF /OPT:ICF")
 else()
   add_definitions(-D_DEFAULT_SOURCE)
 
@@ -327,10 +332,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 endif()
 
 if(ENABLE_LTO)
-  check_and_add_flag(LTO -flto)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    set(CMAKE_AR gcc-ar)
-    set(CMAKE_RANLIB gcc-ranlib)
+  if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+    add_compile_options(/GL)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " /LTCG")
+  else()
+    check_and_add_flag(LTO -flto)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+      set(CMAKE_AR gcc-ar)
+      set(CMAKE_RANLIB gcc-ranlib)
+    endif()
   endif()
 endif()
 
@@ -844,6 +854,8 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 #
 if(ENABLE_TESTS)
   message(STATUS "Using static gtest from Externals")
+  # Force gtest to link the C runtime dynamically on Windows in order to avoid runtime mismatches.
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 else()
   message(STATUS "Unit tests are disabled")
