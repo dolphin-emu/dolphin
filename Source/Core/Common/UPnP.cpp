@@ -16,6 +16,7 @@
 #include <string>
 #include <thread>
 #include <upnpcommands.h>
+#include <upnperrors.h>
 #include <vector>
 
 static UPNPUrls s_urls;
@@ -52,7 +53,15 @@ static bool InitUPnP()
 #endif
   if (!devlist)
   {
-    WARN_LOG_FMT(NETPLAY, "An error occurred trying to discover UPnP devices.");
+    if (upnperror == UPNPDISCOVER_SUCCESS)
+    {
+      WARN_LOG_FMT(NETPLAY, "No UPnP devices could be found.");
+    }
+    else
+    {
+      WARN_LOG_FMT(NETPLAY, "An error occurred trying to discover UPnP devices: {}",
+                   strupnperror(upnperror));
+    }
 
     s_error = true;
 
@@ -60,6 +69,7 @@ static bool InitUPnP()
   }
 
   // Look for the IGD
+  bool found_valid_igd = false;
   for (UPNPDev* dev = devlist.get(); dev; dev = dev->pNext)
   {
     if (!std::strstr(dev->st, "InternetGatewayDevice"))
@@ -81,6 +91,7 @@ static bool InitUPnP()
       parserootdesc(desc_xml.get(), desc_xml_size, &s_data);
       GetUPNPUrls(&s_urls, &s_data, dev->descURL, 0);
 
+      found_valid_igd = true;
       NOTICE_LOG_FMT(NETPLAY, "Got info from IGD at {}.", dev->descURL);
       break;
     }
@@ -89,6 +100,9 @@ static bool InitUPnP()
       WARN_LOG_FMT(NETPLAY, "Error getting info from IGD at {}.", dev->descURL);
     }
   }
+
+  if (!found_valid_igd)
+    WARN_LOG_FMT(NETPLAY, "Could not find a valid IGD in the discovered UPnP devices.");
 
   s_inited = true;
 
