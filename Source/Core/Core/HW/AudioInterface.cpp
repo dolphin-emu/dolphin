@@ -154,6 +154,7 @@ void Init()
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
 
+  //To review: this is now duplicate?
   g_sound_stream->GetMixer()->SetDMAInputSampleRate(GetAIDSampleRate());
   g_sound_stream->GetMixer()->SetStreamInputSampleRate(GetAISSampleRate());
 }

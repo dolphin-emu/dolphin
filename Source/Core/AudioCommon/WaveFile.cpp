@@ -32,7 +32,7 @@ bool WaveFileWriter::Start(const std::string& file_name, u32 sample_rate)
   if (File::Exists(file_name))
   {
     if (SConfig::GetInstance().m_DumpAudioSilent ||
-        AskYesNoFmtT("Delete the existing file '{0}'?", filename))
+        AskYesNoFmtT("Delete the existing file '{0}'?", file_name))
     {
       File::Delete(file_name);
     }
@@ -46,7 +46,8 @@ bool WaveFileWriter::Start(const std::string& file_name, u32 sample_rate)
   // Check if the file is already open
   if (file)
   {
-    PanicAlertFmtT("The file {0} was already open, the file header will not be written.", filename);
+    PanicAlertFmtT("The file {0} was already open, the file header will not be written.",
+                   file_name);
     return false;
   }
 
@@ -56,7 +57,7 @@ bool WaveFileWriter::Start(const std::string& file_name, u32 sample_rate)
     PanicAlertFmtT(
         "The file {0} could not be opened for writing. Please check if it's already opened "
         "by another program.",
-        filename);
+        file_name);
     return false;
   }
 

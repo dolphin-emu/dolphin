@@ -144,12 +144,12 @@ public:
   WASAPIStream* m_stream;
 };
 
-static bool HandleWinAPI(std::string message, HRESULT result)
+static bool HandleWinAPI(std::string_view message, HRESULT result)
 {
   if (result != S_OK)
   {
     _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage()).c_str();
+    std::string error = TStrToUTF8(err.ErrorMessage());
 
     switch (result)
     {
@@ -164,7 +164,7 @@ static bool HandleWinAPI(std::string message, HRESULT result)
       break;
     }
 
-    ERROR_LOG(AUDIO, "WASAPI: %s (%s)", message.c_str(), error.c_str());
+    ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {}", message, error);
   }
 
   return SUCCEEDED(result);
@@ -673,8 +673,8 @@ bool WASAPIStream::SetRunning(bool running)
         // just got disconnected, but overall, this should be fine
         if (!device)
         {
-          ERROR_LOG(AUDIO, "WASAPI: Can't find device '%s', falling back to default",
-                    SConfig::GetInstance().sWASAPIDeviceName.c_str());
+          ERROR_LOG_FMT(AUDIO, "WASAPI: Can't find device '{}', falling back to default",
+                    SConfig::GetInstance().sWASAPIDeviceName);
           result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
           m_using_default_device = true;
         }
@@ -697,7 +697,7 @@ bool WASAPIStream::SetRunning(bool running)
 
       device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
 
-      INFO_LOG(AUDIO, "WASAPI: Using Audio Device '%s'", TStrToUTF8(device_name.pwszVal).c_str());
+      INFO_LOG_FMT(AUDIO, "WASAPI: Using Audio Device '{}'", TStrToUTF8(device_name.pwszVal));
 
       PropVariantClear(&device_name);
 
@@ -907,7 +907,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     device->Release();
 
-    NOTICE_LOG(AUDIO, "WASAPI: Successfully initialized");
+    NOTICE_LOG_FMT(AUDIO, "WASAPI: Successfully initialized!");
 
     m_stop_thread_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 

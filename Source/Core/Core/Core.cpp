@@ -532,6 +532,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     HW::Shutdown();
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
 
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
     // The config must be restored only after the whole HW has shut down,
     // not when it is still running.
     BootManager::RestoreConfig();
@@ -967,13 +970,6 @@ void UpdateTitle(u32 ElapseTime)
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
     if (!title.empty())
       message += " | " + title;
-  }
-
-  // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
-  {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
   }
 
   Host_UpdateTitle(message);

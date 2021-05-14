@@ -48,6 +48,15 @@ enum SIDevices : int;
 
 struct BootParameters;
 
+// DSP Backend Types
+#define BACKEND_NULLSOUND _trans("No Audio Output")
+#define BACKEND_ALSA "ALSA"
+#define BACKEND_CUBEB "Cubeb"
+#define BACKEND_OPENAL "OpenAL"
+#define BACKEND_PULSEAUDIO "Pulse"
+#define BACKEND_OPENSLES "OpenSLES"
+#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
+
 enum class GPUDeterminismMode
 {
   Auto,
@@ -144,8 +153,6 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
-  bool bUsePanicHandlers = true;
-  bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
   // Bluetooth passthrough mode settings

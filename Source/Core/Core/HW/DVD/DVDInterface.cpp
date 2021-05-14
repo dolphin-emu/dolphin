@@ -298,11 +298,6 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                                  s64 cycles_late)
 {
-  // TODO: Should we use GetAISSampleRate instead of a fixed 48 KHz? The audio mixer is using
-  // GetAISSampleRate. (This doesn't affect any actual games, since they all set it to 48 KHz.)
-  const double sample_rate = AudioInterface::Get48KHzSampleRate();
-  
-  //To review: here we used to just hardcode 48Khz, ignoring wether we are wii or gc (and also avoiding it being double). old comment:
   // This determines which audio data to read next.
   // Similarly to DMA audio, instead of sending a different number of samples each submission,
   // we just change the frequency of the submission to match the sample rate.
@@ -310,9 +305,6 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
   // The Mixer (Mixer.cpp) might assume the above is true, so if you change the samples submitted
   // per submission, make sure you review the Mixer as well.
 
-  // Determine which audio data to read next.
-  const u32 maximum_samples = sample_rate / 2000 * 7;
-  //To review: it also later one was: static const int MAXIMUM_SAMPLES = 168;
   // 168 samples (3.5ms at 48kHz/5.25ms at 32kHz on Wii, similar numbers on GC).
   // This number isn't HW tested, it was decided randomly.
   // Real HW might read 32KB at a time, increasing the latency, which would mean our DVD audio
@@ -331,18 +323,18 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
     if (s_stream && AudioInterface::IsPlaying())
     {
       read_offset = s_audio_position;
-      read_length = AdvanceDTK(maximum_samples, &s_pending_samples);
+      read_length = AdvanceDTK(MAXIMUM_SAMPLES, &s_pending_samples);
     }
     else
     {
       read_length = 0;
-      s_pending_samples = maximum_samples;
+      s_pending_samples = MAXIMUM_SAMPLES;
     }
   }
   else
   {
     read_length = 0;
-    s_pending_samples = maximum_samples;
+    s_pending_samples = MAXIMUM_SAMPLES;
   }
 
   // Read the next chunk of audio data asynchronously.

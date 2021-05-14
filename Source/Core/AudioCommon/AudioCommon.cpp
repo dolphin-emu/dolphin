@@ -87,16 +87,16 @@ void PostInitSoundStream()
 
     if (!g_sound_stream)
     {
-      WARN_LOG(AUDIO, "Unknown backend %s, using %s instead (default)", backend.c_str(),
-               GetDefaultSoundBackend().c_str());
+      WARN_LOG_FMT(AUDIO, "Unknown backend {}, using {} instead (default)", backend,
+               GetDefaultSoundBackend());
       backend = GetDefaultSoundBackend();
       g_sound_stream = CreateSoundStreamForBackend(backend);
     }
 
     if (!g_sound_stream || !g_sound_stream->Init())
     {
-      WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead", backend.c_str(),
-               NullSound::GetName().c_str());
+      WARN_LOG_FMT(AUDIO, "Could not initialize backend {}, using {} instead", backend,
+               NullSound::GetName());
       g_sound_stream = std::make_unique<NullSound>();
       g_sound_stream->Init();  // NullSound can't fail
       g_selected_sound_stream_failed = true;

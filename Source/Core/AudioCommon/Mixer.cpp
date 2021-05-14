@@ -33,7 +33,7 @@ Mixer::Mixer(u32 sample_rate)
   m_min_latency = Config::Get(Config::MAIN_AUDIO_MIXER_MIN_LATENCY) / 1000.0;
   m_max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 1000.0;
 
-  INFO_LOG(AUDIO, "Mixer is initialized");
+  INFO_LOG_FMT(AUDIO, "Mixer is initialized");
 
   m_on_state_changed_handle = Core::AddOnStateChangedCallback([this](Core::State state) {
     if (state == Core::State::Paused)
@@ -409,7 +409,6 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
   // Stop using emulation speed, start using actual speed for audio playback, if we fell behind enough
   // Filter out small inaccuracies (samples aren't submitted with perfect timing)
   else
-  if (SConfig::GetInstance().m_audio_stretch || Core::GetIsAudioStretchTempEnabled())
   {
     const double audio_emu_speed_tolerance =
         SConfig::GetInstance().m_audio_emu_speed_tolerance / 1000.0;
@@ -867,12 +866,10 @@ void Mixer::StartLogDTKAudio(const std::string& filename)
     if (success)
     {
       m_log_dtk_audio = true;
-      m_wave_writer_dtk.SetSkipSilence(false);
       NOTICE_LOG_FMT(AUDIO, "Starting DTK Audio logging");
     }
     else
     {
-      m_wave_writer_dtk.Stop();
       NOTICE_LOG_FMT(AUDIO, "Unable to start DTK Audio logging");
     }
   }
@@ -904,12 +901,10 @@ void Mixer::StartLogDSPAudio(const std::string& filename)
     if (success)
     {
       m_log_dsp_audio = true;
-      m_wave_writer_dsp.SetSkipSilence(false);
       NOTICE_LOG_FMT(AUDIO, "Starting DSP Audio logging");
     }
     else
     {
-      m_wave_writer_dsp.Stop();
       NOTICE_LOG_FMT(AUDIO, "Unable to start DSP Audio logging");
     }
   }

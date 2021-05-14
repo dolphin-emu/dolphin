@@ -772,8 +772,6 @@ void SConfig::LoadDefaults()
   iAudioBackendLatency = 20;
   m_audio_stretch = false;
   m_audio_emu_speed_tolerance = 20;
-  bUsePanicHandlers = true;
-  bOnScreenDisplayMessages = true;
 
   bLoopFifoReplay = true;
 
