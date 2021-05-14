@@ -51,7 +51,7 @@ bool FifoPlayer::Open(const std::string& filename)
   {
     FifoPlaybackAnalyzer::AnalyzeFrames(m_File.get(), m_FrameInfo);
 
-    m_FrameRangeEnd = m_File->GetFrameCount();
+    m_FrameRangeEnd = m_File->GetFrameCount() - 1;
   }
 
   if (m_FileLoadedCb)
@@ -131,13 +131,10 @@ private:
 
 CPU::State FifoPlayer::AdvanceFrame()
 {
-  if (m_CurrentFrame >= m_FrameRangeEnd)
+  if (m_CurrentFrame > m_FrameRangeEnd)
   {
     if (!m_Loop)
       return CPU::State::PowerDown;
-    // If there are zero frames in the range then sleep instead of busy spinning
-    if (m_FrameRangeStart >= m_FrameRangeEnd)
-      return CPU::State::Stepping;
 
     // When looping, reload the contents of all the BP/CP/CF registers.
     // This ensures that each time the first frame is played back, the state of the
@@ -189,23 +186,40 @@ bool FifoPlayer::IsRunningWithFakeVideoInterfaceUpdates() const
   return m_File->ShouldGenerateFakeVIUpdates();
 }
 
-u32 FifoPlayer::GetFrameObjectCount() const
+u32 FifoPlayer::GetMaxObjectCount() const
 {
-  if (m_CurrentFrame < m_FrameInfo.size())
+  u32 result = 0;
+  for (auto& frame : m_FrameInfo)
   {
-    return (u32)(m_FrameInfo[m_CurrentFrame].objectStarts.size());
+    const u32 count = static_cast<u32>(frame.objectStarts.size());
+    if (count > result)
+      result = count;
+  }
+  return result;
+}
+
+u32 FifoPlayer::GetFrameObjectCount(u32 frame) const
+{
+  if (frame < m_FrameInfo.size())
+  {
+    return static_cast<u32>(m_FrameInfo[frame].objectStarts.size());
   }
 
   return 0;
+}
+
+u32 FifoPlayer::GetCurrentFrameObjectCount() const
+{
+  return GetFrameObjectCount(m_CurrentFrame);
 }
 
 void FifoPlayer::SetFrameRangeStart(u32 start)
 {
   if (m_File)
   {
-    u32 frameCount = m_File->GetFrameCount();
-    if (start > frameCount)
-      start = frameCount;
+    const u32 lastFrame = m_File->GetFrameCount() - 1;
+    if (start > lastFrame)
+      start = lastFrame;
 
     m_FrameRangeStart = start;
     if (m_FrameRangeEnd < start)
@@ -220,9 +234,9 @@ void FifoPlayer::SetFrameRangeEnd(u32 end)
 {
   if (m_File)
   {
-    u32 frameCount = m_File->GetFrameCount();
-    if (end > frameCount)
-      end = frameCount;
+    const u32 lastFrame = m_File->GetFrameCount() - 1;
+    if (end > lastFrame)
+      end = lastFrame;
 
     m_FrameRangeEnd = end;
     if (m_FrameRangeStart > end)
@@ -375,6 +389,8 @@ void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
   {
     while (IsHighWatermarkSet())
     {
+      if (CPU::GetState() != CPU::State::Running)
+        break;
       CoreTiming::Idle();
       CoreTiming::Advance();
     }

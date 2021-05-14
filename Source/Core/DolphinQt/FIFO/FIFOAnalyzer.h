@@ -8,6 +8,8 @@
 
 #include <QWidget>
 
+#include "Common/CommonTypes.h"
+
 class QGroupBox;
 class QLabel;
 class QLineEdit;
@@ -57,9 +59,13 @@ private:
 
   struct SearchResult
   {
-    int frame;
-    int object;
-    int cmd;
+    constexpr SearchResult(u32 frame, u32 object, u32 cmd)
+        : m_frame(frame), m_object(object), m_cmd(cmd)
+    {
+    }
+    const u32 m_frame;
+    const u32 m_object;
+    const u32 m_cmd;
   };
 
   std::vector<int> m_object_data_offsets;

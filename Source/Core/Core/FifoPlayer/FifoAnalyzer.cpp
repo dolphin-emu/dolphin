@@ -258,37 +258,37 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
 {
-  switch (subCmd & 0xF0)
+  switch (subCmd & CP_COMMAND_MASK)
   {
-  case 0x50:
+  case VCD_LO:
     cpMem.vtxDesc.low.Hex = value;
     break;
 
-  case 0x60:
+  case VCD_HI:
     cpMem.vtxDesc.high.Hex = value;
     break;
 
-  case 0x70:
-    ASSERT((subCmd & 0x0F) < 8);
-    cpMem.vtxAttr[subCmd & 7].g0.Hex = value;
+  case CP_VAT_REG_A:
+    ASSERT(subCmd - CP_VAT_REG_A < CP_NUM_VAT_REG);
+    cpMem.vtxAttr[subCmd & CP_VAT_MASK].g0.Hex = value;
     break;
 
-  case 0x80:
-    ASSERT((subCmd & 0x0F) < 8);
-    cpMem.vtxAttr[subCmd & 7].g1.Hex = value;
+  case CP_VAT_REG_B:
+    ASSERT(subCmd - CP_VAT_REG_B < CP_NUM_VAT_REG);
+    cpMem.vtxAttr[subCmd & CP_VAT_MASK].g1.Hex = value;
     break;
 
-  case 0x90:
-    ASSERT((subCmd & 0x0F) < 8);
-    cpMem.vtxAttr[subCmd & 7].g2.Hex = value;
+  case CP_VAT_REG_C:
+    ASSERT(subCmd - CP_VAT_REG_C < CP_NUM_VAT_REG);
+    cpMem.vtxAttr[subCmd & CP_VAT_MASK].g2.Hex = value;
     break;
 
-  case 0xA0:
-    cpMem.arrayBases[subCmd & 0xF] = value;
+  case ARRAY_BASE:
+    cpMem.arrayBases[subCmd & CP_ARRAY_MASK] = value;
     break;
 
-  case 0xB0:
-    cpMem.arrayStrides[subCmd & 0xF] = value & 0xFF;
+  case ARRAY_STRIDE:
+    cpMem.arrayStrides[subCmd & CP_ARRAY_MASK] = value & 0xFF;
     break;
   }
 }

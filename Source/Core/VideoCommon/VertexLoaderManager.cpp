@@ -114,34 +114,6 @@ struct entry
 };
 }  // namespace
 
-std::string VertexLoadersToString()
-{
-  std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
-  std::vector<entry> entries;
-
-  size_t total_size = 0;
-  for (const auto& map_entry : s_vertex_loader_map)
-  {
-    entry e = {map_entry.second->ToString(),
-               static_cast<u64>(map_entry.second->m_numLoadedVertices)};
-
-    total_size += e.text.size() + 1;
-    entries.push_back(std::move(e));
-  }
-
-  sort(entries.begin(), entries.end());
-
-  std::string dest;
-  dest.reserve(total_size);
-  for (const entry& entry : entries)
-  {
-    dest += entry.text;
-    dest += '\n';
-  }
-
-  return dest;
-}
-
 void MarkAllDirty()
 {
   g_main_cp_state.attr_dirty = BitSet32::AllTrue(8);
@@ -275,7 +247,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
   VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 
-  int size = count * loader->m_VertexSize;
+  int size = count * loader->m_vertex_size;
   if ((int)src.size() < size)
     return -1;
 
