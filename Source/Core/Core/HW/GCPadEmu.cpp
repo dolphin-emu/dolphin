@@ -93,10 +93,15 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->AddSetting(&m_always_connected_setting,
-                        // i18n: Treat a controller as always being connected regardless of what
-                        // devices the user actually has plugged in
-                        _trans("Always Connected"), false);
+  m_options->AddSetting(
+      &m_always_connected_setting,
+      // i18n: Treat a controller as always being connected regardless of what
+      // devices the user actually has plugged in
+      {_trans("Always Connected"), _trans(""),
+       _trans("Always connected if checked.\n"
+              "If unchecked, it will link the emulated controller connection state\n"
+              "to the real default device connection state (if there is one).")},
+      false);
 }
 
 std::string GCPad::GetName() const
@@ -181,17 +186,17 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   EmulatedController::LoadDefaults(ciface);
 
   // Buttons
-  m_buttons->SetControlExpression(0, "X");  // A
-  m_buttons->SetControlExpression(1, "Z");  // B
-  m_buttons->SetControlExpression(2, "C");  // X
-  m_buttons->SetControlExpression(3, "S");  // Y
-  m_buttons->SetControlExpression(4, "D");  // Z
+  m_buttons->SetControlExpression(0, "`X`");  // A
+  m_buttons->SetControlExpression(1, "`Z`");  // B
+  m_buttons->SetControlExpression(2, "`C`");  // X
+  m_buttons->SetControlExpression(3, "`S`");  // Y
+  m_buttons->SetControlExpression(4, "`D`");  // Z
 #ifdef _WIN32
-  m_buttons->SetControlExpression(5, "RETURN");  // Start
+  m_buttons->SetControlExpression(5, "`RETURN`");  // Start
 #else
   // OS X/Linux
   // Start
-  m_buttons->SetControlExpression(5, "Return");
+  m_buttons->SetControlExpression(5, "`Return`");
 #endif
 
   // stick modifiers to 50 %
@@ -199,46 +204,46 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_c_stick->controls[4]->control_ref->range = 0.5f;
 
   // D-Pad
-  m_dpad->SetControlExpression(0, "T");  // Up
-  m_dpad->SetControlExpression(1, "G");  // Down
-  m_dpad->SetControlExpression(2, "F");  // Left
-  m_dpad->SetControlExpression(3, "H");  // Right
+  m_dpad->SetControlExpression(0, "`T`");  // Up
+  m_dpad->SetControlExpression(1, "`G`");  // Down
+  m_dpad->SetControlExpression(2, "`F`");  // Left
+  m_dpad->SetControlExpression(3, "`H`");  // Right
 
   // C Stick
-  m_c_stick->SetControlExpression(0, "I");  // Up
-  m_c_stick->SetControlExpression(1, "K");  // Down
-  m_c_stick->SetControlExpression(2, "J");  // Left
-  m_c_stick->SetControlExpression(3, "L");  // Right
+  m_c_stick->SetControlExpression(0, "`I`");  // Up
+  m_c_stick->SetControlExpression(1, "`K`");  // Down
+  m_c_stick->SetControlExpression(2, "`J`");  // Left
+  m_c_stick->SetControlExpression(3, "`L`");  // Right
   // Modifier
-  m_c_stick->SetControlExpression(4, "Ctrl");
+  m_c_stick->SetControlExpression(4, "`Ctrl`");
 
   // Control Stick
 #ifdef _WIN32
-  m_main_stick->SetControlExpression(0, "UP");     // Up
-  m_main_stick->SetControlExpression(1, "DOWN");   // Down
-  m_main_stick->SetControlExpression(2, "LEFT");   // Left
-  m_main_stick->SetControlExpression(3, "RIGHT");  // Right
+  m_main_stick->SetControlExpression(0, "`UP`");     // Up
+  m_main_stick->SetControlExpression(1, "`DOWN`");   // Down
+  m_main_stick->SetControlExpression(2, "`LEFT`");   // Left
+  m_main_stick->SetControlExpression(3, "`RIGHT`");  // Right
 #elif __APPLE__
   m_main_stick->SetControlExpression(0, "`Up Arrow`");     // Up
   m_main_stick->SetControlExpression(1, "`Down Arrow`");   // Down
   m_main_stick->SetControlExpression(2, "`Left Arrow`");   // Left
   m_main_stick->SetControlExpression(3, "`Right Arrow`");  // Right
 #else
-  m_main_stick->SetControlExpression(0, "Up");     // Up
-  m_main_stick->SetControlExpression(1, "Down");   // Down
-  m_main_stick->SetControlExpression(2, "Left");   // Left
-  m_main_stick->SetControlExpression(3, "Right");  // Right
+  m_main_stick->SetControlExpression(0, "`Up`");     // Up
+  m_main_stick->SetControlExpression(1, "`Down`");   // Down
+  m_main_stick->SetControlExpression(2, "`Left`");   // Left
+  m_main_stick->SetControlExpression(3, "`Right`");  // Right
 #endif
   // Modifier
-  m_main_stick->SetControlExpression(4, "Shift");
+  m_main_stick->SetControlExpression(4, "`Shift`");
 
   // Because our defaults use keyboard input, set calibration shapes to squares.
   m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
   m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
   // Triggers
-  m_triggers->SetControlExpression(0, "Q");  // L
-  m_triggers->SetControlExpression(1, "W");  // R
+  m_triggers->SetControlExpression(0, "`Q`");  // L
+  m_triggers->SetControlExpression(1, "`W`");  // R
 }
 
 bool GCPad::GetMicButton() const

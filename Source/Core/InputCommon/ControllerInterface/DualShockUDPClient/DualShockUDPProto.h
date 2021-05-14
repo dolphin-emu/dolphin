@@ -249,7 +249,7 @@ struct Message
     if (crc32_in_header != crc32_calculated)
     {
       NOTICE_LOG_FMT(
-          SERIALINTERFACE,
+          CONTROLLERINTERFACE,
           "DualShockUDPClient Received message with bad CRC in header: got {:08x}, expected {:08x}",
           crc32_in_header, crc32_calculated);
       return std::nullopt;

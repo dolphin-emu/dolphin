@@ -40,7 +40,7 @@ IMUGyroscope::IMUGyroscope(std::string name_, std::string ui_name_)
               // i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
               _trans("°/s"),
               // i18n: Refers to the dead-zone setting of gyroscope input.
-              _trans("Angular velocity to ignore.")},
+              _trans("Angular velocity to ignore and remap.")},
              2, 0, 180);
 
   AddSetting(&m_calibration_period_setting,

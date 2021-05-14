@@ -23,7 +23,7 @@ public:
   Slider(const std::string& name_, const std::string& ui_name_);
   explicit Slider(const std::string& name_);
 
-  StateData GetState();
+  StateData GetState() const;
 
 private:
   SettingValue<double> m_deadzone_setting;

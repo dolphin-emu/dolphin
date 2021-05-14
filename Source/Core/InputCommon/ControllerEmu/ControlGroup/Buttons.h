@@ -20,7 +20,7 @@ public:
   Buttons(const std::string& ini_name, const std::string& group_name);
 
   template <typename C>
-  void GetState(C* const buttons, const C* bitmasks)
+  void GetState(C* const buttons, const C* bitmasks) const
   {
     for (auto& control : controls)
       *buttons |= *(bitmasks++) * control->GetState<bool>();

@@ -205,7 +205,7 @@ static bool IsSameController(const Proto::MessageType::PortInfo& a,
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
-  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread started");
 
   while (s_hotplug_thread_running.IsSet())
   {
@@ -225,7 +225,7 @@ static void HotplugThreadFunc()
         if (server.m_socket.send(&list_ports, sizeof list_ports, server.m_address, server.m_port) !=
             sf::Socket::Status::Done)
         {
-          ERROR_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
+          ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
       }
     }
@@ -277,7 +277,7 @@ static void HotplugThreadFunc()
       }
     }
   }
-  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -310,7 +310,7 @@ static void StopHotplugThread()
 
 static void Restart()
 {
-  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient Restart");
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient Restart");
 
   StopHotplugThread();
 
@@ -394,7 +394,7 @@ void Init()
 
 void PopulateDevices()
 {
-  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient PopulateDevices");
 
   // s_servers has already been updated so we can't use it to know which devices we removed,
   // also it's good to remove all of them before adding new ones so that their id will be set
@@ -510,7 +510,7 @@ void Device::UpdateInput()
     if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
         sf::Socket::Status::Done)
     {
-      ERROR_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient UpdateInput send failed");
     }
   }
 

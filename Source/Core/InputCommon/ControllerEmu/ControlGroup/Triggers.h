@@ -26,7 +26,7 @@ public:
 
   explicit Triggers(const std::string& name);
 
-  StateData GetState();
+  StateData GetState() const;
 
 private:
   SettingValue<double> m_deadzone_setting;

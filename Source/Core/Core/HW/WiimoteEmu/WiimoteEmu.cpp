@@ -428,7 +428,7 @@ void Wiimote::Update()
 
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
-  m_hotkeys->GetState();
+  m_hotkeys->UpdateState();
 
   // Update our motion simulations.
   StepDynamics();
@@ -700,15 +700,15 @@ EncryptionKey Wiimote::GetExtensionEncryptionKey() const
 
 bool Wiimote::IsSideways() const
 {
-  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
-  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
+  const bool sideways_modifier_toggle = m_hotkeys->GetSettingsModifier()[0];
+  const bool sideways_modifier_switch = m_hotkeys->GetSettingsModifier()[2];
   return m_sideways_setting.GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
 }
 
 bool Wiimote::IsUpright() const
 {
-  const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
-  const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
+  const bool upright_modifier_toggle = m_hotkeys->GetSettingsModifier()[1];
+  const bool upright_modifier_switch = m_hotkeys->GetSettingsModifier()[3];
   return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 

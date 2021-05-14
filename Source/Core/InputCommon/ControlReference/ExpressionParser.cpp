@@ -247,22 +247,18 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 class ControlExpression : public Expression
 {
 public:
-  // Keep a shared_ptr to the device so the control pointer doesn't become invalid.
-  std::shared_ptr<Device> m_device;
-
-  explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
+  explicit ControlExpression(ControlQualifier qualifier) : m_qualifier(qualifier) {}
 
   ControlState GetValue() const override
   {
-    if (s_hotkey_suppressions.IsSuppressed(input))
+    if (s_hotkey_suppressions.IsSuppressed(m_input))
       return 0;
-    else
-      return GetValueIgnoringSuppression();
+    return GetValueIgnoringSuppression();
   }
 
   ControlState GetValueIgnoringSuppression() const
   {
-    if (!input)
+    if (!m_input)
       return 0.0;
 
     // Note: Inputs may return negative values in situations where opposing directions are
@@ -271,27 +267,29 @@ public:
     // FYI: Clamping values greater than 1.0 is purposely not done to support unbounded values in
     // the future. (e.g. raw accelerometer/gyro data)
 
-    return std::max(0.0, input->GetState());
+    return std::max(0.0, m_input->GetState());
   }
   void SetValue(ControlState value) override
   {
-    if (output)
-      output->SetState(value);
+    if (m_output)
+      m_output->SetState(value);
   }
-  int CountNumControls() const override { return (input || output) ? 1 : 0; }
+  int CountNumControls() const override { return (m_input || m_output) ? 1 : 0; }
   void UpdateReferences(ControlEnvironment& env) override
   {
-    m_device = env.FindDevice(qualifier);
-    input = env.FindInput(qualifier);
-    output = env.FindOutput(qualifier);
+    m_device = env.FindDevice(m_qualifier);
+    m_input = env.FindInput(m_qualifier);
+    m_output = env.FindOutput(m_qualifier);
   }
 
-  Device::Input* GetInput() const { return input; };
+  Device::Input* GetInput() const { return m_input; };
 
 private:
-  ControlQualifier qualifier;
-  Device::Input* input = nullptr;
-  Device::Output* output = nullptr;
+  // Keep a shared_ptr to the device so the control pointer doesn't become invalid.
+  std::shared_ptr<Device> m_device;
+  ControlQualifier m_qualifier;
+  Device::Input* m_input = nullptr;
+  Device::Output* m_output = nullptr;
 };
 
 bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
@@ -371,6 +369,7 @@ public:
     }
     case TOK_ASSIGN:
     {
+      // Use this carefully as it's extremely powerful and can end up in unforeseen situations
       lhs->SetValue(rhs->GetValue());
       return lhs->GetValue();
     }
@@ -565,6 +564,9 @@ private:
 
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
 // right-hand child. Its intended use is for supporting old-style barewords expressions.
+// Note that if you have a keyboard device as default device and the expression is a single digit
+// number, this will usually resolve in a numerical key instead of a numerical value.
+// Though if this expression belongs to NumericSetting, it will likely be simplifed back to a value.
 class CoalesceExpression : public Expression
 {
 public:
@@ -945,6 +947,7 @@ static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& st
   qualifier.control_name = str;
   qualifier.has_device = false;
 
+  // This control expression will only work (find the specified control) with the default device.
   return std::make_unique<ControlExpression>(qualifier);
 }
 

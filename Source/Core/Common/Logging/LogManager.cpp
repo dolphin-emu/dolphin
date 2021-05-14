@@ -123,6 +123,7 @@ LogManager::LogManager()
   m_log[COMMANDPROCESSOR] = {"CP", "Command Processor"};
   m_log[COMMON] = {"COMMON", "Common"};
   m_log[CONSOLE] = {"CONSOLE", "Dolphin Console"};
+  m_log[CONTROLLERINTERFACE] = {"CI", "Controller Interface"};
   m_log[CORE] = {"CORE", "Core"};
   m_log[DISCIO] = {"DIO", "Disc IO"};
   m_log[DSPHLE] = {"DSPHLE", "DSP HLE"};
