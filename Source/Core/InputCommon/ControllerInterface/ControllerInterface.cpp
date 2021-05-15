@@ -322,7 +322,9 @@ void ControllerInterface::UnregisterDevicesChangedCallback(const HotplugCallback
 // Invoke all callbacks that were registered
 void ControllerInterface::InvokeDevicesChangedCallbacks() const
 {
-  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
-  for (const auto& callback : m_devices_changed_callbacks)
+  m_callbacks_mutex.lock();
+  const auto devices_changed_callbacks = m_devices_changed_callbacks;
+  m_callbacks_mutex.unlock();
+  for (const auto& callback : devices_changed_callbacks)
     callback();
 }
