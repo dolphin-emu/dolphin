@@ -1015,11 +1015,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
         BitSet32 bitexact_inputs;
         if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
-          bitexact_inputs[code->inst.FA] = true;
+          bitexact_inputs[op.inst.FA] = true;
         if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
-          bitexact_inputs[code->inst.FB] = true;
+          bitexact_inputs[op.inst.FB] = true;
         if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
-          bitexact_inputs[code->inst.FC] = true;
+          bitexact_inputs[op.inst.FC] = true;
 
         fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
       }
