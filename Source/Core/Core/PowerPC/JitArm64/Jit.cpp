@@ -127,13 +127,12 @@ void JitArm64::ClearCache()
   m_handler_to_loc.clear();
 
   blocks.Clear();
-  Common::JITPageWriteEnableExecuteDisable();
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
   farcode.ClearCodeSpace();
   UpdateMemoryOptions();
 
   GenerateAsm();
-  Common::JITPageWriteDisableExecuteEnable();
 }
 
 void JitArm64::Shutdown()
@@ -601,7 +600,7 @@ void JitArm64::Jit(u32)
   {
     ClearCache();
   }
-  Common::JITPageWriteEnableExecuteDisable();
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
   std::size_t block_size = m_code_buffer.size();
   const u32 em_address = PowerPC::ppcState.pc;
@@ -623,7 +622,6 @@ void JitArm64::Jit(u32)
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
     PowerPC::CheckExceptions();
-    Common::JITPageWriteDisableExecuteEnable();
     WARN_LOG_FMT(POWERPC, "ISI exception at {:#010x}", nextPC);
     return;
   }
@@ -631,7 +629,6 @@ void JitArm64::Jit(u32)
   JitBlock* b = blocks.AllocateBlock(em_address);
   DoJit(em_address, b, nextPC);
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
-  Common::JITPageWriteDisableExecuteEnable();
 }
 
 void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
