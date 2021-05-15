@@ -64,9 +64,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
-  if (m_wsi.type == WindowSystemType::MacOS)
-    ciface::OSX::Init(wsi.render_window);
-// nothing needed for Quartz
+// nothing needed for OSX and Quartz
 #endif
 #ifdef CIFACE_USE_SDL
   ciface::SDL::Init();
@@ -118,6 +116,18 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   if (!m_is_init)
     return;
 
+#ifdef CIFACE_USE_OSX
+  if (m_wsi.type == WindowSystemType::MacOS)
+  {
+    std::lock_guard lk_pre_population(m_pre_population_mutex);
+    // This is needed to stop its threads before locking our mutexes, to avoid deadlocks
+    // (in case it tried to add a device after we had locked m_devices_population_mutex).
+    // There doesn't seem to be an easy to way to repopulate OSX devices without restarting
+    // its hotplug thread. This will not release its devices, that's still done below.
+    ciface::OSX::DeInit();
+  }
+#endif
+
   // This lock has two main functions:
   // -Avoid a deadlock between m_devices_mutex and ControllerEmu::s_state_mutex when
   // InvokeDevicesChangedCallbacks() is called concurrently by two different threads.
@@ -152,7 +162,10 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
   {
-    ciface::OSX::PopulateDevices(m_wsi.render_window);
+    {
+      std::lock_guard lk_pre_population(m_pre_population_mutex);
+      ciface::OSX::Init();
+    }
     ciface::Quartz::PopulateDevices(m_wsi.render_window);
   }
 #endif
