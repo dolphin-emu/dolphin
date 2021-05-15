@@ -125,6 +125,12 @@ public:
   // Currently handled on a per-backend basis but this could change.
   virtual bool IsValid() const { return true; }
 
+  // Returns true whether this device is "virtual/emulated", not linked
+  // to any actual physical device. Mostly used by keyboard and mouse devices,
+  // and to avoid uselessly recreating the device unless really necessary.
+  // Doesn't necessarily need to be set to true if the device is virtual.
+  virtual bool IsVirtualDevice() const { return false; }
+
   // (e.g. Xbox 360 controllers have controller number LEDs which should match the ID we use.)
   virtual std::optional<int> GetPreferredId() const;
 

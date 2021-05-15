@@ -135,6 +135,26 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // This wasn't thread safe in multiple device sources.
   std::lock_guard lk_population(m_devices_population_mutex);
 
+#if defined(CIFACE_USE_WIN32) && !defined(CIFACE_USE_XLIB) && !defined(CIFACE_USE_OSX)
+  // If only the window changed, avoid removing and re-adding all devices.
+  // Instead only refresh devices that require the window handle.
+  if (reason == RefreshReason::WindowChangeOnly)
+  {
+    m_populating_devices_counter.fetch_add(1);
+
+    {
+      std::lock_guard lk(m_devices_mutex);
+      // No need to do anything else in this case.
+      // Only (Win32) DInput needs the window handle to be updated.
+      ciface::Win32::ChangeWindow(m_wsi.render_window);
+    }
+
+    if (m_populating_devices_counter.fetch_sub(1) == 1)
+      InvokeDevicesChangedCallbacks();
+    return;
+  }
+#endif
+
   m_populating_devices_counter.fetch_add(1);
 
   // We lock m_devices_mutex here to make everything simpler.

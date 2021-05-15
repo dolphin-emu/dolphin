@@ -6,7 +6,8 @@
 
 #include <algorithm>
 
-#include <fmt/format.h>
+#include "Common/Logging/Log.h"
+#include "Core/Core.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
@@ -54,15 +55,18 @@ static const struct
 #include "InputCommon/ControllerInterface/DInput/NamedKeys.h"  // NOLINT
 };
 
-// Prevent duplicate keyboard/mouse devices.
-static bool s_keyboard_mouse_exists = false;
+// Prevent duplicate keyboard/mouse devices. Modified by more threads.
+static bool s_keyboard_mouse_exists;
+static HWND s_hwnd;
 
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
 {
   if (s_keyboard_mouse_exists)
     return;
 
-  // mouse and keyboard are a combined device, to allow shift+click and stuff
+  s_hwnd = hwnd;
+
+  // Mouse and keyboard are a combined device, to allow shift+click and stuff
   // if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from
   // other devices
   // so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
@@ -70,6 +74,8 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
   LPDIRECTINPUTDEVICE8 kb_device = nullptr;
   LPDIRECTINPUTDEVICE8 mo_device = nullptr;
 
+  // These are "virtual" system devices, so they are always there even if we have no physical
+  // mouse and keyboard plugged into the computer
   if (SUCCEEDED(idi8->CreateDevice(GUID_SysKeyboard, &kb_device, nullptr)) &&
       SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)) &&
       SUCCEEDED(kb_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)) &&
@@ -77,14 +83,21 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
       SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)) &&
       SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
   {
-    g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(kb_device, mo_device, hwnd));
+    g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(kb_device, mo_device));
     return;
   }
+
+  ERROR_LOG_FMT(CONTROLLERINTERFACE, "KeyboardMouse device failed to be created");
 
   if (kb_device)
     kb_device->Release();
   if (mo_device)
     mo_device->Release();
+}
+
+void SetKeyboardMouseWindow(HWND hwnd)
+{
+  s_hwnd = hwnd;
 }
 
 KeyboardMouse::~KeyboardMouse()
@@ -105,9 +118,8 @@ KeyboardMouse::~KeyboardMouse()
 }
 
 KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
-                             const LPDIRECTINPUTDEVICE8 mo_device, HWND hwnd)
-    : m_kb_device(kb_device), m_mo_device(mo_device), m_hwnd(hwnd), m_last_update(GetTickCount()),
-      m_state_in()
+                             const LPDIRECTINPUTDEVICE8 mo_device)
+    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), m_state_in()
 {
   s_keyboard_mouse_exists = true;
 
@@ -160,11 +172,11 @@ void KeyboardMouse::UpdateCursorInput()
 
   // Get the cursor position relative to the upper left corner of the current window
   // (separate or render to main)
-  ScreenToClient(m_hwnd, &point);
+  ScreenToClient(s_hwnd, &point);
 
-  // Get the size of the current window. (In my case Rect.top and Rect.left was zero.)
+  // Get the size of the current window (in my case Rect.top and Rect.left was zero).
   RECT rect;
-  GetClientRect(m_hwnd, &rect);
+  GetClientRect(s_hwnd, &rect);
 
   // Width and height are the size of the rendering window. They could be 0
   const auto win_width = std::max(rect.right - rect.left, 1l);
@@ -234,6 +246,11 @@ std::string KeyboardMouse::GetSource() const
 int KeyboardMouse::GetSortPriority() const
 {
   return 5;
+}
+
+bool KeyboardMouse::IsVirtualDevice() const
+{
+  return true;
 }
 
 // names

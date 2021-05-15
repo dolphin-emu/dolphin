@@ -16,6 +16,7 @@ namespace ciface::DInput
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
 
 using RelativeMouseState = RelativeInputState<Common::TVec3<LONG>>;
+void SetKeyboardMouseWindow(HWND hwnd);
 
 class KeyboardMouse : public Core::Device
 {
@@ -96,21 +97,19 @@ private:
 public:
   void UpdateInput() override;
 
-  KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device,
-                HWND hwnd);
+  KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
   ~KeyboardMouse();
 
   std::string GetName() const override;
   std::string GetSource() const override;
   int GetSortPriority() const override;
+  bool IsVirtualDevice() const override;
 
 private:
   void UpdateCursorInput();
 
   const LPDIRECTINPUTDEVICE8 m_kb_device;
   const LPDIRECTINPUTDEVICE8 m_mo_device;
-
-  const HWND m_hwnd;
 
   DWORD m_last_update;
   State m_state_in;
