@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <mutex>
 #include <tuple>
 
 #include <SFML/Network/SocketSelector.hpp>
@@ -19,6 +18,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Random.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
@@ -192,12 +192,12 @@ struct Server
   std::string m_description;
   std::string m_address;
   u16 m_port;
-  std::mutex m_port_info_mutex;
   std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info;
   sf::UdpSocket m_socket;
   SteadyClock::time_point m_disconnect_time = SteadyClock::now();
 };
 
+static bool s_has_init;
 static bool s_servers_enabled;
 static std::vector<Server> s_servers;
 static u32 s_client_uid;
@@ -217,6 +217,8 @@ static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
   INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread started");
+  Common::ScopeGuard thread_stop_guard{
+      [] { INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread stopped"); }};
 
   std::vector<bool> timed_out_servers(s_servers.size(), false);
 
@@ -331,7 +333,6 @@ static void HotplugThreadFunc()
       }
     }
   }
-  INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -355,13 +356,15 @@ static void StopHotplugThread()
     return;
   }
 
+  s_hotplug_thread.join();
+
   for (auto& server : s_servers)
   {
     server.m_socket.unbind();  // interrupt blocking socket
   }
-  s_hotplug_thread.join();
 }
 
+// Also just start
 static void Restart()
 {
   INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient Restart");
@@ -377,7 +380,8 @@ static void Restart()
     }
   }
 
-  PopulateDevices();  // Only removes devices
+  // Only removes devices as servers have been cleaned
+  g_controller_interface.PlatformPopulateDevices([] { PopulateDevices(); });
 
   s_client_uid = Common::Random::GenerateValue<u32>();
   s_next_listports_time = SteadyClock::now();
@@ -388,6 +392,9 @@ static void Restart()
 
 static void ConfigChanged()
 {
+  if (!s_has_init)
+    return;
+
   const bool servers_enabled = Config::Get(Settings::SERVERS_ENABLED);
   const std::string servers_setting = Config::Get(Settings::SERVERS);
 
@@ -400,6 +407,9 @@ static void ConfigChanged()
 
   if (servers_enabled != s_servers_enabled || servers_setting != new_servers_setting)
   {
+    // Stop the thread before writing to s_servers
+    StopHotplugThread();
+
     s_servers_enabled = servers_enabled;
     s_servers.clear();
 
@@ -427,6 +437,9 @@ static void ConfigChanged()
 
 void Init()
 {
+  // Does not support multiple init calls
+  s_has_init = true;
+
   // The following is added for backwards compatibility
   const auto server_address_setting = Config::Get(Settings::SERVER_ADDRESS);
   const auto server_port_setting = Config::Get(Settings::SERVER_PORT);
@@ -447,6 +460,10 @@ void Init()
   ConfigChanged();  // Call it immediately to load settings
 }
 
+// This can be called by the host thread as well as the hotplug thread, concurrently.
+// So use PlatformPopulateDevices().
+// s_servers is already safe because it can only be modified when the DSU thread is not running,
+// from the main thread
 void PopulateDevices()
 {
   INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient PopulateDevices");
@@ -457,9 +474,11 @@ void PopulateDevices()
   g_controller_interface.RemoveDevice(
       [](const auto* dev) { return dev->GetSource() == DUALSHOCKUDP_SOURCE_NAME; });
 
-  for (auto& server : s_servers)
+  // Users might have created more than one server on the same IP/Port.
+  // Devices might end up being duplicated (if the server responds two all requests)
+  // but they won't conflict.
+  for (const auto& server : s_servers)
   {
-    std::lock_guard lock{server.m_port_info_mutex};
     for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
     {
       const Proto::MessageType::PortInfo& port_info = server.m_port_info[port_index];
@@ -475,6 +494,10 @@ void PopulateDevices()
 void DeInit()
 {
   StopHotplugThread();
+
+  s_has_init = false;
+  s_servers_enabled = false;
+  s_servers.clear();
 }
 
 Device::Device(std::string name, int index, std::string server_address, u16 server_port)
