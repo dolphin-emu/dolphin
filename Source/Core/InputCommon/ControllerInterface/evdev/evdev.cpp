@@ -202,6 +202,9 @@ static int s_wakeup_eventfd;
 // There is no easy way to get the device name from only a dev node
 // during a device removed event, since libevdev can't work on removed devices;
 // sysfs is not stable, so this is probably the easiest way to get a name for a node.
+// This can, and will be modified by different thread, possibly concurrently,
+// as devices can be destroyed by any thread at any time. As of now it's protected
+// by ControllerInterface::m_devices_population_mutex.
 static std::map<std::string, std::weak_ptr<evdevDevice>> s_devnode_objects;
 
 static std::shared_ptr<evdevDevice>
@@ -260,9 +263,13 @@ static void AddDeviceNode(const char* devnode)
 
     // Remove and re-add device as naming and inputs may have changed.
     // This will also give it the correct index and invoke device change callbacks.
-    g_controller_interface.RemoveDevice([&evdev_device](const auto* device) {
-      return static_cast<const evdevDevice*>(device) == evdev_device.get();
-    });
+    // Make sure to force the device removal immediately (as they are shared ptrs and
+    // they could be kept alive, preventing us from re-creating the device)
+    g_controller_interface.RemoveDevice(
+        [&evdev_device](const auto* device) {
+          return static_cast<const evdevDevice*>(device) == evdev_device.get();
+        },
+        true);
 
     g_controller_interface.AddDevice(evdev_device);
   }
@@ -276,6 +283,8 @@ static void AddDeviceNode(const char* devnode)
       g_controller_interface.AddDevice(evdev_device);
   }
 
+  // If the devices failed to be added to g_controller_interface, it will be added here but then
+  // immediately removed in its destructor due to the shared ptr not having any references left
   s_devnode_objects.emplace(devnode, std::move(evdev_device));
 }
 
@@ -318,23 +327,30 @@ static void HotplugThreadFunc()
     if (!devnode)
       continue;
 
+    // Use g_controller_interface.PlatformPopulateDevices() to protect access around
+    // s_devnode_objects. Note that even if we get these events at the same time as a
+    // a PopulateDevices() request (e.g. on start up, we might get all the add events
+    // for connected devices), this won't ever cause duplicate devices as AddDeviceNode()
+    // automatically removes the old one if it already existed
     if (strcmp(action, "remove") == 0)
     {
-      std::shared_ptr<evdevDevice> ptr;
+      g_controller_interface.PlatformPopulateDevices([&devnode] {
+        std::shared_ptr<evdevDevice> ptr;
 
-      const auto it = s_devnode_objects.find(devnode);
-      if (it != s_devnode_objects.end())
-        ptr = it->second.lock();
+        const auto it = s_devnode_objects.find(devnode);
+        if (it != s_devnode_objects.end())
+          ptr = it->second.lock();
 
-      // If we don't recognize this device, ptr will be null and no device will be removed.
+        // If we don't recognize this device, ptr will be null and no device will be removed.
 
-      g_controller_interface.RemoveDevice([&ptr](const auto* device) {
-        return static_cast<const evdevDevice*>(device) == ptr.get();
+        g_controller_interface.RemoveDevice([&ptr](const auto* device) {
+          return static_cast<const evdevDevice*>(device) == ptr.get();
+        });
       });
     }
     else if (strcmp(action, "add") == 0)
     {
-      AddDeviceNode(devnode);
+      g_controller_interface.PlatformPopulateDevices([&devnode] { AddDeviceNode(devnode); });
     }
   }
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "evdev hotplug thread stopped");
@@ -376,8 +392,15 @@ void Init()
   StartHotplugThread();
 }
 
+// Only call this when ControllerInterface::m_devices_population_mutex is locked
 void PopulateDevices()
 {
+  // Don't run if we are not initialized
+  if (!s_hotplug_thread_running.IsSet())
+  {
+    return;
+  }
+
   // We use udev to iterate over all /dev/input/event* devices.
   // Note: the Linux kernel is currently limited to just 32 event devices. If
   // this ever changes, hopefully udev will take care of this.
