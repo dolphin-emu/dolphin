@@ -128,13 +128,17 @@ void ReleaseDevices(std::optional<u32> count)
 
   // Remove up to "count" remotes (or all of them if nullopt).
   // Real wiimotes will be added to the pool.
-  g_controller_interface.RemoveDevice([&](const Core::Device* device) {
-    if (device->GetSource() != SOURCE_NAME || count == removed_devices)
-      return false;
+  // Make sure to force the device removal immediately (as they are shared ptrs and
+  // they could be kept alive, preventing us from re-creating the device)
+  g_controller_interface.RemoveDevice(
+      [&](const Core::Device* device) {
+        if (device->GetSource() != SOURCE_NAME || count == removed_devices)
+          return false;
 
-    ++removed_devices;
-    return true;
-  });
+        ++removed_devices;
+        return true;
+      },
+      true);
 }
 
 Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::move(wiimote))

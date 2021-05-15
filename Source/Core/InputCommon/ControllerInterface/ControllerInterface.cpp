@@ -185,7 +185,7 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   ciface::DualShockUDPClient::PopulateDevices();
 #endif
 
-  WiimoteReal::ProcessWiimotePool();
+  WiimoteReal::PopulateDevices();
 
   m_devices_mutex.unlock();
 

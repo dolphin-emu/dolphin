@@ -96,8 +96,15 @@ static void TryToFillWiimoteSlot(u32 index)
     s_wiimote_pool.erase(s_wiimote_pool.begin());
 }
 
+void PopulateDevices()
+{
+  // There is a very small chance of deadlocks if we didn't do it in another thread
+  s_wiimote_scanner.PopulateDevices();
+}
+
 // Attempts to fill enabled real wiimote slots.
 // Push/pull wiimotes to/from ControllerInterface as needed.
+// Should be called PopulateDevices() to be in line with other implementations.
 void ProcessWiimotePool()
 {
   std::lock_guard lk(g_wiimotes_mutex);
@@ -545,7 +552,7 @@ void WiimoteScanner::StopThread()
 void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
 {
   m_scan_mode.store(scan_mode);
-  m_scan_mode_changed_event.Set();
+  m_scan_mode_changed_or_population_event.Set();
 }
 
 bool WiimoteScanner::IsReady() const
@@ -610,6 +617,12 @@ void WiimoteScanner::PoolThreadFunc()
   }
 }
 
+void WiimoteScanner::PopulateDevices()
+{
+  m_populate_devices.Set();
+  m_scan_mode_changed_or_population_event.Set();
+}
+
 void WiimoteScanner::ThreadFunc()
 {
   std::thread pool_thread(&WiimoteScanner::PoolThreadFunc, this);
@@ -634,7 +647,12 @@ void WiimoteScanner::ThreadFunc()
 
   while (m_scan_thread_running.IsSet())
   {
-    m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
+    m_scan_mode_changed_or_population_event.WaitFor(std::chrono::milliseconds(500));
+
+    if (m_populate_devices.TestAndClear())
+    {
+      g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
+    }
 
     // Does stuff needed to detect disconnects on Windows
     for (const auto& backend : m_backends)
@@ -675,7 +693,7 @@ void WiimoteScanner::ThreadFunc()
           }
 
           AddWiimoteToPool(std::unique_ptr<Wiimote>(wiimote));
-          ProcessWiimotePool();
+          g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
         }
 
         if (found_board)
@@ -956,12 +974,12 @@ void HandleWiimoteSourceChange(unsigned int index)
     if (auto removed_wiimote = std::move(g_wiimotes[index]))
       AddWiimoteToPool(std::move(removed_wiimote));
   });
-  ProcessWiimotePool();
+  g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
 }
 
 void HandleWiimotesInControllerInterfaceSettingChange()
 {
-  ProcessWiimotePool();
+  g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
 }
 
 }  // namespace WiimoteReal
