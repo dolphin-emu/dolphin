@@ -46,7 +46,6 @@ static void OpenAndAddDevice(int index)
 static Common::Event s_init_event;
 static Uint32 s_stop_event_type;
 static Uint32 s_populate_event_type;
-static Common::Event s_populated_event;
 static std::thread s_hotplug_thread;
 
 static bool HandleEventAndContinue(const SDL_Event& e)
@@ -64,9 +63,10 @@ static bool HandleEventAndContinue(const SDL_Event& e)
   }
   else if (e.type == s_populate_event_type)
   {
-    for (int i = 0; i < SDL_NumJoysticks(); ++i)
-      OpenAndAddDevice(i);
-    s_populated_event.Set();
+    g_controller_interface.PlatformPopulateDevices([] {
+      for (int i = 0; i < SDL_NumJoysticks(); ++i)
+        OpenAndAddDevice(i);
+    });
   }
   else if (e.type == s_stop_event_type)
   {
@@ -111,7 +111,8 @@ void Init()
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
       // individual joystick events as well as the custom populate event will be handled _after_
       // ControllerInterface::Init/RefreshDevices has cleared its list of devices, resulting in
-      // duplicate devices.
+      // duplicate devices. Adding devices will actually "fail" here, as the ControllerInterface
+      // hasn't finished initializing yet.
       SDL_Event e;
       while (SDL_PollEvent(&e) != 0)
       {
@@ -161,8 +162,6 @@ void PopulateDevices()
 
   SDL_Event populate_event{s_populate_event_type};
   SDL_PushEvent(&populate_event);
-
-  s_populated_event.Wait();
 #endif
 }
 
