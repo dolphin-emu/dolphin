@@ -60,13 +60,35 @@ class ControllerInterface : public ciface::Core::DeviceContainer
 public:
   using HotplugCallbackHandle = std::list<std::function<void()>>::iterator;
 
+  enum class WindowChangeReason
+  {
+    // Application is shutting down
+    Exit,
+    Other
+  };
+
+  enum class RefreshReason
+  {
+    // Only the window changed.
+    WindowChangeOnly,
+    // User requested, or any other internal reason (e.g. init).
+    // The window might have changed anyway.
+    Other
+  };
+
   ControllerInterface() : m_is_init(false) {}
   void Initialize(const WindowSystemInfo& wsi);
-  void ChangeWindow(void* hwnd);
-  void RefreshDevices();
+  // Only call from one thread at a time.
+  void ChangeWindow(void* hwnd, WindowChangeReason reason = WindowChangeReason::Other);
+  // Can be called by any thread at any time (when initialized).
+  void RefreshDevices(RefreshReason reason = RefreshReason::Other);
   void Shutdown();
-  void AddDevice(std::shared_ptr<ciface::Core::Device> device);
-  void RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback);
+  bool AddDevice(std::shared_ptr<ciface::Core::Device> device);
+  // Removes all the devices the function returns true to.
+  // If all the devices shared ptrs need to be destroyed immediately,
+  // set force_devices_release to true.
+  void RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback,
+                    bool force_devices_release = false);
   // This is mandatory to use on device populations functions that can be called concurrently by
   // more than one thread, or that are called by a single other thread.
   // Without this, our devices list might end up in a mixed state.
@@ -90,10 +112,16 @@ public:
   static ciface::InputChannel GetCurrentInputChannel();
 
 private:
+  void ClearDevices();
+
   std::list<std::function<void()>> m_devices_changed_callbacks;
+  mutable std::recursive_mutex m_devices_population_mutex;
   mutable std::mutex m_callbacks_mutex;
   std::atomic<bool> m_is_init;
-  std::atomic<bool> m_is_populating_devices{false};
+  // This is now always protected by m_devices_population_mutex, so
+  // it doesn't really need to be a counter or atomic anymore (it could be a raw bool),
+  // but we keep it so for simplicity, in case we changed the design.
+  std::atomic<int> m_populating_devices_counter;
   WindowSystemInfo m_wsi;
   std::atomic<float> m_aspect_ratio_adjustment = 1;
 };
