@@ -96,7 +96,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   if (reg_data.sample_rate == 0 || length == 0)
     return;
 
-  //To reivew: not sure about mute...
+  //To review: not sure about mute...
   // Even if volume is zero or WiimoteEnableSpeaker is off we process samples to maintain proper
   // decoder state
 

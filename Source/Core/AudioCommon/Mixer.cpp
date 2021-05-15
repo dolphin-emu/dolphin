@@ -97,7 +97,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
   u32 indexR = m_indexR.load();
   u32 indexW = m_indexW.load();
 
-  double input_sample_rate = m_input_sample_rate.load();
+  const double input_sample_rate = m_input_sample_rate.load();
 
   // The rate can be any, unfortunately we don't apply an anti aliasing filer, which means
   // we might get aliasing at higher rates (unless our mixer sample rate is very high)
@@ -112,7 +112,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     // sense. Also, this way we can target a latency of "0"
     s32 post_mix_samples = SamplesDifference(indexW, indexR, rate, m_fract.load()) / NC;
     post_mix_samples -= num_samples * rate + INTERP_SAMPLES;
-    double latency = std::max(post_mix_samples, 0) / input_sample_rate;
+    const double latency = std::max(post_mix_samples, 0) / input_sample_rate;
     INFO_LOG_FMT(AUDIO, "latency: {}", latency);
     // This isn't big enough to notice but it is enough to make a difference and recover latency
 
@@ -124,15 +124,15 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     m_latency_catching_up_direction = 0;
   }
 
-  s32 lVolume = m_lVolume.load();
-  s32 rVolume = m_rVolume.load();
+  const s32 lVolume = m_lVolume.load();
+  const s32 rVolume = m_rVolume.load();
 
   s32 s[NC];  // Padding samples
   s[0] = m_last_output_samples[1];
   s[1] = m_last_output_samples[1];
 
   // Actual number of samples written (not padded nor backwards played)
-  u32 actual_samples_count =
+  const u32 actual_samples_count =
       CubicInterpolation(samples, num_samples, rate, indexR, indexW, s[0], s[1], lVolume, rVolume);
   m_last_output_samples[0] = s[0];
   m_last_output_samples[1] = s[1];
@@ -163,7 +163,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
 
   // I can't tell if this is better than padding (silence) when going at about 40% of the target speed
   static bool enable_backwards = true; //To review
-  s32 behind_samples = num_samples - actual_samples_count;
+  const s32 behind_samples = num_samples - actual_samples_count;
   // This might sound bad if we are constantly missing a few samples, but that should never happen,
   // and we couldn't predict it anyway (we should start playing backwards as soon as we can).
   // We can't play backwards mixers that are not constantly pushed as we don't know when the
@@ -248,7 +248,7 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
     -1.5f,  2.0f,  0.5f, 0.0f,
      0.5f, -0.5f,  0.0f, 0.0f };
 
-  s8 direction = forwards ? 1 : -1;
+  const s8 direction = forwards ? 1 : -1;
   double fract = forwards ? m_fract.load() : m_backwards_fract;
   u32 available_samples = SamplesDifference(indexW, indexR, rate, fract);  // Forwards only
   s16* interpolation_buffer;
@@ -316,10 +316,10 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
     const float x1 = x2 * x2;       // x^2
     const float x0 = x1 * x2;       // x^3
 
-    float y0 = coeffs[0]  * x0 + coeffs[1]  * x1 + coeffs[2]  * x2 + coeffs[3];
-    float y1 = coeffs[4]  * x0 + coeffs[5]  * x1 + coeffs[6]  * x2 + coeffs[7];
-    float y2 = coeffs[8]  * x0 + coeffs[9]  * x1 + coeffs[10] * x2 + coeffs[11];
-    float y3 = coeffs[12] * x0 + coeffs[13] * x1 + coeffs[14] * x2 + coeffs[15];
+    const float y0 = coeffs[0] * x0 + coeffs[1] * x1 + coeffs[2] * x2 + coeffs[3];
+    const float y1 = coeffs[4] * x0 + coeffs[5] * x1 + coeffs[6] * x2 + coeffs[7];
+    const float y2 = coeffs[8] * x0 + coeffs[9] * x1 + coeffs[10] * x2 + coeffs[11];
+    const float y3 = coeffs[12] * x0 + coeffs[13] * x1 + coeffs[14] * x2 + coeffs[15];
 
     // The first and last sample act as control points, the middle ones have more importance.
     // The very first and last samples might never directly be used but it shouldn't be a problem.
@@ -327,14 +327,14 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
     // and trade latency with a small hit in quality, but it's not worth it.
     // We could have ignored the direction while playing backwards, and just read
     // indexR over our actually play direction, but I thought that was wrong and weird
-    float l_s_f = y0 * interpolation_buffer[(indexR + 1) & INDEX_MASK] +
-                  y1 * interpolation_buffer[(indexR + 2 * direction + 1) & INDEX_MASK] +
-                  y2 * interpolation_buffer[(indexR + 4 * direction + 1) & INDEX_MASK] +
-                  y3 * interpolation_buffer[(indexR + 6 * direction + 1) & INDEX_MASK];
-    float r_s_f = y0 * interpolation_buffer[indexR & INDEX_MASK] +
-                  y1 * interpolation_buffer[(indexR + 2 * direction) & INDEX_MASK] +
-                  y2 * interpolation_buffer[(indexR + 4 * direction) & INDEX_MASK] +
-                  y3 * interpolation_buffer[(indexR + 6 * direction) & INDEX_MASK];
+    const float l_s_f = y0 * interpolation_buffer[(indexR + 1) & INDEX_MASK] +
+                        y1 * interpolation_buffer[(indexR + 2 * direction + 1) & INDEX_MASK] +
+                        y2 * interpolation_buffer[(indexR + 4 * direction + 1) & INDEX_MASK] +
+                        y3 * interpolation_buffer[(indexR + 6 * direction + 1) & INDEX_MASK];
+    const float r_s_f = y0 * interpolation_buffer[indexR & INDEX_MASK] +
+                        y1 * interpolation_buffer[(indexR + 2 * direction) & INDEX_MASK] +
+                        y2 * interpolation_buffer[(indexR + 4 * direction) & INDEX_MASK] +
+                        y3 * interpolation_buffer[(indexR + 6 * direction) & INDEX_MASK];
 
     // Could this benefit from multiplying the volume as a float before the round?
     l_s = (s32(std::round(l_s_f)) * lVolume) >> 8;
@@ -371,22 +371,22 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
     std::memset(samples, 0, num_samples * NC * sizeof(samples[0]));
     return 0;
   }
-  u32 original_num_samples = num_samples;
+  const u32 original_num_samples = num_samples;
 
-  bool stretching = SConfig::GetInstance().m_audio_stretch;
+  const bool stretching = SConfig::GetInstance().m_audio_stretch;
 
-  double emulation_speed = SConfig::GetInstance().m_EmulationSpeed;
-  bool frame_limiter = emulation_speed > 0.0 && !Core::GetIsThrottlerTempDisabled();
+  const double emulation_speed = SConfig::GetInstance().m_EmulationSpeed;
+  const bool frame_limiter = emulation_speed > 0.0 && !Core::GetIsThrottlerTempDisabled();
 
   // Backend latency in seconds
-  double time_delta = double(num_samples) / m_sample_rate;
+  const double time_delta = double(num_samples) / m_sample_rate;
   m_backend_latency = time_delta;
   m_last_mix_time = Common::Timer::GetTimeUs();
 
-  double average_actual_speed = m_dma_speed.GetCachedAverageSpeed(false, true, true);
+  const double average_actual_speed = m_dma_speed.GetCachedAverageSpeed(false, true, true);
   bool predicting = true;
   // Set predicting to false if we are not predicting (meaning the last samples push isn't late)
-  double actual_speed = m_dma_speed.GetLastSpeed(predicting, true);
+  const double actual_speed = m_dma_speed.GetLastSpeed(predicting, true);
   //INFO_LOG_FMT(AUDIO, "dma_mixer current speed: {}", average_actual_speed);
 
   double target_speed = emulation_speed;
@@ -525,7 +525,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
   {
     // As for stretching below, this won't follow the new rate but is still better
     // than losing samples when changing settings
-    u32 received_samples = m_surround_decoder.ReturnSamples(samples, num_samples);
+    const u32 received_samples = m_surround_decoder.ReturnSamples(samples, num_samples);
     num_samples -= received_samples;
     samples += received_samples * NC;
 
@@ -565,7 +565,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
       }
     }
 
-    bool scratch_buffer_equal_samples = m_scratch_buffer.data() == samples;
+    const bool scratch_buffer_equal_samples = m_scratch_buffer.data() == samples;
     
     // If the in and out sample rates difference is too high, available_samples might over the max
     m_scratch_buffer.reserve(available_samples * NC);
@@ -600,7 +600,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
       // Play out whatever we had left. Unprocessed samples will be lost.
       // Of course this behaves weirdly when toggling stretching every audio frame,
       // and it doesn't follow the new rate, but it's better than losing samples
-      u32 received_samples = m_stretcher.GetStretchedSamples(samples, num_samples, false);
+      const u32 received_samples = m_stretcher.GetStretchedSamples(samples, num_samples, false);
       num_samples -= received_samples;
       samples += received_samples * NC;
 
@@ -646,7 +646,7 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
   // - We want to spread the computation among frames as much as possible
   // - It simply wouldn't work well with dynamic backend latency, which is a thing. And it doesn't work well with dynamic settings, which can now be changed at runtime (like backend latency and DPLII block size). It would run out of samples in the first frame
   // - It could possibly never start playing because
-  u32 mixed_samples = Mix(m_scratch_buffer.data(), num_samples, true);
+  const u32 mixed_samples = Mix(m_scratch_buffer.data(), num_samples, true);
 
   //To review: if we appened silent mix samples to the left of the buffer instead than on the right, especially the first time we start the emulation or we changed audio settings.
   //With that though, The mixer would readjust itself by playing samples quicker or slower, which could be a pro or con depending on the case (https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/AudioCommon/SurroundDecoder.cpp).
@@ -751,7 +751,7 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, u32 num_samples)
   // to alleviate the workload on main thread
   // and we simply store raw data here to make fast mem copy
   constexpr u32 size = sizeof(s16);
-  int over_bytes = (num_samples * NC - (MAX_SAMPLES * NC - (indexW & INDEX_MASK))) * size;
+  const int over_bytes = (num_samples * NC - (MAX_SAMPLES * NC - (indexW & INDEX_MASK))) * size;
 
   if (over_bytes > 0)
   {
@@ -795,7 +795,7 @@ void Mixer::PushDMASamples(const s16* samples, u32 num_samples)
   if (PrintPushedSamples) INFO_LOG_FMT(AUDIO, "dma_mixer added samples: {}, speed: {}", num_samples, m_dma_speed.GetCachedAverageSpeed());
   m_dma_mixer.PushSamples(samples, num_samples);
 
-  int sample_rate = m_dma_mixer.GetRoundedInputSampleRate();
+  const int sample_rate = m_dma_mixer.GetRoundedInputSampleRate();
   if (m_log_dsp_audio)
     m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate);
 }
@@ -807,13 +807,13 @@ void Mixer::PushStreamingSamples(const s16* samples, u32 num_samples)
   // Check whether the wii mote speaker mixers have finished pushing. We do it
   // from this mixer as it's the one with the higher update frequency
   // (168 samples per push at 32 or 48kHz). Yes, it's a bit of a hack but it works fine
-  double time_delta = double(num_samples) / m_dma_mixer.GetInputSampleRate();
+  const double time_delta = double(num_samples) / m_dma_mixer.GetInputSampleRate();
   m_wiimote_speaker_mixer[0].UpdatePush(-time_delta);
   m_wiimote_speaker_mixer[1].UpdatePush(-time_delta);
   m_wiimote_speaker_mixer[2].UpdatePush(-time_delta);
   m_wiimote_speaker_mixer[3].UpdatePush(-time_delta);
 
-  int sample_rate = m_streaming_mixer.GetRoundedInputSampleRate();
+  const int sample_rate = m_streaming_mixer.GetRoundedInputSampleRate();
   if (m_log_dtk_audio)
     m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate);
 }
@@ -960,7 +960,7 @@ void Mixer::MixerFifo::SetVolume(u32 lVolume, u32 rVolume)
 
 u32 Mixer::MixerFifo::AvailableSamples() const
 {
-  u32 fifo_samples = NumSamples();
+  const u32 fifo_samples = NumSamples();
   // Interpolation always keeps some sample in the buffer, we want to ignore them
   if (fifo_samples <= INTERP_SAMPLES)
     return 0;
@@ -974,14 +974,14 @@ u32 Mixer::MixerFifo::NumSamples() const
 
 u32 Mixer::MixerFifo::SamplesDifference(u32 indexW, u32 indexR) const
 {
-  double rate = (m_input_sample_rate * m_mixer->GetMixingSpeed()) / m_mixer->m_sample_rate;
+  const double rate = (m_input_sample_rate * m_mixer->GetMixingSpeed()) / m_mixer->m_sample_rate;
   return SamplesDifference(indexW, indexR, rate, m_fract.load());
 }
 u32 Mixer::MixerFifo::SamplesDifference(u32 indexW, u32 indexR, double rate, double fract) const
 {
   // We can't have more than MAX_SAMPLES, if we do, we loop over
-  u32 diff = indexW - GetNextIndexR(indexR, rate, fract);
-  u32 normalized_diff = diff & INDEX_MASK;
+  const u32 diff = indexW - GetNextIndexR(indexR, rate, fract);
+  const u32 normalized_diff = diff & INDEX_MASK;
   return normalized_diff == 0u ? (diff == 0u ? 0u : (MAX_SAMPLES * NC)) : normalized_diff;
 }
 

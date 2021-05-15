@@ -58,7 +58,7 @@ static u32 DPL2QualityToBlockSize(DPL2Quality quality, u32 sample_rate)
     block_time_max = 20; //To delete
   }
 
-  double block_time_average = (block_time_min + block_time_max) * 0.5;
+  const double block_time_average = (block_time_min + block_time_max) * 0.5;
 
   u32 block_size = std::round(sample_rate * block_time_average / 1000.0);
   //block_size = MathUtil::NearestPowerOf2(block_size);
@@ -67,7 +67,7 @@ static u32 DPL2QualityToBlockSize(DPL2Quality quality, u32 sample_rate)
       (block_size / SurroundDecoder::DECODER_GRANULARITY) * SurroundDecoder::DECODER_GRANULARITY;
 
   // Find the actual used block_time to see if it's within the accepted ranges
-  double block_time = block_size * 1000 / sample_rate;
+  const double block_time = block_size * 1000 / sample_rate;
   if (block_time > block_time_max || block_time < block_time_min)
   {
     block_size = std::round(sample_rate * block_time_average / 1000.0);
@@ -98,7 +98,8 @@ SurroundDecoder::~SurroundDecoder() = default;
 
 void SurroundDecoder::Init(u32 sample_rate)
 {
-  u32 block_size = DPL2QualityToBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY), sample_rate);
+  const u32 block_size =
+      DPL2QualityToBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY), sample_rate);
 
   // Re-init. It should keep the samples in the buffer (and filling the rest with 0) while just
   // updating the settings. Variables are duplicate from the decoder because they are not exposed
@@ -149,7 +150,7 @@ void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
     {
       samples_to_block = m_block_size - (u32(m_float_conversion_buffer.size() / STEREO_CHANNELS));
     }
-    u32 samples_to_push = std::min(samples_to_block, num_samples);
+    const u32 samples_to_push = std::min(samples_to_block, num_samples);
 
     // Convert to float (samples are from SHRT_MIN to SHRT_MAX)
     for (size_t i = read_samples * STEREO_CHANNELS;

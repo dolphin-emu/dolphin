@@ -207,7 +207,7 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   //To review: maybe have a set of 4 or 5 options to keep it simpler (low, high, ...).
-  //Also add descrpition to m_emu_speed_tolerance_label explaining that it's the time
+  //Also add description to m_emu_speed_tolerance_label explaining that it's the time
   //the emulation need to be offsetted by to start using the current speed. Do the same on android
 
   m_stretching_enable->setToolTip(tr(
@@ -386,8 +386,9 @@ void AudioPane::LoadSettings()
 
 void AudioPane::SaveSettings()
 {
+  //To use QSignalBlocker
   // Avoids multiple calls to this when we are modifying the widgets
-  //  in a way that would trigger multiple SaveSettings() callbacks
+  // in a way that would trigger multiple SaveSettings() callbacks
   if (m_ignore_save_settings)
   {
     return;
