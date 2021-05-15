@@ -239,7 +239,7 @@ void JitArm64::GenerateConvertDoubleToSingle()
   RET();
 }
 
-// Input in W0, output in X0, clobbers X0-X4 and flags.
+// Input in W0, output in X1, clobbers X0-X4 and flags.
 void JitArm64::GenerateConvertSingleToDouble()
 {
   UBFX(ARM64Reg::W1, ARM64Reg::W0, 23, 8);
@@ -249,7 +249,7 @@ void JitArm64::GenerateConvertSingleToDouble()
   FixupBranch denormal = CBNZ(ARM64Reg::W1);
 
   // Zero
-  LSL(ARM64Reg::X0, ARM64Reg::X0, 32);
+  LSL(ARM64Reg::X1, ARM64Reg::X0, 32);
   RET();
 
   SetJumpTarget(denormal);
@@ -262,7 +262,7 @@ void JitArm64::GenerateConvertSingleToDouble()
   LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
   BFI(ARM64Reg::X2, ARM64Reg::X1, 30, 22);
   MOVI2R(ARM64Reg::X1, 0x3a90000000000000);
-  ADD(ARM64Reg::X0, ARM64Reg::X2, ARM64Reg::X1);
+  ADD(ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X1);
   RET();
 
   SetJumpTarget(normal_or_nan);
@@ -277,7 +277,7 @@ void JitArm64::GenerateConvertSingleToDouble()
   CMP(ARM64Reg::W2, 0);
   CSEL(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::ZR, CCFlags::CC_NEQ);
   BFI(ARM64Reg::X3, ARM64Reg::X4, 29, 30);
-  ORR(ARM64Reg::X0, ARM64Reg::X3, ARM64Reg::X1);
+  ORR(ARM64Reg::X1, ARM64Reg::X3, ARM64Reg::X1);
   RET();
 }
 

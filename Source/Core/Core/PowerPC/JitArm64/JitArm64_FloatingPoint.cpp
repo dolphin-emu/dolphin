@@ -447,9 +447,9 @@ void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, A
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
   ABI_PushRegisters(gpr_saved);
 
-  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
+  m_float_emit.FMOV(ARM64Reg::X0, EncodeRegToDouble(src_reg));
   BL(cdts);
-  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W1);
+  m_float_emit.FMOV(EncodeRegToSingle(dest_reg), ARM64Reg::W1);
 
   ABI_PopRegisters(gpr_saved);
 }
@@ -467,11 +467,10 @@ void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, AR
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 30};
   ABI_PushRegisters(gpr_saved);
 
-  m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 0);
+  m_float_emit.FMOV(ARM64Reg::X0, EncodeRegToDouble(src_reg));
   BL(cdts);
-  m_float_emit.INS(32, dest_reg, 0, ARM64Reg::W1);
-
   m_float_emit.UMOV(64, ARM64Reg::X0, src_reg, 1);
+  m_float_emit.FMOV(EncodeRegToSingle(dest_reg), ARM64Reg::W1);
   BL(cdts);
   m_float_emit.INS(32, dest_reg, 1, ARM64Reg::W1);
 
@@ -517,9 +516,9 @@ void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, A
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
   ABI_PushRegisters(gpr_saved);
 
-  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
+  m_float_emit.FMOV(ARM64Reg::W0, EncodeRegToSingle(src_reg));
   BL(cstd);
-  m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
+  m_float_emit.FMOV(EncodeRegToDouble(dest_reg), ARM64Reg::X1);
 
   ABI_PopRegisters(gpr_saved);
 
@@ -588,17 +587,15 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
 
   // If no (or if we don't have a scratch register), call the bit-exact routine
 
-  // Save X0-X4 and X30 if they're in use
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
   ABI_PushRegisters(gpr_saved);
 
+  m_float_emit.FMOV(ARM64Reg::W0, EncodeRegToSingle(src_reg));
+  BL(cstd);
   m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 1);
+  m_float_emit.FMOV(EncodeRegToDouble(dest_reg), ARM64Reg::X1);
   BL(cstd);
-  m_float_emit.INS(64, dest_reg, 1, ARM64Reg::X0);
-
-  m_float_emit.UMOV(32, ARM64Reg::W0, src_reg, 0);
-  BL(cstd);
-  m_float_emit.INS(64, dest_reg, 0, ARM64Reg::X0);
+  m_float_emit.INS(64, dest_reg, 1, ARM64Reg::X1);
 
   ABI_PopRegisters(gpr_saved);
 
