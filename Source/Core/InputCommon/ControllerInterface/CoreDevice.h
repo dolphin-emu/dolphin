@@ -128,6 +128,11 @@ public:
   // (e.g. Xbox 360 controllers have controller number LEDs which should match the ID we use.)
   virtual std::optional<int> GetPreferredId() const;
 
+  // Use this to change the order in which devices are sorted in their list.
+  // A higher priority means it will be one of the first ones (smaller index), making it more
+  // likely to be index 0, which is automatically set as the default device when there isn't one.
+  virtual int GetSortPriority() const { return 0; }
+
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
 

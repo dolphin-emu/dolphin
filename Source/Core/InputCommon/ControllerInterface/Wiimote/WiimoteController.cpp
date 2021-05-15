@@ -321,6 +321,12 @@ std::string Device::GetSource() const
   return SOURCE_NAME;
 }
 
+// Always add these at the end, given their hotplug nature
+int Device::GetSortPriority() const
+{
+  return -1;
+}
+
 void Device::RunTasks()
 {
   if (IsPerformingTask())

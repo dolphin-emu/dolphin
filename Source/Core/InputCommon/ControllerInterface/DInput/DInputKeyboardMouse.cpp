@@ -230,6 +230,12 @@ std::string KeyboardMouse::GetSource() const
   return DINPUT_SOURCE_NAME;
 }
 
+// Give this device a higher priority to make sure it shows first
+int KeyboardMouse::GetSortPriority() const
+{
+  return 5;
+}
+
 // names
 std::string KeyboardMouse::Key::GetName() const
 {
