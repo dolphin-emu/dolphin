@@ -350,10 +350,11 @@ if (WIN32)
 endif()
 
 if (MSVC)
-  # Disable some warnings
-
-  # 5054: operator '+': deprecated between enumerations of different types (in Qt headers)
-  target_compile_options(dolphin-emu PRIVATE /wd5054)
+  # Don't propogate warnings in qt headers to Dolphin
+  target_compile_options(dolphin-emu PRIVATE /experimental:external)
+  target_compile_options(dolphin-emu PRIVATE /external:W0)
+  target_compile_options(dolphin-emu PRIVATE "/external:I${Qt5Gui_PRIVATE_INCLUDE_DIRS}")
+  target_compile_options(dolphin-emu PRIVATE "/external:I${Qt5Widgets_PRIVATE_INCLUDE_DIRS}")
 endif()
 
 if(WIN32)
