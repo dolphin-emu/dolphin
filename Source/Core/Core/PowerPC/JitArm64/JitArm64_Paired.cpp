@@ -84,15 +84,34 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
   const bool upper = inst.SUBOP5 == 13;
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(c);
+  const bool round_c = !js.op->fprIsSingle[inst.FC];
   const RegType type = singles ? RegType::Single : RegType::Register;
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
   const ARM64Reg VA = fpr.R(a, type);
-  const ARM64Reg VC = fpr.R(c, type);
+  ARM64Reg VC = fpr.R(c, type);
   const ARM64Reg VD = fpr.RW(d, type);
 
+  ARM64Reg V0Q = ARM64Reg::INVALID_REG;
+
+  if (round_c)
+  {
+    ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
+
+    V0Q = fpr.GetReg();
+    const ARM64Reg V1Q = fpr.GetReg();
+
+    Force25BitPrecision(reg_encoder(V0Q), reg_encoder(VC), reg_encoder(V1Q));
+    VC = reg_encoder(V0Q);
+
+    fpr.Unlock(V1Q);
+  }
+
   m_float_emit.FMUL(size, reg_encoder(VD), reg_encoder(VA), reg_encoder(VC), upper ? 1 : 0);
+
+  if (V0Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V0Q);
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_mulsX");
@@ -115,31 +134,45 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   const u32 op5 = inst.SUBOP5;
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
+  const bool round_c = !js.op->fprIsSingle[inst.FC];
   const RegType type = singles ? RegType::Single : RegType::Register;
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
   const ARM64Reg VA = reg_encoder(fpr.R(a, type));
   const ARM64Reg VB = reg_encoder(fpr.R(b, type));
-  const ARM64Reg VC = reg_encoder(fpr.R(c, type));
+  ARM64Reg VC = reg_encoder(fpr.R(c, type));
   const ARM64Reg VD = reg_encoder(fpr.RW(d, type));
+
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
   ARM64Reg V0 = ARM64Reg::INVALID_REG;
-  if (d != b && (d == a || d == c))
+  ARM64Reg V1Q = ARM64Reg::INVALID_REG;
+
+  if (round_c || (d != b && (d == a || d == c)))
   {
     V0Q = fpr.GetReg();
     V0 = reg_encoder(V0Q);
+  }
+
+  if (round_c)
+  {
+    ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
+
+    V1Q = fpr.GetReg();
+
+    Force25BitPrecision(reg_encoder(V1Q), VC, V0);
+    VC = reg_encoder(V1Q);
   }
 
   switch (op5)
   {
   case 14:  // ps_madds0
     // d = a * c.ps0 + b
-    if (d == b)
+    if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC, 0);
     }
-    else if (d != a && d != c)
+    else if (VD != VA && VD != VC)
     {
       m_float_emit.MOV(VD, VB);
       m_float_emit.FMLA(size, VD, VA, VC, 0);
@@ -153,11 +186,11 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   case 15:  // ps_madds1
     // d = a * c.ps1 + b
-    if (d == b)
+    if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC, 1);
     }
-    else if (d != a && d != c)
+    else if (VD != VA && VD != VC)
     {
       m_float_emit.MOV(VD, VB);
       m_float_emit.FMLA(size, VD, VA, VC, 1);
@@ -171,14 +204,14 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   case 28:  // ps_msub
     // d = a * c - b
-    if (d == b)
+    if (VD == VB)
     {
       // d = -(-a * c + b)
       // rounding is incorrect if the rounding mode is +/- infinity
       m_float_emit.FMLS(size, VD, VA, VC);
       m_float_emit.FNEG(size, VD, VD);
     }
-    else if (d != a && d != c)
+    else if (VD != VA && VD != VC)
     {
       m_float_emit.FNEG(size, VD, VB);
       m_float_emit.FMLA(size, VD, VA, VC);
@@ -192,11 +225,11 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   case 29:  // ps_madd
     // d = a * c + b
-    if (d == b)
+    if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC);
     }
-    else if (d != a && d != c)
+    else if (VD != VA && VD != VC)
     {
       m_float_emit.MOV(VD, VB);
       m_float_emit.FMLA(size, VD, VA, VC);
@@ -215,11 +248,11 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     // Note: PowerPC rounds before the final negation.
     // We don't handle this at the moment because it's
     // only relevant when rounding to +/- infinity.
-    if (d == b)
+    if (VD == VB)
     {
       m_float_emit.FMLS(size, VD, VA, VC);
     }
-    else if (d != a && d != c)
+    else if (VD != VA && VD != VC)
     {
       m_float_emit.MOV(VD, VB);
       m_float_emit.FMLS(size, VD, VA, VC);
@@ -233,12 +266,12 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   case 31:  // ps_nmadd
     // d = -(a * c + b)
-    if (d == b)
+    if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC);
       m_float_emit.FNEG(size, VD, VD);
     }
-    else if (d != a && d != c)
+    else if (VD != VA && VD != VC)
     {
       // d = -a * c - b
       // See rounding note at ps_nmsub.
@@ -259,6 +292,8 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
 
   if (V0Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V0Q);
+  if (V1Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V1Q);
 
   ASSERT_MSG(DYNA_REC, singles == (fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c)),
              "Register allocation turned singles into doubles in the middle of ps_maddXX");

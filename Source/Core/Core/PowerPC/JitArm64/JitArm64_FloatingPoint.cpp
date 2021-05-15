@@ -31,6 +31,29 @@ void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
 }
 
+// Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
+// a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
+// rounding to nearest as it does.
+void JitArm64::Force25BitPrecision(ARM64Reg output, ARM64Reg input, ARM64Reg temp)
+{
+  ASSERT(output != input && output != temp && input != temp);
+
+  // temp   = 0x0000'0000'0800'0000ULL
+  // output = 0xFFFF'FFFF'F800'0000ULL
+  m_float_emit.MOVI(32, temp, 0x08, 24);
+  m_float_emit.MOVI(64, output, 0xFFFF'FFFF'0000'0000ULL);
+  m_float_emit.BIC(temp, temp, output);
+  m_float_emit.ORR(32, output, 0xF8, 24);
+
+  // output = (input & ~0xFFFFFFF) + ((input & (1ULL << 27)) << 1)
+  m_float_emit.AND(temp, input, temp);
+  m_float_emit.AND(output, input, output);
+  if (IsQuad(input))
+    m_float_emit.ADD(64, output, output, temp);
+  else
+    m_float_emit.ADD(output, output, temp);
+}
+
 void JitArm64::fp_arith(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -43,8 +66,11 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   bool single = inst.OPCD == 59;
   bool packed = inst.OPCD == 4;
 
-  bool use_c = op5 >= 25;  // fmul and all kind of fmaddXX
-  bool use_b = op5 != 25;  // fmul uses no B
+  const bool use_c = op5 >= 25;  // fmul and all kind of fmaddXX
+  const bool use_b = op5 != 25;  // fmul uses no B
+
+  const bool outputs_are_singles = single || packed;
+  const bool round_c = use_c && outputs_are_singles && !js.op->fprIsSingle[inst.FC];
 
   const auto inputs_are_singles_func = [&] {
     return fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
@@ -53,6 +79,8 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   const bool inputs_are_singles = inputs_are_singles_func();
 
   ARM64Reg VA{}, VB{}, VC{}, VD{};
+
+  ARM64Reg V0Q = ARM64Reg::INVALID_REG;
 
   if (packed)
   {
@@ -66,6 +94,19 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     if (use_c)
       VC = reg_encoder(fpr.R(c, type));
     VD = reg_encoder(fpr.RW(d, type));
+
+    if (round_c)
+    {
+      ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
+
+      V0Q = fpr.GetReg();
+      const ARM64Reg V1Q = fpr.GetReg();
+
+      Force25BitPrecision(reg_encoder(V0Q), VC, reg_encoder(V1Q));
+      VC = reg_encoder(V0Q);
+
+      fpr.Unlock(V1Q);
+    }
 
     switch (op5)
     {
@@ -102,6 +143,19 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       VC = reg_encoder(fpr.R(c, type));
     VD = reg_encoder(fpr.RW(d, type_out));
 
+    if (round_c)
+    {
+      ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
+
+      V0Q = fpr.GetReg();
+      const ARM64Reg V1Q = fpr.GetReg();
+
+      Force25BitPrecision(reg_encoder(V0Q), VC, reg_encoder(V1Q));
+      VC = reg_encoder(V0Q);
+
+      fpr.Unlock(V1Q);
+    }
+
     switch (op5)
     {
     case 18:
@@ -134,7 +188,8 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     }
   }
 
-  const bool outputs_are_singles = single || packed;
+  if (V0Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V0Q);
 
   if (outputs_are_singles)
   {
