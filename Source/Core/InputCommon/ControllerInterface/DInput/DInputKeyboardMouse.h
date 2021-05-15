@@ -34,6 +34,7 @@ private:
     RelativeMouseState relative_mouse;
   };
 
+  // Keyboard key
   class Key : public Input
   {
   public:
@@ -46,6 +47,7 @@ private:
     const u8 m_index;
   };
 
+  // Mouse button
   class Button : public Input
   {
   public:
@@ -58,6 +60,7 @@ private:
     const u8 m_index;
   };
 
+  // Mouse movement offset axis. Includes mouse wheel
   class Axis : public Input
   {
   public:
@@ -72,6 +75,7 @@ private:
     const u8 m_index;
   };
 
+  // Mouse from window center
   class Cursor : public Input
   {
   public:

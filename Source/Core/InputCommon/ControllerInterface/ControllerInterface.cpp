@@ -37,6 +37,10 @@
 
 ControllerInterface g_controller_interface;
 
+// We need to save which input channel we are in by thread, so we can access the correct input
+// update values in different threads by input channel. We start from InputChannel::Host on all
+// threads as hotkeys are updated from a worker thread, but UI can read from the main thread. This
+// will never interfere with game threads.
 static thread_local ciface::InputChannel tls_input_channel = ciface::InputChannel::Host;
 
 void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
@@ -272,7 +276,11 @@ void ControllerInterface::UpdateInput()
   {
     std::lock_guard lk(m_devices_mutex, std::adopt_lock);
     for (const auto& d : m_devices)
+    {
+      // Theoretically we could avoid updating input on devices that don't have any references to
+      // them, but in practice a few devices types could break in different ways, so we don't
       d->UpdateInput();
+    }
   }
 }
 

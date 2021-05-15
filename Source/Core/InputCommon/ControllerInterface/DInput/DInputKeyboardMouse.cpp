@@ -91,6 +91,11 @@ KeyboardMouse::~KeyboardMouse()
 {
   s_keyboard_mouse_exists = false;
 
+  // Independently of the order in which we do these, if we put a breakpoint on Unacquire() (or in
+  // any place in the call stack before this), when refreshing devices from the UI, on the second
+  // attempt, it will get stuck in an infinite (while) loop inside dinput8.dll. Given that it can't
+  // be otherwise be reproduced (not even with sleeps), we can just ignore the problem.
+
   // kb
   m_kb_device->Unacquire();
   m_kb_device->Release();

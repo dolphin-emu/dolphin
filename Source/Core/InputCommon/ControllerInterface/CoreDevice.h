@@ -227,6 +227,7 @@ public:
                                           std::chrono::milliseconds maximum_wait) const;
 
 protected:
+  // Exclusively needed when reading/writing "m_devices"
   mutable std::recursive_mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
