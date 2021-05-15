@@ -28,10 +28,11 @@
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
-      Negate the previously enabled warning (set in Base.props). Not compatible with QtCore\qtmap.h
-      This isn't too bad since we live with the fact that Qt-using projects will have different compiler args already.
+      Set the qt directories as 'external', so we avoid any warnings in them
       -->
-      <AdditionalOptions>%(AdditionalOptions) /wd4946</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /experimental:external</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:W0</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:I$(QtIncludeDir)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
