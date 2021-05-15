@@ -123,8 +123,10 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
 {
   s_keyboard_mouse_exists = true;
 
-  m_kb_device->Acquire();
-  m_mo_device->Acquire();
+  if (FAILED(m_kb_device->Acquire()))
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to acquire. We'll retry later");
+  if (FAILED(m_mo_device->Acquire()))
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to acquire. We'll retry later");
 
   // KEYBOARD
   // add keys
@@ -191,6 +193,8 @@ void KeyboardMouse::UpdateCursorInput()
 
 void KeyboardMouse::UpdateInput()
 {
+  UpdateCursorInput();
+
   DIMOUSESTATE2 tmp_mouse;
 
   // if mouse position hasn't been updated in a short while, skip a dev state
@@ -207,16 +211,14 @@ void KeyboardMouse::UpdateInput()
 
   m_last_update = cur_time;
 
-  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
   HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
-
-  if (DIERR_INPUTLOST == kb_hr || DIERR_NOTACQUIRED == kb_hr)
-    m_kb_device->Acquire();
-
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
-    m_mo_device->Acquire();
-
-  if (SUCCEEDED(mo_hr))
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to get state");
+    if (FAILED(m_mo_device->Acquire()))
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to re-acquire, we'll retry later");
+  }
+  else if (SUCCEEDED(mo_hr))
   {
     m_state_in.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
     m_state_in.relative_mouse.Update();
@@ -227,8 +229,16 @@ void KeyboardMouse::UpdateInput()
 
     // copy over the buttons
     std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
+  }
 
-    UpdateCursorInput();
+  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+  if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");
+    if (SUCCEEDED(m_kb_device->Acquire()))
+      m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+    else
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to re-acquire, we'll retry later");
   }
 }
 
