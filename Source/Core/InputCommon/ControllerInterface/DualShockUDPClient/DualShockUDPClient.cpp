@@ -141,7 +141,6 @@ public:
 private:
   const std::string m_name;
   const int m_index;
-  u32 m_client_uid = Common::Random::GenerateValue<u32>();
   sf::UdpSocket m_socket;
   SteadyClock::time_point m_next_reregister = SteadyClock::time_point::min();
   Proto::MessageType::PadDataResponse m_pad_data{};
@@ -314,7 +313,6 @@ static void Restart()
 
   StopHotplugThread();
 
-  s_client_uid = Common::Random::GenerateValue<u32>();
   s_next_listports = std::chrono::steady_clock::time_point::min();
   for (auto& server : s_servers)
   {
@@ -326,6 +324,8 @@ static void Restart()
   }
 
   PopulateDevices();  // Only removes devices
+
+  s_client_uid = Common::Random::GenerateValue<u32>();
 
   if (s_servers_enabled && !s_servers.empty())
     StartHotplugThread();
@@ -502,7 +502,7 @@ void Device::UpdateInput()
   {
     m_next_reregister = now + SERVER_REREGISTER_INTERVAL;
 
-    Proto::Message<Proto::MessageType::PadDataRequest> msg(m_client_uid);
+    Proto::Message<Proto::MessageType::PadDataRequest> msg(s_client_uid);
     auto& data_req = msg.m_message;
     data_req.register_flags = Proto::RegisterFlags::PadID;
     data_req.pad_id_to_register = m_index;
