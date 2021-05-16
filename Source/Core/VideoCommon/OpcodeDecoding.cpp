@@ -32,7 +32,7 @@
 
 namespace OpcodeDecoder
 {
-bool s_is_fifo_error_seen = false;
+static bool s_is_fifo_error_seen = false;
 bool g_record_fifo_data = false;
 
 void Init()
