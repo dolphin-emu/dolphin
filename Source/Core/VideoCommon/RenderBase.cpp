@@ -65,6 +65,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/FreeLookCamera2D.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -438,6 +439,7 @@ void Renderer::CheckForConfigChanges()
   FreeLook::UpdateActiveConfig();
 
   g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
+  g_freelook_camera_2d.UpdateConfig(FreeLook::GetActiveConfig().camera_config_2d);
 
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);

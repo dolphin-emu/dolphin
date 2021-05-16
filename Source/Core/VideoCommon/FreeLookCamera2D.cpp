@@ -22,6 +22,7 @@ namespace
 {
 class BasicMovementController final : public CameraController2DInput
 {
+  void UpdateConfig(const FreeLook::CameraConfig2D&) override {}
   void MoveVertical(float amt) override
   {
     m_position_offset.y += amt;
@@ -104,6 +105,11 @@ void CameraController2DInput::DoState(PointerWrap& p)
 FreeLookCamera2D::FreeLookCamera2D()
 {
   m_controller = std::make_unique<BasicMovementController>();
+}
+
+void FreeLookCamera2D::UpdateConfig(const FreeLook::CameraConfig2D& config)
+{
+  m_controller->UpdateConfig(config);
 }
 
 const Common::Vec2& FreeLookCamera2D::GetPositionOffset() const

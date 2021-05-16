@@ -10,6 +10,11 @@
 
 class PointerWrap;
 
+namespace FreeLook
+{
+struct CameraConfig2D;
+}
+
 class CameraController2D
 {
 public:
@@ -19,6 +24,8 @@ public:
   CameraController2D& operator=(const CameraController2D&) = delete;
   CameraController2D(CameraController2D&&) = delete;
   CameraController2D& operator=(CameraController2D&&) = delete;
+
+  virtual void UpdateConfig(const FreeLook::CameraConfig2D& config) = 0;
 
   virtual const Common::Vec2& GetPositionOffset() const = 0;
   virtual const Common::Vec2& GetStretchMultiplier() const = 0;
@@ -72,6 +79,7 @@ class FreeLookCamera2D
 {
 public:
   FreeLookCamera2D();
+  void UpdateConfig(const FreeLook::CameraConfig2D& config);
 
   const Common::Vec2& GetPositionOffset() const;
   const Common::Vec2& GetStretchMultiplier() const;
