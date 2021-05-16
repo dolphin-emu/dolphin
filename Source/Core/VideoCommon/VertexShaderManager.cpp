@@ -135,7 +135,7 @@ void VertexShaderManager::Dirty()
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
-void VertexShaderManager::SetConstants()
+void VertexShaderManager::SetConstants(const std::vector<TextureInfo>&)
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
