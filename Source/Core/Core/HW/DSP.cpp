@@ -396,7 +396,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks * 8);
 
           // TODO: need hardware tests for the timing of this interrupt.
-          // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
+          // "The Sky Crawlers: Innocent Aces" crashes at boot if this is scheduled less than 87
+          // cycles in the future.
           // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
           CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
         }
@@ -465,7 +466,8 @@ void UpdateDSPSlice(int cycles)
   }
 }
 
-// This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
+// This happens at 4kHz, since 32 bytes at 4kHz = 4 bytes at 32kHz (16bit stereo pcm).
+// At the beginning and end of emulation, this happens at unreliable rates
 void UpdateAudioDMA()
 {
   static short zero_samples[8 * 2] = {0};
@@ -488,6 +490,12 @@ void UpdateAudioDMA()
 
       if (s_audioDMA.remaining_blocks_count != 0)
       {
+        // Similarly to DVD/Streaming audio, instead of sending a different number of samples each
+        // submission, we just change the frequency of the submission to match the sample rate. This
+        // causes more imprecision on GC, where sample rates aren't integer, but it should mostly be
+        // fine. The Mixer (Mixer.cpp) might assume the above is true, so if you change the sample
+        // submitted per submission, make sure you review the Mixer as well.
+
         // We make the samples ready as soon as possible
         void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
         AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks * 8);

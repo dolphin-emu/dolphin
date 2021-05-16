@@ -13,7 +13,8 @@ namespace WiimoteEmu
 {
 struct ADPCMState
 {
-  s32 predictor, step;
+  double predictor;
+  double step;
 };
 
 class Wiimote;
@@ -28,10 +29,10 @@ public:
   static constexpr u8 SPEAKER_DATA_OFFSET = 0x00;
 
   void Reset();
+  void ResetDecoder();
   void DoState(PointerWrap& p);
 
 private:
-  // Pan is -1.0 to +1.0
   void SpeakerData(const u8* data, int length, float speaker_pan);
 
   // TODO: enum class
@@ -46,7 +47,7 @@ private:
     u8 speaker_data;
     u8 unk_1;
     u8 format;
-    // seems to always play at 6khz no matter what this is set to?
+    // Seems to always play at 6kHz no matter what this is set to?
     // or maybe it only applies to pcm input
     // Little-endian:
     u16 sample_rate;
@@ -72,6 +73,9 @@ private:
   ADPCMState adpcm_state;
 
   ControllerEmu::SettingValue<double> m_speaker_pan_setting;
+
+  // Wiimote index, 0-3
+  u8 m_index;
 };
 
 }  // namespace WiimoteEmu

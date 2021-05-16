@@ -8,7 +8,7 @@
 //  * Depop support
 //  * ITD support
 //  * Polyphase sample interpolation support (not very useful)
-//  * Dolby Pro 2 mixing with recent AX versions
+//  * DPLII (Dolby) mixing with recent AX versions
 
 #pragma once
 

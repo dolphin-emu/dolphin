@@ -972,13 +972,6 @@ void UpdateTitle(u32 ElapseTime)
       message += " | " + title;
   }
 
-  // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
-  {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
-  }
-
   Host_UpdateTitle(message);
 }
 

@@ -34,17 +34,13 @@ bool AlsaSound::Init()
   m_thread_status.store(ALSAThreadStatus::PAUSED);
   if (!AlsaInit())
   {
+    AlsaShutdown();
     m_thread_status.store(ALSAThreadStatus::STOPPED);
     return false;
   }
 
   thread = std::thread(&AlsaSound::SoundLoop, this);
   return true;
-}
-
-void AlsaSound::Update()
-{
-  // don't need to do anything here.
 }
 
 // Called on audio thread.

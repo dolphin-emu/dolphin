@@ -31,11 +31,11 @@ public:
   WaveFileWriter(WaveFileWriter&&) = delete;
   WaveFileWriter& operator=(WaveFileWriter&&) = delete;
 
-  bool Start(const std::string& filename, unsigned int HLESampleRate);
+  bool Start(const std::string& file_name, u32 sample_rate);
   void Stop();
 
   void SetSkipSilence(bool skip) { skip_silence = skip; }
-  void AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate);  // big endian
+  void AddStereoSamplesBE(const short* sample_data, u32 count, u32 sample_rate);  // big endian
   u32 GetAudioSize() const { return audio_size; }
 
 private:
@@ -48,6 +48,6 @@ private:
   void Write(u32 value);
   void Write4(const char* ptr);
   std::string basename;
-  int current_sample_rate;
-  int file_index = 0;
+  u32 current_sample_rate;
+  unsigned int file_index = 0;
 };

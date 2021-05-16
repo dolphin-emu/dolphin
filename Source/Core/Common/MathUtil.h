@@ -92,6 +92,34 @@ constexpr u32 NextPowerOf2(u32 value)
   return value;
 }
 
+constexpr s32 NearestPowerOf2(s32 value)
+{
+  const s32 next = NextPowerOf2(value);
+  const s32 prev = next >> 1;
+
+  return (next - value) > (value - prev) ? prev : next;
+}
+
+constexpr bool IsPowerOfTwo(s32 value)
+{
+  return value != 0 && (value & (value - 1)) == 0;
+}
+
+//To move back to u32
+// Greatest common divisor
+constexpr s32 GCD(s32 a, s32 b)
+{
+  if (b == 0)
+    return a;
+  return GCD(b, a % b);
+}
+
+// Least/lowest common multiple
+constexpr s32 LCM(s32 a, s32 b)
+{
+  return (a / GCD(a, b)) * b;
+}
+
 template <class T>
 struct Rectangle
 {

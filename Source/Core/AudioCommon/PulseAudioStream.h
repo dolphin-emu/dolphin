@@ -8,6 +8,8 @@
 #include <pulse/pulseaudio.h>
 #endif
 
+#include <atomic>
+
 #include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
@@ -15,14 +17,16 @@
 
 class PulseAudio final : public SoundStream
 {
-#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
-  PulseAudio();
+  static std::string GetName() { return "Pulse"; }
+#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
+  static bool IsValid() { return true; }
   ~PulseAudio() override;
 
   bool Init() override;
-  bool SetRunning(bool running) override { return running; }
-  static bool isValid() { return true; }
+  bool SetRunning(bool running) override;
+  static bool SupportsSurround() { return true; }
+  AudioCommon::SurroundState GetSurroundState() const override;
   void StateCallback(pa_context* c);
   void WriteCallback(pa_stream* s, size_t length);
   void UnderflowCallback(pa_stream* s);
@@ -40,6 +44,7 @@ private:
 
   std::thread m_thread;
   Common::Flag m_run_thread;
+  std::atomic<bool> m_running = false;
 
   bool m_stereo;  // stereo, else surround
   int m_bytespersample;
@@ -47,10 +52,10 @@ private:
 
   int m_pa_error;
   int m_pa_connected;
-  pa_mainloop* m_pa_ml;
-  pa_mainloop_api* m_pa_mlapi;
-  pa_context* m_pa_ctx;
-  pa_stream* m_pa_s;
+  pa_mainloop* m_pa_ml = nullptr;
+  pa_mainloop_api* m_pa_mlapi = nullptr;
+  pa_context* m_pa_ctx = nullptr;
+  pa_stream* m_pa_s = nullptr;
   pa_buffer_attr m_pa_ba;
 #endif
 };

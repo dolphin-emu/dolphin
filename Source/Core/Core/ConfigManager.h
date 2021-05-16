@@ -113,7 +113,8 @@ struct SConfig
   bool bAccurateNaNs = false;
   bool bDisableICache = false;
 
-  int iTimingVariance = 40;  // in milli secounds
+  // 40 ms for one frame on 25 fps games
+  int iTimingVariance = 40;
   bool bCPUThread = true;
   bool bDSPThread = false;
   bool bDSPHLE = true;
@@ -124,9 +125,11 @@ struct SConfig
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
-  int iLatency = 20;
+  // Don't access directly, use AudioInterface::GetUserTargetLatency()
+  int iAudioBackendLatency = 20;
+  bool bUseOSMixerSampleRate = true;
   bool m_audio_stretch = false;
-  int m_audio_stretch_max_latency = 80;
+  int m_audio_emu_speed_tolerance = 20;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
@@ -303,7 +306,9 @@ struct SConfig
 
 #ifdef _WIN32
   // WSAPI settings
-  std::string sWASAPIDevice;
+  std::string sWASAPIDeviceName;
+  std::string sWASAPIDeviceID;
+  std::string sWASAPIDeviceSampleRate;
 #endif
 
   // Input settings

@@ -2,71 +2,48 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
-
 #include "AudioCommon/AudioStretcher.h"
-#include "Common/Logging/Log.h"
-#include "Core/ConfigManager.h"
 
 namespace AudioCommon
 {
-AudioStretcher::AudioStretcher(unsigned int sample_rate) : m_sample_rate(sample_rate)
+AudioStretcher::AudioStretcher(u32 sample_rate) : m_sample_rate(sample_rate)
 {
   m_sound_touch.setChannels(2);
-  m_sound_touch.setSampleRate(sample_rate);
-  m_sound_touch.setPitch(1.0);
-  m_sound_touch.setTempo(1.0);
+  m_sound_touch.setSampleRate(m_sample_rate);
+  // Some "random" values that seemed good for Dolphin 
+  m_sound_touch.setSetting(SETTING_SEQUENCE_MS, 62);
+  m_sound_touch.setSetting(SETTING_SEEKWINDOW_MS, 28);
+  // Unfortunately the AA filter is only applied on the sample rate transposer, which we don't use,
+  // it just adds overhead and loss of quality. AA is not be used by the tempo stretcher
+  m_sound_touch.setSetting(SETTING_USE_AA_FILTER, 0);
 }
 
 void AudioStretcher::Clear()
 {
   m_sound_touch.clear();
+  m_last_stretched_sample[0] = 0;
+  m_last_stretched_sample[1] = 0;
+  m_stretch_ratio = 1.0;
+  m_stretch_ratio_sum = 0.0;
+  m_stretch_ratio_count = 0;
 }
 
-void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsigned int num_out)
+void AudioStretcher::PushSamples(const s16* in, u32 num_in)
 {
-  const double time_delta = static_cast<double>(num_out) / m_sample_rate;  // seconds
-
-  // We were given actual_samples number of samples, and num_samples were requested from us.
-  double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
-
-  const double max_latency = SConfig::GetInstance().m_audio_stretch_max_latency;
-  const double max_backlog = m_sample_rate * max_latency / 1000.0 / m_stretch_ratio;
-  const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
-  if (backlog_fullness > 5.0)
-  {
-    // Too many samples in backlog: Don't push anymore on
-    num_in = 0;
-  }
-
-  // We ideally want the backlog to be about 50% full.
-  // This gives some headroom both ways to prevent underflow and overflow.
-  // We tweak current_ratio to encourage this.
-  constexpr double tweak_time_scale = 0.5;  // seconds
-  current_ratio *= 1.0 + 2.0 * (backlog_fullness - 0.5) * (time_delta / tweak_time_scale);
-
-  // This low-pass filter smoothes out variance in the calculated stretch ratio.
-  // The time-scale determines how responsive this filter is.
-  constexpr double lpf_time_scale = 1.0;  // seconds
-  const double lpf_gain = 1.0 - std::exp(-time_delta / lpf_time_scale);
-  m_stretch_ratio += lpf_gain * (current_ratio - m_stretch_ratio);
-
-  // Place a lower limit of 10% speed.  When a game boots up, there will be
-  // many silence samples.  These do not need to be timestretched.
-  m_stretch_ratio = std::max(m_stretch_ratio, 0.1);
-  m_sound_touch.setTempo(m_stretch_ratio);
-
-  DEBUG_LOG_FMT(AUDIO, "Audio stretching: samples:{}/{} ratio:{} backlog:{} gain: {}", num_in,
-                num_out, m_stretch_ratio, backlog_fullness, lpf_gain);
-
+  uint prev_processed_samples = m_sound_touch.numSamples();
   m_sound_touch.putSamples(in, num_in);
+  // Some samples have been processed, reset our tempo average counter
+  if (m_sound_touch.numSamples() != prev_processed_samples)
+  {
+    m_stretch_ratio_sum = 0.0;
+    m_stretch_ratio_count = 0;
+  }
 }
 
-void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
+// This won't return any samples a lot of times as they are processed in batches
+u32 AudioStretcher::GetStretchedSamples(s16* out, u32 num_out, bool pad)
 {
-  const size_t samples_received = m_sound_touch.receiveSamples(out, num_out);
+  u32 samples_received = m_sound_touch.receiveSamples(out, num_out);
 
   if (samples_received != 0)
   {
@@ -74,12 +51,58 @@ void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
     m_last_stretched_sample[1] = out[samples_received * 2 - 1];
   }
 
-  // Perform padding if we've run out of samples.
-  for (size_t i = samples_received; i < num_out; i++)
+  if (pad)
   {
-    out[i * 2 + 0] = m_last_stretched_sample[0];
-    out[i * 2 + 1] = m_last_stretched_sample[1];
+    // Perform padding if we've run out of samples
+    for (u32 i = samples_received; i < num_out; ++i)
+    {
+      out[i * 2 + 0] = m_last_stretched_sample[0];
+      out[i * 2 + 1] = m_last_stretched_sample[1];
+    }
   }
+
+  // Always return the valid mixed samples
+  return samples_received;
 }
 
+// Call this before ProcessSamples()
+void AudioStretcher::SetTempo(double tempo, bool reset)
+{
+  // SoutchTouch doesn't constantly produce output samples,
+  // it does it in batches when it has enough samples, but at that time,
+  // it only considers the "last" set tempo, which won't include
+  // the oscillations in speed we had from the last calculated batch,
+  // so to avoid missing that information, we use the average of all
+  // the tempos set between batches productions.
+  // Note that the tempo influences the number of samples needed to
+  // produce a batch.
+  if (reset)
+  {
+    m_stretch_ratio_sum = 0.0;
+    m_stretch_ratio_count = 0;
+  }
+  m_stretch_ratio_sum += tempo;
+  ++m_stretch_ratio_count;
+  m_stretch_ratio = m_stretch_ratio_sum / m_stretch_ratio_count;
+  m_sound_touch.setTempo(m_stretch_ratio);
+}
+
+void AudioStretcher::SetSampleRate(u32 sample_rate)
+{
+  m_sample_rate = sample_rate;
+  m_sound_touch.setSampleRate(m_sample_rate);
+}
+
+// Returns the latency of "processed" samples waiting to be read
+double AudioStretcher::GetProcessedLatency() const
+{
+  return m_sound_touch.numSamples() / double(m_sample_rate);
+}
+
+// This returns the smallest amount of samples (as time) that will be processed in a batch.
+// We can't have a latency lower than this as these samples are suddenly added
+double AudioStretcher::GetAcceptableLatency() const
+{
+  return m_sound_touch.getSetting(SETTING_NOMINAL_OUTPUT_SEQUENCE) / double(m_sample_rate);
+}
 }  // namespace AudioCommon

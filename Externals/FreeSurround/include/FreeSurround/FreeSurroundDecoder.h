@@ -15,6 +15,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 // USA.
 
+// Dolphin: taken from https://hydrogenaud.io/index.php?topic=52235.0 but heavily modified
+// A more up to date version is available here:
+// https://github.com/kodi-adsp/adsp.freesurround
+
 #ifndef FREESURROUND_DECODER_H
 #define FREESURROUND_DECODER_H
 #include "KissFFTR.h"
@@ -27,25 +31,26 @@ typedef std::complex<double> cplx;
 // right). The ordering here also determines the ordering of interleaved
 // samples in the output signal.
 
+// Dolphin: channels mapping modified to be the same as most audio backends
 typedef enum channel_id {
   ci_none = 0,
   ci_front_left = 1 << 1,
-  ci_front_center_left = 1 << 2,
-  ci_front_center = 1 << 3,
-  ci_front_center_right = 1 << 4,
-  ci_front_right = 1 << 5,
+  ci_front_right = 1 << 2,
+  ci_front_center_left = 1 << 3,
+  ci_front_center = 1 << 4,
+  ci_front_center_right = 1 << 5,
   ci_side_front_left = 1 << 6,
   ci_side_front_right = 1 << 7,
   ci_side_center_left = 1 << 8,
   ci_side_center_right = 1 << 9,
   ci_side_back_left = 1 << 10,
   ci_side_back_right = 1 << 11,
-  ci_back_left = 1 << 12,
-  ci_back_center_left = 1 << 13,
-  ci_back_center = 1 << 14,
-  ci_back_center_right = 1 << 15,
-  ci_back_right = 1 << 16,
-  ci_lfe = 1 << 31
+  ci_lfe = 1 << 12,
+  ci_back_left = 1 << 13,
+  ci_back_center_left = 1 << 14,
+  ci_back_center = 1 << 15,
+  ci_back_center_right = 1 << 16,
+  ci_back_right = 1 << 31
 } channel_id;
 
 // The supported output channel setups. A channel setup is defined by the set
@@ -68,10 +73,11 @@ public:
   // @param setup The output channel setup -- determines the number of output
   // channels and their place in the sound field.
   // @param blocksize Granularity at which data is processed by the decode()
-  // function. Must be a power of two and should correspond to ca. 10ms worth
-  // of single-channel samples (default is 4096 for 44.1Khz data). Do not make
-  // it shorter or longer than 5ms to 20ms since the granularity at which
-  // locations are decoded changes with this.
+  // function. Must be a multiple of two (better if power of) and should
+  // correspond to ca. 10ms worth of single-channel samples
+  // (default is 4096 at 44.1Khz data (Dolphin: ???)).
+  // Do not make it shorter or longer than 5ms to 20ms since the granularity
+  // at which locations are decoded changes with this (Dolphin: not true, 40+).
   DPL2FSDecoder();
   ~DPL2FSDecoder();
 
@@ -86,7 +92,9 @@ public:
   // @return A pointer to an internal buffer of exactly blocksize (multiplexed)
   // multichannel samples. The actual number of values depends on the number of
   // output channels in the chosen channel setup.
-  float *decode(float *input);
+  // Modified by Dolphin to take a ring buffer in 2 parts
+  float* decode(const float* input_part_1, const float* input_part_2,
+    unsigned int part_1_num);
 
   // Flush the internal buffer.
   void flush();
@@ -105,7 +113,8 @@ public:
   void set_bass_redirection(bool v);
 
   // number of samples currently held in the buffer
-  unsigned int buffered();
+  unsigned int buffered() const;
+  float* input_buffer();
 
 private:
   // constants
@@ -157,7 +166,9 @@ private:
   std::vector<cplx> lf, rf;
 
   // FFT buffers
-  kiss_fftr_cfg forward, inverse;
+  // they used to be kiss_fftr_cfg but due to unsafe deletion Dolphin changed them to a char*
+  char* forward;
+  char* inverse;
 
   // buffers
   // whether the buffer is currently empty or dirty

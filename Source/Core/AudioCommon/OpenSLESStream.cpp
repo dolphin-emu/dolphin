@@ -136,6 +136,9 @@ OpenSLESStream::~OpenSLESStream()
     engineObject = nullptr;
     engineEngine = nullptr;
   }
+
+  g_mixer = nullptr;
+  curBuffer = 0;
 }
 
 void OpenSLESStream::SetVolume(int volume)

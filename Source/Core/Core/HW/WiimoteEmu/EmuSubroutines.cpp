@@ -356,6 +356,9 @@ void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& 
 {
   m_speaker_mute = rpt.enable;
 
+  // TODO: this is actually an HW write
+  m_speaker_logic.ResetDecoder();
+
   if (rpt.ack)
     SendAck(OutputReportID::SpeakerMute, ErrorCode::Success);
 }
@@ -363,6 +366,9 @@ void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& 
 void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
   m_status.speaker = rpt.enable;
+
+  // TODO: this is actually an HW write
+  m_speaker_logic.ResetDecoder();
 
   if (rpt.ack)
     SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);

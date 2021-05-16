@@ -43,6 +43,8 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  functions.
  */
 
+#include <cassert>
+
 static void kf_bfly2(kiss_fft_cpx *Fout, const size_t fstride,
                      const kiss_fft_cfg st, int m) {
   kiss_fft_cpx *Fout2;
@@ -379,6 +381,7 @@ kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem,
                      sizeof(kiss_fft_cpx) * (nfft - 1); /* twiddle factors*/
 
   if (lenmem == NULL) {
+    assert(false); // Support removed by Dolphin (unsafe)
     st = (kiss_fft_cfg) new char[memneeded];
   } else {
     if (mem != NULL && *lenmem >= memneeded)

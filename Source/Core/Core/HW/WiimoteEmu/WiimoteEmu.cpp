@@ -166,6 +166,8 @@ void Wiimote::Reset()
   m_i2c_bus.AddSlave(&m_speaker_logic);
   m_i2c_bus.AddSlave(&m_camera_logic);
 
+  m_speaker_logic.m_index = m_index;
+
   // Reset extension connections to NONE:
   m_is_motion_plus_attached = false;
   m_active_extension = ExtensionNumber::NONE;

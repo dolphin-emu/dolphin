@@ -249,7 +249,7 @@ static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8
     s_adpcm_decoder.DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
     for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
     {
-      // TODO: Fix the mixer so it can accept non-byte-swapped samples.
+      // TODO: Fix the mixer so it can accept non-byte-swapped samples
       s16* sample = &(*temp_pcm)[samples_processed * 2 + i];
       *sample = Common::swap16(*sample);
     }
@@ -298,12 +298,18 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                                  s64 cycles_late)
 {
-  // TODO: Should we use GetAISSampleRate instead of a fixed 48 KHz? The audio mixer is using
-  // GetAISSampleRate. (This doesn't affect any actual games, since they all set it to 48 KHz.)
-  const u32 sample_rate = AudioInterface::Get48KHzSampleRate();
+  // This determines which audio data to read next.
+  // Similarly to DMA audio, instead of sending a different number of samples each submission,
+  // we just change the frequency of the submission to match the sample rate.
+  // This is the only way to resolve floating point sample rates from the GC without precision loss.
+  // The Mixer (Mixer.cpp) might assume the above is true, so if you change the samples submitted
+  // per submission, make sure you review the Mixer as well.
 
-  // Determine which audio data to read next.
-  const u32 maximum_samples = sample_rate / 2000 * 7;  // 3.5 ms of samples
+  // 168 samples (3.5ms at 48kHz/5.25ms at 32kHz on Wii, similar numbers on GC).
+  // This number isn't HW tested, it was decided randomly.
+  // Real HW might read 32KB at a time, increasing the latency, which would mean our DVD audio
+  // could be slightly desynchronized from the video, at least compared to real HW.
+  static const int MAXIMUM_SAMPLES = 168;
   u64 read_offset = 0;
   u32 read_length = 0;
 
@@ -317,22 +323,25 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
     if (s_stream && AudioInterface::IsPlaying())
     {
       read_offset = s_audio_position;
-      read_length = AdvanceDTK(maximum_samples, &s_pending_samples);
+      read_length = AdvanceDTK(MAXIMUM_SAMPLES, &s_pending_samples);
     }
     else
     {
       read_length = 0;
-      s_pending_samples = maximum_samples;
+      s_pending_samples = MAXIMUM_SAMPLES;
     }
   }
   else
   {
     read_length = 0;
-    s_pending_samples = maximum_samples;
+    s_pending_samples = MAXIMUM_SAMPLES;
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) / sample_rate;
+  // With exact floating points values, GC sample rates multiply to precise
+  // integer numbers, no need to have a remainder or keep this as a double
+  s64 ticks_to_dtk =
+      (SystemTimers::GetTicksPerSecond() / AudioInterface::GetAISSampleRate()) * s_pending_samples;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
@@ -772,7 +781,7 @@ static bool CheckReadPreconditions()
   return true;
 }
 
-// Iff false is returned, ScheduleEvent must be used to finish executing the command
+// If false is returned, ScheduleEvent must be used to finish executing the command
 static bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length,
                                u32 output_length, const DiscIO::Partition& partition,
                                ReplyType reply_type, DIInterruptType* interrupt_type)
@@ -1301,7 +1310,7 @@ void SetDriveError(DriveError error)
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
                             const std::vector<u8>& data)
 {
-  // The data parameter contains the requested data iff this was called from DVDThread, and is
+  // The data parameter contains the requested data if this was called from DVDThread, and is
   // empty otherwise. DVDThread is the only source of ReplyType::NoReply and ReplyType::DTK.
 
   u32 transfer_size = 0;

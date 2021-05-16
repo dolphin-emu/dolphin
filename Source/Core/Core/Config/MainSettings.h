@@ -39,9 +39,12 @@ extern const Info<int> MAIN_GC_LANGUAGE;
 extern const Info<bool> MAIN_OVERRIDE_REGION_SETTINGS;
 extern const Info<bool> MAIN_DPL2_DECODER;
 extern const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY;
-extern const Info<int> MAIN_AUDIO_LATENCY;
+extern const Info<bool> MAIN_DPL2_BASS_REDIRECTION;
+// Only set this different from zero in case your audio backend constantly changes the number of
+// samples it asks the mixer for
+extern const Info<int> MAIN_AUDIO_MIXER_MIN_LATENCY;
+extern const Info<int> MAIN_AUDIO_MIXER_MAX_LATENCY;
 extern const Info<bool> MAIN_AUDIO_STRETCH;
-extern const Info<int> MAIN_AUDIO_STRETCH_LATENCY;
 extern const Info<std::string> MAIN_MEMCARD_A_PATH;
 extern const Info<std::string> MAIN_MEMCARD_B_PATH;
 extern const Info<std::string> MAIN_AGP_CART_A_PATH;

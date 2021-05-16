@@ -5,56 +5,85 @@
 #pragma once
 
 #ifdef _WIN32
-
-// clang-format off
 #include <Windows.h>
 #include <mmreg.h>
-#include <objbase.h>
-#include <wil/resource.h>
-// clang-format on
 
 #include <atomic>
 #include <string>
 #include <thread>
 #include <vector>
-#include <wrl/client.h>
+#endif
 
 #include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
 
 struct IAudioClient;
 struct IAudioRenderClient;
+struct IAudioClock;
+struct ISimpleAudioVolume;
 struct IMMDevice;
 struct IMMDeviceEnumerator;
-
-#endif
+class CustomNotificationClient;
+class AutoCoInit;
 
 class WASAPIStream final : public SoundStream
 {
-#ifdef _WIN32
 public:
-  explicit WASAPIStream();
+  static std::string GetName() { return _trans("WASAPI (Exclusive Mode)"); }
+#ifdef _WIN32
+  static bool IsValid() { return true; }
+  WASAPIStream();
   ~WASAPIStream();
   bool Init() override;
   bool SetRunning(bool running) override;
+  void Update() override;
   void SoundLoop() override;
 
-  static bool isValid();
-  static std::vector<std::string> GetAvailableDevices();
-  static Microsoft::WRL::ComPtr<IMMDevice> GetDeviceByName(std::string_view name);
+  bool IsRunning() const { return m_running; }
+  bool ShouldRestart() const { return m_should_restart; }
+  bool IsUsingDefaultDevice() const { return m_using_default_device; }
+
+  static bool SupportsSurround() { return true; }
+  static bool SupportsCustomLatency() { return true; }
+  static bool SupportsVolumeChanges() { return true; }
+  bool SupportsRuntimeSettingsChanges() const override { return true; }
+  AudioCommon::SurroundState GetSurroundState() const override;
+  void OnSettingsChanged() override { m_should_restart = true; }
+
+  // Returns the IDs and Names of all the devices
+  static std::vector<std::pair<std::string, std::string>> GetAvailableDevices();
+  // Returns the user selected device supported sample rates at 16 bit and 2 channels,
+  // so it ignores 24 bit or support for 5 channels. If we are starting up WASAPI with DPLII on,
+  // it will try these sample rates anyway, or fallback to the dolphin default one,
+  // but generally if a device supports a sample rate, it supports it with any bitrate/channels.
+  // It doesn't just return any device supported sample rate, just the ones we care for in Dolphin
+  static std::vector<unsigned long> GetSelectedDeviceSampleRates();
 
 private:
+  bool SetRestartFromResult(HRESULT result);
+
+  // Returns the first device found with the (friendly) name we passed in
+  static IMMDevice* GetDeviceByName(std::string_view name);
+  static IMMDevice* GetDeviceByID(std::string_view id);
+
   u32 m_frames_in_buffer = 0;
   std::atomic<bool> m_running = false;
+  std::atomic<bool> m_should_restart = false;
   std::thread m_thread;
 
-  // CoUninitialize must be called after all WASAPI COM objects have been destroyed,
-  // therefore this member must be located before them, as first class fields are destructed last
-  wil::unique_couninitialize_call m_coinitialize{false};
-
-  Microsoft::WRL::ComPtr<IMMDeviceEnumerator> m_enumerator;
-  Microsoft::WRL::ComPtr<IAudioClient> m_audio_client;
-  Microsoft::WRL::ComPtr<IAudioRenderClient> m_audio_renderer;
-  wil::unique_event_nothrow m_need_data_event;
+  IAudioClient* m_audio_client = nullptr;
+  IAudioRenderClient* m_audio_renderer = nullptr;
+  IAudioClock* m_audio_clock = nullptr;
+  ISimpleAudioVolume* m_simple_audio_volume = nullptr;
+  IMMDeviceEnumerator* m_enumerator = nullptr;
+  HANDLE m_need_data_event = nullptr;
+  HANDLE m_stop_thread_event = nullptr;
   WAVEFORMATEXTENSIBLE m_format;
+  std::unique_ptr<AutoCoInit> m_aci;
+  CustomNotificationClient* m_notification_client = nullptr;
+  bool m_surround = false;
+  bool m_using_default_device = false;
+  std::vector<float> m_surround_samples;
+  s64 m_wait_next_desync_check = 0;
 #endif  // _WIN32
 };
