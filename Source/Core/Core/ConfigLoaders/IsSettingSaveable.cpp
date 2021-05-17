@@ -26,11 +26,24 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
   if (config_location.system == Config::System::Main)
   {
-    for (const std::string& section : {"NetPlay", "General", "Display", "Network", "Analytics",
-                                       "AndroidOverlayButtons", "Android"})
+    for (const std::string& section :
+         {"NetPlay", "General", "Display", "Network", "Analytics", "AndroidOverlayButtons"})
     {
       if (config_location.section == section)
         return true;
+    }
+
+    // Android controller mappings are not saveable, other Android settings are.
+    // TODO: Kill the current Android controller mappings system
+    if (config_location.section == "Android")
+    {
+      static constexpr std::array<const char*, 8> android_setting_saveable = {
+          "ControlScale",    "ControlOpacity", "EmulationOrientation", "JoystickRelCenter",
+          "LastPlatformTab", "MotionControls", "PhoneRumble",          "ShowInputOverlay"};
+
+      return std::any_of(
+          android_setting_saveable.cbegin(), android_setting_saveable.cend(),
+          [&config_location](const char* key) { return key == config_location.key; });
     }
   }
 
