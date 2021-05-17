@@ -246,6 +246,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
