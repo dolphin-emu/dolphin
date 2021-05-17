@@ -814,6 +814,11 @@ void Tev::Draw()
       fog = 1.0f - fog;
       fog = pow(2.0f, -8.0f * fog * fog);
       break;
+    case FogType::Linear:
+      break;
+    case FogType::Off:
+      // We are in a if branch where this has already been checked not to be.
+      ASSERT(0);
     }
 
     // lerp from output to fog color
