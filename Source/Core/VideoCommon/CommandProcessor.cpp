@@ -48,6 +48,30 @@ static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)
   UpdateInterrupts(userdata);
 }
 
+void SCPFifoStruct::Init()
+{
+  CPBase = 0;
+  CPEnd = 0;
+  CPHiWatermark = 0;
+  CPLoWatermark = 0;
+  CPReadWriteDistance = 0;
+  CPWritePointer = 0;
+  CPReadPointer = 0;
+  CPBreakpoint = 0;
+  SafeCPReadPointer = 0;
+
+  bFF_GPLinkEnable = 0;
+  bFF_GPReadEnable = 0;
+  bFF_BPEnable = 0;
+  bFF_BPInt = 0;
+
+  bFF_Breakpoint.store(0, std::memory_order_relaxed);
+  bFF_HiWatermark.store(0, std::memory_order_relaxed);
+  bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
+  bFF_LoWatermark.store(0, std::memory_order_relaxed);
+  bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+}
+
 void SCPFifoStruct::DoState(PointerWrap& p)
 {
   p.Do(CPBase);
@@ -117,12 +141,7 @@ void Init()
 
   m_tokenReg = 0;
 
-  memset(&fifo, 0, sizeof(fifo));
-  fifo.bFF_Breakpoint.store(0, std::memory_order_relaxed);
-  fifo.bFF_HiWatermark.store(0, std::memory_order_relaxed);
-  fifo.bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
-  fifo.bFF_LoWatermark.store(0, std::memory_order_relaxed);
-  fifo.bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+  fifo.Init();
 
   s_interrupt_set.Clear();
   s_interrupt_waiting.Clear();
