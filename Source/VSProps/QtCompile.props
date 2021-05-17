@@ -7,7 +7,8 @@
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
     <QtDirValid>false</QtDirValid>
     <QtDirValid Condition="Exists('$(QTDIR)')">true</QtDirValid>
-    <QtIncludeDir>$(QTDIR)include\</QtIncludeDir>
+    <QtIncludeDirWithoutTrailingSeparator>$(QTDIR)include</QtIncludeDirWithoutTrailingSeparator>
+    <QtIncludeDir>$(QtIncludeDirWithoutTrailingSeparator)\</QtIncludeDir>
     <QtLibDir>$(QTDIR)lib\</QtLibDir>
     <QtBinDir>$(QTDIR)bin\</QtBinDir>
     <QtPluginsDir>$(QTDIR)plugins\</QtPluginsDir>
@@ -32,7 +33,7 @@
       -->
       <AdditionalOptions>%(AdditionalOptions) /experimental:external</AdditionalOptions>
       <AdditionalOptions>%(AdditionalOptions) /external:W0</AdditionalOptions>
-      <AdditionalOptions>%(AdditionalOptions) /external:I$(QtIncludeDir)</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "$(QtIncludeDirWithoutTrailingSeparator)"</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
