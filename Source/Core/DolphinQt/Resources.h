@@ -30,16 +30,16 @@ public:
 
   static QPixmap GetMisc(MiscID id);
 
-  static QIcon GetScaledIcon(const std::string& name);
-  static QIcon GetScaledThemeIcon(const std::string& name);
+  static QIcon GetScaledIcon(const std::string_view name);
+  static QIcon GetScaledThemeIcon(const std::string_view name);
   static QIcon GetAppIcon();
 
-  static QPixmap GetScaledPixmap(const std::string& name);
+  static QPixmap GetScaledPixmap(const std::string_view name);
 
 private:
   Resources() {}
-  static QIcon GetIcon(const QString& name, const QString& dir);
-  static QPixmap GetPixmap(const QString& name, const QString& dir);
+  static QIcon GetIcon(const std::string_view name, const QString& dir);
+  static QPixmap GetPixmap(const std::string_view name, const QString& dir);
 
   static QList<QPixmap> m_platforms;
   static QList<QPixmap> m_countries;
