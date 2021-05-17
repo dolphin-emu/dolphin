@@ -45,7 +45,7 @@ GameFileCache::GameFileCache() : m_path(File::GetUserPath(D_CACHE_IDX) + "gameli
 
 void GameFileCache::ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const
 {
-  for (const std::shared_ptr<const GameFile>& item : m_cached_files)
+  for (const std::shared_ptr<GameFile>& item : m_cached_files)
     f(item);
 }
 
