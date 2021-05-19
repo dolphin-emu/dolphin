@@ -12,7 +12,6 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Control/Input.h"
 
 namespace ControllerEmu
 {
@@ -52,13 +51,13 @@ IMUGyroscope::IMUGyroscope(std::string name_, std::string ui_name_)
              3, 0, 30);
 }
 
-void IMUGyroscope::RestartCalibration() const
+void IMUGyroscope::RestartCalibration()
 {
   m_calibration_period_start = Clock::now();
   m_running_calibration.Clear();
 }
 
-void IMUGyroscope::UpdateCalibration(const StateData& state) const
+void IMUGyroscope::UpdateCalibration(const StateData& state)
 {
   const auto now = Clock::now();
   const auto calibration_period = m_calibration_period_setting.GetValue();
@@ -123,21 +122,36 @@ auto IMUGyroscope::GetRawState() const -> StateData
                    controls[4]->GetState() - controls[5]->GetState());
 }
 
-std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState() const
+bool IMUGyroscope::AreInputsBound() const
 {
-  if (std::all_of(controls.begin(), controls.end(),
-                  [](const auto& control) { return control->control_ref->BoundCount() == 0; }))
+  return std::all_of(controls.begin(), controls.end(),
+                     [](const auto& control) { return control->control_ref->BoundCount() > 0; });
+}
+
+bool IMUGyroscope::CanCalibrate() const
+{
+  // If the input gate is disabled, miscalibration to zero values would occur.
+  return ControlReference::GetInputGate();
+}
+
+std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)
+{
+  if (!AreInputsBound())
   {
-    // Set calibration to zero.
-    m_calibration = {};
-    RestartCalibration();
+    if (update)
+    {
+      // Set calibration to zero.
+      m_calibration = {};
+      RestartCalibration();
+    }
     return std::nullopt;
   }
 
   auto state = GetRawState();
 
-  // If the input gate is disabled, miscalibration to zero values would occur.
-  if (ControlReference::GetInputGate())
+  // Alternatively we could open the control gate around GetRawState() while calibrating,
+  // but that would imply background input would temporarily be treated differently for our controls
+  if (update && CanCalibrate())
     UpdateCalibration(state);
 
   state -= m_calibration;
