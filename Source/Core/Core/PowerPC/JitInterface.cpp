@@ -49,8 +49,6 @@ void SetJit(JitBase* jit)
 }
 void DoState(PointerWrap& p)
 {
-  if (g_jit && p.GetMode() == PointerWrap::MODE_READ)
-    g_jit->ClearCache();
 }
 CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
 {

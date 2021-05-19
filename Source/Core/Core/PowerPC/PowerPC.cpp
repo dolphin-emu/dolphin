@@ -129,8 +129,8 @@ void DoState(PointerWrap& p)
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
-    IBATUpdated();
-    DBATUpdated();
+    //IBATUpdated();
+    //DBATUpdated();
   }
 
   // SystemTimers::DecrementerSet();

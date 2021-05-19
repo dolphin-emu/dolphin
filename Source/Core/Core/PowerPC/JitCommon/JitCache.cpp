@@ -60,9 +60,9 @@ void JitBaseBlockCache::Shutdown()
 // is full and when saving and loading states.
 void JitBaseBlockCache::Clear()
 {
-#if defined(_DEBUG) || defined(DEBUGFAST)
+//#if defined(_DEBUG) || defined(DEBUGFAST)
   Core::DisplayMessage("Clearing code cache.", 3000);
-#endif
+//#endif
   m_jit.js.fifoWriteAddresses.clear();
   m_jit.js.pairedQuantizeAddresses.clear();
   for (auto& e : block_map)
