@@ -234,18 +234,6 @@ public final class SettingsFile
     readFile(getCustomGameSettingsFile(gameId), ini, view);
   }
 
-  public static void readGenericGameSettings(final String gameId, IniFile ini,
-          SettingsActivityView view)
-  {
-    readFile(getGenericGameSettingsFile(gameId), ini, view);
-  }
-
-  public static void readGenericGameSettingsForAllRegions(final String gameId,
-          IniFile ini, SettingsActivityView view)
-  {
-    readFile(getGenericGameSettingsForAllRegions(gameId), ini, view);
-  }
-
   /**
    * Saves a given .ini file on disk.
    * If unsuccessful, outputs an error telling why it failed.
@@ -294,22 +282,6 @@ public final class SettingsFile
   {
     return new File(
             DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
-  }
-
-  private static File getGenericGameSettingsForAllRegions(String gameId)
-  {
-    // Use the first 3 chars from the gameId to load the generic game settings for all regions
-    gameId = gameId.substring(0, 3);
-    return new File(
-            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
-                    gameId + ".ini");
-  }
-
-  private static File getGenericGameSettingsFile(String gameId)
-  {
-    return new File(
-            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
-                    gameId + ".ini");
   }
 
   public static File getCustomGameSettingsFile(String gameId)
