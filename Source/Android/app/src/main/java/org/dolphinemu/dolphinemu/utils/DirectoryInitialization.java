@@ -42,7 +42,6 @@ public final class DirectoryInitialization
           DirectoryInitializationState.NOT_YET_INITIALIZED;
   private static volatile boolean areDirectoriesAvailable = false;
   private static String userPath;
-  private static String internalPath;
   private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
 
   public enum DirectoryInitializationState
@@ -128,7 +127,6 @@ public final class DirectoryInitialization
   private static void initializeInternalStorage(Context context)
   {
     File sysDirectory = new File(context.getFilesDir(), "Sys");
-    internalPath = sysDirectory.getAbsolutePath();
 
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     String revision = NativeLibrary.GetGitRevision();
@@ -239,16 +237,6 @@ public final class DirectoryInitialization
               "DirectoryInitialization must run before accessing the user directory!");
     }
     return userPath;
-  }
-
-  public static String getDolphinInternalDirectory()
-  {
-    if (!areDirectoriesAvailable)
-    {
-      throw new IllegalStateException(
-              "DirectoryInitialization must run before accessing the internal directory!");
-    }
-    return internalPath;
   }
 
   private static void sendBroadcastState(DirectoryInitializationState state, Context context)
