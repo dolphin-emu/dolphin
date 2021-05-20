@@ -97,7 +97,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
       &m_always_connected_setting,
       // i18n: Treat a controller as always being connected regardless of what
       // devices the user actually has plugged in
-      {_trans("Always Connected"), "",
+      {_trans("Always Connected"), nullptr,
        _trans("If checked, the emulated controller is always connected.\n"
               "If unchecked, the connection state of the emulated controller is linked\n"
               "to the connection state of the real default device (if there is one).")},
