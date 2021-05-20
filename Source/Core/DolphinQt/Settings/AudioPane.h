@@ -13,8 +13,8 @@ enum class DPL2Quality;
 
 class QCheckBox;
 class QComboBox;
+class QHBoxLayout;
 class QLabel;
-class QGridLayout;
 class QRadioButton;
 class QSlider;
 class QSpinBox;
@@ -45,7 +45,7 @@ private:
   QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const;
   void EnableDolbyQualityWidgets(bool enabled) const;
 
-  QGridLayout* m_main_layout;
+  QHBoxLayout* m_main_layout;
 
   // DSP Engine
   QRadioButton* m_dsp_hle;
