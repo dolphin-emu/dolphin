@@ -44,7 +44,7 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   return result;
 }
 
-jobjectArray JStringArrayFromVector(JNIEnv* env, std::vector<std::string> vector)
+jobjectArray VectorToJStringArray(JNIEnv* env, std::vector<std::string> vector)
 {
   jobjectArray result = env->NewObjectArray(vector.size(), IDCache::GetStringClass(), nullptr);
   for (jsize i = 0; i < vector.size(); ++i)
@@ -145,7 +145,7 @@ std::vector<std::string> DoFileSearchAndroidContent(const std::string& directory
   JNIEnv* env = IDCache::GetEnvForThread();
   jobject result = env->CallStaticObjectMethod(
       IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(),
-      ToJString(env, directory), JStringArrayFromVector(env, extensions), recursive);
+      ToJString(env, directory), VectorToJStringArray(env, extensions), recursive);
   return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(result));
 }
 
