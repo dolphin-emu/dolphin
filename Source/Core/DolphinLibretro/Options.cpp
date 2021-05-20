@@ -184,6 +184,7 @@ Option<int> maxAnisotropy("dolphin_max_anisotropy", "Max Anisotropy", 0, 17);
 Option<bool> efbScaledCopy("dolphin_efb_scaled_copy", "Scaled EFB Copy", true);
 Option<bool> efbToTexture("dolphin_efb_to_texture", "Store EFB Copies on GPU", true);
 Option<bool> efbToVram("dolphin_efb_to_vram", "Disable EFB to VRAM", false);
+Option<bool> fastDepthCalc("dolphin_fast_depth_calculation", "Fast Depth Calculation", true);
 Option<bool> bboxEnabled("dolphin_bbox_enabled", "Bounding Box Emulation", false);
 Option<bool> gpuTextureDecoding("dolphin_gpu_texture_decoding", "GPU Texture Decoding", false);
 Option<bool> waitForShaders("dolphin_wait_for_shaders", "Wait for Shaders before Starting", false);

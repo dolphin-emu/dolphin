@@ -109,6 +109,7 @@ extern Option<int> maxAnisotropy;
 extern Option<bool> efbScaledCopy;
 extern Option<bool> efbToTexture;
 extern Option<bool> efbToVram;
+extern Option<bool> fastDepthCalc;
 extern Option<bool> bboxEnabled;
 extern Option<bool> gpuTextureDecoding;
 extern Option<bool> waitForShaders;

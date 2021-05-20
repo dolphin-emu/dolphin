@@ -123,6 +123,7 @@ bool retro_load_game(const struct retro_game_info* game)
   Config::SetBase(Config::GFX_HACK_COPY_EFB_SCALED, Libretro::Options::efbScaledCopy);
   Config::SetBase(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, Libretro::Options::efbToTexture);
   Config::SetBase(Config::GFX_HACK_DISABLE_COPY_TO_VRAM, Libretro::Options::efbToVram);
+  Config::SetBase(Config::GFX_FAST_DEPTH_CALC, Libretro::Options::fastDepthCalc);
   Config::SetBase(Config::GFX_HACK_BBOX_ENABLE, Libretro::Options::bboxEnabled);
   Config::SetBase(Config::GFX_ENABLE_GPU_TEXTURE_DECODING, Libretro::Options::gpuTextureDecoding);
   Config::SetBase(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING, Libretro::Options::waitForShaders);
