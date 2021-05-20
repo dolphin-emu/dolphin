@@ -46,11 +46,7 @@ WriteHandlingMethod<T>* Nop();
 template <typename T>
 ReadHandlingMethod<T>* DirectRead(const T* addr, u32 mask = 0xFFFFFFFF);
 template <typename T>
-ReadHandlingMethod<T>* DirectRead(volatile const T* addr, u32 mask = 0xFFFFFFFF);
-template <typename T>
 WriteHandlingMethod<T>* DirectWrite(T* addr, u32 mask = 0xFFFFFFFF);
-template <typename T>
-WriteHandlingMethod<T>* DirectWrite(volatile T* addr, u32 mask = 0xFFFFFFFF);
 
 // Complex: use when no other handling method fits your needs. These allow you
 // to directly provide a function that will be called when a read/write needs
@@ -204,9 +200,7 @@ private:
   MaybeExtern template ReadHandlingMethod<T>* Constant<T>(T value);                                \
   MaybeExtern template WriteHandlingMethod<T>* Nop<T>();                                           \
   MaybeExtern template ReadHandlingMethod<T>* DirectRead(const T* addr, u32 mask);                 \
-  MaybeExtern template ReadHandlingMethod<T>* DirectRead(volatile const T* addr, u32 mask);        \
   MaybeExtern template WriteHandlingMethod<T>* DirectWrite(T* addr, u32 mask);                     \
-  MaybeExtern template WriteHandlingMethod<T>* DirectWrite(volatile T* addr, u32 mask);            \
   MaybeExtern template ReadHandlingMethod<T>* ComplexRead<T>(std::function<T(u32)>);               \
   MaybeExtern template WriteHandlingMethod<T>* ComplexWrite<T>(std::function<void(u32, T)>);       \
   MaybeExtern template ReadHandlingMethod<T>* InvalidRead<T>();                                    \

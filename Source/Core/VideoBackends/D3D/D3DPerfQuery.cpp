@@ -27,11 +27,13 @@ PerfQuery::~PerfQuery() = default;
 
 void PerfQuery::EnableQuery(PerfQueryGroup type)
 {
+  const u32 query_count = m_query_count.load(std::memory_order_relaxed);
+
   // Is this sane?
-  if (m_query_count > m_query_buffer.size() / 2)
+  if (query_count > m_query_buffer.size() / 2)
     WeakFlush();
 
-  if (m_query_buffer.size() == m_query_count)
+  if (m_query_buffer.size() == query_count)
   {
     // TODO
     FlushOne();
@@ -41,12 +43,12 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   // start query
   if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
   {
-    auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % m_query_buffer.size()];
+    auto& entry = m_query_buffer[(m_query_read_pos + query_count) % m_query_buffer.size()];
 
     D3D::context->Begin(entry.query.Get());
     entry.query_type = type;
 
-    ++m_query_count;
+    m_query_count.fetch_add(1, std::memory_order_relaxed);
   }
 }
 
@@ -55,7 +57,8 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
   // stop query
   if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
   {
-    auto& entry = m_query_buffer[(m_query_read_pos + m_query_count + m_query_buffer.size() - 1) %
+    auto& entry = m_query_buffer[(m_query_read_pos + m_query_count.load(std::memory_order_relaxed) +
+                                  m_query_buffer.size() - 1) %
                                  m_query_buffer.size()];
     D3D::context->End(entry.query.Get());
   }
@@ -63,8 +66,9 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 
 void PerfQuery::ResetQuery()
 {
-  m_query_count = 0;
-  std::fill(std::begin(m_results), std::end(m_results), 0);
+  m_query_count.store(0, std::memory_order_relaxed);
+  for (size_t i = 0; i < m_results.size(); ++i)
+    m_results[i].store(0, std::memory_order_relaxed);
 }
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)
@@ -72,13 +76,22 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
   u32 result = 0;
 
   if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
-    result = m_results[PQG_ZCOMP_ZCOMPLOC];
+  {
+    result = m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
+  }
   else if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT)
-    result = m_results[PQG_ZCOMP];
+  {
+    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed);
+  }
   else if (type == PQ_BLEND_INPUT)
-    result = m_results[PQG_ZCOMP] + m_results[PQG_ZCOMP_ZCOMPLOC];
+  {
+    result = m_results[PQG_ZCOMP].load(std::memory_order_relaxed) +
+             m_results[PQG_ZCOMP_ZCOMPLOC].load(std::memory_order_relaxed);
+  }
   else if (type == PQ_EFB_COPY_CLOCKS)
-    result = m_results[PQG_EFB_COPY_CLOCKS];
+  {
+    result = m_results[PQG_EFB_COPY_CLOCKS].load(std::memory_order_relaxed);
+  }
 
   return result;
 }
@@ -98,11 +111,13 @@ void PerfQuery::FlushOne()
   // NOTE: Reported pixel metrics should be referenced to native resolution
   // TODO: Dropping the lower 2 bits from this count should be closer to actual
   // hardware behavior when drawing triangles.
-  m_results[entry.query_type] += (u32)(result * EFB_WIDTH / g_renderer->GetTargetWidth() *
-                                       EFB_HEIGHT / g_renderer->GetTargetHeight());
+  const u64 native_res_result = result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT /
+                                g_renderer->GetTargetHeight();
+  m_results[entry.query_type].fetch_add(static_cast<u32>(native_res_result),
+                                        std::memory_order_relaxed);
 
   m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
-  --m_query_count;
+  m_query_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 // TODO: could selectively flush things, but I don't think that will do much
@@ -125,11 +140,13 @@ void PerfQuery::WeakFlush()
     if (hr == S_OK)
     {
       // NOTE: Reported pixel metrics should be referenced to native resolution
-      m_results[entry.query_type] += (u32)(result * EFB_WIDTH / g_renderer->GetTargetWidth() *
-                                           EFB_HEIGHT / g_renderer->GetTargetHeight());
+      const u64 native_res_result = result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT /
+                                    g_renderer->GetTargetHeight();
+      m_results[entry.query_type].store(static_cast<u32>(native_res_result),
+                                        std::memory_order_relaxed);
 
       m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
-      --m_query_count;
+      m_query_count.fetch_sub(1, std::memory_order_relaxed);
     }
     else
     {
@@ -140,7 +157,7 @@ void PerfQuery::WeakFlush()
 
 bool PerfQuery::IsFlushed() const
 {
-  return 0 == m_query_count;
+  return m_query_count.load(std::memory_order_relaxed) == 0;
 }
 
 }  // namespace DX11

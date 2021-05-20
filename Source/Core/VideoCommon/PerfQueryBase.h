@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <array>
+#include <atomic>
 #include <memory>
+
 #include "Common/CommonTypes.h"
 
 enum PerfQueryType
@@ -61,9 +64,8 @@ public:
   virtual bool IsFlushed() const { return true; }
 
 protected:
-  // TODO: sloppy
-  volatile u32 m_query_count;
-  volatile u32 m_results[PQG_NUM_MEMBERS];
+  std::atomic<u32> m_query_count;
+  std::array<std::atomic<u32>, PQG_NUM_MEMBERS> m_results;
 };
 
 extern std::unique_ptr<PerfQueryBase> g_perf_query;
