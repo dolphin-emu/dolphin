@@ -2310,6 +2310,12 @@ void ARM64FloatEmitter::EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
+void ARM64FloatEmitter::EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Write32((1 << 30) | (U << 29) | (0b11110001 << 21) | (size << 22) | (opcode << 12) | (1 << 11) |
+          (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
 void ARM64FloatEmitter::Emit2RegMisc(bool Q, bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
 {
   ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "%s doesn't support singles!", __func__);
@@ -3100,6 +3106,15 @@ void ARM64FloatEmitter::FNEG(ARM64Reg Rd, ARM64Reg Rn)
 void ARM64FloatEmitter::FSQRT(ARM64Reg Rd, ARM64Reg Rn)
 {
   EmitScalar1Source(0, 0, IsDouble(Rd), 3, Rd, Rn);
+}
+
+void ARM64FloatEmitter::FRECPE(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalar2RegMisc(0, 2 | IsDouble(Rd), 0x1D, Rd, Rn);
+}
+void ARM64FloatEmitter::FRSQRTE(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalar2RegMisc(1, 2 | IsDouble(Rd), 0x1D, Rd, Rn);
 }
 
 // Scalar - 2 Source

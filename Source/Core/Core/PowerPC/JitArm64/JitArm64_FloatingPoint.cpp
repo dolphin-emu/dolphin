@@ -24,8 +24,16 @@ void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
 
-  reg = single ? EncodeRegToSingle(reg) : EncodeRegToDouble(reg);
-  m_float_emit.FMOV(single ? ARM64Reg::W0 : ARM64Reg::X0, reg);
+  const ARM64Reg routine_input_reg = single ? ARM64Reg::W0 : ARM64Reg::X0;
+  if (IsVector(reg))
+  {
+    m_float_emit.FMOV(routine_input_reg, single ? EncodeRegToSingle(reg) : EncodeRegToDouble(reg));
+  }
+  else if (reg != routine_input_reg)
+  {
+    MOV(routine_input_reg, reg);
+  }
+
   BL(single ? GetAsmRoutines()->fprf_single : GetAsmRoutines()->fprf_double);
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
@@ -428,6 +436,60 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 
   ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
              "Register allocation turned singles into doubles in the middle of fctiwzx");
+}
+
+void JitArm64::fresx(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(inst.Rc);
+
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
+
+  const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
+  m_float_emit.FMOV(ARM64Reg::X1, EncodeRegToDouble(VB));
+  m_float_emit.FRECPE(ARM64Reg::D0, EncodeRegToDouble(VB));
+
+  BL(GetAsmRoutines()->fres);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
+
+  const ARM64Reg VD = fpr.RW(d, RegType::Duplicated);
+  m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
+
+  SetFPRFIfNeeded(false, ARM64Reg::X0);
+}
+
+void JitArm64::frsqrtex(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(inst.Rc);
+
+  const u32 b = inst.FB;
+  const u32 d = inst.FD;
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
+
+  const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
+  m_float_emit.FMOV(ARM64Reg::X1, EncodeRegToDouble(VB));
+  m_float_emit.FRSQRTE(ARM64Reg::D0, EncodeRegToDouble(VB));
+
+  BL(GetAsmRoutines()->frsqrte);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
+
+  const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
+  m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
+
+  SetFPRFIfNeeded(false, ARM64Reg::X0);
 }
 
 // Since the following float conversion functions are used in non-arithmetic PPC float

@@ -84,6 +84,8 @@
   <ItemGroup Condition="'$(Platform)'=='ARM64'">
     <ClCompile Include="Core\PowerPC\JitArm64\ConvertSingleDouble.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\FPRF.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\Fres.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\Frsqrte.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\MovI2R.cpp" />
   </ItemGroup>
   <ItemGroup>

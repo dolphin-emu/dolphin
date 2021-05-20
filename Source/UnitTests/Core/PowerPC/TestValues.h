@@ -8,7 +8,7 @@
 
 #include "Common/CommonTypes.h"
 
-constexpr std::array<u64, 49> double_test_values{
+constexpr std::array<u64, 57> double_test_values{
     // Special values
     0x0000'0000'0000'0000,  // positive zero
     0x0000'0000'0000'0001,  // smallest positive denormal
@@ -54,13 +54,25 @@ constexpr std::array<u64, 49> double_test_values{
     0x3680'1234'5678'9ABC, 0x36A0'1234'5678'9ABC, 0x36B0'1234'5678'9ABC, 0xB680'1234'5678'9ABC,
     0xB6A0'1234'5678'9ABC, 0xB6B0'1234'5678'9ABC,
 
+    // (exp > 1148) Boundary case for fres
+    0x47C0'0000'0000'0000,  // 2^125 = fres result is non-zero
+    0x47D0'0000'0000'0000,  // 2^126 = fres result is zero
+    0xC7C0'0000'0000'0000,  // -2^125 = fres result is non-zero
+    0xC7D0'0000'0000'0000,  // -2^126 = fres result is zero
+
+    // (exp < 895) Boundary case for fres
+    0x37F0'0000'0000'0000,  // 2^(-128) = fres result is non-max
+    0x37E0'0000'0000'0000,  // 2^(-129) = fres result is max
+    0xB7F0'0000'0000'0000,  // -2^(-128) = fres result is non-max
+    0xB7E0'0000'0000'0000,  // -2^(-129) = fres result is max
+
     // Some typical numbers
     0x3FF8'0000'0000'0000,  // 1.5
     0x408F'4000'0000'0000,  // 1000
     0xC008'0000'0000'0000,  // -3
 };
 
-constexpr std::array<u32, 29> single_test_values{
+constexpr std::array<u32, 33> single_test_values{
     // Special values
     0x0000'0000,  // positive zero
     0x0000'0001,  // smallest positive denormal
@@ -88,6 +100,12 @@ constexpr std::array<u32, 29> single_test_values{
     0xFFBF'FFFF,  // last negative SNaN
     0xFFC0'0000,  // first negative QNaN
     0xFFFF'FFFF,  // last negative QNaN
+
+    // (exp > 252) Boundary case for fres
+    0x7E00'0000,  // 2^125 = fres result is non-zero
+    0x7E80'0000,  // 2^126 = fres result is zero
+    0xC7C0'0000,  // -2^125 = fres result is non-zero
+    0xC7D0'0000,  // -2^126 = fres result is zero
 
     // Some typical numbers
     0x3FC0'0000,  // 1.5
