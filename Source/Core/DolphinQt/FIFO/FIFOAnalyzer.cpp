@@ -632,6 +632,8 @@ void FIFOAnalyzer::UpdateDescription()
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};
+    // i18n: A normal matrix is a matrix used for transforming normal vectors. The word "normal"
+    // does not have its usual meaning here, but rather the meaning of "perpendicular to a surface".
     text += tr("Usually used for normal matrices");
     text += QLatin1Char{'\n'};
     text += QString::fromStdString(written);
@@ -642,6 +644,7 @@ void FIFOAnalyzer::UpdateDescription()
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};
+    // i18n: Tex coord is short for texture coordinate
     text += tr("Usually used for tex coord matrices");
     text += QLatin1Char{'\n'};
     text += QString::fromStdString(written);
@@ -659,11 +662,12 @@ void FIFOAnalyzer::UpdateDescription()
   else if ((*cmddata & 0xC0) == 0x80)
   {
     const u8 vat = *cmddata & OpcodeDecoder::GX_VAT_MASK;
-    const auto name = GetPrimitiveName(*cmddata);
+    const QString name = QString::fromStdString(GetPrimitiveName(*cmddata));
     const u16 vertex_count = Common::swap16(cmddata + 1);
 
-    text = tr("Primitive ");
-    text += QString::fromStdString(name);
+    // i18n: In this context, a primitive means a point, line, triangle or rectangle.
+    // Do not translate the word primitive as if it was an adjective.
+    text = tr("Primitive %1").arg(name);
     text += QLatin1Char{'\n'};
 
     const auto& vtx_desc = frame_info.objectCPStates[object_nr].vtxDesc;
