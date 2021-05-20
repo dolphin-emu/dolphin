@@ -656,6 +656,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_DSPEnableJIT;
       packet >> m_net_settings.m_DSPHLE;
       packet >> m_net_settings.m_WriteToMemcard;
+      packet >> m_net_settings.m_RAMOverrideEnable;
       packet >> m_net_settings.m_Mem1Size;
       packet >> m_net_settings.m_Mem2Size;
 
@@ -665,6 +666,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
       }
 
+      packet >> m_net_settings.m_AllowSDWrites;
       packet >> m_net_settings.m_CopyWiiSave;
       packet >> m_net_settings.m_OCEnable;
       packet >> m_net_settings.m_OCFactor;
