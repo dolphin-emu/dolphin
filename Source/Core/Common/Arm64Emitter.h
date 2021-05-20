@@ -1000,6 +1000,7 @@ public:
   void FRSQRTE(ARM64Reg Rd, ARM64Reg Rn);
 
   // Scalar - 2 Source
+  void ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FMUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void FSUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
@@ -1020,7 +1021,9 @@ public:
   void FMOV(ARM64Reg Rd, uint8_t imm8);
 
   // Vector
+  void ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
   void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
@@ -1043,6 +1046,7 @@ public:
   void FSUB(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void NOT(ARM64Reg Rd, ARM64Reg Rn);
   void ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void ORN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void MOV(ARM64Reg Rd, ARM64Reg Rn) { ORR(Rd, Rn, Rn); }
   void REV16(u8 size, ARM64Reg Rd, ARM64Reg Rn);
   void REV32(u8 size, ARM64Reg Rd, ARM64Reg Rn);
@@ -1128,6 +1132,7 @@ public:
 
   // Modified Immediate
   void MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift = 0);
+  void ORR(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
   void BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift = 0);
 
   void MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch = ARM64Reg::INVALID_REG,
@@ -1145,6 +1150,7 @@ private:
   void EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
   void EmitScalar2Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn,
                          ARM64Reg Rm);
+  void EmitScalarThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd, ARM64Reg Rn);
   void EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
@@ -1177,6 +1183,8 @@ private:
                            ARM64Reg Rn, s32 imm);
   void EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
   void EncodeModImm(bool Q, u8 op, u8 cmode, u8 o2, ARM64Reg Rd, u8 abcdefgh);
+
+  void ORR_BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift, u8 op);
 
   void SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper);
   void USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper);

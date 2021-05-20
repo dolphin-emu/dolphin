@@ -270,6 +270,8 @@ protected:
                bool Rc = false);
 
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
+  void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input,
+                           Arm64Gen::ARM64Reg temp);
 
   // <Fastmem fault location, slowmem handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler;

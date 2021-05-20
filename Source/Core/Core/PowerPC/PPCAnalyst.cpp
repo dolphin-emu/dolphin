@@ -979,7 +979,19 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     op.fprIsStoreSafeBeforeInst = fprIsStoreSafe;
     if (op.fregOut >= 0)
     {
-      if (op.opinfo->type == OpType::SingleFP)
+      BitSet32 bitexact_inputs;
+      if (op.opinfo->flags &
+          (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
+      {
+        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
+          bitexact_inputs[op.inst.FA] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
+          bitexact_inputs[op.inst.FB] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
+          bitexact_inputs[op.inst.FC] = true;
+      }
+
+      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
@@ -988,6 +1000,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
+      }
+      else if (bitexact_inputs)
+      {
+        fprIsSingle[op.fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
+        fprIsDuplicated[op.fregOut] = false;
       }
       else if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
       {
@@ -1007,20 +1024,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
         // So, discard all information we have.
         fprIsStoreSafe = BitSet32(0);
       }
-      else if (op.opinfo->flags &
-               (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
+      else if (bitexact_inputs)
       {
         // If the instruction copies bits between registers (without flushing denormals to zero
         // or turning SNaN into QNaN), the output is store-safe if the inputs are.
-
-        BitSet32 bitexact_inputs;
-        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
-          bitexact_inputs[op.inst.FA] = true;
-        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
-          bitexact_inputs[op.inst.FB] = true;
-        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
-          bitexact_inputs[op.inst.FC] = true;
-
         fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
       }
       else
@@ -1032,8 +1039,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
         // TODO: if we go directly from a load to a float instruction, and the value isn't used
         // for anything else, we can use fast single -> double conversion after the load.
 
-        fprIsStoreSafe[op.fregOut] =
-            (op.opinfo->type == OpType::SingleFP || op.opinfo->type == OpType::PS);
+        fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
+                                     op.opinfo->type == OpType::PS ||
+                                     !strncmp(op.opinfo->opname, "frsp", 4);
       }
     }
     op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
