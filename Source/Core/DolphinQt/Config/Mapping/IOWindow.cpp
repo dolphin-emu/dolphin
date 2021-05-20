@@ -9,8 +9,6 @@
 
 #include <QComboBox>
 #include <QDialogButtonBox>
-#include <QGroupBox>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QItemDelegate>
 #include <QLabel>
@@ -31,6 +29,7 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -220,6 +219,8 @@ IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* con
   CreateMainLayout();
 
   connect(parent, &MappingWidget::Update, this, &IOWindow::Update);
+  connect(parent->GetParent(), &MappingWindow::ConfigChanged, this, &IOWindow::ConfigChanged);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &IOWindow::ConfigChanged);
 
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -229,7 +230,7 @@ IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* con
   ConnectWidgets();
 }
 
-std::shared_ptr<ciface::Core::Device> IOWindow::GetSelectedDevice()
+std::shared_ptr<ciface::Core::Device> IOWindow::GetSelectedDevice() const
 {
   return m_selected_device;
 }
@@ -258,7 +259,7 @@ void IOWindow::CreateMainLayout()
   m_expression_text->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
   new ControlExpressionSyntaxHighlighter(m_expression_text->document());
 
-  m_operators_combo = new QComboBoxWithMouseWheelDisabled();
+  m_operators_combo = new QComboBoxWithMouseWheelDisabled(this);
   m_operators_combo->addItem(tr("Operators"));
   m_operators_combo->insertSeparator(1);
   if (m_type == Type::Input)
@@ -340,6 +341,7 @@ void IOWindow::CreateMainLayout()
     m_option_list->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
 
     m_option_list->setItemDelegate(new InputStateDelegate(this, 1, [&](int row) {
+      std::lock_guard lock(m_selected_device_mutex);
       // Clamp off negative values but allow greater than one in the text display.
       return std::max(GetSelectedDevice()->Inputs()[row]->GetState(), 0.0);
     }));
@@ -400,7 +402,7 @@ void IOWindow::CreateMainLayout()
 void IOWindow::ConfigChanged()
 {
   const QSignalBlocker blocker(this);
-  const auto lock = m_controller->GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
 
   // ensure m_parse_text is in the right state
   UpdateExpression(m_reference->GetExpression(), UpdateMode::Force);
@@ -410,10 +412,10 @@ void IOWindow::ConfigChanged()
   m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
   m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
 
-  m_devq = m_controller->GetDefaultDevice();
+  if (m_devq.ToString().empty())
+    m_devq = m_controller->GetDefaultDevice();
 
   UpdateDeviceList();
-  UpdateOptionList();
 }
 
 void IOWindow::Update()
@@ -425,6 +427,8 @@ void IOWindow::Update()
 void IOWindow::ConnectWidgets()
 {
   connect(m_select_button, &QPushButton::clicked, [this] { AppendSelectedOption(); });
+  connect(&Settings::Instance(), &Settings::ReleaseDevices, this, &IOWindow::ReleaseDevices);
+  connect(&Settings::Instance(), &Settings::DevicesChanged, this, &IOWindow::UpdateDeviceList);
 
   connect(m_detect_button, &QPushButton::clicked, this, &IOWindow::OnDetectButtonPressed);
   connect(m_test_button, &QPushButton::clicked, this, &IOWindow::OnTestButtonPressed);
@@ -479,16 +483,19 @@ void IOWindow::ConnectWidgets()
 
 void IOWindow::AppendSelectedOption()
 {
-  if (m_option_list->currentItem() == nullptr)
+  if (m_option_list->currentRow() < 0)
     return;
 
   m_expression_text->insertPlainText(MappingCommon::GetExpressionForControl(
-      m_option_list->currentItem()->text(), m_devq, m_controller->GetDefaultDevice()));
+      m_option_list->item(m_option_list->currentRow(), 0)->text(), m_devq,
+      m_controller->GetDefaultDevice()));
 }
 
-void IOWindow::OnDeviceChanged(const QString& device)
+void IOWindow::OnDeviceChanged()
 {
-  m_devq.FromString(device.toStdString());
+  const std::string device_name =
+      m_devices_combo->count() > 0 ? m_devices_combo->currentData().toString().toStdString() : "";
+  m_devq.FromString(device_name);
   UpdateOptionList();
 }
 
@@ -500,7 +507,7 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
     return;
   }
 
-  const auto lock = m_controller->GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
 
   UpdateExpression(m_expression_text->toPlainText().toStdString());
   m_original_expression = m_reference->GetExpression();
@@ -525,6 +532,7 @@ void IOWindow::OnDetectButtonPressed()
 
   const auto list = m_option_list->findItems(expression, Qt::MatchFixedString);
 
+  // Try to select the first. If this fails, the last selected item would still appear as such
   if (!list.empty())
     m_option_list->setCurrentItem(list[0]);
 }
@@ -541,8 +549,15 @@ void IOWindow::OnRangeChanged(int value)
   m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
 }
 
+void IOWindow::ReleaseDevices()
+{
+  std::lock_guard lock(m_selected_device_mutex);
+  m_selected_device = nullptr;
+}
+
 void IOWindow::UpdateOptionList()
 {
+  std::lock_guard lock(m_selected_device_mutex);
   m_selected_device = g_controller_interface.FindDevice(m_devq);
   m_option_list->setRowCount(0);
 
@@ -575,13 +590,62 @@ void IOWindow::UpdateOptionList()
 
 void IOWindow::UpdateDeviceList()
 {
+  const QSignalBlocker blocker(m_devices_combo);
+
+  const auto previous_device_name = m_devices_combo->currentData().toString().toStdString();
+
   m_devices_combo->clear();
 
+  // Default to the default device or to the first device if there isn't a default.
+  // Try to the keep the previous selected device, mark it as disconnected if it's gone, as it could
+  // reconnect soon after if this is a devices refresh and it would be annoying to lose the value.
+  const auto default_device_name = m_controller->GetDefaultDevice().ToString();
+  int default_device_index = -1;
+  int previous_device_index = -1;
   for (const auto& name : g_controller_interface.GetAllDeviceStrings())
-    m_devices_combo->addItem(QString::fromStdString(name));
+  {
+    QString qname = QString();
+    if (name == default_device_name)
+    {
+      default_device_index = m_devices_combo->count();
+      // Specify "default" even if we only have one device
+      qname.append(QLatin1Char{'['} + tr("default") + QStringLiteral("] "));
+    }
+    if (name == previous_device_name)
+    {
+      previous_device_index = m_devices_combo->count();
+    }
+    qname.append(QString::fromStdString(name));
+    m_devices_combo->addItem(qname, QString::fromStdString(name));
+  }
 
-  m_devices_combo->setCurrentText(
-      QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
+  if (previous_device_index >= 0)
+  {
+    m_devices_combo->setCurrentIndex(previous_device_index);
+  }
+  else if (!previous_device_name.empty())
+  {
+    const QString qname = QString::fromStdString(previous_device_name);
+    QString adjusted_qname;
+    if (previous_device_name == default_device_name)
+    {
+      adjusted_qname.append(QLatin1Char{'['} + tr("default") + QStringLiteral("] "));
+    }
+    adjusted_qname.append(QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] "))
+        .append(qname);
+    m_devices_combo->addItem(adjusted_qname, qname);
+    m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
+  }
+  else if (default_device_index >= 0)
+  {
+    m_devices_combo->setCurrentIndex(default_device_index);
+  }
+  else if (m_devices_combo->count() > 0)
+  {
+    m_devices_combo->setCurrentIndex(0);
+  }
+  // The device object might have changed so we need to always refresh it
+  OnDeviceChanged();
 }
 
 void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)

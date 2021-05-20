@@ -22,6 +22,9 @@ public:
 
   static Host* GetInstance();
 
+  void DeclareAsHostThread();
+  bool IsHostThread();
+
   bool GetRenderFocus();
   bool GetRenderFullFocus();
   bool GetRenderFullscreen();

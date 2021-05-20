@@ -789,7 +789,7 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  HideRenderWidget();
+  HideRenderWidget(true, m_exit_requested);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -1099,7 +1099,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit)
+void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 {
   if (m_rendering_to_main)
   {
@@ -1136,7 +1136,9 @@ void MainWindow::HideRenderWidget(bool reinit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window);
+    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
+                                        is_exit ? ControllerInterface::WindowChangeReason::Exit :
+                                                  ControllerInterface::WindowChangeReason::Other);
   }
 }
 

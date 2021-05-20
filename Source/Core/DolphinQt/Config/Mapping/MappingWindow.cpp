@@ -328,7 +328,7 @@ bool MappingWindow::IsMappingAllDevices() const
 
 void MappingWindow::RefreshDevices()
 {
-  Core::RunAsCPUThread([&] { g_controller_interface.RefreshDevices(); });
+  g_controller_interface.RefreshDevices();
 }
 
 void MappingWindow::OnGlobalDevicesChanged()

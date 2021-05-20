@@ -35,6 +35,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+static thread_local bool tls_is_host_thread = false;
+
 Host::Host()
 {
   State::SetOnAfterLoadCallback([] { Host_UpdateDisasmDialog(); });
@@ -51,6 +53,16 @@ Host* Host::GetInstance()
   return s_instance;
 }
 
+void Host::DeclareAsHostThread()
+{
+  tls_is_host_thread = true;
+}
+
+bool Host::IsHostThread()
+{
+  return tls_is_host_thread;
+}
+
 void Host::SetRenderHandle(void* handle)
 {
   m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
@@ -62,8 +74,7 @@ void Host::SetRenderHandle(void* handle)
   if (g_renderer)
   {
     g_renderer->ChangeSurface(handle);
-    if (g_controller_interface.IsInit())
-      g_controller_interface.ChangeWindow(handle);
+    g_controller_interface.ChangeWindow(handle);
   }
 }
 
