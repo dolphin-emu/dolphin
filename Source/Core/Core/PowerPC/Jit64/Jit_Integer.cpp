@@ -1390,37 +1390,48 @@ void Jit64::divwx(UGeckoInstruction inst)
       // Check for divisor == 0
       TEST(32, Rb, Rb);
 
-      FixupBranch normal_path;
+      FixupBranch done;
 
-      if (dividend == 0x80000000)
+      if (d == b && (dividend & 0x80000000) == 0 && !inst.OE)
       {
-        // Divisor is 0, proceed to overflow case
-        const FixupBranch overflow = J_CC(CC_Z);
-        // Otherwise, check for divisor == -1
-        CMP(32, Rb, Imm32(0xFFFFFFFF));
-        normal_path = J_CC(CC_NE);
-
-        SetJumpTarget(overflow);
+        // Divisor is 0, skip to the end
+        // No need to explicitly set destination to 0 due to overlapping registers
+        done = J_CC(CC_Z);
+        // Otherwise, proceed to normal path
       }
       else
       {
-        // Divisor is not 0, take normal path
-        normal_path = J_CC(CC_NZ);
-        // Otherwise, proceed to overflow case
+        FixupBranch normal_path;
+        if (dividend == 0x80000000)
+        {
+          // Divisor is 0, proceed to overflow case
+          const FixupBranch overflow = J_CC(CC_Z);
+          // Otherwise, check for divisor == -1
+          CMP(32, Rb, Imm32(0xFFFFFFFF));
+          normal_path = J_CC(CC_NE);
+
+          SetJumpTarget(overflow);
+        }
+        else
+        {
+          // Divisor is not 0, take normal path
+          normal_path = J_CC(CC_NZ);
+          // Otherwise, proceed to overflow case
+        }
+
+        // Set Rd to all ones or all zeroes
+        if (dividend & 0x80000000)
+          MOV(32, Rd, Imm32(0xFFFFFFFF));
+        else if (d != b)
+          XOR(32, Rd, Rd);
+
+        if (inst.OE)
+          GenerateConstantOverflow(true);
+
+        done = J();
+
+        SetJumpTarget(normal_path);
       }
-
-      // Set Rd to all ones or all zeroes
-      if (dividend & 0x80000000)
-        MOV(32, Rd, Imm32(0xFFFFFFFF));
-      else
-        XOR(32, Rd, Rd);
-
-      if (inst.OE)
-        GenerateConstantOverflow(true);
-
-      const FixupBranch done = J();
-
-      SetJumpTarget(normal_path);
 
       MOV(32, eax, Imm32(dividend));
       CDQ();
@@ -1479,12 +1490,21 @@ void Jit64::divwx(UGeckoInstruction inst)
     else if (divisor == 2 || divisor == -2)
     {
       X64Reg tmp = RSCRATCH;
-      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
-        tmp = Ra.GetSimpleReg();
-      else
+      if (!Ra.IsSimpleReg())
+      {
         MOV(32, R(tmp), Ra);
+        MOV(32, Rd, R(tmp));
+      }
+      else if (d == a)
+      {
+        MOV(32, R(tmp), Ra);
+      }
+      else
+      {
+        MOV(32, Rd, Ra);
+        tmp = Ra.GetSimpleReg();
+      }
 
-      MOV(32, Rd, R(tmp));
       SHR(32, Rd, Imm8(31));
       ADD(32, Rd, R(tmp));
       SAR(32, Rd, Imm8(1));
@@ -1499,15 +1519,39 @@ void Jit64::divwx(UGeckoInstruction inst)
     {
       const u32 abs_val = static_cast<u32>(std::abs(static_cast<s64>(divisor)));
 
-      X64Reg tmp = RSCRATCH;
-      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
-        tmp = Ra.GetSimpleReg();
-      else
-        MOV(32, R(tmp), Ra);
+      X64Reg dividend, sum, src;
+      CCFlags cond = CC_NS;
 
-      TEST(32, R(tmp), R(tmp));
-      LEA(32, Rd, MDisp(tmp, abs_val - 1));
-      CMOVcc(32, Rd, R(tmp), CC_NS);
+      if (!Ra.IsSimpleReg())
+      {
+        dividend = RSCRATCH;
+        sum = Rd;
+        src = RSCRATCH;
+
+        // Load dividend from memory
+        MOV(32, R(dividend), Ra);
+      }
+      else if (d == a)
+      {
+        // Rd holds the dividend, while RSCRATCH holds the sum
+        // This is opposite of the other cases
+        dividend = Rd;
+        sum = RSCRATCH;
+        src = RSCRATCH;
+        // Negate condition to compensate the swapped values
+        cond = CC_S;
+      }
+      else
+      {
+        // Use dividend from register directly
+        dividend = Ra.GetSimpleReg();
+        sum = Rd;
+        src = dividend;
+      }
+
+      TEST(32, R(dividend), R(dividend));
+      LEA(32, sum, MDisp(dividend, abs_val - 1));
+      CMOVcc(32, Rd, R(src), cond);
       SAR(32, Rd, Imm8(IntLog2(abs_val)));
 
       if (divisor < 0)
