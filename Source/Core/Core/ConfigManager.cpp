@@ -29,7 +29,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
@@ -601,7 +601,7 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  section->Get("UpdateTrack", &m_auto_update_track, SCM_UPDATE_TRACK_STR);
+  section->Get("UpdateTrack", &m_auto_update_track, Common::scm_update_track_str);
   section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 

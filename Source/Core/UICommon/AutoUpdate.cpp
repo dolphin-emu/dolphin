@@ -12,7 +12,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 
 #ifdef _WIN32
@@ -157,7 +157,7 @@ void AutoUpdateChecker::CheckForUpdate()
 #endif
 
   std::string version_hash = SConfig::GetInstance().m_auto_update_hash_override.empty() ?
-                                 SCM_REV_STR :
+                                 Common::scm_rev_str :
                                  SConfig::GetInstance().m_auto_update_hash_override;
   std::string url = "https://dolphin-emu.org/update/check/v1/" +
                     SConfig::GetInstance().m_auto_update_track + "/" + version_hash + "/" +
