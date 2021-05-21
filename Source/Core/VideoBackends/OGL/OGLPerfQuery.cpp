@@ -99,15 +99,19 @@ PerfQueryGL::~PerfQueryGL()
 
 void PerfQueryGL::EnableQuery(PerfQueryGroup type)
 {
-  const u32 query_count = m_query_count.load(std::memory_order_relaxed);
+  u32 query_count = m_query_count.load(std::memory_order_relaxed);
 
   // Is this sane?
   if (query_count > m_query_buffer.size() / 2)
+  {
     WeakFlush();
+    query_count = m_query_count.load(std::memory_order_relaxed);
+  }
 
   if (m_query_buffer.size() == query_count)
   {
     FlushOne();
+    query_count = m_query_count.load(std::memory_order_relaxed);
     // ERROR_LOG_FMT(VIDEO, "Flushed query buffer early!");
   }
 
@@ -195,14 +199,19 @@ PerfQueryGLESNV::~PerfQueryGLESNV()
 
 void PerfQueryGLESNV::EnableQuery(PerfQueryGroup type)
 {
-  const u32 query_count = m_query_count.load(std::memory_order_relaxed);
+  u32 query_count = m_query_count.load(std::memory_order_relaxed);
+
   // Is this sane?
   if (query_count > m_query_buffer.size() / 2)
+  {
     WeakFlush();
+    query_count = m_query_count.load(std::memory_order_relaxed);
+  }
 
   if (m_query_buffer.size() == query_count)
   {
     FlushOne();
+    query_count = m_query_count.load(std::memory_order_relaxed);
     // ERROR_LOG_FMT(VIDEO, "Flushed query buffer early!");
   }
 
