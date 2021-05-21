@@ -157,7 +157,7 @@ void AutoUpdateChecker::CheckForUpdate()
 #endif
 
   std::string version_hash = SConfig::GetInstance().m_auto_update_hash_override.empty() ?
-                                 Common::scm_rev_str :
+                                 Common::scm_rev_git_str :
                                  SConfig::GetInstance().m_auto_update_hash_override;
   std::string url = "https://dolphin-emu.org/update/check/v1/" +
                     SConfig::GetInstance().m_auto_update_track + "/" + version_hash + "/" +
