@@ -102,6 +102,7 @@ private:
   TextureFormat m_texture_format;
   TLUTFormat m_tlut_format;
 
+  bool m_mipmaps_enabled = false;
   std::vector<MipLevel> m_mip_levels;
 
   u32 m_texture_size = 0;
