@@ -46,7 +46,6 @@
 #else
 #include <arpa/inet.h>
 #include <ifaddrs.h>
-#include <netinet/in.h>
 #include <resolv.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -166,22 +165,6 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
   INFO_LOG_FMT(IOS_NET, "SO_SETSOCKOPT: unknown optname {}", optname);
   return optname;
 }
-
-struct InterfaceRouting
-{
-  u32 index;
-  in_addr destination;
-  in_addr netmask;
-  in_addr gateway;
-};
-
-struct DefaultInterface
-{
-  in_addr inet;                                 // IPv4 address
-  in_addr netmask;                              // IPv4 subnet mask
-  in_addr broadcast;                            // IPv4 broadcast address
-  std::vector<InterfaceRouting> routing_table;  // IPv4 routing table
-};
 
 static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
 {
@@ -347,7 +330,7 @@ static std::vector<InterfaceRouting> GetSystemInterfaceRouting()
   return routing_table;
 }
 
-static std::optional<DefaultInterface> GetSystemDefaultInterface()
+std::optional<DefaultInterface> GetSystemDefaultInterface()
 {
   auto routing_table = GetSystemInterfaceRouting();
 #ifdef _WIN32
