@@ -170,11 +170,9 @@ public:
   void ConvertDoubleToSinglePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                  Arm64Gen::ARM64Reg src_reg);
   void ConvertSingleToDoubleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                  Arm64Gen::ARM64Reg src_reg,
-                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+                                  Arm64Gen::ARM64Reg src_reg);
   void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                 Arm64Gen::ARM64Reg src_reg,
-                                 Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+                                 Arm64Gen::ARM64Reg src_reg);
 
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
