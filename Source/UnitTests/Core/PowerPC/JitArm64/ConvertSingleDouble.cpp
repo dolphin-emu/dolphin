@@ -52,14 +52,14 @@ public:
 
     convert_single_to_double_lower = Common::BitCast<u64 (*)(u32)>(GetCodePtr());
     m_float_emit.INS(32, ARM64Reg::S0, 0, ARM64Reg::W0);
-    ConvertSingleToDoubleLower(0, ARM64Reg::D0, ARM64Reg::S0, ARM64Reg::Q1);
+    ConvertSingleToDoubleLower(0, ARM64Reg::D0, ARM64Reg::S0);
     m_float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::D0, 0);
     RET();
 
     convert_single_to_double_pair = Common::BitCast<Pair<u64> (*)(u32, u32)>(GetCodePtr());
     m_float_emit.INS(32, ARM64Reg::D0, 0, ARM64Reg::W0);
     m_float_emit.INS(32, ARM64Reg::D0, 1, ARM64Reg::W1);
-    ConvertSingleToDoublePair(0, ARM64Reg::Q0, ARM64Reg::D0, ARM64Reg::Q1);
+    ConvertSingleToDoublePair(0, ARM64Reg::Q0, ARM64Reg::D0);
     m_float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::Q0, 0);
     m_float_emit.UMOV(64, ARM64Reg::X1, ARM64Reg::Q0, 1);
     RET();
