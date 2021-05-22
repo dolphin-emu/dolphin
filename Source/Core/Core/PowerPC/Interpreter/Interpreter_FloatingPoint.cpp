@@ -73,7 +73,8 @@ void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
       const double t = b + 0.5;
       i = static_cast<s32>(t);
 
-      if (t - i < 0 || (t - i == 0 && b > 0))
+      // Ties to even
+      if (t - i < 0 || (t - i == 0 && (i & 1)))
       {
         i--;
       }
