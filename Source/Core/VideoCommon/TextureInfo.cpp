@@ -74,6 +74,7 @@ TextureInfo::TextureInfo(const u8* ptr, const u8* tlut_ptr, u32 address,
 
   if (mip_count)
   {
+    m_mipmaps_enabled = true;
     const u32 raw_mip_count = *mip_count;
 
     // GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in
@@ -151,7 +152,7 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName()
 
   NameDetails result;
   result.base_name = fmt::format("{}{}x{}{}_{:016x}", format_prefix, m_raw_width, m_raw_height,
-                                 m_mip_levels.empty() ? "" : "_m", tex_hash);
+                                 m_mipmaps_enabled ? "_m" : "", tex_hash);
   result.tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "";
   result.format_name = fmt::format("_{}", static_cast<int>(m_texture_format));
 
