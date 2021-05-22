@@ -185,6 +185,32 @@ void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
+u16 Renderer::BBoxRead(int index)
+{
+  u16 value = BBoxReadImpl(index);
+
+  // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
+  // extents of these groups, rather than the exact pixel.
+  // This would have been handled in the pixel shader, but all attempts to do so did not work on
+  // OpenGL/NVIDIA, due to presumably mystical driver behavior with atomics.
+  if (index == 0 || index == 2)
+    value &= ~1;
+  else
+    value |= 1;
+
+  return value;
+}
+
+void Renderer::BBoxWrite(int index, u16 value)
+{
+  BBoxWriteImpl(index, value);
+}
+
+void Renderer::BBoxFlush()
+{
+  BBoxFlushImpl();
+}
+
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
   if (type == EFBAccessType::PeekColor)

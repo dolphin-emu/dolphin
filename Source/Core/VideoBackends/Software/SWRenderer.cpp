@@ -126,12 +126,12 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
   return value;
 }
 
-u16 SWRenderer::BBoxRead(int index)
+u16 SWRenderer::BBoxReadImpl(int index)
 {
   return BoundingBox::GetCoordinate(static_cast<BoundingBox::Coordinate>(index));
 }
 
-void SWRenderer::BBoxWrite(int index, u16 value)
+void SWRenderer::BBoxWriteImpl(int index, u16 value)
 {
   BoundingBox::SetCoordinate(static_cast<BoundingBox::Coordinate>(index), value);
 }

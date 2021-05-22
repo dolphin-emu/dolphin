@@ -211,9 +211,9 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  virtual u16 BBoxRead(int index) = 0;
-  virtual void BBoxWrite(int index, u16 value) = 0;
-  virtual void BBoxFlush() {}
+  u16 BBoxRead(int index);
+  void BBoxWrite(int index, u16 value);
+  void BBoxFlush();
 
   virtual void Flush() {}
   virtual void WaitForGPUIdle() {}
@@ -300,6 +300,10 @@ protected:
   // Renders ImGui windows to the currently-bound framebuffer.
   // Should be called with the ImGui lock held.
   void DrawImGui();
+
+  virtual u16 BBoxReadImpl(int index) = 0;
+  virtual void BBoxWriteImpl(int index, u16 value) = 0;
+  virtual void BBoxFlushImpl() {}
 
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;

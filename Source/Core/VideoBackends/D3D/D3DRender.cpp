@@ -264,12 +264,12 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
     D3D::stateman->ApplyTextures();
 }
 
-u16 Renderer::BBoxRead(int index)
+u16 Renderer::BBoxReadImpl(int index)
 {
   return static_cast<u16>(BBox::Get(index));
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWriteImpl(int index, u16 value)
 {
   BBox::Set(index, value);
 }

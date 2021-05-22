@@ -54,9 +54,9 @@ public:
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
   BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
-  u16 BBoxRead(int index) override;
-  void BBoxWrite(int index, u16 value) override;
-  void BBoxFlush() override;
+  u16 BBoxReadImpl(int index) override;
+  void BBoxWriteImpl(int index, u16 value) override;
+  void BBoxFlushImpl() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;
