@@ -221,7 +221,7 @@ static T ReadFromHardware(u32 em_address)
       (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
   {
     T value;
-    std::memcpy(&value, &Memory::m_pEXRAM[em_address & 0x0FFFFFFF], sizeof(T));
+    std::memcpy(&value, &Memory::m_pEXRAM[em_address & Memory::GetExRamMask()], sizeof(T));
     return bswap(value);
   }
 
@@ -230,7 +230,7 @@ static T ReadFromHardware(u32 em_address)
       (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
     T value;
-    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
+    std::memcpy(&value, &Memory::m_pL1Cache[em_address & Memory::GetL1CacheMask()], sizeof(T));
     return bswap(value);
   }
   // In Fake-VMEM mode, we need to map the memory somewhere into
@@ -311,7 +311,7 @@ static void WriteToHardware(u32 em_address, const T data)
       (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
   {
     const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pEXRAM[em_address & Memory::GetExRamMask()], &swapped_data, sizeof(T));
     return;
   }
 
@@ -320,7 +320,8 @@ static void WriteToHardware(u32 em_address, const T data)
       (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
     const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pL1Cache[em_address & Memory::GetL1CacheMask()], &swapped_data,
+                sizeof(T));
     return;
   }
 
@@ -710,7 +711,8 @@ void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 nu
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF));
+      const u32 data =
+          Common::swap32(Memory::m_pL1Cache + ((cache_address + i) & Memory::GetL1CacheMask()));
       EFB_Write(data, mem_address + i);
     }
     return;
@@ -722,13 +724,14 @@ void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 nu
   {
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
-      const u32 data = Common::swap32(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF));
+      const u32 data =
+          Common::swap32(Memory::m_pL1Cache + ((cache_address + i) & Memory::GetL1CacheMask()));
       Memory::mmio_mapping->Write(mem_address + i, data);
     }
     return;
   }
 
-  const u8* src = Memory::m_pL1Cache + (cache_address & 0x3FFFF);
+  const u8* src = Memory::m_pL1Cache + (cache_address & Memory::GetL1CacheMask());
   u8* dst = Memory::GetPointer(mem_address);
   if (dst == nullptr)
     return;
@@ -739,7 +742,7 @@ void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 nu
 void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 num_blocks)
 {
   const u8* src = Memory::GetPointer(mem_address);
-  u8* dst = Memory::m_pL1Cache + (cache_address & 0x3FFFF);
+  u8* dst = Memory::m_pL1Cache + (cache_address & Memory::GetL1CacheMask());
 
   // No known game uses this; here for completeness.
   // TODO: Refactor.
@@ -748,7 +751,8 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
       const u32 data = Common::swap32(EFB_Read(mem_address + i));
-      std::memcpy(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
+      std::memcpy(Memory::m_pL1Cache + ((cache_address + i) & Memory::GetL1CacheMask()), &data,
+                  sizeof(u32));
     }
     return;
   }
@@ -760,7 +764,8 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
     for (u32 i = 0; i < 32 * num_blocks; i += 4)
     {
       const u32 data = Common::swap32(Memory::mmio_mapping->Read<u32>(mem_address + i));
-      std::memcpy(Memory::m_pL1Cache + ((cache_address + i) & 0x3FFFF), &data, sizeof(u32));
+      std::memcpy(Memory::m_pL1Cache + ((cache_address + i) & Memory::GetL1CacheMask()), &data,
+                  sizeof(u32));
     }
     return;
   }
