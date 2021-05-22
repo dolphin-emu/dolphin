@@ -397,8 +397,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
-          // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
+          // Other Namco games crash too, see issue 9509.
+          // Real hardware takes roughly ~68 microseconds to trigger libogc DMA callback based on
+          // https://dolp.in/pr9741 hardware test. The amount of cycles for this interrupt is
+          // approximated to reach this timing value.
+          CoreTiming::ScheduleEvent(17000, s_et_GenerateDSPInterrupt, INT_AID);
         }
       }));
 
