@@ -239,7 +239,7 @@ static T ReadFromHardware(u32 em_address)
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     T value;
-    std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::GetRamMask()], sizeof(T));
+    std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], sizeof(T));
     return bswap(value);
   }
 
@@ -330,7 +330,8 @@ static void WriteToHardware(u32 em_address, const T data)
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetRamMask()], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data,
+                sizeof(T));
     return;
   }
 
