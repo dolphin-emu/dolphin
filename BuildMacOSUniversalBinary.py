@@ -162,6 +162,32 @@ def recursive_merge_binaries(src0, src1, dst):
        the source trees
     """
 
+    # Check that all files present in the folder are of the same type and that
+    # links link to the same relative location
+    for newpath0 in glob.glob(src0+"/*"):
+        filename = os.path.basename(newpath0)
+        newpath1 = os.path.join(src1, filename)
+        if not os.path.exists(newpath1):
+            continue
+
+        if os.path.islink(newpath0) and os.path.islink(newpath1):
+            if os.path.relpath(newpath0,src0) == os.path.relpath(newpath1,src1):
+                continue
+
+        if os.path.isdir(newpath0) and os.path.isdir(newpath1):
+            continue
+
+        # isfile() can be true for links so check that both are not links
+        # before checking if they are both files
+        if (not os.path.islink(newpath0)) and (not os.path.islink(newpath1)):
+            if os.path.isfile(newpath0) and os.path.isfile(newpath1):
+                continue
+
+        raise Exception(f"{newpath0} and {newpath1} cannot be " +
+                        "merged into a universal binary because they are of " +
+                        "incompatible types. Perhaps the installed libraries" +
+                        " are from different versions for each architecture")
+
     for newpath0 in glob.glob(src0+"/*"):
         filename = os.path.basename(newpath0)
         newpath1 = os.path.join(src1, filename)
@@ -171,7 +197,11 @@ def recursive_merge_binaries(src0, src1, dst):
             continue
 
         if not os.path.exists(newpath1):
-            shutil.copy(newpath0, new_dst_path)
+            if os.path.isdir(newpath0):
+                shutil.copytree(newpath0, new_dst_path)
+            else:
+                shutil.copy(newpath0, new_dst_path)
+            
             continue
 
         if os.path.isdir(newpath1):
