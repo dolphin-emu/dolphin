@@ -39,9 +39,11 @@ public:
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
     layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
     layer->Set(Config::MAIN_MEM2_SIZE, m_settings.m_Mem2Size);
     layer->Set(Config::MAIN_FALLBACK_REGION, m_settings.m_FallbackRegion);
+    layer->Set(Config::MAIN_ALLOW_SD_WRITES, m_settings.m_AllowSDWrites);
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
 
     for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)

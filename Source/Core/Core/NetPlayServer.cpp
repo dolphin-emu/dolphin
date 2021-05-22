@@ -1238,9 +1238,11 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_DSPHLE = Config::Get(Config::MAIN_DSP_HLE);
   settings.m_DSPEnableJIT = Config::Get(Config::MAIN_DSP_JIT);
   settings.m_WriteToMemcard = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
+  settings.m_RAMOverrideEnable = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   settings.m_Mem1Size = Config::Get(Config::MAIN_MEM1_SIZE);
   settings.m_Mem2Size = Config::Get(Config::MAIN_MEM2_SIZE);
   settings.m_FallbackRegion = Config::Get(Config::MAIN_FALLBACK_REGION);
+  settings.m_AllowSDWrites = Config::Get(Config::MAIN_ALLOW_SD_WRITES);
   settings.m_CopyWiiSave = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   settings.m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   settings.m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
@@ -1414,9 +1416,11 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_DSPEnableJIT;
   spac << m_settings.m_DSPHLE;
   spac << m_settings.m_WriteToMemcard;
+  spac << m_settings.m_RAMOverrideEnable;
   spac << m_settings.m_Mem1Size;
   spac << m_settings.m_Mem2Size;
   spac << static_cast<std::underlying_type_t<DiscIO::Region>>(m_settings.m_FallbackRegion);
+  spac << m_settings.m_AllowSDWrites;
   spac << m_settings.m_CopyWiiSave;
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
