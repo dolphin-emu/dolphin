@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cstring>
 
-#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
@@ -19,8 +19,11 @@
 class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
 {
 public:
-  FifoRecordAnalyzer(FifoRecorder* owner) : m_owner(owner) {}
-  FifoRecordAnalyzer(FifoRecorder* owner, const u32* cpmem) : m_owner(owner), m_cpmem(cpmem) {}
+  explicit FifoRecordAnalyzer(FifoRecorder* owner) : m_owner(owner) {}
+  explicit FifoRecordAnalyzer(FifoRecorder* owner, const u32* cpmem)
+      : m_owner(owner), m_cpmem(cpmem)
+  {
+  }
 
   void OnXF(u16 address, u8 count, const u8* data) override {}
   void OnCP(u8 command, u32 value) override { Callback::OnCP(command, value); }
@@ -30,8 +33,9 @@ public:
                           u16 num_vertices, const u8* vertex_data) override;
   void OnDisplayList(u32 address, u32 size) override
   {
-    // Should have been inlined by the recorder
-    ASSERT(false);
+    WARN_LOG_FMT(VIDEO,
+                 "Unhandled display list call {:08x} {:08x}; should have been inlined earlier",
+                 address, size);
   }
   void OnNop(u32 count) override {}
   void OnUnknown(u8 opcode, const u8* data) override {}

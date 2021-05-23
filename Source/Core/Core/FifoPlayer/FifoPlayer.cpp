@@ -37,7 +37,7 @@ class FifoPlaybackAnalyzer : public OpcodeDecoder::Callback
 public:
   static void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frame_info);
 
-  FifoPlaybackAnalyzer(const u32* cpmem) : m_cpmem(cpmem) {}
+  explicit FifoPlaybackAnalyzer(const u32* cpmem) : m_cpmem(cpmem) {}
 
   void OnXF(u16 address, u8 count, const u8* data) override {}
   void OnCP(u8 command, u32 value) override { Callback::OnCP(command, value); }
@@ -45,11 +45,7 @@ public:
   void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override {}
   void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
                           u16 num_vertices, const u8* vertex_data) override;
-  void OnDisplayList(u32 address, u32 size) override
-  {
-    // Should have been inlined by the recorder
-    ASSERT(false);
-  }
+  void OnDisplayList(u32 address, u32 size) override {}
   void OnNop(u32 count) override {}
   void OnUnknown(u8 opcode, const u8* data) override {}
 
@@ -98,8 +94,8 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
         next_mem_update++;
       }
 
-      const u32 cmd_size = OpcodeDecoder::RunCommand(
-          &frame.fifoData[offset], u32(frame.fifoData.size()) - offset, analyzer);
+      const u32 cmd_size = OpcodeDecoder::RunCommand(&frame.fifoData[offset],
+                                                     u32(frame.fifoData.size()) - offset, analyzer);
 
       if (analyzer.m_start_of_primitives)
       {

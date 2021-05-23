@@ -177,7 +177,7 @@ namespace
 class DetailCallback : public OpcodeDecoder::Callback
 {
 public:
-  DetailCallback(CPState cpmem) : m_cpmem(cpmem) {}
+  explicit DetailCallback(CPState cpmem) : m_cpmem(cpmem) {}
 
   void OnCP(u8 command, u32 value) override
   {
@@ -259,8 +259,6 @@ public:
 
   void OnDisplayList(u32 address, u32 size) override
   {
-    // Should have been inlined by the recorder
-    ASSERT(false);
     text = QObject::tr("Call display list at %1 with size %2")
                .arg(address, 8, 16, QLatin1Char('0'))
                .arg(size, 8, 16, QLatin1Char('0'));
@@ -489,7 +487,7 @@ namespace
 class DescriptionCallback : public OpcodeDecoder::Callback
 {
 public:
-  DescriptionCallback(const CPState& cpmem) : m_cpmem(cpmem) {}
+  explicit DescriptionCallback(const CPState& cpmem) : m_cpmem(cpmem) {}
 
   void OnBP(u8 command, u32 value) override
   {
@@ -596,8 +594,6 @@ public:
 
   void OnDisplayList(u32 address, u32 size) override
   {
-    // Should have been inlined by the recorder
-    ASSERT(false);
     text = QObject::tr("No description available");
   }
 
