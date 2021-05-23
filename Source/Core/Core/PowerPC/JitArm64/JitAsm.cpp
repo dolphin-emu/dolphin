@@ -80,8 +80,7 @@ void JitArm64::GenerateAsm()
 
   // Downcount Check
   // The result of slice decrementation should be in flags if somebody jumped here
-  // IMPORTANT - We jump on negative, not carry!!!
-  FixupBranch bail = B(CC_MI);
+  FixupBranch bail = B(CC_LE);
 
   dispatcher_no_check = GetCodePtr();
 
