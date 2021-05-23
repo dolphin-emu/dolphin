@@ -135,7 +135,7 @@ void VertexShaderManager::Dirty()
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
-void VertexShaderManager::SetConstants(const std::vector<TextureInfo>&)
+void VertexShaderManager::SetConstants(const std::vector<TextureInfo>& textures)
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
@@ -398,14 +398,18 @@ void VertexShaderManager::SetConstants(const std::vector<TextureInfo>&)
 
     case ProjectionType::Orthographic:
     {
-      const Common::Vec2 stretch = g_freelook_camera_2d.IsActive() ?
-                                       g_freelook_camera_2d.GetStretchMultiplier() :
-                                       Common::Vec2{1, 1};
-
+      Common::Vec2 stretch{1, 1};
       Common::Vec2 offset;
-      if (g_freelook_camera_2d.IsActive())
+      if (g_freelook_camera_2d.IsActive() && !textures.empty())
       {
-        offset = g_freelook_camera_2d.GetPositionOffset();
+        std::vector<std::string> texture_names;
+        texture_names.reserve(textures.size());
+        for (const auto& texture_info : textures)
+        {
+          texture_names.push_back(texture_info.CalculateTextureName().GetFullName());
+        }
+        offset = g_freelook_camera_2d.GetPositionOffset(texture_names);
+        stretch = g_freelook_camera_2d.GetStretchMultiplier(texture_names);
       }
       g_fProjectionMatrix[0] = rawProjection[0] * stretch.x;
       g_fProjectionMatrix[1] = 0.0f;

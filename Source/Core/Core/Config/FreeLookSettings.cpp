@@ -19,5 +19,6 @@ const Info<bool> FREE_LOOK_2D_ENABLED{{System::FreeLook, "General", "2DEnabled"}
 // FreeLook.Controller1
 const Info<FreeLook::ControlType> FL1_CONTROL_TYPE{{System::FreeLook, "Camera1", "ControlType"},
                                                    FreeLook::ControlType::SixAxis};
+const Info<std::string> FL1_2DLAYERS{{System::FreeLook, "Camera1", "2DLayers"}, ""};
 
 }  // namespace Config

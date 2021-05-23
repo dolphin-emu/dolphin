@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace FreeLook
 {
 enum class ControlType : int
@@ -25,6 +27,7 @@ struct CameraConfig
 
 struct CameraConfig2D
 {
+  std::string layers;
 };
 
 // NEVER inherit from this class.
