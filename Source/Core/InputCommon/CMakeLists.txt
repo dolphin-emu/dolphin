@@ -99,6 +99,10 @@ if(WIN32)
   )
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
+    ControllerInterface/GameController/GameController.h
+    ControllerInterface/GameController/GameController.mm
+    ControllerInterface/GameController/GameControllerDevice.h
+    ControllerInterface/GameController/GameControllerDevice.mm
     ControllerInterface/OSX/OSX.h
     ControllerInterface/OSX/OSX.mm
     ControllerInterface/OSX/OSXJoystick.h

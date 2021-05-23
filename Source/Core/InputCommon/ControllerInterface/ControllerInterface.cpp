@@ -16,6 +16,7 @@
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 #endif
 #ifdef CIFACE_USE_OSX
+#include "InputCommon/ControllerInterface/GameController/GameController.h"
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 #endif
