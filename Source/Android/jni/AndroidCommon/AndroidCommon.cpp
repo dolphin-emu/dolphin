@@ -39,7 +39,11 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   result.reserve(size);
 
   for (jsize i = 0; i < size; ++i)
-    result.push_back(GetJString(env, (jstring)env->GetObjectArrayElement(array, i)));
+  {
+    jstring str = reinterpret_cast<jstring>(env->GetObjectArrayElement(array, i));
+    result.push_back(GetJString(env, str));
+    env->DeleteLocalRef(str);
+  }
 
   return result;
 }
@@ -48,7 +52,11 @@ jobjectArray VectorToJStringArray(JNIEnv* env, std::vector<std::string> vector)
 {
   jobjectArray result = env->NewObjectArray(vector.size(), IDCache::GetStringClass(), nullptr);
   for (jsize i = 0; i < vector.size(); ++i)
-    env->SetObjectArrayElement(result, i, ToJString(env, vector[i]));
+  {
+    jstring str = ToJString(env, vector[i]);
+    env->SetObjectArrayElement(result, i, str);
+    env->DeleteLocalRef(str);
+  }
   return result;
 }
 
@@ -59,7 +67,7 @@ bool IsPathAndroidContent(const std::string& uri)
 
 std::string OpenModeToAndroid(std::string mode)
 {
-  // The 'b' specifier is not supported. Since we're on POSIX, it's fine to just skip it.
+  // The 'b' specifier is not supported by Android. Since we're on POSIX, it's fine to just skip it.
   if (!mode.empty() && mode.back() == 'b')
     mode.pop_back();
 
@@ -92,7 +100,7 @@ std::string OpenModeToAndroid(std::ios_base::openmode mode)
   if ((mode & t) == t)
     result += 't';
 
-  // The 'b' specifier is not supported. Since we're on POSIX, it's fine to just skip it.
+  // The 'b' specifier is not supported by Android. Since we're on POSIX, it's fine to just skip it.
 
   return result;
 }
@@ -123,19 +131,34 @@ jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri)
 std::string GetAndroidContentDisplayName(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  jobject display_name =
+
+  jstring jresult = reinterpret_cast<jstring>(
       env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
-                                  IDCache::GetContentHandlerGetDisplayName(), ToJString(env, uri));
-  return display_name ? GetJString(env, reinterpret_cast<jstring>(display_name)) : "";
+                                  IDCache::GetContentHandlerGetDisplayName(), ToJString(env, uri)));
+
+  if (!jresult)
+    return "";
+
+  std::string result = GetJString(env, jresult);
+
+  env->DeleteLocalRef(jresult);
+
+  return result;
 }
 
 std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  jobject children = env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
-                                                 IDCache::GetContentHandlerGetChildNames(),
-                                                 ToJString(env, uri), false);
-  return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(children));
+
+  jobjectArray jresult = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
+      IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerGetChildNames(),
+      ToJString(env, uri), false));
+
+  std::vector<std::string> result = JStringArrayToVector(env, jresult);
+
+  env->DeleteLocalRef(jresult);
+
+  return result;
 }
 
 std::vector<std::string> DoFileSearchAndroidContent(const std::string& directory,
@@ -143,10 +166,16 @@ std::vector<std::string> DoFileSearchAndroidContent(const std::string& directory
                                                     bool recursive)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  jobject result = env->CallStaticObjectMethod(
+
+  jobjectArray jresult = reinterpret_cast<jobjectArray>(env->CallStaticObjectMethod(
       IDCache::GetContentHandlerClass(), IDCache::GetContentHandlerDoFileSearch(),
-      ToJString(env, directory), VectorToJStringArray(env, extensions), recursive);
-  return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(result));
+      ToJString(env, directory), VectorToJStringArray(env, extensions), recursive));
+
+  std::vector<std::string> result = JStringArrayToVector(env, jresult);
+
+  env->DeleteLocalRef(jresult);
+
+  return result;
 }
 
 int GetNetworkIpAddress()
