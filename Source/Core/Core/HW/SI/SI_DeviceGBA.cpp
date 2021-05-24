@@ -332,10 +332,9 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     }
     else
     {
-      u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-      std::memcpy(buffer, &reply, sizeof(reply));
-      return sizeof(reply);
+      return -1;
     }
+
     m_last_cmd = buffer[0];
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
@@ -371,11 +370,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)
-    {
-      u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-      std::memcpy(buffer, &reply, sizeof(reply));
-      return sizeof(reply);
-    }
+      return -1;
 #ifdef _DEBUG
     const Common::Log::LOG_LEVELS log_level =
         (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ? Common::Log::LERROR :

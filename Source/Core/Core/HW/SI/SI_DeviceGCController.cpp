@@ -43,11 +43,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 
   GCPadStatus pad_status = GetPadStatus();
   if (!pad_status.isConnected)
-  {
-    u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-    std::memcpy(buffer, &reply, sizeof(reply));
-    return sizeof(reply);
-  }
+    return -1;
 
   // Read the command
   EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
