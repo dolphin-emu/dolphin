@@ -2,13 +2,17 @@
 # General setup
 #
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_OSX_ARCHITECTURES "x86_64")
+
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
 
-# MacOS prior to 10.12 did not fully support C++17, which is used to
-# handle configuration options
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12.0" CACHE STRING "")
+# MacOS prior to 10.14 did not support aligned alloc which is used to implement
+# std::unique_ptr in the arm64 C++ standard library. x86_64 builds can override
+# this to 10.12.0 using -DCMAKE_OSX_DEPLOYMENT_TARGET="10.12.0" without issue.
+# This is done in the universal binary building script to build a binary that 
+# runs on 10.12 on x86_64 computers, while still containing an arm64 slice.
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
@@ -68,8 +72,12 @@ else()
 endif()
 
 if(APPLE)
-  option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
-  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
+  option(MACOS_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
+  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF) 
+  # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
+  option(MACOS_CODE_SIGNING "Enable codesigning" ON)
+  set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
+  set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "-" CACHE STRING "The identity used for codesigning, for the updater.")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -290,7 +298,7 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
+  if(NOT MACOS_USE_DEFAULT_SEARCH_PATH)
     # Hack up the path to prioritize the path to built-in OS libraries to
     # increase the chance of not depending on a bunch of copies of them
     # installed by MacPorts, Fink, Homebrew, etc, and ending up copying
@@ -306,9 +314,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   set(CMAKE_XCODE_ATTRIBUTE_GCC_STRICT_ALIASING NO)
 
   # Specify target CPUs.
-  check_and_add_flag(HAVE_MSSSE3 -mssse3)
-  check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
-
+  if(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    check_and_add_flag(HAVE_MSSSE3 -mssse3)
+    check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
+  endif()
   # Linker flags.
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")

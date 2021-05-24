@@ -140,7 +140,11 @@ static std::string GetPlatformID()
 #if defined _WIN32
   return "win";
 #elif defined __APPLE__
+#if defined(MACOS_UNIVERSAL_BUILD)
+  return "macos-universal";
+#else
   return "macos";
+#endif
 #else
   return "unknown";
 #endif

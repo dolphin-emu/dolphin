@@ -71,9 +71,8 @@ CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
     break;
 
   default:
-    PanicAlertFmtT("The selected CPU emulation core ({0}) is not available. "
-                   "Please select a different CPU emulation core in the settings.",
-                   core);
+    // Under this case the caller overrides the CPU core to the default and logs that
+    // it performed the override.
     g_jit = nullptr;
     return nullptr;
   }

@@ -73,6 +73,8 @@ void JitArm64::Init()
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
+  // Ifdef this since the exception handler runs on a separate thread on macOS (ARM)
+#if !(defined(__APPLE__) && defined(_M_ARM_64))
   // We can't handle any fault from other threads.
   if (!Core::IsCPUThread())
   {
@@ -80,6 +82,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
     DoBacktrace(access_address, ctx);
     return false;
   }
+#endif
 
   bool success = false;
 
@@ -124,6 +127,7 @@ void JitArm64::ClearCache()
   m_handler_to_loc.clear();
 
   blocks.Clear();
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
   farcode.ClearCodeSpace();
   UpdateMemoryOptions();
@@ -596,6 +600,7 @@ void JitArm64::Jit(u32)
   {
     ClearCache();
   }
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
   std::size_t block_size = m_code_buffer.size();
   const u32 em_address = PowerPC::ppcState.pc;
