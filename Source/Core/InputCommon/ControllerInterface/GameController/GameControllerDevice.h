@@ -12,11 +12,21 @@ namespace ciface::GameController
 
 class Controller : public Core::Device
 {
+public:
+  explicit Controller(const GCController* controller);
+  ~Controller() {}
+
+  std::string GetName() const override;
+  std::string GetSource() const override;
+  bool IsSameDevice(const GCController* controller) const;
+
 private:
+  const GCController* m_controller;
+
   class Button : public Input
   {
   public:
-    Button(GCControllerButtonInput* item) : m_item(item) {}
+    explicit Button(GCControllerButtonInput* item) : m_item(item) {}
     std::string GetName() const { return std::string([m_item.aliases.allObjects[0] UTF8String]); }
     ControlState GetState() const override;
 
@@ -27,37 +37,26 @@ private:
   class Motion : public Input
   {
   public:
-    enum button
+    enum ButtonAxis
     {
-      accel_x = 0,
-      accel_y,
-      accel_z,
-      gyro_x,
-      gyro_y,
-      gyro_z
+      AccelX = 0,
+      AccelY,
+      AccelZ,
+      GyroX,
+      GyroY,
+      GyroZ
     };
       
-    Motion(const GCController* item, std::string name, button button, double multiplier) : m_item(item), m_name(name), m_button(button), m_multiplier(multiplier) {}
+    explicit Motion(const GCController* item, std::string name, ButtonAxis button, double multiplier) : m_item(item), m_name(name), m_button(button), m_multiplier(multiplier) {}
     std::string GetName() const { return m_name; }
     ControlState GetState() const override;
 
   private:
     const GCController* m_item;
     const std::string m_name;
-    const button m_button;
+    const ButtonAxis m_button;
     const double m_multiplier;
   };
-
-public:
-  Controller(const GCController* controller);
-  ~Controller() {}
-
-  std::string GetName() const override;
-  std::string GetSource() const override;
-  bool IsSameDevice(const GCController* controller) const;
-
-private:
-  const GCController* m_controller;
 };
 
 }  // namespace ciface::GameController
