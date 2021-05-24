@@ -15,33 +15,36 @@ namespace ciface::GameController
 {
 static char *s_observer="";
 
-static void AddController(GCController* controller)
+void addController(GCController* controller)
 {
   controller.motion.sensorsActive = true;
 
-  std::string vendor_name = std::string([controller.vendorName UTF8String]);
-  INFO_LOG_FMT(SERIALINTERFACE, "Controller '{}' connected with motion={}", vendor_name, controller.motion.sensorsActive);
+  std::string vendorName = std::string([controller.vendorName UTF8String]);
+  INFO_LOG_FMT(SERIALINTERFACE, "Controller '{}' connected with motion={}", vendorName, controller.motion.sensorsActive);
+  NOTICE_LOG_FMT(SERIALINTERFACE, "Controller '{}' connected with motion={} and id=", vendorName, controller.motion.sensorsActive);
 
-  g_controller_interface.AddDevice(std::make_shared<Controller>(controller));
+  std::shared_ptr<ciface::GameController::Controller> j=std::make_shared<Controller>(controller);
+    
+  g_controller_interface.AddDevice(j);
 }
 
-static void OnControllerConnect(CFNotificationCenterRef center, void* observer, CFStringRef name, const void* object, CFDictionaryRef userInfo)
+static void onControllerConnect(CFNotificationCenterRef center, void* observer, CFStringRef name, const void* object, CFDictionaryRef userInfo)
 {
-  auto* controller = static_cast<GCController*>(object);
-  AddController(controller);
+  GCController* controller = (GCController*)object;
+  addController(controller);
 }
 
-static void OnControllerDisconnect(CFNotificationCenterRef center, void* observer, CFStringRef name, const void* object, CFDictionaryRef userInfo)
+static void onControllerDisconnect(CFNotificationCenterRef center, void* observer, CFStringRef name, const void* object, CFDictionaryRef userInfo)
 {
-  auto* in_controller = static_cast<GCController*>(object);
+  GCController *inController = (GCController*)object;
     
-  std::string vendor_name = std::string([in_controller.vendorName UTF8String]);
-  INFO_LOG_FMT(SERIALINTERFACE, "Controller '{}' disconnected", vendor_name);
+  std::string vendorName = std::string([inController.vendorName UTF8String]);
+  INFO_LOG_FMT(SERIALINTERFACE, "Controller '{}' disconnected", vendorName);
     
-  g_controller_interface.RemoveDevice([&in_controller](const auto* obj)
+  g_controller_interface.RemoveDevice([&inController](const auto* obj)
   {
     const Controller* controller = dynamic_cast<const Controller*>(obj);
-    if (controller && controller->IsSameDevice(in_controller))
+    if (controller && controller->IsSameDevice(inController))
       return true;
 
     return false;
@@ -50,28 +53,28 @@ static void OnControllerDisconnect(CFNotificationCenterRef center, void* observe
 
 void Init(void* window)
 {
-  CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), s_observer, &OnControllerConnect, CFSTR("GCControllerDidConnectNotification"), nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
+  CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), s_observer, &onControllerConnect, CFSTR("GCControllerDidConnectNotification"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 
-  CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), s_observer, &OnControllerDisconnect, CFSTR("GCControllerDidDisconnectNotification"), nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
+  CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), s_observer, &onControllerDisconnect, CFSTR("GCControllerDidDisconnectNotification"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 }
 
 void PopulateDevices(void* window)
 {
   // I was unable to use [GCController controllers] in Objective-C++ and therefore needed to access this class method using objc_msgSend instead
-  using SendType = NSArray<GCController*>* (*)(id, SEL);
-  SendType func = (SendType)objc_msgSend;
-  auto* controllers = func(objc_getClass("GCController"), sel_getUid("controllers"));
+  typedef NSArray<GCController*>* (*send_type)(id, SEL);
+  send_type func = (send_type)objc_msgSend;
+  NSArray<GCController*>* controllers=(NSArray<GCController*>*)func(objc_getClass("GCController"), sel_getUid("controllers"));
 
   for (GCController* controller in controllers)
   {
-      AddController(controller);
+    addController(controller);
   }
 }
 
 void DeInit()
 {
-  CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), s_observer, CFSTR("GCControllerDidConnectNotification"), nullptr);
-  CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), s_observer, CFSTR("GCControllerDidDisconnectNotification"), nullptr);
+  CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), s_observer, CFSTR("GCControllerDidConnectNotification"), NULL);
+  CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), s_observer, CFSTR("GCControllerDidDisconnectNotification"), NULL);
 }
 
 } // namespace ciface::GameController
