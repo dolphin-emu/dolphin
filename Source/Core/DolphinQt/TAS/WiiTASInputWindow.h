@@ -14,7 +14,8 @@ class DataReportBuilder;
 namespace WiimoteEmu
 {
 class EncryptionKey;
-}
+enum ExtensionNumber : u8;
+}  // namespace WiimoteEmu
 
 class QGroupBox;
 class QSpinBox;
@@ -25,11 +26,11 @@ class WiiTASInputWindow : public TASInputWindow
   Q_OBJECT
 public:
   explicit WiiTASInputWindow(QWidget* parent, int num);
-  void GetValues(WiimoteCommon::DataReportBuilder& rpt, int ext,
+  void GetValues(WiimoteCommon::DataReportBuilder& rpt, WiimoteEmu::ExtensionNumber ext,
                  const WiimoteEmu::EncryptionKey& key);
 
 private:
-  void UpdateExt(u8 ext);
+  void UpdateExt(WiimoteEmu::ExtensionNumber ext);
   int m_num;
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
@@ -75,6 +76,11 @@ private:
   QSpinBox* m_classic_right_stick_y_value;
   QSpinBox* m_left_trigger_value;
   QSpinBox* m_right_trigger_value;
+  QDoubleSpinBox* m_total_weight_value;
+  QDoubleSpinBox* m_top_right_balance_value;
+  QDoubleSpinBox* m_bottom_right_balance_value;
+  QDoubleSpinBox* m_top_left_balance_value;
+  QDoubleSpinBox* m_bottom_left_balance_value;
   QGroupBox* m_remote_orientation_box;
   QGroupBox* m_nunchuk_orientation_box;
   QGroupBox* m_ir_box;
@@ -85,4 +91,5 @@ private:
   QGroupBox* m_nunchuk_buttons_box;
   QGroupBox* m_classic_buttons_box;
   QGroupBox* m_triggers_box;
+  QGroupBox* m_balance_board_box;
 };

@@ -280,11 +280,10 @@ MainWindow::~MainWindow()
   delete m_render_widget;
   delete m_netplay_dialog;
 
-  for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < num_gc_controllers; i++)
     delete m_gc_tas_input_windows[i];
+  for (int i = 0; i < num_wii_controllers; i++)
     delete m_wii_tas_input_windows[i];
-  }
 
   ShutdownControllers();
 
@@ -384,17 +383,17 @@ void MainWindow::CreateComponents()
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
 
-  for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < num_gc_controllers; i++)
     m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
+  for (int i = 0; i < num_wii_controllers; i++)
     m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
-  }
 
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
     m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
   });
 
-  Movie::SetWiiInputManip([this](WiimoteCommon::DataReportBuilder& rpt, int controller_id, int ext,
+  Movie::SetWiiInputManip([this](WiimoteCommon::DataReportBuilder& rpt, int controller_id,
+                                 WiimoteEmu::ExtensionNumber ext,
                                  const WiimoteEmu::EncryptionKey& key) {
     m_wii_tas_input_windows[controller_id]->GetValues(rpt, ext, key);
   });
@@ -1647,11 +1646,14 @@ void MainWindow::OnStartRecording()
 
   int controllers = 0;
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
+  }
 
+  for (int i = 0; i < num_wii_controllers; i++)
+  {
     if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
       controllers |= (1 << (i + 4));
   }

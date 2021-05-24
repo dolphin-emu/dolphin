@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/Wiimote.h"
 
 namespace DiscIO
 {
@@ -95,7 +96,7 @@ struct NetSettings
   bool m_SyncCodes;
   std::string m_SaveDataRegion;
   bool m_SyncAllWiiSaves;
-  std::array<int, 4> m_WiimoteExtension;
+  std::array<int, MAX_WIIMOTES> m_WiimoteExtension;
   bool m_GolfMode;
 
   // These aren't sent over the network directly

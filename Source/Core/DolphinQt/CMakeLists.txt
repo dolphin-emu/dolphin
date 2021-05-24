@@ -120,6 +120,8 @@ add_executable(dolphin-emu
   Config/LogConfigWidget.h
   Config/LogWidget.cpp
   Config/LogWidget.h
+  Config/Mapping/BalanceBoardGeneral.cpp
+  Config/Mapping/BalanceBoardGeneral.h
   Config/Mapping/FreeLookGeneral.cpp
   Config/Mapping/FreeLookGeneral.h
   Config/Mapping/FreeLookRotation.cpp
@@ -309,6 +311,8 @@ add_executable(dolphin-emu
   TAS/StickWidget.h
   TAS/IRWidget.cpp
   TAS/IRWidget.h
+  TAS/BalanceBoardWidget.cpp
+  TAS/BalanceBoardWidget.h
   Updater.cpp
   Updater.h
 )
