@@ -35,14 +35,14 @@ Controller::Controller(const GCController* controller) : m_controller(controller
   );
     
   for (size_t i = 0; i < pairs.size(); ++i) {
-    INFO_LOG_FMT(SERIALINTERFACE, "Found button '{}'", pairs[i].first);
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Found button '{}'", pairs[i].first);
     AddInput(new Button(pairs[i].second, pairs[i].first));
   }
     
   if (!controller.motion)
     return;
   
-  INFO_LOG_FMT(SERIALINTERFACE, "Adding accelerometer inputs");
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Adding accelerometer inputs");
 
   // This mapping was only tested with a DualShock 4 controller
   AddInput(new Motion(controller, "Accel Up", Motion::AccelZ, -GRAVITY_ACCELERATION));
@@ -55,7 +55,7 @@ Controller::Controller(const GCController* controller) : m_controller(controller
   if (!controller.motion.hasRotationRate)
     return;
 
-  INFO_LOG_FMT(SERIALINTERFACE, "Adding gyro inputs");
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Adding gyro inputs");
             
   // This mapping was only tested with a DualShock 4 controller
   AddInput(new Motion(controller, "Gyro Pitch Up", Motion::GyroX, 1));
