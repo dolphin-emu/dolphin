@@ -171,7 +171,7 @@ def recursive_merge_binaries(src0, src1, dst):
             continue
 
         if os.path.islink(newpath0) and os.path.islink(newpath1):
-            if os.path.relpath(newpath0,src0) == os.path.relpath(newpath1,src1):
+            if os.path.relpath(newpath0, src0) == os.path.relpath(newpath1, src1):
                 continue
 
         if os.path.isdir(newpath0) and os.path.isdir(newpath1):
@@ -201,7 +201,7 @@ def recursive_merge_binaries(src0, src1, dst):
                 shutil.copytree(newpath0, new_dst_path)
             else:
                 shutil.copy(newpath0, new_dst_path)
-            
+
             continue
 
         if os.path.isdir(newpath1):
@@ -271,6 +271,8 @@ def build(config):
         subprocess.check_call([
                 "cmake", "../../", "-G", config["generator"],
                 "-DCMAKE_BUILD_TYPE=" + config["build_type"],
+                '-DCMAKE_CXX_FLAGS="-DMACOS_UNIVERSAL_BUILD=1"',
+                '-DCMAKE_C_FLAGS="-DMACOS_UNIVERSAL_BUILD=1"',
                 # System name needs to be specified for CMake to use
                 # the specified CMAKE_SYSTEM_PROCESSOR
                 "-DCMAKE_SYSTEM_NAME=Darwin",
