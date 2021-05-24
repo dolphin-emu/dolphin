@@ -9,57 +9,66 @@
 
 namespace ciface::GameController
 {
-using MathUtil::GRAVITY_ACCELERATION; // 9.80665
+constexpr std::string_view GCF_UNKNOWN_PREFIX = "Unknown ";
 
 Controller::Controller(const GCController* controller) : m_controller(controller)
 {
   std::vector<std::pair<std::string, GCControllerButtonInput*>> pairs;
+  using MathUtil::GRAVITY_ACCELERATION;
+  int unknown_index = 1;
     
   for (GCControllerButtonInput* item in controller.physicalInputProfile.allButtons)
   {
-    pairs.push_back(std::make_pair(std::string([item.aliases.allObjects[0] UTF8String]), item));
+    if (item.aliases.count > 0) {
+      pairs.push_back(std::make_pair(std::string([item.aliases.allObjects[0] UTF8String]), item));
+    }
+    else
+    {
+      pairs.push_back(std::make_pair(std::string(GCF_UNKNOWN_PREFIX) + std::to_string(unknown_index++), item));
+    }
   }
     
-  sort(pairs.begin(), pairs.end(), [=](std::pair<std::string, GCControllerButtonInput*>& a, std::pair<std::string, GCControllerButtonInput*>& b)
+  std::sort(pairs.begin(), pairs.end(), [](const auto& lhs, const auto& rhs)
   {
-    return a.first.compare(b.first)<0;
+    return lhs.first.compare(rhs.first) < 0;
   }
   );
     
   for (size_t i = 0; i < pairs.size(); ++i) {
     INFO_LOG_FMT(SERIALINTERFACE, "Found button '{}'", pairs[i].first);
-    AddInput(new Button(pairs[i].second));
+    AddInput(new Button(pairs[i].second, pairs[i].first));
   }
     
-  if (controller.motion)
-  {
-    INFO_LOG_FMT(SERIALINTERFACE, "Adding accelerometer inputs");
+  if (!controller.motion)
+    return;
+  
+  INFO_LOG_FMT(SERIALINTERFACE, "Adding accelerometer inputs");
 
-    // This mapping was only tested with a DualShock 4 controller
-    AddInput(new Motion(controller, "Accel Up", Motion::accel_z, -GRAVITY_ACCELERATION));
-    AddInput(new Motion(controller, "Accel Down", Motion::accel_z, GRAVITY_ACCELERATION));
-    AddInput(new Motion(controller, "Accel Left", Motion::accel_x, -GRAVITY_ACCELERATION));
-    AddInput(new Motion(controller, "Accel Right", Motion::accel_x, GRAVITY_ACCELERATION));
-    AddInput(new Motion(controller, "Accel Forward", Motion::accel_y, -GRAVITY_ACCELERATION));
-    AddInput(new Motion(controller, "Accel Backward", Motion::accel_y, GRAVITY_ACCELERATION));
+  // This mapping was only tested with a DualShock 4 controller
+  AddInput(new Motion(controller, "Accel Up", Motion::AccelZ, -GRAVITY_ACCELERATION));
+  AddInput(new Motion(controller, "Accel Down", Motion::AccelZ, GRAVITY_ACCELERATION));
+  AddInput(new Motion(controller, "Accel Left", Motion::AccelX, -GRAVITY_ACCELERATION));
+  AddInput(new Motion(controller, "Accel Right", Motion::AccelX, GRAVITY_ACCELERATION));
+  AddInput(new Motion(controller, "Accel Forward", Motion::AccelY, -GRAVITY_ACCELERATION));
+  AddInput(new Motion(controller, "Accel Backward", Motion::AccelY, GRAVITY_ACCELERATION));
 
-    if (controller.motion.hasRotationRate) {
-      INFO_LOG_FMT(SERIALINTERFACE, "Adding gyro inputs");
+  if (!controller.motion.hasRotationRate)
+    return;
+
+  INFO_LOG_FMT(SERIALINTERFACE, "Adding gyro inputs");
             
-      AddInput(new Motion(controller, "Gyro Pitch Up", Motion::gyro_x, 1));
-      AddInput(new Motion(controller, "Gyro Pitch Down", Motion::gyro_x, -1));
-      AddInput(new Motion(controller, "Gyro Roll Left", Motion::gyro_y, 1));
-      AddInput(new Motion(controller, "Gyro Roll Right", Motion::gyro_y, -1));
-      AddInput(new Motion(controller, "Gyro Yaw Left", Motion::gyro_z, 1));
-      AddInput(new Motion(controller, "Gyro Yaw Right", Motion::gyro_z, -1));
-    }
- 
-  }
+  // This mapping was only tested with a DualShock 4 controller
+  AddInput(new Motion(controller, "Gyro Pitch Up", Motion::GyroX, 1));
+  AddInput(new Motion(controller, "Gyro Pitch Down", Motion::GyroX, -1));
+  AddInput(new Motion(controller, "Gyro Roll Left", Motion::GyroY, 1));
+  AddInput(new Motion(controller, "Gyro Roll Right", Motion::GyroY, -1));
+  AddInput(new Motion(controller, "Gyro Yaw Left", Motion::GyroZ, 1));
+  AddInput(new Motion(controller, "Gyro Yaw Right", Motion::GyroZ, -1));
 }
 
 std::string Controller::GetSource() const
 {
-  return "GCF";
+  return GCF_SOURCE_NAME;
 }
 
 std::string Controller::GetName() const
@@ -74,26 +83,26 @@ ControlState Controller::Button::GetState() const
 
 ControlState Controller::Motion::GetState() const
 {
-  double r = 0.0;
+  ControlState r = 0.0;
 
   switch (m_button)
   {
-  case accel_x:
+  case AccelX:
     r = m_item.motion.acceleration.x;
     break;
-  case accel_y:
+  case AccelY:
     r = m_item.motion.acceleration.y;
     break;
-  case accel_z:
+  case AccelZ:
     r = m_item.motion.acceleration.z;
     break;
-  case gyro_x:
+  case GyroX:
     r = m_item.motion.rotationRate.x;
     break;
-  case gyro_y:
+  case GyroY:
     r = m_item.motion.rotationRate.y;
     break;
-  case gyro_z:
+  case GyroZ:
     r = m_item.motion.rotationRate.z;
     break;
   }

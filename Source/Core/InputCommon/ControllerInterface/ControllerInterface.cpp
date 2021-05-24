@@ -60,7 +60,10 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 #endif
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
+  {
+    ciface::GameController::Init();
     ciface::OSX::Init(wsi.render_window);
+  }
 // nothing needed for Quartz
 #endif
 #ifdef CIFACE_USE_SDL
@@ -117,6 +120,7 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
   {
+    ciface::GameController::PopulateDevices();
     ciface::OSX::PopulateDevices(m_wsi.render_window);
     ciface::Quartz::PopulateDevices(m_wsi.render_window);
   }
@@ -189,6 +193,7 @@ void ControllerInterface::Shutdown()
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
+  ciface::GameController::DeInit();
   ciface::OSX::DeInit();
   ciface::Quartz::DeInit();
 #endif
