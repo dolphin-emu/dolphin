@@ -5,6 +5,7 @@
 #include "Common/StringUtil.h"
 
 #include <algorithm>
+#include <array>
 #include <codecvt>
 #include <cstdarg>
 #include <cstddef>
@@ -664,3 +665,21 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
   return argv;
 }
 #endif
+
+std::string GetEscapedHtml(std::string html)
+{
+  static constexpr std::array<std::array<const char*, 2>, 5> replacements{{
+      // Escape ampersand first to avoid escaping the ampersands in other replacements
+      {{"&", "&amp;"}},
+      {{"<", "&lt;"}},
+      {{">", "&gt;"}},
+      {{"\"", "&quot;"}},
+      {{"'", "&apos;"}},
+  }};
+
+  for (const auto& [unescaped, escaped] : replacements)
+  {
+    html = ReplaceAll(html, unescaped, escaped);
+  }
+  return html;
+}
