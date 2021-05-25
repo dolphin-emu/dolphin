@@ -1599,12 +1599,16 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
         TexDecoder_DecodeRGBA8FromTmem(dst_buffer, src_data, src_data_gb, expandedWidth,
                                        expandedHeight);
       }
-      if (base_hash == PRIME1_PIXEL_HASH || base_hash == PRIME2_PIXEL_HASH) {
-        memset(dst_buffer, 0, 4);
-        memset(dst_buffer + expandedWidth * 4 - 4, 0, 4);
-        memset(dst_buffer + (expandedWidth * (expandedHeight - 1) * 4), 0, 4);
-        memset(dst_buffer + (expandedWidth * expandedHeight * 4) - 4, 0, 4);
+
+      if (base_hash == PRIME2_PIXEL_HASH)
+      {
+        ClearBufferCorners(dst_buffer, expandedWidth, expandedHeight);
       }
+      else if (base_hash == PRIME1_PIXEL_HASH)
+      {
+        memset(dst_buffer, 0, decoded_texture_size);
+      }
+
       entry->texture->Load(0, width, height, expandedWidth, dst_buffer, decoded_texture_size);
 
       arbitrary_mip_detector.AddLevel(width, height, expandedWidth, dst_buffer);
@@ -1677,11 +1681,13 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
         TexDecoder_Decode(dst_buffer, mip_src_data, expanded_mip_width, expanded_mip_height,
                           texformat, tlut, tlutfmt);
 
-        if (base_hash == PRIME1_PIXEL_HASH || base_hash == PRIME2_PIXEL_HASH) {
-          memset(dst_buffer, 0, 4);
-          memset(dst_buffer + expanded_mip_width * 4 - 4, 0, 4);
-          memset(dst_buffer + (expanded_mip_width * (expanded_mip_height - 1) * 4), 0, 4);
-          memset(dst_buffer + (expanded_mip_width * expanded_mip_height * 4) - 4, 0, 4);
+        if (base_hash == PRIME2_PIXEL_HASH)
+        {
+          ClearBufferCorners(dst_buffer, expanded_mip_width, expanded_mip_height);
+        }
+        else if (base_hash == PRIME1_PIXEL_HASH)
+        {
+          memset(dst_buffer, 0, decoded_mip_size);
         }
 
         entry->texture->Load(level, mip_width, mip_height, expanded_mip_width, dst_buffer,
@@ -2965,4 +2971,12 @@ TextureCacheBase::TexPoolEntry::TexPoolEntry(std::unique_ptr<AbstractTexture> te
                                              std::unique_ptr<AbstractFramebuffer> fb)
     : texture(std::move(tex)), framebuffer(std::move(fb))
 {
+}
+
+void TextureCacheBase::ClearBufferCorners(u8* buffer, u32 width, u32 height)
+{
+  memset(buffer, 0, 4);
+  memset(buffer + width * 4 - 4, 0, 4);
+  memset(buffer + (width * (height - 1) * 4), 0, 4);
+  memset(buffer + (width * height * 4) - 4, 0, 4);
 }
