@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -45,8 +47,25 @@ void SetPrecisionMode(PrecisionMode mode)
 
 void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
 {
-  // Flush-To-Zero (non-IEEE mode: denormal outputs are set to +/- 0)
+  // When AH is disabled, FZ controls flush-to-zero for both inputs and outputs. When AH is enabled,
+  // FZ controls flush-to-zero for outputs, and FIZ controls flush-to-zero for inputs.
   constexpr u32 FZ = 1 << 24;
+  constexpr u32 AH = 1 << 1;
+  constexpr u32 FIZ = 1 << 0;
+  constexpr u32 flush_to_zero_mask = FZ | AH | FIZ;
+
+  // On CPUs with FEAT_AFP support, setting AH = 1, FZ = 1, FIZ = 0 emulates the GC/Wii CPU's
+  // "non-IEEE mode". Unfortunately, FEAT_AFP didn't exist until 2020, so we can't count on setting
+  // AH actually doing anything. But flushing both inputs and outputs seems to cause less problems
+  // than flushing nothing, so let's just set FZ and AH and roll with whatever behavior we get.
+  const u32 flush_to_zero_bits = (non_ieee_mode ? FZ | AH : 0);
+  static bool afp_warning_shown = false;
+  if (!afp_warning_shown && !cpu_info.bAFP && non_ieee_mode)
+  {
+    afp_warning_shown = true;
+    WARN_LOG_FMT(POWERPC,
+                 "Non-IEEE mode was requested, but host CPU is not known to support FEAT_AFP");
+  }
 
   // lookup table for FPSCR.RN-to-FPCR.RMode translation
   constexpr u32 rounding_mode_table[] = {
@@ -55,9 +74,11 @@ void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
       (1 << 22),  // +inf
       (2 << 22),  // -inf
   };
+  constexpr u32 rounding_mode_mask = 3 << 22;
+  const u32 rounding_mode_bits = rounding_mode_table[rounding_mode];
 
-  const u64 base = default_fpcr & ~(0b111 << 22);
-  SetFPCR(base | rounding_mode_table[rounding_mode] | (non_ieee_mode ? FZ : 0));
+  const u64 base = default_fpcr & ~(flush_to_zero_mask | rounding_mode_mask);
+  SetFPCR(base | rounding_mode_bits | flush_to_zero_bits);
 }
 
 void SaveSIMDState()
