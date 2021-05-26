@@ -971,7 +971,11 @@ void VolumeVerifier::CheckMisc()
         es->VerifyContainer(IOS::HLE::ESDevice::VerifyContainerType::TMD,
                             IOS::HLE::ESDevice::VerifyMode::DoNotUpdateCertStore, tmd, cert_chain))
     {
-      AddProblem(Severity::Low, Common::GetStringT("The TMD is not correctly signed."));
+      AddProblem(
+          Severity::Medium,
+          Common::GetStringT("The TMD is not correctly signed. If you move or copy this title to "
+                             "the SD Card, the Wii System Menu will not launch it anymore and will "
+                             "also refuse to copy or move it back to the NAND."));
     }
   }
 
