@@ -45,17 +45,10 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
   constexpr u32 flush_to_zero_mask = FZ | AH | FIZ;
 
   // On CPUs with FEAT_AFP support, setting AH = 1, FZ = 1, FIZ = 0 emulates the GC/Wii CPU's
-  // "non-IEEE mode". Unfortunately, FEAT_AFP didn't exist until 2020, so we can't count on setting
-  // AH actually doing anything. But flushing both inputs and outputs seems to cause less problems
-  // than flushing nothing, so let's just set FZ and AH and roll with whatever behavior we get.
-  const u32 flush_to_zero_bits = (non_ieee_mode ? FZ | AH : 0);
-  static bool afp_warning_shown = false;
-  if (!afp_warning_shown && !cpu_info.bAFP && non_ieee_mode)
-  {
-    afp_warning_shown = true;
-    WARN_LOG_FMT(POWERPC,
-                 "Non-IEEE mode was requested, but host CPU is not known to support FEAT_AFP");
-  }
+  // "non-IEEE mode". Unfortunately, FEAT_AFP didn't exist until 2020, and setting FZ = 1 on an
+  // older CPU means both inputs and outputs are flushed. We don't want to flush inputs, so if the
+  // host CPU does not support FEAT_AFP, we must set FZ = 0 and flush outputs in software instead.
+  const u32 flush_to_zero_bits = (non_ieee_mode && cpu_info.bAFP) ? (FZ | AH) : 0;
 
   // lookup table for FPSCR.RN-to-FPCR.RMode translation
   constexpr u32 rounding_mode_table[] = {
