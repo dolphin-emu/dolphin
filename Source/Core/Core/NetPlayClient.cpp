@@ -859,6 +859,13 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       bool mc251;
       packet >> is_slot_a >> region >> mc251;
 
+      // This check is mainly intended to filter out characters which have special meanings in paths
+      if (region != JAP_DIR && region != USA_DIR && region != EUR_DIR)
+      {
+        SyncSaveDataResponse(false);
+        return 0;
+      }
+
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY +
                                (is_slot_a ? "A." : "B.") + region + (mc251 ? ".251" : "") + ".raw";
       if (File::Exists(path) && !File::Delete(path))
