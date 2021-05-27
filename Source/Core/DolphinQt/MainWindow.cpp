@@ -269,6 +269,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       return;
     }
   }
+
+  Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 }
 
 MainWindow::~MainWindow()
@@ -547,6 +549,7 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::ChangeDisc, this, &MainWindow::ChangeDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::EjectDisc, this, &MainWindow::EjectDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::UnlockCursor, this, &MainWindow::UnlockCursor);
   connect(m_hotkey_scheduler, &HotkeyScheduler::TogglePauseHotkey, this, &MainWindow::TogglePause);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ActivateChat, this, &MainWindow::OnActivateChat);
   connect(m_hotkey_scheduler, &HotkeyScheduler::RequestGolfControl, this,
@@ -813,6 +816,13 @@ bool MainWindow::RequestStop()
     return true;
   }
 
+  const bool rendered_widget_was_active =
+      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
+  QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
+                                m_render_widget :
+                                static_cast<QWidget*>(this);
+  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
+
   if (!m_render_widget->isFullScreen())
     m_render_widget_geometry = m_render_widget->saveGeometry();
   else
@@ -833,20 +843,43 @@ bool MainWindow::RequestStop()
     if (pause)
       Core::SetState(Core::State::Paused);
 
+    if (rendered_widget_was_active)
+    {
+      // We have to do this before creating the message box, otherwise we might receive the window
+      // activation event before we know we need to lock the cursor again.
+      m_render_widget->SetCursorLockedOnNextActivation(was_cursor_locked);
+    }
+
+    // This is to avoid any "race conditions" between the "Window Activate" message and the
+    // message box returning, which could break cursor locking depending on the order
+    m_render_widget->SetWaitingForMessageBox(true);
     auto confirm = ModalMessageBox::question(
-        m_rendering_to_main ? static_cast<QWidget*>(this) : m_render_widget, tr("Confirm"),
+        confirm_parent, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
                            tr("Do you want to stop the current emulation?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
+    // If a user confirmed stopping the emulation, we do not capture the cursor again,
+    // even if the render widget will stay alive for a while.
+    // If a used rejected stopping the emulation, we instead capture the cursor again,
+    // and let them continue playing as if nothing had happened
+    // (assuming cursor locking is on).
     if (confirm != QMessageBox::Yes)
     {
+      m_render_widget->SetWaitingForMessageBox(false);
+
       if (pause)
         Core::SetState(state);
 
       return false;
+    }
+    else
+    {
+      m_render_widget->SetCursorLockedOnNextActivation(false);
+      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
+      m_render_widget->SetWaitingForMessageBox(false);
     }
   }
 
@@ -915,6 +948,12 @@ void MainWindow::FullScreen()
   {
     m_render_widget->showFullScreen();
   }
+}
+
+void MainWindow::UnlockCursor()
+{
+  if (!m_render_widget->isFullScreen())
+    m_render_widget->SetCursorLocked(false);
 }
 
 void MainWindow::ScreenShot()

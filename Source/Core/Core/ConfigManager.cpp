@@ -147,6 +147,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 
   interface->Set("ConfirmStop", bConfirmStop);
   interface->Set("HideCursor", bHideCursor);
+  interface->Set("LockCursor", bLockCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
@@ -401,6 +402,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
   interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("LockCursor", &bLockCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);

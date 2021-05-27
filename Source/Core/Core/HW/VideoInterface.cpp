@@ -867,7 +867,8 @@ void Update(u64 ticks)
 
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
-    Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput);
+    Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput,
+                          SConfig::GetInstance().bLockCursor);
     SerialInterface::UpdateDevices();
     s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }

@@ -108,6 +108,7 @@ private:
   void SetFullScreenResolution(bool fullscreen);
 
   void FullScreen();
+  void UnlockCursor();
   void ScreenShot();
 
   void CreateComponents();
