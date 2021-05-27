@@ -55,8 +55,8 @@ public:
   }
   VkResult AcquireNextImage();
 
-  bool RecreateSurface(void* native_handle);
-  bool ResizeSwapChain();
+  bool RecreateSurface(void* native_handle, int window_width, int window_height);
+  bool ResizeSwapChain(int window_width, int window_height);
   bool RecreateSwapChain();
 
   // Change vsync enabled state. This may fail as it causes a swapchain recreation.

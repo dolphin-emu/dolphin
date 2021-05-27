@@ -15,6 +15,9 @@
 #ifdef CIFACE_USE_XLIB
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 #endif
+#ifdef CIFACE_USE_WAYLAND
+#include "InputCommon/ControllerInterface/Wayland/Wayland.h"
+#endif
 #ifdef CIFACE_USE_OSX
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/Quartz/Quartz.h"
@@ -44,7 +47,10 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   if (m_is_init)
     return;
 
+  // Prevent divide by zero if we somehow end up with a 0x0 window.
   m_wsi = wsi;
+  m_wsi.render_surface_width = std::max(m_wsi.render_surface_width, 1);
+  m_wsi.render_surface_height = std::max(m_wsi.render_surface_height, 1);
 
   // Allow backends to add devices as soon as they are initialized.
   m_is_init = true;
@@ -55,6 +61,9 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   ciface::Win32::Init(wsi.render_window);
 #endif
 #ifdef CIFACE_USE_XLIB
+// nothing needed
+#endif
+#ifdef CIFACE_USE_WAYLAND
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
@@ -81,14 +90,25 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   RefreshDevices();
 }
 
-void ControllerInterface::ChangeWindow(void* hwnd)
+void ControllerInterface::ChangeWindow(void* hwnd, int width, int height)
 {
   if (!m_is_init)
     return;
 
   // This shouldn't use render_surface so no need to update it.
   m_wsi.render_window = hwnd;
+  m_wsi.render_surface_width = std::max(width, 1);
+  m_wsi.render_surface_height = std::max(height, 1);
   RefreshDevices();
+}
+
+void ControllerInterface::OnWindowResized(int width, int height)
+{
+  m_wsi.render_surface_width = std::max(width, 1);
+  m_wsi.render_surface_height = std::max(height, 1);
+  std::lock_guard lk(m_devices_mutex);
+  for (const auto& d : m_devices)
+    d->OnWindowResized(width, height);
 }
 
 void ControllerInterface::RefreshDevices()
@@ -111,7 +131,11 @@ void ControllerInterface::RefreshDevices()
 #endif
 #ifdef CIFACE_USE_XLIB
   if (m_wsi.type == WindowSystemType::X11)
-    ciface::XInput2::PopulateDevices(m_wsi.render_window);
+    ciface::XInput2::PopulateDevices(m_wsi);
+#endif
+#ifdef CIFACE_USE_WAYLAND
+  if (m_wsi.type == WindowSystemType::Wayland)
+    ciface::Wayland::PopulateDevices(m_wsi);
 #endif
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
@@ -185,6 +209,9 @@ void ControllerInterface::Shutdown()
   ciface::Win32::DeInit();
 #endif
 #ifdef CIFACE_USE_XLIB
+// nothing needed
+#endif
+#ifdef CIFACE_USE_WAYLAND
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX

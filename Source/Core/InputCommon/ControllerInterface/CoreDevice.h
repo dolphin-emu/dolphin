@@ -128,6 +128,9 @@ public:
   // (e.g. Xbox 360 controllers have controller number LEDs which should match the ID we use.)
   virtual std::optional<int> GetPreferredId() const;
 
+  // Called when the window the device is bound to is resized.
+  virtual void OnWindowResized(int width, int height) {}
+
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
 

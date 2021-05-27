@@ -16,7 +16,6 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-#include "VideoCommon/RenderBase.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
@@ -26,7 +25,8 @@ namespace Vulkan
 {
 SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
     : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync),
-      m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface))
+      m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface)),
+      m_width(wsi.render_surface_width), m_height(wsi.render_surface_height)
 {
 }
 
@@ -78,6 +78,29 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateXlibSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+  if (wsi.type == WindowSystemType::Wayland)
+  {
+    VkWaylandSurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
+        nullptr,                                            // const void*                    pNext
+        0,  // VkWaylandSurfaceCreateFlagsKHR    flags
+        static_cast<wl_display*>(wsi.display_connection),  // struct wl_display* display
+        static_cast<wl_surface*>(wsi.render_surface)  // struct wl_surface*                surface
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateWaylandSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateWaylandSurfaceKHR failed: ");
       return VK_NULL_HANDLE;
     }
 
@@ -266,8 +289,8 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
-    size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
+    size.width = static_cast<u32>(m_wsi.render_surface_width);
+    size.height = static_cast<u32>(m_wsi.render_surface_height);
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);
@@ -464,9 +487,11 @@ VkResult SwapChain::AcquireNextImage()
   return res;
 }
 
-bool SwapChain::ResizeSwapChain()
+bool SwapChain::ResizeSwapChain(int window_width, int window_height)
 {
   DestroySwapChainImages();
+  m_wsi.render_surface_width = window_width;
+  m_wsi.render_surface_height = window_height;
   if (!CreateSwapChain() || !SetupSwapChainImages())
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
@@ -532,7 +557,7 @@ bool SwapChain::SetFullscreenState(bool state)
 #endif
 }
 
-bool SwapChain::RecreateSurface(void* native_handle)
+bool SwapChain::RecreateSurface(void* native_handle, int window_width, int window_height)
 {
   // Destroy the old swap chain, images, and surface.
   DestroySwapChainImages();
@@ -541,6 +566,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // Re-create the surface with the new native handle
   m_wsi.render_surface = native_handle;
+  m_wsi.render_surface_width = window_width;
+  m_wsi.render_surface_height = window_height;
   m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_wsi);
   if (m_surface == VK_NULL_HANDLE)
     return false;

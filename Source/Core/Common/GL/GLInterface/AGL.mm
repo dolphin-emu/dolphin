@@ -136,7 +136,7 @@ bool GLContextAGL::ClearCurrent()
   return true;
 }
 
-void GLContextAGL::Update()
+void GLContextAGL::UpdateDimensions(int window_width, int window_height)
 {
   if (!m_view)
     return;

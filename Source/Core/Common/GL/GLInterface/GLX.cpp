@@ -306,7 +306,7 @@ bool GLContextGLX::ClearCurrent()
   return glXMakeCurrent(m_display, None, nullptr);
 }
 
-void GLContextGLX::Update()
+void GLContextGLX::UpdateDimensions(int window_width, int window_height)
 {
   m_render_window->UpdateDimensions();
   m_backbuffer_width = m_render_window->GetWidth();

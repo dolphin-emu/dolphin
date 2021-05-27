@@ -7,6 +7,7 @@
 #include <array>
 
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
@@ -159,6 +160,16 @@ void RenderWidget::showFullScreen()
   emit SizeChanged(width() * dpr, height() * dpr);
 }
 
+float RenderWidget::GetDevicePixelRatio() const
+{
+  auto* desktop = QApplication::desktop();
+  int screen_nr = desktop->screenNumber(this);
+  if (screen_nr == -1)
+    screen_nr = desktop->screenNumber(parentWidget());
+
+  return desktop->screen(screen_nr)->devicePixelRatio();
+}
+
 bool RenderWidget::event(QEvent* event)
 {
   PassEventToImGui(event);
@@ -186,8 +197,12 @@ bool RenderWidget::event(QEvent* event)
     }
     break;
   case QEvent::WinIdChange:
-    emit HandleChanged(reinterpret_cast<void*>(winId()));
-    break;
+  {
+    const float dpr = GetDevicePixelRatio();
+    emit HandleChanged(reinterpret_cast<void*>(winId()), static_cast<int>(width() * dpr),
+                       static_cast<int>(height() * dpr));
+  }
+  break;
   case QEvent::WindowActivate:
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
       Core::SetState(Core::State::Running);
@@ -209,13 +224,10 @@ bool RenderWidget::event(QEvent* event)
   case QEvent::Resize:
   {
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
-    QSize new_size = se->size();
-
-    QScreen* screen = window()->windowHandle()->screen();
-
-    const auto dpr = screen->devicePixelRatio();
-
-    emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
+    const QSize new_size = se->size();
+    const float dpr = GetDevicePixelRatio();
+    emit SizeChanged(static_cast<int>(new_size.width() * dpr),
+                     static_cast<int>(new_size.height() * dpr));
     break;
   }
   case QEvent::WindowStateChange:

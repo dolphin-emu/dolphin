@@ -292,8 +292,8 @@ bool GLContextEGL::CreateWindowSurface()
 {
   if (!IsHeadless())
   {
-    EGLNativeWindowType native_window = GetEGLNativeWindow(m_config);
-    m_egl_surface = eglCreateWindowSurface(m_egl_display, m_config, native_window, nullptr);
+    m_native_window = GetEGLNativeWindow(m_config);
+    m_egl_surface = eglCreateWindowSurface(m_egl_display, m_config, m_native_window, nullptr);
     if (!m_egl_surface)
     {
       INFO_LOG_FMT(VIDEO, "Error: eglCreateWindowSurface failed");
@@ -301,15 +301,7 @@ bool GLContextEGL::CreateWindowSurface()
     }
 
     // Get dimensions from the surface.
-    EGLint surface_width = 1, surface_height = 1;
-    if (!eglQuerySurface(m_egl_display, m_egl_surface, EGL_WIDTH, &surface_width) ||
-        !eglQuerySurface(m_egl_display, m_egl_surface, EGL_HEIGHT, &surface_height))
-    {
-      WARN_LOG_FMT(VIDEO,
-                   "Failed to get surface dimensions via eglQuerySurface. Size may be incorrect.");
-    }
-    m_backbuffer_width = static_cast<int>(surface_width);
-    m_backbuffer_height = static_cast<int>(surface_height);
+    QueryDimensions();
   }
   else if (!m_supports_surfaceless)
   {
@@ -347,9 +339,16 @@ bool GLContextEGL::MakeCurrent()
   return eglMakeCurrent(m_egl_display, m_egl_surface, m_egl_surface, m_egl_context);
 }
 
-void GLContextEGL::UpdateSurface(void* window_handle)
+void GLContextEGL::UpdateDimensions(int window_width, int window_height)
+{
+  QueryDimensions();
+}
+
+void GLContextEGL::UpdateSurface(void* window_handle, int window_width, int window_height)
 {
   m_wsi.render_surface = window_handle;
+  m_wsi.render_surface_width = window_width;
+  m_wsi.render_surface_height = window_height;
   ClearCurrent();
   DestroyWindowSurface();
   CreateWindowSurface();
@@ -375,4 +374,16 @@ void GLContextEGL::DestroyContext()
     NOTICE_LOG_FMT(VIDEO, "Could not destroy display connection.");
   m_egl_context = EGL_NO_CONTEXT;
   m_egl_display = EGL_NO_DISPLAY;
+}
+
+void GLContextEGL::QueryDimensions()
+{
+  EGLint surface_width = 1, surface_height = 1;
+  if (!eglQuerySurface(m_egl_display, m_egl_surface, EGL_WIDTH, &surface_width) ||
+      !eglQuerySurface(m_egl_display, m_egl_surface, EGL_HEIGHT, &surface_height))
+  {
+    WARN_LOG(VIDEO, "Failed to get surface dimensions via eglQuerySurface. Size may be incorrect.");
+  }
+  m_backbuffer_width = static_cast<u32>(surface_width);
+  m_backbuffer_height = static_cast<u32>(surface_height);
 }

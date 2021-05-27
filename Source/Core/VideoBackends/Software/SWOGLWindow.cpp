@@ -32,6 +32,16 @@ bool SWOGLWindow::IsHeadless() const
   return m_gl_context->IsHeadless();
 }
 
+u32 SWOGLWindow::GetWidth() const
+{
+  return m_gl_context->GetBackBufferWidth();
+}
+
+u32 SWOGLWindow::GetHeight() const
+{
+  return m_gl_context->GetBackBufferHeight();
+}
+
 bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
 {
   m_gl_context = GLContext::Create(wsi);
@@ -84,11 +94,16 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
+void SWOGLWindow::UpdateDimensions(int window_width, int window_height)
+{
+  // just updates the render window position and the backbuffer size
+  m_gl_context->UpdateDimensions(window_width, window_height);
+}
+
 void SWOGLWindow::ShowImage(const AbstractTexture* image,
                             const MathUtil::Rectangle<int>& xfb_region)
 {
   const SW::SWTexture* sw_image = static_cast<const SW::SWTexture*>(image);
-  m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
   GLsizei glWidth = (GLsizei)m_gl_context->GetBackBufferWidth();
   GLsizei glHeight = (GLsizei)m_gl_context->GetBackBufferHeight();

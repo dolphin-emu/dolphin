@@ -30,6 +30,9 @@
 #if defined(USE_PIPES)
 #define CIFACE_USE_PIPES
 #endif
+#if defined(HAVE_WAYLAND)
+#define CIFACE_USE_WAYLAND
+#endif
 #define CIFACE_USE_DUALSHOCKUDPCLIENT
 
 namespace ciface
@@ -62,7 +65,8 @@ public:
 
   ControllerInterface() : m_is_init(false) {}
   void Initialize(const WindowSystemInfo& wsi);
-  void ChangeWindow(void* hwnd);
+  void ChangeWindow(void* hwnd, int width, int height);
+  void OnWindowResized(int width, int height);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);

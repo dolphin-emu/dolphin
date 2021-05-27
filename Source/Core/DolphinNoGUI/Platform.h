@@ -35,6 +35,9 @@ public:
 #ifdef HAVE_X11
   static std::unique_ptr<Platform> CreateX11Platform();
 #endif
+#ifdef HAVE_WAYLAND
+  static std::unique_ptr<Platform> CreateWaylandPlatform();
+#endif
 
 #ifdef __linux__
   static std::unique_ptr<Platform> CreateFBDevPlatform();

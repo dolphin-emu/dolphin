@@ -25,7 +25,7 @@ public:
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 
-  void SetRenderHandle(void* handle);
+  void SetRenderHandle(void* handle, int width, int height);
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void ResizeSurface(int new_width, int new_height);
