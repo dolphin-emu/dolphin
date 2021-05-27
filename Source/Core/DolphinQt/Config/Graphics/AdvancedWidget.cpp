@@ -70,6 +70,7 @@ void AdvancedWidget::CreateWidgets()
   m_prefetch_custom_textures =
       new GraphicsBool(tr("Prefetch Custom Textures"), Config::GFX_CACHE_HIRES_TEXTURES);
   m_dump_efb_target = new GraphicsBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
+  m_dump_xfb_target = new GraphicsBool(tr("Dump XFB Target"), Config::GFX_DUMP_XFB_TARGET);
   m_disable_vram_copies =
       new GraphicsBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
 
@@ -79,6 +80,7 @@ void AdvancedWidget::CreateWidgets()
   utility_layout->addWidget(m_disable_vram_copies, 1, 0);
 
   utility_layout->addWidget(m_dump_efb_target, 1, 1);
+  utility_layout->addWidget(m_dump_xfb_target, 2, 1);
 
   // Texture dumping
   auto* texture_dump_box = new QGroupBox(tr("Texture Dumping"));
@@ -233,6 +235,10 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br "
                  "/><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
+  static const char TR_DUMP_XFB_DESCRIPTION[] =
+      QT_TR_NOOP("Dumps the contents of XFB copies to User/Dump/Textures/.<br><br "
+                 "/><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
   static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
                  "upscaling.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -288,6 +294,7 @@ void AdvancedWidget::AddDescriptions()
   m_load_custom_textures->SetDescription(tr(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
   m_prefetch_custom_textures->SetDescription(tr(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
   m_dump_efb_target->SetDescription(tr(TR_DUMP_EFB_DESCRIPTION));
+  m_dump_xfb_target->SetDescription(tr(TR_DUMP_XFB_DESCRIPTION));
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
   m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
 #ifdef HAVE_FFMPEG
