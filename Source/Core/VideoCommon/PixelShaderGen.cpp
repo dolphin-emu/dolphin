@@ -810,16 +810,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
     }
   }
-  for (u32 i = uid_data->genMode_numindstages; i < 4; i++)
-  {
-    // Referencing a stage above the number of ind stages is undefined behavior,
-    // and on console produces a noise pattern (details unknown).
-    // TODO: This behavior is nowhere near that, but it ensures the shader still compiles.
-    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
-    {
-      out.Write("\tint3 iindtex{} = int3(0, 0, 0);  // Undefined behavior on console\n", i);
-    }
-  }
 
   for (u32 i = 0; i < numStages; i++)
   {
@@ -967,9 +957,17 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     const TevStageIndirect tevind{.hex = stage.tevind};
     out.Write("\t// indirect op\n");
 
+    // Quirk: Referencing a stage above the number of ind stages is undefined behavior,
+    // and on console produces a noise pattern (details unknown).
+    // Instead, just skip applying the indirect operation, which is close enough.
+    // We need to do *something*, as there won't be an iindtex variable otherwise.
+    // Viewtiful Joe hits this case (bug 12525).
+    // Wrapping and add to previous still apply in this case (and when the stage is disabled).
+    const bool has_ind_stage = tevind.bt < uid_data->genMode_numindstages;
+
     // Perform the indirect op on the incoming regular coordinates
     // using iindtex{} as the offset coords
-    if (tevind.bs != IndTexBumpAlpha::Off)
+    if (has_ind_stage && tevind.bs != IndTexBumpAlpha::Off)
     {
       static constexpr std::array<const char*, 4> tev_ind_alpha_sel{
           "",
@@ -995,7 +993,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       // TODO: Should we reset alphabump to 0 here?
     }
 
-    if (tevind.matrix_index != IndMtxIndex::Off)
+    if (has_ind_stage && tevind.matrix_index != IndMtxIndex::Off)
     {
       // format
       static constexpr std::array<const char*, 4> tev_ind_fmt_mask{
@@ -1123,8 +1121,11 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
-      // If matrix_index is Off (0), matrix_id should be Indirect (0)
-      ASSERT(tevind.matrix_id == IndMtxId::Indirect);
+      if (tevind.matrix_index == IndMtxIndex::Off)
+      {
+        // If matrix_index is Off (0), matrix_id should be Indirect (0)
+        ASSERT(tevind.matrix_id == IndMtxId::Indirect);
+      }
     }
 
     // ---------

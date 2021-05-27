@@ -289,34 +289,24 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
                                                     std::string_view in_index_name) {
     // in_index_name is the indirect stage, not the tev stage
     // bpmem_iref is packed differently from RAS1_IREF
+    // This function assumes bpmem_iref is nonzero (i.e. matrix is not off, and the
+    // indirect texture stage is enabled).
     out.Write("{{\n"
               "  uint iref = bpmem_iref({});\n"
-              "  if ( iref != 0u)\n"
-              "  {{\n"
-              "    uint texcoord = bitfieldExtract(iref, 0, 3);\n"
-              "    uint texmap = bitfieldExtract(iref, 8, 3);\n"
-              "    int2 fixedPoint_uv = getTexCoord(texcoord);\n"
+              "  uint texcoord = bitfieldExtract(iref, 0, 3);\n"
+              "  uint texmap = bitfieldExtract(iref, 8, 3);\n"
+              "  int2 fixedPoint_uv = getTexCoord(texcoord);\n"
               "\n"
-              "    if (({} & 1u) == 0u)\n"
-              "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].xy;\n"
-              "    else\n"
-              "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].zw;\n"
+              "  if (({} & 1u) == 0u)\n"
+              "    fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].xy;\n"
+              "  else\n"
+              "    fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].zw;\n"
               "\n"
-              "    {} = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
-              "[texmap].xy, {})).abg;\n",
+              "  {} = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
+              "[texmap].xy, {})).abg;\n"
+              "}}",
               in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
               stereo ? "float(layer)" : "0.0");
-    // There is always a bit set in bpmem_iref if the data is valid (matrix is not off, and the
-    // indirect texture stage is enabled). If the matrix is off, the result doesn't matter; if the
-    // indirect texture stage is disabled, the result is undefined (and produces a glitchy pattern
-    // on hardware, different from this).
-    out.Write("  }}\n"
-              "  else\n"
-              "  {{\n"
-              "    {} = int3(0, 0, 0);\n"
-              "  }}\n"
-              "}}\n",
-              out_var_name);
   };
 
   // ======================
@@ -814,68 +804,77 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               BitfieldExtract<&TevStageIndirect::matrix_index>("tevind"));
     out.Write("      uint matrix_id = {};\n",
               BitfieldExtract<&TevStageIndirect::matrix_id>("tevind"));
-    out.Write("\n");
-    out.Write("      int3 indcoord;\n");
+    out.Write("      int2 indtevtrans = int2(0, 0);\n"
+              "\n");
+    // There is always a bit set in bpmem_iref if the data is valid (matrix is not off, and the
+    // indirect texture stage is enabled). If the matrix is off, the result doesn't matter; if the
+    // indirect texture stage is disabled, the result is undefined (and produces a glitchy pattern
+    // on hardware, different from this).
+    // For the undefined case, we just skip applying the indirect operation, which is close enough.
+    // Viewtiful Joe hits the undefined case (bug 12525).
+    // Wrapping and add to previous still apply in this case (and when the stage is disabled).
+    out.Write("      if (bpmem_iref(bt) != 0u) {{");
+    out.Write("        int3 indcoord;\n");
     LookupIndirectTexture("indcoord", "bt");
-    out.Write("      if (bs != 0u)\n"
-              "        s.AlphaBump = indcoord[bs - 1u];\n"
-              "      switch(fmt)\n"
-              "      {{\n"
-              "      case {:s}:\n",
-              IndTexFormat::ITF_8);
-    out.Write("        indcoord.x = indcoord.x + ((bias & 1u) != 0u ? -128 : 0);\n"
-              "        indcoord.y = indcoord.y + ((bias & 2u) != 0u ? -128 : 0);\n"
-              "        indcoord.z = indcoord.z + ((bias & 4u) != 0u ? -128 : 0);\n"
-              "        s.AlphaBump = s.AlphaBump & 0xf8;\n"
-              "        break;\n"
-              "      case {:s}:\n",
-              IndTexFormat::ITF_5);
-    out.Write("        indcoord.x = (indcoord.x & 0x1f) + ((bias & 1u) != 0u ? 1 : 0);\n"
-              "        indcoord.y = (indcoord.y & 0x1f) + ((bias & 2u) != 0u ? 1 : 0);\n"
-              "        indcoord.z = (indcoord.z & 0x1f) + ((bias & 4u) != 0u ? 1 : 0);\n"
-              "        s.AlphaBump = s.AlphaBump & 0xe0;\n"
-              "        break;\n"
-              "      case {:s}:\n",
-              IndTexFormat::ITF_4);
-    out.Write("        indcoord.x = (indcoord.x & 0x0f) + ((bias & 1u) != 0u ? 1 : 0);\n"
-              "        indcoord.y = (indcoord.y & 0x0f) + ((bias & 2u) != 0u ? 1 : 0);\n"
-              "        indcoord.z = (indcoord.z & 0x0f) + ((bias & 4u) != 0u ? 1 : 0);\n"
-              "        s.AlphaBump = s.AlphaBump & 0xf0;\n"
-              "        break;\n"
-              "      case {:s}:\n",
-              IndTexFormat::ITF_3);
-    out.Write("        indcoord.x = (indcoord.x & 0x07) + ((bias & 1u) != 0u ? 1 : 0);\n"
-              "        indcoord.y = (indcoord.y & 0x07) + ((bias & 2u) != 0u ? 1 : 0);\n"
-              "        indcoord.z = (indcoord.z & 0x07) + ((bias & 4u) != 0u ? 1 : 0);\n"
-              "        s.AlphaBump = s.AlphaBump & 0xf8;\n"
-              "        break;\n"
-              "      }}\n"
-              "\n"
-              "      // Matrix multiply\n"
-              "      int2 indtevtrans = int2(0, 0);\n"
-              "      if (matrix_index != 0u)\n"
-              "      {{\n"
-              "        uint mtxidx = 2u * (matrix_index - 1u);\n"
-              "        int shift = " I_INDTEXMTX "[mtxidx].w;\n"
-              "\n"
-              "        switch (matrix_id)\n"
+    out.Write("        if (bs != 0u)\n"
+              "          s.AlphaBump = indcoord[bs - 1u];\n"
+              "        switch(fmt)\n"
               "        {{\n"
-              "        case 0u: // 3x2 S0.10 matrix\n"
-              "          indtevtrans = int2(idot(" I_INDTEXMTX
-              "[mtxidx].xyz, indcoord), idot(" I_INDTEXMTX "[mtxidx + 1u].xyz, indcoord)) >> 3;\n"
+              "        case {:s}:\n",
+              IndTexFormat::ITF_8);
+    out.Write("          indcoord.x = indcoord.x + ((bias & 1u) != 0u ? -128 : 0);\n"
+              "          indcoord.y = indcoord.y + ((bias & 2u) != 0u ? -128 : 0);\n"
+              "          indcoord.z = indcoord.z + ((bias & 4u) != 0u ? -128 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump & 0xf8;\n"
               "          break;\n"
-              "        case 1u: // S matrix, S17.7 format\n"
-              "          indtevtrans = (fixedPoint_uv * indcoord.xx) >> 8;\n"
+              "        case {:s}:\n",
+              IndTexFormat::ITF_5);
+    out.Write("          indcoord.x = (indcoord.x & 0x1f) + ((bias & 1u) != 0u ? 1 : 0);\n"
+              "          indcoord.y = (indcoord.y & 0x1f) + ((bias & 2u) != 0u ? 1 : 0);\n"
+              "          indcoord.z = (indcoord.z & 0x1f) + ((bias & 4u) != 0u ? 1 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump & 0xe0;\n"
               "          break;\n"
-              "        case 2u: // T matrix, S17.7 format\n"
-              "          indtevtrans = (fixedPoint_uv * indcoord.yy) >> 8;\n"
+              "        case {:s}:\n",
+              IndTexFormat::ITF_4);
+    out.Write("          indcoord.x = (indcoord.x & 0x0f) + ((bias & 1u) != 0u ? 1 : 0);\n"
+              "          indcoord.y = (indcoord.y & 0x0f) + ((bias & 2u) != 0u ? 1 : 0);\n"
+              "          indcoord.z = (indcoord.z & 0x0f) + ((bias & 4u) != 0u ? 1 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump & 0xf0;\n"
+              "          break;\n"
+              "        case {:s}:\n",
+              IndTexFormat::ITF_3);
+    out.Write("          indcoord.x = (indcoord.x & 0x07) + ((bias & 1u) != 0u ? 1 : 0);\n"
+              "          indcoord.y = (indcoord.y & 0x07) + ((bias & 2u) != 0u ? 1 : 0);\n"
+              "          indcoord.z = (indcoord.z & 0x07) + ((bias & 4u) != 0u ? 1 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump & 0xf8;\n"
               "          break;\n"
               "        }}\n"
               "\n"
-              "        if (shift >= 0)\n"
-              "          indtevtrans = indtevtrans >> shift;\n"
-              "        else\n"
-              "          indtevtrans = indtevtrans << ((-shift) & 31);\n"
+              "        // Matrix multiply\n"
+              "        if (matrix_index != 0u)\n"
+              "        {{\n"
+              "          uint mtxidx = 2u * (matrix_index - 1u);\n"
+              "          int shift = " I_INDTEXMTX "[mtxidx].w;\n"
+              "\n"
+              "          switch (matrix_id)\n"
+              "          {{\n"
+              "          case 0u: // 3x2 S0.10 matrix\n"
+              "            indtevtrans = int2(idot(" I_INDTEXMTX
+              "[mtxidx].xyz, indcoord), idot(" I_INDTEXMTX "[mtxidx + 1u].xyz, indcoord)) >> 3;\n"
+              "            break;\n"
+              "          case 1u: // S matrix, S17.7 format\n"
+              "            indtevtrans = (fixedPoint_uv * indcoord.xx) >> 8;\n"
+              "            break;\n"
+              "          case 2u: // T matrix, S17.7 format\n"
+              "            indtevtrans = (fixedPoint_uv * indcoord.yy) >> 8;\n"
+              "            break;\n"
+              "          }}\n"
+              "\n"
+              "          if (shift >= 0)\n"
+              "            indtevtrans = indtevtrans >> shift;\n"
+              "          else\n"
+              "            indtevtrans = indtevtrans << ((-shift) & 31);\n"
+              "        }}\n"
               "      }}\n"
               "\n"
               "      // Wrapping\n"
