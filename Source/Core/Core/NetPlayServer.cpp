@@ -41,6 +41,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 #include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
@@ -1572,17 +1573,21 @@ bool NetPlayServer::SyncSaveData()
 
       MemoryCard::CheckPath(path, region, is_slot_a);
 
-      bool mc251;
+      int size_override;
       IniFile gameIni = SConfig::LoadGameIni(game->GetGameID(), game->GetRevision());
-      gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &mc251, false);
+      gameIni.GetOrCreateSection("Core")->Get("MemoryCardSize", &size_override, -1);
 
-      if (mc251)
-        path.insert(path.find_last_of('.'), ".251");
+      if (size_override >= 0 && size_override <= 4)
+      {
+        path.insert(path.find_last_of('.'),
+                    fmt::format(".{}", Memcard::MbitToFreeBlocks(Memcard::MBIT_SIZE_MEMORY_CARD_59
+                                                                 << size_override)));
+      }
 
       sf::Packet pac;
       pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
       pac << static_cast<MessageId>(SYNC_SAVE_DATA_RAW);
-      pac << is_slot_a << region << mc251;
+      pac << is_slot_a << region << size_override;
 
       if (File::Exists(path))
       {
