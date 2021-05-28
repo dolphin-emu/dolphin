@@ -462,7 +462,10 @@ globallycoherent RWBuffer<int> bbox_data : register(u2);
 #define bbox_bottom bbox_data[3]
 #else
 SSBO_BINDING(0) buffer BBox {{
-  int bbox_left, bbox_right, bbox_top, bbox_bottom;
+  int bbox_left;
+  int bbox_right;
+  int bbox_top;
+  int bbox_bottom;
 }};
 #endif
 
