@@ -1,0 +1,95 @@
+name: Dolphin-AppImage
+
+on: 
+  push:
+
+jobs:
+  dolphin-appimage:
+    name: dolphin bundled as appimage
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Runs the Dolphin action
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+          message("::set-output name=timestamp::${current_date}")
+      - name: cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: build-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          restore-keys: |
+            build-ccache-
+      - name: Install Packages
+        continue-on-error: true
+        id: packages
+        run: |
+          sudo add-apt-repository -y ppa:beineri/opt-qt-5.15.2-focal
+          sudo apt-get install -y dialog libbluetooth-dev liblz4-dev libopus-dev libsystemd-dev \
+          libzip-dev libzstd-dev libasound2-dev libpulse-dev pulseaudio libsfml-dev libminiupnpc-dev libmbedtls-dev libpugixml-dev \
+          liblzo2-dev qt515base qt5-qmake libxi-dev libavcodec-dev libudev-dev libusb-1.0-0-dev libevdev-dev libhidapi-dev libavformat-dev libavdevice-dev \
+          libfmt-dev libwayland-dev libxrandr-dev libglu1-mesa-dev libcurl4-openssl-dev zenity gettext ccache cmake ninja-build \
+      - name: Install Packages if failed
+        id: packages2
+        if: steps.packages.outcome=='failure'
+        run: |
+          sudo add-apt-repository -y ppa:beineri/opt-qt-5.15.2-focal
+          sudo apt-get install -y build-essential dialog dpkg libbluetooth-dev liblz4-dev liblzma-dev libssl-dev libopus-dev libpng-dev libsystemd-dev \
+          libzip-dev libzstd-dev zlib1g-dev libasound2-dev libpulse-dev pulseaudio p7zip p7zip-full libsfml-dev libminiupnpc-dev libmbedtls-dev libpugixml-dev \
+          libbz2-dev liblzo2-dev qt515base qt5-qmake libxi-dev libavcodec-dev libudev-dev libusb-1.0-0-dev libevdev-dev libc6-dev libhidapi-dev libavformat-dev libavdevice-dev \
+          libfmt-dev libwayland-dev libxrandr-dev libglu1-mesa-dev libcurl4-openssl-dev x11-utils zenity wget curl git gettext ccache make cmake ninja-build \
+      - name: Build Dolphin
+        run: |
+          mkdir -p "$HOME/.ccache"
+          mkdir build
+          cd build
+          cmake .. -GNinja -DLINUX_LOCAL_DEV=true -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++
+          ninja
+      - name: Package Dolphin-Binary
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/artifacts
+          cp -P build/Binaries/dolphin-emu $GITHUB_WORKSPACE/artifacts
+      - name: Package Dolphin-AppImage
+        env:
+          QT_BASE_DIR: /opt/qt515
+          QTDIR: $QT_BASE_DIR
+        run: |
+          export PATH=$QT_BASE_DIR/bin:$PATH
+          echo "PATH $PATH"
+          qmake -v
+          cd /tmp 
+          curl -sLO "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+          chmod a+x linuxdeployqt*.AppImage
+          ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract
+          cd $GITHUB_WORKSPACE
+          mkdir -p squashfs-root/usr/bin
+          cp -P build/Binaries/dolphin-emu $GITHUB_WORKSPACE/squashfs-root/usr/bin/
+          cp Data/dolphin-emu.svg ./squashfs-root/dolphin-emu.svg
+          cp Data/dolphin-emu.desktop ./squashfs-root/dolphin-emu.desktop
+          curl -sSfL https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-x86_64 -o ./squashfs-root/runtime
+          curl -sSfL https://github.com/AppImage/AppImageKit/releases/download/continuous/AppRun-x86_64 -o ./squashfs-root/AppRun
+          mkdir -p squashfs-root/usr/share/applications && cp ./squashfs-root/dolphin-emu.desktop ./squashfs-root/usr/share/applications
+          mkdir -p squashfs-root/usr/share/icons && cp ./squashfs-root/dolphin-emu.svg ./squashfs-root/usr/share/icons
+          mkdir -p squashfs-root/usr/share/icons/hicolor/scalable/apps && cp ./squashfs-root/dolphin-emu.svg ./squashfs-root/usr/share/icons/hicolor/scalable/apps
+          mkdir -p squashfs-root/usr/share/pixmaps && cp ./squashfs-root/dolphin-emu.svg ./squashfs-root/usr/share/pixmaps
+          mkdir -p squashfs-root/usr/share/dolphin-emu
+          cp -R Data/Sys/Themes ./squashfs-root/usr/share/dolphin-emu
+          chmod a+x ./squashfs-root/AppRun
+          chmod a+x ./squashfs-root/runtime
+          /tmp/squashfs-root/AppRun $GITHUB_WORKSPACE/squashfs-root/usr/bin/dolphin-emu -appimage -unsupported-allow-new-glibc -no-copy-copyright-files -no-translations -bundle-non-qt-libs
+          ls . | grep *.AppImage
+          mv $(ls . | grep *.AppImage) $GITHUB_WORKSPACE/artifacts
+          ls -al $GITHUB_WORKSPACE/artifacts
+        continue-on-error: true  
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Dolphin_Emulator-x86_64-Linux
+          path: artifacts/
