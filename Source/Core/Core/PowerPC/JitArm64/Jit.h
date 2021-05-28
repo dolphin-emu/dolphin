@@ -286,6 +286,7 @@ protected:
                bool Rc = false);
 
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
+  void FlushToZeroIfNeeded(bool single, bool packed, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input,
                            Arm64Gen::ARM64Reg temp);
 

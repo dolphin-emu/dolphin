@@ -117,6 +117,7 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
 
   fpr.FixSinglePrecision(d);
 
+  FlushToZeroIfNeeded(true, true, VD);
   SetFPRFIfNeeded(true, VD);
 }
 
@@ -268,6 +269,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
 
   fpr.FixSinglePrecision(d);
 
+  FlushToZeroIfNeeded(true, true, VD);
   SetFPRFIfNeeded(true, VD);
 }
 
@@ -354,6 +356,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
 
   fpr.FixSinglePrecision(d);
 
+  FlushToZeroIfNeeded(true, true, VD);
   SetFPRFIfNeeded(true, VD);
 }
 

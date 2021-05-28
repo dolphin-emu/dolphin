@@ -2925,6 +2925,11 @@ void ARM64FloatEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
   ASSERT_MSG(DYNA_REC, IsDouble(Rd), "%s only supports double registers!", __func__);
   EmitScalarThreeSame(0, 3, 0b10000, Rd, Rn, Rm);
 }
+void ARM64FloatEmitter::CMTST(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  ASSERT_MSG(DYNA_REC, IsDouble(Rd), "%s only supports double registers!", __func__);
+  EmitScalarThreeSame(0, 3, 0b10001, Rd, Rn, Rm);
+}
 void ARM64FloatEmitter::FADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitScalar2Source(0, 0, IsDouble(Rd), 2, Rd, Rn, Rm);
@@ -3019,6 +3024,20 @@ void ARM64FloatEmitter::BIT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 void ARM64FloatEmitter::BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitThreeSame(1, 1, 3, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::CMTST(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  u32 encoded_size = 0;
+  if (size == 8)
+    encoded_size = 0;
+  else if (size == 16)
+    encoded_size = 1;
+  else if (size == 32)
+    encoded_size = 2;
+  else if (size == 64)
+    encoded_size = 3;
+
+  EmitThreeSame(0, encoded_size, 0b10001, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
 {

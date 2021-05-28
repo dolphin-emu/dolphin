@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Arm64Emitter.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -36,6 +38,58 @@ void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
   BL(single ? GetAsmRoutines()->fprf_single : GetAsmRoutines()->fprf_double);
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+}
+
+// Sets the mantissa to 0 if the exponent is 0
+void JitArm64::FlushToZeroIfNeeded(bool single, bool packed, Arm64Gen::ARM64Reg reg)
+{
+  // If the hardware is automatically flushing to zero for us, skip doing it in software
+  if (cpu_info.bFlushToZero)
+    return;
+
+  const auto reg_encoder = packed && !single ?
+                               EncodeRegToQuad :
+                               (packed || !single ? EncodeRegToDouble : EncodeRegToSingle);
+  const auto reg_encoder_64 = packed && !single ? EncodeRegToQuad : EncodeRegToDouble;
+  const auto gpr_encoder = packed || !single ? EncodeRegTo64 : EncodeRegTo32;
+
+  const ARM64Reg temp_sign = fpr.GetReg();
+  const ARM64Reg temp_exp = fpr.GetReg();
+  const ARM64Reg temp_gpr = gpr.GetReg();
+
+  if (single)
+  {
+    u64 exp = Common::FLOAT_EXP;
+    if (packed)
+      exp |= static_cast<u64>(Common::FLOAT_EXP) << 32;
+
+    MOVI2R(gpr_encoder(temp_gpr), exp);
+    m_float_emit.MOVI(32, reg_encoder(temp_sign), 0xFF, 24);
+    m_float_emit.FMOV(reg_encoder(temp_exp), gpr_encoder(temp_gpr));
+  }
+  else
+  {
+    MOVI2R(gpr_encoder(temp_gpr), Common::DOUBLE_EXP);
+    m_float_emit.MOVI(64, reg_encoder(temp_sign), 0xFF00'0000'0000'0000);
+    m_float_emit.FMOV(EncodeRegToDouble(temp_exp), gpr_encoder(temp_gpr));
+    if (packed)
+      m_float_emit.DUP(64, temp_exp, temp_exp, 0);
+  }
+
+  m_float_emit.AND(reg_encoder_64(temp_sign), reg_encoder_64(temp_sign), reg_encoder_64(reg));
+  if (!packed && !single)
+  {
+    m_float_emit.CMTST(reg_encoder_64(temp_exp), reg_encoder_64(temp_exp), reg_encoder_64(reg));
+  }
+  else
+  {
+    m_float_emit.CMTST(single ? 32 : 64, reg_encoder_64(temp_exp), reg_encoder_64(temp_exp),
+                       reg_encoder_64(reg));
+  }
+  m_float_emit.BIF(reg_encoder_64(reg), reg_encoder_64(temp_sign), reg_encoder_64(temp_exp));
+
+  gpr.Unlock(temp_gpr);
+  fpr.Unlock(temp_sign, temp_exp);
 }
 
 // Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
@@ -212,6 +266,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     fpr.FixSinglePrecision(d);
   }
 
+  FlushToZeroIfNeeded(outputs_are_singles, packed, VD);
   SetFPRFIfNeeded(outputs_are_singles, VD);
 }
 
@@ -364,6 +419,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 
+    FlushToZeroIfNeeded(true, false, VD);
     SetFPRFIfNeeded(true, VD);
   }
 }
