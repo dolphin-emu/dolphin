@@ -194,8 +194,13 @@ void FpsControls::handle_beam_visor_switch(std::array<int, 4> const &beams,
   if (has_beams) {
     const int beam_id = get_beam_switch(beams);
     if (beam_id != -1) {
-      prime::GetVariableManager()->set_variable("new_beam", static_cast<u32>(beam_id));
-      prime::GetVariableManager()->set_variable("beamchange_flag", u32{1});
+      // Prevent triggering more than one beam swap while one is currently in progress.
+      std::chrono::duration<double, std::milli> elapsed = hr_clock::now() - beam_scroll_timeout;
+      if (elapsed.count() > 800) {
+        prime::GetVariableManager()->set_variable("new_beam", static_cast<u32>(beam_id));
+        prime::GetVariableManager()->set_variable("beamchange_flag", u32{1});
+        beam_scroll_timeout = hr_clock::now();
+      }
     }
   }
 

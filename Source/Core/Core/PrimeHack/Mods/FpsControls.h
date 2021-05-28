@@ -2,6 +2,10 @@
 
 #include "Core/PrimeHack/PrimeMod.h"
 
+#include <chrono>
+
+using hr_clock = std::chrono::high_resolution_clock;
+
 namespace prime {
 // Primary focus of PrimeHack. Does the following:
 //  - Provides full control of camera movement to the device outputting to
@@ -78,6 +82,9 @@ private:
   // Prime 3 Grapple Lasso
   bool grapple_button_state, grapple_swap_axis = false;
   float grapple_hand_pos, grapple_force;
+
+  // Beam scrolling timeout. Visor doesn't appear to need this.
+  hr_clock::time_point beam_scroll_timeout = hr_clock::now();
 
   // Check when to reset the cursor position
   bool menu_open = true;
