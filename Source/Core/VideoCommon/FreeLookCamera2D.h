@@ -78,6 +78,9 @@ private:
   std::vector<TextureLayer> m_layers;
 
 protected:
+  void SetLayer(std::size_t layer);
+  std::size_t LayerCount() const;
+
   TextureLayer* m_current_layer;
 };
 
@@ -91,6 +94,9 @@ public:
 
   void IncreaseStretchX(float amt);
   void IncreaseStretchY(float amt);
+
+  void IncrementLayer();
+  void DecrementLayer();
 
   void DoState(PointerWrap& p) override;
 
@@ -109,6 +115,7 @@ protected:
   bool m_dirty = false;
 
 private:
+  std::size_t m_current_layer_index;
   static constexpr float DEFAULT_SPEED = 1.0f;
 
   float m_speed = DEFAULT_SPEED;

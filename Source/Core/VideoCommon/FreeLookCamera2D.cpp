@@ -211,6 +211,23 @@ void CameraController2D::DoState(PointerWrap& p)
   p.DoEachElement(m_layers, [](PointerWrap& pw, TextureLayer& layer) { layer.DoState(pw); });
 }
 
+void CameraController2D::SetLayer(std::size_t layer)
+{
+  if (layer < LayerCount())
+  {
+    m_current_layer = &m_layers[layer];
+    static constexpr int display_message_ms = 3000;
+    Core::DisplayMessage(
+        fmt::format("FreeLook 2d camera texture layer '{}' set", m_current_layer->GetLayerName()),
+        display_message_ms);
+  }
+}
+
+std::size_t CameraController2D::LayerCount() const
+{
+  return m_layers.size();
+}
+
 void CameraController2DInput::IncreaseStretchX(float amt)
 {
   if (m_current_layer)
@@ -225,6 +242,22 @@ void CameraController2DInput::IncreaseStretchY(float amt)
   {
     m_current_layer->GetStretchMultiplier().y += amt;
   }
+}
+
+void CameraController2DInput::IncrementLayer()
+{
+  m_current_layer_index++;
+  if (m_current_layer_index >= LayerCount())
+    m_current_layer_index = 0;
+  SetLayer(m_current_layer_index);
+}
+
+void CameraController2DInput::DecrementLayer()
+{
+  m_current_layer_index--;
+  if (m_current_layer_index < 0)
+    m_current_layer_index = LayerCount() - 1;
+  SetLayer(m_current_layer_index);
 }
 
 float CameraController2DInput::GetStretchMultiplierSize() const

@@ -34,6 +34,7 @@ enum class FreeLook2DGroup
   Move,
   Speed,
   Stretch,
+  TextureLayer,
   Other,
 };
 
@@ -91,6 +92,7 @@ private:
   ControllerEmu::Buttons* m_move_buttons;
   ControllerEmu::Buttons* m_speed_buttons;
   ControllerEmu::Buttons* m_stretch_buttons;
+  ControllerEmu::Buttons* m_texturelayer_buttons;
   ControllerEmu::Buttons* m_other_buttons;
 
   const unsigned int m_index;

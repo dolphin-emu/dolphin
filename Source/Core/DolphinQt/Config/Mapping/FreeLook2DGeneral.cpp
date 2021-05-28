@@ -29,7 +29,11 @@ void FreeLook2DGeneral::CreateMainLayout()
       CreateGroupBox(tr("Stretch"), FreeLook::Get2DInputGroup(GetPort(), FreeLook2DGroup::Stretch)),
       0, 2);
   layout->addWidget(
-      CreateGroupBox(tr("Other"), FreeLook::Get2DInputGroup(GetPort(), FreeLook2DGroup::Other)), 0,
+      CreateGroupBox(tr("Texture Layer"),
+                     FreeLook::Get2DInputGroup(GetPort(), FreeLook2DGroup::TextureLayer)),
+      0, 3);
+  layout->addWidget(
+      CreateGroupBox(tr("Other"), FreeLook::Get2DInputGroup(GetPort(), FreeLook2DGroup::Other)), 1,
       3);
 
   setLayout(layout);

@@ -95,6 +95,15 @@ enum ZoomButtons
   Decrease,
 };
 }
+
+namespace TextureLayerButtons
+{
+enum TextureLayerButtons
+{
+  Next,
+  Previous,
+};
+}
 }  // namespace
 
 FreeLookController::FreeLookController(const unsigned int index) : m_index(index)
@@ -310,6 +319,12 @@ FreeLook2DController::FreeLook2DController(const unsigned int index) : m_index(i
   m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease X"));
   m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Increase Y"));
   m_stretch_buttons->AddInput(ControllerEmu::Translate, _trans("Decrease Y"));
+
+  groups.emplace_back(m_texturelayer_buttons =
+                          new ControllerEmu::Buttons(_trans("Texture Layers")));
+
+  m_texturelayer_buttons->AddInput(ControllerEmu::Translate, _trans("Next"));
+  m_texturelayer_buttons->AddInput(ControllerEmu::Translate, _trans("Previous"));
 }
 
 std::string FreeLook2DController::GetName() const
@@ -327,6 +342,8 @@ ControllerEmu::ControlGroup* FreeLook2DController::GetGroup(FreeLook2DGroup grou
     return m_speed_buttons;
   case FreeLook2DGroup::Stretch:
     return m_stretch_buttons;
+  case FreeLook2DGroup::TextureLayer:
+    return m_texturelayer_buttons;
   case FreeLook2DGroup::Other:
     return m_other_buttons;
   default:
@@ -389,6 +406,12 @@ void FreeLook2DController::UpdateInput(CameraController2DInput* camera_controlle
 
   if (m_speed_buttons->controls[SpeedButtons::Increase]->GetState<bool>())
     camera_controller->ModifySpeed(camera_controller->GetSpeed() * 1.1 * dt);
+
+  if (m_texturelayer_buttons->controls[TextureLayerButtons::Next]->GetState<bool>())
+    camera_controller->IncrementLayer();
+
+  if (m_texturelayer_buttons->controls[TextureLayerButtons::Previous]->GetState<bool>())
+    camera_controller->DecrementLayer();
 
   if (m_speed_buttons->controls[SpeedButtons::Reset]->GetState<bool>())
     camera_controller->ResetSpeed();
