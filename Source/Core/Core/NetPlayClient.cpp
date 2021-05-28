@@ -905,7 +905,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         std::string file_name;
         packet >> file_name;
 
-        if (!DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
+        if (!Common::IsFileNameSafe(file_name) ||
+            !DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
         {
           SyncSaveDataResponse(false);
           return 0;
