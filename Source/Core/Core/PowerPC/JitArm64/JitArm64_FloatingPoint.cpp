@@ -384,7 +384,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   gpr.BindCRToRegister(crf, false);
   const ARM64Reg XA = gpr.CR(crf);
 
-  ARM64Reg fpscr_reg;
+  ARM64Reg fpscr_reg = ARM64Reg::INVALID_REG;
   if (fprf)
   {
     fpscr_reg = gpr.GetReg();
