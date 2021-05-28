@@ -26,6 +26,7 @@ struct CommonAsmRoutinesBase
   const u8* mfcr;
   const u8* cdts;
   const u8* cstd;
+  const u8* cstd_nan;
   const u8* fprf_single;
   const u8* fprf_double;
 

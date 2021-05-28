@@ -499,9 +499,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
 
     // Else convert this register back to a double.
-    const ARM64Reg tmp_reg = GetReg();
-    m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg, tmp_reg);
-    UnlockRegister(tmp_reg);
+    m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg);
 
     reg.Load(host_reg, RegType::LowerPair);
     [[fallthrough]];
@@ -536,9 +534,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       return host_reg;
     }
 
-    const ARM64Reg tmp_reg = GetReg();
-    m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg, tmp_reg);
-    UnlockRegister(tmp_reg);
+    m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg);
 
     reg.Load(host_reg, RegType::Duplicated);
     [[fallthrough]];
@@ -622,11 +618,9 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       flush_reg = GetReg();
       if (!m_jit->IsFPRStoreSafe(preg))
       {
-        ARM64Reg scratch_reg = GetReg();
         m_float_emit->INS(32, flush_reg, 0, host_reg, 1);
-        m_jit->ConvertSingleToDoubleLower(preg, flush_reg, flush_reg, scratch_reg);
+        m_jit->ConvertSingleToDoubleLower(preg, flush_reg, flush_reg);
         m_float_emit->STR(64, IndexType::Unsigned, flush_reg, PPC_REG, u32(PPCSTATE_OFF_PS1(preg)));
-        Unlock(scratch_reg);
         break;
       }
       else
@@ -645,7 +639,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       break;
     case RegType::DuplicatedSingle:
       flush_reg = GetReg();
-      m_jit->ConvertSingleToDoubleLower(preg, flush_reg, host_reg, flush_reg);
+      m_jit->ConvertSingleToDoubleLower(preg, flush_reg, host_reg);
       [[fallthrough]];
     case RegType::Duplicated:
       // Store PSR1 (which is equal to PSR0) in memory.
@@ -789,7 +783,7 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state, ARM64Reg tmp
   if (type == RegType::DuplicatedSingle || type == RegType::LowerPairSingle)
   {
     if (dirty)
-      m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg, tmp_reg);
+      m_jit->ConvertSingleToDoubleLower(preg, host_reg, host_reg);
 
     if (type == RegType::DuplicatedSingle)
       type = RegType::Duplicated;

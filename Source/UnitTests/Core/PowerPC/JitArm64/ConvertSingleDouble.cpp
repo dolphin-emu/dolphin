@@ -52,7 +52,7 @@ public:
 
     convert_single_to_double_lower = Common::BitCast<u64 (*)(u32)>(GetCodePtr());
     m_float_emit.INS(32, ARM64Reg::S0, 0, ARM64Reg::W0);
-    ConvertSingleToDoubleLower(0, ARM64Reg::D0, ARM64Reg::S0, ARM64Reg::Q1);
+    ConvertSingleToDoubleLower(0, ARM64Reg::D0, ARM64Reg::S0);
     m_float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::D0, 0);
     RET();
 
