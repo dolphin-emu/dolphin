@@ -395,6 +395,8 @@ void JitArm64::GenerateConvertSingleToDouble()
   ADD(ARM64Reg::X1, ARM64Reg::X2, ARM64Reg::X1);
   RET();
 
+  GetAsmRoutines()->cstd_nan = GetCodePtr();
+  UBFX(ARM64Reg::W1, ARM64Reg::W0, 23, 8);
   SetJumpTarget(normal_or_nan);
   CMP(ARM64Reg::W1, 0xff);
   AND(ARM64Reg::W2, ARM64Reg::W0, LogicalImm(0x40000000, 32));
