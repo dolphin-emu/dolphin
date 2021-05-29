@@ -3122,11 +3122,11 @@ void ARM64FloatEmitter::FSQRT(ARM64Reg Rd, ARM64Reg Rn)
 
 void ARM64FloatEmitter::FRECPE(ARM64Reg Rd, ARM64Reg Rn)
 {
-  EmitScalar2RegMisc(0, 2 | IsDouble(Rd), 0x1D, Rd, Rn);
+  EmitScalar2RegMisc(0, IsDouble(Rd) ? 3 : 2, 0x1D, Rd, Rn);
 }
 void ARM64FloatEmitter::FRSQRTE(ARM64Reg Rd, ARM64Reg Rn)
 {
-  EmitScalar2RegMisc(1, 2 | IsDouble(Rd), 0x1D, Rd, Rn);
+  EmitScalar2RegMisc(1, IsDouble(Rd) ? 3 : 2, 0x1D, Rd, Rn);
 }
 
 // Scalar - 2 Source
