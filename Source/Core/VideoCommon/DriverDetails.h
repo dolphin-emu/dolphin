@@ -298,6 +298,14 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_VECTOR_BITWISE_AND,
+
+  // BUG: Atomic writes to different fields or array elements of an SSBO have no effect, only
+  // writing to the first field/element works. This causes bounding box emulation to give garbage
+  // values under OpenGL.
+  // Affected devices: AMD (Windows)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_SSBO_FIELD_ATOMICS,
 };
 
 // Initializes our internal vendor, device family, and driver version

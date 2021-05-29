@@ -451,20 +451,37 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
   if (bounding_box)
   {
+    if (api_type == APIType::D3D)
+    {
+      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n"
+                "#define atomicMin InterlockedMin\n"
+                "#define atomicMax InterlockedMax");
+    }
+    else
+    {
+      out.Write("SSBO_BINDING(0) buffer BBox {{\n");
+
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SSBO_FIELD_ATOMICS))
+      {
+        // AMD drivers on Windows seemingly ignore atomic writes to fields or array elements of an
+        // SSBO other than the first one, but using an int4 seems to work fine
+        out.Write("  int4 bbox_data;\n");
+      }
+      else
+      {
+        // The Metal shader compiler fails to compile the atomic instructions when operating on
+        // individual components of a vector
+        out.Write("  int bbox_data[4];\n");
+      }
+
+      out.Write("}};");
+    }
+
     out.Write(R"(
-#ifdef API_D3D
-globallycoherent RWBuffer<int> bbox_data : register(u2);
-#define atomicMin InterlockedMin
-#define atomicMax InterlockedMax
 #define bbox_left bbox_data[0]
 #define bbox_right bbox_data[1]
 #define bbox_top bbox_data[2]
 #define bbox_bottom bbox_data[3]
-#else
-SSBO_BINDING(0) buffer BBox {{
-  int bbox_left, bbox_right, bbox_top, bbox_bottom;
-}};
-#endif
 
 void UpdateBoundingBoxBuffer(int2 min_pos, int2 max_pos) {{
   if (bbox_left > min_pos.x)
