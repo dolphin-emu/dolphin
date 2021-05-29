@@ -19,6 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <CLToolExe>$(MSBuildThisFileDirectory)..\..\Tools\buildcache.exe</CLToolExe>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <Target Name="BuildcacheSetEnv" BeforeTargets="ClCompile">
+    <!--<SetEnv Name="BUILDCACHE_PERF" Value="true" Prefix="false"></SetEnv>
+    <SetEnv Name="BUILDCACHE_LOG_FILE" Value="$(MSBuildThisFileDirectory)..\..\Tools\buildcache.txt" Prefix="false"></SetEnv>
+    <SetEnv Name="BUILDCACHE_DEBUG" Value="1" Prefix="false"></SetEnv>
+    <SetEnv Name="BUILDCACHE_DIR" Value="$(MSBuildThisFileDirectory)..\..\Tools\.buildcache" Prefix="false"></SetEnv>
+    -->
+    <SetEnv Name="BUILDCACHE_IMPERSONATE" Value="cl.exe" Prefix="false"></SetEnv>
+    <SetEnv Name="BUILDCACHE_HARD_LINKS" Value="1" Prefix="false"></SetEnv>
+    <SetEnv Name="BUILDCACHE_LOCAL_LOCKS" Value="1" Prefix="false"></SetEnv>
+  </Target>
 </Project>
