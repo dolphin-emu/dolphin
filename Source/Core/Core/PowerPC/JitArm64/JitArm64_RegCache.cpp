@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstring>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -48,14 +49,27 @@ ARM64Reg Arm64RegCache::GetReg()
   if (GetUnlockedRegisterCount() == 0)
     FlushMostStaleRegister();
 
+  // First, try to get a host register which is not being used by a constant
   for (auto& it : m_host_registers)
   {
-    if (!it.IsLocked())
+    if (!it.IsLocked() && !it.GetConstant().has_value())
     {
       it.Lock();
       return it.GetReg();
     }
   }
+
+  // If that doesn't work, overwrite a constant
+  for (auto& it : m_host_registers)
+  {
+    if (!it.IsLocked())
+    {
+      it.SetConstant(std::nullopt);
+      it.Lock();
+      return it.GetReg();
+    }
+  }
+
   // Holy cow, how did you run out of registers?
   // We can't return anything reasonable in this case. Return INVALID_REG and watch the failure
   // happen
@@ -92,6 +106,7 @@ void Arm64RegCache::LockRegister(ARM64Reg host_reg)
   ASSERT_MSG(DYNA_REC, reg != m_host_registers.end(),
              "Don't try locking a register that isn't in the cache. Reg %d",
              static_cast<int>(host_reg));
+  reg->SetConstant(std::nullopt);
   reg->Lock();
 }
 
@@ -448,6 +463,12 @@ void Arm64FPRCache::Flush(FlushMode mode, ARM64Reg tmp_reg)
       FlushRegister(i, mode == FlushMode::MaintainState, tmp_reg);
     }
   }
+
+  if (mode == FlushMode::All)
+  {
+    for (HostReg& host_reg : m_host_registers)
+      host_reg.SetConstant(std::nullopt);
+  }
 }
 
 ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
@@ -696,6 +717,15 @@ void Arm64FPRCache::GetAllocationOrder()
 
 void Arm64FPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
 {
+  for (HostReg& reg : m_host_registers)
+  {
+    if (reg.GetReg() == host_reg)
+    {
+      reg.SetConstant(std::nullopt);
+      break;
+    }
+  }
+
   for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
     const OpArg& reg = m_guest_registers[i];
@@ -828,10 +858,12 @@ void Arm64FPRCache::FlushRegisters(BitSet32 regs, bool maintain_state, ARM64Reg 
 BitSet32 Arm64FPRCache::GetCallerSavedUsed() const
 {
   BitSet32 registers(0);
-  for (const auto& it : m_host_registers)
+  for (const HostReg& reg : m_host_registers)
   {
-    if (it.IsLocked() && (IsCallerSaved(it.GetReg()) || IsTopHalfUsed(it.GetReg())))
-      registers[DecodeReg(it.GetReg())] = true;
+    if (reg.IsLocked() && (IsCallerSaved(reg.GetReg()) || IsTopHalfUsed(reg.GetReg())))
+      registers[DecodeReg(reg.GetReg())] = true;
+    else if (reg.GetConstant().has_value())
+      registers[DecodeReg(reg.GetReg())] = true;
   }
   return registers;
 }
@@ -860,4 +892,128 @@ void Arm64FPRCache::FixSinglePrecision(size_t preg)
   default:
     break;
   }
+}
+
+void Arm64FPRCache::FinalizeNewConstant(Constant constant, bool single, bool perform_duplication,
+                                        ARM64Reg reg_out, ARM64Reg reg_in)
+{
+  if (perform_duplication)
+  {
+    const auto reg_encoder = single ? EncodeRegToDouble : EncodeRegToQuad;
+    m_float_emit->DUP(single ? 32 : 64, reg_encoder(reg_out), reg_encoder(reg_in));
+  }
+
+  for (HostReg& new_host_reg : m_host_registers)
+  {
+    if (new_host_reg.GetReg() == reg_out)
+    {
+      new_host_reg.SetConstant(constant);
+      break;
+    }
+  }
+}
+
+void Arm64FPRCache::FinalizeNewConstant(u64 value, bool single, bool want_duplicated,
+                                        bool have_duplicated, ARM64Reg reg_out, ARM64Reg reg_in)
+{
+  FinalizeNewConstant(GenerateConstantStruct(value, single, want_duplicated), single,
+                      want_duplicated && !have_duplicated, reg_out, reg_in);
+}
+
+Constant Arm64FPRCache::GenerateConstantStruct(u64 value, bool single, bool want_duplicated)
+{
+  const size_t element_size = single ? 4 : 8;
+  const size_t total_size = want_duplicated ? element_size * 2 : element_size;
+
+  // These memcpys assume little endian
+  Constant constant = {};
+  constant.used_size = total_size;
+  std::memcpy(constant.value.data(), &value, element_size);
+  if (want_duplicated)
+    std::memcpy(constant.value.data() + element_size, &value, element_size);
+
+  return constant;
+}
+
+std::optional<ARM64Reg> Arm64FPRCache::GetConstant(u64 value, bool single, bool want_duplicated)
+{
+  const size_t element_size = single ? 4 : 8;
+  const size_t total_size = want_duplicated ? element_size * 2 : element_size;
+
+  const Constant new_constant = GenerateConstantStruct(value, single, want_duplicated);
+
+  // Check if we already have a fully matching constant
+  for (HostReg& host_reg : m_host_registers)
+  {
+    const std::optional<Constant>& constant = host_reg.GetConstant();
+    if (constant && std::memcmp(constant->value.data(), new_constant.value.data(), total_size) == 0)
+    {
+      // Return the register that contains the constant
+      host_reg.Lock();
+
+      return host_reg.GetReg();
+    }
+  }
+
+  return std::nullopt;
+}
+
+ARM64Reg Arm64FPRCache::GetConstant(u64 value, bool single, bool want_duplicated,
+                                    bool generates_duplicated, const EmitConstant& generate)
+{
+  const size_t element_size = single ? 4 : 8;
+  const size_t total_size = want_duplicated ? element_size * 2 : element_size;
+
+  const Constant new_constant = GenerateConstantStruct(value, single, want_duplicated);
+
+  // Check if we already have a fully matching constant
+  for (HostReg& host_reg : m_host_registers)
+  {
+    const std::optional<Constant>& constant = host_reg.GetConstant();
+    if (constant && std::memcmp(constant->value.data(), new_constant.value.data(), total_size) == 0)
+    {
+      // Return the register that contains the constant
+      host_reg.Lock();
+
+      if (new_constant.used_size > constant->used_size)
+        host_reg.SetConstant(new_constant);
+      return host_reg.GetReg();
+    }
+  }
+
+  // Check if we already have a constant which just needs to be duplicated
+  if (want_duplicated)
+  {
+    for (HostReg& host_reg : m_host_registers)
+    {
+      if (const std::optional<Constant>& constant = host_reg.GetConstant())
+      {
+        if (std::memcmp(constant->value.data(), new_constant.value.data(), element_size) == 0)
+        {
+          if (constant->used_size <= element_size)
+          {
+            // Put the duplicated constant in the same register
+            host_reg.Lock();
+            FinalizeNewConstant(new_constant, single, true, host_reg.GetReg(), host_reg.GetReg());
+            return host_reg.GetReg();
+          }
+          else
+          {
+            // Put the duplicated constant in a different register
+            host_reg.Lock();
+            const ARM64Reg reg = GetReg();
+            FinalizeNewConstant(new_constant, single, true, reg, host_reg.GetReg());
+            host_reg.Unlock();
+            return reg;
+          }
+        }
+      }
+    }
+  }
+
+  // Allocate a new register and generate the constant in it
+  const ARM64Reg reg = GetReg();
+  generate(reg, m_float_emit.get());
+  FinalizeNewConstant(new_constant, single, want_duplicated && !generates_duplicated, reg, reg);
+  return reg;
 }

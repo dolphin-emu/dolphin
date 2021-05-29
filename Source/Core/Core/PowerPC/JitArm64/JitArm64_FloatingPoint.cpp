@@ -44,22 +44,29 @@ void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
 // rounding to nearest as it does.
 void JitArm64::Force25BitPrecision(ARM64Reg output, ARM64Reg input, ARM64Reg temp)
 {
-  ASSERT(output != input && output != temp && input != temp);
+  ASSERT(output != temp && input != temp);
 
-  // temp   = 0x0000'0000'0800'0000ULL
-  // output = 0xFFFF'FFFF'F800'0000ULL
-  m_float_emit.MOVI(32, temp, 0x08, 24);
-  m_float_emit.MOVI(64, output, 0xFFFF'FFFF'0000'0000ULL);
-  m_float_emit.BIC(temp, temp, output);
-  m_float_emit.ORR(32, output, 0xF8, 24);
+  const ARM64Reg constant1 = fpr.GetConstant(0x0000'0000'0800'0000ULL, true, IsQuad(input), true,
+                                             [](ARM64Reg reg, ARM64FloatEmitter* float_emit) {
+                                               float_emit->MOVI(64, reg, 0x0000'0000'FF00'0000ULL);
+                                               float_emit->BIC(32, reg, 0xF7, 24);
+                                             });
+
+  const ARM64Reg constant2 = fpr.GetConstant(0xFFFF'FFFF'F800'0000ULL, true, IsQuad(input), true,
+                                             [](ARM64Reg reg, ARM64FloatEmitter* float_emit) {
+                                               float_emit->MOVI(64, reg, 0xFFFF'FFFF'0000'0000ULL);
+                                               float_emit->ORR(32, reg, 0xF8, 24);
+                                             });
 
   // output = (input & ~0xFFFFFFF) + ((input & (1ULL << 27)) << 1)
-  m_float_emit.AND(temp, input, temp);
-  m_float_emit.AND(output, input, output);
+  m_float_emit.AND(temp, input, constant1);
+  m_float_emit.AND(output, input, constant2);
   if (IsQuad(input))
     m_float_emit.ADD(64, output, output, temp);
   else
     m_float_emit.ADD(output, output, temp);
+
+  fpr.Unlock(constant1, constant2);
 }
 
 void JitArm64::fp_arith(UGeckoInstruction inst)
@@ -528,8 +535,6 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
 
   if (single)
   {
-    const ARM64Reg V0 = fpr.GetReg();
-
     if (is_fctiwzx)
     {
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), RoundingMode::Z);
@@ -540,13 +545,16 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
       m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), RoundingMode::Z);
     }
 
-    // Generate 0xFFF8'0000'0000'0000ULL
-    m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF'0000'0000'0000ULL);
-    m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
+    const ARM64Reg constant_reg =
+        fpr.GetConstant(0xFFF8'0000'0000'0000ULL, false, false, true,
+                        [](ARM64Reg reg, ARM64FloatEmitter* float_emit) {
+                          float_emit->MOVI(64, reg, 0xFFFF'0000'0000'0000ULL);
+                          float_emit->BIC(16, reg, 0x7);
+                        });
 
-    m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
+    m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(constant_reg));
 
-    fpr.Unlock(V0);
+    fpr.Unlock(constant_reg);
   }
   else
   {
@@ -761,11 +769,33 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
   FixupBranch fast;
   if (scratch_reg != ARM64Reg::INVALID_REG)
   {
+    ARM64Reg zero_reg;
+    if (fpr.GetUnlockedRegisterCount() == 0)
+    {
+      // This code may be called from Arm64FPRCache::FlushRegister, so be careful not to spill
+      if (std::optional<ARM64Reg> reg = fpr.GetConstant(0, true, true))
+      {
+        zero_reg = *reg;
+      }
+      else
+      {
+        m_float_emit.MOVI(8, EncodeRegToDouble(scratch_reg), 0);
+        zero_reg = scratch_reg;
+      }
+    }
+    else
+    {
+      zero_reg =
+          fpr.GetConstant(0, true, true, true, [](ARM64Reg reg, ARM64FloatEmitter* float_emit) {
+            float_emit->MOVI(8, EncodeRegToDouble(reg), 0);
+          });
+    }
+
     // Set each 32-bit element of scratch_reg to 0x0000'0000 or 0xFFFF'FFFF depending on whether
     // the absolute value of the corresponding element in src_reg compares greater than 0
-    m_float_emit.MOVI(8, EncodeRegToDouble(scratch_reg), 0);
     m_float_emit.FACGT(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
-                       EncodeRegToDouble(scratch_reg));
+                       EncodeRegToDouble(zero_reg));
+    fpr.Unlock(zero_reg);
 
     // 0x0000'0000'0000'0000 (zero)     -> 0x0000'0000'0000'0000 (zero)
     // 0x0000'0000'FFFF'FFFF (denormal) -> 0xFF00'0000'FFFF'FFFF (normal)

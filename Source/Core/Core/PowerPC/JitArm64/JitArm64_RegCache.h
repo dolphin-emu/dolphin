@@ -3,8 +3,11 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <vector>
 
@@ -126,6 +129,12 @@ private:
   bool m_dirty = false;
 };
 
+struct Constant
+{
+  std::array<u8, 16> value;
+  size_t used_size;
+};
+
 class HostReg
 {
 public:
@@ -137,12 +146,16 @@ public:
   void Unlock() { m_locked = false; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
 
+  std::optional<Constant> GetConstant() const { return m_constant; }
+  void SetConstant(std::optional<Constant> constant) { m_constant = constant; }
+
   bool operator==(Arm64Gen::ARM64Reg reg) const { return reg == m_reg; }
   bool operator!=(Arm64Gen::ARM64Reg reg) const { return !operator==(reg); }
 
 private:
   Arm64Gen::ARM64Reg m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
   bool m_locked = false;
+  std::optional<Constant> m_constant = std::nullopt;
 };
 
 class Arm64RegCache
@@ -339,6 +352,13 @@ public:
     FlushRegisters(regs, false, tmp_reg);
   }
 
+  using EmitConstant = std::function<void(Arm64Gen::ARM64Reg, Arm64Gen::ARM64FloatEmitter*)>;
+
+  Arm64Gen::ARM64Reg GetConstant(u64 value, bool single, bool want_duplicated,
+                                 bool generates_duplicated, const EmitConstant& generate);
+
+  std::optional<Arm64Gen::ARM64Reg> GetConstant(u64 value, bool single, bool want_duplicated);
+
 protected:
   // Get the order of the host registers
   void GetAllocationOrder() override;
@@ -354,4 +374,10 @@ private:
   bool IsTopHalfUsed(Arm64Gen::ARM64Reg reg) const;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
+
+  void FinalizeNewConstant(Constant constant, bool single, bool perform_duplication,
+                           Arm64Gen::ARM64Reg reg_out, Arm64Gen::ARM64Reg reg_in);
+  void FinalizeNewConstant(u64 value, bool single, bool want_duplicated, bool have_duplicated,
+                           Arm64Gen::ARM64Reg reg_out, Arm64Gen::ARM64Reg reg_in);
+  static Constant GenerateConstantStruct(u64 value, bool single, bool want_duplicated);
 };

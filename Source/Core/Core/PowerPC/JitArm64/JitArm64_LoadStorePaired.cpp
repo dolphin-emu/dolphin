@@ -3,6 +3,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
@@ -104,8 +105,14 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 
   if (w)
   {
-    m_float_emit.FMOV(ARM64Reg::S0, 0x70);  // 1.0 as a Single
-    m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
+    const ARM64Reg one = fpr.GetConstant(Common::BitCast<u32>(1.0f), true, false, false,
+                                         [](ARM64Reg reg, ARM64FloatEmitter* float_emit) {
+                                           float_emit->FMOV(EncodeRegToSingle(reg), 0x70);
+                                         });
+
+    m_float_emit.INS(32, VS, 1, one, 0);
+
+    fpr.Unlock(one);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
