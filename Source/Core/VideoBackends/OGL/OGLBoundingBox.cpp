@@ -87,12 +87,21 @@ void BoundingBox::Flush()
 void BoundingBox::Readback()
 {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
+
+  // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
+  // on nVidia drivers. This is more noticeable at higher internal resolutions.
+  // Using glGetBufferSubData instead does not seem to exhibit this slowdown.
   if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
       !static_cast<Renderer*>(g_renderer.get())->IsGLES())
   {
-    // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
-    // on nVidia drivers. This is more noticeable at higher internal resolutions.
-    // Using glGetBufferSubData instead does not seem to exhibit this slowdown.
+    // We also need to ensure the the CPU does not receive stale values which have been updated by
+    // the GPU. Apparently the buffer here is not coherent on NVIDIA drivers. Not sure if this is a
+    // driver bug/spec violation or not, one would think that glGetBufferSubData() would invalidate
+    // any caches as needed, but this path is only used on NVIDIA anyway, so it's fine. A point to
+    // note is that according to ARB_debug_report, it's moved from video to host memory, which would
+    // explain why it needs the cache invalidate.
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
     std::array<s32, NUM_BBOX_VALUES> gpu_values;
     glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(s32) * NUM_BBOX_VALUES,
                        gpu_values.data());
