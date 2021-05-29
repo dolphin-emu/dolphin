@@ -838,8 +838,10 @@ void Tev::Draw()
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT);
   }
 
-  BoundingBox::Update(static_cast<u16>(Position[0]), static_cast<u16>(Position[0]),
-                      static_cast<u16>(Position[1]), static_cast<u16>(Position[1]));
+  // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
+  // extents of these groups, rather than the exact pixel.
+  BoundingBox::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
+                      static_cast<u16>(Position[1] & ~1), static_cast<u16>(Position[1] | 1));
 
 #if ALLOW_TEV_DUMPS
   if (g_ActiveConfig.bDumpTevStages)

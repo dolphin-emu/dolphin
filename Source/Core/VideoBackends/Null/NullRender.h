@@ -34,8 +34,8 @@ public:
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override { return 0; }
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
-  u16 BBoxReadImpl(int index) override { return 0; }
-  void BBoxWriteImpl(int index, u16 value) override {}
+  u16 BBoxRead(int index) override { return 0; }
+  void BBoxWrite(int index, u16 value) override {}
 
   void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                    bool zEnable, u32 color, u32 z) override
