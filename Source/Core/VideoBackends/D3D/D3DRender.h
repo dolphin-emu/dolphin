@@ -61,9 +61,9 @@ public:
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
-  void BBoxFlushImpl() override;
+  u16 BBoxRead(int index) override;
+  void BBoxWrite(int index, u16 value) override;
+  void BBoxFlush() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;

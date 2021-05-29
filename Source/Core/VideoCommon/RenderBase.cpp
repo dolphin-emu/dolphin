@@ -185,21 +185,6 @@ void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
-u16 Renderer::BBoxRead(int index)
-{
-  return BBoxReadImpl(index);
-}
-
-void Renderer::BBoxWrite(int index, u16 value)
-{
-  BBoxWriteImpl(index, value);
-}
-
-void Renderer::BBoxFlush()
-{
-  BBoxFlushImpl();
-}
-
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
   if (type == EFBAccessType::PeekColor)
