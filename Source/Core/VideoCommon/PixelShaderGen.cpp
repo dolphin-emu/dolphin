@@ -492,19 +492,30 @@ void UpdateBoundingBox(float2 rawpos) {{
   // such that width = right - left + 1. This has been verified on hardware.
   int2 pos = iround(rawpos * cefbscale + offset);
 
+  // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
+  // extents of these groups, rather than the exact pixel.
+#ifdef API_OPENGL
+  // Need to flip the operands for Y on OpenGL because of lower-left origin.
+  int2 pos_tl = int2(pos.x & ~1, pos.y | 1);
+  int2 pos_br = int2(pos.x | 1, pos.y & ~1);
+#else
+  int2 pos_tl = pos & ~1;
+  int2 pos_br = pos | 1;
+#endif
+
 #ifdef SUPPORTS_SUBGROUP_REDUCTION
   if (CAN_USE_SUBGROUP_REDUCTION) {{
-    int2 min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : pos;
-    int2 max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : pos;
+    int2 min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : pos_tl;
+    int2 max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : pos_br;
     SUBGROUP_MIN(min_pos);
     SUBGROUP_MAX(max_pos);
     if (IS_FIRST_ACTIVE_INVOCATION)
       UpdateBoundingBoxBuffer(min_pos, max_pos);
   }} else {{
-    UpdateBoundingBoxBuffer(pos, pos);
+    UpdateBoundingBoxBuffer(pos_tl, pos_br);
   }}
 #else
-  UpdateBoundingBoxBuffer(pos, pos);
+  UpdateBoundingBoxBuffer(pos_tl, pos_br);
 #endif
 }}
 
