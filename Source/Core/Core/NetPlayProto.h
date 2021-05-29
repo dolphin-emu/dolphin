@@ -117,11 +117,6 @@ struct NetTraversalConfig
   u16 traversal_port = 0;
 };
 
-struct Rpt : public std::vector<u8>
-{
-  u16 channel;
-};
-
 // messages
 enum
 {
@@ -210,13 +205,15 @@ enum
   SYNC_CODES_FAILURE = 6,
 };
 
-constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
-constexpr u32 NETPLAY_LZO_OUT_LEN = NETPLAY_LZO_IN_LEN + (NETPLAY_LZO_IN_LEN / 16) + 64 + 3;
 constexpr u32 MAX_NAME_LENGTH = 30;
 constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
-constexpr u8 CHANNEL_COUNT = 2;
-constexpr u8 DEFAULT_CHANNEL = 0;
-constexpr u8 CHUNKED_DATA_CHANNEL = 1;
+
+enum : u8
+{
+  DEFAULT_CHANNEL,
+  CHUNKED_DATA_CHANNEL,
+  CHANNEL_COUNT
+};
 
 struct WiimoteInput
 {

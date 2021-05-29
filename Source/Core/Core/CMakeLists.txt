@@ -408,6 +408,8 @@ add_library(core
   Movie.h
   NetPlayClient.cpp
   NetPlayClient.h
+  NetPlayCommon.cpp
+  NetPlayCommon.h
   NetPlayServer.cpp
   NetPlayServer.h
   NetworkCaptureLogger.cpp
