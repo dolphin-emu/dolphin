@@ -54,9 +54,9 @@ TextureInfo::TextureInfo(const u8* ptr, const u8* tlut_ptr, u32 address,
                          TextureFormat texture_format, TLUTFormat tlut_format, u32 width,
                          u32 height, bool from_tmem, const u8* tmem_odd, const u8* tmem_even,
                          std::optional<u32> mip_count)
-    : m_ptr(ptr), m_tlut_ptr(tlut_ptr), m_address(address), m_texture_format(texture_format),
-      m_tlut_format(tlut_format), m_raw_width(width), m_raw_height(height), m_from_tmem(from_tmem),
-      m_tmem_odd(tmem_odd)
+    : m_ptr(ptr), m_tlut_ptr(tlut_ptr), m_address(address), m_from_tmem(from_tmem),
+      m_tmem_odd(tmem_odd), m_texture_format(texture_format), m_tlut_format(tlut_format),
+      m_raw_width(width), m_raw_height(height)
 {
   const bool is_palette_texture = IsColorIndexed(m_texture_format);
   if (is_palette_texture)
