@@ -36,6 +36,19 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   }
 }
 
+void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
+{
+  // Gross but necessary; if the input is totally zero and we set SO or LT,
+  // or even just add the (1<<32), GT will suddenly end up set without us
+  // intending to. This can break actual games, so fix it up.
+  ARM64Reg WA = gpr.GetReg();
+  ARM64Reg XA = EncodeRegTo64(WA);
+  ORR(XA, reg, 64 - 63, 0, true);  // XB | 1<<63
+  CMP(reg, ARM64Reg::ZR);
+  CSEL(reg, reg, XA, CC_NEQ);
+  gpr.Unlock(WA);
+}
+
 void JitArm64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -432,6 +445,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case PowerPC::CR_EQ_BIT:
+      FixGTBeforeSettingCRFieldBit(XA);
       ORR(XA, XA, 0, 0, true);  // XA | 1<<0
       break;
 
@@ -457,14 +471,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     ARM64Reg XA = gpr.CR(field);
 
     if (bit != PowerPC::CR_GT_BIT)
-    {
-      ARM64Reg WB = gpr.GetReg();
-      ARM64Reg XB = EncodeRegTo64(WB);
-      ORR(XB, XA, 64 - 63, 0, true);  // XA | 1<<63
-      CMP(XA, ARM64Reg::ZR);
-      CSEL(XA, XA, XB, CC_NEQ);
-      gpr.Unlock(WB);
-    }
+      FixGTBeforeSettingCRFieldBit(XA);
 
     switch (bit)
     {
@@ -569,18 +576,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   gpr.BindCRToRegister(field, true);
   XB = gpr.CR(field);
 
-  // Gross but necessary; if the input is totally zero and we set SO or LT,
-  // or even just add the (1<<32), GT will suddenly end up set without us
-  // intending to. This can break actual games, so fix it up.
   if (bit != PowerPC::CR_GT_BIT)
-  {
-    ARM64Reg WC = gpr.GetReg();
-    ARM64Reg XC = EncodeRegTo64(WC);
-    ORR(XC, XB, 64 - 63, 0, true);  // XB | 1<<63
-    CMP(XB, ARM64Reg::ZR);
-    CSEL(XB, XB, XC, CC_NEQ);
-    gpr.Unlock(WC);
-  }
+    FixGTBeforeSettingCRFieldBit(XB);
 
   switch (bit)
   {

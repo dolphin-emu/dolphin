@@ -255,6 +255,7 @@ protected:
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
+  void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
