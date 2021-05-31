@@ -106,17 +106,17 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return DXPipeline::Create(config, cache_data, cache_data_length);
 }
 
-u16 Renderer::BBoxRead(int index)
+u16 Renderer::BBoxReadImpl(int index)
 {
   return static_cast<u16>(m_bounding_box->Get(index));
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWriteImpl(int index, u16 value)
 {
   m_bounding_box->Set(index, value);
 }
 
-void Renderer::BBoxFlush()
+void Renderer::BBoxFlushImpl()
 {
   m_bounding_box->Flush();
   m_bounding_box->Invalidate();
