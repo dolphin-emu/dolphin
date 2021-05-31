@@ -298,6 +298,11 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_VECTOR_BITWISE_AND,
+
+  // BUG: Atomic operations only work on the first field of an SSBO shader binding on the Windows
+  // AMD drivers, which causes bounding box emulation to spit out default values for the remaining 3
+  // registers.
+  BUG_BROKEN_SSBO_FIELD_ATOMICS,
 };
 
 // Initializes our internal vendor, device family, and driver version

@@ -653,7 +653,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     glEnable(GL_PROGRAM_POINT_SIZE);
   }
 
-  g_Config.backend_info.bSupportsBBox = g_Config.backend_info.bSupportsFragmentStoresAndAtomics;
+  g_Config.backend_info.bSupportsBBox =
+      g_Config.backend_info.bSupportsFragmentStoresAndAtomics &&
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SSBO_FIELD_ATOMICS);
 
   // Either method can do early-z tests. See PixelShaderGen for details.
   g_Config.backend_info.bSupportsEarlyZ =
