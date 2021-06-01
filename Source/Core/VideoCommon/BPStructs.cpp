@@ -445,11 +445,8 @@ static void BPWritten(const BPCmd& bp)
     const u8 offset = bp.address & 2;
     BoundingBox::Enable();
 
-    if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
-    {
-      g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
-      g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
-    }
+    g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
+    g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
   }
     return;
   case BPMEM_TEXINVALIDATE:

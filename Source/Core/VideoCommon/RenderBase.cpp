@@ -185,6 +185,30 @@ void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
+u16 Renderer::BBoxRead(int index)
+{
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+    return m_bounding_box_fallback[index];
+
+  return BBoxReadImpl(index);
+}
+
+void Renderer::BBoxWrite(int index, u16 value)
+{
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    m_bounding_box_fallback[index] = value;
+    return;
+  }
+
+  BBoxWriteImpl(index, value);
+}
+
+void Renderer::BBoxFlush()
+{
+  BBoxFlushImpl();
+}
+
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
   if (type == EFBAccessType::PeekColor)
@@ -1733,6 +1757,7 @@ void Renderer::DoState(PointerWrap& p)
   p.Do(m_last_xfb_width);
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
+  p.DoArray(m_bounding_box_fallback);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
