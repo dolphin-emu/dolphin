@@ -109,10 +109,10 @@ std::string GenerateChangelog(const picojson::array& versions)
       {
         changelog += ver_obj["shortrev"].get<std::string>();
       }
-
+      const std::string escaped_description =
+          GetEscapedHtml(ver_obj["short_descr"].get<std::string>());
       changelog += " by <a href = \"" + ver_obj["author_url"].get<std::string>() + "\">" +
-                   ver_obj["author"].get<std::string>() + "</a> &mdash; " +
-                   ver_obj["short_descr"].get<std::string>();
+                   ver_obj["author"].get<std::string>() + "</a> &mdash; " + escaped_description;
     }
     else
     {

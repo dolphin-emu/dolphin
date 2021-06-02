@@ -242,3 +242,5 @@ inline bool IsPrintableCharacter(char c)
 #ifdef _WIN32
 std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line);
 #endif
+
+std::string GetEscapedHtml(std::string html);
