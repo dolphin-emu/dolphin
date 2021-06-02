@@ -398,7 +398,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
           // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
+          CoreTiming::ScheduleCycleSafeEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
         }
       }));
 
@@ -507,7 +507,7 @@ static void Do_ARAM_DMA()
 
   // ARAM DMA transfer rate has been measured on real hw
   int ticksToTransfer = (s_arDMA.Cnt.count / 32) * 246;
-  CoreTiming::ScheduleEvent(ticksToTransfer, s_et_CompleteARAM);
+  CoreTiming::ScheduleCycleSafeEvent(ticksToTransfer, s_et_CompleteARAM);
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
   if (s_arDMA.Cnt.dir)

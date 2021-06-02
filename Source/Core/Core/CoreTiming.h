@@ -70,7 +70,11 @@ enum class FromThread
 // is scheduled earlier than the current values (when scheduled from the CPU Thread only).
 // Scheduling from a callback will not update the downcount until the Advance() completes.
 void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata = 0,
-                   FromThread from = FromThread::CPU);
+                   FromThread from = FromThread::CPU, bool cycle_safe = false);
+
+// Same as ScheduleEvent but without the ForceExceptionCheck.
+void ScheduleCycleSafeEvent(s64 cycles_into_future, EventType* event_type, u64 userdata = 0,
+                            FromThread from = FromThread::CPU);
 
 // We only permit one event of each type in the queue at a time.
 void RemoveEvent(EventType* event_type);

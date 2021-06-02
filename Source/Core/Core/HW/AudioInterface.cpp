@@ -248,7 +248,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_sample_counter = val;
                    s_last_cpu_time = CoreTiming::GetTicks();
                    CoreTiming::RemoveEvent(event_type_ai);
-                   CoreTiming::ScheduleEvent(GetAIPeriod(), event_type_ai);
+                   CoreTiming::ScheduleCycleSafeEvent(GetAIPeriod(), event_type_ai);
                  }));
 
   mmio->Register(base | AI_INTERRUPT_TIMING, MMIO::DirectRead<u32>(&s_interrupt_timing),
@@ -257,7 +257,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                                  PowerPC::ppcState.pc);
                    s_interrupt_timing = val;
                    CoreTiming::RemoveEvent(event_type_ai);
-                   CoreTiming::ScheduleEvent(GetAIPeriod(), event_type_ai);
+                   CoreTiming::ScheduleCycleSafeEvent(GetAIPeriod(), event_type_ai);
                  }));
 }
 

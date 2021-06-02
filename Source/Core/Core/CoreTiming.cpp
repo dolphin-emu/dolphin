@@ -227,7 +227,8 @@ void ClearPendingEvents()
   s_event_queue.clear();
 }
 
-void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, FromThread from)
+void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, FromThread from,
+                   bool cycle_safe)
 {
   ASSERT_MSG(POWERPC, event_type, "Event type is nullptr, will crash now.");
 
@@ -249,7 +250,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     s64 timeout = GetTicks() + cycles_into_future;
 
     // If this event needs to be scheduled before the next advance(), force one early
-    if (!s_is_global_timer_sane)
+    if (!cycle_safe && !s_is_global_timer_sane)
       ForceExceptionCheck(cycles_into_future);
 
     s_event_queue.emplace_back(Event{timeout, s_event_fifo_id++, userdata, event_type});
@@ -268,6 +269,12 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     std::lock_guard lk(s_ts_write_lock);
     s_ts_queue.Push(Event{g.global_timer + cycles_into_future, 0, userdata, event_type});
   }
+}
+
+void ScheduleCycleSafeEvent(s64 cycles_into_future, EventType* event_type, u64 userdata,
+                            FromThread from)
+{
+  ScheduleEvent(cycles_into_future, event_type, userdata, from, true);
 }
 
 void RemoveEvent(EventType* event_type)
