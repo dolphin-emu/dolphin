@@ -10,6 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -204,8 +205,17 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (!backend_info.bSupportsBackgroundCompiling)
     return 0;
 
+  const bool bugDatabaseSupported =
+      backend_info.api_type == APIType::OpenGL || backend_info.api_type == APIType::Vulkan;
+  // DirectX has always worked in our tests in PR#9414
+  const bool multiThreadingWorking =
+      !bugDatabaseSupported ||
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION);
+
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
-  else
+  else if (multiThreadingWorking)
     return GetNumAutoShaderPreCompilerThreads();
+  else
+    return 1;
 }
