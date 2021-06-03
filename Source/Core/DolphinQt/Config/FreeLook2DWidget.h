@@ -20,9 +20,11 @@ private:
   void ConnectWidgets();
 
   void OnFreeLookControllerConfigured();
+  void OnFreeLookOptionsConfigured();
   void LoadSettings();
   void SaveSettings();
 
   ToolTipCheckBox* m_enable_freelook;
   QPushButton* m_freelook_controller_configure_button;
+  QPushButton* m_freelook_options_configure_button;
 };

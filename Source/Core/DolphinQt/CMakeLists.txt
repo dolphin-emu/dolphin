@@ -73,6 +73,10 @@ add_executable(dolphin-emu
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
   Config/FilesystemWidget.h
+  Config/FreeLook2DOptionsWidget.cpp
+  Config/FreeLook2DOptionsWidget.h
+  Config/FreeLook2DOptionsWindow.cpp
+  Config/FreeLook2DOptionsWindow.h
   Config/FreeLook2DWidget.cpp
   Config/FreeLook2DWidget.h
   Config/FreeLookWidget.cpp
@@ -112,10 +116,16 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsWindow.h
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/HacksWidget.h
+  Config/Graphics/NewTextureDialog.cpp
+  Config/Graphics/NewTextureDialog.h
+  Config/Graphics/NewTextureLayerDialog.cpp
+  Config/Graphics/NewTextureLayerDialog.h
   Config/Graphics/PostProcessingConfigWindow.cpp
   Config/Graphics/PostProcessingConfigWindow.h
   Config/Graphics/SoftwareRendererWidget.cpp
   Config/Graphics/SoftwareRendererWidget.h
+  Config/Graphics/TextureLayersWidget.cpp
+  Config/Graphics/TextureLayersWidget.h
   Config/InfoWidget.cpp
   Config/InfoWidget.h
   Config/LogConfigWidget.cpp

@@ -56,6 +56,8 @@
     <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\FreeLook2DOptionsWidget.cpp" />
+    <ClCompile Include="Config\FreeLook2DOptionsWindow.cpp" />
     <ClCompile Include="Config\FreeLook2DWidget.cpp" />
     <ClCompile Include="Config\FreeLookWidget.cpp" />
     <ClCompile Include="Config\FreeLookWindow.cpp" />
@@ -76,7 +78,10 @@
     <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
     <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
     <ClCompile Include="Config\Graphics\PostProcessingConfigWindow.cpp" />
+    <ClCompile Include="Config\Graphics\NewTextureDialog.cpp" />
+    <ClCompile Include="Config\Graphics\NewTextureLayerDialog.cpp" />
     <ClCompile Include="Config\Graphics\SoftwareRendererWidget.cpp" />
+    <ClCompile Include="Config\Graphics\TextureLayersWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
@@ -233,6 +238,8 @@
     <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\FreeLook2DOptionsWidget.h" />
+    <QtMoc Include="Config\FreeLook2DOptionsWindow.h" />
     <QtMoc Include="Config\FreeLook2DWidget.h" />
     <QtMoc Include="Config\FreeLookWidget.h" />
     <QtMoc Include="Config\FreeLookWindow.h" />
@@ -253,7 +260,10 @@
     <QtMoc Include="Config\Graphics\GraphicsWindow.h" />
     <QtMoc Include="Config\Graphics\HacksWidget.h" />
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
+    <QtMoc Include="Config\Graphics\NewTextureDialog.h" />
+    <QtMoc Include="Config\Graphics\NewTextureLayerDialog.h" />
     <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
+    <QtMoc Include="Config\Graphics\TextureLayersWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />

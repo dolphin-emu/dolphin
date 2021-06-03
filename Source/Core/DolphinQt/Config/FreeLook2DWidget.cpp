@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "DolphinQt/Config/FreeLook2DOptionsWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
@@ -37,9 +38,11 @@ void FreeLook2DWidget::CreateLayout()
                                        "elements.<br><br><dolphin_emphasis>If unsure, "
                                        "leave this unchecked.</dolphin_emphasis>"));
   m_freelook_controller_configure_button = new QPushButton(tr("Configure Controller"));
+  m_freelook_options_configure_button = new QPushButton(tr("Configure Options"));
 
   auto* hlayout = new QHBoxLayout();
   hlayout->addWidget(new QLabel(tr("Camera 1")));
+  hlayout->addWidget(m_freelook_options_configure_button);
   hlayout->addWidget(m_freelook_controller_configure_button);
 
   layout->addWidget(m_enable_freelook);
@@ -53,6 +56,8 @@ void FreeLook2DWidget::ConnectWidgets()
 {
   connect(m_freelook_controller_configure_button, &QPushButton::clicked, this,
           &FreeLook2DWidget::OnFreeLookControllerConfigured);
+  connect(m_freelook_options_configure_button, &QPushButton::clicked, this,
+          &FreeLook2DWidget::OnFreeLookOptionsConfigured);
   connect(m_enable_freelook, &QCheckBox::clicked, this, &FreeLook2DWidget::SaveSettings);
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     const QSignalBlocker blocker(this);
@@ -71,11 +76,23 @@ void FreeLook2DWidget::OnFreeLookControllerConfigured()
   window->show();
 }
 
+void FreeLook2DWidget::OnFreeLookOptionsConfigured()
+{
+  if (m_freelook_options_configure_button != QObject::sender())
+    return;
+  const int index = 0;
+  FreeLook2DOptionsWindow* window = new FreeLook2DOptionsWindow(this, index);
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
+}
+
 void FreeLook2DWidget::LoadSettings()
 {
   const bool checked = Config::Get(Config::FREE_LOOK_2D_ENABLED);
   m_enable_freelook->setChecked(checked);
   m_freelook_controller_configure_button->setEnabled(checked);
+  m_freelook_options_configure_button->setEnabled(checked);
 }
 
 void FreeLook2DWidget::SaveSettings()
@@ -83,4 +100,5 @@ void FreeLook2DWidget::SaveSettings()
   const bool checked = m_enable_freelook->isChecked();
   Config::SetBaseOrCurrent(Config::FREE_LOOK_2D_ENABLED, checked);
   m_freelook_controller_configure_button->setEnabled(checked);
+  m_freelook_options_configure_button->setEnabled(checked);
 }
