@@ -17,23 +17,23 @@
     <QtLibSuffix Condition="'$(Configuration)'=='Debug'">$(QtDebugSuffix)</QtLibSuffix>
     <QtPluginFolder>QtPlugins</QtPluginFolder>
   </PropertyGroup>
+  <PropertyGroup>
+    <ExternalIncludePath>$(QtIncludeDir);$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(QtIncludeDir)QtCore;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(QtIncludeDir)QtGui;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(QtIncludeDir)QtWidgets;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;$(ExternalIncludePath)</ExternalIncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">QT_NO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>QT_USE_QSTRINGBUILDER;QT_NO_CAST_FROM_ASCII;QT_NO_CAST_TO_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(QtToolOutDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(QtIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(QtIncludeDir)QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
-      Set the qt directories as 'external', so we avoid any warnings in them
-      -->
-      <AdditionalOptions>%(AdditionalOptions) /experimental:external</AdditionalOptions>
-      <AdditionalOptions>%(AdditionalOptions) /external:W0</AdditionalOptions>
-      <AdditionalOptions>%(AdditionalOptions) /external:I "$(QtIncludeDirWithoutTrailingSeparator)"</AdditionalOptions>
+        Ignore warnings in locally-instantiated Qt templates.
+        This should probably be removed at some point (when Qt is fixed).
+        -->
+      <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
