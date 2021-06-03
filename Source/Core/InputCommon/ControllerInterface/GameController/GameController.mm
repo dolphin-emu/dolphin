@@ -13,20 +13,21 @@ namespace ciface::GameController
 {
 static void AddController(GCController* controller)
 {
-  if (!@available(macOS 11.0, *)) {
-    INFO_LOG_FMT(CONTROLLERINTERFACE, "macOS 11.0 or later required for motion sensors");
-    return;
-  }
+  if (@available(macOS 11.0, *)) {
+    if (controller.motion.sensorsRequireManualActivation)
+    {
+      controller.motion.sensorsActive = true;
+    }
 
-  if (controller.motion.sensorsRequireManualActivation)
+    std::string vendor_name = std::string([controller.vendorName UTF8String]);
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Controller '{}' connected", vendor_name);
+
+    g_controller_interface.AddDevice(std::make_shared<Controller>(controller));
+  }
+  else
   {
-    controller.motion.sensorsActive = true;
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "macOS 11.0 or later required for motion sensors");
   }
-
-  std::string vendor_name = std::string([controller.vendorName UTF8String]);
-  INFO_LOG_FMT(CONTROLLERINTERFACE, "Controller '{}' connected", vendor_name);
-
-  g_controller_interface.AddDevice(std::make_shared<Controller>(controller));
 }
 
 static void OnControllerConnect(CFNotificationCenterRef center, void* observer, CFStringRef name,

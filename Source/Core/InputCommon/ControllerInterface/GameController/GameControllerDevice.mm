@@ -17,56 +17,56 @@ Controller::Controller(const GCController* controller) : m_controller(controller
   using MathUtil::GRAVITY_ACCELERATION;
   int unknown_index = 1;
 
-  if (!@available(macOS 11.0, *))
-    return;
-
-  for (GCControllerButtonInput* item in controller.physicalInputProfile.allButtons)
+  if (@available(macOS 11.0, *))
   {
-    if (item.aliases.count > 0)
+    for (GCControllerButtonInput* item in controller.physicalInputProfile.allButtons)
     {
-      pairs.push_back(
-          std::make_pair(std::string([item.aliases.allObjects[0] UTF8String]), item));
+      if (item.aliases.count > 0)
+      {
+        pairs.push_back(std::make_pair(std::string([item.aliases.allObjects[0] UTF8String]), item));
+      }
+      else
+      {
+        pairs.push_back(
+            std::make_pair(std::string(GCF_UNKNOWN_PREFIX) + std::to_string(unknown_index++), item));
+      }
     }
-    else
+
+    std::sort(pairs.begin(), pairs.end(),
+              [](const auto& lhs, const auto& rhs) { return lhs.first.compare(rhs.first) < 0; });
+
+    for (size_t i = 0; i < pairs.size(); ++i)
     {
-      pairs.push_back(std::make_pair(std::string(GCF_UNKNOWN_PREFIX) + std::to_string(unknown_index++), item));
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Found button '{}'", pairs[i].first);
+      AddInput(new Button(pairs[i].second, pairs[i].first));
     }
+
+    if (!controller.motion)
+      return;
+
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Adding accelerometer inputs");
+
+    // This mapping was only tested with a DualShock 4 controller
+    AddInput(new Motion(controller, "Accel Up", Motion::AccelZ, -GRAVITY_ACCELERATION));
+    AddInput(new Motion(controller, "Accel Down", Motion::AccelZ, GRAVITY_ACCELERATION));
+    AddInput(new Motion(controller, "Accel Left", Motion::AccelX, -GRAVITY_ACCELERATION));
+    AddInput(new Motion(controller, "Accel Right", Motion::AccelX, GRAVITY_ACCELERATION));
+    AddInput(new Motion(controller, "Accel Forward", Motion::AccelY, -GRAVITY_ACCELERATION));
+    AddInput(new Motion(controller, "Accel Backward", Motion::AccelY, GRAVITY_ACCELERATION));
+
+    if (!controller.motion.hasRotationRate)
+      return;
+
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Adding gyro inputs");
+
+    // This mapping was only tested with a DualShock 4 controller
+    AddInput(new Motion(controller, "Gyro Pitch Up", Motion::GyroX, 1));
+    AddInput(new Motion(controller, "Gyro Pitch Down", Motion::GyroX, -1));
+    AddInput(new Motion(controller, "Gyro Roll Left", Motion::GyroY, 1));
+    AddInput(new Motion(controller, "Gyro Roll Right", Motion::GyroY, -1));
+    AddInput(new Motion(controller, "Gyro Yaw Left", Motion::GyroZ, 1));
+    AddInput(new Motion(controller, "Gyro Yaw Right", Motion::GyroZ, -1));
   }
-
-  std::sort(pairs.begin(), pairs.end(),
-            [](const auto& lhs, const auto& rhs) { return lhs.first.compare(rhs.first) < 0; });
-
-  for (size_t i = 0; i < pairs.size(); ++i)
-  {
-    INFO_LOG_FMT(CONTROLLERINTERFACE, "Found button '{}'", pairs[i].first);
-    AddInput(new Button(pairs[i].second, pairs[i].first));
-  }
-
-  if (!controller.motion)
-    return;
-
-  INFO_LOG_FMT(CONTROLLERINTERFACE, "Adding accelerometer inputs");
-
-  // This mapping was only tested with a DualShock 4 controller
-  AddInput(new Motion(controller, "Accel Up", Motion::AccelZ, -GRAVITY_ACCELERATION));
-  AddInput(new Motion(controller, "Accel Down", Motion::AccelZ, GRAVITY_ACCELERATION));
-  AddInput(new Motion(controller, "Accel Left", Motion::AccelX, -GRAVITY_ACCELERATION));
-  AddInput(new Motion(controller, "Accel Right", Motion::AccelX, GRAVITY_ACCELERATION));
-  AddInput(new Motion(controller, "Accel Forward", Motion::AccelY, -GRAVITY_ACCELERATION));
-  AddInput(new Motion(controller, "Accel Backward", Motion::AccelY, GRAVITY_ACCELERATION));
-
-  if (!controller.motion.hasRotationRate)
-    return;
-
-  INFO_LOG_FMT(CONTROLLERINTERFACE, "Adding gyro inputs");
-
-  // This mapping was only tested with a DualShock 4 controller
-  AddInput(new Motion(controller, "Gyro Pitch Up", Motion::GyroX, 1));
-  AddInput(new Motion(controller, "Gyro Pitch Down", Motion::GyroX, -1));
-  AddInput(new Motion(controller, "Gyro Roll Left", Motion::GyroY, 1));
-  AddInput(new Motion(controller, "Gyro Roll Right", Motion::GyroY, -1));
-  AddInput(new Motion(controller, "Gyro Yaw Left", Motion::GyroZ, 1));
-  AddInput(new Motion(controller, "Gyro Yaw Right", Motion::GyroZ, -1));
 }
 
 std::string Controller::GetSource() const
@@ -88,29 +88,29 @@ ControlState Controller::Motion::GetState() const
 {
   ControlState r = 0.0;
 
-  if (!@available(macOS 11.0, *))
-    return r;
-
-  switch (m_button)
+  if (@available(macOS 11.0, *))
   {
-  case AccelX:
-    r = m_item.motion.acceleration.x;
-    break;
-  case AccelY:
-    r = m_item.motion.acceleration.y;
-    break;
-  case AccelZ:
-    r = m_item.motion.acceleration.z;
-    break;
-  case GyroX:
-    r = m_item.motion.rotationRate.x;
-    break;
-  case GyroY:
-    r = m_item.motion.rotationRate.y;
-    break;
-  case GyroZ:
-    r = m_item.motion.rotationRate.z;
-    break;
+    switch (m_button)
+    {
+    case AccelX:
+      r = m_item.motion.acceleration.x;
+      break;
+    case AccelY:
+      r = m_item.motion.acceleration.y;
+      break;
+    case AccelZ:
+      r = m_item.motion.acceleration.z;
+      break;
+    case GyroX:
+      r = m_item.motion.rotationRate.x;
+      break;
+    case GyroY:
+      r = m_item.motion.rotationRate.y;
+      break;
+    case GyroZ:
+      r = m_item.motion.rotationRate.z;
+      break;
+    }
   }
 
   return r * m_multiplier;

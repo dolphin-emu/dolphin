@@ -47,10 +47,10 @@ private:
       GyroY,
       GyroZ
     };
-      
-    explicit Motion(const GCController* item, std::string name, ButtonAxis button, 
-                    double multiplier) 
-        : m_item(item), m_name(name), m_button(button), m_multiplier(multiplier) 
+
+    explicit Motion(const GCController* item, std::string name, ButtonAxis button,
+                    double multiplier)
+        : m_item(item), m_name(name), m_button(button), m_multiplier(multiplier)
     {
     }
     std::string GetName() const { return m_name; }
