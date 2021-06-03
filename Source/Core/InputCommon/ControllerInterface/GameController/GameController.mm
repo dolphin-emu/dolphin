@@ -13,7 +13,9 @@ namespace ciface::GameController
 {
 static void AddController(GCController* controller)
 {
-  if (@available(macOS 11.0, *)) {
+#if defined(__MAC_11_0)
+  if (@available(macOS 11.0, *))
+  {
     if (controller.motion.sensorsRequireManualActivation)
     {
       controller.motion.sensorsActive = true;
@@ -24,10 +26,9 @@ static void AddController(GCController* controller)
 
     g_controller_interface.AddDevice(std::make_shared<Controller>(controller));
   }
-  else
-  {
-    INFO_LOG_FMT(CONTROLLERINTERFACE, "macOS 11.0 or later required for motion sensors");
-  }
+#else
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "macOS 11.0 or later required for motion sensors");
+#endif
 }
 
 static void OnControllerConnect(CFNotificationCenterRef center, void* observer, CFStringRef name,
@@ -56,13 +57,15 @@ static void OnControllerDisconnect(CFNotificationCenterRef center, void* observe
 void Init()
 {
   // PopulateDevices() will make sure the initial list of already connected controllers are added.
-  // The callbacks below ensure that controllers that are added or removed later are also taken into account.
+  // The callbacks below ensure that controllers that are added or removed later are also taken into
+  // account.
   CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), nullptr,
                                   &OnControllerConnect, CFSTR("GCControllerDidConnectNotification"),
                                   nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
   CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), nullptr,
-                                  &OnControllerDisconnect, CFSTR("GCControllerDidDisconnectNotification"),
-                                  nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
+                                  &OnControllerDisconnect,
+                                  CFSTR("GCControllerDidDisconnectNotification"), nullptr,
+                                  CFNotificationSuspensionBehaviorDeliverImmediately);
 }
 
 void PopulateDevices()

@@ -17,6 +17,7 @@ Controller::Controller(const GCController* controller) : m_controller(controller
   using MathUtil::GRAVITY_ACCELERATION;
   int unknown_index = 1;
 
+#if defined(__MAC_11_0)
   if (@available(macOS 11.0, *))
   {
     for (GCControllerButtonInput* item in controller.physicalInputProfile.allButtons)
@@ -27,8 +28,8 @@ Controller::Controller(const GCController* controller) : m_controller(controller
       }
       else
       {
-        pairs.push_back(
-            std::make_pair(std::string(GCF_UNKNOWN_PREFIX) + std::to_string(unknown_index++), item));
+        pairs.push_back(std::make_pair(
+            std::string(GCF_UNKNOWN_PREFIX) + std::to_string(unknown_index++), item));
       }
     }
 
@@ -67,6 +68,7 @@ Controller::Controller(const GCController* controller) : m_controller(controller
     AddInput(new Motion(controller, "Gyro Yaw Left", Motion::GyroZ, 1));
     AddInput(new Motion(controller, "Gyro Yaw Right", Motion::GyroZ, -1));
   }
+#endif
 }
 
 std::string Controller::GetSource() const
@@ -88,6 +90,7 @@ ControlState Controller::Motion::GetState() const
 {
   ControlState r = 0.0;
 
+#if defined(__MAC_11_0)
   if (@available(macOS 11.0, *))
   {
     switch (m_button)
@@ -112,6 +115,7 @@ ControlState Controller::Motion::GetState() const
       break;
     }
   }
+#endif
 
   return r * m_multiplier;
 }
