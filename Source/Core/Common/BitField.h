@@ -134,10 +134,6 @@ public:
   // so that we can use this within unions
   constexpr BitField() = default;
 
-// Visual Studio (as of VS2017) considers BitField to not be trivially
-// copyable if we delete this copy assignment operator.
-// https://developercommunity.visualstudio.com/content/problem/101208/c-compiler-is-overly-strict-regarding-whether-a-cl.html
-#ifndef _MSC_VER
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
   // just the bits relevant to this particular bit field.
@@ -145,7 +141,6 @@ public:
   // relevant bits, but we're prevented from doing that because the savestate
   // code expects that this class is trivially copyable.
   BitField& operator=(const BitField&) = delete;
-#endif
 
   DOLPHIN_FORCE_INLINE BitField& operator=(T val)
   {
@@ -241,10 +236,6 @@ public:
   // so that we can use this within unions
   constexpr BitFieldArray() = default;
 
-// Visual Studio (as of VS2017) considers BitField to not be trivially
-// copyable if we delete this copy assignment operator.
-// https://developercommunity.visualstudio.com/content/problem/101208/c-compiler-is-overly-strict-regarding-whether-a-cl.html
-#ifndef _MSC_VER
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
   // just the bits relevant to this particular bit field.
@@ -252,7 +243,6 @@ public:
   // relevant bits, but we're prevented from doing that because the savestate
   // code expects that this class is trivially copyable.
   BitFieldArray& operator=(const BitFieldArray&) = delete;
-#endif
 
 public:
   constexpr std::size_t StartBit() const { return position; }
