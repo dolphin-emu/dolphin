@@ -48,6 +48,7 @@ public:
     Config::Init();
     SConfig::Init();
     PowerPC::Init(PowerPC::CPUCore::Interpreter);
+    PowerPC::ppcState.msr.EE = 1;  // Enable exception
     CoreTiming::Init();
   }
   ~ScopeInit()
