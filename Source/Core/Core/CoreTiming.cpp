@@ -249,7 +249,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     s64 timeout = GetTicks() + cycles_into_future;
 
     // If this event needs to be scheduled before the next advance(), force one early
-    if (!s_is_global_timer_sane)
+    if (!s_is_global_timer_sane && PowerPC::ppcState.msr.EE == 1)
       ForceExceptionCheck(cycles_into_future);
 
     s_event_queue.emplace_back(Event{timeout, s_event_fifo_id++, userdata, event_type});
