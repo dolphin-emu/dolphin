@@ -2152,17 +2152,19 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
         static int efb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}efb_frame_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), efb_count++),
-            0);
+        entry->texture->Save(fmt::format("{}efb_frame_{}x{}_{}_c{}.png",
+                                         File::GetUserPath(D_DUMPTEXTURES_IDX), tex_w, tex_h,
+                                         static_cast<int>(baseFormat), efb_count++),
+                             0);
       }
 
       if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
       {
         static int xfb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}xfb_copy_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++),
-            0);
+        entry->texture->Save(fmt::format("{}xfb_copy_{}x{}_{}_c{}.png",
+                                         File::GetUserPath(D_DUMPTEXTURES_IDX), tex_w, tex_h,
+                                         static_cast<int>(baseFormat), xfb_count++),
+                             0);
       }
     }
   }
