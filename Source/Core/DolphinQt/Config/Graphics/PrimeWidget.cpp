@@ -194,7 +194,7 @@ void PrimeWidget::ConnectWidgets()
           m_toggle_culling->setEnabled(true);
       }
       else {
-        if (prime::GetFov() > 96) {
+        if (prime::GetFov() > 94) {
           m_toggle_culling->setEnabled(false);
           m_toggle_culling->setChecked(true);
         }

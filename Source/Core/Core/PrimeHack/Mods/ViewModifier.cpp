@@ -259,7 +259,7 @@ void ViewModifier::run_mod_mp3() {
   LOOKUP_DYN(perspective_info);
   adjust_viewmodel(fov, read32(read32(tweakgun)) + 0xe0, perspective_info + 0x8c, 0x3dcccccd);
 
-  set_code_group_state("culling", (GetCulling() || GetFov() > 96.f) ? ModState::ENABLED : ModState::DISABLED);
+  set_code_group_state("culling", (GetCulling() || GetFov() > 94.f) ? ModState::ENABLED : ModState::DISABLED);
   
   const u32 camera = read32(object_list + ((camera_id & 0x7ff) << 3) + 4);
   DevInfo("camera", "%08X", camera);
