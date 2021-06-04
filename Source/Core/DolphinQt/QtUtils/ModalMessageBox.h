@@ -15,7 +15,8 @@ public:
   static int critical(QWidget* parent, const QString& title, const QString& text,
                       StandardButtons buttons = Ok, StandardButton default_button = NoButton,
                       Qt::WindowModality modality = Qt::WindowModal);
-  static void primehack(QWidget* parent);
+  static void primehack_initialrun(QWidget* parent);
+  static bool primehack_wiitab(QWidget* parent);
   static int information(QWidget* parent, const QString& title, const QString& text,
                          StandardButtons buttons = Ok, StandardButton default_button = NoButton,
                          Qt::WindowModality modality = Qt::WindowModal);

@@ -252,7 +252,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     win.Show();
 
     if (!SConfig::GetInstance().bInitialPrimeHack) {
-      ModalMessageBox::primehack(&win);
+      ModalMessageBox::primehack_initialrun(&win);
       SConfig::GetInstance().bInitialPrimeHack = true;
     }
 

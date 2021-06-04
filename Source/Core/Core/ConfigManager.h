@@ -121,6 +121,7 @@ struct SConfig
   bool bEnableCheats = true;
   bool bEnablePrimeHack = true;
   bool bInitialPrimeHack = false;
+  bool bPromptPrimeHackTab = false;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 

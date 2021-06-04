@@ -54,11 +54,39 @@ static inline int ExecPrimeHackMessage(QWidget* parent)
   return msg.exec();
 }
 
-void ModalMessageBox::primehack(QWidget* parent)
+static inline int ExecPrimeHackWiiTabMessage(QWidget* parent)
+{
+  ModalMessageBox msg(parent, Qt::WindowModal);
+  msg.setIcon(QMessageBox::Information);
+  msg.setWindowTitle(QString::fromStdString("PrimeHack"));
+  msg.setTextFormat(Qt::RichText);
+  msg.setText(QString::fromStdString(
+    "<p>Unless you have a specific reason to use the 'Emulated Wii Remote' window, "
+    "such as alternate control schemes that deal with motion inputs, we highly recommend you use the Metroid controller window instead. "
+    "Both windows will work, but the Metroid window is specialised to make configuring your controls far easier."
+    "</p><p>"
+    "If you would like to go to the Metroid controller window instead, press <b>Open</b>.<br>"));
+  msg.setStandardButtons(QMessageBox::StandardButton::Ignore);
+  msg.addButton(QMessageBox::StandardButton::Open);
+  msg.setDefaultButton(QMessageBox::NoButton);
+
+  return msg.exec();
+}
+
+void ModalMessageBox::primehack_initialrun(QWidget* parent)
 {
   if (ExecPrimeHackMessage(parent) == QMessageBox::Help) {
     QDesktopServices::openUrl(QUrl(QString::fromStdString("https://github.com/shiiion/dolphin/wiki/Installation")));
   }
+}
+
+bool ModalMessageBox::primehack_wiitab(QWidget* parent)
+{
+  if (ExecPrimeHackWiiTabMessage(parent) == QMessageBox::Open) {
+    return true;
+  }
+
+  return false;
 }
 
 int ModalMessageBox::critical(QWidget* parent, const QString& title, const QString& text,

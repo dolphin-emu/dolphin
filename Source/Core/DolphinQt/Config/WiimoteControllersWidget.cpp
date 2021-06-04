@@ -301,6 +301,19 @@ void WiimoteControllersWidget::OnWiimoteConfigure()
     return;
   }
 
+
+  if (type == MappingWindow::Type::MAPPING_WIIMOTE_EMU) {
+    if (!SConfig::GetInstance().bPromptPrimeHackTab) {
+      if (ModalMessageBox::primehack_wiitab(this)) {
+        type = MappingWindow::Type::MAPPING_WIIMOTE_METROID;
+        Wiimote::ChangeUIPrimeHack(static_cast<int>(index), true);
+        m_wiimote_boxes[index]->setCurrentIndex(3);
+      }
+
+      SConfig::GetInstance().bPromptPrimeHackTab = true;
+    }
+  }
+
   MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
