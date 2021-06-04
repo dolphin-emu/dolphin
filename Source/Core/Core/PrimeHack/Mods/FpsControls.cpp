@@ -723,6 +723,10 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     writef32(FpsControls::pitch, firstperson_pitch);
 
     return;
+  } else {
+    // This solves an edge case where someone manages to exit
+    // an interactable before the camera has reached the target pitch.
+    delta = 0;
   }
 
   mp3_handle_cursor(true, true);
