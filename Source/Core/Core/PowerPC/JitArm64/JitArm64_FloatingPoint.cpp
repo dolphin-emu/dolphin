@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
@@ -374,7 +375,19 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   const u32 b = inst.FB;
   const int crf = inst.CRFD;
 
-  const bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true);
+  // On the GC/Wii CPU, outputs are flushed to zero if FPSCR.NI is set, and inputs are never
+  // flushed to zero. Ideally we would emulate FPSCR.NI by setting FPCR.FZ and FPCR.AH, but
+  // unfortunately FPCR.AH is a very new feature that we can't rely on (as of 2021). For CPUs
+  // without FPCR.AH, the best we can do (without killing the performance by explicitly flushing
+  // outputs using bitwise operations) is to only set FPCR.FZ, which flushes both inputs and
+  // outputs. This may cause problems in some cases, and one such case is Pokémon Battle Revolution,
+  // which does not progress past the title screen if a denormal single compares equal to zero.
+  // Workaround: Perform the comparison using a double operation instead. This ensures that denormal
+  // singles behave correctly in comparisons, but we still have a problem with denormal doubles.
+  const bool input_ftz_workaround =
+      !cpu_info.bAFP && (!js.fpr_is_store_safe[a] || !js.fpr_is_store_safe[b]);
+
+  const bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true) && !input_ftz_workaround;
   const RegType type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
   const auto reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
 

@@ -63,13 +63,13 @@ CPUInfo::CPUInfo()
 void CPUInfo::Detect()
 {
   // Set some defaults here
-  // When ARMv8 CPUs come out, these need to be updated.
   HTT = false;
   OS64bit = true;
   CPU64bit = true;
   Mode64bit = true;
   vendor = CPUVendor::ARM;
   bFlushToZero = true;
+  bAFP = false;
 
 #ifdef __APPLE__
   num_cores = std::thread::hardware_concurrency();
