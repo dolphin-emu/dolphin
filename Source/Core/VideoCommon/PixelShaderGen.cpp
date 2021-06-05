@@ -495,19 +495,9 @@ void UpdateBoundingBoxBuffer(int2 min_pos, int2 max_pos) {{
 }}
 
 void UpdateBoundingBox(float2 rawpos) {{
-  // The pixel center in the GameCube GPU is 7/12, not 0.5 (see VertexShaderGen.cpp)
-  // Adjust for this by unapplying the offset we added in the vertex shader.
-  const float PIXEL_CENTER_OFFSET = 7.0 / 12.0 - 0.5;
-  float2 offset = float2(PIXEL_CENTER_OFFSET, -PIXEL_CENTER_OFFSET);
-
-#ifdef API_OPENGL
-  // OpenGL lower-left origin means that Y goes in the opposite direction.
-  offset.y = -offset.y;
-#endif
-
   // The rightmost shaded pixel is not included in the right bounding box register,
   // such that width = right - left + 1. This has been verified on hardware.
-  int2 pos = iround(rawpos * cefbscale + offset);
+  int2 pos = int2(rawpos * cefbscale);
 
   // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
   // extents of these groups, rather than the exact pixel.
