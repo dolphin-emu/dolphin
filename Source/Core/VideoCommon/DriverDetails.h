@@ -306,6 +306,13 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_SSBO_FIELD_ATOMICS,
+
+  // BUG: Subgroup reduction on NVIDIA drivers produces wrong results in some cases. This causes
+  // bounding box values to be off by several pixels.
+  // Affected devices: NVIDIA
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_SUBGROUP_REDUCTION,
 };
 
 // Initializes our internal vendor, device family, and driver version

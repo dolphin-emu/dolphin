@@ -128,6 +128,8 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_OPENGL, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_BROKEN_SSBO_FIELD_ATOMICS,
      -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_NVIDIA, DRIVER_NVIDIA, Family::UNKNOWN,
+     BUG_BROKEN_SUBGROUP_REDUCTION, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;
