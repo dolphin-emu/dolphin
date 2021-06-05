@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-30 19:38+0200\n"
+"POT-Creation-Date: 2021-06-05 21:10+0200\n"
 "PO-Revision-Date: 2021-05-30 17:39+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
@@ -2012,7 +2012,7 @@ msgstr "Kod"
 msgid "Code:"
 msgstr "Kod:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1615
+#: Source/Core/Core/NetPlayClient.cpp:1616
 msgid "Codes received!"
 msgstr "Koder mottagna!"
 
@@ -2648,7 +2648,7 @@ msgstr "Data i okänt format eller trasig."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "Datainkonsekvens i GCMemcardManager, avbryter åtgärd."
 
-#: Source/Core/Core/NetPlayClient.cpp:1573
+#: Source/Core/Core/NetPlayClient.cpp:1574
 msgid "Data received!"
 msgstr "Data mottagen!"
 
@@ -3748,11 +3748,11 @@ msgstr "Ett fel uppstod när sessionslistan skulle hämtas: %1"
 msgid "Error occured while loading some texture packs"
 msgstr "Ett fel uppstod när texturpaket laddades"
 
-#: Source/Core/Core/NetPlayClient.cpp:1602
+#: Source/Core/Core/NetPlayClient.cpp:1603
 msgid "Error processing codes."
 msgstr "Fel uppstod när koder behandlades."
 
-#: Source/Core/Core/NetPlayClient.cpp:1574
+#: Source/Core/Core/NetPlayClient.cpp:1575
 msgid "Error processing data."
 msgstr "Fel uppstod när data behandlades."
 
@@ -3768,7 +3768,7 @@ msgstr "Ett fel uppstod med att synkronisera fuskkoder!"
 msgid "Error synchronizing save data!"
 msgstr "Fel uppstod när spardata synkroniserades!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1665
+#: Source/Core/Core/NetPlayClient.cpp:1666
 msgid "Error writing file: {0}"
 msgstr "Fel uppstod när fil skrevs: {0}"
 
@@ -4185,7 +4185,7 @@ msgstr "Misslyckades att öppna konfigurationsfilen!"
 msgid "Failed to open file \"{0}\"."
 msgstr "Misslyckades att öppna filen \"{0}\"."
 
-#: Source/Core/Core/NetPlayClient.cpp:1635
+#: Source/Core/Core/NetPlayClient.cpp:1636
 msgid "Failed to open file \"{0}\". Verify your write permissions."
 msgstr "Misslyckades att öppna filen \"{0}\". Kontrollera skrivrättigheterna."
 
@@ -4267,7 +4267,7 @@ msgstr ""
 "Misslyckades att nollställa nätspels-GCI-mappen. Kontrollera "
 "skrivrättigheterna."
 
-#: Source/Core/Core/NetPlayClient.cpp:928
+#: Source/Core/Core/NetPlayClient.cpp:929
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 "Misslyckades att nollställa nätspels-NAND-mappen. Kontrollera "
@@ -4301,11 +4301,11 @@ msgstr "Misslyckades att avinstallera paket: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Misslyckades att skriva BT.DINF till SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:954
+#: Source/Core/Core/NetPlayClient.cpp:955
 msgid "Failed to write Mii data."
 msgstr "Misslyckades att skriva Mii-data."
 
-#: Source/Core/Core/NetPlayClient.cpp:1035
+#: Source/Core/Core/NetPlayClient.cpp:1036
 msgid "Failed to write Wii save."
 msgstr "Misslyckades att skriva Wii-sparning."
 
@@ -4616,7 +4616,7 @@ msgstr "Bildrutedumpning"
 msgid "Frame Range"
 msgstr "Räckvidd för bildrutor"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1693
+#: Source/Core/VideoCommon/RenderBase.cpp:1717
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "Bildrutedumpfilen \"{0}\" finns redan. Vill du skriva över?"
 
@@ -4878,7 +4878,7 @@ msgstr "Spelstatus"
 msgid "Game changed to \"%1\""
 msgstr "Bytte spel till \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1526
+#: Source/Core/Core/NetPlayClient.cpp:1527
 msgid "Game is already running!"
 msgstr "Spelet körs redan!"
 
@@ -5562,8 +5562,8 @@ msgstr "Gränssnitt"
 msgid "Internal LZO Error - compression failed"
 msgstr "Internt LZO-fel - komprimering misslyckades"
 
-#: Source/Core/Core/NetPlayClient.cpp:1659
-#: Source/Core/Core/NetPlayClient.cpp:1701
+#: Source/Core/Core/NetPlayClient.cpp:1660
+#: Source/Core/Core/NetPlayClient.cpp:1702
 msgid "Internal LZO Error - decompression failed"
 msgstr "Internt LZO-fel - dekomprimering misslyckades"
 
@@ -5626,7 +5626,7 @@ msgstr "Ogiltig callstack"
 msgid "Invalid checksums."
 msgstr "Ogiltiga kontrollsummor."
 
-#: Source/Core/Core/NetPlayClient.cpp:1815
+#: Source/Core/Core/NetPlayClient.cpp:1816
 msgid "Invalid host"
 msgstr "Ogiltig värd"
 
@@ -6496,11 +6496,11 @@ msgstr "Nätspelsinställningar"
 msgid "Netherlands"
 msgstr "Nederländerna"
 
-#: Source/Core/Core/NetPlayClient.cpp:2531
+#: Source/Core/Core/NetPlayClient.cpp:2532
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "Nätspel har desynkroniserats i NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:2033
+#: Source/Core/Core/NetPlayClient.cpp:2034
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "Nätspelet har desynkroniserats. Det går inte att göra något åt detta."
 
@@ -7282,11 +7282,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1348
+#: Source/Core/Core/NetPlayClient.cpp:1349
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "Det gick inte att sätta på Quality of Service (QoS)."
 
-#: Source/Core/Core/NetPlayClient.cpp:1344
+#: Source/Core/Core/NetPlayClient.cpp:1345
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Quality of Service (QoS) har satts på."
 
@@ -8242,7 +8242,7 @@ msgstr "Serverns IP-adress"
 msgid "Server Port"
 msgstr "Serverns port"
 
-#: Source/Core/Core/NetPlayClient.cpp:1812
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Server rejected traversal attempt"
 msgstr "Servern avvisade traverseringsförsök"
 
@@ -9098,11 +9098,11 @@ msgstr ""
 "slumpartade frysningar när läget \"Dubbla kärnor\" används. (PÅ = "
 "kompatibel, AV = snabb)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1162
+#: Source/Core/Core/NetPlayClient.cpp:1163
 msgid "Synchronizing AR codes..."
 msgstr "Synkroniserar AR-koder..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1092
 msgid "Synchronizing Gecko codes..."
 msgstr "Synkroniserar Gecko-koder..."
 
@@ -9665,7 +9665,7 @@ msgstr ""
 "kommer vara trasiga. Det här problemet finns generellt sett bara i "
 "piratkopior av spel."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:180
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:178
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -9982,7 +9982,7 @@ msgstr "Traverseringsfel"
 msgid "Traversal Server"
 msgstr "Traverseringsserver"
 
-#: Source/Core/Core/NetPlayClient.cpp:1809
+#: Source/Core/Core/NetPlayClient.cpp:1810
 msgid "Traversal server timed out connecting to the host"
 msgstr "Traverseringsserver gjorde en timeout vid anslutning till värden"
 
@@ -10167,7 +10167,7 @@ msgstr ""
 "Tog emot ett okänt SYNC_GECKO_CODES-meddelande med id:{0} från spelare:{1} "
 "Spelaren sparkas ut!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1047
+#: Source/Core/Core/NetPlayClient.cpp:1048
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Tog emot ett okänt SYNC_SAVE_DATA-meddelande med id: {0}"
 
@@ -10183,7 +10183,7 @@ msgstr ""
 msgid "Unknown disc"
 msgstr "Okänd skiva"
 
-#: Source/Core/Core/NetPlayClient.cpp:1818
+#: Source/Core/Core/NetPlayClient.cpp:1819
 msgid "Unknown error {0:x}"
 msgstr "Okänt fel {0:x}"
 
@@ -10191,7 +10191,7 @@ msgstr "Okänt fel {0:x}"
 msgid "Unknown error."
 msgstr "Okänt fel."
 
-#: Source/Core/Core/NetPlayClient.cpp:1264
+#: Source/Core/Core/NetPlayClient.cpp:1265
 msgid "Unknown message received with id : {0}"
 msgstr "Tog emot ett okänt meddelande med id: {0}"
 

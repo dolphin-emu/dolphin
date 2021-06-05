@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-30 19:38+0200\n"
+"POT-Creation-Date: 2021-06-05 21:10+0200\n"
 "PO-Revision-Date: 2021-05-30 17:39+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Russian (http://www.transifex.com/delroth/dolphin-emu/"
@@ -2010,7 +2010,7 @@ msgstr "Код"
 msgid "Code:"
 msgstr "Код:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1615
+#: Source/Core/Core/NetPlayClient.cpp:1616
 msgid "Codes received!"
 msgstr "Коды получены!"
 
@@ -2642,7 +2642,7 @@ msgstr "Данные находятся в нераспознанном форм
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "Неконсистентность данных в GCMemcardManager, отмена действия."
 
-#: Source/Core/Core/NetPlayClient.cpp:1573
+#: Source/Core/Core/NetPlayClient.cpp:1574
 msgid "Data received!"
 msgstr "Данные получены!"
 
@@ -3746,11 +3746,11 @@ msgstr "Ошибка при получении списка сессий: %1"
 msgid "Error occured while loading some texture packs"
 msgstr "Произошла ошибка при загрузка некоторых наборов текстур"
 
-#: Source/Core/Core/NetPlayClient.cpp:1602
+#: Source/Core/Core/NetPlayClient.cpp:1603
 msgid "Error processing codes."
 msgstr "Ошибка обработки кодов."
 
-#: Source/Core/Core/NetPlayClient.cpp:1574
+#: Source/Core/Core/NetPlayClient.cpp:1575
 msgid "Error processing data."
 msgstr "Ошибка обработки данных."
 
@@ -3766,7 +3766,7 @@ msgstr "Ошибка синхронизации чит-кодов!"
 msgid "Error synchronizing save data!"
 msgstr "Ошибка синхронизации сохранений!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1665
+#: Source/Core/Core/NetPlayClient.cpp:1666
 msgid "Error writing file: {0}"
 msgstr "Ошибка записи в файл: {0}"
 
@@ -4185,7 +4185,7 @@ msgstr "Не удалось открыть файл с конфигурацие�
 msgid "Failed to open file \"{0}\"."
 msgstr "Не удалось открыть файл \"{0}\"."
 
-#: Source/Core/Core/NetPlayClient.cpp:1635
+#: Source/Core/Core/NetPlayClient.cpp:1636
 msgid "Failed to open file \"{0}\". Verify your write permissions."
 msgstr ""
 "Не удалось открыть файл \"{0}\". Проверьте, что у вас есть права на запись."
@@ -4269,7 +4269,7 @@ msgstr ""
 "Не удалось сбросить папку сетевой игры GCI. Проверьте, что у вас есть права "
 "на запись."
 
-#: Source/Core/Core/NetPlayClient.cpp:928
+#: Source/Core/Core/NetPlayClient.cpp:929
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 "Не удалось сбросить папку сетевой игры NAND. Проверьте, что у вас есть права "
@@ -4303,11 +4303,11 @@ msgstr "Не удалось деактивировать набор: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Не удалось записать BT.DINF в SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:954
+#: Source/Core/Core/NetPlayClient.cpp:955
 msgid "Failed to write Mii data."
 msgstr "Не удалось записать данные Mii."
 
-#: Source/Core/Core/NetPlayClient.cpp:1035
+#: Source/Core/Core/NetPlayClient.cpp:1036
 msgid "Failed to write Wii save."
 msgstr "Не удалось записать сохранение Wii."
 
@@ -4624,7 +4624,7 @@ msgstr "Дамп кадров"
 msgid "Frame Range"
 msgstr "Диапазон кадров"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1693
+#: Source/Core/VideoCommon/RenderBase.cpp:1717
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "Изображения с дампами кадра(ов) '{0}' уже существуют. Перезаписать?"
 
@@ -4887,7 +4887,7 @@ msgstr "Статус игры"
 msgid "Game changed to \"%1\""
 msgstr "Игра изменена на \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1526
+#: Source/Core/Core/NetPlayClient.cpp:1527
 msgid "Game is already running!"
 msgstr "Игра уже запущена!"
 
@@ -5571,8 +5571,8 @@ msgstr "Интерфейс"
 msgid "Internal LZO Error - compression failed"
 msgstr "Внутренняя ошибка LZO - ошибка сжатия"
 
-#: Source/Core/Core/NetPlayClient.cpp:1659
-#: Source/Core/Core/NetPlayClient.cpp:1701
+#: Source/Core/Core/NetPlayClient.cpp:1660
+#: Source/Core/Core/NetPlayClient.cpp:1702
 msgid "Internal LZO Error - decompression failed"
 msgstr "Внутренняя ошибка LZO - распаковка не удалась"
 
@@ -5635,7 +5635,7 @@ msgstr "Некорректный стэк вызовов"
 msgid "Invalid checksums."
 msgstr "Некорректные контрольные суммы."
 
-#: Source/Core/Core/NetPlayClient.cpp:1815
+#: Source/Core/Core/NetPlayClient.cpp:1816
 msgid "Invalid host"
 msgstr "Неверный хост-сервер"
 
@@ -6505,11 +6505,11 @@ msgstr "Настройка сетевой игры"
 msgid "Netherlands"
 msgstr "Нидерландский"
 
-#: Source/Core/Core/NetPlayClient.cpp:2531
+#: Source/Core/Core/NetPlayClient.cpp:2532
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "Рассинхронизация сетевой игры в NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:2033
+#: Source/Core/Core/NetPlayClient.cpp:2034
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 "Произошла рассинхронизация при сетевой игре. Из этого состояния возобновить "
@@ -7289,11 +7289,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1348
+#: Source/Core/Core/NetPlayClient.cpp:1349
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "Не удаётся включить Quality of Service (QoS)."
 
-#: Source/Core/Core/NetPlayClient.cpp:1344
+#: Source/Core/Core/NetPlayClient.cpp:1345
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Quality of Service (QoS) успешно включен."
 
@@ -8252,7 +8252,7 @@ msgstr "IP-адрес сервера"
 msgid "Server Port"
 msgstr "Порт сервера"
 
-#: Source/Core/Core/NetPlayClient.cpp:1812
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Server rejected traversal attempt"
 msgstr "Сервер отверг попытку обхода"
 
@@ -9110,11 +9110,11 @@ msgstr ""
 "Синхронизировать потоки ГП и ЦП для исправления случайных зависаний в "
 "двухядерном режиме. (ВКЛ = Совместимость, ВЫКЛ = Скорость)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1162
+#: Source/Core/Core/NetPlayClient.cpp:1163
 msgid "Synchronizing AR codes..."
 msgstr "Синхронизация AR-кодов..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1092
 msgid "Synchronizing Gecko codes..."
 msgstr "Синхронизация Gecko-кодов..."
 
@@ -9667,7 +9667,7 @@ msgstr ""
 "игровые режимы, может не работать. Эта проблема обычно существует только в "
 "нелегальных копиях игр."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:180
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:178
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -9983,7 +9983,7 @@ msgstr "Ошибка промежуточного сервера"
 msgid "Traversal Server"
 msgstr "Промежуточный сервер"
 
-#: Source/Core/Core/NetPlayClient.cpp:1809
+#: Source/Core/Core/NetPlayClient.cpp:1810
 msgid "Traversal server timed out connecting to the host"
 msgstr "Истекло время ожидания подключения обходного сервера к хосту"
 
@@ -10168,7 +10168,7 @@ msgstr ""
 "Получено неизвестное сообщение SYNC_GECKO_CODES с id:{0} от игрока:{1} Игрок "
 "выкинут!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1047
+#: Source/Core/Core/NetPlayClient.cpp:1048
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Получено неизвестное сообщение SYNC_SAVE_DATA с id: {0}"
 
@@ -10184,7 +10184,7 @@ msgstr ""
 msgid "Unknown disc"
 msgstr "Неизвестный диск"
 
-#: Source/Core/Core/NetPlayClient.cpp:1818
+#: Source/Core/Core/NetPlayClient.cpp:1819
 msgid "Unknown error {0:x}"
 msgstr "Неизвестная ошибка {0:x}"
 
@@ -10192,7 +10192,7 @@ msgstr "Неизвестная ошибка {0:x}"
 msgid "Unknown error."
 msgstr "Неизвестная ошибка."
 
-#: Source/Core/Core/NetPlayClient.cpp:1264
+#: Source/Core/Core/NetPlayClient.cpp:1265
 msgid "Unknown message received with id : {0}"
 msgstr "Получено неизвестное сообщение с id : {0}"
 

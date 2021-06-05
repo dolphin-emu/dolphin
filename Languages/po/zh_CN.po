@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-30 19:38+0200\n"
-"PO-Revision-Date: 2021-05-22 07:54+0000\n"
+"POT-Creation-Date: 2021-06-05 21:10+0200\n"
+"PO-Revision-Date: 2021-06-01 02:52+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -87,7 +87,7 @@ msgstr "“{0}” 不是一个有效的 GCM/ISO 文件，或者不是一个 GC/W
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:278
 msgid "$ User Variable"
-msgstr ""
+msgstr "$ 用户变量 "
 
 #. i18n: The symbol for percent.
 #. i18n: The percent symbol.
@@ -1981,7 +1981,7 @@ msgstr "代码"
 msgid "Code:"
 msgstr "代码："
 
-#: Source/Core/Core/NetPlayClient.cpp:1615
+#: Source/Core/Core/NetPlayClient.cpp:1616
 msgid "Codes received!"
 msgstr "代码已接收！"
 
@@ -2590,7 +2590,7 @@ msgstr "数据格式无法识别或损坏。"
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "GC 存储卡管理器中的数据不一致，正在中止操作。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1573
+#: Source/Core/Core/NetPlayClient.cpp:1574
 msgid "Data received!"
 msgstr "数据已接收！"
 
@@ -3148,7 +3148,7 @@ msgstr "转储纹理"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:73
 msgid "Dump XFB Target"
-msgstr ""
+msgstr "转储 XFB 目标"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:103
 msgid "Dump at Internal Resolution"
@@ -3213,6 +3213,8 @@ msgid ""
 "Dumps the contents of XFB copies to User/Dump/Textures/.<br><br /"
 "><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"将 XFB 副本的内容转储到 User/Dump/Textures/ 目录中。<br><br /"
+"><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:41
 msgid "Duration of Turbo Button Press (frames):"
@@ -3650,11 +3652,11 @@ msgstr "获取会话列表时出错: %1"
 msgid "Error occured while loading some texture packs"
 msgstr "加载一些纹理包时发生错误"
 
-#: Source/Core/Core/NetPlayClient.cpp:1602
+#: Source/Core/Core/NetPlayClient.cpp:1603
 msgid "Error processing codes."
 msgstr "处理代码时出错。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1574
+#: Source/Core/Core/NetPlayClient.cpp:1575
 msgid "Error processing data."
 msgstr "处理数据时出错。"
 
@@ -3670,7 +3672,7 @@ msgstr "同步保存金手指代码时出错！"
 msgid "Error synchronizing save data!"
 msgstr "同步存档数据时出错！"
 
-#: Source/Core/Core/NetPlayClient.cpp:1665
+#: Source/Core/Core/NetPlayClient.cpp:1666
 msgid "Error writing file: {0}"
 msgstr "写入文件时出错：{0}"
 
@@ -3754,7 +3756,7 @@ msgstr "建议用表达式开始符。"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:814
 msgid "Expected variable name."
-msgstr ""
+msgstr "建议使用的变量名称。"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:136
 msgid "Experimental"
@@ -4077,7 +4079,7 @@ msgstr "打开配置文件失败！"
 msgid "Failed to open file \"{0}\"."
 msgstr "打开文件 “{0}” 失败。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1635
+#: Source/Core/Core/NetPlayClient.cpp:1636
 msgid "Failed to open file \"{0}\". Verify your write permissions."
 msgstr "打开文件 “{0}” 失败。请验证你的写入权限。"
 
@@ -4156,7 +4158,7 @@ msgstr "将该游戏从 NAND 中移除失败。"
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "重置联机 GCI 文件夹失败。请验证你的写入权限。"
 
-#: Source/Core/Core/NetPlayClient.cpp:928
+#: Source/Core/Core/NetPlayClient.cpp:929
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "重置联机 NAND 文件夹失败。请验证你的写入权限。"
 
@@ -4188,11 +4190,11 @@ msgstr "卸载包失败: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "无法将 BT.DINF 写入 SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:954
+#: Source/Core/Core/NetPlayClient.cpp:955
 msgid "Failed to write Mii data."
 msgstr "写入 Mii 数据失败。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1035
+#: Source/Core/Core/NetPlayClient.cpp:1036
 msgid "Failed to write Wii save."
 msgstr "写入 Wii 存档失败。"
 
@@ -4498,7 +4500,7 @@ msgstr "转储帧"
 msgid "Frame Range"
 msgstr "帧范围"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1693
+#: Source/Core/VideoCommon/RenderBase.cpp:1717
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "帧转储图像 ‘{0}’ 已经存在。是否覆盖？"
 
@@ -4758,7 +4760,7 @@ msgstr "游戏状态"
 msgid "Game changed to \"%1\""
 msgstr "游戏更改为 \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1526
+#: Source/Core/Core/NetPlayClient.cpp:1527
 msgid "Game is already running!"
 msgstr "游戏已经运行!"
 
@@ -5420,8 +5422,8 @@ msgstr "界面"
 msgid "Internal LZO Error - compression failed"
 msgstr "内部 LZO 错误 - 压缩失败"
 
-#: Source/Core/Core/NetPlayClient.cpp:1659
-#: Source/Core/Core/NetPlayClient.cpp:1701
+#: Source/Core/Core/NetPlayClient.cpp:1660
+#: Source/Core/Core/NetPlayClient.cpp:1702
 msgid "Internal LZO Error - decompression failed"
 msgstr "内部 LZO 错误 - 解压失败"
 
@@ -5484,7 +5486,7 @@ msgstr "无效调用堆栈"
 msgid "Invalid checksums."
 msgstr "无效校验和。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1815
+#: Source/Core/Core/NetPlayClient.cpp:1816
 msgid "Invalid host"
 msgstr "无效主机"
 
@@ -5974,7 +5976,7 @@ msgstr "锁定"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Lock Mouse Cursor"
-msgstr ""
+msgstr "锁定鼠标光标"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:35
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:182
@@ -6345,11 +6347,11 @@ msgstr "联机设定"
 msgid "Netherlands"
 msgstr "荷兰"
 
-#: Source/Core/Core/NetPlayClient.cpp:2531
+#: Source/Core/Core/NetPlayClient.cpp:2532
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "联机在 NetPlay_GetButtonPress() 中不同步"
 
-#: Source/Core/Core/NetPlayClient.cpp:2033
+#: Source/Core/Core/NetPlayClient.cpp:2034
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "联机发生不同步，已无法恢复。"
 
@@ -7113,11 +7115,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1348
+#: Source/Core/Core/NetPlayClient.cpp:1349
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "无法启用服务质量 (QoS)。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1344
+#: Source/Core/Core/NetPlayClient.cpp:1345
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "已成功启用服务质量 (QoS)。"
 
@@ -7412,7 +7414,7 @@ msgstr "重置穿透设置"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:315
 msgid "Reset Values"
-msgstr ""
+msgstr "重置值"
 
 #: Source/Core/Core/FreeLookManager.cpp:98
 msgid "Reset View"
@@ -8052,7 +8054,7 @@ msgstr "服务器 IP 地址"
 msgid "Server Port"
 msgstr "服务器端口"
 
-#: Source/Core/Core/NetPlayClient.cpp:1812
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Server rejected traversal attempt"
 msgstr "穿透尝试被服务器拒绝"
 
@@ -8891,11 +8893,11 @@ msgid ""
 msgstr ""
 "同步 GPU 与 CPU 线程以帮助防止双核模式下的随机卡死。（开=兼容，关=快速）"
 
-#: Source/Core/Core/NetPlayClient.cpp:1162
+#: Source/Core/Core/NetPlayClient.cpp:1163
 msgid "Synchronizing AR codes..."
 msgstr "正在同步 AR 代码..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1092
 msgid "Synchronizing Gecko codes..."
 msgstr "正在同步 Gecko 代码..."
 
@@ -9421,7 +9423,7 @@ msgstr ""
 "此游戏已被篡改为适合单层 DVD。某些内容如预渲染视频、其他语言或整个游戏模式都"
 "会被破坏。这个问题通常只存在于非法的游戏副本中。"
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:180
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:178
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -9722,7 +9724,7 @@ msgstr "穿透错误"
 msgid "Traversal Server"
 msgstr "穿透服务器"
 
-#: Source/Core/Core/NetPlayClient.cpp:1809
+#: Source/Core/Core/NetPlayClient.cpp:1810
 msgid "Traversal server timed out connecting to the host"
 msgstr "穿透服务器与主机连接超时"
 
@@ -9897,7 +9899,7 @@ msgid ""
 "Kicking player!"
 msgstr "收到未知的 同步_GECKO_代码 消息，ID：{0} 来自玩家：{1} 剔除玩家！"
 
-#: Source/Core/Core/NetPlayClient.cpp:1047
+#: Source/Core/Core/NetPlayClient.cpp:1048
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "收到未知的 同步_存档_数据 消息，ID：{0}"
 
@@ -9911,7 +9913,7 @@ msgstr "收到未知的 同步_存档_数据 消息，ID：{0} 来自玩家：{1
 msgid "Unknown disc"
 msgstr "未知光盘"
 
-#: Source/Core/Core/NetPlayClient.cpp:1818
+#: Source/Core/Core/NetPlayClient.cpp:1819
 msgid "Unknown error {0:x}"
 msgstr "未知错误 {0:x}"
 
@@ -9919,7 +9921,7 @@ msgstr "未知错误 {0:x}"
 msgid "Unknown error."
 msgstr "未知错误。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1264
+#: Source/Core/Core/NetPlayClient.cpp:1265
 msgid "Unknown message received with id : {0}"
 msgstr "收到未知的消息，ID：{0}"
 
@@ -9933,7 +9935,7 @@ msgstr "无限制"
 
 #: Source/Core/Core/HotkeyManager.cpp:38
 msgid "Unlock Cursor"
-msgstr ""
+msgstr "解锁光标"
 
 #: Source/Core/DiscIO/FileBlob.cpp:82
 msgid "Unpacking"
@@ -10049,7 +10051,7 @@ msgstr "用户风格:"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:310
 msgid "User Variables"
-msgstr ""
+msgstr "用户变量"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:312
 msgid ""
@@ -10057,6 +10059,9 @@ msgid ""
 "You can use them to save or retrieve values between\n"
 "inputs and outputs of the same parent controller."
 msgstr ""
+"在控制表达式中使用的用户定义变量。\n"
+"你可以使用其来保存或检索同一个\n"
+"父控制器输入和输出之间的值。"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:263
 msgid ""
@@ -10525,12 +10530,14 @@ msgid ""
 "Widget, otherwise there is a delay.\n"
 "If \"Lock Mouse Cursor\" is enabled, it will hide on Mouse locked"
 msgstr ""
+"当鼠标光标悬停在渲染部件上方时会立即隐藏鼠标光标，否则会有延迟。\n"
+"如果启用“锁定鼠标光标”，会在鼠标锁定后隐藏 "
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:180
 msgid ""
 "Will lock the Mouse Cursor to the Render Widget as long as it has focus. You "
 "can set a hotkey to unlock it."
-msgstr ""
+msgstr "只要有活动窗口就把鼠标光标锁定到渲染部件。你可以设置一个热键来解锁。 "
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:135
 msgid "Word Wrap"

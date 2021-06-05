@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-30 19:38+0200\n"
-"PO-Revision-Date: 2021-05-30 17:39+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2021-06-05 21:10+0200\n"
+"PO-Revision-Date: 2021-06-02 06:02+0000\n"
+"Last-Translator: Siegfried\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -80,7 +80,7 @@ msgstr "\"{0}\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 �
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:278
 msgid "$ User Variable"
-msgstr ""
+msgstr "$ 사용자 변수"
 
 #. i18n: The symbol for percent.
 #. i18n: The percent symbol.
@@ -288,7 +288,7 @@ msgstr "중단점 (&B)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:590
 msgid "&Bug Tracker"
-msgstr "버그 추적자(%B)"
+msgstr "버그 추적자(&B)"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:102
 msgid "&Cancel"
@@ -1315,7 +1315,7 @@ msgstr "비동기 (그리기 스킵)"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:118
 msgid "Asynchronous (Ubershaders)"
-msgstr "비동기 (위버쉐이더스)"
+msgstr "비동기 (우버쉐이더스)"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:521
 msgid ""
@@ -1995,7 +1995,7 @@ msgstr "코드"
 msgid "Code:"
 msgstr "코드:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1615
+#: Source/Core/Core/NetPlayClient.cpp:1616
 msgid "Codes received!"
 msgstr "코드들을 받았습니다!"
 
@@ -2620,7 +2620,7 @@ msgstr "데이터가 인식불가 형식이거나 오염되었습니다."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "GC메모리메니저에서 데이터 비일관성, 액션을 중단함."
 
-#: Source/Core/Core/NetPlayClient.cpp:1573
+#: Source/Core/Core/NetPlayClient.cpp:1574
 msgid "Data received!"
 msgstr "데이터를 받았습니다!"
 
@@ -3191,7 +3191,7 @@ msgstr "텍스처 덤프"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:73
 msgid "Dump XFB Target"
-msgstr ""
+msgstr "XFB 타겟 덤프"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:103
 msgid "Dump at Internal Resolution"
@@ -3258,6 +3258,8 @@ msgid ""
 "Dumps the contents of XFB copies to User/Dump/Textures/.<br><br /"
 "><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"User/Dump/Textures/로 XFB 복사의 내용을 덤프합니다.<br><br /"
+"><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:41
 msgid "Duration of Turbo Button Press (frames):"
@@ -3709,11 +3711,11 @@ msgstr "에러가 있는 세션 목록: %1"
 msgid "Error occured while loading some texture packs"
 msgstr "일부 텍스처 팩을 로딩하는 중에 에러가 발생했습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1602
+#: Source/Core/Core/NetPlayClient.cpp:1603
 msgid "Error processing codes."
 msgstr "코드들 처리 에러."
 
-#: Source/Core/Core/NetPlayClient.cpp:1574
+#: Source/Core/Core/NetPlayClient.cpp:1575
 msgid "Error processing data."
 msgstr "데이터 처리 에러."
 
@@ -3729,7 +3731,7 @@ msgstr "치트 코드들 동기화 에러!"
 msgid "Error synchronizing save data!"
 msgstr "저장 데이터 동기화 에러!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1665
+#: Source/Core/Core/NetPlayClient.cpp:1666
 msgid "Error writing file: {0}"
 msgstr "파일 쓰기 에러: {0}"
 
@@ -3781,7 +3783,7 @@ msgstr "나가기"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:937
 msgid "Expected + or closing paren."
-msgstr "예상되는 + 혹은 닫는 괄호."
+msgstr "+ 혹은 닫는 괄호를 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:773
 msgid "Expected arguments: "
@@ -3789,31 +3791,31 @@ msgstr "예상되는 인수들: "
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:904
 msgid "Expected closing paren."
-msgstr "예상되는 닫는 괄호."
+msgstr "닫는 괄호를 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:760
 msgid "Expected comma."
-msgstr "예상되는 쉼표."
+msgstr "쉼표를 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:692
 msgid "Expected end of expression."
-msgstr "예상되는 표현식의 끝"
+msgstr "표현식의 끝을 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:923
 msgid "Expected name of input."
-msgstr "예상되는 입력의 이름."
+msgstr "입력의 이름을 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:914
 msgid "Expected opening paren."
-msgstr "예상되는 여는 괄호."
+msgstr "여는 괄호를 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:834
 msgid "Expected start of expression."
-msgstr "예상되는 표현식의 시작"
+msgstr "표현식의 시작을 예상했습니다."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:814
 msgid "Expected variable name."
-msgstr ""
+msgstr "변수 이름을 예상했습니다."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:136
 msgid "Experimental"
@@ -4145,7 +4147,7 @@ msgstr "환경 파일 열기에 실패했습니다!"
 msgid "Failed to open file \"{0}\"."
 msgstr "파일 \"{0}\" 열기에 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1635
+#: Source/Core/Core/NetPlayClient.cpp:1636
 msgid "Failed to open file \"{0}\". Verify your write permissions."
 msgstr "파일 \"{0}\" 열기에 실패했습니다. 쓰기 권한을 검증하세요."
 
@@ -4225,7 +4227,7 @@ msgstr "NAND 에서 이 타이틀 제거에 실패했습니다."
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "넷플레이 GCI 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
 
-#: Source/Core/Core/NetPlayClient.cpp:928
+#: Source/Core/Core/NetPlayClient.cpp:929
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "넷플레이 NAND 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요."
 
@@ -4257,11 +4259,11 @@ msgstr "팩 언인스톨에 실패했습니다: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF를 SYSCONF로 쓰지 못했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:954
+#: Source/Core/Core/NetPlayClient.cpp:955
 msgid "Failed to write Mii data."
 msgstr "Mii 데이터 쓰기에 실패했습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1035
+#: Source/Core/Core/NetPlayClient.cpp:1036
 msgid "Failed to write Wii save."
 msgstr "Wii 저장 쓰기에 실패했습니다."
 
@@ -4572,7 +4574,7 @@ msgstr "프레임 덤핑"
 msgid "Frame Range"
 msgstr "프레임 범위"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1693
+#: Source/Core/VideoCommon/RenderBase.cpp:1717
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "프레임 덤프 이미지(들) '{0}' 가 이미 존재합니다. 덮어쓰시겠습니까?"
 
@@ -4832,7 +4834,7 @@ msgstr "게임 상태"
 msgid "Game changed to \"%1\""
 msgstr "게임이 \"%1\" 로 변경되었습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1526
+#: Source/Core/Core/NetPlayClient.cpp:1527
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
@@ -5508,8 +5510,8 @@ msgstr "인터페이스"
 msgid "Internal LZO Error - compression failed"
 msgstr "내부 LZO 오류 - 압축 실패했습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:1659
-#: Source/Core/Core/NetPlayClient.cpp:1701
+#: Source/Core/Core/NetPlayClient.cpp:1660
+#: Source/Core/Core/NetPlayClient.cpp:1702
 msgid "Internal LZO Error - decompression failed"
 msgstr "내부 LZO 오류 - 압축해제를 실패했습니다"
 
@@ -5572,7 +5574,7 @@ msgstr "부적합한 스텍호출"
 msgid "Invalid checksums."
 msgstr "부적합 체크섬"
 
-#: Source/Core/Core/NetPlayClient.cpp:1815
+#: Source/Core/Core/NetPlayClient.cpp:1816
 msgid "Invalid host"
 msgstr "부적합 호스트"
 
@@ -6062,7 +6064,7 @@ msgstr "잠그기"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Lock Mouse Cursor"
-msgstr ""
+msgstr "마우스 커서 가두기"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:35
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:182
@@ -6437,11 +6439,11 @@ msgstr "넷플레이 설정"
 msgid "Netherlands"
 msgstr "네덜란드"
 
-#: Source/Core/Core/NetPlayClient.cpp:2531
+#: Source/Core/Core/NetPlayClient.cpp:2532
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "넷플레이가 NetPlay_GetButtonPress() 에서 비동기화되었습니다"
 
-#: Source/Core/Core/NetPlayClient.cpp:2033
+#: Source/Core/Core/NetPlayClient.cpp:2034
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "넷플레이가 갈렸습니다. 이것으로부터 복구할 방법이 없습니다."
 
@@ -7219,11 +7221,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "QT_레이아웃_방향"
 
-#: Source/Core/Core/NetPlayClient.cpp:1348
+#: Source/Core/Core/NetPlayClient.cpp:1349
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "서비스의 품질 (QoS) 이 활성화될 수 없었습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:1344
+#: Source/Core/Core/NetPlayClient.cpp:1345
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "서비스의 품질 (QoS) 이 성공적으로 활성화되었습니다."
 
@@ -7521,7 +7523,7 @@ msgstr "횡단 설정 리셋"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:315
 msgid "Reset Values"
-msgstr ""
+msgstr "값 리셋"
 
 #: Source/Core/Core/FreeLookManager.cpp:98
 msgid "Reset View"
@@ -8169,7 +8171,7 @@ msgstr "서버 IP 주소"
 msgid "Server Port"
 msgstr "서버 포트"
 
-#: Source/Core/Core/NetPlayClient.cpp:1812
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
@@ -9023,11 +9025,11 @@ msgstr ""
 "듀얼 코어 모드에서 랜덤 프리징을 막을 수 있도록 GPU와 CPU 쓰레드들을 동기화합"
 "니다. (켬 = 호환성, 끔 = 빠름)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1162
+#: Source/Core/Core/NetPlayClient.cpp:1163
 msgid "Synchronizing AR codes..."
 msgstr "AR 코드들을 동기화합니다..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1092
 msgid "Synchronizing Gecko codes..."
 msgstr "Gecko 코드들을 동기화합니다..."
 
@@ -9041,7 +9043,7 @@ msgstr "동기"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:117
 msgid "Synchronous (Ubershaders)"
-msgstr "동기 (위버쉐이더스)"
+msgstr "동기 (우버쉐이더스)"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:71
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:120
@@ -9577,7 +9579,7 @@ msgstr ""
 "일부 내용들, 추가 언어들이나 전체 게임 모드들이 고장날 것입니다. 이 문제는 일"
 "반적으로 불법 복제 게임들에만 존제합니다."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:180
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:178
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -9888,7 +9890,7 @@ msgstr "횡단 에러"
 msgid "Traversal Server"
 msgstr "횡단 서버"
 
-#: Source/Core/Core/NetPlayClient.cpp:1809
+#: Source/Core/Core/NetPlayClient.cpp:1810
 msgid "Traversal server timed out connecting to the host"
 msgstr "횡단 서버가 호스트에 연결중 시간이 초과되었습니다."
 
@@ -10071,7 +10073,7 @@ msgstr ""
 "알려지지 않은 SYNC_GECKO_CODES 메시지 id:{0} 를 플레이어:{1} 로 부터 받았습니"
 "다 플레이어 퇴장시키기!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1047
+#: Source/Core/Core/NetPlayClient.cpp:1048
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "알려지지 않은 SYNC_SAVE_DATA 메시지를 받았습니다 id: {0}"
 
@@ -10087,7 +10089,7 @@ msgstr ""
 msgid "Unknown disc"
 msgstr "알려지지 않은 디스크"
 
-#: Source/Core/Core/NetPlayClient.cpp:1818
+#: Source/Core/Core/NetPlayClient.cpp:1819
 msgid "Unknown error {0:x}"
 msgstr "알려지지 않은 오류 {0:x}"
 
@@ -10095,7 +10097,7 @@ msgstr "알려지지 않은 오류 {0:x}"
 msgid "Unknown error."
 msgstr "알려지지 않은 오류."
 
-#: Source/Core/Core/NetPlayClient.cpp:1264
+#: Source/Core/Core/NetPlayClient.cpp:1265
 msgid "Unknown message received with id : {0}"
 msgstr "id : {0} 의 알려지지 않은 메시지를 받았습니다"
 
@@ -10110,7 +10112,7 @@ msgstr "무제한"
 
 #: Source/Core/Core/HotkeyManager.cpp:38
 msgid "Unlock Cursor"
-msgstr ""
+msgstr "마우스 커서 풀기"
 
 #: Source/Core/DiscIO/FileBlob.cpp:82
 msgid "Unpacking"
@@ -10227,7 +10229,7 @@ msgstr "사용자 스타일:"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:310
 msgid "User Variables"
-msgstr ""
+msgstr "사용자 변수들"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:312
 msgid ""
@@ -10235,6 +10237,9 @@ msgid ""
 "You can use them to save or retrieve values between\n"
 "inputs and outputs of the same parent controller."
 msgstr ""
+"사용자 정의된 변수들을 컨트롤 익스프레션에서 사용할 수 있습니다.\n"
+"같은 부모 컨트롤러의 입력들과 출력들 사이에서\n"
+"저장하거나 값들을 찾기위해 사용할 수 있습니다."
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:263
 msgid ""
@@ -10722,12 +10727,17 @@ msgid ""
 "Widget, otherwise there is a delay.\n"
 "If \"Lock Mouse Cursor\" is enabled, it will hide on Mouse locked"
 msgstr ""
+"렌더 위젯 위에 마우스 커서를 올려 놓으면 커서를 즉시 숨길 것입니다, 그렇지 않"
+"으면 지연이 발생합니다.\n"
+"\"마우스 커서 가두기\"를 활성화하면, 마우스가 가둬진 상태로 숨길 것입니다."
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:180
 msgid ""
 "Will lock the Mouse Cursor to the Render Widget as long as it has focus. You "
 "can set a hotkey to unlock it."
 msgstr ""
+"포커스가 있는 한 마우스 커서를 렌더 위젯에 가둘 것입니다. 이것을 풀기위한 핫"
+"키 설정을 할 수 있습니다."
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:135
 msgid "Word Wrap"

@@ -3,18 +3,21 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
+# 0d650e867a64ff3c44c343a4a46f4cc4_0750f19 <ca09cae74bc6c7e28e5c24ed2567e538_49102>, 2013
 # Altieres Lima da Silva <altieres.lima@gmail.com>, 2017,2021
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013-2016
 # Dante Jr. <danteprojetos@gmail.com>, 2011
 # David Rodrigues <david.proweb@gmail.com>, 2014-2015,2019
 # Efraim, 2019
 # Efraim, 2019
+# Emertels <emertels@outlook.com>, 2020
 # Emertels <emertels@outlook.com>, 2020-2021
 # Emertels <emertels@outlook.com>, 2020
 # Felipefpl, 2015
 # Felipefpl <felipefpl@oi.com.br>, 2015
 # Felipefpl, 2015
 # Felipefpl, 2015-2016,2021
+# Gonçalo Correia de Matos , 2015
 # Gonçalo Matos , 2015
 # Gonçalo Correia de Matos , 2015
 # Guilherme Dias de Jesus, 2017
@@ -43,9 +46,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-30 19:38+0200\n"
-"PO-Revision-Date: 2021-05-30 17:39+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2021-06-05 21:10+0200\n"
+"PO-Revision-Date: 2021-05-31 16:00+0000\n"
+"Last-Translator: Felipefpl\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -112,7 +115,7 @@ msgstr "\"{0}\" é um arquivo GCM/ISO inválido ou não é uma ISO de GC/Wii."
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:278
 msgid "$ User Variable"
-msgstr ""
+msgstr "$ Variável do Usuário"
 
 #. i18n: The symbol for percent.
 #. i18n: The percent symbol.
@@ -2047,7 +2050,7 @@ msgstr "Código"
 msgid "Code:"
 msgstr "Código:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1615
+#: Source/Core/Core/NetPlayClient.cpp:1616
 msgid "Codes received!"
 msgstr "Códigos recebidos!"
 
@@ -2683,7 +2686,7 @@ msgstr "Dados em formato não reconhecido ou corrompido."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "Inconsistência dos dados no GCMemcardManager, abortando ação."
 
-#: Source/Core/Core/NetPlayClient.cpp:1573
+#: Source/Core/Core/NetPlayClient.cpp:1574
 msgid "Data received!"
 msgstr "Dados recebidos!"
 
@@ -3265,7 +3268,7 @@ msgstr "Extrair Texturas"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:73
 msgid "Dump XFB Target"
-msgstr ""
+msgstr "Dumpar Alvo do EFB"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:103
 msgid "Dump at Internal Resolution"
@@ -3333,6 +3336,9 @@ msgid ""
 "Dumps the contents of XFB copies to User/Dump/Textures/.<br><br /"
 "><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Dumpa os conteúdos das cópias do EFB em User/Dump/Textures/."
+"<br><br><dolphin_emphasis>Se não tiver certeza deixe isto desmarcado.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:41
 msgid "Duration of Turbo Button Press (frames):"
@@ -3791,11 +3797,11 @@ msgstr "Erro ao obter a lista da sessão: %1"
 msgid "Error occured while loading some texture packs"
 msgstr "Um erro ocorreu enquanto carregava alguns pacotes de texturas"
 
-#: Source/Core/Core/NetPlayClient.cpp:1602
+#: Source/Core/Core/NetPlayClient.cpp:1603
 msgid "Error processing codes."
 msgstr "Erro ao processar os códigos."
 
-#: Source/Core/Core/NetPlayClient.cpp:1574
+#: Source/Core/Core/NetPlayClient.cpp:1575
 msgid "Error processing data."
 msgstr "Erro ao processar os dados."
 
@@ -3811,7 +3817,7 @@ msgstr "Erro ao sincronizar os códigos de trapaça!"
 msgid "Error synchronizing save data!"
 msgstr "Erro ao sincronizar os dados do save!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1665
+#: Source/Core/Core/NetPlayClient.cpp:1666
 msgid "Error writing file: {0}"
 msgstr "Erro ao gravar o arquivo: {0}"
 
@@ -3895,7 +3901,7 @@ msgstr "Início esperado da expressão."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:814
 msgid "Expected variable name."
-msgstr ""
+msgstr "Nome da variável esperada."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:136
 msgid "Experimental"
@@ -4230,7 +4236,7 @@ msgstr "Falhou em abrir o arquivo da configuração!"
 msgid "Failed to open file \"{0}\"."
 msgstr "Falhou em abrir o arquivo \"{0}\"."
 
-#: Source/Core/Core/NetPlayClient.cpp:1635
+#: Source/Core/Core/NetPlayClient.cpp:1636
 msgid "Failed to open file \"{0}\". Verify your write permissions."
 msgstr ""
 "Falhou em abrir o arquivo \"{0}\". Verifique suas permissões de gravação."
@@ -4314,7 +4320,7 @@ msgstr ""
 "Falhou em resetar a pasta do NetPlay GCI. Verifique suas permissões de "
 "gravação."
 
-#: Source/Core/Core/NetPlayClient.cpp:928
+#: Source/Core/Core/NetPlayClient.cpp:929
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 "Falhou em resetar a pasta NAND do NetPlay. Verifique suas permissões de "
@@ -4348,11 +4354,11 @@ msgstr "Falhou em desinstalar o pacote: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Falha ao gravar o BT.DINF no SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:954
+#: Source/Core/Core/NetPlayClient.cpp:955
 msgid "Failed to write Mii data."
 msgstr "Falhou em gravar os dados do Mii."
 
-#: Source/Core/Core/NetPlayClient.cpp:1035
+#: Source/Core/Core/NetPlayClient.cpp:1036
 msgid "Failed to write Wii save."
 msgstr "Falhou em gravar o save do Wii."
 
@@ -4671,7 +4677,7 @@ msgstr "Dumpagem dos Frames"
 msgid "Frame Range"
 msgstr "Intervalo de Quadros"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1693
+#: Source/Core/VideoCommon/RenderBase.cpp:1717
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "A(s) imagem(ns) do dump do frame '{0}' já existe(m). Sobrescrever?"
 
@@ -4934,7 +4940,7 @@ msgstr "Status do Jogo"
 msgid "Game changed to \"%1\""
 msgstr "Jogo mudado pra \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1526
+#: Source/Core/Core/NetPlayClient.cpp:1527
 msgid "Game is already running!"
 msgstr "O jogo já está rodando!"
 
@@ -5380,8 +5386,8 @@ msgid ""
 "If unchecked, the connection state of the emulated controller is linked\n"
 "to the connection state of the real default device (if there is one)."
 msgstr ""
-"Se selecionado, o controle emulado está sempre conectado.\n"
-"Se desmarcado, o estado da conexão do controle emulado está ligado\n"
+"Se selecionado o controle emulado está sempre conectado.\n"
+"Se desmarcado o estado da conexão do controle emulado é ligado\n"
 "ao estado da conexão do dispositivo padrão real (se houver um)."
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:56
@@ -5560,7 +5566,7 @@ msgstr "Força de entrada requerida pra ativação."
 #. i18n: Refers to the dead-zone setting of gamepad inputs.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:47
 msgid "Input strength to ignore and remap."
-msgstr "Força de entrada a ignorar e remapear."
+msgstr "Força da entrada pra ignorar e remapear."
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:516
 msgid "Insert &nop"
@@ -5621,8 +5627,8 @@ msgstr "Interface"
 msgid "Internal LZO Error - compression failed"
 msgstr "Erro Interno do LZO - a compressão falhou"
 
-#: Source/Core/Core/NetPlayClient.cpp:1659
-#: Source/Core/Core/NetPlayClient.cpp:1701
+#: Source/Core/Core/NetPlayClient.cpp:1660
+#: Source/Core/Core/NetPlayClient.cpp:1702
 msgid "Internal LZO Error - decompression failed"
 msgstr "Erro Interno do LZO - a descompressão falhou"
 
@@ -5685,7 +5691,7 @@ msgstr "Callstack inválido"
 msgid "Invalid checksums."
 msgstr "Checksum inválido."
 
-#: Source/Core/Core/NetPlayClient.cpp:1815
+#: Source/Core/Core/NetPlayClient.cpp:1816
 msgid "Invalid host"
 msgstr "Host inválido"
 
@@ -5730,7 +5736,7 @@ msgstr "ID do título inválida."
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:260
 msgid "Invalid watch address: %1"
-msgstr "Endereço de observação inválido: %1"
+msgstr "Endereço da observação inválido: %1"
 
 #: Source/Core/DiscIO/Enums.cpp:92
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:65
@@ -5800,11 +5806,11 @@ msgstr "Emparelhamento do JIT Desligado"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:32
 msgid "JIT Recompiler for ARM64 (recommended)"
-msgstr "Recompilador JIT para ARM64 (recomendado)"
+msgstr "Recompilador JIT do ARM64 (recomendado)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:31
 msgid "JIT Recompiler for x86-64 (recommended)"
-msgstr "Recompilador JIT para x86-64 (recomendado)"
+msgstr "Recompilador JIT pra x86-64 (recomendado)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:951
 msgid "JIT Register Cache Off"
@@ -6178,7 +6184,7 @@ msgstr "Trancar"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Lock Mouse Cursor"
-msgstr ""
+msgstr "Trancar o Cursor Do Mouse"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:35
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:182
@@ -6211,8 +6217,8 @@ msgid ""
 "this feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Registra o tempo da renderização de cada frame em Usuário/Logs/render_time."
-"txt<br><br>Use esta função pra medir a performance do Dolphin."
+"Registra o tempo de renderização de cada frame em User/Logs/render_time.txt."
+"<br><br>Use esta função pra medir a performance do Dolphin."
 "<br><br><dolphin_emphasis>Se não tiver certeza deixe isto desmarcado.</"
 "dolphin_emphasis>"
 
@@ -6557,11 +6563,11 @@ msgstr "Configuração do NetPlay"
 msgid "Netherlands"
 msgstr "Holanda"
 
-#: Source/Core/Core/NetPlayClient.cpp:2531
+#: Source/Core/Core/NetPlayClient.cpp:2532
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "O NetPlay dessincronizou em NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:2033
+#: Source/Core/Core/NetPlayClient.cpp:2034
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "O Netplay perdeu a sincronia. Não é possível se recuperar desse erro."
 
@@ -7344,11 +7350,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1348
+#: Source/Core/Core/NetPlayClient.cpp:1349
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "A Qualidade do Serviço (QoS) não pôde ser ativada."
 
-#: Source/Core/Core/NetPlayClient.cpp:1344
+#: Source/Core/Core/NetPlayClient.cpp:1345
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Qualidade do Serviço (QoS) ativado com sucesso."
 
@@ -7649,7 +7655,7 @@ msgstr "Redefinir Configurações Traversal"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:315
 msgid "Reset Values"
-msgstr ""
+msgstr "Resetar Valores"
 
 #: Source/Core/Core/FreeLookManager.cpp:98
 msgid "Reset View"
@@ -8273,11 +8279,11 @@ msgid ""
 "recommended to try each and select the backend that is least problematic."
 "<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>"
 msgstr ""
-"Seleciona qual API gráfica usar internamente.<br><br>O renderizador do "
-"software é extremamente lento e só é útil pra fazer debug, então qualquer "
-"dos outros backends é recomendado. Jogos diferentes e GPUs diferentes se "
+"Seleciona qual API gráfica usar internamente.<br><br>O renderizador de "
+"software é extremamente lento e só é útil pra debugging, então qualquer dos "
+"outros backends são recomendados. Jogos diferentes e GPUs diferentes se "
 "comportarão diferentemente em cada backend, então para a melhor experiência "
-"de emulação é recomendado tentar cada uma e selecionar o backend que é menos "
+"de emulação é recomendado tentar cada um e selecionar o backend que é menos "
 "problemático.<br><br><dolphin_emphasis>Se não tiver certeza selecione o "
 "OpenGL.</dolphin_emphasis>"
 
@@ -8309,7 +8315,7 @@ msgstr "Endereço IP do Servidor"
 msgid "Server Port"
 msgstr "Porta do Servidor"
 
-#: Source/Core/Core/NetPlayClient.cpp:1812
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Server rejected traversal attempt"
 msgstr "O servidor rejeitou a tentativa traversal"
 
@@ -8429,7 +8435,7 @@ msgstr "Mostrar o Jogo Atual no Discord"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:148
 msgid "Show Debugging UI"
-msgstr "Mostrar a IU do Debug"
+msgstr "Mostrar a IU do Debugging"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:671
 msgid "Show ELF/DOL"
@@ -9167,11 +9173,11 @@ msgstr ""
 "Sincroniza os threads da GPU e da CPU pra ajudar a impedir congelamentos "
 "aleatórios no modo Dual Core. (ON = Compatível, OFF = Rápido)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1162
+#: Source/Core/Core/NetPlayClient.cpp:1163
 msgid "Synchronizing AR codes..."
 msgstr "Sincronizando os códigos AR..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1092
 msgid "Synchronizing Gecko codes..."
 msgstr "Sincronizando os códigos do Gecko..."
 
@@ -9323,8 +9329,7 @@ msgstr ""
 #: Source/Android/jni/WiiUtils.cpp:78
 msgid "The decryption keys need to be appended to the NAND backup file."
 msgstr ""
-"As chaves de desencriptação precisam estar anexadas ao arquivo de backup do "
-"NAND."
+"A teclas da descrição precisam ser anexadas ao arquivo de backup do NAND."
 
 #: Source/Core/Core/Movie.cpp:374
 msgid ""
@@ -9733,7 +9738,7 @@ msgstr ""
 "ficarão quebrados. Este problema geralmente só existe em cópias ilegais de "
 "jogos."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:180
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:178
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -10051,7 +10056,7 @@ msgstr "Erro do Transversal"
 msgid "Traversal Server"
 msgstr "Servidor Traversal"
 
-#: Source/Core/Core/NetPlayClient.cpp:1809
+#: Source/Core/Core/NetPlayClient.cpp:1810
 msgid "Traversal server timed out connecting to the host"
 msgstr "Servidor traversal não respondeu enquanto conectava-se ao host."
 
@@ -10237,7 +10242,7 @@ msgstr ""
 "Mensagem desconhecida do SYNC_GECKO_CODES com a id:{0} recebida do jogador:"
 "{1} Chutando o jogador!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1047
+#: Source/Core/Core/NetPlayClient.cpp:1048
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Mensagem desconhecida do SYNC_GECKO_DATA recebida com a id:{0}"
 
@@ -10253,7 +10258,7 @@ msgstr ""
 msgid "Unknown disc"
 msgstr "Disco desconhecido"
 
-#: Source/Core/Core/NetPlayClient.cpp:1818
+#: Source/Core/Core/NetPlayClient.cpp:1819
 msgid "Unknown error {0:x}"
 msgstr "Erro desconhecido {0:x}"
 
@@ -10261,7 +10266,7 @@ msgstr "Erro desconhecido {0:x}"
 msgid "Unknown error."
 msgstr "Erro desconhecido."
 
-#: Source/Core/Core/NetPlayClient.cpp:1264
+#: Source/Core/Core/NetPlayClient.cpp:1265
 msgid "Unknown message received with id : {0}"
 msgstr "Mensagem desconhecida recebida com a id: {0}"
 
@@ -10277,7 +10282,7 @@ msgstr "Ilimitado"
 
 #: Source/Core/Core/HotkeyManager.cpp:38
 msgid "Unlock Cursor"
-msgstr ""
+msgstr "Destrancar Cursor"
 
 #: Source/Core/DiscIO/FileBlob.cpp:82
 msgid "Unpacking"
@@ -10395,7 +10400,7 @@ msgstr "Estilo do Usuário:"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:310
 msgid "User Variables"
-msgstr ""
+msgstr "Variáveis do Usuário"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:312
 msgid ""
@@ -10403,6 +10408,9 @@ msgid ""
 "You can use them to save or retrieve values between\n"
 "inputs and outputs of the same parent controller."
 msgstr ""
+"Variáveis definidos pelo usuário na expressão do controle.\n"
+"Você pode usá-los pra slavar ou recuperar os valores entre\n"
+"as entradas e saídas do mesmo controle principal."
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:263
 msgid ""
@@ -10443,7 +10451,7 @@ msgstr "Usando Qt %1"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:658
 msgid "Usually used for light objects"
-msgstr "Geralmente usado pra objetos leves"
+msgstr "Geralmente usado pra iluminar objetos"
 
 #. i18n: A normal matrix is a matrix used for transforming normal vectors. The word "normal"
 #. does not have its usual meaning here, but rather the meaning of "perpendicular to a surface".
@@ -10453,12 +10461,12 @@ msgstr "Geralmente usado pra matrizes normais"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:625
 msgid "Usually used for position matrices"
-msgstr "Geralmente usado pra matrizes de posição"
+msgstr "Geralmente usado pras matrizes da posição"
 
 #. i18n: Tex coord is short for texture coordinate
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:648
 msgid "Usually used for tex coord matrices"
-msgstr "Geralmente usado pra matrizes de coordenação das texturas"
+msgstr "Geralmente usado pras matrizes da coordenação das texturas"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:65
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:65
@@ -10903,12 +10911,18 @@ msgid ""
 "Widget, otherwise there is a delay.\n"
 "If \"Lock Mouse Cursor\" is enabled, it will hide on Mouse locked"
 msgstr ""
+"Esconderá imediatamente o cursor do mouse quando pairar sobre o topo do "
+"widget de renderização, de outro modo há um atraso.\n"
+"Se \"Trancar o Cursor do Mouse\" estiver ativado, ele esconderá com o mouse "
+"trancado"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:180
 msgid ""
 "Will lock the Mouse Cursor to the Render Widget as long as it has focus. You "
 "can set a hotkey to unlock it."
 msgstr ""
+"Trancará o cursor do mouse no widget da renderização tanto quanto ele tem "
+"foco. Você pode definir uma tecla de atalho pra destrancá-lo."
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:135
 msgid "Word Wrap"
