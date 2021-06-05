@@ -499,16 +499,15 @@ void UpdateBoundingBox(float2 rawpos) {{
   // such that width = right - left + 1. This has been verified on hardware.
   int2 pos = int2(rawpos * cefbscale);
 
+#ifdef API_OPENGL
+  // We need to invert the Y coordinate due to OpenGL's lower-left origin
+  pos.y = {efb_height} - pos.y - 1;
+#endif
+
   // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
   // extents of these groups, rather than the exact pixel.
-#ifdef API_OPENGL
-  // Need to flip the operands for Y on OpenGL because of lower-left origin.
-  int2 pos_tl = int2(pos.x & ~1, pos.y | 1);
-  int2 pos_br = int2(pos.x | 1, pos.y & ~1);
-#else
   int2 pos_tl = pos & ~1;
   int2 pos_br = pos | 1;
-#endif
 
 #ifdef SUPPORTS_SUBGROUP_REDUCTION
   if (CAN_USE_SUBGROUP_REDUCTION) {{
@@ -526,7 +525,8 @@ void UpdateBoundingBox(float2 rawpos) {{
 #endif
 }}
 
-)");
+)",
+              fmt::arg("efb_height", EFB_HEIGHT));
   }
 }
 
