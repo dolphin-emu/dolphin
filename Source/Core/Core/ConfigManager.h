@@ -191,6 +191,7 @@ struct SConfig
   bool m_disc_booted_from_game_list = false;
 
   const std::string& GetGameID() const { return m_game_id; }
+  const std::string& GetGameTDBID() const { return m_gametdb_id; }
   const std::string& GetTitleName() const { return m_title_name; }
   const std::string& GetTitleDescription() const { return m_title_description; }
   u64 GetTitleID() const { return m_title_id; }

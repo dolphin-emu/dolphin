@@ -40,7 +40,7 @@ class CheatsManager : public QDialog
 {
   Q_OBJECT
 public:
-  explicit CheatsManager(const GameListModel& game_list_model, QWidget* parent = nullptr);
+  explicit CheatsManager(QWidget* parent = nullptr);
   ~CheatsManager();
 
 private:
@@ -62,10 +62,12 @@ private:
   void OnMatchContextMenu();
   void OnWatchItemChanged(QTableWidgetItem* item);
 
-  const GameListModel& m_game_list_model;
+  std::string m_game_id;
+  std::string m_game_tdb_id;
+  u16 m_revision = 0;
+
   std::vector<Result> m_results;
   std::vector<Result> m_watch;
-  std::shared_ptr<const UICommon::GameFile> m_game_file;
   QDialogButtonBox* m_button_box;
   QTabWidget* m_tab_widget = nullptr;
 
