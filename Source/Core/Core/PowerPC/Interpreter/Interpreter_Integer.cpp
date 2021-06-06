@@ -66,42 +66,36 @@ void Interpreter::andis_rc(UGeckoInstruction inst)
   Helper_UpdateCR0(rGPR[inst.RA]);
 }
 
+template <typename T>
+void Interpreter::Helper_IntCompare(UGeckoInstruction inst, T a, T b)
+{
+  u32 cr_field;
+
+  if (a < b)
+    cr_field = PowerPC::CR_LT;
+  else if (a > b)
+    cr_field = PowerPC::CR_GT;
+  else
+    cr_field = PowerPC::CR_EQ;
+
+  if (PowerPC::GetXER_SO())
+    cr_field |= PowerPC::CR_SO;
+
+  PowerPC::ppcState.cr.SetField(inst.CRFD, cr_field);
+}
+
 void Interpreter::cmpi(UGeckoInstruction inst)
 {
   const s32 a = static_cast<s32>(rGPR[inst.RA]);
   const s32 b = inst.SIMM_16;
-  u32 f;
-
-  if (a < b)
-    f = 0x8;
-  else if (a > b)
-    f = 0x4;
-  else
-    f = 0x2;  // equals
-
-  if (PowerPC::GetXER_SO())
-    f |= 0x1;
-
-  PowerPC::ppcState.cr.SetField(inst.CRFD, f);
+  Helper_IntCompare(inst, a, b);
 }
 
 void Interpreter::cmpli(UGeckoInstruction inst)
 {
   const u32 a = rGPR[inst.RA];
   const u32 b = inst.UIMM;
-  u32 f;
-
-  if (a < b)
-    f = 0x8;
-  else if (a > b)
-    f = 0x4;
-  else
-    f = 0x2;  // equals
-
-  if (PowerPC::GetXER_SO())
-    f |= 0x1;
-
-  PowerPC::ppcState.cr.SetField(inst.CRFD, f);
+  Helper_IntCompare(inst, a, b);
 }
 
 void Interpreter::mulli(UGeckoInstruction inst)
@@ -200,38 +194,14 @@ void Interpreter::cmp(UGeckoInstruction inst)
 {
   const s32 a = static_cast<s32>(rGPR[inst.RA]);
   const s32 b = static_cast<s32>(rGPR[inst.RB]);
-  u32 temp;
-
-  if (a < b)
-    temp = 0x8;
-  else if (a > b)
-    temp = 0x4;
-  else  // Equals
-    temp = 0x2;
-
-  if (PowerPC::GetXER_SO())
-    temp |= 0x1;
-
-  PowerPC::ppcState.cr.SetField(inst.CRFD, temp);
+  Helper_IntCompare(inst, a, b);
 }
 
 void Interpreter::cmpl(UGeckoInstruction inst)
 {
   const u32 a = rGPR[inst.RA];
   const u32 b = rGPR[inst.RB];
-  u32 temp;
-
-  if (a < b)
-    temp = 0x8;
-  else if (a > b)
-    temp = 0x4;
-  else  // Equals
-    temp = 0x2;
-
-  if (PowerPC::GetXER_SO())
-    temp |= 0x1;
-
-  PowerPC::ppcState.cr.SetField(inst.CRFD, temp);
+  Helper_IntCompare(inst, a, b);
 }
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)
