@@ -87,7 +87,7 @@ struct NetSettings
   float m_ArbitraryMipmapDetectionThreshold;
   bool m_EnableGPUTextureDecoding;
   bool m_DeferEFBCopies;
-  bool m_EFBAccessTileSize;
+  int m_EFBAccessTileSize;
   bool m_EFBAccessDeferInvalidation;
 
   bool m_StrictSettingsSync;
