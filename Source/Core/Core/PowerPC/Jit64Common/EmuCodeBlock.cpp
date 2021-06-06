@@ -828,7 +828,8 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, 
     else
     {
       (this->*sseOp)(XMM0, arg2, imm);
-      MOVAPD(regOp, R(XMM0));
+      if (regOp != XMM0)
+        MOVAPD(regOp, R(XMM0));
     }
   }
   else
