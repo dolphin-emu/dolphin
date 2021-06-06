@@ -24,8 +24,8 @@ void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
 {
   switch (bit)
   {
-  case PowerPC::CR_SO_BIT:  // check bit 61 set
-    BT(64, CROffset(field), Imm8(61));
+  case PowerPC::CR_SO_BIT:  // check bit 59 set
+    BT(64, CROffset(field), Imm8(59));
     SETcc(negate ? CC_NC : CC_C, R(out));
     break;
 
@@ -59,9 +59,9 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
 
   switch (bit)
   {
-  case PowerPC::CR_SO_BIT:  // set bit 61 to input
-    BTR(64, R(RSCRATCH2), Imm8(61));
-    SHL(64, R(in), Imm8(61));
+  case PowerPC::CR_SO_BIT:  // set bit 59 to input
+    BTR(64, R(RSCRATCH2), Imm8(59));
+    SHL(64, R(in), Imm8(59));
     OR(64, R(RSCRATCH2), R(in));
     break;
 
@@ -95,7 +95,7 @@ void Jit64::ClearCRFieldBit(int field, int bit)
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:
-    BTR(64, CROffset(field), Imm8(61));
+    BTR(64, CROffset(field), Imm8(59));
     break;
 
   case PowerPC::CR_EQ_BIT:
@@ -126,7 +126,7 @@ void Jit64::SetCRFieldBit(int field, int bit)
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:
-    BTS(64, R(RSCRATCH), Imm8(61));
+    BTS(64, R(RSCRATCH), Imm8(59));
     break;
 
   case PowerPC::CR_EQ_BIT:
@@ -162,8 +162,8 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
   switch (bit)
   {
-  case PowerPC::CR_SO_BIT:  // check bit 61 set
-    BT(64, CROffset(field), Imm8(61));
+  case PowerPC::CR_SO_BIT:  // check bit 59 set
+    BT(64, CROffset(field), Imm8(59));
     return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0

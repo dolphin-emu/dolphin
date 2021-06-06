@@ -25,7 +25,7 @@ enum CRBits
 // Optimized CR implementation. Instead of storing CR in its PowerPC format
 // (4 bit value, SO/EQ/LT/GT), we store instead a 64 bit value for each of
 // the 8 CR register parts. This 64 bit value follows this format:
-//   - SO iff. bit 61 is set
+//   - SO iff. bit 59 is set
 //   - EQ iff. lower 32 bits == 0
 //   - GT iff. (s64)cr_val > 0
 //   - LT iff. bit 62 is set
@@ -46,7 +46,7 @@ struct ConditionRegister
   static u64 PPCToInternal(u8 value)
   {
     u64 cr_val = 0x100000000;
-    cr_val |= (u64) !!(value & CR_SO) << 61;
+    cr_val |= (u64) !!(value & CR_SO) << 59;
     cr_val |= (u64) !(value & CR_EQ);
     cr_val |= (u64) !(value & CR_GT) << 63;
     cr_val |= (u64) !!(value & CR_LT) << 62;
@@ -63,14 +63,12 @@ struct ConditionRegister
     const u64 cr_val = fields[cr_field];
     u32 ppc_cr = 0;
 
-    // SO
-    ppc_cr |= !!(cr_val & (1ull << 61));
+    // LT/SO
+    ppc_cr |= (cr_val >> 59) & (PowerPC::CR_LT | PowerPC::CR_SO);
     // EQ
-    ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << 1;
+    ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << PowerPC::CR_EQ_BIT;
     // GT
-    ppc_cr |= (static_cast<s64>(cr_val) > 0) << 2;
-    // LT
-    ppc_cr |= !!(cr_val & (1ull << 62)) << 3;
+    ppc_cr |= (static_cast<s64>(cr_val) > 0) << PowerPC::CR_GT_BIT;
 
     return ppc_cr;
   }
