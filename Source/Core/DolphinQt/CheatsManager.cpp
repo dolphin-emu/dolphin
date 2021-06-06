@@ -195,7 +195,10 @@ void CheatsManager::OnStateChanged(Core::State state)
 
         m_ar_code = new ARCodeWidget(m_game_file->GetGameID(), m_game_file->GetRevision(), false);
         m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
-        m_tab_widget->insertTab(1, new GeckoCodeWidget(*m_game_file, false), tr("Gecko Codes"));
+        auto* gecko_code =
+            new GeckoCodeWidget(m_game_file->GetGameID(), m_game_file->GetGameTDBID(),
+                                m_game_file->GetRevision(), false);
+        m_tab_widget->insertTab(1, gecko_code, tr("Gecko Codes"));
       }
     }
   }
