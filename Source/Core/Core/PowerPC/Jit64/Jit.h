@@ -116,6 +116,7 @@ public:
   void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
+  void FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg);
 
   // Generates a branch that will check if a given bit of a CR register part
   // is set or not.
