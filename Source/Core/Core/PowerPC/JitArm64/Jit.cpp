@@ -398,6 +398,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
 
   // We may need to fake the BLR stack on inlined CALL instructions.
   // Else we can't return to this location any more.
+  gpr.Lock(ARM64Reg::W30);
   ARM64Reg after_reg = gpr.GetReg();
   ARM64Reg code_reg = gpr.GetReg();
   MOVI2R(after_reg, exit_address_after_return);
@@ -406,6 +407,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   gpr.Unlock(after_reg, code_reg);
 
   FixupBranch skip_exit = BL();
+  gpr.Unlock(ARM64Reg::W30);
 
   // Write the regular exit node after the return.
   JitBlock* b = js.curBlock;
