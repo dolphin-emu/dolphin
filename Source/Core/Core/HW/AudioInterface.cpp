@@ -142,6 +142,7 @@ void Init()
 {
   s_control.hex = 0;
   s_control.AISFR = AIS_48KHz;
+  s_control.AIDFR = AID_32KHz;
   s_volume.hex = 0;
   s_sample_counter = 0;
   s_interrupt_timing = 0;
