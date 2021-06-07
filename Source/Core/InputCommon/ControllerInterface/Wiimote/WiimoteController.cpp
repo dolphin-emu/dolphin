@@ -82,14 +82,14 @@ using UndetectableSignedAnalogInput = SignedInput<false>;
 class Motor final : public Core::Device::Output
 {
 public:
-  Motor(ControlState* value) : m_value(*value) {}
+  Motor(std::atomic<ControlState>* value) : m_value(*value) {}
 
   std::string GetName() const override { return "Motor"; }
 
   void SetState(ControlState state) override { m_value = state; }
 
 private:
-  ControlState& m_value;
+  std::atomic<ControlState>& m_value;
 };
 
 template <typename T>
@@ -128,13 +128,17 @@ void ReleaseDevices(std::optional<u32> count)
 
   // Remove up to "count" remotes (or all of them if nullopt).
   // Real wiimotes will be added to the pool.
-  g_controller_interface.RemoveDevice([&](const Core::Device* device) {
-    if (device->GetSource() != SOURCE_NAME || count == removed_devices)
-      return false;
+  // Make sure to force the device removal immediately (as they are shared ptrs and
+  // they could be kept alive, preventing us from re-creating the device)
+  g_controller_interface.RemoveDevice(
+      [&](const Core::Device* device) {
+        if (device->GetSource() != SOURCE_NAME || count == removed_devices)
+          return false;
 
-    ++removed_devices;
-    return true;
-  });
+        ++removed_devices;
+        return true;
+      },
+      true);
 }
 
 Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::move(wiimote))
@@ -315,6 +319,12 @@ std::string Device::GetName() const
 std::string Device::GetSource() const
 {
   return SOURCE_NAME;
+}
+
+// Always add these at the end, given their hotplug nature
+int Device::GetSortPriority() const
+{
+  return -1;
 }
 
 void Device::RunTasks()
@@ -1367,7 +1377,8 @@ void Device::UpdateRumble()
 {
   static constexpr auto rumble_period = std::chrono::milliseconds(100);
 
-  const auto on_time = std::chrono::duration_cast<Clock::duration>(rumble_period * m_rumble_level);
+  const auto on_time =
+      std::chrono::duration_cast<Clock::duration>(rumble_period * m_rumble_level.load());
   const auto off_time = rumble_period - on_time;
 
   const auto now = Clock::now();

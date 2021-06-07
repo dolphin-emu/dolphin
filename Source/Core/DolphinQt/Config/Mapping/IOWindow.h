@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include <QComboBox>
@@ -69,16 +70,16 @@ public:
   explicit IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* m_controller,
                     ControlReference* ref, Type type);
 
-  std::shared_ptr<ciface::Core::Device> GetSelectedDevice();
-
 private:
+  std::shared_ptr<ciface::Core::Device> GetSelectedDevice() const;
+
   void CreateMainLayout();
   void ConnectWidgets();
   void ConfigChanged();
   void Update();
 
   void OnDialogButtonPressed(QAbstractButton* button);
-  void OnDeviceChanged(const QString& device);
+  void OnDeviceChanged();
   void OnDetectButtonPressed();
   void OnTestButtonPressed();
   void OnRangeChanged(int range);
@@ -86,6 +87,7 @@ private:
   void AppendSelectedOption();
   void UpdateOptionList();
   void UpdateDeviceList();
+  void ReleaseDevices();
 
   enum class UpdateMode
   {
@@ -135,4 +137,5 @@ private:
   ciface::Core::DeviceQualifier m_devq;
   Type m_type;
   std::shared_ptr<ciface::Core::Device> m_selected_device;
+  std::mutex m_selected_device_mutex;
 };

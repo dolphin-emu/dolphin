@@ -125,8 +125,19 @@ public:
   // Currently handled on a per-backend basis but this could change.
   virtual bool IsValid() const { return true; }
 
+  // Returns true whether this device is "virtual/emulated", not linked
+  // to any actual physical device. Mostly used by keyboard and mouse devices,
+  // and to avoid uselessly recreating the device unless really necessary.
+  // Doesn't necessarily need to be set to true if the device is virtual.
+  virtual bool IsVirtualDevice() const { return false; }
+
   // (e.g. Xbox 360 controllers have controller number LEDs which should match the ID we use.)
   virtual std::optional<int> GetPreferredId() const;
+
+  // Use this to change the order in which devices are sorted in their list.
+  // A higher priority means it will be one of the first ones (smaller index), making it more
+  // likely to be index 0, which is automatically set as the default device when there isn't one.
+  virtual int GetSortPriority() const { return 0; }
 
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
@@ -227,6 +238,7 @@ public:
                                           std::chrono::milliseconds maximum_wait) const;
 
 protected:
+  // Exclusively needed when reading/writing "m_devices"
   mutable std::recursive_mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
