@@ -586,4 +586,4 @@ bool IsDetected(const char** error_message)
   return false;
 }
 
-}  // end of namespace GCAdapter
+}  // namespace GCAdapter

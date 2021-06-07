@@ -344,4 +344,4 @@ int GetAIPeriod()
   return static_cast<int>(std::min(period, s_period));
 }
 
-}  // end of namespace AudioInterface
+}  // namespace AudioInterface

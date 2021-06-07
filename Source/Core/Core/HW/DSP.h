@@ -82,4 +82,4 @@ u8* GetARAMPtr();
 void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
 
-}  // end of namespace DSP
+}  // namespace DSP
