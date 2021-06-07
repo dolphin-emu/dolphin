@@ -241,10 +241,21 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
 
-  // While we don't know if any games are actually affected (replays seem to work with all the usual
-  // suspects for desyncing), netplay and other applications need absolute perfect determinism, so
-  // be extra careful and use software FMA on CPUs that don't have hardware FMA.
+  // To get perfect determinism, we would like to use a software implementation of FMA on older CPUs
+  // that don't have FMA instructions, but unfortunately the performance impact is just too large.
+  // The code path has been disabled for now.
+#if 0
   const bool software_fma = !cpu_info.bFMA && Core::WantsDeterminism();
+#else
+  constexpr bool software_fma = false;
+  static bool fma_warning_shown = false;
+  if (!cpu_info.bFMA && Core::WantsDeterminism() && !fma_warning_shown)
+  {
+    fma_warning_shown = true;
+    WARN_LOG(DYNA_REC,
+             "Host CPU does not have FMA instructions! This may case desyncs with other players.");
+  }
+#endif
 
   int a = inst.FA;
   int b = inst.FB;
