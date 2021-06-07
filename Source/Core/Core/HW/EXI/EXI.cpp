@@ -204,4 +204,4 @@ void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late)
   CoreTiming::ScheduleEvent(cycles_late, updateInterrupts, 0, from);
 }
 
-}  // end of namespace ExpansionInterface
+}  // namespace ExpansionInterface

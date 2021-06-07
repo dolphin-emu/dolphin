@@ -634,4 +634,4 @@ void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
   }
 }
 
-}  // end of namespace CommandProcessor
+}  // namespace CommandProcessor

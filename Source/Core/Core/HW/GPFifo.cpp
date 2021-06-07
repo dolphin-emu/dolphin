@@ -168,4 +168,4 @@ void FastWrite64(u64 value)
   PowerPC::ppcState.gather_pipe_ptr += sizeof(u64);
 }
 
-}  // end of namespace GPFifo
+}  // namespace GPFifo

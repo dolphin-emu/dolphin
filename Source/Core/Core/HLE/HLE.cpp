@@ -234,4 +234,4 @@ u32 UnPatch(std::string_view patch_name)
 
   return 0;
 }
-}  // end of namespace HLE
+}  // namespace HLE
