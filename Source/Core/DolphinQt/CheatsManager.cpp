@@ -151,8 +151,7 @@ static bool Compare(T mem_value, T value, CompareType op)
   }
 }
 
-CheatsManager::CheatsManager(const GameListModel& game_list_model, QWidget* parent)
-    : QDialog(parent), m_game_list_model(game_list_model)
+CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Cheats Manager"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -175,29 +174,32 @@ void CheatsManager::OnStateChanged(Core::State state)
   if (state != Core::State::Running && state != Core::State::Paused)
     return;
 
-  for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
+  const auto& game_id = SConfig::GetInstance().GetGameID();
+  const auto& game_tdb_id = SConfig::GetInstance().GetGameTDBID();
+  u16 revision = SConfig::GetInstance().GetRevision();
+
+  if (m_game_id == game_id && m_game_tdb_id == game_tdb_id && m_revision == revision)
+    return;
+
+  m_game_id = game_id;
+  m_game_tdb_id = game_tdb_id;
+  m_revision = revision;
+
+  if (m_tab_widget->count() == 3)
   {
-    auto file = m_game_list_model.GetGameFile(i);
+    m_tab_widget->removeTab(0);
+    m_tab_widget->removeTab(0);
+  }
 
-    if (file->GetGameID() == SConfig::GetInstance().GetGameID())
-    {
-      m_game_file = file;
-      if (m_tab_widget->count() == 3)
-      {
-        m_tab_widget->removeTab(0);
-        m_tab_widget->removeTab(0);
-      }
+  if (m_tab_widget->count() == 1)
+  {
+    if (m_ar_code)
+      m_ar_code->deleteLater();
 
-      if (m_tab_widget->count() == 1)
-      {
-        if (m_ar_code)
-          m_ar_code->deleteLater();
-
-        m_ar_code = new ARCodeWidget(*m_game_file, false);
-        m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
-        m_tab_widget->insertTab(1, new GeckoCodeWidget(*m_game_file, false), tr("Gecko Codes"));
-      }
-    }
+    m_ar_code = new ARCodeWidget(m_game_id, m_revision, false);
+    m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
+    auto* gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision, false);
+    m_tab_widget->insertTab(1, gecko_code, tr("Gecko Codes"));
   }
 }
 

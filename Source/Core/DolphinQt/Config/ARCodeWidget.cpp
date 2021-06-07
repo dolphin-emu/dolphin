@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Config/ARCodeWidget.h"
 
+#include <utility>
+
 #include <QButtonGroup>
 #include <QCursor>
 #include <QHBoxLayout>
@@ -23,8 +25,8 @@
 
 #include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game, bool restart_required)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision()),
+ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
+    : m_game_id(std::move(game_id)), m_game_revision(game_revision),
       m_restart_required(restart_required)
 {
   CreateWidgets();

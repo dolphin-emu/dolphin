@@ -23,16 +23,12 @@ namespace Gecko
 class GeckoCode;
 }
 
-namespace UICommon
-{
-class GameFile;
-}
-
 class GeckoCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required = true);
+  explicit GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
+                           bool restart_required = true);
   ~GeckoCodeWidget() override;
 
 signals:
@@ -54,7 +50,6 @@ private:
   void SaveCodes();
   void SortAlphabetically();
 
-  const UICommon::GameFile& m_game;
   std::string m_game_id;
   std::string m_gametdb_id;
   u16 m_game_revision;

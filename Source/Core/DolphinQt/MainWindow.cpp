@@ -411,7 +411,7 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
-  m_cheats_manager = new CheatsManager(m_game_list->GetGameListModel(), this);
+  m_cheats_manager = new CheatsManager(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
