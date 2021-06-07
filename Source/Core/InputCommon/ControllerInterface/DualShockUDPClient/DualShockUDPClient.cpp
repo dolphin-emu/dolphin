@@ -18,7 +18,6 @@
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Common/Matrix.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -115,7 +114,7 @@ private:
     {
       switch (m_battery)
       {
-      case BatteryState::Charging:
+      case BatteryState::Charging:  // We don't actually know the battery level in this case
       case BatteryState::Charged:
         return BATTERY_INPUT_MAX_VALUE;
       default:
@@ -139,9 +138,10 @@ public:
   std::optional<int> GetPreferredId() const final override;
 
 private:
+  void ResetPadData();
+
   const std::string m_name;
   const int m_index;
-  u32 m_client_uid = Common::Random::GenerateValue<u32>();
   sf::UdpSocket m_socket;
   SteadyClock::time_point m_next_reregister = SteadyClock::time_point::min();
   Proto::MessageType::PadDataResponse m_pad_data{};
@@ -151,6 +151,11 @@ private:
   int m_touch_y = 0;
   std::string m_server_address;
   u16 m_server_port;
+
+  s16 m_touch_x_min;
+  s16 m_touch_y_min;
+  s16 m_touch_x_max;
+  s16 m_touch_y_max;
 };
 
 using MathUtil::GRAVITY_ACCELERATION;
@@ -158,6 +163,9 @@ constexpr auto SERVER_REREGISTER_INTERVAL = std::chrono::seconds{1};
 constexpr auto SERVER_LISTPORTS_INTERVAL = std::chrono::seconds{1};
 constexpr int TOUCH_X_AXIS_MAX = 1000;
 constexpr int TOUCH_Y_AXIS_MAX = 500;
+constexpr auto THREAD_MAX_WAIT_INTERVAL = std::chrono::milliseconds{250};
+constexpr auto SERVER_UNRESPONSIVE_INTERVAL = std::chrono::seconds{1};  // Can be 0
+constexpr u32 SERVER_ASKED_PADS = 4;
 
 struct Server
 {
@@ -185,12 +193,13 @@ struct Server
   std::mutex m_port_info_mutex;
   std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info;
   sf::UdpSocket m_socket;
+  SteadyClock::time_point m_disconnect_time = SteadyClock::now();
 };
 
 static bool s_servers_enabled;
 static std::vector<Server> s_servers;
 static u32 s_client_uid;
-static SteadyClock::time_point s_next_listports;
+static SteadyClock::time_point s_next_listports_time;
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
 
@@ -207,26 +216,33 @@ static void HotplugThreadFunc()
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
   INFO_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient hotplug thread started");
 
+  std::vector<bool> timed_out_servers(s_servers.size(), false);
+
   while (s_hotplug_thread_running.IsSet())
   {
-    const auto now = SteadyClock::now();
-    if (now >= s_next_listports)
-    {
-      s_next_listports = now + SERVER_LISTPORTS_INTERVAL;
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
 
-      for (auto& server : s_servers)
+    const auto now = SteadyClock::now();
+    if (now >= s_next_listports_time)
+    {
+      s_next_listports_time = now + SERVER_LISTPORTS_INTERVAL;
+
+      for (size_t i = 0; i < s_servers.size(); ++i)
       {
-        // Request info on the four controller ports
+        auto& server = s_servers[i];
         Proto::Message<Proto::MessageType::ListPorts> msg(s_client_uid);
         auto& list_ports = msg.m_message;
-        list_ports.pad_request_count = 4;
-        list_ports.pad_id = {0, 1, 2, 3};
+        // We ask for x possible devices. We will receive a message for every connected device.
+        list_ports.pad_request_count = SERVER_ASKED_PADS;
+        list_ports.pad_ids = {0, 1, 2, 3};
         msg.Finish();
         if (server.m_socket.send(&list_ports, sizeof list_ports, server.m_address, server.m_port) !=
             sf::Socket::Status::Done)
         {
           ERROR_LOG_FMT(CONTROLLERINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
+        timed_out_servers[i] = true;
       }
     }
 
@@ -236,44 +252,80 @@ static void HotplugThreadFunc()
       selector.add(server.m_socket);
     }
 
-    using namespace std::chrono;
-    using namespace std::chrono_literals;
-    const auto timeout = s_next_listports - SteadyClock::now();
+    auto timeout = duration_cast<milliseconds>(s_next_listports_time - SteadyClock::now());
 
-    // Selector's wait treats a timeout of zero as infinite timeout, which we don't want
-    const auto timeout_ms = std::max(duration_cast<milliseconds>(timeout), 1ms);
-    if (!selector.wait(sf::milliseconds(timeout_ms.count())))
+    // Receive controller port info within a time from our request.
+    // Run this even if we sent no new requests, to disconnect devices,
+    // sleep (wait) the thread and catch old responses.
+    do
     {
-      continue;
-    }
-
-    for (auto& server : s_servers)
-    {
-      if (!selector.isReady(server.m_socket))
+      // Selector's wait treats a timeout of zero as infinite timeout, which we don't want,
+      // but we also don't want risk waiting for the whole SERVER_LISTPORTS_INTERVAL and hang
+      // the thead trying to close this one in case we received no answers.
+      const auto current_timeout = std::max(std::min(timeout, THREAD_MAX_WAIT_INTERVAL), 1ms);
+      timeout -= current_timeout;
+      // This will return at the first answer
+      if (selector.wait(sf::milliseconds(current_timeout.count())))
       {
-        continue;
-      }
-
-      Proto::Message<Proto::MessageType::FromServer> msg;
-      std::size_t received_bytes;
-      sf::IpAddress sender;
-      u16 port;
-      if (server.m_socket.receive(&msg, sizeof(msg), received_bytes, sender, port) !=
-          sf::Socket::Status::Done)
-      {
-        continue;
-      }
-
-      if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
-      {
-        const bool port_changed =
-            !IsSameController(*port_info, server.m_port_info[port_info->pad_id]);
+        // Now check all the servers because we don't know which one(s) sent a reply
+        for (size_t i = 0; i < s_servers.size(); ++i)
         {
-          std::lock_guard lock{server.m_port_info_mutex};
-          server.m_port_info[port_info->pad_id] = *port_info;
+          auto& server = s_servers[i];
+          if (!selector.isReady(server.m_socket))
+          {
+            continue;
+          }
+
+          Proto::Message<Proto::MessageType::FromServer> msg;
+          std::size_t received_bytes;
+          sf::IpAddress sender;
+          u16 port;
+          if (server.m_socket.receive(&msg, sizeof(msg), received_bytes, sender, port) !=
+              sf::Socket::Status::Done)
+          {
+            continue;
+          }
+
+          if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
+          {
+            server.m_disconnect_time = SteadyClock::now() + SERVER_UNRESPONSIVE_INTERVAL;
+            // We have receive at least one valid update, that's enough. This is needed to avoid
+            // false positive when checking for disconnection in case our thread waited too long
+            timed_out_servers[i] = false;
+
+            const bool port_changed =
+                !IsSameController(*port_info, server.m_port_info[port_info->pad_id]);
+            if (port_changed)
+            {
+              server.m_port_info[port_info->pad_id] = *port_info;
+              // Just remove and re-add all the devices for simplicity
+              g_controller_interface.PlatformPopulateDevices([] { PopulateDevices(); });
+            }
+          }
         }
-        if (port_changed)
-          PopulateDevices();
+      }
+      if (!s_hotplug_thread_running.IsSet())  // Avoid hanging the thread for too long
+        return;
+    } while (timeout > 0ms);
+
+    // If we have failed to receive any information from the server (or even send it),
+    // disconnect all devices from it (after enough time has elapsed, to avoid false positives).
+    for (size_t i = 0; i < s_servers.size(); ++i)
+    {
+      auto& server = s_servers[i];
+      if (timed_out_servers[i] && SteadyClock::now() >= server.m_disconnect_time)
+      {
+        bool any_connected = false;
+        for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
+        {
+          any_connected = any_connected ||
+                          server.m_port_info[port_index].pad_state == Proto::DsState::Connected;
+          server.m_port_info[port_index] = {};
+          server.m_port_info[port_index].pad_id = static_cast<u8>(port_index);
+        }
+        // We can't only remove devices added by this server as we wouldn't know which they are
+        if (any_connected)
+          g_controller_interface.PlatformPopulateDevices([] { PopulateDevices(); });
       }
     }
   }
@@ -314,8 +366,6 @@ static void Restart()
 
   StopHotplugThread();
 
-  s_client_uid = Common::Random::GenerateValue<u32>();
-  s_next_listports = std::chrono::steady_clock::time_point::min();
   for (auto& server : s_servers)
   {
     for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
@@ -326,6 +376,9 @@ static void Restart()
   }
 
   PopulateDevices();  // Only removes devices
+
+  s_client_uid = Common::Random::GenerateValue<u32>();
+  s_next_listports_time = SteadyClock::now();
 
   if (s_servers_enabled && !s_servers.empty())
     StartHotplugThread();
@@ -482,6 +535,31 @@ Device::Device(std::string name, int index, std::string server_address, u16 serv
   AddInput(new GyroInput("Gyro Roll Right", m_pad_data.gyro_roll_deg_s, gyro_scale));
   AddInput(new GyroInput("Gyro Yaw Left", m_pad_data.gyro_yaw_deg_s, -gyro_scale));
   AddInput(new GyroInput("Gyro Yaw Right", m_pad_data.gyro_yaw_deg_s, gyro_scale));
+
+  AddInput(new BatteryInput(m_pad_data.battery_status));
+
+  m_touch_x_min = 0;
+  m_touch_y_min = 0;
+  // DS4 touchpad max values
+  m_touch_x_max = 1919;
+  m_touch_y_max = 941;
+
+  ResetPadData();
+}
+
+void Device::ResetPadData()
+{
+  m_pad_data = Proto::MessageType::PadDataResponse{};
+
+  // Make sure they start from resting values, not from 0
+  m_touch_x = m_touch_x_min + ((m_touch_x_max - m_touch_x_min) / 2.0);
+  m_touch_y = m_touch_y_min + ((m_touch_y_max - m_touch_y_min) / 2.0);
+  m_pad_data.left_stick_x = 128;
+  m_pad_data.left_stick_y_inverted = 128;
+  m_pad_data.right_stick_x = 128;
+  m_pad_data.right_stick_y_inverted = 128;
+  m_pad_data.touch1.x = m_touch_x;
+  m_pad_data.touch1.y = m_touch_y;
 }
 
 std::string Device::GetName() const
@@ -502,7 +580,7 @@ void Device::UpdateInput()
   {
     m_next_reregister = now + SERVER_REREGISTER_INTERVAL;
 
-    Proto::Message<Proto::MessageType::PadDataRequest> msg(m_client_uid);
+    Proto::Message<Proto::MessageType::PadDataRequest> msg(s_client_uid);
     auto& data_req = msg.m_message;
     data_req.register_flags = Proto::RegisterFlags::PadID;
     data_req.pad_id_to_register = m_index;
