@@ -305,7 +305,7 @@ public final class MainPresenter
           builder.show();
         }
       });
-    }, mContext.getResources().getString(progressMessage)).start();
+    }, mContext.getResources().getString(progressTitle)).start();
   }
 
   public static void skipRescanningLibrary()
