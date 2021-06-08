@@ -27,7 +27,6 @@ struct CPUInfo
 
   bool HTT = false;
   int num_cores = 0;
-  int logical_cpu_count = 0;
 
   bool bSSE = false;
   bool bSSE2 = false;
