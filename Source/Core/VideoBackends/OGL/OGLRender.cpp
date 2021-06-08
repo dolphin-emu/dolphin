@@ -856,30 +856,12 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 
 u16 Renderer::BBoxReadImpl(int index)
 {
-  // swap 2 and 3 for top/bottom
-  if (index >= 2)
-    index ^= 1;
-
-  int value = BoundingBox::Get(index);
-  if (index >= 2)
-  {
-    // up/down -- we have to swap up and down
-    value = EFB_HEIGHT - value;
-  }
-
-  return static_cast<u16>(value);
+  return static_cast<u16>(BoundingBox::Get(index));
 }
 
 void Renderer::BBoxWriteImpl(int index, u16 value)
 {
-  s32 swapped_value = value;
-  if (index >= 2)
-  {
-    index ^= 1;  // swap 2 and 3 for top/bottom
-    swapped_value = EFB_HEIGHT - swapped_value;
-  }
-
-  BoundingBox::Set(index, swapped_value);
+  BoundingBox::Set(index, value);
 }
 
 void Renderer::BBoxFlushImpl()
