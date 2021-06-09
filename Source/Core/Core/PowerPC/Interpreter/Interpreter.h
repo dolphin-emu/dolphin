@@ -291,6 +291,8 @@ private:
   // flag helper
   static void Helper_UpdateCR0(u32 value);
 
+  template <typename T>
+  static void Helper_IntCompare(UGeckoInstruction inst, T a, T b);
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
 
