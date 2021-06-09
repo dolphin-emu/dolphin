@@ -229,19 +229,6 @@ struct TVtxDesc
 
   Low low;
   High high;
-
-  // This structure was originally packed into bits 0..32, using 33 total bits.
-  // The actual format has 17 bits in the low one and 16 bits in the high one,
-  // but the old format is still supported for compatibility.
-  u64 GetLegacyHex() const { return (low.Hex & 0x1FFFF) | (u64(high.Hex) << 17); }
-  u32 GetLegacyHex0() const { return static_cast<u32>(GetLegacyHex()); }
-  // Only *1* bit is used in this
-  u32 GetLegacyHex1() const { return static_cast<u32>(GetLegacyHex() >> 32); }
-  void SetLegacyHex(u64 value)
-  {
-    low.Hex = value & 0x1FFFF;
-    high.Hex = value >> 17;
-  }
 };
 template <>
 struct fmt::formatter<TVtxDesc::Low>

@@ -29,7 +29,8 @@ TEST(VertexLoaderUID, UniqueEnough)
   memset(&vat, 0, sizeof(vat));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
-  vtx_desc.SetLegacyHex(0xFEDCBA9876543210ull);
+  vtx_desc.low.Hex = 0x76543210;
+  vtx_desc.high.Hex = 0xFEDCBA98;
   EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
