@@ -1,91 +1,35 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-#include <array>
-#include <cstring>
-
-#include "Common/GL/GLUtil.h"
-
 #include "VideoBackends/OGL/OGLBoundingBox.h"
+
 #include "VideoBackends/OGL/OGLRender.h"
-
 #include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/VideoConfig.h"
-
-enum : u32
-{
-  NUM_BBOX_VALUES = 4,
-};
-
-static GLuint s_bbox_buffer_id;
-static std::array<s32, NUM_BBOX_VALUES> s_bbox_values;
-static std::array<bool, NUM_BBOX_VALUES> s_bbox_dirty;
-static bool s_bbox_valid = false;
 
 namespace OGL
 {
-void BoundingBox::Init()
+OGLBoundingBox::~OGLBoundingBox()
 {
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
-    return;
+  if (m_buffer_id)
+    glDeleteBuffers(1, &m_buffer_id);
+}
 
-  const s32 initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
-  std::memcpy(s_bbox_values.data(), initial_values, sizeof(s_bbox_values));
-  s_bbox_dirty = {};
-  s_bbox_valid = true;
+bool OGLBoundingBox::Initialize()
+{
+  const BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
 
-  glGenBuffers(1, &s_bbox_buffer_id);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
+  glGenBuffers(1, &m_buffer_id);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
   glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(initial_values), initial_values, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, s_bbox_buffer_id);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_buffer_id);
+
+  return true;
 }
 
-void BoundingBox::Shutdown()
+std::vector<BBoxType> OGLBoundingBox::Read(u32 index, u32 length)
 {
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
-    return;
-
-  glDeleteBuffers(1, &s_bbox_buffer_id);
-}
-
-void BoundingBox::Flush()
-{
-  s_bbox_valid = false;
-
-  if (std::none_of(s_bbox_dirty.begin(), s_bbox_dirty.end(), [](bool dirty) { return dirty; }))
-    return;
-
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
-
-  for (u32 start = 0; start < NUM_BBOX_VALUES;)
-  {
-    if (!s_bbox_dirty[start])
-    {
-      start++;
-      continue;
-    }
-
-    u32 end = start + 1;
-    s_bbox_dirty[start] = false;
-    for (; end < NUM_BBOX_VALUES; end++)
-    {
-      if (!s_bbox_dirty[end])
-        break;
-
-      s_bbox_dirty[end] = false;
-    }
-
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, start * sizeof(s32), (end - start) * sizeof(s32),
-                    &s_bbox_values[start]);
-  }
-
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-}
-
-void BoundingBox::Readback()
-{
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
+  std::vector<BBoxType> values(length);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
 
   // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
   // on nVidia drivers. This is more noticeable at higher internal resolutions.
@@ -101,52 +45,33 @@ void BoundingBox::Readback()
     // explain why it needs the cache invalidate.
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-    std::array<s32, NUM_BBOX_VALUES> gpu_values;
-    glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(s32) * NUM_BBOX_VALUES,
-                       gpu_values.data());
-    for (u32 i = 0; i < NUM_BBOX_VALUES; i++)
-    {
-      if (!s_bbox_dirty[i])
-        s_bbox_values[i] = gpu_values[i];
-    }
+    glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(BBoxType) * index,
+                       sizeof(BBoxType) * length, values.data());
   }
   else
   {
     // Using glMapBufferRange is faster on AMD cards by a measurable margin.
-    void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(s32) * NUM_BBOX_VALUES,
+    void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(BBoxType) * NUM_BBOX_VALUES,
                                  GL_MAP_READ_BIT);
     if (ptr)
     {
-      for (u32 i = 0; i < NUM_BBOX_VALUES; i++)
-      {
-        if (!s_bbox_dirty[i])
-        {
-          std::memcpy(&s_bbox_values[i], reinterpret_cast<const u8*>(ptr) + sizeof(s32) * i,
-                      sizeof(s32));
-        }
-      }
+      std::memcpy(values.data(), reinterpret_cast<const u8*>(ptr) + sizeof(BBoxType) * index,
+                  sizeof(BBoxType) * length);
 
       glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
     }
   }
+
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-  s_bbox_valid = true;
+  return values;
 }
 
-void BoundingBox::Set(int index, int value)
+void OGLBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
 {
-  if (s_bbox_valid && s_bbox_values[index] == value)
-    return;
-
-  s_bbox_values[index] = value;
-  s_bbox_dirty[index] = true;
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_buffer_id);
+  glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(BBoxType) * index,
+                  sizeof(BBoxType) * values.size(), values.data());
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-int BoundingBox::Get(int index)
-{
-  if (!s_bbox_valid)
-    Readback();
-
-  return s_bbox_values[index];
-}
-};  // namespace OGL
+}  // namespace OGL

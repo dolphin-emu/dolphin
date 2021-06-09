@@ -11,9 +11,9 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
@@ -839,7 +839,7 @@ void Tev::Draw()
 
   // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
   // extents of these groups, rather than the exact pixel.
-  BoundingBox::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
+  BBoxManager::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
                       static_cast<u16>(Position[1] & ~1), static_cast<u16>(Position[1] | 1));
 
 #if ALLOW_TEV_DUMPS
