@@ -32,11 +32,13 @@
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
@@ -54,10 +56,13 @@
 #include "Core/IOS/Uids.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "Core/SyncIdentifier.h"
+
 #include "DiscIO/Enums.h"
+
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
+
 #include "UICommon/GameFile.h"
 
 #if !defined(_WIN32)
@@ -943,12 +948,10 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
-  case NP_MSG_IPL_STATUS:
+  case NP_MSG_CLIENT_CAPABILITIES:
   {
-    bool status;
-    packet >> status;
-
-    m_players[player.pid].has_ipl_dump = status;
+    packet >> m_players[player.pid].has_ipl_dump;
+    packet >> m_players[player.pid].has_hardware_fma;
   }
   break;
 
@@ -1306,12 +1309,14 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_DeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
   settings.m_EFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   settings.m_EFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+
   settings.m_StrictSettingsSync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   settings.m_SyncSaveData = Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.m_SyncCodes = Config::Get(Config::NETPLAY_SYNC_CODES);
   settings.m_SyncAllWiiSaves =
       Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES) && Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.m_GolfMode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
+  settings.m_UseFMA = DoAllPlayersHaveHardwareFMA();
 
   // Unload GameINI to restore things to normal
   Config::RemoveLayer(Config::LayerType::GlobalGame);
@@ -1326,6 +1331,12 @@ bool NetPlayServer::DoAllPlayersHaveIPLDump() const
 {
   return std::all_of(m_players.begin(), m_players.end(),
                      [](const auto& p) { return p.second.has_ipl_dump; });
+}
+
+bool NetPlayServer::DoAllPlayersHaveHardwareFMA() const
+{
+  return std::all_of(m_players.begin(), m_players.end(),
+                     [](const auto& p) { return p.second.has_hardware_fma; });
 }
 
 // called from ---GUI--- thread
@@ -1490,6 +1501,7 @@ bool NetPlayServer::StartGame()
   }
 
   spac << m_settings.m_GolfMode;
+  spac << m_settings.m_UseFMA;
 
   SendAsyncToClients(std::move(spac));
 

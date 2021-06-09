@@ -11,9 +11,11 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -86,6 +88,8 @@ public:
     layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
     layer->Set(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE, m_settings.m_EFBAccessTileSize);
     layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);
+
+    layer->Set(Config::SESSION_USE_FMA, m_settings.m_UseFMA);
 
     if (m_settings.m_StrictSettingsSync)
     {

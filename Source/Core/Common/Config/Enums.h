@@ -33,6 +33,7 @@ enum class System
   Debugger,
   DualShockUDPClient,
   FreeLook,
+  Session,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{

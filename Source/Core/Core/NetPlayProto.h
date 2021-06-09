@@ -97,6 +97,7 @@ struct NetSettings
   bool m_SyncAllWiiSaves;
   std::array<int, 4> m_WiimoteExtension;
   bool m_GolfMode;
+  bool m_UseFMA;
 
   // These aren't sent over the network directly
   bool m_IsHosting;
@@ -156,7 +157,7 @@ enum
   NP_MSG_STOP_GAME = 0xA2,
   NP_MSG_DISABLE_GAME = 0xA3,
   NP_MSG_GAME_STATUS = 0xA4,
-  NP_MSG_IPL_STATUS = 0xA5,
+  NP_MSG_CLIENT_CAPABILITIES = 0xA5,
   NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
   NP_MSG_POWER_BUTTON = 0xA7,
 

@@ -94,6 +94,7 @@ const std::map<Config::System, int> system_to_ini = {
     {Config::System::Debugger, F_DEBUGGERCONFIG_IDX},
     {Config::System::DualShockUDPClient, F_DUALSHOCKUDPCLIENTCONFIG_IDX},
     {Config::System::FreeLook, F_FREELOOKCONFIG_IDX},
+    // Config::System::Session should not be added to this list
 };
 
 // INI layer configuration loader
@@ -142,6 +143,9 @@ public:
 
       // Done by SaveToSYSCONF
       if (location.system == Config::System::SYSCONF)
+        continue;
+
+      if (location.system == Config::System::Session)
         continue;
 
       auto ini = inis.find(location.system);
