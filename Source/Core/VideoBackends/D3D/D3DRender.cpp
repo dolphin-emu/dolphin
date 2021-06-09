@@ -265,19 +265,9 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
     D3D::stateman->ApplyTextures();
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(BBox::Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  BBox::Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  BBox::Flush();
+  return std::make_unique<D3DBoundingBox>();
 }
 
 void Renderer::Flush()

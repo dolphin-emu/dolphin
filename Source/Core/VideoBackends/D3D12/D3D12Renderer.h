@@ -8,9 +8,10 @@
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/RenderBase.h"
 
+class BoundingBox;
+
 namespace DX12
 {
-class BoundingBox;
 class DXFramebuffer;
 class DXTexture;
 class DXShader;
@@ -47,10 +48,6 @@ public:
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
-
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
-  void BBoxFlushImpl() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;
@@ -99,6 +96,8 @@ public:
 
 protected:
   void OnConfigChanged(u32 bits) override;
+
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   static const u32 MAX_TEXTURES = 8;
@@ -150,7 +149,6 @@ private:
 
   // Owned objects
   std::unique_ptr<SwapChain> m_swap_chain;
-  std::unique_ptr<BoundingBox> m_bounding_box;
 
   // Current state
   struct
