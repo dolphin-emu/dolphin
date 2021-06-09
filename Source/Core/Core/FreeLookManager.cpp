@@ -407,17 +407,33 @@ void FreeLook2DController::UpdateInput(CameraController2DInput* camera_controlle
   if (m_speed_buttons->controls[SpeedButtons::Increase]->GetState<bool>())
     camera_controller->ModifySpeed(camera_controller->GetSpeed() * 1.1 * dt);
 
-  if (m_texturelayer_buttons->controls[TextureLayerButtons::Next]->GetState<bool>())
+  const auto not_held = [](ControllerEmu::Control* control, bool& previous) {
+    const bool controller_state = control->GetState<bool>();
+    const bool result = controller_state && !previous;
+    previous = controller_state;
+    return result;
+  };
+
+  if (not_held(m_texturelayer_buttons->controls[TextureLayerButtons::Next].get(),
+               m_texturelayer_held_last_frame[TextureLayerButtons::Next]))
+  {
     camera_controller->IncrementLayer();
+  }
 
-  if (m_texturelayer_buttons->controls[TextureLayerButtons::Previous]->GetState<bool>())
+  if (not_held(m_texturelayer_buttons->controls[TextureLayerButtons::Previous].get(),
+               m_texturelayer_held_last_frame[TextureLayerButtons::Previous]))
+  {
     camera_controller->DecrementLayer();
+  }
 
-  if (m_speed_buttons->controls[SpeedButtons::Reset]->GetState<bool>())
+  if (not_held(m_speed_buttons->controls[SpeedButtons::Reset].get(), m_speed_reset_held_last_frame))
     camera_controller->ResetSpeed();
 
-  if (m_other_buttons->controls[OtherButtons::ResetView]->GetState<bool>())
+  if (not_held(m_other_buttons->controls[OtherButtons::ResetView].get(),
+               m_view_reset_held_last_frame))
+  {
     camera_controller->Reset();
+  }
 }
 
 namespace FreeLook

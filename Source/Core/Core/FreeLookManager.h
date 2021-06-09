@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <chrono>
 #include <optional>
 
@@ -90,10 +91,17 @@ public:
 private:
   void UpdateInput(CameraController2DInput* camera_controller);
   ControllerEmu::Buttons* m_move_buttons;
+
   ControllerEmu::Buttons* m_speed_buttons;
+  bool m_speed_reset_held_last_frame;
+
   ControllerEmu::Buttons* m_stretch_buttons;
+
   ControllerEmu::Buttons* m_texturelayer_buttons;
+  std::array<bool, 2> m_texturelayer_held_last_frame;
+
   ControllerEmu::Buttons* m_other_buttons;
+  bool m_view_reset_held_last_frame;
 
   const unsigned int m_index;
   std::optional<std::chrono::steady_clock::time_point> m_last_free_look_rotate_time;
