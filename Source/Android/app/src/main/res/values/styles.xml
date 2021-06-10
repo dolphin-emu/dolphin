@@ -9,6 +9,7 @@
         <!-- Darker variant for the status bar and contextual app bars -->
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
