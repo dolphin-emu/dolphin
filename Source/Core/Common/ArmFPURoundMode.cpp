@@ -41,10 +41,6 @@ void SetRoundMode(int mode)
   // We don't need to do anything here since SetSIMDMode is always called after calling this
 }
 
-void SetPrecisionMode(PrecisionMode mode)
-{
-}
-
 void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
 {
   // When AH is disabled, FZ controls flush-to-zero for both inputs and outputs. When AH is enabled,
