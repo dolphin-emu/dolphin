@@ -236,12 +236,6 @@ PixelShaderUid GetPixelShaderUid()
   for (unsigned int n = 0; n < numStages; n++)
   {
     uid_data->stagehash[n].tevorders_texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
-
-    // hasindstage previously was used as a criterion to set tevind to 0, but there are variables in
-    // tevind that are used even if the indirect stage is disabled, so now it is only left in to
-    // avoid breaking existing UIDs (in most cases, games will have 0 in tevind anyways)
-    // TODO: Remove hasindstage on the next UID version bump
-    uid_data->stagehash[n].hasindstage = bpmem.tevind[n].bt < bpmem.genMode.numindstages;
     uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
 
     TevStageCombiner::ColorCombiner& cc = bpmem.combiners[n].colorC;
