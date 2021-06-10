@@ -30,6 +30,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -164,7 +165,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
     File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
   }
 
-  const bool current_game_only = Config::Get(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY);
+  const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
   std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});
 
   // split up into files for current games we should definitely load,
