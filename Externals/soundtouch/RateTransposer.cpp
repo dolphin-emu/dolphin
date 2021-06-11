@@ -10,13 +10,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-07-26 17:45:48 +0300 (Sun, 26 Jul 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: RateTransposer.cpp 225 2015-07-26 14:45:48Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -57,13 +50,18 @@ TransposerBase::ALGORITHM TransposerBase::algorithm = TransposerBase::CUBIC;
 // Constructor
 RateTransposer::RateTransposer() : FIFOProcessor(&outputBuffer)
 {
-    bUseAAFilter = true;
+    bUseAAFilter = 
+#ifndef SOUNDTOUCH_PREVENT_CLICK_AT_RATE_CROSSOVER
+        true;
+#else
+        // Disable Anti-alias filter if desirable to avoid click at rate change zero value crossover
+        false;
+#endif
 
     // Instantiates the anti-alias filter
     pAAFilter = new AAFilter(64);
     pTransposer = TransposerBase::newInstance();
 }
-
 
 
 RateTransposer::~RateTransposer()
@@ -73,11 +71,13 @@ RateTransposer::~RateTransposer()
 }
 
 
-
 /// Enables/disables the anti-alias filter. Zero to disable, nonzero to enable
 void RateTransposer::enableAAFilter(bool newMode)
 {
+#ifndef SOUNDTOUCH_PREVENT_CLICK_AT_RATE_CROSSOVER
+    // Disable Anti-alias filter if desirable to avoid click at rate change zero value crossover
     bUseAAFilter = newMode;
+#endif
 }
 
 
@@ -92,7 +92,6 @@ AAFilter *RateTransposer::getAAFilter()
 {
     return pAAFilter;
 }
-
 
 
 // Sets new target iRate. Normal iRate = 1.0, smaller values represent slower 
@@ -177,11 +176,10 @@ void RateTransposer::processSamples(const SAMPLETYPE *src, uint nSamples)
 // Sets the number of channels, 1 = mono, 2 = stereo
 void RateTransposer::setChannels(int nChannels)
 {
-    assert(nChannels > 0);
+    if (!verifyNumberOfChannels(nChannels) ||
+        (pTransposer->numChannels == nChannels)) return;
 
-    if (pTransposer->numChannels == nChannels) return;
     pTransposer->setChannels(nChannels);
-
     inputBuffer.setChannels(nChannels);
     midBuffer.setChannels(nChannels);
     outputBuffer.setChannels(nChannels);
@@ -205,6 +203,13 @@ int RateTransposer::isEmpty() const
     res = FIFOProcessor::isEmpty();
     if (res == 0) return 0;
     return inputBuffer.isEmpty();
+}
+
+
+/// Return approximate initial input-output latency
+int RateTransposer::getLatency() const
+{
+    return (bUseAAFilter) ? pAAFilter->getLength() : 0;
 }
 
 
@@ -280,7 +285,7 @@ void TransposerBase::setRate(double newRate)
 TransposerBase *TransposerBase::newInstance()
 {
 #ifdef SOUNDTOUCH_INTEGER_SAMPLES
-    // Notice: For integer arithmetics support only linear algorithm (due to simplest calculus)
+    // Notice: For integer arithmetic support only linear algorithm (due to simplest calculus)
     return ::new InterpolateLinearInteger;
 #else
     switch (algorithm)
