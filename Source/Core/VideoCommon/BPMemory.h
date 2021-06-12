@@ -258,7 +258,7 @@ enum class TevBias : u32
 {
   Zero = 0,
   AddHalf = 1,
-  Subhalf = 2,
+  SubHalf = 2,
   Compare = 3
 };
 template <>
@@ -491,6 +491,94 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
   template <typename FormatContext>
   auto format(const TevStageCombiner::ColorCombiner& cc, FormatContext& ctx)
   {
+    auto out = ctx.out();
+    if (cc.bias != TevBias::Compare)
+    {
+      // Generate an equation view, simplifying out addition of zero and multiplication by 1
+      // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
+      // or equivalently and more readably when the terms are not constants:
+      // dest = (d (OP) lerp(a, b, c) + bias) * scale
+      // Note that lerping is more complex than the first form shows; see PixelShaderGen's
+      // WriteTevRegular for more details.
+
+      static constexpr Common::EnumMap<const char*, TevColorArg::Zero> alt_names = {
+          "prev.rgb", "prev.aaa", "c0.rgb",  "c0.aaa",  "c1.rgb", "c1.aaa", "c2.rgb",    "c2.aaa",
+          "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "1",      ".5",     "konst.rgb", "0",
+      };
+
+      const bool has_d = cc.d != TevColorArg::Zero;
+      // If c is one, (1 - c) is zero, so (1-c)*a is zero
+      const bool has_ac = cc.a != TevColorArg::Zero && cc.c != TevColorArg::One;
+      // If either b or c is zero, b*c is zero
+      const bool has_bc = cc.b != TevColorArg::Zero && cc.c != TevColorArg::Zero;
+      const bool has_bias = cc.bias != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = cc.scale != TevScale::Scale1;
+
+      const char op = (cc.op == TevOp::Sub ? '-' : '+');
+
+      if (cc.dest == TevOutput::Prev)
+        out = format_to(out, "dest.rgb = ");
+      else
+        out = format_to(out, "{:n}.rgb = ", cc.dest);
+
+      if (has_scale)
+        out = format_to(out, "(");
+      if (has_d)
+        out = format_to(out, "{}", alt_names[cc.d]);
+      if (has_ac || has_bc)
+      {
+        if (has_d)
+          out = format_to(out, " {} ", op);
+        else if (cc.op == TevOp::Sub)
+          out = format_to(out, "{}", op);
+        if (has_ac && has_bc)
+        {
+          if (cc.c == TevColorArg::Half)
+          {
+            // has_a and has_b imply that c is not Zero or One, and Half is the only remaining
+            // numeric constant.  This results in an average.
+            out = format_to(out, "({} + {})/2", alt_names[cc.a], alt_names[cc.b]);
+          }
+          else
+          {
+            out = format_to(out, "lerp({}, {}, {})", alt_names[cc.a], alt_names[cc.b],
+                            alt_names[cc.c]);
+          }
+        }
+        else if (has_ac)
+        {
+          if (cc.c == TevColorArg::Zero)
+            out = format_to(out, "{}", alt_names[cc.a]);
+          else if (cc.c == TevColorArg::Half)  // 1 - .5 is .5
+            out = format_to(out, ".5*{}", alt_names[cc.a]);
+          else
+            out = format_to(out, "(1 - {})*{}", alt_names[cc.c], alt_names[cc.a]);
+        }
+        else  // has_bc
+        {
+          if (cc.c == TevColorArg::One)
+            out = format_to(out, "{}", alt_names[cc.b]);
+          else
+            out = format_to(out, "{}*{}", alt_names[cc.c], alt_names[cc.b]);
+        }
+      }
+      if (has_bias)
+      {
+        if (has_ac || has_bc || has_d)
+          out = format_to(out, cc.bias == TevBias::AddHalf ? " + .5" : " - .5");
+        else
+          out = format_to(out, cc.bias == TevBias::AddHalf ? ".5" : "-.5");
+      }
+      else
+      {
+        // If nothing has been written so far, add a zero
+        if (!(has_ac || has_bc || has_d))
+          out = format_to(out, "0");
+      }
+      if (has_scale)
+        out = format_to(out, ") * {:n}", cc.scale);
+      out = format_to(out, "\n\n");
+    }
     return format_to(ctx.out(),
                      "a: {}\n"
                      "b: {}\n"
@@ -512,7 +600,80 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
   template <typename FormatContext>
   auto format(const TevStageCombiner::AlphaCombiner& ac, FormatContext& ctx)
   {
-    return format_to(ctx.out(),
+    auto out = ctx.out();
+    if (ac.bias != TevBias::Compare)
+    {
+      // Generate an equation view, simplifying out addition of zero and multiplication by 1
+      // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
+      // or equivalently and more readably when the terms are not constants:
+      // dest = (d (OP) lerp(a, b, c) + bias) * scale
+      // Note that lerping is more complex than the first form shows; see PixelShaderGen's
+      // WriteTevRegular for more details.
+
+      // We don't need an alt_names map here, unlike the color combiner, as the only special term is
+      // Zero, and we we filter that out below.  However, we do need to append ".a" to all
+      // parameters, to make it explicit that these are operations on the alpha term instead of the
+      // 4-element vector.  We also need to use the :n specifier so that the numeric ID isn't shown.
+
+      const bool has_d = ac.d != TevAlphaArg::Zero;
+      // There is no c value for alpha that results in (1 - c) always being zero
+      const bool has_ac = ac.a != TevAlphaArg::Zero;
+      // If either b or c is zero, b*c is zero
+      const bool has_bc = ac.b != TevAlphaArg::Zero && ac.c != TevAlphaArg::Zero;
+      const bool has_bias = ac.bias != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = ac.scale != TevScale::Scale1;
+
+      const char op = (ac.op == TevOp::Sub ? '-' : '+');
+
+      if (ac.dest == TevOutput::Prev)
+        out = format_to(out, "dest.a = ");
+      else
+        out = format_to(out, "{:n}.a = ", ac.dest);
+
+      if (has_scale)
+        out = format_to(out, "(");
+      if (has_d)
+        out = format_to(out, "{:n}.a", ac.d);
+      if (has_ac || has_bc)
+      {
+        if (has_d)
+          out = format_to(out, " {} ", op);
+        else if (ac.op == TevOp::Sub)
+          out = format_to(out, "{}", op);
+        if (has_ac && has_bc)
+        {
+          out = format_to(out, "lerp({:n}.a, {:n}.a, {:n}.a)", ac.a, ac.b, ac.c);
+        }
+        else if (has_ac)
+        {
+          if (ac.c == TevAlphaArg::Zero)
+            out = format_to(out, "{:n}.a", ac.a);
+          else
+            out = format_to(out, "(1 - {:n}.a)*{:n}.a", ac.c, ac.a);
+        }
+        else  // has_bc
+        {
+          out = format_to(out, "{:n}.a*{:n}.a", ac.c, ac.b);
+        }
+      }
+      if (has_bias)
+      {
+        if (has_ac || has_bc || has_d)
+          out = format_to(out, ac.bias == TevBias::AddHalf ? " + .5" : " - .5");
+        else
+          out = format_to(out, ac.bias == TevBias::AddHalf ? ".5" : "-.5");
+      }
+      else
+      {
+        // If nothing has been written so far, add a zero
+        if (!(has_ac || has_bc || has_d))
+          out = format_to(out, "0");
+      }
+      if (has_scale)
+        out = format_to(out, ") * {:n}", ac.scale);
+      out = format_to(out, "\n\n");
+    }
+    return format_to(out,
                      "a: {}\n"
                      "b: {}\n"
                      "c: {}\n"
