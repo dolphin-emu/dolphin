@@ -258,7 +258,7 @@ enum class TevBias : u32
 {
   Zero = 0,
   AddHalf = 1,
-  Subhalf = 2,
+  SubHalf = 2,
   Compare = 3
 };
 template <>
@@ -491,6 +491,81 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
   template <typename FormatContext>
   auto format(const TevStageCombiner::ColorCombiner& cc, FormatContext& ctx)
   {
+    auto out = ctx.out();
+    if (cc.bias == TevBias::Compare)
+    {
+      // TODO
+    }
+    else
+    {
+      // Generate an equation view, simplifying out addition of zero and multiplication by 1
+      // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
+      static constexpr Common::EnumMap<const char*, TevColorArg::Zero> alt_names = {
+          "prev.rgb", "prev.aaa", "c0.rgb",  "c0.aaa",  "c1.rgb", "c1.aaa", "c2.rgb",    "c2.aaa",
+          "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "1",      ".5",     "konst.rgb", "0",
+      };
+
+      const bool has_d = cc.d != TevColorArg::Zero;
+      // If c is one, (1 - c) is zero, so (1-c)*a is zero
+      const bool has_a = cc.a != TevColorArg::Zero && cc.c != TevColorArg::One;
+      // If either b or c is zero, b*c is zero
+      const bool has_b = cc.b != TevColorArg::Zero && cc.c != TevColorArg::Zero;
+      const bool has_bias = cc.bias != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = cc.scale != TevScale::Scale1;
+
+      const char op = (cc.op == TevOp::Sub ? '-' : '+');
+
+      if (cc.dest == TevOutput::Prev)
+        out = format_to(out, "dest.rgb = ");
+      else
+        out = format_to(out, "{:n}.rgb = ", cc.dest);
+
+      if (has_scale)
+        out = format_to(out, "(");
+      if (has_d)
+        out = format_to(out, "{}", alt_names[cc.d]);
+      if (has_a || has_b)
+      {
+        if (has_d)
+          out = format_to(out, " {} ", op);
+        else if (cc.op == TevOp::Sub)
+          out = format_to(out, "{}", op);
+      }
+      if (has_a)
+      {
+        if (cc.c == TevColorArg::Zero)
+          out = format_to(out, "{}", alt_names[cc.a]);
+        else if (cc.c == TevColorArg::Half)
+          out = format_to(out, ".5*{}", alt_names[cc.a]);
+        else
+          out = format_to(out, "(1 - {})*{}", alt_names[cc.c], alt_names[cc.a]);
+      }
+      if (has_a && has_b)
+        out = format_to(out, " {} ", op);
+      if (has_b)
+      {
+        if (cc.c == TevColorArg::One)
+          out = format_to(out, "{}", alt_names[cc.b]);
+        else
+          out = format_to(out, "{}*{}", alt_names[cc.c], alt_names[cc.b]);
+      }
+      if (has_bias)
+      {
+        if (has_a || has_b || has_d)
+          out = format_to(out, cc.bias == TevBias::AddHalf ? " + .5" : " - .5");
+        else
+          out = format_to(out, cc.bias == TevBias::AddHalf ? ".5" : "-.5");
+      }
+      else
+      {
+        // If nothing has been written so far, add a zero
+        if (!(has_a || has_b || has_d))
+          out = format_to(out, "0");
+      }
+      if (has_scale)
+        out = format_to(out, ") * {:n}", cc.scale);
+      out = format_to(out, "\n\n");
+    }
     return format_to(ctx.out(),
                      "a: {}\n"
                      "b: {}\n"
@@ -512,7 +587,70 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
   template <typename FormatContext>
   auto format(const TevStageCombiner::AlphaCombiner& ac, FormatContext& ctx)
   {
-    return format_to(ctx.out(),
+    auto out = ctx.out();
+    if (ac.bias == TevBias::Compare)
+    {
+      // TODO
+    }
+    else
+    {
+      // Generate an equation view, simplifying out addition of zero and multiplication by 1
+      // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
+
+      const bool has_d = ac.d != TevAlphaArg::Zero;
+      const bool has_a = ac.a != TevAlphaArg::Zero;
+      // If either b or c is zero, b*c is zero
+      const bool has_b = ac.b != TevAlphaArg::Zero && ac.c != TevAlphaArg::Zero;
+      const bool has_bias = ac.bias != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = ac.scale != TevScale::Scale1;
+
+      const char op = (ac.op == TevOp::Sub ? '-' : '+');
+
+      if (ac.dest == TevOutput::Prev)
+        out = format_to(out, "dest = ");
+      else
+        out = format_to(out, "{:n} = ", ac.dest);
+
+      if (has_scale)
+        out = format_to(out, "(");
+      if (has_d)
+        out = format_to(out, "{:n}", ac.d);
+      if (has_a || has_b)
+      {
+        if (has_d)
+          out = format_to(out, " {} ", op);
+        else if (ac.op == TevOp::Sub)
+          out = format_to(out, "{}", op);
+      }
+      if (has_a)
+      {
+        if (ac.c == TevAlphaArg::Zero)
+          out = format_to(out, "{:n}", ac.a);
+        else
+          out = format_to(out, "(1 - {:n})*{:n}", ac.c, ac.a);
+      }
+      if (has_a && has_b)
+        out = format_to(out, " {} ", op);
+      if (has_b)
+        out = format_to(out, "{:n}*{:n}", ac.c, ac.b);
+      if (has_bias)
+      {
+        if (has_a || has_b || has_d)
+          out = format_to(out, ac.bias == TevBias::AddHalf ? " + .5" : " - .5");
+        else
+          out = format_to(out, ac.bias == TevBias::AddHalf ? ".5" : "-.5");
+      }
+      else
+      {
+        // If nothing has been written so far, add a zero
+        if (!(has_a || has_b || has_d))
+          out = format_to(out, "0");
+      }
+      if (has_scale)
+        out = format_to(out, ") * {:n}", ac.scale);
+      out = format_to(out, "\n\n");
+    }
+    return format_to(out,
                      "a: {}\n"
                      "b: {}\n"
                      "c: {}\n"

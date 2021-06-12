@@ -55,9 +55,9 @@ public:
   constexpr auto parse(fmt::format_parse_context& ctx)
   {
     auto it = ctx.begin(), end = ctx.end();
-    // 'u' for user display, 's' for shader generation
-    if (it != end && (*it == 'u' || *it == 's'))
-      formatting_for_shader = (*it++ == 's');
+    // 'u' for user display, 's' for shader generation, 'n' for name only
+    if (it != end && (*it == 'u' || *it == 's' || *it == 'n'))
+      format_type = *it++;
     return it;
   }
 
@@ -68,19 +68,24 @@ public:
     const auto value_u = static_cast<std::make_unsigned_t<T>>(value_s);  // Always unsigned
     const bool has_name = m_names.InBounds(e) && m_names[e] != nullptr;
 
-    if (!formatting_for_shader)
+    switch (format_type)
     {
+    default:
+    case 'u':
       if (has_name)
         return fmt::format_to(ctx.out(), "{} ({})", m_names[e], value_s);
       else
         return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
-    }
-    else
-    {
+    case 's':
       if (has_name)
         return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[e]);
       else
         return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */", value_u);
+    case 'n':
+      if (has_name)
+        return fmt::format_to(ctx.out(), "{}", m_names[e]);
+      else
+        return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
     }
   }
 
@@ -92,5 +97,5 @@ protected:
 
 private:
   const array_type m_names;
-  bool formatting_for_shader = false;
+  char format_type = 'u';
 };
