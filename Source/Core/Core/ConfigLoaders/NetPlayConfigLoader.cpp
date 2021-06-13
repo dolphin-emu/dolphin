@@ -40,7 +40,7 @@ public:
     layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
-    layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::SESSION_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
     layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
     layer->Set(Config::MAIN_MEM2_SIZE, m_settings.m_Mem2Size);
@@ -83,7 +83,7 @@ public:
     layer->Set(Config::MAIN_MMU, m_settings.m_MMU);
     layer->Set(Config::MAIN_FASTMEM, m_settings.m_Fastmem);
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
-    layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
+    layer->Set(Config::SESSION_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
 
     layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
     layer->Set(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE, m_settings.m_EFBAccessTileSize);
@@ -131,14 +131,14 @@ public:
         layer->Set(Config::MAIN_MEMCARD_B_PATH, make_memcard_path('B'));
       }
 
-      layer->Set(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY, true);
+      layer->Set(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY, true);
     }
 
     // Check To Override Client's Cheat Codes
     if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
     {
       // Raise flag to use host's codes
-      layer->Set(Config::MAIN_CODE_SYNC_OVERRIDE, true);
+      layer->Set(Config::SESSION_CODE_SYNC_OVERRIDE, true);
     }
   }
 

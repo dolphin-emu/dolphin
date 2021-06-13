@@ -1290,7 +1290,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_MMU = Config::Get(Config::MAIN_MMU);
   settings.m_Fastmem = Config::Get(Config::MAIN_FASTMEM);
   settings.m_SkipIPL = Config::Get(Config::MAIN_SKIP_IPL) || !DoAllPlayersHaveIPLDump();
-  settings.m_LoadIPLDump = Config::Get(Config::MAIN_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
+  settings.m_LoadIPLDump = Config::Get(Config::SESSION_LOAD_IPL_DUMP) && DoAllPlayersHaveIPLDump();
   settings.m_VertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
   settings.m_InternalResolution = Config::Get(Config::GFX_EFB_SCALE);
   settings.m_EFBScaledCopy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
