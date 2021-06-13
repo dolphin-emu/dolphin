@@ -29,8 +29,6 @@ enum PrecisionMode
 
 void SetRoundMode(int mode);
 
-void SetPrecisionMode(PrecisionMode mode);
-
 void SetSIMDMode(int rounding_mode, bool non_ieee_mode);
 
 /*

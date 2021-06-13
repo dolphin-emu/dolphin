@@ -6,7 +6,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/FPURoundMode.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/SystemTimers.h"
@@ -26,13 +25,10 @@ mffsx: 80036608
 mffsx: 80036650 (huh?)
 
 */
-// TODO(ector): More proper handling of SSE state.
-// That is, set rounding mode etc when entering jit code or the interpreter loop
-// Restore rounding mode when calling anything external
 
-static void FPSCRtoFPUSettings(UReg_FPSCR fp)
+static void FPSCRUpdated(UReg_FPSCR fp)
 {
-  FPURoundMode::SetRoundMode(fp.RN);
+  PowerPC::RoundingModeUpdated();
 
   if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
   {
@@ -40,9 +36,6 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
     // fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
     // Pokemon Colosseum does this. Gah.
   }
-
-  // Set SSE rounding mode and denormal handling
-  FPURoundMode::SetSIMDMode(fp.RN, fp.NI);
 }
 
 static void UpdateFPSCR(UReg_FPSCR* fpscr)
@@ -57,7 +50,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
   u32 b = 0x80000000 >> inst.CRBD;
 
   FPSCR.Hex &= ~b;
-  FPSCRtoFPUSettings(FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -74,7 +67,7 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
   else
     FPSCR |= b;
 
-  FPSCRtoFPUSettings(FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -89,7 +82,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
 
   FPSCR = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
-  FPSCRtoFPUSettings(FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -106,7 +99,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
   }
 
   FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
-  FPSCRtoFPUSettings(FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
