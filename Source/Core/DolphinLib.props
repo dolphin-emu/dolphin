@@ -169,6 +169,7 @@
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
     <ClInclude Include="Core\Config\NetplaySettings.h" />
+    <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
@@ -742,6 +743,7 @@
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
     <ClCompile Include="Core\Config\MainSettings.cpp" />
     <ClCompile Include="Core\Config\NetplaySettings.cpp" />
+    <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />

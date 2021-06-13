@@ -141,7 +141,9 @@ static const std::map<System, std::string> system_to_name = {
     {System::Logger, "Logger"},
     {System::Debugger, "Debugger"},
     {System::SYSCONF, "SYSCONF"},
-    {System::DualShockUDPClient, "DualShockUDPClient"}};
+    {System::DualShockUDPClient, "DualShockUDPClient"},
+    {System::FreeLook, "FreeLook"},
+    {System::Session, "Session"}};
 
 const std::string& GetSystemName(System system)
 {

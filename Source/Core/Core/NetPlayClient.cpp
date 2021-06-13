@@ -34,8 +34,10 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -54,6 +56,7 @@
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
+
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
@@ -609,10 +612,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     game_status_packet << static_cast<u32>(result);
     Send(game_status_packet);
 
-    sf::Packet ipl_status_packet;
-    ipl_status_packet << static_cast<MessageId>(NP_MSG_IPL_STATUS);
-    ipl_status_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
-    Send(ipl_status_packet);
+    sf::Packet client_capabilities_packet;
+    client_capabilities_packet << static_cast<MessageId>(NP_MSG_CLIENT_CAPABILITIES);
+    client_capabilities_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
+    client_capabilities_packet << Config::Get(Config::SESSION_USE_FMA);
+    Send(client_capabilities_packet);
   }
   break;
 
@@ -735,6 +739,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         packet >> extension;
 
       packet >> m_net_settings.m_GolfMode;
+      packet >> m_net_settings.m_UseFMA;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;

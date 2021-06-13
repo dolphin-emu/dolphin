@@ -10,7 +10,9 @@
 #include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/x64Emitter.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -241,10 +243,21 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
 
-  // While we don't know if any games are actually affected (replays seem to work with all the usual
-  // suspects for desyncing), netplay and other applications need absolute perfect determinism, so
-  // be extra careful and use software FMA on CPUs that don't have hardware FMA.
-  const bool software_fma = !cpu_info.bFMA && Core::WantsDeterminism();
+  // We would like to emulate FMA instructions accurately without rounding error if possible, but
+  // unfortunately emulating FMA in software is just too slow on CPUs that are too old to have FMA
+  // instructions, so we have the Config::SESSION_USE_FMA setting to determine whether we should
+  // emulate FMA instructions accurately or by a performing a multiply followed by a separate add.
+  //
+  // Why have a setting instead of just checking cpu_info.bFMA, you might wonder? Because for
+  // netplay and TAS, it's important that everyone gets exactly the same results. The setting
+  // is not user configurable - Dolphin automatically sets it based on what is supported by the
+  // CPUs of everyone in the netplay room (or when not using netplay, simply the system's CPU).
+  //
+  // There is one circumstance where the software FMA path does get used: when an input recording
+  // is created on a CPU that has FMA instructions and then gets played back on a CPU that doesn't.
+  // (Or if the user just really wants to override the setting and knows how to do so.)
+  const bool use_fma = Config::Get(Config::SESSION_USE_FMA);
+  const bool software_fma = use_fma && !cpu_info.bFMA;
 
   int a = inst.FA;
   int b = inst.FB;
@@ -272,11 +285,11 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   }
   else
   {
-    // For cpu_info.bFMA == true:
+    // For use_fma == true:
     //   Statistics suggests b is a lot less likely to be unbound in practice, so
     //   if we have to pick one of a or b to bind, let's make it b.
     Ra = fpr.Use(a, RCMode::Read);
-    Rb = cpu_info.bFMA ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
+    Rb = use_fma ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
     Rc = fpr.Use(c, RCMode::Read);
     Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
     RegCache::Realize(Ra, Rb, Rc, Rd);
@@ -357,7 +370,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       break;
     }
 
-    if (cpu_info.bFMA)
+    if (use_fma)
     {
       switch (inst.SUBOP5)
       {
@@ -395,9 +408,6 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     }
     else
     {
-      // No hardware support for FMA, and determinism is not enabled. In this case we inaccurately
-      // do the multiplication and addition/subtraction in two separate operations for performance.
-
       if (inst.SUBOP5 == 30)  // nmsub
       {
         // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)),

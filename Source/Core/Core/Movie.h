@@ -116,7 +116,8 @@ struct DTMHeader
   u8 language;
   u8 reserved3;
   bool bFollowBranch;
-  std::array<u8, 9> reserved;       // Padding for any new config options
+  bool bUseFMA;
+  std::array<u8, 8> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
