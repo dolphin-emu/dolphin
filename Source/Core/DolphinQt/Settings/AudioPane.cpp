@@ -10,6 +10,7 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QRadioButton>
 #include <QSlider>
@@ -155,18 +156,19 @@ void AudioPane::CreateWidgets()
   stretching_layout->addWidget(m_stretching_buffer_slider, 1, 1);
   stretching_layout->addWidget(m_stretching_buffer_indicator, 1, 2);
 
-  m_main_layout = new QGridLayout;
-
-  m_main_layout->setRowStretch(0, 0);
-
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  m_main_layout->addWidget(dsp_box, 0, 0);
-  m_main_layout->addWidget(volume_box, 0, 1, -1, 1);
-  m_main_layout->addWidget(backend_box, 1, 0);
-  m_main_layout->addWidget(stretching_box, 2, 0);
+  auto* const main_vbox_layout = new QVBoxLayout;
+  main_vbox_layout->addWidget(dsp_box);
+  main_vbox_layout->addWidget(backend_box);
+  main_vbox_layout->addWidget(stretching_box);
+
+  m_main_layout = new QHBoxLayout;
+  m_main_layout->addLayout(main_vbox_layout);
+  m_main_layout->addWidget(volume_box);
 
   setLayout(m_main_layout);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 void AudioPane::ConnectWidgets()
