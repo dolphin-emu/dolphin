@@ -41,6 +41,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
@@ -861,8 +862,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       bool is_slot_a;
       std::string region;
-      bool mc251;
-      packet >> is_slot_a >> region >> mc251;
+      int size_override;
+      packet >> is_slot_a >> region >> size_override;
 
       // This check is mainly intended to filter out characters which have special meanings in paths
       if (region != JAP_DIR && region != USA_DIR && region != EUR_DIR)
@@ -871,8 +872,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         return 0;
       }
 
+      std::string size_suffix;
+      if (size_override >= 0 && size_override <= 4)
+      {
+        size_suffix = fmt::format(
+            ".{}", Memcard::MbitToFreeBlocks(Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override));
+      }
+
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY +
-                               (is_slot_a ? "A." : "B.") + region + (mc251 ? ".251" : "") + ".raw";
+                               (is_slot_a ? "A." : "B.") + region + size_suffix + ".raw";
       if (File::Exists(path) && !File::Delete(path))
       {
         PanicAlertFmtT("Failed to delete NetPlay memory card. Verify your write permissions.");

@@ -204,8 +204,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
   }
 
   // leave about 10% of free space on the card if possible
-  const int total_blocks =
-      m_hdr.m_data.m_size_mb * Memcard::MBIT_TO_BLOCKS - Memcard::MC_FST_BLOCKS;
+  const int total_blocks = Memcard::MbitToFreeBlocks(m_hdr.m_data.m_size_mb);
   const int reserved_blocks = total_blocks / 10;
 
   // load files for other games
