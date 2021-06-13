@@ -372,6 +372,16 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "int3 iround(float3 x) {{ return int3(round(x)); }}\n"
             "int4 iround(float4 x) {{ return int4(round(x)); }}\n\n");
 
+  // GLSL's any() and all() only accept vector types, while HLSL's also accept scalar types. We're
+  // adding these for convenience because while vector comparisons return a bool scalar in GLSL,
+  // allowing the results to be used directly in an if statement, they return a bool vector in HLSL,
+  // necessitating the use of any() or all() to reduce it to a scalar.
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  {
+    out.Write("bool any(bool b) {{ return b; }}\n"
+              "bool all(bool b) {{ return b; }}\n\n");
+  }
+
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
