@@ -290,7 +290,7 @@ void Interpreter::fselx(UGeckoInstruction inst)
 void Interpreter::frspx(UGeckoInstruction inst)  // round to single
 {
   const double b = rPS(inst.FB).PS0AsDouble();
-  const double rounded = ForceSingle(FPSCR, b);
+  const float rounded = ForceSingle(FPSCR, b);
 
   if (std::isnan(b))
   {
@@ -349,7 +349,7 @@ void Interpreter::fmulsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || d_value.HasNoInvalidExceptions())
   {
-    const double result = ForceSingle(FPSCR, d_value.value);
+    const float result = ForceSingle(FPSCR, d_value.value);
 
     rPS(inst.FD).Fill(result);
     FPSCR.FI = 0;
@@ -390,7 +390,7 @@ void Interpreter::fmaddsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || d_value.HasNoInvalidExceptions())
   {
-    const double result = ForceSingle(FPSCR, d_value.value);
+    const float result = ForceSingle(FPSCR, d_value.value);
 
     rPS(inst.FD).Fill(result);
     FPSCR.FI = d_value.value != result;
@@ -428,7 +428,7 @@ void Interpreter::faddsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || sum.HasNoInvalidExceptions())
   {
-    const double result = ForceSingle(FPSCR, sum.value);
+    const float result = ForceSingle(FPSCR, sum.value);
     rPS(inst.FD).Fill(result);
     PowerPC::UpdateFPRFSingle(result);
   }
@@ -468,7 +468,7 @@ void Interpreter::fdivsx(UGeckoInstruction inst)
 
   if (not_divide_by_zero && not_invalid)
   {
-    const double result = ForceSingle(FPSCR, quotient.value);
+    const float result = ForceSingle(FPSCR, quotient.value);
     rPS(inst.FD).Fill(result);
     PowerPC::UpdateFPRFSingle(result);
   }
@@ -592,7 +592,7 @@ void Interpreter::fmsubsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || product.HasNoInvalidExceptions())
   {
-    const double result = ForceSingle(FPSCR, product.value);
+    const float result = ForceSingle(FPSCR, product.value);
     rPS(inst.FD).Fill(result);
     PowerPC::UpdateFPRFSingle(result);
   }
@@ -633,8 +633,8 @@ void Interpreter::fnmaddsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || product.HasNoInvalidExceptions())
   {
-    const double tmp = ForceSingle(FPSCR, product.value);
-    const double result = std::isnan(tmp) ? tmp : -tmp;
+    const float tmp = ForceSingle(FPSCR, product.value);
+    const float result = std::isnan(tmp) ? tmp : -tmp;
 
     rPS(inst.FD).Fill(result);
     PowerPC::UpdateFPRFSingle(result);
@@ -676,8 +676,8 @@ void Interpreter::fnmsubsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || product.HasNoInvalidExceptions())
   {
-    const double tmp = ForceSingle(FPSCR, product.value);
-    const double result = std::isnan(tmp) ? tmp : -tmp;
+    const float tmp = ForceSingle(FPSCR, product.value);
+    const float result = std::isnan(tmp) ? tmp : -tmp;
 
     rPS(inst.FD).Fill(result);
     PowerPC::UpdateFPRFSingle(result);
@@ -714,7 +714,7 @@ void Interpreter::fsubsx(UGeckoInstruction inst)
 
   if (FPSCR.VE == 0 || difference.HasNoInvalidExceptions())
   {
-    const double result = ForceSingle(FPSCR, difference.value);
+    const float result = ForceSingle(FPSCR, difference.value);
     rPS(inst.FD).Fill(result);
     PowerPC::UpdateFPRFSingle(result);
   }

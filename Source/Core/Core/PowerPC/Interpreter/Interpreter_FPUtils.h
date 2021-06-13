@@ -36,15 +36,13 @@ inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
   fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
 }
 
-inline double ForceSingle(const UReg_FPSCR& fpscr, double value)
+inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 {
-  // convert to float...
-  float x = (float)value;
+  float x = static_cast<float>(value);
   if (!cpu_info.bFlushToZero && fpscr.NI)
   {
     x = Common::FlushToZero(x);
   }
-  // ...and back to double:
   return x;
 }
 
