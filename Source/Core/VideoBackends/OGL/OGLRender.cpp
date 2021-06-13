@@ -744,8 +744,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     OSD::AddMessage(fmt::format("Your OpenGL driver does not support {}_buffer_storage.",
                                 m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
                     60000);
-    OSD::AddMessage("This device's performance will be terrible.", 60000);
-    OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
+    OSD::AddMessage("This device's performance may be poor.", 60000);
   }
 
   WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
