@@ -55,10 +55,10 @@ bool s_alert_enabled = true;
 
 const char* GetCaption(MsgType style)
 {
-  static const std::string info_caption = s_str_translator(_trans("Information"));
-  static const std::string warn_caption = s_str_translator(_trans("Question"));
-  static const std::string ques_caption = s_str_translator(_trans("Warning"));
-  static const std::string crit_caption = s_str_translator(_trans("Critical"));
+  static const std::string info_caption = GetStringT("Information");
+  static const std::string ques_caption = GetStringT("Question");
+  static const std::string warn_caption = GetStringT("Warning");
+  static const std::string crit_caption = GetStringT("Critical");
 
   switch (style)
   {
