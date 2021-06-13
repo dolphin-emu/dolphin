@@ -302,7 +302,7 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
     if (!is_snan || FPSCR.VE == 0)
     {
       rPS(inst.FD).Fill(rounded);
-      PowerPC::UpdateFPRF(b);
+      PowerPC::UpdateFPRFSingle(rounded);
     }
 
     FPSCR.ClearFIFR();
@@ -311,7 +311,7 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
   {
     SetFI(&FPSCR, b != rounded);
     FPSCR.FR = fabs(rounded) > fabs(b);
-    PowerPC::UpdateFPRF(rounded);
+    PowerPC::UpdateFPRFSingle(rounded);
     rPS(inst.FD).Fill(rounded);
   }
 
@@ -333,7 +333,7 @@ void Interpreter::fmulx(UGeckoInstruction inst)
     rPS(inst.FD).SetPS0(result);
     FPSCR.FI = 0;  // are these flags important?
     FPSCR.FR = 0;
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -354,7 +354,7 @@ void Interpreter::fmulsx(UGeckoInstruction inst)
     rPS(inst.FD).Fill(result);
     FPSCR.FI = 0;
     FPSCR.FR = 0;
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -372,7 +372,7 @@ void Interpreter::fmaddx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(FPSCR, product.value);
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -395,7 +395,7 @@ void Interpreter::fmaddsx(UGeckoInstruction inst)
     rPS(inst.FD).Fill(result);
     FPSCR.FI = d_value.value != result;
     FPSCR.FR = 0;
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -413,7 +413,7 @@ void Interpreter::faddx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(FPSCR, sum.value);
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -430,7 +430,7 @@ void Interpreter::faddsx(UGeckoInstruction inst)
   {
     const double result = ForceSingle(FPSCR, sum.value);
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -450,7 +450,7 @@ void Interpreter::fdivx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(FPSCR, quotient.value);
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   // FR,FI,OX,UX???
@@ -470,7 +470,7 @@ void Interpreter::fdivsx(UGeckoInstruction inst)
   {
     const double result = ForceSingle(FPSCR, quotient.value);
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -485,7 +485,7 @@ void Interpreter::fresx(UGeckoInstruction inst)
   const auto compute_result = [inst](double value) {
     const double result = Common::ApproximateReciprocal(value);
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   };
 
   if (b == 0.0)
@@ -523,7 +523,7 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
   const auto compute_result = [inst](double value) {
     const double result = Common::ApproximateReciprocalSquareRoot(value);
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   };
 
   if (b < 0.0)
@@ -574,7 +574,7 @@ void Interpreter::fmsubx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(FPSCR, product.value);
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -594,7 +594,7 @@ void Interpreter::fmsubsx(UGeckoInstruction inst)
   {
     const double result = ForceSingle(FPSCR, product.value);
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -615,7 +615,7 @@ void Interpreter::fnmaddx(UGeckoInstruction inst)
     const double result = std::isnan(tmp) ? tmp : -tmp;
 
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -637,7 +637,7 @@ void Interpreter::fnmaddsx(UGeckoInstruction inst)
     const double result = std::isnan(tmp) ? tmp : -tmp;
 
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -658,7 +658,7 @@ void Interpreter::fnmsubx(UGeckoInstruction inst)
     const double result = std::isnan(tmp) ? tmp : -tmp;
 
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -680,7 +680,7 @@ void Interpreter::fnmsubsx(UGeckoInstruction inst)
     const double result = std::isnan(tmp) ? tmp : -tmp;
 
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)
@@ -698,7 +698,7 @@ void Interpreter::fsubx(UGeckoInstruction inst)
   {
     const double result = ForceDouble(FPSCR, difference.value);
     rPS(inst.FD).SetPS0(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFDouble(result);
   }
 
   if (inst.Rc)
@@ -716,7 +716,7 @@ void Interpreter::fsubsx(UGeckoInstruction inst)
   {
     const double result = ForceSingle(FPSCR, difference.value);
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRF(result);
+    PowerPC::UpdateFPRFSingle(result);
   }
 
   if (inst.Rc)

@@ -74,14 +74,14 @@ TEST(JitArm64, FPRF)
   for (const u64 double_input : double_test_values)
   {
     const u32 expected_double =
-        RunUpdateFPRF([&] { PowerPC::UpdateFPRF(Common::BitCast<double>(double_input)); });
+        RunUpdateFPRF([&] { PowerPC::UpdateFPRFDouble(Common::BitCast<double>(double_input)); });
     const u32 actual_double = RunUpdateFPRF([&] { test.fprf_double(double_input); });
     EXPECT_EQ(expected_double, actual_double);
 
     const u32 single_input = ConvertToSingle(double_input);
 
-    const u32 expected_single = RunUpdateFPRF(
-        [&] { PowerPC::UpdateFPRF(Common::BitCast<double>(ConvertToDouble(single_input))); });
+    const u32 expected_single =
+        RunUpdateFPRF([&] { PowerPC::UpdateFPRFSingle(Common::BitCast<float>(single_input)); });
     const u32 actual_single = RunUpdateFPRF([&] { test.fprf_single(single_input); });
     EXPECT_EQ(expected_single, actual_single);
   }

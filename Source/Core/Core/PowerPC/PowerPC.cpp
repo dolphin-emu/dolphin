@@ -626,9 +626,14 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 // FPSCR update functions
 
-void UpdateFPRF(double dvalue)
+void UpdateFPRFDouble(double dvalue)
 {
   FPSCR.FPRF = Common::ClassifyDouble(dvalue);
+}
+
+void UpdateFPRFSingle(float fvalue)
+{
+  FPSCR.FPRF = Common::ClassifyFloat(fvalue);
 }
 
 void RoundingModeUpdated()

@@ -304,7 +304,8 @@ inline void SetXER_OV(bool value)
   SetXER_SO(value);
 }
 
-void UpdateFPRF(double dvalue);
+void UpdateFPRFDouble(double dvalue);
+void UpdateFPRFSingle(float fvalue);
 
 void RoundingModeUpdated();
 
