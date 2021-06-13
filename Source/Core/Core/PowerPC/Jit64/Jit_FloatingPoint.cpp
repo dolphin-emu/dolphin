@@ -631,7 +631,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   RegCache::Realize(Ra, Rb);
 
   if (fprf)
-    AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
+    AND(32, PPCSTATE(fpscr), Imm32(~FPCC_MASK));
 
   if (upper)
   {

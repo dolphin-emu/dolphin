@@ -402,7 +402,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   {
     fpscr_reg = gpr.GetReg();
     LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
-    ANDI2R(fpscr_reg, fpscr_reg, ~FPRF_MASK);
+    ANDI2R(fpscr_reg, fpscr_reg, ~FPCC_MASK);
   }
 
   FixupBranch pNaN, pLesser, pGreater;
