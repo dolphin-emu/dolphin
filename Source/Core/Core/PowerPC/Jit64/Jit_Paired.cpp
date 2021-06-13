@@ -77,8 +77,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
     PanicAlertFmt("ps_sum WTF!!!");
   }
   HandleNaNs(inst, Rd, tmp, tmp == XMM1 ? XMM0 : XMM1);
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rd);
 }
 
 void Jit64::ps_muls(UGeckoInstruction inst)
@@ -112,8 +111,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
     Force25BitPrecision(XMM1, R(XMM1), XMM0);
   MULPD(XMM1, Ra);
   HandleNaNs(inst, Rd, XMM1);
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rd);
 }
 
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
@@ -171,8 +169,7 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
   CALL(asm_routines.frsqrte);
   MOVLHPS(Rd, XMM0);
 
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rd);
 }
 
 void Jit64::ps_res(UGeckoInstruction inst)
@@ -196,8 +193,7 @@ void Jit64::ps_res(UGeckoInstruction inst)
   CALL(asm_routines.fres);
   MOVLHPS(Rd, XMM0);
 
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rd);
 }
 
 void Jit64::ps_cmpXX(UGeckoInstruction inst)
