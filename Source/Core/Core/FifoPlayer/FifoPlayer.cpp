@@ -439,7 +439,11 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
     }
     else
     {
-      WriteFramePart(object.m_start, object.m_start + object.m_size, memory_update, frame, info);
+      ASSERT(object_num == draw_start);
+      const auto& last_object = info.objects[draw_end];
+      object_num = draw_end;
+      WriteFramePart(object.m_start, last_object.m_start + last_object.m_size, memory_update, frame,
+                     info);
     }
   }
 
