@@ -4,8 +4,10 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -89,6 +91,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   ARM64Reg VA{}, VB{}, VC{}, VD{};
 
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
+  ARM64Reg V1Q = ARM64Reg::INVALID_REG;
 
   if (packed)
   {
@@ -151,17 +154,26 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       VC = reg_encoder(fpr.R(c, type));
     VD = reg_encoder(fpr.RW(d, type_out));
 
+    const bool inaccurate_fma = op5 > 25 && !Config::Get(Config::SESSION_USE_FMA);
+
     if (round_c)
     {
       ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
 
       V0Q = fpr.GetReg();
-      const ARM64Reg V1Q = fpr.GetReg();
+      V1Q = fpr.GetReg();
 
-      Force25BitPrecision(reg_encoder(V0Q), VC, reg_encoder(V1Q));
-      VC = reg_encoder(V0Q);
+      Force25BitPrecision(reg_encoder(V1Q), VC, reg_encoder(V0Q));
+      VC = reg_encoder(V1Q);
+    }
 
-      fpr.Unlock(V1Q);
+    ARM64Reg inaccurate_fma_temp_reg = VD;
+    if (inaccurate_fma && d == b)
+    {
+      if (V0Q == ARM64Reg::INVALID_REG)
+        V0Q = fpr.GetReg();
+
+      inaccurate_fma_temp_reg = reg_encoder(V0Q);
     }
 
     switch (op5)
@@ -179,17 +191,55 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       m_float_emit.FMUL(VD, VA, VC);
       break;
     case 28:
-      m_float_emit.FNMSUB(VD, VA, VC, VB);
-      break;  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(inaccurate_fma_temp_reg, VA, VC);
+        m_float_emit.FSUB(VD, inaccurate_fma_temp_reg, VB);
+      }
+      else
+      {
+        // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
+        m_float_emit.FNMSUB(VD, VA, VC, VB);
+      }
+      break;
     case 29:
-      m_float_emit.FMADD(VD, VA, VC, VB);
-      break;  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(inaccurate_fma_temp_reg, VA, VC);
+        m_float_emit.FADD(VD, inaccurate_fma_temp_reg, VB);
+      }
+      else
+      {
+        // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
+        m_float_emit.FMADD(VD, VA, VC, VB);
+      }
+      break;
     case 30:
-      m_float_emit.FMSUB(VD, VA, VC, VB);
-      break;  // fnmsub: "D = -(A*C - B)" vs "Vd = Va + (-Vn)*Vm"
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(inaccurate_fma_temp_reg, VA, VC);
+        m_float_emit.FSUB(inaccurate_fma_temp_reg, inaccurate_fma_temp_reg, VB);
+        m_float_emit.FNEG(VD, inaccurate_fma_temp_reg);
+      }
+      else
+      {
+        // fnmsub: "D = -(A*C - B)" vs "Vd = Va + (-Vn)*Vm"
+        m_float_emit.FMSUB(VD, VA, VC, VB);
+      }
+      break;
     case 31:
-      m_float_emit.FNMADD(VD, VA, VC, VB);
-      break;  // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
+      if (inaccurate_fma)
+      {
+        m_float_emit.FMUL(inaccurate_fma_temp_reg, VA, VC);
+        m_float_emit.FADD(inaccurate_fma_temp_reg, inaccurate_fma_temp_reg, VB);
+        m_float_emit.FNEG(VD, inaccurate_fma_temp_reg);
+      }
+      else
+      {
+        // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
+        m_float_emit.FNMADD(VD, VA, VC, VB);
+      }
+      break;
     default:
       ASSERT_MSG(DYNA_REC, 0, "fp_arith");
       break;
@@ -198,6 +248,8 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 
   if (V0Q != ARM64Reg::INVALID_REG)
     fpr.Unlock(V0Q);
+  if (V1Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V1Q);
 
   if (outputs_are_singles)
   {
