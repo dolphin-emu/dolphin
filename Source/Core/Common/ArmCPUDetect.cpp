@@ -68,6 +68,7 @@ void CPUInfo::Detect()
   CPU64bit = true;
   Mode64bit = true;
   vendor = CPUVendor::ARM;
+  bFMA = true;
   bFlushToZero = true;
   bAFP = false;
 
