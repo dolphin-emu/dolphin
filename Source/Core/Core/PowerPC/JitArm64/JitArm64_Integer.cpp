@@ -966,11 +966,12 @@ void JitArm64::subfex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
+  bool mex = inst.SUBOP10 & 32;
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
   {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+    u32 i = gpr.GetImm(a), j = mex ? -1 : gpr.GetImm(b);
 
     gpr.BindToRegister(d, false);
 
@@ -1023,18 +1024,23 @@ void JitArm64::subfex(UGeckoInstruction inst)
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
+    ARM64Reg RB = mex ? gpr.GetReg() : gpr.R(b);
+    if (mex)
+      MOVI2R(RB, -1);
 
     if (js.carryFlag == CarryFlag::ConstantTrue)
     {
-      CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
+      CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), RB, gpr.R(a));
     }
     else
     {
       LoadCarry();
-      CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), gpr.R(b), gpr.R(a));
+      CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), RB, gpr.R(a));
     }
 
     ComputeCarry();
+    if (mex)
+      gpr.Unlock(RB);
   }
 
   if (inst.Rc)
@@ -1154,11 +1160,12 @@ void JitArm64::addex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
+  bool mex = inst.SUBOP10 & 32;
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
   {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+    u32 i = gpr.GetImm(a), j = mex ? -1 : gpr.GetImm(b);
 
     gpr.BindToRegister(d, false);
 
@@ -1211,18 +1218,23 @@ void JitArm64::addex(UGeckoInstruction inst)
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
+    ARM64Reg RB = mex ? gpr.GetReg() : gpr.R(b);
+    if (mex)
+      MOVI2R(RB, -1);
 
     if (js.carryFlag == CarryFlag::ConstantFalse)
     {
-      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
+      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), RB);
     }
     else
     {
       LoadCarry();
-      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), gpr.R(b));
+      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), RB);
     }
 
     ComputeCarry();
+    if (mex)
+      gpr.Unlock(RB);
   }
 
   if (inst.Rc)
