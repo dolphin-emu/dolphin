@@ -1097,8 +1097,7 @@ void JitArm64::subfzex(UGeckoInstruction inst)
   }
   case CarryFlag::InHostCarry:
   {
-    MVN(gpr.R(d), gpr.R(a));
-    CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(d), ARM64Reg::WZR);
+    CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), ARM64Reg::WZR, gpr.R(a));
     ComputeCarry();
     break;
   }
