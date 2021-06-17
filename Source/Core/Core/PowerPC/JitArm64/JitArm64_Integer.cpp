@@ -76,6 +76,35 @@ void JitArm64::ComputeCarry()
   FlushCarry();
 }
 
+void JitArm64::LoadCarry()
+{
+  switch (js.carryFlag)
+  {
+  case CarryFlag::InPPCState:
+  {
+    ARM64Reg WA = gpr.GetReg();
+    LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+    CMP(WA, 1);
+    gpr.Unlock(WA);
+    break;
+  }
+  case CarryFlag::InHostCarry:
+  {
+    break;
+  }
+  case CarryFlag::ConstantTrue:
+  {
+    CMP(ARM64Reg::WZR, ARM64Reg::WZR);
+    break;
+  }
+  case CarryFlag::ConstantFalse:
+  {
+    CMN(ARM64Reg::WZR, ARM64Reg::WZR);
+    break;
+  }
+  }
+}
+
 void JitArm64::FlushCarry()
 {
   switch (js.carryFlag)
@@ -996,45 +1025,17 @@ void JitArm64::subfex(UGeckoInstruction inst)
   {
     gpr.BindToRegister(d, d == a || d == b);
 
-    switch (js.carryFlag)
-    {
-    case CarryFlag::InPPCState:
-    {
-      // upload the carry state
-      ARM64Reg WA = gpr.GetReg();
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      CMP(WA, 1);
-      gpr.Unlock(WA);
-      [[fallthrough]];
-    }
-    case CarryFlag::InHostCarry:
-    {
-      CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), gpr.R(b), gpr.R(a));
-      ComputeCarry();
-      break;
-    }
-    case CarryFlag::ConstantTrue:
+    if (js.carryFlag == CarryFlag::ConstantTrue)
     {
       CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
-      ComputeCarry();
-      break;
     }
-    case CarryFlag::ConstantFalse:
+    else
     {
-      ARM64Reg WA = gpr.GetReg();
-
-      if (gpr.IsImm(a))
-        MOVI2R(WA, u32(~gpr.GetImm(a)));
-      else
-        MVN(WA, gpr.R(a));
-
-      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), WA, gpr.R(b));
-
-      gpr.Unlock(WA);
-      ComputeCarry();
-      break;
+      LoadCarry();
+      CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), gpr.R(b), gpr.R(a));
     }
-    }
+
+    ComputeCarry();
   }
 
   if (inst.Rc)
@@ -1213,60 +1214,17 @@ void JitArm64::addex(UGeckoInstruction inst)
   {
     gpr.BindToRegister(d, d == a || d == b);
 
-    if (js.carryFlag == CarryFlag::ConstantTrue && !gpr.IsImm(a) && !gpr.IsImm(b))
-    {
-      CMP(ARM64Reg::WZR, ARM64Reg::WZR);
-      js.carryFlag = CarryFlag::InHostCarry;
-    }
-
-    switch (js.carryFlag)
-    {
-    case CarryFlag::InPPCState:
-    {
-      // upload the carry state
-      ARM64Reg WA = gpr.GetReg();
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      CMP(WA, 1);
-      gpr.Unlock(WA);
-      [[fallthrough]];
-    }
-    case CarryFlag::InHostCarry:
-    {
-      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), gpr.R(b));
-      ComputeCarry();
-      break;
-    }
-    case CarryFlag::ConstantTrue:
-    {
-      if (!gpr.IsImm(b))
-        std::swap(a, b);
-      ASSERT(gpr.IsImm(b));
-
-      ARM64Reg WA = gpr.GetReg();
-      const u32 imm = gpr.GetImm(b) + 1;
-      if (imm == 0)
-      {
-        if (d != a)
-          MOV(gpr.R(d), gpr.R(a));
-
-        ComputeCarry(true);
-      }
-      else
-      {
-        CARRY_IF_NEEDED(ADDI2R, ADDSI2R, gpr.R(d), gpr.R(a), imm, WA);
-        ComputeCarry();
-      }
-      gpr.Unlock(WA);
-
-      break;
-    }
-    case CarryFlag::ConstantFalse:
+    if (js.carryFlag == CarryFlag::ConstantFalse)
     {
       CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
-      ComputeCarry();
-      break;
     }
+    else
+    {
+      LoadCarry();
+      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), gpr.R(b));
     }
+
+    ComputeCarry();
   }
 
   if (inst.Rc)
