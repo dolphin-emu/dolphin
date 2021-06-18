@@ -815,9 +815,11 @@ public final class SettingsFragmentPresenter
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
               SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber, R.string.trigger_right, mGameID));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_TRIGGER_L_ANALOG + gcPadNumber, R.string.trigger_left_analog, mGameID));
+              SettingsFile.KEY_GCBIND_TRIGGER_L_ANALOG + gcPadNumber, R.string.trigger_left_analog,
+              mGameID));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_TRIGGER_R_ANALOG + gcPadNumber, R.string.trigger_right_analog, mGameID));
+              SettingsFile.KEY_GCBIND_TRIGGER_R_ANALOG + gcPadNumber, R.string.trigger_right_analog,
+              mGameID));
 
 
       sl.add(new HeaderSetting(mContext, R.string.controller_dpad, 0));
