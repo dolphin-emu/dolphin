@@ -118,6 +118,7 @@ public:
   void crXXX(UGeckoInstruction inst);
   void mfcr(UGeckoInstruction inst);
   void mtcrf(UGeckoInstruction inst);
+  void mcrfs(UGeckoInstruction inst);
 
   // LoadStore
   void lXX(UGeckoInstruction inst);

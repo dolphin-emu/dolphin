@@ -687,3 +687,37 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
     gpr.Unlock(WB);
   }
 }
+
+void JitArm64::mcrfs(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+
+  u8 shift = 4 * (7 - inst.CRFS);
+  u32 mask = 0xF << shift;
+  u32 field = inst.CRFD;
+
+  // Only clear exception bits (but not FEX/VX).
+  mask &= FPSCR_FX | FPSCR_ANY_X;
+
+  gpr.BindCRToRegister(field, false);
+  ARM64Reg CR = gpr.CR(field);
+  ARM64Reg WA = gpr.GetReg();
+  ARM64Reg WCR = EncodeRegTo32(CR);
+  ARM64Reg XA = EncodeRegTo64(WA);
+
+  LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+  LSR(WCR, WA, shift);
+  ANDI2R(WCR, WCR, 0xF);
+
+  if (mask != 0)
+  {
+    ANDI2R(WA, WA, ~mask);
+    STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+  }
+
+  MOVP2R(XA, PowerPC::ConditionRegister::s_crTable.data());
+  LDR(CR, XA, ArithOption(CR, true));
+
+  gpr.Unlock(WA);
+}
