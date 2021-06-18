@@ -36,9 +36,11 @@ struct NetSettings
   bool m_DSPHLE;
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
+  bool m_RAMOverrideEnable;
   u32 m_Mem1Size;
   u32 m_Mem2Size;
   DiscIO::Region m_FallbackRegion;
+  bool m_AllowSDWrites;
   bool m_CopyWiiSave;
   bool m_OCEnable;
   float m_OCFactor;
@@ -58,6 +60,7 @@ struct NetSettings
   bool m_PerfQueriesEnable;
   bool m_FPRF;
   bool m_AccurateNaNs;
+  bool m_DisableICache;
   bool m_SyncOnSkipIdle;
   bool m_SyncGPU;
   int m_SyncGpuMaxDistance;

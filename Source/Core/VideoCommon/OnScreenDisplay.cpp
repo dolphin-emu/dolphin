@@ -21,9 +21,11 @@
 
 namespace OSD
 {
-constexpr float LEFT_MARGIN = 10.0f;    // Pixels to the left of OSD messages.
-constexpr float TOP_MARGIN = 10.0f;     // Pixels above the first OSD message.
-constexpr float WINDOW_PADDING = 4.0f;  // Pixels between subsequent OSD messages.
+constexpr float LEFT_MARGIN = 10.0f;         // Pixels to the left of OSD messages.
+constexpr float TOP_MARGIN = 10.0f;          // Pixels above the first OSD message.
+constexpr float WINDOW_PADDING = 4.0f;       // Pixels between subsequent OSD messages.
+constexpr float MESSAGE_FADE_TIME = 1000.f;  // Ms to fade OSD messages at the end of their life.
+constexpr float MESSAGE_DROP_TIME = 5000.f;  // Ms to drop OSD messages that has yet to ever render.
 
 static std::atomic<int> s_obscured_pixels_left = 0;
 static std::atomic<int> s_obscured_pixels_top = 0;
@@ -31,12 +33,14 @@ static std::atomic<int> s_obscured_pixels_top = 0;
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 timestamp_, u32 color_)
-      : text(std::move(text_)), timestamp(timestamp_), color(color_)
+  Message(std::string text_, u32 timestamp_, u32 duration_, u32 color_)
+      : text(std::move(text_)), timestamp(timestamp_), duration(duration_), color(color_)
   {
   }
   std::string text;
   u32 timestamp = 0;
+  u32 duration = 0;
+  bool ever_drawn = false;
   u32 color = 0;
 };
 static std::multimap<MessageType, Message> s_messages;
@@ -50,7 +54,7 @@ static ImVec4 ARGBToImVec4(const u32 argb)
                 static_cast<float>((argb >> 24) & 0xFF) / 255.0f);
 }
 
-static float DrawMessage(int index, const Message& msg, const ImVec2& position, int time_left)
+static float DrawMessage(int index, Message& msg, const ImVec2& position, int time_left)
 {
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
@@ -60,9 +64,10 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
   ImGui::SetNextWindowPos(position);
   ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
 
-  // Gradually fade old messages away.
-  const float alpha = std::min(1.0f, std::max(0.0f, time_left / 1024.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+  // Gradually fade old messages away (except in their first frame)
+  const float fade_time = std::max(std::min(MESSAGE_FADE_TIME, (float)msg.duration), 1.f);
+  const float alpha = std::clamp(time_left / fade_time, 0.f, 1.f);
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, msg.ever_drawn ? alpha : 1.0);
 
   float window_height = 0.0f;
   if (ImGui::Begin(window_name.c_str(), nullptr,
@@ -80,6 +85,8 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
   ImGui::End();
   ImGui::PopStyleVar();
 
+  msg.ever_drawn = true;
+
   return window_height;
 }
 
@@ -87,14 +94,14 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb)
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.erase(type);
-  s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, argb));
+  s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, ms, argb));
 }
 
 void AddMessage(std::string message, u32 ms, u32 argb)
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.emplace(MessageType::Typeless,
-                     Message(std::move(message), Common::Timer::GetTimeMs() + ms, argb));
+                     Message(std::move(message), Common::Timer::GetTimeMs() + ms, ms, argb));
 }
 
 void DrawMessages()
@@ -110,10 +117,12 @@ void DrawMessages()
 
   for (auto it = s_messages.begin(); it != s_messages.end();)
   {
-    const Message& msg = it->second;
+    Message& msg = it->second;
     const int time_left = static_cast<int>(msg.timestamp - now);
 
-    if (time_left <= 0)
+    // Make sure we draw them at least once if they were printed with 0ms,
+    // unless enough time has expired, in that case, we drop them
+    if (time_left <= 0 && (msg.ever_drawn || -time_left >= MESSAGE_DROP_TIME))
     {
       it = s_messages.erase(it);
       continue;
@@ -143,5 +152,4 @@ void SetObscuredPixelsTop(int height)
 {
   s_obscured_pixels_top = height;
 }
-
 }  // namespace OSD

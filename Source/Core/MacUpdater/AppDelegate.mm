@@ -10,13 +10,16 @@
 #include <string>
 #include <vector>
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 @interface AppDelegate ()
 
 @end
 
 @implementation AppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification {
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+{
   NSArray* arguments = [[NSProcessInfo processInfo] arguments];
 
   __block std::vector<std::string> args;
@@ -32,7 +35,8 @@
   });
 }
 
-- (void)applicationWillTerminate:(NSNotification*)aNotification {
+- (void)applicationWillTerminate:(NSNotification*)aNotification
+{
 }
 
 @end

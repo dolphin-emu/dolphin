@@ -2,7 +2,6 @@ add_library(common
   Analytics.cpp
   Analytics.h
   Assert.h
-  Atomic.h
   BitField.h
   BitSet.h
   BitUtils.h
@@ -125,6 +124,7 @@ add_library(common
   TraversalClient.cpp
   TraversalClient.h
   TraversalProto.h
+  TypeUtils.h
   UPnP.cpp
   UPnP.h
   VariantUtil.h
@@ -199,7 +199,7 @@ if(_M_ARM_64)
     Arm64Emitter.h
     ArmCommon.h
     ArmCPUDetect.cpp
-    GenericFPURoundMode.cpp
+    ArmFPURoundMode.cpp
   )
 else()
   if(_M_X86) #X86

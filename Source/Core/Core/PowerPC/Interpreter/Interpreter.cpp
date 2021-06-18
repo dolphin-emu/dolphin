@@ -5,7 +5,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include <array>
-#include <cassert>
 #include <cinttypes>
 #include <string>
 

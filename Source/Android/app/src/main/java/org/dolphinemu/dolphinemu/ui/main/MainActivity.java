@@ -226,6 +226,11 @@ public final class MainActivity extends AppCompatActivity
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
                   () -> mPresenter.importWiiSave(result.getData().toString()));
           break;
+
+        case MainPresenter.REQUEST_NAND_BIN_FILE:
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
+                  () -> mPresenter.importNANDBin(result.getData().toString()));
+          break;
       }
     }
     else

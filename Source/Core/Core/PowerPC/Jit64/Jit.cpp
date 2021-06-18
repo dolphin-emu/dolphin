@@ -419,15 +419,23 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
   gpr.Flush();
   fpr.Flush();
+
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
   }
+
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
+
+  // If the instruction wrote to any registers which were marked as discarded,
+  // we must mark them as no longer discarded
+  gpr.Reset(js.op->regsOut);
+  fpr.Reset(js.op->GetFregsOut());
+
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
     if (js.isLastInstruction)
@@ -974,6 +982,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     js.compilerPC = op.address;
     js.op = &op;
+    js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
@@ -1104,11 +1113,13 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         // output, which needs to be bound in the actual instruction compilation.
         // TODO: make this smarter in the case that we're actually register-starved, i.e.
         // prioritize the more important registers.
-        gpr.PreloadRegisters(op.regsIn & op.gprInReg);
-        fpr.PreloadRegisters(op.fregsIn & op.fprInXmm);
+        gpr.PreloadRegisters(op.regsIn & op.gprInUse & ~op.gprDiscardable);
+        fpr.PreloadRegisters(op.fregsIn & op.fprInXmm & ~op.fprDiscardable);
       }
 
       CompileInstruction(op);
+
+      js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {
@@ -1151,7 +1162,12 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       gpr.Commit();
       fpr.Commit();
 
-      // If we have a register that will never be used again, flush it.
+      // If we have a register that will never be used again, discard or flush it.
+      if (!SConfig::GetInstance().bJITRegisterCacheOff)
+      {
+        gpr.Discard(op.gprDiscardable);
+        fpr.Discard(op.fprDiscardable);
+      }
       gpr.Flush(~op.gprInUse);
       fpr.Flush(~op.fprInUse);
 

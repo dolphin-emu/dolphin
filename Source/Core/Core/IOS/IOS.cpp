@@ -256,8 +256,11 @@ Kernel::Kernel()
   // Until the Wii root and NAND path stuff is entirely managed by IOS and made non-static,
   // using more than one IOS instance at a time is not supported.
   ASSERT(GetIOS() == nullptr);
-  Core::InitializeWiiRoot(false);
-  m_is_responsible_for_nand_root = true;
+
+  m_is_responsible_for_nand_root = !Core::WiiRootIsInitialized();
+  if (m_is_responsible_for_nand_root)
+    Core::InitializeWiiRoot(false);
+
   AddCoreDevices();
 }
 
@@ -346,16 +349,16 @@ u16 Kernel::GetGidForPPC() const
 static std::vector<u8> ReadBootContent(FSDevice* fs, const std::string& path, size_t max_size,
                                        Ticks ticks = {})
 {
-  const s64 fd = fs->Open(0, 0, path, FS::Mode::Read, {}, ticks);
-  if (fd < 0)
+  const auto fd = fs->Open(0, 0, path, FS::Mode::Read, {}, ticks);
+  if (fd.Get() < 0)
     return {};
 
-  const size_t file_size = fs->GetFileStatus(fd, ticks)->size;
+  const size_t file_size = fs->GetFileStatus(fd.Get(), ticks)->size;
   if (max_size != 0 && file_size > max_size)
     return {};
 
   std::vector<u8> buffer(file_size);
-  if (!fs->Read(fd, buffer.data(), buffer.size(), ticks))
+  if (!fs->Read(fd.Get(), buffer.data(), buffer.size(), ticks))
     return {};
   return buffer;
 }

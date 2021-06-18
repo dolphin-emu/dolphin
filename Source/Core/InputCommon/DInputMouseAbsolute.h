@@ -19,7 +19,9 @@ public:
   void Init(LPDIRECTINPUTDEVICE8 mo_device);
 
   void UpdateInput() override;
-  void LockCursorToGameWindow() override;
+
+  // Handled by Dolphin for Windows
+  void LockCursorToGameWindow() override {};
 
 private:
   DIMOUSESTATE2 state_prev;

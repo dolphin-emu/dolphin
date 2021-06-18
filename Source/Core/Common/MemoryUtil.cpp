@@ -16,6 +16,7 @@
 #include <windows.h>
 #include "Common/StringUtil.h"
 #else
+#include <pthread.h>
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -38,9 +39,15 @@ void* AllocateExecutableMemory(size_t size)
 #if defined(_WIN32)
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-  void* ptr =
-      mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
-
+  int map_flags = MAP_ANON | MAP_PRIVATE;
+#if defined(__APPLE__)
+  // This check is in place to prepare for x86_64 MAP_JIT support. While MAP_JIT did exist
+  // prior to 10.14, it had restrictions on the number of JIT allocations that were removed
+  // in 10.14.
+  if (__builtin_available(macOS 10.14, *))
+    map_flags |= MAP_JIT;
+#endif
+  void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, map_flags, -1, 0);
   if (ptr == MAP_FAILED)
     ptr = nullptr;
 #endif
@@ -49,6 +56,79 @@ void* AllocateExecutableMemory(size_t size)
     PanicAlertFmt("Failed to allocate executable memory");
 
   return ptr;
+}
+// This function is used to provide a counter for the JITPageWrite*Execute*
+// functions to enable nesting. The static variable is wrapped in a a function
+// to allow those functions to be called inside of the constructor of a static
+// variable portably.
+//
+// The variable is thread_local as the W^X mode is specific to each running thread.
+static int& JITPageWriteNestCounter()
+{
+  static thread_local int nest_counter = 0;
+  return nest_counter;
+}
+
+// Certain platforms (Mac OS on ARM) enforce that a single thread can only have write or
+// execute permissions to pages at any given point of time. The two below functions
+// are used to toggle between having write permissions or execute permissions.
+//
+// The default state of these allocations in Dolphin is for them to be executable,
+// but not writeable. So, functions that are updating these pages should wrap their
+// writes like below:
+
+// JITPageWriteEnableExecuteDisable();
+// PrepareInstructionStreamForJIT();
+// JITPageWriteDisableExecuteEnable();
+
+// These functions can be nested, in which case execution will only be enabled
+// after the call to the JITPageWriteDisableExecuteEnable from the top most
+// nesting level. Example:
+
+// [JIT page is in execute mode for the thread]
+// JITPageWriteEnableExecuteDisable();
+//   [JIT page is in write mode for the thread]
+//   JITPageWriteEnableExecuteDisable();
+//     [JIT page is in write mode for the thread]
+//   JITPageWriteDisableExecuteEnable();
+//   [JIT page is in write mode for the thread]
+// JITPageWriteDisableExecuteEnable();
+// [JIT page is in execute mode for the thread]
+
+// Allows a thread to write to executable memory, but not execute the data.
+void JITPageWriteEnableExecuteDisable()
+{
+#if defined(_M_ARM_64) && defined(__APPLE__)
+  if (JITPageWriteNestCounter() == 0)
+  {
+    if (__builtin_available(macOS 11.0, *))
+    {
+      pthread_jit_write_protect_np(0);
+    }
+  }
+#endif
+  JITPageWriteNestCounter()++;
+}
+// Allows a thread to execute memory allocated for execution, but not write to it.
+void JITPageWriteDisableExecuteEnable()
+{
+  JITPageWriteNestCounter()--;
+
+  // Sanity check the NestCounter to identify underflow
+  // This can indicate the calls to JITPageWriteDisableExecuteEnable()
+  // are not matched with previous calls to JITPageWriteEnableExecuteDisable()
+  if (JITPageWriteNestCounter() < 0)
+    PanicAlertFmt("JITPageWriteNestCounter() underflowed");
+
+#if defined(_M_ARM_64) && defined(__APPLE__)
+  if (JITPageWriteNestCounter() == 0)
+  {
+    if (__builtin_available(macOS 11.0, *))
+    {
+      pthread_jit_write_protect_np(1);
+    }
+  }
+#endif
 }
 
 void* AllocateMemoryPages(size_t size)
@@ -128,7 +208,10 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
     PanicAlertFmt("WriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
-#else
+#elif !(defined(_M_ARM_64) && defined(__APPLE__))
+  // MacOS 11.2 on ARM does not allow for changing the access permissions of pages
+  // that were marked executable, instead it uses the protections offered by MAP_JIT
+  // for write protection.
   if (mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ) != 0)
     PanicAlertFmt("WriteProtectMemory failed!\nmprotect: {}", LastStrerrorString());
 #endif
@@ -140,7 +223,10 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   DWORD oldValue;
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
     PanicAlertFmt("UnWriteProtectMemory failed!\nVirtualProtect: {}", GetLastErrorString());
-#else
+#elif !(defined(_M_ARM_64) && defined(__APPLE__))
+  // MacOS 11.2 on ARM does not allow for changing the access permissions of pages
+  // that were marked executable, instead it uses the protections offered by MAP_JIT
+  // for write protection.
   if (mprotect(ptr, size,
                allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
   {

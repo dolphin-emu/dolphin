@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
@@ -14,36 +16,36 @@ public class StringSingleChoiceSetting extends SettingsItem
   private String[] mValuesId;
   private MenuTag mMenuTag;
 
-  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+  public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
           int descriptionId, String[] choicesId, String[] valuesId, MenuTag menuTag)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
     mSetting = setting;
     mChoicesId = choicesId;
     mValuesId = valuesId;
     mMenuTag = menuTag;
   }
 
-  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+  public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
           int descriptionId, String[] choicesId, String[] valuesId)
   {
-    this(setting, titleId, descriptionId, choicesId, valuesId, null);
+    this(context, setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
-  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+  public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
           int descriptionId, int choicesId, int valuesId, MenuTag menuTag)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
     mSetting = setting;
     mChoicesId = DolphinApplication.getAppContext().getResources().getStringArray(choicesId);
     mValuesId = DolphinApplication.getAppContext().getResources().getStringArray(valuesId);
     mMenuTag = menuTag;
   }
 
-  public StringSingleChoiceSetting(AbstractStringSetting setting, int titleId,
+  public StringSingleChoiceSetting(Context context, AbstractStringSetting setting, int titleId,
           int descriptionId, int choicesId, int valuesId)
   {
-    this(setting, titleId, descriptionId, choicesId, valuesId, null);
+    this(context, setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
   public String[] getChoicesId()

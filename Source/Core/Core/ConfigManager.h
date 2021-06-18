@@ -111,6 +111,7 @@ struct SConfig
   bool bFastmem;
   bool bFPRF = false;
   bool bAccurateNaNs = false;
+  bool bDisableICache = false;
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
@@ -161,6 +162,7 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
+  bool bLockCursor = false;
   std::string theme_name;
 
   // Bluetooth passthrough mode settings

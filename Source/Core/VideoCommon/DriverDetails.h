@@ -288,6 +288,24 @@ enum Bug
   // Mali Vulkan driver, causing high CPU usage in the __pi___inval_cache_range kernel
   // function. This flag causes readback buffers to select the coherent type.
   BUG_SLOW_CACHED_READBACK_MEMORY,
+
+  // BUG: Apparently ARM Mali GLSL compiler managed to break bitwise AND operations between
+  // two integers vectors, when one of them is non-constant (though the exact cases of when
+  // this occurs are still unclear). The resulting vector from the operation will be the
+  // constant vector.
+  // Easy enough to fix, just do the bitwise AND operation on the vector components first and
+  // then construct the final vector.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_VECTOR_BITWISE_AND,
+
+  // BUG: Atomic writes to different fields or array elements of an SSBO have no effect, only
+  // writing to the first field/element works. This causes bounding box emulation to give garbage
+  // values under OpenGL.
+  // Affected devices: AMD (Windows)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_SSBO_FIELD_ATOMICS,
 };
 
 // Initializes our internal vendor, device family, and driver version

@@ -73,6 +73,8 @@ void JitArm64::Init()
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
+  // Ifdef this since the exception handler runs on a separate thread on macOS (ARM)
+#if !(defined(__APPLE__) && defined(_M_ARM_64))
   // We can't handle any fault from other threads.
   if (!Core::IsCPUThread())
   {
@@ -80,6 +82,7 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
     DoBacktrace(access_address, ctx);
     return false;
   }
+#endif
 
   bool success = false;
 
@@ -124,6 +127,7 @@ void JitArm64::ClearCache()
   m_handler_to_loc.clear();
 
   blocks.Clear();
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
   farcode.ClearCodeSpace();
   UpdateMemoryOptions();
@@ -160,6 +164,11 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   MOVP2R(ARM64Reg::X8, instr);
   MOVI2R(ARM64Reg::W0, inst.hex);
   BLR(ARM64Reg::X8);
+
+  // If the instruction wrote to any registers which were marked as discarded,
+  // we must mark them as no longer discarded
+  gpr.ResetRegisters(js.op->regsOut);
+  fpr.ResetRegisters(js.op->GetFregsOut());
 
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
@@ -591,6 +600,7 @@ void JitArm64::Jit(u32)
   {
     ClearCache();
   }
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
   std::size_t block_size = m_code_buffer.size();
   const u32 em_address = PowerPC::ppcState.pc;
@@ -690,6 +700,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     js.compilerPC = op.address;
     js.op = &op;
+    js.fpr_is_store_safe = op.fprIsStoreSafeBeforeInst;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = op.opinfo;
@@ -825,10 +836,18 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
 
       CompileInstruction(op);
+
+      js.fpr_is_store_safe = op.fprIsStoreSafeAfterInst;
+
       if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();
 
-      // If we have a register that will never be used again, flush it.
+      // If we have a register that will never be used again, discard or flush it.
+      if (!SConfig::GetInstance().bJITRegisterCacheOff)
+      {
+        gpr.DiscardRegisters(op.gprDiscardable);
+        fpr.DiscardRegisters(op.fprDiscardable);
+      }
       gpr.StoreRegisters(~op.gprInUse);
       fpr.StoreRegisters(~op.fprInUse);
 

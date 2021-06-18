@@ -29,10 +29,11 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/DefaultLocale.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
@@ -146,6 +147,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 
   interface->Set("ConfirmStop", bConfirmStop);
   interface->Set("HideCursor", bHideCursor);
+  interface->Set("LockCursor", bLockCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
@@ -410,6 +412,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
   bHideCursor = true;
+  interface->Get("LockCursor", &bLockCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
@@ -481,11 +484,12 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("EnableCheats", &bEnableCheats, true);
+  core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("InitialPrimeHackRun", &bInitialPrimeHack, false);
   core->Get("PromptPrimeHackTab", &bPromptPrimeHackTab, false);
   core->Get("EnablePrimeHack", &bEnablePrimeHack, true);
-  core->Get("SelectedLanguage", &SelectedLanguage, 0);
+  core->Get("SelectedLanguage", &SelectedLanguage,
+            DiscIO::ToGameCubeLanguage(Config::GetDefaultLanguage()));
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
   core->Get("AudioLatency", &iLatency, 20);
@@ -523,6 +527,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("LowDCBZHack", &bLowDCBZHack, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
+  core->Get("DisableICache", &bDisableICache, false);
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
@@ -618,7 +623,7 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  section->Get("UpdateTrack", &m_auto_update_track, SCM_UPDATE_TRACK_STR);
+  section->Get("UpdateTrack", &m_auto_update_track, Common::scm_update_track_str);
   section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
@@ -771,6 +776,7 @@ void SConfig::LoadDefaults()
   bFastmem = true;
   bFPRF = false;
   bAccurateNaNs = false;
+  bDisableICache = false;
   bMMU = false;
   bLowDCBZHack = false;
   iBBDumpPort = -1;
@@ -989,12 +995,11 @@ DiscIO::Region SConfig::GetFallbackRegion()
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
-  int language_value;
+  DiscIO::Language language;
   if (wii)
-    language_value = Config::Get(Config::SYSCONF_LANGUAGE);
+    language = static_cast<DiscIO::Language>(Config::Get(Config::SYSCONF_LANGUAGE));
   else
-    language_value = SConfig::GetInstance().SelectedLanguage + 1;
-  DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
+    language = DiscIO::FromGameCubeLanguage(SConfig::GetInstance().SelectedLanguage);
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
   if (language > DiscIO::Language::Unknown || language < DiscIO::Language::Japanese)

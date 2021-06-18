@@ -1,1 +1,1 @@
-MoltenVK from https://github.com/KhronosGroup/MoltenVK, commit b9b78def172074872bfbb1015ccf75eeec554ae2
+MoltenVK from https://vulkan.lunarg.com/sdk/home#mac, version 1.2.170.0

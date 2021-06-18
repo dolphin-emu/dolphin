@@ -32,7 +32,7 @@ public final class SubmenuViewHolder extends SettingViewHolder
   {
     mItem = (SubmenuSetting) item;
 
-    mTextSettingName.setText(item.getNameId());
+    mTextSettingName.setText(item.getName());
   }
 
   @Override

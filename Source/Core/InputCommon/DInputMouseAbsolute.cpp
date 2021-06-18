@@ -3,11 +3,6 @@
 #include "VideoCommon\OnScreenDisplay.h"
 #include "Core\ConfigManager.h"
 
-int win_x = 0, win_y = 0;
-// UNUSED -- Intended for XInput2
-int win_w, win_h;
-void* win_hdl;
-
 namespace prime
 {
 void InitMouse(IDirectInput8* const idi8)
@@ -88,21 +83,5 @@ void DInputMouse::UpdateInput()
 
     state_prev = input_temp;
   }
-
-  // Ensure the cursor is locked when it needs to be
-  LockCursorToGameWindow();
 }
-
-void DInputMouse::LockCursorToGameWindow()
-{
-  if (Host_RendererHasFocus() && cursor_locked)
-  {
-    SetCursorPos(win_x, win_y);
-  }
-  else
-  {
-    cursor_locked = false;
-  }
-}
-
 }  // namespace prime

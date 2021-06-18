@@ -420,7 +420,7 @@ struct SDSP
 
   u8 reg_stack_ptrs[4]{};
   u8 exceptions = 0;  // pending exceptions
-  volatile bool external_interrupt_waiting = false;
+  std::atomic<bool> external_interrupt_waiting = false;
   bool reset_dspjit_codespace = false;
 
   // DSP hardware stacks. They're mapped to a bunch of registers, such that writes

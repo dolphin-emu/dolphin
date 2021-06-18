@@ -69,10 +69,9 @@ int Interpreter::RunCyclesThread(int cycles)
     if ((state.cr & CR_HALT) != 0)
       return 0;
 
-    if (state.external_interrupt_waiting)
+    if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
     {
       m_dsp_core.CheckExternalInterrupt();
-      m_dsp_core.SetExternalInterrupt(false);
     }
 
     Step();

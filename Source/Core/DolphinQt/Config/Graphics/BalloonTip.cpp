@@ -14,7 +14,6 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
-#include <QPropertyAnimation>
 #include <QPushButton>
 #include <QStyle>
 
@@ -30,6 +29,8 @@
 #endif
 
 #include "Core/Config/MainSettings.h"
+
+#include "DolphinQt/Settings.h"
 
 namespace
 {
@@ -73,54 +74,11 @@ BalloonTip::BalloonTip(PrivateTag, const QIcon& icon, QString title, QString mes
   setAttribute(Qt::WA_DeleteOnClose);
   setAutoFillBackground(true);
 
-  const QPalette& pal = parent->palette();
-
-  const auto theme_window_color = pal.color(QPalette::Base);
-  const auto theme_window_hsv = theme_window_color.toHsv();
-
-  const auto brightness = theme_window_hsv.value();
-
   QColor window_color;
   QColor text_color;
   QColor dolphin_emphasis;
-  const bool use_high_contrast = Config::Get(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS);
-  if (brightness > 128)
-  {
-    if (use_high_contrast)
-    {
-      // Our theme color is light, so make it darker
-      window_color = QColor(72, 72, 72);
-      text_color = Qt::white;
-      dolphin_emphasis = Qt::yellow;
-      m_border_color = palette().color(QPalette::Window).darker(160);
-    }
-    else
-    {
-      window_color = pal.color(QPalette::Window);
-      text_color = pal.color(QPalette::Text);
-      dolphin_emphasis = QColor(QStringLiteral("#0090ff"));
-      m_border_color = pal.color(QPalette::Text);
-    }
-  }
-  else
-  {
-    if (use_high_contrast)
-    {
-      // Our theme color is dark, so make it lighter
-      window_color = Qt::white;
-      text_color = Qt::black;
-      dolphin_emphasis = QColor(QStringLiteral("#0090ff"));
-      m_border_color = palette().color(QPalette::Window).darker(160);
-    }
-    else
-    {
-      window_color = pal.color(QPalette::Window);
-      text_color = pal.color(QPalette::Text);
-      dolphin_emphasis = Qt::yellow;
-      m_border_color = pal.color(QPalette::Text);
-    }
-  }
-
+  Settings::Instance().GetToolTipStyle(window_color, text_color, dolphin_emphasis, m_border_color,
+                                       parent->palette(), palette());
   const auto style_sheet = QStringLiteral("background-color: #%1; color: #%2;")
                                .arg(window_color.rgba(), 0, 16)
                                .arg(text_color.rgba(), 0, 16);
@@ -188,6 +146,7 @@ void BalloonTip::UpdateBoundsAndRedraw(const QPoint& pos, ShowArrow show_arrow)
   const QRect screen_rect = screen->geometry();
 #endif
   QSize sh = sizeHint();
+  // The look should resemble the default tooltip style set in Settings::SetCurrentUserStyle()
   const int border = 1;
   const int arrow_height = 18;
   const int arrow_width = 18;

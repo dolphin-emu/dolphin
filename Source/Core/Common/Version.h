@@ -14,6 +14,7 @@ extern const std::string scm_branch_str;
 extern const std::string scm_rev_str;
 extern const std::string scm_rev_git_str;
 extern const std::string scm_distributor_str;
+extern const std::string scm_update_track_str;
 extern const std::string netplay_dolphin_ver;
 extern const std::string primehack_ver;
 }  // namespace Common

@@ -5,7 +5,6 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -657,6 +656,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_DSPEnableJIT;
       packet >> m_net_settings.m_DSPHLE;
       packet >> m_net_settings.m_WriteToMemcard;
+      packet >> m_net_settings.m_RAMOverrideEnable;
       packet >> m_net_settings.m_Mem1Size;
       packet >> m_net_settings.m_Mem2Size;
 
@@ -666,6 +666,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
       }
 
+      packet >> m_net_settings.m_AllowSDWrites;
       packet >> m_net_settings.m_CopyWiiSave;
       packet >> m_net_settings.m_OCEnable;
       packet >> m_net_settings.m_OCFactor;
@@ -692,6 +693,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_PerfQueriesEnable;
       packet >> m_net_settings.m_FPRF;
       packet >> m_net_settings.m_AccurateNaNs;
+      packet >> m_net_settings.m_DisableICache;
       packet >> m_net_settings.m_SyncOnSkipIdle;
       packet >> m_net_settings.m_SyncGPU;
       packet >> m_net_settings.m_SyncGpuMaxDistance;
@@ -857,6 +859,13 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       bool mc251;
       packet >> is_slot_a >> region >> mc251;
 
+      // This check is mainly intended to filter out characters which have special meanings in paths
+      if (region != JAP_DIR && region != USA_DIR && region != EUR_DIR)
+      {
+        SyncSaveDataResponse(false);
+        return 0;
+      }
+
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY +
                                (is_slot_a ? "A." : "B.") + region + (mc251 ? ".251" : "") + ".raw";
       if (File::Exists(path) && !File::Delete(path))
@@ -896,7 +905,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         std::string file_name;
         packet >> file_name;
 
-        if (!DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
+        if (!Common::IsFileNameSafe(file_name) ||
+            !DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
         {
           SyncSaveDataResponse(false);
           return 0;
@@ -2026,7 +2036,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
     }
   }
 
-  assert(nw.data.size() == size);
+  ASSERT(nw.data.size() == size);
   std::copy(nw.data.begin(), nw.data.end(), data);
   return true;
 }

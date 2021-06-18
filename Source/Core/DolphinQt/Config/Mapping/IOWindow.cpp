@@ -275,6 +275,7 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr("^ Xor"));
   }
   m_operators_combo->addItem(tr("| Or"));
+  m_operators_combo->addItem(tr("$ User Variable"));
   if (m_type == Type::Input)
   {
     m_operators_combo->addItem(tr(", Comma"));
@@ -304,6 +305,15 @@ void IOWindow::CreateMainLayout()
   m_functions_combo->addItem(QStringLiteral("min"));
   m_functions_combo->addItem(QStringLiteral("max"));
   m_functions_combo->addItem(QStringLiteral("clamp"));
+
+  m_variables_combo = new QComboBoxWithMouseWheelDisabled(this);
+  m_variables_combo->addItem(tr("User Variables"));
+  m_variables_combo->setToolTip(
+      tr("User defined variables usable in the control expression.\nYou can use them to save or "
+         "retrieve values between\ninputs and outputs of the same parent controller."));
+  m_variables_combo->insertSeparator(m_variables_combo->count());
+  m_variables_combo->addItem(tr("Reset Values"));
+  m_variables_combo->insertSeparator(m_variables_combo->count());
 
   // Devices
   m_main_layout->addWidget(m_devices_combo);
@@ -366,6 +376,8 @@ void IOWindow::CreateMainLayout()
     button_vbox->addWidget(m_test_button);
   }
 
+  button_vbox->addWidget(m_variables_combo);
+
   button_vbox->addWidget(m_operators_combo);
 
   if (m_type == Type::Input)
@@ -425,8 +437,26 @@ void IOWindow::ConnectWidgets()
   connect(m_expression_text, &QPlainTextEdit::textChanged,
           [this] { UpdateExpression(m_expression_text->toPlainText().toStdString()); });
 
+  connect(m_variables_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
+    if (index == 0)
+      return;
+
+    // Reset button. 1 and 3 are separators.
+    if (index == 2)
+    {
+      const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+      m_controller->ResetExpressionVariables();
+    }
+    else
+    {
+      m_expression_text->insertPlainText(QLatin1Char('$') + m_variables_combo->currentText());
+    }
+
+    m_variables_combo->setCurrentIndex(0);
+  });
+
   connect(m_operators_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
-    if (0 == index)
+    if (index == 0)
       return;
 
     m_expression_text->insertPlainText(m_operators_combo->currentText().left(1));
@@ -435,7 +465,7 @@ void IOWindow::ConnectWidgets()
   });
 
   connect(m_functions_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
-    if (0 == index)
+    if (index == 0)
       return;
 
     m_expression_text->insertPlainText(m_functions_combo->currentText() + QStringLiteral("()"));
@@ -563,6 +593,16 @@ void IOWindow::UpdateExpression(std::string new_expression, UpdateMode mode)
   const auto error = m_reference->SetExpression(std::move(new_expression));
   const auto status = m_reference->GetParseStatus();
   m_controller->UpdateSingleControlReference(g_controller_interface, m_reference);
+
+  // This is the only place where we need to update the user variables. Keep the first 4 items.
+  while (m_variables_combo->count() > 4)
+  {
+    m_variables_combo->removeItem(m_variables_combo->count() - 1);
+  }
+  for (const auto& expression : m_controller->GetExpressionVariables())
+  {
+    m_variables_combo->addItem(QString::fromStdString(expression.first));
+  }
 
   if (error)
   {

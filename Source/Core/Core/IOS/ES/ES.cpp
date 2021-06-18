@@ -403,9 +403,9 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
   // To keep track of the PPC title launch, a temporary launch file (LAUNCH_FILE_PATH) is used
   // to store the title ID of the title to launch and its TMD.
   // The launch file not existing means an IOS reload is required.
-  const auto launch_file_fd = m_ios.GetFSDevice()->Open(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH,
-                                                        FS::Mode::Read, {}, &ticks);
-  if (launch_file_fd < 0)
+  if (const auto launch_file_fd = m_ios.GetFSDevice()->Open(
+          PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, FS::Mode::Read, {}, &ticks);
+      launch_file_fd.Get() < 0)
   {
     if (WriteLaunchFile(tmd, &ticks) != IPC_SUCCESS)
     {
@@ -423,7 +423,6 @@ bool ESDevice::LaunchPPCTitle(u64 title_id)
 
   // Otherwise, assume that the PPC title can now be launched directly.
   // Unlike IOS, we won't bother checking the title ID in the launch file. (It's not useful.)
-  m_ios.GetFSDevice()->Close(launch_file_fd, &ticks);
   m_ios.GetFSDevice()->DeleteFile(PID_KERNEL, PID_KERNEL, LAUNCH_FILE_PATH, &ticks);
   WriteSystemFile(SPACE_FILE_PATH, std::vector<u8>(SPACE_FILE_SIZE), &ticks);
 

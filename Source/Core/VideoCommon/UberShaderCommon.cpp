@@ -103,29 +103,29 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "  int4 lacc = int4(255, 255, 255, 255);\n"
             "\n");
 
-  out.Write("  if ({} != 0u)\n", BitfieldExtract("colorreg", LitChannel().matsource));
+  out.Write("  if ({} != 0u)\n", BitfieldExtract<&LitChannel::matsource>("colorreg"));
   out.Write("    mat.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
             in_color_0_var, in_color_1_var);
 
-  out.Write("  if ({} != 0u)\n", BitfieldExtract("alphareg", LitChannel().matsource));
+  out.Write("  if ({} != 0u)\n", BitfieldExtract<&LitChannel::matsource>("alphareg"));
   out.Write("    mat.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
             in_color_1_var);
   out.Write("  else\n"
             "    mat.w = " I_MATERIALS " [chan + 2u].w;\n"
             "\n");
 
-  out.Write("  if ({} != 0u) {{\n", BitfieldExtract("colorreg", LitChannel().enablelighting));
-  out.Write("    if ({} != 0u)\n", BitfieldExtract("colorreg", LitChannel().ambsource));
+  out.Write("  if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::enablelighting>("colorreg"));
+  out.Write("    if ({} != 0u)\n", BitfieldExtract<&LitChannel::ambsource>("colorreg"));
   out.Write("      lacc.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
             in_color_0_var, in_color_1_var);
   out.Write("    else\n"
             "      lacc.xyz = " I_MATERIALS " [chan].xyz;\n"
             "\n");
   out.Write("    uint light_mask = {} | ({} << 4u);\n",
-            BitfieldExtract("colorreg", LitChannel().lightMask0_3),
-            BitfieldExtract("colorreg", LitChannel().lightMask4_7));
-  out.Write("    uint attnfunc = {};\n", BitfieldExtract("colorreg", LitChannel().attnfunc));
-  out.Write("    uint diffusefunc = {};\n", BitfieldExtract("colorreg", LitChannel().diffusefunc));
+            BitfieldExtract<&LitChannel::lightMask0_3>("colorreg"),
+            BitfieldExtract<&LitChannel::lightMask4_7>("colorreg"));
+  out.Write("    uint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>("colorreg"));
+  out.Write("    uint diffusefunc = {};\n", BitfieldExtract<&LitChannel::diffusefunc>("colorreg"));
   out.Write(
       "    for (uint light_index = 0u; light_index < 8u; light_index++) {{\n"
       "      if ((light_mask & (1u << light_index)) != 0u)\n"
@@ -135,8 +135,8 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "  }}\n"
             "\n");
 
-  out.Write("  if ({} != 0u) {{\n", BitfieldExtract("alphareg", LitChannel().enablelighting));
-  out.Write("    if ({} != 0u) {{\n", BitfieldExtract("alphareg", LitChannel().ambsource));
+  out.Write("  if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::enablelighting>("alphareg"));
+  out.Write("    if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::ambsource>("alphareg"));
   out.Write("      if ((components & ({}u << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
   out.Write("        lacc.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
             in_color_1_var);
@@ -149,10 +149,10 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "    }}\n"
             "\n");
   out.Write("    uint light_mask = {} | ({} << 4u);\n",
-            BitfieldExtract("alphareg", LitChannel().lightMask0_3),
-            BitfieldExtract("alphareg", LitChannel().lightMask4_7));
-  out.Write("    uint attnfunc = {};\n", BitfieldExtract("alphareg", LitChannel().attnfunc));
-  out.Write("    uint diffusefunc = {};\n", BitfieldExtract("alphareg", LitChannel().diffusefunc));
+            BitfieldExtract<&LitChannel::lightMask0_3>("alphareg"),
+            BitfieldExtract<&LitChannel::lightMask4_7>("alphareg"));
+  out.Write("    uint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>("alphareg"));
+  out.Write("    uint diffusefunc = {};\n", BitfieldExtract<&LitChannel::diffusefunc>("alphareg"));
   out.Write("    for (uint light_index = 0u; light_index < 8u; light_index++) {{\n\n"
             "      if ((light_mask & (1u << light_index)) != 0u)\n\n"
             "        lacc.w += CalculateLighting(light_index, attnfunc, diffusefunc, {}, {}).w;\n",

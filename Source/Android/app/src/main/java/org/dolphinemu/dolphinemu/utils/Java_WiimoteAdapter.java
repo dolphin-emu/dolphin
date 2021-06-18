@@ -9,6 +9,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 
 import androidx.annotation.Keep;
 
@@ -50,11 +51,14 @@ public class Java_WiimoteAdapter
           if (!manager.hasPermission(dev))
           {
             Log.warning("Requesting permission for Wii Remote adapter");
-            Intent intent = new Intent();
-            PendingIntent pend_intent;
-            intent.setClass(context, USBPermService.class);
-            pend_intent = PendingIntent.getService(context, 0, intent, 0);
-            manager.requestPermission(dev, pend_intent);
+
+            Intent intent = new Intent(context, USBPermService.class);
+
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+                    PendingIntent.FLAG_IMMUTABLE : 0;
+            PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, flags);
+
+            manager.requestPermission(dev, pendingIntent);
           }
         }
       }

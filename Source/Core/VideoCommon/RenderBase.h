@@ -211,9 +211,9 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  virtual u16 BBoxRead(int index) = 0;
-  virtual void BBoxWrite(int index, u16 value) = 0;
-  virtual void BBoxFlush() {}
+  u16 BBoxRead(int index);
+  void BBoxWrite(int index, u16 value);
+  void BBoxFlush();
 
   virtual void Flush() {}
   virtual void WaitForGPUIdle() {}
@@ -300,6 +300,10 @@ protected:
   // Renders ImGui windows to the currently-bound framebuffer.
   // Should be called with the ImGui lock held.
   void DrawImGui();
+
+  virtual u16 BBoxReadImpl(int index) = 0;
+  virtual void BBoxWriteImpl(int index, u16 value) = 0;
+  virtual void BBoxFlushImpl() {}
 
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
@@ -389,6 +393,18 @@ private:
   u32 m_last_xfb_width = 0;
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
+
+  // Nintendo's SDK seems to write "default" bounding box values before every draw (1023 0 1023 0
+  // are the only values encountered so far, which happen to be the extents allowed by the BP
+  // registers) to reset the registers for comparison in the pixel engine, and presumably to detect
+  // whether GX has updated the registers with real values.
+  //
+  // We can store these values when Bounding Box emulation is disabled and return them on read,
+  // which the game will interpret as "no pixels have been drawn"
+  //
+  // This produces much better results than just returning garbage, which can cause games like
+  // Ultimate Spider-Man to crash
+  std::array<u16, 4> m_bounding_box_fallback = {};
 
   // NOTE: The methods below are called on the framedumping thread.
   void FrameDumpThreadFunc();

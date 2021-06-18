@@ -15,6 +15,8 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
+class JitArm64;
+
 // Dedicated host registers
 
 // memory base register
@@ -47,6 +49,7 @@ static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
 enum class RegType
 {
   NotLoaded,
+  Discarded,   // Reg is not loaded because we know it won't be read before the next write
   Register,    // Reg type is register
   Immediate,   // Reg is really a IMM
   LowerPair,   // Only the lower pair of a paired register
@@ -85,6 +88,15 @@ public:
     m_value = imm;
 
     m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+  }
+  void Discard()
+  {
+    // Invalidate any previous information
+    m_type = RegType::Discarded;
+    m_reg = Arm64Gen::ARM64Reg::INVALID_REG;
+
+    // Arbitrarily large value that won't roll over on a lot of increments
+    m_last_used = 0xFFFF;
   }
   void Flush()
   {
@@ -140,9 +152,11 @@ public:
   explicit Arm64RegCache(size_t guest_reg_count) : m_guest_registers(guest_reg_count) {}
   virtual ~Arm64RegCache() = default;
 
-  void Init(Arm64Gen::ARM64XEmitter* emitter);
+  void Init(JitArm64* jit);
 
   virtual void Start(PPCAnalyst::BlockRegStats& stats) {}
+  void DiscardRegisters(BitSet32 regs);
+  void ResetRegisters(BitSet32 regs);
   // Flushes the register cache in different ways depending on the mode
   virtual void Flush(FlushMode mode, PPCAnalyst::CodeOp* op) = 0;
 
@@ -153,6 +167,9 @@ public:
   Arm64Gen::ARM64Reg GetReg();
 
   void UpdateLastUsed(BitSet32 regs_used);
+
+  // Get available host registers
+  u32 GetUnlockedRegisterCount() const;
 
   // Locks a register so a cache cannot use it
   // Useful for function calls
@@ -194,16 +211,16 @@ protected:
   // Flushes a guest register by host provided
   virtual void FlushByHost(Arm64Gen::ARM64Reg host_reg) = 0;
 
+  void DiscardRegister(size_t preg);
   virtual void FlushRegister(size_t preg, bool maintain_state) = 0;
-
-  // Get available host registers
-  u32 GetUnlockedRegisterCount() const;
 
   void IncrementAllUsed()
   {
     for (auto& reg : m_guest_registers)
       reg.IncrementLastUsed();
   }
+
+  JitArm64* m_jit = nullptr;
 
   // Code emitter
   Arm64Gen::ARM64XEmitter* m_emit = nullptr;

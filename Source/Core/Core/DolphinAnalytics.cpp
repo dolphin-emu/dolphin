@@ -133,20 +133,27 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-constexpr std::array<const char*, 14> GAME_QUIRKS_NAMES{"icache-matters",
-                                                        "directly-reads-wiimote-input",
-                                                        "uses-DVDLowStopLaser",
-                                                        "uses-DVDLowOffset",
-                                                        "uses-DVDLowReadDiskBca",
-                                                        "uses-DVDLowRequestDiscStatus",
-                                                        "uses-DVDLowRequestRetryNumber",
-                                                        "uses-DVDLowSerMeasControl",
-                                                        "uses-different-partition-command",
-                                                        "uses-di-interrupt-command",
-                                                        "mismatched-gpu-texgens-between-xf-and-bp",
-                                                        "mismatched-gpu-colors-between-xf-and-bp",
-                                                        "uses-uncommon-wd-mode",
-                                                        "uses-wd-unimplemented-ioctl"};
+constexpr std::array<const char*, 19> GAME_QUIRKS_NAMES{
+    "icache-matters",
+    "directly-reads-wiimote-input",
+    "uses-DVDLowStopLaser",
+    "uses-DVDLowOffset",
+    "uses-DVDLowReadDiskBca",
+    "uses-DVDLowRequestDiscStatus",
+    "uses-DVDLowRequestRetryNumber",
+    "uses-DVDLowSerMeasControl",
+    "uses-different-partition-command",
+    "uses-di-interrupt-command",
+    "mismatched-gpu-texgens-between-xf-and-bp",
+    "mismatched-gpu-colors-between-xf-and-bp",
+    "uses-uncommon-wd-mode",
+    "uses-wd-unimplemented-ioctl",
+    "uses-unknown-bp-command",
+    "uses-unknown-cp-command",
+    "uses-unknown-xf-command",
+    "uses-maybe-invalid-cp-command",
+    "uses-cp-perf-command",
+};
 static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
               "Game quirks names and enum definition are out of sync.");
 
@@ -282,11 +289,17 @@ void DolphinAnalytics::MakeBaseBuilder()
       s64 minor_version;  // NSInteger minorVersion
       s64 patch_version;  // NSInteger patchVersion
     };
-
+    // Under arm64, we need to call objc_msgSend to recieve a struct.
+    // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
+#if _M_ARM_64
+#define msgSend objc_msgSend
+#else
+#define msgSend objc_msgSend_stret
+#endif
     // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
-    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(objc_msgSend_stret)(
+    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(msgSend)(
         processInfo, sel_getUid("operatingSystemVersion"));
-
+#undef msgSend
     builder.AddData("osx-ver-major", version.major_version);
     builder.AddData("osx-ver-minor", version.minor_version);
     builder.AddData("osx-ver-bugfix", version.patch_version);

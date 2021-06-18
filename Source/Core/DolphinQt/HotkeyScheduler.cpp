@@ -25,7 +25,9 @@
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 
 #include "DolphinQt/Settings.h"
 
@@ -211,6 +213,10 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
 
+      // Unlock Cursor
+      if (IsHotkey(HK_UNLOCK_CURSOR))
+        emit UnlockCursor();
+
       auto& settings = Settings::Instance();
 
       // Toggle Chat
@@ -231,15 +237,8 @@ void HotkeyScheduler::Run()
         emit ToggleReadOnlyMode();
 
       // Wiimote
-      if (SConfig::GetInstance().m_bt_passthrough_enabled)
-      {
-        const auto ios = IOS::HLE::GetIOS();
-        auto device = ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
-
-        if (device != nullptr)
-          std::static_pointer_cast<IOS::HLE::BluetoothBaseDevice>(device)->UpdateSyncButtonState(
-              IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
-      }
+      if (auto bt = WiiUtils::GetBluetoothRealDevice())
+        bt->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
 
       if (SConfig::GetInstance().bEnableDebugging)
       {

@@ -42,7 +42,7 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
              7, 1, 50);
 }
 
-Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
+Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -56,7 +56,7 @@ Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
   return Reshape(x, y, modifier);
 }
 
-Tilt::StateData Tilt::GetState()
+Tilt::StateData Tilt::GetState() const
 {
   return GetReshapableState(true);
 }

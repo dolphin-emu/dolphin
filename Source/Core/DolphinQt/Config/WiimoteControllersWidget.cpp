@@ -24,6 +24,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/WiiUtils.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -242,11 +243,9 @@ void WiimoteControllersWidget::OnBluetoothPassthroughResetPressed()
     return;
   }
 
-  auto device = ios->GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = WiiUtils::GetBluetoothRealDevice();
   if (device != nullptr)
-  {
-    std::static_pointer_cast<IOS::HLE::BluetoothBaseDevice>(device)->TriggerSyncButtonHeldEvent();
-  }
+    device->TriggerSyncButtonHeldEvent();
 }
 
 void WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed()
@@ -260,13 +259,9 @@ void WiimoteControllersWidget::OnBluetoothPassthroughSyncPressed()
     return;
   }
 
-  auto device = ios->GetDeviceByName("/dev/usb/oh1/57e/305");
-
+  auto device = WiiUtils::GetBluetoothRealDevice();
   if (device != nullptr)
-  {
-    std::static_pointer_cast<IOS::HLE::BluetoothBaseDevice>(device)
-        ->TriggerSyncButtonPressedEvent();
-  }
+    device->TriggerSyncButtonPressedEvent();
 }
 
 void WiimoteControllersWidget::OnWiimoteRefreshPressed()

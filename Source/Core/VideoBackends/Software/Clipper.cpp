@@ -488,6 +488,11 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
   float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
 
   backface = normalZDir <= 0.0f;
+  // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
+  // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
+  // but the backface test does need to be inverted for things to be drawn.
+  if (xfmem.viewport.ht > 0)
+    backface = !backface;
 
   // TODO: Are these tests / the definition of backface above backwards?
   if ((bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All) &&
@@ -513,8 +518,10 @@ void PerspectiveDivide(OutputVertexData* vertex)
   Vec3& screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
+  screen.x =
+      projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2;
+  screen.y =
+      projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper

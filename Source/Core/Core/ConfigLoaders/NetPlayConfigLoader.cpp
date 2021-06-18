@@ -39,9 +39,11 @@ public:
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
     layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
     layer->Set(Config::MAIN_MEM2_SIZE, m_settings.m_Mem2Size);
     layer->Set(Config::MAIN_FALLBACK_REGION, m_settings.m_FallbackRegion);
+    layer->Set(Config::MAIN_ALLOW_SD_WRITES, m_settings.m_AllowSDWrites);
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
 
     for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
@@ -67,6 +69,7 @@ public:
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.m_PerfQueriesEnable);
     layer->Set(Config::MAIN_FPRF, m_settings.m_FPRF);
     layer->Set(Config::MAIN_ACCURATE_NANS, m_settings.m_AccurateNaNs);
+    layer->Set(Config::MAIN_DISABLE_ICACHE, m_settings.m_DisableICache);
     layer->Set(Config::MAIN_SYNC_ON_SKIP_IDLE, m_settings.m_SyncOnSkipIdle);
     layer->Set(Config::MAIN_SYNC_GPU, m_settings.m_SyncGPU);
     layer->Set(Config::MAIN_SYNC_GPU_MAX_DISTANCE, m_settings.m_SyncGpuMaxDistance);

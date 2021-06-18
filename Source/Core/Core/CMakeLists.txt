@@ -16,6 +16,8 @@ add_library(core
   BootManager.h
   CheatCodes.h
   CommonTitles.h
+  Config/DefaultLocale.cpp
+  Config/DefaultLocale.h
   Config/FreeLookSettings.cpp
   Config/FreeLookSettings.h
   Config/GraphicsSettings.cpp

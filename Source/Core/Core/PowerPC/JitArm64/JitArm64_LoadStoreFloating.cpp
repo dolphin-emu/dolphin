@@ -189,6 +189,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   u32 a = inst.RA, b = inst.RB;
 
+  bool want_single = false;
   s32 offset = inst.SIMM_16;
   u32 flags = BackPatchInfo::FLAG_STORE;
   bool update = false;
@@ -200,10 +201,12 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     switch (inst.SUBOP10)
     {
     case 663:  // stfsx
+      want_single = true;
       flags |= BackPatchInfo::FLAG_SIZE_F32;
       offset_reg = b;
       break;
     case 695:  // stfsux
+      want_single = true;
       flags |= BackPatchInfo::FLAG_SIZE_F32;
       update = true;
       offset_reg = b;
@@ -218,16 +221,19 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       offset_reg = b;
       break;
     case 983:  // stfiwx
-      flags |= BackPatchInfo::FLAG_SIZE_F32I;
+      // This instruction writes the lower 32 bits of a double. want_single must be false
+      flags |= BackPatchInfo::FLAG_SIZE_F32;
       offset_reg = b;
       break;
     }
     break;
   case 53:  // stfsu
+    want_single = true;
     flags |= BackPatchInfo::FLAG_SIZE_F32;
     update = true;
     break;
   case 52:  // stfs
+    want_single = true;
     flags |= BackPatchInfo::FLAG_SIZE_F32;
     break;
   case 55:  // stfdu
@@ -242,18 +248,21 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   u32 imm_addr = 0;
   bool is_immediate = false;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
 
-  const bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS, true);
+  const bool have_single = fpr.IsSingle(inst.FS, true);
 
-  const ARM64Reg V0 = fpr.R(inst.FS, single ? RegType::LowerPairSingle : RegType::LowerPair);
+  ARM64Reg V0 =
+      fpr.R(inst.FS, want_single && have_single ? RegType::LowerPairSingle : RegType::LowerPair);
 
-  if (single)
+  if (want_single && !have_single)
   {
-    flags &= ~BackPatchInfo::FLAG_SIZE_F32;
-    flags |= BackPatchInfo::FLAG_SIZE_F32I;
+    const ARM64Reg single_reg = fpr.GetReg();
+    ConvertDoubleToSingleLower(inst.FS, single_reg, V0);
+    V0 = single_reg;
   }
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
 
   ARM64Reg addr_reg = ARM64Reg::W1;
 
@@ -359,19 +368,11 @@ void JitArm64::stfXX(UGeckoInstruction inst)
         accessSize = 32;
 
       LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
-      {
         m_float_emit.REV64(8, ARM64Reg::Q0, V0);
-      }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32)
-      {
-        m_float_emit.FCVT(32, 64, ARM64Reg::D0, EncodeRegToDouble(V0));
-        m_float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
-      }
-      else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
-      {
         m_float_emit.REV32(8, ARM64Reg::D0, V0);
-      }
 
       m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? ARM64Reg::Q0 : ARM64Reg::D0,
                        ARM64Reg::X0, accessSize >> 3);
@@ -399,6 +400,10 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   {
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, V0, XA, regs_in_use, fprs_in_use);
   }
+
+  if (want_single && !have_single)
+    fpr.Unlock(V0);
+
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
 }

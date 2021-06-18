@@ -93,10 +93,15 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->AddSetting(&m_always_connected_setting,
-                        // i18n: Treat a controller as always being connected regardless of what
-                        // devices the user actually has plugged in
-                        _trans("Always Connected"), false);
+  m_options->AddSetting(
+      &m_always_connected_setting,
+      // i18n: Treat a controller as always being connected regardless of what
+      // devices the user actually has plugged in
+      {_trans("Always Connected"), nullptr,
+       _trans("If checked, the emulated controller is always connected.\n"
+              "If unchecked, the connection state of the emulated controller is linked\n"
+              "to the connection state of the real default device (if there is one).")},
+      false);
 
   // Adding PrimeHack Buttons
   //groups.emplace_back(m_primehack_beams = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
@@ -150,7 +155,6 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   //m_primehack_misc->controls.emplace_back(
   //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Spring Ball", "Spring Ball"));
-
 }
 
 std::string GCPad::GetName() const

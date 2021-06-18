@@ -12,6 +12,9 @@ public:
   static void Init();
   static void Shutdown();
 
+  static void Flush();
+  static void Readback();
+
   static void Set(int index, int value);
   static int Get(int index);
 };

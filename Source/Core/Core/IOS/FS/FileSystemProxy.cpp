@@ -160,27 +160,28 @@ std::optional<IPCReply> FSDevice::Open(const OpenRequest& request)
 {
   return MakeIPCReply([&](Ticks t) {
     return Open(request.uid, request.gid, request.path, static_cast<Mode>(request.flags & 3),
-                request.fd, t);
+                request.fd, t)
+        .Release();
   });
 }
 
-s64 FSDevice::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
-                   std::optional<u32> ipc_fd, Ticks ticks)
+FSDevice::ScopedFd FSDevice::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode mode,
+                                  std::optional<u32> ipc_fd, Ticks ticks)
 {
   ticks.Add(IPC_OVERHEAD_TICKS);
 
   if (m_fd_map.size() >= 16)
-    return ConvertResult(ResultCode::NoFreeHandle);
+    return {this, ConvertResult(ResultCode::NoFreeHandle), ticks};
 
   if (path.size() >= 64)
-    return ConvertResult(ResultCode::Invalid);
+    return {this, ConvertResult(ResultCode::Invalid), ticks};
 
   const u64 fd = ipc_fd.has_value() ? u64(*ipc_fd) : m_next_fd++;
 
   if (path == "/dev/fs")
   {
     m_fd_map[fd] = {gid, uid, INVALID_FD};
-    return fd;
+    return {this, static_cast<s64>(fd), ticks};
   }
 
   ticks.Add(EstimateFileLookupTicks(path, FileLookupMode::Normal));
@@ -188,11 +189,11 @@ s64 FSDevice::Open(FS::Uid uid, FS::Gid gid, const std::string& path, FS::Mode m
   auto backend_fd = m_ios.GetFS()->OpenFile(uid, gid, path, mode);
   LogResult(backend_fd, "OpenFile({})", path);
   if (!backend_fd)
-    return ConvertResult(backend_fd.Error());
+    return {this, ConvertResult(backend_fd.Error()), ticks};
 
   auto& handle = m_fd_map[fd] = {gid, uid, backend_fd->Release()};
   std::strncpy(handle.name.data(), path.c_str(), handle.name.size());
-  return fd;
+  return {this, static_cast<s64>(fd), ticks};
 }
 
 std::optional<IPCReply> FSDevice::Close(u32 fd)

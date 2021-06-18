@@ -21,6 +21,9 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+#ifdef __APPLE__
+#include <libkern/OSCacheControl.h>
+#endif
 
 namespace Arm64Gen
 {
@@ -342,7 +345,7 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
   if (start == end)
     return;
 
-#if defined(IOS)
+#if defined(IOS) || defined(__APPLE__)
   // Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
   sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #elif defined(WIN32)
@@ -2294,6 +2297,15 @@ void ARM64FloatEmitter::EmitScalar2Source(bool M, bool S, u32 type, u32 opcode, 
           (opcode << 12) | (1 << 11) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
+void ARM64FloatEmitter::EmitScalarThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn,
+                                            ARM64Reg Rm)
+{
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s only supports double and single registers!", __func__);
+
+  Write32((1 << 30) | (U << 29) | (0b11110001 << 21) | (size << 22) | (DecodeReg(Rm) << 16) |
+          (opcode << 11) | (1 << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
 void ARM64FloatEmitter::EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn,
                                       ARM64Reg Rm)
 {
@@ -2307,6 +2319,12 @@ void ARM64FloatEmitter::EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd,
 void ARM64FloatEmitter::EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd, ARM64Reg Rn)
 {
   Write32((Q << 30) | (op << 29) | (0b111 << 25) | (imm5 << 16) | (imm4 << 11) | (1 << 10) |
+          (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
+void ARM64FloatEmitter::EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
+{
+  Write32((1 << 30) | (U << 29) | (0b11110001 << 21) | (size << 22) | (opcode << 12) | (1 << 11) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
@@ -3039,28 +3057,31 @@ void ARM64FloatEmitter::FMOV(ARM64Reg Rd, ARM64Reg Rn, bool top)
   {
     EmitScalar1Source(0, 0, IsDouble(Rd), 0, Rd, Rn);
   }
+  else if (IsGPR(Rd) != IsGPR(Rn))
+  {
+    const ARM64Reg gpr = IsGPR(Rn) ? Rn : Rd;
+    const ARM64Reg fpr = IsGPR(Rn) ? Rd : Rn;
+
+    const int sf = Is64Bit(gpr) ? 1 : 0;
+    const int type = Is64Bit(gpr) ? (top ? 2 : 1) : 0;
+    const int rmode = top ? 1 : 0;
+    const int opcode = IsGPR(Rn) ? 7 : 6;
+
+    ASSERT_MSG(DYNA_REC, !top || IsQuad(fpr), "FMOV: top can only be used with quads");
+
+    // TODO: Should this check be more lenient? Sometimes you do want to do things like
+    // read the lower 32 bits of a double
+    ASSERT_MSG(DYNA_REC,
+               (!Is64Bit(gpr) && IsSingle(fpr)) ||
+                   (Is64Bit(gpr) && ((IsDouble(fpr) && !top) || (IsQuad(fpr) && top))),
+               "FMOV: Mismatched sizes");
+
+    Write32((sf << 31) | (0x1e << 24) | (type << 22) | (1 << 21) | (rmode << 19) | (opcode << 16) |
+            (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+  }
   else
   {
-    ASSERT_MSG(DYNA_REC, !IsQuad(Rd) && !IsQuad(Rn), "FMOV can't move to/from quads");
-    int rmode = 0;
-    int opcode = 6;
-    int sf = 0;
-    if (IsSingle(Rd) && !Is64Bit(Rn) && !top)
-    {
-      // GPR to scalar single
-      opcode |= 1;
-    }
-    else if (!Is64Bit(Rd) && IsSingle(Rn) && !top)
-    {
-      // Scalar single to GPR - defaults are correct
-    }
-    else
-    {
-      // TODO
-      ASSERT_MSG(DYNA_REC, 0, "FMOV: Unhandled case");
-    }
-    Write32((sf << 31) | (0x1e2 << 20) | (rmode << 19) | (opcode << 16) | (DecodeReg(Rn) << 5) |
-            DecodeReg(Rd));
+    ASSERT_MSG(DYNA_REC, 0, "FMOV: Unsupported case");
   }
 }
 
@@ -3099,7 +3120,21 @@ void ARM64FloatEmitter::FSQRT(ARM64Reg Rd, ARM64Reg Rn)
   EmitScalar1Source(0, 0, IsDouble(Rd), 3, Rd, Rn);
 }
 
+void ARM64FloatEmitter::FRECPE(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalar2RegMisc(0, IsDouble(Rd) ? 3 : 2, 0x1D, Rd, Rn);
+}
+void ARM64FloatEmitter::FRSQRTE(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalar2RegMisc(1, IsDouble(Rd) ? 3 : 2, 0x1D, Rd, Rn);
+}
+
 // Scalar - 2 Source
+void ARM64FloatEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  ASSERT_MSG(DYNA_REC, IsDouble(Rd), "%s only supports double registers!", __func__);
+  EmitScalarThreeSame(0, 3, 0b10000, Rd, Rn, Rm);
+}
 void ARM64FloatEmitter::FADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitScalar2Source(0, 0, IsDouble(Rd), 2, Rd, Rn, Rm);
@@ -3171,9 +3206,17 @@ void ARM64FloatEmitter::FMOV(ARM64Reg Rd, uint8_t imm8)
 }
 
 // Vector
+void ARM64FloatEmitter::ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(0, size >> 6, 0b10000, Rd, Rn, Rm);
+}
 void ARM64FloatEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitThreeSame(0, 0, 3, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(0, 1, 3, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
@@ -3281,6 +3324,10 @@ void ARM64FloatEmitter::NOT(ARM64Reg Rd, ARM64Reg Rn)
 void ARM64FloatEmitter::ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitThreeSame(0, 2, 3, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::ORN(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(0, 3, 3, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::REV16(u8 size, ARM64Reg Rd, ARM64Reg Rn)
 {
@@ -3601,6 +3648,14 @@ void ARM64FloatEmitter::FCMLT(u8 size, ARM64Reg Rd, ARM64Reg Rn)
 {
   Emit2RegMisc(IsQuad(Rd), 0, 2 | (size >> 6), 0xE, Rd, Rn);
 }
+void ARM64FloatEmitter::FACGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, size >> 6, 0x1D, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::FACGT(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, 2 | (size >> 6), 0x1D, Rd, Rn, Rm);
+}
 
 void ARM64FloatEmitter::FCSEL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, CCFlags cond)
 {
@@ -3853,11 +3908,10 @@ void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
   EncodeModImm(Q, op, cmode, 0, Rd, abcdefgh);
 }
 
-void ARM64FloatEmitter::BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift)
+void ARM64FloatEmitter::ORR_BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift, u8 op)
 {
   bool Q = IsQuad(Rd);
   u8 cmode = 1;
-  u8 op = 1;
   if (size == 16)
   {
     ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!",
@@ -3891,6 +3945,16 @@ void ARM64FloatEmitter::BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift)
     ASSERT_MSG(DYNA_REC, false, "%s only supports size of {16, 32}!", __func__);
   }
   EncodeModImm(Q, op, cmode, 0, Rd, imm);
+}
+
+void ARM64FloatEmitter::ORR(u8 size, ARM64Reg Rd, u8 imm, u8 shift)
+{
+  ORR_BIC(size, Rd, imm, shift, 0);
+}
+
+void ARM64FloatEmitter::BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift)
+{
+  ORR_BIC(size, Rd, imm, shift, 1);
 }
 
 void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)

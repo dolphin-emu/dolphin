@@ -23,7 +23,7 @@ public:
   virtual ~Control();
 
   template <typename T = ControlState>
-  T GetState()
+  T GetState() const
   {
     return control_ref->GetState<T>();
   }

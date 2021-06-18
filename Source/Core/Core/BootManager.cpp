@@ -82,6 +82,7 @@ private:
   bool bAccurateNaNs;
   bool bMMU;
   bool bLowDCBZHack;
+  bool bDisableICache;
   bool m_EnableJIT;
   bool bSyncGPU;
   int iSyncGpuMaxDistance;
@@ -115,6 +116,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
+  bDisableICache = config.bDisableICache;
   bMMU = config.bMMU;
   m_EnableJIT = config.m_DSPEnableJIT;
   bSyncGPU = config.bSyncGPU;
@@ -161,6 +163,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
+  config->bDisableICache = bDisableICache;
   config->bMMU = bMMU;
   config->bLowDCBZHack = bLowDCBZHack;
   config->m_DSPEnableJIT = m_EnableJIT;
@@ -265,6 +268,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
     core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
+    core_section->Get("DisableICache", &StartUp.bDisableICache, StartUp.bDisableICache);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("LowDCBZHack", &StartUp.bLowDCBZHack, StartUp.bLowDCBZHack);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
@@ -376,6 +380,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     config_cache.bSetEXIDevice[2] = true;
     StartUp.bFPRF = netplay_settings.m_FPRF;
     StartUp.bAccurateNaNs = netplay_settings.m_AccurateNaNs;
+    StartUp.bDisableICache = netplay_settings.m_DisableICache;
     StartUp.bSyncGPUOnSkipIdleHack = netplay_settings.m_SyncOnSkipIdle;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
@@ -398,9 +403,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
   if (!StartUp.bOverrideRegionSettings)
   {
-    const int gc_language =
-        static_cast<int>(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region));
-    StartUp.SelectedLanguage = gc_language - (gc_language > 0);
+    StartUp.SelectedLanguage =
+        DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region));
 
     if (StartUp.bWii)
     {

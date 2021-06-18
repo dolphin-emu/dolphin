@@ -45,15 +45,13 @@ static OpArg MPIC(const void* ptr)
 VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
     : VertexLoaderBase(vtx_desc, vtx_att)
 {
-  if (!IsInitialized())
-    return;
-
   AllocCodeSpace(4096);
   ClearCodeSpace();
   GenerateVertexLoader();
   WriteProtect();
 
-  const std::string name = ToString();
+  const std::string name =
+      fmt::format("VertexLoaderX64\nVtx desc: \n{}\nVAT:\n{}", vtx_desc, vtx_att);
   JitRegister::Register(region, GetCodePtr(), name.c_str());
 }
 
@@ -420,7 +418,6 @@ void VertexLoaderX64::GenerateVertexLoader()
     MOV(32, MPIC(VertexLoaderManager::position_matrix_index, count_reg, SCALE_4), R(scratch1));
     SetJumpTarget(dont_store);
 
-    m_native_components |= VB_HAS_POSMTXIDX;
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
@@ -438,31 +435,27 @@ void VertexLoaderX64::GenerateVertexLoader()
   }
 
   OpArg data = GetVertexAddr(ARRAY_POSITION, m_VtxDesc.low.Position);
-  int pos_elements = m_VtxAttr.PosElements == CoordComponentCount::XY ? 2 : 3;
-  ReadVertex(data, m_VtxDesc.low.Position, m_VtxAttr.PosFormat, pos_elements, pos_elements,
-             m_VtxAttr.ByteDequant, m_VtxAttr.PosFrac, &m_native_vtx_decl.position);
+  int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+  ReadVertex(data, m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat, pos_elements, pos_elements,
+             m_VtxAttr.g0.ByteDequant, m_VtxAttr.g0.PosFrac, &m_native_vtx_decl.position);
 
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
     static const u8 map[8] = {7, 6, 15, 14};
-    const u8 scaling_exponent = map[u32(m_VtxAttr.NormalFormat)];
-    const int limit = m_VtxAttr.NormalElements == NormalComponentCount::NBT ? 3 : 1;
+    const u8 scaling_exponent = map[u32(m_VtxAttr.g0.NormalFormat.Value())];
+    const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT ? 3 : 1;
 
     for (int i = 0; i < limit; i++)
     {
-      if (!i || m_VtxAttr.NormalIndex3)
+      if (!i || m_VtxAttr.g0.NormalIndex3)
       {
         data = GetVertexAddr(ARRAY_NORMAL, m_VtxDesc.low.Normal);
-        int elem_size = GetElementSize(m_VtxAttr.NormalFormat);
+        int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
         data.AddMemOffset(i * elem_size * 3);
       }
-      data.AddMemOffset(ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.NormalFormat, 3, 3, true,
-                                   scaling_exponent, &m_native_vtx_decl.normals[i]));
+      data.AddMemOffset(ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3,
+                                   true, scaling_exponent, &m_native_vtx_decl.normals[i]));
     }
-
-    m_native_components |= VB_HAS_NRM0;
-    if (m_VtxAttr.NormalElements == NormalComponentCount::NBT)
-      m_native_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
   }
 
   for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
@@ -470,8 +463,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
       data = GetVertexAddr(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i]);
-      ReadColor(data, m_VtxDesc.low.Color[i], m_VtxAttr.color[i].Comp);
-      m_native_components |= VB_HAS_COL0 << i;
+      ReadColor(data, m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
@@ -483,19 +475,17 @@ void VertexLoaderX64::GenerateVertexLoader()
 
   for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
   {
-    int elements = m_VtxAttr.texCoord[i].Elements == TexComponentCount::ST ? 2 : 1;
+    int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::ST ? 2 : 1;
     if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
     {
       data = GetVertexAddr(ARRAY_TEXCOORD0 + int(i), m_VtxDesc.high.TexCoord[i]);
-      u8 scaling_exponent = m_VtxAttr.texCoord[i].Frac;
-      ReadVertex(data, m_VtxDesc.high.TexCoord[i], m_VtxAttr.texCoord[i].Format, elements,
-                 m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.ByteDequant, scaling_exponent,
-                 &m_native_vtx_decl.texcoords[i]);
-      m_native_components |= VB_HAS_UV0 << i;
+      u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
+      ReadVertex(data, m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
+                 m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant,
+                 scaling_exponent, &m_native_vtx_decl.texcoords[i]);
     }
     if (m_VtxDesc.low.TexMatIdx[i])
     {
-      m_native_components |= VB_HAS_TEXMTXIDX0 << i;
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
       m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
@@ -546,7 +536,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     RET();
   }
 
-  m_VertexSize = m_src_ofs;
+  ASSERT(m_vertex_size == m_src_ofs);
   m_native_vtx_decl.stride = m_dst_ofs;
 }
 

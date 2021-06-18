@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/CPMemory.h"
@@ -182,6 +183,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
     case 0x104d:
     case 0x104e:
     case 0x104f:
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_XF_COMMAND);
       DEBUG_LOG_FMT(VIDEO, "Possible Normal Mtx XF reg?: {:x}={:x}", address, newValue);
       break;
 
@@ -192,8 +194,8 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
     case 0x1017:
 
     default:
-      if (newValue != 0)  // Ignore writes of zero.
-        WARN_LOG_FMT(VIDEO, "Unknown XF Reg: {:x}={:x}", address, newValue);
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_XF_COMMAND);
+      WARN_LOG_FMT(VIDEO, "Unknown XF Reg: {:x}={:x}", address, newValue);
       break;
     }
 
@@ -211,6 +213,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, DataReader src)
   if (baseAddress + transferSize > XFMEM_REGISTERS_END)
   {
     WARN_LOG_FMT(VIDEO, "XF load exceeds address space: {:x} {} bytes", baseAddress, transferSize);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNKNOWN_XF_COMMAND);
 
     if (baseAddress >= XFMEM_REGISTERS_END)
       transferSize = 0;
@@ -256,12 +259,19 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, DataReader src)
   }
 }
 
+constexpr std::tuple<u32, u32, u32> ExtractIndexedXF(u32 val)
+{
+  const u32 index = val >> 16;
+  const u32 address = val & 0xFFF;  // check mask
+  const u32 size = ((val >> 12) & 0xF) + 1;
+
+  return {index, address, size};
+}
+
 // TODO - verify that it is correct. Seems to work, though.
 void LoadIndexedXF(u32 val, int refarray)
 {
-  int index = val >> 16;
-  int address = val & 0xFFF;  // check mask
-  int size = ((val >> 12) & 0xF) + 1;
+  const auto [index, address, size] = ExtractIndexedXF(val);
   // load stuff from array to address in xf mem
 
   u32* currData = (u32*)(&xfmem) + address;
@@ -276,7 +286,7 @@ void LoadIndexedXF(u32 val, int refarray)
                                        g_main_cp_state.array_strides[refarray] * index);
   }
   bool changed = false;
-  for (int i = 0; i < size; ++i)
+  for (u32 i = 0; i < size; ++i)
   {
     if (currData[i] != Common::swap32(newData[i]))
     {
@@ -287,15 +297,14 @@ void LoadIndexedXF(u32 val, int refarray)
   }
   if (changed)
   {
-    for (int i = 0; i < size; ++i)
+    for (u32 i = 0; i < size; ++i)
       currData[i] = Common::swap32(newData[i]);
   }
 }
 
 void PreprocessIndexedXF(u32 val, int refarray)
 {
-  const u32 index = val >> 16;
-  const u32 size = ((val >> 12) & 0xF) + 1;
+  const auto [index, address, size] = ExtractIndexedXF(val);
 
   const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] +
                                           g_preprocess_cp_state.array_strides[refarray] * index);
@@ -639,4 +648,19 @@ std::pair<std::string, std::string> GetXFTransferInfo(const u8* data)
   }
 
   return std::make_pair(fmt::to_string(name), fmt::to_string(desc));
+}
+
+std::pair<std::string, std::string> GetXFIndexedLoadInfo(u8 array, u32 value)
+{
+  const auto [index, address, size] = ExtractIndexedXF(value);
+
+  const auto desc = fmt::format("Load {} bytes to XF address {:03x} from CP array {} row {}", size,
+                                address, array, index);
+  fmt::memory_buffer written;
+  for (u32 i = 0; i < size; i++)
+  {
+    fmt::format_to(written, "{}\n", GetXFMemName(address + i));
+  }
+
+  return std::make_pair(desc, fmt::to_string(written));
 }

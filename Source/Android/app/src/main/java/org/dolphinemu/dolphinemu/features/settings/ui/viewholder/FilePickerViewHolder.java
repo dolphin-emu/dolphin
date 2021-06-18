@@ -56,11 +56,11 @@ public final class FilePickerViewHolder extends SettingViewHolder
       itemView.setBackgroundResource(R.drawable.invalid_setting_background);
     }
 
-    mTextSettingName.setText(item.getNameId());
+    mTextSettingName.setText(item.getName());
 
-    if (item.getDescriptionId() > 0)
+    if (!TextUtils.isEmpty(item.getDescription()))
     {
-      mTextSettingDescription.setText(item.getDescriptionId());
+      mTextSettingDescription.setText(item.getDescription());
     }
     else
     {

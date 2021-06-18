@@ -11,7 +11,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
@@ -855,7 +854,7 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-u16 Renderer::BBoxRead(int index)
+u16 Renderer::BBoxReadImpl(int index)
 {
   // swap 2 and 3 for top/bottom
   if (index >= 2)
@@ -871,7 +870,7 @@ u16 Renderer::BBoxRead(int index)
   return static_cast<u16>(value);
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWriteImpl(int index, u16 value)
 {
   s32 swapped_value = value;
   if (index >= 2)
@@ -881,6 +880,11 @@ void Renderer::BBoxWrite(int index, u16 value)
   }
 
   BoundingBox::Set(index, swapped_value);
+}
+
+void Renderer::BBoxFlushImpl()
+{
+  BoundingBox::Flush();
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,

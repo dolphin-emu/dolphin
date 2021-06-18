@@ -1,12 +1,14 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 
 public final class HeaderSetting extends SettingsItem
 {
-  public HeaderSetting(int titleId, int descriptionId)
+  public HeaderSetting(Context context, int titleId, int descriptionId)
   {
-    super(titleId, descriptionId);
+    super(context, titleId, descriptionId);
   }
 
   @Override

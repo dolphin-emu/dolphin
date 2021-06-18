@@ -19,7 +19,6 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 
 namespace WiimoteEmu
 {

@@ -191,6 +191,11 @@ public:
   // which happens while handling a hotplug event because a control reference's State()
   // could be called before we have finished updating the reference.
   [[nodiscard]] static std::unique_lock<std::recursive_mutex> GetStateLock();
+  const ciface::ExpressionParser::ControlEnvironment::VariableContainer&
+  GetExpressionVariables() const;
+
+  // Resets the values while keeping the list.
+  void ResetExpressionVariables();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
@@ -218,7 +223,8 @@ public:
   }
 
 protected:
-  // TODO: Wiimote attachment has its own member that isn't being used.
+  // TODO: Wiimote attachments actually end up using their parent controller value for this,
+  // so theirs won't be used (and thus shouldn't even exist).
   ciface::ExpressionParser::ControlEnvironment::VariableContainer m_expression_vars;
 
   void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);

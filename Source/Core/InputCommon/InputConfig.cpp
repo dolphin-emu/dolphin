@@ -139,8 +139,6 @@ bool InputConfig::LoadConfig(bool isGC)
       }
 #endif
       controller->LoadConfig(&config);
-      
-      // Update refs
       controller->UpdateReferences(g_controller_interface);
       controller_names.push_back(controller->GetName());
 
@@ -179,7 +177,7 @@ void InputConfig::SaveConfig()
   inifile.Save(ini_filename);
 }
 
-ControllerEmu::EmulatedController* InputConfig::GetController(int index)
+ControllerEmu::EmulatedController* InputConfig::GetController(int index) const
 {
   return m_controllers.at(index).get();
 }

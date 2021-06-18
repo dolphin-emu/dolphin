@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 
 // Small utility functions for common Wii related tasks.
 
@@ -22,6 +23,7 @@ class VolumeWAD;
 
 namespace IOS::HLE
 {
+class BluetoothEmuDevice;
 class ESDevice;
 class Kernel;
 }  // namespace IOS::HLE
@@ -101,4 +103,11 @@ struct NANDCheckResult
 };
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);
+
+// Get the BluetoothEmuDevice for an active emulation instance.
+// It is only safe to call this from the CPU thread.
+// Returns nullptr if we're not currently emulating a Wii game or if Bluetooth passthrough is used.
+std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice();
+// Same as GetBluetoothEmuDevice, but for Bluetooth passthrough.
+std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice();
 }  // namespace WiiUtils

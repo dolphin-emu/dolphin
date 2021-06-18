@@ -36,6 +36,8 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/IOS/Uids.h"
 #include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
@@ -109,7 +111,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   // they are not present. So ensure they exist and create them if they don't.
   const bool shop_logs_exist = [&] {
     const std::array<u8, 32> dummy_data{};
-    for (const std::string& path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
+    for (const std::string path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
     {
       constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
       if (fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, 0,
@@ -956,5 +958,25 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
 bool RepairNAND(IOS::HLE::Kernel& ios)
 {
   return !CheckNAND(ios, true).bad;
+}
+
+static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
+{
+  auto* ios = IOS::HLE::GetIOS();
+  return ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
+}
+
+std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice()
+{
+  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+    return nullptr;
+  return std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(GetBluetoothDevice());
+}
+
+std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice()
+{
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+    return nullptr;
+  return std::static_pointer_cast<IOS::HLE::BluetoothRealDevice>(GetBluetoothDevice());
 }
 }  // namespace WiiUtils

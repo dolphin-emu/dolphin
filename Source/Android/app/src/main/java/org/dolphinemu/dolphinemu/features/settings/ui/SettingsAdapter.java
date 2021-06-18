@@ -176,6 +176,13 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.onSettingChanged();
   }
 
+  public void notifyAllSettingsChanged()
+  {
+    notifyItemRangeChanged(0, getItemCount());
+
+    mView.onSettingChanged();
+  }
+
   public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
   {
     item.setChecked(getSettings(), checked);
@@ -194,7 +201,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
             R.style.DolphinDialogBase);
 
-    builder.setTitle(item.getNameId());
+    builder.setTitle(item.getName());
     builder.setSingleChoiceItems(item.getChoicesId(), value, this);
 
     mDialog = builder.show();
@@ -208,7 +215,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
             R.style.DolphinDialogBase);
 
-    builder.setTitle(item.getNameId());
+    builder.setTitle(item.getName());
     builder.setSingleChoiceItems(item.getChoicesId(), item.getSelectValueIndex(getSettings()),
             this);
 
@@ -226,7 +233,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
             R.style.DolphinDialogBase);
 
-    builder.setTitle(item.getNameId());
+    builder.setTitle(item.getName());
     builder.setSingleChoiceItems(item.getChoicesId(), value, this);
 
     mDialog = builder.show();
@@ -244,7 +251,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
     View view = inflater.inflate(R.layout.dialog_seekbar, null);
 
-    builder.setTitle(item.getNameId());
+    builder.setTitle(item.getName());
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, this);
     mDialog = builder.show();
@@ -279,7 +286,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.setMessage(String.format(mContext.getString(
             item instanceof RumbleBindingSetting ?
                     R.string.input_rumble_description : R.string.input_binding_description),
-            mContext.getString(item.getNameId())));
+            item.getName()));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
             (dialogInterface, i) -> item.clearValue(getSettings()));
@@ -332,20 +339,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 
     mClickedItem = null;
-  }
-
-  public void setAllLogTypes(boolean value)
-  {
-    Settings settings = mView.getSettings();
-
-    for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
-    {
-      new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
-              false).setBoolean(settings, value);
-    }
-
-    notifyItemRangeChanged(0, getItemCount());
-    mView.onSettingChanged();
   }
 
   public static void clearLog()
