@@ -409,11 +409,13 @@ void Wiimote::ChangeUIPrimeHack(bool useMetroidUI)
       ui_name = "HOME";
 
     m_buttons->controls[i]->ui_name = _trans(ui_name);
+    m_buttons->controls[i]->display_alt = useMetroidUI;
   }
 
   if (!useMetroidUI) {
     // Make sure to revert the D-Pad name
     m_dpad->controls[1]->ui_name = _trans(named_directions[1]);
+    m_dpad->controls[1]->display_alt = false;
   }
 
   using_metroid_ui = useMetroidUI;

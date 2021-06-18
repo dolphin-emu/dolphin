@@ -22,6 +22,7 @@ public:
   QGroupBox* camera_control;
   QRadioButton* m_radio_mouse;
   QRadioButton* m_radio_controller;
+  QPushButton* m_help_button;
 private:
   void LoadSettings() override;
   void SaveSettings() override;

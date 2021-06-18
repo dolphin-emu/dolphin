@@ -25,6 +25,9 @@
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
 #include "InputCommon/InputConfig.h"
 
+#include <QDesktopServices>
+#include <QUrl>
+
 WiimoteEmuMetroid::WiimoteEmuMetroid(MappingWindow* window, WiimoteEmuExtension* extension)
     : MappingWidget(window), m_extension_widget(extension)
 {
@@ -64,6 +67,21 @@ void WiimoteEmuMetroid::CreateMainLayout()
   auto* wiimote_options = CreateGroupBox(tr("Wiimote Properties"),
     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options));
   groupbox0->addWidget(wiimote_options, 1);
+
+  QGroupBox* help_box = new QGroupBox(tr("Help"));
+  const auto help_hbox = new QHBoxLayout;
+
+  m_help_button = new QPushButton();
+  m_help_button->setText(tr("Open Wiki Page"));
+  connect(m_help_button, &QPushButton::clicked, this, []() {
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/shiiion/dolphin/wiki/Installation#changing-primehack-settings")));
+  });
+
+  help_hbox->addWidget(m_help_button);
+  help_box->setLayout(help_hbox);
+
+  help_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  groupbox0->addWidget(help_box);
 
   // Column 1
 
@@ -128,7 +146,6 @@ void WiimoteEmuMetroid::CreateMainLayout()
     GetPort(), WiimoteEmu::WiimoteGroup::ControlStick));
   camera_control->setEnabled(ce_modes->GetSelectedDevice() == 1);
   groupbox3->addWidget(camera_control, 1);
-
 
   layout->addLayout(groupbox0);
   layout->addLayout(groupbox1);

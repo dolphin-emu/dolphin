@@ -67,7 +67,9 @@ void Nunchuk::ChangeUIPrimeHack(bool useMetroidUI)
     return;
 
   m_buttons->controls[0]->ui_name = useMetroidUI ? "Morph Ball" : "C";
+  m_buttons->controls[0]->display_alt = useMetroidUI;
   m_buttons->controls[1]->ui_name = useMetroidUI ? "Lock-On" : "Z";
+  m_buttons->controls[1]->display_alt = useMetroidUI;
 
   using_metroid_ui = useMetroidUI;
 }

@@ -127,7 +127,22 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     const bool translate = control->translate == ControllerEmu::Translate;
     const QString translated_name =
         translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
-    form_layout->addRow(translated_name, button);
+    if (control->display_alt) {
+      QHBoxLayout* box = new QHBoxLayout;
+      box->addWidget(button);
+      box->addSpacing(2);
+
+      const QString alt_style = QString::fromUtf8("font-size: 10px; font-family: Monospace; color: DimGrey");
+      QLabel* alt_label = new QLabel;
+      alt_label->setText(QString::fromStdString("( " + control->name + " )"));
+      alt_label->setStyleSheet(alt_style);
+      box->addWidget(alt_label);
+
+      form_layout->addRow(translated_name, box);
+    }
+    else {
+      form_layout->addRow(translated_name, button);
+    }
   }
 
   for (auto& setting : group->numeric_settings)

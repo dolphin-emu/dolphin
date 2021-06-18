@@ -33,6 +33,9 @@ public:
   const std::string name;
   std::string ui_name;
 
+  // Used to display original name alongside the ui name
+  bool display_alt;
+
 protected:
   Control(std::unique_ptr<ControlReference> ref, Translatability translate, std::string name,
           std::string ui_name);
