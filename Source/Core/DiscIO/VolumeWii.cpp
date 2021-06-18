@@ -24,7 +24,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
@@ -92,7 +91,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         {
           // This check is normally done by ES in ES_DiVerify, but that would happen too late
           // (after allocating the buffer), so we do the check here.
-          PanicAlertFmt("Invalid TMD size");
+          ERROR_LOG_FMT(DISCIO, "Invalid TMD size");
           return INVALID_TMD;
         }
         std::vector<u8> tmd_buffer(*tmd_size);
@@ -413,12 +412,9 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
   return h3_table_sha1 == contents[0].sha1;
 }
 
-bool VolumeWii::CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
+bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
                                     const Partition& partition) const
 {
-  if (encrypted_data.size() != BLOCK_TOTAL_SIZE)
-    return false;
-
   auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
@@ -432,10 +428,10 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encr
     return false;
 
   HashBlock hashes;
-  DecryptBlockHashes(encrypted_data.data(), &hashes, aes_context);
+  DecryptBlockHashes(encrypted_data, &hashes, aes_context);
 
   u8 cluster_data[BLOCK_DATA_SIZE];
-  DecryptBlockData(encrypted_data.data(), cluster_data, aes_context);
+  DecryptBlockData(encrypted_data, cluster_data, aes_context);
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
@@ -475,7 +471,7 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition)
   std::vector<u8> cluster(BLOCK_TOTAL_SIZE);
   if (!m_reader->Read(cluster_offset, cluster.size(), cluster.data()))
     return false;
-  return CheckBlockIntegrity(block_index, cluster, partition);
+  return CheckBlockIntegrity(block_index, cluster.data(), partition);
 }
 
 bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GROUP],

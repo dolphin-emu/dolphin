@@ -8,6 +8,8 @@
 
 #include "UICommon/AutoUpdate.h"
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 class QWidget;
 
 class Updater : public QThread, public AutoUpdateChecker

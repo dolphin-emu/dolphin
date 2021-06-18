@@ -196,21 +196,14 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
 
 void GeneralWidget::AddDescriptions()
 {
-// We need QObject::tr
-#if defined(_WIN32)
+  // We need QObject::tr
   static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
       "Selects which graphics API to use internally.<br><br>The software renderer is extremely "
-      "slow and only useful for debugging, so either OpenGL, Direct3D, or Vulkan are "
+      "slow and only useful for debugging, so any of the other backends are "
       "recommended. Different games and different GPUs will behave differently on each "
       "backend, so for the best emulation experience it is recommended to try each and "
       "select the backend that is least problematic.<br><br><dolphin_emphasis>If unsure, "
       "select OpenGL.</dolphin_emphasis>");
-#else
-  static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects which graphics API to use internally.<br><br>The software renderer is extremely "
-      "slow and only useful for debugging, so any of the other backends are "
-      "recommended.<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>");
-#endif
   static const char TR_ADAPTER_DESCRIPTION[] =
       QT_TR_NOOP("Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
                  "select the first one.</dolphin_emphasis>");
@@ -244,7 +237,7 @@ void GeneralWidget::AddDescriptions()
       "NetPlay.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_LOG_RENDERTIME_DESCRIPTION[] = QT_TR_NOOP(
       "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use this "
-      "feature when to measure the performance of Dolphin.<br><br><dolphin_emphasis>If "
+      "feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
       "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
       QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "

@@ -11,17 +11,20 @@
 
 namespace InputCommon
 {
-class DynamicInputTextureConfiguration;
+namespace DynamicInputTextures
+{
+class Configuration;
+}
 class DynamicInputTextureManager
 {
 public:
   DynamicInputTextureManager();
   ~DynamicInputTextureManager();
   void Load();
-  void GenerateTextures(const IniFile::Section* sec, const std::string& controller_name);
+  void GenerateTextures(const IniFile& file, const std::vector<std::string>& controller_names);
 
 private:
-  std::vector<DynamicInputTextureConfiguration> m_configuration;
+  std::vector<DynamicInputTextures::Configuration> m_configuration;
   std::string m_config_type;
 };
 }  // namespace InputCommon

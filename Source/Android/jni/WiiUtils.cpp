@@ -11,6 +11,7 @@
 
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
+#include "DiscIO/NANDImporter.h"
 
 // The hardcoded values here must match WiiUtils.java
 static jint ConvertCopyResult(WiiSave::CopyResult result)
@@ -55,5 +56,27 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importWiiSa
   };
 
   return ConvertCopyResult(WiiSave::Import(path, can_overwrite));
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDBin(JNIEnv* env,
+                                                                                   jclass,
+                                                                                   jstring jFile)
+{
+  const std::string path = GetJString(env, jFile);
+
+  return DiscIO::NANDImporter().ImportNANDBin(
+      path,
+      [] {
+        // This callback gets called every now and then in case we want to update the GUI. However,
+        // we have no way of knowing what the current progress is, so we can't do anything
+        // especially useful. DolphinQt chooses to show the elapsed time, for reference.
+      },
+      [] {
+        // This callback gets called if the NAND file does not have decryption keys appended to it.
+        // We're supposed to ask the user for a separate file containing keys, but this is probably
+        // more work to implement on Android than it's worth, as this case almost never comes up.
+        PanicAlertFmtT("The decryption keys need to be appended to the NAND backup file.");
+        return "";
+      });
 }
 }

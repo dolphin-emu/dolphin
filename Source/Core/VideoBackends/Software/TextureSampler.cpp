@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -18,27 +19,29 @@
 
 namespace TextureSampler
 {
-static inline void WrapCoord(int* coordp, int wrapMode, int imageSize)
+static inline void WrapCoord(int* coordp, WrapMode wrapMode, int imageSize)
 {
   int coord = *coordp;
   switch (wrapMode)
   {
-  case 0:  // clamp
+  case WrapMode::Clamp:
     coord = (coord > imageSize) ? imageSize : (coord < 0) ? 0 : coord;
     break;
-  case 1:  // wrap
+  case WrapMode::Repeat:
     coord = coord % (imageSize + 1);
     coord = (coord < 0) ? imageSize + coord : coord;
     break;
-  case 2:  // mirror
+  case WrapMode::Mirror:
   {
     const int sizePlus1 = imageSize + 1;
     const int div = coord / sizePlus1;
     coord = coord - (div * sizePlus1);
     coord = (coord < 0) ? -coord : coord;
     coord = (div & 1) ? imageSize - coord : coord;
+    break;
   }
-  break;
+  default:
+    PanicAlertFmt("Invalid wrap mode: {}", wrapMode);
   }
   *coordp = coord;
 }
@@ -74,10 +77,11 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
   {
     // use mipmap
     baseMip = lod >> 4;
-    mipLinear = (lodFract && tm0.min_filter & TexMode0::TEXF_LINEAR);
+    mipLinear = (lodFract && tm0.mipmap_filter == MipMode::Linear);
 
     // if using nearest mip filter and lodFract >= 0.5 round up to next mip
-    baseMip += (lodFract >> 3) & (tm0.min_filter & TexMode0::TEXF_POINT);
+    if (tm0.mipmap_filter == MipMode::Point && lodFract >= 8)
+      baseMip++;
   }
 
   if (mipLinear)
@@ -111,12 +115,12 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
   const TexMode0& tm0 = texUnit.texMode0[subTexmap];
   const TexImage0& ti0 = texUnit.texImage0[subTexmap];
   const TexTLUT& texTlut = texUnit.texTlut[subTexmap];
-  const TextureFormat texfmt = static_cast<TextureFormat>(ti0.format);
-  const TLUTFormat tlutfmt = static_cast<TLUTFormat>(texTlut.tlut_format);
+  const TextureFormat texfmt = ti0.format;
+  const TLUTFormat tlutfmt = texTlut.tlut_format;
 
   const u8* imageSrc;
   const u8* imageSrcOdd = nullptr;
-  if (texUnit.texImage1[subTexmap].image_type)
+  if (texUnit.texImage1[subTexmap].cache_manually_managed)
   {
     imageSrc = &texMem[texUnit.texImage1[subTexmap].tmem_even * TMEM_LINE_SIZE];
     if (texfmt == TextureFormat::RGBA8)
@@ -188,7 +192,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageSPlus1, tm0.wrap_s, imageWidth);
     WrapCoord(&imageTPlus1, tm0.wrap_t, imageHeight);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1[subTexmap].image_type))
+    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1[subTexmap].cache_manually_managed))
     {
       TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, texfmt, tlut,
                              tlutfmt);
@@ -240,7 +244,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageS, tm0.wrap_s, imageWidth);
     WrapCoord(&imageT, tm0.wrap_t, imageHeight);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1[subTexmap].image_type))
+    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1[subTexmap].cache_manually_managed))
       TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, texfmt, tlut, tlutfmt);
     else
       TexDecoder_DecodeTexelRGBA8FromTmem(sample, imageSrc, imageSrcOdd, imageS, imageT,

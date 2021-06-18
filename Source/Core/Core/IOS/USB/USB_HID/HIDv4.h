@@ -16,7 +16,7 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 class USB_HIDv4 final : public USBHost
 {
@@ -24,16 +24,16 @@ public:
   USB_HIDv4(Kernel& ios, const std::string& device_name);
   ~USB_HIDv4() override;
 
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
 
   void DoState(PointerWrap& p) override;
 
 private:
   std::shared_ptr<USB::Device> GetDeviceByIOSID(s32 ios_id) const;
 
-  IPCCommandResult CancelInterrupt(const IOCtlRequest& request);
-  IPCCommandResult GetDeviceChange(const IOCtlRequest& request);
-  IPCCommandResult Shutdown(const IOCtlRequest& request);
+  IPCReply CancelInterrupt(const IOCtlRequest& request);
+  std::optional<IPCReply> GetDeviceChange(const IOCtlRequest& request);
+  IPCReply Shutdown(const IOCtlRequest& request);
   s32 SubmitTransfer(USB::Device& device, const IOCtlRequest& request);
 
   void TriggerDeviceChangeReply();
@@ -56,4 +56,4 @@ private:
 
   ScanThread m_scan_thread{this};
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

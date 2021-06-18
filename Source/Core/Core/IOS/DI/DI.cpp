@@ -39,15 +39,15 @@ static RegisterWrapper<0x0D806018> DILENGTH;
 static RegisterWrapper<0x0D80601C> DICR;
 static RegisterWrapper<0x0D806020> DIIMMBUF;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-CoreTiming::EventType* DI::s_finish_executing_di_command;
+CoreTiming::EventType* DIDevice::s_finish_executing_di_command;
 
-DI::DI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+DIDevice::DIDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
-void DI::DoState(PointerWrap& p)
+void DIDevice::DoState(PointerWrap& p)
 {
   DoStateShared(p);
   p.Do(m_commands_to_execute);
@@ -57,13 +57,13 @@ void DI::DoState(PointerWrap& p)
   p.Do(m_last_length);
 }
 
-IPCCommandResult DI::Open(const OpenRequest& request)
+std::optional<IPCReply> DIDevice::Open(const OpenRequest& request)
 {
   InitializeIfFirstTime();
   return Device::Open(request);
 }
 
-IPCCommandResult DI::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> DIDevice::IOCtl(const IOCtlRequest& request)
 {
   InitializeIfFirstTime();
 
@@ -91,14 +91,14 @@ IPCCommandResult DI::IOCtl(const IOCtlRequest& request)
 
   // FinishIOCtl will be called after the command has been executed
   // to reply to the request, so we shouldn't reply here.
-  return GetNoReply();
+  return std::nullopt;
 }
 
-void DI::ProcessQueuedIOCtl()
+void DIDevice::ProcessQueuedIOCtl()
 {
   if (m_commands_to_execute.empty())
   {
-    PanicAlertFmt("IOS::HLE::Device::DI: There is no command to execute!");
+    PanicAlertFmt("IOS::HLE::DIDevice: There is no command to execute!");
     return;
   }
 
@@ -109,13 +109,13 @@ void DI::ProcessQueuedIOCtl()
   auto finished = StartIOCtl(request);
   if (finished)
   {
-    CoreTiming::ScheduleEvent(2700 * SystemTimers::TIMER_RATIO, s_finish_executing_di_command,
+    CoreTiming::ScheduleEvent(IPC_OVERHEAD_TICKS, s_finish_executing_di_command,
                               static_cast<u64>(finished.value()));
     return;
   }
 }
 
-std::optional<DI::DIResult> DI::WriteIfFits(const IOCtlRequest& request, u32 value)
+std::optional<DIDevice::DIResult> DIDevice::WriteIfFits(const IOCtlRequest& request, u32 value)
 {
   if (request.buffer_out_size < 4)
   {
@@ -129,7 +129,7 @@ std::optional<DI::DIResult> DI::WriteIfFits(const IOCtlRequest& request, u32 val
   }
 }
 
-std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
+std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& request)
 {
   if (request.buffer_in_size != 0x20)
   {
@@ -482,7 +482,8 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
   }
 }
 
-std::optional<DI::DIResult> DI::StartDMATransfer(u32 command_length, const IOCtlRequest& request)
+std::optional<DIDevice::DIResult> DIDevice::StartDMATransfer(u32 command_length,
+                                                             const IOCtlRequest& request)
 {
   if (request.buffer_out_size < command_length)
   {
@@ -517,8 +518,8 @@ std::optional<DI::DIResult> DI::StartDMATransfer(u32 command_length, const IOCtl
   // Reply will be posted when done by FinishIOCtl.
   return {};
 }
-std::optional<DI::DIResult> DI::StartImmediateTransfer(const IOCtlRequest& request,
-                                                       bool write_to_buf)
+std::optional<DIDevice::DIResult> DIDevice::StartImmediateTransfer(const IOCtlRequest& request,
+                                                                   bool write_to_buf)
 {
   if (write_to_buf && request.buffer_out_size < 4)
   {
@@ -536,17 +537,17 @@ std::optional<DI::DIResult> DI::StartImmediateTransfer(const IOCtlRequest& reque
   return {};
 }
 
-static std::shared_ptr<DI> GetDevice()
+static std::shared_ptr<DIDevice> GetDevice()
 {
-  auto ios = IOS::HLE::GetIOS();
+  auto ios = GetIOS();
   if (!ios)
     return nullptr;
   auto di = ios->GetDeviceByName("/dev/di");
   // di may be empty, but static_pointer_cast returns empty in that case
-  return std::static_pointer_cast<DI>(di);
+  return std::static_pointer_cast<DIDevice>(di);
 }
 
-void DI::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type)
+void DIDevice::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type)
 {
   DIResult result;
   switch (interrupt_type)
@@ -558,7 +559,7 @@ void DI::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type)
     result = DIResult::DriveError;
     break;
   default:
-    PanicAlertFmt("IOS::HLE::Device::DI: Unexpected DVDInterface interrupt {0}!",
+    PanicAlertFmt("IOS::HLE::DIDevice: Unexpected DVDInterface interrupt {0}!",
                   static_cast<int>(interrupt_type));
     result = DIResult::DriveError;
     break;
@@ -571,12 +572,12 @@ void DI::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type)
   }
   else
   {
-    PanicAlertFmt("IOS::HLE::Device::DI: Received interrupt from DVDInterface when device wasn't "
+    PanicAlertFmt("IOS::HLE::DIDevice: Received interrupt from DVDInterface when device wasn't "
                   "registered!");
   }
 }
 
-void DI::FinishDICommandCallback(u64 userdata, s64 ticksbehind)
+void DIDevice::FinishDICommandCallback(u64 userdata, s64 ticksbehind)
 {
   const DIResult result = static_cast<DIResult>(userdata);
 
@@ -584,15 +585,14 @@ void DI::FinishDICommandCallback(u64 userdata, s64 ticksbehind)
   if (di)
     di->FinishDICommand(result);
   else
-    PanicAlertFmt(
-        "IOS::HLE::Device::DI: Received interrupt from DI when device wasn't registered!");
+    PanicAlertFmt("IOS::HLE::DIDevice: Received interrupt from DI when device wasn't registered!");
 }
 
-void DI::FinishDICommand(DIResult result)
+void DIDevice::FinishDICommand(DIResult result)
 {
   if (!m_executing_command.has_value())
   {
-    PanicAlertFmt("IOS::HLE::Device::DI: There is no command to finish!");
+    PanicAlertFmt("IOS::HLE::DIDevice: There is no command to finish!");
     return;
   }
 
@@ -612,7 +612,7 @@ void DI::FinishDICommand(DIResult result)
   }
 }
 
-IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
 {
   // IOCtlVs are not queued since they don't (currently) go into DVDInterface and act
   // asynchronously. This does mean that an IOCtlV can be executed while an IOCtl is in progress,
@@ -623,7 +623,7 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
   {
     ERROR_LOG_FMT(IOS_DI, "IOCtlV: Received bad input buffer size {:#04x}, should be 0x20",
                   request.in_vectors[0].size);
-    return GetDefaultReply(static_cast<s32>(DIResult::BadArgument));
+    return IPCReply{static_cast<s32>(DIResult::BadArgument)};
   }
   const u8 command = Memory::Read_U8(request.in_vectors[0].address);
   if (request.request != command)
@@ -667,7 +667,7 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG_FMT(IOS_DI, "DVDLowOpenPartition: partition_offset {:#011x}", partition_offset);
 
     // Read TMD to the buffer
-    const IOS::ES::TMDReader tmd = DVDThread::GetTMD(m_current_partition);
+    const ES::TMDReader tmd = DVDThread::GetTMD(m_current_partition);
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
@@ -704,15 +704,15 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     ERROR_LOG_FMT(IOS_DI, "Unknown ioctlv {:#04x}", request.request);
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
   }
-  return GetDefaultReply(static_cast<s32>(return_value));
+  return IPCReply{static_cast<s32>(return_value)};
 }
 
-void DI::ChangePartition(const DiscIO::Partition partition)
+void DIDevice::ChangePartition(const DiscIO::Partition partition)
 {
   m_current_partition = partition;
 }
 
-DiscIO::Partition DI::GetCurrentPartition()
+DiscIO::Partition DIDevice::GetCurrentPartition()
 {
   auto di = GetDevice();
   // Note that this function is called in Gamecube mode for UpdateRunningGameMetadata,
@@ -722,7 +722,7 @@ DiscIO::Partition DI::GetCurrentPartition()
   return di->m_current_partition;
 }
 
-void DI::InitializeIfFirstTime()
+void DIDevice::InitializeIfFirstTime()
 {
   // Match the behavior of Nintendo's initDvdDriverStage2, which is called the first time
   // an open/ioctl/ioctlv occurs.  This behavior is observable by directly reading the DI registers,
@@ -738,7 +738,7 @@ void DI::InitializeIfFirstTime()
   }
 }
 
-void DI::ResetDIRegisters()
+void DIDevice::ResetDIRegisters()
 {
   // Clear transfer complete and error interrupts (normally r/z, but here we just directly write
   // zero)
@@ -751,4 +751,4 @@ void DI::ResetDIRegisters()
   // Close the current partition, if there is one
   ChangePartition(DiscIO::PARTITION_NONE);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

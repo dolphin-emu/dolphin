@@ -34,7 +34,7 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
     // The "fast" BL must be the third instruction. So just use the former two to inline the
     // downcount check here. It's better to do this near jump before the long jump to the other
     // block.
-    FixupBranch fast_link = emit.B(CC_PL);
+    FixupBranch fast_link = emit.B(CC_GT);
     emit.BL(dest->checkedEntry);
     emit.SetJumpTarget(fast_link);
     emit.BL(dest->normalEntry);
@@ -45,13 +45,13 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
   s64 distance = ((s64)dest->normalEntry - (s64)emit.GetCodePtr()) >> 2;
   if (distance >= -0x40000 && distance <= 0x3FFFF)
   {
-    emit.B(CC_PL, dest->normalEntry);
+    emit.B(CC_GT, dest->normalEntry);
     emit.B(dest->checkedEntry);
     emit.BRK(101);
     return;
   }
 
-  FixupBranch fast_link = emit.B(CC_PL);
+  FixupBranch fast_link = emit.B(CC_GT);
   emit.B(dest->checkedEntry);
   emit.SetJumpTarget(fast_link);
   emit.B(dest->normalEntry);
@@ -59,11 +59,11 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
 
 void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   u8* location = source.exitPtrs;
   ARM64XEmitter emit(location);
 
   WriteLinkBlock(emit, source, dest);
-
   emit.FlushIcache();
 }
 
@@ -71,9 +71,8 @@ void JitArm64BlockCache::WriteDestroyBlock(const JitBlock& block)
 {
   // Only clear the entry points as we might still be within this block.
   ARM64XEmitter emit(block.checkedEntry);
-
+  const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   while (emit.GetWritableCodePtr() <= block.normalEntry)
     emit.BRK(0x123);
-
   emit.FlushIcache();
 }

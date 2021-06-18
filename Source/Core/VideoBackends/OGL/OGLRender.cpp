@@ -11,7 +11,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
@@ -745,8 +744,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     OSD::AddMessage(fmt::format("Your OpenGL driver does not support {}_buffer_storage.",
                                 m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
                     60000);
-    OSD::AddMessage("This device's performance will be terrible.", 60000);
-    OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
+    OSD::AddMessage("This device's performance may be poor.", 60000);
   }
 
   WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
@@ -855,32 +853,19 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-u16 Renderer::BBoxRead(int index)
+u16 Renderer::BBoxReadImpl(int index)
 {
-  // swap 2 and 3 for top/bottom
-  if (index >= 2)
-    index ^= 1;
-
-  int value = BoundingBox::Get(index);
-  if (index >= 2)
-  {
-    // up/down -- we have to swap up and down
-    value = EFB_HEIGHT - value;
-  }
-
-  return static_cast<u16>(value);
+  return static_cast<u16>(BoundingBox::Get(index));
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWriteImpl(int index, u16 value)
 {
-  s32 swapped_value = value;
-  if (index >= 2)
-  {
-    index ^= 1;  // swap 2 and 3 for top/bottom
-    swapped_value = EFB_HEIGHT - swapped_value;
-  }
+  BoundingBox::Set(index, value);
+}
 
-  BoundingBox::Set(index, swapped_value);
+void Renderer::BBoxFlushImpl()
+{
+  BoundingBox::Flush();
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
@@ -1140,11 +1125,11 @@ void Renderer::ApplyRasterizationState(const RasterizationState state)
     return;
 
   // none, ccw, cw, ccw
-  if (state.cullmode != GenMode::CULL_NONE)
+  if (state.cullmode != CullMode::None)
   {
     // TODO: GX_CULL_ALL not supported, yet!
     glEnable(GL_CULL_FACE);
-    glFrontFace(state.cullmode == GenMode::CULL_FRONT ? GL_CCW : GL_CW);
+    glFrontFace(state.cullmode == CullMode::Front ? GL_CCW : GL_CW);
   }
   else
   {
@@ -1166,7 +1151,7 @@ void Renderer::ApplyDepthState(const DepthState state)
   {
     glEnable(GL_DEPTH_TEST);
     glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[state.func]);
+    glDepthFunc(glCmpFuncs[u32(state.func.Value())]);
   }
   else
   {
@@ -1229,8 +1214,10 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     glBlendEquationSeparate(equation, equationAlpha);
-    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
-                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
+    glBlendFuncSeparate(src_factors[u32(state.srcfactor.Value())],
+                        dst_factors[u32(state.dstfactor.Value())],
+                        src_factors[u32(state.srcfactoralpha.Value())],
+                        dst_factors[u32(state.dstfactoralpha.Value())]);
   }
 
   const GLenum logic_op_codes[16] = {
@@ -1244,7 +1231,7 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     if (state.logicopenable)
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[state.logicmode]);
+      glLogicOp(logic_op_codes[u32(state.logicmode.Value())]);
     }
     else
     {

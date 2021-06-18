@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 
+#include <utility>
+
 #include <QCursor>
 #include <QFontDatabase>
 #include <QFormLayout>
@@ -28,9 +30,10 @@
 
 #include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)
-    : m_game(game), m_game_id(game.GetGameID()), m_gametdb_id(game.GetGameTDBID()),
-      m_game_revision(game.GetRevision()), m_restart_required(restart_required)
+GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
+                                 bool restart_required)
+    : m_game_id(std::move(game_id)), m_gametdb_id(std::move(gametdb_id)),
+      m_game_revision(game_revision), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();

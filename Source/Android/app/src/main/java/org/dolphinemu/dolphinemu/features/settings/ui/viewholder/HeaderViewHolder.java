@@ -28,7 +28,7 @@ public final class HeaderViewHolder extends SettingViewHolder
   @Override
   public void bind(SettingsItem item)
   {
-    mHeaderName.setText(item.getNameId());
+    mHeaderName.setText(item.getName());
   }
 
   @Override

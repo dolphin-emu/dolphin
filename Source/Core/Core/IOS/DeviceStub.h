@@ -10,15 +10,15 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-class Stub final : public Device
+class DeviceStub final : public Device
 {
 public:
   // Inherit the constructor from the Device class, since we don't need to do anything special.
   using Device::Device;
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

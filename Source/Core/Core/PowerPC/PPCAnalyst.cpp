@@ -196,8 +196,8 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
-  int a_flags = a_info->flags;
-  int b_flags = b_info->flags;
+  u64 a_flags = a_info->flags;
+  u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
   if (SConfig::GetInstance().bEnableDebugging &&
@@ -550,6 +550,10 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
   code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
+
+  // TODO: Is it possible to determine that some FPU instructions never cause exceptions?
+  code->canCauseException =
+      (opinfo->flags & (FL_LOADSTORE | FL_USE_FPU | FL_PROGRAMEXCEPTION)) != 0;
 
   code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
   code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
@@ -916,7 +920,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   // Scan for flag dependencies; assume the next block (or any branch that can leave the block)
   // wants flags, to be safe.
   bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
-  BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
+  BitSet32 fprInUse, gprInUse, gprDiscardable, fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
@@ -939,21 +943,25 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     wantsCA &= !op.outputCA || opWantsCA;
     op.gprInUse = gprInUse;
     op.fprInUse = fprInUse;
-    op.gprInReg = gprInReg;
+    op.gprDiscardable = gprDiscardable;
+    op.fprDiscardable = fprDiscardable;
     op.fprInXmm = fprInXmm;
-    // TODO: if there's no possible endblocks or exceptions in between, tell the regcache
-    // we can throw away a register if it's going to be overwritten later.
     gprInUse |= op.regsIn;
-    gprInReg |= op.regsIn;
     fprInUse |= op.fregsIn;
+    if (op.canEndBlock || op.canCauseException)
+    {
+      gprDiscardable = BitSet32{};
+      fprDiscardable = BitSet32{};
+    }
+    else
+    {
+      gprDiscardable |= op.regsOut;
+      gprDiscardable &= ~op.regsIn;
+      fprDiscardable |= op.GetFregsOut();
+      fprDiscardable &= ~op.fregsIn;
+    }
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
-    // For now, we need to count output registers as "used" though; otherwise the flush
-    // will result in a redundant store (e.g. store to regcache, then store again to
-    // the same location later).
-    gprInUse |= op.regsOut;
-    if (op.fregOut >= 0)
-      fprInUse[op.fregOut] = true;
   }
 
   // Forward scan, for flags that need the other direction for calculation.
@@ -968,40 +976,75 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
     op.fprIsSingle = fprIsSingle;
     op.fprIsDuplicated = fprIsDuplicated;
-    op.fprIsStoreSafe = fprIsStoreSafe;
+    op.fprIsStoreSafeBeforeInst = fprIsStoreSafe;
     if (op.fregOut >= 0)
     {
-      fprIsSingle[op.fregOut] = false;
-      fprIsDuplicated[op.fregOut] = false;
-      fprIsStoreSafe[op.fregOut] = false;
-      // Single, duplicated, and doesn't need PPC_FP.
-      if (op.opinfo->type == OpType::SingleFP)
+      BitSet32 bitexact_inputs;
+      if (op.opinfo->flags &
+          (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
+      {
+        if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
+          bitexact_inputs[op.inst.FA] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
+          bitexact_inputs[op.inst.FB] = true;
+        if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
+          bitexact_inputs[op.inst.FC] = true;
+      }
+
+      if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
-        fprIsStoreSafe[op.fregOut] = true;
       }
-      // Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
-      // TODO: if we go directly from a load to store, skip conversion entirely?
-      // TODO: if we go directly from a load to a float instruction, and the value isn't used
-      // for anything else, we can skip PPC_FP on a load too.
-      if (!strncmp(op.opinfo->opname, "lfs", 3))
+      else if (!strncmp(op.opinfo->opname, "lfs", 3))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
       }
-      // Paired are still floats, but the top/bottom halves may differ.
-      if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
+      else if (bitexact_inputs)
+      {
+        fprIsSingle[op.fregOut] = (fprIsSingle & bitexact_inputs) == bitexact_inputs;
+        fprIsDuplicated[op.fregOut] = false;
+      }
+      else if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
       {
         fprIsSingle[op.fregOut] = true;
-        fprIsStoreSafe[op.fregOut] = true;
+        fprIsDuplicated[op.fregOut] = false;
       }
-      // Careful: changing the float mode in a block breaks this optimization, since
-      // a previous float op might have had had FTZ off while the later store has FTZ
-      // on. So, discard all information we have.
+      else
+      {
+        fprIsSingle[op.fregOut] = false;
+        fprIsDuplicated[op.fregOut] = false;
+      }
+
       if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      {
+        // Careful: changing the float mode in a block breaks the store-safe optimization,
+        // since a previous float op might have had FTZ off while the later store has FTZ on.
+        // So, discard all information we have.
         fprIsStoreSafe = BitSet32(0);
+      }
+      else if (bitexact_inputs)
+      {
+        // If the instruction copies bits between registers (without flushing denormals to zero
+        // or turning SNaN into QNaN), the output is store-safe if the inputs are.
+        fprIsStoreSafe[op.fregOut] = (fprIsStoreSafe & bitexact_inputs) == bitexact_inputs;
+      }
+      else
+      {
+        // Other FPU instructions are store-safe if they perform a single-precision
+        // arithmetic operation.
+
+        // TODO: if we go directly from a load to store, skip conversion entirely?
+        // TODO: if we go directly from a load to a float instruction, and the value isn't used
+        // for anything else, we can use fast single -> double conversion after the load.
+
+        fprIsStoreSafe[op.fregOut] = op.opinfo->type == OpType::SingleFP ||
+                                     op.opinfo->type == OpType::PS ||
+                                     !strncmp(op.opinfo->opname, "frsp", 4);
+      }
     }
+    op.fprIsStoreSafeAfterInst = fprIsStoreSafe;
 
     if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
     {

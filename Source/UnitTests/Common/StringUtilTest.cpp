@@ -105,3 +105,13 @@ TEST(StringUtil, ToString_TryParse_Roundtrip)
   DoRoundTripTest<float>({0.0f, 1.0f, -1.0f, -0.5f, 0.5f, -1e-3f, 1e-3f, 1e3f, -1e3f});
   DoRoundTripTest<double>({0.0, 1.0, -1.0, -0.5, 0.5, -1e-3, 1e-3, 1e3, -1e3});
 }
+
+TEST(StringUtil, GetEscapedHtml)
+{
+  static constexpr auto no_escape_needed =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+      "!@#$%^*()-_=+,./?;:[]{}| \\\t\n";
+  EXPECT_EQ(GetEscapedHtml(no_escape_needed), no_escape_needed);
+  EXPECT_EQ(GetEscapedHtml("&<>'\""), "&amp;&lt;&gt;&apos;&quot;");
+  EXPECT_EQ(GetEscapedHtml("&&&"), "&amp;&amp;&amp;");
+}

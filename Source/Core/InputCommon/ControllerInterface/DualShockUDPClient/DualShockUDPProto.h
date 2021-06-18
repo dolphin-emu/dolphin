@@ -113,7 +113,7 @@ struct ListPorts
   MessageHeader header;
   u32 message_type;
   u32 pad_request_count;
-  std::array<u8, 4> pad_id;
+  std::array<u8, 4> pad_ids;
 };
 
 struct PortInfo
@@ -178,7 +178,7 @@ struct PadDataResponse
   u8 trigger_l2;
   Touch touch1;
   Touch touch2;
-  u64 timestamp_us;
+  u64 accelerometer_timestamp_us;
   float accelerometer_x_g;
   float accelerometer_y_g;
   float accelerometer_z_g;
@@ -249,7 +249,7 @@ struct Message
     if (crc32_in_header != crc32_calculated)
     {
       NOTICE_LOG_FMT(
-          SERIALINTERFACE,
+          CONTROLLERINTERFACE,
           "DualShockUDPClient Received message with bad CRC in header: got {:08x}, expected {:08x}",
           crc32_in_header, crc32_calculated);
       return std::nullopt;

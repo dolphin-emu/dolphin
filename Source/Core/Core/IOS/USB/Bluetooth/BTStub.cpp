@@ -8,18 +8,18 @@
 #include "Common/MsgHandler.h"
 #include "Core/Core.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-IPCCommandResult BluetoothStub::Open(const OpenRequest& request)
+std::optional<IPCReply> BluetoothStubDevice::Open(const OpenRequest& request)
 {
   PanicAlertFmtT("Bluetooth passthrough mode is enabled, but Dolphin was built without libusb."
                  " Passthrough mode cannot be used.");
-  return GetDefaultReply(IPC_ENOENT);
+  return IPCReply(IPC_ENOENT);
 }
 
-void BluetoothStub::DoState(PointerWrap& p)
+void BluetoothStubDevice::DoState(PointerWrap& p)
 {
   Core::DisplayMessage("The current IPC_HLE_Device_usb is a stub. Aborting load.", 4000);
   p.SetMode(PointerWrap::MODE_VERIFY);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -64,7 +64,7 @@ static u64 s_last_init = 0;
 static void ScanThreadFunc()
 {
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter scanning thread started");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter scanning thread started");
 
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -78,13 +78,13 @@ static void ScanThreadFunc()
     Common::SleepCurrentThread(1000);
   }
 
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter scanning thread stopped");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter scanning thread stopped");
 }
 
 static void Write()
 {
   Common::SetCurrentThreadName("GC Adapter Write Thread");
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter write thread started");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter write thread started");
 
   JNIEnv* env = IDCache::GetEnvForThread();
   jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
@@ -108,7 +108,7 @@ static void Write()
       // Netplay sends invalid data which results in size = 0x00.  Ignore it.
       if (size != write_size && size != 0x00)
       {
-        ERROR_LOG_FMT(SERIALINTERFACE, "error writing rumble (size: {})", size);
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "error writing rumble (size: {})", size);
         Reset();
       }
     }
@@ -116,13 +116,13 @@ static void Write()
     Common::YieldCPU();
   }
 
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter write thread stopped");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter write thread stopped");
 }
 
 static void Read()
 {
   Common::SetCurrentThreadName("GC Adapter Read Thread");
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter read thread started");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter read thread started");
 
   bool first_read = true;
   JNIEnv* env = IDCache::GetEnvForThread();
@@ -179,7 +179,7 @@ static void Read()
   s_fd = 0;
   s_detected = false;
 
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter read thread stopped");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter read thread stopped");
 }
 
 void Init()
@@ -229,7 +229,7 @@ static void Reset()
 
   s_detected = false;
   s_fd = 0;
-  NOTICE_LOG_FMT(SERIALINTERFACE, "GC Adapter detached");
+  NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter detached");
 }
 
 void Shutdown()
@@ -270,8 +270,8 @@ GCPadStatus Input(int chan)
   GCPadStatus pad = {};
   if (payload_size != controller_payload_copy.size())
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "error reading payload (size: {}, type: {:02x})", payload_size,
-                  controller_payload_copy[0]);
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "error reading payload (size: {}, type: {:02x})",
+                  payload_size, controller_payload_copy[0]);
     Reset();
   }
   else
@@ -281,8 +281,8 @@ GCPadStatus Input(int chan)
     if (type != ControllerTypes::CONTROLLER_NONE &&
         s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
     {
-      ERROR_LOG_FMT(SERIALINTERFACE, "New device connected to Port {} of Type: {:02x}", chan + 1,
-                    controller_payload_copy[1 + (9 * chan)]);
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "New device connected to Port {} of Type: {:02x}",
+                    chan + 1, controller_payload_copy[1 + (9 * chan)]);
       get_origin = true;
     }
 

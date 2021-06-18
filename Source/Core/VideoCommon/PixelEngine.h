@@ -66,4 +66,4 @@ void SetToken(const u16 token, const bool interrupt);
 void SetFinish();
 UPEAlphaReadReg GetAlphaReadMode();
 
-}  // end of namespace PixelEngine
+}  // namespace PixelEngine

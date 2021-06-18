@@ -39,26 +39,26 @@ void WriteLightingFunction(ShaderCode& out)
             "  float dist, dist2, attn;\n"
             "\n"
             "  switch (attnfunc) {{\n");
-  out.Write("  case {}u: // LIGNTATTN_NONE\n", LIGHTATTN_NONE);
-  out.Write("  case {}u: // LIGHTATTN_DIR\n", LIGHTATTN_DIR);
+  out.Write("  case {:s}:\n", AttenuationFunc::None);
+  out.Write("  case {:s}:\n", AttenuationFunc::Dir);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = 1.0;\n"
             "    if (length(ldir) == 0.0)\n"
             "      ldir = normal;\n"
             "    break;\n\n");
-  out.Write("  case {}u: // LIGHTATTN_SPEC\n", LIGHTATTN_SPEC);
+  out.Write("  case {:s}:\n", AttenuationFunc::Spec);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = (dot(normal, ldir) >= 0.0) ? max(0.0, dot(normal, " I_LIGHTS
             "[index].dir.xyz)) : 0.0;\n"
             "    cosAttn = " I_LIGHTS "[index].cosatt.xyz;\n");
-  out.Write("    if (diffusefunc == {}u) // LIGHTDIF_NONE\n", LIGHTDIF_NONE);
+  out.Write("    if (diffusefunc == {:s})\n", DiffuseFunc::None);
   out.Write("      distAttn = " I_LIGHTS "[index].distatt.xyz;\n"
             "    else\n"
             "      distAttn = normalize(" I_LIGHTS "[index].distatt.xyz);\n"
             "    attn = max(0.0, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
             "float3(1.0, attn, attn*attn));\n"
             "    break;\n\n");
-  out.Write("  case {}u: // LIGHTATTN_SPOT\n", LIGHTATTN_SPOT);
+  out.Write("  case {:s}:\n", AttenuationFunc::Spot);
   out.Write("    ldir = " I_LIGHTS "[index].pos.xyz - pos.xyz;\n"
             "    dist2 = dot(ldir, ldir);\n"
             "    dist = sqrt(dist2);\n"
@@ -75,12 +75,12 @@ void WriteLightingFunction(ShaderCode& out)
             "  }}\n"
             "\n"
             "  switch (diffusefunc) {{\n");
-  out.Write("  case {}u: // LIGHTDIF_NONE\n", LIGHTDIF_NONE);
+  out.Write("  case {:s}:\n", DiffuseFunc::None);
   out.Write("    return int4(round(attn * float4(" I_LIGHTS "[index].color)));\n\n");
-  out.Write("  case {}u: // LIGHTDIF_SIGN\n", LIGHTDIF_SIGN);
+  out.Write("  case {:s}:\n", DiffuseFunc::Sign);
   out.Write("    return int4(round(attn * dot(ldir, normal) * float4(" I_LIGHTS
             "[index].color)));\n\n");
-  out.Write("  case {}u: // LIGHTDIF_CLAMP\n", LIGHTDIF_CLAMP);
+  out.Write("  case {:s}:\n", DiffuseFunc::Clamp);
   out.Write("    return int4(round(attn * max(0.0, dot(ldir, normal)) * float4(" I_LIGHTS
             "[index].color)));\n\n");
   out.Write("  default:\n"
@@ -103,29 +103,29 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "  int4 lacc = int4(255, 255, 255, 255);\n"
             "\n");
 
-  out.Write("  if ({} != 0u)\n", BitfieldExtract("colorreg", LitChannel().matsource));
+  out.Write("  if ({} != 0u)\n", BitfieldExtract<&LitChannel::matsource>("colorreg"));
   out.Write("    mat.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
             in_color_0_var, in_color_1_var);
 
-  out.Write("  if ({} != 0u)\n", BitfieldExtract("alphareg", LitChannel().matsource));
+  out.Write("  if ({} != 0u)\n", BitfieldExtract<&LitChannel::matsource>("alphareg"));
   out.Write("    mat.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
             in_color_1_var);
   out.Write("  else\n"
             "    mat.w = " I_MATERIALS " [chan + 2u].w;\n"
             "\n");
 
-  out.Write("  if ({} != 0u) {{\n", BitfieldExtract("colorreg", LitChannel().enablelighting));
-  out.Write("    if ({} != 0u)\n", BitfieldExtract("colorreg", LitChannel().ambsource));
+  out.Write("  if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::enablelighting>("colorreg"));
+  out.Write("    if ({} != 0u)\n", BitfieldExtract<&LitChannel::ambsource>("colorreg"));
   out.Write("      lacc.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
             in_color_0_var, in_color_1_var);
   out.Write("    else\n"
             "      lacc.xyz = " I_MATERIALS " [chan].xyz;\n"
             "\n");
   out.Write("    uint light_mask = {} | ({} << 4u);\n",
-            BitfieldExtract("colorreg", LitChannel().lightMask0_3),
-            BitfieldExtract("colorreg", LitChannel().lightMask4_7));
-  out.Write("    uint attnfunc = {};\n", BitfieldExtract("colorreg", LitChannel().attnfunc));
-  out.Write("    uint diffusefunc = {};\n", BitfieldExtract("colorreg", LitChannel().diffusefunc));
+            BitfieldExtract<&LitChannel::lightMask0_3>("colorreg"),
+            BitfieldExtract<&LitChannel::lightMask4_7>("colorreg"));
+  out.Write("    uint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>("colorreg"));
+  out.Write("    uint diffusefunc = {};\n", BitfieldExtract<&LitChannel::diffusefunc>("colorreg"));
   out.Write(
       "    for (uint light_index = 0u; light_index < 8u; light_index++) {{\n"
       "      if ((light_mask & (1u << light_index)) != 0u)\n"
@@ -135,8 +135,8 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "  }}\n"
             "\n");
 
-  out.Write("  if ({} != 0u) {{\n", BitfieldExtract("alphareg", LitChannel().enablelighting));
-  out.Write("    if ({} != 0u) {{\n", BitfieldExtract("alphareg", LitChannel().ambsource));
+  out.Write("  if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::enablelighting>("alphareg"));
+  out.Write("    if ({} != 0u) {{\n", BitfieldExtract<&LitChannel::ambsource>("alphareg"));
   out.Write("      if ((components & ({}u << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
   out.Write("        lacc.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
             in_color_1_var);
@@ -149,10 +149,10 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "    }}\n"
             "\n");
   out.Write("    uint light_mask = {} | ({} << 4u);\n",
-            BitfieldExtract("alphareg", LitChannel().lightMask0_3),
-            BitfieldExtract("alphareg", LitChannel().lightMask4_7));
-  out.Write("    uint attnfunc = {};\n", BitfieldExtract("alphareg", LitChannel().attnfunc));
-  out.Write("    uint diffusefunc = {};\n", BitfieldExtract("alphareg", LitChannel().diffusefunc));
+            BitfieldExtract<&LitChannel::lightMask0_3>("alphareg"),
+            BitfieldExtract<&LitChannel::lightMask4_7>("alphareg"));
+  out.Write("    uint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>("alphareg"));
+  out.Write("    uint diffusefunc = {};\n", BitfieldExtract<&LitChannel::diffusefunc>("alphareg"));
   out.Write("    for (uint light_index = 0u; light_index < 8u; light_index++) {{\n\n"
             "      if ((light_mask & (1u << light_index)) != 0u)\n\n"
             "        lacc.w += CalculateLighting(light_index, attnfunc, diffusefunc, {}, {}).w;\n",

@@ -8,6 +8,7 @@
 
 #include <QObject>
 
+#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "InputCommon/InputProfile.h"
 
@@ -26,6 +27,7 @@ signals:
   void ChangeDisc();
 
   void ExitHotkey();
+  void UnlockCursor();
   void ActivateChat();
   void RequestGolfControl();
   void FullScreenHotkey();

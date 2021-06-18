@@ -4,7 +4,26 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
+#include <map>
+#include <memory>
+
+#ifdef _WIN32
+#include <WinSock2.h>
+using socklen_t = int;
+#else
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#endif
+
+#include "Common/CommonTypes.h"
+
+namespace Common
+{
+class PCAP;
+}
 
 namespace Core
 {
@@ -25,24 +44,78 @@ public:
   NetworkCaptureLogger& operator=(NetworkCaptureLogger&&) = delete;
   virtual ~NetworkCaptureLogger();
 
-  virtual void LogRead(const void* data, std::size_t length) = 0;
-  virtual void LogWrite(const void* data, std::size_t length) = 0;
+  virtual void OnNewSocket(s32 socket) = 0;
+
+  virtual void LogSSLRead(const void* data, std::size_t length, s32 socket) = 0;
+  virtual void LogSSLWrite(const void* data, std::size_t length, s32 socket) = 0;
+
+  virtual void LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from) = 0;
+  virtual void LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to) = 0;
+
   virtual NetworkCaptureType GetCaptureType() const = 0;
 };
 
 class DummyNetworkCaptureLogger : public NetworkCaptureLogger
 {
 public:
-  void LogRead(const void* data, std::size_t length) override;
-  void LogWrite(const void* data, std::size_t length) override;
+  void OnNewSocket(s32 socket) override;
+
+  void LogSSLRead(const void* data, std::size_t length, s32 socket) override;
+  void LogSSLWrite(const void* data, std::size_t length, s32 socket) override;
+
+  void LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from) override;
+  void LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to) override;
+
   NetworkCaptureType GetCaptureType() const override;
 };
 
-class BinarySSLCaptureLogger final : public NetworkCaptureLogger
+class BinarySSLCaptureLogger final : public DummyNetworkCaptureLogger
 {
 public:
-  void LogRead(const void* data, std::size_t length) override;
-  void LogWrite(const void* data, std::size_t length) override;
+  void LogSSLRead(const void* data, std::size_t length, s32 socket) override;
+  void LogSSLWrite(const void* data, std::size_t length, s32 socket) override;
+
   NetworkCaptureType GetCaptureType() const override;
+};
+
+class PCAPSSLCaptureLogger final : public NetworkCaptureLogger
+{
+public:
+  PCAPSSLCaptureLogger();
+  ~PCAPSSLCaptureLogger();
+
+  void OnNewSocket(s32 socket) override;
+
+  void LogSSLRead(const void* data, std::size_t length, s32 socket) override;
+  void LogSSLWrite(const void* data, std::size_t length, s32 socket) override;
+
+  void LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from) override;
+  void LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to) override;
+
+  NetworkCaptureType GetCaptureType() const override;
+
+private:
+  enum class LogType
+  {
+    Read,
+    Write,
+  };
+  struct ErrorState
+  {
+    int error;
+#ifdef _WIN32
+    int wsa_error;
+#endif
+  };
+  ErrorState SaveState() const;
+  void RestoreState(const ErrorState& state) const;
+
+  void Log(LogType log_type, const void* data, std::size_t length, s32 socket, sockaddr* other);
+  void LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket, const sockaddr_in& from,
+               const sockaddr_in& to);
+
+  std::unique_ptr<Common::PCAP> m_file;
+  std::map<s32, u32> m_read_sequence_number;
+  std::map<s32, u32> m_write_sequence_number;
 };
 }  // namespace Core

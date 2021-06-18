@@ -19,14 +19,14 @@ public:
 
   explicit Tilt(const std::string& name);
 
-  ReshapeData GetReshapableState(bool adjusted) final override;
+  ReshapeData GetReshapableState(bool adjusted) const final override;
   ControlState GetGateRadiusAtAngle(double angle) const final override;
 
   // Tilt is using the gate radius to adjust the tilt angle so we must provide an unadjusted value
   // for the default input radius.
   ControlState GetDefaultInputRadiusAtAngle(double angle) const final override;
 
-  StateData GetState();
+  StateData GetState() const;
 
   // Return peak rotational velocity (for a complete turn) in radians/sec
   ControlState GetMaxRotationalVelocity() const;

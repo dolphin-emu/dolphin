@@ -197,4 +197,4 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 }
 
-}  // end of namespace MemoryInterface
+}  // namespace MemoryInterface

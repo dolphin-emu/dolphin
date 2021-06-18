@@ -20,6 +20,5 @@ public:
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
-  void Init();
 };
 }  // namespace DSP::HLE

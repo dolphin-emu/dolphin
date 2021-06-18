@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -29,7 +30,7 @@
 
 namespace ConfigLoaders
 {
-void SaveToSYSCONF(Config::LayerType layer)
+void SaveToSYSCONF(Config::LayerType layer, std::function<bool(const Config::Location&)> predicate)
 {
   if (Core::IsRunning())
     return;
@@ -40,7 +41,10 @@ void SaveToSYSCONF(Config::LayerType layer)
   for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
   {
     std::visit(
-        [layer, &setting, &sysconf](auto* info) {
+        [&](auto* info) {
+          if (predicate && !predicate(info->GetLocation()))
+            return;
+
           const std::string key = info->GetLocation().section + "." + info->GetLocation().key;
 
           if (setting.type == SysConf::Entry::Type::Long)
@@ -64,8 +68,7 @@ void SaveToSYSCONF(Config::LayerType layer)
         setting.config_info);
   }
 
-  if (SConfig::GetInstance().bEnableCustomRTC)
-    sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
+  sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
 
   // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
   // shutdown commands in the State Transition Manager (STM).
@@ -91,6 +94,7 @@ const std::map<Config::System, int> system_to_ini = {
     {Config::System::Debugger, F_DEBUGGERCONFIG_IDX},
     {Config::System::DualShockUDPClient, F_DUALSHOCKUDPCLIENTCONFIG_IDX},
     {Config::System::FreeLook, F_FREELOOKCONFIG_IDX},
+    // Config::System::Session should not be added to this list
 };
 
 // INI layer configuration loader
@@ -139,6 +143,9 @@ public:
 
       // Done by SaveToSYSCONF
       if (location.system == Config::System::SYSCONF)
+        continue;
+
+      if (location.system == Config::System::Session)
         continue;
 
       auto ini = inis.find(location.system);

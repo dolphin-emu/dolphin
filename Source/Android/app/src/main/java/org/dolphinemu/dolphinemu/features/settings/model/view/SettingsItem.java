@@ -1,5 +1,8 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -24,33 +27,39 @@ public abstract class SettingsItem
   public static final int TYPE_FILE_PICKER = 9;
   public static final int TYPE_RUN_RUNNABLE = 10;
 
-  private final int mNameId;
-  private final int mDescriptionId;
+  private final CharSequence mName;
+  private final CharSequence mDescription;
 
   /**
    * Base constructor.
    *
-   * @param nameId        Resource ID for a text string to be displayed as this setting's name.
-   * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
+   * @param name        A text string to be displayed as this setting's name.
+   * @param description A text string to be displayed as this setting's description.
    */
-
-  public SettingsItem(int nameId, int descriptionId)
+  public SettingsItem(CharSequence name, CharSequence description)
   {
-    mNameId = nameId;
-    mDescriptionId = descriptionId;
+    mName = name;
+    mDescription = description;
   }
 
   /**
-   * @return A resource ID for a text string representing this setting's name.
+   * @param nameId        Resource ID for a text string to be displayed as this setting's name.
+   * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
    */
-  public int getNameId()
+  public SettingsItem(Context context, int nameId, int descriptionId)
   {
-    return mNameId;
+    mName = nameId == 0 ? "" : context.getText(nameId);
+    mDescription = descriptionId == 0 ? "" : context.getText(descriptionId);
   }
 
-  public int getDescriptionId()
+  public CharSequence getName()
   {
-    return mDescriptionId;
+    return mName;
+  }
+
+  public CharSequence getDescription()
+  {
+    return mDescription;
   }
 
   /**

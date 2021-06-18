@@ -5,11 +5,15 @@
 // Stub implementation of the Host_* callbacks for tests. These implementations
 // do nothing except return default values when required.
 
-#include <memory>
 #include <string>
+#include <vector>
 
 #include "Core/Host.h"
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  return {};
+}
 void Host_NotifyMapLoaded()
 {
 }
@@ -36,6 +40,10 @@ bool Host_UIBlocksControllerState()
   return false;
 }
 bool Host_RendererHasFocus()
+{
+  return false;
+}
+bool Host_RendererHasFullFocus()
 {
   return false;
 }

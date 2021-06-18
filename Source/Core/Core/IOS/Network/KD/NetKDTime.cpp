@@ -10,15 +10,16 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-NetKDTime::NetKDTime(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetKDTimeDevice::NetKDTimeDevice(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name)
 {
 }
 
-NetKDTime::~NetKDTime() = default;
+NetKDTimeDevice::~NetKDTimeDevice() = default;
 
-IPCCommandResult NetKDTime::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 result = 0;
   u32 common_result = 0;
@@ -71,18 +72,18 @@ IPCCommandResult NetKDTime::IOCtl(const IOCtlRequest& request)
 
   // write return values
   Memory::Write_U32(common_result, request.buffer_out);
-  return GetDefaultReply(result);
+  return IPCReply(result);
 }
 
-u64 NetKDTime::GetAdjustedUTC() const
+u64 NetKDTimeDevice::GetAdjustedUTC() const
 {
   return ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH) +
          utcdiff;
 }
 
-void NetKDTime::SetAdjustedUTC(u64 wii_utc)
+void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
 {
   utcdiff = ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH) -
             wii_utc;
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

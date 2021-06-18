@@ -33,6 +33,7 @@ namespace Core
 namespace FS = IOS::HLE::FS;
 
 static std::string s_temp_wii_root;
+static bool s_wii_root_initialized = false;
 
 static bool CopyBackupFile(const std::string& path_from, const std::string& path_to)
 {
@@ -170,6 +171,8 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
 
 void InitializeWiiRoot(bool use_temporary)
 {
+  ASSERT(!s_wii_root_initialized);
+
   if (use_temporary)
   {
     s_temp_wii_root = File::GetUserPath(D_USER_IDX) + "WiiSession" DIR_SEP;
@@ -198,15 +201,29 @@ void InitializeWiiRoot(bool use_temporary)
   {
     File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
   }
+
+  s_wii_root_initialized = true;
 }
 
 void ShutdownWiiRoot()
 {
-  if (!s_temp_wii_root.empty())
+  if (WiiRootIsTemporary())
   {
     File::DeleteDirRecursively(s_temp_wii_root);
     s_temp_wii_root.clear();
   }
+
+  s_wii_root_initialized = false;
+}
+
+bool WiiRootIsInitialized()
+{
+  return s_wii_root_initialized;
+}
+
+bool WiiRootIsTemporary()
+{
+  return !s_temp_wii_root.empty();
 }
 
 void BackupWiiSettings()
@@ -282,7 +299,7 @@ void InitializeWiiFileSystemContents()
   if (!CopySysmenuFilesToFS(fs.get(), File::GetSysDirectory() + WII_USER_DIR, ""))
     WARN_LOG_FMT(CORE, "Failed to copy initial System Menu files to the NAND");
 
-  if (s_temp_wii_root.empty())
+  if (!WiiRootIsTemporary())
     return;
 
   // Generate a SYSCONF with default settings for the temporary Wii NAND.
@@ -294,7 +311,7 @@ void InitializeWiiFileSystemContents()
 
 void CleanUpWiiFileSystemContents()
 {
-  if (s_temp_wii_root.empty() || !SConfig::GetInstance().bEnableMemcardSdWriting ||
+  if (!WiiRootIsTemporary() || !SConfig::GetInstance().bEnableMemcardSdWriting ||
       NetPlay::GetWiiSyncFS())
   {
     return;

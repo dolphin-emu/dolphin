@@ -45,13 +45,15 @@ struct CodeOp  // 16B
   bool outputFPRF;
   bool outputCA;
   bool canEndBlock;
+  bool canCauseException;
   bool skipLRStack;
   bool skip;  // followed BL-s for example
   // which registers are still needed after this instruction in this block
   BitSet32 fprInUse;
   BitSet32 gprInUse;
-  // just because a register is in use doesn't mean we actually need or want it in an x86 register.
-  BitSet32 gprInReg;
+  // which registers have values which are known to be unused after this instruction
+  BitSet32 gprDiscardable;
+  BitSet32 fprDiscardable;
   // we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
   // an XMM only to move it again to a GPR afterwards.
   BitSet32 fprInXmm;
@@ -61,9 +63,21 @@ struct CodeOp  // 16B
   // instruction)
   BitSet32 fprIsDuplicated;
   // whether an fpr is the output of a single-precision arithmetic instruction, i.e. whether we can
-  // safely
-  // skip PPC_FP.
-  BitSet32 fprIsStoreSafe;
+  // convert between single and double formats by just using the host machine's instruction for it.
+  // (The reason why we can't always do this is because some games rely on the exact bits of
+  // denormals and SNaNs being preserved as long as no arithmetic operation is performed on them.)
+  BitSet32 fprIsStoreSafeBeforeInst;
+  BitSet32 fprIsStoreSafeAfterInst;
+
+  BitSet32 GetFregsOut() const
+  {
+    BitSet32 result;
+
+    if (fregOut >= 0)
+      result[fregOut] = true;
+
+    return result;
+  }
 };
 
 struct BlockStats

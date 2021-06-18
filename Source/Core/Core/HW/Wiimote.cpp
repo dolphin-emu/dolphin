@@ -16,6 +16,7 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
+#include "Core/WiiUtils.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/InputConfig.h"
@@ -49,13 +50,8 @@ void SetSource(unsigned int index, WiimoteSource source)
 
 void UpdateSource(unsigned int index)
 {
-  const auto ios = IOS::HLE::GetIOS();
-  if (!ios)
-    return;
-
-  const auto bluetooth = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-      ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-  if (!bluetooth)
+  const auto bluetooth = WiiUtils::GetBluetoothEmuDevice();
+  if (bluetooth == nullptr)
     return;
 
   bluetooth->AccessWiimoteByIndex(index)->SetSource(GetHIDWiimoteSource(index));

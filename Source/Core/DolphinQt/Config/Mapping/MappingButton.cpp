@@ -21,11 +21,48 @@
 
 constexpr int SLIDER_TICK_COUNT = 100;
 
-// Escape ampersands and remove ticks
-static QString ToDisplayString(QString&& string)
+// Escape ampersands and simplify the text for a short preview
+static QString RefToDisplayString(ControlReference* ref)
 {
-  return string.replace(QLatin1Char{'&'}, QStringLiteral("&&"))
-      .replace(QLatin1Char{'`'}, QString{});
+  const bool expression_valid =
+      ref->GetParseStatus() != ciface::ExpressionParser::ParseStatus::SyntaxError;
+  QString expression;
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    expression = QString::fromStdString(ref->GetExpression());
+  }
+
+  // Split by "`" so that we can give a better preview of control,
+  // without including their device in front of them, which is usually
+  // too long to actually see the control.
+  QStringList controls = expression.split(QLatin1Char{'`'});
+  // Do try to simplify controls if the parsing had failed, as it might create false positives.
+  if (expression_valid)
+  {
+    for (int i = 0; i < controls.size(); i++)
+    {
+      // We have two ` for control so make sure to only consider the odd ones.
+      if (i % 2)
+      {
+        // Use the code from the ControlQualifier instead of duplicating it.
+        ciface::ExpressionParser::ControlQualifier qualifier;
+        qualifier.FromString(controls[i].toStdString());
+        // If the control has got a device specifier/path, add ":" in front of it, to make it clear.
+        controls[i] = qualifier.has_device ? QStringLiteral(":") : QString();
+        controls[i].append(QString::fromStdString(qualifier.control_name));
+      }
+    }
+  }
+  // Do not re-add "`" to the final string, we don't need to see it.
+  expression = controls.join(QStringLiteral(""));
+
+  expression.remove(QLatin1Char{' '});
+  expression.remove(QLatin1Char{'\t'});
+  expression.remove(QLatin1Char{'\n'});
+  expression.remove(QLatin1Char{'\r'});
+  expression.replace(QLatin1Char{'&'}, QStringLiteral("&&"));
+
+  return expression;
 }
 
 bool MappingButton::IsInput() const
@@ -34,8 +71,7 @@ bool MappingButton::IsInput() const
 }
 
 MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
-    : ElidedButton(ToDisplayString(QString::fromStdString(ref->GetExpression()))), m_parent(parent),
-      m_reference(ref)
+    : ElidedButton(RefToDisplayString(ref)), m_parent(parent), m_reference(ref)
 {
   // Force all mapping buttons to stay at a minimal height.
   setFixedHeight(minimumSizeHint().height());
@@ -126,15 +162,20 @@ void MappingButton::UpdateIndicator()
 
   QFont f = m_parent->font();
 
-  if (m_reference->GetState<bool>())
+  // If the input state is "true" (we can't know the state of outputs), show it in bold.
+  if (m_reference->IsInput() && m_reference->GetState<bool>())
     f.setBold(true);
+  // If the expression has failed to parse, show it in italic.
+  // Some expressions still work even the failed to parse so don't prevent the GetState() above.
+  if (m_reference->GetParseStatus() == ciface::ExpressionParser::ParseStatus::SyntaxError)
+    f.setItalic(true);
 
   setFont(f);
 }
 
 void MappingButton::ConfigChanged()
 {
-  setText(ToDisplayString(QString::fromStdString(m_reference->GetExpression())));
+  setText(RefToDisplayString(m_reference));
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)

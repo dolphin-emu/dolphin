@@ -69,10 +69,9 @@ int Interpreter::RunCyclesThread(int cycles)
     if ((state.cr & CR_HALT) != 0)
       return 0;
 
-    if (state.external_interrupt_waiting)
+    if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
     {
       m_dsp_core.CheckExternalInterrupt();
-      m_dsp_core.SetExternalInterrupt(false);
     }
 
     Step();
@@ -201,14 +200,14 @@ int Interpreter::RunCycles(int cycles)
 void Interpreter::WriteCR(u16 val)
 {
   // reset
-  if ((val & 1) != 0)
+  if ((val & CR_RESET) != 0)
   {
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL RESET");
     m_dsp_core.Reset();
     val &= ~CR_RESET;
   }
   // init
-  else if (val == 4)
+  else if (val == CR_HALT)
   {
     // HAX!
     // OSInitAudioSystem ucode should send this mail - not DSP core itself

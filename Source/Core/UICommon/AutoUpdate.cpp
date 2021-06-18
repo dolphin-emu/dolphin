@@ -12,7 +12,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 
 #ifdef _WIN32
@@ -29,8 +29,11 @@
 #define OS_SUPPORTS_UPDATER
 #endif
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 namespace
 {
+bool s_update_triggered = false;
 #ifdef _WIN32
 
 const char UPDATER_FILENAME[] = "Updater.exe";
@@ -106,10 +109,10 @@ std::string GenerateChangelog(const picojson::array& versions)
       {
         changelog += ver_obj["shortrev"].get<std::string>();
       }
-
+      const std::string escaped_description =
+          GetEscapedHtml(ver_obj["short_descr"].get<std::string>());
       changelog += " by <a href = \"" + ver_obj["author_url"].get<std::string>() + "\">" +
-                   ver_obj["author"].get<std::string>() + "</a> &mdash; " +
-                   ver_obj["short_descr"].get<std::string>();
+                   ver_obj["author"].get<std::string>() + "</a> &mdash; " + escaped_description;
     }
     else
     {
@@ -137,7 +140,11 @@ static std::string GetPlatformID()
 #if defined _WIN32
   return "win";
 #elif defined __APPLE__
+#if defined(MACOS_UNIVERSAL_BUILD)
+  return "macos-universal";
+#else
   return "macos";
+#endif
 #else
   return "unknown";
 #endif
@@ -154,7 +161,7 @@ void AutoUpdateChecker::CheckForUpdate()
 #endif
 
   std::string version_hash = SConfig::GetInstance().m_auto_update_hash_override.empty() ?
-                                 SCM_REV_STR :
+                                 Common::scm_rev_git_str :
                                  SConfig::GetInstance().m_auto_update_hash_override;
   std::string url = "https://dolphin-emu.org/update/check/v1/" +
                     SConfig::GetInstance().m_auto_update_track + "/" + version_hash + "/" +
@@ -201,6 +208,14 @@ void AutoUpdateChecker::CheckForUpdate()
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
                                       AutoUpdateChecker::RestartMode restart_mode)
 {
+  // Check to make sure we don't already have an update triggered
+  if (s_update_triggered)
+  {
+    WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
+    return;
+  }
+
+  s_update_triggered = true;
 #ifdef OS_SUPPORTS_UPDATER
   std::map<std::string, std::string> updater_flags;
   updater_flags["this-manifest-url"] = info.this_manifest_url;

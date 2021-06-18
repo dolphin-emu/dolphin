@@ -86,6 +86,7 @@ bool Load()
   NOTICE_LOG_FMT(IOS, "IPL ready.");
   SConfig::GetInstance().m_is_mios = true;
   DVDInterface::UpdateRunningGameMetadata();
+  SConfig::OnNewTitleLoad();
   return true;
 }
 }  // namespace IOS::HLE::MIOS

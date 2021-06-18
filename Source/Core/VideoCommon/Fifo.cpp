@@ -8,7 +8,6 @@
 #include <cstring>
 
 #include "Common/Assert.h"
-#include "Common/Atomic.h"
 #include "Common/BlockingLoop.h"
 #include "Common/ChunkFile.h"
 #include "Common/Event.h"
@@ -140,7 +139,7 @@ void Shutdown()
 void ExitGpuLoop()
 {
   // This should break the wait loop in CPU thread
-  CommandProcessor::fifo.bFF_GPReadEnable = false;
+  CommandProcessor::fifo.bFF_GPReadEnable.store(0, std::memory_order_relaxed);
   FlushGpu();
 
   // Terminate GPU thread loop
@@ -328,34 +327,39 @@ void RunGpuLoop()
           CommandProcessor::SetCPStatusFromGPU();
 
           // check if we are able to run this buffer
-          while (!CommandProcessor::IsInterruptWaiting() && fifo.bFF_GPReadEnable &&
-                 fifo.CPReadWriteDistance && !AtBreakpoint())
+          while (!CommandProcessor::IsInterruptWaiting() &&
+                 fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
+                 fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint())
           {
             if (param.bSyncGPU && s_sync_ticks.load() < param.iSyncGpuMinDistance)
               break;
 
             u32 cyclesExecuted = 0;
-            u32 readPtr = fifo.CPReadPointer;
+            u32 readPtr = fifo.CPReadPointer.load(std::memory_order_relaxed);
             ReadDataFromFifo(readPtr);
 
-            if (readPtr == fifo.CPEnd)
-              readPtr = fifo.CPBase;
+            if (readPtr == fifo.CPEnd.load(std::memory_order_relaxed))
+              readPtr = fifo.CPBase.load(std::memory_order_relaxed);
             else
               readPtr += 32;
 
-            ASSERT_MSG(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0,
+            ASSERT_MSG(COMMANDPROCESSOR,
+                       (s32)fifo.CPReadWriteDistance.load(std::memory_order_relaxed) - 32 >= 0,
                        "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
                        "instability in the game. Please report it.",
-                       fifo.CPReadWriteDistance - 32);
+                       fifo.CPReadWriteDistance.load(std::memory_order_relaxed) - 32);
 
             u8* write_ptr = s_video_buffer_write_ptr;
             s_video_buffer_read_ptr = OpcodeDecoder::Run(
                 DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
 
-            Common::AtomicStore(fifo.CPReadPointer, readPtr);
-            Common::AtomicAdd(fifo.CPReadWriteDistance, static_cast<u32>(-32));
+            fifo.CPReadPointer.store(readPtr, std::memory_order_relaxed);
+            fifo.CPReadWriteDistance.fetch_sub(32, std::memory_order_seq_cst);
             if ((write_ptr - s_video_buffer_read_ptr) == 0)
-              Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
+            {
+              fifo.SafeCPReadPointer.store(fifo.CPReadPointer.load(std::memory_order_relaxed),
+                                           std::memory_order_relaxed);
+            }
 
             CommandProcessor::SetCPStatusFromGPU();
 
@@ -412,7 +416,9 @@ void GpuMaySleep()
 bool AtBreakpoint()
 {
   CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
-  return fifo.bFF_BPEnable && (fifo.CPReadPointer == fifo.CPBreakpoint);
+  return fifo.bFF_BPEnable.load(std::memory_order_relaxed) &&
+         (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
+          fifo.CPBreakpoint.load(std::memory_order_relaxed));
 }
 
 void RunGpu()
@@ -442,12 +448,13 @@ static int RunGpuOnCpu(int ticks)
   CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
   int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
-  while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() &&
+  while (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
+         fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint() &&
          available_ticks >= 0)
   {
     if (s_use_deterministic_gpu_thread)
     {
-      ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+      ReadDataFromFifoOnCPU(fifo.CPReadPointer.load(std::memory_order_relaxed));
       s_gpu_mainloop.Wakeup();
     }
     else
@@ -458,19 +465,25 @@ static int RunGpuOnCpu(int ticks)
         FPURoundMode::LoadDefaultSIMDState();
         reset_simd_state = true;
       }
-      ReadDataFromFifo(fifo.CPReadPointer);
+      ReadDataFromFifo(fifo.CPReadPointer.load(std::memory_order_relaxed));
       u32 cycles = 0;
       s_video_buffer_read_ptr = OpcodeDecoder::Run(
           DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), &cycles, false);
       available_ticks -= cycles;
     }
 
-    if (fifo.CPReadPointer == fifo.CPEnd)
-      fifo.CPReadPointer = fifo.CPBase;
+    if (fifo.CPReadPointer.load(std::memory_order_relaxed) ==
+        fifo.CPEnd.load(std::memory_order_relaxed))
+    {
+      fifo.CPReadPointer.store(fifo.CPBase.load(std::memory_order_relaxed),
+                               std::memory_order_relaxed);
+    }
     else
-      fifo.CPReadPointer += 32;
+    {
+      fifo.CPReadPointer.fetch_add(32, std::memory_order_relaxed);
+    }
 
-    fifo.CPReadWriteDistance -= 32;
+    fifo.CPReadWriteDistance.fetch_sub(32, std::memory_order_relaxed);
   }
 
   CommandProcessor::SetCPStatusFromGPU();
@@ -578,6 +591,16 @@ static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
   s_syncing_suspended = next < 0;
   if (!s_syncing_suspended)
     CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
+}
+
+void SyncGPUForRegisterAccess()
+{
+  SyncGPU(SyncGPUReason::Other);
+
+  if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
+    RunGpuOnCpu(GPU_TIME_SLOT_SIZE);
+  else if (SConfig::GetInstance().bSyncGPU)
+    WaitForGpuThread(GPU_TIME_SLOT_SIZE);
 }
 
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.

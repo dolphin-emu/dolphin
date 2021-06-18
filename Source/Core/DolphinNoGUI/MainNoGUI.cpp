@@ -10,6 +10,8 @@
 #include <cstring>
 #include <signal.h>
 #include <string>
+#include <vector>
+
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -48,9 +50,15 @@ static void signal_handler(int)
   s_platform->RequestShutdown();
 }
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  return {};
+}
+
 void Host_NotifyMapLoaded()
 {
 }
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }
@@ -88,6 +96,12 @@ void Host_RequestRenderWindowSize(int width, int height)
 bool Host_RendererHasFocus()
 {
   return s_platform->IsWindowFocused();
+}
+
+bool Host_RendererHasFullFocus()
+{
+  // Mouse capturing isn't implemented
+  return Host_RendererHasFocus();
 }
 
 bool Host_RendererIsFullscreen()
@@ -216,7 +230,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  Core::SetOnStateChangedCallback([](Core::State state) {
+  Core::AddOnStateChangedCallback([](Core::State state) {
     if (state == Core::State::Uninitialized)
       s_platform->Stop();
   });

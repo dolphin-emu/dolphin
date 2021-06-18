@@ -19,7 +19,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 
   UidData* const uid_data = out.GetUidData();
   uid_data->dst_format = dst_format;
-  uid_data->efb_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  uid_data->efb_has_alpha = bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
   uid_data->is_depth_copy = is_depth_copy;
   uid_data->is_intensity = is_intensity;
   uid_data->scale_by_half = scale_by_half;

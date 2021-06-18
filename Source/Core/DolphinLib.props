@@ -16,9 +16,6 @@
     <ClInclude Include="Common\Align.h" />
     <ClInclude Include="Common\Analytics.h" />
     <ClInclude Include="Common\Assert.h" />
-    <ClInclude Include="Common\Atomic_GCC.h" />
-    <ClInclude Include="Common\Atomic_Win32.h" />
-    <ClInclude Include="Common\Atomic.h" />
     <ClInclude Include="Common\BitField.h" />
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
@@ -45,6 +42,7 @@
     <ClInclude Include="Common\DebugInterface.h" />
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENetUtil.h" />
+    <ClInclude Include="Common\EnumFormatter.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FileSearch.h" />
     <ClInclude Include="Common\FileUtil.h" />
@@ -142,6 +140,7 @@
     <ClInclude Include="Common\Semaphore.h" />
     <ClInclude Include="Common\SettingsHandler.h" />
     <ClInclude Include="Common\SFMLHelper.h" />
+    <ClInclude Include="Common\SocketContext.h" />
     <ClInclude Include="Common\SPSCQueue.h" />
     <ClInclude Include="Common\StringUtil.h" />
     <ClInclude Include="Common\Swap.h" />
@@ -150,6 +149,7 @@
     <ClInclude Include="Common\Timer.h" />
     <ClInclude Include="Common\TraversalClient.h" />
     <ClInclude Include="Common\TraversalProto.h" />
+    <ClInclude Include="Common\TypeUtils.h" />
     <ClInclude Include="Common\UPnP.h" />
     <ClInclude Include="Common\VariantUtil.h" />
     <ClInclude Include="Common\Version.h" />
@@ -164,10 +164,12 @@
     <ClInclude Include="Core\BootManager.h" />
     <ClInclude Include="Core\CheatCodes.h" />
     <ClInclude Include="Core\CommonTitles.h" />
+    <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
     <ClInclude Include="Core\Config\NetplaySettings.h" />
+    <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
@@ -415,6 +417,7 @@
     <ClInclude Include="DiscIO\DirectoryBlob.h" />
     <ClInclude Include="DiscIO\DiscExtractor.h" />
     <ClInclude Include="DiscIO\DiscScrubber.h" />
+    <ClInclude Include="DiscIO\DiscUtils.h" />
     <ClInclude Include="DiscIO\DriveBlob.h" />
     <ClInclude Include="DiscIO\Enums.h" />
     <ClInclude Include="DiscIO\FileBlob.h" />
@@ -475,7 +478,9 @@
     <ClInclude Include="InputCommon\ControlReference\ControlReference.h" />
     <ClInclude Include="InputCommon\ControlReference\ExpressionParser.h" />
     <ClInclude Include="InputCommon\ControlReference\FunctionExpression.h" />
-    <ClInclude Include="InputCommon\DynamicInputTextureConfiguration.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITConfiguration.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITData.h" />
+    <ClInclude Include="InputCommon\DynamicInputTextures\DITSpecification.h" />
     <ClInclude Include="InputCommon\DynamicInputTextureManager.h" />
     <ClInclude Include="InputCommon\GCAdapter.h" />
     <ClInclude Include="InputCommon\GCPadStatus.h" />
@@ -636,6 +641,7 @@
     <ClInclude Include="VideoCommon\TextureConverterShaderGen.h" />
     <ClInclude Include="VideoCommon\TextureDecoder_Util.h" />
     <ClInclude Include="VideoCommon\TextureDecoder.h" />
+    <ClInclude Include="VideoCommon\TextureInfo.h" />
     <ClInclude Include="VideoCommon\UberShaderCommon.h" />
     <ClInclude Include="VideoCommon\UberShaderPixel.h" />
     <ClInclude Include="VideoCommon\UberShaderVertex.h" />
@@ -716,6 +722,7 @@
     <ClCompile Include="Common\SDCardUtil.cpp" />
     <ClCompile Include="Common\SettingsHandler.cpp" />
     <ClCompile Include="Common\SFMLHelper.cpp" />
+    <ClCompile Include="Common\SocketContext.cpp" />
     <ClCompile Include="Common\StringUtil.cpp" />
     <ClCompile Include="Common\SymbolDB.cpp" />
     <ClCompile Include="Common\Thread.cpp" />
@@ -731,10 +738,12 @@
     <ClCompile Include="Core\Boot\DolReader.cpp" />
     <ClCompile Include="Core\Boot\ElfReader.cpp" />
     <ClCompile Include="Core\BootManager.cpp" />
+    <ClCompile Include="Core\Config\DefaultLocale.cpp" />
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
     <ClCompile Include="Core\Config\MainSettings.cpp" />
     <ClCompile Include="Core\Config\NetplaySettings.cpp" />
+    <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />
@@ -986,6 +995,7 @@
     <ClCompile Include="DiscIO\DirectoryBlob.cpp" />
     <ClCompile Include="DiscIO\DiscExtractor.cpp" />
     <ClCompile Include="DiscIO\DiscScrubber.cpp" />
+    <ClCompile Include="DiscIO\DiscUtils.cpp" />
     <ClCompile Include="DiscIO\DriveBlob.cpp" />
     <ClCompile Include="DiscIO\Enums.cpp" />
     <ClCompile Include="DiscIO\FileBlob.cpp" />
@@ -1041,7 +1051,8 @@
     <ClCompile Include="InputCommon\ControlReference\ControlReference.cpp" />
     <ClCompile Include="InputCommon\ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="InputCommon\ControlReference\FunctionExpression.cpp" />
-    <ClCompile Include="InputCommon\DynamicInputTextureConfiguration.cpp" />
+    <ClCompile Include="InputCommon\DynamicInputTextures\DITConfiguration.cpp" />
+    <ClCompile Include="InputCommon\DynamicInputTextures\DITSpecification.cpp" />
     <ClCompile Include="InputCommon\DynamicInputTextureManager.cpp" />
     <ClCompile Include="InputCommon\GCAdapter.cpp" />
     <ClCompile Include="InputCommon\ImageOperations.cpp" />
@@ -1181,6 +1192,7 @@
     <ClCompile Include="VideoCommon\TextureConversionShader.cpp" />
     <ClCompile Include="VideoCommon\TextureConverterShaderGen.cpp" />
     <ClCompile Include="VideoCommon\TextureDecoder_Common.cpp" />
+    <ClCompile Include="VideoCommon\TextureInfo.cpp" />
     <ClCompile Include="VideoCommon\UberShaderCommon.cpp" />
     <ClCompile Include="VideoCommon\UberShaderPixel.cpp" />
     <ClCompile Include="VideoCommon\UberShaderVertex.cpp" />
@@ -1199,5 +1211,8 @@
     <ClCompile Include="VideoCommon\VideoState.cpp" />
     <ClCompile Include="VideoCommon\XFMemory.cpp" />
     <ClCompile Include="VideoCommon\XFStructs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Common\BitField.natvis" />
   </ItemGroup>
 </Project>

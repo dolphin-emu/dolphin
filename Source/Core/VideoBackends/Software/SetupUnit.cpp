@@ -167,4 +167,5 @@ void SetupUnit::SetupLineStrip()
 
 void SetupUnit::SetupPoint()
 {
+  Clipper::ProcessPoint(m_VertPointer[0]);
 }

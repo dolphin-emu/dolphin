@@ -186,7 +186,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 {
   m_dsp_core.GetInterpreter().WriteCR(value);
 
-  if ((value & 2) != 0)
+  if ((value & CR_EXTERNAL_INT) != 0)
   {
     if (m_is_dsp_on_thread)
     {

@@ -13,6 +13,9 @@ using float4 = std::array<float, 4>;
 using uint4 = std::array<u32, 4>;
 using int4 = std::array<s32, 4>;
 
+enum class SrcBlendFactor : u32;
+enum class DstBlendFactor : u32;
+
 struct PixelShaderConstants
 {
   std::array<int4, 4> colors;
@@ -45,10 +48,10 @@ struct PixelShaderConstants
   std::array<int4, 32> konst;   // .rgba
   // The following are used in ubershaders when using shader_framebuffer_fetch blending
   u32 blend_enable;
-  u32 blend_src_factor;
-  u32 blend_src_factor_alpha;
-  u32 blend_dst_factor;
-  u32 blend_dst_factor_alpha;
+  SrcBlendFactor blend_src_factor;
+  SrcBlendFactor blend_src_factor_alpha;
+  DstBlendFactor blend_dst_factor;
+  DstBlendFactor blend_dst_factor_alpha;
   u32 blend_subtract;
   u32 blend_subtract_alpha;
 };
@@ -58,7 +61,8 @@ struct VertexShaderConstants
   u32 components;           // .x
   u32 xfmem_dualTexInfo;    // .y
   u32 xfmem_numColorChans;  // .z
-  u32 color_chan_alpha;     // .w
+  u32 missing_color_hex;    // .w, used for change detection but not directly by shaders
+  float4 missing_color_value;
 
   std::array<float4, 6> posnormalmatrix;
   std::array<float4, 4> projection;

@@ -2,13 +2,19 @@
 # General setup
 #
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_OSX_ARCHITECTURES "x86_64")
+
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
 
-# MacOS prior to 10.12 did not fully support C++17, which is used to
-# handle configuration options
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12.0" CACHE STRING "")
+# MacOS prior to 10.14 did not support aligned alloc which is used to implement
+# std::unique_ptr in the arm64 C++ standard library. x86_64 builds can override
+# this to 10.12.0 using -DCMAKE_OSX_DEPLOYMENT_TARGET="10.12.0" without issue.
+# This is done in the universal binary building script to build a binary that 
+# runs on 10.12 on x86_64 computers, while still containing an arm64 slice.
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
+
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
 project(dolphin-emu)
 
@@ -16,6 +22,8 @@ project(dolphin-emu)
 # unofficial builds) please consider identifying your distribution with a
 # unique name here.
 set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+
+set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update track. If empty, disables auto-update.")
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   option(ENABLE_X11 "Enables X11 Support" ON)
@@ -64,8 +72,12 @@ else()
 endif()
 
 if(APPLE)
-  option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
-  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
+  option(MACOS_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
+  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF) 
+  # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
+  option(MACOS_CODE_SIGNING "Enable codesigning" ON)
+  set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
+  set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "-" CACHE STRING "The identity used for codesigning, for the updater.")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -115,14 +127,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 if (WIN32)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
 
-  if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+  if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /x64)
+  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
     string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
   endif()
-
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 # setup CCache
@@ -234,6 +243,12 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
+  # Enable function-level linking
+  add_compile_options(/Gy)
+  # Generate intrinsic functions
+  add_compile_options(/Oi)
+  # Disable buffer security check
+  add_compile_options(/GS-)
   # Enforce C++ standard conforming conversion rules to catch possible bugs
   add_compile_options(/permissive-)
   # Remove unreferenced inline functions/data to reduce link time and catch bugs
@@ -253,6 +268,10 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   )
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
+  # Generate debug data
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /DEBUG")
+  # Eliminate dead code and data
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /OPT:REF /OPT:ICF")
 else()
   add_definitions(-D_DEFAULT_SOURCE)
 
@@ -279,7 +298,7 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
+  if(NOT MACOS_USE_DEFAULT_SEARCH_PATH)
     # Hack up the path to prioritize the path to built-in OS libraries to
     # increase the chance of not depending on a bunch of copies of them
     # installed by MacPorts, Fink, Homebrew, etc, and ending up copying
@@ -291,21 +310,22 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     list(APPEND CMAKE_PREFIX_PATH "/usr")
   endif()
 
-  # Specify target CPUs.
-  check_and_add_flag(HAVE_MSSSE3 -mssse3)
-  check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
+  # Prevents Xcode from overriding the -fno-strict-aliasing flag
+  set(CMAKE_XCODE_ATTRIBUTE_GCC_STRICT_ALIASING NO)
 
+  # Specify target CPUs.
+  if(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    check_and_add_flag(HAVE_MSSSE3 -mssse3)
+    check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
+  endif()
   # Linker flags.
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
 
-  # Set -fno-objc-exceptions, for consistency with -fno-exceptions earlier.
+  # Set FMT_EXCEPTIONS = 0, for consistency with -fno-exceptions earlier.
   # If we set only -fno-exceptions, fmt fails to compile when included from
   # Objective-C++ because fmt tries try to use throw because __EXCEPTIONS is defined.
-  #
-  # TODO: Only enable this for Objective-C(++).
-  # We get warnings if we enable this when building regular C(++) code.
-  check_and_add_flag(NO_OBJC_EXCEPTIONS -fno-objc-exceptions)
+  add_definitions(-DFMT_EXCEPTIONS=0)
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
@@ -321,10 +341,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 endif()
 
 if(ENABLE_LTO)
-  check_and_add_flag(LTO -flto)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    set(CMAKE_AR gcc-ar)
-    set(CMAKE_RANLIB gcc-ranlib)
+  if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+    add_compile_options(/GL)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " /LTCG")
+  else()
+    check_and_add_flag(LTO -flto)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+      set(CMAKE_AR gcc-ar)
+      set(CMAKE_RANLIB gcc-ranlib)
+    endif()
   endif()
 endif()
 
@@ -440,8 +465,6 @@ if(ENABLE_X11)
     check_lib(XRANDR xrandr Xrandr)
     if(XRANDR_FOUND)
       add_definitions(-DHAVE_XRANDR=1)
-    else()
-      add_definitions(-DHAVE_XRANDR=0)
     endif()
     pkg_check_modules(X11_INPUT REQUIRED xi>=1.5.0)
     message(STATUS "X11 support enabled")
@@ -620,11 +643,16 @@ else()
 endif()
 
 pkg_check_modules(ZSTD QUIET libzstd>=1.4.0)
-if(ZSTD_FOUND)
+check_include_file(zstd.h HAVE_ZSTD_H)
+if(ZSTD_FOUND AND HAVE_ZSTD_H)
   message(STATUS "Using shared zstd version: " ${ZSTD_VERSION})
 else()
   check_vendoring_approved(zstd)
-  message(STATUS "Shared zstd not found, falling back to the static library")
+  if(ZSTD_FOUND AND NOT HAVE_ZSTD_H)
+    message(STATUS "Shared zstd found but lacks headers, falling back to the static library")
+  else()
+    message(STATUS "Shared zstd not found, falling back to the static library")
+  endif()
   add_subdirectory(Externals/zstd)
 endif()
 
@@ -807,6 +835,7 @@ else()
 endif()
 
 if (WIN32)
+  include_directories(Externals/WIL/include)
   include_directories(Externals/OpenAL/include)
 endif()
 
@@ -834,6 +863,8 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 #
 if(ENABLE_TESTS)
   message(STATUS "Using static gtest from Externals")
+  # Force gtest to link the C runtime dynamically on Windows in order to avoid runtime mismatches.
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 else()
   message(STATUS "Unit tests are disabled")

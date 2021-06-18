@@ -17,6 +17,8 @@
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Settings.h"
 
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
+
 Updater::Updater(QWidget* parent) : m_parent(parent)
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);

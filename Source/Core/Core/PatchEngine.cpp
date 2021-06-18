@@ -21,7 +21,7 @@
 
 #include "Core/ActionReplay.h"
 #include "Core/CheatCodes.h"
-#include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
@@ -165,7 +165,7 @@ void LoadPatches()
   LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
 
   // Check if I'm syncing Codes
-  if (Config::Get(Config::MAIN_CODE_SYNC_OVERRIDE))
+  if (Config::Get(Config::SESSION_CODE_SYNC_OVERRIDE))
   {
     Gecko::SetSyncedCodesAsActive();
     ActionReplay::SetSyncedCodesAsActive();

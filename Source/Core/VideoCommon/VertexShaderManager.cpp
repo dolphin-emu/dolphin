@@ -136,6 +136,18 @@ void VertexShaderManager::Dirty()
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
+  if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
+  {
+    const float a = (g_ActiveConfig.iMissingColorValue) & 0xFF;
+    const float b = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
+    const float g = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
+    const float r = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
+    constants.missing_color_hex = g_ActiveConfig.iMissingColorValue;
+    constants.missing_color_value = {r / 255, g / 255, b / 255, a / 255};
+
+    dirty = true;
+  }
+
   if (nTransformMatricesChanged[0] >= 0)
   {
     int startn = nTransformMatricesChanged[0] / 4;
@@ -353,7 +365,7 @@ void VertexShaderManager::SetConstants()
 
     switch (xfmem.projection.type)
     {
-    case GX_PERSPECTIVE:
+    case ProjectionType::Perspective:
     {
       const Common::Vec2 fov =
           g_freelook_camera.IsActive() ? g_freelook_camera.GetFieldOfView() : Common::Vec2{1, 1};
@@ -382,7 +394,7 @@ void VertexShaderManager::SetConstants()
     }
     break;
 
-    case GX_ORTHOGRAPHIC:
+    case ProjectionType::Orthographic:
     {
       g_fProjectionMatrix[0] = rawProjection[0];
       g_fProjectionMatrix[1] = 0.0f;
@@ -419,7 +431,7 @@ void VertexShaderManager::SetConstants()
 
     auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
 
-    if (g_freelook_camera.IsActive() && xfmem.projection.type == GX_PERSPECTIVE)
+    if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
       corrected_matrix *= g_freelook_camera.GetView();
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
@@ -613,17 +625,6 @@ void VertexShaderManager::SetVertexFormat(u32 components)
   if (components != constants.components)
   {
     constants.components = components;
-    dirty = true;
-  }
-
-  // The default alpha channel seems to depend on the number of components in the vertex format.
-  // If the vertex attribute has an alpha channel, zero is used, otherwise one.
-  const u32 color_chan_alpha =
-      (g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color0Elements ^ 1) |
-      ((g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color1Elements ^ 1) << 1);
-  if (color_chan_alpha != constants.color_chan_alpha)
-  {
-    constants.color_chan_alpha = color_chan_alpha;
     dirty = true;
   }
 }

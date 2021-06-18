@@ -13,7 +13,7 @@ namespace UICommon
 void Init();
 void Shutdown();
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_X11
 void InhibitScreenSaver(unsigned long win, bool enable);
 #else
 void InhibitScreenSaver(bool enable);

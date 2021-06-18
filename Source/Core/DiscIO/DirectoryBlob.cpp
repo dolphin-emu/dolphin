@@ -28,6 +28,7 @@
 #include "Core/Boot/DolReader.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -584,7 +585,6 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   constexpr u32 TICKET_OFFSET = 0x0;
   constexpr u32 TICKET_SIZE = 0x2a4;
   constexpr u32 TMD_OFFSET = 0x2c0;
-  constexpr u32 MAX_TMD_SIZE = 0x49e4;
   constexpr u32 H3_OFFSET = 0x4000;
   constexpr u32 H3_SIZE = 0x18000;
 
@@ -594,7 +594,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
       partition_address + TICKET_OFFSET, TICKET_SIZE, partition_root + "ticket.bin");
 
   const u64 tmd_size = m_nonpartition_contents.CheckSizeAndAdd(
-      partition_address + TMD_OFFSET, MAX_TMD_SIZE, partition_root + "tmd.bin");
+      partition_address + TMD_OFFSET, IOS::ES::MAX_TMD_SIZE, partition_root + "tmd.bin");
 
   const u64 cert_offset = Common::AlignUp(TMD_OFFSET + tmd_size, 0x20ull);
   const u64 max_cert_size = H3_OFFSET - cert_offset;
@@ -653,8 +653,8 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
   }
   else
   {
-    m_is_wii = Common::swap32(&m_disc_header[0x18]) == 0x5d1c9ea3;
-    const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == 0xc2339f3d;
+    m_is_wii = Common::swap32(&m_disc_header[0x18]) == WII_DISC_MAGIC;
+    const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == GAMECUBE_DISC_MAGIC;
     if (m_is_wii == is_gc)
       ERROR_LOG_FMT(DISCIO, "Couldn't detect disc type based on {}", boot_bin_path);
   }

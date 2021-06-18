@@ -93,12 +93,21 @@ void UpdatePointer()
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetUpdateTouchPointer());
 }
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  // We would like to call ConfigurationCompat.getLocales here, but this function gets called
+  // during dynamic initialization, and it seems like that makes us unable to obtain a JNIEnv.
+  return {};
+}
+
 void Host_NotifyMapLoaded()
 {
 }
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }
+
 bool Host_UIBlocksControllerState()
 {
   return false;
@@ -139,6 +148,12 @@ void Host_RequestRenderWindowSize(int width, int height)
 
 bool Host_RendererHasFocus()
 {
+  return true;
+}
+
+bool Host_RendererHasFullFocus()
+{
+  // Mouse cursor locking actually exists in Android but we don't implement (nor need) that
   return true;
 }
 
@@ -196,9 +211,7 @@ static std::string GetAnalyticValue(const std::string& key)
   return stdvalue;
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv*,
                                                                                      jclass)
@@ -703,7 +716,4 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked
 
   return ToJString(env, description);
 }
-
-#ifdef __cplusplus
 }
-#endif

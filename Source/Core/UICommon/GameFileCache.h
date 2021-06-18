@@ -31,8 +31,7 @@ public:
     Yes = 1,
   };
 
-  GameFileCache();  // Uses the default path
-  explicit GameFileCache(std::string path);
+  GameFileCache();
 
   void ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const;
 

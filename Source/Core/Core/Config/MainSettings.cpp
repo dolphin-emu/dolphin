@@ -8,6 +8,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Config/Config.h"
+#include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -20,7 +21,6 @@ namespace Config
 // Main.Core
 
 const Info<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
-const Info<bool> MAIN_LOAD_IPL_DUMP{{System::Main, "Core", "LoadIPLDump"}, true};
 const Info<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
                                            PowerPC::DefaultCPUCore()};
 const Info<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
@@ -48,9 +48,6 @@ const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-const Info<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
-    {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
-const Info<bool> MAIN_CODE_SYNC_OVERRIDE{{System::Main, "Core", "CheatSyncOverride"}, false};
 const Info<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                             ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDEVICE_NONE};
@@ -76,7 +73,6 @@ Info<bool> GetInfoForSimulateKonga(u32 channel)
 }
 
 const Info<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};
-const Info<bool> MAIN_WII_SD_CARD_WRITABLE{{System::Main, "Core", "WiiSDCardWritable"}, true};
 const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
@@ -93,6 +89,7 @@ const Info<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, f
 const Info<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
 const Info<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const Info<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};
+const Info<bool> MAIN_DISABLE_ICACHE{{System::Main, "Core", "DisableICache"}, false};
 const Info<float> MAIN_EMULATION_SPEED{{System::Main, "Core", "EmulationSpeed"}, 1.0f};
 const Info<float> MAIN_OVERCLOCK{{System::Main, "Core", "Overclock"}, 1.0f};
 const Info<bool> MAIN_OVERCLOCK_ENABLE{{System::Main, "Core", "OverclockEnable"}, false};
@@ -108,7 +105,7 @@ const Info<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCustomRTC"
 // Default to seconds between 1.1.1970 and 1.1.2000
 const Info<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"}, 946684800};
 const Info<DiscIO::Region> MAIN_FALLBACK_REGION{{System::Main, "Core", "FallbackRegion"},
-                                                DiscIO::Region::NTSC_J};
+                                                GetDefaultRegion()};
 const Info<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
 const Info<bool> MAIN_ALLOW_SD_WRITES{{System::Main, "Core", "WiiSDCardAllowWrites"}, true};
 const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates"}, false};
@@ -156,6 +153,11 @@ const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES{
 const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA{{System::Main, "Network", "SSLDumpRootCA"}, false};
 const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{{System::Main, "Network", "SSLDumpPeerCert"},
                                                  false};
+const Info<bool> MAIN_NETWORK_DUMP_AS_PCAP{{System::Main, "Network", "DumpAsPCAP"}, false};
+// Default value based on:
+//  - [RFC 1122] 4.2.3.5 TCP Connection Failures (at least 3 minutes)
+//  - https://dolp.in/pr8759 hwtest (3 minutes and 10 seconds)
+const Info<int> MAIN_NETWORK_TIMEOUT{{System::Main, "Network", "NetworkTimeout"}, 190};
 
 // Main.Interface
 

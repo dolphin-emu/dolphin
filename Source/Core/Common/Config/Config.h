@@ -94,8 +94,8 @@ LayerType GetActiveLayerForConfig(const Info<T>& info)
 template <typename T>
 void Set(LayerType layer, const Info<T>& info, const std::common_type_t<T>& value)
 {
-  GetLayer(layer)->Set(info, value);
-  OnConfigChanged();
+  if (GetLayer(layer)->Set(info, value))
+    OnConfigChanged();
 }
 
 template <typename T>

@@ -19,9 +19,7 @@ namespace IOS::HLE
 void BackUpBTInfoSection(const SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
 
-namespace Device
-{
-class BluetoothBase : public Device
+class BluetoothBaseDevice : public Device
 {
 public:
   using Device::Device;
@@ -43,5 +41,4 @@ protected:
     ACL_DATA_OUT = 0x02
   };
 };
-}  // namespace Device
 }  // namespace IOS::HLE

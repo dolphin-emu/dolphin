@@ -5,9 +5,9 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 
 #include <array>
-#include <cassert>
 #include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -163,7 +163,7 @@ ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)
   case TurntableGroup::Crossfade:
     return m_crossfade;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

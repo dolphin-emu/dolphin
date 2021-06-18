@@ -22,9 +22,9 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode);
 struct CPMemory
 {
   TVtxDesc vtxDesc;
-  std::array<VAT, 8> vtxAttr;
-  std::array<u32, 16> arrayBases;
-  std::array<u32, 16> arrayStrides;
+  std::array<VAT, CP_NUM_VAT_REG> vtxAttr;
+  std::array<u32, CP_NUM_ARRAYS> arrayBases;
+  std::array<u32, CP_NUM_ARRAYS> arrayStrides;
 };
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem);

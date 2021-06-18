@@ -238,7 +238,7 @@ inline FPResult NI_sub(UReg_FPSCR* fpscr, double a, double b)
 // inputs are checked for NaN is still a, b, c.
 inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
 {
-  FPResult result{a * c};
+  FPResult result{std::fma(a, c, b)};
 
   if (std::isnan(result.value))
   {
@@ -263,27 +263,7 @@ inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
       return result;
     }
 
-    result.SetException(fpscr, FPSCR_VXIMZ);
-    result.value = PPC_NAN;
-    return result;
-  }
-
-  result.value += b;
-
-  if (std::isnan(result.value))
-  {
-    if (Common::IsSNAN(b))
-      result.SetException(fpscr, FPSCR_VXSNAN);
-
-    fpscr->ClearFIFR();
-
-    if (std::isnan(b))
-    {
-      result.value = MakeQuiet(b);
-      return result;
-    }
-
-    result.SetException(fpscr, FPSCR_VXISI);
+    result.SetException(fpscr, std::isnan(a * c) ? FPSCR_VXIMZ : FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }
@@ -296,7 +276,7 @@ inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
 
 inline FPResult NI_msub(UReg_FPSCR* fpscr, double a, double c, double b)
 {
-  FPResult result{a * c};
+  FPResult result{std::fma(a, c, -b)};
 
   if (std::isnan(result.value))
   {
@@ -321,27 +301,7 @@ inline FPResult NI_msub(UReg_FPSCR* fpscr, double a, double c, double b)
       return result;
     }
 
-    result.SetException(fpscr, FPSCR_VXIMZ);
-    result.value = PPC_NAN;
-    return result;
-  }
-
-  result.value -= b;
-
-  if (std::isnan(result.value))
-  {
-    if (Common::IsSNAN(b))
-      result.SetException(fpscr, FPSCR_VXSNAN);
-
-    fpscr->ClearFIFR();
-
-    if (std::isnan(b))
-    {
-      result.value = MakeQuiet(b);
-      return result;
-    }
-
-    result.SetException(fpscr, FPSCR_VXISI);
+    result.SetException(fpscr, std::isnan(a * c) ? FPSCR_VXIMZ : FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }

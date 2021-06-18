@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/SocketContext.h"
 #include "Core/IOS/Device.h"
 
 #ifdef _WIN32
@@ -61,49 +62,43 @@ enum NET_IOCTL
   IOCTL_SO_ICMPCLOSE
 };
 
-namespace Device
-{
-class NetIPTop : public Device
+class NetIPTopDevice : public Device
 {
 public:
-  NetIPTop(Kernel& ios, const std::string& device_name);
-  virtual ~NetIPTop();
+  NetIPTopDevice(Kernel& ios, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
   void Update() override;
 
 private:
-  IPCCommandResult HandleInitInterfaceRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleSocketRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleICMPSocketRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleCloseRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleDoSockRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleShutdownRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleListenRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleGetSockOptRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleSetSockOptRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleGetSockNameRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleGetPeerNameRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleGetHostIDRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleInetAToNRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleInetPToNRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleInetNToPRequest(const IOCtlRequest& request);
-  IPCCommandResult HandlePollRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleGetHostByNameRequest(const IOCtlRequest& request);
-  IPCCommandResult HandleICMPCancelRequest(const IOCtlRequest& request);
+  IPCReply HandleInitInterfaceRequest(const IOCtlRequest& request);
+  IPCReply HandleSocketRequest(const IOCtlRequest& request);
+  IPCReply HandleICMPSocketRequest(const IOCtlRequest& request);
+  IPCReply HandleCloseRequest(const IOCtlRequest& request);
+  std::optional<IPCReply> HandleDoSockRequest(const IOCtlRequest& request);
+  IPCReply HandleShutdownRequest(const IOCtlRequest& request);
+  IPCReply HandleListenRequest(const IOCtlRequest& request);
+  IPCReply HandleGetSockOptRequest(const IOCtlRequest& request);
+  IPCReply HandleSetSockOptRequest(const IOCtlRequest& request);
+  IPCReply HandleGetSockNameRequest(const IOCtlRequest& request);
+  IPCReply HandleGetPeerNameRequest(const IOCtlRequest& request);
+  IPCReply HandleGetHostIDRequest(const IOCtlRequest& request);
+  IPCReply HandleInetAToNRequest(const IOCtlRequest& request);
+  IPCReply HandleInetPToNRequest(const IOCtlRequest& request);
+  IPCReply HandleInetNToPRequest(const IOCtlRequest& request);
+  std::optional<IPCReply> HandlePollRequest(const IOCtlRequest& request);
+  IPCReply HandleGetHostByNameRequest(const IOCtlRequest& request);
+  IPCReply HandleICMPCancelRequest(const IOCtlRequest& request);
 
-  IPCCommandResult HandleGetInterfaceOptRequest(const IOCtlVRequest& request);
-  IPCCommandResult HandleSendToRequest(const IOCtlVRequest& request);
-  IPCCommandResult HandleRecvFromRequest(const IOCtlVRequest& request);
-  IPCCommandResult HandleGetAddressInfoRequest(const IOCtlVRequest& request);
-  IPCCommandResult HandleICMPPingRequest(const IOCtlVRequest& request);
+  IPCReply HandleGetInterfaceOptRequest(const IOCtlVRequest& request);
+  std::optional<IPCReply> HandleSendToRequest(const IOCtlVRequest& request);
+  std::optional<IPCReply> HandleRecvFromRequest(const IOCtlVRequest& request);
+  IPCReply HandleGetAddressInfoRequest(const IOCtlVRequest& request);
+  IPCReply HandleICMPPingRequest(const IOCtlVRequest& request);
 
-#ifdef _WIN32
-  WSADATA InitData;
-#endif
+  Common::SocketContext m_socket_context;
 };
-}  // namespace Device
 }  // namespace IOS::HLE

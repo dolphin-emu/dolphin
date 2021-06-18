@@ -4,13 +4,16 @@
 
 #include "Core/Config/SYSCONFSettings.h"
 
+#include "Core/Config/DefaultLocale.h"
+
 namespace Config
 {
 // SYSCONF.IPL
 
 const Info<bool> SYSCONF_SCREENSAVER{{System::SYSCONF, "IPL", "SSV"}, false};
-const Info<u32> SYSCONF_LANGUAGE{{System::SYSCONF, "IPL", "LNG"}, 0x01};
-const Info<u32> SYSCONF_COUNTRY{{System::SYSCONF, "IPL", "SADR"}, 0x6c};
+const Info<u32> SYSCONF_LANGUAGE{{System::SYSCONF, "IPL", "LNG"},
+                                 static_cast<u32>(GetDefaultLanguage())};
+const Info<u32> SYSCONF_COUNTRY{{System::SYSCONF, "IPL", "SADR"}, GetDefaultCountry()};
 const Info<bool> SYSCONF_WIDESCREEN{{System::SYSCONF, "IPL", "AR"}, true};
 const Info<bool> SYSCONF_PROGRESSIVE_SCAN{{System::SYSCONF, "IPL", "PGS"}, true};
 const Info<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, 0x01};

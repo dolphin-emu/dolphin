@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 
 // Small utility functions for common Wii related tasks.
 
@@ -22,17 +23,14 @@ class VolumeWAD;
 
 namespace IOS::HLE
 {
+class BluetoothEmuDevice;
+class ESDevice;
 class Kernel;
-}
+}  // namespace IOS::HLE
 
 namespace IOS::HLE::FS
 {
 class FileSystem;
-}
-
-namespace IOS::HLE::Device
-{
-class ES;
 }
 
 namespace WiiUtils
@@ -62,7 +60,7 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id);
 // Checks if there's a title.tmd imported for the given title ID. If there is not, we attempt to
 // re-import it from the TMDs stored in /title/00000001/00000002/data/tmds.sys.
 // Returns true if, after this function call, we have an imported title.tmd, or false if not.
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::Device::ES& es, u64 title_id);
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESDevice& es, u64 title_id);
 
 enum class UpdateResult
 {
@@ -105,4 +103,11 @@ struct NANDCheckResult
 };
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);
+
+// Get the BluetoothEmuDevice for an active emulation instance.
+// It is only safe to call this from the CPU thread.
+// Returns nullptr if we're not currently emulating a Wii game or if Bluetooth passthrough is used.
+std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice();
+// Same as GetBluetoothEmuDevice, but for Bluetooth passthrough.
+std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice();
 }  // namespace WiiUtils

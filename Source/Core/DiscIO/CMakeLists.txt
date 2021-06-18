@@ -11,6 +11,8 @@ add_library(discio
   DiscExtractor.h
   DiscScrubber.cpp
   DiscScrubber.h
+  DiscUtils.cpp
+  DiscUtils.h
   DriveBlob.cpp
   DriveBlob.h
   Enums.cpp

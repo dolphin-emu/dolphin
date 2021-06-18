@@ -22,6 +22,8 @@ enum ExtensionNumber : u8
   UDRAW_TABLET,
   DRAWSOME_TABLET,
   TATACON,
+
+  MAX
 };
 
 // FYI: An extension must be attached.

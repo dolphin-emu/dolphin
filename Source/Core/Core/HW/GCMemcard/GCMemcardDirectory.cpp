@@ -17,6 +17,7 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
@@ -29,9 +30,12 @@
 #include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardUtils.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
@@ -161,7 +165,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
     File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
   }
 
-  const bool current_game_only = Config::Get(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY);
+  const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
   std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});
 
   // split up into files for current games we should definitely load,
@@ -200,8 +204,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
   }
 
   // leave about 10% of free space on the card if possible
-  const int total_blocks =
-      m_hdr.m_data.m_size_mb * Memcard::MBIT_TO_BLOCKS - Memcard::MC_FST_BLOCKS;
+  const int total_blocks = Memcard::MbitToFreeBlocks(m_hdr.m_data.m_size_mb);
   const int reserved_blocks = total_blocks / 10;
 
   // load files for other games
@@ -716,7 +719,13 @@ void MigrateFromMemcardFile(const std::string& directory_name, int card_index)
     {
       for (u8 i = 0; i < Memcard::DIRLEN; i++)
       {
-        memcard->ExportGci(i, "", directory_name);
+        const auto savefile = memcard->ExportFile(i);
+        if (!savefile)
+          continue;
+
+        std::string filepath =
+            directory_name + DIR_SEP + Memcard::GenerateFilename(savefile->dir_entry) + ".gci";
+        Memcard::WriteSavefile(filepath, *savefile, Memcard::SavefileFormat::GCI);
       }
     }
   }

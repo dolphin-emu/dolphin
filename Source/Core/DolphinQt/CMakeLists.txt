@@ -122,6 +122,8 @@ add_executable(dolphin-emu
   Config/LogWidget.h
   Config/Mapping/FreeLookGeneral.cpp
   Config/Mapping/FreeLookGeneral.h
+  Config/Mapping/FreeLookRotation.cpp
+  Config/Mapping/FreeLookRotation.h
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCKeyboardEmu.h
   Config/Mapping/GCMicrophone.cpp
@@ -347,6 +349,14 @@ if (WIN32)
   )
 endif()
 
+if (MSVC)
+  # Don't propogate warnings in qt headers to Dolphin
+  target_compile_options(dolphin-emu PRIVATE /experimental:external)
+  target_compile_options(dolphin-emu PRIVATE /external:W0)
+  target_compile_options(dolphin-emu PRIVATE "/external:I${Qt5Gui_PRIVATE_INCLUDE_DIRS}")
+  target_compile_options(dolphin-emu PRIVATE "/external:I${Qt5Widgets_PRIVATE_INCLUDE_DIRS}")
+endif()
+
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
@@ -356,11 +366,14 @@ if(WIN32)
     WIN32_EXECUTABLE TRUE
   )
 
-  target_compile_options(dolphin-emu PRIVATE "-D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING")
-
   # Copy Sys dir
   add_custom_command(TARGET dolphin-emu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
+  )
+
+  # Copy license.txt
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/license.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/license.txt"
   )
 
   # Copy qt.conf
@@ -394,6 +407,9 @@ if(WIN32)
                                  $<IF:$<CONFIG:Debug>,--debug,--release>
                                  --no-translations
                                  --no-compiler-runtime
+                                 --no-system-d3d-compiler
+                                 --no-angle
+                                 --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )
 endif()
@@ -416,7 +432,11 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
 
   foreach(po ${LINGUAS})
     get_filename_component(lang ${po} NAME_WE)
-    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    if(WIN32)
+      set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang})
+    else()
+      set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    endif()
     set(mo ${mo_dir}/dolphin-emu.mo)
 
     target_sources(dolphin-emu PRIVATE ${mo})
@@ -432,7 +452,6 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
       add_custom_command(OUTPUT ${mo}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
         COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-        COMMAND ${CMAKE_COMMAND} -E copy ${mo} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang}/dolphin-emu.mo
         DEPENDS ${po}
       )
     else()
@@ -454,6 +473,8 @@ if(APPLE)
   set_target_properties(dolphin-emu PROPERTIES
     MACOSX_BUNDLE true
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_SOURCE_DIR}/DolphinEmu.entitlements"
+    XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --options=runtime"
     OUTPUT_NAME Dolphin
     )
 
@@ -497,6 +518,22 @@ if(APPLE)
     POST_BUILD COMMAND
     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
     $<TARGET_FILE:dolphin-emu>)
+
+  if(MACOS_CODE_SIGNING)
+    # Code sign make file builds
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
+    
+    # Code sign builds for build systems that do have release/debug variants (Xcode)
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
+      
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/Dolphin.app" || true)
+  endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()

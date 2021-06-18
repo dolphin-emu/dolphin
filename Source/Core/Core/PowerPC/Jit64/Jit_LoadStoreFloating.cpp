@@ -105,7 +105,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (js.op->fprIsStoreSafe[s])
+    if (js.fpr_is_store_safe[s])
     {
       RCOpArg Rs = fpr.Use(s, RCMode::Read);
       RegCache::Realize(Rs);

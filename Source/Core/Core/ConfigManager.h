@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -110,6 +111,7 @@ struct SConfig
   bool bFastmem;
   bool bFPRF = false;
   bool bAccurateNaNs = false;
+  bool bDisableICache = false;
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
@@ -148,6 +150,7 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
+  bool bLockCursor = false;
   std::string theme_name;
 
   // Bluetooth passthrough mode settings
@@ -188,6 +191,7 @@ struct SConfig
   bool m_disc_booted_from_game_list = false;
 
   const std::string& GetGameID() const { return m_game_id; }
+  const std::string& GetGameTDBID() const { return m_gametdb_id; }
   const std::string& GetTitleName() const { return m_title_name; }
   const std::string& GetTitleDescription() const { return m_title_description; }
   u64 GetTitleID() const { return m_title_id; }
@@ -195,8 +199,13 @@ struct SConfig
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
+  void SetRunningGameMetadata(const std::string& game_id);
+  // Reloads title-specific map files, patches, custom textures, etc.
+  // This should only be called after the new title has been loaded into memory.
+  static void OnNewTitleLoad();
 
   void LoadDefaults();
+  static std::string MakeGameID(std::string_view file_name);
   // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
   static DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
   // The region argument must be valid for GameCube (i.e. must not be NTSC-K)

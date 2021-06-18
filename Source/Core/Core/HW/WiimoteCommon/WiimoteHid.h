@@ -59,12 +59,6 @@ private:
   InterruptCallbackType m_callback;
 };
 
-#ifdef _MSC_VER
-#pragma warning(push)
-// Disable warning for zero-sized array:
-#pragma warning(disable : 4200)
-#endif
-
 #pragma pack(push, 1)
 
 template <typename T>
@@ -83,9 +77,5 @@ struct TypedInputData
 };
 
 #pragma pack(pop)
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 }  // namespace WiimoteCommon

@@ -24,7 +24,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 <p style='font-size:18pt;'>%VERSION_STRING%</p>
 
 <p style='font-size: small;'>
-%BRANCH%:<br>
+%BRANCH%<br>
 %REVISION%<br><br>
 %QT_VERSION%
 </p>

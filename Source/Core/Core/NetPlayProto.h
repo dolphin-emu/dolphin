@@ -6,9 +6,15 @@
 
 #include <array>
 #include <vector>
+
 #include "Common/CommonTypes.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace DiscIO
+{
+enum class Region;
+}
 namespace IOS::HLE::FS
 {
 class FileSystem;
@@ -27,15 +33,21 @@ struct NetSettings
   bool m_EnableCheats;
   int m_SelectedLanguage;
   bool m_OverrideRegionSettings;
-  bool m_ProgressiveScan;
-  bool m_PAL60;
   bool m_DSPHLE;
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
+  bool m_RAMOverrideEnable;
+  u32 m_Mem1Size;
+  u32 m_Mem2Size;
+  DiscIO::Region m_FallbackRegion;
+  bool m_AllowSDWrites;
   bool m_CopyWiiSave;
   bool m_OCEnable;
   float m_OCFactor;
   std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
+
+  std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings;
+
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
   bool m_ForceProgressive;
@@ -48,6 +60,7 @@ struct NetSettings
   bool m_PerfQueriesEnable;
   bool m_FPRF;
   bool m_AccurateNaNs;
+  bool m_DisableICache;
   bool m_SyncOnSkipIdle;
   bool m_SyncGPU;
   int m_SyncGpuMaxDistance;
@@ -74,8 +87,9 @@ struct NetSettings
   float m_ArbitraryMipmapDetectionThreshold;
   bool m_EnableGPUTextureDecoding;
   bool m_DeferEFBCopies;
-  bool m_EFBAccessTileSize;
+  int m_EFBAccessTileSize;
   bool m_EFBAccessDeferInvalidation;
+
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
   bool m_SyncCodes;
@@ -83,6 +97,7 @@ struct NetSettings
   bool m_SyncAllWiiSaves;
   std::array<int, 4> m_WiimoteExtension;
   bool m_GolfMode;
+  bool m_UseFMA;
 
   // These aren't sent over the network directly
   bool m_IsHosting;
@@ -142,7 +157,7 @@ enum
   NP_MSG_STOP_GAME = 0xA2,
   NP_MSG_DISABLE_GAME = 0xA3,
   NP_MSG_GAME_STATUS = 0xA4,
-  NP_MSG_IPL_STATUS = 0xA5,
+  NP_MSG_CLIENT_CAPABILITIES = 0xA5,
   NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
   NP_MSG_POWER_BUTTON = 0xA7,
 

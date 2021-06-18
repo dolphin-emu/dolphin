@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
@@ -101,6 +102,8 @@ bool InputConfig::LoadConfig(bool isGC)
       !inifile.GetSections().empty())
   {
     int n = 0;
+
+    std::vector<std::string> controller_names;
     for (auto& controller : m_controllers)
     {
       IniFile::Section config;
@@ -113,9 +116,8 @@ bool InputConfig::LoadConfig(bool isGC)
                                  controller->GetName() + "'",
                              6000);
 
-        IniFile profile_ini;
-        profile_ini.Load(profile[n]);
-        config = *profile_ini.GetOrCreateSection("Profile");
+        inifile.Load(profile[n]);
+        config = *inifile.GetOrCreateSection("Profile");
       }
       else
       {
@@ -131,18 +133,35 @@ bool InputConfig::LoadConfig(bool isGC)
       }
 #endif
       controller->LoadConfig(&config);
-      // Update refs
       controller->UpdateReferences(g_controller_interface);
+      controller_names.push_back(controller->GetName());
 
       // Next profile
       n++;
     }
+
+    m_dynamic_input_tex_config_manager.GenerateTextures(inifile, controller_names);
     return true;
   }
   else
   {
-    m_controllers[0]->LoadDefaults(g_controller_interface);
-    m_controllers[0]->UpdateReferences(g_controller_interface);
+    // Only load the default profile for the first controller,
+    // otherwise they would all share the same mappings and default device
+    if (m_controllers.size() > 0)
+    {
+      m_controllers[0]->LoadDefaults(g_controller_interface);
+      m_controllers[0]->UpdateReferences(g_controller_interface);
+    }
+    // Set the "default" default device for all other controllers, or they would end up
+    // having no default device (which is fine, but might be confusing for some users)
+    const std::string& default_device_string = g_controller_interface.GetDefaultDeviceString();
+    if (!default_device_string.empty())
+    {
+      for (size_t i = 1; i < m_controllers.size(); ++i)
+      {
+        m_controllers[i]->SetDefaultDevice(default_device_string);
+      }
+    }
     return false;
   }
 }
@@ -154,13 +173,19 @@ void InputConfig::SaveConfig()
   IniFile inifile;
   inifile.Load(ini_filename);
 
+  std::vector<std::string> controller_names;
   for (auto& controller : m_controllers)
+  {
     controller->SaveConfig(inifile.GetOrCreateSection(controller->GetName()));
+    controller_names.push_back(controller->GetName());
+  }
+
+  m_dynamic_input_tex_config_manager.GenerateTextures(inifile, controller_names);
 
   inifile.Save(ini_filename);
 }
 
-ControllerEmu::EmulatedController* InputConfig::GetController(int index)
+ControllerEmu::EmulatedController* InputConfig::GetController(int index) const
 {
   return m_controllers.at(index).get();
 }
@@ -175,9 +200,9 @@ bool InputConfig::ControllersNeedToBeCreated() const
   return m_controllers.empty();
 }
 
-std::size_t InputConfig::GetControllerCount() const
+int InputConfig::GetControllerCount() const
 {
-  return m_controllers.size();
+  return static_cast<int>(m_controllers.size());
 }
 
 void InputConfig::RegisterHotplugCallback()
@@ -195,11 +220,6 @@ void InputConfig::UnregisterHotplugCallback()
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }
 
-void InputConfig::OnControllerCreated(ControllerEmu::EmulatedController& controller)
-{
-  controller.SetDynamicInputTextureManager(&m_dynamic_input_tex_config_manager);
-}
-
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
 {
   if (static_cast<size_t>(index) >= m_controllers.size())
@@ -214,4 +234,15 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
                controller.name == "Touchscreen")  // Android Touchscreen
            || (controller.source == "DInput" &&
                controller.name == "Keyboard Mouse"));  // Windows Keyboard/Mouse
+}
+
+void InputConfig::GenerateControllerTextures(const IniFile& file)
+{
+  std::vector<std::string> controller_names;
+  for (auto& controller : m_controllers)
+  {
+    controller_names.push_back(controller->GetName());
+  }
+
+  m_dynamic_input_tex_config_manager.GenerateTextures(file, controller_names);
 }

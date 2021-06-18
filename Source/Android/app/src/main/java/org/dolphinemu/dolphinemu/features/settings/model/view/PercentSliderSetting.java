@@ -1,15 +1,17 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractFloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public final class PercentSliderSetting extends FloatSliderSetting
 {
-  public PercentSliderSetting(AbstractFloatSetting setting, int titleId, int descriptionId, int min,
-          int max, String units)
+  public PercentSliderSetting(Context context, AbstractFloatSetting setting, int titleId,
+          int descriptionId, int min, int max, String units)
   {
-    super(setting, titleId, descriptionId, min, max, units);
+    super(context, setting, titleId, descriptionId, min, max, units);
   }
 
   @Override

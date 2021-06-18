@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <mutex>
 #include <set>
 #include <sstream>
 #include <type_traits>
@@ -29,6 +30,7 @@ struct GUIDComparator
 };
 
 static std::set<GUID, GUIDComparator> s_guids_in_use;
+static std::mutex s_guids_mutex;
 
 void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
 {
@@ -46,12 +48,16 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
     }
 
     // Skip devices we are already using.
-    if (s_guids_in_use.count(joystick.guidInstance))
     {
-      continue;
+      std::lock_guard lk(s_guids_mutex);
+      if (s_guids_in_use.count(joystick.guidInstance))
+      {
+        continue;
+      }
     }
 
     LPDIRECTINPUTDEVICE8 js_device;
+    // Don't print any warnings on failure
     if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, nullptr)))
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
@@ -60,37 +66,40 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
                                                   DISCL_BACKGROUND | DISCL_EXCLUSIVE)))
         {
           WARN_LOG_FMT(
-              PAD,
+              CONTROLLERINTERFACE,
               "DInput: Failed to acquire device exclusively. Force feedback will be unavailable.");
           // Fall back to non-exclusive mode, with no rumble
           if (FAILED(
                   js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
           {
-            // PanicAlert("SetCooperativeLevel failed!");
             js_device->Release();
             continue;
           }
         }
 
-        s_guids_in_use.insert(joystick.guidInstance);
         auto js = std::make_shared<Joystick>(js_device);
-
-        // only add if it has some inputs/outputs
+        // only add if it has some inputs/outputs.
+        // Don't even add it to our static list in case we first created it without a window handle,
+        // failing to get exclusive mode, and then later managed to obtain it, which mean it
+        // could now have some outputs if it didn't before.
         if (js->Inputs().size() || js->Outputs().size())
-          g_controller_interface.AddDevice(std::move(js));
+        {
+          if (g_controller_interface.AddDevice(std::move(js)))
+          {
+            std::lock_guard lk(s_guids_mutex);
+            s_guids_in_use.insert(joystick.guidInstance);
+          }
+        }
       }
       else
       {
-        // PanicAlert("SetDataFormat failed!");
         js_device->Release();
       }
     }
   }
 }
 
-Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVICE8 device)
-    : m_device(device)
-//, m_name(TStringToString(lpddi->tszInstanceName))
+Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
 {
   // seems this needs to be done before GetCapabilities
   // polled or buffered data
@@ -183,11 +192,12 @@ Joystick::~Joystick()
   info.dwSize = sizeof(info);
   if (SUCCEEDED(m_device->GetDeviceInfo(&info)))
   {
+    std::lock_guard lk(s_guids_mutex);
     s_guids_in_use.erase(info.guidInstance);
   }
   else
   {
-    ERROR_LOG_FMT(PAD, "DInputJoystick: GetDeviceInfo failed.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "DInputJoystick: GetDeviceInfo failed.");
   }
 
   DeInitForceFeedback();

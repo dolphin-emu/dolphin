@@ -19,6 +19,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "DiscIO/LaggedFibonacciGenerator.h"
 
@@ -166,18 +167,13 @@ bool Bzip2Decompressor::Decompress(const DecompressionBuffer& in, DecompressionB
     m_started = true;
   }
 
-  constexpr auto clamped_cast = [](size_t x) {
-    return static_cast<unsigned int>(
-        std::min<size_t>(std::numeric_limits<unsigned int>().max(), x));
-  };
-
   char* const in_ptr = reinterpret_cast<char*>(const_cast<u8*>(in.data.data() + *in_bytes_read));
   m_stream.next_in = in_ptr;
-  m_stream.avail_in = clamped_cast(in.bytes_written - *in_bytes_read);
+  m_stream.avail_in = MathUtil::SaturatingCast<u32>(in.bytes_written - *in_bytes_read);
 
   char* const out_ptr = reinterpret_cast<char*>(out->data.data() + out->bytes_written);
   m_stream.next_out = out_ptr;
-  m_stream.avail_out = clamped_cast(out->data.size() - out->bytes_written);
+  m_stream.avail_out = MathUtil::SaturatingCast<u32>(out->data.size() - out->bytes_written);
 
   const int result = BZ2_bzDecompress(&m_stream);
 

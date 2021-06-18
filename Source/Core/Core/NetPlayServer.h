@@ -50,9 +50,8 @@ public:
   bool AbortMD5();
   void SendChatMessage(const std::string& msg);
 
-  void SetNetSettings(const NetSettings& settings);
-
   bool DoAllPlayersHaveIPLDump() const;
+  bool DoAllPlayersHaveHardwareFMA() const;
   bool StartGame();
   bool RequestStartGame();
   void AbortGameStart();
@@ -84,6 +83,7 @@ private:
     std::string revision;
     SyncIdentifierComparison game_status;
     bool has_ipl_dump;
+    bool has_hardware_fma;
 
     ENetPeer* socket;
     u32 ping;
@@ -117,6 +117,7 @@ private:
     std::string title;
   };
 
+  bool SetupNetSettings();
   bool SyncSaveData();
   bool SyncCodes();
   void CheckSyncAndStartGame();

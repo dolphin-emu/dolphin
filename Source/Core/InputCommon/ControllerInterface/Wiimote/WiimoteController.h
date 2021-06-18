@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -33,6 +34,7 @@ public:
 
   std::string GetName() const override;
   std::string GetSource() const override;
+  int GetSortPriority() const override;
 
   void UpdateInput() override;
 
@@ -261,7 +263,7 @@ private:
   bool m_rumble = false;
 
   // For pulse of rumble motor to simulate multiple levels.
-  ControlState m_rumble_level = 0;
+  std::atomic<ControlState> m_rumble_level;
   Clock::time_point m_last_rumble_change = Clock::now();
 
   // Assume mode is disabled so one gets set.

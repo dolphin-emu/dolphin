@@ -1,33 +1,53 @@
 #pragma once
 
+#include "Common/Assert.h"
 #include "Common/MathUtil.h"
 
 #include <cmath>
 
 namespace SW
 {
-// Modified from
-// http://tech-algorithm.com/articles/nearest-neighbor-image-scaling/
+// Copies a region of source to a region of destination, performing nearest-neighbor rescaling
 template <typename T>
-void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, T* destination,
-                const MathUtil::Rectangle<int>& dstrect)
+void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, const int src_width,
+                const int src_height, T* destination, const MathUtil::Rectangle<int>& dstrect,
+                const int dst_width, const int dst_height)
 {
+  ASSERT(srcrect.top >= 0 && srcrect.bottom <= src_height);
+  ASSERT(srcrect.left >= 0 && srcrect.right <= src_width);
+  ASSERT(dstrect.top >= 0 && dstrect.bottom <= dst_height);
+  ASSERT(dstrect.left >= 0 && dstrect.right <= dst_width);
+
+  int copy_width = dstrect.GetWidth();
+  int copy_height = dstrect.GetHeight();
+
   double x_ratio = srcrect.GetWidth() / static_cast<double>(dstrect.GetWidth());
   double y_ratio = srcrect.GetHeight() / static_cast<double>(dstrect.GetHeight());
-  for (int i = 0; i < dstrect.GetHeight(); i++)
+
+  for (int y_off = 0; y_off < copy_height; y_off++)
   {
-    for (int j = 0; j < dstrect.GetWidth(); j++)
+    for (int x_off = 0; x_off < copy_width; x_off++)
     {
-      int destination_x = j + dstrect.left;
-      int destination_y = i + dstrect.top;
-      int destination_offset = (destination_y * dstrect.GetWidth()) + destination_x;
+      int dst_x = dstrect.left + x_off;
+      int dst_y = dstrect.top + y_off;
+      int dst_offset = (dst_y * dst_width) + dst_x;
 
-      double src_x = std::round(destination_x * x_ratio) + srcrect.left;
-      double src_y = std::round(destination_y * y_ratio) + srcrect.top;
-      int src_offset = static_cast<int>((src_y * srcrect.GetWidth()) + src_x);
+      int src_x = srcrect.left + static_cast<int>(std::round(x_off * x_ratio));
+      int src_y = srcrect.top + static_cast<int>(std::round(y_off * y_ratio));
+      int src_offset = (src_y * src_width) + src_x;
 
-      destination[destination_offset] = source[src_offset];
+      destination[dst_offset] = source[src_offset];
     }
   }
+}
+
+// Copies the entire image from source to destination, performing nearest-neighbor rescaling
+template <typename T>
+void CopyRegion(const T* const source, const int src_width, const int src_height, T* destination,
+                const int dst_width, const int dst_height)
+{
+  MathUtil::Rectangle<int> srcrect{0, 0, src_width, src_height};
+  MathUtil::Rectangle<int> dstrect{0, 0, dst_width, dst_height};
+  CopyRegion(source, srcrect, src_width, src_height, destination, dstrect, dst_width, dst_height);
 }
 }  // namespace SW

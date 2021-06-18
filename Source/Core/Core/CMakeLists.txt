@@ -16,6 +16,8 @@ add_library(core
   BootManager.h
   CheatCodes.h
   CommonTitles.h
+  Config/DefaultLocale.cpp
+  Config/DefaultLocale.h
   Config/FreeLookSettings.cpp
   Config/FreeLookSettings.h
   Config/GraphicsSettings.cpp
@@ -24,6 +26,8 @@ add_library(core
   Config/MainSettings.h
   Config/NetplaySettings.cpp
   Config/NetplaySettings.h
+  Config/SessionSettings.cpp
+  Config/SessionSettings.h
   Config/SYSCONFSettings.cpp
   Config/SYSCONFSettings.h
   Config/UISettings.cpp
@@ -430,6 +434,8 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
   PowerPC/Interpreter/Interpreter.cpp
   PowerPC/Interpreter/Interpreter.h
+	PowerPC/JitCommon/DivUtils.cpp
+	PowerPC/JitCommon/DivUtils.h
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitAsmCommon.h
   PowerPC/JitCommon/JitBase.cpp

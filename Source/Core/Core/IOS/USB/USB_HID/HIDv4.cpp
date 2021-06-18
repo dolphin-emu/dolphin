@@ -20,7 +20,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV4.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
 USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
@@ -31,20 +31,20 @@ USB_HIDv4::~USB_HIDv4()
   m_scan_thread.Stop();
 }
 
-IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV4_GETVERSION:
-    return GetDefaultReply(VERSION);
+    return IPCReply(VERSION);
   case USB::IOCTL_USBV4_GETDEVICECHANGE:
     return GetDeviceChange(request);
   case USB::IOCTL_USBV4_SHUTDOWN:
     return Shutdown(request);
   case USB::IOCTL_USBV4_SET_SUSPEND:
     // Not implemented in IOS
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   case USB::IOCTL_USBV4_CANCELINTERRUPT:
     return CancelInterrupt(request);
   case USB::IOCTL_USBV4_GET_US_STRING:
@@ -53,36 +53,36 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
   case USB::IOCTL_USBV4_INTRMSG_OUT:
   {
     if (request.buffer_in == 0 || request.buffer_in_size != 32)
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
     const auto device = GetDeviceByIOSID(Memory::Read_U32(request.buffer_in + 16));
     if (!device->Attach())
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
     return HandleTransfer(device, request.request,
                           [&, this]() { return SubmitTransfer(*device, request); });
   }
   default:
     request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB);
-    return GetDefaultReply(IPC_SUCCESS);
+    return IPCReply(IPC_SUCCESS);
   }
 }
 
-IPCCommandResult USB_HIDv4::CancelInterrupt(const IOCtlRequest& request)
+IPCReply USB_HIDv4::CancelInterrupt(const IOCtlRequest& request)
 {
   if (request.buffer_in == 0 || request.buffer_in_size != 8)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   auto device = GetDeviceByIOSID(Memory::Read_U32(request.buffer_in));
   if (!device)
-    return GetDefaultReply(IPC_ENOENT);
+    return IPCReply(IPC_ENOENT);
   device->CancelTransfer(Memory::Read_U8(request.buffer_in + 4));
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
+std::optional<IPCReply> USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
 {
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (request.buffer_out == 0 || request.buffer_out_size != 0x600)
-    return GetDefaultReply(IPC_EINVAL);
+    return IPCReply(IPC_EINVAL);
 
   m_devicechange_hook_request = std::make_unique<IOCtlRequest>(request.address);
   // On the first call, the reply is sent immediately (instead of on device insertion/removal)
@@ -91,10 +91,10 @@ IPCCommandResult USB_HIDv4::GetDeviceChange(const IOCtlRequest& request)
     TriggerDeviceChangeReply();
     m_devicechange_first_call = false;
   }
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult USB_HIDv4::Shutdown(const IOCtlRequest& request)
+IPCReply USB_HIDv4::Shutdown(const IOCtlRequest& request)
 {
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   if (m_devicechange_hook_request != 0)
@@ -103,7 +103,7 @@ IPCCommandResult USB_HIDv4::Shutdown(const IOCtlRequest& request)
     m_ios.EnqueueIPCReply(*m_devicechange_hook_request, -1);
     m_devicechange_hook_request.reset();
   }
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
 s32 USB_HIDv4::SubmitTransfer(USB::Device& device, const IOCtlRequest& request)
@@ -258,4 +258,4 @@ std::vector<u8> USB_HIDv4::GetDeviceEntry(const USB::Device& device) const
 
   return entry;
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

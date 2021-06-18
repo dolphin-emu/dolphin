@@ -20,6 +20,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/SystemTimers.h"
@@ -129,6 +130,7 @@ void DoState(PointerWrap& p)
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
+    RoundingModeUpdated();
     IBATUpdated();
     DBATUpdated();
   }
@@ -180,6 +182,7 @@ static void ResetRegisters()
   }
   SetXER({});
 
+  RoundingModeUpdated();
   DBATUpdated();
   IBATUpdated();
 
@@ -246,10 +249,6 @@ CPUCore DefaultCPUCore()
 
 void Init(CPUCore cpu_core)
 {
-  // NOTE: This function runs on EmuThread, not the CPU Thread.
-  //   Changing the rounding mode has a limited effect.
-  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
-
   s_invalidate_cache_thread_safe =
       CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
@@ -602,21 +601,21 @@ void CheckExternalExceptions()
 
 void CheckBreakPoints()
 {
-  if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+  if (!PowerPC::breakpoints.IsBreakPointEnable(PC))
+    return;
+
+  if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
+    CPU::Break();
+  if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
   {
-    if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
-      CPU::Break();
-    if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
-    {
-      NOTICE_LOG_FMT(MEMMAP,
-                     "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
-                     "{:08x}) LR={:08x}",
-                     PC, g_symbolDB.GetDescription(PC), GPR(3), GPR(4), GPR(5), GPR(6), GPR(7),
-                     GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
-    }
-    if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-      PowerPC::breakpoints.Remove(PC);
+    NOTICE_LOG_FMT(MEMMAP,
+                   "BP {:08x} {}({:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} {:08x} "
+                   "{:08x}) LR={:08x}",
+                   PC, g_symbolDB.GetDescription(PC), GPR(3), GPR(4), GPR(5), GPR(6), GPR(7),
+                   GPR(8), GPR(9), GPR(10), GPR(11), GPR(12), LR);
   }
+  if (PowerPC::breakpoints.IsTempBreakPoint(PC))
+    PowerPC::breakpoints.Remove(PC);
 }
 
 void PowerPCState::SetSR(u32 index, u32 value)
@@ -630,6 +629,15 @@ void PowerPCState::SetSR(u32 index, u32 value)
 void UpdateFPRF(double dvalue)
 {
   FPSCR.FPRF = Common::ClassifyDouble(dvalue);
+}
+
+void RoundingModeUpdated()
+{
+  // The rounding mode is separate for each thread, so this must run on the CPU thread
+  ASSERT(Core::IsCPUThread());
+
+  FPURoundMode::SetRoundMode(FPSCR.RN);
+  FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
 }
 
 }  // namespace PowerPC

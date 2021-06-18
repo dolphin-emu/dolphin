@@ -66,8 +66,7 @@ FlowLayout::FlowLayout(int margin, int h_spacing, int v_spacing)
 
 FlowLayout::~FlowLayout()
 {
-  QLayoutItem* item;
-  while ((item = takeAt(0)))
+  while (QLayoutItem* item = takeAt(0))
     delete item;
 }
 

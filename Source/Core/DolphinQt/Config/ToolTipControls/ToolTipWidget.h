@@ -10,6 +10,8 @@
 
 #include "DolphinQt/Config/Graphics/BalloonTip.h"
 
+constexpr int TOOLTIP_DELAY = 300;
+
 template <class Derived>
 class ToolTipWidget : public Derived
 {
@@ -25,7 +27,7 @@ private:
   {
     if (m_timer_id)
       return;
-    m_timer_id = this->startTimer(300);
+    m_timer_id = this->startTimer(TOOLTIP_DELAY);
   }
 
   void leaveEvent(QEvent* event) override

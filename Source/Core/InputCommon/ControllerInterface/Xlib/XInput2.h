@@ -30,6 +30,7 @@ private:
     unsigned int buttons;
     Common::Vec2 cursor;
     Common::Vec2 axis;
+    Common::Vec2 relative_mouse;
   };
 
   class Key : public Input
@@ -82,6 +83,21 @@ private:
     std::string GetName() const override { return name; }
     bool IsDetectable() const override { return false; }
     Axis(u8 index, bool positive, const float* axis);
+    ControlState GetState() const override;
+
+  private:
+    const float* m_axis;
+    const u8 m_index;
+    const bool m_positive;
+    std::string name;
+  };
+
+  class RelativeMouse : public Input
+  {
+  public:
+    std::string GetName() const override { return name; }
+    bool IsDetectable() const override { return false; }
+    RelativeMouse(u8 index, bool positive, const float* axis);
     ControlState GetState() const override;
 
   private:

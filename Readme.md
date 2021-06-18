@@ -65,12 +65,26 @@ missing packages yourself.
 
 ### macOS Build Steps:
 
+A binary supporting a single architecture can be built using the following steps: 
+
 1. `mkdir build`
 2. `cd build`
 3. `cmake ..`
 4. `make`
 
 An application bundle will be created in `./Binaries`.
+
+A script is also provided to build universal binaries supporting both x64 and ARM in the same
+application bundle using the following steps:
+
+1. `mkdir build`
+2. `cd build`
+3. `python ../BuildMacOSUniversalBinary.py`
+4. Universal binaries will be available in the `universal` folder
+
+Doing this is more complex as it requires installation of library dependencies for both x64 and ARM (or universal library
+equivalents) and may require specifying additional arguments to point to relevant library locations. 
+Execute BuildMacOSUniversalBinary.py --help for more details.  
 
 ### Linux Global Build Steps:
 

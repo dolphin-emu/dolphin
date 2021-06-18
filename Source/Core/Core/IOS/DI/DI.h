@@ -30,21 +30,21 @@ namespace IOS::HLE
 void Init();
 }
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-class DI : public Device
+class DIDevice : public Device
 {
 public:
-  DI(Kernel& ios, const std::string& device_name);
+  DIDevice(Kernel& ios, const std::string& device_name);
 
   static void InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type);
   static DiscIO::Partition GetCurrentPartition();
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(const OpenRequest& request) override;
-  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
+  std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
   enum class DIIoctl : u32
   {
@@ -145,4 +145,4 @@ private:
   bool m_has_initialized = false;
   u32 m_last_length = 0;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

@@ -22,9 +22,9 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-static ReturnCode WriteTicket(FS::FileSystem* fs, const IOS::ES::TicketReader& ticket)
+static ReturnCode WriteTicket(FS::FileSystem* fs, const ES::TicketReader& ticket)
 {
   const u64 title_id = ticket.GetTitleId();
 
@@ -39,7 +39,7 @@ static ReturnCode WriteTicket(FS::FileSystem* fs, const IOS::ES::TicketReader& t
   return file->Write(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
 }
 
-void ES::TitleImportExportContext::DoState(PointerWrap& p)
+void ESDevice::TitleImportExportContext::DoState(PointerWrap& p)
 {
   p.Do(valid);
   p.Do(key_handle);
@@ -50,10 +50,11 @@ void ES::TitleImportExportContext::DoState(PointerWrap& p)
   p.Do(content.buffer);
 }
 
-ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
-                            TicketImportType type, VerifySignature verify_signature)
+ReturnCode ESDevice::ImportTicket(const std::vector<u8>& ticket_bytes,
+                                  const std::vector<u8>& cert_chain, TicketImportType type,
+                                  VerifySignature verify_signature)
 {
-  IOS::ES::TicketReader ticket{ticket_bytes};
+  ES::TicketReader ticket{ticket_bytes};
   if (!ticket.IsValid())
     return ES_EINVAL;
 
@@ -92,16 +93,16 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vect
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportTicket(const IOCtlVRequest& request)
+IPCReply ESDevice::ImportTicket(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   std::vector<u8> bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   std::vector<u8> cert_chain(request.in_vectors[1].size);
   Memory::CopyFromEmu(cert_chain.data(), request.in_vectors[1].address, request.in_vectors[1].size);
-  return GetDefaultReply(ImportTicket(bytes, cert_chain));
+  return IPCReply(ImportTicket(bytes, cert_chain));
 }
 
 constexpr std::array<u8, 16> NULL_KEY{};
@@ -115,7 +116,7 @@ static ReturnCode InitBackupKey(u64 tid, u32 title_flags, IOSC& iosc, IOSC::Hand
 
   // Ignore the region byte.
   const u64 title_id = tid | 0xff;
-  const u32 affected_type = IOS::ES::TITLE_TYPE_0x10 | IOS::ES::TITLE_TYPE_DATA;
+  const u32 affected_type = ES::TITLE_TYPE_0x10 | ES::TITLE_TYPE_DATA;
   if (title_id == Titles::SYSTEM_MENU || (title_flags & affected_type) != affected_type ||
       !(title_id == 0x00010005735841ff || title_id - 0x00010005735a41ff <= 0x700))
   {
@@ -128,15 +129,15 @@ static ReturnCode InitBackupKey(u64 tid, u32 title_flags, IOSC& iosc, IOSC::Hand
   return ret == IPC_SUCCESS ? iosc.ImportSecretKey(*key, NULL_KEY.data(), PID_ES) : ret;
 }
 
-static void ResetTitleImportContext(ES::Context* context, IOSC& iosc)
+static void ResetTitleImportContext(ESDevice::Context* context, IOSC& iosc)
 {
   if (context->title_import_export.key_handle)
     iosc.DeleteObject(context->title_import_export.key_handle, PID_ES);
   context->title_import_export = {};
 }
 
-ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes, u64 caller_title_id,
-                         u32 caller_title_flags)
+ReturnCode ESDevice::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes,
+                               u64 caller_title_id, u32 caller_title_flags)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTmd");
 
@@ -179,18 +180,18 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes, u64
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportTmd(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
-  if (!IOS::ES::IsValidTMDSize(request.in_vectors[0].size))
-    return GetDefaultReply(ES_EINVAL);
+  if (!ES::IsValidTMDSize(request.in_vectors[0].size))
+    return IPCReply(ES_EINVAL);
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(ImportTmd(context, tmd, m_title_context.tmd.GetTitleId(),
-                                   m_title_context.tmd.GetTitleFlags()));
+  return IPCReply(ImportTmd(context, tmd, m_title_context.tmd.GetTitleId(),
+                            m_title_context.tmd.GetTitleFlags()));
 }
 
 static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& iosc,
@@ -201,17 +202,18 @@ static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& 
     return ret;
 
   std::array<u8, 16> iv{};
-  std::copy_n(&ticket_bytes[offsetof(IOS::ES::Ticket, title_id)], sizeof(u64), iv.begin());
-  const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
+  std::copy_n(&ticket_bytes[offsetof(ES::Ticket, title_id)], sizeof(u64), iv.begin());
+  const u8 index = ticket_bytes[offsetof(ES::Ticket, common_key_index)];
   if (index >= IOSC::COMMON_KEY_HANDLES.size())
     return ES_INVALID_TICKET;
 
   return iosc.ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
-                              &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)], PID_ES);
+                              &ticket_bytes[offsetof(ES::Ticket, title_key)], PID_ES);
 }
 
-ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
-                               const std::vector<u8>& cert_chain, VerifySignature verify_signature)
+ReturnCode ESDevice::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
+                                     const std::vector<u8>& cert_chain,
+                                     VerifySignature verify_signature)
 {
   INFO_LOG_FMT(IOS_ES, "ImportTitleInit");
   ResetTitleImportContext(&context, m_ios.GetIOSC());
@@ -264,22 +266,22 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportTitleInit(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportTitleInit(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(4, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
-  if (!IOS::ES::IsValidTMDSize(request.in_vectors[0].size))
-    return GetDefaultReply(ES_EINVAL);
+  if (!ES::IsValidTMDSize(request.in_vectors[0].size))
+    return IPCReply(ES_EINVAL);
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   std::vector<u8> certs(request.in_vectors[1].size);
   Memory::CopyFromEmu(certs.data(), request.in_vectors[1].address, request.in_vectors[1].size);
-  return GetDefaultReply(ImportTitleInit(context, tmd, certs));
+  return IPCReply(ImportTitleInit(context, tmd, certs));
 }
 
-ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id)
+ReturnCode ESDevice::ImportContentBegin(Context& context, u64 title_id, u32 content_id)
 {
   if (context.title_import_export.content.valid)
   {
@@ -305,7 +307,7 @@ ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id
 
   // The IV for title content decryption is the lower two bytes of the
   // content index, zero extended.
-  IOS::ES::Content content_info;
+  ES::Content content_info;
   if (!context.title_import_export.tmd.FindContentById(context.title_import_export.content.id,
                                                        &content_info))
     return ES_EINVAL;
@@ -322,17 +324,18 @@ ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id
   return static_cast<ReturnCode>(content_fd);
 }
 
-IPCCommandResult ES::ImportContentBegin(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportContentBegin(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
-  return GetDefaultReply(ImportContentBegin(context, title_id, content_id));
+  return IPCReply(ImportContentBegin(context, title_id, content_id));
 }
 
-ReturnCode ES::ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size)
+ReturnCode ESDevice::ImportContentData(Context& context, u32 content_fd, const u8* data,
+                                       u32 data_size)
 {
   INFO_LOG_FMT(IOS_ES, "ImportContentData: content fd {:08x}, size {}", content_fd, data_size);
   context.title_import_export.content.buffer.insert(
@@ -340,18 +343,17 @@ ReturnCode ES::ImportContentData(Context& context, u32 content_fd, const u8* dat
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportContentData(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportContentData(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   u8* data_start = Memory::GetPointer(request.in_vectors[1].address);
-  return GetDefaultReply(
-      ImportContentData(context, content_fd, data_start, request.in_vectors[1].size));
+  return IPCReply(ImportContentData(context, content_fd, data_start, request.in_vectors[1].size));
 }
 
-static bool CheckIfContentHashMatches(const std::vector<u8>& content, const IOS::ES::Content& info)
+static bool CheckIfContentHashMatches(const std::vector<u8>& content, const ES::Content& info)
 {
   std::array<u8, 20> sha1;
   mbedtls_sha1_ret(content.data(), info.size, sha1.data());
@@ -363,7 +365,7 @@ static std::string GetImportContentPath(u64 title_id, u32 content_id)
   return fmt::format("{}/content/{:08x}.app", Common::GetImportTitlePath(title_id), content_id);
 }
 
-ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
+ReturnCode ESDevice::ImportContentEnd(Context& context, u32 content_fd)
 {
   INFO_LOG_FMT(IOS_ES, "ImportContentEnd: content fd {:08x}", content_fd);
 
@@ -378,7 +380,7 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   if (decrypt_ret != IPC_SUCCESS)
     return decrypt_ret;
 
-  IOS::ES::Content content_info;
+  ES::Content content_info;
   context.title_import_export.tmd.FindContentById(context.title_import_export.content.id,
                                                   &content_info);
   if (!CheckIfContentHashMatches(decrypted_data, content_info))
@@ -392,7 +394,7 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   std::string content_path;
   if (content_info.IsShared())
   {
-    IOS::ES::SharedContentMap shared_content{fs};
+    ES::SharedContentMap shared_content{m_ios.GetFSDevice()};
     content_path = shared_content.AddSharedContent(content_info.sha1);
   }
   else
@@ -426,21 +428,21 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportContentEnd(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportContentEnd(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
-  return GetDefaultReply(ImportContentEnd(context, content_fd));
+  return IPCReply(ImportContentEnd(context, content_fd));
 }
 
-static bool HasAllRequiredContents(IOS::HLE::Kernel& ios, const IOS::ES::TMDReader& tmd)
+static bool HasAllRequiredContents(Kernel& ios, const ES::TMDReader& tmd)
 {
   const u64 title_id = tmd.GetTitleId();
-  const std::vector<IOS::ES::Content> contents = tmd.GetContents();
-  const IOS::ES::SharedContentMap shared_content_map{ios.GetFS()};
-  return std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
+  const std::vector<ES::Content> contents = tmd.GetContents();
+  const ES::SharedContentMap shared_content_map{ios.GetFSDevice()};
+  return std::all_of(contents.cbegin(), contents.cend(), [&](const ES::Content& content) {
     if (content.IsOptional())
       return true;
 
@@ -454,7 +456,7 @@ static bool HasAllRequiredContents(IOS::HLE::Kernel& ios, const IOS::ES::TMDRead
   });
 }
 
-ReturnCode ES::ImportTitleDone(Context& context)
+ReturnCode ESDevice::ImportTitleDone(Context& context)
 {
   if (!context.title_import_export.valid || context.title_import_export.content.valid)
   {
@@ -489,15 +491,15 @@ ReturnCode ES::ImportTitleDone(Context& context)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportTitleDone(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportTitleDone(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
-  return GetDefaultReply(ImportTitleDone(context));
+  return IPCReply(ImportTitleDone(context));
 }
 
-ReturnCode ES::ImportTitleCancel(Context& context)
+ReturnCode ESDevice::ImportTitleCancel(Context& context)
 {
   // The TMD buffer can exist without a valid title import context.
   if (context.title_import_export.tmd.GetBytes().empty() ||
@@ -515,12 +517,12 @@ ReturnCode ES::ImportTitleCancel(Context& context)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ImportTitleCancel(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ImportTitleCancel(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
-  return GetDefaultReply(ImportTitleCancel(context));
+  return IPCReply(ImportTitleCancel(context));
 }
 
 static bool CanDeleteTitle(u64 title_id)
@@ -529,7 +531,7 @@ static bool CanDeleteTitle(u64 title_id)
   return static_cast<u32>(title_id >> 32) != 0x00000001 || static_cast<u32>(title_id) > 0x101;
 }
 
-ReturnCode ES::DeleteTitle(u64 title_id)
+ReturnCode ESDevice::DeleteTitle(u64 title_id)
 {
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -538,19 +540,19 @@ ReturnCode ES::DeleteTitle(u64 title_id)
   return FS::ConvertResult(m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, title_dir));
 }
 
-IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteTitle(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  return GetDefaultReply(DeleteTitle(title_id));
+  return IPCReply(DeleteTitle(title_id));
 }
 
-ReturnCode ES::DeleteTicket(const u8* ticket_view)
+ReturnCode ESDevice::DeleteTicket(const u8* ticket_view)
 {
   const auto fs = m_ios.GetFS();
-  const u64 title_id = Common::swap64(ticket_view + offsetof(IOS::ES::TicketView, title_id));
+  const u64 title_id = Common::swap64(ticket_view + offsetof(ES::TicketView, title_id));
 
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -559,7 +561,7 @@ ReturnCode ES::DeleteTicket(const u8* ticket_view)
   if (!ticket.IsValid())
     return FS_ENOENT;
 
-  const u64 ticket_id = Common::swap64(ticket_view + offsetof(IOS::ES::TicketView, ticket_id));
+  const u64 ticket_id = Common::swap64(ticket_view + offsetof(ES::TicketView, ticket_id));
   ticket.DeleteTicket(ticket_id);
 
   const std::vector<u8>& new_ticket = ticket.GetBytes();
@@ -587,17 +589,17 @@ ReturnCode ES::DeleteTicket(const u8* ticket_view)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteTicket(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) ||
-      request.in_vectors[0].size != sizeof(IOS::ES::TicketView))
+      request.in_vectors[0].size != sizeof(ES::TicketView))
   {
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
   }
-  return GetDefaultReply(DeleteTicket(Memory::GetPointer(request.in_vectors[0].address)));
+  return IPCReply(DeleteTicket(Memory::GetPointer(request.in_vectors[0].address)));
 }
 
-ReturnCode ES::DeleteTitleContent(u64 title_id) const
+ReturnCode ESDevice::DeleteTitleContent(u64 title_id) const
 {
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -616,14 +618,14 @@ ReturnCode ES::DeleteTitleContent(u64 title_id) const
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteTitleContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u64))
-    return GetDefaultReply(ES_EINVAL);
-  return GetDefaultReply(DeleteTitleContent(Memory::Read_U64(request.in_vectors[0].address)));
+    return IPCReply(ES_EINVAL);
+  return IPCReply(DeleteTitleContent(Memory::Read_U64(request.in_vectors[0].address)));
 }
 
-ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
+ReturnCode ESDevice::DeleteContent(u64 title_id, u32 content_id) const
 {
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
@@ -632,7 +634,7 @@ ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
   if (!tmd.IsValid())
     return FS_ENOENT;
 
-  IOS::ES::Content content;
+  ES::Content content;
   if (!tmd.FindContentById(content_id, &content))
     return ES_EINVAL;
 
@@ -641,19 +643,19 @@ ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
   return FS::ConvertResult(m_ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, path));
 }
 
-IPCCommandResult ES::DeleteContent(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0) || request.in_vectors[0].size != sizeof(u64) ||
       request.in_vectors[1].size != sizeof(u32))
   {
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
   }
-  return GetDefaultReply(DeleteContent(Memory::Read_U64(request.in_vectors[0].address),
-                                       Memory::Read_U32(request.in_vectors[1].address)));
+  return IPCReply(DeleteContent(Memory::Read_U64(request.in_vectors[0].address),
+                                Memory::Read_U32(request.in_vectors[1].address)));
 }
 
-ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size,
-                               u64 caller_title_id, u32 caller_title_flags)
+ReturnCode ESDevice::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u32 tmd_size,
+                                     u64 caller_title_id, u32 caller_title_flags)
 {
   // No concurrent title import/export is allowed.
   if (context.title_import_export.valid)
@@ -681,21 +683,21 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ExportTitleInit(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ExportTitleInit(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 8)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   u8* tmd_bytes = Memory::GetPointer(request.io_vectors[0].address);
   const u32 tmd_size = request.io_vectors[0].size;
 
-  return GetDefaultReply(ExportTitleInit(context, title_id, tmd_bytes, tmd_size,
-                                         m_title_context.tmd.GetTitleId(),
-                                         m_title_context.tmd.GetTitleFlags()));
+  return IPCReply(ExportTitleInit(context, title_id, tmd_bytes, tmd_size,
+                                  m_title_context.tmd.GetTitleId(),
+                                  m_title_context.tmd.GetTitleFlags()));
 }
 
-ReturnCode ES::ExportContentBegin(Context& context, u64 title_id, u32 content_id)
+ReturnCode ESDevice::ExportContentBegin(Context& context, u64 title_id, u32 content_id)
 {
   context.title_import_export.content = {};
   if (!context.title_import_export.valid ||
@@ -705,7 +707,7 @@ ReturnCode ES::ExportContentBegin(Context& context, u64 title_id, u32 content_id
     return ES_EINVAL;
   }
 
-  IOS::ES::Content content_info;
+  ES::Content content_info;
   if (!context.title_import_export.tmd.FindContentById(content_id, &content_info))
     return ES_EINVAL;
 
@@ -726,19 +728,19 @@ ReturnCode ES::ExportContentBegin(Context& context, u64 title_id, u32 content_id
   return static_cast<ReturnCode>(ret);
 }
 
-IPCCommandResult ES::ExportContentBegin(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ExportContentBegin(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0) || request.in_vectors[0].size != 8 ||
       request.in_vectors[1].size != 4)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
 
-  return GetDefaultReply(ExportContentBegin(context, title_id, content_id));
+  return IPCReply(ExportContentBegin(context, title_id, content_id));
 }
 
-ReturnCode ES::ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size)
+ReturnCode ESDevice::ExportContentData(Context& context, u32 content_fd, u8* data, u32 data_size)
 {
   if (!context.title_import_export.valid || !context.title_import_export.content.valid || !data ||
       data_size == 0)
@@ -772,51 +774,51 @@ ReturnCode ES::ExportContentData(Context& context, u32 content_fd, u8* data, u32
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ExportContentData(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ExportContentData(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 4 ||
       request.io_vectors[0].size == 0)
   {
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
   }
 
   const u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   u8* data = Memory::GetPointer(request.io_vectors[0].address);
   const u32 bytes_to_read = request.io_vectors[0].size;
 
-  return GetDefaultReply(ExportContentData(context, content_fd, data, bytes_to_read));
+  return IPCReply(ExportContentData(context, content_fd, data, bytes_to_read));
 }
 
-ReturnCode ES::ExportContentEnd(Context& context, u32 content_fd)
+ReturnCode ESDevice::ExportContentEnd(Context& context, u32 content_fd)
 {
   if (!context.title_import_export.valid || !context.title_import_export.content.valid)
     return ES_EINVAL;
-  return CloseContent(content_fd, 0);
+  return static_cast<ReturnCode>(CloseContent(content_fd, 0));
 }
 
-IPCCommandResult ES::ExportContentEnd(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ExportContentEnd(Context& context, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 4)
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
 
   const u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
-  return GetDefaultReply(ExportContentEnd(context, content_fd));
+  return IPCReply(ExportContentEnd(context, content_fd));
 }
 
-ReturnCode ES::ExportTitleDone(Context& context)
+ReturnCode ESDevice::ExportTitleDone(Context& context)
 {
   ResetTitleImportContext(&context, m_ios.GetIOSC());
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::ExportTitleDone(Context& context, const IOCtlVRequest& request)
+IPCReply ESDevice::ExportTitleDone(Context& context, const IOCtlVRequest& request)
 {
-  return GetDefaultReply(ExportTitleDone(context));
+  return IPCReply(ExportTitleDone(context));
 }
 
-ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
+ReturnCode ESDevice::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 {
-  IOS::ES::SharedContentMap map{m_ios.GetFS()};
+  ES::SharedContentMap map{m_ios.GetFSDevice()};
   const auto content_path = map.GetFilenameFromSHA1(sha1);
   if (!content_path)
     return ES_EINVAL;
@@ -824,7 +826,7 @@ ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
   // Check whether the shared content is used by a system title.
   const std::vector<u64> titles = GetInstalledTitles();
   const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&](u64 id) {
-    if (!IOS::ES::IsTitleType(id, IOS::ES::TitleType::System))
+    if (!ES::IsTitleType(id, ES::TitleType::System))
       return false;
 
     const auto tmd = FindInstalledTMD(id);
@@ -851,12 +853,12 @@ ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
   return IPC_SUCCESS;
 }
 
-IPCCommandResult ES::DeleteSharedContent(const IOCtlVRequest& request)
+IPCReply ESDevice::DeleteSharedContent(const IOCtlVRequest& request)
 {
   std::array<u8, 20> sha1;
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sha1.size())
-    return GetDefaultReply(ES_EINVAL);
+    return IPCReply(ES_EINVAL);
   Memory::CopyFromEmu(sha1.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  return GetDefaultReply(DeleteSharedContent(sha1));
+  return IPCReply(DeleteSharedContent(sha1));
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

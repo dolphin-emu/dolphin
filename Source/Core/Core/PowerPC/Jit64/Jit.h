@@ -96,7 +96,7 @@ public:
 
   void GenerateConstantOverflow(bool overflow);
   void GenerateConstantOverflow(s64 val);
-  void GenerateOverflow();
+  void GenerateOverflow(Gen::CCFlags cond = Gen::CCFlags::CC_NO);
   void FinalizeCarryOverflow(bool oe, bool inv = false);
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
@@ -116,6 +116,7 @@ public:
   void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
+  void FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg);
 
   // Generates a branch that will check if a given bit of a CR register part
   // is set or not.

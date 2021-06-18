@@ -19,130 +19,16 @@
 
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
 
 #ifdef _M_X86_64
 #include "VideoCommon/VertexLoaderX64.h"
 #elif defined(_M_ARM_64)
 #include "VideoCommon/VertexLoaderARM64.h"
 #endif
-
-VertexLoaderBase::VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
-    : m_VtxDesc{vtx_desc}, m_vat{vtx_attr}
-{
-  SetVAT(vtx_attr);
-}
-
-void VertexLoaderBase::SetVAT(const VAT& vat)
-{
-  m_VtxAttr.PosElements = vat.g0.PosElements;
-  m_VtxAttr.PosFormat = vat.g0.PosFormat;
-  m_VtxAttr.PosFrac = vat.g0.PosFrac;
-  m_VtxAttr.NormalElements = vat.g0.NormalElements;
-  m_VtxAttr.NormalFormat = vat.g0.NormalFormat;
-  m_VtxAttr.color[0].Elements = vat.g0.Color0Elements;
-  m_VtxAttr.color[0].Comp = vat.g0.Color0Comp;
-  m_VtxAttr.color[1].Elements = vat.g0.Color1Elements;
-  m_VtxAttr.color[1].Comp = vat.g0.Color1Comp;
-  m_VtxAttr.texCoord[0].Elements = vat.g0.Tex0CoordElements;
-  m_VtxAttr.texCoord[0].Format = vat.g0.Tex0CoordFormat;
-  m_VtxAttr.texCoord[0].Frac = vat.g0.Tex0Frac;
-  m_VtxAttr.ByteDequant = vat.g0.ByteDequant;
-  m_VtxAttr.NormalIndex3 = vat.g0.NormalIndex3;
-
-  m_VtxAttr.texCoord[1].Elements = vat.g1.Tex1CoordElements;
-  m_VtxAttr.texCoord[1].Format = vat.g1.Tex1CoordFormat;
-  m_VtxAttr.texCoord[1].Frac = vat.g1.Tex1Frac;
-  m_VtxAttr.texCoord[2].Elements = vat.g1.Tex2CoordElements;
-  m_VtxAttr.texCoord[2].Format = vat.g1.Tex2CoordFormat;
-  m_VtxAttr.texCoord[2].Frac = vat.g1.Tex2Frac;
-  m_VtxAttr.texCoord[3].Elements = vat.g1.Tex3CoordElements;
-  m_VtxAttr.texCoord[3].Format = vat.g1.Tex3CoordFormat;
-  m_VtxAttr.texCoord[3].Frac = vat.g1.Tex3Frac;
-  m_VtxAttr.texCoord[4].Elements = vat.g1.Tex4CoordElements;
-  m_VtxAttr.texCoord[4].Format = vat.g1.Tex4CoordFormat;
-
-  m_VtxAttr.texCoord[4].Frac = vat.g2.Tex4Frac;
-  m_VtxAttr.texCoord[5].Elements = vat.g2.Tex5CoordElements;
-  m_VtxAttr.texCoord[5].Format = vat.g2.Tex5CoordFormat;
-  m_VtxAttr.texCoord[5].Frac = vat.g2.Tex5Frac;
-  m_VtxAttr.texCoord[6].Elements = vat.g2.Tex6CoordElements;
-  m_VtxAttr.texCoord[6].Format = vat.g2.Tex6CoordFormat;
-  m_VtxAttr.texCoord[6].Frac = vat.g2.Tex6Frac;
-  m_VtxAttr.texCoord[7].Elements = vat.g2.Tex7CoordElements;
-  m_VtxAttr.texCoord[7].Format = vat.g2.Tex7CoordFormat;
-  m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
-};
-
-std::string VertexLoaderBase::ToString() const
-{
-  std::string dest;
-  dest.reserve(250);
-
-  dest += GetName();
-  dest += ": ";
-
-  static constexpr std::array<const char*, 4> pos_mode{{
-      "Inv",
-      "Dir",
-      "I8",
-      "I16",
-  }};
-  static constexpr std::array<const char*, 8> pos_formats{{
-      "u8",
-      "s8",
-      "u16",
-      "s16",
-      "flt",
-      "Inv",
-      "Inv",
-      "Inv",
-  }};
-  static constexpr std::array<const char*, 8> color_format{{
-      "565",
-      "888",
-      "888x",
-      "4444",
-      "6666",
-      "8888",
-      "Inv",
-      "Inv",
-  }};
-
-  dest += fmt::format("{}b skin: {} P: {} {}-{} ", m_VertexSize, m_VtxDesc.PosMatIdx,
-                      m_VtxAttr.PosElements ? 3 : 2, pos_mode[m_VtxDesc.Position],
-                      pos_formats[m_VtxAttr.PosFormat]);
-
-  if (m_VtxDesc.Normal)
-  {
-    dest += fmt::format("Nrm: {} {}-{} ", m_VtxAttr.NormalElements, pos_mode[m_VtxDesc.Normal],
-                        pos_formats[m_VtxAttr.NormalFormat]);
-  }
-
-  const std::array<u64, 2> color_mode{{m_VtxDesc.Color0, m_VtxDesc.Color1}};
-  for (size_t i = 0; i < color_mode.size(); i++)
-  {
-    if (color_mode[i] == 0)
-      continue;
-
-    const auto& color = m_VtxAttr.color[i];
-    dest += fmt::format("C{}: {} {}-{} ", i, color.Elements, pos_mode[color_mode[i]],
-                        color_format[color.Comp]);
-  }
-  const std::array<u64, 8> tex_mode{{m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord,
-                                     m_VtxDesc.Tex3Coord, m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord,
-                                     m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord}};
-  for (size_t i = 0; i < tex_mode.size(); i++)
-  {
-    if (tex_mode[i] == 0)
-      continue;
-
-    const auto& tex_coord = m_VtxAttr.texCoord[i];
-    dest += fmt::format("T{}: {} {}-{} ", i, tex_coord.Elements, pos_mode[tex_mode[i]],
-                        pos_formats[tex_coord.Format]);
-  }
-  dest += fmt::format(" - {} v", m_numLoadedVertices);
-  return dest;
-}
 
 // a hacky implementation to compare two vertex loaders
 class VertexLoaderTester : public VertexLoaderBase
@@ -152,31 +38,25 @@ public:
                      const TVtxDesc& vtx_desc, const VAT& vtx_attr)
       : VertexLoaderBase(vtx_desc, vtx_attr), a(std::move(a_)), b(std::move(b_))
   {
-    m_initialized = a && b && a->IsInitialized() && b->IsInitialized();
-
-    if (m_initialized)
+    ASSERT(a && b);
+    if (a->m_vertex_size == b->m_vertex_size && a->m_native_components == b->m_native_components &&
+        a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride)
     {
-      m_initialized = a->m_VertexSize == b->m_VertexSize &&
-                      a->m_native_components == b->m_native_components &&
-                      a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride;
+      // These are generated from the VAT and vertex desc, so they should match.
+      // m_native_vtx_decl.stride isn't set yet, though.
+      ASSERT(m_vertex_size == a->m_vertex_size && m_native_components == a->m_native_components);
 
-      if (m_initialized)
-      {
-        m_VertexSize = a->m_VertexSize;
-        m_native_components = a->m_native_components;
-        memcpy(&m_native_vtx_decl, &a->m_native_vtx_decl, sizeof(PortableVertexDeclaration));
-      }
-      else
-      {
-        ERROR_LOG_FMT(VIDEO, "Can't compare vertex loaders that expect different vertex formats!");
-        ERROR_LOG_FMT(VIDEO, "a: m_VertexSize {}, m_native_components {:#010x}, stride {}",
-                      a->m_VertexSize, a->m_native_components, a->m_native_vtx_decl.stride);
-        ERROR_LOG_FMT(VIDEO, "b: m_VertexSize {}, m_native_components {:#010x}, stride {}",
-                      b->m_VertexSize, b->m_native_components, b->m_native_vtx_decl.stride);
-      }
+      memcpy(&m_native_vtx_decl, &a->m_native_vtx_decl, sizeof(PortableVertexDeclaration));
+    }
+    else
+    {
+      PanicAlertFmt("Can't compare vertex loaders that expect different vertex formats!\n"
+                    "a: m_vertex_size {}, m_native_components {:#010x}, stride {}\n"
+                    "b: m_vertex_size {}, m_native_components {:#010x}, stride {}",
+                    a->m_vertex_size, a->m_native_components, a->m_native_vtx_decl.stride,
+                    b->m_vertex_size, b->m_native_components, b->m_native_vtx_decl.stride);
     }
   }
-  ~VertexLoaderTester() override {}
   int RunVertices(DataReader src, DataReader dst, int count) override
   {
     buffer_a.resize(count * a->m_native_vtx_decl.stride + 4);
@@ -199,21 +79,17 @@ public:
                std::min(count_a, count_b) * m_native_vtx_decl.stride))
     {
       ERROR_LOG_FMT(VIDEO,
-                    "The two vertex loaders have loaded different data "
-                    "(guru meditation {:#018x}, {:#010x}, {:#010x}, {:#010x}).",
-                    m_VtxDesc.Hex, m_vat.g0.Hex, m_vat.g1.Hex, m_vat.g2.Hex);
+                    "The two vertex loaders have loaded different data.  Configuration:"
+                    "\nVertex desc:\n{}\n\nVertex attr:\n{}",
+                    m_VtxDesc, m_VtxAttr);
     }
 
     memcpy(dst.GetPointer(), buffer_a.data(), count_a * m_native_vtx_decl.stride);
     m_numLoadedVertices += count;
     return count_a;
   }
-  std::string GetName() const override { return "CompareLoader"; }
-  bool IsInitialized() override { return m_initialized; }
 
 private:
-  bool m_initialized;
-
   std::unique_ptr<VertexLoaderBase> a;
   std::unique_ptr<VertexLoaderBase> b;
 
@@ -221,36 +97,112 @@ private:
   std::vector<u8> buffer_b;
 };
 
+template <class Function>
+static void GetComponentSizes(const TVtxDesc& vtx_desc, const VAT& vtx_attr, Function f)
+{
+  if (vtx_desc.low.PosMatIdx)
+    f(1);
+  for (auto texmtxidx : vtx_desc.low.TexMatIdx)
+  {
+    if (texmtxidx)
+      f(1);
+  }
+  const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
+                                                      vtx_attr.g0.PosElements);
+  if (pos_size != 0)
+    f(pos_size);
+  const u32 norm_size =
+      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
+                                   vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
+  if (norm_size != 0)
+    f(norm_size);
+  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  {
+    const u32 color_size =
+        VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
+    if (color_size != 0)
+      f(color_size);
+  }
+  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  {
+    const u32 tc_size = VertexLoader_TextCoord::GetSize(
+        vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
+    if (tc_size != 0)
+      f(tc_size);
+  }
+}
+
+u32 VertexLoaderBase::GetVertexSize(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+{
+  u32 size = 0;
+  GetComponentSizes(vtx_desc, vtx_attr, [&size](u32 s) { size += s; });
+  return size;
+}
+
+u32 VertexLoaderBase::GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+{
+  u32 components = 0;
+  if (vtx_desc.low.PosMatIdx)
+    components |= VB_HAS_POSMTXIDX;
+  for (u32 i = 0; i < vtx_desc.low.TexMatIdx.Size(); i++)
+  {
+    if (vtx_desc.low.TexMatIdx[i])
+      components |= VB_HAS_TEXMTXIDX0 << i;
+  }
+  // Vertices always have positions; thus there is no VB_HAS_POS as it would always be set
+  if (vtx_desc.low.Normal != VertexComponentFormat::NotPresent)
+  {
+    components |= VB_HAS_NRM0;
+    if (vtx_attr.g0.NormalElements == NormalComponentCount::NBT)
+      components |= VB_HAS_NRM1 | VB_HAS_NRM2;
+  }
+  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  {
+    if (vtx_desc.low.Color[i] != VertexComponentFormat::NotPresent)
+      components |= VB_HAS_COL0 << i;
+  }
+  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  {
+    if (vtx_desc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
+      components |= VB_HAS_UV0 << i;
+  }
+  return components;
+}
+
+std::vector<u32> VertexLoaderBase::GetVertexComponentSizes(const TVtxDesc& vtx_desc,
+                                                           const VAT& vtx_attr)
+{
+  std::vector<u32> sizes;
+  GetComponentSizes(vtx_desc, vtx_attr, [&sizes](u32 s) { sizes.push_back(s); });
+  return sizes;
+}
+
 std::unique_ptr<VertexLoaderBase> VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc,
                                                                        const VAT& vtx_attr)
 {
-  std::unique_ptr<VertexLoaderBase> loader;
+  std::unique_ptr<VertexLoaderBase> loader = nullptr;
 
   //#define COMPARE_VERTEXLOADERS
 
-#if defined(COMPARE_VERTEXLOADERS) && defined(_M_X86_64)
-  // first try: Any new VertexLoader vs the old one
-  loader = std::make_unique<VertexLoaderTester>(
-      std::make_unique<VertexLoader>(vtx_desc, vtx_attr),     // the software one
-      std::make_unique<VertexLoaderX64>(vtx_desc, vtx_attr),  // the new one to compare
-      vtx_desc, vtx_attr);
-  if (loader->IsInitialized())
-    return loader;
-#elif defined(_M_X86_64)
+#if defined(_M_X86_64)
   loader = std::make_unique<VertexLoaderX64>(vtx_desc, vtx_attr);
-  if (loader->IsInitialized())
-    return loader;
 #elif defined(_M_ARM_64)
   loader = std::make_unique<VertexLoaderARM64>(vtx_desc, vtx_attr);
-  if (loader->IsInitialized())
-    return loader;
 #endif
 
-  // last try: The old VertexLoader
-  loader = std::make_unique<VertexLoader>(vtx_desc, vtx_attr);
-  if (loader->IsInitialized())
-    return loader;
+  // Use the software loader as a fallback
+  // (not currently applicable, as both VertexLoaderX64 and VertexLoaderARM64
+  // are always usable, but if a loader that only works on some CPUs is created
+  // then this fallback would be used)
+  if (!loader)
+    loader = std::make_unique<VertexLoader>(vtx_desc, vtx_attr);
 
-  PanicAlertFmt("No Vertex Loader found.");
-  return nullptr;
+#if defined(COMPARE_VERTEXLOADERS)
+  return std::make_unique<VertexLoaderTester>(
+      std::make_unique<VertexLoader>(vtx_desc, vtx_attr),  // the software one
+      std::move(loader),                                   // the new one to compare
+      vtx_desc, vtx_attr);
+#else
+  return loader;
+#endif
 }

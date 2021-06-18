@@ -36,6 +36,8 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/IOS/Uids.h"
 #include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
@@ -48,7 +50,7 @@
 namespace WiiUtils
 {
 static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
-                      IOS::HLE::Device::ES::VerifySignature verify_signature)
+                      IOS::HLE::ESDevice::VerifySignature verify_signature)
 {
   if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
@@ -60,14 +62,14 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   const auto es = ios.GetES();
   const auto fs = ios.GetFS();
 
-  IOS::HLE::Device::ES::Context context;
+  IOS::HLE::ESDevice::Context context;
   IOS::HLE::ReturnCode ret;
 
   // Ensure the common key index is correct, as it's checked by IOS.
   IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
   while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
-                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised,
+                                 IOS::HLE::ESDevice::TicketImportType::Unpersonalised,
                                  verify_signature)) < 0 ||
          (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain(),
                                     verify_signature)) < 0)
@@ -109,7 +111,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
   // they are not present. So ensure they exist and create them if they don't.
   const bool shop_logs_exist = [&] {
     const std::array<u8, 32> dummy_data{};
-    for (const std::string& path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
+    for (const std::string path : {"/shared2/ec/shopsetu.log", "/shared2/succession/shop.log"})
     {
       constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
       if (fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, path, 0,
@@ -151,7 +153,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
 
   // Skip the install if the WAD is already installed.
   const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(
-      wad.GetTMD(), IOS::HLE::Device::ES::CheckContentHashes::Yes);
+      wad.GetTMD(), IOS::HLE::ESDevice::CheckContentHashes::Yes);
   if (wad.GetTMD().GetContents() == installed_contents)
   {
     // Clear the "temporary title ID" flag in case the user tries to permanently install a title
@@ -180,7 +182,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
 
   // A lot of people use fakesigned WADs, so disable signature checking when installing a WAD.
-  if (!ImportWAD(ios, wad, IOS::HLE::Device::ES::VerifySignature::No))
+  if (!ImportWAD(ios, wad, IOS::HLE::ESDevice::VerifySignature::No))
     return false;
 
   // Keep track of the title ID so this title can be removed to make room for any future install.
@@ -265,7 +267,7 @@ IOS::ES::TMDReader FindBackupTMD(IOS::HLE::FS::FileSystem& fs, u64 title_id)
   }
 }
 
-bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::Device::ES& es, u64 title_id)
+bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::ESDevice& es, u64 title_id)
 {
   if (IsTMDImported(fs, title_id))
     return true;
@@ -274,7 +276,7 @@ bool EnsureTMDIsImported(IOS::HLE::FS::FileSystem& fs, IOS::HLE::Device::ES& es,
   if (!tmd.IsValid())
     return false;
 
-  IOS::HLE::Device::ES::Context context;
+  IOS::HLE::ESDevice::Context context;
   context.uid = IOS::SYSMENU_UID;
   context.gid = IOS::SYSMENU_GID;
   const auto import_result =
@@ -563,7 +565,7 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
   }
 
   // Initialise the title import.
-  IOS::HLE::Device::ES::Context context;
+  IOS::HLE::ESDevice::Context context;
   if ((ret = es->ImportTitleInit(context, tmd.first.GetBytes(), tmd.second)) < 0)
   {
     ERROR_LOG_FMT(CORE, "Failed to initialise title import: error {}", ret);
@@ -832,7 +834,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::DiscReadFailed;
   }
   const DiscIO::VolumeWAD wad{std::move(blob)};
-  const bool success = ImportWAD(m_ios, wad, IOS::HLE::Device::ES::VerifySignature::Yes);
+  const bool success = ImportWAD(m_ios, wad, IOS::HLE::ESDevice::VerifySignature::Yes);
   return success ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 
@@ -956,5 +958,25 @@ NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios)
 bool RepairNAND(IOS::HLE::Kernel& ios)
 {
   return !CheckNAND(ios, true).bad;
+}
+
+static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
+{
+  auto* ios = IOS::HLE::GetIOS();
+  return ios ? ios->GetDeviceByName("/dev/usb/oh1/57e/305") : nullptr;
+}
+
+std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice()
+{
+  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+    return nullptr;
+  return std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(GetBluetoothDevice());
+}
+
+std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice()
+{
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+    return nullptr;
+  return std::static_pointer_cast<IOS::HLE::BluetoothRealDevice>(GetBluetoothDevice());
 }
 }  // namespace WiiUtils

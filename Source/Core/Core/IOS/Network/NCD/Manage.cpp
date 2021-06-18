@@ -13,20 +13,21 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-NetNCDManage::NetNCDManage(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetNCDManageDevice::NetNCDManageDevice(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name)
 {
   config.ReadConfig(ios.GetFS().get());
 }
 
-void NetNCDManage::DoState(PointerWrap& p)
+void NetNCDManageDevice::DoState(PointerWrap& p)
 {
   Device::DoState(p);
   p.Do(m_ipc_fd);
 }
 
-IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> NetNCDManageDevice::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   u32 common_result = 0;
@@ -36,10 +37,10 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
   {
   case IOCTLV_NCD_LOCKWIRELESSDRIVER:
     if (!request.HasNumberOfValidVectors(0, 1))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (request.io_vectors[0].size < 2 * sizeof(u32))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (m_ipc_fd != 0)
     {
@@ -59,13 +60,13 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NCD_UNLOCKWIRELESSDRIVER:
   {
     if (!request.HasNumberOfValidVectors(1, 1))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (request.in_vectors[0].size < sizeof(u32))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     if (request.io_vectors[0].size < sizeof(u32))
-      return GetDefaultReply(IPC_EINVAL);
+      return IPCReply(IPC_EINVAL);
 
     const u32 request_handle = Memory::Read_U32(request.in_vectors[0].address);
     if (m_ipc_fd == request_handle)
@@ -129,6 +130,6 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
   {
     Memory::Write_U32(common_result, request.io_vectors.at(common_vector).address + 4);
   }
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

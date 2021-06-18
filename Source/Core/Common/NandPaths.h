@@ -43,4 +43,6 @@ std::string EscapeFileName(const std::string& filename);
 std::string EscapePath(const std::string& path);
 // Reverses escaping done by EscapeFileName
 std::string UnescapeFileName(const std::string& filename);
+// Tests for a file name being "safe" as per the escaping defined in EscapeFileName
+bool IsFileNameSafe(const std::string_view filename);
 }  // namespace Common

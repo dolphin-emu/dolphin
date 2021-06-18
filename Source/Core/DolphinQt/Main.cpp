@@ -120,6 +120,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
 #endif
 
+  Host::GetInstance()->DeclareAsHostThread();
+
 #ifdef __APPLE__
   // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
   // the application is launched for the first time. This is to set the "ProcessSerialNumber",
@@ -246,6 +248,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    Settings::Instance().SetCurrentUserStyle(Settings::Instance().GetCurrentUserStyle());
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();

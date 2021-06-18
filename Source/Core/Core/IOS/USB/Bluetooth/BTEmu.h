@@ -33,21 +33,19 @@ struct SQueuedEvent
   SQueuedEvent() = default;
 };
 
-namespace Device
-{
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
 // This device is ONLY the internal Bluetooth module (based on BCM2045 chip)
-class BluetoothEmu final : public BluetoothBase
+class BluetoothEmuDevice final : public BluetoothBaseDevice
 {
 public:
-  BluetoothEmu(Kernel& ios, const std::string& device_name);
+  BluetoothEmuDevice(Kernel& ios, const std::string& device_name);
 
-  virtual ~BluetoothEmu();
+  virtual ~BluetoothEmuDevice();
 
-  IPCCommandResult Close(u32 fd) override;
-  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  std::optional<IPCReply> Close(u32 fd) override;
+  std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
 
   void Update() override;
 
@@ -199,5 +197,4 @@ private:
   };
 #pragma pack(pop)
 };
-}  // namespace Device
 }  // namespace IOS::HLE

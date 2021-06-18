@@ -67,8 +67,7 @@ public class AppLinkActivity extends FragmentActivity
     mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
     mAfterDirectoryInitializationRunner.run(this, true, () -> tryPlay(playAction));
 
-    IntentFilter gameFileCacheIntentFilter = new IntentFilter(
-            GameFileCacheService.BROADCAST_ACTION);
+    IntentFilter gameFileCacheIntentFilter = new IntentFilter(GameFileCacheService.DONE_LOADING);
 
     BroadcastReceiver gameFileCacheReceiver = new BroadcastReceiver()
     {
@@ -109,7 +108,7 @@ public class AppLinkActivity extends FragmentActivity
 
     // If game == null and the load isn't done, wait for the next GameFileCacheService broadcast.
     // If game == null and the load is done, call play with a null game, making us exit in failure.
-    if (game != null || GameFileCacheService.hasLoadedCache())
+    if (game != null || !GameFileCacheService.isLoading())
     {
       play(action, game);
     }

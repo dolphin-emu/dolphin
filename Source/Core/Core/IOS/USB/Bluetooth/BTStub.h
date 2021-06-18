@@ -12,13 +12,13 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::Device
+namespace IOS::HLE
 {
-class BluetoothStub final : public BluetoothBase
+class BluetoothStubDevice final : public BluetoothBaseDevice
 {
 public:
-  using BluetoothBase::BluetoothBase;
-  IPCCommandResult Open(const OpenRequest& request) override;
+  using BluetoothBaseDevice::BluetoothBaseDevice;
+  std::optional<IPCReply> Open(const OpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE
