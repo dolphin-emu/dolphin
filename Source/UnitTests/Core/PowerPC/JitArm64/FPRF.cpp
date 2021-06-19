@@ -26,6 +26,8 @@ class TestFPRF : public JitArm64
 public:
   TestFPRF()
   {
+    const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
+
     AllocCodeSpace(4096);
 
     const u8* raw_fprf_single = GetCodePtr();
