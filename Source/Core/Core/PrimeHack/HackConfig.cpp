@@ -33,6 +33,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoConfig.h"
+#include <Core\Host.h>
 
 namespace prime {
 namespace {
@@ -335,8 +336,11 @@ double GetHorizontalAxis() {
   }
   else if (Wiimote::PrimeUseController()) {
     return std::get<0>(Wiimote::GetPrimeStickXY());
-  } 
-  
+  }
+
+  if (!Host_RendererHasFocus())
+    return 0;
+
   return static_cast<double>(g_mouse_input->GetDeltaHorizontalAxis());
 }
 
@@ -348,7 +352,10 @@ double GetVerticalAxis() {
   }
   else if (Wiimote::PrimeUseController()) {
     return std::get<1>(Wiimote::GetPrimeStickXY());
-  } 
+  }
+
+  if (!Host_RendererHasFocus())
+    return 0;
 
   return static_cast<double>(g_mouse_input->GetDeltaVerticalAxis());
 }
