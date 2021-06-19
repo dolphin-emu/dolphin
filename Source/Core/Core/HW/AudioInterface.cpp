@@ -287,7 +287,7 @@ static void IncreaseSampleCount(const u32 amount)
   const u32 old_sample_counter = s_sample_counter + 1;
   s_sample_counter += amount;
 
-  if ((s_interrupt_timing - old_sample_counter) <= (s_sample_counter - old_sample_counter))
+  if (old_sample_counter <= s_interrupt_timing && s_interrupt_timing <= s_sample_counter)
   {
     DEBUG_LOG_FMT(AUDIO_INTERFACE,
                   "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} s_control.AIINTVLD={}",
