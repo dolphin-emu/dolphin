@@ -141,7 +141,7 @@ static CoreTiming::EventType* event_type_ai;
 void Init()
 {
   s_control.hex = 0;
-  s_control.AISFR = AIS_48KHz;
+  s_control.AISFR = AIS_32KHz;
   s_control.AIDFR = AID_32KHz;
   s_volume.hex = 0;
   s_sample_counter = 0;
@@ -149,7 +149,7 @@ void Init()
 
   s_last_cpu_time = 0;
 
-  s_ais_sample_rate = Get48KHzSampleRate();
+  s_ais_sample_rate = Get32KHzSampleRate();
   s_aid_sample_rate = Get32KHzSampleRate();
   s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
 
