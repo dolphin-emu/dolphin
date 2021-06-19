@@ -338,10 +338,11 @@ static void Update(u64 userdata, s64 cycles_late)
 
 int GetAIPeriod()
 {
-  u64 period = s_cpu_cycles_per_sample * (s_interrupt_timing - s_sample_counter);
-  u64 s_period = s_cpu_cycles_per_sample * s_ais_sample_rate;
-  if (period == 0)
+  const u64 s_period = s_cpu_cycles_per_sample * s_ais_sample_rate;
+  if (s_interrupt_timing <= s_sample_counter)
     return static_cast<int>(s_period);
+
+  const u64 period = s_cpu_cycles_per_sample * (s_interrupt_timing - s_sample_counter);
   return static_cast<int>(std::min(period, s_period));
 }
 
