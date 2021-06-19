@@ -241,9 +241,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](u32) {
+                   const u64 cycles_streamed =
+                       IsPlaying() ? (CoreTiming::GetTicks() - s_last_cpu_time) : s_last_cpu_time;
                    return s_sample_counter +
-                          static_cast<u32>((CoreTiming::GetTicks() - s_last_cpu_time) /
-                                           s_cpu_cycles_per_sample);
+                          static_cast<u32>(cycles_streamed / s_cpu_cycles_per_sample);
                  }),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    s_sample_counter = val;
