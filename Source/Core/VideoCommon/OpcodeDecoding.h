@@ -83,7 +83,7 @@ public:
   // Called on any BP command.
   virtual void OnBP(u8 command, u32 value) = 0;
   // Called on any indexed XF load command.
-  virtual void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) = 0;
+  virtual void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) = 0;
   // Called on any primitive command.
   virtual void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
                                   u16 num_vertices, const u8* vertex_data) = 0;
@@ -173,11 +173,11 @@ static DOLPHIN_FORCE_INLINE u32 RunCommand(const u8* data, u32 available, T& cal
     const u8 size = ((value >> 12) & 0xF) + 1;
 
     // Map the command byte to its ref array.
-    // GX_LOAD_INDX_A (32 = 8*4) . ARRAY_XF_A (4+8 = 12)
-    // GX_LOAD_INDX_B (40 = 8*5) . ARRAY_XF_B (5+8 = 13)
-    // GX_LOAD_INDX_C (48 = 8*6) . ARRAY_XF_C (6+8 = 14)
-    // GX_LOAD_INDX_D (56 = 8*7) . ARRAY_XF_D (7+8 = 15)
-    const int ref_array = (static_cast<u8>(cmd) / 8) + 8;
+    // GX_LOAD_INDX_A (32 = 8*4) . CPArray::XF_A (4+8 = 12)
+    // GX_LOAD_INDX_B (40 = 8*5) . CPArray::XF_B (5+8 = 13)
+    // GX_LOAD_INDX_C (48 = 8*6) . CPArray::XF_C (6+8 = 14)
+    // GX_LOAD_INDX_D (56 = 8*7) . CPArray::XF_D (7+8 = 15)
+    const auto ref_array = static_cast<CPArray>((static_cast<u8>(cmd) / 8) + 8);
 
     callback.OnIndexedLoad(ref_array, index, address, size);
     return 5;

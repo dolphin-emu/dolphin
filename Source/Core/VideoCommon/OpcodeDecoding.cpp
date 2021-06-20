@@ -111,7 +111,7 @@ public:
       INCSTAT(g_stats.this_frame.num_bp_loads);
     }
   }
-  DOLPHIN_FORCE_INLINE void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override
+  DOLPHIN_FORCE_INLINE void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) override
   {
     m_cycles += 6;
 

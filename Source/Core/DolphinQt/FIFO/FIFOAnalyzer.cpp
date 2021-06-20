@@ -219,11 +219,11 @@ public:
                .arg(value, 6, 16, QLatin1Char('0'))
                .arg(QString::fromStdString(name));
   }
-  void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override
+  void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) override
   {
     const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
     text = QStringLiteral("LOAD INDX %1   %2")
-               .arg("ABCD"[array - ARRAY_XF_A])
+               .arg(QString::fromStdString(fmt::to_string(array)))
                .arg(QString::fromStdString(desc));
   }
   void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
@@ -534,7 +534,7 @@ public:
       text += QString::fromStdString(desc);
   }
 
-  void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override
+  void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) override
   {
     const auto [desc, written] = GetXFIndexedLoadInfo(array, index, address, size);
 
@@ -542,20 +542,20 @@ public:
     text += QLatin1Char{'\n'};
     switch (array)
     {
-    case ARRAY_XF_A:
+    case CPArray::XF_A:
       text += QObject::tr("Usually used for position matrices");
       break;
-    case ARRAY_XF_B:
+    case CPArray::XF_B:
       // i18n: A normal matrix is a matrix used for transforming normal vectors. The word "normal"
       // does not have its usual meaning here, but rather the meaning of "perpendicular to a
       // surface".
       text += QObject::tr("Usually used for normal matrices");
       break;
-    case ARRAY_XF_C:
+    case CPArray::XF_C:
       // i18n: Tex coord is short for texture coordinate
       text += QObject::tr("Usually used for tex coord matrices");
       break;
-    case ARRAY_XF_D:
+    case CPArray::XF_D:
       text += QObject::tr("Usually used for light objects");
       break;
     }

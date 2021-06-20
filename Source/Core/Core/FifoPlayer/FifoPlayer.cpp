@@ -42,7 +42,7 @@ public:
   void OnXF(u16 address, u8 count, const u8* data) override {}
   void OnCP(u8 command, u32 value) override { Callback::OnCP(command, value); }
   void OnBP(u8 command, u32 value) override;
-  void OnIndexedLoad(u8 array, u32 index, u16 address, u8 size) override {}
+  void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) override {}
   void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
                           u16 num_vertices, const u8* vertex_data) override;
   void OnDisplayList(u32 address, u32 size) override {}
