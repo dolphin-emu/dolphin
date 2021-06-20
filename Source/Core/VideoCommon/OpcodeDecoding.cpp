@@ -166,12 +166,12 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       // GX_LOAD_INDX_B (40) -> 0xD
       // GX_LOAD_INDX_C (48) -> 0xE
       // GX_LOAD_INDX_D (56) -> 0xF
-      const int ref_array = (cmd_byte / 8) + 8;
+      const auto array = static_cast<CPArray>((cmd_byte / 8) + 8);
 
       if constexpr (is_preprocess)
-        PreprocessIndexedXF(src.Read<u32>(), ref_array);
+        PreprocessIndexedXF(array, src.Read<u32>());
       else
-        LoadIndexedXF(src.Read<u32>(), ref_array);
+        LoadIndexedXF(array, src.Read<u32>());
     }
     break;
 

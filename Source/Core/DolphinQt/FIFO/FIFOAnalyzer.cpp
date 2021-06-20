@@ -287,7 +287,7 @@ void FIFOAnalyzer::UpdateDetails()
     case Opcode::GX_LOAD_INDX_A:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_A, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(CPArray::XF_A, Common::swap32(&object[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX A   %1").arg(QString::fromStdString(desc));
     }
@@ -295,7 +295,7 @@ void FIFOAnalyzer::UpdateDetails()
     case Opcode::GX_LOAD_INDX_B:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_B, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(CPArray::XF_B, Common::swap32(&object[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX B   %1").arg(QString::fromStdString(desc));
     }
@@ -303,7 +303,7 @@ void FIFOAnalyzer::UpdateDetails()
     case Opcode::GX_LOAD_INDX_C:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_C, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(CPArray::XF_C, Common::swap32(&object[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX C   %1").arg(QString::fromStdString(desc));
     }
@@ -311,7 +311,7 @@ void FIFOAnalyzer::UpdateDetails()
     case Opcode::GX_LOAD_INDX_D:
     {
       const auto [desc, written] =
-          GetXFIndexedLoadInfo(ARRAY_XF_D, Common::swap32(&object[object_offset]));
+          GetXFIndexedLoadInfo(CPArray::XF_D, Common::swap32(&object[object_offset]));
       object_offset += 4;
       new_label = QStringLiteral("LOAD INDX D   %1").arg(QString::fromStdString(desc));
     }
@@ -619,7 +619,7 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (opcode == Opcode::GX_LOAD_INDX_A)
   {
-    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_A, Common::swap32(cmddata + 1));
+    const auto [desc, written] = GetXFIndexedLoadInfo(CPArray::XF_A, Common::swap32(cmddata + 1));
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};
@@ -629,7 +629,7 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (opcode == Opcode::GX_LOAD_INDX_B)
   {
-    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_B, Common::swap32(cmddata + 1));
+    const auto [desc, written] = GetXFIndexedLoadInfo(CPArray::XF_B, Common::swap32(cmddata + 1));
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};
@@ -641,7 +641,7 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (opcode == Opcode::GX_LOAD_INDX_C)
   {
-    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_C, Common::swap32(cmddata + 1));
+    const auto [desc, written] = GetXFIndexedLoadInfo(CPArray::XF_C, Common::swap32(cmddata + 1));
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};
@@ -652,7 +652,7 @@ void FIFOAnalyzer::UpdateDescription()
   }
   else if (opcode == Opcode::GX_LOAD_INDX_D)
   {
-    const auto [desc, written] = GetXFIndexedLoadInfo(ARRAY_XF_D, Common::swap32(cmddata + 1));
+    const auto [desc, written] = GetXFIndexedLoadInfo(CPArray::XF_D, Common::swap32(cmddata + 1));
 
     text = QString::fromStdString(desc);
     text += QLatin1Char{'\n'};

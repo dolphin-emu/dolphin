@@ -459,5 +459,5 @@ static_assert(sizeof(XFMemory) == sizeof(u32) * 0x1058);
 extern XFMemory xfmem;
 
 void LoadXFReg(u32 transferSize, u32 address, DataReader src);
-void LoadIndexedXF(u32 val, int array);
-void PreprocessIndexedXF(u32 val, int refarray);
+void LoadIndexedXF(CPArray array, u32 val);
+void PreprocessIndexedXF(CPArray array, u32 val);

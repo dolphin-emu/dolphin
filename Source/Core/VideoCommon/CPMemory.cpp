@@ -62,11 +62,13 @@ std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
     return std::make_pair(fmt::format("CP_VAT_REG_C - Format {}", cmd & CP_VAT_MASK),
                           fmt::to_string(UVAT_group2{.Hex = value}));
   case ARRAY_BASE:
-    return std::make_pair(fmt::format("ARRAY_BASE Array {}", cmd & CP_ARRAY_MASK),
-                          fmt::format("Base address {:08x}", value));
+    return std::make_pair(
+        fmt::format("ARRAY_BASE Array {}", static_cast<CPArray>(cmd & CP_ARRAY_MASK)),
+        fmt::format("Base address {:08x}", value));
   case ARRAY_STRIDE:
-    return std::make_pair(fmt::format("ARRAY_STRIDE Array {}", cmd - ARRAY_STRIDE),
-                          fmt::format("Stride {:02x}", value & 0xff));
+    return std::make_pair(
+        fmt::format("ARRAY_STRIDE Array {}", static_cast<CPArray>(cmd & CP_ARRAY_MASK)),
+        fmt::format("Stride {:02x}", value & 0xff));
   default:
     return std::make_pair(fmt::format("Invalid CP register {:02x} = {:08x}", cmd, value), "");
   }

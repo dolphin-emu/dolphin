@@ -14,6 +14,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/DolphinAnalytics.h"
@@ -48,7 +49,14 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
-u8* cached_arraybases[NUM_VERTEX_COMPONENT_ARRAYS];
+Common::EnumMap<u8*, CPArray::TexCoord7> cached_arraybases;
+
+BitSet8 g_main_vat_dirty;
+BitSet8 g_preprocess_vat_dirty;
+bool g_bases_dirty;  // Main only
+u8 g_current_vat;    // Main only
+std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_main_vertex_loaders;
+std::array<VertexLoaderBase*, CP_NUM_VAT_REG> g_preprocess_vertex_loaders;
 
 void Init()
 {
@@ -80,24 +88,25 @@ void UpdateVertexArrayPointers()
   //       12 through 15 are used for loading data into xfmem.
   // We also only update the array base if the vertex description states we are going to use it.
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
-    cached_arraybases[ARRAY_POSITION] =
-        Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_POSITION]);
+    cached_arraybases[CPArray::Position] =
+        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
-    cached_arraybases[ARRAY_NORMAL] = Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_NORMAL]);
+    cached_arraybases[CPArray::Normal] =
+        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
 
-  for (size_t i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
-      cached_arraybases[ARRAY_COLOR0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_COLOR0 + i]);
+      cached_arraybases[CPArray::Color0 + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
   }
 
-  for (size_t i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
-      cached_arraybases[ARRAY_TEXCOORD0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_TEXCOORD0 + i]);
+      cached_arraybases[CPArray::TexCoord0 + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
   }
 
   g_main_cp_state.bases_dirty = false;
@@ -398,13 +407,13 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   // Pointers to vertex arrays in GC RAM
   case ARRAY_BASE:
-    state->array_bases[sub_cmd & CP_ARRAY_MASK] =
+    state->array_bases[static_cast<CPArray>(sub_cmd & CP_ARRAY_MASK)] =
         value & CommandProcessor::GetPhysicalAddressMask();
     state->bases_dirty = true;
     break;
 
   case ARRAY_STRIDE:
-    state->array_strides[sub_cmd & CP_ARRAY_MASK] = value & 0xFF;
+    state->array_strides[static_cast<CPArray>(sub_cmd & CP_ARRAY_MASK)] = value & 0xFF;
     break;
 
   default:
@@ -427,9 +436,9 @@ void FillCPMemoryArray(u32* memory)
     memory[CP_VAT_REG_C + i] = g_main_cp_state.vtx_attr[i].g2.Hex;
   }
 
-  for (int i = 0; i < CP_NUM_ARRAYS; ++i)
+  for (u8 i = 0; i < CP_NUM_ARRAYS; ++i)
   {
-    memory[ARRAY_BASE + i] = g_main_cp_state.array_bases[i];
-    memory[ARRAY_STRIDE + i] = g_main_cp_state.array_strides[i];
+    memory[ARRAY_BASE + i] = g_main_cp_state.array_bases[static_cast<CPArray>(i)];
+    memory[ARRAY_STRIDE + i] = g_main_cp_state.array_strides[static_cast<CPArray>(i)];
   }
 }

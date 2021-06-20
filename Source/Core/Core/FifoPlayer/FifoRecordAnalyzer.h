@@ -5,11 +5,13 @@
 
 #include "Common/CommonTypes.h"
 
+enum class CPArray : u8;
+
 namespace FifoRecordAnalyzer
 {
 // Must call this before analyzing Fifo commands with FifoAnalyzer::AnalyzeCommand()
 void Initialize(const u32* cpMem);
 
-void ProcessLoadIndexedXf(u32 val, int array);
-void WriteVertexArray(int arrayIndex, const u8* vertexData, int vertexSize, int numVertices);
+void ProcessLoadIndexedXf(CPArray array, u32 val);
+void WriteVertexArray(CPArray arrayIndex, const u8* vertexData, int vertexSize, int numVertices);
 }  // namespace FifoRecordAnalyzer

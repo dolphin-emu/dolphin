@@ -190,11 +190,11 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
   {
     s_DrawingObject = false;
 
-    int array = 0xc + (cmd - static_cast<u8>(Opcode::GX_LOAD_INDX_A)) / 8;
+    CPArray array = static_cast<CPArray>(0xc + (cmd - static_cast<u8>(Opcode::GX_LOAD_INDX_A)) / 8);
     u32 value = ReadFifo32(data);
 
     if (mode == DecodeMode::Record)
-      FifoRecordAnalyzer::ProcessLoadIndexedXf(value, array);
+      FifoRecordAnalyzer::ProcessLoadIndexedXf(array, value);
     break;
   }
 
@@ -238,8 +238,8 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
       {
         for (size_t i = 0; i < offsets.size(); ++i)
         {
-          FifoRecordAnalyzer::WriteVertexArray(static_cast<int>(i), data + offsets[i], vertexSize,
-                                               numVertices);
+          FifoRecordAnalyzer::WriteVertexArray(static_cast<CPArray>(i), data + offsets[i],
+                                               vertexSize, numVertices);
         }
       }
 
@@ -284,11 +284,11 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
     break;
 
   case ARRAY_BASE:
-    cpMem.arrayBases[subCmd & CP_ARRAY_MASK] = value;
+    cpMem.arrayBases[static_cast<CPArray>(subCmd & CP_ARRAY_MASK)] = value;
     break;
 
   case ARRAY_STRIDE:
-    cpMem.arrayStrides[subCmd & CP_ARRAY_MASK] = value & 0xFF;
+    cpMem.arrayStrides[static_cast<CPArray>(subCmd & CP_ARRAY_MASK)] = value & 0xFF;
     break;
   }
 }

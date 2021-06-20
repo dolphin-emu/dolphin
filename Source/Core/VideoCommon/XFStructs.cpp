@@ -274,7 +274,7 @@ constexpr std::tuple<u32, u32, u32> ExtractIndexedXF(u32 val)
 }
 
 // TODO - verify that it is correct. Seems to work, though.
-void LoadIndexedXF(u32 val, int refarray)
+void LoadIndexedXF(CPArray array, u32 val)
 {
   const auto [index, address, size] = ExtractIndexedXF(val);
   // load stuff from array to address in xf mem
@@ -287,8 +287,8 @@ void LoadIndexedXF(u32 val, int refarray)
   }
   else
   {
-    newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[refarray] +
-                                       g_main_cp_state.array_strides[refarray] * index);
+    newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] +
+                                       g_main_cp_state.array_strides[array] * index);
   }
   bool changed = false;
   for (u32 i = 0; i < size; ++i)
@@ -307,12 +307,12 @@ void LoadIndexedXF(u32 val, int refarray)
   }
 }
 
-void PreprocessIndexedXF(u32 val, int refarray)
+void PreprocessIndexedXF(CPArray array, u32 val)
 {
   const auto [index, address, size] = ExtractIndexedXF(val);
 
-  const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] +
-                                          g_preprocess_cp_state.array_strides[refarray] * index);
+  const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[array] +
+                                          g_preprocess_cp_state.array_strides[array] * index);
 
   const size_t buf_size = size * sizeof(u32);
   Fifo::PushFifoAuxBuffer(new_data, buf_size);
@@ -655,7 +655,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(const u8* data)
   return std::make_pair(fmt::to_string(name), fmt::to_string(desc));
 }
 
-std::pair<std::string, std::string> GetXFIndexedLoadInfo(u8 array, u32 value)
+std::pair<std::string, std::string> GetXFIndexedLoadInfo(CPArray array, u32 value)
 {
   const auto [index, address, size] = ExtractIndexedXF(value);
 

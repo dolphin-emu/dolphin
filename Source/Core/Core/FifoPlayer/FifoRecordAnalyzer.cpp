@@ -30,7 +30,7 @@ void FifoRecordAnalyzer::Initialize(const u32* cpMem)
   std::copy(strides_start, strides_end, s_CpMem.arrayStrides.begin());
 }
 
-void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
+void FifoRecordAnalyzer::ProcessLoadIndexedXf(CPArray array, u32 val)
 {
   int index = val >> 16;
   int size = ((val >> 12) & 0xF) + 1;
@@ -40,19 +40,19 @@ void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
   FifoRecorder::GetInstance().UseMemory(address, size * 4, MemoryUpdate::XF_DATA);
 }
 
-void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, const u8* vertexData, int vertexSize,
+void FifoRecordAnalyzer::WriteVertexArray(CPArray arrayIndex, const u8* vertexData, int vertexSize,
                                           int numVertices)
 {
   // Skip if not indexed array
   VertexComponentFormat arrayType;
-  if (arrayIndex == ARRAY_POSITION)
+  if (arrayIndex == CPArray::Position)
     arrayType = s_CpMem.vtxDesc.low.Position;
-  else if (arrayIndex == ARRAY_NORMAL)
+  else if (arrayIndex == CPArray::Normal)
     arrayType = s_CpMem.vtxDesc.low.Normal;
-  else if (arrayIndex >= ARRAY_COLOR0 && arrayIndex < ARRAY_COLOR0 + NUM_COLOR_ARRAYS)
-    arrayType = s_CpMem.vtxDesc.low.Color[arrayIndex - ARRAY_COLOR0];
-  else if (arrayIndex >= ARRAY_TEXCOORD0 && arrayIndex < ARRAY_TEXCOORD0 + NUM_TEXCOORD_ARRAYS)
-    arrayType = s_CpMem.vtxDesc.high.TexCoord[arrayIndex - ARRAY_TEXCOORD0];
+  else if (arrayIndex >= CPArray::Color0 && arrayIndex <= CPArray::Color1)
+    arrayType = s_CpMem.vtxDesc.low.Color[u8(arrayIndex) - u8(CPArray::Color0)];
+  else if (arrayIndex >= CPArray::TexCoord0 && arrayIndex <= CPArray::TexCoord7)
+    arrayType = s_CpMem.vtxDesc.high.TexCoord[u8(arrayIndex) - u8(CPArray::TexCoord0)];
   else
   {
     PanicAlertFmt("Invalid arrayIndex {}", arrayIndex);

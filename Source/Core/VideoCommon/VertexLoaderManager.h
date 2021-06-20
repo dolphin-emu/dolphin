@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "VideoCommon/CPMemory.h"
 
 class DataReader;
@@ -46,7 +47,7 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 NativeVertexFormat* GetCurrentVertexFormat();
 
 // Resolved pointers to array bases. Used by vertex loaders.
-extern u8* cached_arraybases[NUM_VERTEX_COMPONENT_ARRAYS];
+extern Common::EnumMap<u8*, CPArray::TexCoord7> cached_arraybases;
 void UpdateVertexArrayPointers();
 
 // Position cache for zfreeze (3 vertices, 4 floats each to allow SIMD overwrite).

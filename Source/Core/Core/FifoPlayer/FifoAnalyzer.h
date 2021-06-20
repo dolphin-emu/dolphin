@@ -6,6 +6,8 @@
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+
 #include "VideoCommon/CPMemory.h"
 
 namespace FifoAnalyzer
@@ -22,8 +24,8 @@ struct CPMemory
 {
   TVtxDesc vtxDesc;
   std::array<VAT, CP_NUM_VAT_REG> vtxAttr;
-  std::array<u32, CP_NUM_ARRAYS> arrayBases{};
-  std::array<u32, CP_NUM_ARRAYS> arrayStrides{};
+  Common::EnumMap<u32, CPArray::XF_D> arrayBases{};
+  Common::EnumMap<u32, CPArray::XF_D> arrayStrides{};
 };
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem);
