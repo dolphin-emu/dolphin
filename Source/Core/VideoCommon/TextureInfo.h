@@ -25,10 +25,11 @@ public:
   struct NameDetails
   {
     std::string base_name;
+    std::string texture_name;
     std::string tlut_name;
     std::string format_name;
 
-    std::string GetFullName() const { return base_name + tlut_name + format_name; }
+    std::string GetFullName() const;
   };
   NameDetails CalculateTextureName();
 
