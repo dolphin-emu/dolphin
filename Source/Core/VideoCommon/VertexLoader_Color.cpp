@@ -124,8 +124,8 @@ void Color_ReadIndex_24b_6666(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
   const u8* data = VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-                   (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]) - 1;
-  const u32 val = Common::swap32(data);
+                   (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+  const u32 val = Common::swap24(data);
   SetCol6666(loader, val);
 }
 
@@ -166,7 +166,7 @@ void Color_ReadDirect_16b_4444(VertexLoader* loader)
 
 void Color_ReadDirect_24b_6666(VertexLoader* loader)
 {
-  SetCol6666(loader, Common::swap32(DataGetPosition() - 1));
+  SetCol6666(loader, Common::swap24(DataGetPosition()));
   DataSkip(3);
 }
 
