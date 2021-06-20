@@ -240,7 +240,7 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
 }
 
 // TODO - verify that it is correct. Seems to work, though.
-void LoadIndexedXF(int refarray, u32 index, u16 address, u8 size)
+void LoadIndexedXF(CPArray refarray, u32 index, u16 address, u8 size)
 {
   // load stuff from array to address in xf mem
 
@@ -272,7 +272,7 @@ void LoadIndexedXF(int refarray, u32 index, u16 address, u8 size)
   }
 }
 
-void PreprocessIndexedXF(int refarray, u32 index, u16 address, u8 size)
+void PreprocessIndexedXF(CPArray refarray, u32 index, u16 address, u8 size)
 {
   const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] +
                                           g_preprocess_cp_state.array_strides[refarray] * index);
@@ -614,7 +614,8 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
   return std::make_pair(fmt::to_string(name), fmt::to_string(desc));
 }
 
-std::pair<std::string, std::string> GetXFIndexedLoadInfo(u8 array, u32 index, u16 address, u8 size)
+std::pair<std::string, std::string> GetXFIndexedLoadInfo(CPArray array, u32 index, u16 address,
+                                                         u8 size)
 {
   const auto desc = fmt::format("Load {} bytes to XF address {:03x} from CP array {} row {}", size,
                                 address, array, index);

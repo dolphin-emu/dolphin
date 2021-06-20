@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 
 #include "Core/HW/Memmap.h"
 
@@ -44,7 +45,7 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
-std::array<u8*, NUM_VERTEX_COMPONENT_ARRAYS> cached_arraybases;
+Common::EnumMap<u8*, CPArray::TexCoord7> cached_arraybases;
 
 BitSet8 g_main_vat_dirty;
 BitSet8 g_preprocess_vat_dirty;
@@ -83,24 +84,25 @@ void UpdateVertexArrayPointers()
   //       12 through 15 are used for loading data into xfmem.
   // We also only update the array base if the vertex description states we are going to use it.
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Position))
-    cached_arraybases[ARRAY_POSITION] =
-        Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_POSITION]);
+    cached_arraybases[CPArray::Position] =
+        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Position]);
 
   if (IsIndexed(g_main_cp_state.vtx_desc.low.Normal))
-    cached_arraybases[ARRAY_NORMAL] = Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_NORMAL]);
+    cached_arraybases[CPArray::Normal] =
+        Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Normal]);
 
-  for (size_t i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.low.Color.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.low.Color[i]))
-      cached_arraybases[ARRAY_COLOR0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_COLOR0 + i]);
+      cached_arraybases[CPArray::Color0 + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::Color0 + i]);
   }
 
-  for (size_t i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < g_main_cp_state.vtx_desc.high.TexCoord.Size(); i++)
   {
     if (IsIndexed(g_main_cp_state.vtx_desc.high.TexCoord[i]))
-      cached_arraybases[ARRAY_TEXCOORD0 + i] =
-          Memory::GetPointer(g_main_cp_state.array_bases[ARRAY_TEXCOORD0 + i]);
+      cached_arraybases[CPArray::TexCoord0 + i] =
+          Memory::GetPointer(g_main_cp_state.array_bases[CPArray::TexCoord0 + i]);
   }
 
   g_bases_dirty = false;

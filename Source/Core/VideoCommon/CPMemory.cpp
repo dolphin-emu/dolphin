@@ -69,11 +69,13 @@ std::pair<std::string, std::string> GetCPRegInfo(u8 cmd, u32 value)
     return std::make_pair(fmt::format("CP_VAT_REG_C - Format {}", cmd & CP_VAT_MASK),
                           fmt::to_string(UVAT_group2{.Hex = value}));
   case ARRAY_BASE:
-    return std::make_pair(fmt::format("ARRAY_BASE Array {}", cmd & CP_ARRAY_MASK),
-                          fmt::format("Base address {:08x}", value));
+    return std::make_pair(
+        fmt::format("ARRAY_BASE Array {}", static_cast<CPArray>(cmd & CP_ARRAY_MASK)),
+        fmt::format("Base address {:08x}", value));
   case ARRAY_STRIDE:
-    return std::make_pair(fmt::format("ARRAY_STRIDE Array {}", cmd - ARRAY_STRIDE),
-                          fmt::format("Stride {:02x}", value & 0xff));
+    return std::make_pair(
+        fmt::format("ARRAY_STRIDE Array {}", static_cast<CPArray>(cmd & CP_ARRAY_MASK)),
+        fmt::format("Stride {:02x}", value & 0xff));
   default:
     return std::make_pair(fmt::format("Invalid CP register {:02x} = {:08x}", cmd, value), "");
   }
@@ -95,8 +97,8 @@ CPState::CPState(const u32* memory) : CPState()
 
   for (u32 i = 0; i < CP_NUM_ARRAYS; i++)
   {
-    array_bases[i] = memory[ARRAY_BASE + i];
-    array_strides[i] = memory[ARRAY_STRIDE + i];
+    array_bases[static_cast<CPArray>(i)] = memory[ARRAY_BASE + i];
+    array_strides[static_cast<CPArray>(i)] = memory[ARRAY_STRIDE + i];
   }
 }
 
@@ -197,11 +199,12 @@ void CPState::LoadCPReg(u8 sub_cmd, u32 value)
 
   // Pointers to vertex arrays in GC RAM
   case ARRAY_BASE:
-    array_bases[sub_cmd & CP_ARRAY_MASK] = value & CommandProcessor::GetPhysicalAddressMask();
+    array_bases[static_cast<CPArray>(sub_cmd & CP_ARRAY_MASK)] =
+        value & CommandProcessor::GetPhysicalAddressMask();
     break;
 
   case ARRAY_STRIDE:
-    array_strides[sub_cmd & CP_ARRAY_MASK] = value & 0xFF;
+    array_strides[static_cast<CPArray>(sub_cmd & CP_ARRAY_MASK)] = value & 0xFF;
     break;
 
   default:
@@ -226,7 +229,7 @@ void CPState::FillCPMemoryArray(u32* memory) const
 
   for (int i = 0; i < CP_NUM_ARRAYS; ++i)
   {
-    memory[ARRAY_BASE + i] = array_bases[i];
-    memory[ARRAY_STRIDE + i] = array_strides[i];
+    memory[ARRAY_BASE + i] = array_bases[static_cast<CPArray>(i)];
+    memory[ARRAY_STRIDE + i] = array_strides[static_cast<CPArray>(i)];
   }
 }

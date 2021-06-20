@@ -59,7 +59,7 @@ struct Normal_Direct
 {
   static void function([[maybe_unused]] VertexLoader* loader)
   {
-    auto const source = reinterpret_cast<const T*>(DataGetPosition());
+    const auto source = reinterpret_cast<const T*>(DataGetPosition());
     ReadIndirect<T, N * 3>(source);
     DataSkip<N * 3 * sizeof(T)>();
   }
@@ -72,10 +72,10 @@ void Normal_Index_Offset()
 {
   static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
 
-  auto const index = DataRead<I>();
-  auto const data = reinterpret_cast<const T*>(
-      VertexLoaderManager::cached_arraybases[ARRAY_NORMAL] +
-      (index * g_main_cp_state.array_strides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);
+  const auto index = DataRead<I>();
+  const auto data = reinterpret_cast<const T*>(
+      VertexLoaderManager::cached_arraybases[CPArray::Normal] +
+      (index * g_main_cp_state.array_strides[CPArray::Normal]) + sizeof(T) * 3 * Offset);
   ReadIndirect<T, N * 3>(data);
 }
 

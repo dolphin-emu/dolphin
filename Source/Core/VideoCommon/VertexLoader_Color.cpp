@@ -78,8 +78,8 @@ void Color_ReadIndex_16b_565(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
   const u8* const address =
-      VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-      (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+      VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
+      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
 
   u16 value;
   std::memcpy(&value, address, sizeof(u16));
@@ -91,8 +91,8 @@ template <typename I>
 void Color_ReadIndex_24b_888(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* address = VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-                      (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+  const u8* address = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
+                      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
   SetCol(loader, Read24(address));
 }
 
@@ -100,18 +100,18 @@ template <typename I>
 void Color_ReadIndex_32b_888x(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* address = VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-                      (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+  const u8* address = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
+                      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
   SetCol(loader, Read24(address));
 }
 
 template <typename I>
 void Color_ReadIndex_16b_4444(VertexLoader* loader)
 {
-  auto const index = DataRead<I>();
+  const auto index = DataRead<I>();
   const u8* const address =
-      VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-      (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+      VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
+      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
 
   u16 value;
   std::memcpy(&value, address, sizeof(u16));
@@ -123,8 +123,8 @@ template <typename I>
 void Color_ReadIndex_24b_6666(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* data = VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-                   (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+  const u8* data = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
+                   (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
   const u32 val = Common::swap24(data);
   SetCol6666(loader, val);
 }
@@ -133,8 +133,8 @@ template <typename I>
 void Color_ReadIndex_32b_8888(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* address = VertexLoaderManager::cached_arraybases[ARRAY_COLOR0 + loader->m_colIndex] +
-                      (index * g_main_cp_state.array_strides[ARRAY_COLOR0 + loader->m_colIndex]);
+  const u8* address = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
+                      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
   SetCol(loader, Read32(address));
 }
 

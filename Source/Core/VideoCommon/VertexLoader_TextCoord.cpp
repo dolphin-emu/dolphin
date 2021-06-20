@@ -55,8 +55,8 @@ void TexCoord_ReadIndex(VertexLoader* loader)
 
   const auto index = DataRead<I>();
   const auto data = reinterpret_cast<const T*>(
-      VertexLoaderManager::cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex] +
-      (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + loader->m_tcIndex]));
+      VertexLoaderManager::cached_arraybases[CPArray::TexCoord0 + loader->m_tcIndex] +
+      (index * g_main_cp_state.array_strides[CPArray::TexCoord0 + loader->m_tcIndex]));
   const auto scale = loader->m_tcScale[loader->m_tcIndex];
   DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
