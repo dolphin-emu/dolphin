@@ -416,14 +416,12 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
     }
     break;
     case TexGenType::Color0:
-      ASSERT(texinfo.sourcerow == SourceRow::Colors);
       ASSERT(texinfo.inputform == TexInputForm::AB11);
       dst->texCoords[coordNum].x = (float)dst->color[0][0] / 255.0f;
       dst->texCoords[coordNum].y = (float)dst->color[0][1] / 255.0f;
       dst->texCoords[coordNum].z = 1.0f;
       break;
     case TexGenType::Color1:
-      ASSERT(texinfo.sourcerow == SourceRow::Colors);
       ASSERT(texinfo.inputform == TexInputForm::AB11);
       dst->texCoords[coordNum].x = (float)dst->color[1][0] / 255.0f;
       dst->texCoords[coordNum].y = (float)dst->color[1][1] / 255.0f;
