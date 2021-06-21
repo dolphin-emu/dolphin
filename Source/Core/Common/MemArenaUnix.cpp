@@ -22,6 +22,9 @@
 
 namespace Common
 {
+MemArena::MemArena() = default;
+MemArena::~MemArena() = default;
+
 void MemArena::GrabSHMSegment(size_t size)
 {
   const std::string file_name = "/dolphin-emu." + std::to_string(getpid());
@@ -41,7 +44,34 @@ void MemArena::ReleaseSHMSegment()
   close(fd);
 }
 
-void* MemArena::CreateView(s64 offset, size_t size, void* base)
+void* MemArena::CreateView(s64 offset, size_t size)
+{
+  return MapInMemoryRegion(offset, size, nullptr);
+}
+
+void MemArena::ReleaseView(void* view, size_t size)
+{
+  UnmapFromMemoryRegion(view, size);
+}
+
+u8* MemArena::ReserveMemoryRegion(size_t memory_size)
+{
+  const int flags = MAP_ANON | MAP_PRIVATE;
+  void* base = mmap(nullptr, memory_size, PROT_NONE, flags, -1, 0);
+  if (base == MAP_FAILED)
+  {
+    PanicAlertFmt("Failed to map enough memory space: {}", LastStrerrorString());
+    return nullptr;
+  }
+  munmap(base, memory_size);
+  return static_cast<u8*>(base);
+}
+
+void MemArena::ReleaseMemoryRegion()
+{
+}
+
+void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 {
   void* retval = mmap(base, size, PROT_READ | PROT_WRITE,
                       MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED), fd, offset);
@@ -57,27 +87,8 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
   }
 }
 
-void MemArena::ReleaseView(void* view, size_t size)
+void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
   munmap(view, size);
-}
-
-u8* MemArena::FindMemoryBase()
-{
-#if _ARCH_32
-  const size_t memory_size = 0x31000000;
-#else
-  const size_t memory_size = 0x400000000;
-#endif
-
-  const int flags = MAP_ANON | MAP_PRIVATE;
-  void* base = mmap(nullptr, memory_size, PROT_NONE, flags, -1, 0);
-  if (base == MAP_FAILED)
-  {
-    PanicAlertFmt("Failed to map enough memory space: {}", LastStrerrorString());
-    return nullptr;
-  }
-  munmap(base, memory_size);
-  return static_cast<u8*>(base);
 }
 }  // namespace Common
