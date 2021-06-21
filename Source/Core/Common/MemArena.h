@@ -4,15 +4,16 @@
 #pragma once
 
 #include <cstddef>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
 namespace Common
 {
+#ifdef _WIN32
+struct WindowsMemoryRegion;
+#endif
+
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
 // Multiple views can mirror the same section of the block, which makes it very convenient for
 // emulating memory mirrors.
@@ -99,7 +100,15 @@ public:
 
 private:
 #ifdef _WIN32
-  HANDLE hMemoryMapping;
+  WindowsMemoryRegion* EnsureSplitRegionForMapping(void* address, size_t size);
+  bool JoinRegionsAfterUnmap(void* address, size_t size);
+
+  std::vector<WindowsMemoryRegion> m_regions;
+  void* m_reserved_region = nullptr;
+  void* m_memory_handle = nullptr;
+  void* m_api_ms_win_core_memory_l1_1_6_handle = nullptr;
+  void* m_address_VirtualAlloc2 = nullptr;
+  void* m_address_MapViewOfFile3 = nullptr;
 #else
   int fd;
 #endif
