@@ -18,6 +18,9 @@
 
 namespace Common
 {
+MemArena::MemArena() = default;
+MemArena::~MemArena() = default;
+
 void MemArena::GrabSHMSegment(size_t size)
 {
   const std::string name = "dolphin-emu." + std::to_string(GetCurrentProcessId());
@@ -31,24 +34,18 @@ void MemArena::ReleaseSHMSegment()
   hMemoryMapping = 0;
 }
 
-void* MemArena::CreateView(s64 offset, size_t size, void* base)
+void* MemArena::CreateView(s64 offset, size_t size)
 {
-  return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+  return MapInMemoryRegion(offset, size, nullptr);
 }
 
 void MemArena::ReleaseView(void* view, size_t size)
 {
-  UnmapViewOfFile(view);
+  UnmapFromMemoryRegion(view, size);
 }
 
-u8* MemArena::FindMemoryBase()
+u8* MemArena::ReserveMemoryRegion(size_t memory_size)
 {
-#if _ARCH_32
-  const size_t memory_size = 0x31000000;
-#else
-  const size_t memory_size = 0x400000000;
-#endif
-
   u8* base = static_cast<u8*>(VirtualAlloc(nullptr, memory_size, MEM_RESERVE, PAGE_READWRITE));
   if (!base)
   {
@@ -57,5 +54,19 @@ u8* MemArena::FindMemoryBase()
   }
   VirtualFree(base, 0, MEM_RELEASE);
   return base;
+}
+
+void MemArena::ReleaseMemoryRegion()
+{
+}
+
+void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
+{
+  return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+}
+
+void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
+{
+  UnmapViewOfFile(view);
 }
 }  // namespace Common
