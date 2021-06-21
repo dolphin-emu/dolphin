@@ -893,7 +893,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "      // Emulate s24 overflows\n"
               "      tevcoord.xy = (tevcoord.xy << 8) >> 8;\n"
               "    }}\n"
-              "    else if (texture_enabled)\n"
+              "    else\n"
               "    {{\n"
               "      tevcoord.xy = fixedPoint_uv;\n"
               "    }}\n"
