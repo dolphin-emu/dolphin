@@ -111,7 +111,7 @@ public class SyncChannelJobService extends JobService
       }
 
       // Create the channel since it has not been added to the TV Provider.
-      Uri appLinkIntentUri = Uri.parse(subscription.getAppLinkIntentUri());
+      Uri appLinkIntentUri = subscription.getAppLinkIntentUri();
 
       Channel.Builder builder = new Channel.Builder();
       builder.setType(TvContractCompat.Channels.TYPE_PREVIEW)
