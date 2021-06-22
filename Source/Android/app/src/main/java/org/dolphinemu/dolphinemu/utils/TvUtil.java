@@ -251,20 +251,20 @@ public class TvUtil
   /**
    * Generates all subscriptions for homescreen channels.
    */
-  public static List<HomeScreenChannel> createUniversalSubscriptions()
+  public static List<HomeScreenChannel> createUniversalSubscriptions(Context context)
   {
-    return new ArrayList<>(createPlatformSubscriptions());
+    return new ArrayList<>(createPlatformSubscriptions(context));
   }
 
-  private static List<HomeScreenChannel> createPlatformSubscriptions()
+  private static List<HomeScreenChannel> createPlatformSubscriptions(Context context)
   {
     List<HomeScreenChannel> subs = new ArrayList<>();
     for (Platform platform : Platform.values())
     {
       subs.add(new HomeScreenChannel(
-              platform.getHeaderName(),
-              platform.getHeaderName(),
-              AppLinkHelper.buildBrowseUri(platform.getHeaderName()).toString()));
+              context.getString(platform.getHeaderName()),
+              context.getString(platform.getHeaderName()),
+              AppLinkHelper.buildBrowseUri(platform)));
     }
     return subs;
   }

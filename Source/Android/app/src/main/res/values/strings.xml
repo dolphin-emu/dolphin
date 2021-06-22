@@ -122,10 +122,14 @@
     <string name="turntable_crossfade">Crossfade</string>
 
     <!-- Main Preference Fragment -->
+    <string name="settings">Settings</string>
+    <string name="game_settings">Game Settings: %1$s</string>
     <string name="config">Config</string>
     <string name="graphics_settings">Graphics Settings</string>
     <string name="gcpad_settings">GameCube Input</string>
     <string name="wiimote_settings">Wii Input</string>
+    <string name="settings_saved">Saved settings to INI files</string>
+    <string name="settings_saved_game_specific">Saved settings for %1$s</string>
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
@@ -330,6 +334,9 @@
     <string name="continue_anyway">Continue Anyway</string>
 
     <!-- Game Grid Screen-->
+    <string name="platform_gamecube">GameCube Games</string>
+    <string name="platform_wii">Wii Games</string>
+    <string name="platform_wiiware">WiiWare Games</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_settings">Settings</string>
     <string name="grid_menu_refresh">Refresh Library</string>
@@ -354,9 +361,12 @@
     <string name="properties_set_default_iso">Set as Default ISO</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_clear_game_settings">Clear Game Settings</string>
+    <string name="properties_clear_success">Cleared settings for %1$s</string>
+    <string name="properties_clear_failure">Unable to clear settings for %1$s</string>
+    <string name="properties_clear_missing">No game settings to delete</string>
     <string name="preferences_save_exit">Save and Exit</string>
-    <string name="preferences_settings">Settings</string>
     <string name="preferences_game_properties">Game Properties</string>
+    <string name="preferences_game_properties_with_game_id">Game Properties: %1$s</string>
     <string name="preferences_extensions">Extension Bindings</string>
     <string name="game_ini_junk_title">Junk Data Found</string>
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
@@ -369,6 +379,7 @@
     <string name="game_details_compression">Compression</string>
     <string name="game_details_block_size">Block Size</string>
     <string name="game_details_no_compression">No Compression</string>
+    <string name="game_details_size_and_format">%1$s (%2$s)</string>
 
     <!-- Convert Screen -->
     <string name="convert_format">Format</string>
@@ -468,5 +479,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="disc_number">Disc %1$d</string>
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
+    <string name="make_sure_continuous_scan_enabled">Please make sure Continuous Scanning is enabled in Core Settings.</string>
 
 </resources>

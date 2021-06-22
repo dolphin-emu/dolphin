@@ -121,7 +121,7 @@ public final class SettingsFragmentPresenter
   {
     if (!TextUtils.isEmpty(mGameID))
     {
-      mView.getActivity().setTitle("Game Settings: " + mGameID);
+      mView.getActivity().setTitle(mContext.getString(R.string.game_settings, mGameID));
     }
     ArrayList<SettingsItem> sl = new ArrayList<>();
 
@@ -217,8 +217,7 @@ public final class SettingsFragmentPresenter
         break;
 
       default:
-        mView.showToastMessage("Unimplemented menu");
-        return;
+        throw new UnsupportedOperationException("Unimplemented menu");
     }
 
     mSettingsList = sl;
