@@ -334,6 +334,9 @@
     <string name="continue_anyway">Continue Anyway</string>
 
     <!-- Game Grid Screen-->
+    <string name="platform_gamecube">GameCube Games</string>
+    <string name="platform_wii">Wii Games</string>
+    <string name="platform_wiiware">WiiWare Games</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_settings">Settings</string>
     <string name="grid_menu_refresh">Refresh Library</string>
