@@ -77,6 +77,12 @@
             android:label="@string/settings"/>
 
         <activity
+            android:name=".features.cheats.ui.CheatsActivity"
+            android:exported="false"
+            android:theme="@style/DolphinSettingsBase"
+            android:label="@string/cheats"/>
+
+        <activity
             android:name=".activities.EmulationActivity"
             android:exported="false"
             android:theme="@style/DolphinEmulationBase"
