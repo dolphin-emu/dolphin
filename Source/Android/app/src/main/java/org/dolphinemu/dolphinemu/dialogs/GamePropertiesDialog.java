@@ -12,6 +12,7 @@ import androidx.fragment.app.DialogFragment;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.ConvertActivity;
+import org.dolphinemu.dolphinemu.features.cheats.ui.CheatsActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -90,6 +91,9 @@ public class GamePropertiesDialog extends DialogFragment
 
     itemsBuilder.add(R.string.properties_edit_game_settings, (dialog, i) ->
             SettingsActivity.launch(getContext(), MenuTag.SETTINGS, gameId, revision, isWii));
+
+    itemsBuilder.add(R.string.properties_edit_cheats, (dialog, i) ->
+            CheatsActivity.launch(getContext(), gameId, revision));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettings(gameId));
