@@ -18,7 +18,7 @@ public:
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}  // not needed
 private:
-  bool stopScanning = false;
+  bool m_stop_scanning = false;
 };
 }  // namespace WiimoteReal
 
