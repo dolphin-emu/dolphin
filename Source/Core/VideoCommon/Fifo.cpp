@@ -297,10 +297,10 @@ void RunGpuLoop()
   AsyncRequests::GetInstance()->SetEnable(true);
   AsyncRequests::GetInstance()->SetPassthrough(false);
 
-  s_gpu_mainloop.Run(
-      [] {
-        const SConfig& param = SConfig::GetInstance();
+  const SConfig& param = SConfig::GetInstance();
 
+  s_gpu_mainloop.Run(
+      [&param] {
         // Run events from the CPU thread.
         AsyncRequests::GetInstance()->PullEvents();
 
