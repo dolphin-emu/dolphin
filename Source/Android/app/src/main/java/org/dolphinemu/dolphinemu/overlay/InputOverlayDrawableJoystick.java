@@ -255,8 +255,20 @@ public final class InputOverlayDrawableJoystick
   public void setOpacity(int value)
   {
     mOpacity = value;
+
     mDefaultStateInnerBitmap.setAlpha(value);
-    mOuterBitmap.setAlpha(value);
+    mPressedStateInnerBitmap.setAlpha(value);
+
+    if (trackId == -1)
+    {
+      mOuterBitmap.setAlpha(value);
+      mBoundsBoxBitmap.setAlpha(0);
+    }
+    else
+    {
+      mOuterBitmap.setAlpha(0);
+      mBoundsBoxBitmap.setAlpha(value);
+    }
   }
 
   public Rect getBounds()
