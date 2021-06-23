@@ -24,6 +24,8 @@ class TestFres : public JitArm64
 public:
   TestFres()
   {
+    const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
+
     AllocCodeSpace(4096);
 
     const u8* raw_fres = GetCodePtr();

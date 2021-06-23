@@ -70,6 +70,8 @@ DEFAULT_CONFIG = {
     "generator": "Unix Makefiles",
     "build_type": "Release",
 
+    "run_unit_tests": False,
+
 }
 
 # Architectures to build for. This is explicity left out of the command line
@@ -113,6 +115,9 @@ def parse_args(conf=DEFAULT_CONFIG):
         "--entitlements",
         help="Path to .entitlements file for code signing",
         default=conf["entitlements"])
+
+    parser.add_argument("--run_unit_tests", action="store_true",
+                        default=conf["run_unit_tests"])
 
     parser.add_argument(
         "--codesign",
@@ -323,8 +328,40 @@ def build(config):
             "--verbose=2",
             path])
 
+    print("Built Universal Binary successfully!")
+
+    # Build and run unit tests for each architecture
+    unit_test_results = {}
+    if config["run_unit_tests"]:
+        for arch in ARCHITECTURES:
+            if not os.path.exists(arch):
+                os.mkdir(arch)
+
+            print("Building and running unit tests for: {arch}")
+            unit_test_results[arch] = \
+                subprocess.call(["cmake", "--build", ".",
+                                 "--config", config["build_type"],
+                                 "--target", "unittests",
+                                 "--parallel", f"{threads}"], cwd=arch)
+
+        passed_unit_tests = True
+        for a in unit_test_results:
+            code = unit_test_results[a]
+            passed = code == 0
+
+            status_string = "PASSED"
+            if not passed:
+                passed_unit_tests = False
+                status_string = f"FAILED ({code})"
+
+            print(a + " Unit Tests: " + status_string)
+
+        if not passed_unit_tests:
+            exit(-1)
+
+        print("Passed all unit tests")
+
 
 if __name__ == "__main__":
     conf = parse_args()
     build(conf)
-    print("Built Universal Binary successfully!")
