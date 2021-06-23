@@ -54,7 +54,8 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
     ERROR_LOG_FMT(WIIMOTE, "Unable to do Bluetooth discovery");
     [bth release];
     [sbt release];
-    btFailed = true;
+    
+    return;
   }
 
   do
