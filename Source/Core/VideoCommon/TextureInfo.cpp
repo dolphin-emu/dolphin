@@ -85,8 +85,10 @@ TextureInfo::TextureInfo(const u8* ptr, const u8* tlut_ptr, u32 address,
     const u32 limited_mip_count =
         std::min<u32>(IntLog2(std::max(width, height)) + 1, raw_mip_count + 1) - 1;
 
-    // load mips - TODO: Loading mipmaps from tmem is untested!
+    // load mips
     const u8* src_data = m_ptr + GetTextureSize();
+    if (tmem_even)
+      tmem_even += GetTextureSize();
 
     for (u32 i = 0; i < limited_mip_count; i++)
     {
@@ -266,8 +268,6 @@ TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_
   m_raw_height = std::max(parent.GetRawHeight() >> level, 1u);
   m_expanded_width = Common::AlignUp(m_raw_width, parent.GetBlockWidth());
   m_expanded_height = Common::AlignUp(m_raw_height, parent.GetBlockHeight());
-
-  // load mips - TODO: Loading mipmaps from tmem is untested!
 
   m_texture_size = TexDecoder_GetTextureSizeInBytes(m_expanded_width, m_expanded_height,
                                                     parent.GetTextureFormat());
