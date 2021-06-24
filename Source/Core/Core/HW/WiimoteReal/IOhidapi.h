@@ -38,8 +38,8 @@ public:
   ~WiimoteScannerHidapi();
   bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
-  void Update() override {}  // not needed for hidapi
-  void RequestStopSearching() override {} // not needed for hidapi
+  void Update() override {}                // not needed for hidapi
+  void RequestStopSearching() override {}  // not needed for hidapi
 };
 }  // namespace WiimoteReal
 

@@ -27,13 +27,13 @@ WiimoteScannerDarwin::WiimoteScannerDarwin()
   if (![m_host_controller addressAsString])
   {
     WARN_LOG_FMT(WIIMOTE, "No Bluetooth host controller");
-    
+
     [m_host_controller release];
     m_host_controller = nil;
-    
+
     return;
   }
-  
+
   [m_host_controller retain];
 }
 
@@ -41,7 +41,7 @@ WiimoteScannerDarwin::~WiimoteScannerDarwin()
 {
   [m_host_controller release];
   m_host_controller = nil;
-  
+
   m_stop_scanning = true;
 }
 
@@ -52,7 +52,7 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   {
     return;
   }
-  
+
   IOBluetoothDeviceInquiry* bti;
   found_board = nullptr;
 
@@ -66,7 +66,7 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   {
     ERROR_LOG_FMT(WIIMOTE, "Unable to do Bluetooth discovery");
     [sbt release];
-    
+
     return;
   }
 
@@ -98,7 +98,7 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
       found_wiimotes.push_back(wm);
     }
   }
-  
+
   [bti release];
   [sbt release];
 }
