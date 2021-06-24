@@ -85,7 +85,7 @@ public class SyncChannelJobService extends JobService
       }
       else
       {
-        subscriptions = TvUtil.createUniversalSubscriptions(context);
+        subscriptions = TvUtil.createUniversalSubscriptions();
         for (HomeScreenChannel subscription : subscriptions)
         {
           long channelId = createChannel(subscription);

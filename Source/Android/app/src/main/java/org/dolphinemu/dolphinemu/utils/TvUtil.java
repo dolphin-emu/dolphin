@@ -251,19 +251,21 @@ public class TvUtil
   /**
    * Generates all subscriptions for homescreen channels.
    */
-  public static List<HomeScreenChannel> createUniversalSubscriptions(Context context)
+  public static List<HomeScreenChannel> createUniversalSubscriptions()
   {
-    return new ArrayList<>(createPlatformSubscriptions(context));
+    return new ArrayList<>(createPlatformSubscriptions());
   }
 
-  private static List<HomeScreenChannel> createPlatformSubscriptions(Context context)
+  private static List<HomeScreenChannel> createPlatformSubscriptions()
   {
     List<HomeScreenChannel> subs = new ArrayList<>();
     for (Platform platform : Platform.values())
     {
+      // TODO: Replace the getIdString calls with getHeaderName to get localized names.
+      // This would require SyncProgramsJobService to stop using the display name as a key
       subs.add(new HomeScreenChannel(
-              context.getString(platform.getHeaderName()),
-              context.getString(platform.getHeaderName()),
+              platform.getIdString(),
+              platform.getIdString(),
               AppLinkHelper.buildBrowseUri(platform)));
     }
     return subs;
