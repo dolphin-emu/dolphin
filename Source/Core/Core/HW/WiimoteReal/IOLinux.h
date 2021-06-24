@@ -47,6 +47,7 @@ public:
   bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}  // not needed on Linux
+  void RequestStopSearching() override {} // not needed on Linux
 private:
   int m_device_id;
   int m_device_sock;

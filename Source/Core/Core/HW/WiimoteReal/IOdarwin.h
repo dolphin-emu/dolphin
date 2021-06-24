@@ -24,6 +24,7 @@ public:
   bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}  // not needed
+  void RequestStopSearching() override { m_stop_scanning = true; }
 private:
   IOBluetoothHostController* m_host_controller;
   bool m_stop_scanning = false;
