@@ -792,10 +792,13 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   else
     MOV(32, R(RSCRATCH), Rb);
 
-  MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
-  AND(32, R(RSCRATCH), Imm32(mask));
-  AND(32, R(RSCRATCH2), Imm32(~mask));
-  OR(32, R(RSCRATCH), R(RSCRATCH2));
+  if (mask != 0xFFFFFFFF)
+  {
+    MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
+    AND(32, R(RSCRATCH), Imm32(mask));
+    AND(32, R(RSCRATCH2), Imm32(~mask));
+    OR(32, R(RSCRATCH), R(RSCRATCH2));
+  }
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
   if (inst.FM & 1)
