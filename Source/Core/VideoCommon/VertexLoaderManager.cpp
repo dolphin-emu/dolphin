@@ -145,7 +145,8 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   std::memset(&new_decl, 0, sizeof(new_decl));
   new_decl.stride = decl.stride;
 
-  auto MakeDummyAttribute = [](AttributeFormat& attr, VarType type, int components, bool integer) {
+  auto MakeDummyAttribute = [](AttributeFormat& attr, ComponentFormat type, int components,
+                               bool integer) {
     attr.type = type;
     attr.components = components;
     attr.offset = 0;
@@ -163,32 +164,32 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   if (decl.position.enable)
     CopyAttribute(new_decl.position, decl.position);
   else
-    MakeDummyAttribute(new_decl.position, VAR_FLOAT, 1, false);
+    MakeDummyAttribute(new_decl.position, ComponentFormat::Float, 1, false);
   for (size_t i = 0; i < std::size(new_decl.normals); i++)
   {
     if (decl.normals[i].enable)
       CopyAttribute(new_decl.normals[i], decl.normals[i]);
     else
-      MakeDummyAttribute(new_decl.normals[i], VAR_FLOAT, 1, false);
+      MakeDummyAttribute(new_decl.normals[i], ComponentFormat::Float, 1, false);
   }
   for (size_t i = 0; i < std::size(new_decl.colors); i++)
   {
     if (decl.colors[i].enable)
       CopyAttribute(new_decl.colors[i], decl.colors[i]);
     else
-      MakeDummyAttribute(new_decl.colors[i], VAR_UNSIGNED_BYTE, 4, false);
+      MakeDummyAttribute(new_decl.colors[i], ComponentFormat::UByte, 4, false);
   }
   for (size_t i = 0; i < std::size(new_decl.texcoords); i++)
   {
     if (decl.texcoords[i].enable)
       CopyAttribute(new_decl.texcoords[i], decl.texcoords[i]);
     else
-      MakeDummyAttribute(new_decl.texcoords[i], VAR_FLOAT, 1, false);
+      MakeDummyAttribute(new_decl.texcoords[i], ComponentFormat::Float, 1, false);
   }
   if (decl.posmtx.enable)
     CopyAttribute(new_decl.posmtx, decl.posmtx);
   else
-    MakeDummyAttribute(new_decl.posmtx, VAR_UNSIGNED_BYTE, 1, true);
+    MakeDummyAttribute(new_decl.posmtx, ComponentFormat::UByte, 1, true);
 
   return GetOrCreateMatchingFormat(new_decl);
 }

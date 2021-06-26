@@ -950,9 +950,9 @@ bool Renderer::InitializeImGui()
   ImGui::GetStyle().ScaleAllSizes(m_backbuffer_scale);
 
   PortableVertexDeclaration vdecl = {};
-  vdecl.position = {VAR_FLOAT, 2, offsetof(ImDrawVert, pos), true, false};
-  vdecl.texcoords[0] = {VAR_FLOAT, 2, offsetof(ImDrawVert, uv), true, false};
-  vdecl.colors[0] = {VAR_UNSIGNED_BYTE, 4, offsetof(ImDrawVert, col), true, false};
+  vdecl.position = {ComponentFormat::Float, 2, offsetof(ImDrawVert, pos), true, false};
+  vdecl.texcoords[0] = {ComponentFormat::Float, 2, offsetof(ImDrawVert, uv), true, false};
+  vdecl.colors[0] = {ComponentFormat::UByte, 4, offsetof(ImDrawVert, col), true, false};
   vdecl.stride = sizeof(ImDrawVert);
   m_imgui_vertex_format = CreateNativeVertexFormat(vdecl);
   if (!m_imgui_vertex_format)
