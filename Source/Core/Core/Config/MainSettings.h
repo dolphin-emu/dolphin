@@ -87,6 +87,7 @@ extern const Info<bool> MAIN_AUTO_DISC_CHANGE;
 extern const Info<bool> MAIN_ALLOW_SD_WRITES;
 extern const Info<bool> MAIN_ENABLE_SAVESTATES;
 extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
+extern const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS;
 
 // Main.DSP
 
