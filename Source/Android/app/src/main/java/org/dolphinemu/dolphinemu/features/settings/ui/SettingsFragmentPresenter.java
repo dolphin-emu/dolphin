@@ -262,6 +262,8 @@ public final class SettingsFragmentPresenter
             R.string.auto_disc_change, 0));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_EMULATION_SPEED,
             R.string.speed_limit, 0, 0, 200, "%"));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_FALLBACK_REGION,
+            R.string.fallback_region, 0, R.array.regionEntries, R.array.regionValues));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics,
             0));
     sl.add(new RunRunnable(mContext, R.string.analytics_new_id, 0,
