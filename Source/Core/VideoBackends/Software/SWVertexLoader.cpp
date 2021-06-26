@@ -145,7 +145,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
   if (format.enable)
   {
     src.Skip(format.offset);
-    src.Skip(base_component * (1 << (format.type >> 1)));
+    src.Skip(base_component * GetElementSize(format.type));
 
     int i;
     for (i = 0; i < std::min(format.components - base_component, components); i++)
@@ -153,24 +153,24 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
       int i_dst = reverse ? components - i - 1 : i;
       switch (format.type)
       {
-      case VAR_UNSIGNED_BYTE:
+      case ComponentFormat::UByte:
         dst[i_dst] = ReadNormalized<T, u8>(src.Read<u8, swap>());
         break;
-      case VAR_BYTE:
+      case ComponentFormat::Byte:
         dst[i_dst] = ReadNormalized<T, s8>(src.Read<s8, swap>());
         break;
-      case VAR_UNSIGNED_SHORT:
+      case ComponentFormat::UShort:
         dst[i_dst] = ReadNormalized<T, u16>(src.Read<u16, swap>());
         break;
-      case VAR_SHORT:
+      case ComponentFormat::Short:
         dst[i_dst] = ReadNormalized<T, s16>(src.Read<s16, swap>());
         break;
-      case VAR_FLOAT:
+      case ComponentFormat::Float:
         dst[i_dst] = ReadNormalized<T, float>(src.Read<float, swap>());
         break;
       }
 
-      ASSERT_MSG(VIDEO, !format.integer || format.type != VAR_FLOAT,
+      ASSERT_MSG(VIDEO, !format.integer || format.type != ComponentFormat::Float,
                  "only non-float values are allowed to be streamed as integer");
     }
     for (; i < components; i++)

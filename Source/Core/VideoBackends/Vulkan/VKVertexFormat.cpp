@@ -4,6 +4,7 @@
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 
 #include "Common/Assert.h"
+#include "Common/EnumMap.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
@@ -13,32 +14,35 @@
 
 namespace Vulkan
 {
-static VkFormat VarToVkFormat(VarType t, uint32_t components, bool integer)
+static VkFormat VarToVkFormat(ComponentFormat t, uint32_t components, bool integer)
 {
-  static const VkFormat float_type_lookup[][4] = {
-      {VK_FORMAT_R8_UNORM, VK_FORMAT_R8G8_UNORM, VK_FORMAT_R8G8B8_UNORM,
-       VK_FORMAT_R8G8B8A8_UNORM},  // VAR_UNSIGNED_BYTE
-      {VK_FORMAT_R8_SNORM, VK_FORMAT_R8G8_SNORM, VK_FORMAT_R8G8B8_SNORM,
-       VK_FORMAT_R8G8B8A8_SNORM},  // VAR_BYTE
-      {VK_FORMAT_R16_UNORM, VK_FORMAT_R16G16_UNORM, VK_FORMAT_R16G16B16_UNORM,
-       VK_FORMAT_R16G16B16A16_UNORM},  // VAR_UNSIGNED_SHORT
-      {VK_FORMAT_R16_SNORM, VK_FORMAT_R16G16_SNORM, VK_FORMAT_R16G16B16_SNORM,
-       VK_FORMAT_R16G16B16A16_SNORM},  // VAR_SHORT
-      {VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
-       VK_FORMAT_R32G32B32A32_SFLOAT}  // VAR_FLOAT
+  using ComponentArray = std::array<VkFormat, 4>;
+  static constexpr auto f = [](ComponentArray a) { return a; };  // Deduction helper
+
+  static constexpr Common::EnumMap<ComponentArray, ComponentFormat::Float> float_type_lookup = {
+      f({VK_FORMAT_R8_UNORM, VK_FORMAT_R8G8_UNORM, VK_FORMAT_R8G8B8_UNORM,
+         VK_FORMAT_R8G8B8A8_UNORM}),  // UByte
+      f({VK_FORMAT_R8_SNORM, VK_FORMAT_R8G8_SNORM, VK_FORMAT_R8G8B8_SNORM,
+         VK_FORMAT_R8G8B8A8_SNORM}),  // Byte
+      f({VK_FORMAT_R16_UNORM, VK_FORMAT_R16G16_UNORM, VK_FORMAT_R16G16B16_UNORM,
+         VK_FORMAT_R16G16B16A16_UNORM}),  // UShort
+      f({VK_FORMAT_R16_SNORM, VK_FORMAT_R16G16_SNORM, VK_FORMAT_R16G16B16_SNORM,
+         VK_FORMAT_R16G16B16A16_SNORM}),  // Short
+      f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+         VK_FORMAT_R32G32B32A32_SFLOAT}),  // Float
   };
 
-  static const VkFormat integer_type_lookup[][4] = {
-      {VK_FORMAT_R8_UINT, VK_FORMAT_R8G8_UINT, VK_FORMAT_R8G8B8_UINT,
-       VK_FORMAT_R8G8B8A8_UINT},  // VAR_UNSIGNED_BYTE
-      {VK_FORMAT_R8_SINT, VK_FORMAT_R8G8_SINT, VK_FORMAT_R8G8B8_SINT,
-       VK_FORMAT_R8G8B8A8_SINT},  // VAR_BYTE
-      {VK_FORMAT_R16_UINT, VK_FORMAT_R16G16_UINT, VK_FORMAT_R16G16B16_UINT,
-       VK_FORMAT_R16G16B16A16_UINT},  // VAR_UNSIGNED_SHORT
-      {VK_FORMAT_R16_SINT, VK_FORMAT_R16G16_SINT, VK_FORMAT_R16G16B16_SINT,
-       VK_FORMAT_R16G16B16A16_SINT},  // VAR_SHORT
-      {VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
-       VK_FORMAT_R32G32B32A32_SFLOAT}  // VAR_FLOAT
+  static constexpr Common::EnumMap<ComponentArray, ComponentFormat::Float> integer_type_lookup = {
+      f({VK_FORMAT_R8_UINT, VK_FORMAT_R8G8_UINT, VK_FORMAT_R8G8B8_UINT,
+         VK_FORMAT_R8G8B8A8_UINT}),  // UByte
+      f({VK_FORMAT_R8_SINT, VK_FORMAT_R8G8_SINT, VK_FORMAT_R8G8B8_SINT,
+         VK_FORMAT_R8G8B8A8_SINT}),  // Byte
+      f({VK_FORMAT_R16_UINT, VK_FORMAT_R16G16_UINT, VK_FORMAT_R16G16B16_UINT,
+         VK_FORMAT_R16G16B16A16_UINT}),  // UShort
+      f({VK_FORMAT_R16_SINT, VK_FORMAT_R16G16_SINT, VK_FORMAT_R16G16B16_SINT,
+         VK_FORMAT_R16G16B16A16_SINT}),  // Short
+      f({VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT,
+         VK_FORMAT_R32G32B32A32_SFLOAT}),  // Float
   };
 
   ASSERT(components > 0 && components <= 4);

@@ -1095,7 +1095,7 @@ void ShaderCache::QueueUberShaderPipelines()
   // All attributes will be enabled in GetUberVertexFormat.
   PortableVertexDeclaration dummy_vertex_decl = {};
   dummy_vertex_decl.position.components = 4;
-  dummy_vertex_decl.position.type = VAR_FLOAT;
+  dummy_vertex_decl.position.type = ComponentFormat::Float;
   dummy_vertex_decl.position.enable = true;
   dummy_vertex_decl.stride = sizeof(float) * 4;
   NativeVertexFormat* dummy_vertex_format =

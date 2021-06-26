@@ -122,7 +122,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
   native_format->components = count_out;
   native_format->enable = true;
   native_format->offset = m_dst_ofs;
-  native_format->type = VAR_FLOAT;
+  native_format->type = ComponentFormat::Float;
   native_format->integer = false;
 
   m_dst_ofs += sizeof(float) * count_out;
@@ -421,7 +421,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
-    m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.posmtx.type = ComponentFormat::UByte;
     m_native_vtx_decl.posmtx.integer = true;
     m_src_ofs += sizeof(u8);
     m_dst_ofs += sizeof(u32);
@@ -467,7 +467,7 @@ void VertexLoaderX64::GenerateVertexLoader()
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
-      m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+      m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
       m_native_vtx_decl.colors[i].integer = false;
       m_dst_ofs += 4;
     }
@@ -488,7 +488,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     {
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
-      m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+      m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
       m_native_vtx_decl.texcoords[i].integer = false;
       MOVZX(64, 8, scratch1, MDisp(src_reg, texmatidx_ofs[i]));
       if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)

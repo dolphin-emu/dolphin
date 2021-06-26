@@ -221,7 +221,7 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
   native_format->components = count_out;
   native_format->enable = true;
   native_format->offset = m_dst_ofs;
-  native_format->type = VAR_FLOAT;
+  native_format->type = ComponentFormat::Float;
   native_format->integer = false;
   m_dst_ofs += sizeof(float) * count_out;
 
@@ -429,7 +429,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
-    m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.posmtx.type = ComponentFormat::UByte;
     m_native_vtx_decl.posmtx.integer = true;
     m_src_ofs += sizeof(u8);
     m_dst_ofs += sizeof(u32);
@@ -493,7 +493,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
   {
     m_native_vtx_decl.colors[i].components = 4;
-    m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
@@ -509,7 +509,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
-      m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+      m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
       m_native_vtx_decl.colors[i].integer = false;
       m_dst_ofs += 4;
     }
@@ -518,7 +518,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
   {
     m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
-    m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+    m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
     m_native_vtx_decl.texcoords[i].integer = false;
 
     int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::S ? 1 : 2;
@@ -540,7 +540,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     {
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
-      m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+      m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
       m_native_vtx_decl.texcoords[i].integer = false;
 
       LDRB(IndexType::Unsigned, scratch2_reg, src_reg, texmatidx_ofs[i]);
