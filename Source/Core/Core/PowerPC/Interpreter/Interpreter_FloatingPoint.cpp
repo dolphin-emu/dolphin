@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -169,7 +170,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, 
   const u32 compare_value = static_cast<u32>(compare_result);
 
   // Clear and set the FPCC bits accordingly.
-  FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compare_value;
+  FPSCR.FPRF = (FPSCR.FPRF & ~FPCC_MASK) | compare_value;
 
   PowerPC::ppcState.cr.SetField(inst.CRFD, compare_value);
 }
@@ -203,7 +204,7 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa
   const u32 compare_value = static_cast<u32>(compare_result);
 
   // Clear and set the FPCC bits accordingly.
-  FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compare_value;
+  FPSCR.FPRF = (FPSCR.FPRF & ~FPCC_MASK) | compare_value;
 
   PowerPC::ppcState.cr.SetField(inst.CRFD, compare_value);
 }
