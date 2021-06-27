@@ -994,7 +994,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
                 Common::PPC_FPCLASS_PINF));
     continue3 = J();
     SetJumpTarget(zeroExponent);
-    TEST(64, R(RSCRATCH), R(RSCRATCH));
+    TEST(64, R(RSCRATCH), MConst(psDoubleNoSign));
     FixupBranch zero = J_CC(CC_Z);
     SHR(64, R(RSCRATCH), Imm8(63));
     LEA(32, RSCRATCH,
