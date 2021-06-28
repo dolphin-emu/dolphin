@@ -15,6 +15,7 @@
 #include "Common/Swap.h"
 
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
@@ -120,6 +121,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
 
   if (!fastmem || do_farcode)
   {
+    const bool memcheck = jo.memcheck && !emitting_routine;
+
     if (fastmem && do_farcode)
     {
       in_far_code = true;
@@ -223,6 +226,9 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
     ABI_PopRegisters(gprs_to_push);
+
+    if (memcheck)
+      WriteConditionalExceptionExit(EXCEPTION_DSI, ARM64Reg::W0);
   }
 
   if (in_far_code)
