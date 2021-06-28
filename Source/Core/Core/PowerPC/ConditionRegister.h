@@ -20,6 +20,9 @@ enum CRBits
   CR_EQ_BIT = 1,
   CR_GT_BIT = 2,
   CR_LT_BIT = 3,
+
+  CR_EMU_SO_BIT = 59,
+  CR_EMU_LT_BIT = 62,
 };
 
 // Optimized CR implementation. Instead of storing CR in its PowerPC format
@@ -46,10 +49,10 @@ struct ConditionRegister
   static u64 PPCToInternal(u8 value)
   {
     u64 cr_val = 0x100000000;
-    cr_val |= (u64) !!(value & CR_SO) << 59;
+    cr_val |= (u64) !!(value & CR_SO) << CR_EMU_SO_BIT;
     cr_val |= (u64) !(value & CR_EQ);
     cr_val |= (u64) !(value & CR_GT) << 63;
-    cr_val |= (u64) !!(value & CR_LT) << 62;
+    cr_val |= (u64) !!(value & CR_LT) << CR_EMU_LT_BIT;
 
     return cr_val;
   }
@@ -64,7 +67,8 @@ struct ConditionRegister
     u32 ppc_cr = 0;
 
     // LT/SO
-    ppc_cr |= (cr_val >> 59) & (PowerPC::CR_LT | PowerPC::CR_SO);
+    static_assert(CR_EMU_LT_BIT - CR_EMU_SO_BIT == CR_LT_BIT - CR_SO_BIT);
+    ppc_cr |= (cr_val >> CR_EMU_SO_BIT) & (PowerPC::CR_LT | PowerPC::CR_SO);
     // EQ
     ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << PowerPC::CR_EQ_BIT;
     // GT

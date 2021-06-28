@@ -22,14 +22,14 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:  // check bit 59 set
-    return jump_if_set ? TBNZ(XA, 59) : TBZ(XA, 59);
+    return jump_if_set ? TBNZ(XA, PowerPC::CR_EMU_SO_BIT) : TBZ(XA, PowerPC::CR_EMU_SO_BIT);
   case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     return jump_if_set ? CBZ(WA) : CBNZ(WA);
   case PowerPC::CR_GT_BIT:  // check val > 0
     CMP(XA, ARM64Reg::SP);
     return B(jump_if_set ? CC_GT : CC_LE);
   case PowerPC::CR_LT_BIT:  // check bit 62 set
-    return jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
+    return jump_if_set ? TBNZ(XA, PowerPC::CR_EMU_LT_BIT) : TBZ(XA, PowerPC::CR_EMU_LT_BIT);
   default:
     ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
     return {};
@@ -441,7 +441,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:
-      ANDI2R(XA, XA, ~(u64(1) << 59));
+      ANDI2R(XA, XA, ~(u64(1) << PowerPC::CR_EMU_SO_BIT));
       break;
 
     case PowerPC::CR_EQ_BIT:
@@ -454,7 +454,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case PowerPC::CR_LT_BIT:
-      ANDI2R(XA, XA, ~(u64(1) << 62));
+      ANDI2R(XA, XA, ~(u64(1) << PowerPC::CR_EMU_LT_BIT));
       break;
     }
     return;
@@ -476,7 +476,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:
-      ORRI2R(XA, XA, u64(1) << 59);
+      ORRI2R(XA, XA, u64(1) << PowerPC::CR_EMU_SO_BIT);
       break;
 
     case PowerPC::CR_EQ_BIT:
@@ -488,7 +488,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case PowerPC::CR_LT_BIT:
-      ORRI2R(XA, XA, u64(1) << 62);
+      ORRI2R(XA, XA, u64(1) << PowerPC::CR_EMU_LT_BIT);
       break;
     }
 
@@ -520,7 +520,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:  // check bit 59 set
-      UBFX(out, XC, 59, 1);
+      UBFX(out, XC, PowerPC::CR_EMU_SO_BIT, 1);
       if (negate)
         EOR(out, out, 0, 0, true);  // XC ^ 1
       break;
@@ -536,7 +536,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     case PowerPC::CR_LT_BIT:  // check bit 62 set
-      UBFX(out, XC, 62, 1);
+      UBFX(out, XC, PowerPC::CR_EMU_LT_BIT, 1);
       if (negate)
         EOR(out, out, 0, 0, true);  // XC ^ 1
       break;
@@ -582,7 +582,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:  // set bit 59 to input
-    BFI(XB, XA, 59, 1);
+    BFI(XB, XA, PowerPC::CR_EMU_SO_BIT, 1);
     break;
 
   case PowerPC::CR_EQ_BIT:      // clear low 32 bits, set bit 0 to !input
@@ -597,7 +597,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     break;
 
   case PowerPC::CR_LT_BIT:  // set bit 62 to input
-    BFI(XB, XA, 62, 1);
+    BFI(XB, XA, PowerPC::CR_EMU_LT_BIT, 1);
     break;
   }
 
@@ -625,11 +625,11 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     // SO
     if (i == 0)
     {
-      UBFX(XA, CR, 59, 1);
+      UBFX(XA, CR, PowerPC::CR_EMU_SO_BIT, 1);
     }
     else
     {
-      UBFX(XC, CR, 59, 1);
+      UBFX(XC, CR, PowerPC::CR_EMU_SO_BIT, 1);
       ORR(XA, XC, XA, ArithOption(XA, ShiftType::LSL, 4));
     }
 
@@ -644,7 +644,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     CSEL(WA, WC, WA, CC_GT);
 
     // LT
-    UBFX(XC, CR, 62, 1);
+    UBFX(XC, CR, PowerPC::CR_EMU_LT_BIT, 1);
     ORR(WA, WA, WC, ArithOption(WC, ShiftType::LSL, 3));
   }
 

@@ -322,7 +322,7 @@ void CommonAsmRoutines::GenMfcr()
 
     // SO: Bit 59 set; set flag bit 0
     // LT: Bit 62 set; set flag bit 3
-    SHR(64, R(cr_val), Imm8(59));
+    SHR(64, R(cr_val), Imm8(PowerPC::CR_EMU_SO_BIT));
     AND(32, R(cr_val), Imm8(PowerPC::CR_LT | PowerPC::CR_SO));
     OR(32, R(dst), R(cr_val));
   }

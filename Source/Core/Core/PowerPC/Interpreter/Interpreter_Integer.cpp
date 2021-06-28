@@ -13,7 +13,8 @@ void Interpreter::Helper_UpdateCR0(u32 value)
 {
   s64 sign_extended = (s64)(s32)value;
   u64 cr_val = (u64)sign_extended;
-  cr_val = (cr_val & ~(1ull << 59)) | ((u64)PowerPC::GetXER_SO() << 59);
+  cr_val = (cr_val & ~(1ull << PowerPC::CR_EMU_SO_BIT)) |
+           ((u64)PowerPC::GetXER_SO() << PowerPC::CR_EMU_SO_BIT);
 
   PowerPC::ppcState.cr.fields[0] = cr_val;
 }
