@@ -511,12 +511,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // be careful: run si-buffer after updating the INT flags
                    if (tmp_com_csr.TSTART)
                    {
+                     if (s_com_csr.TSTART)
+                       CoreTiming::RemoveEvent(s_tranfer_pending_event);
                      s_com_csr.TSTART = 1;
                      RunSIBuffer(0, 0);
-                   }
-                   else if (s_com_csr.TSTART)
-                   {
-                     CoreTiming::RemoveEvent(s_tranfer_pending_event);
                    }
 
                    if (!s_com_csr.TSTART)
