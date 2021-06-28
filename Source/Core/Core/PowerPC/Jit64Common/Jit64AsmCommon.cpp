@@ -301,19 +301,15 @@ void CommonAsmRoutines::GenMfcr()
   X64Reg tmp = RSCRATCH2;
   X64Reg cr_val = RSCRATCH_EXTRA;
   XOR(32, R(dst), R(dst));
+  // Upper bits of tmp need to be zeroed.
+  XOR(32, R(tmp), R(tmp));
   for (int i = 0; i < 8; i++)
   {
-    static const u32 m_flagTable[8] = {0x0, 0x1, 0x8, 0x9, 0x0, 0x1, 0x8, 0x9};
     if (i != 0)
       SHL(32, R(dst), Imm8(4));
 
     MOV(64, R(cr_val), PPCSTATE(cr.fields[i]));
 
-    // Upper bits of tmp need to be zeroed.
-    // Note: tmp is used later for address calculations and thus
-    //       can't be zero-ed once. This also prevents partial
-    //       register stalls due to SETcc.
-    XOR(32, R(tmp), R(tmp));
     // EQ: Bits 31-0 == 0; set flag bit 1
     TEST(32, R(cr_val), R(cr_val));
     SETcc(CC_Z, R(tmp));
@@ -324,11 +320,11 @@ void CommonAsmRoutines::GenMfcr()
     SETcc(CC_G, R(tmp));
     LEA(32, dst, MComplex(dst, tmp, SCALE_4, 0));
 
-    // SO: Bit 61 set; set flag bit 0
+    // SO: Bit 59 set; set flag bit 0
     // LT: Bit 62 set; set flag bit 3
-    SHR(64, R(cr_val), Imm8(61));
-    LEA(64, tmp, MConst(m_flagTable));
-    OR(32, R(dst), MComplex(tmp, cr_val, SCALE_4, 0));
+    SHR(64, R(cr_val), Imm8(PowerPC::CR_EMU_SO_BIT));
+    AND(32, R(cr_val), Imm8(PowerPC::CR_LT | PowerPC::CR_SO));
+    OR(32, R(dst), R(cr_val));
   }
   RET();
 
