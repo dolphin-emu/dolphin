@@ -613,6 +613,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
 
   gpr.BindToRegister(inst.RD, false);
   ARM64Reg WA = gpr.R(inst.RD);
+  ARM64Reg WB = gpr.GetReg();
   ARM64Reg WC = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
   ARM64Reg XC = EncodeRegTo64(WC);
@@ -622,33 +623,34 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     ARM64Reg CR = gpr.CR(i);
     ARM64Reg WCR = EncodeRegTo32(CR);
 
-    // SO
+    // SO and LT
+    static_assert(PowerPC::CR_SO_BIT == 0);
+    static_assert(PowerPC::CR_LT_BIT == 3);
+    static_assert(PowerPC::CR_EMU_LT_BIT - PowerPC::CR_EMU_SO_BIT == 3);
+    UBFX(XC, CR, PowerPC::CR_EMU_SO_BIT, 4);
     if (i == 0)
     {
-      UBFX(XA, CR, PowerPC::CR_EMU_SO_BIT, 1);
+      MOVI2R(WB, PowerPC::CR_SO | PowerPC::CR_LT);
+      AND(WA, WC, WB);
     }
     else
     {
-      UBFX(XC, CR, PowerPC::CR_EMU_SO_BIT, 1);
+      AND(WC, WC, WB);
       ORR(XA, XC, XA, ArithOption(XA, ShiftType::LSL, 4));
     }
 
     // EQ
-    ORR(WC, WA, 32 - 1, 0);  // WA | 1<<1
+    ORR(WC, WA, 32 - PowerPC::CR_EQ_BIT, 0);
     CMP(WCR, ARM64Reg::WZR);
     CSEL(WA, WC, WA, CC_EQ);
 
     // GT
-    ORR(WC, WA, 32 - 2, 0);  // WA | 1<<2
+    ORR(WC, WA, 32 - PowerPC::CR_GT_BIT, 0);
     CMP(CR, ARM64Reg::ZR);
     CSEL(WA, WC, WA, CC_GT);
-
-    // LT
-    UBFX(XC, CR, PowerPC::CR_EMU_LT_BIT, 1);
-    ORR(WA, WA, WC, ArithOption(WC, ShiftType::LSL, 3));
   }
 
-  gpr.Unlock(WC);
+  gpr.Unlock(WB, WC);
 }
 
 void JitArm64::mtcrf(UGeckoInstruction inst)
