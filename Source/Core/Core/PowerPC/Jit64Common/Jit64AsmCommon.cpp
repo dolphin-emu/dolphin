@@ -34,9 +34,7 @@ alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffff
 
 // Since the following float conversion functions are used in non-arithmetic PPC float
 // instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
-// into QNaNs. This means we can't use CVTSS2SD/CVTSD2SS. The x87 FPU doesn't even support
-// flush-to-zero so we can use FLD+FSTP even on denormals.
-// If the number is a NaN, make sure to set the QNaN bit back to its original value.
+// into QNaNs. This means we can't use CVTSS2SD/CVTSD2SS.
 
 // Another problem is that officially, converting doubles to single format results in undefined
 // behavior.  Relying on undefined behavior is a bug so no software should ever do this.
