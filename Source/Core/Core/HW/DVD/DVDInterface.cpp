@@ -1365,6 +1365,9 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
   const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WiiDisc;
 
+  // Whether we have performed a seek.
+  bool seek = false;
+
   // Where the DVD read head is (usually parked at the end of the buffer,
   // unless we've interrupted it mid-buffer-read).
   u64 head_position;
@@ -1379,6 +1382,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
   u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
+  const u64 first_block = dvd_offset;
 
   if (SConfig::GetInstance().bFastDiscSpeed)
   {
@@ -1473,6 +1477,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
       if (dvd_offset != head_position)
       {
         // Unbuffered seek+read
+        seek = true;
         ticks_until_completion += static_cast<u64>(
             ticks_per_second * DVDMath::CalculateSeekTime(head_position, dvd_offset));
 
@@ -1543,6 +1548,13 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
     }
 
     s_read_buffer_end_offset = last_block + STREAMING_BUFFER_SIZE - BUFFER_BACKWARD_SEEK_LIMIT;
+    if (seek)
+    {
+      // If we seek, the block preceding the first accessed block never gets read into the buffer
+      s_read_buffer_end_offset =
+          std::max(s_read_buffer_end_offset, first_block + STREAMING_BUFFER_SIZE);
+    }
+
     // Assume the buffer starts prefetching new blocks right after the end of the last operation
     s_read_buffer_start_time = current_time + ticks_until_completion;
     s_read_buffer_end_time =
