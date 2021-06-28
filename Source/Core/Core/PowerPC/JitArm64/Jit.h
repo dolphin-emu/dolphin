@@ -266,6 +266,7 @@ protected:
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
                           bool always_exception = false);
   void WriteConditionalExceptionExit(int exception);
+  void WriteConditionalExceptionExit(int exception, Arm64Gen::ARM64Reg temp_reg);
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 

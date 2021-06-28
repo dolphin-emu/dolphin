@@ -501,21 +501,33 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
 void JitArm64::WriteConditionalExceptionExit(int exception)
 {
   ARM64Reg WA = gpr.GetReg();
-  LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  FixupBranch noException = TBZ(WA, IntLog2(exception));
+  WriteConditionalExceptionExit(exception, WA);
+  gpr.Unlock(WA);
+}
 
-  FixupBranch handleException = B();
-  SwitchToFarCode();
-  SetJumpTarget(handleException);
+void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_reg)
+{
+  LDR(IndexType::Unsigned, temp_reg, PPC_REG, PPCSTATE_OFF(Exceptions));
+  FixupBranch no_exception = TBZ(temp_reg, IntLog2(exception));
 
-  gpr.Flush(FlushMode::MaintainState, WA);
+  const bool switch_to_far_code = !IsInFarCode();
+
+  if (switch_to_far_code)
+  {
+    FixupBranch handle_exception = B();
+    SwitchToFarCode();
+    SetJumpTarget(handle_exception);
+  }
+
+  gpr.Flush(FlushMode::MaintainState, temp_reg);
   fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
 
   WriteExceptionExit(js.compilerPC, false, true);
 
-  SwitchToNearCode();
-  SetJumpTarget(noException);
-  gpr.Unlock(WA);
+  if (switch_to_far_code)
+    SwitchToNearCode();
+
+  SetJumpTarget(no_exception);
 }
 
 bool JitArm64::HandleFunctionHooking(u32 address)
