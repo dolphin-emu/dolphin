@@ -472,7 +472,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       // (if we add more merged branch instructions, add them here!)
       if ((type == ReorderType::CROR && isCror(a)) ||
           (type == ReorderType::Carry && isCarryOp(a)) ||
-          (type == ReorderType::CMP && (isCmp(a) || a.outputCR0)))
+          (type == ReorderType::CMP && (isCmp(a) || a.outputCR[0])))
       {
         // once we're next to a carry instruction, don't move away!
         if (type == ReorderType::Carry && i != start)
@@ -521,30 +521,22 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
                                       u32 index)
 {
-  code->wantsCR0 = false;
-  code->wantsCR1 = false;
-
   if (opinfo->flags & FL_USE_FPU)
     block->m_fpa->any = true;
 
   if (opinfo->flags & FL_TIMER)
     block->m_gpa->anyTimer = true;
 
-  // Does the instruction output CR0?
-  if (opinfo->flags & FL_RC_BIT)
-    code->outputCR0 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
-    code->outputCR0 = true;
-  else
-    code->outputCR0 = (opinfo->flags & FL_SET_CR0) != 0;
-
-  // Does the instruction output CR1?
-  if (opinfo->flags & FL_RC_BIT_F)
-    code->outputCR1 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
-    code->outputCR1 = true;
-  else
-    code->outputCR1 = (opinfo->flags & FL_SET_CR1) != 0;
+  code->wantsCR = BitSet8(0);
+  code->outputCR = BitSet8(0);
+  if (opinfo->flags & FL_SET_ALL_CR)
+    code->outputCR = BitSet8(0xFF);
+  else if (opinfo->flags & FL_SET_CRn)
+    code->outputCR[code->inst.CRFD] = true;
+  else if ((opinfo->flags & FL_SET_CR0) || ((opinfo->flags & FL_RC_BIT) && code->inst.Rc))
+    code->outputCR[0] = true;
+  else if ((opinfo->flags & FL_SET_CR1) || ((opinfo->flags & FL_RC_BIT_F) && code->inst.Rc))
+    code->outputCR[1] = true;
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
@@ -640,10 +632,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   // For analysis purposes, we can assume that blr eats opinfo->flags.
   if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
-  {
-    code->outputCR0 = true;
-    code->outputCR1 = true;
-  }
+    code->outputCR = BitSet8(0xFF);
 
   code->branchUsesCtr = false;
   code->branchTo = UINT32_MAX;
@@ -918,26 +907,24 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
   // Scan for flag dependencies; assume the next block (or any branch that can leave the block)
   // wants flags, to be safe.
-  bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
+  BitSet8 wantsCR = BitSet8(0xFF);
+  bool wantsFPRF = true;
+  bool wantsCA = true;
   BitSet32 fprInUse, gprInUse, gprDiscardable, fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
 
-    const bool opWantsCR0 = op.wantsCR0;
-    const bool opWantsCR1 = op.wantsCR1;
+    const BitSet8 opWantsCR = op.wantsCR;
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
-    op.wantsCR0 = wantsCR0 || op.canEndBlock;
-    op.wantsCR1 = wantsCR1 || op.canEndBlock;
+    op.wantsCR = wantsCR | BitSet8(op.canEndBlock ? 0xFF : 0);
     op.wantsFPRF = wantsFPRF || op.canEndBlock;
     op.wantsCA = wantsCA || op.canEndBlock;
-    wantsCR0 |= opWantsCR0 || op.canEndBlock;
-    wantsCR1 |= opWantsCR1 || op.canEndBlock;
+    wantsCR |= opWantsCR | BitSet8(op.canEndBlock ? 0xFF : 0);
     wantsFPRF |= opWantsFPRF || op.canEndBlock;
     wantsCA |= opWantsCA || op.canEndBlock;
-    wantsCR0 &= !op.outputCR0 || opWantsCR0;
-    wantsCR1 &= !op.outputCR1 || opWantsCR1;
+    wantsCR &= ~op.outputCR | opWantsCR;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
     op.gprInUse = gprInUse;
