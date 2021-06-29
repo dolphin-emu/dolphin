@@ -472,7 +472,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       // (if we add more merged branch instructions, add them here!)
       if ((type == ReorderType::CROR && isCror(a)) ||
           (type == ReorderType::Carry && isCarryOp(a)) ||
-          (type == ReorderType::CMP && (isCmp(a) || a.outputCR[0])))
+          (type == ReorderType::CMP && (isCmp(a) || a.crOut[0])))
       {
         // once we're next to a carry instruction, don't move away!
         if (type == ReorderType::Carry && i != start)
@@ -527,40 +527,40 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   if (opinfo->flags & FL_TIMER)
     block->m_gpa->anyTimer = true;
 
-  code->wantsCR = BitSet8(0);
+  code->crIn = BitSet8(0);
   if (opinfo->flags & FL_READ_ALL_CR)
   {
-    code->wantsCR = BitSet8(0xFF);
+    code->crIn = BitSet8(0xFF);
   }
   else if (opinfo->flags & FL_READ_CRn)
   {
-    code->wantsCR[code->inst.CRFS] = true;
+    code->crIn[code->inst.CRFS] = true;
   }
   else if (opinfo->flags & FL_READ_CR_BI)
   {
-    code->wantsCR[code->inst.BI] = true;
+    code->crIn[code->inst.BI] = true;
   }
   else if (opinfo->type == OpType::CR)
   {
-    code->wantsCR[code->inst.CRBA >> 2] = true;
-    code->wantsCR[code->inst.CRBB >> 2] = true;
+    code->crIn[code->inst.CRBA >> 2] = true;
+    code->crIn[code->inst.CRBB >> 2] = true;
 
     // CR instructions only write to one bit of the destination CR,
     // so treat the other three bits of the destination as inputs
-    code->wantsCR[code->inst.CRBD >> 2] = true;
+    code->crIn[code->inst.CRBD >> 2] = true;
   }
 
-  code->outputCR = BitSet8(0);
+  code->crOut = BitSet8(0);
   if (opinfo->flags & FL_SET_ALL_CR)
-    code->outputCR = BitSet8(0xFF);
+    code->crOut = BitSet8(0xFF);
   else if (opinfo->flags & FL_SET_CRn)
-    code->outputCR[code->inst.CRFD] = true;
+    code->crOut[code->inst.CRFD] = true;
   else if ((opinfo->flags & FL_SET_CR0) || ((opinfo->flags & FL_RC_BIT) && code->inst.Rc))
-    code->outputCR[0] = true;
+    code->crOut[0] = true;
   else if ((opinfo->flags & FL_SET_CR1) || ((opinfo->flags & FL_RC_BIT_F) && code->inst.Rc))
-    code->outputCR[1] = true;
+    code->crOut[1] = true;
   else if (opinfo->type == OpType::CR)
-    code->outputCR[code->inst.CRBD >> 2] = true;
+    code->crOut[code->inst.CRBD >> 2] = true;
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
@@ -656,7 +656,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   // For analysis purposes, we can assume that blr eats opinfo->flags.
   if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
-    code->outputCR = BitSet8(0xFF);
+    code->crOut = BitSet8(0xFF);
 
   code->branchUsesCtr = false;
   code->branchTo = UINT32_MAX;
@@ -934,34 +934,35 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   BitSet8 wantsCR = BitSet8(0xFF);
   bool wantsFPRF = true;
   bool wantsCA = true;
-  BitSet32 fprInUse, gprInUse, gprDiscardable, fprDiscardable, fprInXmm;
+  BitSet8 crInUse, crDiscardable;
+  BitSet32 gprInUse, fprInUse, gprDiscardable, fprDiscardable, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
     CodeOp& op = code[i];
 
-    const BitSet8 opWantsCR = op.wantsCR;
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
-    op.wantsCR = wantsCR | BitSet8(op.canEndBlock ? 0xFF : 0);
     op.wantsFPRF = wantsFPRF || op.canEndBlock;
     op.wantsCA = wantsCA || op.canEndBlock;
-    wantsCR |= opWantsCR | BitSet8(op.canEndBlock ? 0xFF : 0);
     wantsFPRF |= opWantsFPRF || op.canEndBlock;
     wantsCA |= opWantsCA || op.canEndBlock;
-    wantsCR &= ~op.outputCR | opWantsCR;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;
     wantsCA &= !op.outputCA || opWantsCA;
     op.gprInUse = gprInUse;
     op.fprInUse = fprInUse;
+    op.crInUse = crInUse;
     op.gprDiscardable = gprDiscardable;
     op.fprDiscardable = fprDiscardable;
+    op.crDiscardable = crDiscardable;
     op.fprInXmm = fprInXmm;
     gprInUse |= op.regsIn;
     fprInUse |= op.fregsIn;
+    crInUse |= op.crIn;
     if (op.canEndBlock || op.canCauseException)
     {
       gprDiscardable = BitSet32{};
       fprDiscardable = BitSet32{};
+      crDiscardable = BitSet8{};
     }
     else
     {
@@ -969,6 +970,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       gprDiscardable &= ~op.regsIn;
       fprDiscardable |= op.GetFregsOut();
       fprDiscardable &= ~op.fregsIn;
+      crDiscardable |= op.crOut;
+      crDiscardable &= ~op.crIn;
     }
     if (strncmp(op.opinfo->opname, "stfd", 4))
       fprInXmm |= op.fregsIn;
