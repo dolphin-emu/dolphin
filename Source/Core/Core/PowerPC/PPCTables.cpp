@@ -224,17 +224,17 @@ constexpr std::array<GekkoOPTemplate, 4> s_table4_3{{
 constexpr std::array<GekkoOPTemplate, 13> s_table19{{
     {528, "bcctrx", OpType::Branch, 1, FL_ENDBLOCK | FL_READ_CR_BI},
     {16, "bclrx", OpType::Branch, 1, FL_ENDBLOCK | FL_READ_CR_BI},
-    {257, "crand", OpType::CR, 1, FL_EVIL},
-    {129, "crandc", OpType::CR, 1, FL_EVIL},
-    {289, "creqv", OpType::CR, 1, FL_EVIL},
-    {225, "crnand", OpType::CR, 1, FL_EVIL},
-    {33, "crnor", OpType::CR, 1, FL_EVIL},
-    {449, "cror", OpType::CR, 1, FL_EVIL},
-    {417, "crorc", OpType::CR, 1, FL_EVIL},
-    {193, "crxor", OpType::CR, 1, FL_EVIL},
+    {257, "crand", OpType::CR, 1, 0},
+    {129, "crandc", OpType::CR, 1, 0},
+    {289, "creqv", OpType::CR, 1, 0},
+    {225, "crnand", OpType::CR, 1, 0},
+    {33, "crnor", OpType::CR, 1, 0},
+    {449, "cror", OpType::CR, 1, 0},
+    {417, "crorc", OpType::CR, 1, 0},
+    {193, "crxor", OpType::CR, 1, 0},
 
     {150, "isync", OpType::InstructionCache, 1, FL_EVIL},
-    {0, "mcrf", OpType::System, 1, FL_EVIL | FL_SET_CRn | FL_READ_CRn},
+    {0, "mcrf", OpType::System, 1, FL_SET_CRn | FL_READ_CRn},
 
     {50, "rfi", OpType::System, 2, FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION},
 }};

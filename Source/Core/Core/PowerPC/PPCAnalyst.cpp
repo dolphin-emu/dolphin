@@ -224,9 +224,7 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
     return false;
   if (a_flags & (FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
-  if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
-    return false;
-  if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
+  if (b_flags & (FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
@@ -249,15 +247,21 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   // Check that we have no register collisions.
   // That is, check that none of b's outputs matches any of a's inputs,
   // and that none of a's outputs matches any of b's inputs.
-  // The latter does not apply if a is a cmp, of course, but doesn't hurt to check.
+
   // register collision: b outputs to one of a's inputs
   if (b.regsOut & a.regsIn)
+    return false;
+  if (b.crOut & a.crIn)
     return false;
   // register collision: a outputs to one of b's inputs
   if (a.regsOut & b.regsIn)
     return false;
+  if (a.crOut & b.crIn)
+    return false;
   // register collision: b outputs to one of a's outputs (overwriting it)
   if (b.regsOut & a.regsOut)
+    return false;
+  if (b.crOut & a.crOut)
     return false;
 
   return true;
@@ -451,12 +455,6 @@ void FindFunctions(const Core::CPUThreadGuard& guard, u32 startAddr, u32 endAddr
                unniceSize);
 }
 
-static bool isCmp(const CodeOp& a)
-{
-  return (a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
-         (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32));
-}
-
 static bool isCarryOp(const CodeOp& a)
 {
   return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
@@ -506,7 +504,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
     // Reorder integer compares, rlwinm., and carry-affecting ops
     // (if we add more merged branch instructions, add them here!)
     if ((type == ReorderType::CROR && isCror(a)) || (type == ReorderType::Carry && isCarryOp(a)) ||
-        (type == ReorderType::CMP && (isCmp(a) || a.crOut[0])))
+        (type == ReorderType::CMP && (type == ReorderType::CMP && a.crOut)))
     {
       // once we're next to a carry instruction, don't move away!
       if (type == ReorderType::Carry && i != start)
