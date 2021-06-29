@@ -229,17 +229,6 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
 
-  switch (b.inst.OPCD)
-  {
-  case 16:
-  case 18:
-  // branches. Do not swap.
-  case 17:  // sc
-  case 46:  // lmw
-  case 19:  // table19 - lots of tricky stuff
-    return false;
-  }
-
   // For now, only integer ops are acceptable.
   if (b_info->type != OpType::Integer)
     return false;
