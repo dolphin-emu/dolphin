@@ -335,6 +335,9 @@ public:
     FlushCRRegisters(regs, false, tmp_reg);
   }
 
+  void DiscardCRRegisters(BitSet8 regs);
+  void ResetCRRegisters(BitSet8 regs);
+
 protected:
   // Get the order of the host registers
   void GetAllocationOrder() override;

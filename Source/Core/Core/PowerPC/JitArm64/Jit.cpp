@@ -205,6 +205,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   // we must mark them as no longer discarded
   gpr.ResetRegisters(js.op->regsOut);
   fpr.ResetRegisters(js.op->GetFregsOut());
+  gpr.ResetCRRegisters(js.op->crOut);
 
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
@@ -1199,9 +1200,11 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       {
         gpr.DiscardRegisters(op.gprDiscardable);
         fpr.DiscardRegisters(op.fprDiscardable);
+        gpr.DiscardCRRegisters(op.crDiscardable);
       }
       gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
       fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
+      gpr.StoreCRRegisters(~op.crInUse & (op.crIn | op.crOut));
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
