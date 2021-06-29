@@ -572,11 +572,26 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
 
   code->wantsCR = BitSet8(0);
   if (opinfo->flags & FL_READ_ALL_CR)
+  {
     code->wantsCR = BitSet8(0xFF);
+  }
   else if (opinfo->flags & FL_READ_CRn)
+  {
     code->wantsCR[code->inst.CRFS] = true;
+  }
   else if (opinfo->flags & FL_READ_CR_BI)
+  {
     code->wantsCR[code->inst.BI] = true;
+  }
+  else if (opinfo->type == OpType::CR)
+  {
+    code->wantsCR[code->inst.CRBA >> 2] = true;
+    code->wantsCR[code->inst.CRBB >> 2] = true;
+
+    // CR instructions only write to one bit of the destination CR,
+    // so treat the other three bits of the destination as inputs
+    code->wantsCR[code->inst.CRBD >> 2] = true;
+  }
 
   code->outputCR = BitSet8(0);
   if (opinfo->flags & FL_SET_ALL_CR)
@@ -587,6 +602,8 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
     code->outputCR[0] = true;
   else if ((opinfo->flags & FL_SET_CR1) || ((opinfo->flags & FL_RC_BIT_F) && code->inst.Rc))
     code->outputCR[1] = true;
+  else if (opinfo->type == OpType::CR)
+    code->outputCR[code->inst.CRBD >> 2] = true;
 
   code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
