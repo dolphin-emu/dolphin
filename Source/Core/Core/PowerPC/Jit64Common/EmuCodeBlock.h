@@ -117,14 +117,12 @@ public:
               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8), Gen::X64Reg regOp,
               const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
 
-  void ForceSinglePrecision(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
-                            bool duplicate = false);
   void Force25BitPrecision(Gen::X64Reg output, const Gen::OpArg& input, Gen::X64Reg tmp);
 
   // RSCRATCH might get trashed
   void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
   void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
-  void SetFPRF(Gen::X64Reg xmm);
+  void SetFPRF(Gen::X64Reg xmm, bool single);
   void Clear();
 
 protected:

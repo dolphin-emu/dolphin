@@ -87,7 +87,6 @@ enum PPCFpClass
 // Uses PowerPC conventions for the return value, so it can be easily
 // used directly in CPU emulation.
 u32 ClassifyDouble(double dvalue);
-// More efficient float version.
 u32 ClassifyFloat(float fvalue);
 
 struct BaseAndDec

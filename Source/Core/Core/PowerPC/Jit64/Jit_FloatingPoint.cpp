@@ -33,13 +33,63 @@ alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
 // not calculate it.
-void Jit64::SetFPRFIfNeeded(X64Reg xmm)
+void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
 {
   // As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
   // if the FPRF flag is set.
-  if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
-    SetFPRF(xmm);
+  if (!SConfig::GetInstance().bFPRF || !js.op->wantsFPRF)
+    return;
+
+  X64Reg xmm = XMM0;
+  if (input.IsSimpleReg())
+    xmm = input.GetSimpleReg();
+  else
+    MOVSD(xmm, input);
+
+  SetFPRF(xmm, single);
+}
+
+void Jit64::FinalizeSingleResult(X64Reg output, const OpArg& input, bool packed, bool duplicate)
+{
+  // Most games don't need these. Zelda requires it though - some platforms get stuck without them.
+  if (jo.accurateSinglePrecision)
+  {
+    if (packed)
+    {
+      CVTPD2PS(output, input);
+      SetFPRFIfNeeded(R(output), true);
+      CVTPS2PD(output, R(output));
+    }
+    else
+    {
+      CVTSD2SS(output, input);
+      SetFPRFIfNeeded(R(output), true);
+      CVTSS2SD(output, R(output));
+      if (duplicate)
+        MOVDDUP(output, R(output));
+    }
+  }
+  else
+  {
+    if (!input.IsSimpleReg(output))
+    {
+      if (duplicate)
+        MOVDDUP(output, input);
+      else
+        MOVAPD(output, input);
+    }
+
+    SetFPRFIfNeeded(input, true);
+  }
+}
+
+void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
+{
+  if (!input.IsSimpleReg(output))
+    MOVSD(output, input);
+
+  SetFPRFIfNeeded(input, false);
 }
 
 void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
@@ -210,8 +260,9 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 
     HandleNaNs(inst, Rd, dest);
     if (single)
-      ForceSinglePrecision(Rd, Rd, packed, true);
-    SetFPRFIfNeeded(Rd);
+      FinalizeSingleResult(Rd, Rd, packed, true);
+    else
+      FinalizeDoubleResult(Rd, Rd);
   };
 
   switch (inst.SUBOP5)
@@ -452,14 +503,13 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   if (single)
   {
     HandleNaNs(inst, result_reg, result_reg, result_reg == XMM1 ? XMM0 : XMM1);
-    ForceSinglePrecision(Rd, R(result_reg), packed, true);
+    FinalizeSingleResult(Rd, R(result_reg), packed, true);
   }
   else
   {
     HandleNaNs(inst, result_reg, result_reg, XMM1);
-    MOVSD(Rd, R(result_reg));
+    FinalizeDoubleResult(Rd, R(result_reg));
   }
-  SetFPRFIfNeeded(Rd);
 }
 
 void Jit64::fsign(UGeckoInstruction inst)
@@ -763,12 +813,11 @@ void Jit64::frspx(UGeckoInstruction inst)
   int d = inst.FD;
   bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
-  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RCOpArg Rb = fpr.Bind(b, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(Rb, Rd);
 
-  ForceSinglePrecision(Rd, Rb, packed, true);
-  SetFPRFIfNeeded(Rd);
+  FinalizeSingleResult(Rd, Rb, packed, true);
 }
 
 void Jit64::frsqrtex(UGeckoInstruction inst)
@@ -786,8 +835,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 
   MOVAPD(XMM0, Rb);
   CALL(asm_routines.frsqrte);
-  MOVSD(Rd, XMM0);
-  SetFPRFIfNeeded(Rd);
+  FinalizeDoubleResult(Rd, R(XMM0));
 }
 
 void Jit64::fresx(UGeckoInstruction inst)
@@ -806,5 +854,5 @@ void Jit64::fresx(UGeckoInstruction inst)
   MOVAPD(XMM0, Rb);
   CALL(asm_routines.fres);
   MOVDDUP(Rd, R(XMM0));
-  SetFPRFIfNeeded(Rd);
+  SetFPRFIfNeeded(R(XMM0), true);
 }

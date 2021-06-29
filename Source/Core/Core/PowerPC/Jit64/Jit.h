@@ -121,8 +121,11 @@ public:
   // Generates a branch that will check if a given bit of a CR register part
   // is set or not.
   Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
-  void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
+  void SetFPRFIfNeeded(const Gen::OpArg& xmm, bool single);
+  void FinalizeSingleResult(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
+                            bool duplicate = false);
+  void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
   void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
                   Gen::X64Reg clobber = Gen::XMM0);
 

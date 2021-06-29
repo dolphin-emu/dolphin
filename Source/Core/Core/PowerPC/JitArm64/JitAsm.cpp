@@ -455,25 +455,12 @@ void JitArm64::GenerateFPRF(bool single)
   FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
 
   // exp != 0 && exp != EXP_MASK
-  const u8* normal = GetCodePtr();
   emit_write_fprf_and_ret();
 
   // exp == 0
   SetJumpTarget(zero_or_denormal);
   TSTI2R(input_reg, INPUT_FRAC_MASK);
-  FixupBranch denormal;
-  if (single)
-  {
-    // To match the interpreter, what we output should be based on how the input would be classified
-    // after conversion to double. Converting a denormal single to a double always results in a
-    // normal double, so for denormal singles we need to output PPC_FPCLASS_PN/PPC_FPCLASS_NN.
-    // TODO: Hardware test that the interpreter actually is correct.
-    B(CCFlags::CC_NEQ, normal);
-  }
-  else
-  {
-    denormal = B(CCFlags::CC_NEQ);
-  }
+  FixupBranch denormal = B(CCFlags::CC_NEQ);
 
   // exp == 0 && frac == 0
   LSR(ARM64Reg::W1, fprf_reg, 3);
@@ -483,8 +470,7 @@ void JitArm64::GenerateFPRF(bool single)
   emit_write_fprf_and_ret();
 
   // exp == 0 && frac != 0
-  if (!single)
-    SetJumpTarget(denormal);
+  SetJumpTarget(denormal);
   ORRI2R(fprf_reg, fprf_reg, Common::PPC_FPCLASS_PD & ~OUTPUT_SIGN_MASK);
   B(write_fprf_and_ret);
 
