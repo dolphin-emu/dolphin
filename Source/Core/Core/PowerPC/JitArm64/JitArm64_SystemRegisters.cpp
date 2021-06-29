@@ -714,7 +714,8 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
 
   if (mask != 0)
   {
-    ANDI2R(WA, WA, ~mask);
+    const u32 inverted_mask = ~mask;
+    ANDI2R(WA, WA, inverted_mask);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
   }
 
