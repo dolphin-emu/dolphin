@@ -528,6 +528,13 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
     block->m_gpa->anyTimer = true;
 
   code->wantsCR = BitSet8(0);
+  if (opinfo->flags & FL_READ_ALL_CR)
+    code->wantsCR = BitSet8(0xFF);
+  else if (opinfo->flags & FL_READ_CRn)
+    code->wantsCR[code->inst.CRFS] = true;
+  else if (opinfo->flags & FL_READ_CR_BI)
+    code->wantsCR[code->inst.BI] = true;
+
   code->outputCR = BitSet8(0);
   if (opinfo->flags & FL_SET_ALL_CR)
     code->outputCR = BitSet8(0xFF);
