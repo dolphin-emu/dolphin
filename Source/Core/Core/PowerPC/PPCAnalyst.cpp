@@ -210,17 +210,6 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
 
-  switch (b.inst.OPCD)
-  {
-  case 16:
-  case 18:
-  // branches. Do not swap.
-  case 17:  // sc
-  case 46:  // lmw
-  case 19:  // table19 - lots of tricky stuff
-    return false;
-  }
-
   // For now, only integer ops acceptable. Any instruction which can raise an
   // interrupt is *not* a possible swap candidate: see [1] for an example of
   // a crash caused by this error.
@@ -457,8 +446,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
   {
     // Instruction Reordering Pass
     // Carry pass: bubble carry-using instructions as close to each other as possible, so we can
-    // avoid
-    // storing the carry flag.
+    // avoid storing the carry flag.
     // Compare pass: bubble compare instructions next to branches, so they can be merged.
     bool swapped = false;
     int increment = reverse ? -1 : 1;
