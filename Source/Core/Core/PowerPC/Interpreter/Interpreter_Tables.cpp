@@ -29,7 +29,7 @@ static std::array<GekkoOPTemplate, 54> primarytable =
 	{59, Interpreter::RunTable59,   {"RunTable59", OpType::Subtable, 0, 0, 0, 0, 0}},
 	{63, Interpreter::RunTable63,   {"RunTable63", OpType::Subtable, 0, 0, 0, 0, 0}},
 
-	{16, Interpreter::bcx,          {"bcx", OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
+	{16, Interpreter::bcx,          {"bcx", OpType::Branch, FL_ENDBLOCK | FL_READ_CR_BI, 1, 0, 0, 0}},
 	{18, Interpreter::bx,           {"bx",  OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
 
 	{3,  Interpreter::twi,          {"twi", OpType::System, FL_IN_A | FL_ENDBLOCK, 1, 0, 0, 0}},
@@ -143,8 +143,8 @@ static std::array<GekkoOPTemplate, 4> table4_3 =
 
 static std::array<GekkoOPTemplate, 13> table19 =
 {{
-	{528, Interpreter::bcctrx,      {"bcctrx", OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
-	{16,  Interpreter::bclrx,       {"bclrx",  OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
+	{528, Interpreter::bcctrx,      {"bcctrx", OpType::Branch, FL_ENDBLOCK | FL_READ_CR_BI, 1, 0, 0, 0}},
+	{16,  Interpreter::bclrx,       {"bclrx",  OpType::Branch, FL_ENDBLOCK | FL_READ_CR_BI, 1, 0, 0, 0}},
 	{257, Interpreter::crand,       {"crand",  OpType::CR, FL_EVIL, 1, 0, 0, 0}},
 	{129, Interpreter::crandc,      {"crandc", OpType::CR, FL_EVIL, 1, 0, 0, 0}},
 	{289, Interpreter::creqv,       {"creqv",  OpType::CR, FL_EVIL, 1, 0, 0, 0}},
@@ -155,7 +155,7 @@ static std::array<GekkoOPTemplate, 13> table19 =
 	{193, Interpreter::crxor,       {"crxor",  OpType::CR, FL_EVIL, 1, 0, 0, 0}},
 
 	{150, Interpreter::isync,       {"isync",  OpType::InstructionCache, FL_EVIL, 1, 0, 0, 0}},
-	{0,   Interpreter::mcrf,        {"mcrf",   OpType::System, FL_EVIL | FL_SET_CRn, 1, 0, 0, 0}},
+	{0,   Interpreter::mcrf,        {"mcrf",   OpType::System, FL_EVIL | FL_SET_CRn | FL_READ_CRn, 1, 0, 0, 0}},
 
 	{50,  Interpreter::rfi,         {"rfi",    OpType::System, FL_ENDBLOCK | FL_CHECKEXCEPTIONS | FL_PROGRAMEXCEPTION, 2, 0, 0, 0}},
 }};
@@ -278,9 +278,9 @@ static std::array<GekkoOPTemplate, 107> table31 =
 	{759, Interpreter::stfdux,      {"stfdux", OpType::StoreFP, FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{983, Interpreter::stfiwx,      {"stfiwx", OpType::StoreFP, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	{19,  Interpreter::mfcr,        {"mfcr",   OpType::System, FL_OUT_D, 1, 0, 0, 0}},
+	{19,  Interpreter::mfcr,        {"mfcr",   OpType::System, FL_OUT_D | FL_READ_ALL_CR, 1, 0, 0, 0}},
 	{83,  Interpreter::mfmsr,       {"mfmsr",  OpType::System, FL_OUT_D | FL_PROGRAMEXCEPTION, 1, 0, 0, 0}},
-	{144, Interpreter::mtcrf,       {"mtcrf",  OpType::System, FL_IN_S | FL_SET_CRn, 1, 0, 0, 0}},
+	{144, Interpreter::mtcrf,       {"mtcrf",  OpType::System, FL_IN_S | FL_SET_ALL_CR | FL_READ_ALL_CR, 1, 0, 0, 0}},
 	{146, Interpreter::mtmsr,       {"mtmsr",  OpType::System, FL_IN_S | FL_ENDBLOCK | FL_PROGRAMEXCEPTION | FL_FLOAT_EXCEPTION, 1, 0, 0, 0}},
 	{210, Interpreter::mtsr,        {"mtsr",   OpType::System, FL_IN_S | FL_PROGRAMEXCEPTION, 1, 0, 0, 0}},
 	{242, Interpreter::mtsrin,      {"mtsrin", OpType::System, FL_IN_SB | FL_PROGRAMEXCEPTION, 1, 0, 0, 0}},
