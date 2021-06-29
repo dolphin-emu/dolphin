@@ -202,10 +202,10 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   if (SConfig::GetInstance().bEnableDebugging &&
       (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
        PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  {
     return false;
-  if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
-    return false;
-  if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
+  }
+  if (b_flags & (FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
@@ -240,11 +240,17 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   // register collision: b outputs to one of a's inputs
   if (b.regsOut & a.regsIn)
     return false;
+  if (b.crOut & a.crIn)
+    return false;
   // register collision: a outputs to one of b's inputs
   if (a.regsOut & b.regsIn)
     return false;
+  if (a.crOut & b.crIn)
+    return false;
   // register collision: b outputs to one of a's outputs (overwriting it)
   if (b.regsOut & a.regsOut)
+    return false;
+  if (b.crOut & a.crOut)
     return false;
 
   return true;
@@ -431,12 +437,6 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
                unniceSize);
 }
 
-static bool isCmp(const CodeOp& a)
-{
-  return (a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
-         (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32));
-}
-
 static bool isCarryOp(const CodeOp& a)
 {
   return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
@@ -471,8 +471,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       // Reorder integer compares, rlwinm., and carry-affecting ops
       // (if we add more merged branch instructions, add them here!)
       if ((type == ReorderType::CROR && isCror(a)) ||
-          (type == ReorderType::Carry && isCarryOp(a)) ||
-          (type == ReorderType::CMP && (isCmp(a) || a.crOut[0])))
+          (type == ReorderType::Carry && isCarryOp(a)) || (type == ReorderType::CMP && a.crOut))
       {
         // once we're next to a carry instruction, don't move away!
         if (type == ReorderType::Carry && i != start)
@@ -480,12 +479,21 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
           // if we read the CA flag, and the previous instruction sets it, don't move away.
           if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
               (code[i - increment].opinfo->flags & FL_SET_CA))
+          {
             continue;
+          }
           // if we set the CA flag, and the next instruction reads it, don't move away.
           if (reverse && (a.opinfo->flags & FL_SET_CA) &&
               (code[i - increment].opinfo->flags & FL_READ_CA))
+          {
             continue;
+          }
         }
+
+        // Stop instructions which write to different condition registers from fighting
+        // over which one gets to be last. Without this, the outer loop might not terminate
+        if (type == ReorderType::CMP && b.crOut)
+          continue;
 
         if (CanSwapAdjacentOps(a, b))
         {
