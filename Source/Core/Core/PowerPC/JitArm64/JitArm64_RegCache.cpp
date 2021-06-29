@@ -133,7 +133,7 @@ void Arm64RegCache::DiscardRegister(size_t preg)
 
   reg.Discard();
   if (host_reg != ARM64Reg::INVALID_REG)
-    UnlockRegister(host_reg);
+    UnlockRegister(EncodeRegTo32(host_reg));
 }
 
 // GPR Cache
@@ -275,7 +275,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
   }
 }
 
-void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state)
+void Arm64GPRCache::FlushCRRegisters(BitSet8 regs, bool maintain_state)
 {
   for (size_t i = 0; i < GUEST_CR_COUNT; ++i)
   {
@@ -286,10 +286,29 @@ void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state)
   }
 }
 
+void Arm64GPRCache::DiscardCRRegisters(BitSet8 regs)
+{
+  for (int i : regs)
+    DiscardRegister(GUEST_CR_OFFSET + i);
+}
+
+void Arm64GPRCache::ResetCRRegisters(BitSet8 regs)
+{
+  for (int i : regs)
+  {
+    OpArg& reg = m_guest_registers[GUEST_CR_OFFSET + i];
+    ARM64Reg host_reg = reg.GetReg();
+
+    ASSERT_MSG(DYNAREC, host_reg == ARM64Reg::INVALID_REG,
+               "Attempted to reset a loaded register (did you mean to flush it?)");
+    reg.Flush();
+  }
+}
+
 void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
   FlushRegisters(BitSet32(~0U), mode == FlushMode::MaintainState);
-  FlushCRRegisters(BitSet32(~0U), mode == FlushMode::MaintainState);
+  FlushCRRegisters(BitSet8(0xFF), mode == FlushMode::MaintainState);
 }
 
 ARM64Reg Arm64GPRCache::R(const GuestRegInfo& guest_reg)

@@ -267,7 +267,10 @@ public:
   BitSet32 GetCallerSavedUsed() const override;
 
   void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
-  void StoreCRRegisters(BitSet32 regs) { FlushCRRegisters(regs, false); }
+  void StoreCRRegisters(BitSet8 regs) { FlushCRRegisters(regs, false); }
+
+  void DiscardCRRegisters(BitSet8 regs);
+  void ResetCRRegisters(BitSet8 regs);
 
 protected:
   // Get the order of the host registers
@@ -298,7 +301,7 @@ private:
   void BindToRegister(const GuestRegInfo& guest_reg, bool do_load);
 
   void FlushRegisters(BitSet32 regs, bool maintain_state);
-  void FlushCRRegisters(BitSet32 regs, bool maintain_state);
+  void FlushCRRegisters(BitSet8 regs, bool maintain_state);
 };
 
 class Arm64FPRCache : public Arm64RegCache
