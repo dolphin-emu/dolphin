@@ -15,8 +15,7 @@ enum InstructionFlags : u64
 {
   FL_SET_CR0 = (1ull << 0),  // Sets CR0.
   FL_SET_CR1 = (1ull << 1),  // Sets CR1.
-  FL_SET_CRn = (1ull << 2),  // Encoding decides which CR can be set.
-  FL_SET_CRx = FL_SET_CR0 | FL_SET_CR1 | FL_SET_CRn,
+  FL_SET_CRn = (1ull << 2),  // Sets a CR determined by the CRFD field.
   FL_SET_CA = (1ull << 3),   // Sets the carry flag.
   FL_READ_CA = (1ull << 4),  // Reads the carry flag.
   FL_RC_BIT = (1ull << 5),   // Sets the record bit.
@@ -65,6 +64,12 @@ enum InstructionFlags : u64
   FL_IN_FLOAT_AB_BITEXACT = FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT,
   FL_IN_FLOAT_BC_BITEXACT = FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT,
   FL_PROGRAMEXCEPTION = (1ull << 32),  // May generate a system exception.
+  FL_SET_ALL_CR = (1ull << 33),        // Sets every CR.
+  FL_READ_CRn = (1ull << 34),          // Reads a CR determined by the CRFS field.
+  FL_READ_CR_BI = (1ull << 35),        // Reads a CR determined by the BI field.
+  FL_READ_ALL_CR = (1ull << 36),       // Reads every CR.
+  FL_SET_CRx = FL_SET_CR0 | FL_SET_CR1 | FL_SET_CRn | FL_SET_ALL_CR,
+  FL_READ_CRx = FL_READ_CRn | FL_READ_CR_BI | FL_READ_ALL_CR,
 };
 
 enum class OpType
