@@ -48,6 +48,7 @@ public:
   bool IsReady() const override { return true; }
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}
+  void RequestStopSearching() override {}
 };
 }  // namespace WiimoteReal
 

@@ -4,13 +4,6 @@
 
 #pragma once
 
-// Work around an Apple bug: for some reason, IOBluetooth.h errors on
-// inclusion in Mavericks, but only in Objective-C++ C++11 mode.  I filed
-// this as <rdar://15312520>; in the meantime...
-#import <Foundation/Foundation.h>
-#undef NS_ENUM_AVAILABLE
-#define NS_ENUM_AVAILABLE(...)
-// end hack
 #import <IOBluetooth/IOBluetooth.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
 
