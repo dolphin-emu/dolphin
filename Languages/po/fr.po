@@ -16,9 +16,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-16 10:24+0200\n"
-"PO-Revision-Date: 2021-06-16 08:24+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2021-06-30 10:41+0200\n"
+"PO-Revision-Date: 2021-06-17 17:55+0000\n"
+"Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
 "fr/)\n"
 "Language: fr\n"
@@ -9308,6 +9308,9 @@ msgid ""
 "Card, the Wii System Menu will not launch it anymore and will also refuse to "
 "copy or move it back to the NAND."
 msgstr ""
+"Le TMD n'est pas correctement signé. Si vous copiez ou déplacez ce titre "
+"vers la carte SD, le menu système de la Wii ne démarrera plus et refusera "
+"également de le recopier ou le redéplacer vers la NAND."
 
 #: Source/Core/Core/ActionReplay.cpp:236
 msgid "The address is invalid"
@@ -11173,7 +11176,7 @@ msgstr "Impossible de charger d3d12.dll"
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:612
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:632
 msgid "default"
-msgstr ""
+msgstr "par défaut"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:634
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:363
