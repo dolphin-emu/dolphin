@@ -9,6 +9,9 @@
 
 #include "Core/HW/MMIO.h"
 
+void ByteswapAfterLoad(Arm64Gen::ARM64XEmitter* emit, Arm64Gen::ARM64Reg dst_reg,
+                       Arm64Gen::ARM64Reg src_reg, u32 flags, bool is_reversed, bool is_extended);
+
 void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
                    BitSet32 fprs_in_use, Arm64Gen::ARM64Reg dst_reg, u32 address, u32 flags);
 

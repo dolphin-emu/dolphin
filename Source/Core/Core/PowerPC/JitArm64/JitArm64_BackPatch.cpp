@@ -15,6 +15,7 @@
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -120,16 +121,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
         LDRB(RS, MEM_REG, addr);
 
-      if (!(flags & BackPatchInfo::FLAG_REVERSE))
-      {
-        if (flags & BackPatchInfo::FLAG_SIZE_32)
-          REV32(RS, RS);
-        else if (flags & BackPatchInfo::FLAG_SIZE_16)
-          REV16(RS, RS);
-      }
-
-      if (flags & BackPatchInfo::FLAG_EXTEND)
-        SXTH(RS, RS);
+      ByteswapAfterLoad(this, RS, RS, flags, true, false);
     }
   }
   const u8* fastmem_end = GetCodePtr();
@@ -235,20 +227,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
 
       BLR(ARM64Reg::X8);
 
-      if (!(flags & BackPatchInfo::FLAG_REVERSE))
-      {
-        MOV(RS, ARM64Reg::W0);
-      }
-      else
-      {
-        if (flags & BackPatchInfo::FLAG_SIZE_32)
-          REV32(RS, ARM64Reg::W0);
-        else if (flags & BackPatchInfo::FLAG_SIZE_16)
-          REV16(RS, ARM64Reg::W0);
-      }
-
-      if (flags & BackPatchInfo::FLAG_EXTEND)
-        SXTH(RS, RS);
+      ByteswapAfterLoad(this, RS, ARM64Reg::W0, flags, false, false);
     }
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);

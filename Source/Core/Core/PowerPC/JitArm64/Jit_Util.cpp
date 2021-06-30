@@ -192,6 +192,33 @@ private:
   bool m_sign_extend;
 };
 
+void ByteswapAfterLoad(ARM64XEmitter* emit, ARM64Reg dst_reg, ARM64Reg src_reg, u32 flags,
+                       bool is_reversed, bool is_extended)
+{
+  if (is_reversed == !(flags & BackPatchInfo::FLAG_REVERSE))
+  {
+    if (flags & BackPatchInfo::FLAG_SIZE_32)
+    {
+      emit->REV32(dst_reg, src_reg);
+      src_reg = dst_reg;
+    }
+    else if (flags & BackPatchInfo::FLAG_SIZE_16)
+    {
+      emit->REV16(dst_reg, src_reg);
+      src_reg = dst_reg;
+    }
+  }
+
+  if (!is_extended && (flags & BackPatchInfo::FLAG_EXTEND))
+  {
+    emit->SXTH(dst_reg, src_reg);
+    src_reg = dst_reg;
+  }
+
+  if (dst_reg != src_reg)
+    emit->MOV(dst_reg, src_reg);
+}
+
 void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
                    BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address, u32 flags)
 {
@@ -213,6 +240,8 @@ void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 
                                    flags & BackPatchInfo::FLAG_EXTEND);
     mmio->GetHandlerForRead<u32>(address).Visit(gen);
   }
+
+  ByteswapAfterLoad(emit, dst_reg, dst_reg, flags, false, true);
 }
 
 void MMIOWriteRegToAddr(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
