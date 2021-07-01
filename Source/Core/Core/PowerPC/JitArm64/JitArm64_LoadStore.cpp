@@ -113,7 +113,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
-  regs_in_use[DecodeReg(dest_reg)] = 0;
+  if (!jo.memcheck)
+    regs_in_use[DecodeReg(dest_reg)] = 0;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;

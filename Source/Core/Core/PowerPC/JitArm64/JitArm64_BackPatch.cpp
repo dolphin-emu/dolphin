@@ -57,6 +57,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
                                     ARM64Reg addr, BitSet32 gprs_to_push, BitSet32 fprs_to_push,
                                     bool emitting_routine)
 {
+  const u32 access_size = BackPatchInfo::GetFlagSize(flags);
+
   bool in_far_code = false;
   const u8* fastmem_start = GetCodePtr();
   std::optional<FixupBranch> slowmem_fixup;
@@ -76,11 +78,11 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       ARM64Reg temp = ARM64Reg::D0;
       temp = ByteswapBeforeStore(this, &m_float_emit, temp, EncodeRegToDouble(RS), flags, true);
 
-      m_float_emit.STR(BackPatchInfo::GetFlagSize(flags), temp, MEM_REG, addr);
+      m_float_emit.STR(access_size, temp, MEM_REG, addr);
     }
     else if ((flags & BackPatchInfo::FLAG_LOAD) && (flags & BackPatchInfo::FLAG_FLOAT))
     {
-      m_float_emit.LDR(BackPatchInfo::GetFlagSize(flags), EncodeRegToDouble(RS), MEM_REG, addr);
+      m_float_emit.LDR(access_size, EncodeRegToDouble(RS), MEM_REG, addr);
 
       ByteswapAfterLoad(this, &m_float_emit, EncodeRegToDouble(RS), EncodeRegToDouble(RS), flags,
                         true, false);
@@ -139,12 +141,22 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     if (slowmem_fixup)
       SetJumpTarget(*slowmem_fixup);
 
-    ABI_PushRegisters(gprs_to_push);
+    const ARM64Reg temp_reg = flags & BackPatchInfo::FLAG_LOAD ? ARM64Reg::W30 : ARM64Reg::W0;
+    const int temp_reg_index = DecodeReg(temp_reg);
+
+    if (memcheck && (flags & BackPatchInfo::FLAG_LOAD))
+    {
+      ABI_PushRegisters(gprs_to_push & BitSet32{temp_reg_index});
+      ABI_PushRegisters(gprs_to_push & ~BitSet32{temp_reg_index});
+    }
+    else
+    {
+      ABI_PushRegisters(gprs_to_push);
+    }
     m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
     if (flags & BackPatchInfo::FLAG_STORE)
     {
-      const u32 access_size = BackPatchInfo::GetFlagSize(flags);
       ARM64Reg src_reg = RS;
       const ARM64Reg dst_reg = access_size == 64 ? ARM64Reg::X0 : ARM64Reg::W0;
 
@@ -188,8 +200,6 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else
     {
-      const u32 access_size = BackPatchInfo::GetFlagSize(flags);
-
       if (access_size == 64)
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U64);
       else if (access_size == 32)
@@ -200,8 +210,24 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U8);
 
       BLR(ARM64Reg::X8);
+    }
 
+    m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
+    if (memcheck && (flags & BackPatchInfo::FLAG_LOAD))
+      ABI_PopRegisters(gprs_to_push & ~BitSet32{temp_reg_index});
+    else
+      ABI_PopRegisters(gprs_to_push);
+
+    if (memcheck)
+    {
+      const u64 early_push_size = flags & BackPatchInfo::FLAG_LOAD ? 16 : 0;
+      WriteConditionalExceptionExit(EXCEPTION_DSI, temp_reg, early_push_size);
+    }
+
+    if (flags & BackPatchInfo::FLAG_LOAD)
+    {
       ARM64Reg src_reg = access_size == 64 ? ARM64Reg::X0 : ARM64Reg::W0;
+      ASSERT(!gprs_to_push[DecodeReg(src_reg)]);
 
       if (flags & BackPatchInfo::FLAG_PAIR)
       {
@@ -222,13 +248,10 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       }
 
       ByteswapAfterLoad(this, &m_float_emit, RS, src_reg, flags, false, false);
+
+      if (memcheck)
+        ABI_PopRegisters(gprs_to_push & BitSet32{temp_reg_index});
     }
-
-    m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
-    ABI_PopRegisters(gprs_to_push);
-
-    if (memcheck)
-      WriteConditionalExceptionExit(EXCEPTION_DSI, ARM64Reg::W0);
   }
 
   if (in_far_code)

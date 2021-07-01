@@ -498,14 +498,15 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
   B(dispatcher);
 }
 
-void JitArm64::WriteConditionalExceptionExit(int exception)
+void JitArm64::WriteConditionalExceptionExit(int exception, u64 increment_sp_on_exit)
 {
   ARM64Reg WA = gpr.GetReg();
-  WriteConditionalExceptionExit(exception, WA);
+  WriteConditionalExceptionExit(exception, WA, increment_sp_on_exit);
   gpr.Unlock(WA);
 }
 
-void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_reg)
+void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_reg,
+                                             u64 increment_sp_on_exit)
 {
   LDR(IndexType::Unsigned, temp_reg, PPC_REG, PPCSTATE_OFF(Exceptions));
   FixupBranch no_exception = TBZ(temp_reg, IntLog2(exception));
@@ -518,6 +519,9 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_reg)
     SwitchToFarCode();
     SetJumpTarget(handle_exception);
   }
+
+  if (increment_sp_on_exit != 0)
+    ADDI2R(ARM64Reg::SP, ARM64Reg::SP, increment_sp_on_exit, temp_reg);
 
   gpr.Flush(FlushMode::MaintainState, temp_reg);
   fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
