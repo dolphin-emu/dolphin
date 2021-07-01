@@ -93,17 +93,14 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
       ARM64Reg temp = ARM64Reg::W0;
-      if (flags & BackPatchInfo::FLAG_SIZE_32)
-        REV32(temp, RS);
-      else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        REV16(temp, RS);
+      temp = ByteswapBeforeStore(this, temp, RS, flags, true);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
         STR(temp, MEM_REG, addr);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
         STRH(temp, MEM_REG, addr);
       else
-        STRB(RS, MEM_REG, addr);
+        STRB(temp, MEM_REG, addr);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
@@ -200,7 +197,10 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      MOV(ARM64Reg::W0, RS);
+      ARM64Reg temp = ARM64Reg::W0;
+      temp = ByteswapBeforeStore(this, temp, RS, flags, false);
+      if (temp != ARM64Reg::W0)
+        MOV(ARM64Reg::W0, temp);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);

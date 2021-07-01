@@ -239,21 +239,19 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
       accessSize = 8;
 
     LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+
+    ARM64Reg temp = ARM64Reg::W1;
+    temp = ByteswapBeforeStore(this, temp, RS, flags, true);
+
     if (accessSize == 32)
-    {
-      REV32(ARM64Reg::W1, RS);
-      STR(IndexType::Post, ARM64Reg::W1, ARM64Reg::X0, 4);
-    }
+      STR(IndexType::Post, temp, ARM64Reg::X0, 4);
     else if (accessSize == 16)
-    {
-      REV16(ARM64Reg::W1, RS);
-      STRH(IndexType::Post, ARM64Reg::W1, ARM64Reg::X0, 2);
-    }
+      STRH(IndexType::Post, temp, ARM64Reg::X0, 2);
     else
-    {
-      STRB(IndexType::Post, RS, ARM64Reg::X0, 1);
-    }
+      STRB(IndexType::Post, temp, ARM64Reg::X0, 1);
+
     STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
+
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
   else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
@@ -261,7 +259,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     MOVI2R(XA, imm_addr);
     EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
   }
-  else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
+  else if (mmio_address)
   {
     MMIOWriteRegToAddr(Memory::mmio_mapping.get(), this, regs_in_use, fprs_in_use, RS, mmio_address,
                        flags);
@@ -370,6 +368,7 @@ void JitArm64::stX(UGeckoInstruction inst)
   switch (inst.OPCD)
   {
   case 31:
+    regOffset = b;
     switch (inst.SUBOP10)
     {
     case 183:  // stwux
@@ -377,21 +376,24 @@ void JitArm64::stX(UGeckoInstruction inst)
       [[fallthrough]];
     case 151:  // stwx
       flags |= BackPatchInfo::FLAG_SIZE_32;
-      regOffset = b;
       break;
     case 247:  // stbux
       update = true;
       [[fallthrough]];
     case 215:  // stbx
       flags |= BackPatchInfo::FLAG_SIZE_8;
-      regOffset = b;
       break;
     case 439:  // sthux
       update = true;
       [[fallthrough]];
     case 407:  // sthx
       flags |= BackPatchInfo::FLAG_SIZE_16;
-      regOffset = b;
+      break;
+    case 662:  // stwbrx
+      flags |= BackPatchInfo::FLAG_REVERSE | BackPatchInfo::FLAG_SIZE_32;
+      break;
+    case 918:  // sthbrx
+      flags |= BackPatchInfo::FLAG_REVERSE | BackPatchInfo::FLAG_SIZE_16;
       break;
     }
     break;

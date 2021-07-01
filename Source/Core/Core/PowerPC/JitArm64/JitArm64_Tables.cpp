@@ -249,8 +249,8 @@ constexpr std::array<GekkoOPTemplate, 107> table31{{
     {247, &JitArm64::stX},  // stbux
 
     // store bytereverse
-    {662, &JitArm64::FallBackToInterpreter},  // stwbrx
-    {918, &JitArm64::FallBackToInterpreter},  // sthbrx
+    {662, &JitArm64::stX},  // stwbrx
+    {918, &JitArm64::stX},  // sthbrx
 
     {661, &JitArm64::FallBackToInterpreter},  // stswx
     {725, &JitArm64::FallBackToInterpreter},  // stswi
