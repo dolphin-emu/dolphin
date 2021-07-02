@@ -95,18 +95,43 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
   // matrix index from xf regs or cp memory?
-  if (xfmem.MatrixIndexA.PosNormalMtxIdx != g_main_cp_state.matrix_index_a.PosNormalMtxIdx ||
-      xfmem.MatrixIndexA.Tex0MtxIdx != g_main_cp_state.matrix_index_a.Tex0MtxIdx ||
-      xfmem.MatrixIndexA.Tex1MtxIdx != g_main_cp_state.matrix_index_a.Tex1MtxIdx ||
-      xfmem.MatrixIndexA.Tex2MtxIdx != g_main_cp_state.matrix_index_a.Tex2MtxIdx ||
-      xfmem.MatrixIndexA.Tex3MtxIdx != g_main_cp_state.matrix_index_a.Tex3MtxIdx ||
-      xfmem.MatrixIndexB.Tex4MtxIdx != g_main_cp_state.matrix_index_b.Tex4MtxIdx ||
-      xfmem.MatrixIndexB.Tex5MtxIdx != g_main_cp_state.matrix_index_b.Tex5MtxIdx ||
-      xfmem.MatrixIndexB.Tex6MtxIdx != g_main_cp_state.matrix_index_b.Tex6MtxIdx ||
-      xfmem.MatrixIndexB.Tex7MtxIdx != g_main_cp_state.matrix_index_b.Tex7MtxIdx)
+  ASSERT(xfmem.MatrixIndexA.PosNormalMtxIdx == g_main_cp_state.matrix_index_a.PosNormalMtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex0MtxIdx == g_main_cp_state.matrix_index_a.Tex0MtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex1MtxIdx == g_main_cp_state.matrix_index_a.Tex1MtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex2MtxIdx == g_main_cp_state.matrix_index_a.Tex2MtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex3MtxIdx == g_main_cp_state.matrix_index_a.Tex3MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex4MtxIdx == g_main_cp_state.matrix_index_b.Tex4MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex5MtxIdx == g_main_cp_state.matrix_index_b.Tex5MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex6MtxIdx == g_main_cp_state.matrix_index_b.Tex6MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex7MtxIdx == g_main_cp_state.matrix_index_b.Tex7MtxIdx);
+
+  // The XF vertex spec should also match the CP configuration
+  // Real hardware can hang if it's not set correctly (possibly due to XF waiting for data that will
+  // never come?)
+  u32 num_colors = 0;
+  for (auto color : g_main_cp_state.vtx_desc.low.Color)
   {
-    ERROR_LOG_FMT(VIDEO, "Matrix indices don't match");
+    if (color != VertexComponentFormat::NotPresent)
+      num_colors++;
   }
+  ASSERT(num_colors == xfmem.hostinfo.numcolors);
+
+  NormalCount num_normals;
+  if (g_main_cp_state.vtx_desc.low.Normal == VertexComponentFormat::NotPresent)
+    num_normals = NormalCount::None;
+  else if (g_main_cp_state.vtx_attr[attributeIndex].g0.NormalElements == NormalComponentCount::NBT)
+    num_normals = NormalCount::NormalsBinormals;
+  else
+    num_normals = NormalCount::Normals;
+  ASSERT(num_normals == xfmem.hostinfo.numnormals);
+
+  u32 num_tex_coords = 0;
+  for (auto tex_coord : g_main_cp_state.vtx_desc.high.TexCoord)
+  {
+    if (tex_coord != VertexComponentFormat::NotPresent)
+      num_tex_coords++;
+  }
+  ASSERT(num_tex_coords == xfmem.hostinfo.numtextures);
 
   m_vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;
   m_vertex.texMtx[0] = xfmem.MatrixIndexA.Tex0MtxIdx;
