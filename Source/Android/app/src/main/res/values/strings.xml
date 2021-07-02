@@ -320,6 +320,8 @@
     <!-- Advanced Settings -->
     <string name="advanced_submenu">Advanced</string>
     <string name="cpu_core">CPU Core</string>
+    <string name="mmu_enable">Enable MMU</string>
+    <string name="mmu_enable_description">Enables the Memory Management Unit. Needed for some games, but may reduce performance.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
