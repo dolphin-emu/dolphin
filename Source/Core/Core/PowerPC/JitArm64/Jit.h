@@ -250,8 +250,10 @@ protected:
   // Exits
   void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
   void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
-  void WriteExceptionExit(u32 destination, bool only_external = false);
-  void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
+  void WriteExceptionExit(u32 destination, bool only_external = false,
+                          bool always_exception = false);
+  void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
+                          bool always_exception = false);
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 

@@ -29,7 +29,7 @@ void JitArm64::sc(UGeckoInstruction inst)
 
   gpr.Unlock(WA);
 
-  WriteExceptionExit(js.compilerPC + 4);
+  WriteExceptionExit(js.compilerPC + 4, false, true);
 }
 
 void JitArm64::rfi(UGeckoInstruction inst)

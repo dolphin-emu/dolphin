@@ -221,7 +221,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
   gpr.Unlock(WA);
 
-  WriteExceptionExit(js.compilerPC);
+  WriteExceptionExit(js.compilerPC, false, true);
 
   SwitchToNearCode();
 
