@@ -45,6 +45,7 @@ option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
+option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -824,6 +825,14 @@ if(USE_DISCORD_PRESENCE)
   message(STATUS "Using static DiscordRPC from Externals")
   add_subdirectory(Externals/discord-rpc EXCLUDE_FROM_ALL)
   include_directories(Externals/discord-rpc/include)
+endif()
+
+if(NOT ENABLE_QT)
+  set(USE_MGBA 0)
+endif()
+if(USE_MGBA)
+  message(STATUS "Using static libmgba from Externals")
+  add_subdirectory(Externals/mGBA)
 endif()
 
 find_package(SYSTEMD)

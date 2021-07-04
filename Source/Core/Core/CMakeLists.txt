@@ -616,6 +616,11 @@ if(ENABLE_VULKAN)
   target_link_libraries(core PUBLIC videovulkan)
 endif()
 
+if(USE_MGBA)
+  target_link_libraries(core PUBLIC mGBA::mgba)
+  target_compile_definitions(core PUBLIC -DHAS_LIBMGBA)
+endif()
+
 if(WIN32)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Win32.cpp

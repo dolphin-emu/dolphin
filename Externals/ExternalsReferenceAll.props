@@ -58,6 +58,9 @@
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)mGBA\mgba.vcxproj">
+      <Project>{864C4C8E-296D-3DBC-AD83-F1D5CB6E8EC6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)miniupnpc\miniupnpc.vcxproj">
       <Project>{31643fdb-1bb8-4965-9de7-000fc88d35ae}</Project>
     </ProjectReference>
