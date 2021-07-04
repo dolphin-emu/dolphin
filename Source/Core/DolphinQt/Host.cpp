@@ -229,3 +229,8 @@ void Host_TitleChanged()
     Discord::UpdateDiscordPresence();
 #endif
 }
+
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
+}
