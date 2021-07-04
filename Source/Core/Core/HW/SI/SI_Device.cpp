@@ -97,6 +97,10 @@ void ISIDevice::DoState(PointerWrap& p)
 {
 }
 
+void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
+{
+}
+
 // Check if a device class is inheriting from CSIDevice_GCController
 // The goal of this function is to avoid special casing a long list of
 // device types when there is no "real" input device, e.g. when playing
