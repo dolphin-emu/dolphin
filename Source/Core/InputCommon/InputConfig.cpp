@@ -26,7 +26,7 @@ InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_nam
 
 InputConfig::~InputConfig() = default;
 
-bool InputConfig::LoadConfig(bool isGC)
+bool InputConfig::LoadConfig(InputClass type)
 {
   IniFile inifile;
   bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
@@ -43,16 +43,22 @@ bool InputConfig::LoadConfig(bool isGC)
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
-    std::string type;
-    if (isGC)
+    std::string type_str;
+    switch (type)
     {
-      type = "Pad";
-      path = "Profiles/GCPad/";
-    }
-    else
-    {
-      type = "Wiimote";
+    case InputClass::GBA:
+      type_str = "GBA";
+      path = "Profiles/GBA/";
+      break;
+    case InputClass::Wii:
+      type_str = "Wiimote";
       path = "Profiles/Wiimote/";
+      break;
+    case InputClass::GC:
+    default:
+      type_str = "Pad";
+      path = "Profiles/GCPad/";
+      break;
     }
 
     IniFile game_ini = SConfig::GetInstance().LoadGameIni();
@@ -60,7 +66,7 @@ bool InputConfig::LoadConfig(bool isGC)
 
     for (int i = 0; i < 4; i++)
     {
-      const auto profile_name = fmt::format("{}Profile{}", type, num[i]);
+      const auto profile_name = fmt::format("{}Profile{}", type_str, num[i]);
 
       if (control_section->Exists(profile_name))
       {
@@ -124,7 +130,7 @@ bool InputConfig::LoadConfig(bool isGC)
       }
 #if defined(ANDROID)
       // Only set for wii pads
-      if (!isGC && use_ir_config)
+      if (type == InputClass::Wii && use_ir_config)
       {
         config.Set("IR/Total Yaw", ir_values[0]);
         config.Set("IR/Total Pitch", ir_values[1]);

@@ -42,6 +42,7 @@
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -306,6 +307,7 @@ void MainWindow::InitControllers()
 
   g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
   Pad::Initialize();
+  Pad::InitializeGBA();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   FreeLook::Initialize();
@@ -320,6 +322,9 @@ void MainWindow::InitControllers()
   Pad::LoadConfig();
   Pad::GetConfig()->SaveConfig();
 
+  Pad::LoadGBAConfig();
+  Pad::GetGBAConfig()->SaveConfig();
+
   Keyboard::LoadConfig();
   Keyboard::GetConfig()->SaveConfig();
 
@@ -332,6 +337,7 @@ void MainWindow::ShutdownControllers()
   m_hotkey_scheduler->Stop();
 
   Pad::Shutdown();
+  Pad::ShutdownGBA();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
