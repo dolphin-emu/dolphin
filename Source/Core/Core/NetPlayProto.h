@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -97,10 +98,12 @@ struct NetSettings
   std::array<int, 4> m_WiimoteExtension;
   bool m_GolfMode;
   bool m_UseFMA;
+  bool m_HideRemoteGBAs;
 
   // These aren't sent over the network directly
   bool m_IsHosting;
   bool m_HostInputAuthority;
+  std::array<std::string, 4> m_GBARomPaths;
 };
 
 struct NetTraversalConfig
@@ -136,6 +139,7 @@ enum
   NP_MSG_PAD_MAPPING = 0x61,
   NP_MSG_PAD_BUFFER = 0x62,
   NP_MSG_PAD_HOST_DATA = 0x63,
+  NP_MSG_GBA_CONFIG = 0x64,
 
   NP_MSG_WIIMOTE_DATA = 0x70,
   NP_MSG_WIIMOTE_MAPPING = 0x71,
@@ -191,7 +195,8 @@ enum
   SYNC_SAVE_DATA_FAILURE = 2,
   SYNC_SAVE_DATA_RAW = 3,
   SYNC_SAVE_DATA_GCI = 4,
-  SYNC_SAVE_DATA_WII = 5
+  SYNC_SAVE_DATA_WII = 5,
+  SYNC_SAVE_DATA_GBA = 6
 };
 
 enum
@@ -225,7 +230,26 @@ using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
 using PadMappingArray = std::array<PlayerId, 4>;
+struct GBAConfig
+{
+  bool enabled;
+  bool has_rom;
+  std::string title;
+  std::array<u8, 20> hash;
+};
+using GBAConfigArray = std::array<GBAConfig, 4>;
 
+struct PadDetails
+{
+  std::string player_name;
+  bool is_local;
+  int local_pad;
+  bool hide_gba;
+};
+
+std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
+                                   const GBAConfigArray& gba_config,
+                                   const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
@@ -238,4 +262,6 @@ void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();
 void SetupWiimotes();
+std::string GetGBASavePath(int pad_num);
+PadDetails GetPadDetails(int pad_num);
 }  // namespace NetPlay
