@@ -169,9 +169,9 @@ static bool CheckFPU(u32 data)
   return false;
 }
 
-static bool CheckDSI(u32 data)
+static bool CheckLoadStore(u32 data)
 {
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     PowerPC::CheckExceptions();
     PowerPC::ppcState.downcount -= data;
@@ -286,7 +286,7 @@ void CachedInterpreter::Jit(u32 address)
         m_code.emplace_back(WritePC, op.address);
       m_code.emplace_back(PPCTables::GetInterpreterOp(op.inst), op.inst);
       if (memcheck)
-        m_code.emplace_back(CheckDSI, js.downcountAmount);
+        m_code.emplace_back(CheckLoadStore, js.downcountAmount);
       if (idle_loop)
         m_code.emplace_back(CheckIdle, js.blockStart);
       if (endblock)

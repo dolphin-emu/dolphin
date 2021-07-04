@@ -475,14 +475,12 @@ static void Memcheck(u32 address, u32 var, bool write, size_t size)
       if (pause)
       {
         CPU::Break();
-        // Fake a DSI so that all the code that tests for it in order to skip
-        // the rest of the instruction will apply.  (This means that
+        // Fake an exception so that all the code that tests for it in order to
+        // skip the the rest of the instruction will apply.  (This means that
         // watchpoints will stop the emulator before the offending load/store,
         // not after like GDB does, but that's better anyway.  Just need to
         // make sure resuming after that works.)
-        // It doesn't matter if ReadFromHardware triggers its own DSI because
-        // we'll take it after resuming.
-        PowerPC::ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+        PowerPC::ppcState.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
       }
     }
   }

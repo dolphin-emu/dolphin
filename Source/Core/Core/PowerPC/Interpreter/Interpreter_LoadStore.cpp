@@ -42,7 +42,7 @@ void Interpreter::lbz(UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U8(Helper_Get_EA(PowerPC::ppcState, inst));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
     rGPR[inst.RD] = temp;
 }
 
@@ -51,7 +51,7 @@ void Interpreter::lbzu(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U8(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -70,7 +70,7 @@ void Interpreter::lfd(UGeckoInstruction inst)
 
   const u64 temp = PowerPC::Read_U64(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
     rPS(inst.FD).SetPS0(temp);
 }
 
@@ -86,7 +86,7 @@ void Interpreter::lfdu(UGeckoInstruction inst)
 
   const u64 temp = PowerPC::Read_U64(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rPS(inst.FD).SetPS0(temp);
     rGPR[inst.RA] = address;
@@ -105,7 +105,7 @@ void Interpreter::lfdux(UGeckoInstruction inst)
 
   const u64 temp = PowerPC::Read_U64(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rPS(inst.FD).SetPS0(temp);
     rGPR[inst.RA] = address;
@@ -124,7 +124,7 @@ void Interpreter::lfdx(UGeckoInstruction inst)
 
   const u64 temp = PowerPC::Read_U64(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
     rPS(inst.FD).SetPS0(temp);
 }
 
@@ -140,7 +140,7 @@ void Interpreter::lfs(UGeckoInstruction inst)
 
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     const u64 value = ConvertToDouble(temp);
     rPS(inst.FD).Fill(value);
@@ -159,7 +159,7 @@ void Interpreter::lfsu(UGeckoInstruction inst)
 
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     const u64 value = ConvertToDouble(temp);
     rPS(inst.FD).Fill(value);
@@ -179,7 +179,7 @@ void Interpreter::lfsux(UGeckoInstruction inst)
 
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     const u64 value = ConvertToDouble(temp);
     rPS(inst.FD).Fill(value);
@@ -199,7 +199,7 @@ void Interpreter::lfsx(UGeckoInstruction inst)
 
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     const u64 value = ConvertToDouble(temp);
     rPS(inst.FD).Fill(value);
@@ -210,7 +210,7 @@ void Interpreter::lha(UGeckoInstruction inst)
 {
   const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -221,7 +221,7 @@ void Interpreter::lhau(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -232,7 +232,7 @@ void Interpreter::lhz(UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -243,7 +243,7 @@ void Interpreter::lhzu(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U16(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -265,10 +265,13 @@ void Interpreter::lmw(UGeckoInstruction inst)
   {
     const u32 temp_reg = PowerPC::Read_U32(address);
 
-    if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+    if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
-      PanicAlertFmt("DSI exception in lmw");
-      NOTICE_LOG_FMT(POWERPC, "DSI exception in lmw");
+      if (!(PowerPC::ppcState.Exceptions & EXCEPTION_ALIGNMENT))
+      {
+        PanicAlertFmt("DSI exception in lmw");
+        NOTICE_LOG_FMT(POWERPC, "DSI exception in lmw");
+      }
       return;
     }
     else
@@ -292,7 +295,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
   for (int i = inst.RS; i <= 31; i++, address += 4)
   {
     PowerPC::Write_U32(rGPR[i], address);
-    if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+    if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       PanicAlertFmt("DSI exception in stmw");
       NOTICE_LOG_FMT(POWERPC, "DSI exception in stmw");
@@ -306,7 +309,7 @@ void Interpreter::lwz(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -317,7 +320,7 @@ void Interpreter::lwzu(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -334,7 +337,7 @@ void Interpreter::stbu(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
   PowerPC::Write_U8((u8)rGPR[inst.RS], address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -364,7 +367,7 @@ void Interpreter::stfdu(UGeckoInstruction inst)
   }
 
   PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -394,7 +397,7 @@ void Interpreter::stfsu(UGeckoInstruction inst)
   }
 
   PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -410,7 +413,7 @@ void Interpreter::sthu(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
   PowerPC::Write_U16((u16)rGPR[inst.RS], address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -426,7 +429,7 @@ void Interpreter::stwu(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
   PowerPC::Write_U32(rGPR[inst.RS], address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -593,7 +596,7 @@ void Interpreter::lbzux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U8(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -604,7 +607,7 @@ void Interpreter::lbzx(UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(PowerPC::ppcState, inst));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -615,7 +618,7 @@ void Interpreter::lhaux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const s32 temp = (s32)(s16)PowerPC::Read_U16(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -626,7 +629,7 @@ void Interpreter::lhax(UGeckoInstruction inst)
 {
   const s32 temp = (s32)(s16)PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -636,7 +639,7 @@ void Interpreter::lhbrx(UGeckoInstruction inst)
 {
   const u32 temp = Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst)));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -647,7 +650,7 @@ void Interpreter::lhzux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U16(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -658,7 +661,7 @@ void Interpreter::lhzx(UGeckoInstruction inst)
 {
   const u32 temp = PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -686,7 +689,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
 
     const u32 temp_value = PowerPC::Read_U8(EA) << (24 - offset);
     // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
-    if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+    if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       NOTICE_LOG_FMT(POWERPC, "DSI exception in lswx");
       return;
@@ -701,7 +704,7 @@ void Interpreter::lwbrx(UGeckoInstruction inst)
 {
   const u32 temp = Common::swap32(PowerPC::Read_U32(Helper_Get_EA_X(PowerPC::ppcState, inst)));
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -712,7 +715,7 @@ void Interpreter::lwzux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     rGPR[inst.RA] = address;
@@ -724,7 +727,7 @@ void Interpreter::lwzx(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
   }
@@ -735,7 +738,7 @@ void Interpreter::stbux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
   PowerPC::Write_U8((u8)rGPR[inst.RS], address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -757,7 +760,7 @@ void Interpreter::stfdux(UGeckoInstruction inst)
   }
 
   PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -801,7 +804,7 @@ void Interpreter::stfsux(UGeckoInstruction inst)
   }
 
   PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -830,7 +833,7 @@ void Interpreter::sthux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
   PowerPC::Write_U16((u16)rGPR[inst.RS], address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }
@@ -875,7 +878,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
     }
 
     const u32 temp_value = PowerPC::Read_U8(EA) << (24 - i);
-    if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+    if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       PanicAlertFmt("DSI exception in lsw.");
       return;
@@ -924,7 +927,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
       r &= 31;
     }
     PowerPC::Write_U8((rGPR[r] >> (24 - i)) & 0xFF, EA);
-    if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+    if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       return;
     }
@@ -989,7 +992,7 @@ void Interpreter::lwarx(UGeckoInstruction inst)
 
   const u32 temp = PowerPC::Read_U32(address);
 
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RD] = temp;
     m_reserve = true;
@@ -1013,7 +1016,7 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
     if (address == m_reserve_address)
     {
       PowerPC::Write_U32(rGPR[inst.RS], address);
-      if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+      if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
       {
         m_reserve = false;
         PowerPC::ppcState.cr.SetField(0, 2 | PowerPC::GetXER_SO());
@@ -1030,7 +1033,7 @@ void Interpreter::stwux(UGeckoInstruction inst)
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
   PowerPC::Write_U32(rGPR[inst.RS], address);
-  if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
   }

@@ -187,7 +187,7 @@ int Interpreter::SingleStepInner()
     else if (MSR.FP)
     {
       m_op_table[m_prev_inst.OPCD](m_prev_inst);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+      if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
       {
         CheckExceptions();
       }
@@ -203,7 +203,7 @@ int Interpreter::SingleStepInner()
       else
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
-        if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+        if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
         {
           CheckExceptions();
         }
