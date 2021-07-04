@@ -124,6 +124,8 @@ add_executable(dolphin-emu
   Config/Mapping/FreeLookGeneral.h
   Config/Mapping/FreeLookRotation.cpp
   Config/Mapping/FreeLookRotation.h
+  Config/Mapping/GBAPadEmu.cpp
+  Config/Mapping/GBAPadEmu.h
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCKeyboardEmu.h
   Config/Mapping/GCMicrophone.cpp
