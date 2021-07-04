@@ -269,7 +269,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
       const u64 early_push_count = (gprs_to_push & gprs_to_push_early).Count();
       const u64 early_push_size = Common::AlignUp(early_push_count, 2) * 8;
 
-      WriteConditionalExceptionExit(EXCEPTION_DSI, temp_gpr, temp_fpr, early_push_size);
+      WriteConditionalExceptionExit(ANY_LOADSTORE_EXCEPTION, temp_gpr, temp_fpr, early_push_size);
     }
 
     if (flags & BackPatchInfo::FLAG_LOAD)

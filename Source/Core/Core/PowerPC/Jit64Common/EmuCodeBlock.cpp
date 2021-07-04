@@ -60,7 +60,7 @@ void EmuCodeBlock::MemoryExceptionCheck()
   {
     if (js.trampolineExceptionHandler)
     {
-      TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
+      TEST(32, PPCSTATE(Exceptions), Gen::Imm32(ANY_LOADSTORE_EXCEPTION));
       J_CC(CC_NZ, js.trampolineExceptionHandler);
     }
     return;
@@ -71,7 +71,7 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // exception check.
   if (m_jit.jo.memcheck && !js.fastmemLoadStore && !js.fixupExceptionHandler)
   {
-    TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
+    TEST(32, PPCSTATE(Exceptions), Gen::Imm32(ANY_LOADSTORE_EXCEPTION));
     js.exceptionHandler = J_CC(Gen::CC_NZ, Jump::Near);
     js.fixupExceptionHandler = true;
   }
