@@ -81,6 +81,7 @@
     <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookRotation.cpp" />
+    <ClCompile Include="Config\Mapping\GBAPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
@@ -256,6 +257,7 @@
     <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
     <QtMoc Include="Config\Mapping\FreeLookRotation.h" />
+    <QtMoc Include="Config\Mapping\GBAPadEmu.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
     <QtMoc Include="Config\Mapping\GCMicrophone.h" />
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />
