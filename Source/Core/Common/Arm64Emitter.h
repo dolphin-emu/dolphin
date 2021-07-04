@@ -695,7 +695,8 @@ public:
   bool HasWriteFailed() const { return m_write_failed; }
 
   // FixupBranch branching
-  void SetJumpTarget(FixupBranch const& branch);
+  void SetJumpTarget(const FixupBranch& branch);
+  void SetJumpTarget(const FixupBranch& branch, const u8* target);
   [[nodiscard]] FixupBranch CBZ(ARM64Reg Rt);
   [[nodiscard]] FixupBranch CBNZ(ARM64Reg Rt);
   [[nodiscard]] FixupBranch B(CCFlags cond);

@@ -138,7 +138,7 @@ void JitArm64::SafeLoadToReg(UGeckoInstruction inst, u32 dest, s32 addr, s32 off
   if (is_immediate)
     mmio_address = m_mmu.IsOptimizableMMIOAccess(imm_addr, access_size);
 
-  if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
+  if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size, inst))
   {
     set_addr_reg_if_needed();
     EmitBackpatchRoutine(inst, flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, regs_in_use,
@@ -311,7 +311,7 @@ void JitArm64::SafeStoreFromReg(UGeckoInstruction inst, s32 dest, u32 value, s32
 
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
+  else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size, inst))
   {
     set_addr_reg_if_needed();
     EmitBackpatchRoutine(inst, flags, MemAccessMode::AlwaysFastAccess, RS, XA, regs_in_use,

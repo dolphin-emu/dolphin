@@ -465,7 +465,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 
   if (emit_fast_path)
   {
-    // Perform lookup to see if we can use fast path.
+    // Perform BAT lookup to see if we can use fast path.
     MOV(64, R(RSCRATCH2), ImmPtr(m_mmu.GetDBATTable().data()));
     PUSH(RSCRATCH);
     SHR(32, R(RSCRATCH), Imm8(PowerPC::BAT_INDEX_SHIFT));
