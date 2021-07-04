@@ -199,16 +199,18 @@ constexpr int BAT_INDEX_SHIFT = 17;
 constexpr u32 BAT_PAGE_SIZE = 1 << BAT_INDEX_SHIFT;
 constexpr u32 BAT_MAPPED_BIT = 0x1;
 constexpr u32 BAT_PHYSICAL_BIT = 0x2;
-constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x3);
+constexpr u32 BAT_WI_BIT = 0x4;
+constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x7);
 using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
 extern BatTable ibat_table;
 extern BatTable dbat_table;
-inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
+inline bool TranslateBatAddess(const BatTable& bat_table, u32* address, bool* wi)
 {
   u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
   if ((bat_result & BAT_MAPPED_BIT) == 0)
     return false;
   *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
+  *wi = (bat_result & BAT_WI_BIT) != 0;
   return true;
 }
 

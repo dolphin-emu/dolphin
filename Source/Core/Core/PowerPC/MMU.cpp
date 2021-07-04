@@ -106,6 +106,7 @@ struct TranslateAddressResult
     PAGE_FAULT
   } result;
   u32 address;
+  bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
   bool Success() const { return result <= PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
@@ -1015,7 +1016,8 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
   // Translate address
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
-  if (!TranslateBatAddess(dbat_table, &address))
+  bool wi = false;
+  if (!TranslateBatAddess(dbat_table, &address, &wi))
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
@@ -1037,7 +1039,8 @@ bool IsOptimizableGatherPipeWrite(u32 address)
   // Translate address, only check BAT mapping.
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
-  if (!TranslateBatAddess(dbat_table, &address))
+  bool wi = false;
+  if (!TranslateBatAddess(dbat_table, &address, &wi))
     return false;
 
   // Check whether the translated address equals the address in WPAR.
@@ -1206,18 +1209,20 @@ enum class TLBLookupResult
   UpdateC
 };
 
-static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
+static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr,
+                                            bool* wi)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 
   if (tlbe.tag[0] == tag)
   {
+    UPTE2 PTE2;
+    PTE2.Hex = tlbe.pte[0];
+
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      UPTE2 PTE2;
-      PTE2.Hex = tlbe.pte[0];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
@@ -1230,16 +1235,18 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 0;
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
+    *wi = (PTE2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
+    UPTE2 PTE2;
+    PTE2.Hex = tlbe.pte[0];
+
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      UPTE2 PTE2;
-      PTE2.Hex = tlbe.pte[1];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
@@ -1252,6 +1259,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 1;
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
+    *wi = (PTE2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
@@ -1286,14 +1294,14 @@ void InvalidateTLBEntry(u32 address)
 }
 
 // Page Address Translation
-static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag)
+static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag,
+                                                   bool* wi)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
-  // benefit
-  // much from optimization.
+  // benefit much from optimization.
   u32 translatedAddress = 0;
-  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress);
+  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress, wi);
   if (res == TLBLookupResult::Found)
     return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED, translatedAddress};
 
@@ -1368,6 +1376,8 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         if (res != TLBLookupResult::UpdateC)
           UpdateTLBEntry(flag, PTE2, address);
 
+        *wi = (PTE2.WIMG & 0b1100) != 0;
+
         return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED,
                                       (PTE2.RPN << 12) | offset};
       }
@@ -1379,7 +1389,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
-  // TODO: Handle PP/WIMG settings.
+  // TODO: Handle PP settings.
   // TODO: Check how hardware reacts to overlapping BATs (including
   // BATs which should cause a DSI).
   // TODO: Check how hardware reacts to invalid BATs (bad mask etc).
@@ -1424,19 +1434,38 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
         u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
 
-        // The bottom bit is whether the translation is valid; the second
-        // bit from the bottom is whether we can use the fastmem arena.
+        // BAT_MAPPED_BIT is whether the translation is valid
+        // BAT_PHYSICAL_BIT is whether we can use the fastmem arena
+        // BAT_WI_BIT is whether either W or I (of WIMG) is set
         u32 valid_bit = BAT_MAPPED_BIT;
-        if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address < Memory::GetRamSizeReal())
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
-                 (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address >> 28 == 0xE &&
-                 physical_address < 0xE0000000 + Memory::GetL1CacheSize())
-          valid_bit |= BAT_PHYSICAL_BIT;
+
+        const bool wi = (batl.WIMG & 0b1100) != 0;
+        if (wi)
+          valid_bit |= BAT_WI_BIT;
+
+        // Enable fastmem mappings for cached memory. There are quirks related to uncached memory
+        // that fastmem doesn't emulate properly (though no normal games are known to rely on them).
+        if (!wi)
+        {
+          if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (physical_address < Memory::GetRamSizeReal())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
+                   (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (physical_address >> 28 == 0xE &&
+                   physical_address < 0xE0000000 + Memory::GetL1CacheSize())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+        }
 
         // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
         if (PowerPC::memchecks.OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
@@ -1511,10 +1540,12 @@ void IBATUpdated()
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(u32 address)
 {
-  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address))
-    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address};
+  bool wi = false;
 
-  return TranslatePageAddress(address, flag);
+  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address, &wi))
+    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address, wi};
+
+  return TranslatePageAddress(address, flag, &wi);
 }
 
 std::optional<u32> GetTranslatedAddress(u32 address)
