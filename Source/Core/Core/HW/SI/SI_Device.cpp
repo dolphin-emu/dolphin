@@ -20,9 +20,15 @@
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
+#include "Core/HW/SystemTimers.h"
 
 namespace SerialInterface
 {
+constexpr u64 GC_BITS_PER_SECOND = 200000;
+constexpr u64 GBA_BITS_PER_SECOND = 250000;
+constexpr u64 GC_STOP_BIT_NS = 6500;
+constexpr u64 GBA_STOP_BIT_NS = 14000;
+
 std::ostream& operator<<(std::ostream& stream, SIDevices device)
 {
   stream << static_cast<std::underlying_type_t<SIDevices>>(device);
@@ -99,6 +105,44 @@ void ISIDevice::DoState(PointerWrap& p)
 
 void ISIDevice::OnEvent(u64 userdata, s64 cycles_late)
 {
+}
+
+int SIDevice_GetGBATransferTime(EBufferCommands cmd)
+{
+  u64 gc_bytes_transferred = 1;
+  u64 gba_bytes_transferred = 1;
+  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
+
+  switch (cmd)
+  {
+  case EBufferCommands::CMD_RESET:
+  case EBufferCommands::CMD_STATUS:
+  {
+    gba_bytes_transferred = 3;
+    break;
+  }
+  case EBufferCommands::CMD_READ_GBA:
+  {
+    gba_bytes_transferred = 5;
+    break;
+  }
+  case EBufferCommands::CMD_WRITE_GBA:
+  {
+    gc_bytes_transferred = 5;
+    break;
+  }
+  default:
+  {
+    gba_bytes_transferred = 0;
+    break;
+  }
+  }
+
+  u64 cycles =
+      (gba_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GBA_BITS_PER_SECOND) +
+      (gc_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GC_BITS_PER_SECOND) +
+      (stop_bits_ns * SystemTimers::GetTicksPerSecond() / 1000000000LL);
+  return static_cast<int>(cycles);
 }
 
 // Check if a device class is inheriting from CSIDevice_GCController

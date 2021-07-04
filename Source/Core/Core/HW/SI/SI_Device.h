@@ -130,6 +130,7 @@ protected:
   SIDevices m_device_type;
 };
 
+int SIDevice_GetGBATransferTime(EBufferCommands cmd);
 bool SIDevice_IsGCController(SIDevices type);
 
 std::unique_ptr<ISIDevice> SIDevice_Create(SIDevices device, int port_number);

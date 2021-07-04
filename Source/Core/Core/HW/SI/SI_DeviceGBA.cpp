@@ -34,51 +34,9 @@ int s_num_connected;
 Common::Flag s_server_running;
 }  // namespace
 
-constexpr auto GC_BITS_PER_SECOND = 200000;
-constexpr auto GBA_BITS_PER_SECOND = 250000;
-constexpr auto GC_STOP_BIT_NS = 6500;
-constexpr auto GBA_STOP_BIT_NS = 14000;
 constexpr auto SEND_MAX_SIZE = 5, RECV_MAX_SIZE = 5;
 
 // --- GameBoy Advance "Link Cable" ---
-
-static int GetTransferTime(EBufferCommands cmd)
-{
-  u64 gc_bytes_transferred = 1;
-  u64 gba_bytes_transferred = 1;
-  u64 stop_bits_ns = GC_STOP_BIT_NS + GBA_STOP_BIT_NS;
-
-  switch (cmd)
-  {
-  case EBufferCommands::CMD_RESET:
-  case EBufferCommands::CMD_STATUS:
-  {
-    gba_bytes_transferred = 3;
-    break;
-  }
-  case EBufferCommands::CMD_READ_GBA:
-  {
-    gba_bytes_transferred = 5;
-    break;
-  }
-  case EBufferCommands::CMD_WRITE_GBA:
-  {
-    gc_bytes_transferred = 5;
-    break;
-  }
-  default:
-  {
-    gba_bytes_transferred = 0;
-    break;
-  }
-  }
-
-  u64 cycles =
-      (gba_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GBA_BITS_PER_SECOND) +
-      (gc_bytes_transferred * 8 * SystemTimers::GetTicksPerSecond() / GC_BITS_PER_SECOND) +
-      (stop_bits_ns * SystemTimers::GetTicksPerSecond() / 1000000000LL);
-  return static_cast<int>(cycles);
-}
 
 static void GBAConnectionWaiter()
 {
@@ -336,7 +294,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
   {
     int elapsed_time = static_cast<int>(CoreTiming::GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
-    if (GetTransferTime(m_last_cmd) > elapsed_time)
+    if (SIDevice_GetGBATransferTime(m_last_cmd) > elapsed_time)
       return 0;
     m_next_action = NextAction::ReceiveResponse;
     [[fallthrough]];
@@ -383,7 +341,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
 int CSIDevice_GBA::TransferInterval()
 {
-  return GetTransferTime(m_last_cmd);
+  return SIDevice_GetGBATransferTime(m_last_cmd);
 }
 
 bool CSIDevice_GBA::GetData(u32& hi, u32& low)
