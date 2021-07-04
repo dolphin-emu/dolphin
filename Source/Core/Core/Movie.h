@@ -39,6 +39,15 @@ enum PlayMode
   MODE_PLAYING
 };
 
+enum class ControllerType
+{
+  None = 0,
+  GC,
+  GBA,
+};
+using ControllerTypeArray = std::array<ControllerType, 4>;
+using WiimoteEnabledArray = std::array<bool, 4>;
+
 // GameCube Controller State
 #pragma pack(push, 1)
 struct ControllerState
@@ -116,7 +125,8 @@ struct DTMHeader
   u8 reserved3;
   bool bFollowBranch;
   bool bUseFMA;
-  std::array<u8, 8> reserved;       // Padding for any new config options
+  u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
+  std::array<u8, 7> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -163,12 +173,14 @@ bool IsNetPlayRecording();
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 bool IsUsingBongo(int controller);
+bool IsUsingGBA(int controller);
 void ChangePads();
 void ChangeWiiPads(bool instantly = false);
 
 void SetReadOnly(bool bEnabled);
 
-bool BeginRecordingInput(int controllers);
+bool BeginRecordingInput(const ControllerTypeArray& controllers,
+                         const WiimoteEnabledArray& wiimotes);
 void RecordInput(const GCPadStatus* PadStatus, int controllerID);
 void RecordWiimote(int wiimote, const u8* data, u8 size);
 
