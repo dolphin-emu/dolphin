@@ -624,6 +624,8 @@ if(USE_MGBA)
   target_sources(core PRIVATE
     HW/GBACore.cpp
     HW/GBACore.h
+    HW/SI/SI_DeviceGBAEmu.cpp
+    HW/SI/SI_DeviceGBAEmu.h
   )
   target_link_libraries(core PUBLIC mGBA::mgba)
   target_compile_definitions(core PUBLIC -DHAS_LIBMGBA)

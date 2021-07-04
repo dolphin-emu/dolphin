@@ -93,6 +93,7 @@ enum SIDevices : int
   // It's kept here so that values below will stay constant.
   SIDEVICE_AM_BASEBOARD,
   SIDEVICE_WIIU_ADAPTER,
+  SIDEVICE_GC_GBA_EMULATED,
   // Not a valid device. Used for checking whether enum values are valid.
   SIDEVICE_COUNT,
 };

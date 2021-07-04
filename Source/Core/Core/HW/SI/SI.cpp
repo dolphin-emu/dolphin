@@ -707,7 +707,7 @@ void UpdateDevices()
 
 SIDevices GetDeviceType(int channel)
 {
-  if (channel < 0 || channel > 3)
+  if (channel < 0 || channel >= MAX_SI_CHANNELS || !s_channel[channel].device)
     return SIDEVICE_NONE;
 
   return s_channel[channel].device->GetDeviceType();
