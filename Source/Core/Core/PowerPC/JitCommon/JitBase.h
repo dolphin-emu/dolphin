@@ -165,7 +165,7 @@ protected:
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_guard = nullptr;
 
-  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 23> JIT_SETTINGS;
+  static const std::array<std::pair<bool JitBase::*, const Config::Info<bool>*>, 24> JIT_SETTINGS;
 
   bool DoesConfigNeedRefresh() const;
   void RefreshConfig();
