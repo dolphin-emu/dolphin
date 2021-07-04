@@ -1691,18 +1691,21 @@ void MainWindow::OnStartRecording()
     emit ReadOnlyModeChanged(true);
   }
 
-  int controllers = 0;
+  Movie::ControllerTypeArray controllers{};
+  Movie::WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < 4; i++)
   {
-    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
-      controllers |= (1 << i);
-
-    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-      controllers |= (1 << (i + 4));
+    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      controllers[i] = Movie::ControllerType::GBA;
+    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      controllers[i] = Movie::ControllerType::GC;
+    else
+      controllers[i] = Movie::ControllerType::None;
+    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
   }
 
-  if (Movie::BeginRecordingInput(controllers))
+  if (Movie::BeginRecordingInput(controllers, wiimotes))
   {
     emit RecordingStatusChanged(true);
 
