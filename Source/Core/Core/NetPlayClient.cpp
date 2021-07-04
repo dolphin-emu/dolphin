@@ -879,6 +879,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.perf_queries_enable;
     packet >> m_net_settings.float_exceptions;
     packet >> m_net_settings.divide_by_zero_exceptions;
+    packet >> m_net_settings.alignment_exceptions;
     packet >> m_net_settings.fprf;
     packet >> m_net_settings.accurate_nans;
     packet >> m_net_settings.disable_icache;
