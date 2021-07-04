@@ -534,7 +534,7 @@ void PowerPCManager::CheckExceptions()
   }
   else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
   {
-    m_ppc_state.Exceptions &= ~EXCEPTION_DSI & ~EXCEPTION_FAKE_MEMCHECK_HIT;
+    m_ppc_state.Exceptions &= ~EXCEPTION_FAKE_MEMCHECK_HIT;
   }
   else if (exceptions & EXCEPTION_DSI)
   {
