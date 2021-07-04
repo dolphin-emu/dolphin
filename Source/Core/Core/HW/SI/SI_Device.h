@@ -41,6 +41,40 @@ enum TSIDevices : u32
   SI_AM_BASEBOARD = 0x10110800  // gets ORd with dipswitch state
 };
 
+// Commands
+enum class EBufferCommands : u8
+{
+  CMD_STATUS = 0x00,
+  CMD_READ_GBA = 0x14,
+  CMD_WRITE_GBA = 0x15,
+  CMD_DIRECT = 0x40,
+  CMD_ORIGIN = 0x41,
+  CMD_RECALIBRATE = 0x42,
+  CMD_DIRECT_KB = 0x54,
+  CMD_RESET = 0xFF
+};
+
+enum class EDirectCommands : u8
+{
+  CMD_FORCE = 0x30,
+  CMD_WRITE = 0x40,
+  CMD_POLL = 0x54
+};
+
+union UCommand
+{
+  u32 hex = 0;
+  struct
+  {
+    u32 parameter1 : 8;
+    u32 parameter2 : 8;
+    u32 command : 8;
+    u32 : 8;
+  };
+  UCommand() = default;
+  UCommand(u32 value) : hex{value} {}
+};
+
 // For configuration use, since some devices can have the same SI Device ID
 enum SIDevices : int
 {

@@ -34,14 +34,6 @@ int s_num_connected;
 Common::Flag s_server_running;
 }  // namespace
 
-enum EJoybusCmds
-{
-  CMD_RESET = 0xff,
-  CMD_STATUS = 0x00,
-  CMD_READ = 0x14,
-  CMD_WRITE = 0x15
-};
-
 constexpr auto GC_BITS_PER_SECOND = 200000;
 constexpr auto GBA_BITS_PER_SECOND = 250000;
 constexpr auto GC_STOP_BIT_NS = 6500;
@@ -50,7 +42,7 @@ constexpr auto SEND_MAX_SIZE = 5, RECV_MAX_SIZE = 5;
 
 // --- GameBoy Advance "Link Cable" ---
 
-static int GetTransferTime(u8 cmd)
+static int GetTransferTime(EBufferCommands cmd)
 {
   u64 gc_bytes_transferred = 1;
   u64 gba_bytes_transferred = 1;
@@ -58,18 +50,18 @@ static int GetTransferTime(u8 cmd)
 
   switch (cmd)
   {
-  case CMD_RESET:
-  case CMD_STATUS:
+  case EBufferCommands::CMD_RESET:
+  case EBufferCommands::CMD_STATUS:
   {
     gba_bytes_transferred = 3;
     break;
   }
-  case CMD_READ:
+  case EBufferCommands::CMD_READ_GBA:
   {
     gba_bytes_transferred = 5;
     break;
   }
-  case CMD_WRITE:
+  case EBufferCommands::CMD_WRITE_GBA:
   {
     gc_bytes_transferred = 5;
     break;
@@ -249,10 +241,10 @@ void GBASockServer::Send(const u8* si_buffer)
   for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i];
 
-  u8 cmd = send_data[0];
+  const auto cmd = static_cast<EBufferCommands>(send_data[0]);
 
   sf::Socket::Status status;
-  if (cmd == CMD_WRITE)
+  if (cmd == EBufferCommands::CMD_WRITE_GBA)
     status = m_client->send(send_data.data(), send_data.size());
   else
     status = m_client->send(send_data.data(), 1);
@@ -334,7 +326,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
       return -1;
     }
 
-    m_last_cmd = buffer[0];
+    m_last_cmd = static_cast<EBufferCommands>(buffer[0]);
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
     return 0;
@@ -355,11 +347,11 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     u8 bytes = 1;
     switch (m_last_cmd)
     {
-    case CMD_RESET:
-    case CMD_STATUS:
+    case EBufferCommands::CMD_RESET:
+    case EBufferCommands::CMD_STATUS:
       bytes = 3;
       break;
-    case CMD_READ:
+    case EBufferCommands::CMD_READ_GBA:
       bytes = 5;
       break;
     default:
@@ -372,8 +364,9 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
       return -1;
 #ifdef _DEBUG
     const Common::Log::LOG_LEVELS log_level =
-        (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ? Common::Log::LERROR :
-                                                                Common::Log::LWARNING;
+        (m_last_cmd == EBufferCommands::CMD_STATUS || m_last_cmd == EBufferCommands::CMD_RESET) ?
+            Common::Log::LERROR :
+            Common::Log::LWARNING;
     GENERIC_LOG_FMT(Common::Log::SERIALINTERFACE, log_level,
                     "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
                     m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
