@@ -270,7 +270,7 @@ static void Helper_Dequantize(PowerPC::MMU& mmu, PowerPC::PowerPCState* ppcs, u3
     break;
   }
 
-  if ((ppcs->Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppcs->Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
   {
     return;
   }
@@ -303,7 +303,7 @@ void Interpreter::psq_lu(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 EA = ppc_state.gpr[inst.RA] + u32(inst.SIMM_12);
   Helper_Dequantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RD, inst.W);
 
-  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
   {
     return;
   }
@@ -336,7 +336,7 @@ void Interpreter::psq_stu(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 EA = ppc_state.gpr[inst.RA] + u32(inst.SIMM_12);
   Helper_Quantize(interpreter.m_mmu, &ppc_state, EA, inst.I, inst.RS, inst.W);
 
-  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
   {
     return;
   }
@@ -366,7 +366,7 @@ void Interpreter::psq_lux(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 EA = ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB];
   Helper_Dequantize(interpreter.m_mmu, &ppc_state, EA, inst.Ix, inst.RD, inst.Wx);
 
-  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
   {
     return;
   }
@@ -380,7 +380,7 @@ void Interpreter::psq_stux(Interpreter& interpreter, UGeckoInstruction inst)
   const u32 EA = ppc_state.gpr[inst.RA] + ppc_state.gpr[inst.RB];
   Helper_Quantize(interpreter.m_mmu, &ppc_state, EA, inst.Ix, inst.RS, inst.Wx);
 
-  if ((ppc_state.Exceptions & EXCEPTION_DSI) != 0)
+  if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
   {
     return;
   }
