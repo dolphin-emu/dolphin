@@ -54,9 +54,9 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
   ERROR_LOG_FMT(DYNA_REC, "Full block: {}", pc_memory);
 }
 
-void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, ARM64Reg addr,
-                                    BitSet32 gprs_to_push, BitSet32 fprs_to_push,
-                                    bool emitting_routine)
+void JitArm64::EmitBackpatchRoutine(UGeckoInstruction inst, u32 flags, MemAccessMode mode,
+                                    ARM64Reg RS, ARM64Reg addr, BitSet32 gprs_to_push,
+                                    BitSet32 fprs_to_push, bool emitting_routine)
 {
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
 
@@ -77,7 +77,9 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
     if (!jo.fastmem)
     {
-      const ARM64Reg temp = emitting_routine ? ARM64Reg::W3 : ARM64Reg::W30;
+      ARM64Reg temp = ARM64Reg::W30;
+      if (emitting_routine)
+        temp = (flags & BackPatchInfo::FLAG_STORE) ? ARM64Reg::W4 : ARM64Reg::W3;
 
       memory_base = EncodeRegTo64(temp);
       memory_offset = ARM64Reg::W0;
@@ -218,42 +220,48 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
         src_reg = dst_reg;
       }
 
+      const auto call_func = [&](auto f) {
+        if (emitting_routine)
+          ABI_CallFunction(f, &m_mmu, src_reg, ARM64Reg::W2, ARM64Reg::W3);
+        else
+          ABI_CallFunction(f, &m_mmu, src_reg, ARM64Reg::W2, inst.hex);
+      };
+
       const bool reverse = (flags & BackPatchInfo::FLAG_REVERSE) != 0;
 
       if (access_size == 64)
-      {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteFromJit<u64>,
-                         &m_mmu, src_reg, ARM64Reg::W2);
-      }
+        call_func(reverse ? &PowerPC::WriteU64SwapFromJit : &PowerPC::WriteFromJit<u64>);
       else if (access_size == 32)
-      {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteFromJit<u32>,
-                         &m_mmu, src_reg, ARM64Reg::W2);
-      }
+        call_func(reverse ? &PowerPC::WriteU32SwapFromJit : &PowerPC::WriteFromJit<u32>);
       else if (access_size == 16)
-      {
-        ABI_CallFunction(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteFromJit<u16>,
-                         &m_mmu, src_reg, ARM64Reg::W2);
-      }
+        call_func(reverse ? &PowerPC::WriteU16SwapFromJit : &PowerPC::WriteFromJit<u16>);
       else
-      {
-        ABI_CallFunction(&PowerPC::WriteFromJit<u8>, &m_mmu, src_reg, ARM64Reg::W2);
-      }
+        call_func(&PowerPC::WriteFromJit<u8>);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      ABI_CallFunction(&PowerPC::ClearDCacheLineFromJit, &m_mmu, ARM64Reg::W1);
+      if (emitting_routine)
+        ABI_CallFunction(&PowerPC::ClearDCacheLineFromJit, &m_mmu, ARM64Reg::W1, inst.hex);
+      else
+        ABI_CallFunction(&PowerPC::ClearDCacheLineFromJit, &m_mmu, ARM64Reg::W1, ARM64Reg::W2);
     }
     else
     {
+      const auto call_func = [&](auto f) {
+        if (emitting_routine)
+          ABI_CallFunction(f, &m_mmu, ARM64Reg::W1, ARM64Reg::W2);
+        else
+          ABI_CallFunction(f, &m_mmu, ARM64Reg::W1, inst.hex);
+      };
+
       if (access_size == 64)
-        ABI_CallFunction(&PowerPC::ReadFromJit<u64>, &m_mmu, ARM64Reg::W1);
+        call_func(&PowerPC::ReadFromJit<u64>);
       else if (access_size == 32)
-        ABI_CallFunction(&PowerPC::ReadFromJit<u32>, &m_mmu, ARM64Reg::W1);
+        call_func(&PowerPC::ReadFromJit<u32>);
       else if (access_size == 16)
-        ABI_CallFunction(&PowerPC::ReadFromJit<u16>, &m_mmu, ARM64Reg::W1);
+        call_func(&PowerPC::ReadFromJit<u16>);
       else
-        ABI_CallFunction(&PowerPC::ReadFromJit<u8>, &m_mmu, ARM64Reg::W1);
+        call_func(&PowerPC::ReadFromJit<u8>);
     }
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);

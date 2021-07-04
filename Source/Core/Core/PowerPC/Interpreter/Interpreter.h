@@ -309,7 +309,8 @@ private:
   static void Helper_FloatCompareUnordered(PowerPC::PowerPCState& ppc_state, UGeckoInstruction inst,
                                            double a, double b);
 
-  static void Helper_StoreString(Interpreter& interpreter, const u32 EA, u32 n, u32 r);
+  static void Helper_StoreString(Interpreter& interpreter, UGeckoInstruction inst, const u32 EA,
+                                 u32 n, u32 r);
 
   void UpdatePC();
   bool IsInvalidPairedSingleExecution(UGeckoInstruction inst);
