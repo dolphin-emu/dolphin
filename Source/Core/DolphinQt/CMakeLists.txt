@@ -540,6 +540,15 @@ else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()
 
+if(USE_MGBA)
+  target_sources(dolphin-emu PRIVATE
+    GBAHost.cpp
+    GBAHost.h
+    GBAWidget.cpp
+    GBAWidget.h
+  )
+endif()
+
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
