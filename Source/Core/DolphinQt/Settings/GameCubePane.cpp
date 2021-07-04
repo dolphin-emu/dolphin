@@ -542,6 +542,10 @@ void GameCubePane::SaveSettings()
       Config::SetBaseOrCurrent(Config::MAIN_GBA_ROM_PATHS[i],
                                m_gba_rom_edits[i]->text().toStdString());
     }
+
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->SetGBAConfig(server->GetGBAConfig(), true);
   }
 #endif
 

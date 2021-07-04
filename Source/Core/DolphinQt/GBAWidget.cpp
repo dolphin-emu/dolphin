@@ -58,6 +58,17 @@ GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, int device_number,
       m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false)
 {
   bool visible = true;
+  if (NetPlay::IsNetPlayRunning())
+  {
+    NetPlay::PadDetails details = NetPlay::GetPadDetails(m_device_number);
+    if (details.local_pad < 4)
+    {
+      m_netplayer_name = details.player_name;
+      m_is_local_pad = details.is_local;
+      m_local_pad = details.local_pad;
+      visible = !details.hide_gba;
+    }
+  }
 
   setWindowIcon(Resources::GetAppIcon());
   setAcceptDrops(true);

@@ -219,7 +219,8 @@ bool Core::Start(u64 gc_ticks)
     m_core->getGameTitle(m_core, game_title.data());
     m_game_title = game_title.data();
 
-    m_save_path = GetSavePath(m_rom_path, m_device_number);
+    m_save_path = NetPlay::IsNetPlayRunning() ? NetPlay::GetGBASavePath(m_device_number) :
+                                                GetSavePath(m_rom_path, m_device_number);
     if (!m_save_path.empty() && !LoadSave(m_save_path.c_str()))
       return false;
   }
