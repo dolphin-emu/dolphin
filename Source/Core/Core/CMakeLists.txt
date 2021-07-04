@@ -440,8 +440,8 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
   PowerPC/Interpreter/Interpreter.cpp
   PowerPC/Interpreter/Interpreter.h
-	PowerPC/JitCommon/DivUtils.cpp
-	PowerPC/JitCommon/DivUtils.h
+  PowerPC/JitCommon/DivUtils.cpp
+  PowerPC/JitCommon/DivUtils.h
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitAsmCommon.h
   PowerPC/JitCommon/JitBase.cpp
@@ -621,6 +621,10 @@ if(ENABLE_VULKAN)
 endif()
 
 if(USE_MGBA)
+  target_sources(core PRIVATE
+    HW/GBACore.cpp
+    HW/GBACore.h
+  )
   target_link_libraries(core PUBLIC mGBA::mgba)
   target_compile_definitions(core PUBLIC -DHAS_LIBMGBA)
 endif()
