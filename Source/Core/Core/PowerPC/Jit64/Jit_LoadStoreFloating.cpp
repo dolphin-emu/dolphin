@@ -69,7 +69,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   if (update && jo.memcheck)
     registersInUse[RSCRATCH2] = true;
-  SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
+  SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, inst, registersInUse, false);
 
   if (single)
   {
@@ -138,7 +138,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   {
     u32 addr = (a ? gpr.Imm32(a) : 0) + imm;
     bool exception =
-        WriteToConstAddress(accessSize, R(RSCRATCH), addr, CallerSavedRegistersInUse());
+        WriteToConstAddress(accessSize, R(RSCRATCH), addr, inst, CallerSavedRegistersInUse());
 
     if (update)
     {
@@ -184,7 +184,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   if (update)
     registersInUse[RSCRATCH2] = true;
 
-  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, registersInUse);
+  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, inst, registersInUse);
 
   if (update)
     MOV(32, Ra, R(RSCRATCH2));
@@ -213,5 +213,5 @@ void Jit64::stfiwx(UGeckoInstruction inst)
     MOVD_xmm(R(RSCRATCH), Rs.GetSimpleReg());
   else
     MOV(32, R(RSCRATCH), Rs);
-  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, CallerSavedRegistersInUse());
+  SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, inst, CallerSavedRegistersInUse());
 }
