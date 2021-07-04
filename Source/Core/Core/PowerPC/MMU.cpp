@@ -267,7 +267,7 @@ T MMU::ReadFromHardware(u32 effective_address)
   if (m_system.IsPauseOnPanicMode())
   {
     m_system.GetCPU().Break();
-    m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
   }
   return 0;
 }
@@ -468,7 +468,7 @@ void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32
   if (m_system.IsPauseOnPanicMode())
   {
     m_system.GetCPU().Break();
-    m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+    m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
   }
 }
 // =====================
@@ -584,14 +584,12 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
   if (GDBStub::IsActive())
     GDBStub::TakeControl();
 
-  // Fake a DSI so that all the code that tests for it in order to skip
-  // the rest of the instruction will apply.  (This means that
+  // Fake an exception so that all the code that tests for it in order to
+  // skip the the rest of the instruction will apply.  (This means that
   // watchpoints will stop the emulator before the offending load/store,
   // not after like GDB does, but that's better anyway.  Just need to
   // make sure resuming after that works.)
-  // It doesn't matter if ReadFromHardware triggers its own DSI because
-  // we'll take it after resuming.
-  m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+  m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
 }
 
 template <std::unsigned_integral T>
@@ -1189,7 +1187,7 @@ void MMU::GenerateDSIException(u32 effective_address, bool write)
     if (m_system.IsPauseOnPanicMode())
     {
       m_system.GetCPU().Break();
-      m_ppc_state.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+      m_ppc_state.Exceptions |= EXCEPTION_FAKE_MEMCHECK_HIT;
     }
     return;
   }
