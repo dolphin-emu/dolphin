@@ -145,6 +145,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+      Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+#endif
+
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
