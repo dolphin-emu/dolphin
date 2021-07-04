@@ -13,8 +13,12 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
+#ifdef HAS_LIBMGBA
+#include "Core/HW/SI/SI_DeviceGBAEmu.h"
+#endif
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
@@ -186,6 +190,14 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
 
   case SIDEVICE_GC_GBA:
     return std::make_unique<CSIDevice_GBA>(device, port_number);
+
+  case SIDEVICE_GC_GBA_EMULATED:
+#ifdef HAS_LIBMGBA
+    return std::make_unique<CSIDevice_GBAEmu>(device, port_number);
+#else
+    PanicAlertT("Error: This build does not support emulated GBA controllers");
+    return std::make_unique<CSIDevice_Null>(device, port_number);
+#endif
 
   case SIDEVICE_GC_KEYBOARD:
     return std::make_unique<CSIDevice_Keyboard>(device, port_number);
