@@ -25,6 +25,7 @@
 
 #include "Core/PowerPC/MMU.h"
 
+#include <algorithm>
 #include <bit>
 #include <cstddef>
 #include <cstring>
@@ -44,6 +45,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -154,22 +156,6 @@ T MMU::ReadFromHardware(u32 effective_address, UGeckoInstruction inst)
   static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Read ||
                 flag == XCheckTLBFlag::OpcodeNoException);
 
-  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
-  const u32 effective_end_page = (effective_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
-  if (effective_start_page != effective_end_page)
-  {
-    // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-    // way isn't too terrible.
-    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-    T var = 0;
-    for (u32 i = 0; i < sizeof(T); ++i)
-    {
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(effective_address + i, inst);
-    }
-    return var;
-  }
-
   u32 physical_address;
   bool wi;
 
@@ -190,6 +176,27 @@ T MMU::ReadFromHardware(u32 effective_address, UGeckoInstruction inst)
   {
     physical_address = effective_address;
     wi = false;
+  }
+
+  if (flag == XCheckTLBFlag::Read &&
+      AccessCausesAlignmentException(effective_address, sizeof(T) << 3, inst, wi))
+  {
+    GenerateAlignmentException(m_ppc_state, effective_address, inst);
+    return 0;
+  }
+
+  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
+  const u32 effective_end_page = (effective_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
+  if (effective_start_page != effective_end_page)
+  {
+    // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
+    // way isn't too terrible.
+    T var = 0;
+    for (u32 i = 0; i < sizeof(T); ++i)
+    {
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(effective_address + i, inst);
+    }
+    return var;
   }
 
   if (flag == XCheckTLBFlag::Read && (physical_address & 0xF8000000) == 0x08000000)
@@ -281,21 +288,6 @@ void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32
 
   DEBUG_ASSERT(size <= 4);
 
-  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
-  const u32 effective_end_page = (effective_address + size - 1) & ~HW_PAGE_MASK;
-  if (effective_start_page != effective_end_page)
-  {
-    // The write crosses a page boundary. Break it up into two writes.
-    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-    const u32 first_half_size = effective_end_page - effective_address;
-    const u32 second_half_size = size - first_half_size;
-    WriteToHardware<flag, never_translate>(effective_address, std::rotr(data, second_half_size * 8),
-                                           first_half_size, inst);
-    WriteToHardware<flag, never_translate>(effective_end_page, data, second_half_size, inst);
-    return;
-  }
-
   u32 physical_address;
   bool wi;
 
@@ -316,6 +308,26 @@ void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32
   {
     physical_address = effective_address;
     wi = false;
+  }
+
+  if (flag == XCheckTLBFlag::Write &&
+      AccessCausesAlignmentException(effective_address, size << 3, inst, wi))
+  {
+    GenerateAlignmentException(m_ppc_state, effective_address, inst);
+    return;
+  }
+
+  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
+  const u32 effective_end_page = (effective_address + size - 1) & ~HW_PAGE_MASK;
+  if (effective_start_page != effective_end_page)
+  {
+    // The write crosses a page boundary. Break it up into two writes.
+    const u32 first_half_size = effective_end_page - effective_address;
+    const u32 second_half_size = size - first_half_size;
+    WriteToHardware<flag, never_translate>(effective_address, std::rotr(data, second_half_size * 8),
+                                           first_half_size, inst);
+    WriteToHardware<flag, never_translate>(effective_end_page, data, second_half_size, inst);
+    return;
   }
 
   // Check for a gather pipe write (which are not implemented through the MMIO system).
@@ -823,7 +835,8 @@ std::optional<ReadResult<std::string>> MMU::HostTryReadString(const Core::CPUThr
   return ReadResult<std::string>(c->translated, std::move(s));
 }
 
-bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) const
+bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size,
+                                  const UGeckoInstruction inst) const
 {
   if (m_power_pc.GetMemChecks().HasAny())
     return false;
@@ -833,6 +846,12 @@ bool MMU::IsOptimizableRAMAddress(const u32 address, const u32 access_size) cons
 
   if (m_ppc_state.m_enable_dcache)
     return false;
+
+  if ((address & GetAlignmentMask(access_size)) != 0 &&
+      AccessCausesAlignmentExceptionIfMisaligned(inst, access_size))
+  {
+    return false;
+  }
 
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
@@ -1133,7 +1152,7 @@ u32 MMU::IsOptimizableMMIOAccess(u32 address, u32 access_size) const
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
-  const bool aligned = (address & ((access_size >> 3) - 1)) == 0;
+  const bool aligned = (address & GetAlignmentMask(access_size)) == 0;
   if (!aligned || !MMIO::IsMMIOAddress(address, m_system.IsWii()))
     return 0;
 
@@ -1640,4 +1659,76 @@ void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst)
 {
   mmu.Write_U64_Swap(var, address, inst);
 }
+
+static bool IsDcbz(UGeckoInstruction inst)
+{
+  // dcbz, dcbz_l
+  return inst.SUBOP10 == 1014 && (inst.OPCD == 31 || inst.OPCD == 4);
+}
+
+static bool IsFloat(UGeckoInstruction inst, size_t access_size)
+{
+  // Floating loadstore
+  if (inst.OPCD >= 48 && inst.OPCD < 56)
+    return true;
+
+  // Paired non-indexed loadstore
+  if (inst.OPCD >= 56 && inst.OPCD < 62)
+    return access_size == (inst.W ? 32 : 64);
+
+  // Paired indexed loadstore
+  if (inst.OPCD == 4 && inst.SUBOP10 != 1014)
+    return access_size == (inst.Wx ? 32 : 64);
+
+  return false;
+}
+
+static bool IsMultiword(UGeckoInstruction inst)
+{
+  // lmw, stmw
+  if (inst.OPCD == 46 || inst.OPCD == 47)
+    return true;
+
+  if (inst.OPCD != 31)
+    return false;
+
+  // lswx, lswi, stswx, stswi
+  return inst.SUBOP10 == 533 || inst.SUBOP10 == 597 || inst.SUBOP10 == 661 || inst.SUBOP10 == 725;
+}
+
+static bool IsLwarxOrStwcx(UGeckoInstruction inst)
+{
+  // lwarx, stwcx
+  return inst.OPCD == 31 && (inst.SUBOP10 == 20 || inst.SUBOP10 == 150);
+}
+
+static bool IsEciwxOrEcowx(UGeckoInstruction inst)
+{
+  // eciwx, ecowx
+  return inst.OPCD == 31 && (inst.SUBOP10 == 310 || inst.SUBOP10 == 438);
+}
+
+bool AccessCausesAlignmentExceptionIfWi(UGeckoInstruction inst)
+{
+  return IsDcbz(inst);
+}
+
+bool AccessCausesAlignmentExceptionIfMisaligned(UGeckoInstruction inst, size_t access_size)
+{
+  return IsFloat(inst, access_size) || IsMultiword(inst) || IsLwarxOrStwcx(inst) ||
+         IsEciwxOrEcowx(inst);
+}
+
+bool AccessCausesAlignmentException(u32 effective_address, size_t access_size,
+                                    UGeckoInstruction inst, bool wi)
+{
+  if (wi && AccessCausesAlignmentExceptionIfWi(inst))
+    return true;
+
+  if ((effective_address & GetAlignmentMask(access_size)) == 0)
+    return false;
+
+  return AccessCausesAlignmentExceptionIfMisaligned(inst, access_size);
+}
+
 }  // namespace PowerPC

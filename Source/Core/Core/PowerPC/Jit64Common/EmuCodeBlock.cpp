@@ -109,8 +109,8 @@ FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* 
   return J_CC(CC_NC, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
-FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
-                                             BitSet32 registers_in_use)
+FixupBranch EmuCodeBlock::CheckIfBATSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
+                                                BitSet32 registers_in_use)
 {
   registers_in_use[reg_addr] = true;
   if (reg_value.IsSimpleReg())
@@ -125,7 +125,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   if (reg_addr != RSCRATCH_EXTRA)
     MOV(32, R(RSCRATCH_EXTRA), R(reg_addr));
 
-  // Perform lookup to see if we can use fast path.
+  // Perform BAT lookup to see if we can use fast path.
   MOV(64, R(RSCRATCH), ImmPtr(m_jit.m_mmu.GetDBATTable().data()));
   SHR(32, R(RSCRATCH_EXTRA), Imm8(PowerPC::BAT_INDEX_SHIFT));
   TEST(32, MComplex(RSCRATCH, RSCRATCH_EXTRA, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
@@ -136,6 +136,13 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
     POP(RSCRATCH);
 
   return J_CC(CC_Z, m_far_code.Enabled() ? Jump::Near : Jump::Short);
+}
+
+FixupBranch EmuCodeBlock::CheckIfAlignmentSafeAddress(X64Reg reg_addr, int access_size,
+                                                      UGeckoInstruction inst)
+{
+  TEST(32, R(reg_addr), Imm32(PowerPC::GetAlignmentMask(access_size)));
+  return J_CC(CC_NZ, m_far_code.Enabled() ? Jump::Near : Jump::Short);
 }
 
 void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
@@ -328,11 +335,13 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
                                  bool signExtend, int flags)
 {
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
+  bool check_alignment = m_jit.jo.alignment_exceptions &&
+                         PowerPC::AccessCausesAlignmentExceptionIfMisaligned(inst, accessSize);
 
   auto& js = m_jit.js;
   registersInUse[reg_value] = false;
   if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
-      !force_slow_access)
+      !force_slow_access && !check_alignment)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
@@ -386,13 +395,21 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
       !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
   {
-    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
+    FixupBranch slow_1;
+    if (check_alignment)
+      slow_1 = CheckIfAlignmentSafeAddress(reg_addr, accessSize, inst);
+    FixupBranch slow_2 = CheckIfBATSafeAddress(R(reg_value), reg_addr, registersInUse);
+
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
+
     if (m_far_code.Enabled())
       SwitchToFarCode();
     else
       exit = J(Jump::Near);
-    SetJumpTarget(slow);
+
+    if (check_alignment)
+      SetJumpTarget(slow_1);
+    SetJumpTarget(slow_2);
   }
 
   // In the case of Jit64AsmCommon routines, the state we want to store here isn't known
@@ -448,7 +465,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
                                           bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
-  if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
+  if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize, inst))
   {
     UnsafeLoadToReg(reg_value, Imm32(address), accessSize, 0, signExtend);
     return;
@@ -502,13 +519,15 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
+  bool check_alignment = m_jit.jo.alignment_exceptions &&
+                         PowerPC::AccessCausesAlignmentExceptionIfMisaligned(inst, accessSize);
 
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
 
   auto& js = m_jit.js;
   if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
-      !force_slow_access)
+      !force_slow_access && !check_alignment)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
@@ -558,13 +577,21 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
       !force_slow_access && dr_set && m_jit.jo.fastmem_arena && !m_jit.m_ppc_state.m_enable_dcache;
   if (fast_check_address)
   {
-    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
+    FixupBranch slow_1;
+    if (check_alignment)
+      slow_1 = CheckIfAlignmentSafeAddress(reg_addr, accessSize, inst);
+    FixupBranch slow_2 = CheckIfBATSafeAddress(reg_value, reg_addr, registersInUse);
+
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+
     if (m_far_code.Enabled())
       SwitchToFarCode();
     else
       exit = J(Jump::Near);
-    SetJumpTarget(slow);
+
+    if (check_alignment)
+      SetJumpTarget(slow_1);
+    SetJumpTarget(slow_2);
   }
 
   // In the case of Jit64AsmCommon routines, the state we want to store here isn't known
@@ -661,7 +688,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     m_jit.js.fifoBytesSinceCheck += accessSize >> 3;
     return false;
   }
-  else if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
+  else if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize, inst))
   {
     WriteToConstRamAddress(accessSize, arg, address);
     return false;
