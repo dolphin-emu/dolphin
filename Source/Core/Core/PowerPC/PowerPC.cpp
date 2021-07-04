@@ -531,8 +531,7 @@ void CheckExceptions()
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000600;
-
-    // TODO crazy amount of DSISR options to check out
+    // DSISR and DAR regs are changed in GenerateAlignmentException()
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ALIGNMENT");
     ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;

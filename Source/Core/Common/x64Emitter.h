@@ -1119,6 +1119,15 @@ public:
     ABI_CallFunction(func);
   }
 
+  // Pass two registers and one constant as parameters.
+  template <typename FunctionPointer>
+  void ABI_CallFunctionRRC(FunctionPointer func, X64Reg reg1, X64Reg reg2, u32 param3)
+  {
+    MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    ABI_CallFunction(func);
+  }
+
   // Pass a pointer and two registers as parameters.
   template <typename FunctionPointer>
   void ABI_CallFunctionPRR(FunctionPointer func, const void* ptr, X64Reg reg1, X64Reg reg2)
@@ -1134,6 +1143,17 @@ public:
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);
     MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionACC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2,
+                           u32 param3)
+  {
+    if (!arg1.IsSimpleReg(ABI_PARAM1))
+      MOV(bits, R(ABI_PARAM1), arg1);
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
     ABI_CallFunction(func);
   }
 

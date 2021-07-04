@@ -189,8 +189,8 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
     flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
 
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg), gprs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg),
+                         gprs_in_use, fprs_in_use);
   }
   else
   {
@@ -212,6 +212,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
     ABI_PushRegisters(gprs_in_use);
     m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
+    MOVI2R(ARM64Reg::W3, inst.hex);
     BLR(EncodeRegTo64(type_reg));
     m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
     ABI_PopRegisters(gprs_in_use);

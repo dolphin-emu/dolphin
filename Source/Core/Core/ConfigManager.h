@@ -108,6 +108,7 @@ struct SConfig
   bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
+  bool bAlignmentExceptions = false;
   bool bFPRF = false;
   bool bAccurateNaNs = false;
   bool bDisableICache = false;

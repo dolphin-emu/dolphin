@@ -89,7 +89,7 @@ static std::array<GekkoOPTemplate, 54> primarytable =
 	{60, Interpreter::psq_st,       {"psq_st",  OpType::StorePS, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION, 1, 0, 0, 0}},
 	{61, Interpreter::psq_stu,      {"psq_stu", OpType::StorePS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE | FL_PROGRAMEXCEPTION, 1, 0, 0, 0}},
 
-	//missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
+	//missing: 0, 1, 2, 5, 6, 9, 22, 30, 58, 62
 }};
 
 static std::array<GekkoOPTemplate, 13> table4 =

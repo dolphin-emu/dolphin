@@ -522,12 +522,12 @@ void FifoPlayer::LoadTextureMemory()
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
 {
-  PowerPC::Write_U16(value, 0xCC000000 | address);
+  PowerPC::Write_U16(value, 0xCC000000 | address, UGeckoInstruction{});
 }
 
 void FifoPlayer::WritePI(u32 address, u32 value)
 {
-  PowerPC::Write_U32(value, 0xCC003000 | address);
+  PowerPC::Write_U32(value, 0xCC003000 | address, UGeckoInstruction{});
 }
 
 void FifoPlayer::FlushWGP()
@@ -603,13 +603,13 @@ bool FifoPlayer::ShouldLoadXF(u8 reg)
 bool FifoPlayer::IsIdleSet()
 {
   CommandProcessor::UCPStatusReg status =
-      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER, UGeckoInstruction{});
   return status.CommandIdle;
 }
 
 bool FifoPlayer::IsHighWatermarkSet()
 {
   CommandProcessor::UCPStatusReg status =
-      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER, UGeckoInstruction{});
   return status.OverflowHiWatermark;
 }

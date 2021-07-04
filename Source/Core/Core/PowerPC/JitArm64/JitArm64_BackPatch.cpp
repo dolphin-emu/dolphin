@@ -13,6 +13,7 @@
 #include "Common/Swap.h"
 
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
@@ -50,14 +51,28 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
   ERROR_LOG_FMT(DYNA_REC, "Full block: {}", pc_memory);
 }
 
-void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, ARM64Reg RS,
-                                    ARM64Reg addr, BitSet32 gprs_to_push, BitSet32 fprs_to_push)
+void JitArm64::EmitBackpatchRoutine(UGeckoInstruction inst, u32 flags, bool fastmem,
+                                    bool do_farcode, ARM64Reg RS, ARM64Reg addr,
+                                    BitSet32 gprs_to_push, BitSet32 fprs_to_push)
 {
   bool in_far_code = false;
   const u8* fastmem_start = GetCodePtr();
 
+  FixupBranch slowmem_fixup;
+  bool check_alignment = fastmem && do_farcode && jo.alignment_exceptions &&
+                         PowerPC::AccessCausesAlignmentExceptionIfMisaligned(inst, false);
+
   if (fastmem)
   {
+    if (check_alignment)
+    {
+      const u32 mask = PowerPC::GetAlignmentMask(BackPatchInfo::GetFlagSize(flags));
+      TST(addr, LogicalImm(mask, 32));
+      FixupBranch fast = B(CCFlags::CC_EQ);
+      slowmem_fixup = BL();
+      SetJumpTarget(fast);
+    }
+
     if (flags & BackPatchInfo::FLAG_STORE && flags & BackPatchInfo::FLAG_MASK_FLOAT)
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
@@ -132,6 +147,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       handler.gprs = gprs_to_push;
       handler.fprs = fprs_to_push;
       handler.flags = flags;
+      handler.inst = inst;
 
       FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_start];
       auto handler_loc_iter = m_handler_to_loc.find(handler);
@@ -150,9 +166,16 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
         const u8* handler_loc = handler_loc_iter->second;
         fastmem_area->slowmem_code = handler_loc;
         fastmem_area->length = fastmem_end - fastmem_start;
+
+        if (check_alignment)
+          SetJumpTarget(slowmem_fixup, handler_loc);
+
         return;
       }
     }
+
+    if (check_alignment)
+      SetJumpTarget(slowmem_fixup);
 
     ABI_PushRegisters(gprs_to_push);
     m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
@@ -163,36 +186,36 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       {
         m_float_emit.UMOV(32, ARM64Reg::W0, RS, 0);
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
-        BLR(ARM64Reg::X8);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2)
       {
         m_float_emit.UMOV(64, ARM64Reg::X0, RS, 0);
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
         ROR(ARM64Reg::X0, ARM64Reg::X0, 32);
-        BLR(ARM64Reg::X8);
       }
       else
       {
         m_float_emit.UMOV(64, ARM64Reg::X0, RS, 0);
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
-        BLR(ARM64Reg::X8);
       }
+
+      MOVI2R(ARM64Reg::W2, inst.hex);
+      BLR(ARM64Reg::X8);
     }
     else if (flags & BackPatchInfo::FLAG_LOAD && flags & BackPatchInfo::FLAG_MASK_FLOAT)
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
-      {
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U32);
-        BLR(ARM64Reg::X8);
-        m_float_emit.INS(32, RS, 0, ARM64Reg::X0);
-      }
       else
-      {
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_F64);
-        BLR(ARM64Reg::X8);
+
+      MOVI2R(ARM64Reg::W1, inst.hex);
+      BLR(ARM64Reg::X8);
+
+      if (flags & BackPatchInfo::FLAG_SIZE_F32)
+        m_float_emit.INS(32, RS, 0, ARM64Reg::X0);
+      else
         m_float_emit.INS(64, RS, 0, ARM64Reg::X0);
-      }
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
@@ -208,11 +231,13 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       else
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
 
+      MOVI2R(ARM64Reg::W2, inst.hex);
       BLR(ARM64Reg::X8);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
       MOVP2R(ARM64Reg::X8, &PowerPC::ClearCacheLine);
+      MOVI2R(ARM64Reg::W1, inst.hex);
       BLR(ARM64Reg::X8);
     }
     else
@@ -224,6 +249,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U8);
 
+      MOVI2R(ARM64Reg::W1, inst.hex);
       BLR(ARM64Reg::X8);
 
       ByteswapAfterLoad(this, RS, ARM64Reg::W0, flags, false, false);

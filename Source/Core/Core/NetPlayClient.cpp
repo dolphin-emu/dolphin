@@ -694,6 +694,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_EFBEmulateFormatChanges;
       packet >> m_net_settings.m_SafeTextureCacheColorSamples;
       packet >> m_net_settings.m_PerfQueriesEnable;
+      packet >> m_net_settings.m_AlignmentExceptions;
       packet >> m_net_settings.m_FPRF;
       packet >> m_net_settings.m_AccurateNaNs;
       packet >> m_net_settings.m_DisableICache;

@@ -57,6 +57,7 @@ struct NetSettings
   bool m_EFBEmulateFormatChanges;
   int m_SafeTextureCacheColorSamples;
   bool m_PerfQueriesEnable;
+  bool m_AlignmentExceptions;
   bool m_FPRF;
   bool m_AccurateNaNs;
   bool m_DisableICache;

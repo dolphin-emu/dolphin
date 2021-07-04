@@ -40,7 +40,7 @@ static u32 Helper_Get_EA_UX(const PowerPC::PowerPCState& ppcs, const UGeckoInstr
 
 void Interpreter::lbz(UGeckoInstruction inst)
 {
-  const u32 temp = PowerPC::Read_U8(Helper_Get_EA(PowerPC::ppcState, inst));
+  const u32 temp = PowerPC::Read_U8(Helper_Get_EA(PowerPC::ppcState, inst), inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
     rGPR[inst.RD] = temp;
@@ -49,7 +49,7 @@ void Interpreter::lbz(UGeckoInstruction inst)
 void Interpreter::lbzu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U8(address);
+  const u32 temp = PowerPC::Read_U8(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -61,14 +61,7 @@ void Interpreter::lbzu(UGeckoInstruction inst)
 void Interpreter::lfd(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u64 temp = PowerPC::Read_U64(address);
+  const u64 temp = PowerPC::Read_U64(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
     rPS(inst.FD).SetPS0(temp);
@@ -77,14 +70,7 @@ void Interpreter::lfd(UGeckoInstruction inst)
 void Interpreter::lfdu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u64 temp = PowerPC::Read_U64(address);
+  const u64 temp = PowerPC::Read_U64(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -96,14 +82,7 @@ void Interpreter::lfdu(UGeckoInstruction inst)
 void Interpreter::lfdux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u64 temp = PowerPC::Read_U64(address);
+  const u64 temp = PowerPC::Read_U64(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -115,14 +94,7 @@ void Interpreter::lfdux(UGeckoInstruction inst)
 void Interpreter::lfdx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u64 temp = PowerPC::Read_U64(address);
+  const u64 temp = PowerPC::Read_U64(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
     rPS(inst.FD).SetPS0(temp);
@@ -131,14 +103,7 @@ void Interpreter::lfdx(UGeckoInstruction inst)
 void Interpreter::lfs(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -150,14 +115,7 @@ void Interpreter::lfs(UGeckoInstruction inst)
 void Interpreter::lfsu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -170,14 +128,7 @@ void Interpreter::lfsu(UGeckoInstruction inst)
 void Interpreter::lfsux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -190,14 +141,7 @@ void Interpreter::lfsux(UGeckoInstruction inst)
 void Interpreter::lfsx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -208,7 +152,7 @@ void Interpreter::lfsx(UGeckoInstruction inst)
 
 void Interpreter::lha(UGeckoInstruction inst)
 {
-  const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst));
+  const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst), inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -219,7 +163,7 @@ void Interpreter::lha(UGeckoInstruction inst)
 void Interpreter::lhau(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
-  const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(address);
+  const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -230,7 +174,7 @@ void Interpreter::lhau(UGeckoInstruction inst)
 
 void Interpreter::lhz(UGeckoInstruction inst)
 {
-  const u32 temp = PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst));
+  const u32 temp = PowerPC::Read_U16(Helper_Get_EA(PowerPC::ppcState, inst), inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -241,7 +185,7 @@ void Interpreter::lhz(UGeckoInstruction inst)
 void Interpreter::lhzu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U16(address);
+  const u32 temp = PowerPC::Read_U16(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -255,15 +199,9 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0 || MSR.LE)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
   for (int i = inst.RD; i <= 31; i++, address += 4)
   {
-    const u32 temp_reg = PowerPC::Read_U32(address);
+    const u32 temp_reg = PowerPC::Read_U32(address, inst);
 
     if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
@@ -286,15 +224,9 @@ void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0 || MSR.LE)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
   for (int i = inst.RS; i <= 31; i++, address += 4)
   {
-    PowerPC::Write_U32(rGPR[i], address);
+    PowerPC::Write_U32(rGPR[i], address, inst);
     if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       PanicAlertFmt("DSI exception in stmw");
@@ -307,7 +239,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
 void Interpreter::lwz(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -318,7 +250,7 @@ void Interpreter::lwz(UGeckoInstruction inst)
 void Interpreter::lwzu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -329,14 +261,14 @@ void Interpreter::lwzu(UGeckoInstruction inst)
 
 void Interpreter::stb(UGeckoInstruction inst)
 {
-  PowerPC::Write_U8((u8)rGPR[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst));
+  PowerPC::Write_U8((u8)rGPR[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst), inst);
 }
 
 void Interpreter::stbu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U8((u8)rGPR[inst.RS], address);
+  PowerPC::Write_U8((u8)rGPR[inst.RS], address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -347,26 +279,14 @@ void Interpreter::stfd(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address, inst);
 }
 
 void Interpreter::stfdu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -377,26 +297,14 @@ void Interpreter::stfs(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address, inst);
 }
 
 void Interpreter::stfsu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -405,14 +313,14 @@ void Interpreter::stfsu(UGeckoInstruction inst)
 
 void Interpreter::sth(UGeckoInstruction inst)
 {
-  PowerPC::Write_U16((u16)rGPR[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst));
+  PowerPC::Write_U16((u16)rGPR[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst), inst);
 }
 
 void Interpreter::sthu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U16((u16)rGPR[inst.RS], address);
+  PowerPC::Write_U16((u16)rGPR[inst.RS], address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -421,14 +329,14 @@ void Interpreter::sthu(UGeckoInstruction inst)
 
 void Interpreter::stw(UGeckoInstruction inst)
 {
-  PowerPC::Write_U32(rGPR[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst));
+  PowerPC::Write_U32(rGPR[inst.RS], Helper_Get_EA(PowerPC::ppcState, inst), inst);
 }
 
 void Interpreter::stwu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U32(rGPR[inst.RS], address);
+  PowerPC::Write_U32(rGPR[inst.RS], address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -504,7 +412,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 
   if (!HID0.DCE)
   {
-    GenerateAlignmentException(dcbz_addr);
+    GenerateAlignmentException(dcbz_addr, inst);
     return;
   }
 
@@ -513,7 +421,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
     return;
 
   // TODO: Implement some sort of L2 emulation.
-  PowerPC::ClearCacheLine(dcbz_addr & (~31));
+  PowerPC::ClearCacheLine(dcbz_addr & (~31), inst);
 }
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
@@ -528,12 +436,12 @@ void Interpreter::dcbz_l(UGeckoInstruction inst)
 
   if (!HID0.DCE)
   {
-    GenerateAlignmentException(address);
+    GenerateAlignmentException(address, inst);
     return;
   }
 
   // FAKE: clear memory instead of clearing the cache block
-  PowerPC::ClearCacheLine(address & (~31));
+  PowerPC::ClearCacheLine(address & (~31), inst);
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -548,13 +456,11 @@ void Interpreter::eciwx(UGeckoInstruction inst)
     return;
   }
 
-  if (EA & 3)
+  const u32 temp = PowerPC::Read_U32(EA, inst);
+  if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
-    GenerateAlignmentException(EA);
-    return;
+    rGPR[inst.RA] = temp;
   }
-
-  rGPR[inst.RD] = PowerPC::Read_U32(EA);
 }
 
 void Interpreter::ecowx(UGeckoInstruction inst)
@@ -567,13 +473,7 @@ void Interpreter::ecowx(UGeckoInstruction inst)
     return;
   }
 
-  if (EA & 3)
-  {
-    GenerateAlignmentException(EA);
-    return;
-  }
-
-  PowerPC::Write_U32(rGPR[inst.RS], EA);
+  PowerPC::Write_U32(rGPR[inst.RS], EA, inst);
 }
 
 void Interpreter::eieio(UGeckoInstruction inst)
@@ -594,7 +494,7 @@ void Interpreter::icbi(UGeckoInstruction inst)
 void Interpreter::lbzux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U8(address);
+  const u32 temp = PowerPC::Read_U8(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -605,7 +505,7 @@ void Interpreter::lbzux(UGeckoInstruction inst)
 
 void Interpreter::lbzx(UGeckoInstruction inst)
 {
-  const u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(PowerPC::ppcState, inst));
+  const u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(PowerPC::ppcState, inst), inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -616,7 +516,7 @@ void Interpreter::lbzx(UGeckoInstruction inst)
 void Interpreter::lhaux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
-  const s32 temp = (s32)(s16)PowerPC::Read_U16(address);
+  const s32 temp = (s32)(s16)PowerPC::Read_U16(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -627,7 +527,7 @@ void Interpreter::lhaux(UGeckoInstruction inst)
 
 void Interpreter::lhax(UGeckoInstruction inst)
 {
-  const s32 temp = (s32)(s16)PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst));
+  const s32 temp = (s32)(s16)PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst), inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -637,7 +537,8 @@ void Interpreter::lhax(UGeckoInstruction inst)
 
 void Interpreter::lhbrx(UGeckoInstruction inst)
 {
-  const u32 temp = Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst)));
+  const u32 temp =
+      Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst), inst));
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -648,7 +549,7 @@ void Interpreter::lhbrx(UGeckoInstruction inst)
 void Interpreter::lhzux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U16(address);
+  const u32 temp = PowerPC::Read_U16(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -659,7 +560,7 @@ void Interpreter::lhzux(UGeckoInstruction inst)
 
 void Interpreter::lhzx(UGeckoInstruction inst)
 {
-  const u32 temp = PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst));
+  const u32 temp = PowerPC::Read_U16(Helper_Get_EA_X(PowerPC::ppcState, inst), inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -668,13 +569,14 @@ void Interpreter::lhzx(UGeckoInstruction inst)
 }
 
 // FIXME: Should rollback if a DSI occurs
+// TODO: Should this be able to cause alignment exceptions?
 void Interpreter::lswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
   if (MSR.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(EA, inst);
     return;
   }
 
@@ -687,7 +589,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
     if ((n & 3) == 0)
       rGPR[reg] = 0;
 
-    const u32 temp_value = PowerPC::Read_U8(EA) << (24 - offset);
+    const u32 temp_value = PowerPC::Read_U8(EA, inst) << (24 - offset);
     // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
     if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
@@ -702,7 +604,8 @@ void Interpreter::lswx(UGeckoInstruction inst)
 
 void Interpreter::lwbrx(UGeckoInstruction inst)
 {
-  const u32 temp = Common::swap32(PowerPC::Read_U32(Helper_Get_EA_X(PowerPC::ppcState, inst)));
+  const u32 temp =
+      Common::swap32(PowerPC::Read_U32(Helper_Get_EA_X(PowerPC::ppcState, inst), inst));
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -713,7 +616,7 @@ void Interpreter::lwbrx(UGeckoInstruction inst)
 void Interpreter::lwzux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -725,7 +628,7 @@ void Interpreter::lwzux(UGeckoInstruction inst)
 void Interpreter::lwzx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -737,7 +640,7 @@ void Interpreter::stbux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U8((u8)rGPR[inst.RS], address);
+  PowerPC::Write_U8((u8)rGPR[inst.RS], address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -746,20 +649,14 @@ void Interpreter::stbux(UGeckoInstruction inst)
 
 void Interpreter::stbx(UGeckoInstruction inst)
 {
-  PowerPC::Write_U8((u8)rGPR[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst));
+  PowerPC::Write_U8((u8)rGPR[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst), inst);
 }
 
 void Interpreter::stfdux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -770,13 +667,7 @@ void Interpreter::stfdx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address);
+  PowerPC::Write_U64(rPS(inst.FS).PS0AsU64(), address, inst);
 }
 
 // Stores Floating points into Integers indeXed
@@ -784,26 +675,14 @@ void Interpreter::stfiwx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U32(rPS(inst.FS).PS0AsU32(), address);
+  PowerPC::Write_U32(rPS(inst.FS).PS0AsU32(), address, inst);
 }
 
 void Interpreter::stfsux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -814,25 +693,20 @@ void Interpreter::stfsx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address);
+  PowerPC::Write_U32(ConvertToSingle(rPS(inst.FS).PS0AsU64()), address, inst);
 }
 
 void Interpreter::sthbrx(UGeckoInstruction inst)
 {
-  PowerPC::Write_U16(Common::swap16((u16)rGPR[inst.RS]), Helper_Get_EA_X(PowerPC::ppcState, inst));
+  PowerPC::Write_U16(Common::swap16((u16)rGPR[inst.RS]), Helper_Get_EA_X(PowerPC::ppcState, inst),
+                     inst);
 }
 
 void Interpreter::sthux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U16((u16)rGPR[inst.RS], address);
+  PowerPC::Write_U16((u16)rGPR[inst.RS], address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -841,11 +715,12 @@ void Interpreter::sthux(UGeckoInstruction inst)
 
 void Interpreter::sthx(UGeckoInstruction inst)
 {
-  PowerPC::Write_U16((u16)rGPR[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst));
+  PowerPC::Write_U16((u16)rGPR[inst.RS], Helper_Get_EA_X(PowerPC::ppcState, inst), inst);
 }
 
 // lswi - bizarro string instruction
 // FIXME: Should rollback if a DSI occurs
+// TODO: Should this be able to cause alignment exceptions?
 void Interpreter::lswi(UGeckoInstruction inst)
 {
   u32 EA;
@@ -856,7 +731,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
 
   if (MSR.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(EA, inst);
     return;
   }
 
@@ -877,7 +752,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
       rGPR[r] = 0;
     }
 
-    const u32 temp_value = PowerPC::Read_U8(EA) << (24 - i);
+    const u32 temp_value = PowerPC::Read_U8(EA, inst) << (24 - i);
     if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       PanicAlertFmt("DSI exception in lsw.");
@@ -897,6 +772,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
 // todo : optimize ?
 // stswi - bizarro string instruction
 // FIXME: Should rollback if a DSI occurs
+// TODO: Should this be able to cause alignment exceptions?
 void Interpreter::stswi(UGeckoInstruction inst)
 {
   u32 EA;
@@ -907,7 +783,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
 
   if (MSR.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(EA, inst);
     return;
   }
 
@@ -926,7 +802,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
       r++;
       r &= 31;
     }
-    PowerPC::Write_U8((rGPR[r] >> (24 - i)) & 0xFF, EA);
+    PowerPC::Write_U8((rGPR[r] >> (24 - i)) & 0xFF, EA, inst);
     if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
     {
       return;
@@ -941,13 +817,14 @@ void Interpreter::stswi(UGeckoInstruction inst)
 }
 
 // TODO: is this right? is it DSI interruptible?
+// TODO: Should this be able to cause alignment exceptions?
 void Interpreter::stswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
   if (MSR.LE)
   {
-    GenerateAlignmentException(EA);
+    GenerateAlignmentException(EA, inst);
     return;
   }
 
@@ -957,7 +834,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
 
   while (n > 0)
   {
-    PowerPC::Write_U8((rGPR[r] >> (24 - i)) & 0xFF, EA);
+    PowerPC::Write_U8((rGPR[r] >> (24 - i)) & 0xFF, EA, inst);
 
     EA++;
     n--;
@@ -974,7 +851,7 @@ void Interpreter::stwbrx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U32(Common::swap32(rGPR[inst.RS]), address);
+  PowerPC::Write_U32(Common::swap32(rGPR[inst.RS]), address, inst);
 }
 
 // The following two instructions are for SMP communications. On a single
@@ -984,13 +861,7 @@ void Interpreter::lwarx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
-  const u32 temp = PowerPC::Read_U32(address);
+  const u32 temp = PowerPC::Read_U32(address, inst);
 
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -1005,17 +876,11 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0)
-  {
-    GenerateAlignmentException(address);
-    return;
-  }
-
   if (m_reserve)
   {
     if (address == m_reserve_address)
     {
-      PowerPC::Write_U32(rGPR[inst.RS], address);
+      PowerPC::Write_U32(rGPR[inst.RS], address, inst);
       if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
       {
         m_reserve = false;
@@ -1032,7 +897,7 @@ void Interpreter::stwux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U32(rGPR[inst.RS], address);
+  PowerPC::Write_U32(rGPR[inst.RS], address, inst);
   if (!(PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     rGPR[inst.RA] = address;
@@ -1043,7 +908,7 @@ void Interpreter::stwx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  PowerPC::Write_U32(rGPR[inst.RS], address);
+  PowerPC::Write_U32(rGPR[inst.RS], address, inst);
 }
 
 void Interpreter::sync(UGeckoInstruction inst)

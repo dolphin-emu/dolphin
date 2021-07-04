@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/MMU.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstring>
@@ -16,6 +17,8 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -106,6 +109,7 @@ struct TranslateAddressResult
     PAGE_FAULT
   } result;
   u32 address;
+  bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
   bool Success() const { return result <= PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
@@ -167,7 +171,7 @@ BatTable dbat_table;
 static void GenerateDSIException(u32 effective_address, bool write);
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static T ReadFromHardware(u32 em_address)
+static T ReadFromHardware(u32 em_address, UGeckoInstruction inst)
 {
   if (!never_translate && MSR.DR)
   {
@@ -178,12 +182,18 @@ static T ReadFromHardware(u32 em_address)
         GenerateDSIException(em_address, false);
       return 0;
     }
+
+    if (flag == XCheckTLBFlag::Read &&
+        AccessCausesAlignmentException(em_address, sizeof(T) << 3, inst, translated_addr.wi))
+    {
+      GenerateAlignmentException(em_address, inst);
+      return 0;
+    }
+
     if ((em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
     {
       // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
       // way isn't too terrible.
-      // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-      // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
       u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
       auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
       if (!addr_next_page.Success())
@@ -198,11 +208,20 @@ static T ReadFromHardware(u32 em_address)
       {
         if (addr == em_address_next_page)
           addr_translated = addr_next_page.address;
-        var = (var << 8) | ReadFromHardware<flag, u8, true>(addr_translated);
+        var = (var << 8) | ReadFromHardware<flag, u8, true>(addr_translated, inst);
       }
       return var;
     }
     em_address = translated_addr.address;
+  }
+  else
+  {
+    if (flag == XCheckTLBFlag::Read &&
+        AccessCausesAlignmentException(em_address, sizeof(T) << 3, inst, false))
+    {
+      GenerateAlignmentException(em_address, inst);
+      return 0;
+    }
   }
 
   // TODO: Make sure these are safe for unaligned addresses.
@@ -256,7 +275,7 @@ static T ReadFromHardware(u32 em_address)
 }
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static void WriteToHardware(u32 em_address, const T data)
+static void WriteToHardware(u32 em_address, const T data, UGeckoInstruction inst)
 {
   if (!never_translate && MSR.DR)
   {
@@ -267,6 +286,14 @@ static void WriteToHardware(u32 em_address, const T data)
         GenerateDSIException(em_address, true);
       return;
     }
+
+    if (flag == XCheckTLBFlag::Write &&
+        AccessCausesAlignmentException(em_address, sizeof(T) << 3, inst, translated_addr.wi))
+    {
+      GenerateAlignmentException(em_address, inst);
+      return;
+    }
+
     if ((em_address & (sizeof(T) - 1)) &&
         (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
     {
@@ -288,11 +315,20 @@ static void WriteToHardware(u32 em_address, const T data)
       {
         if (em_address + i == em_address_next_page)
           addr_translated = addr_next_page.address;
-        WriteToHardware<flag, u8, true>(addr_translated, static_cast<u8>(val >> (i * 8)));
+        WriteToHardware<flag, u8, true>(addr_translated, static_cast<u8>(val >> (i * 8)), inst);
       }
       return;
     }
     em_address = translated_addr.address;
+  }
+  else
+  {
+    if (flag == XCheckTLBFlag::Write &&
+        AccessCausesAlignmentException(em_address, sizeof(T) << 3, inst, false))
+    {
+      GenerateAlignmentException(em_address, inst);
+      return;
+    }
   }
 
   // TODO: Make sure these are safe for unaligned addresses.
@@ -423,9 +459,9 @@ TryReadInstResult TryReadInstruction(u32 address)
   return TryReadInstResult{true, from_bat, hex, address};
 }
 
-u32 HostRead_Instruction(const u32 address)
+u32 HostRead_Instruction(u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
 }
 
 TryReadResult<u32> HostTryReadInstruction(const u32 address, RequestedAddressSpace space)
@@ -437,19 +473,22 @@ TryReadResult<u32> HostTryReadInstruction(const u32 address, RequestedAddressSpa
   {
   case RequestedAddressSpace::Effective:
   {
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value =
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
     return TryReadResult<u32>(!!MSR.DR, value);
   }
   case RequestedAddressSpace::Physical:
   {
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
+    const u32 value =
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address, UGeckoInstruction{});
     return TryReadResult<u32>(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!MSR.DR)
       return TryReadResult<u32>();
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value =
+        ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
     return TryReadResult<u32>(true, value);
   }
   }
@@ -486,44 +525,44 @@ static void Memcheck(u32 address, u32 var, bool write, size_t size)
   }
 }
 
-u8 Read_U8(const u32 address)
+u8 Read_U8(u32 address, UGeckoInstruction inst)
 {
-  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
+  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address, inst);
   Memcheck(address, var, false, 1);
   return var;
 }
 
-u16 Read_U16(const u32 address)
+u16 Read_U16(u32 address, UGeckoInstruction inst)
 {
-  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
+  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address, inst);
   Memcheck(address, var, false, 2);
   return var;
 }
 
-u32 Read_U32(const u32 address)
+u32 Read_U32(u32 address, UGeckoInstruction inst)
 {
-  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
+  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address, inst);
   Memcheck(address, var, false, 4);
   return var;
 }
 
-u64 Read_U64(const u32 address)
+u64 Read_U64(u32 address, UGeckoInstruction inst)
 {
-  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
+  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address, inst);
   Memcheck(address, (u32)var, false, 8);
   return var;
 }
 
-double Read_F64(const u32 address)
+double Read_F64(u32 address, UGeckoInstruction inst)
 {
-  const u64 integral = Read_U64(address);
+  const u64 integral = Read_U64(address, inst);
 
   return Common::BitCast<double>(integral);
 }
 
-float Read_F32(const u32 address)
+float Read_F32(u32 address, UGeckoInstruction inst)
 {
-  const u32 integral = Read_U32(address);
+  const u32 integral = Read_U32(address, inst);
 
   return Common::BitCast<float>(integral);
 }
@@ -538,19 +577,19 @@ static TryReadResult<T> HostTryReadUX(const u32 address, RequestedAddressSpace s
   {
   case RequestedAddressSpace::Effective:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
     return TryReadResult<T>(!!MSR.DR, std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address, UGeckoInstruction{});
     return TryReadResult<T>(false, std::move(value));
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!MSR.DR)
       return TryReadResult<T>();
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
     return TryReadResult<T>(true, std::move(value));
   }
   }
@@ -595,124 +634,124 @@ TryReadResult<double> HostTryReadF64(u32 address, RequestedAddressSpace space)
   return TryReadResult<double>(result.translated, Common::BitCast<double>(result.value));
 }
 
-u32 Read_U8_ZX(const u32 address)
+u32 Read_U8_ZX(u32 address, UGeckoInstruction inst)
 {
-  return Read_U8(address);
+  return Read_U8(address, inst);
 }
 
-u32 Read_U16_ZX(const u32 address)
+u32 Read_U16_ZX(u32 address, UGeckoInstruction inst)
 {
-  return Read_U16(address);
+  return Read_U16(address, inst);
 }
 
-void Write_U8(const u8 var, const u32 address)
+void Write_U8(u8 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var, inst);
 }
 
-void Write_U16(const u16 var, const u32 address)
+void Write_U16(u16 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var, inst);
 }
-void Write_U16_Swap(const u16 var, const u32 address)
+void Write_U16_Swap(u16 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 2);
-  Write_U16(Common::swap16(var), address);
+  Write_U16(Common::swap16(var), address, inst);
 }
 
-void Write_U32(const u32 var, const u32 address)
+void Write_U32(u32 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var, inst);
 }
-void Write_U32_Swap(const u32 var, const u32 address)
+void Write_U32_Swap(u32 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 4);
-  Write_U32(Common::swap32(var), address);
+  Write_U32(Common::swap32(var), address, inst);
 }
 
-void Write_U64(const u64 var, const u32 address)
+void Write_U64(u64 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, (u32)var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var, inst);
 }
-void Write_U64_Swap(const u64 var, const u32 address)
+void Write_U64_Swap(u64 var, u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, (u32)var, true, 8);
-  Write_U64(Common::swap64(var), address);
+  Write_U64(Common::swap64(var), address, inst);
 }
 
-void Write_F64(const double var, const u32 address)
+void Write_F64(double var, u32 address, UGeckoInstruction inst)
 {
   const u64 integral = Common::BitCast<u64>(var);
 
-  Write_U64(integral, address);
+  Write_U64(integral, address, inst);
 }
 
-u8 HostRead_U8(const u32 address)
+u8 HostRead_U8(u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address, UGeckoInstruction{});
 }
 
-u16 HostRead_U16(const u32 address)
+u16 HostRead_U16(u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address, UGeckoInstruction{});
 }
 
-u32 HostRead_U32(const u32 address)
+u32 HostRead_U32(u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address, UGeckoInstruction{});
 }
 
-u64 HostRead_U64(const u32 address)
+u64 HostRead_U64(u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address, UGeckoInstruction{});
 }
 
-float HostRead_F32(const u32 address)
+float HostRead_F32(u32 address)
 {
   const u32 integral = HostRead_U32(address);
 
   return Common::BitCast<float>(integral);
 }
 
-double HostRead_F64(const u32 address)
+double HostRead_F64(u32 address)
 {
   const u64 integral = HostRead_U64(address);
 
   return Common::BitCast<double>(integral);
 }
 
-void HostWrite_U8(const u8 var, const u32 address)
+void HostWrite_U8(u8 var, u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var, UGeckoInstruction{});
 }
 
-void HostWrite_U16(const u16 var, const u32 address)
+void HostWrite_U16(u16 var, u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var, UGeckoInstruction{});
 }
 
-void HostWrite_U32(const u32 var, const u32 address)
+void HostWrite_U32(u32 var, u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var, UGeckoInstruction{});
 }
 
-void HostWrite_U64(const u64 var, const u32 address)
+void HostWrite_U64(u64 var, u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var, UGeckoInstruction{});
 }
 
-void HostWrite_F32(const float var, const u32 address)
+void HostWrite_F32(float var, u32 address)
 {
   const u32 integral = Common::BitCast<u32>(var);
 
   HostWrite_U32(integral, address);
 }
 
-void HostWrite_F64(const double var, const u32 address)
+void HostWrite_F64(double var, u32 address)
 {
   const u64 integral = Common::BitCast<u64>(var);
 
@@ -728,15 +767,15 @@ static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAd
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var, UGeckoInstruction{});
     return TryWriteResult(!!MSR.DR);
   case RequestedAddressSpace::Physical:
-    WriteToHardware<XCheckTLBFlag::NoException, T, true>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException, T, true>(address, var, UGeckoInstruction{});
     return TryWriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.DR)
       return TryWriteResult();
-    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var, UGeckoInstruction{});
     return TryWriteResult(true);
   }
 
@@ -813,7 +852,7 @@ TryReadResult<std::string> HostTryReadString(u32 address, size_t size, Requested
   return TryReadResult<std::string>(c.translated, std::move(s));
 }
 
-bool IsOptimizableRAMAddress(const u32 address)
+bool IsOptimizableRAMAddress(u32 address, u32 access_size, UGeckoInstruction inst)
 {
   if (PowerPC::memchecks.HasAny())
     return false;
@@ -821,8 +860,12 @@ bool IsOptimizableRAMAddress(const u32 address)
   if (!MSR.DR)
     return false;
 
-  // TODO: This API needs to take an access size
-  //
+  if ((address & GetAlignmentMask(access_size)) != 0 &&
+      AccessCausesAlignmentExceptionIfMisaligned(inst, false))
+  {
+    return false;
+  }
+
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
   u32 bat_result = dbat_table[address >> BAT_INDEX_SHIFT];
@@ -974,7 +1017,7 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
   memcpy(dst, src, 32 * num_blocks);
 }
 
-void ClearCacheLine(u32 address)
+void ClearCacheLine(u32 address, UGeckoInstruction inst)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
   if (MSR.DR)
@@ -999,7 +1042,7 @@ void ClearCacheLine(u32 address)
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 8)
-    WriteToHardware<XCheckTLBFlag::Write, u64, true>(address + i, 0);
+    WriteToHardware<XCheckTLBFlag::Write, u64, true>(address + i, 0, inst);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
@@ -1013,11 +1056,12 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
   // Translate address
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
-  if (!TranslateBatAddess(dbat_table, &address))
+  bool wi;
+  if (!TranslateBatAddess(dbat_table, &address, &wi))
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
-  const bool aligned = (address & ((access_size >> 3) - 1)) == 0;
+  const bool aligned = (address & GetAlignmentMask(access_size)) == 0;
   if (!aligned || !MMIO::IsMMIOAddress(address))
     return 0;
 
@@ -1035,7 +1079,8 @@ bool IsOptimizableGatherPipeWrite(u32 address)
   // Translate address, only check BAT mapping.
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
-  if (!TranslateBatAddess(dbat_table, &address))
+  bool wi;
+  if (!TranslateBatAddess(dbat_table, &address, &wi))
     return false;
 
   // Check whether the translated address equals the address in WPAR.
@@ -1204,18 +1249,20 @@ enum class TLBLookupResult
   UpdateC
 };
 
-static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
+static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr,
+                                            bool* wi)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 
   if (tlbe.tag[0] == tag)
   {
+    UPTE2 PTE2;
+    PTE2.Hex = tlbe.pte[0];
+
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      UPTE2 PTE2;
-      PTE2.Hex = tlbe.pte[0];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
@@ -1228,16 +1275,18 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 0;
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
+    *wi = PTE2.WIMG & 0b1100;
 
     return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
+    UPTE2 PTE2;
+    PTE2.Hex = tlbe.pte[0];
+
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      UPTE2 PTE2;
-      PTE2.Hex = tlbe.pte[1];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
@@ -1250,6 +1299,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 1;
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
+    *wi = PTE2.WIMG & 0b1100;
 
     return TLBLookupResult::Found;
   }
@@ -1284,14 +1334,14 @@ void InvalidateTLBEntry(u32 address)
 }
 
 // Page Address Translation
-static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag)
+static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag,
+                                                   bool* wi)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
-  // benefit
-  // much from optimization.
+  // benefit much from optimization.
   u32 translatedAddress = 0;
-  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress);
+  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress, wi);
   if (res == TLBLookupResult::Found)
     return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED, translatedAddress};
 
@@ -1366,6 +1416,8 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         if (res != TLBLookupResult::UpdateC)
           UpdateTLBEntry(flag, PTE2, address);
 
+        *wi = PTE2.WIMG & 0b1100;
+
         return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED,
                                       (PTE2.RPN << 12) | offset};
       }
@@ -1377,7 +1429,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
-  // TODO: Handle PP/WIMG settings.
+  // TODO: Handle PP settings.
   // TODO: Check how hardware reacts to overlapping BATs (including
   // BATs which should cause a DSI).
   // TODO: Check how hardware reacts to invalid BATs (bad mask etc).
@@ -1422,19 +1474,38 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
         u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
 
-        // The bottom bit is whether the translation is valid; the second
-        // bit from the bottom is whether we can use the fastmem arena.
+        // BAT_MAPPED_BIT is whether the translation is valid
+        // BAT_PHYSICAL_BIT is whether we can use the fastmem arena
+        // BAT_WI_BIT is whether W or I (of WIMG) are set - this affects alignment exceptions
         u32 valid_bit = BAT_MAPPED_BIT;
-        if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address < Memory::GetRamSizeReal())
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
-                 (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address >> 28 == 0xE &&
-                 physical_address < 0xE0000000 + Memory::GetL1CacheSize())
-          valid_bit |= BAT_PHYSICAL_BIT;
+
+        const bool wi = batl.WIMG & 0b1100;
+        if (wi)
+          valid_bit |= BAT_WI_BIT;
+
+        // For correctness, we should disable fastmem when we have BAT_WI_BIT,
+        // but there is a setting which can be used to disable this behavior for performance
+        if (!wi || !SConfig::GetInstance().bAlignmentExceptions)
+        {
+          if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (physical_address < Memory::GetRamSizeReal())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
+                   (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (physical_address >> 28 == 0xE &&
+                   physical_address < 0xE0000000 + Memory::GetL1CacheSize())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+        }
 
         // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
         if (PowerPC::memchecks.OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
@@ -1509,10 +1580,12 @@ void IBATUpdated()
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(u32 address)
 {
-  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address))
-    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address};
+  bool wi;
 
-  return TranslatePageAddress(address, flag);
+  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address, &wi))
+    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address, wi};
+
+  return TranslatePageAddress(address, flag, &wi);
 }
 
 std::optional<u32> GetTranslatedAddress(u32 address)
@@ -1523,6 +1596,76 @@ std::optional<u32> GetTranslatedAddress(u32 address)
     return std::nullopt;
   }
   return std::optional<u32>(result.address);
+}
+
+static bool IsFloat(UGeckoInstruction inst)
+{
+  // Floating loadstore, paired loadstore (exluding dcbz_l)
+  return (inst.OPCD >= 48 && inst.OPCD < 62) || (inst.OPCD == 4 && inst.SUBOP10 != 1014);
+
+  // TODO: "In 750CL, the paired-single quantization load or store generates an alignment exception
+  // if the operand is not word-aligned when the corresponding GQRn[LD_TYPE] or GQRn[ST_TYPE] are
+  // type 0 and does not generate an alignment exception when the corresponding GQRn[LD_TYPE] or
+  // GQRn[ST_TYPE] are 4, 5, 6 or 7." Right now we treat it as always being type 0
+}
+
+static bool IsMultiword(UGeckoInstruction inst)
+{
+  // lmw, stmw
+  if (inst.OPCD == 46 || inst.OPCD == 47)
+    return true;
+
+  if (inst.OPCD != 31)
+    return false;
+
+  // lswx, lswi, stswx, stswi
+  return inst.SUBOP10 == 533 || inst.SUBOP10 == 597 || inst.SUBOP10 == 661 || inst.SUBOP10 == 725;
+}
+
+static bool IsDcbz(UGeckoInstruction inst)
+{
+  // dcbz, dcbz_l
+  return inst.SUBOP10 == 1014 && (inst.OPCD == 31 || inst.OPCD == 13);
+}
+
+static bool IsEciwxOrEcowx(UGeckoInstruction inst)
+{
+  // eciwx, ecowx
+  return inst.OPCD == 31 && (inst.SUBOP10 == 310 || inst.SUBOP10 == 438);
+}
+
+static bool IsLwarxOrStwcx(UGeckoInstruction inst)
+{
+  // lwarx, stwcx
+  return inst.OPCD == 31 && (inst.SUBOP10 == 20 || inst.SUBOP10 == 150);
+}
+
+bool AccessAlwaysCausesAlignmentException(UGeckoInstruction inst, bool wi)
+{
+  if (!wi)
+    return false;
+
+  return IsMultiword(inst) || IsDcbz(inst) || IsLwarxOrStwcx(inst);
+}
+
+bool AccessCausesAlignmentExceptionIfMisaligned(UGeckoInstruction inst, bool wi)
+{
+  if (wi)
+    return true;
+
+  return IsFloat(inst) || IsMultiword(inst) || IsEciwxOrEcowx(inst) || IsLwarxOrStwcx(inst);
+}
+
+bool AccessCausesAlignmentException(u32 effective_address, size_t access_size,
+                                    UGeckoInstruction inst, bool wi)
+{
+  if (AccessAlwaysCausesAlignmentException(inst, wi))
+    return true;
+
+  if ((effective_address & GetAlignmentMask(access_size)) == 0)
+    return false;
+
+  return AccessCausesAlignmentExceptionIfMisaligned(inst, wi);
 }
 
 }  // namespace PowerPC

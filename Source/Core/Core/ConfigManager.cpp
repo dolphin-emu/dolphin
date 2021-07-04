@@ -213,6 +213,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
   core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
   core->Set("SyncGpuOverclock", fSyncGpuOverclock);
+  core->Set("AlignmentExceptions", bAlignmentExceptions);
   core->Set("FPRF", bFPRF);
   core->Set("AccurateNaNs", bAccurateNaNs);
   core->Set("EnableCheats", bEnableCheats);
@@ -511,6 +512,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("LowDCBZHack", &bLowDCBZHack, false);
+  core->Get("AlignmentExceptions", &bAlignmentExceptions, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
   core->Get("DisableICache", &bDisableICache, false);
@@ -749,6 +751,7 @@ void SConfig::LoadDefaults()
   bRunCompareServer = false;
   bDSPHLE = true;
   bFastmem = true;
+  bAlignmentExceptions = false;
   bFPRF = false;
   bAccurateNaNs = false;
   bDisableICache = false;

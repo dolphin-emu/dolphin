@@ -10,6 +10,7 @@
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
@@ -181,11 +182,12 @@ protected:
     BitSet32 gprs;
     BitSet32 fprs;
     u32 flags;
+    UGeckoInstruction inst;
 
     bool operator<(const SlowmemHandler& rhs) const
     {
-      return std::tie(dest_reg, addr_reg, gprs, fprs, flags) <
-             std::tie(rhs.dest_reg, rhs.addr_reg, rhs.gprs, rhs.fprs, rhs.flags);
+      return std::tie(dest_reg, addr_reg, gprs, fprs, flags, inst.hex) <
+             std::tie(rhs.dest_reg, rhs.addr_reg, rhs.gprs, rhs.fprs, rhs.flags, rhs.inst.hex);
     }
   };
 
@@ -222,12 +224,15 @@ protected:
 
   // Backpatching routines
   bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
-  void EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, Arm64Gen::ARM64Reg RS,
-                            Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
+  void EmitBackpatchRoutine(UGeckoInstruction inst, u32 flags, bool fastmem, bool do_farcode,
+                            Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr,
+                            BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0));
   // Loadstore routines
-  void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
-  void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
+  void SafeLoadToReg(UGeckoInstruction inst, u32 dest, s32 addr, s32 offsetReg, u32 flags,
+                     s32 offset, bool update);
+  void SafeStoreFromReg(UGeckoInstruction inst, s32 dest, u32 value, s32 regOffset, u32 flags,
+                        s32 offset);
 
   void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 

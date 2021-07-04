@@ -1276,6 +1276,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_SafeTextureCacheColorSamples =
       Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   settings.m_PerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+  settings.m_AlignmentExceptions = Config::Get(Config::MAIN_ALIGNMENT_EXCEPTIONS);
   settings.m_FPRF = Config::Get(Config::MAIN_FPRF);
   settings.m_AccurateNaNs = Config::Get(Config::MAIN_ACCURATE_NANS);
   settings.m_DisableICache = Config::Get(Config::MAIN_DISABLE_ICACHE);
@@ -1451,6 +1452,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_EFBEmulateFormatChanges;
   spac << m_settings.m_SafeTextureCacheColorSamples;
   spac << m_settings.m_PerfQueriesEnable;
+  spac << m_settings.m_AlignmentExceptions;
   spac << m_settings.m_FPRF;
   spac << m_settings.m_AccurateNaNs;
   spac << m_settings.m_DisableICache;

@@ -113,9 +113,9 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
   PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
   RunFunction(*entry);
-  const u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
-  const u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
-  const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
+  const u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0, UGeckoInstruction{});
+  const u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4, UGeckoInstruction{});
+  const u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8, UGeckoInstruction{});
 
   // iAppLoaderInit
   DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderInit");
@@ -140,9 +140,9 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
   // iAppLoaderMain returns 0 when there are no more sections to copy.
   while (PowerPC::ppcState.gpr[3] != 0x00)
   {
-    const u32 ram_address = PowerPC::Read_U32(0x81300004);
-    const u32 length = PowerPC::Read_U32(0x81300008);
-    const u32 dvd_offset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
+    const u32 ram_address = PowerPC::Read_U32(0x81300004, UGeckoInstruction{});
+    const u32 length = PowerPC::Read_U32(0x81300008, UGeckoInstruction{});
+    const u32 dvd_offset = PowerPC::Read_U32(0x8130000c, UGeckoInstruction{}) << (is_wii ? 2 : 0);
 
     INFO_LOG_FMT(MASTER_LOG, "DVDRead: offset: {:08x}   memOffset: {:08x}   length: {}", dvd_offset,
                  ram_address, length);

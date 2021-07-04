@@ -167,13 +167,14 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
   fprs_in_use[DecodeReg(VD)] = 0;
 
-  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (jo.fastmem_arena && is_immediate &&
+      PowerPC::IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags), inst))
   {
-    EmitBackpatchRoutine(flags, true, false, VD, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(inst, flags, true, false, VD, XA, BitSet32(0), BitSet32(0));
   }
   else
   {
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VD, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, jo.fastmem, jo.fastmem, VD, XA, regs_in_use, fprs_in_use);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
@@ -356,16 +357,12 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
 
+  u32 access_size = BackPatchInfo::GetFlagSize(flags);
+
   if (is_immediate)
   {
     if (jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
     {
-      int accessSize;
-      if (flags & BackPatchInfo::FLAG_SIZE_F64)
-        accessSize = 64;
-      else
-        accessSize = 32;
-
       LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
 
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
@@ -373,11 +370,12 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       else if (flags & BackPatchInfo::FLAG_SIZE_F32)
         m_float_emit.REV32(8, ARM64Reg::D0, V0);
 
-      m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? ARM64Reg::Q0 : ARM64Reg::D0,
-                       ARM64Reg::X0, accessSize >> 3);
+      m_float_emit.STR(access_size, IndexType::Post,
+                       access_size == 64 ? ARM64Reg::Q0 : ARM64Reg::D0, ARM64Reg::X0,
+                       access_size >> 3);
 
       STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
-      js.fifoBytesSinceCheck += accessSize >> 3;
+      js.fifoBytesSinceCheck += access_size >> 3;
 
       if (update)
       {
@@ -386,18 +384,18 @@ void JitArm64::stfXX(UGeckoInstruction inst)
         MOVI2R(gpr.R(a), imm_addr);
       }
     }
-    else if (jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(imm_addr))
+    else if (jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(imm_addr, access_size, inst))
     {
-      EmitBackpatchRoutine(flags, true, false, V0, XA, BitSet32(0), BitSet32(0));
+      EmitBackpatchRoutine(inst, flags, true, false, V0, XA, BitSet32(0), BitSet32(0));
     }
     else
     {
-      EmitBackpatchRoutine(flags, false, false, V0, XA, regs_in_use, fprs_in_use);
+      EmitBackpatchRoutine(inst, flags, false, false, V0, XA, regs_in_use, fprs_in_use);
     }
   }
   else
   {
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, V0, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, jo.fastmem, jo.fastmem, V0, XA, regs_in_use, fprs_in_use);
   }
 
   if (want_single && !have_single)
