@@ -11,6 +11,7 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/TypeUtils.h"
+#include "Core/PowerPC/Gekko.h"
 
 namespace Core
 {
@@ -217,19 +218,21 @@ public:
   TryReadInstResult TryReadInstruction(u32 address);
 
   template <std::unsigned_integral T>
-  T Read(const u32 address);
+  T Read(const u32 address, UGeckoInstruction inst);
 
   template <std::unsigned_integral T>
-  void Write(const Common::MakeAtLeastU32<T> var, const u32 address);
+  void Write(const Common::MakeAtLeastU32<T> var, const u32 address, UGeckoInstruction inst);
 
-  void Write_U16_Swap(u32 var, u32 address);
-  void Write_U32_Swap(u32 var, u32 address);
-  void Write_U64_Swap(u64 var, u32 address);
+  void Write_U16_Swap(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U32_Swap(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U64_Swap(u64 var, u32 address, UGeckoInstruction inst);
 
   void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks);
   void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks);
 
-  void ClearDCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
+  void
+  ClearDCacheLine(u32 address,
+                  UGeckoInstruction inst);  // Zeroes 32 bytes; address should be 32-byte-aligned
   void StoreDCacheLine(u32 address);
   void InvalidateDCacheLine(u32 address);
   void FlushDCacheLine(u32 address);
@@ -305,9 +308,9 @@ private:
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
   template <XCheckTLBFlag flag, std::unsigned_integral T, bool never_translate = false>
-  T ReadFromHardware(u32 effective_address);
+  T ReadFromHardware(u32 effective_address, UGeckoInstruction inst);
   template <XCheckTLBFlag flag, bool never_translate = false>
-  void WriteToHardware(u32 effective_address, u32 data, u32 size);
+  void WriteToHardware(u32 effective_address, u32 data, u32 size, UGeckoInstruction inst);
   template <XCheckTLBFlag flag>
   bool IsEffectiveRAMAddress(u32 address);
   bool IsPhysicalRAMAddress(u32 address) const;
@@ -321,13 +324,13 @@ private:
   BatTable m_dbat_table;
 };
 
-void ClearDCacheLineFromJit(MMU& mmu, u32 address);
+void ClearDCacheLineFromJit(MMU& mmu, u32 address, UGeckoInstruction inst);
 template <std::unsigned_integral T>
 // Returns zero-extended value
-Common::MakeAtLeastU32<T> ReadFromJit(MMU& mmu, u32 address);
+Common::MakeAtLeastU32<T> ReadFromJit(MMU& mmu, u32 address, UGeckoInstruction inst);
 template <std::unsigned_integral T>
-void WriteFromJit(MMU& mmu, Common::MakeAtLeastU32<T> var, u32 address);
-void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address);
-void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address);
-void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address);
+void WriteFromJit(MMU& mmu, Common::MakeAtLeastU32<T> var, u32 address, UGeckoInstruction inst);
+void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst);
 }  // namespace PowerPC
