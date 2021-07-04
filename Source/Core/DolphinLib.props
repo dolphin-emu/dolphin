@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
@@ -264,6 +264,8 @@
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="Core\HW\EXI\EXI.h" />
+    <ClInclude Include="Core\HW\GBAPad.h" />
+    <ClInclude Include="Core\HW\GBAPadEmu.h" />
     <ClInclude Include="Core\HW\GCKeyboard.h" />
     <ClInclude Include="Core\HW\GCKeyboardEmu.h" />
     <ClInclude Include="Core\HW\GCMemcard\GCIFile.h" />
@@ -844,6 +846,8 @@
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI.cpp" />
+    <ClCompile Include="Core\HW\GBAPad.cpp" />
+    <ClCompile Include="Core\HW\GBAPadEmu.cpp" />
     <ClCompile Include="Core\HW\GCKeyboard.cpp" />
     <ClCompile Include="Core\HW\GCKeyboardEmu.cpp" />
     <ClCompile Include="Core\HW\GCMemcard\GCIFile.cpp" />

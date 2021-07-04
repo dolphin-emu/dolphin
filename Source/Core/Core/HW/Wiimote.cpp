@@ -173,7 +173,7 @@ void ResetAllWiimotes()
 
 void LoadConfig()
 {
-  s_config.LoadConfig(false);
+  s_config.LoadConfig(InputConfig::InputClass::Wii);
   s_last_connect_request_counter.fill(0);
 }
 

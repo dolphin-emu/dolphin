@@ -38,12 +38,12 @@ void Initialize()
   s_config.RegisterHotplugCallback();
 
   // Load the saved controller config
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
 }
 
 bool IsInitialized()

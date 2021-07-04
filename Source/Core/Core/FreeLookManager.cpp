@@ -309,12 +309,12 @@ void Initialize()
 
   FreeLook::GetConfig().Refresh();
 
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
 }
 
 void LoadInputConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
 }
 
 bool IsInitialized()
