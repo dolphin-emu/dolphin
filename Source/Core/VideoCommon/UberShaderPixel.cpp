@@ -804,7 +804,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               BitfieldExtract<&TevStageIndirect::matrix_index>("tevind"));
     out.Write("      uint matrix_id = {};\n",
               BitfieldExtract<&TevStageIndirect::matrix_id>("tevind"));
-    out.Write("      int2 indtevtrans = int2(0, 0);\n"
+    out.Write("      float2 indtevtrans = float2(0, 0);\n"
               "\n");
     // There is always a bit set in bpmem_iref if the data is valid (matrix is not off, and the
     // indirect texture stage is enabled). If the matrix is off, the result doesn't matter; if the
@@ -859,21 +859,19 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "          switch (matrix_id)\n"
               "          {{\n"
               "          case 0u: // 3x2 S0.10 matrix\n"
-              "            indtevtrans = int2(idot(" I_INDTEXMTX
-              "[mtxidx].xyz, indcoord), idot(" I_INDTEXMTX "[mtxidx + 1u].xyz, indcoord)) >> 3;\n"
+              "            indtevtrans = float2(idot(" I_INDTEXMTX
+              "[mtxidx].xyz, indcoord) >> 3, idot(" I_INDTEXMTX
+              "[mtxidx + 1u].xyz, indcoord) >> 3);\n"
               "            break;\n"
               "          case 1u: // S matrix, S17.7 format\n"
-              "            indtevtrans = (fixedPoint_uv * indcoord.xx) >> 8;\n"
+              "            indtevtrans = float2((fixedPoint_uv * indcoord.xx) >> 8);\n"
               "            break;\n"
               "          case 2u: // T matrix, S17.7 format\n"
-              "            indtevtrans = (fixedPoint_uv * indcoord.yy) >> 8;\n"
+              "            indtevtrans = float2((fixedPoint_uv * indcoord.yy) >> 8);\n"
               "            break;\n"
               "          }}\n"
               "\n"
-              "          if (shift >= 0)\n"
-              "            indtevtrans = indtevtrans >> shift;\n"
-              "          else\n"
-              "            indtevtrans = indtevtrans << ((-shift) & 31);\n"
+              "          indtevtrans *= pow(2.0, shift);\n"
               "        }}\n"
               "      }}\n"
               "\n"
@@ -886,9 +884,9 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "\n"
         "      if ((tevind & {}u) != 0u) // add previous tevcoord\n",
         1 << TevStageIndirect().fb_addprev.StartBit());
-    out.Write("        tevcoord.xy += wrapped_coord + indtevtrans;\n"
+    out.Write("        tevcoord.xy += int2(float2(wrapped_coord) + indtevtrans);\n"
               "      else\n"
-              "        tevcoord.xy = wrapped_coord + indtevtrans;\n"
+              "        tevcoord.xy = int2(float2(wrapped_coord) + indtevtrans);\n"
               "\n"
               "      // Emulate s24 overflows\n"
               "      tevcoord.xy = (tevcoord.xy << 8) >> 8;\n"

@@ -1077,81 +1077,48 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
       // multiply by offset matrix and scale - calculations are likely to overflow badly,
       // yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
+
+      // Using integers to emulate the scale portion gives the wrong result for Zora eyes in
+      // Twilight Princess (see bug 10346).  It uses a scale of 47, which results in a 2^30
+      // multiplier, which doesn't make sense for S24, but it's not clear what actually should be
+      // done.  Although a float is used for the final result, the first calculation is done as an
+      // integer.
       if (tevind.matrix_id == IndMtxId::Indirect)
       {
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans{} = int2(idot(" I_INDTEXMTX
-                  "[{}].xyz, iindtevcrd{}), idot(" I_INDTEXMTX "[{}].xyz, iindtevcrd{})) >> 3;\n",
+        out.Write("\tfloat2 indtevtrans{} = float2("
+                  "idot(" I_INDTEXMTX "[{}].xyz, iindtevcrd{}) >> 3, "
+                  "idot(" I_INDTEXMTX "[{}].xyz, iindtevcrd{}) >> 3);\n",
                   n, mtxidx, n, mtxidx + 1, n);
-
-        // TODO: should use a shader uid branch for this for better performance
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
-        {
-          out.Write("\tint indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= indtexmtx_w_inverse_{};\n", n, n);
-        }
-        else
-        {
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
-        }
       }
       else if (tevind.matrix_id == IndMtxId::S)
       {
         ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n,
+        out.Write("\tfloat2 indtevtrans{} = float2(fixpoint_uv{} * iindtevcrd{}.xx >> 8);\n", n,
                   texcoord, n);
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
-        {
-          out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (indtexmtx_w_inverse_{});\n", n, n);
-        }
-        else
-        {
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
-        }
       }
       else if (tevind.matrix_id == IndMtxId::T)
       {
         ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
-        out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n,
+        out.Write("\tfloat2 indtevtrans{} = float2(fixpoint_uv{} * iindtevcrd{}.yy >> 8);\n", n,
                   texcoord, n);
-
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
-        {
-          out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (indtexmtx_w_inverse_{});\n", n, n);
-        }
-        else
-        {
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
-        }
       }
       else
       {
-        out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
+        out.Write("\tfloat2 indtevtrans{} = float2(0, 0);\n", n);
         ASSERT(false);  // Unknown value for matrix_id
       }
+      // Multiply by scale
+      out.Write("\tindtevtrans{} *= pow(2.0, float(" I_INDTEXMTX "[{}].w));\n", n, mtxidx);
     }
     else
     {
-      out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
+      out.Write("\tfloat2 indtevtrans{} = float2(0, 0);\n", n);
       if (tevind.matrix_index == IndMtxIndex::Off)
       {
         // If matrix_index is Off (0), matrix_id should be Indirect (0)
@@ -1198,9 +1165,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     }
 
     if (tevind.fb_addprev)  // add previous tevcoord
-      out.Write("\ttevcoord.xy += wrappedcoord + indtevtrans{};\n", n);
+      out.Write("\ttevcoord.xy += int2(float2(wrappedcoord) + indtevtrans{});\n", n);
     else
-      out.Write("\ttevcoord.xy = wrappedcoord + indtevtrans{};\n", n);
+      out.Write("\ttevcoord.xy = int2(float2(wrappedcoord) + indtevtrans{});\n", n);
 
     // Emulate s24 overflows
     out.Write("\ttevcoord.xy = (tevcoord.xy << 8) >> 8;\n");

@@ -332,11 +332,11 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
   constants.indtexmtx[2 * matrixidx][0] = bpmem.indmtx[matrixidx].col0.ma;
   constants.indtexmtx[2 * matrixidx][1] = bpmem.indmtx[matrixidx].col1.mc;
   constants.indtexmtx[2 * matrixidx][2] = bpmem.indmtx[matrixidx].col2.me;
-  constants.indtexmtx[2 * matrixidx][3] = 17 - scale;
+  constants.indtexmtx[2 * matrixidx][3] = scale - 17;
   constants.indtexmtx[2 * matrixidx + 1][0] = bpmem.indmtx[matrixidx].col0.mb;
   constants.indtexmtx[2 * matrixidx + 1][1] = bpmem.indmtx[matrixidx].col1.md;
   constants.indtexmtx[2 * matrixidx + 1][2] = bpmem.indmtx[matrixidx].col2.mf;
-  constants.indtexmtx[2 * matrixidx + 1][3] = 17 - scale;
+  constants.indtexmtx[2 * matrixidx + 1][3] = scale - 17;
   dirty = true;
 
   PRIM_LOG("indmtx{}: scale={}, mat=({} {} {}; {} {} {})", matrixidx, scale,

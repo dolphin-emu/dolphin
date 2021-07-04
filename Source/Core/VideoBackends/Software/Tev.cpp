@@ -482,7 +482,10 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     return;
   }
 
-  s32 indtevtrans[2] = {0, 0};
+  // Using u32 to emulate an S24 seems to give the wrong result for Zora eyes in Twilight Princess
+  // (see bug 10346).  It uses a scale of 47, which results in a 2^30 multiplier, which doesn't make
+  // sense for S24, but it's not clear what actually should be done.
+  float indtevtrans[2] = {0, 0};
 
   // matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits
   // of the result.
@@ -490,18 +493,18 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
   {
     const IND_MTX& indmtx = bpmem.indmtx[static_cast<u32>(indirect.matrix_index.Value()) - 1];
 
-    const int shift = 17 - indmtx.GetScale();
+    const int shift = indmtx.GetScale() - 17;
 
     switch (indirect.matrix_id)
     {
     case IndMtxId::Indirect:
       // matrix values are S0.10, output format is S17.7, so divide by 8
       indtevtrans[0] = (indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] +
-                        indmtx.col2.me * indcoord[2]) >>
-                       3;
+                        indmtx.col2.me * indcoord[2]) /
+                       8;
       indtevtrans[1] = (indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] +
-                        indmtx.col2.mf * indcoord[2]) >>
-                       3;
+                        indmtx.col2.mf * indcoord[2]) /
+                       8;
       break;
     case IndMtxId::S:
       // s is S17.7, matrix elements are divided by 256, output is S17.7, so divide by 256. - TODO:
@@ -518,8 +521,8 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
       return;
     }
 
-    indtevtrans[0] = shift >= 0 ? indtevtrans[0] >> shift : indtevtrans[0] << -shift;
-    indtevtrans[1] = shift >= 0 ? indtevtrans[1] >> shift : indtevtrans[1] << -shift;
+    indtevtrans[0] *= powf(2.0f, shift);
+    indtevtrans[1] *= powf(2.0f, shift);
   }
   else
   {
