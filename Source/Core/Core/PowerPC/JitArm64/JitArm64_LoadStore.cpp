@@ -26,7 +26,8 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update)
+void JitArm64::SafeLoadToReg(UGeckoInstruction inst, u32 dest, s32 addr, s32 offsetReg, u32 flags,
+                             s32 offset, bool update)
 {
   // We want to make sure to not get LR as a temp register
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W30);
@@ -139,7 +140,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, regs_in_use,
+    EmitBackpatchRoutine(inst, flags, MemAccessMode::AlwaysFastAccess, dest_reg, XA, regs_in_use,
                          fprs_in_use);
   }
   else if (mmio_address)
@@ -154,7 +155,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, MemAccessMode::Auto, dest_reg, XA, regs_in_use, fprs_in_use);
   }
 
   gpr.BindToRegister(dest, false, true);
@@ -172,8 +173,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     gpr.Unlock(ARM64Reg::W0);
 }
 
-void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset,
-                                bool update)
+void JitArm64::SafeStoreFromReg(UGeckoInstruction inst, s32 dest, u32 value, s32 regOffset,
+                                u32 flags, s32 offset, bool update)
 {
   // We want to make sure to not get LR as a temp register
   gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
@@ -311,7 +312,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, access_size))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysFastAccess, RS, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, MemAccessMode::AlwaysFastAccess, RS, XA, regs_in_use,
+                         fprs_in_use);
   }
   else if (mmio_address)
   {
@@ -326,7 +328,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, MemAccessMode::Auto, RS, XA, regs_in_use, fprs_in_use);
   }
 
   if (update && !early_update)
@@ -444,7 +446,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
     break;
   }
 
-  SafeLoadToReg(d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
+  SafeLoadToReg(inst, d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
 }
 
 void JitArm64::stX(UGeckoInstruction inst)
@@ -509,7 +511,7 @@ void JitArm64::stX(UGeckoInstruction inst)
     break;
   }
 
-  SafeStoreFromReg(update ? a : (a ? a : -1), s, regOffset, flags, offset, update);
+  SafeStoreFromReg(inst, update ? a : (a ? a : -1), s, regOffset, flags, offset, update);
 }
 
 void JitArm64::lmw(UGeckoInstruction inst)
@@ -595,8 +597,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
     if (!jo.memcheck)
       regs_in_use[DecodeReg(dest_reg)] = 0;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg), regs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg),
+                         regs_in_use, fprs_in_use);
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
@@ -711,8 +713,8 @@ void JitArm64::stmw(UGeckoInstruction inst)
     if (!jo.fastmem)
       regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
 
-    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
-                         fprs_in_use);
+    EmitBackpatchRoutine(inst, flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg),
+                         regs_in_use, fprs_in_use);
 
     // To reduce register pressure and to avoid getting a pipeline-unfriendly long run of stores
     // after this instruction, flush registers that would be flushed after this instruction anyway.
@@ -1020,7 +1022,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   if (!jo.fastmem)
     gprs_to_push[DecodeReg(ARM64Reg::W0)] = 0;
 
-  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1,
+  EmitBackpatchRoutine(inst, BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W1,
                        EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
 
   if (using_dcbz_hack)

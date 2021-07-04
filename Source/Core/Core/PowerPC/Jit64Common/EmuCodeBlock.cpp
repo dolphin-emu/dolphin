@@ -317,7 +317,8 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 }
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
-                                 s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
+                                 s32 offset, UGeckoInstruction inst, BitSet32 registersInUse,
+                                 bool signExtend, int flags)
 {
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
 
@@ -332,6 +333,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = js.compilerPC;
+    info.inst = inst;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = true;
@@ -357,7 +359,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   if (opAddress.IsImm())
   {
     u32 address = opAddress.Imm32() + offset;
-    SafeLoadToRegImmediate(reg_value, address, accessSize, registersInUse, signExtend);
+    SafeLoadToRegImmediate(reg_value, address, accessSize, inst, registersInUse, signExtend);
     return;
   }
 
@@ -401,16 +403,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPR(PowerPC::ReadU64FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPRC(PowerPC::ReadU64FromJit, &m_jit.m_mmu, reg_addr, inst.hex);
     break;
   case 32:
-    ABI_CallFunctionPR(PowerPC::ReadU32FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPRC(PowerPC::ReadU32FromJit, &m_jit.m_mmu, reg_addr, inst.hex);
     break;
   case 16:
-    ABI_CallFunctionPR(PowerPC::ReadU16FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPRC(PowerPC::ReadU16FromJit, &m_jit.m_mmu, reg_addr, inst.hex);
     break;
   case 8:
-    ABI_CallFunctionPR(PowerPC::ReadU8FromJit, &m_jit.m_mmu, reg_addr);
+    ABI_CallFunctionPRC(PowerPC::ReadU8FromJit, &m_jit.m_mmu, reg_addr, inst.hex);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -438,7 +440,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 }
 
 void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int accessSize,
-                                          BitSet32 registersInUse, bool signExtend)
+                                          UGeckoInstruction inst, BitSet32 registersInUse,
+                                          bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
   if (m_jit.jo.fastmem_arena && m_jit.m_mmu.IsOptimizableRAMAddress(address, accessSize))
@@ -465,16 +468,16 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPC(PowerPC::ReadU64FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPCC(PowerPC::ReadU64FromJit, &m_jit.m_mmu, address, inst.hex);
     break;
   case 32:
-    ABI_CallFunctionPC(PowerPC::ReadU32FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPCC(PowerPC::ReadU32FromJit, &m_jit.m_mmu, address, inst.hex);
     break;
   case 16:
-    ABI_CallFunctionPC(PowerPC::ReadU16FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPCC(PowerPC::ReadU16FromJit, &m_jit.m_mmu, address, inst.hex);
     break;
   case 8:
-    ABI_CallFunctionPC(PowerPC::ReadU8FromJit, &m_jit.m_mmu, address);
+    ABI_CallFunctionPCC(PowerPC::ReadU8FromJit, &m_jit.m_mmu, address, inst.hex);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -492,7 +495,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                     BitSet32 registersInUse, int flags)
+                                     UGeckoInstruction inst, BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
   bool force_slow_access = (flags & SAFE_LOADSTORE_FORCE_SLOW_ACCESS) != 0;
@@ -509,6 +512,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = js.compilerPC;
+    info.inst = inst;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = false;
@@ -588,19 +592,19 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteU64FromJit : PowerPC::WriteU64SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunctionPRRC(swap ? PowerPC::WriteU64FromJit : PowerPC::WriteU64SwapFromJit,
+                         &m_jit.m_mmu, reg, reg_addr, inst.hex);
     break;
   case 32:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteU32FromJit : PowerPC::WriteU32SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunctionPRRC(swap ? PowerPC::WriteU32FromJit : PowerPC::WriteU32SwapFromJit,
+                         &m_jit.m_mmu, reg, reg_addr, inst.hex);
     break;
   case 16:
-    ABI_CallFunctionPRR(swap ? PowerPC::WriteU16FromJit : PowerPC::WriteU16SwapFromJit,
-                        &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunctionPRRC(swap ? PowerPC::WriteU16FromJit : PowerPC::WriteU16SwapFromJit,
+                         &m_jit.m_mmu, reg, reg_addr, inst.hex);
     break;
   case 8:
-    ABI_CallFunctionPRR(PowerPC::WriteU8FromJit, &m_jit.m_mmu, reg, reg_addr);
+    ABI_CallFunctionPRRC(PowerPC::WriteU8FromJit, &m_jit.m_mmu, reg, reg_addr, inst.hex);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -619,9 +623,10 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                                     s32 offset, BitSet32 registersInUse, int flags)
+                                     s32 offset, UGeckoInstruction inst, BitSet32 registersInUse,
+                                     int flags)
 {
-  SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
+  SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, inst, registersInUse, flags);
 }
 
 bool EmuCodeBlock::WriteClobbersRegValue(int accessSize, bool swap)
@@ -630,7 +635,7 @@ bool EmuCodeBlock::WriteClobbersRegValue(int accessSize, bool swap)
 }
 
 bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
-                                       BitSet32 registersInUse)
+                                       UGeckoInstruction inst, BitSet32 registersInUse)
 {
   arg = FixImmediate(accessSize, arg);
 
@@ -670,16 +675,16 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     switch (accessSize)
     {
     case 64:
-      ABI_CallFunctionPAC(64, PowerPC::WriteU64FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPACC(64, PowerPC::WriteU64FromJit, &m_jit.m_mmu, arg, address, inst.hex);
       break;
     case 32:
-      ABI_CallFunctionPAC(32, PowerPC::WriteU32FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPACC(32, PowerPC::WriteU32FromJit, &m_jit.m_mmu, arg, address, inst.hex);
       break;
     case 16:
-      ABI_CallFunctionPAC(16, PowerPC::WriteU16FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPACC(16, PowerPC::WriteU16FromJit, &m_jit.m_mmu, arg, address, inst.hex);
       break;
     case 8:
-      ABI_CallFunctionPAC(8, PowerPC::WriteU8FromJit, &m_jit.m_mmu, arg, address);
+      ABI_CallFunctionPACC(8, PowerPC::WriteU8FromJit, &m_jit.m_mmu, arg, address, inst.hex);
       break;
     }
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);

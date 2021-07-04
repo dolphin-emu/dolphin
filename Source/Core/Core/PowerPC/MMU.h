@@ -10,6 +10,7 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/Gekko.h"
 
 namespace Core
 {
@@ -213,24 +214,26 @@ public:
   u32 Read_Opcode(u32 address);
   TryReadInstResult TryReadInstruction(u32 address);
 
-  u8 Read_U8(u32 address);
-  u16 Read_U16(u32 address);
-  u32 Read_U32(u32 address);
-  u64 Read_U64(u32 address);
+  u8 Read_U8(u32 address, UGeckoInstruction inst);
+  u16 Read_U16(u32 address, UGeckoInstruction inst);
+  u32 Read_U32(u32 address, UGeckoInstruction inst);
+  u64 Read_U64(u32 address, UGeckoInstruction inst);
 
-  void Write_U8(u32 var, u32 address);
-  void Write_U16(u32 var, u32 address);
-  void Write_U32(u32 var, u32 address);
-  void Write_U64(u64 var, u32 address);
+  void Write_U8(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U16(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U32(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U64(u64 var, u32 address, UGeckoInstruction inst);
 
-  void Write_U16_Swap(u32 var, u32 address);
-  void Write_U32_Swap(u32 var, u32 address);
-  void Write_U64_Swap(u64 var, u32 address);
+  void Write_U16_Swap(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U32_Swap(u32 var, u32 address, UGeckoInstruction inst);
+  void Write_U64_Swap(u64 var, u32 address, UGeckoInstruction inst);
 
   void DMA_LCToMemory(u32 mem_address, u32 cache_address, u32 num_blocks);
   void DMA_MemoryToLC(u32 cache_address, u32 mem_address, u32 num_blocks);
 
-  void ClearDCacheLine(u32 address);  // Zeroes 32 bytes; address should be 32-byte-aligned
+  void
+  ClearDCacheLine(u32 address,
+                  UGeckoInstruction inst);  // Zeroes 32 bytes; address should be 32-byte-aligned
   void StoreDCacheLine(u32 address);
   void InvalidateDCacheLine(u32 address);
   void FlushDCacheLine(u32 address);
@@ -306,9 +309,9 @@ private:
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
   template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-  T ReadFromHardware(u32 effective_address);
+  T ReadFromHardware(u32 effective_address, UGeckoInstruction inst);
   template <XCheckTLBFlag flag, bool never_translate = false>
-  void WriteToHardware(u32 effective_address, u32 data, u32 size);
+  void WriteToHardware(u32 effective_address, u32 data, u32 size, UGeckoInstruction inst);
   template <XCheckTLBFlag flag>
   bool IsRAMAddress(u32 address, bool translate);
 
@@ -328,16 +331,18 @@ private:
   BatTable m_dbat_table;
 };
 
-void ClearDCacheLineFromJit(MMU& mmu, u32 address);
-u32 ReadU8FromJit(MMU& mmu, u32 address);   // Returns zero-extended 32bit value
-u32 ReadU16FromJit(MMU& mmu, u32 address);  // Returns zero-extended 32bit value
-u32 ReadU32FromJit(MMU& mmu, u32 address);
-u64 ReadU64FromJit(MMU& mmu, u32 address);
-void WriteU8FromJit(MMU& mmu, u32 var, u32 address);
-void WriteU16FromJit(MMU& mmu, u32 var, u32 address);
-void WriteU32FromJit(MMU& mmu, u32 var, u32 address);
-void WriteU64FromJit(MMU& mmu, u64 var, u32 address);
-void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address);
-void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address);
-void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address);
+void ClearDCacheLineFromJit(MMU& mmu, u32 address, UGeckoInstruction inst);
+u32 ReadU8FromJit(MMU& mmu, u32 address,
+                  UGeckoInstruction inst);  // Returns zero-extended 32bit value
+u32 ReadU16FromJit(MMU& mmu, u32 address,
+                   UGeckoInstruction inst);  // Returns zero-extended 32bit value
+u32 ReadU32FromJit(MMU& mmu, u32 address, UGeckoInstruction inst);
+u64 ReadU64FromJit(MMU& mmu, u32 address, UGeckoInstruction inst);
+void WriteU8FromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU16FromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU32FromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU64FromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst);
+void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst);
 }  // namespace PowerPC
