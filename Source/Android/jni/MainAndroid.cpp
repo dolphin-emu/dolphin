@@ -173,6 +173,11 @@ void Host_TitleChanged()
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTitleChanged());
 }
 
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
+}
+
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
