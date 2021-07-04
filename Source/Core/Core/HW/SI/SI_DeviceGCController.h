@@ -105,8 +105,9 @@ public:
   // Direct rumble to the right GC Controller
   static void Rumble(int pad_num, ControlState strength);
 
+  static void HandleMoviePadStatus(int device_number, GCPadStatus* pad_status);
+
 protected:
-  void HandleMoviePadStatus(GCPadStatus* pad_status);
   void SetOrigin(const GCPadStatus& pad_status);
 };
 

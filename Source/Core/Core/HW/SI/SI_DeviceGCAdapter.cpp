@@ -38,7 +38,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
     pad_status = GCAdapter::Input(m_device_number);
   }
 
-  HandleMoviePadStatus(&pad_status);
+  HandleMoviePadStatus(m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
