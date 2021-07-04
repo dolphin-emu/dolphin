@@ -27,6 +27,7 @@ public:
   bool GetRenderFocus();
   bool GetRenderFullFocus();
   bool GetRenderFullscreen();
+  bool GetGBAFocus();
 
   void SetMainWindowHandle(void* handle);
   void SetRenderHandle(void* handle);

@@ -142,6 +142,8 @@
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="GameList\GridProxyModel.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
+    <ClCompile Include="GBAHost.cpp" />
+    <ClCompile Include="GBAWidget.cpp" />
     <ClCompile Include="GCMemcardCreateNewDialog.cpp" />
     <ClCompile Include="GCMemcardManager.cpp" />
     <ClCompile Include="Host.cpp" />
@@ -208,6 +210,7 @@
     <ClInclude Include="Config\NewPatchDialog.h" />
     <ClInclude Include="Config\PatchesWidget.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
+    <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\FlowLayout.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
@@ -313,6 +316,7 @@
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\GridProxyModel.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
+    <QtMoc Include="GBAWidget.h" />
     <QtMoc Include="GCMemcardCreateNewDialog.h" />
     <QtMoc Include="GCMemcardManager.h" />
     <QtMoc Include="Host.h" />
