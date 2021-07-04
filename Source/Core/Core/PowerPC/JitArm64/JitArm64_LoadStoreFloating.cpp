@@ -174,7 +174,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   if (!jo.memcheck)
     fprs_in_use[DecodeReg(VD)] = 0;
 
-  if (is_immediate && m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
+  if (is_immediate &&
+      m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags), inst))
   {
     EmitBackpatchRoutine(inst, flags, MemAccessMode::AlwaysFastAccess, VD, XA, regs_in_use,
                          fprs_in_use);
@@ -400,7 +401,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       STR(IndexType::Unsigned, ARM64Reg::X2, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
       js.fifoBytesSinceCheck += accessSize >> 3;
     }
-    else if (m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags)))
+    else if (m_mmu.IsOptimizableRAMAddress(imm_addr, BackPatchInfo::GetFlagSize(flags), inst))
     {
       set_addr_reg_if_needed();
       EmitBackpatchRoutine(inst, flags, MemAccessMode::AlwaysFastAccess, V0, XA, regs_in_use,

@@ -248,7 +248,7 @@ public:
   // Result changes based on the BAT registers and MSR.DR.  Returns whether
   // it's safe to optimize a read or write to this address to an unguarded
   // memory access.  Does not consider page tables.
-  bool IsOptimizableRAMAddress(u32 address, u32 access_size) const;
+  bool IsOptimizableRAMAddress(u32 address, u32 access_size, UGeckoInstruction inst) const;
   u32 IsOptimizableMMIOAccess(u32 address, u32 access_size) const;
   bool IsOptimizableGatherPipeWrite(u32 address) const;
 
@@ -345,4 +345,15 @@ void WriteU64FromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst);
 void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
 void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
 void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst);
+
+constexpr u32 GetAlignmentMask(size_t size)
+{
+  return static_cast<u32>(std::min<size_t>(4, size >> 3) - 1);
+}
+
+bool AccessCausesAlignmentExceptionIfWi(UGeckoInstruction inst);
+bool AccessCausesAlignmentExceptionIfMisaligned(UGeckoInstruction inst, size_t access_size);
+bool AccessCausesAlignmentException(u32 effective_address, size_t access_size,
+                                    UGeckoInstruction inst, bool wi);
+
 }  // namespace PowerPC

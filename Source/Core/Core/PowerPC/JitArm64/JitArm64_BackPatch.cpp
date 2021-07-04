@@ -71,6 +71,16 @@ void JitArm64::EmitBackpatchRoutine(UGeckoInstruction inst, u32 flags, MemAccess
 
   if (emit_fast_access)
   {
+    if (emit_slow_access && jo.alignment_exceptions &&
+        PowerPC::AccessCausesAlignmentExceptionIfMisaligned(inst, access_size))
+    {
+      const u32 mask = PowerPC::GetAlignmentMask(access_size);
+      TST(addr, LogicalImm(mask, GPRSize::B32));
+      FixupBranch fast = B(CCFlags::CC_EQ);
+      slow_access_fixup = emitting_routine ? B() : BL();
+      SetJumpTarget(fast);
+    }
+
     ARM64Reg memory_base = MEM_REG;
     ARM64Reg memory_offset = addr;
 
