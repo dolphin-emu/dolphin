@@ -41,7 +41,7 @@ static u32 Helper_Get_EA_UX(const PowerPC::PowerPCState& ppcs, const UGeckoInstr
 void Interpreter::lbz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = interpreter.m_mmu.Read<u8>(Helper_Get_EA(ppc_state, inst));
+  const u32 temp = interpreter.m_mmu.Read<u8>(Helper_Get_EA(ppc_state, inst), inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
     ppc_state.gpr[inst.RD] = temp;
@@ -51,7 +51,7 @@ void Interpreter::lbzu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u8>(address);
+  const u32 temp = interpreter.m_mmu.Read<u8>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -71,7 +71,7 @@ void Interpreter::lfd(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u64 temp = interpreter.m_mmu.Read<u64>(address);
+  const u64 temp = interpreter.m_mmu.Read<u64>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
     ppc_state.ps[inst.FD].SetPS0(temp);
@@ -88,7 +88,7 @@ void Interpreter::lfdu(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u64 temp = interpreter.m_mmu.Read<u64>(address);
+  const u64 temp = interpreter.m_mmu.Read<u64>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -108,7 +108,7 @@ void Interpreter::lfdux(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u64 temp = interpreter.m_mmu.Read<u64>(address);
+  const u64 temp = interpreter.m_mmu.Read<u64>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -128,7 +128,7 @@ void Interpreter::lfdx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u64 temp = interpreter.m_mmu.Read<u64>(address);
+  const u64 temp = interpreter.m_mmu.Read<u64>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
     ppc_state.ps[inst.FD].SetPS0(temp);
@@ -145,7 +145,7 @@ void Interpreter::lfs(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -165,7 +165,7 @@ void Interpreter::lfsu(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -186,7 +186,7 @@ void Interpreter::lfsux(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -207,7 +207,7 @@ void Interpreter::lfsx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -219,7 +219,7 @@ void Interpreter::lfsx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lha(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = u32(s32(s16(interpreter.m_mmu.Read<u16>(Helper_Get_EA(ppc_state, inst)))));
+  const u32 temp = u32(s32(s16(interpreter.m_mmu.Read<u16>(Helper_Get_EA(ppc_state, inst), inst))));
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -231,7 +231,7 @@ void Interpreter::lhau(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
-  const u32 temp = u32(s32(s16(interpreter.m_mmu.Read<u16>(address))));
+  const u32 temp = u32(s32(s16(interpreter.m_mmu.Read<u16>(address, inst))));
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -243,7 +243,7 @@ void Interpreter::lhau(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lhz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = interpreter.m_mmu.Read<u16>(Helper_Get_EA(ppc_state, inst));
+  const u32 temp = interpreter.m_mmu.Read<u16>(Helper_Get_EA(ppc_state, inst), inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -255,7 +255,7 @@ void Interpreter::lhzu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u16>(address);
+  const u32 temp = interpreter.m_mmu.Read<u16>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -278,7 +278,7 @@ void Interpreter::lmw(Interpreter& interpreter, UGeckoInstruction inst)
 
   for (u32 i = inst.RD; i <= 31; i++, address += 4)
   {
-    const u32 temp_reg = interpreter.m_mmu.Read<u32>(address);
+    const u32 temp_reg = interpreter.m_mmu.Read<u32>(address, inst);
 
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
     {
@@ -310,7 +310,7 @@ void Interpreter::stmw(Interpreter& interpreter, UGeckoInstruction inst)
 
   for (u32 i = inst.RS; i <= 31; i++, address += 4)
   {
-    interpreter.m_mmu.Write<u32>(ppc_state.gpr[i], address);
+    interpreter.m_mmu.Write<u32>(ppc_state.gpr[i], address, inst);
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
     {
       PanicAlertFmt("DSI exception in stmw");
@@ -324,7 +324,7 @@ void Interpreter::lwz(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -336,7 +336,7 @@ void Interpreter::lwzu(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -348,7 +348,7 @@ void Interpreter::lwzu(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::stb(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], Helper_Get_EA(ppc_state, inst));
+  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], Helper_Get_EA(ppc_state, inst), inst);
 }
 
 void Interpreter::stbu(Interpreter& interpreter, UGeckoInstruction inst)
@@ -356,7 +356,7 @@ void Interpreter::stbu(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -374,7 +374,7 @@ void Interpreter::stfd(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address);
+  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address, inst);
 }
 
 void Interpreter::stfdu(Interpreter& interpreter, UGeckoInstruction inst)
@@ -388,7 +388,7 @@ void Interpreter::stfdu(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address);
+  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -406,7 +406,7 @@ void Interpreter::stfs(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address);
+  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address, inst);
 }
 
 void Interpreter::stfsu(Interpreter& interpreter, UGeckoInstruction inst)
@@ -420,7 +420,7 @@ void Interpreter::stfsu(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address);
+  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -430,7 +430,7 @@ void Interpreter::stfsu(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::sth(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], Helper_Get_EA(ppc_state, inst));
+  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], Helper_Get_EA(ppc_state, inst), inst);
 }
 
 void Interpreter::sthu(Interpreter& interpreter, UGeckoInstruction inst)
@@ -438,7 +438,7 @@ void Interpreter::sthu(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -448,7 +448,7 @@ void Interpreter::sthu(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::stw(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], Helper_Get_EA(ppc_state, inst));
+  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], Helper_Get_EA(ppc_state, inst), inst);
 }
 
 void Interpreter::stwu(Interpreter& interpreter, UGeckoInstruction inst)
@@ -456,7 +456,7 @@ void Interpreter::stwu(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_U(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -556,7 +556,7 @@ void Interpreter::dcbz(Interpreter& interpreter, UGeckoInstruction inst)
     }
   }
 
-  interpreter.m_mmu.ClearDCacheLine(dcbz_addr & (~31));
+  interpreter.m_mmu.ClearDCacheLine(dcbz_addr & (~31), inst);
 }
 
 void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
@@ -576,7 +576,7 @@ void Interpreter::dcbz_l(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.ClearDCacheLine(address & (~31));
+  interpreter.m_mmu.ClearDCacheLine(address & (~31), inst);
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -598,7 +598,7 @@ void Interpreter::eciwx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  ppc_state.gpr[inst.RD] = interpreter.m_mmu.Read<u32>(EA);
+  ppc_state.gpr[inst.RD] = interpreter.m_mmu.Read<u32>(EA, inst);
 }
 
 void Interpreter::ecowx(Interpreter& interpreter, UGeckoInstruction inst)
@@ -618,7 +618,7 @@ void Interpreter::ecowx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], EA);
+  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], EA, inst);
 }
 
 void Interpreter::eieio(Interpreter& interpreter, UGeckoInstruction inst)
@@ -643,7 +643,7 @@ void Interpreter::lbzux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u8>(address);
+  const u32 temp = interpreter.m_mmu.Read<u8>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -655,7 +655,7 @@ void Interpreter::lbzux(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lbzx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = interpreter.m_mmu.Read<u8>(Helper_Get_EA_X(ppc_state, inst));
+  const u32 temp = interpreter.m_mmu.Read<u8>(Helper_Get_EA_X(ppc_state, inst), inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -667,7 +667,7 @@ void Interpreter::lhaux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
-  const s32 temp = s32{s16(interpreter.m_mmu.Read<u16>(address))};
+  const s32 temp = s32{s16(interpreter.m_mmu.Read<u16>(address, inst))};
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -679,7 +679,7 @@ void Interpreter::lhaux(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lhax(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const s32 temp = s32{s16(interpreter.m_mmu.Read<u16>(Helper_Get_EA_X(ppc_state, inst)))};
+  const s32 temp = s32{s16(interpreter.m_mmu.Read<u16>(Helper_Get_EA_X(ppc_state, inst), inst))};
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -690,7 +690,8 @@ void Interpreter::lhax(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lhbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = Common::swap16(interpreter.m_mmu.Read<u16>(Helper_Get_EA_X(ppc_state, inst)));
+  const u32 temp =
+      Common::swap16(interpreter.m_mmu.Read<u16>(Helper_Get_EA_X(ppc_state, inst), inst));
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -702,7 +703,7 @@ void Interpreter::lhzux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u16>(address);
+  const u32 temp = interpreter.m_mmu.Read<u16>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -714,7 +715,7 @@ void Interpreter::lhzux(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lhzx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = interpreter.m_mmu.Read<u16>(Helper_Get_EA_X(ppc_state, inst));
+  const u32 temp = interpreter.m_mmu.Read<u16>(Helper_Get_EA_X(ppc_state, inst), inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -743,7 +744,7 @@ void Interpreter::lswx(Interpreter& interpreter, UGeckoInstruction inst)
     if ((n & 0b11) == 0)
       ppc_state.gpr[reg] = 0;
 
-    const u32 temp_value = interpreter.m_mmu.Read<u8>(EA) << (24 - offset);
+    const u32 temp_value = interpreter.m_mmu.Read<u8>(EA, inst) << (24 - offset);
     // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
     {
@@ -759,7 +760,8 @@ void Interpreter::lswx(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::lwbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  const u32 temp = Common::swap32(interpreter.m_mmu.Read<u32>(Helper_Get_EA_X(ppc_state, inst)));
+  const u32 temp =
+      Common::swap32(interpreter.m_mmu.Read<u32>(Helper_Get_EA_X(ppc_state, inst), inst));
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -771,7 +773,7 @@ void Interpreter::lwzux(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -784,7 +786,7 @@ void Interpreter::lwzx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -797,7 +799,7 @@ void Interpreter::stbux(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -807,7 +809,7 @@ void Interpreter::stbux(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::stbx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], Helper_Get_EA_X(ppc_state, inst));
+  interpreter.m_mmu.Write<u8>(ppc_state.gpr[inst.RS], Helper_Get_EA_X(ppc_state, inst), inst);
 }
 
 void Interpreter::stfdux(Interpreter& interpreter, UGeckoInstruction inst)
@@ -821,7 +823,7 @@ void Interpreter::stfdux(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address);
+  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -839,7 +841,7 @@ void Interpreter::stfdx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address);
+  interpreter.m_mmu.Write<u64>(ppc_state.ps[inst.FS].PS0AsU64(), address, inst);
 }
 
 // Stores Floating points into Integers indeXed
@@ -854,7 +856,7 @@ void Interpreter::stfiwx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u32>(ppc_state.ps[inst.FS].PS0AsU32(), address);
+  interpreter.m_mmu.Write<u32>(ppc_state.ps[inst.FS].PS0AsU32(), address, inst);
 }
 
 void Interpreter::stfsux(Interpreter& interpreter, UGeckoInstruction inst)
@@ -868,7 +870,7 @@ void Interpreter::stfsux(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address);
+  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -886,13 +888,13 @@ void Interpreter::stfsx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address);
+  interpreter.m_mmu.Write<u32>(ConvertToSingle(ppc_state.ps[inst.FS].PS0AsU64()), address, inst);
 }
 
 void Interpreter::sthbrx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  interpreter.m_mmu.Write_U16_Swap(ppc_state.gpr[inst.RS], Helper_Get_EA_X(ppc_state, inst));
+  interpreter.m_mmu.Write_U16_Swap(ppc_state.gpr[inst.RS], Helper_Get_EA_X(ppc_state, inst), inst);
 }
 
 void Interpreter::sthux(Interpreter& interpreter, UGeckoInstruction inst)
@@ -900,7 +902,7 @@ void Interpreter::sthux(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -910,7 +912,7 @@ void Interpreter::sthux(Interpreter& interpreter, UGeckoInstruction inst)
 void Interpreter::sthx(Interpreter& interpreter, UGeckoInstruction inst)
 {
   auto& ppc_state = interpreter.m_ppc_state;
-  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], Helper_Get_EA_X(ppc_state, inst));
+  interpreter.m_mmu.Write<u16>(ppc_state.gpr[inst.RS], Helper_Get_EA_X(ppc_state, inst), inst);
 }
 
 // lswi - bizarro string instruction
@@ -943,7 +945,7 @@ void Interpreter::lswi(Interpreter& interpreter, UGeckoInstruction inst)
       ppc_state.gpr[r] = 0;
     }
 
-    const u32 temp_value = interpreter.m_mmu.Read<u8>(EA) << (24 - i);
+    const u32 temp_value = interpreter.m_mmu.Read<u8>(EA, inst) << (24 - i);
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
     {
       PanicAlertFmt("DSI exception in lsw.");
@@ -973,7 +975,7 @@ void Interpreter::stswi(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  Helper_StoreString(interpreter, EA, inst.NB == 0 ? 32 : inst.NB, inst.RS);
+  Helper_StoreString(interpreter, inst, EA, inst.NB == 0 ? 32 : inst.NB, inst.RS);
 }
 
 void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
@@ -987,10 +989,11 @@ void Interpreter::stswx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  Helper_StoreString(interpreter, EA, u8(ppc_state.xer_stringctrl), inst.RS);
+  Helper_StoreString(interpreter, inst, EA, u8(ppc_state.xer_stringctrl), inst.RS);
 }
 
-void Interpreter::Helper_StoreString(Interpreter& interpreter, const u32 EA, u32 n, u32 r)
+void Interpreter::Helper_StoreString(Interpreter& interpreter, UGeckoInstruction inst, const u32 EA,
+                                     u32 n, u32 r)
 {
   // Helper for stswi/stswx, the oddball store string instructions.
   //
@@ -1010,7 +1013,7 @@ void Interpreter::Helper_StoreString(Interpreter& interpreter, const u32 EA, u32
   if (misalignment_bytes != 0)
   {
     // Handle misalignment at start
-    current_value = interpreter.m_mmu.Read<u32>(current_address);
+    current_value = interpreter.m_mmu.Read<u32>(current_address, inst);
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
       return;
     current_value <<= misalignment_bits;
@@ -1022,7 +1025,7 @@ void Interpreter::Helper_StoreString(Interpreter& interpreter, const u32 EA, u32
   {
     current_value |= ppc_state.gpr[r];
     interpreter.m_mmu.Write<u32>(static_cast<u32>(current_value >> misalignment_bits),
-                                 current_address);
+                                 current_address, inst);
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
       return;
 
@@ -1045,10 +1048,10 @@ void Interpreter::Helper_StoreString(Interpreter& interpreter, const u32 EA, u32
       current_value >>= (misalignment_bytes - n) * 8;
     }
     current_value &= 0xFFFF'FFFF'0000'0000;
-    current_value |= (interpreter.m_mmu.Read<u32>(current_address) << (n * 8)) & 0xFFFF'FFFF;
+    current_value |= (interpreter.m_mmu.Read<u32>(current_address, inst) << (n * 8)) & 0xFFFF'FFFF;
     if ((ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION) != 0)
       return;
-    interpreter.m_mmu.Write<u32>(static_cast<u32>(current_value >> (n * 8)), current_address);
+    interpreter.m_mmu.Write<u32>(static_cast<u32>(current_value >> (n * 8)), current_address, inst);
   }
 }
 
@@ -1057,7 +1060,7 @@ void Interpreter::stwbrx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
 
-  interpreter.m_mmu.Write_U32_Swap(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write_U32_Swap(ppc_state.gpr[inst.RS], address, inst);
 }
 
 // The following two instructions are for SMP communications. On a single
@@ -1074,7 +1077,7 @@ void Interpreter::lwarx(Interpreter& interpreter, UGeckoInstruction inst)
     return;
   }
 
-  const u32 temp = interpreter.m_mmu.Read<u32>(address);
+  const u32 temp = interpreter.m_mmu.Read<u32>(address, inst);
 
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
@@ -1100,7 +1103,7 @@ void Interpreter::stwcxd(Interpreter& interpreter, UGeckoInstruction inst)
   {
     if (address == ppc_state.reserve_address)
     {
-      interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address);
+      interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address, inst);
       if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
       {
         ppc_state.reserve = false;
@@ -1118,7 +1121,7 @@ void Interpreter::stwux(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_UX(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address, inst);
   if (!(ppc_state.Exceptions & ANY_LOADSTORE_EXCEPTION))
   {
     ppc_state.gpr[inst.RA] = address;
@@ -1130,7 +1133,7 @@ void Interpreter::stwx(Interpreter& interpreter, UGeckoInstruction inst)
   auto& ppc_state = interpreter.m_ppc_state;
   const u32 address = Helper_Get_EA_X(ppc_state, inst);
 
-  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address);
+  interpreter.m_mmu.Write<u32>(ppc_state.gpr[inst.RS], address, inst);
 }
 
 void Interpreter::sync(Interpreter& interpreter, UGeckoInstruction inst)

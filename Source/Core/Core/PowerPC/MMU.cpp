@@ -43,6 +43,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/GDBStub.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
@@ -145,7 +146,7 @@ static void EFB_Write(u32 data, u32 addr)
 }
 
 template <XCheckTLBFlag flag, std::unsigned_integral T, bool never_translate>
-T MMU::ReadFromHardware(u32 effective_address)
+T MMU::ReadFromHardware(u32 effective_address, UGeckoInstruction inst)
 {
   // ReadFromHardware is currently used with XCheckTLBFlag::OpcodeNoException by host instruction
   // functions. Actual instruction decoding (which can raise exceptions and uses icache) is handled
@@ -164,7 +165,7 @@ T MMU::ReadFromHardware(u32 effective_address)
     T var = 0;
     for (u32 i = 0; i < sizeof(T); ++i)
     {
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(effective_address + i);
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(effective_address + i, inst);
     }
     return var;
   }
@@ -273,7 +274,8 @@ T MMU::ReadFromHardware(u32 effective_address)
 }
 
 template <XCheckTLBFlag flag, bool never_translate>
-void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32 size)
+void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32 size,
+                          const UGeckoInstruction inst)
 {
   static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Write);
 
@@ -289,8 +291,8 @@ void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32
     const u32 first_half_size = effective_end_page - effective_address;
     const u32 second_half_size = size - first_half_size;
     WriteToHardware<flag, never_translate>(effective_address, std::rotr(data, second_half_size * 8),
-                                           first_half_size);
-    WriteToHardware<flag, never_translate>(effective_end_page, data, second_half_size);
+                                           first_half_size, inst);
+    WriteToHardware<flag, never_translate>(effective_end_page, data, second_half_size, inst);
     return;
   }
 
@@ -412,8 +414,8 @@ void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32
     const u32 end_addr = Common::AlignUp(physical_address + size, 8);
     for (u32 addr = start_addr; addr != end_addr; addr += 8)
     {
-      WriteToHardware<flag, true>(addr, rotated_data, 4);
-      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+      WriteToHardware<flag, true>(addr, rotated_data, 4, inst);
+      WriteToHardware<flag, true>(addr + 4, rotated_data, 4, inst);
     }
 
     return;
@@ -522,7 +524,7 @@ TryReadInstResult MMU::TryReadInstruction(u32 address)
 u32 MMU::HostRead_Instruction(const Core::CPUThreadGuard& guard, const u32 address)
 {
   return guard.GetSystem().GetMMU().ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(
-      address);
+      address, UGeckoInstruction{});
 }
 
 std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThreadGuard& guard,
@@ -537,19 +539,22 @@ std::optional<ReadResult<u32>> MMU::HostTryReadInstruction(const Core::CPUThread
   {
   case RequestedAddressSpace::Effective:
   {
-    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value =
+        mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
     return ReadResult<u32>(!!mmu.m_ppc_state.msr.IR, value);
   }
   case RequestedAddressSpace::Physical:
   {
-    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
+    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(
+        address, UGeckoInstruction{});
     return ReadResult<u32>(false, value);
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!mmu.m_ppc_state.msr.IR)
       return std::nullopt;
-    const u32 value = mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
+    const u32 value =
+        mmu.ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address, UGeckoInstruction{});
     return ReadResult<u32>(true, value);
   }
   }
@@ -593,16 +598,16 @@ void MMU::Memcheck(u32 address, u64 var, bool write, size_t size)
 }
 
 template <std::unsigned_integral T>
-T MMU::Read(const u32 address)
+T MMU::Read(const u32 address, UGeckoInstruction inst)
 {
-  T var = ReadFromHardware<XCheckTLBFlag::Read, T>(address);
+  T var = ReadFromHardware<XCheckTLBFlag::Read, T>(address, inst);
   Memcheck(address, var, false, sizeof(T));
   return var;
 }
-template u8 MMU::Read<u8>(const u32 address);
-template u16 MMU::Read<u16>(const u32 address);
-template u32 MMU::Read<u32>(const u32 address);
-template u64 MMU::Read<u64>(const u32 address);
+template u8 MMU::Read<u8>(const u32 address, UGeckoInstruction inst);
+template u16 MMU::Read<u16>(const u32 address, UGeckoInstruction inst);
+template u32 MMU::Read<u32>(const u32 address, UGeckoInstruction inst);
+template u64 MMU::Read<u64>(const u32 address, UGeckoInstruction inst);
 
 template <std::unsigned_integral T>
 std::optional<ReadResult<T>> MMU::HostTryRead(const Core::CPUThreadGuard& guard, const u32 address,
@@ -616,19 +621,20 @@ std::optional<ReadResult<T>> MMU::HostTryRead(const Core::CPUThreadGuard& guard,
   {
   case RequestedAddressSpace::Effective:
   {
-    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
     return ReadResult<T>(!!mmu.m_ppc_state.msr.DR, std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
-    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address);
+    T value =
+        mmu.ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address, UGeckoInstruction{});
     return ReadResult<T>(false, std::move(value));
   }
   case RequestedAddressSpace::Virtual:
   {
     if (!mmu.m_ppc_state.msr.DR)
       return std::nullopt;
-    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+    T value = mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
     return ReadResult<T>(true, std::move(value));
   }
   }
@@ -650,40 +656,40 @@ template std::optional<ReadResult<u64>> MMU::HostTryRead<u64>(const Core::CPUThr
                                                               RequestedAddressSpace space);
 
 template <std::unsigned_integral T>
-void MMU::Write(const Common::MakeAtLeastU32<T> var, const u32 address)
+void MMU::Write(const Common::MakeAtLeastU32<T> var, const u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, sizeof(T));
-  WriteToHardware<XCheckTLBFlag::Write>(address, var, sizeof(T));
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, sizeof(T), inst);
 }
-template void MMU::Write<u8>(const u32 var, const u32 address);
-template void MMU::Write<u16>(const u32 var, const u32 address);
-template void MMU::Write<u32>(const u32 var, const u32 address);
+template void MMU::Write<u8>(const u32 var, const u32 address, UGeckoInstruction inst);
+template void MMU::Write<u16>(const u32 var, const u32 address, UGeckoInstruction inst);
+template void MMU::Write<u32>(const u32 var, const u32 address, UGeckoInstruction inst);
 template <>
-void MMU::Write<u64>(const u64 var, const u32 address)
+void MMU::Write<u64>(const u64 var, const u32 address, UGeckoInstruction inst)
 {
   Memcheck(address, var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
-  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4, inst);
+  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4, inst);
 }
 
-void MMU::Write_U16_Swap(const u32 var, const u32 address)
+void MMU::Write_U16_Swap(const u32 var, const u32 address, UGeckoInstruction inst)
 {
-  Write<u16>((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address);
+  Write<u16>((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address, inst);
 }
-void MMU::Write_U32_Swap(const u32 var, const u32 address)
+void MMU::Write_U32_Swap(const u32 var, const u32 address, UGeckoInstruction inst)
 {
-  Write<u32>(Common::swap32(var), address);
+  Write<u32>(Common::swap32(var), address, inst);
 }
-void MMU::Write_U64_Swap(const u64 var, const u32 address)
+void MMU::Write_U64_Swap(const u64 var, const u32 address, UGeckoInstruction inst)
 {
-  Write<u64>(Common::swap64(var), address);
+  Write<u64>(Common::swap64(var), address, inst);
 }
 
 template <std::unsigned_integral T>
 T MMU::HostRead(const Core::CPUThreadGuard& guard, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
+  return mmu.ReadFromHardware<XCheckTLBFlag::NoException, T>(address, UGeckoInstruction{});
 }
 template u8 MMU::HostRead<u8>(const Core::CPUThreadGuard& guard, const u32 address);
 template u16 MMU::HostRead<u16>(const Core::CPUThreadGuard& guard, const u32 address);
@@ -695,7 +701,7 @@ void MMU::HostWrite(const Core::CPUThreadGuard& guard, const Common::MakeAtLeast
                     const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, sizeof(T));
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, sizeof(T), UGeckoInstruction{});
 }
 template void MMU::HostWrite<u8>(const Core::CPUThreadGuard& guard, const u32 var,
                                  const u32 address);
@@ -707,8 +713,10 @@ template <>
 void MMU::HostWrite<u64>(const Core::CPUThreadGuard& guard, const u64 var, const u32 address)
 {
   auto& mmu = guard.GetSystem().GetMMU();
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4);
-  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4);
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4,
+                                                  UGeckoInstruction{});
+  mmu.WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4,
+                                                  UGeckoInstruction{});
 }
 
 template <std::unsigned_integral T>
@@ -725,15 +733,15 @@ std::optional<WriteResult> MMU::HostTryWrite(const Core::CPUThreadGuard& guard,
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
+    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size, UGeckoInstruction{});
     return WriteResult(!!mmu.m_ppc_state.msr.DR);
   case RequestedAddressSpace::Physical:
-    mmu.WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
+    mmu.WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size, UGeckoInstruction{});
     return WriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!mmu.m_ppc_state.msr.DR)
       return std::nullopt;
-    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
+    mmu.WriteToHardware<XCheckTLBFlag::NoException>(address, var, size, UGeckoInstruction{});
     return WriteResult(true);
   }
 
@@ -984,7 +992,7 @@ static bool TranslateBatAddress(const BatTable& bat_table, u32* address, bool* w
   return true;
 }
 
-void MMU::ClearDCacheLine(u32 address)
+void MMU::ClearDCacheLine(u32 address, UGeckoInstruction inst)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
   if (m_ppc_state.msr.DR)
@@ -1009,7 +1017,7 @@ void MMU::ClearDCacheLine(u32 address)
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 4)
-    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4);
+    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4, inst);
 }
 
 void MMU::StoreDCacheLine(u32 address)
@@ -1380,11 +1388,12 @@ MMU::TranslateAddressResult MMU::TranslatePageAddress(const EffectiveAddress add
     {
       constexpr XCheckTLBFlag pte_read_flag =
           IsNoExceptionFlag(flag) ? XCheckTLBFlag::NoException : XCheckTLBFlag::Read;
-      const u32 pteg = ReadFromHardware<pte_read_flag, u32, true>(pteg_addr);
+      const u32 pteg = ReadFromHardware<pte_read_flag, u32, true>(pteg_addr, UGeckoInstruction{});
 
       if (pte1.Hex == pteg)
       {
-        UPTE_Hi pte2(ReadFromHardware<pte_read_flag, u32, true>(pteg_addr + 4));
+        UPTE_Hi pte2(
+            ReadFromHardware<pte_read_flag, u32, true>(pteg_addr + 4, UGeckoInstruction{}));
 
         // set the access bits
         switch (flag)
@@ -1596,39 +1605,39 @@ std::optional<u32> MMU::GetTranslatedAddress(u32 address)
   return std::optional<u32>(result.address);
 }
 
-void ClearDCacheLineFromJit(MMU& mmu, u32 address)
+void ClearDCacheLineFromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  mmu.ClearDCacheLine(address);
+  mmu.ClearDCacheLine(address, inst);
 }
 template <std::unsigned_integral T>
-Common::MakeAtLeastU32<T> ReadFromJit(MMU& mmu, u32 address)
+Common::MakeAtLeastU32<T> ReadFromJit(MMU& mmu, u32 address, UGeckoInstruction inst)
 {
-  return mmu.Read<T>(address);
+  return mmu.Read<T>(address, inst);
 }
-template u32 ReadFromJit<u8>(MMU& mmu, u32 address);
-template u32 ReadFromJit<u16>(MMU& mmu, u32 address);
-template u32 ReadFromJit<u32>(MMU& mmu, u32 address);
-template u64 ReadFromJit<u64>(MMU& mmu, u32 address);
+template u32 ReadFromJit<u8>(MMU& mmu, u32 address, UGeckoInstruction inst);
+template u32 ReadFromJit<u16>(MMU& mmu, u32 address, UGeckoInstruction inst);
+template u32 ReadFromJit<u32>(MMU& mmu, u32 address, UGeckoInstruction inst);
+template u64 ReadFromJit<u64>(MMU& mmu, u32 address, UGeckoInstruction inst);
 
 template <std::unsigned_integral T>
-void WriteFromJit(MMU& mmu, Common::MakeAtLeastU32<T> var, u32 address)
+void WriteFromJit(MMU& mmu, Common::MakeAtLeastU32<T> var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write<T>(var, address);
+  mmu.Write<T>(var, address, inst);
 }
-template void WriteFromJit<u8>(MMU& mmu, u32 var, u32 address);
-template void WriteFromJit<u16>(MMU& mmu, u32 var, u32 address);
-template void WriteFromJit<u32>(MMU& mmu, u32 var, u32 address);
-template void WriteFromJit<u64>(MMU& mmu, u64 var, u32 address);
-void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address)
+template void WriteFromJit<u8>(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+template void WriteFromJit<u16>(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+template void WriteFromJit<u32>(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst);
+template void WriteFromJit<u64>(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst);
+void WriteU16SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U16_Swap(var, address);
+  mmu.Write_U16_Swap(var, address, inst);
 }
-void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address)
+void WriteU32SwapFromJit(MMU& mmu, u32 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U32_Swap(var, address);
+  mmu.Write_U32_Swap(var, address, inst);
 }
-void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address)
+void WriteU64SwapFromJit(MMU& mmu, u64 var, u32 address, UGeckoInstruction inst)
 {
-  mmu.Write_U64_Swap(var, address);
+  mmu.Write_U64_Swap(var, address, inst);
 }
 }  // namespace PowerPC
