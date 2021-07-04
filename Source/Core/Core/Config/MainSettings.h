@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "Common/Config/Config.h"
@@ -118,6 +119,14 @@ extern const Info<std::string> MAIN_LOAD_PATH;
 extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
 extern const Info<std::string> MAIN_SD_PATH;
+
+// Main.GBA
+
+extern const Info<std::string> MAIN_GBA_BIOS_PATH;
+extern const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS;
+extern const Info<std::string> MAIN_GBA_SAVES_PATH;
+extern const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH;
+extern const Info<bool> MAIN_GBA_THREADS;
 
 // Main.Network
 
