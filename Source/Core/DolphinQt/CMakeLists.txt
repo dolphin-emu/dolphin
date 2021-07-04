@@ -140,6 +140,8 @@ add_executable(dolphin-emu
   Config/Mapping/HotkeyControllerProfile.h
   Config/Mapping/HotkeyDebugging.cpp
   Config/Mapping/HotkeyDebugging.h
+  Config/Mapping/HotkeyGBA.cpp
+  Config/Mapping/HotkeyGBA.h
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGeneral.h
   Config/Mapping/HotkeyGraphics.cpp

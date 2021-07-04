@@ -90,6 +90,7 @@
     <ClCompile Include="Config\Mapping\HotkeyControllerProfile.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGBA.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStatesOther.cpp" />
@@ -268,6 +269,7 @@
     <QtMoc Include="Config\Mapping\Hotkey3D.h" />
     <QtMoc Include="Config\Mapping\HotkeyControllerProfile.h" />
     <QtMoc Include="Config\Mapping\HotkeyDebugging.h" />
+    <QtMoc Include="Config\Mapping\HotkeyGBA.h" />
     <QtMoc Include="Config\Mapping\HotkeyGeneral.h" />
     <QtMoc Include="Config\Mapping\HotkeyGraphics.h" />
     <QtMoc Include="Config\Mapping\HotkeyStates.h" />
