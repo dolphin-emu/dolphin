@@ -375,7 +375,10 @@ union IND_MTXC
 {
   BitField<0, 11, s32> me;
   BitField<11, 11, s32> mf;
-  BitField<22, 2, u8, u32> s2;  // bits 4-5 of scale factor
+  BitField<22, 1, u8, u32> s2;  // bit 4 of scale factor
+  // The SDK treats the scale factor as 6 bits, 2 on each column; however, hardware seems to ignore
+  // the top bit.
+  BitField<22, 2, u8, u32> sdk_s2;
   u32 hex;
 };
 
