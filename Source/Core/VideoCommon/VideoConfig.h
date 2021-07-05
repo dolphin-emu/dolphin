@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
 // The reason for this is to get rid of race conditions etc when the configuration

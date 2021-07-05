@@ -1,6 +1,5 @@
 // Copyright 2013 Max Eliaser
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"

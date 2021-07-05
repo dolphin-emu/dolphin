@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // This is a test program for running code on the Wii DSP, with full control over input
 // and automatic compare with output. VERY useful for figuring out what those little
