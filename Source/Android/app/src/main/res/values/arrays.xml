@@ -2,8 +2,20 @@
 
 <!-- All lists for ListPreference keys/values are placed here -->
 <resources>
+    <string-array name="regionEntries">
+        <item>NTSC-J</item>
+        <item>NTSC-U</item>
+        <item>PAL</item>
+        <item>NTSC-K</item>
+    </string-array>
+    <integer-array name="regionValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
 
-    <!-- New UI CPU Core selection - Default -->
+    <!-- UI CPU Core selection -->
     <string-array name="emuCoresEntriesX86_64" translatable="false">
         <item>JIT Recompiler for x86-64 (recommended)</item>
         <item>Cached Interpreter (slower)</item>
