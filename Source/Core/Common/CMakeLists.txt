@@ -80,7 +80,6 @@ add_library(common
   Matrix.h
   MD5.cpp
   MD5.h
-  MemArena.cpp
   MemArena.h
   MemoryUtil.cpp
   MemoryUtil.h
@@ -180,16 +179,19 @@ if(ANDROID)
     AndroidAnalytics.cpp
     AndroidAnalytics.h
     Logging/ConsoleListenerDroid.cpp
+    MemArenaAndroid.cpp
   )
 elseif(WIN32)
   target_sources(common PRIVATE
     LdrWatcher.cpp
     LdrWatcher.h
     Logging/ConsoleListenerWin.cpp
+    MemArenaWin.cpp
   )
 else()
   target_sources(common PRIVATE
     Logging/ConsoleListenerNix.cpp
+    MemArenaUnix.cpp
   )
 endif()
 
