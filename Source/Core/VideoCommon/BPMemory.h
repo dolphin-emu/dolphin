@@ -362,6 +362,20 @@ union IND_MTXA
   BitField<22, 2, u8, u32> s0;  // bits 0-1 of scale factor
   u32 hex;
 };
+template <>
+struct fmt::formatter<IND_MTXA>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXA& col, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Row 0 (ma): {} ({})\n"
+                     "Row 1 (mb): {} ({})\n"
+                     "Scale bits: {} (shifted: {})",
+                     col.ma / 1024.0f, col.ma, col.mb / 1024.0f, col.mb, col.s0, col.s0);
+  }
+};
 
 union IND_MTXB
 {
@@ -369,6 +383,20 @@ union IND_MTXB
   BitField<11, 11, s32> md;
   BitField<22, 2, u8, u32> s1;  // bits 2-3 of scale factor
   u32 hex;
+};
+template <>
+struct fmt::formatter<IND_MTXB>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXB& col, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Row 0 (mc): {} ({})\n"
+                     "Row 1 (md): {} ({})\n"
+                     "Scale bits: {} (shifted: {})",
+                     col.mc / 1024.0f, col.mc, col.md / 1024.0f, col.md, col.s1, col.s1 << 2);
+  }
 };
 
 union IND_MTXC
@@ -380,6 +408,21 @@ union IND_MTXC
   // the top bit.
   BitField<22, 2, u8, u32> sdk_s2;
   u32 hex;
+};
+template <>
+struct fmt::formatter<IND_MTXC>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXC& col, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Row 0 (me): {} ({})\n"
+                     "Row 1 (mf): {} ({})\n"
+                     "Scale bits: {} (shifted: {}), given to SDK as {} ({})",
+                     col.me / 1024.0f, col.me, col.mf / 1024.0f, col.mf, col.s2, col.s2 << 4,
+                     col.sdk_s2, col.sdk_s2 << 4);
+  }
 };
 
 struct IND_MTX
