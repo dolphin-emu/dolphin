@@ -1,0 +1,10 @@
+Most of Dolphin's original source code is licensed under GPLv2+. Part of the
+source code distributed in this repository is derived from other projects and
+may have stronger or weaker licensing requirement. Overall, in aggregate, the
+entirety of this repository is compatible with the GPLv3 license.
+
+Per-file licensing information is provided via SPDX tags [1]. The licenses
+referenced in these tags can be found in the LICENSES/ directory within this
+source repository.
+
+[1] https://spdx.dev/
