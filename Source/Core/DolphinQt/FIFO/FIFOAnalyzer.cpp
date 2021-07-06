@@ -575,19 +575,99 @@ public:
 
     const auto& vtx_desc = m_cpmem.vtx_desc;
     const auto& vtx_attr = m_cpmem.vtx_attr[vat];
-    const auto component_sizes = VertexLoaderBase::GetVertexComponentSizes(vtx_desc, vtx_attr);
 
     u32 i = 0;
+    const auto process_component = [&](VertexComponentFormat cformat, ComponentFormat format,
+                                       u32 non_indexed_count, u32 indexed_count = 1) {
+      u32 count;
+      if (cformat == VertexComponentFormat::NotPresent)
+        return;
+      else if (cformat == VertexComponentFormat::Index8)
+      {
+        format = ComponentFormat::UByte;
+        count = indexed_count;
+      }
+      else if (cformat == VertexComponentFormat::Index16)
+      {
+        format = ComponentFormat::UShort;
+        count = indexed_count;
+      }
+      else
+      {
+        count = non_indexed_count;
+      }
+
+      const u32 component_size = GetElementSize(format);
+      for (u32 j = 0; j < count; j++)
+      {
+        for (u32 component_off = 0; component_off < component_size; component_off++)
+        {
+          text += QStringLiteral("%1").arg(vertex_data[i + component_off], 2, 16, QLatin1Char('0'));
+        }
+        if (format == ComponentFormat::Float)
+        {
+          const float value = Common::BitCast<float>(Common::swap32(&vertex_data[i]));
+          text += QStringLiteral(" (%1)").arg(value);
+        }
+        i += component_size;
+        text += QLatin1Char{' '};
+      }
+      text += QLatin1Char{' '};
+    };
+    const auto process_simple_component = [&](u32 size) {
+      for (u32 component_off = 0; component_off < size; component_off++)
+      {
+        text += QStringLiteral("%1").arg(vertex_data[i + component_off], 2, 16, QLatin1Char('0'));
+      }
+      i += size;
+      text += QLatin1Char{' '};
+      text += QLatin1Char{' '};
+    };
+
     for (u32 vertex_num = 0; vertex_num < num_vertices; vertex_num++)
     {
+      ASSERT(i == vertex_num * vertex_size);
+
       text += QLatin1Char{'\n'};
-      for (u32 comp_size : component_sizes)
+      if (vtx_desc.low.PosMatIdx)
+        process_simple_component(1);
+      for (auto texmtxidx : vtx_desc.low.TexMatIdx)
       {
-        for (u32 comp_off = 0; comp_off < comp_size; comp_off++)
+        if (texmtxidx)
+          process_simple_component(1);
+      }
+      process_component(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
+                        vtx_attr.g0.PosElements == CoordComponentCount::XY ? 2 : 3);
+      const u32 normal_elements = vtx_attr.g0.NormalElements == NormalComponentCount::NBT ? 3 : 1;
+      process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat, normal_elements,
+                        vtx_attr.g0.NormalIndex3 ? normal_elements : 1);
+      for (u32 c = 0; c < vtx_desc.low.Color.Size(); c++)
+      {
+        static constexpr Common::EnumMap<u32, ColorFormat::RGBA8888> component_sizes = {
+            2,  // RGB565
+            3,  // RGB888
+            4,  // RGB888x
+            2,  // RGBA4444
+            3,  // RGBA6666
+            4,  // RGBA8888
+        };
+        switch (vtx_desc.low.Color[c])
         {
-          text += QStringLiteral("%1").arg(vertex_data[i++], 2, 16, QLatin1Char('0'));
+        case VertexComponentFormat::Index8:
+          process_simple_component(1);
+          break;
+        case VertexComponentFormat::Index16:
+          process_simple_component(2);
+          break;
+        case VertexComponentFormat::Direct:
+          process_simple_component(component_sizes[vtx_attr.GetColorFormat(c)]);
+          break;
         }
-        text += QLatin1Char{' '};
+      }
+      for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); t++)
+      {
+        process_component(vtx_desc.high.TexCoord[t], vtx_attr.GetTexFormat(t),
+                          vtx_attr.GetTexElements(t) == TexComponentCount::ST ? 2 : 1);
       }
     }
   }
