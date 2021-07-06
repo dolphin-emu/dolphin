@@ -496,6 +496,19 @@ public:
   bool IsExtended() const { return m_type == TypeSpecifier::ExtendedReg; }
 };
 
+struct LogicalImm
+{
+  constexpr LogicalImm() : r(0), s(0), n(false), valid(false) {}
+  constexpr LogicalImm(u8 r_, u8 s_, bool n_) : r(r_), s(s_), n(n_), valid(true) {}
+
+  constexpr operator bool() const { return valid; }
+
+  u8 r;
+  u8 s;
+  bool n;
+  bool valid;
+};
+
 class ARM64XEmitter
 {
   friend class ARM64FloatEmitter;
@@ -531,6 +544,7 @@ private:
   void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
   void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
   void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, int n);
+  void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn,
                            s32 imm);
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
@@ -772,10 +786,15 @@ public:
 
   // Logical (immediate)
   void AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+  void AND(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void ANDS(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+  void ANDS(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+  void EOR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+  void ORR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+  void TST(ARM64Reg Rn, LogicalImm imm);
   // Add/subtract (immediate)
   void ADD(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
   void ADDS(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
@@ -893,8 +912,10 @@ public:
     MOVI2R(Rd, (uintptr_t)ptr);
   }
 
-  // Wrapper around AND x, y, imm etc. If you are sure the imm will work, no need to pass a scratch
-  // register.
+  // Wrapper around AND x, y, imm etc.
+  // If you are sure the imm will work, no need to pass a scratch register.
+  // If the imm is constant, preferably call EncodeLogicalImm directly instead of using these
+  // functions, as this lets the computation of the imm encoding be performed during compilation.
   void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG)
@@ -903,7 +924,6 @@ public:
   }
   void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
-  void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                        ARM64Reg scratch);
@@ -911,6 +931,7 @@ public:
   void ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   bool TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
   bool TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);

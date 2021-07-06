@@ -46,7 +46,7 @@ std::optional<std::pair<u32, bool>> IsImmArithmetic(uint64_t input)
 }
 
 // For AND/TST/ORR/EOR etc
-std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
+LogicalImm IsImmLogical(u64 value, u32 width)
 {
   bool negate = false;
 
@@ -154,7 +154,7 @@ std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
       // The input was zero (or all 1 bits, which will come to here too after we
       // inverted it at the start of the function), for which we just return
       // false.
-      return std::nullopt;
+      return LogicalImm();
     }
     else
     {
@@ -171,12 +171,12 @@ std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
 
   // If the repeat period d is not a power of two, it can't be encoded.
   if (!MathUtil::IsPow2<u64>(d))
-    return std::nullopt;
+    return LogicalImm();
 
   // If the bit stretch (b - a) does not fit within the mask derived from the
   // repeat period, then fail.
   if (((b - a) & ~mask) != 0)
-    return std::nullopt;
+    return LogicalImm();
 
   // The only possible option is b - a repeated every d bits. Now we're going to
   // actually construct the valid logical immediate derived from that
@@ -204,7 +204,7 @@ std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
 
   // The candidate pattern doesn't match our input value, so fail.
   if (value != candidate)
-    return std::nullopt;
+    return LogicalImm();
 
   // We have a match! This is a valid logical immediate, so now we have to
   // construct the bits and pieces of the instruction encoding that generates
@@ -246,11 +246,8 @@ std::optional<std::tuple<u32, u32, u32>> IsImmLogical(u64 value, u32 width)
   //    11110s     2    UInt(s)
   //
   // So we 'or' (-d << 1) with our computed s to form imms.
-  return std::tuple{
-      static_cast<u32>(out_n),
-      static_cast<u32>(((-d << 1) | (s - 1)) & 0x3f),
-      static_cast<u32>(r),
-  };
+  return LogicalImm(static_cast<u8>(r), static_cast<u8>(((-d << 1) | (s - 1)) & 0x3f),
+                    static_cast<u8>(out_n));
 }
 
 float FPImm8ToFloat(u8 bits)
@@ -780,8 +777,16 @@ void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 i
   // Use Rn to determine bitness here.
   bool b64Bit = Is64Bit(Rn);
 
+  ASSERT_MSG(DYNAREC, b64Bit || !n, "64-bit logical immediate does not fit in 32-bit register");
+
   Write32((b64Bit << 31) | (op << 29) | (0x24 << 23) | (n << 22) | (immr << 16) | (imms << 10) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
+}
+
+void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
+{
+  ASSERT_MSG(DYNAREC, imm.valid, "Invalid logical immediate");
+  EncodeLogicalImmInst(op, Rd, Rn, imm.r, imm.s, imm.n);
 }
 
 void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2,
@@ -1545,21 +1550,41 @@ void ARM64XEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool inver
 {
   EncodeLogicalImmInst(0, Rd, Rn, immr, imms, invert);
 }
+void ARM64XEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
+{
+  EncodeLogicalImmInst(0, Rd, Rn, imm);
+}
 void ARM64XEmitter::ANDS(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
 {
   EncodeLogicalImmInst(3, Rd, Rn, immr, imms, invert);
+}
+void ARM64XEmitter::ANDS(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
+{
+  EncodeLogicalImmInst(3, Rd, Rn, imm);
 }
 void ARM64XEmitter::EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
 {
   EncodeLogicalImmInst(2, Rd, Rn, immr, imms, invert);
 }
+void ARM64XEmitter::EOR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
+{
+  EncodeLogicalImmInst(2, Rd, Rn, imm);
+}
 void ARM64XEmitter::ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
 {
   EncodeLogicalImmInst(1, Rd, Rn, immr, imms, invert);
 }
+void ARM64XEmitter::ORR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
+{
+  EncodeLogicalImmInst(1, Rd, Rn, imm);
+}
 void ARM64XEmitter::TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert)
 {
   EncodeLogicalImmInst(3, Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, immr, imms, invert);
+}
+void ARM64XEmitter::TST(ARM64Reg Rn, LogicalImm imm)
+{
+  EncodeLogicalImmInst(3, Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, imm);
 }
 
 // Add/subtract (immediate)
@@ -4129,8 +4154,7 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
   if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    AND(Rd, Rn, imm_r, imm_s, n != 0);
+    AND(Rd, Rn, result);
   }
   else
   {
@@ -4146,8 +4170,7 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    ORR(Rd, Rn, imm_r, imm_s, n != 0);
+    ORR(Rd, Rn, result);
   }
   else
   {
@@ -4163,8 +4186,7 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    EOR(Rd, Rn, imm_r, imm_s, n != 0);
+    EOR(Rd, Rn, result);
   }
   else
   {
@@ -4180,8 +4202,7 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    ANDS(Rd, Rn, imm_r, imm_s, n != 0);
+    ANDS(Rd, Rn, result);
   }
   else
   {
@@ -4342,10 +4363,9 @@ bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u64 imm)
 
 bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    AND(Rd, Rn, imm_r, imm_s, n != 0);
+    AND(Rd, Rn, result);
     return true;
   }
 
@@ -4354,10 +4374,9 @@ bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 
 bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    ORR(Rd, Rn, imm_r, imm_s, n != 0);
+    ORR(Rd, Rn, result);
     return true;
   }
 
@@ -4366,10 +4385,9 @@ bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 
 bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm)
 {
-  if (const auto result = IsImmLogical(imm, Is64Bit(Rd) ? 64 : 32))
+  if (const auto result = IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32))
   {
-    const auto& [n, imm_s, imm_r] = *result;
-    EOR(Rd, Rn, imm_r, imm_s, n != 0);
+    EOR(Rd, Rn, result);
     return true;
   }
 
