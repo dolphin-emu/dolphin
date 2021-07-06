@@ -747,7 +747,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       // Inline exception check
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(Exceptions));
-      TBZ(ARM64Reg::W30, 3, done_here);  // EXCEPTION_EXTERNAL_INT
+      TBZ(ARM64Reg::W30, IntLog2(EXCEPTION_EXTERNAL_INT), done_here);
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(ARM64Reg::W30, 11, done_here);
       MOVP2R(ARM64Reg::X30, &ProcessorInterface::m_InterruptCause);
@@ -773,7 +773,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       ARM64Reg WA = gpr.GetReg();
       ARM64Reg XA = EncodeRegTo64(WA);
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-      FixupBranch NoExtException = TBZ(WA, 3);  // EXCEPTION_EXTERNAL_INT
+      FixupBranch NoExtException = TBZ(WA, IntLog2(EXCEPTION_EXTERNAL_INT));
       FixupBranch Exception = B();
       SwitchToFarCode();
       const u8* done_here = GetCodePtr();
@@ -815,7 +815,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         fpr.Flush(FlushMode::MaintainState);
 
         LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-        ORR(WA, WA, 26, 0);  // EXCEPTION_FPU_UNAVAILABLE
+        ORRI2R(WA, WA, EXCEPTION_FPU_UNAVAILABLE);
         STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
         gpr.Unlock(WA);

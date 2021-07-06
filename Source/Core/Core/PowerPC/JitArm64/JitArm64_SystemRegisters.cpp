@@ -217,7 +217,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   fpr.Flush(FlushMode::MaintainState);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  ORR(WA, WA, 24, 0);  // Same as WA | EXCEPTION_PROGRAM
+  ORRI2R(WA, WA, EXCEPTION_PROGRAM);
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
   gpr.Unlock(WA);
 
