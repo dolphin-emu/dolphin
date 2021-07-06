@@ -24,7 +24,7 @@ void JitArm64::sc(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  ORRI2R(WA, WA, EXCEPTION_SYSCALL);
+  ORR(WA, WA, LogicalImm(EXCEPTION_SYSCALL, 32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
   gpr.Unlock(WA);

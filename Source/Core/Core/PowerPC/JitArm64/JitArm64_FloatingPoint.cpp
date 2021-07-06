@@ -401,7 +401,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   {
     fpscr_reg = gpr.GetReg();
     LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
-    ANDI2R(fpscr_reg, fpscr_reg, ~FPCC_MASK);
+    AND(fpscr_reg, fpscr_reg, LogicalImm(~FPCC_MASK, 32));
   }
 
   ARM64Reg V0Q = ARM64Reg::INVALID_REG;
@@ -450,7 +450,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   // A == B
   ORR(XA, XA, 64 - 63, 0, true);
   if (fprf)
-    ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_EQ << FPRF_SHIFT);
+    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_EQ << FPRF_SHIFT, 32));
 
   continue1 = B();
 
@@ -458,7 +458,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
 
   MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
   if (fprf)
-    ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_SO << FPRF_SHIFT);
+    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_SO << FPRF_SHIFT, 32));
 
   if (a != b)
   {
@@ -467,7 +467,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
     SetJumpTarget(pGreater);
     ORR(XA, XA, 0, 0, true);
     if (fprf)
-      ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_GT << FPRF_SHIFT);
+      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_GT << FPRF_SHIFT, 32));
 
     continue3 = B();
 
@@ -475,7 +475,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
     ORR(XA, XA, 64 - 62, 1, true);
     ORR(XA, XA, 0, 0, true);
     if (fprf)
-      ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_LT << FPRF_SHIFT);
+      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_LT << FPRF_SHIFT, 32));
 
     SetJumpTarget(continue2);
     SetJumpTarget(continue3);
@@ -532,7 +532,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
     const ARM64Reg WA = gpr.GetReg();
 
     m_float_emit.FCVTS(WA, EncodeRegToDouble(VB), RoundingMode::Z);
-    ORRI2R(EncodeRegTo64(WA), EncodeRegTo64(WA), 0xFFF8'0000'0000'0000ULL);
+    ORR(EncodeRegTo64(WA), EncodeRegTo64(WA), LogicalImm(0xFFF8'0000'0000'0000ULL, 64));
     m_float_emit.FMOV(EncodeRegToDouble(VD), EncodeRegTo64(WA));
 
     gpr.Unlock(WA);

@@ -550,7 +550,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   else
     MOV(addr, gpr.R(b));
 
-  ANDI2R(addr, addr, ~31);  // mask sizeof cacheline
+  AND(addr, addr, LogicalImm(~31, 32));  // mask sizeof cacheline
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
@@ -618,13 +618,13 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
       ADDI2R(addr_reg, base, imm_offset, addr_reg);
-      ANDI2R(addr_reg, addr_reg, ~31);
+      AND(addr_reg, addr_reg, LogicalImm(~31, 32));
     }
     else
     {
       // Both are registers
       ADD(addr_reg, gpr.R(a), gpr.R(b));
-      ANDI2R(addr_reg, addr_reg, ~31);
+      AND(addr_reg, addr_reg, LogicalImm(~31, 32));
     }
   }
   else
@@ -637,7 +637,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     }
     else
     {
-      ANDI2R(addr_reg, gpr.R(b), ~31);
+      AND(addr_reg, gpr.R(b), LogicalImm(~31, 32));
     }
   }
 

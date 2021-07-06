@@ -799,7 +799,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         fpr.Flush(FlushMode::MaintainState);
 
         LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-        ORRI2R(WA, WA, EXCEPTION_FPU_UNAVAILABLE);
+        ORR(WA, WA, LogicalImm(EXCEPTION_FPU_UNAVAILABLE, 32));
         STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
         gpr.Unlock(WA);

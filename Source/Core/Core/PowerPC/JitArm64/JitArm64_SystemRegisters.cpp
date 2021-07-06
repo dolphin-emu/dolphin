@@ -217,7 +217,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   fpr.Flush(FlushMode::MaintainState);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-  ORRI2R(WA, WA, EXCEPTION_PROGRAM);
+  ORR(WA, WA, LogicalImm(EXCEPTION_PROGRAM, 32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
   gpr.Unlock(WA);
 
@@ -290,7 +290,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     SUB(Xresult, Xresult, XB);
 
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    ORRI2R(XB, ARM64Reg::ZR, 0xAAAAAAAAAAAAAAAA);
+    ORR(XB, ARM64Reg::ZR, LogicalImm(0xAAAAAAAAAAAAAAAA, 64));
     ADD(XB, XB, 1);
     UMULH(Xresult, Xresult, XB);
 
@@ -440,20 +440,20 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:
-      ANDI2R(XA, XA, ~(u64(1) << PowerPC::CR_EMU_SO_BIT));
+      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_SO_BIT), 64));
       break;
 
     case PowerPC::CR_EQ_BIT:
       FixGTBeforeSettingCRFieldBit(XA);
-      ORRI2R(XA, XA, 1);
+      ORR(XA, XA, LogicalImm(1, 64));
       break;
 
     case PowerPC::CR_GT_BIT:
-      ORRI2R(XA, XA, u64(1) << 63);
+      ORR(XA, XA, LogicalImm(u64(1) << 63, 64));
       break;
 
     case PowerPC::CR_LT_BIT:
-      ANDI2R(XA, XA, ~(u64(1) << PowerPC::CR_EMU_LT_BIT));
+      AND(XA, XA, LogicalImm(~(u64(1) << PowerPC::CR_EMU_LT_BIT), 64));
       break;
     }
     return;
@@ -475,23 +475,23 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     switch (bit)
     {
     case PowerPC::CR_SO_BIT:
-      ORRI2R(XA, XA, u64(1) << PowerPC::CR_EMU_SO_BIT);
+      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_SO_BIT, 64));
       break;
 
     case PowerPC::CR_EQ_BIT:
-      ANDI2R(XA, XA, 0xFFFF'FFFF'0000'0000);
+      AND(XA, XA, LogicalImm(0xFFFF'FFFF'0000'0000, 64));
       break;
 
     case PowerPC::CR_GT_BIT:
-      ANDI2R(XA, XA, ~(u64(1) << 63));
+      AND(XA, XA, LogicalImm(~(u64(1) << 63), 64));
       break;
 
     case PowerPC::CR_LT_BIT:
-      ORRI2R(XA, XA, u64(1) << PowerPC::CR_EMU_LT_BIT);
+      ORR(XA, XA, LogicalImm(u64(1) << PowerPC::CR_EMU_LT_BIT, 64));
       break;
     }
 
-    ORRI2R(XA, XA, u64(1) << 32);
+    ORR(XA, XA, LogicalImm(u64(1) << 32, 64));
     return;
   }
 
@@ -709,12 +709,12 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
   LSR(WCR, WA, shift);
-  ANDI2R(WCR, WCR, 0xF);
+  AND(WCR, WCR, LogicalImm(0xF, 32));
 
   if (mask != 0)
   {
     const u32 inverted_mask = ~mask;
-    ANDI2R(WA, WA, inverted_mask);
+    AND(WA, WA, LogicalImm(inverted_mask, 32));
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
   }
 
