@@ -58,7 +58,7 @@ private:
 public:
   void UpdateInput() override;
 
-  explicit KeyboardAndMouse(void* window);
+  explicit KeyboardAndMouse(void* view);
 
   std::string GetName() const override;
   std::string GetSource() const override;
