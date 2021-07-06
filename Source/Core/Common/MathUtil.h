@@ -191,7 +191,7 @@ private:
 float MathFloatVectorSum(const std::vector<float>&);
 
 // Rounds down. 0 -> undefined
-inline int IntLog2(u64 val)
+constexpr int IntLog2(u64 val)
 {
   return 63 - Common::CountLeadingZeros(val);
 }
