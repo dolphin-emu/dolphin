@@ -257,7 +257,7 @@ private:
 
 #undef COMPARE_TIED
 
-    const WiiKey* partition_key;
+    WiiKey partition_key;
     u64 data_size;
     bool encrypted;
     u8 value;
