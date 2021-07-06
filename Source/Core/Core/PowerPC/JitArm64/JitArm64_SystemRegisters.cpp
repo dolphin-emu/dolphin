@@ -708,8 +708,7 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
   ARM64Reg XA = EncodeRegTo64(WA);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
-  LSR(WCR, WA, shift);
-  AND(WCR, WCR, LogicalImm(0xF, 32));
+  UBFX(WCR, WA, shift, 4);
 
   if (mask != 0)
   {
