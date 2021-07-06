@@ -23,9 +23,7 @@ TEST(VertexLoaderUID, UniqueEnough)
   std::unordered_set<VertexLoaderUID> uids;
 
   TVtxDesc vtx_desc;
-  memset(&vtx_desc, 0, sizeof(vtx_desc));
   VAT vat;
-  memset(&vat, 0, sizeof(vat));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
   vtx_desc.low.Hex = 0x76543210;
@@ -51,8 +49,12 @@ protected:
     memset(input_memory, 0, sizeof(input_memory));
     memset(output_memory, 0xFF, sizeof(input_memory));
 
-    memset(&m_vtx_desc, 0, sizeof(m_vtx_desc));
-    memset(&m_vtx_attr, 0, sizeof(m_vtx_attr));
+    m_vtx_desc.low.Hex = 0;
+    m_vtx_desc.high.Hex = 0;
+
+    m_vtx_attr.g0.Hex = 0;
+    m_vtx_attr.g1.Hex = 0;
+    m_vtx_attr.g2.Hex = 0;
 
     m_loader = nullptr;
 

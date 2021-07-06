@@ -209,7 +209,7 @@ struct TVtxDesc
     BitField<15, 2, VertexComponentFormat> Color1;
     BitFieldArray<13, 2, 2, VertexComponentFormat> Color;
 
-    u32 Hex;
+    u32 Hex = 0;
   };
   union High
   {
@@ -223,7 +223,7 @@ struct TVtxDesc
     BitField<14, 2, VertexComponentFormat> Tex7Coord;
     BitFieldArray<0, 2, 8, VertexComponentFormat> TexCoord;
 
-    u32 Hex;
+    u32 Hex = 0;
   };
 
   Low low;
@@ -291,7 +291,7 @@ struct fmt::formatter<TVtxDesc>
 
 union UVAT_group0
 {
-  u32 Hex;
+  u32 Hex = 0;
   // 0:8
   BitField<0, 1, CoordComponentCount> PosElements;
   BitField<1, 3, ComponentFormat> PosFormat;
@@ -350,7 +350,7 @@ struct fmt::formatter<UVAT_group0>
 
 union UVAT_group1
 {
-  u32 Hex;
+  u32 Hex = 0;
   // 0:8
   BitField<0, 1, TexComponentCount> Tex1CoordElements;
   BitField<1, 3, ComponentFormat> Tex1CoordFormat;
@@ -399,7 +399,7 @@ struct fmt::formatter<UVAT_group1>
 
 union UVAT_group2
 {
-  u32 Hex;
+  u32 Hex = 0;
   // 0:4
   BitField<0, 5, u8, u32> Tex4Frac;
   // 5:13
