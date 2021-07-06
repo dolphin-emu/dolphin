@@ -98,8 +98,7 @@ public class SyncProgramsJobService extends JobService
           Channel channel = TvUtil.getChannelById(context, channelId);
           for (Platform platform : Platform.values())
           {
-            if (channel != null &&
-                    channel.getAppLinkIntentUri().equals(AppLinkHelper.buildBrowseUri(platform)))
+            if (channel != null && channel.getDisplayName().equals(platform.getIdString()))
             {
               getGamesByPlatform(platform);
               syncPrograms(channelId);
