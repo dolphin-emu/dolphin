@@ -37,8 +37,6 @@ const std::array<u8, 32> UPDATE_PUB_KEY = {
     0x2a, 0xb3, 0xd1, 0xdc, 0x6e, 0xf5, 0x07, 0xf6, 0xa0, 0x6c, 0x7c, 0x54, 0xdf, 0x54, 0xf4, 0x42,
     0x80, 0xa6, 0x28, 0x8b, 0x6d, 0x70, 0x14, 0xb5, 0x4c, 0x34, 0x95, 0x20, 0x4d, 0xd4, 0xd3, 0x5d};
 
-const char UPDATE_TEMP_DIR[] = "TempUpdate";
-
 struct Manifest
 {
   using Filename = std::string;
@@ -321,33 +319,6 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
   }
 
   return todo;
-}
-
-std::optional<std::string> FindOrCreateTempDir(const std::string& base_path)
-{
-  std::string temp_path = base_path + DIR_SEP + UPDATE_TEMP_DIR;
-  int counter = 0;
-
-  File::DeleteDirRecursively(temp_path);
-
-  do
-  {
-    if (File::CreateDir(temp_path))
-    {
-      return temp_path;
-    }
-    else
-    {
-      fprintf(log_fp, "Couldn't create temp directory.\n");
-
-      // Try again with a counter appended to the path.
-      std::string suffix = UPDATE_TEMP_DIR + std::to_string(counter);
-      temp_path = base_path + DIR_SEP + suffix;
-    }
-  } while (counter++ < 10);
-
-  fprintf(log_fp, "Could not find an appropriate temp directory name. Giving up.\n");
-  return {};
 }
 
 void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
@@ -749,10 +720,12 @@ bool RunUpdater(std::vector<std::string> args)
   TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
   todo.Log();
 
-  std::optional<std::string> maybe_temp_dir = FindOrCreateTempDir(opts.install_base_path);
-  if (!maybe_temp_dir)
+  std::string temp_dir = File::CreateTempDir();
+  if (temp_dir.empty())
+  {
+    FatalError("Could not create temporary directory. Aborting.");
     return false;
-  std::string temp_dir = std::move(*maybe_temp_dir);
+  }
 
   UI::SetDescription("Performing Update...");
 
