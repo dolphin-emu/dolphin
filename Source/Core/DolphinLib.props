@@ -375,6 +375,7 @@
     <ClInclude Include="Core\MemTools.h" />
     <ClInclude Include="Core\Movie.h" />
     <ClInclude Include="Core\NetPlayClient.h" />
+    <ClInclude Include="Core\NetPlayCommon.h" />
     <ClInclude Include="Core\NetPlayProto.h" />
     <ClInclude Include="Core\NetPlayServer.h" />
     <ClInclude Include="Core\NetworkCaptureLogger.h" />
@@ -952,6 +953,7 @@
     <ClCompile Include="Core\MemTools.cpp" />
     <ClCompile Include="Core\Movie.cpp" />
     <ClCompile Include="Core\NetPlayClient.cpp" />
+    <ClCompile Include="Core\NetPlayCommon.cpp" />
     <ClCompile Include="Core\NetPlayServer.cpp" />
     <ClCompile Include="Core\NetworkCaptureLogger.cpp" />
     <ClCompile Include="Core\PatchEngine.cpp" />

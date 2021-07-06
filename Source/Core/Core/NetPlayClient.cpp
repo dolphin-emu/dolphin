@@ -15,7 +15,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <lzo/lzo1x.h>
 #include <mbedtls/md5.h>
 
 #include "Common/Assert.h"
@@ -23,7 +22,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
@@ -54,6 +52,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/Uids.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayCommon.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
 
@@ -1633,92 +1632,6 @@ void NetPlayClient::SyncCodeResponse(const bool success)
 
     Send(response_packet);
   }
-}
-
-bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
-{
-  u64 file_size = Common::PacketReadU64(packet);
-
-  if (file_size == 0)
-    return true;
-
-  File::IOFile file(file_path, "wb");
-  if (!file)
-  {
-    PanicAlertFmtT("Failed to open file \"{0}\". Verify your write permissions.", file_path);
-    return false;
-  }
-
-  std::vector<u8> in_buffer(NETPLAY_LZO_OUT_LEN);
-  std::vector<u8> out_buffer(NETPLAY_LZO_IN_LEN);
-
-  while (true)
-  {
-    u32 cur_len = 0;       // number of bytes to read
-    lzo_uint new_len = 0;  // number of bytes to write
-
-    packet >> cur_len;
-    if (!cur_len)
-      break;  // We reached the end of the data stream
-
-    for (size_t j = 0; j < cur_len; j++)
-    {
-      packet >> in_buffer[j];
-    }
-
-    if (lzo1x_decompress(in_buffer.data(), cur_len, out_buffer.data(), &new_len, nullptr) !=
-        LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - decompression failed");
-      return false;
-    }
-
-    if (!file.WriteBytes(out_buffer.data(), new_len))
-    {
-      PanicAlertFmtT("Error writing file: {0}", file_path);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-std::optional<std::vector<u8>> NetPlayClient::DecompressPacketIntoBuffer(sf::Packet& packet)
-{
-  u64 size = Common::PacketReadU64(packet);
-
-  std::vector<u8> out_buffer(size);
-
-  if (size == 0)
-    return out_buffer;
-
-  std::vector<u8> in_buffer(NETPLAY_LZO_OUT_LEN);
-
-  lzo_uint i = 0;
-  while (true)
-  {
-    u32 cur_len = 0;       // number of bytes to read
-    lzo_uint new_len = 0;  // number of bytes to write
-
-    packet >> cur_len;
-    if (!cur_len)
-      break;  // We reached the end of the data stream
-
-    for (size_t j = 0; j < cur_len; j++)
-    {
-      packet >> in_buffer[j];
-    }
-
-    if (lzo1x_decompress(in_buffer.data(), cur_len, &out_buffer[i], &new_len, nullptr) != LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - decompression failed");
-      return {};
-    }
-
-    i += new_len;
-  }
-
-  return out_buffer;
 }
 
 // called from ---GUI--- thread

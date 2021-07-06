@@ -18,13 +18,11 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <lzo/lzo1x.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
-#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -55,6 +53,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
+#include "Core/NetPlayCommon.h"
 #include "Core/SyncIdentifier.h"
 
 #include "DiscIO/Enums.h"
@@ -1904,130 +1903,6 @@ void NetPlayServer::CheckSyncAndStartGame()
   {
     StartGame();
   }
-}
-
-bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
-{
-  File::IOFile file(file_path, "rb");
-  if (!file)
-  {
-    PanicAlertFmtT("Failed to open file \"{0}\".", file_path);
-    return false;
-  }
-
-  const sf::Uint64 size = file.GetSize();
-  packet << size;
-
-  if (size == 0)
-    return true;
-
-  std::vector<u8> in_buffer(NETPLAY_LZO_IN_LEN);
-  std::vector<u8> out_buffer(NETPLAY_LZO_OUT_LEN);
-  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
-
-  lzo_uint i = 0;
-  while (true)
-  {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint out_len = 0;    // number of bytes to write
-
-    if ((i + NETPLAY_LZO_IN_LEN) >= size)
-    {
-      cur_len = static_cast<lzo_uint32>(size - i);
-    }
-    else
-    {
-      cur_len = NETPLAY_LZO_IN_LEN;
-    }
-
-    if (cur_len <= 0)
-      break;  // EOF
-
-    if (!file.ReadBytes(in_buffer.data(), cur_len))
-    {
-      PanicAlertFmtT("Error reading file: {0}", file_path.c_str());
-      return false;
-    }
-
-    if (lzo1x_1_compress(in_buffer.data(), cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
-        LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - compression failed");
-      return false;
-    }
-
-    // The size of the data to write is 'out_len'
-    packet << static_cast<u32>(out_len);
-    for (size_t j = 0; j < out_len; j++)
-    {
-      packet << out_buffer[j];
-    }
-
-    if (cur_len != NETPLAY_LZO_IN_LEN)
-      break;
-
-    i += cur_len;
-  }
-
-  // Mark end of data
-  packet << static_cast<u32>(0);
-
-  return true;
-}
-
-bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
-{
-  const sf::Uint64 size = in_buffer.size();
-  packet << size;
-
-  if (size == 0)
-    return true;
-
-  std::vector<u8> out_buffer(NETPLAY_LZO_OUT_LEN);
-  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
-
-  lzo_uint i = 0;
-  while (true)
-  {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint out_len = 0;    // number of bytes to write
-
-    if ((i + NETPLAY_LZO_IN_LEN) >= size)
-    {
-      cur_len = static_cast<lzo_uint32>(size - i);
-    }
-    else
-    {
-      cur_len = NETPLAY_LZO_IN_LEN;
-    }
-
-    if (cur_len <= 0)
-      break;  // end of buffer
-
-    if (lzo1x_1_compress(&in_buffer[i], cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
-        LZO_E_OK)
-    {
-      PanicAlertFmtT("Internal LZO Error - compression failed");
-      return false;
-    }
-
-    // The size of the data to write is 'out_len'
-    packet << static_cast<u32>(out_len);
-    for (size_t j = 0; j < out_len; j++)
-    {
-      packet << out_buffer[j];
-    }
-
-    if (cur_len != NETPLAY_LZO_IN_LEN)
-      break;
-
-    i += cur_len;
-  }
-
-  // Mark end of data
-  packet << static_cast<u32>(0);
-
-  return true;
 }
 
 u64 NetPlayServer::GetInitialNetPlayRTC() const
