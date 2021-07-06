@@ -1,5 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
+// SPDX-License-Identifier: GPL-2.0-or-later
 // Refer to the license.txt file included
 
 #include "Core/Config/UISettings.h"

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // This header contains type definitions that are shared between the Dolphin core and
 // other parts of the code. Any definitions that are only used by the core should be
