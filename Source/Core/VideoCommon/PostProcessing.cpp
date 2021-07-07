@@ -19,6 +19,8 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Movie.h"
+
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -450,7 +452,8 @@ std::string PostProcessing::GetUniformBufferHeader() const
   ss << "  float4 src_rect;\n";
   ss << "  int src_layer;\n";
   ss << "  uint time;\n";
-  for (u32 i = 0; i < 2; i++)
+  ss << "  uint frame;\n";
+  for (u32 i = 0; i < 1; i++)
     ss << "  uint ubo_align_" << unused_counter++ << "_;\n";
   ss << "\n";
 
@@ -576,6 +579,11 @@ uint GetTime()
   return time;
 }
 
+uint GetFrame()
+{
+  return frame;
+}
+
 void SetOutput(float4 color)
 {
   ocol0 = color;
@@ -661,7 +669,8 @@ struct BuiltinUniforms
   float src_rect[4];
   s32 src_layer;
   u32 time;
-  u32 padding[2];
+  u32 frame;
+  u32 padding[1];
 };
 
 size_t PostProcessing::CalculateUniformsSize() const
@@ -687,6 +696,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
        static_cast<float>(src.GetHeight()) * rcp_src_height},
       static_cast<s32>(src_layer),
       static_cast<u32>(m_timer.GetTimeElapsed()),
+      static_cast<u32>(Movie::GetCurrentFrame()),
   };
 
   u8* buf = m_uniform_staging_buffer.data();
