@@ -75,13 +75,13 @@ QPixmap Resources::GetScaledPixmap(const std::string& name)
 
 void Resources::Init()
 {
-  for (const std::string& platform :
+  for (const char* platform :
        {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
     m_platforms.append(GetScaledPixmap(platform));
   }
 
-  for (const std::string& country :
+  for (const char* country :
        {"Flag_Europe", "Flag_Japan", "Flag_USA", "Flag_Australia", "Flag_France", "Flag_Germany",
         "Flag_Italy", "Flag_Korea", "Flag_Netherlands", "Flag_Russia", "Flag_Spain", "Flag_Taiwan",
         "Flag_International", "Flag_Unknown"})

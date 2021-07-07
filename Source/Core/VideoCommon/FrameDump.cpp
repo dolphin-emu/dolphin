@@ -335,10 +335,17 @@ void FrameDump::ProcessPackets()
 {
   while (true)
   {
-    AVPacket pkt;
-    av_init_packet(&pkt);
+    std::unique_ptr<AVPacket, std::function<void(AVPacket*)>> pkt =
+        std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
+            av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });
 
-    const int receive_error = avcodec_receive_packet(m_context->codec, &pkt);
+    if (!pkt)
+    {
+      ERROR_LOG_FMT(FRAMEDUMP, "Could not allocate packet");
+      break;
+    }
+
+    const int receive_error = avcodec_receive_packet(m_context->codec, pkt.get());
 
     if (receive_error == AVERROR(EAGAIN) || receive_error == AVERROR_EOF)
     {
@@ -352,10 +359,10 @@ void FrameDump::ProcessPackets()
       break;
     }
 
-    av_packet_rescale_ts(&pkt, m_context->codec->time_base, m_context->stream->time_base);
-    pkt.stream_index = m_context->stream->index;
+    av_packet_rescale_ts(pkt.get(), m_context->codec->time_base, m_context->stream->time_base);
+    pkt->stream_index = m_context->stream->index;
 
-    if (const int write_error = av_interleaved_write_frame(m_context->format, &pkt))
+    if (const int write_error = av_interleaved_write_frame(m_context->format, pkt.get()))
     {
       ERROR_LOG_FMT(FRAMEDUMP, "Error writing packet: {}", write_error);
       break;

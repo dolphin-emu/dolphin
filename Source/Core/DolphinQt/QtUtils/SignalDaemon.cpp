@@ -34,8 +34,9 @@ void SignalDaemon::OnNotifierActivated()
   m_term->setEnabled(false);
 
   char tmp;
-  if (read(s_sigterm_fd[1], &tmp, sizeof(char)))
+  if (read(s_sigterm_fd[1], &tmp, sizeof(char)) != sizeof(char))
   {
+    // Not much we can do here.
   }
 
   m_term->setEnabled(true);
@@ -45,10 +46,14 @@ void SignalDaemon::OnNotifierActivated()
 
 void SignalDaemon::HandleInterrupt(int)
 {
-  write(STDERR_FILENO, message, sizeof(message));
+  if (write(STDERR_FILENO, message, sizeof(message)) != sizeof(message))
+  {
+    // Not much we can do here.
+  }
 
   char a = 1;
-  if (write(s_sigterm_fd[0], &a, sizeof(a)))
+  if (write(s_sigterm_fd[0], &a, sizeof(a)) != sizeof(a))
   {
+    // Not much we can do here.
   }
 }
