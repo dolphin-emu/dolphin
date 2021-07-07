@@ -1188,15 +1188,13 @@ private:
   std::vector<Level> levels;
 };
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
+TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (IsValidBindPoint(stage) && bound_textures[stage])
+  if (IsValidBindPoint(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
   {
-    return bound_textures[stage];
+    return bound_textures[texture_info.GetStage()];
   }
-
-  TextureInfo texture_info = TextureInfo::FromStage(stage);
 
   auto entry = GetTexture(g_ActiveConfig.iSafeTextureCache_ColorSamples, texture_info);
 
@@ -1204,17 +1202,18 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     return nullptr;
 
   entry->frameCount = FRAMECOUNT_INVALID;
-  bound_textures[stage] = entry;
+  bound_textures[texture_info.GetStage()] = entry;
 
   // We need to keep track of invalided textures until they have actually been replaced or
   // re-loaded
-  valid_bind_points.set(stage);
+  valid_bind_points.set(texture_info.GetStage());
 
   return entry;
 }
 
 TextureCacheBase::TCacheEntry*
-TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info)
+TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
+                             const TextureInfo& texture_info)
 {
   u32 expanded_width = texture_info.GetExpandedWidth();
   u32 expanded_height = texture_info.GetExpandedHeight();
@@ -2152,17 +2151,19 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
         static int efb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}efb_frame_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), efb_count++),
-            0);
+        entry->texture->Save(fmt::format("{}efb_frame_{}x{}_{}_c{}.png",
+                                         File::GetUserPath(D_DUMPTEXTURES_IDX), tex_w, tex_h,
+                                         static_cast<int>(baseFormat), efb_count++),
+                             0);
       }
 
       if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
       {
         static int xfb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}xfb_copy_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++),
-            0);
+        entry->texture->Save(fmt::format("{}xfb_copy_{}x{}_{}_c{}.png",
+                                         File::GetUserPath(D_DUMPTEXTURES_IDX), tex_w, tex_h,
+                                         static_cast<int>(baseFormat), xfb_count++),
+                             0);
       }
     }
   }

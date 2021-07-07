@@ -25,9 +25,9 @@ public:
   static void Clear();
   static void Shutdown();
 
-  static std::shared_ptr<HiresTexture> Search(TextureInfo& texture_info);
+  static std::shared_ptr<HiresTexture> Search(const TextureInfo& texture_info);
 
-  static std::string GenBaseName(TextureInfo& texture_info, bool dump = false);
+  static std::string GenBaseName(const TextureInfo& texture_info, bool dump = false);
 
   static u32 CalculateMipCount(u32 width, u32 height);
 

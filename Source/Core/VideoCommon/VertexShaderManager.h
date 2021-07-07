@@ -4,11 +4,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
 
 class PointerWrap;
+class TextureInfo;
 
 // The non-API dependent parts.
 class VertexShaderManager
@@ -19,7 +21,7 @@ public:
   static void DoState(PointerWrap& p);
 
   // constant management
-  static void SetConstants();
+  static void SetConstants(const std::vector<TextureInfo>& textures);
 
   static void InvalidateXFRange(int start, int end);
   static void SetTexMatrixChangedA(u32 value);

@@ -213,10 +213,11 @@ public:
 
   void Invalidate();
 
-  TCacheEntry* Load(const u32 stage);
+  TCacheEntry* Load(const TextureInfo& texture_info);
   static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
   static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
-  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
+  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize,
+                          const TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 

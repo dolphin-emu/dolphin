@@ -21,6 +21,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/FreeLookCamera2D.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -133,7 +134,7 @@ void VertexShaderManager::Dirty()
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
-void VertexShaderManager::SetConstants()
+void VertexShaderManager::SetConstants(const std::vector<TextureInfo>& textures)
 {
   if (constants.missing_color_hex != g_ActiveConfig.iMissingColorValue)
   {
@@ -356,7 +357,8 @@ void VertexShaderManager::SetConstants()
     }
   }
 
-  if (bProjectionChanged || g_freelook_camera.IsDirty())
+  if (bProjectionChanged || g_freelook_camera.IsDirty() ||
+      g_freelook_camera_2d.GetController()->IsDirty())
   {
     bProjectionChanged = false;
 
@@ -395,15 +397,28 @@ void VertexShaderManager::SetConstants()
 
     case ProjectionType::Orthographic:
     {
-      g_fProjectionMatrix[0] = rawProjection[0];
+      Common::Vec2 stretch{1, 1};
+      Common::Vec2 offset;
+      if (g_freelook_camera_2d.IsActive() && !textures.empty())
+      {
+        std::vector<std::string> texture_names;
+        texture_names.reserve(textures.size());
+        for (const auto& texture_info : textures)
+        {
+          texture_names.push_back(texture_info.CalculateTextureName().GetFullName());
+        }
+        offset = g_freelook_camera_2d.GetPositionOffset(texture_names);
+        stretch = g_freelook_camera_2d.GetStretchMultiplier(texture_names);
+      }
+      g_fProjectionMatrix[0] = rawProjection[0] * stretch.x;
       g_fProjectionMatrix[1] = 0.0f;
       g_fProjectionMatrix[2] = 0.0f;
-      g_fProjectionMatrix[3] = rawProjection[1];
+      g_fProjectionMatrix[3] = rawProjection[1] + offset.x;
 
       g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] = rawProjection[2];
+      g_fProjectionMatrix[5] = rawProjection[2] * stretch.y;
       g_fProjectionMatrix[6] = 0.0f;
-      g_fProjectionMatrix[7] = rawProjection[3];
+      g_fProjectionMatrix[7] = rawProjection[3] + offset.y;
 
       g_fProjectionMatrix[8] = 0.0f;
       g_fProjectionMatrix[9] = 0.0f;
@@ -436,6 +451,7 @@ void VertexShaderManager::SetConstants()
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 
     g_freelook_camera.SetClean();
+    g_freelook_camera_2d.GetController()->SetClean();
 
     dirty = true;
   }

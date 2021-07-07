@@ -7,7 +7,6 @@
 #include <cmath>
 #include <memory>
 
-#include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -30,6 +29,7 @@
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -335,7 +335,7 @@ bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, Texel
   return false;
 }
 
-void VertexManagerBase::LoadTextures()
+BitSet32 VertexManagerBase::UsedTextures()
 {
   BitSet32 usedtextures;
   for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
@@ -347,8 +347,13 @@ void VertexManagerBase::LoadTextures()
       if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
         usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
-  for (unsigned int i : usedtextures)
-    g_texture_cache->Load(i);
+  return usedtextures;
+}
+
+void VertexManagerBase::LoadTextures(const std::vector<TextureInfo>& textures)
+{
+  for (auto& texture_info : textures)
+    g_texture_cache->Load(texture_info);
 
   g_texture_cache->BindTextures();
 }
@@ -452,7 +457,11 @@ void VertexManagerBase::Flush()
   }
 
   // Calculate ZSlope for zfreeze
-  VertexShaderManager::SetConstants();
+  const auto used_textures = UsedTextures();
+  std::vector<TextureInfo> textures;
+  for (const u32 i : used_textures)
+    textures.emplace_back(TextureInfo::FromStage(i));
+  VertexShaderManager::SetConstants(textures);
   if (!bpmem.genMode.zfreeze)
   {
     // Must be done after VertexShaderManager::SetConstants()
@@ -477,7 +486,7 @@ void VertexManagerBase::Flush()
     // Texture loading can cause palettes to be applied (-> uniforms -> draws).
     // Palette application does not use vertices, only a full-screen quad, so this is okay.
     // Same with GPU texture decoding, which uses compute shaders.
-    LoadTextures();
+    LoadTextures(textures);
 
     // Now we can upload uniforms, as nothing else will override them.
     GeometryShaderManager::SetConstants();

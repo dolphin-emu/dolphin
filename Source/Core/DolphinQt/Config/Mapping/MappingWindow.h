@@ -44,6 +44,7 @@ public:
     MAPPING_HOTKEYS,
     // Freelook
     MAPPING_FREELOOK,
+    MAPPING_FREELOOK_2D,
   };
 
   explicit MappingWindow(QWidget* parent, Type type, int port_num);

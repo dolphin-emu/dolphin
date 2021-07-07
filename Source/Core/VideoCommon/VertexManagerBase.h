@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -16,6 +17,7 @@ class DataReader;
 class NativeVertexFormat;
 class PointerWrap;
 struct PortableVertexDeclaration;
+class TextureInfo;
 
 struct Slope
 {
@@ -166,7 +168,9 @@ protected:
   u32 GetRemainingIndices(int primitive) const;
 
   void CalculateZSlope(NativeVertexFormat* format);
-  void LoadTextures();
+
+  BitSet32 UsedTextures();
+  void LoadTextures(const std::vector<TextureInfo>& textures);
 
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;
