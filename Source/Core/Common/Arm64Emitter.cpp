@@ -514,7 +514,8 @@ void ARM64XEmitter::EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr
 
 void ARM64XEmitter::EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const void* ptr)
 {
-  bool b64Bit = Is64Bit(Rt);
+  u8 b40 = bits & 0x1F;
+  u8 b5 = (bits >> 5) & 0x1;
   s64 distance = (s64)ptr - (s64)m_code;
 
   ASSERT_MSG(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %" PRIx64,
@@ -525,8 +526,8 @@ void ARM64XEmitter::EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const voi
   ASSERT_MSG(DYNA_REC, distance >= -0x3FFF && distance < 0x3FFF,
              "%s: Received too large distance: %" PRIx64, __func__, distance);
 
-  Write32((b64Bit << 31) | (0x36 << 24) | (op << 24) | (bits << 19) |
-          (((u32)distance << 5) & 0x7FFE0) | DecodeReg(Rt));
+  Write32((b5 << 31) | (0x36 << 24) | (op << 24) | (b40 << 19) |
+          ((static_cast<u32>(distance) << 5) & 0x7FFE0) | DecodeReg(Rt));
 }
 
 void ARM64XEmitter::EncodeUnconditionalBranchInst(u32 op, const void* ptr)
