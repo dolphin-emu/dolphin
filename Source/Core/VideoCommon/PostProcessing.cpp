@@ -385,7 +385,10 @@ std::vector<std::string> PostProcessing::GetPassiveShaderList()
 bool PostProcessing::Initialize(AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
-  if (!CompileVertexShader() || !CompilePixelShader() || !CompilePipeline())
+  // CompilePixelShader must be run first if configuration options are used.
+  // Otherwise the UBO has a different member list between vertex and pixel
+  // shaders, which is a link error.
+  if (!CompilePixelShader() || !CompileVertexShader() || !CompilePipeline())
     return false;
 
   return true;
