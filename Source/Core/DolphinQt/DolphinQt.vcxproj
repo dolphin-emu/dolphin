@@ -69,6 +69,7 @@
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsChoice.cpp" />
+    <ClCompile Include="Config\Graphics\GraphicsDialog.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsInteger.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsRadio.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
@@ -143,6 +144,7 @@
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="GCMemcardCreateNewDialog.cpp" />
     <ClCompile Include="GCMemcardManager.cpp" />
+    <ClCompile Include="GrandSettingsWindow.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -243,6 +245,7 @@
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsBool.h" />
     <QtMoc Include="Config\Graphics\GraphicsChoice.h" />
+    <QtMoc Include="Config\Graphics\GraphicsDialog.h" />
     <QtMoc Include="Config\Graphics\GraphicsInteger.h" />
     <QtMoc Include="Config\Graphics\GraphicsRadio.h" />
     <QtMoc Include="Config\Graphics\GraphicsSlider.h" />
@@ -313,6 +316,7 @@
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="GCMemcardCreateNewDialog.h" />
     <QtMoc Include="GCMemcardManager.h" />
+    <QtMoc Include="GrandSettingsWindow.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="MainWindow.h" />

@@ -16,7 +16,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/Graphics/GraphicsDialog.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipComboBox.h"
 #include "DolphinQt/Settings.h"
 
@@ -25,7 +25,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-SoftwareRendererWidget::SoftwareRendererWidget(GraphicsWindow* parent)
+SoftwareRendererWidget::SoftwareRendererWidget(GraphicsDialog* parent)
 {
   CreateWidgets();
   LoadSettings();
@@ -33,7 +33,7 @@ SoftwareRendererWidget::SoftwareRendererWidget(GraphicsWindow* parent)
   AddDescriptions();
   emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 
-  connect(parent, &GraphicsWindow::BackendChanged, [this] { LoadSettings(); });
+  connect(parent, &GraphicsDialog::BackendChanged, [this] { LoadSettings(); });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);

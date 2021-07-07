@@ -7,8 +7,8 @@
 
 class GraphicsBool;
 class GraphicsChoice;
+class GraphicsDialog;
 class GraphicsInteger;
-class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
 class QSpinBox;
@@ -18,7 +18,7 @@ class AdvancedWidget final : public GraphicsWidget
 {
   Q_OBJECT
 public:
-  explicit AdvancedWidget(GraphicsWindow* parent);
+  explicit AdvancedWidget(GraphicsDialog* parent);
 
 private:
   void LoadSettings() override;

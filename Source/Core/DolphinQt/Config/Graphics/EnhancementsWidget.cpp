@@ -16,8 +16,8 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/Graphics/GraphicsDialog.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/Settings.h"
 
@@ -28,13 +28,13 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent) : m_block_save(false)
+EnhancementsWidget::EnhancementsWidget(GraphicsDialog* parent) : m_block_save(false)
 {
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
-  connect(parent, &GraphicsWindow::BackendChanged,
+  connect(parent, &GraphicsDialog::BackendChanged,
           [this](const QString& backend) { LoadSettings(); });
 }
 

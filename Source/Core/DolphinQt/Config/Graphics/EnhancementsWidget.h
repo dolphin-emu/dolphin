@@ -7,8 +7,8 @@
 
 class GraphicsBool;
 class GraphicsChoice;
+class GraphicsDialog;
 class GraphicsSlider;
-class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
 class QPushButton;
@@ -19,7 +19,7 @@ class EnhancementsWidget final : public GraphicsWidget
 {
   Q_OBJECT
 public:
-  explicit EnhancementsWidget(GraphicsWindow* parent);
+  explicit EnhancementsWidget(GraphicsDialog* parent);
 
 private:
   void LoadSettings() override;

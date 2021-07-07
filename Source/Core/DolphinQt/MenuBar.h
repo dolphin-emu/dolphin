@@ -98,6 +98,7 @@ signals:
   void ConfigureControllers();
   void ConfigureHotkeys();
   void ConfigureFreelook();
+  void ConfigureGrandSettings();
 
   // View
   void ShowList();
@@ -236,7 +237,6 @@ private:
   QAction* m_boot_to_pause;
   QAction* m_automatic_start;
   QAction* m_change_font;
-  QAction* m_controllers_action;
 
   // View
   QAction* m_show_code;

@@ -26,6 +26,7 @@ class FreeLookWindow;
 class GameList;
 class GCTASInputWindow;
 class GraphicsWindow;
+class GrandSettingsWindow;
 class HotkeyScheduler;
 class JITWidget;
 class LogConfigWidget;
@@ -144,11 +145,8 @@ private:
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
 
   void ShowSettingsWindow();
-  void ShowGeneralWindow();
-  void ShowAudioWindow();
   void ShowControllersWindow();
   void ShowGraphicsWindow();
-  void ShowFreeLookWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
@@ -210,12 +208,9 @@ private:
   int m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 
-  ControllersWindow* m_controllers_window = nullptr;
-  SettingsWindow* m_settings_window = nullptr;
-  GraphicsWindow* m_graphics_window = nullptr;
+  GrandSettingsWindow* m_settings_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
-  FreeLookWindow* m_freelook_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;

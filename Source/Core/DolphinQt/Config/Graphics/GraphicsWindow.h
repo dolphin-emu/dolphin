@@ -6,6 +6,8 @@
 #include <QDialog>
 #include <QHash>
 
+#include "GraphicsDialog.h"
+
 class AdvancedWidget;
 class EnhancementsWidget;
 class HacksWidget;
@@ -21,14 +23,11 @@ namespace X11Utils
 class XRRConfiguration;
 }
 
-class GraphicsWindow final : public QDialog
+class GraphicsWindow final : public GraphicsDialog
 {
   Q_OBJECT
 public:
   explicit GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent);
-
-signals:
-  void BackendChanged(const QString& backend);
 
 private:
   void CreateMainLayout();

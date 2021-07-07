@@ -168,7 +168,6 @@ void WiiPane::CreateWhitelistedUSBPassthroughDevices()
   m_whitelist_usb_remove_button = new QPushButton(tr("Remove"));
   whitelist_layout->addWidget(m_whitelist_usb_add_button, 1, 1);
   whitelist_layout->addWidget(m_whitelist_usb_remove_button, 1, 2);
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0);
   whitelisted_usb_passthrough_devices_group->setLayout(whitelist_layout);
   m_main_layout->addWidget(whitelisted_usb_passthrough_devices_group);
 }
