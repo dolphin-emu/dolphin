@@ -3,6 +3,7 @@
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <limits>
 
@@ -27,10 +28,6 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-
-SWVertexLoader::SWVertexLoader() = default;
-
-SWVertexLoader::~SWVertexLoader() = default;
 
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
@@ -97,18 +94,43 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
   // matrix index from xf regs or cp memory?
-  if (xfmem.MatrixIndexA.PosNormalMtxIdx != g_main_cp_state.matrix_index_a.PosNormalMtxIdx ||
-      xfmem.MatrixIndexA.Tex0MtxIdx != g_main_cp_state.matrix_index_a.Tex0MtxIdx ||
-      xfmem.MatrixIndexA.Tex1MtxIdx != g_main_cp_state.matrix_index_a.Tex1MtxIdx ||
-      xfmem.MatrixIndexA.Tex2MtxIdx != g_main_cp_state.matrix_index_a.Tex2MtxIdx ||
-      xfmem.MatrixIndexA.Tex3MtxIdx != g_main_cp_state.matrix_index_a.Tex3MtxIdx ||
-      xfmem.MatrixIndexB.Tex4MtxIdx != g_main_cp_state.matrix_index_b.Tex4MtxIdx ||
-      xfmem.MatrixIndexB.Tex5MtxIdx != g_main_cp_state.matrix_index_b.Tex5MtxIdx ||
-      xfmem.MatrixIndexB.Tex6MtxIdx != g_main_cp_state.matrix_index_b.Tex6MtxIdx ||
-      xfmem.MatrixIndexB.Tex7MtxIdx != g_main_cp_state.matrix_index_b.Tex7MtxIdx)
+  ASSERT(xfmem.MatrixIndexA.PosNormalMtxIdx == g_main_cp_state.matrix_index_a.PosNormalMtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex0MtxIdx == g_main_cp_state.matrix_index_a.Tex0MtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex1MtxIdx == g_main_cp_state.matrix_index_a.Tex1MtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex2MtxIdx == g_main_cp_state.matrix_index_a.Tex2MtxIdx);
+  ASSERT(xfmem.MatrixIndexA.Tex3MtxIdx == g_main_cp_state.matrix_index_a.Tex3MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex4MtxIdx == g_main_cp_state.matrix_index_b.Tex4MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex5MtxIdx == g_main_cp_state.matrix_index_b.Tex5MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex6MtxIdx == g_main_cp_state.matrix_index_b.Tex6MtxIdx);
+  ASSERT(xfmem.MatrixIndexB.Tex7MtxIdx == g_main_cp_state.matrix_index_b.Tex7MtxIdx);
+
+  // The XF vertex spec should also match the CP configuration
+  // Real hardware can hang if it's not set correctly (possibly due to XF waiting for data that will
+  // never come?)
+  u32 num_colors = 0;
+  for (auto color : g_main_cp_state.vtx_desc.low.Color)
   {
-    ERROR_LOG_FMT(VIDEO, "Matrix indices don't match");
+    if (color != VertexComponentFormat::NotPresent)
+      num_colors++;
   }
+  ASSERT(num_colors == xfmem.hostinfo.numcolors);
+
+  NormalCount num_normals;
+  if (g_main_cp_state.vtx_desc.low.Normal == VertexComponentFormat::NotPresent)
+    num_normals = NormalCount::None;
+  else if (g_main_cp_state.vtx_attr[attributeIndex].g0.NormalElements == NormalComponentCount::NBT)
+    num_normals = NormalCount::NormalsBinormals;
+  else
+    num_normals = NormalCount::Normals;
+  ASSERT(num_normals == xfmem.hostinfo.numnormals);
+
+  u32 num_tex_coords = 0;
+  for (auto tex_coord : g_main_cp_state.vtx_desc.high.TexCoord)
+  {
+    if (tex_coord != VertexComponentFormat::NotPresent)
+      num_tex_coords++;
+  }
+  ASSERT(num_tex_coords == xfmem.hostinfo.numtextures);
 
   m_vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;
   m_vertex.texMtx[0] = xfmem.MatrixIndexA.Tex0MtxIdx;
@@ -133,76 +155,90 @@ static T ReadNormalized(I value)
   return casted;
 }
 
-template <typename T, bool swap = false>
-static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format,
-                                int base_component, int components, bool reverse)
+template <typename T>
+static void ReadVertexAttribute0(T* dst, DataReader src, const AttributeFormat& format,
+                                 std::size_t base_component, std::size_t components, bool reverse)
 {
-  if (format.enable)
+  ASSERT(format.components >= base_component);
+
+  src.Skip(format.offset);
+  const std::size_t component_size = (1ull << (format.type >> 1));
+  src.Skip(base_component * component_size);
+
+  for (std::size_t i = 0; i < std::min(format.components - base_component, components); i++)
   {
-    src.Skip(format.offset);
-    src.Skip(base_component * (1 << (format.type >> 1)));
-
-    int i;
-    for (i = 0; i < std::min(format.components - base_component, components); i++)
+    const std::size_t i_dst = reverse ? components - i - 1 : i;
+    switch (format.type)
     {
-      int i_dst = reverse ? components - i - 1 : i;
-      switch (format.type)
-      {
-      case VAR_UNSIGNED_BYTE:
-        dst[i_dst] = ReadNormalized<T, u8>(src.Read<u8, swap>());
-        break;
-      case VAR_BYTE:
-        dst[i_dst] = ReadNormalized<T, s8>(src.Read<s8, swap>());
-        break;
-      case VAR_UNSIGNED_SHORT:
-        dst[i_dst] = ReadNormalized<T, u16>(src.Read<u16, swap>());
-        break;
-      case VAR_SHORT:
-        dst[i_dst] = ReadNormalized<T, s16>(src.Read<s16, swap>());
-        break;
-      case VAR_FLOAT:
-        dst[i_dst] = ReadNormalized<T, float>(src.Read<float, swap>());
-        break;
-      }
+    case VAR_UNSIGNED_BYTE:
+      dst[i_dst] = ReadNormalized<T, u8>(src.Read<u8, false>());
+      break;
+    case VAR_BYTE:
+      dst[i_dst] = ReadNormalized<T, s8>(src.Read<s8, false>());
+      break;
+    case VAR_UNSIGNED_SHORT:
+      dst[i_dst] = ReadNormalized<T, u16>(src.Read<u16, false>());
+      break;
+    case VAR_SHORT:
+      dst[i_dst] = ReadNormalized<T, s16>(src.Read<s16, false>());
+      break;
+    case VAR_FLOAT:
+      dst[i_dst] = ReadNormalized<T, float>(src.Read<float, false>());
+      break;
+    }
 
-      ASSERT_MSG(VIDEO, !format.integer || format.type != VAR_FLOAT,
-                 "only non-float values are allowed to be streamed as integer");
-    }
-    for (; i < components; i++)
-    {
-      int i_dst = reverse ? components - i - 1 : i;
-      dst[i_dst] = i == 3;
-    }
+    ASSERT_MSG(VIDEO, !format.integer || format.type != VAR_FLOAT,
+               "only non-float values are allowed to be streamed as integer");
   }
 }
 
-static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
-                                 const PortableVertexDeclaration& vdec)
+static void ReadVertexAttribute(Vec3* dst, DataReader src, CacheEntry<Vec3>* cache,
+                                const AttributeFormat& format)
 {
-  const auto set_default_color = [](std::array<u8, 4>& color) {
-    color[Tev::ALP_C] = g_ActiveConfig.iMissingColorValue & 0xFF;
-    color[Tev::BLU_C] = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
-    color[Tev::GRN_C] = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
-    color[Tev::RED_C] = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
-  };
-
-  if (vdec.colors[0].enable)
+  if (format.enable)
   {
-    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are present.
-    ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[0], 0, 4, true);
-    if (vdec.colors[1].enable)
-      ReadVertexAttribute<u8>(dst->color[1].data(), src, vdec.colors[1], 0, 4, true);
-    else
-      set_default_color(dst->color[1]);
+    // Depending on the format, not all fields may be filled (e.g. only x and y for a position); the
+    // remainder should be zero-initialized.
+    dst->SetZero();
+    ReadVertexAttribute0(&dst[0][0], src, format, 0, 3, false);
+    cache->Write(*dst);
   }
   else
   {
-    // If only one of the color attributes is enabled, it is directed to color 0.
-    if (vdec.colors[1].enable)
-      ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[1], 0, 4, true);
-    else
-      set_default_color(dst->color[0]);
-    set_default_color(dst->color[1]);
+    *dst = cache->Read();
+  }
+}
+
+template <typename T, std::size_t count>
+static void ReadVertexAttribute(std::array<T, count>* dst, DataReader src,
+                                CacheEntry<std::array<T, count>>* cache,
+                                const AttributeFormat& format, bool reverse)
+{
+  if (format.enable)
+  {
+    // Depending on the format, not all fields may be filled (e.g. only x and y for a position); the
+    // remainder should be zero-initialized.
+    std::fill(dst->begin(), dst->end(), 0);
+
+    ReadVertexAttribute0(dst->data(), src, format, 0, count, reverse);
+    cache->Write(*dst);
+  }
+  else
+  {
+    *dst = cache->Read();
+  }
+}
+
+template <typename T>
+static void ReadVertexAttributeNoCache(T* dst, DataReader src, const AttributeFormat& format,
+                                       std::size_t base_component)
+{
+  // The position and texture matrix indices don't seem to use the cache, and instead fall back to
+  // values in xfmem.  We prepare these values once in SetFormat, so there's no need to do anything
+  // else here.
+  if (format.enable)
+  {
+    ReadVertexAttribute0(dst, src, format, base_component, 1, false);
   }
 }
 
@@ -212,25 +248,29 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
                  m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());
   src.Skip(index * vdec.stride);
 
-  ReadVertexAttribute<float>(&m_vertex.position[0], src, vdec.position, 0, 3, false);
+  ReadVertexAttribute(&m_vertex.position, src, &m_cache.position, vdec.position);
 
   for (std::size_t i = 0; i < m_vertex.normal.size(); i++)
   {
-    ReadVertexAttribute<float>(&m_vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
+    ReadVertexAttribute(&m_vertex.normal[i], src, &m_cache.normal[i], vdec.normals[i]);
   }
 
-  ParseColorAttributes(&m_vertex, src, vdec);
+  for (std::size_t i = 0; i < m_vertex.color.size(); i++)
+  {
+    ReadVertexAttribute(&m_vertex.color[i], src, &m_cache.color[i], vdec.colors[i], true);
+  }
 
   for (std::size_t i = 0; i < m_vertex.texCoords.size(); i++)
   {
-    ReadVertexAttribute<float>(m_vertex.texCoords[i].data(), src, vdec.texcoords[i], 0, 2, false);
+    ReadVertexAttribute(&m_vertex.texCoords[i], src, &m_cache.texCoords[i], vdec.texcoords[i],
+                        false);
 
-    // the texmtr is stored as third component of the texCoord
-    if (vdec.texcoords[i].components >= 3)
+    // if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
+    if (vdec.texcoords[i].components == 3)
     {
-      ReadVertexAttribute<u8>(&m_vertex.texMtx[i], src, vdec.texcoords[i], 2, 1, false);
+      ReadVertexAttributeNoCache(&m_vertex.texMtx[i], src, vdec.texcoords[i], 2);
     }
   }
 
-  ReadVertexAttribute<u8>(&m_vertex.posMtx, src, vdec.posmtx, 0, 1, false);
+  ReadVertexAttributeNoCache(&m_vertex.posMtx, src, vdec.posmtx, 0);
 }
