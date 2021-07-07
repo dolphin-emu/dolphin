@@ -749,7 +749,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(Exceptions));
       TBZ(ARM64Reg::W30, IntLog2(EXCEPTION_EXTERNAL_INT), done_here);
       LDR(IndexType::Unsigned, ARM64Reg::W30, PPC_REG, PPCSTATE_OFF(msr));
-      TBZ(ARM64Reg::W30, 11, done_here);
+      TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
       MOVP2R(ARM64Reg::X30, &ProcessorInterface::m_InterruptCause);
       LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30, 0);
       TST(ARM64Reg::W30, 23, 2);
@@ -780,7 +780,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       FixupBranch exit = B();
       SetJumpTarget(Exception);
       LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(msr));
-      TBZ(WA, 11, done_here);
+      TBZ(WA, 15, done_here);  // MSR.EE
       MOVP2R(XA, &ProcessorInterface::m_InterruptCause);
       LDR(IndexType::Unsigned, WA, XA, 0);
       TST(WA, 23, 2);
