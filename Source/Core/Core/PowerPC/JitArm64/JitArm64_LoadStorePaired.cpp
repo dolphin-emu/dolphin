@@ -25,8 +25,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   FALLBACK_IF(!MSR.DR);
 
   // X30 is LR
-  // X0 contains the scale
-  // X1 is the address
+  // X0 is the address
+  // X1 contains the scale
   // X2 is a temporary
   // Q0 is the return register
   // Q1 is a temporary
@@ -39,8 +39,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
-  constexpr ARM64Reg scale_reg = ARM64Reg::W0;
-  constexpr ARM64Reg addr_reg = ARM64Reg::W1;
+  constexpr ARM64Reg addr_reg = ARM64Reg::W0;
+  constexpr ARM64Reg scale_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
   ARM64Reg VS;
 
