@@ -26,7 +26,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   u32 a = inst.RA, b = inst.RB;
 
   s32 offset = inst.SIMM_16;
-  u32 flags = BackPatchInfo::FLAG_LOAD;
+  u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT;
   bool update = false;
   s32 offset_reg = -1;
 
@@ -36,38 +36,38 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     switch (inst.SUBOP10)
     {
     case 567:  // lfsux
-      flags |= BackPatchInfo::FLAG_SIZE_F32;
+      flags |= BackPatchInfo::FLAG_SIZE_32;
       update = true;
       offset_reg = b;
       break;
     case 535:  // lfsx
-      flags |= BackPatchInfo::FLAG_SIZE_F32;
+      flags |= BackPatchInfo::FLAG_SIZE_32;
       offset_reg = b;
       break;
     case 631:  // lfdux
-      flags |= BackPatchInfo::FLAG_SIZE_F64;
+      flags |= BackPatchInfo::FLAG_SIZE_64;
       update = true;
       offset_reg = b;
       break;
     case 599:  // lfdx
-      flags |= BackPatchInfo::FLAG_SIZE_F64;
+      flags |= BackPatchInfo::FLAG_SIZE_64;
       offset_reg = b;
       break;
     }
     break;
   case 49:  // lfsu
-    flags |= BackPatchInfo::FLAG_SIZE_F32;
+    flags |= BackPatchInfo::FLAG_SIZE_32;
     update = true;
     break;
   case 48:  // lfs
-    flags |= BackPatchInfo::FLAG_SIZE_F32;
+    flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
   case 51:  // lfdu
-    flags |= BackPatchInfo::FLAG_SIZE_F64;
+    flags |= BackPatchInfo::FLAG_SIZE_64;
     update = true;
     break;
   case 50:  // lfd
-    flags |= BackPatchInfo::FLAG_SIZE_F64;
+    flags |= BackPatchInfo::FLAG_SIZE_64;
     break;
   }
 
@@ -75,7 +75,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   bool is_immediate = false;
 
   const RegType type =
-      (flags & BackPatchInfo::FLAG_SIZE_F64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
+      (flags & BackPatchInfo::FLAG_SIZE_64) != 0 ? RegType::LowerPair : RegType::DuplicatedSingle;
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
@@ -190,7 +190,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   bool want_single = false;
   s32 offset = inst.SIMM_16;
-  u32 flags = BackPatchInfo::FLAG_STORE;
+  u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT;
   bool update = false;
   s32 offset_reg = -1;
 
@@ -201,46 +201,46 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     {
     case 663:  // stfsx
       want_single = true;
-      flags |= BackPatchInfo::FLAG_SIZE_F32;
+      flags |= BackPatchInfo::FLAG_SIZE_32;
       offset_reg = b;
       break;
     case 695:  // stfsux
       want_single = true;
-      flags |= BackPatchInfo::FLAG_SIZE_F32;
+      flags |= BackPatchInfo::FLAG_SIZE_32;
       update = true;
       offset_reg = b;
       break;
     case 727:  // stfdx
-      flags |= BackPatchInfo::FLAG_SIZE_F64;
+      flags |= BackPatchInfo::FLAG_SIZE_64;
       offset_reg = b;
       break;
     case 759:  // stfdux
-      flags |= BackPatchInfo::FLAG_SIZE_F64;
+      flags |= BackPatchInfo::FLAG_SIZE_64;
       update = true;
       offset_reg = b;
       break;
     case 983:  // stfiwx
       // This instruction writes the lower 32 bits of a double. want_single must be false
-      flags |= BackPatchInfo::FLAG_SIZE_F32;
+      flags |= BackPatchInfo::FLAG_SIZE_32;
       offset_reg = b;
       break;
     }
     break;
   case 53:  // stfsu
     want_single = true;
-    flags |= BackPatchInfo::FLAG_SIZE_F32;
+    flags |= BackPatchInfo::FLAG_SIZE_32;
     update = true;
     break;
   case 52:  // stfs
     want_single = true;
-    flags |= BackPatchInfo::FLAG_SIZE_F32;
+    flags |= BackPatchInfo::FLAG_SIZE_32;
     break;
   case 55:  // stfdu
-    flags |= BackPatchInfo::FLAG_SIZE_F64;
+    flags |= BackPatchInfo::FLAG_SIZE_64;
     update = true;
     break;
   case 54:  // stfd
-    flags |= BackPatchInfo::FLAG_SIZE_F64;
+    flags |= BackPatchInfo::FLAG_SIZE_64;
     break;
   }
 
@@ -361,16 +361,16 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     if (jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
     {
       int accessSize;
-      if (flags & BackPatchInfo::FLAG_SIZE_F64)
+      if (flags & BackPatchInfo::FLAG_SIZE_64)
         accessSize = 64;
       else
         accessSize = 32;
 
       LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
 
-      if (flags & BackPatchInfo::FLAG_SIZE_F64)
+      if (flags & BackPatchInfo::FLAG_SIZE_64)
         m_float_emit.REV64(8, ARM64Reg::Q0, V0);
-      else if (flags & BackPatchInfo::FLAG_SIZE_F32)
+      else if (flags & BackPatchInfo::FLAG_SIZE_32)
         m_float_emit.REV32(8, ARM64Reg::D0, V0);
 
       m_float_emit.STR(accessSize, IndexType::Post, accessSize == 64 ? ARM64Reg::Q0 : ARM64Reg::D0,

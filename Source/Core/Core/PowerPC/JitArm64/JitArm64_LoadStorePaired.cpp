@@ -185,9 +185,9 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
-    u32 flags = BackPatchInfo::FLAG_STORE;
-
-    flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
+    u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
+    if (!inst.W)
+      flags |= BackPatchInfo::FLAG_PAIR;
 
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg), gprs_in_use,
                          fprs_in_use);
