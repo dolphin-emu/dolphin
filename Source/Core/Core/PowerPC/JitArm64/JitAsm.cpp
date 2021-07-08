@@ -223,7 +223,8 @@ void JitArm64::GenerateCommonAsm()
   GenerateFPRF(false);
   JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
 
-  GenerateQuantizedLoadStores();
+  GenerateQuantizedLoads();
+  GenerateQuantizedStores();
 }
 
 // Input: X1 contains input, and D0 contains result of running the input through AArch64 FRECPE.
@@ -483,17 +484,15 @@ void JitArm64::GenerateFPRF(bool single)
   B(write_fprf_and_ret);
 }
 
-void JitArm64::GenerateQuantizedLoadStores()
+void JitArm64::GenerateQuantizedLoads()
 {
-  // X0 is the scale
-  // X1 is address
-  // X2 is a temporary on stores
+  // X0 is the address
+  // X1 is the scale
   // X30 is LR
-  // Q0 is the return for loads
-  //    is the register for stores
+  // Q0 is the return
   // Q1 is a temporary
-  ARM64Reg addr_reg = ARM64Reg::X1;
-  ARM64Reg scale_reg = ARM64Reg::X0;
+  ARM64Reg addr_reg = ARM64Reg::X0;
+  ARM64Reg scale_reg = ARM64Reg::X1;
   ARM64FloatEmitter float_emit(this);
 
   const u8* start = GetCodePtr();
@@ -652,9 +651,21 @@ void JitArm64::GenerateQuantizedLoadStores()
   single_load_quantized[5] = loadPairedU16One;
   single_load_quantized[6] = loadPairedS8One;
   single_load_quantized[7] = loadPairedS16One;
+}
 
-  // Stores
-  start = GetCodePtr();
+void JitArm64::GenerateQuantizedStores()
+{
+  // X0 is the scale
+  // X1 is the address
+  // X2 is a temporary
+  // X30 is LR
+  // Q0 is the register
+  // Q1 is a temporary
+  ARM64Reg scale_reg = ARM64Reg::X0;
+  ARM64Reg addr_reg = ARM64Reg::X1;
+  ARM64FloatEmitter float_emit(this);
+
+  const u8* start = GetCodePtr();
   const u8* storePairedIllegal = GetCodePtr();
   BRK(0x101);
   const u8* storePairedFloat;

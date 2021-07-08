@@ -245,7 +245,8 @@ protected:
   void GenerateConvertDoubleToSingle();
   void GenerateConvertSingleToDouble();
   void GenerateFPRF(bool single);
-  void GenerateQuantizedLoadStores();
+  void GenerateQuantizedLoads();
+  void GenerateQuantizedStores();
 
   // Profiling
   void BeginTimeProfile(JitBlock* b);
