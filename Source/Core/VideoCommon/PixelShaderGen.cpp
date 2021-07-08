@@ -1019,7 +1019,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           '3',  // ITF_3: 0bIIIAAAAA -> 0bAAAAA000, shift of 3
       };
 
-      out.Write("alphabump = (iindtex{}.{} << {}) & 248;\n", tevind.bt.Value(),
+      out.Write("\talphabump = (iindtex{}.{} << {}) & 248;\n", tevind.bt.Value(),
                 tev_ind_alpha_sel[u32(tevind.bs.Value())],
                 tev_ind_alpha_shift[u32(tevind.fmt.Value())]);
     }
