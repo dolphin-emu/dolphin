@@ -377,15 +377,14 @@ std::string Joystick::LeftRightEffect::GetName() const
   return (Motor::Strong == m_motor) ? "Strong" : "Weak";
 }
 
-void Joystick::HapticEffect::SetState(ControlState state)
+void Joystick::HapticEffect::SetStateInternal(ControlState state)
 {
   // Maximum force value for all SDL effects:
   constexpr s16 MAX_FORCE_VALUE = 0x7fff;
 
-  if (UpdateParameters(s16(state * MAX_FORCE_VALUE)))
-  {
-    UpdateEffect();
-  }
+  UpdateParameters(s16(state * MAX_FORCE_VALUE));
+  // Keep setting it even if the value hasn't changed to prevent it from stopping
+  UpdateEffect();
 }
 
 bool Joystick::ConstantEffect::UpdateParameters(s16 value)

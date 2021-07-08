@@ -17,7 +17,6 @@
 
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -30,7 +29,6 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"

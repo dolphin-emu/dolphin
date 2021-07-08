@@ -11,6 +11,8 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace ControllerEmu
 {
@@ -129,8 +131,10 @@ bool IMUGyroscope::AreInputsBound() const
 
 bool IMUGyroscope::CanCalibrate() const
 {
-  // If the input gate is disabled, miscalibration to zero values would occur.
-  return ControlReference::GetInputGate();
+  // Return true if all controls current pass the control gate (so their values would be correct),
+  // otherwise miscalibration to zero values could occur.
+  return std::all_of(controls.begin(), controls.end(),
+                     [](const auto& control) { return control->control_ref->PassesGate(); });
 }
 
 std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)

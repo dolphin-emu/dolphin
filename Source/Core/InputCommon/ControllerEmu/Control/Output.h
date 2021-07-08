@@ -11,6 +11,7 @@ namespace ControllerEmu
 class Output : public Control
 {
 public:
-  Output(Translatability translate, std::string name);
+  Output(Translatability translate, std::string name,
+         ControlState range = ControlReference::DEFAULT_RANGE);
 };
 }  // namespace ControllerEmu

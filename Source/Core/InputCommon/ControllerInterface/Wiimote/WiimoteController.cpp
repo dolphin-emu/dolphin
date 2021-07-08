@@ -85,9 +85,9 @@ public:
 
   std::string GetName() const override { return "Motor"; }
 
-  void SetState(ControlState state) override { m_value = state; }
-
 private:
+  void SetStateInternal(ControlState state) override { m_value = state; }
+
   std::atomic<ControlState>& m_value;
 };
 

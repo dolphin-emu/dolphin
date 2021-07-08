@@ -71,8 +71,9 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
     }
 
     // range
-    sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
-    c->control_ref->range /= 100;
+    auto range = c->control_ref->range.load();
+    sec->Get(group + c->name + "/Range", &range, c->control_ref->default_range * 100.0);
+    c->control_ref->range = range / 100.0;
   }
 
   // extensions
@@ -81,22 +82,32 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
     auto* const ext = static_cast<Attachments*>(this);
 
     ext->SetSelectedAttachment(0);
-    u32 n = 0;
     std::string attachment_text;
+    // No need to fallback to the "None" attachment if the was no value, 0 should always be None.
     sec->Get(base + name, &attachment_text, "");
 
     // First assume attachment string is a valid expression.
     // If it instead matches one of the names of our attachments it is overridden below.
+    // There is no need to re-simplify the NumericSetting.
+    // If we had an input with the same name as an attachment, just wrap it around ` to maintain it.
     ext->GetSelectionSetting().GetInputReference().SetExpression(attachment_text);
 
+    u32 n = 0;
     for (auto& ai : ext->GetAttachmentList())
     {
       ai->SetDefaultDevice(defdev);
       ai->LoadConfig(sec, base + ai->GetName() + "/");
+      n++;
+    }
 
+    n = 0;
+    for (auto& ai : ext->GetAttachmentList())
+    {
       if (ai->GetName() == attachment_text)
+      {
         ext->SetSelectedAttachment(n);
-
+        break;
+      }
       n++;
     }
   }
@@ -122,7 +133,8 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
     sec->Set(group + c->name, expression, "");
 
     // range
-    sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);
+    sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0,
+             c->control_ref->default_range);
   }
 
   // extensions
@@ -132,14 +144,22 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
 
     if (ext->GetSelectionSetting().IsSimpleValue())
     {
+      // Save the untranslated attachment name, so that we can change the order of the attachments
+      // enum. Avoid saving the setting simple value if it's "None" (0, or outside of our range).
       sec->Set(base + name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
                "None");
     }
     else
     {
+      // Ideally we'd want to immediately simplify the expression if the value in it corresponds to
+      // the name of one of our attachments, but unfortunately we can't override the simplification
+      // rules for just this case. The Qt UI already takes care of that before reaching here.
+      // In this case, the expression will be simplified again on the next load anyway.
+      // In this case, we don't want to check against the default value of "None", because the
+      // expression would have already been simplified if it was such.
       std::string expression = ext->GetSelectionSetting().GetInputReference().GetExpression();
       ReplaceBreaksWithSpaces(expression);
-      sec->Set(base + name, expression, "None");
+      sec->Set(base + name, expression, "");
     }
 
     for (auto& ai : ext->GetAttachmentList())
@@ -152,19 +172,21 @@ void ControlGroup::SetControlExpression(int index, const std::string& expression
   controls.at(index)->control_ref->SetExpression(expression);
 }
 
-void ControlGroup::AddInput(Translatability translate, std::string name_)
+void ControlGroup::AddInput(Translatability translate, std::string name_, ControlState range)
 {
-  controls.emplace_back(std::make_unique<Input>(translate, std::move(name_)));
+  controls.emplace_back(std::make_unique<Input>(translate, std::move(name_), range));
 }
 
-void ControlGroup::AddInput(Translatability translate, std::string name_, std::string ui_name_)
+void ControlGroup::AddInput(Translatability translate, std::string name_, std::string ui_name_,
+                            ControlState range)
 {
-  controls.emplace_back(std::make_unique<Input>(translate, std::move(name_), std::move(ui_name_)));
+  controls.emplace_back(
+      std::make_unique<Input>(translate, std::move(name_), std::move(ui_name_), range));
 }
 
-void ControlGroup::AddOutput(Translatability translate, std::string name_)
+void ControlGroup::AddOutput(Translatability translate, std::string name_, ControlState range)
 {
-  controls.emplace_back(std::make_unique<Output>(translate, std::move(name_)));
+  controls.emplace_back(std::make_unique<Output>(translate, std::move(name_), range));
 }
 
 }  // namespace ControllerEmu

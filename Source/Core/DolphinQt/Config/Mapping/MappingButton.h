@@ -15,7 +15,8 @@ class MappingButton : public ElidedButton
 {
   Q_OBJECT
 public:
-  MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator);
+  MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator,
+                const QString& button_name);
 
   bool IsInput() const;
 
@@ -30,4 +31,5 @@ private:
 
   MappingWidget* m_parent;
   ControlReference* m_reference;
+  QString m_button_name;
 };

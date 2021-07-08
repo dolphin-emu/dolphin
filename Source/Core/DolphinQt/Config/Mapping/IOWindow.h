@@ -27,11 +27,13 @@ class QPlainTextEdit;
 class QPushButton;
 class QSlider;
 class QSpinBox;
+class QLabel;
 
 namespace ControllerEmu
 {
 class EmulatedController;
-}
+class NumericSettingBase;
+}  // namespace ControllerEmu
 
 class InputStateLineEdit;
 
@@ -52,7 +54,7 @@ public:
   explicit QComboBoxWithMouseWheelDisabled(QWidget* parent = nullptr) : QComboBox(parent) {}
 
 protected:
-  // Consumes event while doing nothing
+  // Consumes event while doing nothing (the combo box will still scroll)
   void wheelEvent(QWheelEvent* event) override;
 };
 
@@ -63,16 +65,19 @@ public:
   enum class Type
   {
     Input,
+    InputSetting,
     Output
   };
 
-  explicit IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* m_controller,
-                    ControlReference* ref, Type type);
+  explicit IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,
+                    ControlReference* ref, Type type, const QString& name,
+                    ControllerEmu::NumericSettingBase* numeric_setting = nullptr);
 
 private:
   std::shared_ptr<ciface::Core::Device> GetSelectedDevice() const;
 
   void CreateMainLayout();
+  void AddFunction(std::string function_name);
   void ConnectWidgets();
   void ConfigChanged();
   void Update();
@@ -80,8 +85,10 @@ private:
   void OnDialogButtonPressed(QAbstractButton* button);
   void OnDeviceChanged();
   void OnDetectButtonPressed();
-  void OnTestButtonPressed();
-  void OnRangeChanged(int range);
+  void OnTestSelectedButtonPressed();
+  void OnTestResultsButtonPressed();
+  void OnUIRangeChanged(int range);
+  void OnRangeChanged();
 
   void AppendSelectedOption();
   void UpdateOptionList();
@@ -95,6 +102,8 @@ private:
   };
 
   void UpdateExpression(std::string new_expression, UpdateMode mode = UpdateMode::Normal);
+
+  ControlState GetNumericSettingValue() const;
 
   // Main Layout
   QVBoxLayout* m_main_layout;
@@ -110,31 +119,37 @@ private:
   QSpinBox* m_range_spinbox;
 
   // Shared actions
+  QPushButton* m_help_button;
   QPushButton* m_select_button;
   QComboBox* m_operators_combo;
+  QComboBox* m_functions_combo;
   QComboBox* m_variables_combo;
 
   // Input actions
   QPushButton* m_detect_button;
-  QComboBox* m_functions_combo;
 
   // Output actions
-  QPushButton* m_test_button;
+  QPushButton* m_test_selected_button;
+  QPushButton* m_test_results_button;
 
-  // Textarea
+  // TextArea
   QPlainTextEdit* m_expression_text;
   InputStateLineEdit* m_parse_text;
+  QLabel* m_focus_label;
 
-  // Buttonbox
+  // ButtonBox
   QDialogButtonBox* m_button_box;
   QPushButton* m_clear_button;
 
   ControlReference* m_reference;
   std::string m_original_expression;
+  ControlState m_original_range;
   ControllerEmu::EmulatedController* m_controller;
 
   ciface::Core::DeviceQualifier m_devq;
   Type m_type;
+  ControllerEmu::NumericSettingBase* m_numeric_setting;
   std::shared_ptr<ciface::Core::Device> m_selected_device;
   std::mutex m_selected_device_mutex;
+  std::vector<QString> m_functions_parameters;
 };

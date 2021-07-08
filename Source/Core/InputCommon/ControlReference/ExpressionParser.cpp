@@ -18,7 +18,9 @@
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/FunctionExpression.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::ExpressionParser
 {
@@ -246,45 +248,93 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 class ControlExpression : public Expression
 {
 public:
-  explicit ControlExpression(ControlQualifier qualifier) : m_qualifier(qualifier) {}
+  explicit ControlExpression(const ControlQualifier& qualifier) : m_qualifier(qualifier) {}
+
+  ~ControlExpression() override
+  {
+    // Reset state to the resting value or it would persist.
+    if (m_output)
+    {
+      const auto lock = g_controller_interface.GetDevicesOutputLock();
+      m_output->SetState(0.0, this);
+    }
+  }
 
   ControlState GetValue() const override
   {
     if (s_hotkey_suppressions.IsSuppressed(m_input))
       return 0;
-    return GetValueIgnoringSuppression();
+    else
+      return GetValueIgnoringSuppression();
   }
 
   ControlState GetValueIgnoringSuppression() const
   {
     if (!m_input)
-      return 0.0;
+      return 0;
 
     // Note: Inputs may return negative values in situations where opposing directions are
     // activated. We clamp off the negative values here.
 
-    // FYI: Clamping values greater than 1.0 is purposely not done to support unbounded values in
-    // the future. (e.g. raw accelerometer/gyro data)
+    // FYI: Clamping values greater than 1.0 is purposely not done to support unbounded values
+    // (e.g. raw accelerometer/gyro data).
 
     return std::max(0.0, m_input->GetState());
   }
   void SetValue(ControlState value) override
   {
     if (m_output)
-      m_output->SetState(value);
+    {
+      // Just lock this only when strictly necessary
+      const auto lock = g_controller_interface.GetDevicesOutputLock();
+      m_output->SetState(value, this);
+    }
   }
   int CountNumControls() const override { return (m_input || m_output) ? 1 : 0; }
-  void UpdateReferences(ControlEnvironment& env) override
+  Device::FocusFlags GetFocusFlags() const override
   {
+    return m_input ? m_input->GetFocusFlags() :
+                     (m_output ? Device::FocusFlags::OutputDefault : Device::FocusFlags::Default);
+  }
+  void UpdateReferences(ControlEnvironment& env, bool is_input) override
+  {
+    Device::Output* previous_output = m_output;
+    // Keep the previous device alive to reset its output at the end
+    std::shared_ptr<Device> previous_device = m_device;
+    m_output = nullptr;
+    m_input = nullptr;
+
+    // Keep a shared_ptr to the device so the control pointer doesn't become invalid.
     m_device = env.FindDevice(m_qualifier);
-    m_input = env.FindInput(m_qualifier);
-    m_output = env.FindOutput(m_qualifier);
+    if (m_device)
+    {
+      // This check prevents a few problems:
+      // Avoids assigning both m_input and m_ouput in case they had the same name.
+      // Also avoids outputs being accidentally set by input expressions,
+      // or inputs being read by output expression. This is because we want to avoid acquiring
+      // ControllerEmu::EmulatedController::GetDevicesInputLock() when setting values in output
+      // expression or g_controller_interface.GetDevicesOutputLock() when getting values in input
+      // expressions. You can also use variables for input/output intercommunication.
+      if (is_input)
+        m_input = m_device->FindInput(m_qualifier.control_name);
+      else
+        m_output = m_device->FindOutput(m_qualifier.control_name);
+      // Drop the shared_ptr to the device if it's not actually used
+      if (!m_input && !m_output)
+        m_device = nullptr;
+    }
+
+    if (m_output != previous_output && previous_output)
+    {
+      const auto lock = g_controller_interface.GetDevicesOutputLock();
+      previous_output->SetState(0.0, this);
+    }
   }
 
   Device::Input* GetInput() const { return m_input; };
 
 private:
-  // Keep a shared_ptr to the device so the control pointer doesn't become invalid.
+  // Keep a shared_ptr to the device so the control pointers don't become invalid.
   std::shared_ptr<Device> m_device;
   ControlQualifier m_qualifier;
   Device::Input* m_input = nullptr;
@@ -407,10 +457,19 @@ public:
     return lhs->CountNumControls() + rhs->CountNumControls();
   }
 
-  void UpdateReferences(ControlEnvironment& env) override
+  Device::FocusFlags GetFocusFlags() const override
   {
-    lhs->UpdateReferences(env);
-    rhs->UpdateReferences(env);
+    // Just like for outputs SetValue(), focus flags aren't really meant for binary operations,
+    // so we just do a generic or, making the most "important" ones win.
+    // We don't want users to mess around with binary expressions and focus flags, there are already
+    // other functions to achieve any result you might want.
+    return Device::FocusFlags(u8(lhs->GetFocusFlags()) | u8(rhs->GetFocusFlags()));
+  }
+
+  void UpdateReferences(ControlEnvironment& env, bool is_input) override
+  {
+    lhs->UpdateReferences(env, is_input);
+    rhs->UpdateReferences(env, is_input);
   }
 };
 
@@ -424,7 +483,7 @@ public:
 
   int CountNumControls() const override { return 1; }
 
-  void UpdateReferences(ControlEnvironment&) override
+  void UpdateReferences(ControlEnvironment&, bool) override
   {
     // Nothing needed.
   }
@@ -455,6 +514,8 @@ static ParseResult MakeLiteralExpression(Token token)
     return ParseResult::MakeErrorResult(token, _trans("Invalid literal."));
 }
 
+// These are "shared" states variables that can be used by multiple control references
+// within the same (parent) controller
 class VariableExpression : public Expression
 {
 public:
@@ -470,8 +531,9 @@ public:
 
   int CountNumControls() const override { return 1; }
 
-  void UpdateReferences(ControlEnvironment& env) override
+  void UpdateReferences(ControlEnvironment& env, bool is_input) override
   {
+    // There is no need to use "is_input" unless we wanted to separate them between input and output
     m_variable_ptr = env.GetVariablePtr(m_name);
   }
 
@@ -540,12 +602,12 @@ public:
     return result + m_final_input->CountNumControls();
   }
 
-  void UpdateReferences(ControlEnvironment& env) override
+  void UpdateReferences(ControlEnvironment& env, bool is_input) override
   {
     for (auto& input : m_modifiers)
-      input->UpdateReferences(env);
+      input->UpdateReferences(env, is_input);
 
-    m_final_input->UpdateReferences(env);
+    m_final_input->UpdateReferences(env, is_input);
 
     // We must update our suppression with valid pointers.
     if (m_suppressor)
@@ -582,10 +644,11 @@ public:
   void SetValue(ControlState value) override { GetActiveChild()->SetValue(value); }
 
   int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
-  void UpdateReferences(ControlEnvironment& env) override
+  Device::FocusFlags GetFocusFlags() const override { return GetActiveChild()->GetFocusFlags(); }
+  void UpdateReferences(ControlEnvironment& env, bool is_input) override
   {
-    m_lhs->UpdateReferences(env);
-    m_rhs->UpdateReferences(env);
+    m_lhs->UpdateReferences(env, is_input);
+    m_rhs->UpdateReferences(env, is_input);
   }
 
 private:
@@ -604,24 +667,6 @@ std::shared_ptr<Device> ControlEnvironment::FindDevice(ControlQualifier qualifie
     return container.FindDevice(qualifier.device_qualifier);
   else
     return container.FindDevice(default_device);
-}
-
-Device::Input* ControlEnvironment::FindInput(ControlQualifier qualifier) const
-{
-  const std::shared_ptr<Device> device = FindDevice(qualifier);
-  if (!device)
-    return nullptr;
-
-  return device->FindInput(qualifier.control_name);
-}
-
-Device::Output* ControlEnvironment::FindOutput(ControlQualifier qualifier) const
-{
-  const std::shared_ptr<Device> device = FindDevice(qualifier);
-  if (!device)
-    return nullptr;
-
-  return device->FindOutput(qualifier.control_name);
 }
 
 std::shared_ptr<ControlState> ControlEnvironment::GetVariablePtr(const std::string& name)

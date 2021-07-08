@@ -262,8 +262,8 @@ public:
   }
   bool PressEvent(int button, int action);
   void AxisEvent(int axis, float value);
-  bool ButtonValue(int pad_id, ButtonType button) const;
-  float AxisValue(int pad_id, ButtonType axis) const;
+  bool ButtonValue(int pad_id, ButtonType button);
+  float AxisValue(int pad_id, ButtonType axis);
 };
 
 void Init(const std::string&);

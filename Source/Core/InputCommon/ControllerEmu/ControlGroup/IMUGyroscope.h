@@ -22,8 +22,8 @@ public:
   IMUGyroscope(std::string name, std::string ui_name);
 
   StateData GetRawState() const;
-  // Also updates the state by default
-  std::optional<StateData> GetState(bool update = true);
+  // Also updates the state
+  std::optional<StateData> GetState(bool update = false);
 
   // Value is in rad/s.
   ControlState GetDeadzone() const;

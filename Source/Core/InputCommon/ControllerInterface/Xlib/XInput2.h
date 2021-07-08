@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 
 extern "C" {
 #include <X11/Xlib.h>
@@ -28,8 +29,7 @@ private:
     std::array<char, 32> keyboard;
     unsigned int buttons;
     Common::Vec2 cursor;
-    Common::Vec2 axis;
-    Common::Vec2 relative_mouse;
+    Common::DVec2 axis;
   };
 
   class Key : public Input
@@ -54,6 +54,11 @@ private:
     std::string GetName() const override { return name; }
     Button(unsigned int index, unsigned int* buttons);
     ControlState GetState() const override;
+    FocusFlags GetFocusFlags() const override
+    {
+      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus) |
+                        u8(FocusFlags::IgnoreOnFocusChanged));
+    }
 
   private:
     const unsigned int* m_buttons;
@@ -68,6 +73,10 @@ private:
     bool IsDetectable() const override { return false; }
     Cursor(u8 index, bool positive, const float* cursor);
     ControlState GetState() const override;
+    FocusFlags GetFocusFlags() const override
+    {
+      return FocusFlags((u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus)));
+    }
 
   private:
     const float* m_cursor;
@@ -76,33 +85,18 @@ private:
     std::string name;
   };
 
-  class Axis : public Input
+  class Axis : public RelativeInput<double>
   {
   public:
     std::string GetName() const override { return name; }
-    bool IsDetectable() const override { return false; }
-    Axis(u8 index, bool positive, const float* axis);
-    ControlState GetState() const override;
+    Axis(ControlState scale, u8 index);
+    FocusFlags GetFocusFlags() const override
+    {
+      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus));
+    }
 
   private:
-    const float* m_axis;
     const u8 m_index;
-    const bool m_positive;
-    std::string name;
-  };
-
-  class RelativeMouse : public Input
-  {
-  public:
-    std::string GetName() const override { return name; }
-    bool IsDetectable() const override { return false; }
-    RelativeMouse(u8 index, bool positive, const float* axis);
-    ControlState GetState() const override;
-
-  private:
-    const float* m_axis;
-    const u8 m_index;
-    const bool m_positive;
     std::string name;
   };
 
@@ -123,6 +117,7 @@ private:
   Window m_window;
   Display* m_display;
   State m_state{};
+  std::vector<Axis*> m_mouse_axes;
   const int xi_opcode;
   const int pointer_deviceid;
   const int keyboard_deviceid;

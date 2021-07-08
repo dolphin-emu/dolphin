@@ -30,7 +30,7 @@ void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-void UpdateDevices();
+void UpdateDevices(double delta_seconds, double average_delta_seconds);
 
 void RemoveDevice(int device_number);
 void AddDevice(SIDevices device, int device_number);

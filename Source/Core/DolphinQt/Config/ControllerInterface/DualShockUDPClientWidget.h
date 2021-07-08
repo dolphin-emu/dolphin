@@ -16,10 +16,6 @@ class DualShockUDPClientWidget final : public QWidget
 public:
   explicit DualShockUDPClientWidget();
 
-signals:
-  // Emitted when config has changed so widgets can update to reflect the change.
-  void ConfigChanged();
-
 private:
   void CreateWidgets();
   void ConnectWidgets();
@@ -27,11 +23,16 @@ private:
   void RefreshServerList();
 
   void OnServerAdded();
+  void OnServerSelectionChanged();
   void OnServerRemoved();
-  void OnServersToggled();
+  void OnServersEnabledToggled();
+
+  void OnCalibration();
+  void OnCalibrationEnded();
 
   QCheckBox* m_servers_enabled;
   QListWidget* m_server_list;
+  QPushButton* m_calibrate;
   QPushButton* m_add_server;
   QPushButton* m_remove_server;
 };

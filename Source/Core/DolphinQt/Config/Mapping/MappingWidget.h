@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include <QFormLayout>
 #include <QString>
 #include <QWidget>
 
@@ -27,8 +28,6 @@ class EmulatedController;
 class NumericSettingBase;
 }  // namespace ControllerEmu
 
-constexpr int INDICATOR_UPDATE_FREQ = 30;
-
 class MappingWidget : public QWidget
 {
   Q_OBJECT
@@ -38,6 +37,9 @@ public:
   ControllerEmu::EmulatedController* GetController() const;
 
   MappingWindow* GetParent() const;
+
+  bool GetBlockUpdate() const { return m_block_update; }
+  void SetBlockUpdate(bool block_update) { m_block_update = block_update; }
 
   virtual void LoadSettings() = 0;
   virtual void SaveSettings() = 0;
@@ -50,10 +52,18 @@ signals:
 protected:
   int GetPort() const;
 
+  void RefreshSettingsEnabled();
+
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:
-  MappingWindow* m_parent;
+  MappingWindow* const m_parent;
+
+protected:
+  std::vector<std::tuple<const ControllerEmu::NumericSettingBase*, QFormLayout::TakeRowResult,
+                         const ControllerEmu::ControlGroup*>>
+      m_edit_condition_numeric_settings;
+  bool m_block_update = false;
 };

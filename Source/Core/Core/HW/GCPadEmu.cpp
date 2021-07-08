@@ -15,6 +15,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "InputCommon/GCPadStatus.h"
 
@@ -133,12 +134,13 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
   }
 }
 
-GCPadStatus GCPad::GetInput() const
+GCPadStatus GCPad::GetInput()
 {
-  const auto lock = GetStateLock();
+  CacheInputAndRefreshOutput();
+
   GCPadStatus pad = {};
 
-  if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected()))
+  if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected() || !HasDefaultDevice()))
   {
     pad.isConnected = false;
     return pad;
@@ -176,13 +178,17 @@ GCPadStatus GCPad::GetInput() const
 
 void GCPad::SetOutput(const ControlState strength)
 {
+  // This can be called at "any" time, we need to make sure the input channel is right
+  g_controller_interface.SetInputChannel(ciface::InputChannel::SerialInterface);
   const auto lock = GetStateLock();
-  m_rumble->controls[0]->control_ref->State(strength);
+  m_rumble->controls[0]->control_ref->SetState(strength);
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
+
+  const auto lock = GetStateLock();
 
   // Buttons
   m_buttons->SetControlExpression(0, "`X`");  // A
@@ -197,10 +203,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Start
   m_buttons->SetControlExpression(5, "`Return`");
 #endif
-
-  // stick modifiers to 50 %
-  m_main_stick->controls[4]->control_ref->range = 0.5f;
-  m_c_stick->controls[4]->control_ref->range = 0.5f;
 
   // D-Pad
   m_dpad->SetControlExpression(0, "`T`");  // Up
@@ -247,6 +249,5 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 
 bool GCPad::GetMicButton() const
 {
-  const auto lock = GetStateLock();
   return m_mic->controls.back()->GetState<bool>();
 }

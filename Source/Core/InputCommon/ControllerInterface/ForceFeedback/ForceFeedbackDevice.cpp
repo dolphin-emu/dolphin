@@ -214,6 +214,7 @@ ForceFeedbackDevice::TypedForce<P>::TypedForce(ForceFeedbackDevice* parent, cons
 template <typename P>
 void ForceFeedbackDevice::TypedForce<P>::UpdateEffect(int magnitude)
 {
+  // Only do if the value has changed
   if (UpdateParameters(magnitude))
   {
     if (magnitude)
@@ -234,12 +235,11 @@ ForceFeedbackDevice::Force::Force(ForceFeedbackDevice* parent, const char* name,
 {
 }
 
-void ForceFeedbackDevice::Force::SetState(ControlState state)
+void ForceFeedbackDevice::Force::SetStateInternal(ControlState state)
 {
-  const auto new_val = int(DI_FFNOMINALMAX * state);
-
-  if (m_desired_magnitude.exchange(new_val) != new_val)
-    m_parent.SignalUpdateThread();
+  m_desired_magnitude = int(DI_FFNOMINALMAX * state);
+  // Keep setting it even if the value hasn't changed to prevent it from stopping
+  m_parent.SignalUpdateThread();
 }
 
 void ForceFeedbackDevice::Force::UpdateOutput()

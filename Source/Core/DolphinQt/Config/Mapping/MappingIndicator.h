@@ -25,6 +25,7 @@ class QPaintEvent;
 class QTimer;
 
 class CalibrationWidget;
+class MappingWindow;
 
 class MappingIndicator : public QWidget
 {
@@ -41,12 +42,16 @@ public:
   QColor GetTextColor() const;
   QColor GetAltTextColor() const;
   void AdjustGateColor(QColor*);
+  void SetMappingWindow(MappingWindow* mapping_window) { m_mapping_window = mapping_window; }
 
 protected:
   virtual void Draw() {}
+  int GetUpdateFrequency() const;
 
 private:
   void paintEvent(QPaintEvent*) override;
+
+  MappingWindow* m_mapping_window = nullptr;
 };
 
 class SquareIndicator : public MappingIndicator
