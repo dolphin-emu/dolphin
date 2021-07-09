@@ -33,7 +33,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoConfig.h"
-#include <Core\Host.h>
+#include <Core/Host.h>
 
 namespace prime {
 namespace {
