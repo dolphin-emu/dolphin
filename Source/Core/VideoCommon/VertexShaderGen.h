@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "RenderState.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 
@@ -45,7 +46,8 @@ struct vertex_shader_uid_data
 
   u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
                                      // 8 bits wide
-  u32 pad : 18;
+  PrimitiveType prim_type:2; 
+  u32 pad : 16;
 
   struct
   {
@@ -69,6 +71,6 @@ struct vertex_shader_uid_data
 
 using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 
-VertexShaderUid GetVertexShaderUid();
+VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type);
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                     const vertex_shader_uid_data* uid_data);
