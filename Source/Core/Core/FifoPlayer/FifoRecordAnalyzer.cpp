@@ -14,8 +14,6 @@ using namespace FifoAnalyzer;
 
 void FifoRecordAnalyzer::Initialize(const u32* cpMem)
 {
-  s_DrawingObject = false;
-
   FifoAnalyzer::LoadCPReg(VCD_LO, cpMem[VCD_LO], s_CpMem);
   FifoAnalyzer::LoadCPReg(VCD_HI, cpMem[VCD_HI], s_CpMem);
   for (u32 i = 0; i < CP_NUM_VAT_REG; ++i)
@@ -38,6 +36,19 @@ void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
   u32 address = s_CpMem.arrayBases[array] + s_CpMem.arrayStrides[array] * index;
 
   FifoRecorder::GetInstance().UseMemory(address, size * 4, MemoryUpdate::XF_DATA);
+}
+
+void FifoRecordAnalyzer::ProcessDisplayList(const u32 address, u32 count) {
+  FifoRecorder::GetInstance().UseMemory(address, count, MemoryUpdate::DISPLAY_LIST);
+
+  u8* data = Memory::GetPointer(address);
+  const u8* end = data + count;
+
+  while (data < end)
+  {
+    u32 analyzed_size = AnalyzeCommand(data, DecodeMode::Record, true);
+    data += analyzed_size;
+  }
 }
 
 void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, const u8* vertexData, int vertexSize,

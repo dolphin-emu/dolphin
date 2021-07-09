@@ -190,7 +190,7 @@ u32 FifoPlayer::GetMaxObjectCount() const
   u32 result = 0;
   for (auto& frame : m_FrameInfo)
   {
-    const u32 count = static_cast<u32>(frame.objectStarts.size());
+    const u32 count = static_cast<u32>(frame.objects.size());
     if (count > result)
       result = count;
   }
@@ -201,7 +201,7 @@ u32 FifoPlayer::GetFrameObjectCount(u32 frame) const
 {
   if (frame < m_FrameInfo.size())
   {
-    return static_cast<u32>(m_FrameInfo[frame].objectStarts.size());
+    return static_cast<u32>(m_FrameInfo[frame].objects.size());
   }
 
   return 0;
@@ -262,7 +262,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 
   // Determine start and end objects
-  u32 numObjects = (u32)(info.objectStarts.size());
+  u32 numObjects = (u32)(info.objects.size());
   u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
   u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
 
@@ -282,9 +282,9 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
     // Write fifo data skipping objects before the draw range
     while (objectNum < drawStart)
     {
-      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
+      WriteFramePart(position, info.objects[objectNum].start, memoryUpdate, frame, info);
 
-      position = info.objectEnds[objectNum];
+      position = info.objects[objectNum].end;
       ++objectNum;
     }
 
@@ -292,17 +292,17 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
     if (objectNum < numObjects && drawStart <= drawEnd)
     {
       objectNum = drawEnd;
-      WriteFramePart(position, info.objectEnds[objectNum], memoryUpdate, frame, info);
-      position = info.objectEnds[objectNum];
+      WriteFramePart(position, info.objects[objectNum].end, memoryUpdate, frame, info);
+      position = info.objects[objectNum].end;
       ++objectNum;
     }
 
     // Write fifo data skipping objects after the draw range
     while (objectNum < numObjects)
     {
-      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
+      WriteFramePart(position, info.objects[objectNum].start, memoryUpdate, frame, info);
 
-      position = info.objectEnds[objectNum];
+      position = info.objects[objectNum].end;
       ++objectNum;
     }
   }
