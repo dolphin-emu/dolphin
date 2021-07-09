@@ -10,6 +10,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
@@ -51,11 +52,15 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
   ERROR_LOG_FMT(DYNA_REC, "Full block: {}", pc_memory);
 }
 
-FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr)
+FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg temp1,
+                                         Arm64Gen::ARM64Reg temp2)
 {
-  // FIXME: This doesn't correctly account for the BAT configuration.
-  TST(addr, LogicalImm(0x0c000000, 32));
-  FixupBranch pass = B(CC_EQ);
+  temp2 = EncodeRegTo64(temp2);
+
+  MOVP2R(temp2, PowerPC::dbat_table.data());
+  LSR(temp1, addr, PowerPC::BAT_INDEX_SHIFT);
+  LDR(temp1, temp2, ArithOption(temp1, true));
+  FixupBranch pass = TBNZ(temp1, IntLog2(PowerPC::BAT_PHYSICAL_BIT));
   FixupBranch fail = B();
   SetJumpTarget(pass);
   return fail;
@@ -72,7 +77,12 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
   if (fastmem)
   {
     if (do_farcode && emitting_routine)
-      slowmem_fixup = CheckIfSafeAddress(addr);
+    {
+      const ARM64Reg temp1 = flags & BackPatchInfo::FLAG_STORE ? ARM64Reg::W0 : ARM64Reg::W3;
+      const ARM64Reg temp2 = ARM64Reg::W2;
+
+      slowmem_fixup = CheckIfSafeAddress(addr, temp1, temp2);
+    }
 
     if ((flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT))
     {
