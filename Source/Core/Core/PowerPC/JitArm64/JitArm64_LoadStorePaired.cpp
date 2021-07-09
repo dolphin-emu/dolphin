@@ -42,7 +42,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   constexpr ARM64Reg addr_reg = ARM64Reg::W0;
   constexpr ARM64Reg scale_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
-  ARM64Reg VS;
+  ARM64Reg VS = fpr.RW(inst.RS, RegType::Single);
 
   if (inst.RA || update)  // Always uses the register on update
   {
@@ -69,17 +69,20 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
-    VS = fpr.RW(inst.RS, RegType::Single);
+    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
+    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+
+    // Wipe the registers we are using as temporaries
+    gprs_in_use &= BitSet32(~7);
+    fprs_in_use &= BitSet32(~3);
+    fprs_in_use[DecodeReg(VS)] = 0;
+
+    u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
-    {
-      ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), MEM_REG);
-      m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
-    }
-    else
-    {
-      m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), MEM_REG);
-    }
-    m_float_emit.REV32(8, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
+      flags |= BackPatchInfo::FLAG_PAIR;
+
+    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg), gprs_in_use,
+                         fprs_in_use);
   }
   else
   {
@@ -91,7 +94,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
-    VS = fpr.RW(inst.RS, RegType::Single);
     m_float_emit.ORR(EncodeRegToDouble(VS), ARM64Reg::D0, ARM64Reg::D0);
   }
 

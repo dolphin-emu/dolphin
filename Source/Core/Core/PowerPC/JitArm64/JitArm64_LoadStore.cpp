@@ -240,7 +240,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
 
     ARM64Reg temp = ARM64Reg::W1;
-    temp = ByteswapBeforeStore(this, temp, RS, flags, true);
+    temp = ByteswapBeforeStore(this, &m_float_emit, temp, RS, flags, true);
 
     if (accessSize == 32)
       STR(IndexType::Post, temp, ARM64Reg::X0, 4);

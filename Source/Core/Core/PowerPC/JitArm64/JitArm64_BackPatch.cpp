@@ -60,39 +60,22 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
   {
     if ((flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT))
     {
-      if ((flags & BackPatchInfo::FLAG_SIZE_32) && !(flags & BackPatchInfo::FLAG_PAIR))
-      {
-        m_float_emit.REV32(8, ARM64Reg::D0, RS);
-        m_float_emit.STR(32, ARM64Reg::D0, MEM_REG, addr);
-      }
-      else if ((flags & BackPatchInfo::FLAG_SIZE_32) && (flags & BackPatchInfo::FLAG_PAIR))
-      {
-        m_float_emit.REV32(8, ARM64Reg::D0, RS);
-        m_float_emit.STR(64, ARM64Reg::Q0, MEM_REG, addr);
-      }
-      else
-      {
-        m_float_emit.REV64(8, ARM64Reg::Q0, RS);
-        m_float_emit.STR(64, ARM64Reg::Q0, MEM_REG, addr);
-      }
+      ARM64Reg temp = ARM64Reg::D0;
+      temp = ByteswapBeforeStore(this, &m_float_emit, temp, EncodeRegToDouble(RS), flags, true);
+
+      m_float_emit.STR(BackPatchInfo::GetFlagSize(flags), temp, MEM_REG, addr);
     }
     else if ((flags & BackPatchInfo::FLAG_LOAD) && (flags & BackPatchInfo::FLAG_FLOAT))
     {
-      if (flags & BackPatchInfo::FLAG_SIZE_32)
-      {
-        m_float_emit.LDR(32, EncodeRegToDouble(RS), MEM_REG, addr);
-        m_float_emit.REV32(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
-      }
-      else
-      {
-        m_float_emit.LDR(64, EncodeRegToDouble(RS), MEM_REG, addr);
-        m_float_emit.REV64(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
-      }
+      m_float_emit.LDR(BackPatchInfo::GetFlagSize(flags), EncodeRegToDouble(RS), MEM_REG, addr);
+
+      ByteswapAfterLoad(this, &m_float_emit, EncodeRegToDouble(RS), EncodeRegToDouble(RS), flags,
+                        true, false);
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
       ARM64Reg temp = ARM64Reg::W0;
-      temp = ByteswapBeforeStore(this, temp, RS, flags, true);
+      temp = ByteswapBeforeStore(this, &m_float_emit, temp, RS, flags, true);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
         STR(temp, MEM_REG, addr);
@@ -118,7 +101,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
         LDRB(RS, MEM_REG, addr);
 
-      ByteswapAfterLoad(this, RS, RS, flags, true, false);
+      ByteswapAfterLoad(this, &m_float_emit, RS, RS, flags, true, false);
     }
   }
   const u8* fastmem_end = GetCodePtr();
@@ -158,52 +141,39 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     ABI_PushRegisters(gprs_to_push);
     m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
-    if ((flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT))
+    if (flags & BackPatchInfo::FLAG_STORE)
     {
-      if ((flags & BackPatchInfo::FLAG_SIZE_32) && !(flags & BackPatchInfo::FLAG_PAIR))
+      const u32 access_size = BackPatchInfo::GetFlagSize(flags);
+      ARM64Reg src_reg = RS;
+      const ARM64Reg dst_reg = access_size == 64 ? ARM64Reg::X0 : ARM64Reg::W0;
+
+      if (flags & BackPatchInfo::FLAG_FLOAT)
       {
-        m_float_emit.UMOV(32, ARM64Reg::W0, RS, 0);
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
-        BLR(ARM64Reg::X8);
+        if (access_size == 64)
+          m_float_emit.FMOV(dst_reg, EncodeRegToDouble(RS));
+        else
+          m_float_emit.FMOV(dst_reg, EncodeRegToSingle(RS));
+
+        src_reg = dst_reg;
       }
-      else if ((flags & BackPatchInfo::FLAG_SIZE_32) && (flags & BackPatchInfo::FLAG_PAIR))
+
+      if (flags & BackPatchInfo::FLAG_PAIR)
       {
-        m_float_emit.UMOV(64, ARM64Reg::X0, RS, 0);
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
-        ROR(ARM64Reg::X0, ARM64Reg::X0, 32);
-        BLR(ARM64Reg::X8);
+        // Compensate for the Write_ functions swapping the whole write instead of each pair
+        SwapPairs(this, dst_reg, src_reg, flags);
+        src_reg = dst_reg;
       }
-      else
-      {
-        m_float_emit.UMOV(64, ARM64Reg::X0, RS, 0);
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U64);
-        BLR(ARM64Reg::X8);
-      }
-    }
-    else if ((flags & BackPatchInfo::FLAG_LOAD) && (flags & BackPatchInfo::FLAG_FLOAT))
-    {
-      if (flags & BackPatchInfo::FLAG_SIZE_32)
-      {
-        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U32);
-        BLR(ARM64Reg::X8);
-        m_float_emit.INS(32, RS, 0, ARM64Reg::X0);
-      }
-      else
-      {
-        MOVP2R(ARM64Reg::X8, &PowerPC::Read_F64);
-        BLR(ARM64Reg::X8);
-        m_float_emit.INS(64, RS, 0, ARM64Reg::X0);
-      }
-    }
-    else if (flags & BackPatchInfo::FLAG_STORE)
-    {
-      MOV(ARM64Reg::W0, RS);
+
+      if (dst_reg != src_reg)
+        MOV(dst_reg, src_reg);
 
       const bool reverse = (flags & BackPatchInfo::FLAG_REVERSE) != 0;
 
-      if (flags & BackPatchInfo::FLAG_SIZE_32)
+      if (access_size == 64)
+        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U64_Swap : &PowerPC::Write_U64);
+      else if (access_size == 32)
         MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U32_Swap : &PowerPC::Write_U32);
-      else if (flags & BackPatchInfo::FLAG_SIZE_16)
+      else if (access_size == 16)
         MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U16_Swap : &PowerPC::Write_U16);
       else
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
@@ -217,16 +187,40 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else
     {
-      if (flags & BackPatchInfo::FLAG_SIZE_32)
+      const u32 access_size = BackPatchInfo::GetFlagSize(flags);
+
+      if (access_size == 64)
+        MOVP2R(ARM64Reg::X8, &PowerPC::Read_U64);
+      else if (access_size == 32)
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U32);
-      else if (flags & BackPatchInfo::FLAG_SIZE_16)
+      else if (access_size == 16)
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U16);
-      else if (flags & BackPatchInfo::FLAG_SIZE_8)
+      else
         MOVP2R(ARM64Reg::X8, &PowerPC::Read_U8);
 
       BLR(ARM64Reg::X8);
 
-      ByteswapAfterLoad(this, RS, ARM64Reg::W0, flags, false, false);
+      ARM64Reg src_reg = access_size == 64 ? ARM64Reg::X0 : ARM64Reg::W0;
+
+      if (flags & BackPatchInfo::FLAG_PAIR)
+      {
+        // Compensate for the Read_ functions swapping the whole read instead of each pair
+        const ARM64Reg dst_reg = flags & BackPatchInfo::FLAG_FLOAT ? src_reg : RS;
+        SwapPairs(this, dst_reg, src_reg, flags);
+        src_reg = dst_reg;
+      }
+
+      if (flags & BackPatchInfo::FLAG_FLOAT)
+      {
+        if (access_size == 64)
+          m_float_emit.FMOV(EncodeRegToDouble(RS), src_reg);
+        else
+          m_float_emit.FMOV(EncodeRegToSingle(RS), src_reg);
+
+        src_reg = RS;
+      }
+
+      ByteswapAfterLoad(this, &m_float_emit, RS, src_reg, flags, false, false);
     }
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
