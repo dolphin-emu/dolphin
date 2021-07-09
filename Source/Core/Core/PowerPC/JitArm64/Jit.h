@@ -221,10 +221,10 @@ protected:
   void DumpCode(const u8* start, const u8* end);
 
   // Backpatching routines
-  bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
+  Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr);
   void EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
-                            BitSet32 fprs_to_push = BitSet32(0));
+                            BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
   // Loadstore routines
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);

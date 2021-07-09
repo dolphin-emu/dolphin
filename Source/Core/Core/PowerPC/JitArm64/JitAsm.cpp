@@ -506,8 +506,9 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push & ~BitSet32{1},
-                         fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push & ~BitSet32{1}, fprs_to_push);
+
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedU8Two = GetCodePtr();
@@ -515,7 +516,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.UXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -532,7 +534,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.SXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -549,7 +552,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -565,7 +569,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -582,8 +587,9 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push & ~BitSet32{1},
-                         fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push & ~BitSet32{1}, fprs_to_push);
+
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedU8One = GetCodePtr();
@@ -591,7 +597,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.UXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -608,7 +615,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.SXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
@@ -625,7 +633,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -641,7 +650,8 @@ void JitArm64::GenerateQuantizedLoads()
     constexpr u32 flags =
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
@@ -697,256 +707,181 @@ void JitArm64::GenerateQuantizedStores()
   const u8* start = GetCodePtr();
   const u8* storePairedIllegal = GetCodePtr();
   BRK(0x101);
-  const u8* storePairedFloat;
-  const u8* storePairedFloatSlow;
+  const u8* storePairedFloat = GetCodePtr();
   {
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
 
-    storePairedFloat = GetCodePtr();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storePairedFloatSlow = GetCodePtr();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-
-  const u8* storePairedU8;
-  const u8* storePairedU8Slow;
+  const u8* storePairedU8 = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
 
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    storePairedU8 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storePairedU8Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-  const u8* storePairedS8;
-  const u8* storePairedS8Slow;
+  const u8* storePairedS8 = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
 
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
 
-    storePairedS8 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storePairedS8Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-
-  const u8* storePairedU16;
-  const u8* storePairedU16Slow;
+  const u8* storePairedU16 = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
 
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    storePairedU16 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storePairedU16Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-  const u8* storePairedS16;  // Used by Viewtiful Joe's intro movie
-  const u8* storePairedS16Slow;
+  const u8* storePairedS16 = GetCodePtr();  // Used by Viewtiful Joe's intro movie
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
 
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
 
-    storePairedS16 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storePairedS16Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
 
-  const u8* storeSingleFloat;
-  const u8* storeSingleFloatSlow;
+  const u8* storeSingleFloat = GetCodePtr();
   {
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
-    storeSingleFloat = GetCodePtr();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push);
 
-    storeSingleFloatSlow = GetCodePtr();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-  const u8* storeSingleU8;  // Used by MKWii
-  const u8* storeSingleU8Slow;
+  const u8* storeSingleU8 = GetCodePtr();  // Used by MKWii
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    storeSingleU8 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storeSingleU8Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-  const u8* storeSingleS8;
-  const u8* storeSingleS8Slow;
+  const u8* storeSingleS8 = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
 
-    storeSingleS8 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storeSingleS8Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-  const u8* storeSingleU16;  // Used by MKWii
-  const u8* storeSingleU16Slow;
+  const u8* storeSingleU16 = GetCodePtr();  // Used by MKWii
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    storeSingleU16 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storeSingleU16Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
-  const u8* storeSingleS16;
-  const u8* storeSingleS16Slow;
+  const u8* storeSingleS16 = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
 
     constexpr u32 flags =
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
 
-    storeSingleS16 = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, true, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
-    RET(ARM64Reg::X30);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storeSingleS16Slow = GetCodePtr();
-    emit_quantize();
-    EmitBackpatchRoutine(flags, false, false, ARM64Reg::D0, addr_reg, gprs_to_push, fprs_to_push);
     RET(ARM64Reg::X30);
   }
 
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
   paired_store_quantized = reinterpret_cast<const u8**>(AlignCode16());
-  ReserveCodeSpace(32 * sizeof(u8*));
+  ReserveCodeSpace(8 * sizeof(u8*));
 
-  // Fast
   paired_store_quantized[0] = storePairedFloat;
   paired_store_quantized[1] = storePairedIllegal;
   paired_store_quantized[2] = storePairedIllegal;
@@ -956,31 +891,15 @@ void JitArm64::GenerateQuantizedStores()
   paired_store_quantized[6] = storePairedS8;
   paired_store_quantized[7] = storePairedS16;
 
-  paired_store_quantized[8] = storeSingleFloat;
-  paired_store_quantized[9] = storePairedIllegal;
-  paired_store_quantized[10] = storePairedIllegal;
-  paired_store_quantized[11] = storePairedIllegal;
-  paired_store_quantized[12] = storeSingleU8;
-  paired_store_quantized[13] = storeSingleU16;
-  paired_store_quantized[14] = storeSingleS8;
-  paired_store_quantized[15] = storeSingleS16;
+  single_store_quantized = reinterpret_cast<const u8**>(AlignCode16());
+  ReserveCodeSpace(8 * sizeof(u8*));
 
-  // Slow
-  paired_store_quantized[16] = storePairedFloatSlow;
-  paired_store_quantized[17] = storePairedIllegal;
-  paired_store_quantized[18] = storePairedIllegal;
-  paired_store_quantized[19] = storePairedIllegal;
-  paired_store_quantized[20] = storePairedU8Slow;
-  paired_store_quantized[21] = storePairedU16Slow;
-  paired_store_quantized[22] = storePairedS8Slow;
-  paired_store_quantized[23] = storePairedS16Slow;
-
-  paired_store_quantized[24] = storeSingleFloatSlow;
-  paired_store_quantized[25] = storePairedIllegal;
-  paired_store_quantized[26] = storePairedIllegal;
-  paired_store_quantized[27] = storePairedIllegal;
-  paired_store_quantized[28] = storeSingleU8Slow;
-  paired_store_quantized[29] = storeSingleU16Slow;
-  paired_store_quantized[30] = storeSingleS8Slow;
-  paired_store_quantized[31] = storeSingleS16Slow;
+  single_store_quantized[0] = storeSingleFloat;
+  single_store_quantized[1] = storePairedIllegal;
+  single_store_quantized[2] = storePairedIllegal;
+  single_store_quantized[3] = storePairedIllegal;
+  single_store_quantized[4] = storeSingleU8;
+  single_store_quantized[5] = storeSingleU16;
+  single_store_quantized[6] = storeSingleS8;
+  single_store_quantized[7] = storeSingleS16;
 }
