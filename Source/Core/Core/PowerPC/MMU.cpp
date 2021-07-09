@@ -885,7 +885,7 @@ bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
 bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
 {
   // Instructions are always 32bit aligned.
-  if (!(address & 3))
+  if (address & 3)
     return false;
 
   switch (space)
