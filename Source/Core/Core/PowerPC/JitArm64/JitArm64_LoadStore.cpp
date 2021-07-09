@@ -288,11 +288,15 @@ FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM6
   return fail;
 }
 
-FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr)
+FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
+                                         Arm64Gen::ARM64Reg tmp2)
 {
-  // FIXME: This doesn't correctly account for the BAT configuration.
-  TST(addr, LogicalImm(0x0c000000, 32));
-  FixupBranch pass = B(CC_EQ);
+  tmp2 = EncodeRegTo64(tmp2);
+
+  MOVP2R(tmp2, PowerPC::dbat_table.data());
+  LSR(tmp1, addr, PowerPC::BAT_INDEX_SHIFT);
+  LDR(tmp1, tmp2, ArithOption(tmp1, true));
+  FixupBranch pass = TBNZ(tmp1, IntLog2(PowerPC::BAT_PHYSICAL_BIT));
   FixupBranch fail = B();
   SetJumpTarget(pass);
   return fail;

@@ -40,7 +40,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
-    gpr.Lock(ARM64Reg::W1, ARM64Reg::W2);
+    gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
     fpr.Lock(ARM64Reg::Q1);
   }
 
@@ -112,7 +112,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   fpr.Unlock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
-    gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2);
+    gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
     fpr.Unlock(ARM64Reg::Q1);
   }
 }

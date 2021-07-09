@@ -10,6 +10,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
@@ -62,7 +63,12 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
   if (fastmem)
   {
     if (do_farcode && emitting_routine)
-      slowmem_fixup = CheckIfSafeAddress(addr);
+    {
+      const ARM64Reg temp1 = flags & BackPatchInfo::FLAG_STORE ? ARM64Reg::W0 : ARM64Reg::W3;
+      const ARM64Reg temp2 = ARM64Reg::W2;
+
+      slowmem_fixup = CheckIfSafeAddress(addr, temp1, temp2);
+    }
 
     if ((flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT))
     {
