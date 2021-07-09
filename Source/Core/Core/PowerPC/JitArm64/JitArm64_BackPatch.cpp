@@ -3,6 +3,7 @@
 
 #include <cinttypes>
 #include <cstddef>
+#include <optional>
 #include <string>
 
 #include "Common/BitSet.h"
@@ -51,13 +52,18 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
 }
 
 void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, ARM64Reg RS,
-                                    ARM64Reg addr, BitSet32 gprs_to_push, BitSet32 fprs_to_push)
+                                    ARM64Reg addr, BitSet32 gprs_to_push, BitSet32 fprs_to_push,
+                                    bool emitting_routine)
 {
   bool in_far_code = false;
   const u8* fastmem_start = GetCodePtr();
+  std::optional<FixupBranch> slowmem_fixup;
 
   if (fastmem)
   {
+    if (do_farcode && emitting_routine)
+      slowmem_fixup = CheckIfSafeAddress(addr);
+
     if ((flags & BackPatchInfo::FLAG_STORE) && (flags & BackPatchInfo::FLAG_FLOAT))
     {
       ARM64Reg temp = ARM64Reg::D0;
@@ -110,33 +116,44 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
   {
     if (fastmem && do_farcode)
     {
-      SlowmemHandler handler;
-      handler.dest_reg = RS;
-      handler.addr_reg = addr;
-      handler.gprs = gprs_to_push;
-      handler.fprs = fprs_to_push;
-      handler.flags = flags;
-
-      FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_end];
-      auto handler_loc_iter = m_handler_to_loc.find(handler);
-
-      if (handler_loc_iter == m_handler_to_loc.end())
+      if (emitting_routine)
       {
         in_far_code = true;
         SwitchToFarCode();
-        const u8* handler_loc = GetCodePtr();
-        m_handler_to_loc[handler] = handler_loc;
-        fastmem_area->fastmem_code = fastmem_start;
-        fastmem_area->slowmem_code = handler_loc;
       }
       else
       {
-        const u8* handler_loc = handler_loc_iter->second;
-        fastmem_area->fastmem_code = fastmem_start;
-        fastmem_area->slowmem_code = handler_loc;
-        return;
+        SlowmemHandler handler;
+        handler.dest_reg = RS;
+        handler.addr_reg = addr;
+        handler.gprs = gprs_to_push;
+        handler.fprs = fprs_to_push;
+        handler.flags = flags;
+
+        FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_end];
+        auto handler_loc_iter = m_handler_to_loc.find(handler);
+
+        if (handler_loc_iter == m_handler_to_loc.end())
+        {
+          in_far_code = true;
+          SwitchToFarCode();
+          const u8* handler_loc = GetCodePtr();
+          m_handler_to_loc[handler] = handler_loc;
+          fastmem_area->fastmem_code = fastmem_start;
+          fastmem_area->slowmem_code = handler_loc;
+        }
+        else
+        {
+          const u8* handler_loc = handler_loc_iter->second;
+          fastmem_area->fastmem_code = fastmem_start;
+          fastmem_area->slowmem_code = handler_loc;
+          return;
+        }
       }
     }
+
+    if (slowmem_fixup)
+      SetJumpTarget(*slowmem_fixup);
 
     ABI_PushRegisters(gprs_to_push);
     m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
@@ -229,8 +246,17 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
 
   if (in_far_code)
   {
-    RET(ARM64Reg::X30);
-    SwitchToNearCode();
+    if (emitting_routine)
+    {
+      FixupBranch done = B();
+      SwitchToNearCode();
+      SetJumpTarget(done);
+    }
+    else
+    {
+      RET(ARM64Reg::X30);
+      SwitchToNearCode();
+    }
   }
 }
 

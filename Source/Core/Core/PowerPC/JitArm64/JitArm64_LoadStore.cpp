@@ -288,6 +288,16 @@ FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM6
   return fail;
 }
 
+FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr)
+{
+  // FIXME: This doesn't correctly account for the BAT configuration.
+  TST(addr, LogicalImm(0x0c000000, 32));
+  FixupBranch pass = B(CC_EQ);
+  FixupBranch fail = B();
+  SetJumpTarget(pass);
+  return fail;
+}
+
 void JitArm64::lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START

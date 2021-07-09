@@ -19,10 +19,10 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
-  FALLBACK_IF(jo.memcheck || !jo.fastmem);
+  FALLBACK_IF(jo.memcheck);
 
-  // The asm routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  // If we have a fastmem arena, the asm routines assume address translation is on.
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
 
   // X30 is LR
   // X0 is the address
@@ -111,10 +111,10 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
-  FALLBACK_IF(jo.memcheck || !jo.fastmem);
+  FALLBACK_IF(jo.memcheck);
 
-  // The asm routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  // If we have a fastmem arena, the asm routines assume address translation is on.
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
 
   // X30 is LR
   // X0 contains the scale
@@ -213,33 +213,9 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     UBFM(type_reg, scale_reg, 0, 2);    // Type
     UBFM(scale_reg, scale_reg, 8, 13);  // Scale
 
-    // Inline address check
-    // FIXME: This doesn't correctly account for the BAT configuration.
-    TST(addr_reg, LogicalImm(0x0c000000, 32));
-    FixupBranch pass = B(CC_EQ);
-    FixupBranch fail = B();
-
-    SwitchToFarCode();
-    SetJumpTarget(fail);
-    // Slow
-    MOVP2R(ARM64Reg::X30, &paired_store_quantized[16 + w * 8]);
-    LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
-
-    ABI_PushRegisters(gprs_in_use);
-    m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
-    BLR(EncodeRegTo64(type_reg));
-    m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
-    ABI_PopRegisters(gprs_in_use);
-    FixupBranch continue1 = B();
-    SwitchToNearCode();
-    SetJumpTarget(pass);
-
-    // Fast
-    MOVP2R(ARM64Reg::X30, &paired_store_quantized[w * 8]);
+    MOVP2R(ARM64Reg::X30, w ? single_store_quantized : paired_store_quantized);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
-
-    SetJumpTarget(continue1);
   }
 
   if (js.assumeNoPairedQuantize && !have_single)
