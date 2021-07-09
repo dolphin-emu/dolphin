@@ -23,6 +23,8 @@
 
 #endif
 
+#include "Common/Version.h"
+
 namespace Discord
 {
 #ifdef USE_DISCORD_PRESENCE
@@ -90,6 +92,7 @@ void HandleDiscordJoin(const char* join_secret)
   event_handler->DiscordJoin();
 }
 
+#if 0
 std::string ArtworkForGameId(const std::string& gameid)
 {
   static const std::set<std::string> REGISTERED_GAMES{
@@ -174,7 +177,7 @@ std::string ArtworkForGameId(const std::string& gameid)
   }
   return "";
 }
-
+#endif
 }  // namespace
 #endif
 
@@ -192,7 +195,7 @@ void Init()
   handlers.joinRequest = HandleDiscordJoinRequest;
   handlers.joinGame = HandleDiscordJoin;
   // The number is the client ID for Dolphin, it's used for images and the application name
-  Discord_Initialize("455712169795780630", &handlers, 1, nullptr);
+  Discord_Initialize("863127630534148136", &handlers, 1, nullptr);
   UpdateDiscordPresence();
 #endif
 }
@@ -221,24 +224,13 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
-  //SConfig::GetInstance().GetTitleDescription()
-  const std::string& title =
-      current_game.empty() ? "PrimeHack (Dolphin)" : current_game;
-  std::string game_artwork = ArtworkForGameId(SConfig::GetInstance().GetGameID());
+
+  const std::string& title = "v" + Common::primehack_ver + " (Dolphin Emulator Fork)";
 
   DiscordRichPresence discord_presence = {};
-  if (game_artwork.empty())
-  {
-    discord_presence.largeImageKey = "dolphin_logo";
-    discord_presence.largeImageText = "PrimeHack is a Dolphin mod to enable FPS/Mouse controls in Metroid Prime Trilogy";
-  }
-  else
-  {
-    discord_presence.largeImageKey = game_artwork.c_str();
-    discord_presence.largeImageText = title.c_str();
-    discord_presence.smallImageKey = "dolphin_logo";
-    discord_presence.smallImageText = "PrimeHack is a Dolphin mod to enable FPS/Mouse controls in Metroid Prime Trilogy";
-  }
+  discord_presence.largeImageKey = "primehack_logo";
+  discord_presence.largeImageText = "PrimeHack is a fork of Dolphin Emulator to bring traditional FPS controls and settings to the Metroid Prime series.";
+
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
 
