@@ -430,7 +430,16 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     std::string content_filename = HexEncode(op.new_hash.data(), op.new_hash.size());
     fprintf(log_fp, "Updating file %s from content %s...\n", op.filename.c_str(),
             content_filename.c_str());
+#ifdef __APPLE__
+    // macOS caches the code signature of Mach-O executables when they're first loaded.
+    // Unfortunately, there is a quirk in the kernel with how it handles the cache: if the file is
+    // simply overwritten, the cache isn't invalidated and the old code signature is used to verify
+    // the new file. This causes macOS to kill the process with a code signing error. To workaround
+    // this, we use File::Rename() instead of File::Copy().
     if (!File::Rename(temp_path + DIR_SEP + content_filename, path))
+#else
+    if (!File::Copy(temp_path + DIR_SEP + content_filename, path))
+#endif
     {
       fprintf(log_fp, "Could not update file %s.\n", op.filename.c_str());
       return false;
