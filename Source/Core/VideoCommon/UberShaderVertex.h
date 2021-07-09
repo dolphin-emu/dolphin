@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include "RenderState.h"
 #include "VideoCommon/PixelShaderGen.h"
 
 namespace UberShader
@@ -12,6 +13,7 @@ namespace UberShader
 struct vertex_ubershader_uid_data
 {
   u32 num_texgens : 4;
+  PrimitiveType prim_type:2;
 
   u32 NumValues() const { return sizeof(vertex_ubershader_uid_data); }
 };
@@ -19,7 +21,7 @@ struct vertex_ubershader_uid_data
 
 using VertexShaderUid = ShaderUid<vertex_ubershader_uid_data>;
 
-VertexShaderUid GetVertexShaderUid();
+VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type);
 
 ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config,
                            const vertex_ubershader_uid_data* uid_data);

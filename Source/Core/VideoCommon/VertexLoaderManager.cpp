@@ -366,6 +366,30 @@ int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int coun
 
     count = loader->RunVertices(src, dst, count);
 
+    // Points and lines require each vertex to be amplified to turn into triangles.
+    if (primitive >= OpcodeDecoder::Primitive::GX_DRAW_LINES)
+    {
+      u8* beg = dst.GetPointer();
+      auto stride = loader->m_native_vtx_decl.stride;
+      for (int i = count * 2; i--;)
+      {
+        int idiv2 = i / 2;
+        memmove(beg + i * stride, beg + idiv2 * stride, stride);
+      }
+      count *= 2;
+    }
+    // Points require 4x amplification
+    if (primitive == OpcodeDecoder::Primitive::GX_DRAW_POINTS)
+    {
+      u8* beg = dst.GetPointer();
+      auto stride = loader->m_native_vtx_decl.stride;
+      for (int i = count * 2; i--;)
+      {
+        int idiv2 = i / 2;
+        memmove(beg + i * stride, beg + idiv2 * stride, stride);
+      }
+      count *= 2;
+    }
     g_vertex_manager->AddIndices(primitive, count);
     g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
 

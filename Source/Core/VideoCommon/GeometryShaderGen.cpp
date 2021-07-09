@@ -33,7 +33,7 @@ bool geometry_shader_uid_data::IsPassthrough() const
 {
   const bool stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   const bool wireframe = g_ActiveConfig.bWireFrame;
-  return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !stereo && !wireframe;
+  return !stereo && !wireframe;
 }
 
 GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
