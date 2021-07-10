@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -242,12 +243,6 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     if (length < 4)
       continue;
 
-    if (length == 34 && strcmp(line, "  address  Size   address  offset\n") == 0)
-    {
-      column_count = 4;
-      continue;
-    }
-
     char temp[256]{};
     sscanf(line, "%255s", temp);
 
@@ -297,14 +292,38 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     if (section_name.empty())
       continue;
 
-    // Detect two columns with three columns fallback
+    // Column detection heuristic
     if (column_count == 0)
     {
-      const std::string_view stripped_line = StripSpaces(line);
-      if (std::count(stripped_line.begin(), stripped_line.end(), ' ') == 1)
-        column_count = 2;
-      else
+      constexpr auto is_hex_str = [](const std::string& s) {
+        return !s.empty() && s.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos;
+      };
+      const std::string stripped_line(StripSpaces(line));
+      std::istringstream iss(stripped_line);
+      iss.imbue(std::locale::classic());
+      std::string word;
+
+      // Two columns format:
+      // 80004000 zz_80004000_
+      if (!(iss >> word) || word.length() != 8 || !is_hex_str(word))
+        continue;
+      column_count = 2;
+
+      // Three columns format:
+      //  Starting        Virtual
+      //  address  Size   address
+      //  -----------------------
+      if (iss && iss >> word && is_hex_str(word) && iss >> word && is_hex_str(word))
         column_count = 3;
+      else
+        iss.str("");
+
+      // Four columns format:
+      //  Starting        Virtual  File
+      //  address  Size   address  offset
+      //  ---------------------------------
+      if (iss && iss >> word && word.length() == 8 && is_hex_str(word))
+        column_count = 4;
     }
 
     u32 address, vaddress, size, offset, alignment;
