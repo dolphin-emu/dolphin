@@ -152,6 +152,7 @@ public:
   void ps_sumX(UGeckoInstruction inst);
   void ps_res(UGeckoInstruction inst);
   void ps_rsqrte(UGeckoInstruction inst);
+  void ps_cmpXX(UGeckoInstruction inst);
 
   // Loadstore paired
   void psq_l(UGeckoInstruction inst);
@@ -167,6 +168,8 @@ public:
   void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                  Arm64Gen::ARM64Reg src_reg,
                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+
+  void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
   bool IsFPRStoreSafe(size_t guest_reg) const;
 

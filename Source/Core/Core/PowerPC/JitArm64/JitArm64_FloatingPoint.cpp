@@ -363,11 +363,8 @@ void JitArm64::frspx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::fcmpX(UGeckoInstruction inst)
+void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-  INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
-
   const bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
 
   const u32 a = inst.FA;
@@ -386,12 +383,15 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   const bool input_ftz_workaround =
       !cpu_info.bAFP && (!js.fpr_is_store_safe[a] || !js.fpr_is_store_safe[b]);
 
-  const bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true) && !input_ftz_workaround;
-  const RegType type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const bool singles = fpr.IsSingle(a, !upper) && fpr.IsSingle(b, !upper) && !input_ftz_workaround;
+  const RegType lower_type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const RegType upper_type = singles ? RegType::Single : RegType::Register;
   const auto reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
 
-  const ARM64Reg VA = reg_encoder(fpr.R(a, type));
-  const ARM64Reg VB = reg_encoder(fpr.R(b, type));
+  const bool upper_a = upper && !js.op->fprIsDuplicated[a];
+  const bool upper_b = upper && !js.op->fprIsDuplicated[b];
+  ARM64Reg VA = reg_encoder(fpr.R(a, upper_a ? upper_type : lower_type));
+  ARM64Reg VB = reg_encoder(fpr.R(b, upper_b ? upper_type : lower_type));
 
   gpr.BindCRToRegister(crf, false);
   const ARM64Reg XA = gpr.CR(crf);
@@ -404,11 +404,38 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
     ANDI2R(fpscr_reg, fpscr_reg, ~FPCC_MASK);
   }
 
+  ARM64Reg V0Q = ARM64Reg::INVALID_REG;
+  ARM64Reg V1Q = ARM64Reg::INVALID_REG;
+  if (upper_a)
+  {
+    V0Q = fpr.GetReg();
+    m_float_emit.DUP(singles ? 32 : 64, reg_encoder(V0Q), VA, 1);
+    VA = reg_encoder(V0Q);
+  }
+  if (upper_b)
+  {
+    if (a == b)
+    {
+      VB = VA;
+    }
+    else
+    {
+      V1Q = fpr.GetReg();
+      m_float_emit.DUP(singles ? 32 : 64, reg_encoder(V1Q), VB, 1);
+      VB = reg_encoder(V1Q);
+    }
+  }
+
+  m_float_emit.FCMP(VA, VB);
+
+  if (V0Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V0Q);
+  if (V1Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V1Q);
+
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
   ORR(XA, ARM64Reg::ZR, 32, 0, true);
-
-  m_float_emit.FCMP(VA, VB);
 
   if (a != b)
   {
@@ -463,6 +490,14 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
     STR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
     gpr.Unlock(fpscr_reg);
   }
+}
+
+void JitArm64::fcmpX(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITFloatingPointOff);
+
+  FloatCompare(inst);
 }
 
 void JitArm64::fctiwzx(UGeckoInstruction inst)

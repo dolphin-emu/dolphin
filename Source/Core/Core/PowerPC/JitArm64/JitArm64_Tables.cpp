@@ -88,18 +88,18 @@ constexpr std::array<GekkoOPTemplate, 54> primarytable{{
 
 constexpr std::array<GekkoOPTemplate, 13> table4{{
     // SUBOP10
-    {0, &JitArm64::FallBackToInterpreter},   // ps_cmpu0
-    {32, &JitArm64::FallBackToInterpreter},  // ps_cmpo0
-    {40, &JitArm64::fp_logic},               // ps_neg
-    {136, &JitArm64::fp_logic},              // ps_nabs
-    {264, &JitArm64::fp_logic},              // ps_abs
-    {64, &JitArm64::FallBackToInterpreter},  // ps_cmpu1
-    {72, &JitArm64::fp_logic},               // ps_mr
-    {96, &JitArm64::FallBackToInterpreter},  // ps_cmpo1
-    {528, &JitArm64::ps_mergeXX},            // ps_merge00
-    {560, &JitArm64::ps_mergeXX},            // ps_merge01
-    {592, &JitArm64::ps_mergeXX},            // ps_merge10
-    {624, &JitArm64::ps_mergeXX},            // ps_merge11
+    {0, &JitArm64::ps_cmpXX},      // ps_cmpu0
+    {32, &JitArm64::ps_cmpXX},     // ps_cmpo0
+    {40, &JitArm64::fp_logic},     // ps_neg
+    {136, &JitArm64::fp_logic},    // ps_nabs
+    {264, &JitArm64::fp_logic},    // ps_abs
+    {64, &JitArm64::ps_cmpXX},     // ps_cmpu1
+    {72, &JitArm64::fp_logic},     // ps_mr
+    {96, &JitArm64::ps_cmpXX},     // ps_cmpo1
+    {528, &JitArm64::ps_mergeXX},  // ps_merge00
+    {560, &JitArm64::ps_mergeXX},  // ps_merge01
+    {592, &JitArm64::ps_mergeXX},  // ps_merge10
+    {624, &JitArm64::ps_mergeXX},  // ps_merge11
 
     {1014, &JitArm64::FallBackToInterpreter},  // dcbz_l
 }};

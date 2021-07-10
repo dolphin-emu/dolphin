@@ -451,3 +451,12 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
 
   SetFPRFIfNeeded(true, VD);
 }
+
+void JitArm64::ps_cmpXX(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITPairedOff);
+
+  const bool upper = inst.SUBOP10 & 64;
+  FloatCompare(inst, upper);
+}
