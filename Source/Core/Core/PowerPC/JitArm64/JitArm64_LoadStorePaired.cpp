@@ -33,8 +33,13 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   const bool update = inst.OPCD == 57;
   const s32 offset = inst.SIMM_12;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Lock(ARM64Reg::W1, ARM64Reg::W2);
+    fpr.Lock(ARM64Reg::Q1);
+  }
 
   const ARM64Reg arm_addr = gpr.R(inst.RA);
   constexpr ARM64Reg addr_reg = ARM64Reg::W0;
@@ -66,8 +71,8 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 
     // Wipe the registers we are using as temporaries
-    gprs_in_use &= BitSet32(~7);
-    fprs_in_use &= BitSet32(~3);
+    gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
     fprs_in_use[DecodeReg(VS)] = 0;
 
     u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
@@ -96,8 +101,13 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
   }
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2);
+    fpr.Unlock(ARM64Reg::Q1);
+  }
 }
 
 void JitArm64::psq_st(UGeckoInstruction inst)
@@ -117,7 +127,8 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   const bool update = inst.OPCD == 61;
   const s32 offset = inst.SIMM_12;
 
-  fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
+  if (!js.assumeNoPairedQuantize)
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
   const bool have_single = fpr.IsSingle(inst.RS);
 
@@ -152,20 +163,15 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     }
   }
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!js.assumeNoPairedQuantize)
+    gpr.Lock(ARM64Reg::W2);
 
   const ARM64Reg arm_addr = gpr.R(inst.RA);
 
   constexpr ARM64Reg scale_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
-
-  BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-
-  // Wipe the registers we are using as temporaries
-  gprs_in_use &= BitSet32(~7);
-  fprs_in_use &= BitSet32(~3);
 
   if (inst.RA || update)  // Always uses the register on update
   {
@@ -187,6 +193,13 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
   if (js.assumeNoPairedQuantize)
   {
+    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
+    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+
+    // Wipe the registers we are using as temporaries
+    gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+
     u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!inst.W)
       flags |= BackPatchInfo::FLAG_PAIR;
@@ -208,6 +221,10 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   if (js.assumeNoPairedQuantize && !have_single)
     fpr.Unlock(VS);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Unlock(ARM64Reg::W2);
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  }
 }
