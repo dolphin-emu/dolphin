@@ -153,15 +153,7 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
   return optname;
 }
 
-// u32 values are in little endian (i.e. 0x0100007f means 127.0.0.1)
-struct DefaultInterface
-{
-  u32 inet;       // IPv4 address
-  u32 netmask;    // IPv4 subnet mask
-  u32 broadcast;  // IPv4 broadcast address
-};
-
-static std::optional<DefaultInterface> GetSystemDefaultInterface()
+std::optional<DefaultInterface> GetSystemDefaultInterface()
 {
 #ifdef _WIN32
   std::unique_ptr<MIB_IPFORWARDTABLE> forward_table;

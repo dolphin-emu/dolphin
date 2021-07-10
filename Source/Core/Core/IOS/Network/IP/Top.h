@@ -20,8 +20,18 @@ constexpr int UNSUPPORTED_WSAPOLL = POLLPRI | POLLWRBAND;
 constexpr int UNSUPPORTED_WSAPOLL = 0;
 #endif
 
+// u32 values are in little endian (i.e. 0x0100007f means 127.0.0.1)
+struct DefaultInterface
+{
+  u32 inet;       // IPv4 address
+  u32 netmask;    // IPv4 subnet mask
+  u32 broadcast;  // IPv4 broadcast address
+};
+
 namespace IOS::HLE
 {
+std::optional<DefaultInterface> GetSystemDefaultInterface();
+
 enum NET_IOCTL
 {
   IOCTL_SO_ACCEPT = 1,
