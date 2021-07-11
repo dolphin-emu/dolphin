@@ -387,6 +387,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   const RegType lower_type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
   const RegType upper_type = singles ? RegType::Single : RegType::Register;
   const auto reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
+  const auto paired_reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
   const bool upper_a = upper && !js.op->fprIsDuplicated[a];
   const bool upper_b = upper && !js.op->fprIsDuplicated[b];
@@ -409,7 +410,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   if (upper_a)
   {
     V0Q = fpr.GetReg();
-    m_float_emit.DUP(singles ? 32 : 64, reg_encoder(V0Q), VA, 1);
+    m_float_emit.DUP(singles ? 32 : 64, paired_reg_encoder(V0Q), paired_reg_encoder(VA), 1);
     VA = reg_encoder(V0Q);
   }
   if (upper_b)
@@ -421,7 +422,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
     else
     {
       V1Q = fpr.GetReg();
-      m_float_emit.DUP(singles ? 32 : 64, reg_encoder(V1Q), VB, 1);
+      m_float_emit.DUP(singles ? 32 : 64, paired_reg_encoder(V1Q), paired_reg_encoder(VB), 1);
       VB = reg_encoder(V1Q);
     }
   }
