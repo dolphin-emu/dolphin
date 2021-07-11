@@ -5,16 +5,18 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/OpcodeDecoding.h"
 
 class FifoDataFile;
 struct MemoryUpdate;
-struct AnalyzedFrameInfo;
 
 namespace CPU
 {
@@ -43,15 +45,35 @@ enum class State;
 //    8. The output of fifoplayer would be wrong.
 
 // To keep compatibility with old fifologs, we have this flag which signals texture cache to not
-// bother
-// hashing the memory and just assume the hash matched.
+// bother hashing the memory and just assume the hash matched.
 // At a later point proper efb copy support should be added to fiforecorder and this flag will
-// change
-// based on the version of the .dff file, but until then it will always be true when a fifolog is
-// playing.
+// change based on the version of the .dff file, but until then it will always be true when a
+// fifolog is playing.
 
 // Shitty global to fix a shitty problem
 extern bool IsPlayingBackFifologWithBrokenEFBCopies;
+
+struct ObjectInfo
+{
+  constexpr ObjectInfo(u32 start, u32 primitive_offset, u32 size, const CPState& cpmem)
+      : m_start(start), m_primitive_offset(primitive_offset), m_size(size), m_cpmem(cpmem)
+  {
+  }
+
+  const u32 m_start;
+  // Offset from the start of the object to primitive data.
+  // May be equal to m_size, if there is no primitive data.
+  const u32 m_primitive_offset;
+  const u32 m_size;
+  const CPState m_cpmem;
+};
+
+struct AnalyzedFrameInfo
+{
+  std::vector<ObjectInfo> objects;
+  std::set<u32> efb_copies;
+  std::vector<MemoryUpdate> memoryUpdates;
+};
 
 class FifoPlayer
 {
@@ -102,7 +124,6 @@ public:
 
 private:
   class CPUCore;
-
   FifoPlayer();
 
   CPU::State AdvanceFrame();

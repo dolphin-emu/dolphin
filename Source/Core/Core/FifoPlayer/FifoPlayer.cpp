@@ -4,6 +4,7 @@
 #include "Core/FifoPlayer/FifoPlayer.h"
 
 #include <algorithm>
+#include <cstring>
 #include <mutex>
 
 #include "Common/Assert.h"
@@ -12,7 +13,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
@@ -29,6 +29,158 @@
 // We need to include TextureDecoder.h for the texMem array.
 // TODO: Move texMem somewhere else so this isn't an issue.
 #include "VideoCommon/TextureDecoder.h"
+
+namespace
+{
+class FifoPlaybackAnalyzer : public OpcodeDecoder::Callback
+{
+public:
+  static void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frame_info);
+
+  explicit FifoPlaybackAnalyzer(const u32* cpmem) : m_cpmem(cpmem) {}
+
+  void OnXF(u16 address, u8 count, const u8* data) override {}
+  void OnCP(u8 command, u32 value) override { Callback::OnCP(command, value); }
+  void OnBP(u8 command, u32 value) override;
+  void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size) override {}
+  void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat, u32 vertex_size,
+                          u16 num_vertices, const u8* vertex_data) override;
+  void OnDisplayList(u32 address, u32 size) override {}
+  void OnNop(u32 count) override {}
+  void OnUnknown(u8 opcode, const u8* data) override {}
+
+  void OnCommand(const u8* data, u32 size) override;
+
+  CPState& GetCPState() override { return m_cpmem; }
+
+  bool m_start_of_primitives = false;
+  bool m_end_of_primitives = false;
+  bool m_efb_copy = false;
+  // Internal state, copied to above in OnCommand
+  bool m_was_primitive = false;
+  bool m_is_primitive = false;
+  bool m_is_copy = false;
+  CPState m_cpmem;
+};
+
+void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
+                                         std::vector<AnalyzedFrameInfo>& frame_info)
+{
+  FifoPlaybackAnalyzer analyzer(file->GetCPMem());
+  frame_info.clear();
+  frame_info.resize(file->GetFrameCount());
+
+  for (u32 frame_no = 0; frame_no < file->GetFrameCount(); frame_no++)
+  {
+    const FifoFrameInfo& frame = file->GetFrame(frame_no);
+    AnalyzedFrameInfo& analyzed = frame_info[frame_no];
+
+    u32 offset = 0;
+    u32 next_mem_update = 0;
+
+    u32 object_start = 0;
+    CPState cpmem;
+    u32 primitive_start = 0;
+
+    while (offset < frame.fifoData.size())
+    {
+      // Add memory updates that have occurred before this point in the frame
+      // TODO: Is this really needed?  Couldn't we just copy all of the frame memory updates?  We're
+      // not associating memory updates with commands...
+      while (next_mem_update < frame.memoryUpdates.size() &&
+             frame.memoryUpdates[next_mem_update].fifoPosition <= offset)
+      {
+        analyzed.memoryUpdates.push_back(frame.memoryUpdates[next_mem_update]);
+        next_mem_update++;
+      }
+
+      const u32 cmd_size = OpcodeDecoder::RunCommand(&frame.fifoData[offset],
+                                                     u32(frame.fifoData.size()) - offset, analyzer);
+
+      if (analyzer.m_start_of_primitives)
+      {
+        // Start of primitive data for an object
+        // Copy cpmem now, because end_of_primitives isn't triggered until the first opcode after
+        // primitive data, and the first opcode might update cpmem
+        primitive_start = offset;
+        std::memcpy(&cpmem, &analyzer.m_cpmem, sizeof(CPState));
+      }
+      if (analyzer.m_end_of_primitives)
+      {
+        // End of primitive data for an object, and thus end of the object
+        ASSERT(primitive_start >= object_start);
+        const u32 size = offset - object_start;
+        const u32 primitive_offset =
+            (primitive_start >= object_start) ? primitive_start - object_start : size;
+        analyzed.objects.emplace_back(object_start, primitive_offset, size, cpmem);
+        object_start = offset;
+      }
+
+      offset += cmd_size;
+
+      if (analyzer.m_efb_copy)
+      {
+        analyzed.efb_copies.insert(u32(analyzed.objects.size()));
+
+        // EFB copies lack primitive data.
+        // We also increase the offset beforehand, so that the trigger EFB copy command is included.
+        // Some games have an EFB copy before any primitive data (e.g. F-Zero GX), in which case
+        // both the object start and primitive start are 0.
+        ASSERT(primitive_start <= object_start);
+        const u32 size = offset - object_start;
+        analyzed.objects.emplace_back(object_start, size, size, cpmem);
+        object_start = offset;
+      }
+    }
+
+    ASSERT(offset == frame.fifoData.size());
+
+    if (object_start != offset)
+    {
+      const u32 size = offset - object_start;
+
+      // Remaining data, usually without any primitives
+      // (if primitive_start >= object_start, the end of the frame was in primitive data,
+      // which probably can't happen since there needs to be an XFB copy)
+      const u32 primitive_offset =
+          (primitive_start >= object_start) ? object_start - primitive_start : size;
+
+      analyzed.objects.emplace_back(object_start, primitive_offset, size, cpmem);
+    }
+  }
+}
+
+void FifoPlaybackAnalyzer::OnBP(u8 command, u32 value)
+{
+  if (command == BPMEM_TRIGGER_EFB_COPY)
+    m_is_copy = true;
+}
+
+void FifoPlaybackAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
+                                              u32 vertex_size, u16 num_vertices,
+                                              const u8* vertex_data)
+{
+  m_is_primitive = true;
+}
+
+void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
+{
+  m_start_of_primitives = false;
+  m_end_of_primitives = false;
+  m_efb_copy = false;
+
+  if (m_is_primitive && !m_was_primitive)
+    m_start_of_primitives = true;
+  else if (m_was_primitive && !m_is_primitive)
+    m_end_of_primitives = true;
+  else if (m_is_copy)
+    m_efb_copy = true;
+
+  m_was_primitive = m_is_primitive;
+  m_is_primitive = false;
+  m_is_copy = false;
+}
+}  // namespace
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
@@ -190,7 +342,7 @@ u32 FifoPlayer::GetMaxObjectCount() const
   u32 result = 0;
   for (auto& frame : m_FrameInfo)
   {
-    const u32 count = static_cast<u32>(frame.objectStarts.size());
+    const u32 count = static_cast<u32>(frame.objects.size());
     if (count > result)
       result = count;
   }
@@ -201,7 +353,7 @@ u32 FifoPlayer::GetFrameObjectCount(u32 frame) const
 {
   if (frame < m_FrameInfo.size())
   {
-    return static_cast<u32>(m_FrameInfo[frame].objectStarts.size());
+    return static_cast<u32>(m_FrameInfo[frame].objects.size());
   }
 
   return 0;
@@ -262,53 +414,38 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 
   // Determine start and end objects
-  u32 numObjects = (u32)(info.objectStarts.size());
-  u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
-  u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
+  const u32 num_objects = (u32)(info.objects.size());
+  const u32 draw_start = std::min(num_objects, m_ObjectRangeStart);
+  const u32 draw_end = std::min(num_objects - 1, m_ObjectRangeEnd);
 
-  u32 position = 0;
-  u32 memoryUpdate = 0;
+  u32 memory_update = 0;
 
   // Skip memory updates during frame if true
   if (m_EarlyMemoryUpdates)
   {
-    memoryUpdate = (u32)(frame.memoryUpdates.size());
+    memory_update = (u32)(frame.memoryUpdates.size());
   }
 
-  if (numObjects > 0)
+  for (u32 object_num = 0; object_num < num_objects; object_num++)
   {
-    u32 objectNum = 0;
-
-    // Write fifo data skipping objects before the draw range
-    while (objectNum < drawStart)
+    const auto& object = info.objects[object_num];
+    if (object_num < draw_start || object_num > draw_end)
     {
-      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
-
-      position = info.objectEnds[objectNum];
-      ++objectNum;
+      // If an object is out of range, only apply the commands, not the primitive data.
+      // We need to still apply the commands because commands from earlier objects still apply to
+      // later ones (and generally games will not reconfigure everything for each object).
+      WriteFramePart(object.m_start, object.m_start + object.m_primitive_offset, memory_update,
+                     frame, info);
     }
-
-    // Write objects in draw range
-    if (objectNum < numObjects && drawStart <= drawEnd)
+    else
     {
-      objectNum = drawEnd;
-      WriteFramePart(position, info.objectEnds[objectNum], memoryUpdate, frame, info);
-      position = info.objectEnds[objectNum];
-      ++objectNum;
-    }
-
-    // Write fifo data skipping objects after the draw range
-    while (objectNum < numObjects)
-    {
-      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
-
-      position = info.objectEnds[objectNum];
-      ++objectNum;
+      ASSERT(object_num == draw_start);
+      const auto& last_object = info.objects[draw_end];
+      object_num = draw_end;
+      WriteFramePart(object.m_start, last_object.m_start + last_object.m_size, memory_update, frame,
+                     info);
     }
   }
-
-  // Write data after the last object
-  WriteFramePart(position, static_cast<u32>(frame.fifoData.size()), memoryUpdate, frame, info);
 
   FlushWGP();
 

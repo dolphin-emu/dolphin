@@ -837,12 +837,12 @@ bool FramebufferManager::CompilePokePipelines()
 {
   PortableVertexDeclaration vtx_decl = {};
   vtx_decl.position.enable = true;
-  vtx_decl.position.type = VAR_FLOAT;
+  vtx_decl.position.type = ComponentFormat::Float;
   vtx_decl.position.components = 4;
   vtx_decl.position.integer = false;
   vtx_decl.position.offset = offsetof(EFBPokeVertex, position);
   vtx_decl.colors[0].enable = true;
-  vtx_decl.colors[0].type = VAR_UNSIGNED_BYTE;
+  vtx_decl.colors[0].type = ComponentFormat::UByte;
   vtx_decl.colors[0].components = 4;
   vtx_decl.colors[0].integer = false;
   vtx_decl.colors[0].offset = offsetof(EFBPokeVertex, color);
