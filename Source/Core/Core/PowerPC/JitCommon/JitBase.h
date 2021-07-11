@@ -62,6 +62,7 @@ protected:
     bool accurateSinglePrecision;
     bool fastmem;
     bool fastmem_arena;
+    bool alignment_exceptions;
     bool memcheck;
     bool profile_blocks;
   };

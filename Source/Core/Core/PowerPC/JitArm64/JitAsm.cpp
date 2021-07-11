@@ -669,6 +669,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     storePairedFloatSlow = GetCodePtr();
     float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::Q0, 0);
     ROR(ARM64Reg::X0, ARM64Reg::X0, 32);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U64);
     BR(ARM64Reg::X2);
   }
@@ -697,6 +698,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     emit_quantize();
     float_emit.UMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
     REV16(ARM64Reg::W0, ARM64Reg::W0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
     BR(ARM64Reg::X2);
   }
@@ -724,6 +726,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     emit_quantize();
     float_emit.UMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
     REV16(ARM64Reg::W0, ARM64Reg::W0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
     BR(ARM64Reg::X2);
   }
@@ -752,6 +755,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     emit_quantize();
     float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U32);
     BR(ARM64Reg::X2);
   }
@@ -779,6 +783,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     emit_quantize();
     float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U32);
     BR(ARM64Reg::X2);
   }
@@ -794,6 +799,7 @@ void JitArm64::GenerateQuantizedLoadStores()
 
     storeSingleFloatSlow = GetCodePtr();
     float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U32);
     BR(ARM64Reg::X2);
   }
@@ -820,6 +826,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     storeSingleU8Slow = GetCodePtr();
     emit_quantize();
     float_emit.UMOV(8, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U8);
     BR(ARM64Reg::X2);
   }
@@ -846,6 +853,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     storeSingleS8Slow = GetCodePtr();
     emit_quantize();
     float_emit.SMOV(8, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U8);
     BR(ARM64Reg::X2);
   }
@@ -872,6 +880,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     storeSingleU16Slow = GetCodePtr();
     emit_quantize();
     float_emit.UMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
     BR(ARM64Reg::X2);
   }
@@ -898,6 +907,7 @@ void JitArm64::GenerateQuantizedLoadStores()
     storeSingleS16Slow = GetCodePtr();
     emit_quantize();
     float_emit.SMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
+    MOV(ARM64Reg::W2, ARM64Reg::W3);
     MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
     BR(ARM64Reg::X2);
   }

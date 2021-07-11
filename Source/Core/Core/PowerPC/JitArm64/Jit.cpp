@@ -198,7 +198,8 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   {
     ARM64Reg WA = gpr.GetReg();
     LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
-    FixupBranch noException = TBZ(WA, IntLog2(EXCEPTION_DSI));
+    TST(WA, LogicalImm(ANY_LOADSTORE_EXCEPTION, 32));
+    FixupBranch noException = B(CCFlags::CC_EQ);
 
     FixupBranch handleException = B();
     SwitchToFarCode();

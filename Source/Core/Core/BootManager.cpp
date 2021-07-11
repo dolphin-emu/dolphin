@@ -76,6 +76,7 @@ private:
   bool bJITFollowBranch;
   bool bEnableCheats;
   bool bSyncGPUOnSkipIdleHack;
+  bool bAlignmentExceptions;
   bool bFPRF;
   bool bAccurateNaNs;
   bool bMMU;
@@ -111,6 +112,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bJITFollowBranch = config.bJITFollowBranch;
   bEnableCheats = config.bEnableCheats;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
+  bAlignmentExceptions = config.bAlignmentExceptions;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
   bDisableICache = config.bDisableICache;
@@ -157,6 +159,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bJITFollowBranch = bJITFollowBranch;
   config->bEnableCheats = bEnableCheats;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
+  config->bAlignmentExceptions = bAlignmentExceptions;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
   config->bDisableICache = bDisableICache;
@@ -260,6 +263,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
+    core_section->Get("AlignmentExceptions", &StartUp.bAlignmentExceptions,
+                      StartUp.bAlignmentExceptions);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
     core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
     core_section->Get("DisableICache", &StartUp.bDisableICache, StartUp.bDisableICache);
@@ -372,6 +377,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
     config_cache.bSetEXIDevice[2] = true;
+    StartUp.bAlignmentExceptions = netplay_settings.m_AlignmentExceptions;
     StartUp.bFPRF = netplay_settings.m_FPRF;
     StartUp.bAccurateNaNs = netplay_settings.m_AccurateNaNs;
     StartUp.bDisableICache = netplay_settings.m_DisableICache;

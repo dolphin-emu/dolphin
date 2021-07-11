@@ -67,111 +67,112 @@ SType ScaleAndClamp(double ps, u32 stScale)
 }
 
 template <typename T>
-static T ReadUnpaired(u32 addr);
+static T ReadUnpaired(u32 addr, UGeckoInstruction inst);
 
 template <>
-u8 ReadUnpaired<u8>(u32 addr)
+u8 ReadUnpaired<u8>(u32 addr, UGeckoInstruction inst)
 {
-  return PowerPC::Read_U8(addr);
+  return PowerPC::Read_U8(addr, inst);
 }
 
 template <>
-u16 ReadUnpaired<u16>(u32 addr)
+u16 ReadUnpaired<u16>(u32 addr, UGeckoInstruction inst)
 {
-  return PowerPC::Read_U16(addr);
+  return PowerPC::Read_U16(addr, inst);
 }
 
 template <>
-u32 ReadUnpaired<u32>(u32 addr)
+u32 ReadUnpaired<u32>(u32 addr, UGeckoInstruction inst)
 {
-  return PowerPC::Read_U32(addr);
+  return PowerPC::Read_U32(addr, inst);
 }
 
 template <typename T>
-static std::pair<T, T> ReadPair(u32 addr);
+static std::pair<T, T> ReadPair(u32 addr, UGeckoInstruction inst);
 
 template <>
-std::pair<u8, u8> ReadPair<u8>(u32 addr)
+std::pair<u8, u8> ReadPair<u8>(u32 addr, UGeckoInstruction inst)
 {
-  u16 val = PowerPC::Read_U16(addr);
+  u16 val = PowerPC::Read_U16(addr, inst);
   return {(u8)(val >> 8), (u8)val};
 }
 
 template <>
-std::pair<u16, u16> ReadPair<u16>(u32 addr)
+std::pair<u16, u16> ReadPair<u16>(u32 addr, UGeckoInstruction inst)
 {
-  u32 val = PowerPC::Read_U32(addr);
+  u32 val = PowerPC::Read_U32(addr, inst);
   return {(u16)(val >> 16), (u16)val};
 }
 
 template <>
-std::pair<u32, u32> ReadPair<u32>(u32 addr)
+std::pair<u32, u32> ReadPair<u32>(u32 addr, UGeckoInstruction inst)
 {
-  u64 val = PowerPC::Read_U64(addr);
+  u64 val = PowerPC::Read_U64(addr, inst);
   return {(u32)(val >> 32), (u32)val};
 }
 
 template <typename T>
-static void WriteUnpaired(T val, u32 addr);
+static void WriteUnpaired(T val, u32 addr, UGeckoInstruction inst);
 
 template <>
-void WriteUnpaired<u8>(u8 val, u32 addr)
+void WriteUnpaired<u8>(u8 val, u32 addr, UGeckoInstruction inst)
 {
-  PowerPC::Write_U8(val, addr);
+  PowerPC::Write_U8(val, addr, inst);
 }
 
 template <>
-void WriteUnpaired<u16>(u16 val, u32 addr)
+void WriteUnpaired<u16>(u16 val, u32 addr, UGeckoInstruction inst)
 {
-  PowerPC::Write_U16(val, addr);
+  PowerPC::Write_U16(val, addr, inst);
 }
 
 template <>
-void WriteUnpaired<u32>(u32 val, u32 addr)
+void WriteUnpaired<u32>(u32 val, u32 addr, UGeckoInstruction inst)
 {
-  PowerPC::Write_U32(val, addr);
-}
-
-template <typename T>
-static void WritePair(T val1, T val2, u32 addr);
-
-template <>
-void WritePair<u8>(u8 val1, u8 val2, u32 addr)
-{
-  PowerPC::Write_U16(((u16)val1 << 8) | (u16)val2, addr);
-}
-
-template <>
-void WritePair<u16>(u16 val1, u16 val2, u32 addr)
-{
-  PowerPC::Write_U32(((u32)val1 << 16) | (u32)val2, addr);
-}
-
-template <>
-void WritePair<u32>(u32 val1, u32 val2, u32 addr)
-{
-  PowerPC::Write_U64(((u64)val1 << 32) | (u64)val2, addr);
+  PowerPC::Write_U32(val, addr, inst);
 }
 
 template <typename T>
-void QuantizeAndStore(double ps0, double ps1, u32 addr, u32 instW, u32 stScale)
+static void WritePair(T val1, T val2, u32 addr, UGeckoInstruction inst);
+
+template <>
+void WritePair<u8>(u8 val1, u8 val2, u32 addr, UGeckoInstruction inst)
+{
+  PowerPC::Write_U16(((u16)val1 << 8) | (u16)val2, addr, inst);
+}
+
+template <>
+void WritePair<u16>(u16 val1, u16 val2, u32 addr, UGeckoInstruction inst)
+{
+  PowerPC::Write_U32(((u32)val1 << 16) | (u32)val2, addr, inst);
+}
+
+template <>
+void WritePair<u32>(u32 val1, u32 val2, u32 addr, UGeckoInstruction inst)
+{
+  PowerPC::Write_U64(((u64)val1 << 32) | (u64)val2, addr, inst);
+}
+
+template <typename T>
+void QuantizeAndStore(UGeckoInstruction inst, double ps0, double ps1, u32 addr, u32 instW,
+                      u32 stScale)
 {
   using U = std::make_unsigned_t<T>;
 
   U convPS0 = (U)ScaleAndClamp<T>(ps0, stScale);
   if (instW)
   {
-    WriteUnpaired<U>(convPS0, addr);
+    WriteUnpaired<U>(convPS0, addr, inst);
   }
   else
   {
     U convPS1 = (U)ScaleAndClamp<T>(ps1, stScale);
-    WritePair<U>(convPS0, convPS1, addr);
+    WritePair<U>(convPS0, convPS1, addr, inst);
   }
 }
 
-static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRS,
-                            u32 instW)
+static void Helper_Quantize(UGeckoInstruction inst, const PowerPC::PowerPCState* ppcs, u32 addr,
+                            u32 instI, u32 instRS, u32 instW)
 {
   const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   const EQuantizeType stType = gqr.st_type;
@@ -189,32 +190,32 @@ static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 ins
 
     if (instW)
     {
-      WriteUnpaired<u32>(conv_ps0, addr);
+      WriteUnpaired<u32>(conv_ps0, addr, inst);
     }
     else
     {
       const u64 integral_ps1 = Common::BitCast<u64>(ps1);
       const u32 conv_ps1 = ConvertToSingleFTZ(integral_ps1);
 
-      WritePair<u32>(conv_ps0, conv_ps1, addr);
+      WritePair<u32>(conv_ps0, conv_ps1, addr, inst);
     }
     break;
   }
 
   case QUANTIZE_U8:
-    QuantizeAndStore<u8>(ps0, ps1, addr, instW, stScale);
+    QuantizeAndStore<u8>(inst, ps0, ps1, addr, instW, stScale);
     break;
 
   case QUANTIZE_U16:
-    QuantizeAndStore<u16>(ps0, ps1, addr, instW, stScale);
+    QuantizeAndStore<u16>(inst, ps0, ps1, addr, instW, stScale);
     break;
 
   case QUANTIZE_S8:
-    QuantizeAndStore<s8>(ps0, ps1, addr, instW, stScale);
+    QuantizeAndStore<s8>(inst, ps0, ps1, addr, instW, stScale);
     break;
 
   case QUANTIZE_S16:
-    QuantizeAndStore<s16>(ps0, ps1, addr, instW, stScale);
+    QuantizeAndStore<s16>(inst, ps0, ps1, addr, instW, stScale);
     break;
 
   case QUANTIZE_INVALID1:
@@ -226,20 +227,21 @@ static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 ins
 }
 
 template <typename T>
-std::pair<double, double> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
+std::pair<double, double> LoadAndDequantize(UGeckoInstruction inst, u32 addr, u32 instW,
+                                            u32 ldScale)
 {
   using U = std::make_unsigned_t<T>;
 
   float ps0, ps1;
   if (instW)
   {
-    U value = ReadUnpaired<U>(addr);
+    U value = ReadUnpaired<U>(addr, inst);
     ps0 = (float)(T)(value)*m_dequantizeTable[ldScale];
     ps1 = 1.0f;
   }
   else
   {
-    std::pair<U, U> value = ReadPair<U>(addr);
+    std::pair<U, U> value = ReadPair<U>(addr, inst);
     ps0 = (float)(T)(value.first) * m_dequantizeTable[ldScale];
     ps1 = (float)(T)(value.second) * m_dequantizeTable[ldScale];
   }
@@ -247,8 +249,8 @@ std::pair<double, double> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
   return {static_cast<double>(ps0), static_cast<double>(ps1)};
 }
 
-static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRD,
-                              u32 instW)
+static void Helper_Dequantize(UGeckoInstruction inst, PowerPC::PowerPCState* ppcs, u32 addr,
+                              u32 instI, u32 instRD, u32 instW)
 {
   UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   EQuantizeType ldType = gqr.ld_type;
@@ -262,32 +264,32 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
   case QUANTIZE_FLOAT:
     if (instW)
     {
-      const u32 value = ReadUnpaired<u32>(addr);
+      const u32 value = ReadUnpaired<u32>(addr, inst);
       ps0 = Common::BitCast<double>(ConvertToDouble(value));
       ps1 = 1.0;
     }
     else
     {
-      const std::pair<u32, u32> value = ReadPair<u32>(addr);
+      const std::pair<u32, u32> value = ReadPair<u32>(addr, inst);
       ps0 = Common::BitCast<double>(ConvertToDouble(value.first));
       ps1 = Common::BitCast<double>(ConvertToDouble(value.second));
     }
     break;
 
   case QUANTIZE_U8:
-    std::tie(ps0, ps1) = LoadAndDequantize<u8>(addr, instW, ldScale);
+    std::tie(ps0, ps1) = LoadAndDequantize<u8>(inst, addr, instW, ldScale);
     break;
 
   case QUANTIZE_U16:
-    std::tie(ps0, ps1) = LoadAndDequantize<u16>(addr, instW, ldScale);
+    std::tie(ps0, ps1) = LoadAndDequantize<u16>(inst, addr, instW, ldScale);
     break;
 
   case QUANTIZE_S8:
-    std::tie(ps0, ps1) = LoadAndDequantize<s8>(addr, instW, ldScale);
+    std::tie(ps0, ps1) = LoadAndDequantize<s8>(inst, addr, instW, ldScale);
     break;
 
   case QUANTIZE_S16:
-    std::tie(ps0, ps1) = LoadAndDequantize<s16>(addr, instW, ldScale);
+    std::tie(ps0, ps1) = LoadAndDequantize<s16>(inst, addr, instW, ldScale);
     break;
 
   case QUANTIZE_INVALID1:
@@ -299,7 +301,7 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
     break;
   }
 
-  if (ppcs->Exceptions & EXCEPTION_DSI)
+  if (ppcs->Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     return;
   }
@@ -316,7 +318,7 @@ void Interpreter::psq_l(UGeckoInstruction inst)
   }
 
   const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
+  Helper_Dequantize(inst, &PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 }
 
 void Interpreter::psq_lu(UGeckoInstruction inst)
@@ -328,9 +330,9 @@ void Interpreter::psq_lu(UGeckoInstruction inst)
   }
 
   const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
+  Helper_Dequantize(inst, &PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     return;
   }
@@ -346,7 +348,7 @@ void Interpreter::psq_st(UGeckoInstruction inst)
   }
 
   const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
+  Helper_Quantize(inst, &PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 }
 
 void Interpreter::psq_stu(UGeckoInstruction inst)
@@ -358,9 +360,9 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
   }
 
   const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
+  Helper_Quantize(inst, &PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     return;
   }
@@ -370,21 +372,21 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
 void Interpreter::psq_lx(UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
+  Helper_Dequantize(inst, &PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 }
 
 void Interpreter::psq_stx(UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
+  Helper_Quantize(inst, &PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 }
 
 void Interpreter::psq_lux(UGeckoInstruction inst)
 {
   const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
-  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
+  Helper_Dequantize(inst, &PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     return;
   }
@@ -394,9 +396,9 @@ void Interpreter::psq_lux(UGeckoInstruction inst)
 void Interpreter::psq_stux(UGeckoInstruction inst)
 {
   const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
-  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
+  Helper_Quantize(inst, &PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (PowerPC::ppcState.Exceptions & ANY_LOADSTORE_EXCEPTION)
   {
     return;
   }

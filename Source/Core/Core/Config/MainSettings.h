@@ -67,6 +67,7 @@ extern const Info<int> MAIN_SYNC_GPU_MIN_DISTANCE;
 extern const Info<float> MAIN_SYNC_GPU_OVERCLOCK;
 extern const Info<bool> MAIN_FAST_DISC_SPEED;
 extern const Info<bool> MAIN_LOW_DCBZ_HACK;
+extern const Info<bool> MAIN_ALIGNMENT_EXCEPTIONS;
 extern const Info<bool> MAIN_FPRF;
 extern const Info<bool> MAIN_ACCURATE_NANS;
 extern const Info<bool> MAIN_DISABLE_ICACHE;

@@ -218,7 +218,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
   if (update && storeAddress)
     registersInUse[RSCRATCH2] = true;
 
-  SafeLoadToReg(Rd, opAddress, accessSize, loadOffset, registersInUse, signExtend);
+  SafeLoadToReg(Rd, opAddress, accessSize, loadOffset, inst, registersInUse, signExtend);
 
   if (update && storeAddress)
     MOV(32, Ra, opAddress);
@@ -300,7 +300,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 
   if (emit_fast_path)
   {
-    // Perform lookup to see if we can use fast path.
+    // Perform BAT lookup to see if we can use fast path.
     MOV(64, R(RSCRATCH2), ImmPtr(&PowerPC::dbat_table[0]));
     PUSH(RSCRATCH);
     SHR(32, R(RSCRATCH), Imm8(PowerPC::BAT_INDEX_SHIFT));
@@ -320,7 +320,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
+  ABI_CallFunctionAC(32, PowerPC::ClearCacheLine, R(RSCRATCH), inst.hex);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
   if (emit_fast_path)
@@ -371,7 +371,7 @@ void Jit64::stX(UGeckoInstruction inst)
     const bool exception = [&] {
       RCOpArg Rs = gpr.Use(s, RCMode::Read);
       RegCache::Realize(Rs);
-      return WriteToConstAddress(accessSize, Rs, addr, CallerSavedRegistersInUse());
+      return WriteToConstAddress(accessSize, Rs, addr, inst, CallerSavedRegistersInUse());
     }();
     if (update)
     {
@@ -404,7 +404,7 @@ void Jit64::stX(UGeckoInstruction inst)
       reg_value = gpr.BindOrImm(s, RCMode::Read);
     }
     RegCache::Realize(Ra, reg_value);
-    SafeWriteRegToReg(reg_value, Ra, accessSize, offset, CallerSavedRegistersInUse(),
+    SafeWriteRegToReg(reg_value, Ra, accessSize, offset, inst, CallerSavedRegistersInUse(),
                       SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 
     if (update)
@@ -459,7 +459,7 @@ void Jit64::stXx(UGeckoInstruction inst)
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   if (update)
     registersInUse[RSCRATCH2] = true;
-  SafeWriteRegToReg(Rs, RSCRATCH2, accessSize, 0, registersInUse,
+  SafeWriteRegToReg(Rs, RSCRATCH2, accessSize, 0, inst, registersInUse,
                     byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 
   if (update)
@@ -482,7 +482,7 @@ void Jit64::lmw(UGeckoInstruction inst)
   }
   for (int i = d; i < 32; i++)
   {
-    SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - d) * 4,
+    SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - d) * 4, inst,
                   CallerSavedRegistersInUse() | BitSet32{RSCRATCH2}, false);
     RCOpArg Ri = gpr.Bind(i, RCMode::Write);
     RegCache::Realize(Ri);
@@ -513,7 +513,7 @@ void Jit64::stmw(UGeckoInstruction inst)
       MOV(32, R(RSCRATCH2), Ri);
       Ri = RCOpArg::R(RSCRATCH2);
     }
-    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16,
+    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16, inst,
                       CallerSavedRegistersInUse());
   }
 }

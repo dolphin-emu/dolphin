@@ -791,7 +791,8 @@ public:
   u8* GetWritableCodePtr();
 
   // FixupBranch branching
-  void SetJumpTarget(FixupBranch const& branch);
+  void SetJumpTarget(const FixupBranch& branch);
+  static void SetJumpTarget(const FixupBranch& branch, const u8* target);
   FixupBranch CBZ(ARM64Reg Rt);
   FixupBranch CBNZ(ARM64Reg Rt);
   FixupBranch B(CCFlags cond);

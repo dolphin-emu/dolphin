@@ -102,7 +102,7 @@ void HLE_write_console()
   std::string report_message = GetStringVA(4);
   if (PowerPC::HostIsRAMAddress(GPR(5)))
   {
-    const u32 size = PowerPC::Read_U32(GPR(5));
+    const u32 size = PowerPC::HostRead_U32(GPR(5));
     if (size > report_message.size())
       WARN_LOG_FMT(OSREPORT_HLE, "__write_console uses an invalid size of {:#010x}", size);
     else if (size == 0)
