@@ -611,7 +611,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   else if (!inst.SH)
   {
     // Immediate mask
-    ANDI2R(gpr.R(a), gpr.R(s), mask);
+    AND(gpr.R(a), gpr.R(s), LogicalImm(mask, 32));
   }
   else if (inst.ME == 31 && 31 < inst.SH + inst.MB)
   {
