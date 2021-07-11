@@ -207,7 +207,7 @@ bool GameFile::CustomCoverChanged()
 
 void GameFile::DownloadDefaultCover()
 {
-  if (!m_default_cover.buffer.empty() || !UseGameCovers())
+  if (!m_default_cover.buffer.empty() || !UseGameCovers() || m_gametdb_id.empty())
     return;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
