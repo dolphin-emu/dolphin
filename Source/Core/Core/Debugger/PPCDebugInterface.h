@@ -45,12 +45,15 @@ public:
   // Memory Patches
   void SetPatch(u32 address, u32 value) override;
   void SetPatch(u32 address, std::vector<u8> value) override;
+  const Common::Debug::MemoryPatch& GetPatch(std::size_t index) const override;
   const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
   void UnsetPatch(u32 address) override;
   void EnablePatch(std::size_t index) override;
   void DisablePatch(std::size_t index) override;
   bool HasEnabledPatch(u32 address) const override;
   void RemovePatch(std::size_t index) override;
+  void LoadPatchesFromStrings(const std::vector<std::string>& patches) override;
+  std::vector<std::string> SavePatchesToStrings() const override;
   void ClearPatches() override;
 
   // Threads

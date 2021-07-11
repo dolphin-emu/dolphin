@@ -31,6 +31,7 @@ class JITWidget;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
+class MemoryPatchWidget;
 class MemoryWidget;
 class MenuBar;
 class NetPlayDialog;
@@ -231,6 +232,7 @@ private:
   JITWidget* m_jit_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  MemoryPatchWidget* m_memory_patch_widget;
   MemoryWidget* m_memory_widget;
   NetworkWidget* m_network_widget;
   RegisterWidget* m_register_widget;

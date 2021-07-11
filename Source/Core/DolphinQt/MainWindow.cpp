@@ -73,6 +73,7 @@
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 #include "DolphinQt/Debugger/CodeWidget.h"
 #include "DolphinQt/Debugger/JITWidget.h"
+#include "DolphinQt/Debugger/MemoryPatchWidget.h"
 #include "DolphinQt/Debugger/MemoryWidget.h"
 #include "DolphinQt/Debugger/NetworkWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
@@ -409,6 +410,7 @@ void MainWindow::CreateComponents()
   m_thread_widget = new ThreadWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
+  m_memory_patch_widget = new MemoryPatchWidget(this);
   m_code_widget = new CodeWidget(this);
   m_cheats_manager = new CheatsManager(this);
 
@@ -439,6 +441,9 @@ void MainWindow::CreateComponents()
           &BreakpointWidget::Update);
   connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget, &JITWidget::Compare);
   connect(m_code_widget, &CodeWidget::ShowMemory, m_memory_widget, &MemoryWidget::SetAddress);
+  connect(m_code_widget, &CodeWidget::MemoryPatchesChanged, m_memory_patch_widget,
+          &MemoryPatchWidget::Update);
+
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
   connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
@@ -454,6 +459,9 @@ void MainWindow::CreateComponents()
     if (Core::GetState() == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
+
+  connect(m_memory_patch_widget, &MemoryPatchWidget::MemoryPatchesChanged, m_code_widget,
+          &CodeWidget::Update);
 }
 
 void MainWindow::ConnectMenuBar()
@@ -676,6 +684,7 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::LeftDockWidgetArea, m_thread_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_memory_patch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_network_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
@@ -686,6 +695,7 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_thread_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
+  tabifyDockWidget(m_log_widget, m_memory_patch_widget);
   tabifyDockWidget(m_log_widget, m_memory_widget);
   tabifyDockWidget(m_log_widget, m_network_widget);
   tabifyDockWidget(m_log_widget, m_jit_widget);

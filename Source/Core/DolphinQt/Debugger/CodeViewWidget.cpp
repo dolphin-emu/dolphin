@@ -470,6 +470,8 @@ void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
   PowerPC::debug_interface.UnsetPatch(address);
   PowerPC::debug_interface.SetPatch(address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
+
+  emit MemoryPatchesChanged();
   Update();
 }
 
@@ -734,6 +736,8 @@ void CodeViewWidget::OnReplaceInstruction()
   {
     PowerPC::debug_interface.UnsetPatch(addr);
     PowerPC::debug_interface.SetPatch(addr, dialog.GetCode());
+
+    emit MemoryPatchesChanged();
     Update();
   }
 }
@@ -743,6 +747,8 @@ void CodeViewWidget::OnRestoreInstruction()
   const u32 addr = GetContextAddress();
 
   PowerPC::debug_interface.UnsetPatch(addr);
+
+  emit MemoryPatchesChanged();
   Update();
 }
 
