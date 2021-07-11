@@ -163,8 +163,7 @@ public:
   void ConvertDoubleToSinglePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                  Arm64Gen::ARM64Reg src_reg);
   void ConvertSingleToDoubleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
-                                  Arm64Gen::ARM64Reg src_reg,
-                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+                                  Arm64Gen::ARM64Reg src_reg);
   void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                  Arm64Gen::ARM64Reg src_reg,
                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
@@ -278,6 +277,7 @@ protected:
                bool Rc = false);
 
   void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
+  void FlushToZeroIfNeeded(bool single, bool packed, Arm64Gen::ARM64Reg reg);
   void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input,
                            Arm64Gen::ARM64Reg temp);
 

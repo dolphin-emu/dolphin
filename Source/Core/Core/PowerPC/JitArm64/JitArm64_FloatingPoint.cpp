@@ -4,6 +4,7 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -37,6 +38,58 @@ void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
   BL(single ? GetAsmRoutines()->fprf_single : GetAsmRoutines()->fprf_double);
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+}
+
+// Sets the mantissa to 0 if the exponent is 0
+void JitArm64::FlushToZeroIfNeeded(bool single, bool packed, Arm64Gen::ARM64Reg reg)
+{
+  // If the hardware is automatically flushing to zero for us, skip doing it in software
+  if (cpu_info.bFlushToZero)
+    return;
+
+  const auto reg_encoder = packed && !single ?
+                               EncodeRegToQuad :
+                               (packed || !single ? EncodeRegToDouble : EncodeRegToSingle);
+  const auto reg_encoder_64 = packed && !single ? EncodeRegToQuad : EncodeRegToDouble;
+  const auto gpr_encoder = packed || !single ? EncodeRegTo64 : EncodeRegTo32;
+
+  const ARM64Reg temp_sign = fpr.GetReg();
+  const ARM64Reg temp_exp = fpr.GetReg();
+  const ARM64Reg temp_gpr = gpr.GetReg();
+
+  if (single)
+  {
+    u64 exp = Common::FLOAT_EXP;
+    if (packed)
+      exp |= static_cast<u64>(Common::FLOAT_EXP) << 32;
+
+    MOVI2R(gpr_encoder(temp_gpr), exp);
+    m_float_emit.MOVI(32, reg_encoder(temp_sign), 0xFF, 24);
+    m_float_emit.FMOV(reg_encoder(temp_exp), gpr_encoder(temp_gpr));
+  }
+  else
+  {
+    MOVI2R(gpr_encoder(temp_gpr), Common::DOUBLE_EXP);
+    m_float_emit.MOVI(64, reg_encoder(temp_sign), 0xFF00'0000'0000'0000);
+    m_float_emit.FMOV(EncodeRegToDouble(temp_exp), gpr_encoder(temp_gpr));
+    if (packed)
+      m_float_emit.DUP(64, temp_exp, temp_exp, 0);
+  }
+
+  m_float_emit.AND(reg_encoder_64(temp_sign), reg_encoder_64(temp_sign), reg_encoder_64(reg));
+  if (!packed && !single)
+  {
+    m_float_emit.CMTST(reg_encoder_64(temp_exp), reg_encoder_64(temp_exp), reg_encoder_64(reg));
+  }
+  else
+  {
+    m_float_emit.CMTST(single ? 32 : 64, reg_encoder_64(temp_exp), reg_encoder_64(temp_exp),
+                       reg_encoder_64(reg));
+  }
+  m_float_emit.BIF(reg_encoder_64(reg), reg_encoder_64(temp_sign), reg_encoder_64(temp_exp));
+
+  gpr.Unlock(temp_gpr);
+  fpr.Unlock(temp_sign, temp_exp);
 }
 
 // Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
@@ -207,6 +260,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     fpr.FixSinglePrecision(d);
   }
 
+  FlushToZeroIfNeeded(outputs_are_singles, packed, VD);
   SetFPRFIfNeeded(outputs_are_singles, VD);
 }
 
@@ -359,6 +413,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
 
+    FlushToZeroIfNeeded(true, false, VD);
     SetFPRFIfNeeded(true, VD);
   }
 }
@@ -371,19 +426,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   const u32 b = inst.FB;
   const int crf = inst.CRFD;
 
-  // On the GC/Wii CPU, outputs are flushed to zero if FPSCR.NI is set, and inputs are never
-  // flushed to zero. Ideally we would emulate FPSCR.NI by setting FPCR.FZ and FPCR.AH, but
-  // unfortunately FPCR.AH is a very new feature that we can't rely on (as of 2021). For CPUs
-  // without FPCR.AH, the best we can do (without killing the performance by explicitly flushing
-  // outputs using bitwise operations) is to only set FPCR.FZ, which flushes both inputs and
-  // outputs. This may cause problems in some cases, and one such case is Pokémon Battle Revolution,
-  // which does not progress past the title screen if a denormal single compares equal to zero.
-  // Workaround: Perform the comparison using a double operation instead. This ensures that denormal
-  // singles behave correctly in comparisons, but we still have a problem with denormal doubles.
-  const bool input_ftz_workaround =
-      !cpu_info.bAFP && (!js.fpr_is_store_safe[a] || !js.fpr_is_store_safe[b]);
-
-  const bool singles = fpr.IsSingle(a, !upper) && fpr.IsSingle(b, !upper) && !input_ftz_workaround;
+  const bool singles = fpr.IsSingle(a, !upper) && fpr.IsSingle(b, !upper);
   const RegType lower_type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
   const RegType upper_type = singles ? RegType::Single : RegType::Register;
   const auto reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
@@ -644,11 +687,8 @@ void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, AR
   ABI_PopRegisters(gpr_saved);
 }
 
-void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
-                                          ARM64Reg scratch_reg)
+void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  ASSERT(scratch_reg != src_reg);
-
   if (js.fpr_is_store_safe[guest_reg])
   {
     m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
@@ -659,51 +699,42 @@ void JitArm64::ConvertSingleToDoubleLower(size_t guest_reg, ARM64Reg dest_reg, A
 
   FlushCarry();
 
-  // Do we know that the input isn't NaN, and that the input isn't denormal or FPCR.FZ is not set?
-  // (This check unfortunately also catches zeroes)
+  // Do we know that the input isn't NaN?
 
-  FixupBranch fast;
-  if (scratch_reg != ARM64Reg::INVALID_REG)
+  m_float_emit.FCMP(EncodeRegToSingle(src_reg));
+  FixupBranch fast = B(CCFlags::CC_VC);
+
+  if (switch_to_farcode)
   {
-    m_float_emit.FABS(EncodeRegToSingle(scratch_reg), EncodeRegToSingle(src_reg));
-    m_float_emit.FCMP(EncodeRegToSingle(scratch_reg));
-    fast = B(CCFlags::CC_GT);
+    FixupBranch slow = B();
 
-    if (switch_to_farcode)
-    {
-      FixupBranch slow = B();
-
-      SwitchToFarCode();
-      SetJumpTarget(slow);
-    }
+    SwitchToFarCode();
+    SetJumpTarget(slow);
   }
 
-  // If no (or if we don't have a scratch register), call the bit-exact routine
+  // If no, call the bit-exact routine
 
   const BitSet32 gpr_saved = gpr.GetCallerSavedUsed() & BitSet32{0, 1, 2, 3, 4, 30};
   ABI_PushRegisters(gpr_saved);
 
   m_float_emit.FMOV(ARM64Reg::W0, EncodeRegToSingle(src_reg));
-  BL(cstd);
+  BL(cstd_nan);
   m_float_emit.FMOV(EncodeRegToDouble(dest_reg), ARM64Reg::X1);
 
   ABI_PopRegisters(gpr_saved);
 
   // If yes, do a fast conversion with FCVT
 
-  if (scratch_reg != ARM64Reg::INVALID_REG)
-  {
-    FixupBranch continue1 = B();
+  FixupBranch continue1 = B();
 
-    if (switch_to_farcode)
-      SwitchToNearCode();
+  if (switch_to_farcode)
+    SwitchToNearCode();
 
-    SetJumpTarget(fast);
+  SetJumpTarget(fast);
 
-    m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
+  m_float_emit.FCVT(64, 32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
 
-    SetJumpTarget(continue1);
-  }
+  SetJumpTarget(continue1);
 }
 
 void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg,
@@ -721,27 +752,21 @@ void JitArm64::ConvertSingleToDoublePair(size_t guest_reg, ARM64Reg dest_reg, AR
 
   FlushCarry();
 
-  // Do we know that neither input is NaN, and that neither input is denormal or FPCR.FZ is not set?
-  // (This check unfortunately also catches zeroes)
+  // Do we know that neither input is NaN?
 
   FixupBranch fast;
   if (scratch_reg != ARM64Reg::INVALID_REG)
   {
-    // Set each 32-bit element of scratch_reg to 0x0000'0000 or 0xFFFF'FFFF depending on whether
-    // the absolute value of the corresponding element in src_reg compares greater than 0
+    // Set each 32-bit element of scratch_reg to 0x0000'0000 or 0xFFFF'FFFF depending on whether the
+    // absolute value of the corresponding element in src_reg compares >= 0 (which all non-NaNs do)
     m_float_emit.MOVI(8, EncodeRegToDouble(scratch_reg), 0);
-    m_float_emit.FACGT(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
+    m_float_emit.FACGE(32, EncodeRegToDouble(scratch_reg), EncodeRegToDouble(src_reg),
                        EncodeRegToDouble(scratch_reg));
 
-    // 0x0000'0000'0000'0000 (zero)     -> 0x0000'0000'0000'0000 (zero)
-    // 0x0000'0000'FFFF'FFFF (denormal) -> 0xFF00'0000'FFFF'FFFF (normal)
-    // 0xFFFF'FFFF'0000'0000 (NaN)      -> 0x00FF'FFFF'0000'0000 (normal)
-    // 0xFFFF'FFFF'FFFF'FFFF (NaN)      -> 0xFFFF'FFFF'FFFF'FFFF (NaN)
-    m_float_emit.INS(8, EncodeRegToDouble(scratch_reg), 7, EncodeRegToDouble(scratch_reg), 0);
-
-    // Is scratch_reg a NaN (0xFFFF'FFFF'FFFF'FFFF)?
+    // Were the absolute values of both elements >= 0?
+    m_float_emit.NOT(EncodeRegToDouble(scratch_reg), EncodeRegToDouble(scratch_reg));
     m_float_emit.FCMP(EncodeRegToDouble(scratch_reg));
-    fast = B(CCFlags::CC_VS);
+    fast = B(CCFlags::CC_EQ);
 
     if (switch_to_farcode)
     {

@@ -68,8 +68,10 @@ void CPUInfo::Detect()
   Mode64bit = true;
   vendor = CPUVendor::ARM;
   bFMA = true;
-  bFlushToZero = true;
   bAFP = false;
+
+  // We don't want to enable flush-to-zero if it causes inputs to be flushed
+  bFlushToZero = bAFP;
 
 #ifdef __APPLE__
   num_cores = std::thread::hardware_concurrency();
