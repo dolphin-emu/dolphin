@@ -219,7 +219,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
-  AND(WA, WA, 30, 29);  // Wipe the bottom 2 bits.
+  AND(WA, WA, LogicalImm(~0x3, 32));
 
   WriteExit(WA, inst.LK_3, js.compilerPC + 4);
 
@@ -265,7 +265,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   }
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
-  AND(WA, WA, 30, 29);  // Wipe the bottom 2 bits.
+  AND(WA, WA, LogicalImm(~0x3, 32));
 
   if (inst.LK)
   {

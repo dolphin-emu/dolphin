@@ -560,23 +560,18 @@ void ARM64XEmitter::EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, 
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
-void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms,
-                                         int n)
+void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
+  ASSERT_MSG(DYNAREC, imm.valid, "Invalid logical immediate");
+
   // Sometimes Rd is fixed to SP, but can still be 32bit or 64bit.
   // Use Rn to determine bitness here.
   bool b64Bit = Is64Bit(Rn);
 
-  ASSERT_MSG(DYNAREC, b64Bit || !n, "64-bit logical immediate does not fit in 32-bit register");
+  ASSERT_MSG(DYNAREC, b64Bit || !imm.n, "64-bit logical immediate does not fit in 32-bit register");
 
-  Write32((b64Bit << 31) | (op << 29) | (0x24 << 23) | (n << 22) | (immr << 16) | (imms << 10) |
-          (DecodeReg(Rn) << 5) | DecodeReg(Rd));
-}
-
-void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
-{
-  ASSERT_MSG(DYNAREC, imm.valid, "Invalid logical immediate");
-  EncodeLogicalImmInst(op, Rd, Rn, imm.r, imm.s, imm.n);
+  Write32((b64Bit << 31) | (op << 29) | (0x24 << 23) | (imm.n << 22) | (imm.r << 16) |
+          (imm.s << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
 }
 
 void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2,
@@ -1336,41 +1331,21 @@ void ARM64XEmitter::ROR(ARM64Reg Rd, ARM64Reg Rm, int shift)
 }
 
 // Logical (immediate)
-void ARM64XEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
-{
-  EncodeLogicalImmInst(0, Rd, Rn, immr, imms, invert);
-}
 void ARM64XEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
   EncodeLogicalImmInst(0, Rd, Rn, imm);
-}
-void ARM64XEmitter::ANDS(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
-{
-  EncodeLogicalImmInst(3, Rd, Rn, immr, imms, invert);
 }
 void ARM64XEmitter::ANDS(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
   EncodeLogicalImmInst(3, Rd, Rn, imm);
 }
-void ARM64XEmitter::EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
-{
-  EncodeLogicalImmInst(2, Rd, Rn, immr, imms, invert);
-}
 void ARM64XEmitter::EOR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
   EncodeLogicalImmInst(2, Rd, Rn, imm);
 }
-void ARM64XEmitter::ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert)
-{
-  EncodeLogicalImmInst(1, Rd, Rn, immr, imms, invert);
-}
 void ARM64XEmitter::ORR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
   EncodeLogicalImmInst(1, Rd, Rn, imm);
-}
-void ARM64XEmitter::TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert)
-{
-  EncodeLogicalImmInst(3, Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, immr, imms, invert);
 }
 void ARM64XEmitter::TST(ARM64Reg Rn, LogicalImm imm)
 {

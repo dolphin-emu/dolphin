@@ -754,7 +754,6 @@ private:
   void EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
   void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
   void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
-  void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, int n);
   void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn,
                            s32 imm);
@@ -996,15 +995,10 @@ public:
   void ROR(ARM64Reg Rd, ARM64Reg Rm, int shift);
 
   // Logical (immediate)
-  void AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void AND(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
-  void ANDS(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void ANDS(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
-  void EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void EOR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
-  void ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void ORR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
-  void TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
   void TST(ARM64Reg Rn, LogicalImm imm);
   // Add/subtract (immediate)
   void ADD(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);

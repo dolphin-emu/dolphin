@@ -436,7 +436,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
 
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
-  ORR(XA, ARM64Reg::ZR, 32, 0, true);
+  MOVI2R(XA, 1ULL << 32);
 
   if (a != b)
   {
@@ -449,7 +449,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   pNaN = B(CC_VS);
 
   // A == B
-  ORR(XA, XA, 64 - 63, 0, true);
+  ORR(XA, XA, LogicalImm(1ULL << 63, 64));
   if (fprf)
     ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_EQ << FPRF_SHIFT, 32));
 
@@ -466,15 +466,15 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
     continue2 = B();
 
     SetJumpTarget(pGreater);
-    ORR(XA, XA, 0, 0, true);
+    ORR(XA, XA, LogicalImm(1, 64));
     if (fprf)
       ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_GT << FPRF_SHIFT, 32));
 
     continue3 = B();
 
     SetJumpTarget(pLesser);
-    ORR(XA, XA, 64 - 62, 1, true);
-    ORR(XA, XA, 0, 0, true);
+    ORR(XA, XA, LogicalImm(0xC000'0000'0000'0000, 64));
+    ORR(XA, XA, LogicalImm(1, 64));
     if (fprf)
       ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_LT << FPRF_SHIFT, 32));
 
