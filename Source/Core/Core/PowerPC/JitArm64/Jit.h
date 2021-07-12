@@ -119,6 +119,7 @@ public:
   void mtcrf(UGeckoInstruction inst);
   void mcrfs(UGeckoInstruction inst);
   void mffsx(UGeckoInstruction inst);
+  void mtfsb0x(UGeckoInstruction inst);
 
   // LoadStore
   void lXX(UGeckoInstruction inst);
@@ -261,8 +262,9 @@ protected:
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
-  void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+  void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
+  void UpdateRoundingMode();
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u64 imm);
