@@ -735,7 +735,10 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       TBZ(ARM64Reg::W30, 15, done_here);  // MSR.EE
       MOVP2R(ARM64Reg::X30, &ProcessorInterface::m_InterruptCause);
       LDR(IndexType::Unsigned, ARM64Reg::W30, ARM64Reg::X30, 0);
-      TST(ARM64Reg::W30, 23, 2);
+      constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
+                                 ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                                 ProcessorInterface::INT_CAUSE_PE_FINISH;
+      TST(ARM64Reg::W30, LogicalImm(cause_mask, 32));
       B(CC_EQ, done_here);
 
       gpr.Flush(FlushMode::MaintainState);
@@ -767,7 +770,10 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       TBZ(WA, 15, done_here);  // MSR.EE
       MOVP2R(XA, &ProcessorInterface::m_InterruptCause);
       LDR(IndexType::Unsigned, WA, XA, 0);
-      TST(WA, 23, 2);
+      constexpr u32 cause_mask = ProcessorInterface::INT_CAUSE_CP |
+                                 ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                                 ProcessorInterface::INT_CAUSE_PE_FINISH;
+      TST(WA, LogicalImm(cause_mask, 32));
       B(CC_EQ, done_here);
       gpr.Unlock(WA);
 

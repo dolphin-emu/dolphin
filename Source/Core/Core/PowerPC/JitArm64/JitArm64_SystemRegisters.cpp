@@ -42,7 +42,7 @@ void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
   // intending to. This can break actual games, so fix it up.
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ORR(XA, reg, 64 - 63, 0, true);  // XB | 1<<63
+  ORR(XA, reg, LogicalImm(1ULL << 63, 64));
   CMP(reg, ARM64Reg::ZR);
   CSEL(reg, reg, XA, CC_NEQ);
   gpr.Unlock(WA);
@@ -405,7 +405,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
   {
     ARM64Reg RD = gpr.R(inst.RD);
     ARM64Reg WA = gpr.GetReg();
-    AND(WA, RD, 24, 30);
+    AND(WA, RD, LogicalImm(0xFFFFFF7F, 32));
     STRH(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_stringctrl));
     UBFM(WA, RD, XER_CA_SHIFT, XER_CA_SHIFT + 1);
     STRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
@@ -521,7 +521,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     case PowerPC::CR_SO_BIT:  // check bit 59 set
       UBFX(out, XC, PowerPC::CR_EMU_SO_BIT, 1);
       if (negate)
-        EOR(out, out, 0, 0, true);  // XC ^ 1
+        EOR(out, out, LogicalImm(1, 64));
       break;
 
     case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
@@ -537,7 +537,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     case PowerPC::CR_LT_BIT:  // check bit 62 set
       UBFX(out, XC, PowerPC::CR_EMU_LT_BIT, 1);
       if (negate)
-        EOR(out, out, 0, 0, true);  // XC ^ 1
+        EOR(out, out, LogicalImm(1, 64));
       break;
 
     default:
@@ -584,14 +584,14 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     BFI(XB, XA, PowerPC::CR_EMU_SO_BIT, 1);
     break;
 
-  case PowerPC::CR_EQ_BIT:      // clear low 32 bits, set bit 0 to !input
-    AND(XB, XB, 32, 31, true);  // Clear lower 32bits
-    EOR(XA, XA, 0, 0);          // XA ^ 1<<0
+  case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+    AND(XB, XB, LogicalImm(0xFFFF'FFFF'0000'0000, 64));
+    EOR(XA, XA, LogicalImm(1, 64));
     ORR(XB, XB, XA);
     break;
 
   case PowerPC::CR_GT_BIT:  // set bit 63 to !input
-    EOR(XA, XA, 0, 0);      // XA ^ 1<<0
+    EOR(XA, XA, LogicalImm(1, 64));
     BFI(XB, XA, 63, 1);
     break;
 
@@ -600,7 +600,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
     break;
   }
 
-  ORR(XB, XB, 32, 0, true);  // XB | 1<<32
+  ORR(XB, XB, LogicalImm(1ULL << 32, 64));
 
   gpr.Unlock(WA);
 }
@@ -639,12 +639,12 @@ void JitArm64::mfcr(UGeckoInstruction inst)
     }
 
     // EQ
-    ORR(WC, WA, 32 - PowerPC::CR_EQ_BIT, 0);
+    ORR(WC, WA, LogicalImm(1 << PowerPC::CR_EQ_BIT, 32));
     CMP(WCR, ARM64Reg::WZR);
     CSEL(WA, WC, WA, CC_EQ);
 
     // GT
-    ORR(WC, WA, 32 - PowerPC::CR_GT_BIT, 0);
+    ORR(WC, WA, LogicalImm(1 << PowerPC::CR_GT_BIT, 32));
     CMP(CR, ARM64Reg::ZR);
     CSEL(WA, WC, WA, CC_GT);
   }
@@ -748,7 +748,7 @@ void JitArm64::mffsx(UGeckoInstruction inst)
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
   // Vd = FPSCR.Hex | 0xFFF8'0000'0000'0000;
-  ORR(XA, XA, 13, 12, true);
+  ORR(XA, XA, LogicalImm(0xFFF8'0000'0000'0000, 64));
   m_float_emit.FMOV(EncodeRegToDouble(VD), XA);
 
   gpr.Unlock(WA);
