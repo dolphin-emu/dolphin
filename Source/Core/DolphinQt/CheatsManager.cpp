@@ -216,6 +216,7 @@ void CheatsManager::CreateWidgets()
   layout->addWidget(m_button_box);
 
   setLayout(layout);
+  adjustSize();
 }
 
 void CheatsManager::ConnectWidgets()

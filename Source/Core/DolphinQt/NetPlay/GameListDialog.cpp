@@ -32,6 +32,7 @@ void GameListDialog::CreateWidgets()
   m_main_layout->addWidget(m_button_box);
 
   setLayout(m_main_layout);
+  adjustSize();
 }
 
 void GameListDialog::ConnectWidgets()

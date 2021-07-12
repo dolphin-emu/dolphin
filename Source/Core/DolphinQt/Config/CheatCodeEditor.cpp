@@ -110,6 +110,7 @@ void CheatCodeEditor::CreateWidgets()
   m_notes_edit->setAcceptRichText(false);
 
   setLayout(grid_layout);
+  adjustSize();
 }
 
 void CheatCodeEditor::ConnectWidgets()

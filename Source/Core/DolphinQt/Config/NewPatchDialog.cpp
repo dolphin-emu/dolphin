@@ -53,6 +53,8 @@ NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     AddEntry();
     m_patch.enabled = true;
   }
+
+  adjustSize();
 }
 
 NewPatchDialog::~NewPatchDialog() = default;

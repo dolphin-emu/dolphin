@@ -102,6 +102,7 @@ void NewBreakpointDialog::CreateWidgets()
   layout->addWidget(m_buttons);
 
   setLayout(layout);
+  adjustSize();
 }
 
 void NewBreakpointDialog::ConnectWidgets()
