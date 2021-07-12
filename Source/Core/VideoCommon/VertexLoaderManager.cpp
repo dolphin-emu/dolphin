@@ -272,7 +272,27 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
       primitive, count, loader->m_native_vtx_decl.stride, cullall);
 
   count = loader->RunVertices(src, dst, count);
-
+  
+  // Points and lines require each vertex to be amplified to turn into triangles.
+  if(primitive >= 5){
+    u8 * beg = dst.GetPointer();
+    auto stride = loader->m_native_vtx_decl.stride;
+    for(int i=count*2;i--;){
+      int idiv2 = i/2;
+      memmove(beg+i*stride, beg+idiv2*stride, stride);
+    }
+    count*=2;
+  }
+  //Points require 4x amplification
+  if(primitive == 7){
+    u8 * beg = dst.GetPointer();
+    auto stride = loader->m_native_vtx_decl.stride;
+    for(int i=count*2;i--;){
+      int idiv2 = i/2;
+      memmove(beg+i*stride, beg+idiv2*stride, stride);
+    }
+    count*=2;
+  }
   g_vertex_manager->AddIndices(primitive, count);
   g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
 

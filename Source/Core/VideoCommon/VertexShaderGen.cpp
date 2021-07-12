@@ -13,7 +13,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-VertexShaderUid GetVertexShaderUid()
+VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type)
 {
   ASSERT(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
   ASSERT(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
@@ -23,7 +23,7 @@ VertexShaderUid GetVertexShaderUid()
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->numColorChans = xfmem.numChan.numColorChans;
-
+  uid_data->prim_type = prim_type;
   GetLightingShaderUid(uid_data->lighting);
 
   // transform texcoords
@@ -93,7 +93,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("{}", s_shader_uniforms);
   out.Write("}};\n");
-
+  
   out.Write("struct VS_OUTPUT {{\n");
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
   out.Write("}};\n");
@@ -587,6 +587,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
                 "gl_ClipDistance[1] = clipDist1;\n");
     }
 
+    if(uid_data->prim_type == PrimitiveType::Lines){
+      out.Write("if((gl_VertexID%2)==0){{o.pos.y+=0.01*o.pos.w; o.pos.x+=0.01*o.pos.w;}}");
+    }
+    if(uid_data->prim_type == PrimitiveType::Points){
+      //TODO
+    }
     // Vulkan NDC space has Y pointing down (right-handed NDC space).
     if (api_type == APIType::Vulkan)
       out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");

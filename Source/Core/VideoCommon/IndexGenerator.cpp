@@ -170,10 +170,17 @@ u16* AddQuads_nonstandard(u16* index_ptr, u32 num_verts, u32 index)
 
 u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
 {
-  for (u32 i = 1; i < num_verts; i += 2)
+  u32 prims = num_verts/4; //Lines have verts 2x amplified per primitive;
+  for (u32 i = 0; i < prims; i += 1)
   {
-    *index_ptr++ = index + i - 1;
-    *index_ptr++ = index + i;
+    //Tri 1
+    *index_ptr++ = index + i*4;
+    *index_ptr++ = index + i*4+2;
+    *index_ptr++ = index + i*4+1;
+    //Tri 2
+    *index_ptr++ = index + i*4+2;
+    *index_ptr++ = index + i*4+3;
+    *index_ptr++ = index + i*4+1;
   }
   return index_ptr;
 }
@@ -182,19 +189,34 @@ u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
 // so converting them to lists
 u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
 {
-  for (u32 i = 1; i < num_verts; ++i)
+  u32 prims = num_verts/2; //Lines have verts 2x amplified per primitive;
+  for (u32 i = 1; i < prims; ++i)
   {
-    *index_ptr++ = index + i - 1;
-    *index_ptr++ = index + i;
+    //Tri 1
+    *index_ptr++ = index + i*2-2+0;
+    *index_ptr++ = index + i*2-2+2;
+    *index_ptr++ = index + i*2-2+1;
+    //Tri 2
+    *index_ptr++ = index + i*2-2+2;
+    *index_ptr++ = index + i*2-2+3;
+    *index_ptr++ = index + i*2-2+1;
   }
   return index_ptr;
 }
 
 u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
 {
-  for (u32 i = 0; i != num_verts; ++i)
+  u32 prims = num_verts/4; //Points have verts 4x amplified per primitive;
+
+  for (u32 i = 0; i != prims; ++i)
   {
-    *index_ptr++ = index + i;
+    *index_ptr++ = index + i*4+0;
+    *index_ptr++ = index + i*4+3;
+    *index_ptr++ = index + i*4+1;
+    *index_ptr++ = index + i*4+1;
+    *index_ptr++ = index + i*4+3;
+    *index_ptr++ = index + i*4+2;
+
   }
   return index_ptr;
 }

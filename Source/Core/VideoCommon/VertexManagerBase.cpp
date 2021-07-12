@@ -120,12 +120,19 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   g_framebuffer_manager->FlushEFBPokes();
 
   // The SSE vertex loader can write up to 4 bytes past the end
-  u32 const needed_vertex_bytes = count * stride + 4;
+  u32 needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
   PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
+
+  // Points and lines require each vertex to be amplified to turn into triangles.
+  if (new_primitive_type == PrimitiveType::Lines)
+    needed_vertex_bytes *= 2;
+  else if (new_primitive_type == PrimitiveType::Points)
+    needed_vertex_bytes *= 4;
+
   if (m_current_primitive_type != new_primitive_type)
   {
     Flush();
@@ -203,14 +210,14 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive) const
       return index_len / 1 - 1;
     case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 6 * 4 + 1;
-
+    // Lines are broken into triangles (6 indices each)
     case OpcodeDecoder::GX_DRAW_LINES:
-      return index_len;
+      return index_len / 3;
     case OpcodeDecoder::GX_DRAW_LINE_STRIP:
-      return index_len / 2 + 1;
+      return (index_len / 2 /*+ 1*/) / 3;
 
     case OpcodeDecoder::GX_DRAW_POINTS:
-      return index_len;
+      return index_len / 6;
 
     default:
       return 0;
@@ -230,10 +237,11 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive) const
     case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 3 + 2;
 
+    // Lines are broken into triangles (6 indices each)
     case OpcodeDecoder::GX_DRAW_LINES:
-      return index_len;
+      return index_len / 3;
     case OpcodeDecoder::GX_DRAW_LINE_STRIP:
-      return index_len / 2 + 1;
+      return (index_len / 2 /*+ 1*/) / 3;
 
     case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
@@ -603,12 +611,12 @@ void VertexManagerBase::UpdatePipelineConfig()
         VertexLoaderManager::GetUberVertexFormat(vertex_format->GetVertexDeclaration());
     m_pipeline_config_changed = true;
   }
-
-  VertexShaderUid vs_uid = GetVertexShaderUid();
+  VertexShaderUid vs_uid = GetVertexShaderUid(m_current_primitive_type);
   if (vs_uid != m_current_pipeline_config.vs_uid)
   {
     m_current_pipeline_config.vs_uid = vs_uid;
-    m_current_uber_pipeline_config.vs_uid = UberShader::GetVertexShaderUid();
+    m_current_uber_pipeline_config.vs_uid =
+        UberShader::GetVertexShaderUid(m_current_primitive_type);
     m_pipeline_config_changed = true;
   }
 
