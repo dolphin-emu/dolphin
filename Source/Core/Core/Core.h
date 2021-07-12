@@ -104,7 +104,8 @@ std::string StopMessage(bool main_thread, std::string_view message);
 bool IsRunning();
 bool IsRunningAndStarted();       // is running and the CPU loop has been entered
 bool IsRunningInCurrentThread();  // this tells us whether we are running in the CPU thread.
-bool IsCPUThread();               // this tells us whether we are the CPU thread.
+bool IsBooted();     // whether CPU thread has finished its startup sequence and isn't shutting down
+bool IsCPUThread();  // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 
 bool WantsDeterminism();
