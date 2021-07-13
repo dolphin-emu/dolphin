@@ -3617,7 +3617,7 @@ ADDARN      &          & *  & 0000 0000 0001 bbaa                     \\
 HALT        &          & *  & 0000 0000 0010 0001                     \\
             &          &    &                                         \\
 LOOP        &          & *  & 0000 0000 010r rrrr                     \\
-BLOOP       &          & *  & 00000 0000 011r rrrr                    \\
+BLOOP       &          & *  & 0000 0000 011r rrrr aaaa aaaa aaaa aaaa \\
             &          &    &                                         \\
 LRI         &          & *  & 0000 0000 100r rrrr iiii iiii iiii iiii \\
 XXX         & NOT USED & *  & 0000 0000 101x xxxx                     \\
@@ -3625,8 +3625,8 @@ LR          &          & *  & 0000 0000 110r rrrr mmmm mmmm mmmm mmmm \\
 SR          &          & *  & 0000 0000 111r rrrr mmmm mmmm mmmm mmmm \\
             &          &    &                                         \\
 IF cc       &          & *  & 0000 0010 0111 cccc                     \\
-JMP cc      &          & *  & 0000 0010 1001 cccc                     \\
-CALL cc     &          & *  & 0000 0010 1011 cccc                     \\
+JMP cc      &          & *  & 0000 0010 1001 cccc aaaa aaaa aaaa aaaa \\
+CALL cc     &          & *  & 0000 0010 1011 cccc aaaa aaaa aaaa aaaa \\
 RET cc      &          & *  & 0000 0010 1101 cccc                     \\
 RTI         &          & *  & 0000 0010 1111 1111                     \\
             &          &    &                                         \\
@@ -3647,7 +3647,7 @@ ADDIS       &          & *  & 0000 010d iiii iiii                     \\
 CMPIS       &          & *  & 0000 011d iiii iiii                     \\
 LRIS        &          & *  & 0000 1rrr iiii iiii                     \\
             &          &    &                                         \\
-LOOPI       &          & *  & 0001 0000 iiii iiii aaaa aaaa aaaa aaaa \\
+LOOPI       &          & *  & 0001 0000 iiii iiii                     \\
 BLOOPI      &          & *  & 0001 0001 iiii iiii aaaa aaaa aaaa aaaa \\
 SBCLR       &          & *  & 0001 0010 ???? ?iii                     \\
 SBSET       &          & *  & 0001 0011 ???? ?iii                     \\
