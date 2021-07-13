@@ -32,8 +32,14 @@ namespace DSP::HLE
 #define MAX_SAMPLES_PER_FRAME 96
 #endif
 
-// Put all of that in an anonymous namespace to avoid stupid compilers merging
+// Use an inline namespace to prevent stupid compilers and debuggers from merging
 // functions from AX GC and AX Wii.
+#ifdef AX_GC
+inline namespace AXGC
+#else
+inline namespace AXWii
+#endif
+{
 namespace
 {
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
@@ -541,4 +547,5 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 }
 
 }  // namespace
+}  // inline namespace AXGC/AXWii
 }  // namespace DSP::HLE
