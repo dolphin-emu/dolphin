@@ -72,8 +72,12 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 
 static std::thread g_save_thread;
 
-// Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 132;  // Last changed in PR 9532
+// last compatible save version; change this when you make changes
+// that would make supporting old save versions impossible
+constexpr u32 MIN_STATE_VERSION = 132;  // Last changed in PR 9532
+// version to write saves in; bump this for any change that would prevent
+// loading by older verisons
+constexpr u32 CURRENT_STATE_VERSION = 133;  // Last changed in PR 7896
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -105,10 +109,9 @@ void EnableCompression(bool compression)
   s_use_compression = compression;
 }
 
-// Returns true if state version matches current Dolphin state version, false otherwise.
-static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
+static u32 DoStateVersion(PointerWrap& p, std::string* version_created_by)
 {
-  u32 version = STATE_VERSION;
+  u32 version = CURRENT_STATE_VERSION;
   {
     static const u32 COOKIE_BASE = 0xBAADBABE;
     u32 cookie = version + COOKIE_BASE;
@@ -122,7 +125,7 @@ static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
   else
     version_created_by->clear();
 
-  if (version != STATE_VERSION)
+  if (version < MIN_STATE_VERSION)
   {
     if (version_created_by->empty() && s_old_versions.count(version))
     {
@@ -138,17 +141,18 @@ static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
       *version_created_by = "Dolphin " + oldest_version + " - " + newest_version;
     }
 
-    return false;
+    return version;
   }
 
   p.DoMarker("Version");
-  return true;
+  return version;
 }
 
 static void DoState(PointerWrap& p)
 {
   std::string version_created_by;
-  if (!DoStateVersion(p, &version_created_by))
+  u32 version = DoStateVersion(p, &version_created_by);
+  if (version < MIN_STATE_VERSION)
   {
     const std::string message =
         version_created_by.empty() ?
@@ -199,7 +203,7 @@ static void DoState(PointerWrap& p)
   g_video_backend->DoState(p);
   p.DoMarker("video_backend");
 
-  PowerPC::DoState(p);
+  PowerPC::DoState(p, version);
   p.DoMarker("PowerPC");
   // CoreTiming needs to be restored before restoring Hardware because
   // the controller code might need to schedule an event if the controller has changed.

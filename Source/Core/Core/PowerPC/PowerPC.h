@@ -167,8 +167,7 @@ struct PowerPCState
 
   InstructionCache iCache;
 
-  // TODO: These should really be in the save state, although it's unlikely to matter much.
-  // They are for lwarx and its friend stwcxd.
+  // Reservation monitor for lwarx and its friend stwcxd.
   bool reserve;
   u32 reserve_address;
 
@@ -197,7 +196,7 @@ CPUCore DefaultCPUCore();
 void Init(CPUCore cpu_core);
 void Reset();
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(PointerWrap& p, u32 version);
 void ScheduleInvalidateCacheThreadSafe(u32 address);
 
 CoreMode GetMode();
