@@ -203,9 +203,6 @@ void GeneralWidget::AddDescriptions()
       "backend, so for the best emulation experience it is recommended to try each and "
       "select the backend that is least problematic.<br><br><dolphin_emphasis>If unsure, "
       "select OpenGL.</dolphin_emphasis>");
-  static const char TR_ADAPTER_DESCRIPTION[] =
-      QT_TR_NOOP("Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
-                 "select the first one.</dolphin_emphasis>");
   static const char TR_FULLSCREEN_DESCRIPTION[] =
       QT_TR_NOOP("Uses the entire screen for rendering.<br><br>If disabled, a "
                  "render window will be created instead.<br><br><dolphin_emphasis>If "
@@ -274,7 +271,6 @@ void GeneralWidget::AddDescriptions()
   m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
 
   m_adapter_combo->SetTitle(tr("Adapter"));
-  m_adapter_combo->SetDescription(tr(TR_ADAPTER_DESCRIPTION));
 
   m_aspect_combo->SetTitle(tr("Aspect Ratio"));
   m_aspect_combo->SetDescription(tr(TR_ASPECT_RATIO_DESCRIPTION));
@@ -324,8 +320,15 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
   m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning());
 
-  m_adapter_combo->setToolTip(supports_adapters ?
-                                  QString{} :
-                                  tr("%1 doesn't support this feature.")
-                                      .arg(tr(g_video_backend->GetDisplayName().c_str())));
+  static constexpr char TR_ADAPTER_AVAILABLE_DESCRIPTION[] =
+      QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"
+                 "<dolphin_emphasis>If unsure, select the first one.</dolphin_emphasis>");
+  static constexpr char TR_ADAPTER_UNAVAILABLE_DESCRIPTION[] =
+      QT_TR_NOOP("Selects a hardware adapter to use.<br><br>"
+                 "<dolphin_emphasis>%1 doesn't support this feature.</dolphin_emphasis>");
+
+  m_adapter_combo->SetDescription(supports_adapters ?
+                                      tr(TR_ADAPTER_AVAILABLE_DESCRIPTION) :
+                                      tr(TR_ADAPTER_UNAVAILABLE_DESCRIPTION)
+                                          .arg(tr(g_video_backend->GetDisplayName().c_str())));
 }
