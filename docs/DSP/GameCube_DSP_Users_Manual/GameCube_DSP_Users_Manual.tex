@@ -1005,7 +1005,7 @@ Opcode decoding uses special naming for bits and their decimal representations t
 \section{Conditional opcodes}
 
 Conditional opcodes are executed only when the condition described by their encoded conditional field has been met.
-The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opcode{IFcc}, and \Opcode{RETcc}.
+The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opcode{IFcc}, \Opcode{RETcc}, \Opcode{JRcc}, and \Opcode{CALLRcc}.
 
 \begin{table}[H]
 \centering
@@ -1041,6 +1041,28 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 \section{Alphabetical list of opcodes}
 
 \pagebreak{}
+
+\begin{DSPOpcode}{ABS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1010} & \monobitbox{4}{d001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ABS $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \Register{\$acD} to the absolute value of \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF $acD < 0
+        $acD = -$acD
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
 
 \begin{DSPOpcode}{ADD}
   \begin{DSPOpcodeBytefield}{16}
@@ -1377,6 +1399,32 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{ASRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1101} & \monobitbox{4}{1011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASRN
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically shifts accumulator \Register{\$ac0} either left or right based on \Register{\$ac1.m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (ac1.m & 64)
+        IF (ac1.m & 63) != 0
+            $ac0 >>= (64 - (ac1.m & 63))
+        ENDIF
+    ELSE
+        $ac0 <<= ac1.m
+    ENDIF
+    FLAGS($ac0)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{ASR16}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{1001} & \monobitbox{4}{r001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
@@ -1541,6 +1589,55 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{CALLRcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0111} & \monobitbox{4}{rrr1} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CALLRcc $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Call function if condition \Flag{cc} has been met. Push program counter of the instruction following ``call'' to call stack \Register{\$st0}.
+          Set program counter to register \Register{\$R}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        PUSH_STACK($st0)
+        $st0 = $pc + 1
+        $pc = $R
+    ELSE
+        $pc++
+    ENDIF
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+
+\begin{DSPOpcode}{CLR15}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1100} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CLR15
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SU} (bit 15) to 0, causing multiplication to treat its operands as signed.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~0x8000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{SET15}
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{CLR}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{1000} & \monobitbox{4}{r001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
@@ -1625,6 +1722,25 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $sr = FLAGS($ac0 - $ac1)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CMPAR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{110r} & \monobitbox{4}{s001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CMPAR $acS $axR.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Compares accumulator \Register{\$acS} with accumulator \Register{\$axR.h}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr = FLAGS($acS - ($axR.h << 16))
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -1975,6 +2091,28 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{JRcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0111} & \monobitbox{4}{rrr0} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    JRcc $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Jump to address if condition \Flag{cc} has been met; set program counter to a value from register \Register{\$R}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        $pc = $R
+    ELSE
+        $pc++
+    ENDIF
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{LOOP}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{010r} & \monobitbox{4}{rrrr}
@@ -2251,6 +2389,32 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{LSRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1100} & \monobitbox{4}{1010}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSRN
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically shifts accumulator \Register{\$ac0} either left or right based on \Register{\$ac1.m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (ac1.m & 64)
+        IF (ac1.m & 63) != 0
+            $ac0 >>= (64 - (ac1.m & 63))
+        ENDIF
+    ELSE
+        $ac0 <<= ac1.m
+    ENDIF
+    FLAGS($ac0)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{LSR16}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{1111} & \monobitbox{4}{010r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
@@ -2269,6 +2433,52 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{M0}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1011} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    M0
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.AM} (bit 13) to 1, \textbf{disabling} the functionality that doubles the result of every multiply operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 0x2000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{M2}
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{M2}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1010} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    M2
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.AM} (bit 13) to 0, \textbf{enabling} the functionality that doubles the result of every multiply operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~0x2000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{M0}
+  \end{DSPOpcodeSeeAlso}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADD}
@@ -2600,6 +2810,29 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \begin{DSPOpcodeOperation}
     $acR += $prod
     $prod = $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULAXH}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{0011} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULAXH
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiplies \Register{\$ax0.h} by itself.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod = $ax0.h * $ax0.h
     $pc++
   \end{DSPOpcodeOperation}
 
@@ -3095,6 +3328,75 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{SET15}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1101} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SET15
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SU} (bit 15) to 1, causing multiplication to treat its operands as unsigned.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 0x8000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{CLR15}
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SET16}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1110} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SET16
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SXM} (bit 14) to 0, resulting in 16-bit sign extension.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~0x4000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{SET40}
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SET40}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{1111} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SET40
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets \RegisterField{\$sr.SXM} (bit 14) to 1, resulting in 40-bit sign extension.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 0x4000
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \Opcode{SET16}
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{SI}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{0001} & \monobitbox{4}{0110} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm} \\
@@ -3260,6 +3562,25 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{SUBARN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{11dd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SUBARN $arD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Subtracts indexing register \Register{\$ixD} from addressing register \Register{\$arD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arD -= $ixD
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{SUBAX}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{0101} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
@@ -3354,6 +3675,25 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     FLAGS($axR.h)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{TSTPROD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{0101} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    TSTPROD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Test the product register \Register{\$prod}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    FLAGS($prod)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -3761,7 +4101,7 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0000 0000 0000 0000}{NOP}
 \OpcodeRow{0000 0000 0000 01dd}{DAR}
 \OpcodeRow{0000 0000 0000 10dd}{IAR}
-\OpcodeRowUnk{0000 0000 0000 11xx}
+\OpcodeRow{0000 0000 0000 11dd}{SUBARN}
 \OpcodeRow{0000 0000 0001 ssdd}{ADDARN}
 \OpcodeRow{0000 0000 0010 0001}{HALT}
 \OpcodeRowSkip
@@ -3787,6 +4127,9 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0000 001r 1010 0000 iiii iiii iiii iiii}{ANDF}
 \OpcodeRow{0000 001r 1100 0000 iiii iiii iiii iiii}{ANDCF}
 \OpcodeRowSkip
+\OpcodeRow{0000 0010 1100 1010}{LSRN}
+\OpcodeRow{0000 0010 1100 1011}{ASRN}
+\OpcodeRowSkip
 \OpcodeRow{0000 001d 0001 00ss}{ILRR}
 \OpcodeRow{0000 001d 0001 01ss}{ILRRD}
 \OpcodeRow{0000 001d 0001 10ss}{ILRRI}
@@ -3806,8 +4149,8 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0001 010r 10ii iiii}{ASL}
 \OpcodeRow{0001 010r 11ii iiii}{ASR}
 \OpcodeRow{0001 0110 mmmm mmmm iiii iiii iiii iiii}{SI}
-\OpcodeRow{0001 0111 rrr1 1111}{CALLR}
-\OpcodeRow{0001 0111 rrr0 1111}{JMPR}
+\OpcodeRow{0001 0111 rrr0 cccc}{JRcc}
+\OpcodeRow{0001 0111 rrr1 cccc}{CALLRcc}
 \OpcodeRowSkip
 \OpcodeRow{0001 1000 0ssd dddd}{LRR}
 \OpcodeRow{0001 1000 1ssd dddd}{LRRD}
@@ -3854,8 +4197,9 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{1000 x000 xxxx xxxx}{NX}
 \OpcodeRow{1000 r001 xxxx xxxx}{CLR}
 \OpcodeRow{1000 0010 xxxx xxxx}{CMP}
-\OpcodeRowUnk{1000 0011 xxxx xxxx}
+\OpcodeRow{1000 0011 xxxx xxxx}{MULAXH}
 \OpcodeRow{1000 0100 xxxx xxxx}{CLRP}
+\OpcodeRow{1000 0101 xxxx xxxx}{TSTPROD}
 \OpcodeRow{1000 011r xxxx xxxx}{TSTAXH}
 \OpcodeRowSkip
 \OpcodeRow{1000 1010 xxxx xxxx}{M2}
@@ -3872,14 +4216,14 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{1001 s11r xxxx xxxx}{MULMV}
 \OpcodeRowSkip
 \OpcodeRow{101s t000 xxxx xxxx}{MULX}
-\OpcodeRowUnk{1010 r001 xxxx xxxx}
+\OpcodeRow{1010 d001 xxxx xxxx}{ABS}
 \OpcodeRow{1011 r001 xxxx xxxx}{TST}
 \OpcodeRow{101s t01r xxxx xxxx}{MULXMVZ}
 \OpcodeRow{101s t10r xxxx xxxx}{MULXAC}
 \OpcodeRow{101s t11r xxxx xxxx}{MULXMV}
 \OpcodeRowSkip
 \OpcodeRow{110s t000 xxxx xxxx}{MULC}
-\OpcodeRow{110x r001 xxxx xxxx}{CMP}
+\OpcodeRow{110r s001 xxxx xxxx}{CMPAR}
 \OpcodeRow{110s t01r xxxx xxxx}{MULCMVZ}
 \OpcodeRow{110s t10r xxxx xxxx}{MULCAC}
 \OpcodeRow{110s t11r xxxx xxxx}{MULCMV}

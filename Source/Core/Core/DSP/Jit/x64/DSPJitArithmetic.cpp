@@ -185,8 +185,7 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
 
 // CMPAR $acS axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator axR.h.
-// Not described by Duddie's doc - at least not as a separate instruction.
+// Compares accumulator $acS with accumulator $axR.h.
 //
 // flags out: x-xx xxxx
 void DSPEmitter::cmpar(const UDSPInstruction opc)

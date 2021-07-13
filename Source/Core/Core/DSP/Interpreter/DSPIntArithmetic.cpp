@@ -126,8 +126,7 @@ void Interpreter::cmp(const UDSPInstruction)
 
 // CMPAR $acS axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator axR.h.
-// Not described by Duddie's doc - at least not as a separate instruction.
+// Compares accumulator $acS with accumulator $axR.h.
 //
 // flags out: x-xx xxxx
 void Interpreter::cmpar(const UDSPInstruction opc)
