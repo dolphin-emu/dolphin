@@ -25,7 +25,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
   if (config_location.system == Config::System::Main)
   {
-    for (const std::string& section :
+    for (const std::string_view section :
          {"NetPlay", "General", "Display", "Network", "Analytics", "AndroidOverlayButtons"})
     {
       if (config_location.section == section)
@@ -46,7 +46,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     }
   }
 
-  static constexpr std::array<const Config::Location*, 17> s_setting_saveable = {
+  static constexpr auto s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.GetLocation(),
@@ -62,6 +62,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_GFX_BACKEND.GetLocation(),
       &Config::MAIN_ENABLE_SAVESTATES.GetLocation(),
       &Config::MAIN_FALLBACK_REGION.GetLocation(),
+      &Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS.GetLocation(),
 
       // Main.Interface
 
@@ -77,7 +78,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_USE_DISCORD_PRESENCE.GetLocation(),
   };
 
-  return std::any_of(s_setting_saveable.cbegin(), s_setting_saveable.cend(),
+  return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),
                      [&config_location](const Config::Location* location) {
                        return *location == config_location;
                      });
