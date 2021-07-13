@@ -175,13 +175,21 @@ void Host_TitleChanged()
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
 {
-  JNIEnv* env = IDCache::GetEnvForThread();
+  // If a panic alert happens very early in the execution of a game, we can crash here with
+  // the error "JNI NewString called with pending exception java.lang.StackOverflowError".
+  // As a workaround, let's put the call on a new thread with a brand new stack.
 
-  // Execute the Java method.
-  jboolean result =
-      env->CallStaticBooleanMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(),
-                                   ToJString(env, caption), ToJString(env, text), yes_no,
-                                   style == Common::MsgType::Warning, s_need_nonblocking_alert_msg);
+  jboolean result;
+
+  std::thread([&] {
+    JNIEnv* env = IDCache::GetEnvForThread();
+
+    // Execute the Java method.
+    result = env->CallStaticBooleanMethod(
+        IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
+        ToJString(env, text), yes_no, style == Common::MsgType::Warning,
+        s_need_nonblocking_alert_msg);
+  }).join();
 
   return result != JNI_FALSE;
 }
