@@ -3637,7 +3637,10 @@ CMPI        &          & *  & 0000 001r 1000 0000 iiii iiii iiii iiii \\
 ANDCF       &          & *  & 0000 001r 1010 0000 iiii iiii iiii iiii \\
 ANDF        &          & *  & 0000 001r 1100 0000 iiii iiii iiii iiii \\
             &          &    &                                         \\
-ILRR        &          & *  & 0000 001r 0001 mmaa                     \\
+ILRR        &          & *  & 0000 001r 0001 00aa                     \\
+ILRRD       &          & *  & 0000 001r 0001 01aa                     \\
+ILRRI       &          & *  & 0000 001r 0001 10aa                     \\
+ILRRN       &          & *  & 0000 001r 0001 11aa                     \\
             &          &    &                                         \\
 ADDIS       &          & *  & 0000 010d iiii iiii                     \\
 CMPIS       &          & *  & 0000 011d iiii iiii                     \\
@@ -3706,6 +3709,7 @@ MULMV       &          & *  & 1001 a11r xxxx xxxx                     \\
             &          &    &                                         \\
 MULX        &          & *  & 101b a000 xxxx xxxx                     \\
 ???         &          &    & 1010 r001 xxxx xxxx                     \\
+TST         &          &    & 1011 r001 xxxx xxxx                     \\
 MULXMVZ     &          & *  & 101b a01r xxxx xxxx                     \\
 MULXAC      &          & *  & 101b a10r xxxx xxxx                     \\
 MULXMV      &          & *  & 101b a11r xxxx xxxx                     \\
@@ -3739,7 +3743,7 @@ MV          &          & *  & xxxx xxxx 0001 ddss \\
 S[N]        &          & *  & xxxx xxxx 001r rnaa \\
 L[N]        &          & *  & xxxx xxxx 01dd diss \\
 LS[NM|M|N]  &          & *  & xxxx xxxx 10dd ba0r \\
-SL          &          & *  & xxxx xxxx 10dd ba1r \\
+SL[NM|M|N]  &          & *  & xxxx xxxx 10dd ba1r \\
 LD[NM|M|N]  &          &    & xxxx xxxx 11mn barr \\
 LD2[NM|M|N] &          &    & xxxx xxxx 11rm ba11
 \end{longtable}
