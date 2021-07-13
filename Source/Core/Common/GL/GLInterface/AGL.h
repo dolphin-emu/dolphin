@@ -3,6 +3,9 @@
 
 #pragma once
 
+// This define will silence all "OpenGL is deprecated, use Metal" warnings.
+#define GL_SILENCE_DEPRECATION 1
+
 #if defined(__APPLE__) && defined(__OBJC__)
 #import <AppKit/AppKit.h>
 #else
