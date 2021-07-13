@@ -2826,7 +2826,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    MADDC $acS.l, $axT.h
+    MADDC $acS.m, $axT.h
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -2835,7 +2835,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $prod += $acS.l * $axT.h
+    $prod += $acS.m * $axT.h
     $pc++
   \end{DSPOpcodeOperation}
 
