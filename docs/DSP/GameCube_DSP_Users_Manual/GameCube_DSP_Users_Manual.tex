@@ -3759,19 +3759,19 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
 Instruction & Opcode & Page \\ \hline
 \endhead
 \OpcodeRow{0000 0000 0000 0000}{NOP}
-\OpcodeRow{0000 0000 0000 01aa}{DAR}
-\OpcodeRow{0000 0000 0000 10aa}{IAR}
+\OpcodeRow{0000 0000 0000 01dd}{DAR}
+\OpcodeRow{0000 0000 0000 10dd}{IAR}
 \OpcodeRowUnk{0000 0000 0000 11xx}
-\OpcodeRow{0000 0000 0001 bbaa}{ADDARN}
+\OpcodeRow{0000 0000 0001 ssdd}{ADDARN}
 \OpcodeRow{0000 0000 0010 0001}{HALT}
 \OpcodeRowSkip
 \OpcodeRow{0000 0000 010r rrrr}{LOOP}
 \OpcodeRow{0000 0000 011r rrrr aaaa aaaa aaaa aaaa}{BLOOP}
 \OpcodeRowSkip
-\OpcodeRow{0000 0000 100r rrrr iiii iiii iiii iiii}{LRI}
+\OpcodeRow{0000 0000 100d dddd iiii iiii iiii iiii}{LRI}
 \OpcodeRowUnk{0000 0000 101x xxxx}
-\OpcodeRow{0000 0000 110r rrrr mmmm mmmm mmmm mmmm}{LR}
-\OpcodeRow{0000 0000 111r rrrr mmmm mmmm mmmm mmmm}{SR}
+\OpcodeRow{0000 0000 110d dddd mmmm mmmm mmmm mmmm}{LR}
+\OpcodeRow{0000 0000 111s ssss mmmm mmmm mmmm mmmm}{SR}
 \OpcodeRowSkip
 \OpcodeRow{0000 0010 0111 cccc}{IFcc}
 \OpcodeRow{0000 0010 1001 cccc aaaa aaaa aaaa aaaa}{Jcc}
@@ -3787,40 +3787,40 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0000 001r 1010 0000 iiii iiii iiii iiii}{ANDF}
 \OpcodeRow{0000 001r 1100 0000 iiii iiii iiii iiii}{ANDCF}
 \OpcodeRowSkip
-\OpcodeRow{0000 001r 0001 00aa}{ILRR}
-\OpcodeRow{0000 001r 0001 01aa}{ILRRD}
-\OpcodeRow{0000 001r 0001 10aa}{ILRRI}
-\OpcodeRow{0000 001r 0001 11aa}{ILRRN}
+\OpcodeRow{0000 001d 0001 00ss}{ILRR}
+\OpcodeRow{0000 001d 0001 01ss}{ILRRD}
+\OpcodeRow{0000 001d 0001 10ss}{ILRRI}
+\OpcodeRow{0000 001d 0001 11ss}{ILRRN}
 \OpcodeRowSkip
 \OpcodeRow{0000 010d iiii iiii}{ADDIS}
 \OpcodeRow{0000 011d iiii iiii}{CMPIS}
-\OpcodeRow{0000 1rrr iiii iiii}{LRIS}
+\OpcodeRow{0000 1ddd iiii iiii}{LRIS}
 \OpcodeRowSkip
 \OpcodeRow{0001 0000 iiii iiii}{LOOPI}
 \OpcodeRow{0001 0001 iiii iiii aaaa aaaa aaaa aaaa}{BLOOPI}
 \OpcodeRow{0001 0010 xxxx xiii}{SBCLR}
 \OpcodeRow{0001 0011 xxxx xiii}{SBSET}
 \OpcodeRowSkip
-\OpcodeRow{0001 010r 00ss ssss}{LSL}
-\OpcodeRow{0001 010r 01ss ssss}{LSR}
-\OpcodeRow{0001 010r 10ss ssss}{ASL}
-\OpcodeRow{0001 010r 11ss ssss}{ASR}
-\OpcodeRow{0001 0110 iiii iiii mmmm mmmm mmmm mmmm}{SI}
+\OpcodeRow{0001 010r 00ii iiii}{LSL}
+\OpcodeRow{0001 010r 01ii iiii}{LSR}
+\OpcodeRow{0001 010r 10ii iiii}{ASL}
+\OpcodeRow{0001 010r 11ii iiii}{ASR}
+\OpcodeRow{0001 0110 mmmm mmmm iiii iiii iiii iiii}{SI}
 \OpcodeRow{0001 0111 rrr1 1111}{CALLR}
 \OpcodeRow{0001 0111 rrr0 1111}{JMPR}
 \OpcodeRowSkip
-\OpcodeRow{0001 1000 0aar rrrr}{LRR}
-\OpcodeRow{0001 1000 1aar rrrr}{LRRD}
-\OpcodeRow{0001 1001 1aar rrrr}{LRRI}
-\OpcodeRow{0001 1001 1aar rrrr}{LRRN}
-\OpcodeRow{0001 1010 0aar rrrr}{SRR}
-\OpcodeRow{0001 1010 1aar rrrr}{SRRD}
-\OpcodeRow{0001 1011 0aar rrrr}{SRRI}
-\OpcodeRow{0001 1011 1aar rrrr}{SRRN}
+\OpcodeRow{0001 1000 0ssd dddd}{LRR}
+\OpcodeRow{0001 1000 1ssd dddd}{LRRD}
+\OpcodeRow{0001 1001 0ssd dddd}{LRRI}
+\OpcodeRow{0001 1001 1ssd dddd}{LRRN}
+\OpcodeRow{0001 1010 0dds ssss}{SRR}
+\OpcodeRow{0001 1010 1dds ssss}{SRRD}
+\OpcodeRow{0001 1011 0dds ssss}{SRRI}
+\OpcodeRow{0001 1011 1dds ssss}{SRRN}
 \OpcodeRow{0001 11dd ddds ssss}{MRR}
 \OpcodeRowSkip
-\OpcodeRow{0010 0rrr mmmm mmmm}{LRS}
-\OpcodeRow{0010 1rrr mmmm mmmm}{SRS}
+\OpcodeRow{0010 0ddd mmmm mmmm}{LRS}
+\OpcodeRow{0010 1sss mmmm mmmm}{SRS}
 \OpcodeRowSkip
 \OpcodeRow{0011 00sr xxxx xxxx}{XORR}
 \OpcodeRow{0011 01sr xxxx xxxx}{ANDR}
@@ -3843,20 +3843,20 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0110 110d xxxx xxxx}{MOV}
 \OpcodeRow{0110 111d xxxx xxxx}{MOVP}
 \OpcodeRowSkip
-\OpcodeRow{0111 00sr xxxx xxxx}{ADDAXL}
-\OpcodeRow{0111 010r xxxx xxxx}{INCM}
-\OpcodeRow{0111 011r xxxx xxxx}{INC}
-\OpcodeRow{0111 100r xxxx xxxx}{DECM}
-\OpcodeRow{0111 101r xxxx xxxx}{DEC}
-\OpcodeRow{0111 110r xxxx xxxx}{NEG}
-\OpcodeRow{0111 111r xxxx xxxx}{MOVNP}
+\OpcodeRow{0111 00sd xxxx xxxx}{ADDAXL}
+\OpcodeRow{0111 010d xxxx xxxx}{INCM}
+\OpcodeRow{0111 011d xxxx xxxx}{INC}
+\OpcodeRow{0111 100d xxxx xxxx}{DECM}
+\OpcodeRow{0111 101d xxxx xxxx}{DEC}
+\OpcodeRow{0111 110d xxxx xxxx}{NEG}
+\OpcodeRow{0111 111d xxxx xxxx}{MOVNP}
 \OpcodeRowSkip
 \OpcodeRow{1000 x000 xxxx xxxx}{NX}
-\OpcodeRow{1000 x001 xxxx xxxx}{CLR}
+\OpcodeRow{1000 r001 xxxx xxxx}{CLR}
 \OpcodeRow{1000 0010 xxxx xxxx}{CMP}
 \OpcodeRowUnk{1000 0011 xxxx xxxx}
 \OpcodeRow{1000 0100 xxxx xxxx}{CLRP}
-\OpcodeRow{1000 011x xxxx xxxx}{TSTAXH}
+\OpcodeRow{1000 011r xxxx xxxx}{TSTAXH}
 \OpcodeRowSkip
 \OpcodeRow{1000 1010 xxxx xxxx}{M2}
 \OpcodeRow{1000 1011 xxxx xxxx}{M0}
@@ -3865,24 +3865,24 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{1000 1110 xxxx xxxx}{SET16}
 \OpcodeRow{1000 1111 xxxx xxxx}{SET40}
 \OpcodeRowSkip
-\OpcodeRow{1001 a000 xxxx xxxx}{MUL}
+\OpcodeRow{1001 s000 xxxx xxxx}{MUL}
 \OpcodeRow{1001 r001 xxxx xxxx}{ASR16}
-\OpcodeRow{1001 a01r xxxx xxxx}{MULMVZ}
-\OpcodeRow{1001 a10r xxxx xxxx}{MULAC}
-\OpcodeRow{1001 a11r xxxx xxxx}{MULMV}
+\OpcodeRow{1001 s01r xxxx xxxx}{MULMVZ}
+\OpcodeRow{1001 s10r xxxx xxxx}{MULAC}
+\OpcodeRow{1001 s11r xxxx xxxx}{MULMV}
 \OpcodeRowSkip
-\OpcodeRow{101b a000 xxxx xxxx}{MULX}
+\OpcodeRow{101s t000 xxxx xxxx}{MULX}
 \OpcodeRowUnk{1010 r001 xxxx xxxx}
 \OpcodeRow{1011 r001 xxxx xxxx}{TST}
-\OpcodeRow{101b a01r xxxx xxxx}{MULXMVZ}
-\OpcodeRow{101b a10r xxxx xxxx}{MULXAC}
-\OpcodeRow{101b a11r xxxx xxxx}{MULXMV}
+\OpcodeRow{101s t01r xxxx xxxx}{MULXMVZ}
+\OpcodeRow{101s t10r xxxx xxxx}{MULXAC}
+\OpcodeRow{101s t11r xxxx xxxx}{MULXMV}
 \OpcodeRowSkip
-\OpcodeRow{110s a000 xxxx xxxx}{MULC}
+\OpcodeRow{110s t000 xxxx xxxx}{MULC}
 \OpcodeRow{110x r001 xxxx xxxx}{CMP}
-\OpcodeRow{110s a01r xxxx xxxx}{MULCMVZ}
-\OpcodeRow{110s a10r xxxx xxxx}{MULCAC}
-\OpcodeRow{110s a11r xxxx xxxx}{MULCMV}
+\OpcodeRow{110s t01r xxxx xxxx}{MULCMVZ}
+\OpcodeRow{110s t10r xxxx xxxx}{MULCAC}
+\OpcodeRow{110s t11r xxxx xxxx}{MULCMV}
 \OpcodeRowSkip
 \OpcodeRow{1110 00st xxxx xxxx}{MADDX}
 \OpcodeRow{1110 01st xxxx xxxx}{MSUBX}
@@ -3893,9 +3893,9 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{1111 001s xxxx xxxx}{MADD}
 \OpcodeRow{1111 010r xxxx xxxx}{LSR16}
 \OpcodeRow{1111 011s xxxx xxxx}{MSUB}
-\OpcodeRow{1111 10ar xxxx xxxx}{ADDPAXZ}
+\OpcodeRow{1111 10sd xxxx xxxx}{ADDPAXZ}
 \OpcodeRow{1111 110r xxxx xxxx}{CLRL}
-\OpcodeRow{1111 111r xxxx xxxx}{MOVPZ}
+\OpcodeRow{1111 111d xxxx xxxx}{MOVPZ}
 \end{longtable}
 \end{center}
 
@@ -3903,23 +3903,23 @@ Instruction & Opcode & Page \\ \hline
 Extension Opcodes
 \begin{longtable}{llr}
 Instruction & Opcode & Page \\ \hline
-\OpcodeRow{xxxx xxxx 0000 01aa}{'DR}
-\OpcodeRow{xxxx xxxx 0000 10aa}{'IR}
-\OpcodeRow{xxxx xxxx 0000 11aa}{'NR}
+\OpcodeRow{xxxx xxxx 0000 01rr}{'DR}
+\OpcodeRow{xxxx xxxx 0000 10rr}{'IR}
+\OpcodeRow{xxxx xxxx 0000 11rr}{'NR}
 \OpcodeRow{xxxx xxxx 0001 ddss}{'MV}
-\OpcodeRow{xxxx xxxx 001r r0aa}{'S}
-\OpcodeRow{xxxx xxxx 001r r1aa}{'SN}
+\OpcodeRow{xxxx xxxx 001s s0dd}{'S}
+\OpcodeRow{xxxx xxxx 001s s1dd}{'SN}
 \OpcodeRow{xxxx xxxx 01dd d0ss}{'L}
 \OpcodeRow{xxxx xxxx 01dd d1ss}{'LN}
 \OpcodeRowSkip
-\OpcodeRow{xxxx xxxx 10dd 000r}{'LS}
-\OpcodeRow{xxxx xxxx 10dd 001r}{'SL}
-\OpcodeRow{xxxx xxxx 10dd 010r}{'LSN}
-\OpcodeRow{xxxx xxxx 10dd 011r}{'SLN}
-\OpcodeRow{xxxx xxxx 10dd 100r}{'LSM}
-\OpcodeRow{xxxx xxxx 10dd 101r}{'SLM}
-\OpcodeRow{xxxx xxxx 10dd 110r}{'LSNM}
-\OpcodeRow{xxxx xxxx 10dd 111r}{'SLNM}
+\OpcodeRow{xxxx xxxx 10dd 000s}{'LS}
+\OpcodeRow{xxxx xxxx 10dd 001s}{'SL}
+\OpcodeRow{xxxx xxxx 10dd 010s}{'LSN}
+\OpcodeRow{xxxx xxxx 10dd 011s}{'SLN}
+\OpcodeRow{xxxx xxxx 10dd 100s}{'LSM}
+\OpcodeRow{xxxx xxxx 10dd 101s}{'SLM}
+\OpcodeRow{xxxx xxxx 10dd 110s}{'LSNM}
+\OpcodeRow{xxxx xxxx 10dd 111s}{'SLNM}
 \OpcodeRow{xxxx xxxx 11mn barr}{'LD[NM|M|N]}
 \OpcodeRow{xxxx xxxx 11rm ba11}{'LD2[NM|M|N]}
 \end{longtable}
