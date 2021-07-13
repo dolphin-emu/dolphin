@@ -167,8 +167,7 @@ struct PowerPCState
 
   InstructionCache iCache;
 
-  // TODO: These should really be in the save state, although it's unlikely to matter much.
-  // They are for lwarx and its friend stwcxd.
+  // Reservation monitor for lwarx and its friend stwcxd.
   bool reserve;
   u32 reserve_address;
 

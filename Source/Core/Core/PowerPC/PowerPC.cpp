@@ -125,6 +125,9 @@ void DoState(PointerWrap& p)
   p.Do(ppcState.pagetable_base);
   p.Do(ppcState.pagetable_hashmask);
 
+  p.Do(ppcState.reserve);
+  p.Do(ppcState.reserve_address);
+
   ppcState.iCache.DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
