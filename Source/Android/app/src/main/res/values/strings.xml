@@ -75,6 +75,8 @@
     <string name="button_z">Z</string>
     <string name="trigger_left">L</string>
     <string name="trigger_right">R</string>
+    <string name="trigger_left_analog">L Analog</string>
+    <string name="trigger_right_analog">R Analog</string>
 
     <!-- Wii Remote buttons (May be shared with other stuff too) -->
     <string name="button_one">1</string>
