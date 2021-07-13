@@ -2882,11 +2882,11 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Moves accumulator \Register{\$ax(1-D)} to accumulator \Register{\$axD}.
+    \item Moves accumulator \Register{\$ac(1-D)} to accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD = $ax(1-D)
+    $acD = $ac(1-D)
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
@@ -2904,7 +2904,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Moves secondary accumulator \Register{\$axS} to accumulator \Register{\$axD}.
+    \item Moves secondary accumulator \Register{\$axS} to accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
