@@ -31,6 +31,7 @@ Config::Config()
 {
   camera_config.control_type = ControlType::SixAxis;
   enabled = false;
+  enabled_2d = false;
 }
 
 void Config::Refresh()
@@ -43,5 +44,6 @@ void Config::Refresh()
 
   camera_config.control_type = ::Config::Get(::Config::FL1_CONTROL_TYPE);
   enabled = ::Config::Get(::Config::FREE_LOOK_ENABLED);
+  enabled_2d = ::Config::Get(::Config::FREE_LOOK_2D_ENABLED);
 }
 }  // namespace FreeLook
