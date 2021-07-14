@@ -150,23 +150,9 @@ void Arm64GPRCache::Start(PPCAnalyst::BlockRegStats& stats)
 {
 }
 
-bool Arm64GPRCache::IsCalleeSaved(ARM64Reg reg) const
+bool Arm64GPRCache::IsCallerSaved(ARM64Reg reg) const
 {
-  static constexpr std::array<ARM64Reg, 11> callee_regs{{
-      ARM64Reg::X28,
-      ARM64Reg::X27,
-      ARM64Reg::X26,
-      ARM64Reg::X25,
-      ARM64Reg::X24,
-      ARM64Reg::X23,
-      ARM64Reg::X22,
-      ARM64Reg::X21,
-      ARM64Reg::X20,
-      ARM64Reg::X19,
-      ARM64Reg::INVALID_REG,
-  }};
-
-  return std::find(callee_regs.begin(), callee_regs.end(), EncodeRegTo64(reg)) != callee_regs.end();
+  return ARM64XEmitter::CALLER_SAVED_GPRS[DecodeReg(reg)];
 }
 
 const OpArg& Arm64GPRCache::GetGuestGPROpArg(size_t preg) const
@@ -411,7 +397,7 @@ BitSet32 Arm64GPRCache::GetCallerSavedUsed() const
   BitSet32 registers(0);
   for (const auto& it : m_host_registers)
   {
-    if (it.IsLocked() && !IsCalleeSaved(it.GetReg()))
+    if (it.IsLocked() && IsCallerSaved(it.GetReg()))
       registers[DecodeReg(it.GetReg())] = true;
   }
   return registers;
@@ -711,21 +697,9 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
   }
 }
 
-bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg) const
+bool Arm64FPRCache::IsCallerSaved(ARM64Reg reg) const
 {
-  static constexpr std::array<ARM64Reg, 9> callee_regs{{
-      ARM64Reg::Q8,
-      ARM64Reg::Q9,
-      ARM64Reg::Q10,
-      ARM64Reg::Q11,
-      ARM64Reg::Q12,
-      ARM64Reg::Q13,
-      ARM64Reg::Q14,
-      ARM64Reg::Q15,
-      ARM64Reg::INVALID_REG,
-  }};
-
-  return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
+  return ARM64XEmitter::CALLER_SAVED_FPRS[DecodeReg(reg)];
 }
 
 void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
