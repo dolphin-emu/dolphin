@@ -45,6 +45,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="CheatSearchNewWidget.cpp" />
+    <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
@@ -221,6 +223,8 @@
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="CheatSearchNewWidget.h" />
+    <QtMoc Include="CheatSearchWidget.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />

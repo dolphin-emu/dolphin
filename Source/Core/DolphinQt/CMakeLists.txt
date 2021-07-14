@@ -16,6 +16,10 @@ set(CMAKE_AUTOMOC ON)
 add_executable(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
+  CheatSearchNewWidget.cpp
+  CheatSearchNewWidget.h
+  CheatSearchWidget.cpp
+  CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
   ConvertDialog.cpp
