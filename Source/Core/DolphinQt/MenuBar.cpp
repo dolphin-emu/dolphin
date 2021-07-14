@@ -554,11 +554,6 @@ void MenuBar::AddOptionsMenu()
 
 void MenuBar::InstallUpdateManually()
 {
-  auto& track = SConfig::GetInstance().m_auto_update_track;
-  auto previous_value = track;
-
-  track = "dev";
-
   auto* updater = new Updater(this->parentWidget());
 
   if (!updater->CheckForUpdate())
@@ -567,8 +562,6 @@ void MenuBar::InstallUpdateManually()
         this, tr("Update"),
         tr("You are running the latest version available on this update track."));
   }
-
-  track = previous_value;
 }
 
 void MenuBar::AddHelpMenu()
