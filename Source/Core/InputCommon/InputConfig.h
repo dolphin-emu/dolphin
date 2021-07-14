@@ -24,7 +24,14 @@ public:
 
   ~InputConfig();
 
-  bool LoadConfig(bool isGC);
+  enum class InputClass
+  {
+    GC,
+    Wii,
+    GBA,
+  };
+
+  bool LoadConfig(InputClass type);
   void SaveConfig();
 
   template <typename T, typename... Args>

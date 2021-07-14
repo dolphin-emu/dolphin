@@ -65,6 +65,7 @@ signals:
 private:
   void Run();
   void CheckDebuggingHotkeys();
+  void CheckGBAHotkeys();
 
   Common::Flag m_stop_requested;
   std::thread m_thread;

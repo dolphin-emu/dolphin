@@ -46,6 +46,7 @@ public:
 
   void OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
                        const std::string& netplay_name) override;
+  void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
   void OnMsgPowerButton() override;
@@ -68,6 +69,8 @@ public:
   std::shared_ptr<const UICommon::GameFile>
   FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
                NetPlay::SyncIdentifierComparison* found = nullptr) override;
+  std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
+                             int device_number) override;
 
   void LoadSettings();
   void SaveSettings();
@@ -138,6 +141,7 @@ private:
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
   QAction* m_fixed_delay_action;
+  QAction* m_hide_remote_gbas_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
   QActionGroup* m_network_mode_group;

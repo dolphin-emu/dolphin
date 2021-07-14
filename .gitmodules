@@ -3,3 +3,8 @@
 	url = https://github.com/dolphin-emu/ext-win-qt.git
 	branch = master
 	shallow = true
+[submodule "Externals/mGBA/mgba"]
+	path = Externals/mGBA/mgba
+	url = https://github.com/mgba-emu/mgba.git
+	branch = master
+	shallow = true

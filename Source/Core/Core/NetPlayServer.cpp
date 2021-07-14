@@ -40,6 +40,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#endif
 #include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 #include "Core/HW/GCMemcard/GCMemcardRaw.h"
@@ -119,6 +122,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   }
 
   m_pad_map.fill(0);
+  m_gba_config.fill({});
   m_wiimote_map.fill(0);
 
   if (traversal_config.use_traversal)
@@ -480,6 +484,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
     std::lock_guard lkp(m_crit.players);
     m_players.emplace(*PeerPlayerId(player.socket), std::move(player));
     UpdatePadMapping();  // sync pad mappings with everyone
+    UpdateGBAConfig();
     UpdateWiimoteMapping();
   }
 
@@ -530,12 +535,14 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
   // alert other players of disconnect
   SendToClients(spac);
 
-  for (PlayerId& mapping : m_pad_map)
+  for (size_t i = 0; i < m_pad_map.size(); ++i)
   {
-    if (mapping == pid)
+    if (m_pad_map[i] == pid)
     {
-      mapping = 0;
+      m_pad_map[i] = 0;
+      m_gba_config[i].enabled = false;
       UpdatePadMapping();
+      UpdateGBAConfig();
     }
   }
 
@@ -557,6 +564,11 @@ PadMappingArray NetPlayServer::GetPadMapping() const
   return m_pad_map;
 }
 
+GBAConfigArray NetPlayServer::GetGBAConfig() const
+{
+  return m_gba_config;
+}
+
 PadMappingArray NetPlayServer::GetWiimoteMapping() const
 {
   return m_wiimote_map;
@@ -567,6 +579,26 @@ void NetPlayServer::SetPadMapping(const PadMappingArray& mappings)
 {
   m_pad_map = mappings;
   UpdatePadMapping();
+}
+
+// called from ---GUI--- thread
+void NetPlayServer::SetGBAConfig(const GBAConfigArray& mappings, bool update_rom)
+{
+#ifdef HAS_LIBMGBA
+  m_gba_config = mappings;
+  if (update_rom)
+  {
+    for (size_t i = 0; i < m_gba_config.size(); ++i)
+    {
+      auto& config = m_gba_config[i];
+      if (!config.enabled)
+        continue;
+      std::string rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[i]);
+      config.has_rom = HW::GBA::Core::GetRomInfo(rom_path.c_str(), config.hash, config.title);
+    }
+  }
+#endif
+  UpdateGBAConfig();
 }
 
 // called from ---GUI--- thread
@@ -584,6 +616,20 @@ void NetPlayServer::UpdatePadMapping()
   for (PlayerId mapping : m_pad_map)
   {
     spac << mapping;
+  }
+  SendToClients(spac);
+}
+
+// called from ---GUI--- thread and ---NETPLAY--- thread
+void NetPlayServer::UpdateGBAConfig()
+{
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_GBA_CONFIG);
+  for (const auto& config : m_gba_config)
+  {
+    spac << config.enabled << config.has_rom << config.title;
+    for (auto& data : config.hash)
+      spac << data;
   }
   SendToClients(spac);
 }
@@ -751,12 +797,16 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       }
 
       GCPadStatus pad;
-      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
-          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+      packet >> pad.button;
+      spac << map << pad.button;
+      if (!m_gba_config.at(map).enabled)
+      {
+        packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
+            pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
 
-      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
-           << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-           << pad.isConnected;
+        spac << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
+             << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
+      }
     }
 
     if (m_host_input_authority)
@@ -787,12 +837,16 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       packet >> map;
 
       GCPadStatus pad;
-      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
-          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+      packet >> pad.button;
+      spac << map << pad.button;
+      if (!m_gba_config.at(map).enabled)
+      {
+        packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
+            pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
 
-      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
-           << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-           << pad.isConnected;
+        spac << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
+             << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
+      }
     }
 
     SendToClients(spac, player.pid);
@@ -1316,6 +1370,7 @@ bool NetPlayServer::SetupNetSettings()
       Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES) && Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.m_GolfMode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
   settings.m_UseFMA = DoAllPlayersHaveHardwareFMA();
+  settings.m_HideRemoteGBAs = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
   // Unload GameINI to restore things to normal
   Config::RemoveLayer(Config::LayerType::GlobalGame);
@@ -1501,6 +1556,7 @@ bool NetPlayServer::StartGame()
 
   spac << m_settings.m_GolfMode;
   spac << m_settings.m_UseFMA;
+  spac << m_settings.m_HideRemoteGBAs;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1554,6 +1610,12 @@ bool NetPlayServer::SyncSaveData()
   {
     wii_save = true;
     save_count++;
+  }
+
+  for (const auto& config : m_gba_config)
+  {
+    if (config.enabled && config.has_rom)
+      save_count++;
   }
 
   {
@@ -1756,6 +1818,36 @@ bool NetPlayServer::SyncSaveData()
     SetWiiSyncData(nullptr, titles);
 
     SendChunkedToClients(std::move(pac), 1, "Wii Save Synchronization");
+  }
+
+  for (size_t i = 0; i < m_gba_config.size(); ++i)
+  {
+    if (m_gba_config[i].enabled && m_gba_config[i].has_rom)
+    {
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+      pac << static_cast<MessageId>(SYNC_SAVE_DATA_GBA);
+      pac << static_cast<u8>(i);
+
+      std::string path;
+#ifdef HAS_LIBMGBA
+      path = HW::GBA::Core::GetSavePath(Config::Get(Config::MAIN_GBA_ROM_PATHS[i]),
+                                        static_cast<int>(i));
+#endif
+      if (File::Exists(path))
+      {
+        if (!CompressFileIntoPacket(path, pac))
+          return false;
+      }
+      else
+      {
+        // No file, so we'll say the size is 0
+        pac << sf::Uint64{0};
+      }
+
+      SendChunkedToClients(std::move(pac), 1,
+                           fmt::format("GBA{} Save File Synchronization", i + 1));
+    }
   }
 
   return true;

@@ -17,21 +17,6 @@ public:
   void SendCommand(u32 command, u8 poll) override;
 
 private:
-  // Commands
-  enum EBufferCommands
-  {
-    CMD_RESET = 0x00,
-    CMD_ORIGIN = 0x41,
-    CMD_RECALIBRATE = 0x42,
-    CMD_ID = 0xff,
-  };
-
-  enum EDirectCommands
-  {
-    CMD_FORCE = 0x30,
-    CMD_WRITE = 0x40
-  };
-
   enum class ForceCommandType : u8
   {
     MotorOn = 0x03,

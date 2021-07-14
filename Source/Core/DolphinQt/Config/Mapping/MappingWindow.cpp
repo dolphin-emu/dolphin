@@ -23,12 +23,14 @@
 
 #include "DolphinQt/Config/Mapping/FreeLookGeneral.h"
 #include "DolphinQt/Config/Mapping/FreeLookRotation.h"
+#include "DolphinQt/Config/Mapping/GBAPadEmu.h"
 #include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 #include "DolphinQt/Config/Mapping/Hotkey3D.h"
 #include "DolphinQt/Config/Mapping/HotkeyControllerProfile.h"
 #include "DolphinQt/Config/Mapping/HotkeyDebugging.h"
+#include "DolphinQt/Config/Mapping/HotkeyGBA.h"
 #include "DolphinQt/Config/Mapping/HotkeyGeneral.h"
 #include "DolphinQt/Config/Mapping/HotkeyGraphics.h"
 #include "DolphinQt/Config/Mapping/HotkeyStates.h"
@@ -374,10 +376,15 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
   switch (type)
   {
+  case Type::MAPPING_GC_GBA:
+    widget = new GBAPadEmu(this);
+    setWindowTitle(tr("GameBoy Advance at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("GameBoy Advance"), widget);
+    break;
   case Type::MAPPING_GC_KEYBOARD:
     widget = new GCKeyboardEmu(this);
-    AddWidget(tr("GameCube Keyboard"), widget);
     setWindowTitle(tr("GameCube Keyboard at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("GameCube Keyboard"), widget);
     break;
   case Type::MAPPING_GC_BONGOS:
   case Type::MAPPING_GC_STEERINGWHEEL:
@@ -429,6 +436,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));
+    AddWidget(tr("GameBoy Advance"), new HotkeyGBA(this));
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }

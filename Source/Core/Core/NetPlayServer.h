@@ -58,6 +58,9 @@ public:
   PadMappingArray GetPadMapping() const;
   void SetPadMapping(const PadMappingArray& mappings);
 
+  GBAConfigArray GetGBAConfig() const;
+  void SetGBAConfig(const GBAConfigArray& configs, bool update_rom);
+
   PadMappingArray GetWiimoteMapping() const;
   void SetWiimoteMapping(const PadMappingArray& mappings);
 
@@ -134,6 +137,7 @@ private:
   void OnConnectReady(ENetAddress) override {}
   void OnConnectFailed(TraversalConnectFailedReason) override {}
   void UpdatePadMapping();
+  void UpdateGBAConfig();
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
@@ -153,6 +157,7 @@ private:
   u32 m_current_game = 0;
   unsigned int m_target_buffer_size = 0;
   PadMappingArray m_pad_map;
+  GBAConfigArray m_gba_config;
   PadMappingArray m_wiimote_map;
   unsigned int m_save_data_synced_players = 0;
   unsigned int m_codes_synced_players = 0;

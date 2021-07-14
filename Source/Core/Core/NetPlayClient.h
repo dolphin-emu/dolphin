@@ -43,6 +43,7 @@ public:
 
   virtual void OnMsgChangeGame(const SyncIdentifier& sync_identifier,
                                const std::string& netplay_name) = 0;
+  virtual void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
   virtual void OnMsgPowerButton() = 0;
@@ -62,6 +63,8 @@ public:
   virtual std::shared_ptr<const UICommon::GameFile>
   FindGameFile(const SyncIdentifier& sync_identifier,
                SyncIdentifierComparison* found = nullptr) = 0;
+  virtual std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
+                                     int device_number) = 0;
   virtual void ShowMD5Dialog(const std::string& title) = 0;
   virtual void SetMD5Progress(int pid, int progress) = 0;
   virtual void SetMD5Result(int pid, const std::string& result) = 0;
@@ -139,6 +142,7 @@ public:
   bool DoAllPlayersHaveGame();
 
   const PadMappingArray& GetPadMapping() const;
+  const GBAConfigArray& GetGBAConfig() const;
   const PadMappingArray& GetWiimoteMapping() const;
 
   void AdjustPadBufferSize(unsigned int size);
@@ -199,8 +203,9 @@ protected:
 
   u32 m_current_game = 0;
 
-  PadMappingArray m_pad_map;
-  PadMappingArray m_wiimote_map;
+  PadMappingArray m_pad_map{};
+  GBAConfigArray m_gba_config{};
+  PadMappingArray m_wiimote_map{};
 
   bool m_is_recording = false;
 
@@ -231,6 +236,7 @@ private:
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
+  void SendGameStatus();
   void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;

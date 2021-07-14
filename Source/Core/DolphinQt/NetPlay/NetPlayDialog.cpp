@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QComboBox>
+#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -35,6 +36,9 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#ifdef HAS_LIBMGBA
+#include "Core/HW/GBACore.h"
+#endif
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 
@@ -47,6 +51,7 @@
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/GameCubePane.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
@@ -171,6 +176,8 @@ void NetPlayDialog::CreateMainLayout()
   m_record_input_action->setCheckable(true);
   m_golf_mode_overlay_action = m_other_menu->addAction(tr("Show Golf Mode Overlay"));
   m_golf_mode_overlay_action->setCheckable(true);
+  m_hide_remote_gbas_action = m_other_menu->addAction(tr("Hide Remote GBAs"));
+  m_hide_remote_gbas_action->setCheckable(true);
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
@@ -279,6 +286,7 @@ void NetPlayDialog::ConnectWidgets()
     m_pad_mapping->exec();
 
     Settings::Instance().GetNetPlayServer()->SetPadMapping(m_pad_mapping->GetGCPadArray());
+    Settings::Instance().GetNetPlayServer()->SetGBAConfig(m_pad_mapping->GetGBAArray(), true);
     Settings::Instance().GetNetPlayServer()->SetWiimoteMapping(m_pad_mapping->GetWiimoteArray());
   });
 
@@ -365,6 +373,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_fixed_delay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  connect(m_hide_remote_gbas_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::SendMessage(const std::string& msg)
@@ -471,6 +480,11 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_data_menu->menuAction()->setVisible(is_hosting);
   m_network_menu->menuAction()->setVisible(is_hosting);
   m_md5_menu->menuAction()->setVisible(is_hosting);
+#ifdef HAS_LIBMGBA
+  m_hide_remote_gbas_action->setVisible(is_hosting);
+#else
+  m_hide_remote_gbas_action->setVisible(false);
+#endif
   m_start_button->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
   m_assign_ports_button->setHidden(!is_hosting);
@@ -570,20 +584,6 @@ void NetPlayDialog::UpdateGUI()
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
   m_players_list->setRowCount(m_player_count);
 
-  const auto get_mapping_string = [](const NetPlay::Player* player,
-                                     const NetPlay::PadMappingArray& array) {
-    std::string str;
-    for (size_t i = 0; i < array.size(); i++)
-    {
-      if (player->pid == array[i])
-        str += std::to_string(i + 1);
-      else
-        str += '-';
-    }
-
-    return '|' + str + '|';
-  };
-
   static const std::map<NetPlay::SyncIdentifierComparison, QString> player_status{
       {NetPlay::SyncIdentifierComparison::SameGame, tr("OK")},
       {NetPlay::SyncIdentifierComparison::DifferentVersion, tr("Wrong Version")},
@@ -599,9 +599,9 @@ void NetPlayDialog::UpdateGUI()
                                                  player_status.at(p->game_status) :
                                                  QStringLiteral("?"));
     auto* ping_item = new QTableWidgetItem(QStringLiteral("%1 ms").arg(p->ping));
-    auto* mapping_item = new QTableWidgetItem(
-        QString::fromStdString(get_mapping_string(p, client->GetPadMapping()) +
-                               get_mapping_string(p, client->GetWiimoteMapping())));
+    auto* mapping_item =
+        new QTableWidgetItem(QString::fromStdString(NetPlay::GetPlayerMappingString(
+            p->pid, client->GetPadMapping(), client->GetGBAConfig(), client->GetWiimoteMapping())));
     auto* revision_item = new QTableWidgetItem(QString::fromStdString(p->revision));
 
     for (auto* item : {name_item, status_item, ping_item, mapping_item, revision_item})
@@ -741,6 +741,20 @@ void NetPlayDialog::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifi
     UpdateDiscordPresence();
   });
   DisplayMessage(tr("Game changed to \"%1\"").arg(qname), "magenta");
+}
+
+void NetPlayDialog::OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config)
+{
+  if (config.has_rom)
+  {
+    DisplayMessage(
+        tr("GBA%1 ROM changed to \"%2\"").arg(pad + 1).arg(QString::fromStdString(config.title)),
+        "magenta");
+  }
+  else
+  {
+    DisplayMessage(tr("GBA%1 ROM disabled").arg(pad + 1), "magenta");
+  }
 }
 
 void NetPlayDialog::GameStatusChanged(bool running)
@@ -976,6 +990,51 @@ NetPlayDialog::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
   return nullptr;
 }
 
+std::string NetPlayDialog::FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
+                                          int device_number)
+{
+#ifdef HAS_LIBMGBA
+  auto result = RunOnObject(this, [&, this] {
+    std::string rom_path;
+    std::array<u8, 20> rom_hash;
+    std::string rom_title;
+    for (size_t i = device_number; i < static_cast<size_t>(device_number) + 4; ++i)
+    {
+      rom_path = Config::Get(Config::MAIN_GBA_ROM_PATHS[i % 4]);
+      if (!rom_path.empty() && HW::GBA::Core::GetRomInfo(rom_path.c_str(), rom_hash, rom_title) &&
+          rom_hash == hash && rom_title == title)
+      {
+        return rom_path;
+      }
+    }
+    while (!(rom_path = GameCubePane::GetOpenGBARom(title)).empty())
+    {
+      if (HW::GBA::Core::GetRomInfo(rom_path.c_str(), rom_hash, rom_title))
+      {
+        if (rom_hash == hash && rom_title == title)
+          return rom_path;
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            QString::fromStdString(Common::FmtFormatT(
+                "Mismatched ROMs\n"
+                "Selected: {0}\n- Title: {1}\n- Hash: {2:02X}\n"
+                "Expected:\n- Title: {3}\n- Hash: {4:02X}",
+                rom_path, rom_title, fmt::join(rom_hash, ""), title, fmt::join(hash, ""))));
+      }
+      else
+      {
+        ModalMessageBox::critical(
+            this, tr("Error"), tr("%1 is not a valid ROM").arg(QString::fromStdString(rom_path)));
+      }
+    }
+    return std::string();
+  });
+  if (result)
+    return *result;
+#endif
+  return {};
+}
+
 void NetPlayDialog::LoadSettings()
 {
   const int buffer_size = Config::Get(Config::NETPLAY_BUFFER_SIZE);
@@ -987,6 +1046,7 @@ void NetPlayDialog::LoadSettings()
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
+  const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
   m_buffer_size_box->setValue(buffer_size);
   m_save_sd_action->setChecked(write_save_sdcard_data);
@@ -997,6 +1057,7 @@ void NetPlayDialog::LoadSettings()
   m_strict_settings_sync_action->setChecked(strict_settings_sync);
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
   m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
+  m_hide_remote_gbas_action->setChecked(hide_remote_gbas);
 
   const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
 
@@ -1036,6 +1097,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
+  Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())

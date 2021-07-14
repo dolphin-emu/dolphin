@@ -3,6 +3,7 @@
 
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -31,15 +32,19 @@ void PadMappingDialog::CreateWidgets()
   for (unsigned int i = 0; i < m_wii_boxes.size(); i++)
   {
     m_gc_boxes[i] = new QComboBox;
+    m_gba_boxes[i] = new QCheckBox(tr("GBA Port %1").arg(i + 1));
     m_wii_boxes[i] = new QComboBox;
 
     m_main_layout->addWidget(new QLabel(tr("GC Port %1").arg(i + 1)), 0, i);
     m_main_layout->addWidget(m_gc_boxes[i], 1, i);
-    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 2, i);
-    m_main_layout->addWidget(m_wii_boxes[i], 3, i);
+#ifdef HAS_LIBMGBA
+    m_main_layout->addWidget(m_gba_boxes[i], 2, i);
+#endif
+    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 3, i);
+    m_main_layout->addWidget(m_wii_boxes[i], 4, i);
   }
 
-  m_main_layout->addWidget(m_button_box, 4, 0, 1, -1);
+  m_main_layout->addWidget(m_button_box, 5, 0, 1, -1);
 
   setLayout(m_main_layout);
 }
@@ -55,6 +60,11 @@ void PadMappingDialog::ConnectWidgets()
               &PadMappingDialog::OnMappingChanged);
     }
   }
+  for (const auto& checkbox : m_gba_boxes)
+  {
+    connect(checkbox, qOverload<int>(&QCheckBox::stateChanged), this,
+            &PadMappingDialog::OnMappingChanged);
+  }
 }
 
 int PadMappingDialog::exec()
@@ -64,6 +74,7 @@ int PadMappingDialog::exec()
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();
+  m_gba_config = server->GetGBAConfig();
   m_wii_mapping = server->GetWiimoteMapping();
 
   QStringList players;
@@ -93,12 +104,24 @@ int PadMappingDialog::exec()
     }
   }
 
+  for (size_t i = 0; i < m_gba_boxes.size(); i++)
+  {
+    const QSignalBlocker blocker(m_gba_boxes[i]);
+
+    m_gba_boxes[i]->setChecked(m_gba_config[i].enabled);
+  }
+
   return QDialog::exec();
 }
 
 NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray()
 {
   return m_pad_mapping;
+}
+
+NetPlay::GBAConfigArray PadMappingDialog::GetGBAArray()
+{
+  return m_gba_config;
 }
 
 NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray()
@@ -114,6 +137,7 @@ void PadMappingDialog::OnMappingChanged()
     int wii_id = m_wii_boxes[i]->currentIndex();
 
     m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
+    m_gba_config[i].enabled = m_gba_boxes[i]->isChecked();
     m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : 0;
   }
 }
