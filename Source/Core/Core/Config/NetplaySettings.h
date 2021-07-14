@@ -40,6 +40,7 @@ extern const Info<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT;
 
 extern const Info<u32> NETPLAY_BUFFER_SIZE;
 extern const Info<u32> NETPLAY_CLIENT_BUFFER_SIZE;
+extern const Info<bool> NETPLAY_AUTO_BUFFER;
 
 extern const Info<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA;
 extern const Info<bool> NETPLAY_LOAD_WII_SAVE;

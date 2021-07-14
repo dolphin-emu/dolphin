@@ -1389,7 +1389,14 @@ bool NetPlayServer::StartGame()
 
   // no change, just update with clients
   if (!m_host_input_authority)
+  {
+    if (Config::Get(Config::NETPLAY_AUTO_BUFFER))
+    {
+      Config::SetBase(Config::NETPLAY_BUFFER_SIZE, CalculatePadBuffer());
+    }
+
     AdjustPadBufferSize(m_target_buffer_size);
+  }
 
   m_current_golfer = 1;
   m_pending_golfer = 0;
@@ -2160,5 +2167,42 @@ void NetPlayServer::ChunkedDataAbort()
   m_abort_chunked_data = true;
   m_chunked_data_event.Set();
   m_chunked_data_complete_event.Set();
+}
+
+// The calculations in this function are based off the discussions in this pr: 
+// https://github.com/dolphin-emu/dolphin/pull/9706#issuecomment-840262908
+u32 NetPlayServer::CalculatePadBuffer() const
+{
+  u32 total_latency = 0;
+  u32 player1_ping = 0;
+  u32 player2_ping = 0;
+
+  // Gather the two highest latencies of non-spectators.
+  for (const auto& player_entry : m_players)
+  {
+    // Check if the player has a mapped controller, otherwise they're a spectator.
+    const bool pad_mapped =
+      std::find(m_pad_map.begin(), m_pad_map.end(), player_entry.first) != m_pad_map.end();
+
+    const bool wiimote_mapped =
+      std::find(m_wiimote_map.begin(), m_wiimote_map.end(), player_entry.first) != m_wiimote_map.end();
+
+    if (pad_mapped || wiimote_mapped)
+    {
+      if (player_entry.second.ping > player1_ping)
+      {
+        player2_ping = player1_ping;
+        player1_ping = player_entry.second.ping;
+      }
+    }
+  }
+
+  // If the session only contains 2 players (1 host, 1 client),
+  // player2_ping will implicitly be 0.
+  total_latency = player1_ping + player2_ping;
+
+  constexpr u32 polling_rate = (1.0 / (120.0 / 2.0)) * 1000;
+
+  return (total_latency / polling_rate) + 1;
 }
 }  // namespace NetPlay

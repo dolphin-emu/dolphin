@@ -125,7 +125,9 @@ private:
   QMenu* m_other_menu;
   QPushButton* m_game_button;
   QPushButton* m_start_button;
+  QLabel* m_auto_buffer_label;
   QLabel* m_buffer_label;
+  QCheckBox* m_auto_buffer_box;
   QSpinBox* m_buffer_size_box;
   QAction* m_save_sd_action;
   QAction* m_load_wii_action;

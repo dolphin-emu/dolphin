@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
+#include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
 #include <QGridLayout>
@@ -95,6 +96,8 @@ void NetPlayDialog::CreateMainLayout()
   m_main_layout = new QGridLayout;
   m_game_button = new QPushButton;
   m_start_button = new QPushButton(tr("Start"));
+  m_auto_buffer_box = new QCheckBox;
+  m_auto_buffer_label = new QLabel(tr("Auto Buffer:"));
   m_buffer_size_box = new QSpinBox;
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
@@ -189,10 +192,13 @@ void NetPlayDialog::CreateMainLayout()
   auto* options_widget = new QGridLayout;
 
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
-  options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
-  options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 3, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(3, 1000);
+  options_widget->addWidget(m_auto_buffer_label, 0, 1, Qt::AlignVCenter);
+  options_widget->addWidget(m_auto_buffer_box, 0, 2, Qt::AlignVCenter);
+  options_widget->addWidget(m_buffer_label, 0, 3, Qt::AlignVCenter);
+  options_widget->addWidget(m_buffer_size_box, 0, 4, Qt::AlignVCenter);
+  options_widget->addWidget(m_quit_button, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(2, 50);
+  options_widget->setColumnStretch(5, 1000);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -289,6 +295,24 @@ void NetPlayDialog::ConnectWidgets()
           [this] { m_chat_send_button->setEnabled(!m_chat_type_edit->text().isEmpty()); });
 
   // Other
+  connect(m_auto_buffer_box, &QCheckBox::clicked, this, [this](bool value) {
+    m_buffer_size_box->setEnabled(!value);
+    m_buffer_label->setEnabled(!value);
+
+    if (value)
+    {
+      auto server = Settings::Instance().GetNetPlayServer();
+      if (server && !m_host_input_authority)
+      {
+        const u32 pad_buffer = server->CalculatePadBuffer();
+
+        Config::SetBase(Config::NETPLAY_BUFFER_SIZE, pad_buffer);
+        server->AdjustPadBufferSize(pad_buffer);
+        m_buffer_size_box->setValue(pad_buffer);
+      }
+    }
+  });
+
   connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), [this](int value) {
     if (value == m_buffer_size)
       return;
@@ -845,10 +869,11 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 
     if (is_hosting)
     {
-      m_buffer_size_box->setEnabled(enable_buffer);
       m_buffer_label->setEnabled(enable_buffer);
       m_buffer_size_box->setHidden(false);
       m_buffer_label->setHidden(false);
+      m_auto_buffer_box->setHidden(false);
+      m_auto_buffer_label->setHidden(false);
     }
     else
     {
@@ -856,6 +881,8 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
       m_buffer_label->setEnabled(true);
       m_buffer_size_box->setHidden(!enable_buffer);
       m_buffer_label->setHidden(!enable_buffer);
+      m_auto_buffer_box->setHidden(true);
+      m_auto_buffer_label->setHidden(true);
     }
 
     m_buffer_label->setText(enabled ? tr("Max Buffer:") : tr("Buffer:"));
@@ -979,6 +1006,7 @@ NetPlayDialog::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
 void NetPlayDialog::LoadSettings()
 {
   const int buffer_size = Config::Get(Config::NETPLAY_BUFFER_SIZE);
+  const bool auto_buffer = Config::Get(Config::NETPLAY_AUTO_BUFFER);
   const bool write_save_sdcard_data = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
   const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
@@ -989,6 +1017,8 @@ void NetPlayDialog::LoadSettings()
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
 
   m_buffer_size_box->setValue(buffer_size);
+  m_buffer_size_box->setEnabled(!auto_buffer);
+  m_auto_buffer_box->setChecked(auto_buffer);
   m_save_sd_action->setChecked(write_save_sdcard_data);
   m_load_wii_action->setChecked(load_wii_save);
   m_sync_save_data_action->setChecked(sync_saves);

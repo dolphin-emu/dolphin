@@ -67,6 +67,7 @@ public:
   void KickPlayer(PlayerId player);
 
   u16 GetPort() const;
+  u32 CalculatePadBuffer() const;
 
   std::unordered_set<std::string> GetInterfaceSet() const;
   std::string GetInterfaceHost(const std::string& inter) const;

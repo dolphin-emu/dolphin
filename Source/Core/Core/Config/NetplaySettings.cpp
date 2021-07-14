@@ -44,6 +44,7 @@ const Info<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT{{System::Main, "NetPlay", "ChunkedU
 
 const Info<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 5};
 const Info<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 1};
+const Info<bool> NETPLAY_AUTO_BUFFER{{System::Main, "NetPlay", "AutoBuffer"}, true};
 
 const Info<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA{{System::Main, "NetPlay", "WriteSaveSDCardData"},
                                                 false};
