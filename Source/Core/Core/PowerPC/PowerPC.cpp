@@ -95,7 +95,7 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
   return os;
 }
 
-void DoState(PointerWrap& p)
+void DoState(PointerWrap& p, u32 version)
 {
   // some of this code has been disabled, because
   // it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause
@@ -124,6 +124,17 @@ void DoState(PointerWrap& p)
   p.DoArray(ppcState.tlb);
   p.Do(ppcState.pagetable_base);
   p.Do(ppcState.pagetable_hashmask);
+
+  if (version >= 133)
+  {
+    p.Do(ppcState.reserve);
+    p.Do(ppcState.reserve_address);
+  }
+  else if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    ppcState.reserve = false;
+    ppcState.reserve_address = 0;
+  }
 
   ppcState.iCache.DoState(p);
 
@@ -175,6 +186,7 @@ static void ResetRegisters()
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
+  ppcState.reserve = false;
   for (auto& v : ppcState.cr.fields)
   {
     v = 0x8000000000000001;

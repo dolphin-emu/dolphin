@@ -167,6 +167,10 @@ struct PowerPCState
 
   InstructionCache iCache;
 
+  // Reservation monitor for lwarx and its friend stwcxd.
+  bool reserve;
+  u32 reserve_address;
+
   void UpdateCR1()
   {
     cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
@@ -192,7 +196,7 @@ CPUCore DefaultCPUCore();
 void Init(CPUCore cpu_core);
 void Reset();
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(PointerWrap& p, u32 version);
 void ScheduleInvalidateCacheThreadSafe(u32 address);
 
 CoreMode GetMode();
