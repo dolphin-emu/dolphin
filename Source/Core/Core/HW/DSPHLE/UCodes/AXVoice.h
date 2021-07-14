@@ -146,7 +146,6 @@ void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
 
 // Simulated accelerator state.
 static PB_TYPE* acc_pb;
-static bool acc_end_reached;
 
 class HLEAccelerator final : public Accelerator
 {
@@ -157,7 +156,7 @@ protected:
     {
       // Set the ADPCM info to continue processing at loop_addr.
       SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
-      if (!acc_pb->is_stream)
+      if (acc_pb->is_stream != 1)
       {
         SetYn1(acc_pb->adpcm_loop_info.yn1);
         SetYn2(acc_pb->adpcm_loop_info.yn2);
@@ -177,15 +176,6 @@ protected:
     {
       // Non looping voice reached the end -> running = 0.
       acc_pb->running = 0;
-
-#ifdef AX_WII
-      // One of the few meaningful differences between AXGC and AXWii:
-      // while AXGC handles non looping voices ending by relying on the
-      // accelerator to stop reads once the loop address is reached,
-      // AXWii has the 0000 samples internally in DRAM and use an internal
-      // pointer to it (loop addr does not contain 0000 samples on AXWii!).
-      acc_end_reached = true;
-#endif
     }
   }
 
@@ -206,7 +196,6 @@ void AcceleratorSetup(PB_TYPE* pb)
   s_accelerator->SetYn1(pb->adpcm.yn1);
   s_accelerator->SetYn2(pb->adpcm.yn2);
   s_accelerator->SetPredScale(pb->adpcm.pred_scale);
-  acc_end_reached = false;
 }
 
 // Reads a sample from the accelerator. Also handles looping and
@@ -214,10 +203,6 @@ void AcceleratorSetup(PB_TYPE* pb)
 // by the accelerator on real hardware).
 u16 AcceleratorGetSample()
 {
-  // See below for explanations about acc_end_reached.
-  if (acc_end_reached)
-    return 0;
-
   return s_accelerator->Read(acc_pb->adpcm.coefs);
 }
 
@@ -418,7 +403,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
                   const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
-  if (!pb.running)
+  if (pb.running != 1)
     return;
 
   // Read input samples, performing sample rate conversion if needed.
