@@ -156,7 +156,7 @@ protected:
     {
       // Set the ADPCM info to continue processing at loop_addr.
       SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
-      if (!acc_pb->is_stream)
+      if (acc_pb->is_stream != 1)
       {
         SetYn1(acc_pb->adpcm_loop_info.yn1);
         SetYn2(acc_pb->adpcm_loop_info.yn2);
@@ -403,7 +403,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
                   const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
-  if (!pb.running)
+  if (pb.running != 1)
     return;
 
   // Read input samples, performing sample rate conversion if needed.
