@@ -4,6 +4,7 @@ add_library(main SHARED
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  Input/InputOverrider.cpp
   IniFile.cpp
   MainAndroid.cpp
   WiiUtils.cpp

@@ -52,8 +52,8 @@ void TaTaCon::Update()
 {
   DataFormat tatacon_data = {};
 
-  m_center->GetState(&tatacon_data.state, center_bitmasks.data());
-  m_rim->GetState(&tatacon_data.state, rim_bitmasks.data());
+  m_center->GetState(&tatacon_data.state, center_bitmasks.data(), m_input_override_function);
+  m_rim->GetState(&tatacon_data.state, rim_bitmasks.data(), m_input_override_function);
 
   // Flip button bits.
   tatacon_data.state ^= 0xff;

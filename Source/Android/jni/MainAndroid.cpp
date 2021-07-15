@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <EGL/egl.h>
-#include <UICommon/GameFile.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <cinttypes>
@@ -54,13 +53,13 @@
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-#include "../../Core/Common/WindowSystemInfo.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
@@ -271,13 +270,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSen
   ciface::Android::SetMotionSensorsEnabled(accelerometer_enabled, gyroscope_enabled);
 }
 
-JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRadiusAtAngle(
-    JNIEnv*, jclass, int emu_pad_id, int stick, double angle)
-{
-  const auto casted_stick = static_cast<ButtonManager::ButtonType>(stick);
-  return ButtonManager::GetInputRadiusAtAngle(emu_pad_id, casted_stick, angle);
-}
-
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jclass)
 {
@@ -480,6 +472,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
   UICommon::Init();
+  UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,

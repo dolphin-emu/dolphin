@@ -304,15 +304,12 @@ void MainWindow::InitControllers()
   if (g_controller_interface.IsInit())
     return;
 
-  g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
-  Pad::Initialize();
-  Keyboard::Initialize();
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-  FreeLook::Initialize();
+  UICommon::InitControllers(GetWindowSystemInfo(windowHandle()));
+
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
 
-  // Defaults won't work reliabily without loading and saving the config first
+  // Defaults won't work reliably without loading and saving the config first
 
   Wiimote::LoadConfig();
   Wiimote::GetConfig()->SaveConfig();
@@ -331,12 +328,7 @@ void MainWindow::ShutdownControllers()
 {
   m_hotkey_scheduler->Stop();
 
-  Pad::Shutdown();
-  Keyboard::Shutdown();
-  Wiimote::Shutdown();
-  HotkeyManagerEmu::Shutdown();
-  FreeLook::Shutdown();
-  g_controller_interface.Shutdown();
+  UICommon::ShutdownControllers();
 
   m_hotkey_scheduler->deleteLater();
 }
@@ -390,15 +382,6 @@ void MainWindow::CreateComponents()
     m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
     m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
-
-  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
-    m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
-  });
-
-  Movie::SetWiiInputManip([this](WiimoteCommon::DataReportBuilder& rpt, int controller_id, int ext,
-                                 const WiimoteEmu::EncryptionKey& key) {
-    m_wii_tas_input_windows[controller_id]->GetValues(rpt, ext, key);
-  });
 
   m_jit_widget = new JITWidget(this);
   m_log_widget = new LogWidget(this);

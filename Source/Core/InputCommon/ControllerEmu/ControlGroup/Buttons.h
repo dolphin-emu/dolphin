@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <string>
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -23,6 +24,22 @@ public:
   {
     for (auto& control : controls)
       *buttons |= *(bitmasks++) * control->GetState<bool>();
+  }
+
+  template <typename C>
+  void GetState(C* const buttons, const C* bitmasks,
+                const InputOverrideFunction& override_func) const
+  {
+    if (!override_func)
+      return GetState(buttons, bitmasks);
+
+    for (auto& control : controls)
+    {
+      ControlState state = control->GetState();
+      if (std::optional<ControlState> state_override = override_func(name, control->name, state))
+        state = *state_override;
+      *buttons |= *(bitmasks++) * (std::lround(state) > 0);
+    }
   }
 };
 }  // namespace ControllerEmu

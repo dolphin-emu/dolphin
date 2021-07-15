@@ -18,8 +18,9 @@ import android.view.MotionEvent;
  */
 public final class InputOverlayDrawableDpad
 {
-  // The ID identifying what type of button this Drawable represents.
-  private int[] mButtonType = new int[4];
+  // The legacy ID identifying what type of button this Drawable represents.
+  private int mLegacyId;
+  private int[] mControls = new int[4];
   private int mTrackId;
   private int mPreviousTouchX, mPreviousTouchY;
   private int mControlPositionX, mControlPositionY;
@@ -47,17 +48,15 @@ public final class InputOverlayDrawableDpad
    * @param defaultStateBitmap              {@link Bitmap} of the default state.
    * @param pressedOneDirectionStateBitmap  {@link Bitmap} of the pressed state in one direction.
    * @param pressedTwoDirectionsStateBitmap {@link Bitmap} of the pressed state in two direction.
-   * @param buttonUp                        Identifier for the up button.
-   * @param buttonDown                      Identifier for the down button.
-   * @param buttonLeft                      Identifier for the left button.
-   * @param buttonRight                     Identifier for the right button.
+   * @param legacyId                        Legacy identifier (ButtonType) for the up button.
+   * @param upControl                       Control identifier for the up button.
+   * @param downControl                     Control identifier for the down button.
+   * @param leftControl                     Control identifier for the left button.
+   * @param rightControl                    Control identifier for the right button.
    */
-  public InputOverlayDrawableDpad(Resources res,
-          Bitmap defaultStateBitmap,
-          Bitmap pressedOneDirectionStateBitmap,
-          Bitmap pressedTwoDirectionsStateBitmap,
-          int buttonUp, int buttonDown,
-          int buttonLeft, int buttonRight)
+  public InputOverlayDrawableDpad(Resources res, Bitmap defaultStateBitmap,
+          Bitmap pressedOneDirectionStateBitmap, Bitmap pressedTwoDirectionsStateBitmap,
+          int legacyId, int upControl, int downControl, int leftControl, int rightControl)
   {
     mTrackId = -1;
     mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
@@ -67,10 +66,11 @@ public final class InputOverlayDrawableDpad
     mWidth = mDefaultStateBitmap.getIntrinsicWidth();
     mHeight = mDefaultStateBitmap.getIntrinsicHeight();
 
-    mButtonType[0] = buttonUp;
-    mButtonType[1] = buttonDown;
-    mButtonType[2] = buttonLeft;
-    mButtonType[3] = buttonRight;
+    mLegacyId = legacyId;
+    mControls[0] = upControl;
+    mControls[1] = downControl;
+    mControls[2] = leftControl;
+    mControls[3] = rightControl;
   }
 
   public void draw(Canvas canvas)
@@ -127,14 +127,17 @@ public final class InputOverlayDrawableDpad
     }
   }
 
-  /**
-   * Gets one of the InputOverlayDrawableDpad's button IDs.
-   *
-   * @return the requested InputOverlayDrawableDpad's button ID.
-   */
-  public int getId(int direction)
+  public int getLegacyId()
   {
-    return mButtonType[direction];
+    return mLegacyId;
+  }
+
+  /**
+   * Gets one of the InputOverlayDrawableDpad's control IDs.
+   */
+  public int getControl(int direction)
+  {
+    return mControls[direction];
   }
 
   public void setTrackId(int trackId)

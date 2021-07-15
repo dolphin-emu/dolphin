@@ -35,4 +35,21 @@ Slider::StateData Slider::GetState() const
 
   return {std::clamp(ApplyDeadzone(state, deadzone), -1.0, 1.0)};
 }
+
+Slider::StateData Slider::GetState(const InputOverrideFunction& override_func) const
+{
+  if (!override_func)
+    return GetState();
+
+  const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
+  ControlState state = controls[1]->GetState() - controls[0]->GetState();
+
+  state = ApplyDeadzone(state, deadzone);
+
+  if (std::optional<ControlState> state_override = override_func(name, X_INPUT_OVERRIDE, state))
+    state = *state_override;
+
+  return {std::clamp(state, -1.0, 1.0)};
+}
+
 }  // namespace ControllerEmu

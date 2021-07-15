@@ -29,6 +29,7 @@ public:
 
   // Modifies the state
   StateData GetState(bool adjusted);
+  StateData GetState(bool adjusted, const ControllerEmu::InputOverrideFunction& override_func);
 
   // Yaw movement in radians.
   ControlState GetTotalYaw() const;
@@ -40,6 +41,8 @@ public:
   ControlState GetVerticalOffset() const;
 
 private:
+  Cursor::StateData UpdateState(Cursor::ReshapeData input);
+
   // This is used to reduce the cursor speed for relative input
   // to something that makes sense with the default range.
   static constexpr double STEP_PER_SEC = 0.01 * 200;

@@ -129,6 +129,15 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   }
 
   @Override
+  public void onDestroy()
+  {
+    if (mInputOverlay != null)
+      mInputOverlay.onDestroy();
+
+    super.onDestroy();
+  }
+
+  @Override
   public void onDetach()
   {
     NativeLibrary.clearEmulationActivity();

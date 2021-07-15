@@ -110,8 +110,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
 {
-  Movie::CallGCInputManip(pad_status, m_device_number);
-
   Movie::SetPolledDevice();
   if (NetPlay_GetInput(m_device_number, pad_status))
   {

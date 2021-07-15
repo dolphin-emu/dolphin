@@ -26,12 +26,17 @@
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookManager.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/WiiRoot.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
@@ -111,6 +116,31 @@ void Shutdown()
   Discord::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
+}
+
+void InitControllers(const WindowSystemInfo& wsi)
+{
+  if (g_controller_interface.IsInit())
+    return;
+
+  g_controller_interface.Initialize(wsi);
+
+  Pad::Initialize();
+  Keyboard::Initialize();
+  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  HotkeyManagerEmu::Initialize();
+  FreeLook::Initialize();
+}
+
+void ShutdownControllers()
+{
+  Pad::Shutdown();
+  Keyboard::Shutdown();
+  Wiimote::Shutdown();
+  HotkeyManagerEmu::Shutdown();
+  FreeLook::Shutdown();
+
+  g_controller_interface.Shutdown();
 }
 
 void SetLocale(std::string locale_name)
