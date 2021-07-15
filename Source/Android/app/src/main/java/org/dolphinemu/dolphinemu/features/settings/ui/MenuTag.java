@@ -22,6 +22,7 @@ public enum MenuTag
   GRAPHICS("graphics"),
   HACKS("hacks"),
   DEBUG("debug"),
+  USER_DATA("user_data"),
   ENHANCEMENTS("enhancements"),
   STEREOSCOPY("stereoscopy"),
   GCPAD_1("gcpad", 0),
