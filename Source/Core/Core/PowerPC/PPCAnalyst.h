@@ -27,26 +27,26 @@ struct CodeOp  // 16B
   GekkoOPInfo* opinfo;
   u32 address;
   u32 branchTo;  // if UINT32_MAX, not a branch
-  BitSet32 regsOut;
   BitSet32 regsIn;
+  BitSet32 regsOut;
   BitSet32 fregsIn;
   s8 fregOut;
+  BitSet8 crIn;
+  BitSet8 crOut;
   bool isBranchTarget;
   bool branchUsesCtr;
   bool branchIsIdleLoop;
-  bool wantsCR0;
-  bool wantsCR1;
   bool wantsFPRF;
   bool wantsCA;
   bool wantsCAInFlags;
-  bool outputCR0;
-  bool outputCR1;
   bool outputFPRF;
   bool outputCA;
   bool canEndBlock;
   bool canCauseException;
   bool skipLRStack;
   bool skip;  // followed BL-s for example
+  BitSet8 crInUse;
+  BitSet8 crDiscardable;
   // which registers are still needed after this instruction in this block
   BitSet32 fprInUse;
   BitSet32 gprInUse;
