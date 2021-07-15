@@ -48,6 +48,19 @@ void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
   gpr.Unlock(WA);
 }
 
+void JitArm64::UpdateRoundingMode()
+{
+  const BitSet32 gprs_to_save = gpr.GetCallerSavedUsed();
+  const BitSet32 fprs_to_save = fpr.GetCallerSavedUsed();
+
+  ABI_PushRegisters(gprs_to_save);
+  m_float_emit.ABI_PushRegisters(fprs_to_save, ARM64Reg::X8);
+  MOVP2R(ARM64Reg::X8, &PowerPC::RoundingModeUpdated);
+  BLR(ARM64Reg::X8);
+  m_float_emit.ABI_PopRegisters(fprs_to_save, ARM64Reg::X8);
+  ABI_PopRegisters(gprs_to_save);
+}
+
 void JitArm64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -753,4 +766,24 @@ void JitArm64::mffsx(UGeckoInstruction inst)
 
   gpr.Unlock(WA);
   gpr.Unlock(WB);
+}
+
+void JitArm64::mtfsb0x(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+  FALLBACK_IF(inst.Rc);
+
+  u32 mask = ~(0x80000000 >> inst.CRBD);
+
+  ARM64Reg WA = gpr.GetReg();
+
+  LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+  AND(WA, WA, LogicalImm(mask, 32));
+  STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+
+  gpr.Unlock(WA);
+
+  if (inst.CRBD >= 29)
+    UpdateRoundingMode();
 }
