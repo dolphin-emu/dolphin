@@ -50,6 +50,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 
 int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
 {
+  DEBUG_LOG_FMT(SERIALINTERFACE, "GCAdapter::RunBuffer length: {}", request_length);
   if (!Core::WantsDeterminism())
   {
     // The previous check is a hack to prevent a desync due to SI devices
@@ -60,6 +61,8 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
     // into this port on the hardware gc adapter, exposing it to the game.
     if (!GCAdapter::DeviceConnected(m_device_number))
     {
+      DEBUG_LOG_FMT(SERIALINTERFACE, "GCAdapter::RunBuffer device {} not connected",
+                    m_device_number);
       u32 device = Common::swap32(SI_NONE);
       memcpy(buffer, &device, sizeof(device));
       return 4;
