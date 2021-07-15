@@ -140,7 +140,7 @@ void WiimoteControllersWidget::CreateLayout()
   m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
 
   auto* layout = new QVBoxLayout;
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
   layout->addWidget(m_wiimote_box);
   setLayout(layout);
