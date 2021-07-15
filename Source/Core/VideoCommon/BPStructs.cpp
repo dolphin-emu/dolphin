@@ -277,7 +277,7 @@ static void BPWritten(const BPCmd& bp)
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
-      BoundingBox::Disable();
+      g_renderer->BBoxDisable();
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -442,7 +442,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_CLEARBBOX2:
   {
     const u8 offset = bp.address & 2;
-    BoundingBox::Enable();
+    g_renderer->BBoxEnable();
 
     g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
     g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);

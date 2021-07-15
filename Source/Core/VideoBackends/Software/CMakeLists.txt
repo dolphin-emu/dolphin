@@ -14,6 +14,8 @@ add_library(videosoftware
   SetupUnit.cpp
   SetupUnit.h
   SWmain.cpp
+  SWBoundingBox.cpp
+  SWBoundingBox.h
   SWOGLWindow.cpp
   SWOGLWindow.h
   SWRenderer.cpp

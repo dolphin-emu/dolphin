@@ -9,6 +9,7 @@
 
 #include "VideoCommon/RenderBase.h"
 
+class BoundingBox;
 class SWOGLWindow;
 
 namespace SW
@@ -40,8 +41,6 @@ public:
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
 
   void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                          const AbstractTexture* source_texture,
@@ -55,6 +54,9 @@ public:
   void ScaleTexture(AbstractFramebuffer* dst_framebuffer, const MathUtil::Rectangle<int>& dst_rect,
                     const AbstractTexture* src_texture,
                     const MathUtil::Rectangle<int>& src_rect) override;
+
+protected:
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   std::unique_ptr<SWOGLWindow> m_window;

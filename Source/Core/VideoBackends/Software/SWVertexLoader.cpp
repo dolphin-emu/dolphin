@@ -53,6 +53,10 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     break;
   }
 
+  // Flush bounding box here because software overrides the base function
+  if (g_renderer->IsBBoxEnabled())
+    g_renderer->BBoxFlush();
+
   m_setup_unit.Init(primitiveType);
 
   // set all states with are stored within video sw
