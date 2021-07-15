@@ -41,6 +41,14 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   ISIDevice::RunBuffer(buffer, request_length);
 
   GCPadStatus pad_status = GetPadStatus();
+  INFO_LOG_FMT(SERIALINTERFACE, "");
+  INFO_LOG_FMT(SERIALINTERFACE,
+               "pad_status isConnected: {}, button: {:x},"
+               " stickX: {}, stickY: {}, substickX: {}, substickY: {}, "
+               "triggerLeft: {}, triggerRight: {}, analogA: {}, analogB: {}",
+               pad_status.isConnected, pad_status.button, pad_status.stickX, pad_status.stickY,
+               pad_status.substickX, pad_status.substickY, pad_status.triggerLeft,
+               pad_status.triggerRight, pad_status.analogA, pad_status.analogB);
   if (!pad_status.isConnected)
     return -1;
 
@@ -48,6 +56,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
+  INFO_LOG_FMT(SERIALINTERFACE, "command: {}", command);
   switch (command)
   {
   case CMD_RESET:
@@ -63,6 +72,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Direct (Request length: {})", request_length);
     u32 high, low;
     GetData(high, low);
+    INFO_LOG_FMT(SERIALINTERFACE, "high: {:08x}, low: {:08x}", high, low);
     for (int i = 0; i < 4; i++)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
