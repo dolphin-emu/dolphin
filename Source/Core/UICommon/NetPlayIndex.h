@@ -22,6 +22,7 @@ struct NetPlaySession
   std::string server_id;
   std::string game_id;
   std::string version;
+  std::string revision;
 
   int player_count;
   int port;
