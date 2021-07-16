@@ -13,33 +13,61 @@
 
 #include "Common/Version.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Settings.h"
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-Updater::Updater(QWidget* parent) : m_parent(parent)
+Updater::Updater(QWidget* parent, const ShouldSilentlyFail silently_fail)
+    : m_parent(parent), m_silently_fail(silently_fail)
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate();
+  CheckForUpdate();
 }
 
-bool Updater::CheckForUpdate()
+void Updater::OnErrorOccurred(const CheckError error) const
 {
-  m_update_available = false;
-  AutoUpdateChecker::CheckForUpdate();
+  if (m_silently_fail == ShouldSilentlyFail::Yes)
+  {
+    return;
+  }
 
-  return m_update_available;
+  switch (error)
+  {
+  case CheckError::AlreadyUpToDate:
+    ModalMessageBox::information(
+        m_parent, tr("Update"),
+        tr("You are running the latest version available on this update track."));
+    break;
+  case CheckError::HttpRequestFailed:
+    ModalMessageBox::critical(m_parent, tr("Update failed"),
+                              tr("Could not download update information. "
+                                 "Please check your Internet connection and try again."));
+    break;
+  case CheckError::InvalidJsonInServerResponse:
+    ModalMessageBox::critical(m_parent, tr("Update failed"),
+                              tr("The server returned an invalid response. "
+                                 "Please try again later."));
+    break;
+  case CheckError::FailedToLaunchUpdater:
+    ModalMessageBox::critical(m_parent, tr("Update failed"), tr("Could not launch the updater."));
+    break;
+  default:
+    ModalMessageBox::critical(m_parent, tr("Update failed"),
+                              tr("An unknown error has occurred. "
+                                 "Please check your Internet connection and try again."));
+    break;
+  }
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   bool later = false;
-  m_update_available = true;
 
   std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);
@@ -92,10 +120,11 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
   if (choice && *choice == QDialog::Accepted)
   {
-    TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
-                                AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+    bool updater_process_started =
+        TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
+                                    AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
 
-    if (!later)
+    if (!later && updater_process_started)
     {
       RunOnObject(m_parent, [this] {
         m_parent->close();

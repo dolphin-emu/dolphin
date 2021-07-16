@@ -559,14 +559,9 @@ void MenuBar::InstallUpdateManually()
 
   track = "dev";
 
-  auto* updater = new Updater(this->parentWidget());
+  auto* updater = new Updater(this->parentWidget(), Updater::ShouldSilentlyFail::No);
 
-  if (!updater->CheckForUpdate())
-  {
-    ModalMessageBox::information(
-        this, tr("Update"),
-        tr("You are running the latest version available on this update track."));
-  }
+  updater->CheckForUpdate();
 
   track = previous_value;
 }

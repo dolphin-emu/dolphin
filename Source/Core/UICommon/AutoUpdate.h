@@ -18,6 +18,21 @@ public:
 
   static bool SystemSupportsAutoUpdates();
 
+  enum class ShouldSilentlyFail
+  {
+    Yes,
+    No,
+  };
+
+  // Passed to the OnErrorOccurred callback.
+  enum class CheckError
+  {
+    HttpRequestFailed,
+    InvalidJsonInServerResponse,
+    AlreadyUpToDate,
+    FailedToLaunchUpdater,
+  };
+
   struct NewVersionInformation
   {
     // Name (5.0-1234) and revision hash of the new version.
@@ -39,8 +54,9 @@ public:
     NO_RESTART_AFTER_UPDATE = 0,
     RESTART_AFTER_UPDATE,
   };
-  void TriggerUpdate(const NewVersionInformation& info, RestartMode restart_mode);
+  bool TriggerUpdate(const NewVersionInformation& info, RestartMode restart_mode) const;
 
 protected:
   virtual void OnUpdateAvailable(const NewVersionInformation& info) = 0;
+  virtual void OnErrorOccurred(CheckError error) const = 0;
 };

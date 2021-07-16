@@ -171,6 +171,8 @@ void AutoUpdateChecker::CheckForUpdate()
   if (!resp)
   {
     ERROR_LOG_FMT(COMMON, "Auto-update request failed");
+    OnErrorOccurred(CheckError::HttpRequestFailed);
+
     return;
   }
   const std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
@@ -181,6 +183,8 @@ void AutoUpdateChecker::CheckForUpdate()
   if (!err.empty())
   {
     ERROR_LOG_FMT(COMMON, "Invalid JSON received from auto-update service: {}", err);
+    OnErrorOccurred(CheckError::InvalidJsonInServerResponse);
+
     return;
   }
   picojson::object obj = json.get<picojson::object>();
@@ -188,6 +192,8 @@ void AutoUpdateChecker::CheckForUpdate()
   if (obj["status"].get<std::string>() != "outdated")
   {
     INFO_LOG_FMT(COMMON, "Auto-update status: we are up to date.");
+    OnErrorOccurred(CheckError::AlreadyUpToDate);
+
     return;
   }
 
@@ -204,14 +210,14 @@ void AutoUpdateChecker::CheckForUpdate()
   OnUpdateAvailable(nvi);
 }
 
-void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
-                                      AutoUpdateChecker::RestartMode restart_mode)
+bool AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
+                                      AutoUpdateChecker::RestartMode restart_mode) const
 {
   // Check to make sure we don't already have an update triggered
   if (s_update_triggered)
   {
     WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
-    return;
+    return false;
   }
 
   s_update_triggered = true;
@@ -259,13 +265,21 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   else
   {
     ERROR_LOG_FMT(COMMON, "Could not start updater process: error={}", GetLastError());
+    OnErrorOccurred(CheckError::FailedToLaunchUpdater);
+
+    return false;
   }
 #else
   if (popen(command_line.c_str(), "r") == nullptr)
   {
     ERROR_LOG_FMT(COMMON, "Could not start updater process: error={}", errno);
+    OnErrorOccurred(CheckError::FailedToLaunchUpdater);
+
+    return false;
   }
 #endif
 
 #endif
+
+  return true;
 }
