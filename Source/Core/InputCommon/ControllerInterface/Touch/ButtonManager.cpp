@@ -18,6 +18,8 @@
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Drums.h"
+#include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
@@ -723,6 +725,12 @@ double GetInputRadiusAtAngle(int pad_id, ButtonType stick, double angle)
     break;
   case CLASSIC_STICK_RIGHT:
     group = Wiimote::GetClassicGroup(pad_id, WiimoteEmu::ClassicGroup::RightStick);
+    break;
+  case GUITAR_STICK:
+    group = Wiimote::GetGuitarGroup(pad_id, WiimoteEmu::GuitarGroup::Stick);
+    break;
+  case DRUMS_STICK:
+    group = Wiimote::GetDrumsGroup(pad_id, WiimoteEmu::DrumsGroup::Stick);
     break;
   default:
     ASSERT(false);

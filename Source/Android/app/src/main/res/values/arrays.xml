@@ -366,6 +366,8 @@
         <item>Horizontal Wii Remote</item>
         <item>Wii Remote + Nunchuk</item>
         <item>Classic Controller</item>
+        <item>Guitar</item>
+        <item>Drum Kit</item>
         <item>None</item>
     </string-array>
     <string-array name="controllersValues">
@@ -374,6 +376,8 @@
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
+        <item>Guitar</item>
+        <item>Drums</item>
         <item>None</item>
     </string-array>
 
@@ -431,6 +435,33 @@
         <item>D-Pad</item>
         <item>Left Stick</item>
         <item>Right Stick</item>
+    </string-array>
+
+    <string-array name="guitar">
+        <item>-</item>
+        <item>+</item>
+        <item>Green</item>
+        <item>Red</item>
+        <item>Blue</item>
+        <item>Yellow</item>
+        <item>Orange</item>
+        <item>Strum Up</item>
+        <item>Strum Down</item>
+        <item>Stick</item>
+        <item>Whammy</item>
+    </string-array>
+
+    <string-array name="drumsKit">
+        <item>-</item>
+        <item>+</item>
+        <item>Green</item>
+        <item>Red</item>
+        <item>Blue</item>
+        <item>Yellow</item>
+        <item>Orange</item>
+        <item>Bass 1</item>
+        <item>Bass 2</item>
+        <item>Stick</item>
     </string-array>
 
     <string-array name="doubleTap">

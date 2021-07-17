@@ -190,4 +190,92 @@
     <integer name="CLASSIC_TRIGGER_L_PORTRAIT_Y">458</integer>
     <integer name="CLASSIC_TRIGGER_R_PORTRAIT_X">650</integer>
     <integer name="CLASSIC_TRIGGER_R_PORTRAIT_Y">360</integer>
+
+    <!-- Default Wii Guitar layout -->
+    <integer name="GUITAR_BUTTON_MINUS_X">950</integer>
+    <integer name="GUITAR_BUTTON_MINUS_Y">400</integer>
+    <integer name="GUITAR_BUTTON_PLUS_X">950</integer>
+    <integer name="GUITAR_BUTTON_PLUS_Y">600</integer>
+    <integer name="GUITAR_BUTTON_GREEN_X">100</integer>
+    <integer name="GUITAR_BUTTON_GREEN_Y">0</integer>
+    <integer name="GUITAR_BUTTON_RED_X">200</integer>
+    <integer name="GUITAR_BUTTON_RED_Y">0</integer>
+    <integer name="GUITAR_BUTTON_YELLOW_X">300</integer>
+    <integer name="GUITAR_BUTTON_YELLOW_Y">0</integer>
+    <integer name="GUITAR_BUTTON_BLUE_X">400</integer>
+    <integer name="GUITAR_BUTTON_BLUE_Y">0</integer>
+    <integer name="GUITAR_BUTTON_ORANGE_X">500</integer>
+    <integer name="GUITAR_BUTTON_ORANGE_Y">0</integer>
+    <integer name="GUITAR_BUTTON_STRUM_UP_X">700</integer>
+    <integer name="GUITAR_BUTTON_STRUM_UP_Y">280</integer>
+    <integer name="GUITAR_BUTTON_STRUM_DOWN_X">700</integer>
+    <integer name="GUITAR_BUTTON_STRUM_DOWN_Y">630</integer>
+    <integer name="GUITAR_BUTTON_STICK_X">102</integer>
+    <integer name="GUITAR_BUTTON_STICK_Y">627</integer>
+    <integer name="GUITAR_BUTTON_WHAMMY_X">620</integer>
+    <integer name="GUITAR_BUTTON_WHAMMY_Y">280</integer>
+
+    <!-- Default Wii Guitar Portrait layout -->
+    <integer name="GUITAR_BUTTON_MINUS_PORTRAIT_X">260</integer>
+    <integer name="GUITAR_BUTTON_MINUS_PORTRAIT_Y">1260</integer>
+    <integer name="GUITAR_BUTTON_PLUS_PORTRAIT_X">173</integer>
+    <integer name="GUITAR_BUTTON_PLUS_PORTRAIT_Y">1260</integer>
+    <integer name="GUITAR_BUTTON_GREEN_PORTRAIT_X">-33</integer>
+    <integer name="GUITAR_BUTTON_GREEN_PORTRAIT_Y">1380</integer>
+    <integer name="GUITAR_BUTTON_RED_PORTRAIT_X">67</integer>
+    <integer name="GUITAR_BUTTON_RED_PORTRAIT_Y">1380</integer>
+    <integer name="GUITAR_BUTTON_YELLOW_PORTRAIT_X">186</integer>
+    <integer name="GUITAR_BUTTON_YELLOW_PORTRAIT_Y">1380</integer>
+    <integer name="GUITAR_BUTTON_BLUE_PORTRAIT_X">282</integer>
+    <integer name="GUITAR_BUTTON_BLUE_PORTRAIT_Y">1380</integer>
+    <integer name="GUITAR_BUTTON_ORANGE_PORTRAIT_X">380</integer>
+    <integer name="GUITAR_BUTTON_ORANGE_PORTRAIT_Y">1380</integer>
+    <integer name="GUITAR_BUTTON_STRUM_UP_PORTRAIT_X">323</integer>
+    <integer name="GUITAR_BUTTON_STRUM_UP_PORTRAIT_Y">1950</integer>
+    <integer name="GUITAR_BUTTON_STRUM_DOWN_PORTRAIT_X">48</integer>
+    <integer name="GUITAR_BUTTON_STRUM_DOWN_PORTRAIT_Y">1950</integer>
+    <integer name="GUITAR_BUTTON_STICK_PORTRAIT_X">12</integer>
+    <integer name="GUITAR_BUTTON_STICK_PORTRAIT_Y">925</integer>
+    <integer name="GUITAR_BUTTON_WHAMMY_PORTRAIT_X">376</integer>
+    <integer name="GUITAR_BUTTON_WHAMMY_PORTRAIT_Y">990</integer>
+
+    <!-- Default Wii Drum layout -->
+    <integer name="DRUM_BUTTON_MINUS_X">898</integer>
+    <integer name="DRUM_BUTTON_MINUS_Y">518</integer>
+    <integer name="DRUM_BUTTON_PLUS_X">899</integer>
+    <integer name="DRUM_BUTTON_PLUS_Y">741</integer>
+    <integer name="DRUM_BUTTON_RED_X">180</integer>
+    <integer name="DRUM_BUTTON_RED_Y">531</integer>
+    <integer name="DRUM_BUTTON_YELLOW_X">316</integer>
+    <integer name="DRUM_BUTTON_YELLOW_Y">411</integer>
+    <integer name="DRUM_BUTTON_BLUE_X">439</integer>
+    <integer name="DRUM_BUTTON_BLUE_Y">505</integer>
+    <integer name="DRUM_BUTTON_GREEN_X">677</integer>
+    <integer name="DRUM_BUTTON_GREEN_Y">521</integer>
+    <integer name="DRUM_BUTTON_ORANGE_X">565</integer>
+    <integer name="DRUM_BUTTON_ORANGE_Y">412</integer>
+    <integer name="DRUM_BUTTON_BASS_X">528</integer>
+    <integer name="DRUM_BUTTON_BASS_Y">687</integer>
+    <integer name="DRUM_BUTTON_STICK_X">49</integer>
+    <integer name="DRUM_BUTTON_STICK_Y">649</integer>
+
+    <!-- Default Wii Drum Portrait layout -->
+    <integer name="DRUM_BUTTON_MINUS_PORTRAIT_X">305</integer>
+    <integer name="DRUM_BUTTON_MINUS_PORTRAIT_Y">960</integer>
+    <integer name="DRUM_BUTTON_PLUS_PORTRAIT_X">410</integer>
+    <integer name="DRUM_BUTTON_PLUS_PORTRAIT_Y">960</integer>
+    <integer name="DRUM_BUTTON_RED_PORTRAIT_X">-35</integer>
+    <integer name="DRUM_BUTTON_RED_PORTRAIT_Y">1480</integer>
+    <integer name="DRUM_BUTTON_YELLOW_PORTRAIT_X">98</integer>
+    <integer name="DRUM_BUTTON_YELLOW_PORTRAIT_Y">1290</integer>
+    <integer name="DRUM_BUTTON_BLUE_PORTRAIT_X">172</integer>
+    <integer name="DRUM_BUTTON_BLUE_PORTRAIT_Y">1542</integer>
+    <integer name="DRUM_BUTTON_GREEN_PORTRAIT_X">350</integer>
+    <integer name="DRUM_BUTTON_GREEN_PORTRAIT_Y">1480</integer>
+    <integer name="DRUM_BUTTON_ORANGE_PORTRAIT_X">246</integer>
+    <integer name="DRUM_BUTTON_ORANGE_PORTRAIT_Y">1290</integer>
+    <integer name="DRUM_BUTTON_BASS_PORTRAIT_X">50</integer>
+    <integer name="DRUM_BUTTON_BASS_PORTRAIT_Y">1811</integer>
+    <integer name="DRUM_BUTTON_STICK_PORTRAIT_X">55</integer>
+    <integer name="DRUM_BUTTON_STICK_PORTRAIT_Y">900</integer>
 </resources>

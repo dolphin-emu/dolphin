@@ -8,9 +8,12 @@ package org.dolphinemu.dolphinemu.overlay;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 /**
  * Custom {@link BitmapDrawable} that is capable
@@ -45,8 +48,79 @@ public final class InputOverlayDrawableButton
     mPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
     mButtonType = buttonType;
 
-    mWidth = mDefaultStateBitmap.getIntrinsicWidth();
-    mHeight = mDefaultStateBitmap.getIntrinsicHeight();
+    //Resizing Drawable for Guitar Overlay Button
+    boolean isPortrait = res.getConfiguration().orientation == 1;
+    int pWidth = mDefaultStateBitmap.getIntrinsicHeight();
+    int pHeight = mDefaultStateBitmap.getIntrinsicWidth();
+    int nWidth = (int) (mDefaultStateBitmap.getIntrinsicWidth() -
+            (mDefaultStateBitmap.getIntrinsicWidth() / 3.0f));
+    int nHeight = (int) (mDefaultStateBitmap.getIntrinsicHeight() +
+            (mDefaultStateBitmap.getIntrinsicHeight() / 1.5f));
+
+    if (isPortrait)
+    {
+      if (mButtonType == NativeLibrary.ButtonType.GUITAR_FRET_GREEN ||
+              mButtonType == NativeLibrary.ButtonType.GUITAR_FRET_BLUE)
+      {
+        mDefaultStateBitmap = RotateBitmapDrawable(res, defaultStateBitmap, 90);
+        mPressedStateBitmap = RotateBitmapDrawable(res, pressedStateBitmap, 90);
+      }
+
+      if (mButtonType == NativeLibrary.ButtonType.GUITAR_FRET_RED ||
+              mButtonType == NativeLibrary.ButtonType.GUITAR_FRET_ORANGE ||
+              mButtonType == NativeLibrary.ButtonType.GUITAR_STRUM_UP ||
+              mButtonType == NativeLibrary.ButtonType.GUITAR_STRUM_DOWN)
+      {
+        mDefaultStateBitmap = RotateBitmapDrawable(res, defaultStateBitmap, -90);
+        mPressedStateBitmap = RotateBitmapDrawable(res, pressedStateBitmap, -90);
+      }
+
+      if (mButtonType == NativeLibrary.ButtonType.GUITAR_FRET_YELLOW)
+      {
+        mDefaultStateBitmap = RotateBitmapDrawable(res, defaultStateBitmap, 180);
+        mPressedStateBitmap = RotateBitmapDrawable(res, pressedStateBitmap, 180);
+      }
+
+      if (mButtonType >= NativeLibrary.ButtonType.GUITAR_FRET_GREEN &&
+              mButtonType <= NativeLibrary.ButtonType.GUITAR_STRUM_DOWN)
+      {
+        if (mButtonType == NativeLibrary.ButtonType.GUITAR_FRET_YELLOW)
+        {
+          mWidth = (int) (nHeight / 2.5f);
+        }
+        else
+        {
+          mWidth = (int) (nHeight / 2f);
+        }
+        mHeight = nWidth;
+      }
+      else
+      {
+        mWidth = pWidth;
+        mHeight = pHeight;
+      }
+    }
+    // Landscape
+    else
+    {
+      if (mButtonType >= NativeLibrary.ButtonType.GUITAR_FRET_GREEN &&
+              mButtonType <= NativeLibrary.ButtonType.GUITAR_FRET_ORANGE)
+      {
+        mWidth = nWidth;
+        mHeight = nHeight;
+      }
+      else if (mButtonType == NativeLibrary.ButtonType.GUITAR_STRUM_UP ||
+              mButtonType == NativeLibrary.ButtonType.GUITAR_STRUM_DOWN)
+      {
+        mWidth = (int) (nWidth * 1.5f);
+        mHeight = (int) (nHeight / 1.5f);
+      }
+      else
+      {
+        mWidth = pWidth;
+        mHeight = pHeight;
+      }
+    }
   }
 
   /**
@@ -137,5 +211,17 @@ public final class InputOverlayDrawableButton
   public void setPressedState(boolean isPressed)
   {
     mPressedState = isPressed;
+  }
+
+  private BitmapDrawable RotateBitmapDrawable(Resources res, Bitmap bitmap, float degrees)
+  {
+
+    Matrix matrix = new Matrix();
+    matrix.setRotate(degrees);
+
+    Bitmap RotatedBitmap =
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    BitmapDrawable bitmapDrawable = new BitmapDrawable(res, RotatedBitmap);
+    return bitmapDrawable;
   }
 }
