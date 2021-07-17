@@ -84,7 +84,6 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <!--Enable latest C++ standard-->
