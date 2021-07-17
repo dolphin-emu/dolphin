@@ -1,4 +1,7 @@
 add_library(main SHARED
+  Cheats/ARCheat.cpp
+  Cheats/GeckoCheat.cpp
+  Cheats/PatchCheat.cpp
   Config/NativeConfig.cpp
   Config/PostProcessing.cpp
   GameList/GameFile.cpp
