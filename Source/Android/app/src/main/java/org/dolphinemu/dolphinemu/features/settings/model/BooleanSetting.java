@@ -14,6 +14,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_FASTMEM(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Fastmem", true),
   MAIN_CPU_THREAD(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "CPUThread", true),
   MAIN_SYNC_ON_SKIP_IDLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SyncOnSkipIdle", true),
+  MAIN_ENABLE_CHEATS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EnableCheats", false),
   MAIN_OVERRIDE_REGION_SETTINGS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
           "OverrideRegionSettings", false),
   MAIN_AUDIO_STRETCH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioStretch", false),
@@ -198,6 +199,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   private static final BooleanSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new BooleanSetting[]{
           MAIN_DSP_HLE,
           MAIN_CPU_THREAD,
+          MAIN_ENABLE_CHEATS,
           MAIN_OVERRIDE_REGION_SETTINGS,
           MAIN_WII_SD_CARD,  // Can actually be changed, but specific code is required
           MAIN_DSP_JIT
