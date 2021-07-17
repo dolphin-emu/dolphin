@@ -1100,7 +1100,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{ANDCF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1126,7 +1126,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{ANDF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -3635,8 +3635,8 @@ XORI        &          & *  & 0000 001r 0010 0000 iiii iiii iiii iiii \\
 ANDI        &          & *  & 0000 001r 0100 0000 iiii iiii iiii iiii \\
 ORI         &          & *  & 0000 001r 0110 0000 iiii iiii iiii iiii \\
 CMPI        &          & *  & 0000 001r 1000 0000 iiii iiii iiii iiii \\
-ANDCF       &          & *  & 0000 001r 1010 0000 iiii iiii iiii iiii \\
-ANDF        &          & *  & 0000 001r 1100 0000 iiii iiii iiii iiii \\
+ANDF        &          & *  & 0000 001r 1010 0000 iiii iiii iiii iiii \\
+ANDCF       &          & *  & 0000 001r 1100 0000 iiii iiii iiii iiii \\
             &          &    &                                         \\
 ILRR        &          & *  & 0000 001r 0001 00aa                     \\
 ILRRD       &          & *  & 0000 001r 0001 01aa                     \\
