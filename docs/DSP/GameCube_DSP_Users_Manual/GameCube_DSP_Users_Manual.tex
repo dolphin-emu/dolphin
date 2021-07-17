@@ -2911,28 +2911,9 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{SBSET}
-  \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0001} & \monobitbox{4}{0010} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
-  \end{DSPOpcodeBytefield}
-
-  \begin{DSPOpcodeFormat}
-    SBSET #I
-  \end{DSPOpcodeFormat}
-
-  \begin{DSPOpcodeDescription}
-    \item Set bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}; thus, bits 6 through 13 (\texttt{LZ} through \texttt{AM}) can be set with this instruction.
-  \end{DSPOpcodeDescription}
-
-  \begin{DSPOpcodeOperation}
-    $sr |= 1 << (I + 6)
-    $pc++
-  \end{DSPOpcodeOperation}
-\end{DSPOpcode}
-
 \begin{DSPOpcode}{SBCLR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0001} & \monobitbox{4}{0011} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+    \monobitbox{4}{0001} & \monobitbox{4}{0010} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -2945,6 +2926,25 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $sr &= ~(1 << (I + 6))
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SBSET}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0011} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SBSET #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Set bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}; thus, bits 6 through 13 (\texttt{LZ} through \texttt{AM}) can be set with this instruction.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= 1 << (I + 6)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -3649,8 +3649,8 @@ LRIS        &          & *  & 0000 1rrr iiii iiii                     \\
             &          &    &                                         \\
 LOOPI       &          & *  & 0001 0000 iiii iiii aaaa aaaa aaaa aaaa \\
 BLOOPI      &          & *  & 0001 0001 iiii iiii aaaa aaaa aaaa aaaa \\
-SBSET       &          & *  & 0001 0010 ???? ?iii                     \\
-SBCLR       &          & *  & 0001 0011 ???? ?iii                     \\
+SBCLR       &          & *  & 0001 0010 ???? ?iii                     \\
+SBSET       &          & *  & 0001 0011 ???? ?iii                     \\
 LSL/LSR     &          & *  & 0001 010r 0sss ssss                     \\
 ASL/ASR     &          & *  & 0001 010r 1sss ssss                     \\
 SI          &          & *  & 0001 0110 iiii iiii mmmm mmmm mmmm mmmm \\
