@@ -8,4 +8,8 @@ public interface Cheat
 {
   @NonNull
   String getName();
+
+  boolean getEnabled();
+
+  void setEnabled(boolean enabled);
 }
