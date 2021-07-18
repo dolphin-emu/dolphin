@@ -1107,16 +1107,16 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         scale = 0.3f;
         break;
       case ButtonType.DRUMS_PAD_BASS:
-        scale = 0.4f;
+        scale = 0.425f;
         break;
       case ButtonType.DRUMS_PAD_GREEN:
       case ButtonType.DRUMS_PAD_RED:
-        scale = 0.35f;
+        scale = 0.4f;
         break;
       case ButtonType.DRUMS_PAD_BLUE:
       case ButtonType.DRUMS_PAD_YELLOW:
       case ButtonType.DRUMS_PAD_ORANGE:
-        scale = 0.29f;
+        scale = 0.35f;
         break;
       default:
         scale = 0.125f;

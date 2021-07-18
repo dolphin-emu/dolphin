@@ -241,23 +241,23 @@
 
     <!-- Default Wii Drum layout -->
     <integer name="DRUM_BUTTON_MINUS_X">898</integer>
-    <integer name="DRUM_BUTTON_MINUS_Y">518</integer>
+    <integer name="DRUM_BUTTON_MINUS_Y">110</integer>
     <integer name="DRUM_BUTTON_PLUS_X">899</integer>
-    <integer name="DRUM_BUTTON_PLUS_Y">741</integer>
-    <integer name="DRUM_BUTTON_RED_X">180</integer>
+    <integer name="DRUM_BUTTON_PLUS_Y">350</integer>
+    <integer name="DRUM_BUTTON_RED_X">100</integer>
     <integer name="DRUM_BUTTON_RED_Y">531</integer>
-    <integer name="DRUM_BUTTON_YELLOW_X">316</integer>
-    <integer name="DRUM_BUTTON_YELLOW_Y">411</integer>
+    <integer name="DRUM_BUTTON_YELLOW_X">278</integer>
+    <integer name="DRUM_BUTTON_YELLOW_Y">410</integer>
     <integer name="DRUM_BUTTON_BLUE_X">439</integer>
     <integer name="DRUM_BUTTON_BLUE_Y">505</integer>
-    <integer name="DRUM_BUTTON_GREEN_X">677</integer>
-    <integer name="DRUM_BUTTON_GREEN_Y">521</integer>
-    <integer name="DRUM_BUTTON_ORANGE_X">565</integer>
-    <integer name="DRUM_BUTTON_ORANGE_Y">412</integer>
-    <integer name="DRUM_BUTTON_BASS_X">528</integer>
-    <integer name="DRUM_BUTTON_BASS_Y">687</integer>
+    <integer name="DRUM_BUTTON_GREEN_X">757</integer>
+    <integer name="DRUM_BUTTON_GREEN_Y">531</integer>
+    <integer name="DRUM_BUTTON_ORANGE_X">602</integer>
+    <integer name="DRUM_BUTTON_ORANGE_Y">410</integer>
+    <integer name="DRUM_BUTTON_BASS_X">275</integer>
+    <integer name="DRUM_BUTTON_BASS_Y">820</integer>
     <integer name="DRUM_BUTTON_STICK_X">49</integer>
-    <integer name="DRUM_BUTTON_STICK_Y">649</integer>
+    <integer name="DRUM_BUTTON_STICK_Y">149</integer>
 
     <!-- Default Wii Drum Portrait layout -->
     <integer name="DRUM_BUTTON_MINUS_PORTRAIT_X">305</integer>
