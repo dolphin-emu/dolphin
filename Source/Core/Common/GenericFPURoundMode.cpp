@@ -7,10 +7,10 @@
 // Generic, do nothing
 namespace FPURoundMode
 {
-void SetRoundMode(int mode)
+void SetRoundMode(RoundMode mode)
 {
 }
-void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
+void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
 {
 }
 void SaveSIMDState()

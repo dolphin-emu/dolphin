@@ -14,14 +14,14 @@ namespace FPURoundMode
 static u32 saved_sse_state = _mm_getcsr();
 static const u32 default_sse_state = _mm_getcsr();
 
-void SetRoundMode(int mode)
+void SetRoundMode(RoundMode mode)
 {
   // Convert PowerPC to native rounding mode.
   static const int rounding_mode_lut[] = {FE_TONEAREST, FE_TOWARDZERO, FE_UPWARD, FE_DOWNWARD};
   fesetround(rounding_mode_lut[mode]);
 }
 
-void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
+void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
 {
   // OR-mask for disabling FPU exceptions (bits 7-12 in the MXCSR register)
   const u32 EXCEPTION_MASK = 0x1F80;
