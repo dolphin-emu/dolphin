@@ -11,11 +11,6 @@
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4505)
-#endif
-
 namespace Common::ec
 {
 static const u8 square[16] = {0x00, 0x01, 0x04, 0x05, 0x10, 0x11, 0x14, 0x15,
@@ -298,7 +293,4 @@ std::array<u8, 60> ComputeSharedSecret(const u8* private_key, const u8* public_k
   std::copy_n(data.Data(), shared_secret.size(), shared_secret.begin());
   return shared_secret;
 }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 }  // namespace Common::ec
