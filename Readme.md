@@ -144,15 +144,15 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 
 ## Command Line Usage
 
-`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]`
+`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-v <str>] [-a <str>]`
 
 * -h, --help Show this help message
 * -d, --debugger Show the debugger pane and additional View menu options
 * -l, --logger Open the logger
 * -e, --exec=<str> Load the specified file (DOL,ELF,WAD,GCM,ISO)
 * -b, --batch Exit Dolphin with emulator
-* -V, --video_backend=<str> Specify a video backend
-* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
+* -v, --video_backend=<str> Specify a video backend
+* -a, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is faster but less accurate whereas
