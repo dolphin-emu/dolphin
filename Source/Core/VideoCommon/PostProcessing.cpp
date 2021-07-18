@@ -400,6 +400,8 @@ void PostProcessing::RecompileShader()
   m_pixel_shader.reset();
   if (!CompilePixelShader())
     return;
+  if (!CompileVertexShader())
+    return;
 
   CompilePipeline();
 }
