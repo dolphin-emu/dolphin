@@ -163,8 +163,6 @@ add_library(core
   HW/DSPLLE/DSPHost.cpp
   HW/DSPLLE/DSPLLE.cpp
   HW/DSPLLE/DSPLLE.h
-  HW/DSPLLE/DSPLLEGlobals.cpp
-  HW/DSPLLE/DSPLLEGlobals.h
   HW/DSPLLE/DSPSymbols.cpp
   HW/DSPLLE/DSPSymbols.h
   HW/DVD/DVDInterface.cpp
