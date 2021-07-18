@@ -35,12 +35,12 @@ namespace FPURoundMode
 static const u64 default_fpcr = GetFPCR();
 static u64 saved_fpcr = default_fpcr;
 
-void SetRoundMode(int mode)
+void SetRoundMode(RoundMode mode)
 {
   // We don't need to do anything here since SetSIMDMode is always called after calling this
 }
 
-void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
+void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
 {
   // When AH is disabled, FZ controls flush-to-zero for both inputs and outputs. When AH is enabled,
   // FZ controls flush-to-zero for outputs, and FIZ controls flush-to-zero for inputs.
