@@ -246,7 +246,6 @@
     <ClInclude Include="Core\HW\DSPHLE\UCodes\Zelda.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPLLE.h" />
-    <ClInclude Include="Core\HW\DSPLLE\DSPLLEGlobals.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="Core\HW\DVD\DVDInterface.h" />
     <ClInclude Include="Core\HW\DVD\DVDMath.h" />
@@ -825,7 +824,6 @@
     <ClCompile Include="Core\HW\DSPHLE\UCodes\Zelda.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPLLE.cpp" />
-    <ClCompile Include="Core\HW\DSPLLE\DSPLLEGlobals.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDInterface.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDMath.cpp" />

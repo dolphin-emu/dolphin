@@ -10,12 +10,6 @@
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-// Disable warning for zero-sized array:
-#pragma warning(disable : 4200)
-#endif
-
 namespace WiimoteCommon
 {
 #pragma pack(push, 1)
@@ -27,7 +21,8 @@ struct OutputReportGeneric
 
   union
   {
-    u8 data[0];
+    // Actual size varies
+    u8 data[1];
     struct
     {
       // Enable/disable rumble. (Valid for ALL output reports)
@@ -309,7 +304,3 @@ struct AccelCalibrationData
 }  // namespace WiimoteCommon
 
 #pragma pack(pop)
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
