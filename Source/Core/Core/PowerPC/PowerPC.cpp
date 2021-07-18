@@ -640,7 +640,6 @@ void RoundingModeUpdated()
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  FPURoundMode::SetRoundMode(FPSCR.RN);
   FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
 }
 

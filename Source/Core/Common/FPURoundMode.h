@@ -15,8 +15,6 @@ enum RoundMode : u32
   ROUND_DOWN = 3
 };
 
-void SetRoundMode(RoundMode mode);
-
 void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode);
 
 /*
