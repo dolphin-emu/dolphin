@@ -121,8 +121,8 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info) const
   if (choice && *choice == QDialog::Accepted)
   {
     bool updater_process_started =
-        TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
-                                    AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
+        TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NoRestartAfterUpdate :
+                                    AutoUpdateChecker::RestartMode::RestartAfterUpdate);
 
     if (!later && updater_process_started)
     {

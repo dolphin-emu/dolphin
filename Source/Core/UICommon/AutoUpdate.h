@@ -51,8 +51,8 @@ public:
   // Starts the updater process, which will wait in the background until the current process exits.
   enum class RestartMode
   {
-    NO_RESTART_AFTER_UPDATE = 0,
-    RESTART_AFTER_UPDATE,
+    NoRestartAfterUpdate = 0,
+    RestartAfterUpdate,
   };
   bool TriggerUpdate(const NewVersionInformation& info, RestartMode restart_mode) const;
 

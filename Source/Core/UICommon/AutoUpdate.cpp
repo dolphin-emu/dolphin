@@ -234,7 +234,7 @@ bool AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["install-base-path"] = File::GetExeDirectory();
   updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILE;
 
-  if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
+  if (restart_mode == RestartMode::RestartAfterUpdate)
     updater_flags["binary-to-restart"] = File::GetExePath();
 
   // Copy the updater so it can update itself if needed.
