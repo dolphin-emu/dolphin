@@ -19,7 +19,7 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-Updater::Updater(QWidget* parent, const ShouldSilentlyFail silently_fail)
+Updater::Updater(QWidget* const parent, const ShouldSilentlyFail silently_fail)
     : m_parent(parent), m_silently_fail(silently_fail)
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
@@ -65,7 +65,7 @@ void Updater::OnErrorOccurred(const CheckError error) const
   }
 }
 
-void Updater::OnUpdateAvailable(const NewVersionInformation& info)
+void Updater::OnUpdateAvailable(const NewVersionInformation& info) const
 {
   bool later = false;
 

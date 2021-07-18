@@ -14,7 +14,7 @@ class AutoUpdateChecker
 public:
   // Initiates a check for updates in the background. Calls the OnUpdateAvailable callback if an
   // update is available, does "nothing" otherwise.
-  void CheckForUpdate();
+  void CheckForUpdate() const;
 
   static bool SystemSupportsAutoUpdates();
 
@@ -57,6 +57,6 @@ public:
   bool TriggerUpdate(const NewVersionInformation& info, RestartMode restart_mode) const;
 
 protected:
-  virtual void OnUpdateAvailable(const NewVersionInformation& info) = 0;
+  virtual void OnUpdateAvailable(const NewVersionInformation& info) const = 0;
   virtual void OnErrorOccurred(CheckError error) const = 0;
 };

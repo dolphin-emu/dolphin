@@ -149,7 +149,7 @@ static std::string GetPlatformID()
 #endif
 }
 
-void AutoUpdateChecker::CheckForUpdate()
+void AutoUpdateChecker::CheckForUpdate() const
 {
   // Don't bother checking if updates are not supported or not enabled.
   if (!SystemSupportsAutoUpdates() || SConfig::GetInstance().m_auto_update_track.empty())
@@ -211,7 +211,7 @@ void AutoUpdateChecker::CheckForUpdate()
 }
 
 bool AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
-                                      AutoUpdateChecker::RestartMode restart_mode) const
+                                      const AutoUpdateChecker::RestartMode restart_mode) const
 {
   // Check to make sure we don't already have an update triggered
   if (s_update_triggered)

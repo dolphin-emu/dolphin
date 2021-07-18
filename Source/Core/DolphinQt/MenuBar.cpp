@@ -559,7 +559,7 @@ void MenuBar::InstallUpdateManually()
 
   track = "dev";
 
-  auto* updater = new Updater(this->parentWidget(), Updater::ShouldSilentlyFail::No);
+  auto* const updater = new Updater(this->parentWidget(), Updater::ShouldSilentlyFail::No);
 
   updater->CheckForUpdate();
 

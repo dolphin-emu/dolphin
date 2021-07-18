@@ -15,13 +15,13 @@ class Updater : public QThread, public AutoUpdateChecker
 {
   Q_OBJECT
 public:
-  Updater(QWidget* parent, const ShouldSilentlyFail silently_fail);
+  Updater(QWidget* const parent, const ShouldSilentlyFail silently_fail);
 
   void run() override;
   void OnErrorOccurred(const CheckError error) const override;
-  void OnUpdateAvailable(const NewVersionInformation& info) override;
+  void OnUpdateAvailable(const NewVersionInformation& info) const override;
 
 private:
-  QWidget* m_parent;
+  QWidget* const m_parent;
   const ShouldSilentlyFail m_silently_fail;
 };
