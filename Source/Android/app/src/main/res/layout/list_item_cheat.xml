@@ -16,8 +16,19 @@
         tools:text="Hyrule Field Speed Hack"
         android:layout_margin="@dimen/spacing_large"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/checkbox"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_width="48dp"
+        android:layout_height="64dp"
+        app:layout_constraintStart_toEndOf="@id/text_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:gravity="center"
+        android:focusable="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

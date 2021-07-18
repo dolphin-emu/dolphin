@@ -12,6 +12,10 @@ public class CheatsViewModel extends ViewModel
   private ARCheat[] mARCheats;
   private GeckoCheat[] mGeckoCheats;
 
+  private boolean mPatchCheatsNeedSaving = false;
+  private boolean mARCheatsNeedSaving = false;
+  private boolean mGeckoCheatsNeedSaving = false;
+
   public void load(String gameID, int revision)
   {
     if (mLoaded)
@@ -21,7 +25,41 @@ public class CheatsViewModel extends ViewModel
     mARCheats = ARCheat.loadCodes(gameID, revision);
     mGeckoCheats = GeckoCheat.loadCodes(gameID, revision);
 
+    for (PatchCheat cheat : mPatchCheats)
+    {
+      cheat.setChangedCallback(() -> mPatchCheatsNeedSaving = true);
+    }
+    for (ARCheat cheat : mARCheats)
+    {
+      cheat.setChangedCallback(() -> mARCheatsNeedSaving = true);
+    }
+    for (GeckoCheat cheat : mGeckoCheats)
+    {
+      cheat.setChangedCallback(() -> mGeckoCheatsNeedSaving = true);
+    }
+
     mLoaded = true;
+  }
+
+  public void saveIfNeeded(String gameID, int revision)
+  {
+    if (mPatchCheatsNeedSaving)
+    {
+      PatchCheat.saveCodes(gameID, revision, mPatchCheats);
+      mPatchCheatsNeedSaving = false;
+    }
+
+    if (mARCheatsNeedSaving)
+    {
+      ARCheat.saveCodes(gameID, revision, mARCheats);
+      mARCheatsNeedSaving = false;
+    }
+
+    if (mGeckoCheatsNeedSaving)
+    {
+      GeckoCheat.saveCodes(gameID, revision, mGeckoCheats);
+      mGeckoCheatsNeedSaving = false;
+    }
   }
 
   public Cheat[] getPatchCheats()

@@ -39,6 +39,20 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getName(JNIEnv* 
   return ToJString(env, GetPointer(env, obj)->name);
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getEnabled(JNIEnv* env, jobject obj)
+{
+  return static_cast<jboolean>(GetPointer(env, obj)->enabled);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_setEnabledImpl(JNIEnv* env,
+                                                                               jobject obj,
+                                                                               jboolean enabled)
+{
+  GetPointer(env, obj)->enabled = static_cast<bool>(enabled);
+}
+
 JNIEXPORT jobjectArray JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_loadCodes(JNIEnv* env, jclass,
                                                                           jstring jGameID,
@@ -63,5 +77,28 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_loadCodes(JNIEnv
     env->SetObjectArrayElement(array, i++, PatchCheatToJava(env, patch));
 
   return array;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_saveCodes(
+    JNIEnv* env, jclass, jstring jGameID, jint revision, jobjectArray jCodes)
+{
+  const jsize size = env->GetArrayLength(jCodes);
+  std::vector<PatchEngine::Patch> vector;
+  vector.reserve(size);
+
+  for (jsize i = 0; i < size; ++i)
+  {
+    jobject code = reinterpret_cast<jstring>(env->GetObjectArrayElement(jCodes, i));
+    vector.emplace_back(*GetPointer(env, code));
+    env->DeleteLocalRef(code);
+  }
+
+  const std::string game_id = GetJString(env, jGameID);
+  const std::string ini_path = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
+
+  IniFile game_ini_local;
+  game_ini_local.Load(ini_path);
+  PatchEngine::SavePatchSection(&game_ini_local, vector);
+  game_ini_local.Save(ini_path);
 }
 }

@@ -18,6 +18,10 @@ public class CheatsActivity extends AppCompatActivity
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
 
+  private String mGameId;
+  private int mRevision;
+  private CheatsViewModel mViewModel;
+
   public static void launch(Context context, String gameId, int revision)
   {
     Intent intent = new Intent(context, CheatsActivity.class);
@@ -34,14 +38,22 @@ public class CheatsActivity extends AppCompatActivity
     MainPresenter.skipRescanningLibrary();
 
     Intent intent = getIntent();
-    String gameId = intent.getStringExtra(ARG_GAME_ID);
-    int revision = intent.getIntExtra(ARG_REVISION, 0);
+    mGameId = intent.getStringExtra(ARG_GAME_ID);
+    mRevision = intent.getIntExtra(ARG_REVISION, 0);
 
-    setTitle(getString(R.string.cheats_with_game_id, gameId));
+    setTitle(getString(R.string.cheats_with_game_id, mGameId));
 
-    CheatsViewModel viewModel = new ViewModelProvider(this).get(CheatsViewModel.class);
-    viewModel.load(gameId, revision);
+    mViewModel = new ViewModelProvider(this).get(CheatsViewModel.class);
+    mViewModel.load(mGameId, mRevision);
 
     setContentView(R.layout.activity_cheats);
+  }
+
+  @Override
+  protected void onStop()
+  {
+    super.onStop();
+
+    mViewModel.saveIfNeeded(mGameId, mRevision);
   }
 }
