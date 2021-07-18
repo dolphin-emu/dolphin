@@ -269,7 +269,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
     // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
     // We adjust our depth value for clipping purposes to match the perspective projection in the
     // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
-    out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n"
+    out.Write("float clipDepth = (o.pos.z + 1e-7) * (1.0 - 2e-7);\n"
               "float clipDist0 = clipDepth + o.pos.w;\n"  // Near: z < -w
               "float clipDist1 = -clipDepth;\n");         // Far: z > 0
     if (host_config.backend_geometry_shaders)
@@ -277,6 +277,12 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
       out.Write("o.clipDist0 = clipDist0;\n"
                 "o.clipDist1 = clipDist1;\n");
     }
+  }
+  else
+  {
+    // Same depth adjustment for Sonic. Without depth clamping, it unfortunately
+    // affects non-clipping uses of depth too.
+    out.Write("o.pos.z = (o.pos.z + 1e-7) * (1.0 - 2e-7);\n");
   }
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will

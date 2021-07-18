@@ -90,7 +90,7 @@ static inline int CalcClipMask(const OutputVertexData* v)
   if (pos.y + pos.w < 0)
     cmask |= CLIP_NEG_Y_BIT;
 
-  if (pos.w * pos.z > 0)
+  if (pos.w * pos.z >= 0)
     cmask |= CLIP_POS_Z_BIT;
 
   if (pos.z + pos.w < 0)
