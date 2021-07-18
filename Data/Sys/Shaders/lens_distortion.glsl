@@ -53,7 +53,7 @@ void main()
   float offsetAdd;
 
   // layer0 = left eye, layer1 = right eye
-  if (layer == 1)
+  if (src_layer == 1)
   {
     offsetAdd = stereoOffset;
   }
