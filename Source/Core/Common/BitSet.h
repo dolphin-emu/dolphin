@@ -103,8 +103,6 @@ inline int LeastSignificantSetBit(u64 val)
 //   operation.)
 // - Counting set bits using .Count() - see comment on that method.
 
-// TODO: use constexpr when MSVC gets out of the Dark Ages
-
 template <typename IntTy>
 class BitSet
 {
