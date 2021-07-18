@@ -28,10 +28,8 @@ TEST(FloatUtils, FlushToZero)
   // we want the multiplication to occur at test runtime.
   volatile float s = std::numeric_limits<float>::denorm_min();
   volatile double d = std::numeric_limits<double>::denorm_min();
-  // Casting away the volatile attribute is required in order for msvc to resolve this to the
-  // correct instance of the comparison function.
-  EXPECT_LT(0.f, (float)(s * 2));
-  EXPECT_LT(0.0, (double)(d * 2));
+  EXPECT_LT(0.f, s * 2);
+  EXPECT_LT(0.0, d * 2);
 
   EXPECT_EQ(+0.0, Common::FlushToZero(+std::numeric_limits<double>::denorm_min()));
   EXPECT_EQ(-0.0, Common::FlushToZero(-std::numeric_limits<double>::denorm_min()));
