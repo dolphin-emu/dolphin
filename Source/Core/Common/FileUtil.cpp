@@ -92,12 +92,6 @@ FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 #else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
-#ifdef ANDROID
-  if (IsPathAndroidContent(path))
-    AndroidContentInit(path);
-  else
-#endif
-    m_exists = stat(path.c_str(), &m_stat) == 0;
 }
 
 FileInfo::FileInfo(const char* path)
