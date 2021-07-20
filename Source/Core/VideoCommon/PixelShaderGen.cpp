@@ -493,7 +493,7 @@ void UpdateBoundingBox(float2 rawpos) {{
   // avoiding EFB copy buffer overflow in affected games.
   //
   // For a more detailed explanation, see https://dolp.in/pr9801
-  int2 int_efb_scale = iround(1 / {efb_scale}.xy);
+  int2 int_efb_scale = iround(1.0 / {efb_scale}.xy);
   if (int(rawpos.x) % int_efb_scale.x != int_efb_scale.x >> 1 ||
       int(rawpos.y) % int_efb_scale.y != int_efb_scale.y >> 1)  // right shift for fast divide by two
   {{
