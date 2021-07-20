@@ -7,6 +7,7 @@
         <dict>
             <key>CFBundleTypeExtensions</key>
             <array>
+                <string>bin</string>
                 <string>ciso</string>
                 <string>dol</string>
                 <string>elf</string>
