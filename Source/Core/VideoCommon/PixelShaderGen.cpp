@@ -371,16 +371,6 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "int3 iround(float3 x) {{ return int3(round(x)); }}\n"
             "int4 iround(float4 x) {{ return int4(round(x)); }}\n\n");
 
-  // GLSL's any() and all() only accept vector types, while HLSL's also accept scalar types. We're
-  // adding these for convenience because while vector comparisons return a bool scalar in GLSL,
-  // allowing the results to be used directly in an if statement, they return a bool vector in HLSL,
-  // necessitating the use of any() or all() to reduce it to a scalar.
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("bool any(bool b) {{ return b; }}\n"
-              "bool all(bool b) {{ return b; }}\n\n");
-  }
-
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
@@ -504,8 +494,11 @@ void UpdateBoundingBox(float2 rawpos) {{
   //
   // For a more detailed explanation, see https://dolp.in/pr9801
   int2 int_efb_scale = iround(1 / {efb_scale}.xy);
-  if (any(int2(rawpos) % int_efb_scale != int_efb_scale >> 1))  // divide by two
+  if (int(rawpos.x) % int_efb_scale.x != int_efb_scale.x >> 1 ||
+      int(rawpos.y) % int_efb_scale.y != int_efb_scale.y >> 1)  // right shift for fast divide by two
+  {{
     return;
+  }}
 
   // The rightmost shaded pixel is not included in the right bounding box register,
   // such that width = right - left + 1. This has been verified on hardware.
