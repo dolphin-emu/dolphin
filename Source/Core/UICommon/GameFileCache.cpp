@@ -26,14 +26,14 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 25;  // Last changed in PR 12702
+static constexpr u32 CACHE_REVISION = 26;  // Last changed in PR 10084
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
 {
   static const std::vector<std::string> search_extensions = {
-      ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia",
-      ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json"};
+      ".gcm", ".tgc", ".bin", ".iso", ".ciso", ".gcz", ".wbfs",
+      ".wia", ".rvz", ".nfs", ".wad", ".dol",  ".elf", ".json"};
 
   // TODO: We could process paths iteratively as they are found
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);
