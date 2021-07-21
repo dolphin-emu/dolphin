@@ -43,7 +43,7 @@ GeckoSockServer::~GeckoSockServer()
     clientThread.join();
   }
 
-  if (client_count <= 0)
+  if (client_count <= 0 && connectionThread.joinable())
   {
     server_running.Clear();
     connectionThread.join();
