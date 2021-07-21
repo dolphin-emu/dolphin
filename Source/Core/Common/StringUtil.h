@@ -14,7 +14,12 @@
 #include <type_traits>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+
+#ifndef _WIN32
+#include <strings.h>
+#endif
 
 #ifdef _MSC_VER
 #include <filesystem>
@@ -59,6 +64,17 @@ template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T
 bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
+
+  if (!strcasecmp("true", str.c_str()))
+  {
+    *output = static_cast<T>(1);
+    return true;
+  }
+  else if (!strcasecmp("false", str.c_str()))
+  {
+    *output = static_cast<T>(0);
+    return true;
+  }
 
   // Set errno to a clean slate.
   errno = 0;
