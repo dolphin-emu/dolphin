@@ -162,9 +162,6 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
 
 std::string PathToFileName(std::string_view path);
 
-void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
-                           std::string_view filename);
-
 bool StringBeginsWith(std::string_view str, std::string_view begin);
 bool StringEndsWith(std::string_view str, std::string_view end);
 void StringPopBackIf(std::string* s, char c);
