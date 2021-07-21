@@ -70,8 +70,6 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     break;
   }
 
-  FALLBACK_IF(jo.memcheck && update);
-
   u32 imm_addr = 0;
   bool is_immediate = false;
 
@@ -156,7 +154,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   if (is_immediate)
     MOVI2R(XA, imm_addr);
 
-  if (update)
+  const bool early_update = !jo.memcheck;
+  if (update && early_update)
   {
     gpr.BindToRegister(a, false);
     MOV(gpr.R(a), addr_reg);
@@ -164,7 +163,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!update || early_update)
+    regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
   if (!jo.memcheck)
     fprs_in_use[DecodeReg(VD)] = 0;
@@ -180,6 +180,12 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   const ARM64Reg VD_again = fpr.RW(inst.FD, type, true);
   ASSERT(VD == VD_again);
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(a, false);
+    MOV(gpr.R(a), addr_reg);
+  }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
@@ -247,8 +253,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     flags |= BackPatchInfo::FLAG_SIZE_64;
     break;
   }
-
-  FALLBACK_IF(jo.memcheck && update);
 
   u32 imm_addr = 0;
   bool is_immediate = false;
@@ -340,26 +344,25 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-  if (is_immediate && !(jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr)))
-  {
-    MOVI2R(XA, imm_addr);
+  bool addr_reg_set = !is_immediate;
+  const auto set_addr_reg_if_needed = [&] {
+    if (!addr_reg_set)
+      MOVI2R(XA, imm_addr);
+  };
 
-    if (update)
-    {
-      gpr.BindToRegister(a, false);
-      MOV(gpr.R(a), addr_reg);
-    }
-  }
-  else if (!is_immediate && update)
+  const bool early_update = !jo.memcheck;
+  if (update && early_update)
   {
     gpr.BindToRegister(a, false);
+    set_addr_reg_if_needed();
     MOV(gpr.R(a), addr_reg);
   }
 
   BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
-  regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  if (!update || early_update)
+    regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
 
   if (is_immediate)
@@ -384,26 +387,29 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
       STR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
       js.fifoBytesSinceCheck += accessSize >> 3;
-
-      if (update)
-      {
-        // Chance of this happening is fairly low, but support it
-        gpr.BindToRegister(a, false);
-        MOVI2R(gpr.R(a), imm_addr);
-      }
     }
     else if (jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(imm_addr))
     {
+      set_addr_reg_if_needed();
       EmitBackpatchRoutine(flags, true, false, V0, XA, BitSet32(0), BitSet32(0));
     }
     else
     {
+      set_addr_reg_if_needed();
       EmitBackpatchRoutine(flags, false, false, V0, XA, regs_in_use, fprs_in_use);
     }
   }
   else
   {
+    set_addr_reg_if_needed();
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, V0, XA, regs_in_use, fprs_in_use);
+  }
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(a, false);
+    set_addr_reg_if_needed();
+    MOV(gpr.R(a), addr_reg);
   }
 
   if (want_single && !have_single)
