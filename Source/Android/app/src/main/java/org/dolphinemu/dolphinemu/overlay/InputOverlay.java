@@ -50,7 +50,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int OVERLAY_WIIMOTE_SIDEWAYS = 2;
   public static final int OVERLAY_WIIMOTE_NUNCHUK = 3;
   public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
-  public static final int OVERLAY_NONE = 5;
+  public static final int OVERLAY_WIIMOTE_DRUM = 5;
+  public static final int OVERLAY_NONE = 6;
 
   private static final int DISABLED_GAMECUBE_CONTROLLER = 0;
   private static final int EMULATED_GAMECUBE_CONTROLLER = 6;
@@ -216,6 +217,37 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             pressed = true;
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
                     ButtonState.PRESSED);
+          }
+          break;
+        case MotionEvent.ACTION_MOVE:
+          // For Drum Overlay Button pressed immediately after touch pointer enter bound
+          if (mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
+                  InputOverlay.OVERLAY_WIIMOTE_DRUM)
+          {
+            int pointerCount = event.getPointerCount();
+            for (int i = 0; i < pointerCount; ++i)
+            {
+              pointerIndex = i;
+              if (button.getBounds()
+                      .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+              {
+                button.setPressedState(true);
+                button.setTrackId(event.getPointerId(pointerIndex));
+                pressed = true;
+                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+                        ButtonState.PRESSED);
+              }
+              else
+              {
+                if (button.getTrackId() == event.getPointerId(pointerIndex))
+                {
+                  button.setPressedState(false);
+                  NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+                          ButtonState.RELEASED);
+                  button.setTrackId(-1);
+                }
+              }
+            }
           }
           break;
         case MotionEvent.ACTION_UP:
@@ -701,6 +733,63 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
   }
 
+  private void addDrumOverlayControls(String orientation)
+  {
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_0.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_minus,
+              R.drawable.wiimote_minus_pressed, ButtonType.DRUMS_BUTTON_MINUS, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_1.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_plus,
+              R.drawable.wiimote_plus_pressed, ButtonType.DRUMS_BUTTON_PLUS, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_2.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_green,
+              R.drawable.drum_pressed, ButtonType.DRUMS_PAD_GREEN, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_3.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_red,
+              R.drawable.drum_pressed, ButtonType.DRUMS_PAD_RED, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_4.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_yellow,
+              R.drawable.drum_pressed, ButtonType.DRUMS_PAD_YELLOW, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_5.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_blue,
+              R.drawable.drum_pressed, ButtonType.DRUMS_PAD_BLUE, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_6.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_orange,
+              R.drawable.drum_pressed, ButtonType.DRUMS_PAD_ORANGE, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_7.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_pedal,
+              R.drawable.drum_pedal_pressed, ButtonType.DRUMS_PAD_BASS, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_8.getBooleanGlobal())
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.drum_pedal,
+              R.drawable.drum_pedal_pressed, ButtonType.DRUMS_PAD_BASS, orientation));
+    }
+    if (BooleanSetting.MAIN_BUTTON_TOGGLE_DRUM_9.getBooleanGlobal())
+    {
+      overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+              R.drawable.gcwii_dpad_pressed_one_direction,
+              R.drawable.gcwii_dpad_pressed_two_directions,
+              ButtonType.DRUMS_STICK_UP, ButtonType.DRUMS_STICK_DOWN,
+              ButtonType.DRUMS_STICK_LEFT, ButtonType.DRUMS_STICK_RIGHT, orientation));
+    }
+  }
+
   public void refreshControls()
   {
     // Remove all the overlay buttons from the HashSet.
@@ -760,6 +849,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             addClassicOverlayControls(orientation);
             break;
 
+          case OVERLAY_WIIMOTE_DRUM:
+            addDrumOverlayControls(orientation);
+            break;
+
           case OVERLAY_NONE:
             break;
         }
@@ -788,6 +881,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         wiiClassicDefaultOverlay();
       else
         wiiClassicPortraitDefaultOverlay();
+    }
+    else if (mPreferences.getInt("wiiController", 3) == 5)
+    {
+      if (isLandscape)
+        DrumsDefaultOverlay();
+      else
+        DrumsPortraitDefaultOverlay();
     }
     else
     {
@@ -924,6 +1024,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       case ButtonType.CLASSIC_BUTTON_ZR:
         scale = 0.25f;
         break;
+      case ButtonType.DRUMS_PAD_BASS:
+        scale = 0.425f;
+        break;
+      case ButtonType.DRUMS_PAD_GREEN:
+      case ButtonType.DRUMS_PAD_RED:
+        scale = 0.4f;
+        break;
+      case ButtonType.DRUMS_PAD_BLUE:
+      case ButtonType.DRUMS_PAD_YELLOW:
+      case ButtonType.DRUMS_PAD_ORANGE:
+        scale = 0.35f;
+        break;
       default:
         scale = 0.125f;
         break;
@@ -999,6 +1111,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         break;
       case ButtonType.CLASSIC_DPAD_UP:
         scale = 0.275f;
+        break;
+      case ButtonType.DRUMS_STICK_UP:
+        scale = 0.295f;
         break;
       default:
         if (controller == 2 || controller == 1)
@@ -1715,6 +1830,146 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_R_PORTRAIT_X) / 1000) * maxX));
     sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + portrait + "-Y",
             (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_R_PORTRAIT_Y) / 1000) * maxY));
+
+    // We want to commit right away, otherwise the overlay could load before this is saved.
+    sPrefsEditor.commit();
+  }
+  private void DrumsDefaultOverlay()
+  {
+    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+
+    // Get screen size
+    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
+    DisplayMetrics outMetrics = new DisplayMetrics();
+    display.getMetrics(outMetrics);
+    float maxX = outMetrics.heightPixels;
+    float maxY = outMetrics.widthPixels;
+    // Height and width changes depending on orientation. Use the larger value for maxX.
+    if (maxY > maxX)
+    {
+      float tmp = maxX;
+      maxX = maxY;
+      maxY = tmp;
+    }
+    Resources res = getResources();
+
+    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
+    // to a decimal before multiplying by MAX X/Y.
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_MINUS + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_MINUS_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_MINUS + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_MINUS_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_PLUS + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_PLUS_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_PLUS + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_PLUS_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_RED + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_RED_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_RED + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_RED_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_YELLOW + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_YELLOW_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_YELLOW + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_YELLOW_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BLUE + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BLUE_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BLUE + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BLUE_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_ORANGE + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_ORANGE_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_ORANGE + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_ORANGE_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_GREEN + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_GREEN_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_GREEN + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_GREEN_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BASS + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BASS_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BASS + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BASS_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_STICK_UP + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_STICK_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_STICK_UP + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_STICK_Y) / 1000) * maxY));
+
+    // We want to commit right away, otherwise the overlay could load before this is saved.
+    sPrefsEditor.commit();
+  }
+
+  private void DrumsPortraitDefaultOverlay()
+  {
+    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+
+    // Get screen size
+    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
+    DisplayMetrics outMetrics = new DisplayMetrics();
+    display.getMetrics(outMetrics);
+    float maxX = outMetrics.heightPixels;
+    float maxY = outMetrics.widthPixels;
+    // Height and width changes depending on orientation. Use the larger value for maxX.
+    if (maxY > maxX)
+    {
+      float tmp = maxX;
+      maxX = maxY;
+      maxY = tmp;
+    }
+    Resources res = getResources();
+    String portrait = "-Portrait";
+
+    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
+    // to a decimal before multiplying by MAX X/Y.
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_MINUS + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_MINUS_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_MINUS + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_MINUS_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_PLUS + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_PLUS_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_BUTTON_PLUS + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_PLUS_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_RED + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_RED_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_RED + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_RED_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_YELLOW + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_YELLOW_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_YELLOW + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_YELLOW_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BLUE + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BLUE_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BLUE + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BLUE_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_ORANGE + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_ORANGE_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_ORANGE + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_ORANGE_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_GREEN + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_GREEN_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_GREEN + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_GREEN_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BASS + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BASS_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_PAD_BASS + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_BASS_PORTRAIT_Y) / 1000) * maxY));
+
+    sPrefsEditor.putFloat(ButtonType.DRUMS_STICK_UP + portrait + "-X",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_STICK_PORTRAIT_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.DRUMS_STICK_UP + portrait + "-Y",
+            (((float) res.getInteger(R.integer.DRUM_BUTTON_STICK_PORTRAIT_Y) / 1000) * maxY));
 
     // We want to commit right away, otherwise the overlay could load before this is saved.
     sPrefsEditor.commit();
