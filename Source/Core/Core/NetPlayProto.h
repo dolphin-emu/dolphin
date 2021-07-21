@@ -80,7 +80,7 @@ struct NetSettings
   bool m_FastDepthCalc = false;
   bool m_EnablePixelLighting = false;
   bool m_WidescreenHack = false;
-  bool m_ForceFiltering = false;
+  int m_ForceFiltering = 0;
   int m_MaxAnisotropy = 0;
   bool m_ForceTrueColor = false;
   bool m_DisableCopyFilter = false;

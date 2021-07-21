@@ -1352,7 +1352,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_FastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
   settings.m_EnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
   settings.m_WidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  settings.m_ForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
+  settings.m_ForceFiltering = static_cast<int>(Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING));
   settings.m_MaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   settings.m_ForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   settings.m_DisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);

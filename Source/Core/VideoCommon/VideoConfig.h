@@ -49,6 +49,13 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
+enum class ForceFilteringMode : int
+{
+  Default,
+  ForceLinear,
+  ForceNear
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -69,7 +76,7 @@ struct VideoConfig final
   u32 iMultisamples = 0;
   bool bSSAA = false;
   int iEFBScale = 0;
-  bool bForceFiltering = false;
+  ForceFilteringMode iForceFiltering{};
   int iMaxAnisotropy = 0;
   std::string sPostProcessingShader;
   bool bForceTrueColor = false;

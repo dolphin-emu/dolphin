@@ -102,8 +102,8 @@ const Info<bool> GFX_PREFER_GLES{{System::GFX, "Settings", "PreferGLES"}, false}
 
 // Graphics.Enhancements
 
-const Info<bool> GFX_ENHANCE_FORCE_FILTERING{{System::GFX, "Enhancements", "ForceFiltering"},
-                                             false};
+const Info<ForceFilteringMode> GFX_ENHANCE_FORCE_FILTERING{
+    {System::GFX, "Enhancements", "ForceFiltering"}, ForceFilteringMode::Default};
 const Info<int> GFX_ENHANCE_MAX_ANISOTROPY{{System::GFX, "Enhancements", "MaxAnisotropy"}, 0};
 const Info<std::string> GFX_ENHANCE_POST_SHADER{
     {System::GFX, "Enhancements", "PostProcessingShader"}, ""};

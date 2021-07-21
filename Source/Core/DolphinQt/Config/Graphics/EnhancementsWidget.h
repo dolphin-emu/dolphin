@@ -39,7 +39,7 @@ private:
   QPushButton* m_configure_pp_effect;
   GraphicsBool* m_scaled_efb_copy;
   GraphicsBool* m_per_pixel_lighting;
-  GraphicsBool* m_force_texture_filtering;
+  GraphicsChoice* m_force_texture_filtering;
   GraphicsBool* m_widescreen_hack;
   GraphicsBool* m_disable_fog;
   GraphicsBool* m_force_24bit_color;

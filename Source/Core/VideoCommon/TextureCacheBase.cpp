@@ -986,12 +986,18 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   state.Generate(bpmem, index);
 
   // Force texture filtering config option.
-  if (g_ActiveConfig.bForceFiltering)
+  if (g_ActiveConfig.iForceFiltering == ForceFilteringMode::ForceLinear)
   {
     state.tm0.min_filter = FilterMode::Linear;
     state.tm0.mag_filter = FilterMode::Linear;
     state.tm0.mipmap_filter =
         tm0.mipmap_filter != MipMode::None ? FilterMode::Linear : FilterMode::Near;
+  }
+  else if (g_ActiveConfig.iForceFiltering == ForceFilteringMode::ForceNear)
+  {
+    state.tm0.min_filter = FilterMode::Near;
+    state.tm0.mag_filter = FilterMode::Near;
+    state.tm0.mipmap_filter = FilterMode::Near;
   }
 
   // Custom textures may have a greater number of mips
