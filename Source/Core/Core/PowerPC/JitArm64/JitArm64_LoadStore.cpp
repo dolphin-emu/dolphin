@@ -641,9 +641,6 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     }
   }
 
-  // We don't care about being /too/ terribly efficient here
-  // As long as we aren't falling back to interpreter we're winning a lot
-
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
   gprs_to_push[DecodeReg(ARM64Reg::W0)] = 0;
