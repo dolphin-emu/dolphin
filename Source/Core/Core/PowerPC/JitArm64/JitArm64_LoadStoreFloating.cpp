@@ -21,7 +21,6 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
-  FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB;
 
@@ -71,6 +70,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     break;
   }
 
+  FALLBACK_IF(jo.memcheck && update);
+
   u32 imm_addr = 0;
   bool is_immediate = false;
 
@@ -80,7 +81,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
 
-  const ARM64Reg VD = fpr.RW(inst.FD, type);
+  const ARM64Reg VD = fpr.RW(inst.FD, type, false);
   ARM64Reg addr_reg = ARM64Reg::W0;
 
   if (update)
@@ -165,7 +166,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
-  fprs_in_use[DecodeReg(VD)] = 0;
+  if (!jo.memcheck)
+    fprs_in_use[DecodeReg(VD)] = 0;
 
   if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
@@ -176,6 +178,9 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VD, XA, regs_in_use, fprs_in_use);
   }
 
+  const ARM64Reg VD_again = fpr.RW(inst.FD, type, true);
+  ASSERT(VD == VD_again);
+
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
 }
@@ -184,7 +189,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
-  FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB;
 
@@ -243,6 +247,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     flags |= BackPatchInfo::FLAG_SIZE_64;
     break;
   }
+
+  FALLBACK_IF(jo.memcheck && update);
 
   u32 imm_addr = 0;
   bool is_immediate = false;
