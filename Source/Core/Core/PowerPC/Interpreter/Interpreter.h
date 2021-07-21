@@ -298,9 +298,4 @@ private:
   UGeckoInstruction m_prev_inst{};
 
   static bool m_end_block;
-
-  // TODO: These should really be in the save state, although it's unlikely to matter much.
-  // They are for lwarx and its friend stwcxd.
-  static bool m_reserve;
-  static u32 m_reserve_address;
 };

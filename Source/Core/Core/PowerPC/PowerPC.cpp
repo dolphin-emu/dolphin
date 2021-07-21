@@ -125,6 +125,9 @@ void DoState(PointerWrap& p)
   p.Do(ppcState.pagetable_base);
   p.Do(ppcState.pagetable_hashmask);
 
+  p.Do(ppcState.reserve);
+  p.Do(ppcState.reserve_address);
+
   ppcState.iCache.DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
@@ -175,6 +178,10 @@ static void ResetRegisters()
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
+
+  ppcState.reserve = false;
+  ppcState.reserve_address = 0;
+
   for (auto& v : ppcState.cr.fields)
   {
     v = 0x8000000000000001;
