@@ -2534,7 +2534,8 @@ PadDetails GetPadDetails(int pad_num)
 {
   std::lock_guard lk(crit_netplay_client);
 
-  PadDetails res{.local_pad = 4};
+  PadDetails res{};
+  res.local_pad = 4;
   if (!netplay_client)
     return res;
 
