@@ -68,7 +68,8 @@ void InitSoundStream()
 
 void PostInitSoundStream()
 {
-  // This needs to be called after AudioInterface::Init where input sample rates are set
+  // This needs to be called after AudioInterface::Init and SerialInterface::Init (for GBA devices)
+  // where input sample rates are set
   UpdateSoundStream();
   SetSoundStreamRunning(true);
 

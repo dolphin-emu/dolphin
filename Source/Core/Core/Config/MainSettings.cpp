@@ -145,6 +145,18 @@ const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "Resour
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 
+// Main.GBA
+
+const Info<std::string> MAIN_GBA_BIOS_PATH{{System::Main, "GBA", "BIOS"}, ""};
+const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
+    Info<std::string>{{System::Main, "GBA", "Rom1"}, ""},
+    Info<std::string>{{System::Main, "GBA", "Rom2"}, ""},
+    Info<std::string>{{System::Main, "GBA", "Rom3"}, ""},
+    Info<std::string>{{System::Main, "GBA", "Rom4"}, ""}};
+const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, ""};
+const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
+const Info<bool> MAIN_GBA_THREADS{{System::Main, "GBA", "Threads"}, true};
+
 // Main.Network
 
 const Info<bool> MAIN_NETWORK_SSL_DUMP_READ{{System::Main, "Network", "SSLDumpRead"}, false};

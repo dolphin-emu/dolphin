@@ -124,6 +124,8 @@ add_executable(dolphin-emu
   Config/Mapping/FreeLookGeneral.h
   Config/Mapping/FreeLookRotation.cpp
   Config/Mapping/FreeLookRotation.h
+  Config/Mapping/GBAPadEmu.cpp
+  Config/Mapping/GBAPadEmu.h
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCKeyboardEmu.h
   Config/Mapping/GCMicrophone.cpp
@@ -138,6 +140,8 @@ add_executable(dolphin-emu
   Config/Mapping/HotkeyControllerProfile.h
   Config/Mapping/HotkeyDebugging.cpp
   Config/Mapping/HotkeyDebugging.h
+  Config/Mapping/HotkeyGBA.cpp
+  Config/Mapping/HotkeyGBA.h
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGeneral.h
   Config/Mapping/HotkeyGraphics.cpp
@@ -536,6 +540,15 @@ if(APPLE)
   endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
+endif()
+
+if(USE_MGBA)
+  target_sources(dolphin-emu PRIVATE
+    GBAHost.cpp
+    GBAHost.h
+    GBAWidget.cpp
+    GBAWidget.h
+  )
 endif()
 
 if(USE_DISCORD_PRESENCE)

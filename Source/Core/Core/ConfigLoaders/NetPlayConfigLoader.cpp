@@ -133,6 +133,11 @@ public:
       layer->Set(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY, true);
     }
 
+    for (size_t i = 0; i < m_settings.m_GBARomPaths.size(); ++i)
+    {
+      layer->Set(Config::MAIN_GBA_ROM_PATHS[i], m_settings.m_GBARomPaths[i]);
+    }
+
     // Check To Override Client's Cheat Codes
     if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
     {

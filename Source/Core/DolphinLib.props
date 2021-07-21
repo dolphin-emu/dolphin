@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
@@ -263,6 +263,9 @@
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="Core\HW\EXI\EXI.h" />
+    <ClInclude Include="Core\HW\GBACore.h" />
+    <ClInclude Include="Core\HW\GBAPad.h" />
+    <ClInclude Include="Core\HW\GBAPadEmu.h" />
     <ClInclude Include="Core\HW\GCKeyboard.h" />
     <ClInclude Include="Core\HW\GCKeyboardEmu.h" />
     <ClInclude Include="Core\HW\GCMemcard\GCIFile.h" />
@@ -283,6 +286,7 @@
     <ClInclude Include="Core\HW\SI\SI_Device.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceDanceMat.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBA.h" />
+    <ClInclude Include="Core\HW\SI\SI_DeviceGBAEmu.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCAdapter.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCController.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCSteeringWheel.h" />
@@ -842,6 +846,9 @@
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI.cpp" />
+    <ClCompile Include="Core\HW\GBACore.cpp" />
+    <ClCompile Include="Core\HW\GBAPad.cpp" />
+    <ClCompile Include="Core\HW\GBAPadEmu.cpp" />
     <ClCompile Include="Core\HW\GCKeyboard.cpp" />
     <ClCompile Include="Core\HW\GCKeyboardEmu.cpp" />
     <ClCompile Include="Core\HW\GCMemcard\GCIFile.cpp" />
@@ -860,6 +867,7 @@
     <ClCompile Include="Core\HW\SI\SI_Device.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBA.cpp" />
+    <ClCompile Include="Core\HW\SI\SI_DeviceGBAEmu.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCAdapter.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCController.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCSteeringWheel.cpp" />

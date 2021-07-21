@@ -81,9 +81,10 @@ static void InitCustomPaths()
   CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
   CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
-  const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
-  if (!sd_path.empty())
-    File::SetUserPath(F_WIISDCARD_IDX, sd_path);
+  File::SetUserPath(F_WIISDCARD_IDX, Config::Get(Config::MAIN_SD_PATH));
+  File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
+  File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+  File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
 }
 
 void Init()

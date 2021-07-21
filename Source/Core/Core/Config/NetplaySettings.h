@@ -50,5 +50,6 @@ extern const Info<bool> NETPLAY_STRICT_SETTINGS_SYNC;
 extern const Info<std::string> NETPLAY_NETWORK_MODE;
 extern const Info<bool> NETPLAY_SYNC_ALL_WII_SAVES;
 extern const Info<bool> NETPLAY_GOLF_MODE_OVERLAY;
+extern const Info<bool> NETPLAY_HIDE_REMOTE_GBAS;
 
 }  // namespace Config
