@@ -125,7 +125,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "ButtonToggleNunchukZ", true),
   MAIN_BUTTON_TOGGLE_WII_10(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
           "ButtonToggleNunchukStick", true),
-  //drum
+  // Drum
   MAIN_BUTTON_TOGGLE_DRUM_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
           "ButtonToggleDrumMinus", true),
   MAIN_BUTTON_TOGGLE_DRUM_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,

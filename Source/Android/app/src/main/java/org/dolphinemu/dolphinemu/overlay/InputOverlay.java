@@ -50,8 +50,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int OVERLAY_WIIMOTE_SIDEWAYS = 2;
   public static final int OVERLAY_WIIMOTE_NUNCHUK = 3;
   public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
-  public static final int OVERLAY_WIIMOTE_DRUM = 5;
-  public static final int OVERLAY_NONE = 6;
+  public static final int OVERLAY_WIIMOTE_DRUM = 6;
+  public static final int OVERLAY_NONE = 5;
 
   private static final int DISABLED_GAMECUBE_CONTROLLER = 0;
   private static final int EMULATED_GAMECUBE_CONTROLLER = 6;
@@ -885,9 +885,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     else if (mPreferences.getInt("wiiController", 3) == 5)
     {
       if (isLandscape)
-        DrumsDefaultOverlay();
+        drumsDefaultOverlay();
       else
-        DrumsPortraitDefaultOverlay();
+        drumsPortraitDefaultOverlay();
     }
     else
     {
@@ -1834,7 +1834,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // We want to commit right away, otherwise the overlay could load before this is saved.
     sPrefsEditor.commit();
   }
-  private void DrumsDefaultOverlay()
+  private void drumsDefaultOverlay()
   {
     SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 
@@ -1904,7 +1904,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     sPrefsEditor.commit();
   }
 
-  private void DrumsPortraitDefaultOverlay()
+  private void drumsPortraitDefaultOverlay()
   {
     SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 
