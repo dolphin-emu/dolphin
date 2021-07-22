@@ -21,7 +21,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/GBACore.h"
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -38,7 +37,7 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
       [core, rom_path = std::string(rom_path)] {
         if (auto core_ptr = core.lock())
         {
-          auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetDeviceNumber()];
+          auto& info = Config::MAIN_GBA_ROM_PATHS[core_ptr->GetCoreInfo().device_number];
           core_ptr->Stop();
           Config::SetCurrent(info, rom_path);
           if (core_ptr->Start(CoreTiming::GetTicks()))
@@ -60,17 +59,16 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::stri
       false);
 }
 
-GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, int device_number,
-                     std::string_view game_title, int width, int height, QWidget* parent,
-                     Qt::WindowFlags flags)
-    : QWidget(parent, flags), m_core(std::move(core)), m_device_number(device_number),
-      m_local_pad(device_number), m_game_title(game_title), m_width(width), m_height(height),
-      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false)
+GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info,
+                     QWidget* parent, Qt::WindowFlags flags)
+    : QWidget(parent, flags), m_core(std::move(core)), m_core_info(info),
+      m_local_pad(info.device_number), m_is_local_pad(true), m_volume(0), m_muted(false),
+      m_force_disconnect(false)
 {
   bool visible = true;
   if (NetPlay::IsNetPlayRunning())
   {
-    NetPlay::PadDetails details = NetPlay::GetPadDetails(m_device_number);
+    NetPlay::PadDetails details = NetPlay::GetPadDetails(m_core_info.device_number);
     if (details.local_pad < 4)
     {
       m_netplayer_name = details.player_name;
@@ -82,7 +80,7 @@ GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, int device_number,
 
   setWindowIcon(Resources::GetAppIcon());
   setAcceptDrops(true);
-  resize(m_width, m_height);
+  resize(m_core_info.width, m_core_info.height);
   setVisible(visible);
 
   SetVolume(100);
@@ -98,11 +96,9 @@ GBAWidget::~GBAWidget()
   SaveGeometry();
 }
 
-void GBAWidget::GameChanged(std::string_view game_title, int width, int height)
+void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
 {
-  m_game_title = game_title;
-  m_width = width;
-  m_height = height;
+  m_core_info = info;
   UpdateTitle();
   update();
 }
@@ -170,7 +166,7 @@ void GBAWidget::LoadROM()
 
 void GBAWidget::UnloadROM()
 {
-  if (!CanControlCore() || m_game_title.empty())
+  if (!CanControlCore() || !m_core_info.has_rom)
     return;
 
   RestartCore(m_core);
@@ -224,17 +220,17 @@ void GBAWidget::DoState(bool export_state)
 
 void GBAWidget::Resize(int scale)
 {
-  resize(m_width * scale, m_height * scale);
+  resize(m_core_info.width * scale, m_core_info.height * scale);
 }
 
 void GBAWidget::UpdateTitle()
 {
-  std::string title = fmt::format("GBA{}", m_device_number + 1);
+  std::string title = fmt::format("GBA{}", m_core_info.device_number + 1);
   if (!m_netplayer_name.empty())
     title += " " + m_netplayer_name;
 
-  if (!m_game_title.empty())
-    title += " | " + m_game_title;
+  if (!m_core_info.game_title.empty())
+    title += " | " + m_core_info.game_title;
 
   if (m_muted)
     title += " | Muted";
@@ -247,7 +243,7 @@ void GBAWidget::UpdateTitle()
 void GBAWidget::UpdateVolume()
 {
   int volume = m_muted ? 0 : m_volume * 256 / 100;
-  g_sound_stream->GetMixer()->SetGBAVolume(m_device_number, volume, volume);
+  g_sound_stream->GetMixer()->SetGBAVolume(m_core_info.device_number, volume, volume);
   UpdateTitle();
 }
 
@@ -298,11 +294,11 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   connect(load_action, &QAction::triggered, this, &GBAWidget::LoadROM);
 
   auto* unload_action = new QAction(tr("&Unload ROM"), menu);
-  unload_action->setEnabled(CanControlCore() && !m_game_title.empty());
+  unload_action->setEnabled(CanControlCore() && m_core_info.has_rom);
   connect(unload_action, &QAction::triggered, this, &GBAWidget::UnloadROM);
 
   auto* card_action = new QAction(tr("&Scan e-Reader Card(s)"), menu);
-  card_action->setEnabled(CanControlCore() && !m_game_title.empty());
+  card_action->setEnabled(CanControlCore() && m_core_info.has_ereader);
   connect(card_action, &QAction::triggered, this, &GBAWidget::PromptForEReaderCards);
 
   auto* reset_action = new QAction(tr("&Reset"), menu);
@@ -364,32 +360,32 @@ void GBAWidget::paintEvent(QPaintEvent* event)
   QPainter painter(this);
   painter.fillRect(QRect(QPoint(), size()), Qt::black);
 
-  if (m_video_buffer.size() == static_cast<size_t>(m_width * m_height))
+  if (m_video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
   {
-    QImage image(reinterpret_cast<const uchar*>(m_video_buffer.data()), m_width, m_height,
-                 QImage::Format_ARGB32);
+    QImage image(reinterpret_cast<const uchar*>(m_video_buffer.data()), m_core_info.width,
+                 m_core_info.height, QImage::Format_ARGB32);
     image = image.convertToFormat(QImage::Format_RGB32);
     image = image.rgbSwapped();
 
     QSize widget_size = size();
-    if (widget_size == QSize(m_width, m_height))
+    if (widget_size == QSize(m_core_info.width, m_core_info.height))
     {
-      painter.drawImage(QPoint(), image, QRect(0, 0, m_width, m_height));
+      painter.drawImage(QPoint(), image, QRect(0, 0, m_core_info.width, m_core_info.height));
     }
-    else if (static_cast<float>(m_width) / m_height >
+    else if (static_cast<float>(m_core_info.width) / m_core_info.height >
              static_cast<float>(widget_size.width()) / widget_size.height())
     {
-      int new_height = widget_size.width() * m_height / m_width;
+      int new_height = widget_size.width() * m_core_info.height / m_core_info.width;
       painter.drawImage(
           QRect(0, (widget_size.height() - new_height) / 2, widget_size.width(), new_height), image,
-          QRect(0, 0, m_width, m_height));
+          QRect(0, 0, m_core_info.width, m_core_info.height));
     }
     else
     {
-      int new_width = widget_size.height() * m_width / m_height;
+      int new_width = widget_size.height() * m_core_info.width / m_core_info.height;
       painter.drawImage(
           QRect((widget_size.width() - new_width) / 2, 0, new_width, widget_size.height()), image,
-          QRect(0, 0, m_width, m_height));
+          QRect(0, 0, m_core_info.width, m_core_info.height));
     }
   }
 }
@@ -431,15 +427,14 @@ GBAWidgetController::~GBAWidgetController()
   m_widget->deleteLater();
 }
 
-void GBAWidgetController::Create(std::weak_ptr<HW::GBA::Core> core, int device_number,
-                                 std::string_view game_title, int width, int height)
+void GBAWidgetController::Create(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info)
 {
-  m_widget = new GBAWidget(std::move(core), device_number, game_title, width, height);
+  m_widget = new GBAWidget(std::move(core), info);
 }
 
-void GBAWidgetController::GameChanged(std::string_view game_title, int width, int height)
+void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info)
 {
-  m_widget->GameChanged(game_title, width, height);
+  m_widget->GameChanged(info);
 }
 
 void GBAWidgetController::FrameEnded(std::vector<u32> video_buffer)

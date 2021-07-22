@@ -11,11 +11,7 @@
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
-
-namespace HW::GBA
-{
-class Core;
-}  // namespace HW::GBA
+#include "Core/HW/GBACore.h"
 
 class QCloseEvent;
 class QContextMenuEvent;
@@ -27,12 +23,11 @@ class GBAWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GBAWidget(std::weak_ptr<HW::GBA::Core> core, int device_number,
-                     std::string_view game_title, int width, int height, QWidget* parent = nullptr,
-                     Qt::WindowFlags flags = {});
+  explicit GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info,
+                     QWidget* parent = nullptr, Qt::WindowFlags flags = {});
   ~GBAWidget();
 
-  void GameChanged(std::string_view game_title, int width, int height);
+  void GameChanged(const HW::GBA::CoreInfo& info);
   void SetVideoBuffer(std::vector<u32> video_buffer);
 
   void SetVolume(int volume);
@@ -67,14 +62,11 @@ private:
   void dropEvent(QDropEvent* event) override;
 
   std::weak_ptr<HW::GBA::Core> m_core;
+  HW::GBA::CoreInfo m_core_info;
   std::vector<u32> m_video_buffer;
-  int m_device_number;
   int m_local_pad;
-  std::string m_game_title;
-  int m_width;
-  int m_height;
-  std::string m_netplayer_name;
   bool m_is_local_pad;
+  std::string m_netplayer_name;
   int m_volume;
   bool m_muted;
   bool m_force_disconnect;
@@ -87,9 +79,8 @@ public:
   explicit GBAWidgetController() = default;
   ~GBAWidgetController();
 
-  void Create(std::weak_ptr<HW::GBA::Core> core, int device_number, std::string_view game_title,
-              int width, int height);
-  void GameChanged(std::string_view game_title, int width, int height);
+  void Create(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info);
+  void GameChanged(const HW::GBA::CoreInfo& info);
   void FrameEnded(std::vector<u32> video_buffer);
 
 private:
