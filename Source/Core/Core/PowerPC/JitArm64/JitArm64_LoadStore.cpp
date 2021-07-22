@@ -597,7 +597,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB;
 
-  gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
 
   ARM64Reg addr_reg = ARM64Reg::W0;
 
@@ -641,9 +641,6 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     }
   }
 
-  // We don't care about being /too/ terribly efficient here
-  // As long as we aren't falling back to interpreter we're winning a lot
-
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
   gprs_to_push[DecodeReg(ARM64Reg::W0)] = 0;
@@ -651,7 +648,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, true, true, ARM64Reg::W0,
                        EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
 
-  gpr.Unlock(ARM64Reg::W0);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
 }
 
 void JitArm64::eieio(UGeckoInstruction inst)
