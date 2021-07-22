@@ -501,15 +501,16 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external, bool always
 void JitArm64::WriteConditionalExceptionExit(int exception, u64 increment_sp_on_exit)
 {
   ARM64Reg WA = gpr.GetReg();
-  WriteConditionalExceptionExit(exception, WA, increment_sp_on_exit);
+  WriteConditionalExceptionExit(exception, WA, Arm64Gen::ARM64Reg::INVALID_REG,
+                                increment_sp_on_exit);
   gpr.Unlock(WA);
 }
 
-void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_reg,
+void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_gpr, ARM64Reg temp_fpr,
                                              u64 increment_sp_on_exit)
 {
-  LDR(IndexType::Unsigned, temp_reg, PPC_REG, PPCSTATE_OFF(Exceptions));
-  FixupBranch no_exception = TBZ(temp_reg, IntLog2(exception));
+  LDR(IndexType::Unsigned, temp_gpr, PPC_REG, PPCSTATE_OFF(Exceptions));
+  FixupBranch no_exception = TBZ(temp_gpr, IntLog2(exception));
 
   const bool switch_to_far_code = !IsInFarCode();
 
@@ -521,10 +522,10 @@ void JitArm64::WriteConditionalExceptionExit(int exception, ARM64Reg temp_reg,
   }
 
   if (increment_sp_on_exit != 0)
-    ADDI2R(ARM64Reg::SP, ARM64Reg::SP, increment_sp_on_exit, temp_reg);
+    ADDI2R(ARM64Reg::SP, ARM64Reg::SP, increment_sp_on_exit, temp_gpr);
 
-  gpr.Flush(FlushMode::MaintainState, temp_reg);
-  fpr.Flush(FlushMode::MaintainState, ARM64Reg::INVALID_REG);
+  gpr.Flush(FlushMode::MaintainState, temp_gpr);
+  fpr.Flush(FlushMode::MaintainState, temp_fpr);
 
   WriteExceptionExit(js.compilerPC, false, true);
 

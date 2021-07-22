@@ -142,12 +142,12 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     if (slowmem_fixup)
       SetJumpTarget(*slowmem_fixup);
 
-    const ARM64Reg temp_reg = flags & BackPatchInfo::FLAG_LOAD ? ARM64Reg::W30 : ARM64Reg::W0;
-    const int temp_reg_index = DecodeReg(temp_reg);
+    const ARM64Reg temp_gpr = flags & BackPatchInfo::FLAG_LOAD ? ARM64Reg::W30 : ARM64Reg::W0;
+    const int temp_gpr_index = DecodeReg(temp_gpr);
 
     BitSet32 gprs_to_push_early = {};
     if (memcheck)
-      gprs_to_push_early[temp_reg_index] = true;
+      gprs_to_push_early[temp_gpr_index] = true;
     if (flags & BackPatchInfo::FLAG_LOAD)
       gprs_to_push_early[0] = true;
 
@@ -224,8 +224,10 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
 
     if (memcheck)
     {
+      const ARM64Reg temp_fpr = fprs_to_push[0] ? ARM64Reg::INVALID_REG : ARM64Reg::Q0;
       const u64 early_push_size = Common::AlignUp(gprs_to_push_early.Count(), 2) * 8;
-      WriteConditionalExceptionExit(EXCEPTION_DSI, temp_reg, early_push_size);
+
+      WriteConditionalExceptionExit(EXCEPTION_DSI, temp_gpr, temp_fpr, early_push_size);
     }
 
     if (flags & BackPatchInfo::FLAG_LOAD)
