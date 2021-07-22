@@ -23,6 +23,7 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -136,7 +137,7 @@ void MemoryCard::CheckPath(std::string& memcardPath, const std::string& gameRegi
 
 void MemoryCard::FlushThread()
 {
-  if (!SConfig::GetInstance().bEnableMemcardSdWriting)
+  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }

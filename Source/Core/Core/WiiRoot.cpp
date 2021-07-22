@@ -17,6 +17,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
@@ -310,7 +311,7 @@ void InitializeWiiFileSystemContents()
 
 void CleanUpWiiFileSystemContents()
 {
-  if (!WiiRootIsTemporary() || !SConfig::GetInstance().bEnableMemcardSdWriting ||
+  if (!WiiRootIsTemporary() || !Config::Get(Config::SESSION_SAVE_DATA_WRITABLE) ||
       NetPlay::GetWiiSyncFS())
   {
     return;
