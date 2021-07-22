@@ -15,6 +15,7 @@
 #include <QImage>
 #include <QMenu>
 #include <QMimeData>
+#include <QMouseEvent>
 #include <QPainter>
 
 #include "AudioCommon/AudioCommon.h"
@@ -63,7 +64,7 @@ GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo&
                      const std::optional<NetPlay::PadDetails>& netplay_pad)
     : QWidget(nullptr, LoadWindowFlags(netplay_pad ? netplay_pad->local_pad : info.device_number)),
       m_core(std::move(core)), m_core_info(info), m_local_pad(info.device_number),
-      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false)
+      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false), m_moving(false)
 {
   bool visible = true;
   if (netplay_pad)
@@ -397,6 +398,29 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
 void GBAWidget::mouseDoubleClickEvent(QMouseEvent* event)
 {
   SetBorderless(!IsBorderless());
+}
+
+void GBAWidget::mousePressEvent(QMouseEvent* event)
+{
+  if (event->button() != Qt::MouseButton::LeftButton ||
+      !windowFlags().testFlag(Qt::FramelessWindowHint))
+    return;
+  m_moving = true;
+  m_move_pos = event->pos();
+}
+
+void GBAWidget::mouseReleaseEvent(QMouseEvent* event)
+{
+  if (event->button() != Qt::MouseButton::LeftButton)
+    return;
+  m_moving = false;
+}
+
+void GBAWidget::mouseMoveEvent(QMouseEvent* event)
+{
+  if (!m_moving)
+    return;
+  move(event->globalPos() - m_move_pos - (geometry().topLeft() - pos()));
 }
 
 void GBAWidget::paintEvent(QPaintEvent* event)

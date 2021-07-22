@@ -9,6 +9,7 @@
 #include <string_view>
 #include <vector>
 
+#include <QPoint>
 #include <QWidget>
 
 #include "Common/CommonTypes.h"
@@ -68,6 +69,9 @@ private:
   void closeEvent(QCloseEvent* event) override;
   void contextMenuEvent(QContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
   void paintEvent(QPaintEvent* event) override;
 
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -82,6 +86,8 @@ private:
   int m_volume;
   bool m_muted;
   bool m_force_disconnect;
+  bool m_moving;
+  QPoint m_move_pos;
 };
 
 class GBAWidgetController : public QObject
