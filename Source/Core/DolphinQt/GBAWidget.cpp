@@ -247,6 +247,19 @@ void GBAWidget::SetBorderless(bool enable)
   }
 }
 
+bool GBAWidget::IsAlwaysOnTop() const
+{
+  return windowFlags().testFlag(Qt::WindowStaysOnTopHint);
+}
+
+void GBAWidget::SetAlwaysOnTop(bool enable)
+{
+  if (windowFlags().testFlag(Qt::WindowStaysOnTopHint) == enable)
+    return;
+  setWindowFlag(Qt::WindowStaysOnTopHint, enable);
+  show();
+}
+
 void GBAWidget::UpdateTitle()
 {
   std::string title = fmt::format("GBA{}", m_core_info.device_number + 1);
@@ -366,6 +379,11 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   borderless_action->setChecked(IsBorderless());
   connect(borderless_action, &QAction::triggered, this, [this] { SetBorderless(!IsBorderless()); });
 
+  auto* topmost_action = new QAction(tr("Always on &Top"), options_menu);
+  topmost_action->setCheckable(true);
+  topmost_action->setChecked(IsAlwaysOnTop());
+  connect(topmost_action, &QAction::triggered, this, [this] { SetAlwaysOnTop(!IsAlwaysOnTop()); });
+
   menu->addAction(disconnect_action);
   menu->addSeparator();
   menu->addAction(load_action);
@@ -385,6 +403,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   options_menu->addMenu(size_menu);
   options_menu->addSeparator();
   options_menu->addAction(borderless_action);
+  options_menu->addAction(topmost_action);
 
   size_menu->addAction(x1_action);
   size_menu->addAction(x2_action);

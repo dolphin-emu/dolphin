@@ -55,6 +55,9 @@ public:
   bool IsBorderless() const;
   void SetBorderless(bool enable);
 
+  bool IsAlwaysOnTop() const;
+  void SetAlwaysOnTop(bool enable);
+
 private:
   void UpdateTitle();
   void UpdateVolume();
