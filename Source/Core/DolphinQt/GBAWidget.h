@@ -9,6 +9,7 @@
 #include <string_view>
 #include <vector>
 
+#include <QImage>
 #include <QPoint>
 #include <QWidget>
 
@@ -82,7 +83,8 @@ private:
 
   std::weak_ptr<HW::GBA::Core> m_core;
   HW::GBA::CoreInfo m_core_info;
-  std::vector<u32> m_video_buffer;
+  QImage m_last_frame;
+  QImage m_previous_frame;
   int m_local_pad;
   bool m_is_local_pad;
   std::string m_netplayer_name;
@@ -91,6 +93,7 @@ private:
   bool m_force_disconnect;
   bool m_moving;
   QPoint m_move_pos;
+  bool m_interframe_blending;
 };
 
 class GBAWidgetController : public QObject

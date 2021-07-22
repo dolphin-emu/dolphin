@@ -12,7 +12,6 @@
 #include <QDropEvent>
 #include <QFileDialog>
 #include <QIcon>
-#include <QImage>
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
@@ -64,7 +63,8 @@ GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo&
                      const std::optional<NetPlay::PadDetails>& netplay_pad)
     : QWidget(nullptr, LoadWindowFlags(netplay_pad ? netplay_pad->local_pad : info.device_number)),
       m_core(std::move(core)), m_core_info(info), m_local_pad(info.device_number),
-      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false), m_moving(false)
+      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false), m_moving(false),
+      m_interframe_blending(false)
 {
   bool visible = true;
   if (netplay_pad)
@@ -96,13 +96,25 @@ GBAWidget::~GBAWidget()
 void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
 {
   m_core_info = info;
+  m_previous_frame = QImage();
   UpdateTitle();
   update();
 }
 
 void GBAWidget::SetVideoBuffer(std::vector<u32> video_buffer)
 {
-  m_video_buffer = std::move(video_buffer);
+  m_previous_frame = std::move(m_last_frame);
+  if (video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
+  {
+    m_last_frame = QImage(reinterpret_cast<const uchar*>(video_buffer.data()), m_core_info.width,
+                          m_core_info.height, QImage::Format_ARGB32)
+                       .convertToFormat(QImage::Format_RGB32)
+                       .rgbSwapped();
+  }
+  else
+  {
+    m_last_frame = QImage();
+  }
   update();
 }
 
@@ -297,6 +309,10 @@ void GBAWidget::LoadSettings()
   QString key = QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1);
   if (settings.contains(key))
     restoreGeometry(settings.value(key).toByteArray());
+
+  key = QStringLiteral("gbawidget/interframeblending%1").arg(m_local_pad + 1);
+  if (settings.contains(key))
+    m_interframe_blending = settings.value(key).toBool();
 }
 
 void GBAWidget::SaveSettings()
@@ -305,6 +321,8 @@ void GBAWidget::SaveSettings()
   settings.setValue(QStringLiteral("gbawidget/flags%1").arg(m_local_pad + 1),
                     static_cast<int>(windowFlags()));
   settings.setValue(QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1), saveGeometry());
+  settings.setValue(QStringLiteral("gbawidget/interframeblending%1").arg(m_local_pad + 1),
+                    m_interframe_blending);
 }
 
 bool GBAWidget::CanControlCore()
@@ -384,6 +402,12 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   topmost_action->setChecked(IsAlwaysOnTop());
   connect(topmost_action, &QAction::triggered, this, [this] { SetAlwaysOnTop(!IsAlwaysOnTop()); });
 
+  auto* blending_action = new QAction(tr("&Interframe Blending"), options_menu);
+  blending_action->setCheckable(true);
+  blending_action->setChecked(m_interframe_blending);
+  connect(blending_action, &QAction::triggered, this,
+          [this] { m_interframe_blending = !m_interframe_blending; });
+
   menu->addAction(disconnect_action);
   menu->addSeparator();
   menu->addAction(load_action);
@@ -404,6 +428,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   options_menu->addSeparator();
   options_menu->addAction(borderless_action);
   options_menu->addAction(topmost_action);
+  options_menu->addAction(blending_action);
 
   size_menu->addAction(x1_action);
   size_menu->addAction(x2_action);
@@ -447,33 +472,32 @@ void GBAWidget::paintEvent(QPaintEvent* event)
   QPainter painter(this);
   painter.fillRect(QRect(QPoint(), size()), Qt::black);
 
-  if (m_video_buffer.size() == static_cast<size_t>(m_core_info.width * m_core_info.height))
+  const QRect src_rect(0, 0, m_core_info.width, m_core_info.height);
+  QRect target_rect{};
+  if (size() == QSize(m_core_info.width, m_core_info.height))
   {
-    QImage image(reinterpret_cast<const uchar*>(m_video_buffer.data()), m_core_info.width,
-                 m_core_info.height, QImage::Format_ARGB32);
-    image = image.convertToFormat(QImage::Format_RGB32);
-    image = image.rgbSwapped();
+    target_rect = QRect(0, 0, m_core_info.width, m_core_info.height);
+  }
+  else if (static_cast<float>(m_core_info.width) / m_core_info.height >
+           static_cast<float>(width()) / height())
+  {
+    int new_height = width() * m_core_info.height / m_core_info.width;
+    target_rect = QRect(0, (height() - new_height) / 2, width(), new_height);
+  }
+  else
+  {
+    int new_width = height() * m_core_info.width / m_core_info.height;
+    target_rect = QRect((width() - new_width) / 2, 0, new_width, height());
+  }
 
-    QSize widget_size = size();
-    if (widget_size == QSize(m_core_info.width, m_core_info.height))
-    {
-      painter.drawImage(QPoint(), image, QRect(0, 0, m_core_info.width, m_core_info.height));
-    }
-    else if (static_cast<float>(m_core_info.width) / m_core_info.height >
-             static_cast<float>(widget_size.width()) / widget_size.height())
-    {
-      int new_height = widget_size.width() * m_core_info.height / m_core_info.width;
-      painter.drawImage(
-          QRect(0, (widget_size.height() - new_height) / 2, widget_size.width(), new_height), image,
-          QRect(0, 0, m_core_info.width, m_core_info.height));
-    }
-    else
-    {
-      int new_width = widget_size.height() * m_core_info.width / m_core_info.height;
-      painter.drawImage(
-          QRect((widget_size.width() - new_width) / 2, 0, new_width, widget_size.height()), image,
-          QRect(0, 0, m_core_info.width, m_core_info.height));
-    }
+  if (m_interframe_blending && m_previous_frame.size() == src_rect.size())
+  {
+    painter.drawImage(target_rect, m_previous_frame, src_rect);
+    painter.setOpacity(0.5);
+  }
+  if (m_last_frame.size() == src_rect.size())
+  {
+    painter.drawImage(target_rect, m_last_frame, src_rect);
   }
 }
 
