@@ -63,6 +63,11 @@ bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
+
 ### macOS Build Steps:
 
 A binary supporting a single architecture can be built using the following steps: 
@@ -122,6 +127,11 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 
 These instructions assume familiarity with Android development. If you do not have an
 Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
+
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
 
 If using Android Studio, import the Gradle project located in `./Source/Android`.
 
