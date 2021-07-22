@@ -50,6 +50,16 @@ static void RestartCore(const std::weak_ptr<HW::GBA::Core>& core, std::string_vi
       false);
 }
 
+static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::string_view card_path)
+{
+  Core::RunOnCPUThread(
+      [core, card_path = std::string(card_path)] {
+        if (auto core_ptr = core.lock())
+          core_ptr->EReaderQueueCard(card_path);
+      },
+      false);
+}
+
 GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, int device_number,
                      std::string_view game_title, int width, int height, QWidget* parent,
                      Qt::WindowFlags flags)
@@ -164,6 +174,16 @@ void GBAWidget::UnloadROM()
     return;
 
   RestartCore(m_core);
+}
+
+void GBAWidget::PromptForEReaderCards()
+{
+  const QStringList card_paths = QFileDialog::getOpenFileNames(
+      this, tr("Select e-Reader Cards"), QString(), tr("e-Reader Cards (*.raw);;All Files (*)"),
+      nullptr, QFileDialog::Options());
+
+  for (const QString& card_path : card_paths)
+    QueueEReaderCard(m_core, QDir::toNativeSeparators(card_path).toStdString());
 }
 
 void GBAWidget::ResetCore()
@@ -281,6 +301,10 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   unload_action->setEnabled(CanControlCore() && !m_game_title.empty());
   connect(unload_action, &QAction::triggered, this, &GBAWidget::UnloadROM);
 
+  auto* card_action = new QAction(tr("&Scan e-Reader Card(s)"), menu);
+  card_action->setEnabled(CanControlCore() && !m_game_title.empty());
+  connect(card_action, &QAction::triggered, this, &GBAWidget::PromptForEReaderCards);
+
   auto* reset_action = new QAction(tr("&Reset"), menu);
   reset_action->setEnabled(CanResetCore());
   connect(reset_action, &QAction::triggered, this, &GBAWidget::ResetCore);
@@ -322,6 +346,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   menu->addSeparator();
   menu->addAction(load_action);
   menu->addAction(unload_action);
+  menu->addAction(card_action);
   menu->addAction(reset_action);
   menu->addSeparator();
   menu->addMenu(state_menu);
@@ -395,18 +420,9 @@ void GBAWidget::dropEvent(QDropEvent* event)
     }
 
     if (file_info.suffix() == QStringLiteral("raw"))
-    {
-      Core::RunOnCPUThread(
-          [core = m_core, card_path = path.toStdString()] {
-            if (auto core_ptr = core.lock())
-              core_ptr->EReaderQueueCard(card_path);
-          },
-          false);
-    }
+      QueueEReaderCard(m_core, path.toStdString());
     else
-    {
       RestartCore(m_core, path.toStdString());
-    }
   }
 }
 
