@@ -419,9 +419,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   }
 
   // Optionally, execute a low pass filter
-  // TODO: LPF code is currently broken, causing Super Monkey Ball sound
-  // corruption. Disabled until someone figures out what is wrong with it.
-  if (0 && pb.lpf.enabled)
+  if (pb.lpf.enabled)
   {
     pb.lpf.yn1 = LowPassFilter(samples, count, pb.lpf.yn1, pb.lpf.a0, pb.lpf.b0);
   }
