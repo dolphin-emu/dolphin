@@ -351,6 +351,7 @@ protected:
 
 private:
   bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
+  bool IsTopHalfUsed(Arm64Gen::ARM64Reg reg) const;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
 };

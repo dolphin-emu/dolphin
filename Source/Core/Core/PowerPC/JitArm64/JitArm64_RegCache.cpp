@@ -742,6 +742,17 @@ bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg) const
   return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
 }
 
+bool Arm64FPRCache::IsTopHalfUsed(ARM64Reg reg) const
+{
+  for (const OpArg& r : m_guest_registers)
+  {
+    if (r.GetReg() != ARM64Reg::INVALID_REG && DecodeReg(r.GetReg()) == DecodeReg(reg))
+      return r.GetType() == RegType::Register;
+  }
+
+  return false;
+}
+
 void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state, ARM64Reg tmp_reg)
 {
   OpArg& reg = m_guest_registers[preg];
@@ -846,7 +857,7 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed() const
   BitSet32 registers(0);
   for (const auto& it : m_host_registers)
   {
-    if (it.IsLocked())
+    if (it.IsLocked() && (!IsCalleeSaved(it.GetReg()) || IsTopHalfUsed(it.GetReg())))
       registers[DecodeReg(it.GetReg())] = true;
   }
   return registers;
