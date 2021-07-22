@@ -93,6 +93,27 @@ std::string FmtFormatT(const char* string, Args&&... args)
 
 // Fmt-capable variants of the macros
 
+#ifdef _MSC_VER
+// Use __VA_OPT__(,) to avoid MSVC IntelliSense "expected an expression" error when calling an alert
+// function with no replacement parameters. This is caused by the comma after the format string
+// having an empty ##__VA_ARGS__ after it, making it a trailing comma. The compiler ignores the
+// comma when followed by ##__VA_ARGS__ but IntelliSense does not.
+//
+// This workaround unfortunately allows for calling alert functions in MSVC with a trailing comma
+// when there are no replacement parameters, PanicAlertFmt("Like this",); , but those calls will
+// fail on buildbot for other platforms so we don't need to worry about errant commas in release
+// builds.
+//
+// TODO: Remove workaround if/when MSVC fixes the bug
+#define GenericAlertFmt(yes_no, style, format, ...)                                                \
+  [&] {                                                                                            \
+    /* Use a macro-like name to avoid shadowing warnings */                                        \
+    constexpr auto GENERIC_ALERT_FMT_N = Common::CountFmtReplacementFields(format);                \
+    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(                                               \
+        yes_no, style, FMT_STRING(format) __VA_OPT__(, )##__VA_ARGS__);                            \
+  }()
+#else
+// Workaround isn't needed on other platforms and introduces a minor bug, so just use a comma
 #define GenericAlertFmt(yes_no, style, format, ...)                                                \
   [&] {                                                                                            \
     /* Use a macro-like name to avoid shadowing warnings */                                        \
@@ -100,6 +121,7 @@ std::string FmtFormatT(const char* string, Args&&... args)
     return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, FMT_STRING(format),             \
                                                     ##__VA_ARGS__);                                \
   }()
+#endif
 
 #define GenericAlertFmtT(yes_no, style, format, ...)                                               \
   [&] {                                                                                            \

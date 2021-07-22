@@ -143,6 +143,30 @@ void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, con
 
 // fmtlib capable API
 
+#ifdef _MSC_VER
+// Use __VA_OPT__(,) to avoid MSVC IntelliSense "expected an expression" error when calling a log
+// function with no replacement parameters. This is caused by the comma after the format string
+// having an empty ##__VA_ARGS__ after it, making it a trailing comma. The compiler ignores the
+// comma when followed by ##__VA_ARGS__ but IntelliSense does not.
+//
+// This workaround unfortunately allows for calling log functions in MSVC with a trailing comma when
+// there are no replacement parameters, INFO_LOG_FMT(COMMON, "Like this",); , but those calls work
+// correctly so the tradeoff to get rid of false positive errors everywhere is worth it.
+//
+// TODO: Remove workaround if/when MSVC fixes the bug
+#define GENERIC_LOG_FMT(t, v, format, ...)                                                         \
+  do                                                                                               \
+  {                                                                                                \
+    if (v <= MAX_LOGLEVEL)                                                                         \
+    {                                                                                              \
+      /* Use a macro-like name to avoid shadowing warnings */                                      \
+      constexpr auto GENERIC_LOG_FMT_N = Common::CountFmtReplacementFields(format);                \
+      Common::Log::GenericLogFmt<GENERIC_LOG_FMT_N>(                                               \
+          v, t, __FILE__, __LINE__, FMT_STRING(format) __VA_OPT__(, )##__VA_ARGS__);               \
+    }                                                                                              \
+  } while (0)
+#else
+// Workaround isn't needed on other platforms and introduces a minor bug, so just use a comma
 #define GENERIC_LOG_FMT(t, v, format, ...)                                                         \
   do                                                                                               \
   {                                                                                                \
@@ -154,6 +178,7 @@ void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, con
                                                     ##__VA_ARGS__);                                \
     }                                                                                              \
   } while (0)
+#endif
 
 #define ERROR_LOG_FMT(t, ...)                                                                      \
   do                                                                                               \
