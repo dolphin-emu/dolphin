@@ -68,7 +68,7 @@ void MemoryViewWidget::Update()
 {
   clearSelection();
 
-  setColumnCount(3 + GetColumnCount(m_type));
+  setColumnCount(2 + GetColumnCount(m_type));
 
   if (rowCount() == 0)
     setRowCount(1);
