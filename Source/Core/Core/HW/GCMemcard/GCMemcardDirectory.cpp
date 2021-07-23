@@ -236,7 +236,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
 
 void GCMemcardDirectory::FlushThread()
 {
-  if (!SConfig::GetInstance().bEnableMemcardSdWriting)
+  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }

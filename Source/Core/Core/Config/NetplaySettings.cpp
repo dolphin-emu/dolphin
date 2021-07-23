@@ -45,8 +45,7 @@ const Info<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT{{System::Main, "NetPlay", "ChunkedU
 const Info<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 5};
 const Info<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 1};
 
-const Info<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA{{System::Main, "NetPlay", "WriteSaveSDCardData"},
-                                                false};
+const Info<bool> NETPLAY_WRITE_SAVE_DATA{{System::Main, "NetPlay", "WriteSaveData"}, true};
 const Info<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiSave"}, false};
 const Info<bool> NETPLAY_SYNC_SAVES{{System::Main, "NetPlay", "SyncSaves"}, true};
 const Info<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};

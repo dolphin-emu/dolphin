@@ -12,5 +12,5 @@ extern const Info<bool> SESSION_USE_FMA;
 extern const Info<bool> SESSION_LOAD_IPL_DUMP;
 extern const Info<bool> SESSION_GCI_FOLDER_CURRENT_GAME_ONLY;
 extern const Info<bool> SESSION_CODE_SYNC_OVERRIDE;
-extern const Info<bool> SESSION_WII_SD_CARD_WRITABLE;
+extern const Info<bool> SESSION_SAVE_DATA_WRITABLE;
 }  // namespace Config
