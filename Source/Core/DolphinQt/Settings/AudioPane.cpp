@@ -48,9 +48,9 @@ void AudioPane::CreateWidgets()
   auto* dsp_layout = new QVBoxLayout;
 
   dsp_box->setLayout(dsp_layout);
-  m_dsp_hle = new QRadioButton(tr("DSP HLE (fast)"));
-  m_dsp_lle = new QRadioButton(tr("DSP LLE Recompiler"));
-  m_dsp_interpreter = new QRadioButton(tr("DSP LLE Interpreter (slow)"));
+  m_dsp_hle = new QRadioButton(tr("DSP HLE (recommended)"));
+  m_dsp_lle = new QRadioButton(tr("DSP LLE Recompiler (slow)"));
+  m_dsp_interpreter = new QRadioButton(tr("DSP LLE Interpreter (very slow)"));
 
   dsp_layout->addStretch(1);
   dsp_layout->addWidget(m_dsp_hle);
