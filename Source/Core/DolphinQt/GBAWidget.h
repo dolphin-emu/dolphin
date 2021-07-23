@@ -44,6 +44,7 @@ public:
 
   void LoadROM();
   void UnloadROM();
+  void PromptForEReaderCards();
   void ResetCore();
   void DoState(bool export_state);
   void Resize(int scale);
