@@ -566,13 +566,6 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
   m_scan_mode_changed_or_population_event.Set();
 }
 
-bool WiimoteScanner::IsReady() const
-{
-  std::lock_guard lg(m_backends_mutex);
-  return std::any_of(m_backends.begin(), m_backends.end(),
-                     [](const auto& backend) { return backend->IsReady(); });
-}
-
 static void CheckForDisconnectedWiimotes()
 {
   std::lock_guard lk(g_wiimotes_mutex);

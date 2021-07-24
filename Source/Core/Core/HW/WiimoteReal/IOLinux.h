@@ -43,7 +43,6 @@ class WiimoteScannerLinux final : public WiimoteScannerBackend
 public:
   WiimoteScannerLinux();
   ~WiimoteScannerLinux() override;
-  bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}                // not needed on Linux
   void RequestStopSearching() override {}  // not needed on Linux

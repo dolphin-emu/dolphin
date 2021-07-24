@@ -103,11 +103,6 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   [sbt release];
 }
 
-bool WiimoteScannerDarwin::IsReady() const
-{
-  return m_host_controller != nil;
-}
-
 WiimoteDarwin::WiimoteDarwin(IOBluetoothDevice* device) : m_btd(device)
 {
   m_inputlen = 0;
