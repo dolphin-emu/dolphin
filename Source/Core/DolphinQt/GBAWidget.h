@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -17,14 +18,20 @@ class QCloseEvent;
 class QContextMenuEvent;
 class QDragEnterEvent;
 class QDropEvent;
+class QMouseEvent;
 class QPaintEvent;
+
+namespace NetPlay
+{
+struct PadDetails;
+}  // namespace NetPlay
 
 class GBAWidget : public QWidget
 {
   Q_OBJECT
 public:
   explicit GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info,
-                     QWidget* parent = nullptr, Qt::WindowFlags flags = {});
+                     const std::optional<NetPlay::PadDetails>& netplay_pad);
   ~GBAWidget();
 
   void GameChanged(const HW::GBA::CoreInfo& info);
@@ -44,18 +51,23 @@ public:
   void DoState(bool export_state);
   void Resize(int scale);
 
+  bool IsBorderless() const;
+  void SetBorderless(bool enable);
+
 private:
   void UpdateTitle();
   void UpdateVolume();
 
-  void LoadGeometry();
-  void SaveGeometry();
+  static Qt::WindowFlags LoadWindowFlags(int device_number);
+  void LoadSettings();
+  void SaveSettings();
 
   bool CanControlCore();
   bool CanResetCore();
 
   void closeEvent(QCloseEvent* event) override;
   void contextMenuEvent(QContextMenuEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
   void paintEvent(QPaintEvent* event) override;
 
   void dragEnterEvent(QDragEnterEvent* event) override;

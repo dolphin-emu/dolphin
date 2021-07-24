@@ -60,22 +60,18 @@ static void QueueEReaderCard(const std::weak_ptr<HW::GBA::Core>& core, std::stri
 }
 
 GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info,
-                     QWidget* parent, Qt::WindowFlags flags)
-    : QWidget(parent, flags), m_core(std::move(core)), m_core_info(info),
-      m_local_pad(info.device_number), m_is_local_pad(true), m_volume(0), m_muted(false),
-      m_force_disconnect(false)
+                     const std::optional<NetPlay::PadDetails>& netplay_pad)
+    : QWidget(nullptr, LoadWindowFlags(netplay_pad ? netplay_pad->local_pad : info.device_number)),
+      m_core(std::move(core)), m_core_info(info), m_local_pad(info.device_number),
+      m_is_local_pad(true), m_volume(0), m_muted(false), m_force_disconnect(false)
 {
   bool visible = true;
-  if (NetPlay::IsNetPlayRunning())
+  if (netplay_pad)
   {
-    NetPlay::PadDetails details = NetPlay::GetPadDetails(m_core_info.device_number);
-    if (details.local_pad < 4)
-    {
-      m_netplayer_name = details.player_name;
-      m_is_local_pad = details.is_local;
-      m_local_pad = details.local_pad;
-      visible = !details.hide_gba;
-    }
+    m_netplayer_name = netplay_pad->player_name;
+    m_is_local_pad = netplay_pad->is_local;
+    m_local_pad = netplay_pad->local_pad;
+    visible = !netplay_pad->hide_gba;
   }
 
   setWindowIcon(Resources::GetAppIcon());
@@ -87,13 +83,13 @@ GBAWidget::GBAWidget(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo&
   if (!visible)
     ToggleMute();
 
-  LoadGeometry();
+  LoadSettings();
   UpdateTitle();
 }
 
 GBAWidget::~GBAWidget()
 {
-  SaveGeometry();
+  SaveSettings();
 }
 
 void GBAWidget::GameChanged(const HW::GBA::CoreInfo& info)
@@ -223,6 +219,33 @@ void GBAWidget::Resize(int scale)
   resize(m_core_info.width * scale, m_core_info.height * scale);
 }
 
+bool GBAWidget::IsBorderless() const
+{
+  return windowFlags().testFlag(Qt::FramelessWindowHint) ||
+         windowState().testFlag(Qt::WindowFullScreen);
+}
+
+void GBAWidget::SetBorderless(bool enable)
+{
+  if (windowState().testFlag(Qt::WindowFullScreen))
+  {
+    if (!enable)
+      setWindowState((windowState() ^ Qt::WindowFullScreen) | Qt::WindowMaximized);
+  }
+  else if (windowState().testFlag(Qt::WindowMaximized))
+  {
+    if (enable)
+      setWindowState((windowState() ^ Qt::WindowMaximized) | Qt::WindowFullScreen);
+  }
+  else if (windowFlags().testFlag(Qt::FramelessWindowHint) != enable)
+  {
+    QRect saved_geometry = geometry();
+    setWindowFlag(Qt::FramelessWindowHint, enable);
+    setGeometry(saved_geometry);
+    show();
+  }
+}
+
 void GBAWidget::UpdateTitle()
 {
   std::string title = fmt::format("GBA{}", m_core_info.device_number + 1);
@@ -247,19 +270,27 @@ void GBAWidget::UpdateVolume()
   UpdateTitle();
 }
 
-void GBAWidget::LoadGeometry()
+Qt::WindowFlags GBAWidget::LoadWindowFlags(int device_number)
 {
   const QSettings& settings = Settings::GetQSettings();
-  const QString key = QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1);
+  const QString key = QStringLiteral("gbawidget/flags%1").arg(device_number + 1);
+  return settings.contains(key) ? Qt::WindowFlags{settings.value(key).toInt()} : Qt::WindowFlags{};
+}
+
+void GBAWidget::LoadSettings()
+{
+  const QSettings& settings = Settings::GetQSettings();
+  QString key = QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1);
   if (settings.contains(key))
     restoreGeometry(settings.value(key).toByteArray());
 }
 
-void GBAWidget::SaveGeometry()
+void GBAWidget::SaveSettings()
 {
   QSettings& settings = Settings::GetQSettings();
-  const QString key = QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1);
-  settings.setValue(key, saveGeometry());
+  settings.setValue(QStringLiteral("gbawidget/flags%1").arg(m_local_pad + 1),
+                    static_cast<int>(windowFlags()));
+  settings.setValue(QStringLiteral("gbawidget/geometry%1").arg(m_local_pad + 1), saveGeometry());
 }
 
 bool GBAWidget::CanControlCore()
@@ -305,13 +336,21 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   reset_action->setEnabled(CanResetCore());
   connect(reset_action, &QAction::triggered, this, &GBAWidget::ResetCore);
 
+  auto* state_menu = new QMenu(tr("Save State"), menu);
+  auto* import_action = new QAction(tr("&Import State"), state_menu);
+  import_action->setEnabled(CanControlCore());
+  connect(import_action, &QAction::triggered, this, [this] { DoState(false); });
+  auto* export_state = new QAction(tr("&Export State"), state_menu);
+  connect(export_state, &QAction::triggered, this, [this] { DoState(true); });
+
   auto* mute_action = new QAction(tr("&Mute"), menu);
   mute_action->setCheckable(true);
   mute_action->setChecked(m_muted);
   connect(mute_action, &QAction::triggered, this, &GBAWidget::ToggleMute);
 
-  auto* size_menu = new QMenu(tr("Window Size"), menu);
+  auto* options_menu = new QMenu(tr("Options"), menu);
 
+  auto* size_menu = new QMenu(tr("Window Size"), options_menu);
   auto* x1_action = new QAction(tr("&1x"), size_menu);
   connect(x1_action, &QAction::triggered, this, [this] { Resize(1); });
   auto* x2_action = new QAction(tr("&2x"), size_menu);
@@ -321,22 +360,10 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   auto* x4_action = new QAction(tr("&4x"), size_menu);
   connect(x4_action, &QAction::triggered, this, [this] { Resize(4); });
 
-  size_menu->addAction(x1_action);
-  size_menu->addAction(x2_action);
-  size_menu->addAction(x3_action);
-  size_menu->addAction(x4_action);
-
-  auto* state_menu = new QMenu(tr("Save State"), menu);
-
-  auto* import_action = new QAction(tr("&Import State"), state_menu);
-  import_action->setEnabled(CanControlCore());
-  connect(import_action, &QAction::triggered, this, [this] { DoState(false); });
-
-  auto* export_state = new QAction(tr("&Export State"), state_menu);
-  connect(export_state, &QAction::triggered, this, [this] { DoState(true); });
-
-  state_menu->addAction(import_action);
-  state_menu->addAction(export_state);
+  auto* borderless_action = new QAction(tr("&Borderless Window"), options_menu);
+  borderless_action->setCheckable(true);
+  borderless_action->setChecked(IsBorderless());
+  connect(borderless_action, &QAction::triggered, this, [this] { SetBorderless(!IsBorderless()); });
 
   menu->addAction(disconnect_action);
   menu->addSeparator();
@@ -349,10 +376,27 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   menu->addSeparator();
   menu->addAction(mute_action);
   menu->addSeparator();
-  menu->addMenu(size_menu);
+  menu->addMenu(options_menu);
+
+  state_menu->addAction(import_action);
+  state_menu->addAction(export_state);
+
+  options_menu->addMenu(size_menu);
+  options_menu->addSeparator();
+  options_menu->addAction(borderless_action);
+
+  size_menu->addAction(x1_action);
+  size_menu->addAction(x2_action);
+  size_menu->addAction(x3_action);
+  size_menu->addAction(x4_action);
 
   menu->move(event->globalPos());
   menu->show();
+}
+
+void GBAWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  SetBorderless(!IsBorderless());
 }
 
 void GBAWidget::paintEvent(QPaintEvent* event)
@@ -429,7 +473,14 @@ GBAWidgetController::~GBAWidgetController()
 
 void GBAWidgetController::Create(std::weak_ptr<HW::GBA::Core> core, const HW::GBA::CoreInfo& info)
 {
-  m_widget = new GBAWidget(std::move(core), info);
+  std::optional<NetPlay::PadDetails> netplay_pad;
+  if (NetPlay::IsNetPlayRunning())
+  {
+    const NetPlay::PadDetails details = NetPlay::GetPadDetails(info.device_number);
+    if (details.local_pad < 4)
+      netplay_pad = details;
+  }
+  m_widget = new GBAWidget(std::move(core), info, netplay_pad);
 }
 
 void GBAWidgetController::GameChanged(const HW::GBA::CoreInfo& info)
