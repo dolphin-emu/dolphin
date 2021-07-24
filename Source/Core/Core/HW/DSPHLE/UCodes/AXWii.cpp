@@ -27,7 +27,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
 
   INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode");
 
-  m_old_axwii = (crc == 0xfa450138);
+  m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
 }
 
 AXWiiUCode::~AXWiiUCode()
