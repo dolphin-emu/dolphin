@@ -48,7 +48,6 @@ class WiimoteScannerAndroid final : public WiimoteScannerBackend
 public:
   WiimoteScannerAndroid() = default;
   ~WiimoteScannerAndroid() override = default;
-  bool IsReady() const override { return true; }
 
   FindResults FindAttachedWiimotes() override;
 

@@ -12,7 +12,6 @@ class WiimoteScannerDummy final : public WiimoteScannerBackend
 public:
   WiimoteScannerDummy() = default;
   ~WiimoteScannerDummy() override = default;
-  bool IsReady() const override { return false; }
   void Update() override {}
   void RequestStopSearching() override {}
 };
