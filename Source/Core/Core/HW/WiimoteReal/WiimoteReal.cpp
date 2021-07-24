@@ -547,7 +547,7 @@ void WiimoteScanner::StartThread()
 
 void WiimoteScanner::StopThread()
 {
-  if (m_scan_thread_running.TestAndClear())
+  if (m_scan_thread_running.IsSet())
   {
     SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
 
@@ -556,6 +556,7 @@ void WiimoteScanner::StopThread()
       backend->RequestStopSearching();
     }
 
+    m_scan_thread_running.Clear();
     m_scan_thread.join();
   }
 }
