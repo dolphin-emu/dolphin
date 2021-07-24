@@ -214,7 +214,7 @@ void AXWiiUCode::HandleCommandList()
 
       case CMD_OUTPUT:
       case CMD_OUTPUT_DPL2:
-        volume = m_cmdlist[curr_idx++];
+        volume = m_crc == 0xd9c4bf34 ? 0x8000 : m_cmdlist[curr_idx++];
         addr_hi = m_cmdlist[curr_idx++];
         addr_lo = m_cmdlist[curr_idx++];
         addr2_hi = m_cmdlist[curr_idx++];
