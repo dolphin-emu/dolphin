@@ -301,8 +301,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  else\n"
               "    fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].zw;\n"
               "\n"
-              "  {} = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
-              "[texmap].xy, {})).abg;\n"
+              "  {} = sampleTexture(texmap, float3(float2(fixedPoint_uv) / float2(" I_TEXDIMS
+              "[texmap].xy * 128), {})).abg;\n"
               "}}",
               in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
               stereo ? "float(layer)" : "0.0");
@@ -786,7 +786,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     {
       out.Write("    int2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
-      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
       // TODO: S24 overflows here?
     }
 
@@ -910,7 +910,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "      uint sampler_num = {};\n",
               BitfieldExtract<&TwoTevStageOrders::texmap0>("ss.order"));
     out.Write("\n"
-              "      float2 uv = (float2(tevcoord.xy)) * " I_TEXDIMS "[sampler_num].xy;\n");
+              "      float2 uv = (float2(tevcoord.xy)) / float2(" I_TEXDIMS
+              "[sampler_num].xy * 128);\n");
     out.Write("      int4 color = sampleTexture(sampler_num, float3(uv, {}));\n",
               stereo ? "float(layer)" : "0.0");
     out.Write("      uint swap = {};\n",

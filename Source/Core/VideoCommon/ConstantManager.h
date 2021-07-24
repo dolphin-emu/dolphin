@@ -21,7 +21,7 @@ struct PixelShaderConstants
   std::array<int4, 4> colors;
   std::array<int4, 4> kcolors;
   int4 alpha;
-  std::array<float4, 8> texdims;
+  std::array<uint4, 8> texdims;
   std::array<int4, 2> zbias;
   std::array<int4, 2> indtexscale;
   std::array<int4, 6> indtexmtx;

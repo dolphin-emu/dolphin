@@ -393,7 +393,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
   out.Write("\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
             "\tint4 " I_ALPHA ";\n"
-            "\tfloat4 " I_TEXDIMS "[8];\n"
+            "\tint4 " I_TEXDIMS "[8];\n"
             "\tint4 " I_ZBIAS "[2];\n"
             "\tint4 " I_INDTEXSCALE "[2];\n"
             "\tint4 " I_INDTEXMTX "[6];\n"
@@ -812,7 +812,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     {
       out.Write("\tint2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
-      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
       // TODO: S24 overflows here?
     }
   }
@@ -1436,13 +1436,14 @@ static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::stri
 
   if (api_type == APIType::D3D)
   {
-    out.Write("iround(255.0 * Tex[{}].Sample(samp[{}], float3({}.xy * " I_TEXDIMS
-              "[{}].xy, {}))).{};\n",
+    out.Write("iround(255.0 * Tex[{}].Sample(samp[{}], float3({}.xy / float2(" I_TEXDIMS
+              "[{}].xy * 128), {}))).{};\n",
               texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
   }
   else
   {
-    out.Write("iround(255.0 * texture(samp[{}], float3({}.xy * " I_TEXDIMS "[{}].xy, {}))).{};\n",
+    out.Write("iround(255.0 * texture(samp[{}], float3({}.xy / float2(" I_TEXDIMS
+              "[{}].xy * 128), {}))).{};\n",
               texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
   }
 }
