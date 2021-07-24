@@ -240,22 +240,26 @@ private:
 
   struct ReuseID
   {
-    // This is a workaround for an ICE in Visual Studio 16.10.0 when making an ARM64 Release build.
-    // Once the ICE has been fixed upstream, we can move partition_key inside the tie.
-#define COMPARE_TIED(op)                                                                           \
-  (partition_key op other.partition_key) &&                                                        \
-      std::tie(data_size, encrypted, value)                                                        \
-          op std::tie(other.data_size, other.encrypted, other.value)
+    // This code is a workaround for an ICE in Visual Studio 16.10.0 when making an ARM64 Release
+    // build. Once a fixed version of Visual Studio is released, we can use std::tie instead.
+#define COMPARE_REUSE_ID_INNER(op, f, next) ((f != other.f) ? (f op other.f) : (next))
+#define COMPARE_REUSE_ID(op, equal_result)                                                         \
+  COMPARE_REUSE_ID_INNER(                                                                          \
+      op, partition_key,                                                                           \
+      COMPARE_REUSE_ID_INNER(                                                                      \
+          op, data_size,                                                                           \
+          COMPARE_REUSE_ID_INNER(op, encrypted, COMPARE_REUSE_ID_INNER(op, value, equal_result))))
 
-    bool operator==(const ReuseID& other) const { return COMPARE_TIED(==); }
-    bool operator<(const ReuseID& other) const { return COMPARE_TIED(<); }
-    bool operator>(const ReuseID& other) const { return COMPARE_TIED(>); }
+    bool operator==(const ReuseID& other) const { return COMPARE_REUSE_ID(==, true); }
+    bool operator<(const ReuseID& other) const { return COMPARE_REUSE_ID(<, false); }
+    bool operator>(const ReuseID& other) const { return COMPARE_REUSE_ID(>, false); }
 
     bool operator!=(const ReuseID& other) const { return !operator==(other); }
     bool operator>=(const ReuseID& other) const { return !operator<(other); }
     bool operator<=(const ReuseID& other) const { return !operator>(other); }
 
-#undef COMPARE_TIED
+#undef COMPARE_REUSE_ID_INNER
+#undef COMPARE_REUSE_ID
 
     WiiKey partition_key;
     u64 data_size;
