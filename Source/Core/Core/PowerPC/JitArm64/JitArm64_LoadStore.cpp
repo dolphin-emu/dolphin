@@ -539,9 +539,11 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W30);
 
-  ARM64Reg addr = ARM64Reg::W0;
+  ARM64Reg addr = gpr.GetReg();
+  ARM64Reg value = gpr.GetReg();
+  ARM64Reg WA = ARM64Reg::W30;
 
   u32 a = inst.RA, b = inst.RB;
 
@@ -550,7 +552,21 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   else
     MOV(addr, gpr.R(b));
 
-  AND(addr, addr, LogicalImm(~31, 32));  // mask sizeof cacheline
+  // Check whether a JIT cache line needs to be invalidated.
+  AND(value, addr, LogicalImm(0x1ffffc00, 32));  // upper three bits and last 10 bit are masked for
+                                                 // the bitset of cachelines, 0x1ffffc00
+  LSR(value, value, 5 + 5);  // >> 5 for cache line size, >> 5 for width of bitset
+  MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
+  LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
+
+  LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
+
+  LSRV(value, value, addr);  // move current bit to bit 0
+
+  FixupBranch bit_not_set = TBZ(value, 0);
+  FixupBranch far_addr = B();
+  SwitchToFarCode();
+  SetJumpTarget(far_addr);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
@@ -558,6 +574,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
+  LSL(ARM64Reg::W0, addr, 5);
   MOVI2R(ARM64Reg::X1, 32);
   MOVI2R(ARM64Reg::X2, 0);
   MOVP2R(ARM64Reg::X3, &JitInterface::InvalidateICache);
@@ -566,7 +583,12 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
   ABI_PopRegisters(gprs_to_push);
 
-  gpr.Unlock(ARM64Reg::W0);
+  FixupBranch near_addr = B();
+  SwitchToNearCode();
+  SetJumpTarget(bit_not_set);
+  SetJumpTarget(near_addr);
+
+  gpr.Unlock(addr, value, ARM64Reg::W30);
 }
 
 void JitArm64::dcbt(UGeckoInstruction inst)
