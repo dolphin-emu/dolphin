@@ -713,6 +713,8 @@ enum class WrapMode : u32
   Clamp = 0,
   Repeat = 1,
   Mirror = 2,
+  // Hardware testing indicates that WrapMode set to 3 behaves the same as clamp, though this is an
+  // invalid value
 };
 template <>
 struct fmt::formatter<WrapMode> : EnumFormatter<WrapMode::Mirror>
