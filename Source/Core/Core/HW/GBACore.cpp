@@ -292,6 +292,25 @@ bool Core::IsStarted() const
   return m_started;
 }
 
+CoreInfo Core::GetCoreInfo() const
+{
+  CoreInfo info{};
+  info.device_number = m_device_number;
+  info.width = GBA_VIDEO_HORIZONTAL_PIXELS;
+  info.height = GBA_VIDEO_VERTICAL_PIXELS;
+
+  if (!IsStarted())
+    return info;
+
+  info.is_gba = m_core->platform(m_core) == mPlatform::mPLATFORM_GBA;
+  info.has_rom = !m_rom_path.empty();
+  info.has_ereader =
+      info.is_gba && static_cast<::GBA*>(m_core->board)->memory.hw.devices & HW_EREADER;
+  m_core->desiredVideoDimensions(m_core, &info.width, &info.height);
+  info.game_title = m_game_title;
+  return info;
+}
+
 void Core::SetHost(std::weak_ptr<GBAHostInterface> host)
 {
   m_host = std::move(host);
@@ -305,7 +324,7 @@ void Core::SetForceDisconnect(bool force_disconnect)
 void Core::EReaderQueueCard(std::string_view card_path)
 {
   Flush();
-  if (!IsStarted() || m_core->platform(m_core) != mPlatform::mPLATFORM_GBA)
+  if (!GetCoreInfo().has_ereader)
     return;
 
   File::IOFile file(std::string(card_path), "rb");
@@ -436,28 +455,6 @@ void Core::SetupEvent()
     core->m_waiting_for_event = false;
   };
   m_event.priority = 0x80;
-}
-
-int Core::GetDeviceNumber() const
-{
-  return m_device_number;
-}
-
-void Core::GetVideoDimensions(u32* width, u32* height) const
-{
-  if (!IsStarted())
-  {
-    *width = GBA_VIDEO_HORIZONTAL_PIXELS;
-    *height = GBA_VIDEO_VERTICAL_PIXELS;
-    return;
-  }
-
-  m_core->desiredVideoDimensions(m_core, width, height);
-}
-
-std::string Core::GetGameTitle() const
-{
-  return m_game_title;
 }
 
 void Core::SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys)

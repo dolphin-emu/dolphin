@@ -15,16 +15,9 @@ GBAHost::GBAHost(std::weak_ptr<HW::GBA::Core> core)
   m_widget_controller->moveToThread(qApp->thread());
   m_core = std::move(core);
   auto core_ptr = m_core.lock();
-
-  int device_number = core_ptr->GetDeviceNumber();
-  std::string game_title = core_ptr->GetGameTitle();
-  u32 width, height;
-  core_ptr->GetVideoDimensions(&width, &height);
-
+  HW::GBA::CoreInfo info = core_ptr->GetCoreInfo();
   QueueOnObject(m_widget_controller, [widget_controller = m_widget_controller, core = m_core,
-                                      device_number, game_title, width, height] {
-    widget_controller->Create(core, device_number, game_title, width, height);
-  });
+                                      info] { widget_controller->Create(core, info); });
 }
 
 GBAHost::~GBAHost()
@@ -37,15 +30,10 @@ void GBAHost::GameChanged()
   auto core_ptr = m_core.lock();
   if (!core_ptr || !core_ptr->IsStarted())
     return;
-
-  std::string game_title = core_ptr->GetGameTitle();
-  u32 width, height;
-  core_ptr->GetVideoDimensions(&width, &height);
-
-  QueueOnObject(m_widget_controller,
-                [widget_controller = m_widget_controller, game_title, width, height] {
-                  widget_controller->GameChanged(game_title, width, height);
-                });
+  HW::GBA::CoreInfo info = core_ptr->GetCoreInfo();
+  QueueOnObject(m_widget_controller, [widget_controller = m_widget_controller, info] {
+    widget_controller->GameChanged(info);
+  });
 }
 
 void GBAHost::FrameEnded(const std::vector<u32>& video_buffer)

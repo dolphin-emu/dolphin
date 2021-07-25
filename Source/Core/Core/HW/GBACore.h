@@ -36,6 +36,17 @@ struct AVStream : mAVStream
   Core* core;
 };
 
+struct CoreInfo
+{
+  int device_number;
+  bool is_gba;
+  bool has_rom;
+  bool has_ereader;
+  u32 width;
+  u32 height;
+  std::string game_title;
+};
+
 class Core final
 {
 public:
@@ -46,14 +57,11 @@ public:
   void Stop();
   void Reset();
   bool IsStarted() const;
+  CoreInfo GetCoreInfo() const;
 
   void SetHost(std::weak_ptr<GBAHostInterface> host);
   void SetForceDisconnect(bool force_disconnect);
   void EReaderQueueCard(std::string_view card_path);
-
-  int GetDeviceNumber() const;
-  void GetVideoDimensions(u32* width, u32* height) const;
-  std::string GetGameTitle() const;
 
   void SendJoybusCommand(u64 gc_ticks, int transfer_time, u8* buffer, u16 keys);
   std::vector<u8> GetJoybusResponse();
