@@ -231,11 +231,8 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 {
   int read_samples_count = 0;
 
-  // TODO(delroth): find out why the polyphase resampling algorithm causes
-  // audio glitches in Wii games with non integral ratios.
-
   // If DSP DROM coefficients are available, support polyphase resampling.
-  if (0)  // if (coeffs && srctype == SRCTYPE_POLYPHASE)
+  if (coeffs && srctype == SRCTYPE_POLYPHASE)
   {
     s16 temp[4];
     u32 idx = 0;
@@ -264,7 +261,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
       s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
-      output[i] = (s16)samp;
+      output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
 
     last_samples[3] = temp[--idx & 3];
