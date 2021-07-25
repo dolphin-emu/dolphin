@@ -435,7 +435,27 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Move:
     SetCursorLocked(m_cursor_locked);
+    win_x = pos().x() + (size().width() / 2);
+    win_y = pos().y() + (size().height() / 2);
+    win_w = size().width() / 2;
+    win_h = size().height() / 2;
+    win_hdl = reinterpret_cast<void*>(winId());
     break;
+  case QEvent::Resize:
+  {
+    const QResizeEvent* se = static_cast<QResizeEvent*>(event);
+    QSize new_size = se->size();
+
+    QScreen* screen = window()->windowHandle()->screen();
+
+    const auto dpr = screen->devicePixelRatio();
+
+    // Window Centre for PrimeHack mouselock.
+    win_w = (new_size.width() * dpr) / 2;
+    win_h = (new_size.height() * dpr) / 2;
+    win_hdl = reinterpret_cast<void*>(winId());
+    break;
+  }
   // Happens when we add/remove the widget from the main window instead of the dedicated one
   case QEvent::ParentChange:
     SetCursorLocked(false);
