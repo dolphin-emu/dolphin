@@ -240,31 +240,46 @@ void Jit64::dcbx(UGeckoInstruction inst)
   RCX64Reg tmp = gpr.Scratch();
   RegCache::Realize(Ra, Rb, tmp);
 
-  MOV_sum(32, addr, Ra, Rb);
+  // Translate effective address to physical address.
+  MOV_sum(32, value, Ra, Rb);
+  FixupBranch bat_lookup_failed;
+  if (MSR.IR)
+  {
+    MOV(32, R(addr), R(value));
+    bat_lookup_failed = BATAddressLookup(value, tmp);
+    AND(32, R(addr), Imm32(0x0001ffff));
+    AND(32, R(value), Imm32(0xfffe0000));
+    OR(32, R(value), R(addr));
+  }
+  MOV(32, R(addr), R(value));
 
   // Check whether a JIT cache line needs to be invalidated.
-  LEA(32, value, MScaled(addr, SCALE_8, 0));  // addr << 3 (masks the first 3 bits)
-  SHR(32, R(value), Imm8(3 + 5 + 5));         // >> 5 for cache line size, >> 5 for width of bitset
+  SHR(32, R(value), Imm8(5 + 5));  // >> 5 for cache line size, >> 5 for width of bitset
   MOV(64, R(tmp), ImmPtr(GetBlockCache()->GetBlockBitSet()));
   MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
   SHR(32, R(addr), Imm8(5));
   BT(32, R(value), R(addr));
+  FixupBranch invalidate_needed = J_CC(CC_C, true);
 
-  FixupBranch c = J_CC(CC_C, true);
   SwitchToFarCode();
-  SetJumpTarget(c);
+  SetJumpTarget(invalidate_needed);
+  SHL(32, R(addr), Imm8(5));
+  if (MSR.IR)
+    SetJumpTarget(bat_lookup_failed);
+
   BitSet32 registersInUse = CallerSavedRegistersInUse();
+  registersInUse[X64Reg(tmp)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   MOV(32, R(ABI_PARAM1), R(addr));
-  SHL(32, R(ABI_PARAM1), Imm8(5));
   MOV(32, R(ABI_PARAM2), Imm32(32));
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
   ABI_CallFunction(JitInterface::InvalidateICache);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
-  c = J(true);
+
+  FixupBranch done = J(true);
   SwitchToNearCode();
-  SetJumpTarget(c);
+  SetJumpTarget(done);
 }
 
 void Jit64::dcbt(UGeckoInstruction inst)

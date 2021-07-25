@@ -91,6 +91,16 @@ void EmuCodeBlock::SwitchToNearCode()
   SetCodePtr(m_near_code, m_near_code_end, m_near_code_write_failed);
 }
 
+FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp)
+{
+  MOV(64, R(tmp), ImmPtr(&PowerPC::dbat_table[0]));
+  SHR(32, R(addr), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  MOV(32, R(addr), MComplex(tmp, addr, SCALE_4, 0));
+  BT(32, R(addr), Imm8(IntLog2(PowerPC::BAT_MAPPED_BIT)));
+
+  return J_CC(CC_Z, m_far_code.Enabled());
+}
+
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
                                              BitSet32 registers_in_use)
 {
