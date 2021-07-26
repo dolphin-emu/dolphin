@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
@@ -256,9 +257,26 @@ static T ReadFromHardware(u32 em_address)
   return 0;
 }
 
-template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static void WriteToHardware(u32 em_address, const T data)
+template <XCheckTLBFlag flag, bool never_translate = false>
+static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 {
+  DEBUG_ASSERT(size <= 4);
+
+  const u32 em_address_start_page = em_address & ~(HW_PAGE_SIZE - 1);
+  const u32 em_address_end_page = (em_address + size - 1) & ~(HW_PAGE_SIZE - 1);
+  if (em_address_start_page != em_address_end_page)
+  {
+    // The write crosses a page boundary. Break it up into two writes.
+    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
+    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
+    const u32 first_half_size = em_address_end_page - em_address;
+    const u32 second_half_size = size - first_half_size;
+    WriteToHardware<flag, never_translate>(
+        em_address, Common::RotateRight(data, second_half_size * 8), first_half_size);
+    WriteToHardware<flag, never_translate>(em_address_end_page, data, second_half_size);
+    return;
+  }
+
   if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
@@ -268,51 +286,24 @@ static void WriteToHardware(u32 em_address, const T data)
         GenerateDSIException(em_address, true);
       return;
     }
-    if ((em_address & (sizeof(T) - 1)) &&
-        (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
-    {
-      // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-      // way isn't too terrible.
-      // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-      // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-      u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-      auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
-      if (!addr_next_page.Success())
-      {
-        if (flag == XCheckTLBFlag::Write)
-          GenerateDSIException(em_address_next_page, true);
-        return;
-      }
-      T val = bswap(data);
-      u32 addr_translated = translated_addr.address;
-      for (size_t i = 0; i < sizeof(T); i++, addr_translated++)
-      {
-        if (em_address + i == em_address_next_page)
-          addr_translated = addr_next_page.address;
-        WriteToHardware<flag, u8, true>(addr_translated, static_cast<u8>(val >> (i * 8)));
-      }
-      return;
-    }
     em_address = translated_addr.address;
   }
 
-  // TODO: Make sure these are safe for unaligned addresses.
+  const u32 swapped_data = Common::swap32(Common::RotateRight(data, size * 8));
 
   if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, size);
     return;
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
       (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
   {
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
@@ -320,8 +311,7 @@ static void WriteToHardware(u32 em_address, const T data)
   if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
       (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
@@ -330,9 +320,7 @@ static void WriteToHardware(u32 em_address, const T data)
   // [0x7E000000, 0x80000000).
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data,
-                sizeof(T));
+    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data, size);
     return;
   }
 
@@ -341,19 +329,24 @@ static void WriteToHardware(u32 em_address, const T data)
   // Pac-Man World 3 in particular is affected by this.
   if (flag == XCheckTLBFlag::Write && (em_address & 0xFFFFF000) == 0x0C008000)
   {
-    switch (sizeof(T))
+    switch (size)
     {
     case 1:
-      GPFifo::Write8((u8)data);
+      GPFifo::Write8(static_cast<u8>(data));
       return;
     case 2:
-      GPFifo::Write16((u16)data);
+      GPFifo::Write16(static_cast<u16>(data));
       return;
     case 4:
-      GPFifo::Write32((u32)data);
+      GPFifo::Write32(data);
       return;
-    case 8:
-      GPFifo::Write64((u64)data);
+    default:
+      // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
+      for (size_t i = size * 8; i > 0;)
+      {
+        i -= 8;
+        GPFifo::Write8(static_cast<u8>(data >> i));
+      }
       return;
     }
   }
@@ -362,12 +355,28 @@ static void WriteToHardware(u32 em_address, const T data)
   {
     if (em_address < 0x0c000000)
     {
-      EFB_Write((u32)data, em_address);
+      EFB_Write(data, em_address);
       return;
     }
-    else
+
+    switch (size)
     {
-      Memory::mmio_mapping->Write(em_address, data);
+    case 1:
+      Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data));
+      return;
+    case 2:
+      Memory::mmio_mapping->Write<u16>(em_address, static_cast<u16>(data));
+      return;
+    case 4:
+      Memory::mmio_mapping->Write<u32>(em_address, data);
+      return;
+    default:
+      // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
+      for (size_t i = size * 8; i > 0; em_address++)
+      {
+        i -= 8;
+        Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data >> i));
+      }
       return;
     }
   }
@@ -608,42 +617,40 @@ u32 Read_U16_ZX(const u32 address)
   return Read_U16(address);
 }
 
-void Write_U8(const u8 var, const u32 address)
+void Write_U8(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 1);
 }
 
-void Write_U16(const u16 var, const u32 address)
+void Write_U16(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 2);
 }
-void Write_U16_Swap(const u16 var, const u32 address)
+void Write_U16_Swap(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 2);
-  Write_U16(Common::swap16(var), address);
+  Write_U16((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address);
 }
 
 void Write_U32(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 4);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 4);
   Write_U32(Common::swap32(var), address);
 }
 
 void Write_U64(const u64 var, const u32 address)
 {
   Memcheck(address, (u32)var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
 }
 void Write_U64_Swap(const u64 var, const u32 address)
 {
-  Memcheck(address, (u32)var, true, 8);
   Write_U64(Common::swap64(var), address);
 }
 
@@ -688,24 +695,25 @@ double HostRead_F64(const u32 address)
   return Common::BitCast<double>(integral);
 }
 
-void HostWrite_U8(const u8 var, const u32 address)
+void HostWrite_U8(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 1);
 }
 
-void HostWrite_U16(const u16 var, const u32 address)
+void HostWrite_U16(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 2);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 4);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4);
 }
 
 void HostWrite_F32(const float var, const u32 address)
@@ -722,8 +730,8 @@ void HostWrite_F64(const double var, const u32 address)
   HostWrite_U64(integral, address);
 }
 
-template <typename T>
-static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAddressSpace space)
+static TryWriteResult HostTryWriteUX(const u32 var, const u32 address, const u32 size,
+                                     RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(address, space))
     return TryWriteResult();
@@ -731,15 +739,15 @@ static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAd
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
     return TryWriteResult(!!MSR.DR);
   case RequestedAddressSpace::Physical:
-    WriteToHardware<XCheckTLBFlag::NoException, T, true>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
     return TryWriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.DR)
       return TryWriteResult();
-    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
     return TryWriteResult(true);
   }
 
@@ -747,24 +755,28 @@ static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAd
   return TryWriteResult();
 }
 
-TryWriteResult HostTryWriteU8(const u8 var, const u32 address, RequestedAddressSpace space)
+TryWriteResult HostTryWriteU8(const u32 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u8>(var, address, space);
+  return HostTryWriteUX(var, address, 1, space);
 }
 
-TryWriteResult HostTryWriteU16(const u16 var, const u32 address, RequestedAddressSpace space)
+TryWriteResult HostTryWriteU16(const u32 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u16>(var, address, space);
+  return HostTryWriteUX(var, address, 2, space);
 }
 
 TryWriteResult HostTryWriteU32(const u32 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u32>(var, address, space);
+  return HostTryWriteUX(var, address, 4, space);
 }
 
 TryWriteResult HostTryWriteU64(const u64 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u64>(var, address, space);
+  const TryWriteResult result = HostTryWriteUX(static_cast<u32>(var >> 32), address, 4, space);
+  if (!result)
+    return result;
+
+  return HostTryWriteUX(static_cast<u32>(var), address + 4, 4, space);
 }
 
 TryWriteResult HostTryWriteF32(const float var, const u32 address, RequestedAddressSpace space)
@@ -1001,8 +1013,8 @@ void ClearCacheLine(u32 address)
 
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
-  for (u32 i = 0; i < 32; i += 8)
-    WriteToHardware<XCheckTLBFlag::Write, u64, true>(address + i, 0);
+  for (u32 i = 0; i < 32; i += 4)
+    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
