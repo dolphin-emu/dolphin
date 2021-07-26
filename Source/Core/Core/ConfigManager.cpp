@@ -234,7 +234,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   {
     core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
     core->Set(fmt::format("AdapterRumble{}", i), m_AdapterRumble[i]);
-    core->Set(fmt::format("SimulateKonga{}", i), m_AdapterKonga[i]);
+    core->Set(fmt::format("AdapterSimulatedType{}", i), m_AdapterSimulatedType[i]);
   }
   core->Set("WiiSDCard", m_WiiSDCard);
   core->Set("WiiKeyboard", m_WiiKeyboard);
@@ -494,7 +494,16 @@ void SConfig::LoadCoreSettings(IniFile& ini)
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
               (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
     core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
-    core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
+    core->Get(fmt::format("AdapterSimulatedType{}", i), &m_AdapterSimulatedType[i],
+              SerialInterface::SIDEVICE_NONE);
+    if (m_AdapterSimulatedType[i] == SerialInterface::SIDEVICE_NONE)
+    {
+      // No value for AdapterSimulatedType#, use deprecated SimulateKonga# if present
+      bool deprecatedKongaSetting;
+      core->Get(fmt::format("SimulateKonga{}", i), &deprecatedKongaSetting, false);
+      m_AdapterSimulatedType[i] = deprecatedKongaSetting ? SerialInterface::SIDEVICE_GC_TARUKONGA :
+                                                           SerialInterface::SIDEVICE_GC_CONTROLLER;
+    }
   }
   core->Get("WiiSDCard", &m_WiiSDCard, true);
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);

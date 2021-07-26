@@ -309,7 +309,7 @@ struct SConfig
   // Input settings
   bool m_BackgroundInput;
   bool m_AdapterRumble[4];
-  bool m_AdapterKonga[4];
+  SerialInterface::SIDevices m_AdapterSimulatedType[4];
 
   // Auto-update settings
   std::string m_auto_update_track;

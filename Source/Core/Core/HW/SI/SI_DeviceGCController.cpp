@@ -41,6 +41,14 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   ISIDevice::RunBuffer(buffer, request_length);
 
   GCPadStatus pad_status = GetPadStatus();
+  INFO_LOG_FMT(SERIALINTERFACE, "");
+  INFO_LOG_FMT(SERIALINTERFACE,
+               "pad_status isConnected: {}, button: {:x},"
+               " stickX: {}, stickY: {}, substickX: {}, substickY: {}, "
+               "triggerLeft: {}, triggerRight: {}, analogA: {}, analogB: {}",
+               pad_status.isConnected, pad_status.button, pad_status.stickX, pad_status.stickY,
+               pad_status.substickX, pad_status.substickY, pad_status.triggerLeft,
+               pad_status.triggerRight, pad_status.analogA, pad_status.analogB);
   if (!pad_status.isConnected)
     return -1;
 
@@ -48,12 +56,14 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   const auto command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
+  INFO_LOG_FMT(SERIALINTERFACE, "command: {}", command);
   switch (command)
   {
   case EBufferCommands::CMD_STATUS:
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_GC_CONTROLLER);
+    u32 id = Common::swap32(GetControllerId());
+    DEBUG_LOG_FMT(SERIALINTERFACE, "Copying pad id: {} ({:08x})", id, id);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
@@ -63,6 +73,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Direct (Request length: {})", request_length);
     u32 high, low;
     GetData(high, low);
+    INFO_LOG_FMT(SERIALINTERFACE, "high: {:08x}, low: {:08x}", high, low);
     for (int i = 0; i < 4; i++)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
@@ -283,6 +294,11 @@ void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
   m_origin.substick_y = pad_status.substickY;
   m_origin.trigger_left = pad_status.triggerLeft;
   m_origin.trigger_right = pad_status.triggerRight;
+}
+
+TSIDevices CSIDevice_GCController::GetControllerId() const
+{
+  return SI_GC_CONTROLLER;
 }
 
 // SendCommand

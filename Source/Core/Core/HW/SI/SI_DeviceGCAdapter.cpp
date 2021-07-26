@@ -21,10 +21,8 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
   // Make sure PAD_GET_ORIGIN gets set due to a newly connected device.
   GCAdapter::ResetDeviceType(m_device_number);
 
-  // get the correct pad number that should rumble locally when using netplay
-  const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
-  if (pad_num < 4)
-    m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[pad_num];
+  const SIDevices simulated_device = SConfig::GetInstance().m_AdapterSimulatedType[m_device_number];
+  OnSimulatedDeviceChanged(simulated_device, m_device_number);
 }
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
@@ -50,6 +48,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 
 int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
 {
+  DEBUG_LOG_FMT(SERIALINTERFACE, "GCAdapter::RunBuffer length: {}", request_length);
   if (!Core::WantsDeterminism())
   {
     // The previous check is a hack to prevent a desync due to SI devices
@@ -60,24 +59,29 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
     // into this port on the hardware gc adapter, exposing it to the game.
     if (!GCAdapter::DeviceConnected(m_device_number))
     {
+      DEBUG_LOG_FMT(SERIALINTERFACE, "GCAdapter::RunBuffer device {} not connected",
+                    m_device_number);
       u32 device = Common::swap32(SI_NONE);
       memcpy(buffer, &device, sizeof(device));
       return 4;
     }
   }
-  return CSIDevice_GCController::RunBuffer(buffer, request_length);
+  return m_simulated_device->RunBuffer(buffer, request_length);
 }
 
-bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
+void CSIDevice_GCAdapter::OnSimulatedDeviceChanged(const SIDevices device_type,
+                                                   const int device_number)
 {
-  CSIDevice_GCController::GetData(hi, low);
-
-  if (m_simulate_konga)
+  if (device_number != m_device_number)
   {
-    hi &= CSIDevice_TaruKonga::HI_BUTTON_MASK;
+    return;
   }
-
-  return true;
+  // get the correct pad number that should rumble locally when using netplay
+  const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
+  if (pad_num < 4)
+  {
+    m_simulated_device = SIDevice_Create(device_type, pad_num);
+  }
 }
 
 void CSIDevice_GCController::Rumble(int pad_num, ControlState strength)

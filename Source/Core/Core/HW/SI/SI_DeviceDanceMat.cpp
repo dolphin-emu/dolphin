@@ -16,21 +16,6 @@ CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int device_number)
 {
 }
 
-int CSIDevice_DanceMat::RunBuffer(u8* buffer, int request_length)
-{
-  // Read the command
-  const auto command = static_cast<EBufferCommands>(buffer[0]);
-  if (command == EBufferCommands::CMD_STATUS)
-  {
-    ISIDevice::RunBuffer(buffer, request_length);
-
-    u32 id = Common::swap32(SI_DANCEMAT);
-    std::memcpy(buffer, &id, sizeof(id));
-    return sizeof(id);
-  }
-  return CSIDevice_GCController::RunBuffer(buffer, request_length);
-}
-
 u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
 {
   // Map the dpad to the blue arrows, the buttons to the orange arrows
@@ -68,5 +53,10 @@ bool CSIDevice_DanceMat::GetData(u32& hi, u32& low)
   low = 0x8080ffff;
 
   return true;
+}
+
+TSIDevices CSIDevice_DanceMat::GetControllerId() const
+{
+  return SI_DANCEMAT;
 }
 }  // namespace SerialInterface

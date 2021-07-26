@@ -80,6 +80,7 @@ public:
 
 protected:
   void SetOrigin(const GCPadStatus& pad_status);
+  virtual TSIDevices GetControllerId() const;
 };
 
 // "TaruKonga", the DK Bongo controller

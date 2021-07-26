@@ -6,6 +6,7 @@
 #include <QDialog>
 
 class QCheckBox;
+class QComboBox;
 class QLabel;
 class QDialogButtonBox;
 class QVBoxLayout;
@@ -35,5 +36,5 @@ private:
 
   // Checkboxes
   QCheckBox* m_rumble;
-  QCheckBox* m_simulate_bongos;
+  QComboBox* m_simulated_type_combo;
 };

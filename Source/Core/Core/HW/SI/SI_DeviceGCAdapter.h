@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "InputCommon/GCPadStatus.h"
@@ -17,9 +19,9 @@ public:
   GCPadStatus GetPadStatus() override;
   int RunBuffer(u8* buffer, int request_length) override;
 
-  bool GetData(u32& hi, u32& low) override;
+  void OnSimulatedDeviceChanged(const SIDevices device_type, const int device_number);
 
 private:
-  bool m_simulate_konga{};
+  std::unique_ptr<ISIDevice> m_simulated_device;
 };
 }  // namespace SerialInterface
