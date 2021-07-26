@@ -11,6 +11,7 @@
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/CPU.h"
@@ -277,6 +278,8 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
     return;
   }
 
+  bool wi = false;
+
   if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
@@ -287,41 +290,7 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
       return;
     }
     em_address = translated_addr.address;
-  }
-
-  const u32 swapped_data = Common::swap32(Common::RotateRight(data, size * 8));
-
-  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
-  {
-    // Handle RAM; the masking intentionally discards bits (essentially creating
-    // mirrors of memory).
-    // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
-    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, size);
-    return;
-  }
-
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
-  {
-    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, size);
-    return;
-  }
-
-  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
-      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
-  {
-    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, size);
-    return;
-  }
-
-  // In Fake-VMEM mode, we need to map the memory somewhere into
-  // physical memory for BAT translation to work; we currently use
-  // [0x7E000000, 0x80000000).
-  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
-  {
-    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data, size);
-    return;
+    wi = translated_addr.wi;
   }
 
   // Check for a gather pipe write.
@@ -379,6 +348,59 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
       }
       return;
     }
+  }
+
+  const u32 swapped_data = Common::swap32(Common::RotateRight(data, size * 8));
+
+  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
+  if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
+      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  {
+    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, size);
+    return;
+  }
+
+  if (wi && (size < 4 || (em_address & 0x3)))
+  {
+    // When a write to memory is performed in hardware, 64 bits of data are sent to the memory
+    // controller along with a mask. This mask is encoded using just two bits of data - one for
+    // the upper 32 bits and one for the lower 32 bits - which leads to some odd data duplication
+    // behavior for write-through/cache-inhibited writes with a start address or end address that
+    // isn't 32-bit aligned. See https://bugs.dolphin-emu.org/issues/12565 for details.
+
+    const u32 rotated_data = Common::RotateRight(data, ((em_address & 0x3) + size) * 8);
+
+    for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
+    {
+      WriteToHardware<flag, true>(addr, rotated_data, 4);
+      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+    }
+
+    return;
+  }
+
+  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
+  {
+    // Handle RAM; the masking intentionally discards bits (essentially creating
+    // mirrors of memory).
+    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, size);
+    return;
+  }
+
+  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+  {
+    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, size);
+    return;
+  }
+
+  // In Fake-VMEM mode, we need to map the memory somewhere into
+  // physical memory for BAT translation to work; we currently use
+  // [0x7E000000, 0x80000000).
+  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  {
+    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data, size);
+    return;
   }
 
   PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
