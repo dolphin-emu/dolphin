@@ -63,8 +63,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for {} texgens{}{}\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box);
-  WriteUberShaderCommonHeader(out, api_type, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
 

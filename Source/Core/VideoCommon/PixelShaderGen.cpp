@@ -565,6 +565,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
             uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
 
   if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)

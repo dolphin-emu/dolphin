@@ -105,6 +105,24 @@ void WriteIsNanHeader(ShaderCode& out, APIType api_type)
   }
 }
 
+void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
+                                const ShaderHostConfig& host_config)
+{
+  // ==============================================
+  //  BitfieldExtract for APIs which don't have it
+  // ==============================================
+  if (!host_config.backend_bitfield)
+  {
+    out.Write("uint bitfieldExtract(uint val, int off, int size) {{\n"
+              "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
+              "  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract "
+              "instruction.\n"
+              "  uint mask = uint((1 << size) - 1);\n"
+              "  return uint(val >> off) & mask;\n"
+              "}}\n\n");
+  }
+}
+
 static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,
                                std::string_view type, std::string_view name, int var_index,
                                std::string_view semantic = {}, int semantic_index = -1)
