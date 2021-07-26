@@ -18,6 +18,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -367,6 +368,11 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
     // the upper 32 bits and one for the lower 32 bits - which leads to some odd data duplication
     // behavior for write-through/cache-inhibited writes with a start address or end address that
     // isn't 32-bit aligned. See https://bugs.dolphin-emu.org/issues/12565 for details.
+
+    // TODO: This interrupt is supposed to have associated cause and address registers
+    // TODO: This should trigger the hwtest's interrupt handling, but it does not seem to
+    //       (https://github.com/dolphin-emu/hwtests/pull/42)
+    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
 
     const u32 rotated_data = Common::RotateRight(data, ((em_address & 0x3) + size) * 8);
 
