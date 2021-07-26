@@ -197,18 +197,16 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      ARM64Reg temp = ARM64Reg::W0;
-      temp = ByteswapBeforeStore(this, temp, RS, flags, false);
-      if (temp != ARM64Reg::W0)
-        MOV(ARM64Reg::W0, temp);
+      const bool reverse = (flags & BackPatchInfo::FLAG_REVERSE) != 0;
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
+        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U32_Swap : &PowerPC::Write_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U16);
+        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U16_Swap : &PowerPC::Write_U16);
       else
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
 
+      MOV(ARM64Reg::W0, RS);
       BLR(ARM64Reg::X8);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
