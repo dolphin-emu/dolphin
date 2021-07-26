@@ -19,13 +19,11 @@
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
-#include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/VideoUtils.h"
 
-#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -105,7 +103,6 @@ void EnhancementsWidget::CreateWidgets()
                                      TEXTURE_FILTERING_FORCE_LINEAR_ANISO_16X);
 
   m_pp_effect = new ToolTipComboBox();
-  m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
@@ -132,10 +129,7 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_texture_filtering_combo, row, 1, 1, -1);
   ++row;
 
-  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
-  enhancements_layout->addWidget(m_pp_effect, row, 1);
-  enhancements_layout->addWidget(m_configure_pp_effect, row, 2);
-  ++row;
+
 
   enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
   enhancements_layout->addWidget(m_per_pixel_lighting, row, 1, 1, -1);
@@ -186,73 +180,9 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_texture_filtering_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_pp_effect, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
   connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
-    m_block_save = true;
-    LoadPPShaders();
-    m_block_save = false;
-
     SaveSettings();
   });
-  connect(m_configure_pp_effect, &QPushButton::clicked, this,
-          &EnhancementsWidget::ConfigurePostProcessingShader);
-}
-
-void EnhancementsWidget::LoadPPShaders()
-{
-  std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
-  if (g_Config.stereo_mode == StereoMode::Anaglyph)
-  {
-    shaders = VideoCommon::PostProcessing::GetAnaglyphShaderList();
-  }
-  else if (g_Config.stereo_mode == StereoMode::Passive)
-  {
-    shaders = VideoCommon::PostProcessing::GetPassiveShaderList();
-  }
-
-  m_pp_effect->clear();
-
-  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
-    m_pp_effect->addItem(tr("(off)"));
-
-  auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
-
-  bool found = false;
-
-  for (const auto& shader : shaders)
-  {
-    m_pp_effect->addItem(QString::fromStdString(shader));
-    if (selected_shader == shader)
-    {
-      m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
-      found = true;
-    }
-  }
-
-  if (g_Config.stereo_mode == StereoMode::Anaglyph && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
-  else if (g_Config.stereo_mode == StereoMode::Passive && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
-
-  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
-  m_pp_effect->setEnabled(supports_postprocessing);
-
-  m_pp_effect->setToolTip(supports_postprocessing ?
-                              QString{} :
-                              tr("%1 doesn't support this feature.")
-                                  .arg(tr(g_video_backend->GetDisplayName().c_str())));
-
-  VideoCommon::PostProcessingConfiguration pp_shader;
-  if (selected_shader != "(off)" && supports_postprocessing)
-  {
-    pp_shader.LoadShader(selected_shader);
-    m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
-  }
-  else
-  {
-    m_configure_pp_effect->setEnabled(false);
-  }
 }
 
 void EnhancementsWidget::LoadSettings()
@@ -292,10 +222,6 @@ void EnhancementsWidget::LoadSettings()
       m_texture_filtering_combo->setCurrentIndex(TEXTURE_FILTERING_FORCE_LINEAR);
     break;
   }
-
-  // Post Processing Shader
-  LoadPPShaders();
-
   // Stereoscopy
   const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
   m_3d_mode->setEnabled(supports_stereoscopy);
@@ -387,25 +313,6 @@ void EnhancementsWidget::SaveSettings()
                              TextureFilteringMode::Linear);
     break;
   }
-
-  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
-  const bool passive = g_Config.stereo_mode == StereoMode::Passive;
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
-                           (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
-                               "(off)" :
-                               m_pp_effect->currentText().toStdString());
-
-  VideoCommon::PostProcessingConfiguration pp_shader;
-  if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
-  {
-    pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
-    m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
-  }
-  else
-  {
-    m_configure_pp_effect->setEnabled(false);
-  }
-
   LoadSettings();
 }
 
@@ -430,9 +337,6 @@ void EnhancementsWidget::AddDescriptions()
       "scaling filter selected by the game.<br><br>Any option except 'Default' will alter the look "
       "of the game's textures and might cause issues in a small number of "
       "games.<br><br><dolphin_emphasis>If unsure, select 'Default'.</dolphin_emphasis>");
-  static const char TR_POSTPROCESSING_DESCRIPTION[] =
-      QT_TR_NOOP("Applies a post-processing effect after rendering a frame.<br><br "
-                 "/><dolphin_emphasis>If unsure, select (off).</dolphin_emphasis>");
   static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
       QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
                  "effects.<br><br>Slightly increases GPU load and causes relatively few graphical "
@@ -502,9 +406,6 @@ void EnhancementsWidget::AddDescriptions()
   m_texture_filtering_combo->SetTitle(tr("Texture Filtering"));
   m_texture_filtering_combo->SetDescription(tr(TR_FORCE_TEXTURE_FILTERING_DESCRIPTION));
 
-  m_pp_effect->SetTitle(tr("Post-Processing Effect"));
-  m_pp_effect->SetDescription(tr(TR_POSTPROCESSING_DESCRIPTION));
-
   m_scaled_efb_copy->SetDescription(tr(TR_SCALED_EFB_COPY_DESCRIPTION));
 
   m_per_pixel_lighting->SetDescription(tr(TR_PER_PIXEL_LIGHTING_DESCRIPTION));
@@ -529,10 +430,4 @@ void EnhancementsWidget::AddDescriptions()
   m_3d_convergence->SetDescription(tr(TR_3D_CONVERGENCE_DESCRIPTION));
 
   m_3d_swap_eyes->SetDescription(tr(TR_3D_SWAP_EYES_DESCRIPTION));
-}
-
-void EnhancementsWidget::ConfigurePostProcessingShader()
-{
-  const std::string shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
-  PostProcessingConfigWindow(this, shader).exec();
 }
