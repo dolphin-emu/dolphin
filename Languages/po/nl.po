@@ -12,9 +12,9 @@
 # Jos van Mourik, 2018-2019,2021
 # MADCreations <http://www.dpro.freehosting.org>, 2011
 # Marinus Schot <marinus@live.com>, 2013
-# Mike van der Kuijl <kuijlmike@gmail.com>, 2019-2020
-# Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2021
-# Mike van der Kuijl <kuijlmike@gmail.com>, 2021
+# Miksel12 <kuijlmike@gmail.com>, 2019-2020
+# Miksel12 <kuijlmike@gmail.com>, 2020-2021
+# Miksel12 <kuijlmike@gmail.com>, 2021
 # Mourits Pvllen <mauritspullen@gmail.com>, 2014
 # Pierre Bourdon <delroth@gmail.com>, 2014
 # Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2015-2016
@@ -23,8 +23,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-21 09:18+0200\n"
-"PO-Revision-Date: 2021-07-21 07:18+0000\n"
+"POT-Creation-Date: 2021-07-27 22:57+0200\n"
+"PO-Revision-Date: 2021-07-27 20:57+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -195,19 +195,19 @@ msgstr ""
 "%2 object(en)\n"
 "Huidige Frame: %3"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:829
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:827
 msgid "%1 has joined"
 msgstr "%1 doet nu mee"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:834
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:832
 msgid "%1 has left"
 msgstr "%1 is vertrokken"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1027
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1025
 msgid "%1 is not a valid ROM"
-msgstr ""
+msgstr "%1 is geen geldige ROM"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:956
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:954
 msgid "%1 is now golfing"
 msgstr "%1 is nu aan het golfen"
 
@@ -260,21 +260,21 @@ msgstr "%1x Native (%2x%3)"
 msgid "& And"
 msgstr "& En"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:295
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "&1x"
-msgstr ""
+msgstr "&1x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:297
+#: Source/Core/DolphinQt/GBAWidget.cpp:388
 msgid "&2x"
-msgstr ""
+msgstr "&2x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:299
+#: Source/Core/DolphinQt/GBAWidget.cpp:390
 msgid "&3x"
-msgstr ""
+msgstr "&3x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:301
+#: Source/Core/DolphinQt/GBAWidget.cpp:392
 msgid "&4x"
-msgstr ""
+msgstr "&4x"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:606
 msgid "&About"
@@ -313,6 +313,10 @@ msgstr "&Automatische Start"
 msgid "&Boot from DVD Backup"
 msgstr "&Opstarten vanaf DVD Backup"
 
+#: Source/Core/DolphinQt/GBAWidget.cpp:395
+msgid "&Borderless Window"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:470
 msgid "&Breakpoints"
 msgstr "&Breakpoints"
@@ -345,9 +349,9 @@ msgstr "&Clone..."
 msgid "&Code"
 msgstr "&Code"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:270
+#: Source/Core/DolphinQt/GBAWidget.cpp:349
 msgid "&Connected"
-msgstr ""
+msgstr "&Verbonden"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:531
 msgid "&Controller Settings"
@@ -389,9 +393,9 @@ msgstr "&Schijf Uitwerpen"
 msgid "&Emulation"
 msgstr "&Emulatie"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:315
+#: Source/Core/DolphinQt/GBAWidget.cpp:375
 msgid "&Export State"
-msgstr ""
+msgstr "&Exporteer State"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:105
 msgid "&Export as .gci..."
@@ -433,9 +437,9 @@ msgstr "&Help"
 msgid "&Hotkey Settings"
 msgstr "&Sneltoets Instellingen"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:311
+#: Source/Core/DolphinQt/GBAWidget.cpp:372
 msgid "&Import State"
-msgstr ""
+msgstr "&Importeer State"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:115
 msgid "&Import..."
@@ -444,6 +448,10 @@ msgstr "&Importeer..."
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:514
 msgid "&Insert blr"
 msgstr "&Voeg blr toe"
+
+#: Source/Core/DolphinQt/GBAWidget.cpp:405
+msgid "&Interframe Blending"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:495
 msgid "&JIT"
@@ -473,9 +481,9 @@ msgstr "&Geheugen"
 msgid "&Movie"
 msgstr "&Film"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:288
+#: Source/Core/DolphinQt/GBAWidget.cpp:378
 msgid "&Mute"
-msgstr ""
+msgstr "&Dempen"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:487
 msgid "&Network"
@@ -531,7 +539,7 @@ msgstr "&Verwijder Code"
 msgid "&Rename symbol"
 msgstr "&Symbool hernoemen"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:284
+#: Source/Core/DolphinQt/GBAWidget.cpp:367
 #: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "&Reset"
 msgstr "&Reset"
@@ -543,6 +551,10 @@ msgstr "&Resourcepakket Beheer"
 #: Source/Core/DolphinQt/MenuBar.cpp:972
 msgid "&Save Symbol Map"
 msgstr "&Sla Symbol Map op"
+
+#: Source/Core/DolphinQt/GBAWidget.cpp:363
+msgid "&Scan e-Reader Card(s)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:172
 msgid "&Speed Limit:"
@@ -564,9 +576,9 @@ msgstr "&Threads"
 msgid "&Tools"
 msgstr "&Tools"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:280
+#: Source/Core/DolphinQt/GBAWidget.cpp:359
 msgid "&Unload ROM"
-msgstr ""
+msgstr "&Leeg ROM"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:401
 msgid "&View"
@@ -635,7 +647,7 @@ msgid "--> %1"
 msgstr "--> %1"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:225
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:629
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:627
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:85
 msgid "..."
 msgstr "..."
@@ -709,7 +721,7 @@ msgstr "3D diepte"
 
 #: Source/Core/Core/HotkeyManager.cpp:192
 msgid "3x"
-msgstr ""
+msgstr "3x"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:53
 msgid "3x Native (1920x1584) for 1080p"
@@ -1243,6 +1255,10 @@ msgstr "Altijd Verbonden"
 msgid "Always Hide Mouse Cursor"
 msgstr "Muisaanwijzer Altijd Verbergen"
 
+#: Source/Core/DolphinQt/GBAWidget.cpp:400
+msgid "Always on &Top"
+msgstr ""
+
 #: Source/Core/Common/Assert.h:39
 #, c-format
 msgid ""
@@ -1350,7 +1366,7 @@ msgstr "Weet u zeker dat u dit bestand wilt verwijderen?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "Weet u zeker dat u dit pakket wilt verwijderen?"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:448
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:446
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Weet u zeker dat u NetPlay wilt afsluiten?"
 
@@ -1367,7 +1383,7 @@ msgstr "Beeldverhouding"
 msgid "Aspect Ratio:"
 msgstr "Beeldverhouding:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:241
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:239
 msgid "Assign Controller Ports"
 msgstr "Controllerpoorten Toewijzen"
 
@@ -1422,7 +1438,7 @@ msgstr "Auto (Veelvoud van 640x528)"
 msgid "Auto Update Settings"
 msgstr "Instellingen voor automatisch bijwerken"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:429
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:427
 msgid ""
 "Auto internal resolution is not allowed in strict sync mode, as it depends "
 "on window size.\n"
@@ -1480,7 +1496,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:143
 msgid "BIOS:"
-msgstr ""
+msgstr "BIOS:"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:578
 msgid "BP register "
@@ -1719,12 +1735,12 @@ msgstr "Blader &NetPlay Sessies...."
 msgid "Buffer Size:"
 msgstr "Buffergrootte:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:844
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:842
 msgid "Buffer size changed to %1"
 msgstr "Buffergrootte gewijzigd naar %1"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:104
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:875
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:873
 msgid "Buffer:"
 msgstr "Buffer:"
 
@@ -1956,7 +1972,7 @@ msgstr ""
 "Het veranderen van cheats zal pas van kracht worden wanneer het spel opnieuw "
 "wordt opgestart."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:212
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:210
 msgid "Chat"
 msgstr "Chat"
 
@@ -1992,7 +2008,7 @@ msgstr ""
 "Controleer of u de vereiste machtigingen heeft om het bestand te "
 "verwijderen, of dat het nog in gebruik is."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:158
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:156
 msgid "Checksum"
 msgstr "Controlesom"
 
@@ -2161,7 +2177,7 @@ msgid "Confirm on Stop"
 msgstr "Bevestiging bij Stop"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1224
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:447
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:445
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:237
 msgid "Confirmation"
 msgstr "Bevestiging"
@@ -2363,9 +2379,9 @@ msgstr ""
 msgid "Converting..."
 msgstr "Converteren..."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:238
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:638
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:674
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:236
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:636
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:672
 msgid "Copy"
 msgstr "Kopieer"
 
@@ -2393,7 +2409,7 @@ msgstr "Kopieer Hex"
 msgid "Copy code &line"
 msgstr "Kopieer code &lijn"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:123
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:124
 msgid "Copy failed"
 msgstr "Kopiëren mislukt"
 
@@ -2515,7 +2531,7 @@ msgstr ""
 msgid "Could not recognize file {0}"
 msgstr "Kon het bestand {0} niet herkennen"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:181
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:182
 msgid ""
 "Could not write memory card file {0}.\n"
 "\n"
@@ -2535,7 +2551,7 @@ msgstr ""
 "In dat geval moet u uw geheugenkaartlocatie opnieuw aangeven in de "
 "configuratie."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:910
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:908
 msgid "Couldn't look up central server"
 msgstr "Kon de centrale server niet vinden"
 
@@ -2609,7 +2625,7 @@ msgstr "Huidige Regio"
 msgid "Current context"
 msgstr "Huidige context"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:159
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:157
 msgid "Current game"
 msgstr "Huidig spel"
 
@@ -2645,17 +2661,20 @@ msgid "DSP Emulation Engine"
 msgstr "DSP Emulatie Engine"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:92
-#: Source/Core/DolphinQt/Settings/AudioPane.cpp:51
 msgid "DSP HLE (fast)"
 msgstr "DSP HLE (snel)"
 
+#: Source/Core/DolphinQt/Settings/AudioPane.cpp:51
+msgid "DSP HLE (recommended)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:53
-msgid "DSP LLE Interpreter (slow)"
-msgstr "DSP LLE Interpreter (traag)"
+msgid "DSP LLE Interpreter (very slow)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:52
-msgid "DSP LLE Recompiler"
-msgstr "DSP LLE Recompiler"
+msgid "DSP LLE Recompiler (slow)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:31
 msgid "DSU Client"
@@ -2929,9 +2948,9 @@ msgstr ""
 "\n"
 "Wilt u echt Direct3D 11 gebruiken? In geval van twijfel 'Nee' selecteren."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:270
+#: Source/Core/DolphinQt/GBAWidget.cpp:349
 msgid "Dis&connected"
-msgstr ""
+msgstr "&Verbinding Verbroken"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:358
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:375
@@ -3104,7 +3123,7 @@ msgstr "Dolphin kon de gevraagde actie niet voltooien."
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "Dolphin is een vrije en open-source GameCub- en Wii-emulator."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:915
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:913
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin is te oud voor de traversal server"
 
@@ -3381,7 +3400,7 @@ msgstr ""
 "versie {0}.{1} -- Als u Dolphin recentelijk heeft geüpdatet is het mogelijk "
 "dat Windows eerst moet herstarten voordat de driver herkend wordt."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:134
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:132
 msgid ""
 "Each player sends their own inputs to the game, with equal buffer size for "
 "all players, configured by the host.\n"
@@ -3753,7 +3772,7 @@ msgstr "Gelijk aan"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:259
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:375
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:215
-#: Source/Core/DolphinQt/GBAWidget.cpp:393
+#: Source/Core/DolphinQt/GBAWidget.cpp:525
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:332
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:361
 #: Source/Core/DolphinQt/Main.cpp:213 Source/Core/DolphinQt/Main.cpp:228
@@ -3778,11 +3797,11 @@ msgstr "Gelijk aan"
 #: Source/Core/DolphinQt/MenuBar.cpp:1612
 #: Source/Core/DolphinQt/MenuBar.cpp:1662
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:314
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:428
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:643
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:899
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1017
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1027
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:426
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:641
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:897
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1015
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1025
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:333
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:339
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:346
@@ -3848,35 +3867,35 @@ msgstr ""
 
 #: Source/Core/Core/HW/GBACore.cpp:192
 msgid "Error: GBA{0} failed to create core"
-msgstr ""
+msgstr "Fout: GBA{0} initialisatie mislukt "
 
-#: Source/Core/Core/HW/GBACore.cpp:328
+#: Source/Core/Core/HW/GBACore.cpp:347
 msgid "Error: GBA{0} failed to load the BIOS in {1}"
-msgstr ""
+msgstr "Fout: GBA{0} BIOS in {1} laden mislukt"
 
 #: Source/Core/Core/HW/GBACore.cpp:212
 msgid "Error: GBA{0} failed to load the ROM in {1}"
-msgstr ""
+msgstr "Fout: GBA{0} ROM in {1} laden mislukt"
 
-#: Source/Core/Core/HW/GBACore.cpp:347
+#: Source/Core/Core/HW/GBACore.cpp:366
 msgid "Error: GBA{0} failed to load the save in {1}"
-msgstr ""
+msgstr "Fout: GBA{0} Save in {1} laden mislukt"
 
-#: Source/Core/Core/HW/GBACore.cpp:322
+#: Source/Core/Core/HW/GBACore.cpp:341
 msgid "Error: GBA{0} failed to open the BIOS in {1}"
-msgstr ""
+msgstr "Fout: GBA{0} BIOS in {1} openen mislukt"
 
 #: Source/Core/Core/HW/GBACore.cpp:182
 msgid "Error: GBA{0} failed to open the ROM in {1}"
-msgstr ""
+msgstr "Fout: GBA{0} ROM in {1} openen mislukt"
 
-#: Source/Core/Core/HW/GBACore.cpp:341
+#: Source/Core/Core/HW/GBACore.cpp:360
 msgid "Error: GBA{0} failed to open the save in {1}"
-msgstr ""
+msgstr "Fout: GBA{0} Save in {1} openen mislukt"
 
 #: Source/Core/Core/HW/SI/SI_Device.cpp:198
 msgid "Error: This build does not support emulated GBA controllers"
-msgstr ""
+msgstr "Fout: Deze versie ondersteunt geen geëmuleerde GBA-controllers"
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:336
 msgid ""
@@ -3916,7 +3935,7 @@ msgstr "Europa"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:116
 msgid "Exclusive Ubershaders"
-msgstr ""
+msgstr "Exclusieve Ubershaders"
 
 #: Source/Core/Core/HotkeyManager.cpp:36
 msgid "Exit"
@@ -4025,7 +4044,7 @@ msgstr "Extensie Bewegings-invoer"
 msgid "Extension Motion Simulation"
 msgstr "Extensie Bewegings-simulatie"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:471
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:469
 msgid "External"
 msgstr "Extern"
 
@@ -4083,7 +4102,7 @@ msgstr ""
 "Openen van geheugenkaart mislukt:\n"
 "% 1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:405
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:403
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr ""
 "Het is niet gelukt om deze sessie aan de NetPlay index toe te voegen: %1"
@@ -4100,7 +4119,7 @@ msgstr "Kon geen toegang krijgen tot de interface voor BT passthrough"
 msgid "Failed to connect to Redump.org"
 msgstr "Verbinden met Redump.org mislukt"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:900
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:898
 msgid "Failed to connect to server: %1"
 msgstr "Kon geen verbinding maken met server: %1"
 
@@ -4125,6 +4144,8 @@ msgstr "Kon DXGI factory niet maken"
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr ""
+"NetPlay GBA{0} save bestand verwijderen mislukt. Controleer uw "
+"schrijfrechten."
 
 #: Source/Core/Core/NetPlayClient.cpp:921
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
@@ -4278,7 +4299,7 @@ msgstr ""
 "Laden van {0} mislukt. Als u Windows 7 gebruikt, probeer de KB4019990 update "
 "pakket te installeren."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:393
+#: Source/Core/DolphinQt/GBAWidget.cpp:525
 #: Source/Core/DolphinQt/MainWindow.cpp:1559
 #: Source/Core/DolphinQt/RenderWidget.cpp:126
 msgid "Failed to open '%1'"
@@ -4446,7 +4467,7 @@ msgstr ""
 msgid "Failure"
 msgstr "Gefaald"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:132
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:130
 msgid "Fair Input Delay"
 msgstr "Redelijke Invoer Vertraging"
 
@@ -4835,39 +4856,39 @@ msgstr "Functies"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:36
 msgid "GBA (Integrated)"
-msgstr ""
+msgstr "GBA (Geïntegreerd)"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:38
 msgid "GBA (TCP)"
-msgstr ""
+msgstr "GBA (TCP)"
 
 #: Source/Core/Core/HotkeyManager.cpp:352
 msgid "GBA Core"
-msgstr ""
+msgstr "GBA Kern"
 
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:35
 msgid "GBA Port %1"
-msgstr ""
+msgstr "GBA Port %1"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:132
 msgid "GBA Settings"
-msgstr ""
+msgstr "GBA Instellingen"
 
 #: Source/Core/Core/HotkeyManager.cpp:353
 msgid "GBA Volume"
-msgstr ""
+msgstr "GBA Volume"
 
 #: Source/Core/Core/HotkeyManager.cpp:354
 msgid "GBA Window Size"
-msgstr ""
+msgstr "GBA Venster Grootte"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:751
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:749
 msgid "GBA%1 ROM changed to \"%2\""
-msgstr ""
+msgstr "GBA%1 ROM verandert naar \"%2\""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:756
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:754
 msgid "GBA%1 ROM disabled"
-msgstr ""
+msgstr "GBA%1 ROM uitgeschakeld"
 
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:38
 msgid "GC Port %1"
@@ -4999,6 +5020,8 @@ msgid ""
 "Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
 "All Files (*)"
 msgstr ""
+"Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
+"Alle Bestanden (*)"
 
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:54
 msgid "Game Config"
@@ -5022,11 +5045,11 @@ msgstr "Spel ID"
 msgid "Game ID:"
 msgstr "Spel ID:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:584
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:582
 msgid "Game Status"
 msgstr "Spelstatus"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:743
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:741
 msgid "Game changed to \"%1\""
 msgstr "Spel gewijzigd naar \"%1\""
 
@@ -5046,11 +5069,11 @@ msgstr "Spelspecifieke Instellingen"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:382
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:439
 msgid "GameBoy Advance"
-msgstr ""
+msgstr "GameBoy Advance"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
 msgid "GameBoy Advance at Port %1"
-msgstr ""
+msgstr "GameBoy Advance bij Port %1"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:40
 msgid "GameCube"
@@ -5160,7 +5183,7 @@ msgstr "GiB"
 msgid "Go to"
 msgstr "Ga naar"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:144
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:142
 msgid "Golf Mode"
 msgstr "Golf Modus"
 
@@ -5263,9 +5286,9 @@ msgstr "Verberg In-Game Sessies"
 msgid "Hide Incompatible Sessions"
 msgstr "Verberg Incompatibele Sessies"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:179
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:177
 msgid "Hide Remote GBAs"
-msgstr ""
+msgstr "Verberg Externe GBAs"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:425
@@ -5295,7 +5318,7 @@ msgstr "Host"
 msgid "Host Code:"
 msgstr "Host Code:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:138
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:136
 msgid "Host Input Authority"
 msgstr "Host Invoer Autoriteit"
 
@@ -5303,7 +5326,7 @@ msgstr "Host Invoer Autoriteit"
 msgid "Host Size"
 msgstr "Hostgrootte"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:140
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:138
 msgid ""
 "Host has control of sending all inputs to the game, as received from other "
 "players, giving the host zero latency but increasing latency for others.\n"
@@ -5315,11 +5338,11 @@ msgstr ""
 "maar de latentie voor anderen groter wordt. Geschikt voor casual spellen met "
 "3+ spelers, mogelijk op onstabiele of hoge latency-verbindingen."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:853
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:851
 msgid "Host input authority disabled"
 msgstr "Host Invoer Autoriteit Uitgeschakeld"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:853
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:851
 msgid "Host input authority enabled"
 msgstr "Host Invoer Autoriteit Ingeschakeld"
 
@@ -5347,7 +5370,7 @@ msgstr "Sneltoetsen Vereisen Venster Focus"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:117
 msgid "Hybrid Ubershaders"
-msgstr ""
+msgstr "Hybride Ubershaders"
 
 #. i18n: The symbol/abbreviation for hertz (cycles per second).
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:153
@@ -5442,7 +5465,7 @@ msgstr ""
 msgid "Icon"
 msgstr "Icoon"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:146
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:144
 msgid ""
 "Identical to Host Input Authority, except the \"Host\" (who has zero "
 "latency) can be switched at any time.\n"
@@ -5455,12 +5478,6 @@ msgstr ""
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:372
 msgid "Identity Generation"
 msgstr "Genereer Identiteit"
-
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:113
-msgid "If \"Allow Writes to SD Card\" is disabled this does not override it."
-msgstr ""
-"Als \"Sta Schrijven naar SD-Kaart toe\" is uitgeschakeld, wordt dat niet "
-"overschreven."
 
 #: Source/Core/DolphinQt/Main.cpp:266
 msgid ""
@@ -5970,7 +5987,7 @@ msgstr "Toetsen"
 msgid "KiB"
 msgstr "KiB"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:240
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:238
 msgid "Kick Player"
 msgstr "Speler kicken"
 
@@ -5989,9 +6006,9 @@ msgstr "Koreaans"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:276
+#: Source/Core/DolphinQt/GBAWidget.cpp:355
 msgid "L&oad ROM"
-msgstr ""
+msgstr "L&aad ROM"
 
 #. i18n: The left trigger button (labeled L on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:47
@@ -6147,7 +6164,7 @@ msgstr "Laad pad:"
 
 #: Source/Core/Core/HotkeyManager.cpp:182
 msgid "Load ROM"
-msgstr ""
+msgstr "Laad ROM"
 
 #: Source/Core/Core/HotkeyManager.cpp:180
 #: Source/Core/Core/HotkeyManager.cpp:347
@@ -6246,7 +6263,7 @@ msgstr "Laad State van Geselecteerde Slot"
 msgid "Load State from Slot"
 msgstr "Laad State van Slot"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:115
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:113
 msgid "Load Wii Save"
 msgstr "Laad Wii Save"
 
@@ -6285,7 +6302,7 @@ msgstr ""
 "DynamicInputTextures/<game_id>/.<br><br><dolphin_emphasis>In geval van "
 "twijfel leeg laten.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:476
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:474
 msgid "Local"
 msgstr "Lokaal"
 
@@ -6332,7 +6349,7 @@ msgstr ""
 "<br><br>Gebruik deze optie als u de prestaties van Dolphin wilt meten."
 "<br><br><dolphin_emphasis>In geval van twijfel leeg laten.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:893
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:891
 msgid "Lost connection to NetPlay server..."
 msgstr "Verbinding met NetPlay-server verloren..."
 
@@ -6396,7 +6413,7 @@ msgstr ""
 msgid "Manage NAND"
 msgstr "Beheer NAND"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:584
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:582
 msgid "Mapping"
 msgstr "Mapping"
 
@@ -6404,11 +6421,11 @@ msgstr "Mapping"
 msgid "Match Found"
 msgstr "Overeenkomst Gevonden"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:875
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:873
 msgid "Max Buffer:"
 msgstr "Max Buffer:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:843
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:841
 msgid "Max buffer size changed to %1"
 msgstr "Max buffergrootte gewijzigd naar %1"
 
@@ -6442,7 +6459,7 @@ msgstr "Geheugenkaart"
 msgid "Memory Card Manager"
 msgstr "Geheugenkaart Beheer"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:115
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:116
 msgid ""
 "Memory Card filename in Slot {0} is incorrect\n"
 "Region not specified\n"
@@ -6471,15 +6488,15 @@ msgstr "Geheugen Overschrijven"
 msgid "Memory breakpoint options"
 msgstr "Geheugen breakpoint opties"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:245
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:246
 msgid "MemoryCard: ClearBlock called on invalid address ({0:#x})"
 msgstr "MemoryCard: ClearBlock opgeroepen op ongeldige adres ({0:#x})"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:216
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:217
 msgid "MemoryCard: Read called with invalid source address ({0:#x})"
 msgstr "MemoryCard: Read opgeroepen met onjuiste bron adres ({0:#x})"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:228
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:229
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr "MemoryCard: Write opgeroepen met ongeldige bestemming adres ({0:#x})"
 
@@ -6524,7 +6541,7 @@ msgstr ""
 msgid "Mismatch between internal data structures."
 msgstr "Verschil tussen interne data structuren."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1019
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1017
 msgid ""
 "Mismatched ROMs\n"
 "Selected: {0}\n"
@@ -6534,6 +6551,13 @@ msgid ""
 "- Title: {3}\n"
 "- Hash: {4:02X}"
 msgstr ""
+"Niet-overeenkomende ROMs\n"
+"Geselecteerd: {0}\n"
+"- Titel: {1}\n"
+"- Hash: {2:02X}\n"
+"Verwacht:\n"
+"- Titel: {3}\n"
+"- Hash: {4:02X}"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:25
@@ -6683,7 +6707,7 @@ msgstr "Netplay Instellingen"
 msgid "Netherlands"
 msgstr "Nederland"
 
-#: Source/Core/Core/NetPlayClient.cpp:2620
+#: Source/Core/Core/NetPlayClient.cpp:2621
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "Netplay heeft zich desynced in NetPlay_GetButtonPress()"
 
@@ -6694,7 +6718,7 @@ msgstr ""
 "herstellen."
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:146
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:130
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:128
 msgid "Network"
 msgstr "Netwerk"
 
@@ -6868,7 +6892,7 @@ msgstr "Geen"
 msgid "North America"
 msgstr "Noord-Amerika"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:590
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:588
 msgid "Not Found"
 msgstr "Niet Gevonden"
 
@@ -6876,7 +6900,7 @@ msgstr "Niet Gevonden"
 msgid "Not Set"
 msgstr "Niet ingesteld"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:421
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:419
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "Niet alle spelers hebben het spel. Weet u zeker dat u wilt doorgaan?"
 
@@ -6958,7 +6982,7 @@ msgstr "Nunchuck Oriëntatie"
 msgid "Nunchuk Stick"
 msgstr "Nunchuck Stick"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:588
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:586
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:57
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:708
 msgid "OK"
@@ -7075,6 +7099,7 @@ msgstr "Operators"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:80
+#: Source/Core/DolphinQt/GBAWidget.cpp:383
 msgid "Options"
 msgstr "Opties"
 
@@ -7091,7 +7116,7 @@ msgstr "Orbitaal"
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:86
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:98
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookGeneral.cpp:29
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:174
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:172
 msgid "Other"
 msgstr "Overige"
 
@@ -7104,7 +7129,7 @@ msgstr "Overige State Sneltoetsen"
 msgid "Other State Management"
 msgstr "Overige State Beheer"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:162
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:160
 msgid "Other game..."
 msgstr "Ander spel..."
 
@@ -7254,7 +7279,7 @@ msgstr "PiB"
 msgid "Pick a debug font"
 msgstr "Kies een debug-lettertype"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:584
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:582
 msgid "Ping"
 msgstr "Ping"
 
@@ -7287,12 +7312,12 @@ msgstr "Speel Opname"
 msgid "Playback Options"
 msgstr "Terugspeel Opties"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:584
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:582
 msgid "Player"
 msgstr "Speler"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:235
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:233
 msgid "Players"
 msgstr "Spelers"
 
@@ -7309,14 +7334,14 @@ msgstr "Poort %1"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:152
 msgid "Port %1 ROM:"
-msgstr ""
+msgstr "Port %1 ROM:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:102
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:132
 msgid "Port:"
 msgstr "Poort:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:886
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:884
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr ""
 "Mogelijke desync gedetecteerd: %1 heeft mogelijk sync verloren in frame %2"
@@ -7585,7 +7610,7 @@ msgstr "Hercentreren"
 msgid "Record"
 msgstr "Opnemen"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:175
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:173
 msgid "Record Inputs"
 msgstr "Invoer Opnemen"
 
@@ -7808,7 +7833,7 @@ msgstr "Herstel Standaardinstellingen"
 msgid "Restore instruction"
 msgstr "Herstel instructie"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:644
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:642
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
 msgid "Retry"
 msgstr "Opnieuw"
@@ -7817,7 +7842,7 @@ msgstr "Opnieuw"
 msgid "Return Speed"
 msgstr "Terugkeer Snelheid"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:584
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:582
 msgid "Revision"
 msgstr "Revisie"
 
@@ -7871,7 +7896,7 @@ msgstr "Rol Links"
 msgid "Roll Right"
 msgstr "Rol Rechts"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:470
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:468
 msgid "Room ID"
 msgstr "Kamer ID"
 
@@ -7909,13 +7934,13 @@ msgstr "Loop &Tot Hier"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:137
 msgid "Run GBA Cores in Dedicated Threads"
-msgstr ""
+msgstr "Voer GBA Emulatie uit in Specifieke threads"
 
 #: Source/Core/DiscIO/Enums.cpp:50
 msgid "Russia"
 msgstr "Rusland"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:169
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:167
 msgid "SD Card"
 msgstr "SD-kaart"
 
@@ -7929,7 +7954,7 @@ msgstr "SD-kaart Pad:"
 
 #: Source/Core/Core/HW/GBAPadEmu.cpp:18 Source/Core/Core/HW/GBAPadEmu.cpp:27
 msgid "SELECT"
-msgstr ""
+msgstr "SELECT"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:75
 msgid "SHA-1:"
@@ -8002,7 +8027,7 @@ msgstr "Sla Oudste State op"
 
 #: Source/Core/Core/HotkeyManager.cpp:179
 #: Source/Core/Core/HotkeyManager.cpp:348
-#: Source/Core/DolphinQt/GBAWidget.cpp:309
+#: Source/Core/DolphinQt/GBAWidget.cpp:371
 msgid "Save State"
 msgstr "Save State"
 
@@ -8094,7 +8119,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:158
 msgid "Save in Same Directory as the ROM"
-msgstr ""
+msgstr "Save in de Zelfde Map als de ROM"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1524
 msgid "Save map file"
@@ -8124,7 +8149,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:164
 msgid "Saves:"
-msgstr ""
+msgstr "Saves:"
 
 #: Source/Core/Core/Movie.cpp:987
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
@@ -8204,15 +8229,15 @@ msgstr "Selecteer Export Map"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:403
 msgid "Select GBA BIOS"
-msgstr ""
+msgstr "Selecteer GBA BIOS"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:557
 msgid "Select GBA ROM"
-msgstr ""
+msgstr "Selecteer GBA ROM"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:432
 msgid "Select GBA Saves Path"
-msgstr ""
+msgstr "Selecteer GBA Saves Pad"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:21
 msgid "Select Last State"
@@ -8288,7 +8313,7 @@ msgid "Select a Directory"
 msgstr "Selecteer een Map"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:193
-#: Source/Core/DolphinQt/GBAWidget.cpp:184
+#: Source/Core/DolphinQt/GBAWidget.cpp:209
 #: Source/Core/DolphinQt/MainWindow.cpp:710
 #: Source/Core/DolphinQt/MainWindow.cpp:1275
 #: Source/Core/DolphinQt/MainWindow.cpp:1282
@@ -8310,6 +8335,10 @@ msgstr "Selecteer een Spel"
 #: Source/Core/DolphinQt/MenuBar.cpp:1040
 msgid "Select a title to install to NAND"
 msgstr "Selecteer een titel om te installeren op de NAND"
+
+#: Source/Core/DolphinQt/GBAWidget.cpp:187
+msgid "Select e-Reader Cards"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1328
 msgid "Select the RSO module address:"
@@ -8348,8 +8377,8 @@ msgstr "Geselecteerde controller profiel bestaat niet"
 #: Source/Core/Core/NetPlayServer.cpp:1276
 #: Source/Core/Core/NetPlayServer.cpp:1602
 #: Source/Core/Core/NetPlayServer.cpp:1865
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:437
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:807
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:435
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:805
 msgid "Selected game doesn't exist in game list!"
 msgstr "Het geselecteerde spel bestaat niet in de spellijst!"
 
@@ -8366,6 +8395,8 @@ msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
 msgstr ""
+"Selecteert een hardware-adapter om te gebruiken.<br><br></dolphin_emphasis>"
+"%1 ondersteunt deze functie niet.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
 msgid ""
@@ -8442,7 +8473,7 @@ msgstr ""
 "selecteren die het minst problematisch is.<br><br><dolphin_emphasis>In geval "
 "van twijfel OpenGL selecteren.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:215
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:213
 msgid "Send"
 msgstr "Verzend"
 
@@ -8617,7 +8648,7 @@ msgstr "Toon GameCube"
 msgid "Show Germany"
 msgstr "Toon Duitsland"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:177
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:175
 msgid "Show Golf Mode Overlay"
 msgstr "Toon Golf Modus Overlay"
 
@@ -8834,7 +8865,7 @@ msgstr "Overslaan"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:118
 msgid "Skip Drawing"
-msgstr ""
+msgstr "Tekenen Overslaan"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:45
 msgid "Skip EFB Access from CPU"
@@ -8950,7 +8981,7 @@ msgstr "Speaker Volume:"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:115
 msgid "Specialized (Default)"
-msgstr ""
+msgstr "Gespecialiseerd (Standaard)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:187
 msgid "Specific"
@@ -9002,7 +9033,7 @@ msgstr "Start Opname"
 msgid "Start in Fullscreen"
 msgstr "Start in Fullscreen"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:788
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:786
 msgid "Started game"
 msgstr "Gestart spel"
 
@@ -9100,7 +9131,7 @@ msgstr "Stop"
 msgid "Stop Playing/Recording Input"
 msgstr "Stop Afspelen/Opnemen van Invoer"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:354
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:352
 msgid "Stopped game"
 msgstr "Gestopt spel"
 
@@ -9146,7 +9177,7 @@ msgstr ""
 msgid "Stretch to Window"
 msgstr "Uitrekken naar Venster"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:123
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:121
 msgid "Strict Settings Sync"
 msgstr "Strikte Instellingensynchronisatie"
 
@@ -9187,7 +9218,7 @@ msgstr "Stylus"
 msgid "Success"
 msgstr "Geslaagd"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:404
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:402
 msgid "Successfully added to the NetPlay index"
 msgstr "Succesvol aan NetPlay index toegevoegd"
 
@@ -9306,15 +9337,15 @@ msgstr "Symbolen"
 msgid "Sync"
 msgstr "Sync"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:119
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:117
 msgid "Sync AR/Gecko Codes"
 msgstr "AR/Gecko Codes Synchroniseren"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:121
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:119
 msgid "Sync All Wii Saves"
 msgstr "Synchroniseer Alle Wii Saves"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:117
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:115
 msgid "Sync Saves"
 msgstr "Synchroniseer Saves"
 
@@ -9818,11 +9849,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "Dit USB apparaat staat al op de witte lijst."
 
-#: Source/Core/Core/ConfigManager.cpp:890
+#: Source/Core/Core/ConfigManager.cpp:889
 msgid "This WAD is not bootable."
 msgstr "Deze WAD is niet opstartbaar."
 
-#: Source/Core/Core/ConfigManager.cpp:885
+#: Source/Core/Core/ConfigManager.cpp:884
 msgid "This WAD is not valid."
 msgstr "Deze WAD is niet geldig."
 
@@ -9959,7 +9990,7 @@ msgstr ""
 "Deze software moet niet worden gebruikt om spellen te spelen die u niet "
 "legaal bezit."
 
-#: Source/Core/Core/ConfigManager.cpp:908
+#: Source/Core/Core/ConfigManager.cpp:907
 msgid "This title cannot be booted."
 msgstr "Deze titel kan niet worden opgestart."
 
@@ -10019,7 +10050,7 @@ msgstr ""
 "Dit zal de snelheid van het chunked uploaden per client beperken, wat wordt "
 "gebruikt om saves te synchroniseren."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:125
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:123
 msgid ""
 "This will sync additional graphics settings, and force everyone to the same "
 "internal resolution.\n"
@@ -10212,8 +10243,8 @@ msgstr "Aanraking"
 msgid "Traditional Chinese"
 msgstr "Chinees (Traditioneel)"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:910
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:914
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:908
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:912
 msgid "Traversal Error"
 msgstr "Traversalfout"
 
@@ -10297,6 +10328,10 @@ msgid ""
 "<br><br><dolphin_emphasis>Don't use this unless you encountered stuttering "
 "with Hybrid Ubershaders and have a very powerful GPU.</dolphin_emphasis>"
 msgstr ""
+"Ubershaders zullen altijd worden gebruikt. Biedt een vrijwel stotterloze "
+"ervaring, ten koste van hoge GPU-prestatievereisten."
+"<br><br><dolphin_emphasis>Alleen aanbevolen als u stotteringen ondervindt "
+"met Hybride Ubershaders en u een krachtige GPU heeft.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:253
 msgid ""
@@ -10389,7 +10424,7 @@ msgstr "Verenigde Staten"
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:66
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:125
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:129
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:663
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:661
 msgid "Unknown"
 msgstr "Onbekend"
 
@@ -10445,7 +10480,7 @@ msgstr "Onbeperkt"
 
 #: Source/Core/Core/HotkeyManager.cpp:183
 msgid "Unload ROM"
-msgstr ""
+msgstr "Leeg ROM"
 
 #: Source/Core/Core/HotkeyManager.cpp:37
 msgid "Unlock Cursor"
@@ -10850,7 +10885,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:240
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:256
 #: Source/Core/DolphinQt/MenuBar.cpp:1461
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:420
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:418
 msgid "Warning"
 msgstr "Waarschuwing"
 
@@ -11088,9 +11123,9 @@ msgstr ""
 "kunt een sneltoets instellen om deze te ontgrendelen."
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
-#: Source/Core/DolphinQt/GBAWidget.cpp:293
+#: Source/Core/DolphinQt/GBAWidget.cpp:385
 msgid "Window Size"
-msgstr ""
+msgstr "Venster Grootte"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:134
 msgid "Word Wrap"
@@ -11106,8 +11141,8 @@ msgid "Write"
 msgstr "Schrijven"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:111
-msgid "Write Save/SD Data"
-msgstr "Schrijf Save/SD-Data"
+msgid "Write Save Data"
+msgstr ""
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
@@ -11138,7 +11173,7 @@ msgstr "Schrijf naar Log en Breek af"
 msgid "Write to Window"
 msgstr "Schrijf naar Venster"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:589
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:587
 msgid "Wrong Version"
 msgstr "Verkeerde Versie"
 
@@ -11319,6 +11354,10 @@ msgstr "standaard"
 msgid "disconnected"
 msgstr "verbinding verbroken"
 
+#: Source/Core/DolphinQt/GBAWidget.cpp:187
+msgid "e-Reader Cards (*.raw);;All Files (*)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:186
 msgid "errno"
 msgstr "errno"
@@ -11333,11 +11372,13 @@ msgstr "fake-completion"
 msgid "m/s"
 msgstr "m/s"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:185
+#: Source/Core/DolphinQt/GBAWidget.cpp:210
 msgid ""
 "mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
 "ss9);;All Files (*)"
 msgstr ""
+"mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
+"ss9);;Alle Bestanden (*)"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
 msgid "none"
