@@ -126,7 +126,7 @@ public:
                             bool duplicate = false);
   void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
   void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
-                  Gen::X64Reg clobber = Gen::XMM0);
+                  Gen::X64Reg clobber);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
