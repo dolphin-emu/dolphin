@@ -765,7 +765,7 @@ enum class MaxAnsio
 template <>
 struct fmt::formatter<MaxAnsio> : EnumFormatter<MaxAnsio::Four>
 {
-  formatter() : EnumFormatter({"1", "2 (requires edge LOD)", "4 (requires edge LOD)"}) {}
+  formatter() : EnumFormatter({"1", "2", "4"}) {}
 };
 
 union TexMode0
@@ -796,7 +796,7 @@ struct fmt::formatter<TexMode0>
                      "Min filter: {}\n"
                      "LOD type: {}\n"
                      "LOD bias: {} ({})\n"
-                     "Max aniso: {}\n"
+                     "Max anisotropic filtering: {}\n"
                      "LOD/bias clamp: {}",
                      mode.wrap_s, mode.wrap_t, mode.mag_filter, mode.mipmap_filter, mode.min_filter,
                      mode.diag_lod, mode.lod_bias, mode.lod_bias / 32.f, mode.max_aniso,
