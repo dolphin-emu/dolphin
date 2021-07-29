@@ -257,7 +257,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, Rd, dest);
+    HandleNaNs(inst, Rd, dest, XMM0);
     if (single)
       FinalizeSingleResult(Rd, Rd, packed, true);
     else
@@ -345,7 +345,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     RegCache::Realize(Ra, Rb, Rc, Rd);
   }
 
-  X64Reg result_reg = XMM0;
+  X64Reg scratch_xmm = !use_fma && inst.SUBOP5 == 30 ? XMM1 : XMM0;
+  X64Reg result_xmm = scratch_xmm == XMM0 ? XMM1 : XMM0;
   if (software_fma)
   {
     for (size_t i = (packed ? 1 : 0); i != std::numeric_limits<size_t>::max(); --i)
@@ -392,31 +393,35 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     if (packed)
     {
       MOVSD(Rd, XMM0);
-      result_reg = Rd;
+      result_xmm = Rd;
+    }
+    else
+    {
+      result_xmm = XMM0;
     }
 
     if (inst.SUBOP5 == 30 || inst.SUBOP5 == 31)  // nmsub, nmadd
-      XORPD(result_reg, MConst(packed ? psSignBits2 : psSignBits));
+      XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
   }
   else
   {
     switch (inst.SUBOP5)
     {
     case 14:  // madds0
-      MOVDDUP(XMM0, Rc);
+      MOVDDUP(result_xmm, Rc);
       if (round_input)
-        Force25BitPrecision(XMM0, R(XMM0), XMM1);
+        Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
       break;
     case 15:  // madds1
-      avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, Rc, Rc, 3);
+      avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, result_xmm, Rc, Rc, 3);
       if (round_input)
-        Force25BitPrecision(XMM0, R(XMM0), XMM1);
+        Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
       break;
     default:
       if (single && round_input)
-        Force25BitPrecision(XMM0, Rc, XMM1);
+        Force25BitPrecision(result_xmm, Rc, scratch_xmm);
       else
-        MOVAPD(XMM0, Rc);
+        MOVAPD(result_xmm, Rc);
       break;
     }
 
@@ -426,17 +431,17 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       {
       case 28:  // msub
         if (packed)
-          VFMSUB132PD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFMSUB132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-          VFMSUB132SD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFMSUB132SD(result_xmm, Rb.GetSimpleReg(), Ra);
         break;
       case 14:  // madds0
       case 15:  // madds1
       case 29:  // madd
         if (packed)
-          VFMADD132PD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-          VFMADD132SD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
         break;
       // PowerPC and x86 define NMADD/NMSUB differently
       // x86: D = -A*C (+/-) B
@@ -444,15 +449,15 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       // so we have to swap them; the ADD/SUB here isn't a typo.
       case 30:  // nmsub
         if (packed)
-          VFNMADD132PD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFNMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-          VFNMADD132SD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFNMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
         break;
       case 31:  // nmadd
         if (packed)
-          VFNMSUB132PD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFNMSUB132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-          VFNMSUB132SD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFNMSUB132SD(result_xmm, Rb.GetSimpleReg(), Ra);
         break;
       }
     }
@@ -462,52 +467,59 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       {
         // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)),
         // so handle it separately.
-        MOVAPD(XMM1, Rb);
+        MOVAPD(scratch_xmm, Rb);
         if (packed)
         {
-          MULPD(XMM0, Ra);
-          SUBPD(XMM1, R(XMM0));
+          MULPD(result_xmm, Ra);
+          SUBPD(scratch_xmm, R(result_xmm));
         }
         else
         {
-          MULSD(XMM0, Ra);
-          SUBSD(XMM1, R(XMM0));
+          MULSD(result_xmm, Ra);
+          SUBSD(scratch_xmm, R(result_xmm));
         }
-        result_reg = XMM1;
+        result_xmm = scratch_xmm;
       }
       else
       {
         if (packed)
         {
-          MULPD(XMM0, Ra);
+          MULPD(result_xmm, Ra);
           if (inst.SUBOP5 == 28)  // msub
-            SUBPD(XMM0, Rb);
+            SUBPD(result_xmm, Rb);
           else  //(n)madd(s[01])
-            ADDPD(XMM0, Rb);
+            ADDPD(result_xmm, Rb);
         }
         else
         {
-          MULSD(XMM0, Ra);
+          MULSD(result_xmm, Ra);
           if (inst.SUBOP5 == 28)
-            SUBSD(XMM0, Rb);
+            SUBSD(result_xmm, Rb);
           else
-            ADDSD(XMM0, Rb);
+            ADDSD(result_xmm, Rb);
         }
         if (inst.SUBOP5 == 31)  // nmadd
-          XORPD(XMM0, MConst(packed ? psSignBits2 : psSignBits));
+          XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
       }
     }
   }
 
+  if (SConfig::GetInstance().bAccurateNaNs && result_xmm == XMM0)
+  {
+    // HandleNaNs needs to clobber XMM0
+    MOVAPD(XMM1, R(result_xmm));
+    result_xmm = XMM1;
+  }
+
   if (single)
   {
-    HandleNaNs(inst, result_reg, result_reg, result_reg == XMM1 ? XMM0 : XMM1);
-    FinalizeSingleResult(Rd, R(result_reg), packed, true);
+    HandleNaNs(inst, result_xmm, result_xmm, XMM0);
+    FinalizeSingleResult(Rd, R(result_xmm), packed, true);
   }
   else
   {
-    HandleNaNs(inst, result_reg, result_reg, XMM1);
-    FinalizeDoubleResult(Rd, R(result_reg));
+    HandleNaNs(inst, result_xmm, result_xmm, XMM0);
+    FinalizeDoubleResult(Rd, R(result_xmm));
   }
 }
 
