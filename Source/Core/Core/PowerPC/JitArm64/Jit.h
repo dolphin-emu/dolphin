@@ -120,6 +120,7 @@ public:
   void mcrfs(UGeckoInstruction inst);
   void mffsx(UGeckoInstruction inst);
   void mtfsb0x(UGeckoInstruction inst);
+  void mtfsb1x(UGeckoInstruction inst);
 
   // LoadStore
   void lXX(UGeckoInstruction inst);
