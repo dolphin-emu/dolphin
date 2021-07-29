@@ -421,7 +421,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     }
     else
     {
-      if (single && round_input)
+      if (round_input)
         Force25BitPrecision(result_xmm, Rc, scratch_xmm);
       else
         MOVAPD(result_xmm, Rc);
@@ -475,20 +475,16 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   if (SConfig::GetInstance().bAccurateNaNs && result_xmm == XMM0)
   {
     // HandleNaNs needs to clobber XMM0
-    MOVAPD(XMM1, R(result_xmm));
-    result_xmm = XMM1;
+    MOVAPD(Rd, R(result_xmm));
+    result_xmm = Rd;
   }
 
+  HandleNaNs(inst, result_xmm, result_xmm, XMM0);
+
   if (single)
-  {
-    HandleNaNs(inst, result_xmm, result_xmm, XMM0);
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);
-  }
   else
-  {
-    HandleNaNs(inst, result_xmm, result_xmm, XMM0);
     FinalizeDoubleResult(Rd, R(result_xmm));
-  }
 }
 
 void Jit64::fsign(UGeckoInstruction inst)
