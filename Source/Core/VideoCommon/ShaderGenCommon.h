@@ -167,6 +167,7 @@ union ShaderHostConfig
   BitField<20, 1, bool, u32> backend_shader_framebuffer_fetch;
   BitField<21, 1, bool, u32> backend_logic_op;
   BitField<22, 1, bool, u32> backend_palette_conversion;
+  BitField<23, 1, bool, u32> enable_validation_layer;
 
   static ShaderHostConfig GetCurrent();
 };
