@@ -451,7 +451,10 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         if (packed)
           VFNMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-          VFNMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
+        {
+          VFMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
+          XORPD(result_xmm, MConst(psSignBits));
+        }
         break;
       case 31:  // nmadd
         if (packed)
