@@ -917,14 +917,14 @@ struct fmt::formatter<LODType> : EnumFormatter<LODType::Diagonal>
   formatter() : EnumFormatter({"Edge LOD", "Diagonal LOD"}) {}
 };
 
-enum class MaxAnsio
+enum class MaxAniso
 {
   One = 0,
   Two = 1,
   Four = 2,
 };
 template <>
-struct fmt::formatter<MaxAnsio> : EnumFormatter<MaxAnsio::Four>
+struct fmt::formatter<MaxAniso> : EnumFormatter<MaxAniso::Four>
 {
   formatter() : EnumFormatter({"1", "2", "4"}) {}
 };
@@ -938,7 +938,7 @@ union TexMode0
   BitField<7, 1, FilterMode> min_filter;
   BitField<8, 1, LODType> diag_lod;
   BitField<9, 8, s32> lod_bias;
-  BitField<19, 2, MaxAnsio> max_aniso;
+  BitField<19, 2, MaxAniso> max_aniso;
   BitField<21, 1, bool, u32> lod_clamp;
   u32 hex;
 };
