@@ -23,7 +23,8 @@
 
 namespace DSP::HLE
 {
-AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc), m_cmdlist_size(0)
+AXUCode::AXUCode(DSPHLE* dsphle, u32 crc)
+    : UCodeInterface(dsphle, crc), m_cmdlist_size(0), m_compressor_pos(0)
 {
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 }
@@ -181,13 +182,11 @@ void AXUCode::HandleCommandList()
       MixAUXSamples(1, 0, HILO_TO_32(addr));
       break;
 
-    case CMD_COMPRESSOR_TABLE_ADDR:
-      curr_idx += 2;
-      break;
+    case CMD_UNK_0A:
     case CMD_UNK_0B:
-      break;  // TODO: check other versions
     case CMD_UNK_0C:
-      break;  // TODO: check other versions
+      // nop in all 6 known ucodes we handle here
+      break;
 
     case CMD_MORE:
       addr_hi = m_cmdlist[curr_idx++];
@@ -224,16 +223,16 @@ void AXUCode::HandleCommandList()
       SetOppositeLR(HILO_TO_32(addr));
       break;
 
-    case CMD_UNK_12:
+    case CMD_COMPRESSOR:
     {
-      u16 samp_val = m_cmdlist[curr_idx++];
-      u16 idx = m_cmdlist[curr_idx++];
+      // 0x4e8a8b21 doesn't have this command, but it doesn't range-check
+      // the value properly and ends up jumping into a mixer function
+      ASSERT(m_crc != 0x4e8a8b21);
+      u16 threshold = m_cmdlist[curr_idx++];
+      u16 frames = m_cmdlist[curr_idx++];
       addr_hi = m_cmdlist[curr_idx++];
       addr_lo = m_cmdlist[curr_idx++];
-      // TODO
-      // suppress warnings:
-      (void)samp_val;
-      (void)idx;
+      RunCompressor(threshold, frames, HILO_TO_32(addr), 5);
       break;
     }
 
@@ -505,6 +504,52 @@ void AXUCode::SetMainLR(u32 src_addr)
     m_samples_left[i] = samp;
     m_samples_right[i] = samp;
     m_samples_surround[i] = 0;
+  }
+}
+
+void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u32 millis)
+{
+  // check for L/R samples exceeding the threshold
+  bool triggered = false;
+  for (u32 i = 0; i < 32 * millis; ++i)
+  {
+    if (std::abs(m_samples_left[i]) > int(threshold) ||
+        std::abs(m_samples_right[i]) > int(threshold))
+    {
+      triggered = true;
+      break;
+    }
+  }
+
+  const u32 frame_byte_size = 32 * millis * sizeof(s16);
+  u32 table_offset = 0;
+  if (triggered)
+  {
+    // one attack frame based on previous frame
+    table_offset = m_compressor_pos * frame_byte_size;
+    // next frame will start release
+    m_compressor_pos = release_frames;
+  }
+  else if (m_compressor_pos)
+  {
+    // release
+    --m_compressor_pos;
+    // the release ramps are located after the attack ramps
+    constexpr u32 ATTACK_ENTRY_COUNT = 11;
+    table_offset = (ATTACK_ENTRY_COUNT + m_compressor_pos) * frame_byte_size;
+  }
+  else
+  {
+    return;
+  }
+
+  // apply the selected ramp
+  u16* ramp = (u16*)HLEMemory_Get_Pointer(table_addr + table_offset);
+  for (u32 i = 0; i < 32 * millis; ++i)
+  {
+    u16 coef = Common::swap16(*ramp++);
+    m_samples_left[i] = (s64(m_samples_left[i]) * coef) >> 15;
+    m_samples_right[i] = (s64(m_samples_right[i]) * coef) >> 15;
   }
 }
 

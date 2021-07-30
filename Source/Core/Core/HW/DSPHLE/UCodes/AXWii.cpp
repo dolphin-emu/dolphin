@@ -113,11 +113,15 @@ void AXWiiUCode::HandleCommandList()
         break;
       }
 
-      // TODO(delroth): figure this one out, it's used by almost every
-      // game I've tested so far.
-      case CMD_UNK_0B_OLD:
-        curr_idx += 4;
+      case CMD_COMPRESSOR_OLD:
+      {
+        u16 threshold = m_cmdlist[curr_idx++];
+        u16 frames = m_cmdlist[curr_idx++];
+        addr_hi = m_cmdlist[curr_idx++];
+        addr_lo = m_cmdlist[curr_idx++];
+        RunCompressor(threshold, frames, HILO_TO_32(addr), 3);
         break;
+      }
 
       case CMD_OUTPUT_OLD:
       case CMD_OUTPUT_DPL2_OLD:
@@ -206,11 +210,15 @@ void AXWiiUCode::HandleCommandList()
         break;
       }
 
-      // TODO(delroth): figure this one out, it's used by almost every
-      // game I've tested so far.
-      case CMD_UNK_0A:
-        curr_idx += 4;
+      case CMD_COMPRESSOR:
+      {
+        u16 threshold = m_cmdlist[curr_idx++];
+        u16 frames = m_cmdlist[curr_idx++];
+        addr_hi = m_cmdlist[curr_idx++];
+        addr_lo = m_cmdlist[curr_idx++];
+        RunCompressor(threshold, frames, HILO_TO_32(addr), 3);
         break;
+      }
 
       case CMD_OUTPUT:
       case CMD_OUTPUT_DPL2:
