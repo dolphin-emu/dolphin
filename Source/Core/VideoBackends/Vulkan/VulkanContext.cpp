@@ -922,6 +922,11 @@ void VulkanContext::InitDriverDetails()
     vendor = DriverDetails::VENDOR_IMGTEC;
     driver = DriverDetails::DRIVER_IMGTEC;
   }
+  else if (device_name.find("Apple") != std::string::npos)
+  {
+    vendor = DriverDetails::VENDOR_APPLE;
+    driver = DriverDetails::DRIVER_PORTABILITY;
+  }
   else
   {
     WARN_LOG_FMT(VIDEO, "Unknown Vulkan driver vendor, please report it to us.");
