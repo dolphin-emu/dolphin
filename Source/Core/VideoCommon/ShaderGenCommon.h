@@ -169,6 +169,7 @@ union ShaderHostConfig
   BitField<21, 1, bool, u32> backend_logic_op;
   BitField<22, 1, bool, u32> backend_palette_conversion;
   BitField<23, 1, bool, u32> enable_validation_layer;
+  BitField<24, 1, bool, u32> manual_texture_sampling;
 
   static ShaderHostConfig GetCurrent();
 };

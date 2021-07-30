@@ -537,6 +537,7 @@ void UpdateBoundingBox(float2 rawpos) {{
               fmt::arg("efb_height", EFB_HEIGHT), fmt::arg("efb_scale", I_EFBSCALE));
   }
 
+  if (host_config.manual_texture_sampling)
   {
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {
@@ -596,6 +597,21 @@ uint WrapCoord(int coord, uint wrap, int size) {{
               "int2 uv, int layer) {{\n");
   }
 
+  if (!host_config.manual_texture_sampling)
+  {
+    out.Write("  float size_s = float(" I_TEXDIMS "[texmap].x * 128);\n"
+              "  float size_t = float(" I_TEXDIMS "[texmap].y * 128);\n"
+              "  float3 coords = float3(float(uv.x) / size_s, float(uv.y) / size_t, layer);\n");
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    {
+      out.Write("  return iround(255.0 * texture(tex, coords));\n}}\n");
+    }
+    else if (api_type == APIType::D3D)
+    {
+      out.Write("  return iround(255.0 * tex.Sample(tex_samp, coords));\n}}\n");
+    }
+  }
+  else
   {
     out.Write(R"(
   uint texmode0 = samp_texmode0(texmap);

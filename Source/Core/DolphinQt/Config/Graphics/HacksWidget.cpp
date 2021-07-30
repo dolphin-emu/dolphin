@@ -106,11 +106,14 @@ void HacksWidget::CreateWidgets()
   m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUDING);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
+  m_fast_texture_sampling =
+      new GraphicsBool(tr("Fast Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
   other_layout->addWidget(m_vertex_rounding, 1, 0);
   other_layout->addWidget(m_save_texture_cache_state, 1, 1);
+  other_layout->addWidget(m_fast_texture_sampling, 2, 0);
 
   main_layout->addWidget(efb_box);
   main_layout->addWidget(texture_cache_box);
@@ -276,6 +279,17 @@ void HacksWidget::AddDescriptions()
       "higher internal resolutions. This setting has no effect when native internal "
       "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
+  static const char TR_FAST_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
+      "Use the video backend's built-in texture sampling functionality instead of a manual "
+      "implementation.<br><br>"
+      "This setting can cause potentially improve performance, especially at higher internal "
+      "resolutions; additionally, Anisotropic Filtering currently only works with Fast Texture "
+      "Sampling.<br><br>"
+      "This comes at the cost of graphical issues in some games on certain GPUs, most commonly "
+      "vertical lines on FMVs, as well as lack of emulation of texture wrapping special cases "
+      "(though this also only works at 1x IR or when scaled EFB is disabled, and with custom "
+      "textures disabled) and worse emulation of Level of Detail calculation.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
@@ -291,6 +305,7 @@ void HacksWidget::AddDescriptions()
   m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
   m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
   m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
+  m_fast_texture_sampling->SetDescription(tr(TR_FAST_TEXTURE_SAMPLING_DESCRIPTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()

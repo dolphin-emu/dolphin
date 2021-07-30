@@ -135,6 +135,7 @@ void VideoConfig::Refresh()
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
+  bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 

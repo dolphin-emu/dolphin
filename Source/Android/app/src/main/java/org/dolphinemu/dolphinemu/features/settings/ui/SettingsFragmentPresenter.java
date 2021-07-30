@@ -719,6 +719,8 @@ public final class SettingsFragmentPresenter
             R.string.vertex_rounding, R.string.vertex_rounding_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SAVE_TEXTURE_CACHE_TO_STATE,
             R.string.texture_cache_to_state, R.string.texture_cache_to_state_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
+            R.string.fast_texture_sampling, R.string.fast_texture_sampling_description));
   }
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)

@@ -277,6 +277,8 @@
     <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
+    <string name="fast_texture_sampling">Fast Texture Sampling</string>
+    <string name="fast_texture_sampling_description">Use the video backend\'s built-in texture sampling functionality instead of a manual implementation.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
