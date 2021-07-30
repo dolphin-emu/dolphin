@@ -309,10 +309,15 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   };
   tm0.wrap_u = filter_invalid_wrap(bp_tm0.wrap_s);
   tm0.wrap_v = filter_invalid_wrap(bp_tm0.wrap_t);
+  if (bp_tm0.max_aniso == MaxAniso::Two)
+    tm0.anisotropic_filtering = 1;
+  else if (bp_tm0.max_aniso == MaxAniso::Four)
+    tm0.anisotropic_filtering = 2;
+  else
+    tm0.anisotropic_filtering = 0;
 
   tm0.diag_lod = bp_tm0.diag_lod;
-  tm0.anisotropic_filtering = false;  // TODO: Respect BP anisotropic filtering mode
-  tm0.lod_clamp = bp_tm0.lod_clamp;   // TODO: What does this do?
+  tm0.lod_clamp = bp_tm0.lod_clamp;  // TODO: What does this do?
 }
 
 namespace RenderState
