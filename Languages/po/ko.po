@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-27 22:57+0200\n"
-"PO-Revision-Date: 2021-07-27 20:57+0000\n"
+"POT-Creation-Date: 2021-07-31 23:46+0200\n"
+"PO-Revision-Date: 2021-07-31 21:46+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -248,19 +248,19 @@ msgstr "%1x 원본 (%2x%3)"
 msgid "& And"
 msgstr "& 그리고"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:386
+#: Source/Core/DolphinQt/GBAWidget.cpp:387
 msgid "&1x"
 msgstr ""
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:388
+#: Source/Core/DolphinQt/GBAWidget.cpp:389
 msgid "&2x"
 msgstr ""
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:390
+#: Source/Core/DolphinQt/GBAWidget.cpp:391
 msgid "&3x"
 msgstr ""
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:392
+#: Source/Core/DolphinQt/GBAWidget.cpp:393
 msgid "&4x"
 msgstr ""
 
@@ -301,7 +301,7 @@ msgstr "자동 시작 (&A)"
 msgid "&Boot from DVD Backup"
 msgstr "DVD 백업에서 부트(&B)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:395
+#: Source/Core/DolphinQt/GBAWidget.cpp:396
 msgid "&Borderless Window"
 msgstr ""
 
@@ -337,7 +337,7 @@ msgstr "복제... (&C)"
 msgid "&Code"
 msgstr "코드 (&C)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:349
+#: Source/Core/DolphinQt/GBAWidget.cpp:350
 msgid "&Connected"
 msgstr ""
 
@@ -381,7 +381,7 @@ msgstr "디스크 꺼내기(&E)"
 msgid "&Emulation"
 msgstr "에뮬레이션(&E)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:375
+#: Source/Core/DolphinQt/GBAWidget.cpp:376
 msgid "&Export State"
 msgstr ""
 
@@ -425,7 +425,7 @@ msgstr "도움말(&H)"
 msgid "&Hotkey Settings"
 msgstr "단축키 설정(&H)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:372
+#: Source/Core/DolphinQt/GBAWidget.cpp:373
 msgid "&Import State"
 msgstr ""
 
@@ -437,7 +437,7 @@ msgstr "가져오기... (&I)"
 msgid "&Insert blr"
 msgstr "blr 삽입 (&I)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:405
+#: Source/Core/DolphinQt/GBAWidget.cpp:406
 msgid "&Interframe Blending"
 msgstr ""
 
@@ -469,7 +469,7 @@ msgstr "메모리(&M)"
 msgid "&Movie"
 msgstr "무비(&M)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:378
+#: Source/Core/DolphinQt/GBAWidget.cpp:379
 msgid "&Mute"
 msgstr ""
 
@@ -527,7 +527,7 @@ msgstr "코드 제거 (&R)"
 msgid "&Rename symbol"
 msgstr "부호 이름 바꾸기 (&R)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:367
+#: Source/Core/DolphinQt/GBAWidget.cpp:368
 #: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "&Reset"
 msgstr "리셋(&R)"
@@ -540,7 +540,7 @@ msgstr "리소스 팩 매니저(&R)"
 msgid "&Save Symbol Map"
 msgstr "부호 맵 저장 (&S)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:363
+#: Source/Core/DolphinQt/GBAWidget.cpp:364
 msgid "&Scan e-Reader Card(s)"
 msgstr ""
 
@@ -564,7 +564,7 @@ msgstr "쓰레드(&T)"
 msgid "&Tools"
 msgstr "도구(&T)"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:359
+#: Source/Core/DolphinQt/GBAWidget.cpp:360
 msgid "&Unload ROM"
 msgstr ""
 
@@ -1237,7 +1237,7 @@ msgstr "항상 연결됨"
 msgid "Always Hide Mouse Cursor"
 msgstr "항상 마우스 커서를 숨깁니다"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:400
+#: Source/Core/DolphinQt/GBAWidget.cpp:401
 msgid "Always on &Top"
 msgstr ""
 
@@ -1788,7 +1788,7 @@ msgstr "CRC32:"
 msgid "Cached Interpreter (slower)"
 msgstr "캐시된 인터프리터 (더 느림)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:228
 msgid ""
 "Caches custom textures to system RAM on startup.<br><br>This can require "
 "exponentially more RAM but fixes possible stuttering."
@@ -2544,18 +2544,14 @@ msgstr "새로운 메모리 카트 생성"
 msgid "Create..."
 msgstr "생성..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:246
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
 msgid ""
 "Creates frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within."
 "<br><br>If the aspect ratio is widescreen, the output image will be scaled "
-"horizontally to preserve the vertical resolution.<br><br /"
-"><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+"horizontally to preserve the vertical resolution."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"윈도우 크기가 아닌 안에서 표현되는, 렌더러의 내부해상도로 프레임 덤프와 스크"
-"린샷을 생성합니다. <br><br>화면 비율이 와이드스크린이라면, 출력 이미지는 수"
-"직 해상도를 보존하기 위해 수평으로 크기 조절이 될 것입니다.<br><br /"
-"><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:90
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:96
@@ -2570,7 +2566,7 @@ msgstr "치명적"
 msgid "Crop"
 msgstr "자르기"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:258
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:252
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -2783,7 +2779,7 @@ msgstr "EFB 캐시 무효화를 연기"
 msgid "Defer EFB Copies to RAM"
 msgstr "EFB 램에 복사 연기"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:271
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:264
 msgid ""
 "Defers invalidation of the EFB access cache until a GPU synchronization "
 "command is executed. If disabled, the cache will be invalidated with every "
@@ -2912,7 +2908,7 @@ msgstr ""
 "\n"
 "정말 Direct3D 11로 전환하고 싶습니까? 잘 모르겠으면, '아니오'를 선택하세요."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:349
+#: Source/Core/DolphinQt/GBAWidget.cpp:350
 msgid "Dis&connected"
 msgstr ""
 
@@ -2959,7 +2955,7 @@ msgstr ""
 "도 모릅니다, 하지만 일부 게임은 깨질 것입니다.<br><br><dolphin_emphasis>잘 모"
 "르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:238
 msgid ""
 "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -3315,21 +3311,17 @@ msgstr ""
 "game_id&gt;/ 에 덤프합니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 해제"
 "해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:234
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:232
 msgid ""
-"Dumps the contents of EFB copies to User/Dump/Textures/.<br><br /"
-"><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+"Dumps the contents of EFB copies to User/Dump/Textures/."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"User/Dump/Textures/로 EFB 복사의 내용을 덤프합니다.<br><br /"
-"><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:238
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:235
 msgid ""
-"Dumps the contents of XFB copies to User/Dump/Textures/.<br><br /"
-"><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+"Dumps the contents of XFB copies to User/Dump/Textures/."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"User/Dump/Textures/로 XFB 복사의 내용을 덤프합니다.<br><br /"
-"><dolphin_emphasis>잘 모르겠으면, 체크 해제해 두세요.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:40
 msgid "Duration of Turbo Button Press (frames):"
@@ -3568,19 +3560,15 @@ msgstr ""
 "일 수도 있습니다. 이 특성은 GPU 텍스처 디코딩과는 호환되지 않습니다."
 "<br><br><dolphin_emphasis>잘 모르겠으면, 체크해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:265
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:259
 msgid ""
 "Enables multithreaded command submission in backends where supported. "
 "Enabling this option may result in a performance improvement on systems with "
 "more than two CPU cores. Currently, this is limited to the Vulkan backend."
-"<br><br /><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"지원하는 백엔드일 때 멀티쓰레드된 명령 제출을 활성화합니다. 이 옵션을 활성화"
-"하면  CPU 코어가 두개 이상인 시스템에서 성능이 증가할 수도 있습니다. 현재, 이"
-"것은 Vulkan 백엔드 한정입니다.<br><br /><dolphin_emphasis>잘 모르겠으면, 체크"
-"해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:261
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:255
 msgid ""
 "Enables progressive scan if supported by the emulated software. Most games "
 "don't have any issue with this.<br><br><dolphin_emphasis>If unsure, leave "
@@ -3615,17 +3603,15 @@ msgstr ""
 "일부 게임들에 필요한 메모리 관리 유닛을 활성화 합니다. (켬 = 호환성, 끔 = 빠"
 "름)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:206
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:205
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
-"in debugging graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
+"in debugging graphical issues. On D3D backends, this also enables debug "
+"symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
-"비디오 백엔드에 의해 만들어진 API 의 검증을 활성화하면, 그래픽 관련 이슈의 디"
-"버깅에 도움이 될 수도 있습니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체크 "
-"해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:254
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:248
 msgid ""
 "Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3724,7 +3710,7 @@ msgstr "같은"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:259
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:375
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:215
-#: Source/Core/DolphinQt/GBAWidget.cpp:525
+#: Source/Core/DolphinQt/GBAWidget.cpp:526
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:332
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:361
 #: Source/Core/DolphinQt/Main.cpp:213 Source/Core/DolphinQt/Main.cpp:228
@@ -4244,7 +4230,7 @@ msgstr ""
 "{0} 로드에 실패했습니다. 윈도우 7을 사용중이면, KB4019990 업데이트 패키지를 "
 "설치해보세요."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:525
+#: Source/Core/DolphinQt/GBAWidget.cpp:526
 #: Source/Core/DolphinQt/MainWindow.cpp:1559
 #: Source/Core/DolphinQt/RenderWidget.cpp:126
 msgid "Failed to open '%1'"
@@ -5482,7 +5468,7 @@ msgstr ""
 msgid "Immediately Present XFB"
 msgstr "XFB 를 즉시 표시합니다"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:279
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:272
 msgid ""
 "Implements fullscreen mode with a borderless window spanning the whole "
 "screen instead of using exclusive mode. Allows for faster transitions "
@@ -5931,7 +5917,7 @@ msgstr "한국어"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:355
+#: Source/Core/DolphinQt/GBAWidget.cpp:356
 msgid "L&oad ROM"
 msgstr ""
 
@@ -6217,7 +6203,7 @@ msgstr "로드..."
 msgid "Loaded symbols from '%1'"
 msgstr "'%1' 에서 부호들이 로드되었습니다"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:225
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:224
 msgid ""
 "Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/"
 "DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, "
@@ -7011,7 +6997,7 @@ msgstr "연산자들"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:80
-#: Source/Core/DolphinQt/GBAWidget.cpp:383
+#: Source/Core/DolphinQt/GBAWidget.cpp:384
 msgid "Options"
 msgstr "옵션"
 
@@ -7934,7 +7920,7 @@ msgstr "가장 오래된 상태 저장"
 
 #: Source/Core/Core/HotkeyManager.cpp:179
 #: Source/Core/Core/HotkeyManager.cpp:348
-#: Source/Core/DolphinQt/GBAWidget.cpp:371
+#: Source/Core/DolphinQt/GBAWidget.cpp:372
 msgid "Save State"
 msgstr "상태 저장"
 
@@ -9879,7 +9865,7 @@ msgstr "이 타이틀은 부적합 IOS 를 사용하도록 설정되어 있습�
 msgid "This title is set to use an invalid common key."
 msgstr "이 타이틀은 부적합 공유 키를 사용하도록 설정되어 있습니다."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:295
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:296
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -9891,7 +9877,7 @@ msgstr ""
 "\n"
 "DSPHLE: 알려지지 않은 ucode (CRC = {0:08x}) - 강제 AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:286
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:287
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10846,7 +10832,7 @@ msgstr "웨스턴 (윈도우즈-1252)"
 msgid "Whammy"
 msgstr "훼미"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:220
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:219
 msgid ""
 "Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.  "
 "This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is "
@@ -10975,7 +10961,7 @@ msgstr ""
 "키 설정을 할 수 있습니다."
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
-#: Source/Core/DolphinQt/GBAWidget.cpp:385
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "Window Size"
 msgstr ""
 

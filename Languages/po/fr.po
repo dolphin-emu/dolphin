@@ -16,8 +16,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-27 22:57+0200\n"
-"PO-Revision-Date: 2021-07-27 20:57+0000\n"
+"POT-Creation-Date: 2021-07-31 23:46+0200\n"
+"PO-Revision-Date: 2021-07-31 21:46+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
 "fr/)\n"
@@ -200,7 +200,7 @@ msgstr "%1 s'est déconnecté"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1025
 msgid "%1 is not a valid ROM"
-msgstr ""
+msgstr "%1 n'est pas une ROM valide"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:954
 msgid "%1 is now golfing"
@@ -255,21 +255,21 @@ msgstr "%1x la réso. native (%2x%3)"
 msgid "& And"
 msgstr "& Et"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:386
+#: Source/Core/DolphinQt/GBAWidget.cpp:387
 msgid "&1x"
-msgstr ""
+msgstr "&1x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:388
+#: Source/Core/DolphinQt/GBAWidget.cpp:389
 msgid "&2x"
-msgstr ""
+msgstr "&2x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:390
+#: Source/Core/DolphinQt/GBAWidget.cpp:391
 msgid "&3x"
-msgstr ""
+msgstr "&3x"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:392
+#: Source/Core/DolphinQt/GBAWidget.cpp:393
 msgid "&4x"
-msgstr ""
+msgstr "&4x"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:606
 msgid "&About"
@@ -308,9 +308,9 @@ msgstr "Démarrage &automatique"
 msgid "&Boot from DVD Backup"
 msgstr "&Démarrer à partir d'un DVD de sauvegarde"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:395
+#: Source/Core/DolphinQt/GBAWidget.cpp:396
 msgid "&Borderless Window"
-msgstr ""
+msgstr "Fenêtre sans &bordures"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:470
 msgid "&Breakpoints"
@@ -344,9 +344,9 @@ msgstr "&Cloner..."
 msgid "&Code"
 msgstr "&Code"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:349
+#: Source/Core/DolphinQt/GBAWidget.cpp:350
 msgid "&Connected"
-msgstr ""
+msgstr "&Connecté"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:531
 msgid "&Controller Settings"
@@ -388,9 +388,9 @@ msgstr "&Éjecter le disque"
 msgid "&Emulation"
 msgstr "&Émulation"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:375
+#: Source/Core/DolphinQt/GBAWidget.cpp:376
 msgid "&Export State"
-msgstr ""
+msgstr "&Exporter l'état"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:105
 msgid "&Export as .gci..."
@@ -432,9 +432,9 @@ msgstr "&Aide"
 msgid "&Hotkey Settings"
 msgstr "Paramètres des &Raccouris clavier"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:372
+#: Source/Core/DolphinQt/GBAWidget.cpp:373
 msgid "&Import State"
-msgstr ""
+msgstr "&Importer l'état"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:115
 msgid "&Import..."
@@ -444,9 +444,9 @@ msgstr "&Importer..."
 msgid "&Insert blr"
 msgstr "&Insérer blr"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:405
+#: Source/Core/DolphinQt/GBAWidget.cpp:406
 msgid "&Interframe Blending"
-msgstr ""
+msgstr "Fusion &inter-images"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:495
 msgid "&JIT"
@@ -476,9 +476,9 @@ msgstr "&Mémoire"
 msgid "&Movie"
 msgstr "Fil&m"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:378
+#: Source/Core/DolphinQt/GBAWidget.cpp:379
 msgid "&Mute"
-msgstr ""
+msgstr "&Couper le son"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:487
 msgid "&Network"
@@ -534,7 +534,7 @@ msgstr "&Retirer le Code"
 msgid "&Rename symbol"
 msgstr "&Renommer symbole"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:367
+#: Source/Core/DolphinQt/GBAWidget.cpp:368
 #: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "&Reset"
 msgstr "&Reset"
@@ -547,9 +547,9 @@ msgstr "Gestionnaire de Packs de &Ressources"
 msgid "&Save Symbol Map"
 msgstr "&Sauvegarder la carte des symboles"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:363
+#: Source/Core/DolphinQt/GBAWidget.cpp:364
 msgid "&Scan e-Reader Card(s)"
-msgstr ""
+msgstr "&Lire la ou les carte(s) e-Reader"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:172
 msgid "&Speed Limit:"
@@ -571,9 +571,9 @@ msgstr "&Threads"
 msgid "&Tools"
 msgstr "&Outils"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:359
+#: Source/Core/DolphinQt/GBAWidget.cpp:360
 msgid "&Unload ROM"
-msgstr ""
+msgstr "&Décharger la ROM"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:401
 msgid "&View"
@@ -716,7 +716,7 @@ msgstr "Profondeur 3D"
 
 #: Source/Core/Core/HotkeyManager.cpp:192
 msgid "3x"
-msgstr ""
+msgstr "3x"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:53
 msgid "3x Native (1920x1584) for 1080p"
@@ -1254,9 +1254,9 @@ msgstr "Toujours connecté"
 msgid "Always Hide Mouse Cursor"
 msgstr "Toujours masquer le curseur de la souris"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:400
+#: Source/Core/DolphinQt/GBAWidget.cpp:401
 msgid "Always on &Top"
-msgstr ""
+msgstr "&Toujours au premier plan"
 
 #: Source/Core/Common/Assert.h:39
 #, c-format
@@ -1497,7 +1497,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:143
 msgid "BIOS:"
-msgstr ""
+msgstr "BIOS :"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:578
 msgid "BP register "
@@ -1811,7 +1811,7 @@ msgstr "CRC32 :"
 msgid "Cached Interpreter (slower)"
 msgstr "Interpréteur avec cache (lent)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:228
 msgid ""
 "Caches custom textures to system RAM on startup.<br><br>This can require "
 "exponentially more RAM but fixes possible stuttering."
@@ -2587,19 +2587,14 @@ msgstr "Créer une nouvelle Carte mémoire"
 msgid "Create..."
 msgstr "Créer..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:246
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
 msgid ""
 "Creates frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within."
 "<br><br>If the aspect ratio is widescreen, the output image will be scaled "
-"horizontally to preserve the vertical resolution.<br><br /"
-"><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+"horizontally to preserve the vertical resolution."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Crée une capture d'image et d'écran dans la résolution interne du rendu, "
-"plutôt que la taille de la fenêtre dans laquelle elle est affichée. "
-"<br><br>Si le format d'écran est 16/9è, l'image capturée sera adaptée "
-"horizontalement pour préserver la résolution verticale.<br><br /"
-"><dolphin_emphasis>Dans le doute, décochez cette case.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:90
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:96
@@ -2614,7 +2609,7 @@ msgstr "Critique"
 msgid "Crop"
 msgstr "Recadrer"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:258
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:252
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -2677,15 +2672,15 @@ msgstr "DSP en HLE (rapide)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:51
 msgid "DSP HLE (recommended)"
-msgstr ""
+msgstr "DSP HLE (recommandé)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:53
 msgid "DSP LLE Interpreter (very slow)"
-msgstr ""
+msgstr "Interpréteur du DSP en LLE (très lent)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:52
 msgid "DSP LLE Recompiler (slow)"
-msgstr ""
+msgstr "Recompilateur du DSP en LLE (lent)"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:31
 msgid "DSU Client"
@@ -2829,7 +2824,7 @@ msgstr "Différer l'invalidation du cache EFB"
 msgid "Defer EFB Copies to RAM"
 msgstr "Reporter les copies EFB vers la RAM"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:271
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:264
 msgid ""
 "Defers invalidation of the EFB access cache until a GPU synchronization "
 "command is executed. If disabled, the cache will be invalidated with every "
@@ -2960,9 +2955,9 @@ msgstr ""
 "Souhaitez-vous vraiment utiliser Direct3D 11 ? Dans le doute, choisissez "
 "'Non'."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:349
+#: Source/Core/DolphinQt/GBAWidget.cpp:350
 msgid "Dis&connected"
-msgstr ""
+msgstr "Dé&connecté"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:358
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:375
@@ -3008,7 +3003,7 @@ msgstr ""
 "<br><br><dolphin_emphasis>Dans le doute, cochez cette case.</"
 "dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:238
 msgid ""
 "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -3370,21 +3365,17 @@ msgstr ""
 "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>Dans le doute, "
 "décochez cette case.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:234
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:232
 msgid ""
-"Dumps the contents of EFB copies to User/Dump/Textures/.<br><br /"
-"><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+"Dumps the contents of EFB copies to User/Dump/Textures/."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Copie le contenu des copies de l'EFB vers User/Dump/Textures/.<br><br /"
-"><dolphin_emphasis>Dans le doute, décochez cette case.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:238
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:235
 msgid ""
-"Dumps the contents of XFB copies to User/Dump/Textures/.<br><br /"
-"><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
+"Dumps the contents of XFB copies to User/Dump/Textures/."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Enregistre le contenu des copies de XFB dans User/Dump/Textures/.<br><br /"
-"><dolphin_emphasis>Dans le doute, décochez cette case.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:40
 msgid "Duration of Turbo Button Press (frames):"
@@ -3630,20 +3621,15 @@ msgstr ""
 "avec le décodage des textures par le GPU.<br><br><dolphin_emphasis>Dans le "
 "doute, cochez cette case.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:265
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:259
 msgid ""
 "Enables multithreaded command submission in backends where supported. "
 "Enabling this option may result in a performance improvement on systems with "
 "more than two CPU cores. Currently, this is limited to the Vulkan backend."
-"<br><br /><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
+"<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"Active la soumission de commandes en multi-threading pour les moteurs "
-"graphiques qui le prennent en charge. Activer cette option peut offrir un "
-"gain de performances sur les systèmes ayant des CPU avec plus de 2 cœurs. "
-"Cette fonction est pour l'instant limitée au moteur Vulkan.<br><br /"
-"><dolphin_emphasis>Dans le doute, cochez cette case.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:261
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:255
 msgid ""
 "Enables progressive scan if supported by the emulated software. Most games "
 "don't have any issue with this.<br><br><dolphin_emphasis>If unsure, leave "
@@ -3680,18 +3666,15 @@ msgstr ""
 "Activer le Memory Management Unit (unité de gestion de la mémoire), requis "
 "pour certains jeux. (ON = Compatible, OFF = Vitesse)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:206
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:205
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
-"in debugging graphical issues.<br><br><dolphin_emphasis>If unsure, leave "
+"in debugging graphical issues. On D3D backends, this also enables debug "
+"symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Active la validation des appels d'API faits par le moteur graphique, ce qui "
-"peut aider à déboguer les problèmes graphiques."
-"<br><br><dolphin_emphasis>Dans le doute, décochez cette case.</"
-"dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:254
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:248
 msgid ""
 "Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3792,7 +3775,7 @@ msgstr "Égal à"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:259
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:375
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:215
-#: Source/Core/DolphinQt/GBAWidget.cpp:525
+#: Source/Core/DolphinQt/GBAWidget.cpp:526
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:332
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:361
 #: Source/Core/DolphinQt/Main.cpp:213 Source/Core/DolphinQt/Main.cpp:228
@@ -3888,35 +3871,35 @@ msgstr ""
 
 #: Source/Core/Core/HW/GBACore.cpp:192
 msgid "Error: GBA{0} failed to create core"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu créer le cœur"
 
 #: Source/Core/Core/HW/GBACore.cpp:347
 msgid "Error: GBA{0} failed to load the BIOS in {1}"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu lire le BIOS dans {1}"
 
 #: Source/Core/Core/HW/GBACore.cpp:212
 msgid "Error: GBA{0} failed to load the ROM in {1}"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu lire la ROM dans {1}"
 
 #: Source/Core/Core/HW/GBACore.cpp:366
 msgid "Error: GBA{0} failed to load the save in {1}"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu charger la sauvegarde dans {1}"
 
 #: Source/Core/Core/HW/GBACore.cpp:341
 msgid "Error: GBA{0} failed to open the BIOS in {1}"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu ouvrir le BIOS dans {1}"
 
 #: Source/Core/Core/HW/GBACore.cpp:182
 msgid "Error: GBA{0} failed to open the ROM in {1}"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu ouvrir la ROM dans {1}"
 
 #: Source/Core/Core/HW/GBACore.cpp:360
 msgid "Error: GBA{0} failed to open the save in {1}"
-msgstr ""
+msgstr "Erreur : GBA{0} n'a pas pu ouvrir la sauvegarde dans {1}"
 
 #: Source/Core/Core/HW/SI/SI_Device.cpp:198
 msgid "Error: This build does not support emulated GBA controllers"
-msgstr ""
+msgstr "Erreur : Cette version ne prend pas en charge les manettes GBA émulées"
 
 #: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:336
 msgid ""
@@ -3957,7 +3940,7 @@ msgstr "Europe"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:116
 msgid "Exclusive Ubershaders"
-msgstr ""
+msgstr "Ubershaders exclusifs"
 
 #: Source/Core/Core/HotkeyManager.cpp:36
 msgid "Exit"
@@ -4165,6 +4148,8 @@ msgstr "Impossible de créer DXGI factory"
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr ""
+"Impossible de supprimer le fichier de sauvegarde NetPlay GBA{0}. Vérifiez "
+"que vous avez les droits d'écriture."
 
 #: Source/Core/Core/NetPlayClient.cpp:921
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
@@ -4320,7 +4305,7 @@ msgstr ""
 "Impossible de charger {0}. Si vous utilisez Windows 7, essayez d'installer "
 "la mise à jour KB4019990."
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:525
+#: Source/Core/DolphinQt/GBAWidget.cpp:526
 #: Source/Core/DolphinQt/MainWindow.cpp:1559
 #: Source/Core/DolphinQt/RenderWidget.cpp:126
 msgid "Failed to open '%1'"
@@ -4885,39 +4870,39 @@ msgstr "Fonctions"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:36
 msgid "GBA (Integrated)"
-msgstr ""
+msgstr "GBA (Intégré)"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:38
 msgid "GBA (TCP)"
-msgstr ""
+msgstr "GBA (TCP)"
 
 #: Source/Core/Core/HotkeyManager.cpp:352
 msgid "GBA Core"
-msgstr ""
+msgstr "Cœur GBA"
 
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:35
 msgid "GBA Port %1"
-msgstr ""
+msgstr "Port GBA %1"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:132
 msgid "GBA Settings"
-msgstr ""
+msgstr "Réglages GBA"
 
 #: Source/Core/Core/HotkeyManager.cpp:353
 msgid "GBA Volume"
-msgstr ""
+msgstr "Volume GBA"
 
 #: Source/Core/Core/HotkeyManager.cpp:354
 msgid "GBA Window Size"
-msgstr ""
+msgstr "Taille de la fenêtre GBA"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:749
 msgid "GBA%1 ROM changed to \"%2\""
-msgstr ""
+msgstr "GBA%1 ROM changée en \"%2\""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:754
 msgid "GBA%1 ROM disabled"
-msgstr ""
+msgstr "GBA%1 ROM désactivée"
 
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:38
 msgid "GC Port %1"
@@ -5053,6 +5038,8 @@ msgid ""
 "Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
 "All Files (*)"
 msgstr ""
+"ROM de Game Boy Advance (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *."
+"bin);;Tous les fichiers (*)"
 
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:54
 msgid "Game Config"
@@ -5102,11 +5089,11 @@ msgstr "Paramètres spécifiques au jeu"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:382
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:439
 msgid "GameBoy Advance"
-msgstr ""
+msgstr "GameBoy Advance"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
 msgid "GameBoy Advance at Port %1"
-msgstr ""
+msgstr "GameBoy Advance sur le Port %1"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:40
 msgid "GameCube"
@@ -5320,7 +5307,7 @@ msgstr "Masquer les sessions incompatibles"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:177
 msgid "Hide Remote GBAs"
-msgstr ""
+msgstr "Masquer les GBA distantes"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:200
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:425
@@ -5403,7 +5390,7 @@ msgstr "Les touches de raccourci requièrent que la fenêtre soit sélectionnée
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:117
 msgid "Hybrid Ubershaders"
-msgstr ""
+msgstr "Ubershaders hybrides"
 
 #. i18n: The symbol/abbreviation for hertz (cycles per second).
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:153
@@ -5592,7 +5579,7 @@ msgstr ""
 msgid "Immediately Present XFB"
 msgstr "Présenter immédiatement l'XFB"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:279
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:272
 msgid ""
 "Implements fullscreen mode with a borderless window spanning the whole "
 "screen instead of using exclusive mode. Allows for faster transitions "
@@ -6047,9 +6034,9 @@ msgstr "Coréen"
 msgid "L"
 msgstr "L"
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:355
+#: Source/Core/DolphinQt/GBAWidget.cpp:356
 msgid "L&oad ROM"
-msgstr ""
+msgstr "C&harger une ROM"
 
 #. i18n: The left trigger button (labeled L on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:47
@@ -6205,7 +6192,7 @@ msgstr "Charger le dossier :"
 
 #: Source/Core/Core/HotkeyManager.cpp:182
 msgid "Load ROM"
-msgstr ""
+msgstr "Charger une ROM"
 
 #: Source/Core/Core/HotkeyManager.cpp:180
 #: Source/Core/Core/HotkeyManager.cpp:347
@@ -6333,7 +6320,7 @@ msgstr "Charger..."
 msgid "Loaded symbols from '%1'"
 msgstr "Symboles chargés à partir de '%1'"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:225
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:224
 msgid ""
 "Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/"
 "DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, "
@@ -6599,6 +6586,13 @@ msgid ""
 "- Title: {3}\n"
 "- Hash: {4:02X}"
 msgstr ""
+"Les ROM ne correspondent pas\n"
+"Sélectionnée : {0}\n"
+"- Titre : {1}\n"
+"- Hash : {2:02X}\n"
+"Attendu :\n"
+"- Titre : {3}\n"
+"- Hash : {4:02X}"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:25
@@ -7141,7 +7135,7 @@ msgstr "Opérateurs"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:70
 #: Source/Core/DolphinQt/ConvertDialog.cpp:80
-#: Source/Core/DolphinQt/GBAWidget.cpp:383
+#: Source/Core/DolphinQt/GBAWidget.cpp:384
 msgid "Options"
 msgstr "Options"
 
@@ -7376,7 +7370,7 @@ msgstr "Port %1"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:152
 msgid "Port %1 ROM:"
-msgstr ""
+msgstr "ROM sur Port %1 :"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:102
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:132
@@ -7979,7 +7973,7 @@ msgstr "Exécu&ter jusqu'ici"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:137
 msgid "Run GBA Cores in Dedicated Threads"
-msgstr ""
+msgstr "Exécuter les cœurs de GBA sur des threads dédiés"
 
 #: Source/Core/DiscIO/Enums.cpp:50
 msgid "Russia"
@@ -7999,7 +7993,7 @@ msgstr "Carte SD :"
 
 #: Source/Core/Core/HW/GBAPadEmu.cpp:18 Source/Core/Core/HW/GBAPadEmu.cpp:27
 msgid "SELECT"
-msgstr ""
+msgstr "SELECT"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:75
 msgid "SHA-1:"
@@ -8072,7 +8066,7 @@ msgstr "Sauvegarder l'ancien état"
 
 #: Source/Core/Core/HotkeyManager.cpp:179
 #: Source/Core/Core/HotkeyManager.cpp:348
-#: Source/Core/DolphinQt/GBAWidget.cpp:371
+#: Source/Core/DolphinQt/GBAWidget.cpp:372
 msgid "Save State"
 msgstr "Sauvegarder l'état"
 
@@ -8164,7 +8158,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:158
 msgid "Save in Same Directory as the ROM"
-msgstr ""
+msgstr "Placer la sauvegarde dans le même dossier que la ROM"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1524
 msgid "Save map file"
@@ -8194,7 +8188,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:164
 msgid "Saves:"
-msgstr ""
+msgstr "Sauvegardes :"
 
 #: Source/Core/Core/Movie.cpp:987
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
@@ -8277,15 +8271,15 @@ msgstr "Sélectionner le dossier d'exportation"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:403
 msgid "Select GBA BIOS"
-msgstr ""
+msgstr "Sélectionner le BIOS de la GBA"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:557
 msgid "Select GBA ROM"
-msgstr ""
+msgstr "Sélectionner la ROM GBA"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:432
 msgid "Select GBA Saves Path"
-msgstr ""
+msgstr "Sélectionner le dossier des sauvegardes GBA"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:21
 msgid "Select Last State"
@@ -8386,7 +8380,7 @@ msgstr "Sélectionner un titre à installer dans la NAND"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:187
 msgid "Select e-Reader Cards"
-msgstr ""
+msgstr "Sélectionner les cartes e-Reader"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1328
 msgid "Select the RSO module address:"
@@ -8443,6 +8437,8 @@ msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
 msgstr ""
+"Sélectionne l'adaptateur matériel à utiliser. <br><br><dolphin_emphasis>%1 "
+"ne prend pas en charge cette fonctionnalité.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
 msgid ""
@@ -8914,7 +8910,7 @@ msgstr "Sauter"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:118
 msgid "Skip Drawing"
-msgstr ""
+msgstr "Saute le dessin"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:45
 msgid "Skip EFB Access from CPU"
@@ -9033,7 +9029,7 @@ msgstr "Volume du haut-parleur :"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:115
 msgid "Specialized (Default)"
-msgstr ""
+msgstr "Spécialisé (par défaut)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:187
 msgid "Specific"
@@ -10052,7 +10048,7 @@ msgstr "Ce titre est réglé pour utiliser un IOS qui n'est pas valide."
 msgid "This title is set to use an invalid common key."
 msgstr "Ce titre est réglé pour utiliser une clé partagée non valide."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:295
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:296
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10064,7 +10060,7 @@ msgstr ""
 "\n"
 "DSPHLE : ucode inconnu (CRC = {0:08x}) - forçage de AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:286
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:287
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10379,6 +10375,11 @@ msgid ""
 "<br><br><dolphin_emphasis>Don't use this unless you encountered stuttering "
 "with Hybrid Ubershaders and have a very powerful GPU.</dolphin_emphasis>"
 msgstr ""
+"Les Ubershaders seront systématiquement utilisés. Donne une expérience "
+"quasiment sans saccade, au prix d'une forte exigence en GPU."
+"<br><br><dolphin_emphasis>N'utilisez ceci que si vous avez rencontré des "
+"saccades avec les Ubershaders hybrides et que vous avez un GPU puissant.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:253
 msgid ""
@@ -10525,7 +10526,7 @@ msgstr "Illimitée"
 
 #: Source/Core/Core/HotkeyManager.cpp:183
 msgid "Unload ROM"
-msgstr ""
+msgstr "Décharger la ROM"
 
 #: Source/Core/Core/HotkeyManager.cpp:37
 msgid "Unlock Cursor"
@@ -11051,7 +11052,7 @@ msgstr "Occidental (Windows-1252)"
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:220
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:219
 msgid ""
 "Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.  "
 "This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is "
@@ -11183,9 +11184,9 @@ msgstr ""
 "focus. Vous pouvez définir un raccourci clavier pour le déverrouiller."
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:25
-#: Source/Core/DolphinQt/GBAWidget.cpp:385
+#: Source/Core/DolphinQt/GBAWidget.cpp:386
 msgid "Window Size"
-msgstr ""
+msgstr "Taille de la fenêtre"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:134
 msgid "Word Wrap"
@@ -11202,7 +11203,7 @@ msgstr "Écrire"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:111
 msgid "Write Save Data"
-msgstr ""
+msgstr "Écrire données de sauvegarde"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
@@ -11420,7 +11421,7 @@ msgstr "déconnecté"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:187
 msgid "e-Reader Cards (*.raw);;All Files (*)"
-msgstr ""
+msgstr "Cartes e-Reader (*.raw);;Tous les fichiers (*)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:186
 msgid "errno"
@@ -11441,6 +11442,8 @@ msgid ""
 "mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *."
 "ss9);;All Files (*)"
 msgstr ""
+"Sauvegardes d'état mGBA (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *."
+"ss8 *.ss9);;Tous les fichiers (*)"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
 msgid "none"
