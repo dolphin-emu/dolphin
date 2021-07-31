@@ -572,6 +572,10 @@ add_subdirectory(Externals/glslang)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
+
+  if(APPLE)
+    add_subdirectory(Externals/MoltenVK)
+  endif()
 endif()
 
 if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
