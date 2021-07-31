@@ -747,6 +747,8 @@ void AXUCode::DoAXState(PointerWrap& p)
   p.Do(m_samples_auxB_left);
   p.Do(m_samples_auxB_right);
   p.Do(m_samples_auxB_surround);
+
+  p.Do(m_compressor_pos);
 }
 
 void AXUCode::DoState(PointerWrap& p)
