@@ -26,91 +26,63 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mgba\src\core\bitmap-cache.c" />
-    <ClCompile Include="mgba\src\core\cache-set.c">
-      <ObjectFileName>$(IntDir)/src/core/cache-set.c.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="mgba\src\core\cheats.c">
-      <ObjectFileName>$(IntDir)/src/core/cheats.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\core\cache-set.c" />
+    <ClCompile Include="mgba\src\core\cheats.c" />
     <ClCompile Include="mgba\src\core\config.c" />
-    <ClCompile Include="mgba\src\core\core.c">
-      <ObjectFileName>$(IntDir)/src/core/core.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\core\core.c" />
     <ClCompile Include="mgba\src\core\directories.c" />
-    <ClCompile Include="mgba\src\core\input.c">
-      <ObjectFileName>$(IntDir)/src/core/input.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\core\input.c" />
     <ClCompile Include="mgba\src\core\interface.c" />
     <ClCompile Include="mgba\src\core\library.c" />
-    <ClCompile Include="mgba\src\core\lockstep.c">
-      <ObjectFileName>$(IntDir)/src/core/lockstep.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\core\lockstep.c" />
     <ClCompile Include="mgba\src\core\log.c" />
     <ClCompile Include="mgba\src\core\map-cache.c" />
     <ClCompile Include="mgba\src\core\mem-search.c" />
     <ClCompile Include="mgba\src\core\rewind.c" />
     <ClCompile Include="mgba\src\core\scripting.c" />
-    <ClCompile Include="mgba\src\core\serialize.c">
-      <ObjectFileName>$(IntDir)/src/core/serialize.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\core\serialize.c" />
     <ClCompile Include="mgba\src\core\sync.c" />
     <ClCompile Include="mgba\src\core\thread.c" />
     <ClCompile Include="mgba\src\core\tile-cache.c" />
     <ClCompile Include="mgba\src\core\timing.c" />
-    <ClCompile Include="mgba\src\sm83\decoder.c">
-      <ObjectFileName>$(IntDir)/src/sm83/decoder.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\sm83\decoder.c" />
     <ClCompile Include="mgba\src\sm83\isa-sm83.c" />
     <ClCompile Include="mgba\src\sm83\sm83.c" />
-    <ClCompile Include="mgba\src\gb\audio.c">
-      <ObjectFileName>$(IntDir)/src/gb/audio.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\gb\audio.c" />
     <ClCompile Include="mgba\src\gb\cheats.c">
-      <ObjectFileName>$(IntDir)/src/gb/cheats.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\core.c">
-      <ObjectFileName>$(IntDir)/src/gb/core.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\gb.c" />
     <ClCompile Include="mgba\src\gb\input.c">
-      <ObjectFileName>$(IntDir)/src/gb/input.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="mgba\src\gb\io.c">
-      <ObjectFileName>$(IntDir)/src/gb/io.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\gb\io.c" />
     <ClCompile Include="mgba\src\gb\mbc.c" />
-    <ClCompile Include="mgba\src\gb\memory.c">
-      <ObjectFileName>$(IntDir)/src/gb/memory.c.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="mgba\src\gb\overrides.c">
-      <ObjectFileName>$(IntDir)/src/gb/overrides.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\gb\memory.c" />
+    <ClCompile Include="mgba\src\gb\overrides.c" />
     <ClCompile Include="mgba\src\gb\serialize.c">
-      <ObjectFileName>$(IntDir)/src/gb/serialize.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\renderers\cache-set.c">
-      <ObjectFileName>$(IntDir)/src/gb/renderers/cache-set.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\renderers\software.c" />
-    <ClCompile Include="mgba\src\gb\sio.c">
-      <ObjectFileName>$(IntDir)/src/gb/sio.c.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="mgba\src\gb\timer.c">
-      <ObjectFileName>$(IntDir)/src/gb/timer.c.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="mgba\src\gb\video.c">
-      <ObjectFileName>$(IntDir)/src/gb/video.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\gb\sio.c" />
+    <ClCompile Include="mgba\src\gb\timer.c" />
+    <ClCompile Include="mgba\src\gb\video.c" />
     <ClCompile Include="mgba\src\arm\arm.c" />
     <ClCompile Include="mgba\src\arm\decoder-arm.c" />
     <ClCompile Include="mgba\src\arm\decoder.c">
-      <ObjectFileName>$(IntDir)/src/arm/decoder.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\arm\decoder-thumb.c" />
     <ClCompile Include="mgba\src\arm\isa-arm.c" />
     <ClCompile Include="mgba\src\arm\isa-thumb.c" />
     <ClCompile Include="mgba\src\gba\audio.c">
-      <ObjectFileName>$(IntDir)/src/gba/audio.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\bios.c" />
     <ClCompile Include="mgba\src\gba\cart\ereader.c" />
@@ -118,31 +90,31 @@
     <ClCompile Include="mgba\src\gba\cart\matrix.c" />
     <ClCompile Include="mgba\src\gba\cart\vfame.c" />
     <ClCompile Include="mgba\src\gba\cheats.c">
-      <ObjectFileName>$(IntDir)/src/gba/cheats.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\cheats\codebreaker.c" />
     <ClCompile Include="mgba\src\gba\cheats\gameshark.c" />
     <ClCompile Include="mgba\src\gba\cheats\parv3.c" />
     <ClCompile Include="mgba\src\gba\core.c">
-      <ObjectFileName>$(IntDir)/src/gba/core.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\dma.c" />
     <ClCompile Include="mgba\src\gba\gba.c" />
     <ClCompile Include="mgba\src\gba\hle-bios.c" />
     <ClCompile Include="mgba\src\gba\input.c">
-      <ObjectFileName>$(IntDir)/src/gba/input.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\io.c">
-      <ObjectFileName>$(IntDir)/src/gba/io.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\memory.c">
-      <ObjectFileName>$(IntDir)/src/gba/memory.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\overrides.c">
-      <ObjectFileName>$(IntDir)/src/gba/overrides.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\renderers\cache-set.c">
-      <ObjectFileName>$(IntDir)/src/gba/renderers/cache-set.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\renderers\common.c" />
     <ClCompile Include="mgba\src\gba\renderers\gl.c" />
@@ -152,19 +124,19 @@
     <ClCompile Include="mgba\src\gba\renderers\video-software.c" />
     <ClCompile Include="mgba\src\gba\savedata.c" />
     <ClCompile Include="mgba\src\gba\serialize.c">
-      <ObjectFileName>$(IntDir)/src/gba/serialize.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\sharkport.c" />
     <ClCompile Include="mgba\src\gba\sio.c">
-      <ObjectFileName>$(IntDir)/src/gba/sio.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\sio\gbp.c" />
     <ClCompile Include="mgba\src\gba\sio\joybus.c" />
     <ClCompile Include="mgba\src\gba\timer.c">
-      <ObjectFileName>$(IntDir)/src/gba/timer.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gba\video.c">
-      <ObjectFileName>$(IntDir)/src/gba/video.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\util\circle-buffer.c" />
     <ClCompile Include="mgba\src\util\configuration.c" />
@@ -191,7 +163,7 @@
     <ClCompile Include="mgba\src\util\vfs\vfs-fd.c" />
     <ClCompile Include="mgba\src\platform\windows\vfs-w32.c" />
     <ClCompile Include="mgba\src\platform\windows\memory.c">
-      <ObjectFileName>$(IntDir)/src/platform/windows/memory.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\third-party\inih\ini.c" />
     <ClCompile Include="mgba\src\third-party\blip_buf\blip_buf.c" />
@@ -217,19 +189,17 @@
     <ClCompile Include="mgba\src\third-party\lzma\7zStream.c" />
     <ClCompile Include="mgba\src\gba\sio\dolphin.c" />
     <ClCompile Include="mgba\src\gba\sio\lockstep.c">
-      <ObjectFileName>$(IntDir)/src/gba/sio/lockstep.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\sio\lockstep.c">
-      <ObjectFileName>$(IntDir)/src/gb/sio/lockstep.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj3\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\gb\sio\printer.c" />
     <ClCompile Include="mgba\src\gba\extra\audio-mixer.c" />
     <ClCompile Include="mgba\src\gba\extra\battlechip.c" />
-    <ClCompile Include="mgba\src\gba\extra\proxy.c">
-      <ObjectFileName>$(IntDir)/src/gba/extra/proxy.c.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="mgba\src\gba\extra\proxy.c" />
     <ClCompile Include="mgba\src\gb\extra\proxy.c">
-      <ObjectFileName>$(IntDir)/src/gb/extra/proxy.c.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)obj2\</ObjectFileName>
     </ClCompile>
     <ClCompile Include="mgba\src\feature\commandline.c" />
     <ClCompile Include="mgba\src\feature\thread-proxy.c" />
