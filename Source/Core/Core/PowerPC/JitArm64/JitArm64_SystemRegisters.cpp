@@ -816,3 +816,39 @@ void JitArm64::mtfsb1x(UGeckoInstruction inst)
   if (inst.CRBD >= 29)
     UpdateRoundingMode();
 }
+
+void JitArm64::mtfsfix(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+  FALLBACK_IF(inst.Rc);
+
+  u8 imm = (inst.hex >> (31 - 19)) & 0xF;
+  u8 shift = 28 - 4 * inst.CRFD;
+
+  ARM64Reg WA = gpr.GetReg();
+  LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+
+  if (imm == 0xF)
+  {
+    ORR(WA, WA, LogicalImm(0xF << shift, 32));
+  }
+  else if (imm == 0x0)
+  {
+    BFI(WA, ARM64Reg::WZR, shift, 4);
+  }
+  else
+  {
+    ARM64Reg WB = gpr.GetReg();
+    MOVZ(WB, imm);
+    BFI(WA, WB, shift, 4);
+    gpr.Unlock(WB);
+  }
+
+  STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+  gpr.Unlock(WA);
+
+  // Field 7 contains NI and RN.
+  if (inst.CRFD == 7)
+    UpdateRoundingMode();
+}

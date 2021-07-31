@@ -318,7 +318,7 @@ constexpr std::array<GekkoOPTemplate, 15> table63{{
     {583, &JitArm64::mffsx},                  // mffsx
     {70, &JitArm64::mtfsb0x},                 // mtfsb0x
     {38, &JitArm64::mtfsb1x},                 // mtfsb1x
-    {134, &JitArm64::FallBackToInterpreter},  // mtfsfix
+    {134, &JitArm64::mtfsfix},                // mtfsfix
     {711, &JitArm64::FallBackToInterpreter},  // mtfsfx
 }};
 
