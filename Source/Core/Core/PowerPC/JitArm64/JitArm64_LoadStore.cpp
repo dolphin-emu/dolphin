@@ -274,11 +274,12 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
 }
 
-FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp)
+FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp,
+                                       const void* bat_table)
 {
   tmp = EncodeRegTo64(tmp);
 
-  MOVP2R(tmp, PowerPC::dbat_table.data());
+  MOVP2R(tmp, bat_table);
   LSR(addr_out, addr_in, PowerPC::BAT_INDEX_SHIFT);
   LDR(addr_out, tmp, ArithOption(addr_out, true));
   FixupBranch pass = TBNZ(addr_out, IntLog2(PowerPC::BAT_MAPPED_BIT));
@@ -570,7 +571,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   FixupBranch bat_lookup_failed;
   if (MSR.IR)
   {
-    bat_lookup_failed = BATAddressLookup(physical_addr, effective_addr, WA);
+    bat_lookup_failed =
+        BATAddressLookup(physical_addr, effective_addr, WA, PowerPC::ibat_table.data());
     BFI(physical_addr, effective_addr, 0, PowerPC::BAT_INDEX_SHIFT);
   }
 

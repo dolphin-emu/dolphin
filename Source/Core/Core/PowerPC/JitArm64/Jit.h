@@ -234,7 +234,7 @@ protected:
   // If lookup succeeds, writes upper 15 bits of physical address to addr_out. If not,
   // jumps to the returned FixupBranch. Clobbers tmp and the 17 lower bits of addr_out.
   Arm64Gen::FixupBranch BATAddressLookup(Arm64Gen::ARM64Reg addr_out, Arm64Gen::ARM64Reg addr_in,
-                                         Arm64Gen::ARM64Reg tmp);
+                                         Arm64Gen::ARM64Reg tmp, const void* bat_table);
 
   void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
