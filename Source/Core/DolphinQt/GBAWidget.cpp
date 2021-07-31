@@ -229,6 +229,7 @@ void GBAWidget::DoState(bool export_state)
 
 void GBAWidget::Resize(int scale)
 {
+  showNormal();
   resize(m_core_info.width * scale, m_core_info.height * scale);
 }
 
