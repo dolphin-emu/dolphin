@@ -274,6 +274,19 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
 }
 
+FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM64Reg tmp)
+{
+  tmp = EncodeRegTo64(tmp);
+
+  MOVP2R(tmp, PowerPC::dbat_table.data());
+  LSR(addr_out, addr_in, PowerPC::BAT_INDEX_SHIFT);
+  LDR(addr_out, tmp, ArithOption(addr_out, true));
+  FixupBranch pass = TBNZ(addr_out, IntLog2(PowerPC::BAT_MAPPED_BIT));
+  FixupBranch fail = B();
+  SetJumpTarget(pass);
+  return fail;
+}
+
 void JitArm64::lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -539,34 +552,71 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  gpr.Lock(ARM64Reg::W0);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
 
-  ARM64Reg addr = ARM64Reg::W0;
+  ARM64Reg effective_addr = ARM64Reg::W0;
+  ARM64Reg physical_addr = MSR.IR ? gpr.GetReg() : effective_addr;
+  ARM64Reg value = gpr.GetReg();
+  ARM64Reg WA = ARM64Reg::W30;
 
   u32 a = inst.RA, b = inst.RB;
 
   if (a)
-    ADD(addr, gpr.R(a), gpr.R(b));
+    ADD(effective_addr, gpr.R(a), gpr.R(b));
   else
-    MOV(addr, gpr.R(b));
+    MOV(effective_addr, gpr.R(b));
 
-  AND(addr, addr, LogicalImm(~31, 32));  // mask sizeof cacheline
+  // Translate effective address to physical address.
+  FixupBranch bat_lookup_failed;
+  if (MSR.IR)
+  {
+    bat_lookup_failed = BATAddressLookup(physical_addr, effective_addr, WA);
+    BFI(physical_addr, effective_addr, 0, PowerPC::BAT_INDEX_SHIFT);
+  }
+
+  // Check whether a JIT cache line needs to be invalidated.
+  LSR(value, physical_addr, 5 + 5);  // >> 5 for cache line size, >> 5 for width of bitset
+  MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
+  LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
+
+  LSR(WA, physical_addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
+
+  LSRV(value, value, WA);  // move current bit to bit 0
+
+  FixupBranch bit_not_set = TBZ(value, 0);
+  FixupBranch far_addr = B();
+  SwitchToFarCode();
+  SetJumpTarget(far_addr);
+  if (MSR.IR)
+    SetJumpTarget(bat_lookup_failed);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
+  gprs_to_push[DecodeReg(effective_addr)] = false;
+  gprs_to_push[DecodeReg(physical_addr)] = false;
+  gprs_to_push[DecodeReg(value)] = false;
+  gprs_to_push[DecodeReg(WA)] = false;
 
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
-  MOVI2R(ARM64Reg::X1, 32);
-  MOVI2R(ARM64Reg::X2, 0);
-  MOVP2R(ARM64Reg::X3, &JitInterface::InvalidateICache);
-  BLR(ARM64Reg::X3);
+  MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICache);
+  // W0 was already set earlier
+  MOVI2R(ARM64Reg::W1, 32);
+  MOVI2R(ARM64Reg::W2, 0);
+  BLR(ARM64Reg::X8);
 
   m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
   ABI_PopRegisters(gprs_to_push);
 
-  gpr.Unlock(ARM64Reg::W0);
+  FixupBranch near_addr = B();
+  SwitchToNearCode();
+  SetJumpTarget(bit_not_set);
+  SetJumpTarget(near_addr);
+
+  gpr.Unlock(effective_addr, value, WA);
+  if (MSR.IR)
+    gpr.Unlock(physical_addr);
 }
 
 void JitArm64::dcbt(UGeckoInstruction inst)

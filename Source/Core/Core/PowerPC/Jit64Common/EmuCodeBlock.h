@@ -49,6 +49,10 @@ public:
     return Gen::M(m_const_pool.GetConstant(&value, sizeof(T), N, index));
   }
 
+  // Writes upper 15 bits of physical address to addr and clobbers the lower 17 bits of addr.
+  // Jumps to the returned FixupBranch if lookup fails.
+  Gen::FixupBranch BATAddressLookup(Gen::X64Reg addr, Gen::X64Reg tmp);
+
   Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
                                       BitSet32 registers_in_use);
   void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
