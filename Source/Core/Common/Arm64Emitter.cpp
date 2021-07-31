@@ -3008,6 +3008,14 @@ void ARM64FloatEmitter::BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitThreeSame(0, 1, 3, Rd, Rn, Rm);
 }
+void ARM64FloatEmitter::BIF(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, 3, 3, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::BIT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, 2, 3, Rd, Rn, Rm);
+}
 void ARM64FloatEmitter::BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitThreeSame(1, 1, 3, Rd, Rn, Rm);

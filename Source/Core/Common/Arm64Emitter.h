@@ -1248,6 +1248,8 @@ public:
   void ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void BIF(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void BIT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
   void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
