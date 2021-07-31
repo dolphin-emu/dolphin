@@ -852,3 +852,44 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
   if (inst.CRFD == 7)
     UpdateRoundingMode();
 }
+
+void JitArm64::mtfsfx(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+  FALLBACK_IF(inst.Rc);
+
+  u32 mask = 0;
+  for (int i = 0; i < 8; i++)
+  {
+    if (inst.FM & (1 << i))
+      mask |= 0xFU << (4 * i);
+  }
+
+  if (mask == 0xFFFFFFFF)
+  {
+    ARM64Reg VB = fpr.R(inst.FB, RegType::LowerPair);
+
+    m_float_emit.STR(32, IndexType::Unsigned, VB, PPC_REG, PPCSTATE_OFF(fpscr));
+  }
+  else if (mask != 0)
+  {
+    ARM64Reg VB = fpr.R(inst.FB, RegType::LowerPair);
+
+    ARM64Reg V0 = fpr.GetReg();
+    ARM64Reg V1 = fpr.GetReg();
+    ARM64Reg WA = gpr.GetReg();
+
+    m_float_emit.LDR(32, IndexType::Unsigned, V0, PPC_REG, PPCSTATE_OFF(fpscr));
+    MOVI2R(WA, mask);
+    m_float_emit.FMOV(EncodeRegToSingle(V1), WA);
+    m_float_emit.BIT(EncodeRegToDouble(V0), EncodeRegToDouble(VB), EncodeRegToDouble(V1));
+    m_float_emit.STR(32, IndexType::Unsigned, V0, PPC_REG, PPCSTATE_OFF(fpscr));
+
+    fpr.Unlock(V0, V1);
+    gpr.Unlock(WA);
+  }
+
+  if (inst.FM & 1)
+    UpdateRoundingMode();
+}
