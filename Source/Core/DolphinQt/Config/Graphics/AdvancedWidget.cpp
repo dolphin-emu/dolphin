@@ -199,12 +199,12 @@ void AdvancedWidget::AddDescriptions()
                  "leave this unchecked.</dolphin_emphasis>");
   static const char TR_TEXTURE_FORMAT_DESCRIPTION[] =
       QT_TR_NOOP("Modifies textures to show the format they're encoded in.<br><br>May require "
-                 "an emulation "
-                 "reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
-                 "debugging graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "debugging graphical issues. On D3D backends, this also enables debug symbols "
+                 "for the compiled shaders.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
@@ -213,9 +213,8 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump mipmapped game textures to "
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary mipmapped textures if "
-      "'Arbitrary "
-      "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
-      "this checked.</dolphin_emphasis>");
+      "'Arbitrary Mipmap Detection' is enabled in Enhancements.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump base game textures to "
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
@@ -224,31 +223,26 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
                  "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
-                 "unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Caches custom textures to system RAM on startup.<br><br>This can require exponentially "
       "more RAM but fixes possible stuttering.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_EFB_DESCRIPTION[] =
-      QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br "
-                 "/><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+      QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_XFB_DESCRIPTION[] =
-      QT_TR_NOOP("Dumps the contents of XFB copies to User/Dump/Textures/.<br><br "
-                 "/><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+      QT_TR_NOOP("Dumps the contents of XFB copies to User/Dump/Textures/.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
                  "upscaling.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
       "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than "
-      "the size of the window it is displayed within.<br><br>If the aspect ratio is "
-      "widescreen, the "
-      "output image will be scaled horizontally to preserve the vertical resolution.<br><br "
-      "/><dolphin_emphasis>If "
-      "unsure, leave this unchecked.</dolphin_emphasis>");
+      "the size of the window it is displayed within.<br><br>If the aspect ratio is widescreen, "
+      "the output image will be scaled horizontally to preserve the vertical resolution.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
@@ -264,9 +258,8 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
       QT_TR_NOOP("Enables multithreaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
-                 "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br "
-                 "/><dolphin_emphasis>If unsure, "
-                 "leave this checked.</dolphin_emphasis>");
+                 "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "

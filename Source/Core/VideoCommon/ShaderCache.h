@@ -53,7 +53,7 @@ public:
   void InitializeShaderCache();
 
   // Changes the shader host config. Shaders should be reloaded afterwards.
-  void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config = host_config; }
+  void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config.bits = host_config.bits; }
 
   // Reloads/recreates all shaders and pipelines.
   void Reload();
