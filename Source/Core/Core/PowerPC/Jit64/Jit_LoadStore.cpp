@@ -20,6 +20,7 @@
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
@@ -246,7 +247,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   if (MSR.IR)
   {
     MOV(32, R(addr), R(value));
-    bat_lookup_failed = BATAddressLookup(value, tmp);
+    bat_lookup_failed = BATAddressLookup(value, tmp, PowerPC::ibat_table.data());
     AND(32, R(addr), Imm32(0x0001ffff));
     AND(32, R(value), Imm32(0xfffe0000));
     OR(32, R(value), R(addr));
