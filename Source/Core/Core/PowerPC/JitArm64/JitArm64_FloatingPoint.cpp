@@ -178,18 +178,24 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     case 25:
       m_float_emit.FMUL(VD, VA, VC);
       break;
-    case 28:
+    case 28:  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
       m_float_emit.FNMSUB(VD, VA, VC, VB);
-      break;  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
-    case 29:
+      break;
+    case 29:  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
       m_float_emit.FMADD(VD, VA, VC, VB);
-      break;  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
-    case 30:
-      m_float_emit.FMSUB(VD, VA, VC, VB);
-      break;  // fnmsub: "D = -(A*C - B)" vs "Vd = Va + (-Vn)*Vm"
-    case 31:
-      m_float_emit.FNMADD(VD, VA, VC, VB);
-      break;  // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
+      break;
+    // While it may seem like PowerPC's nmadd/nmsub map to AArch64's nmadd/msub [sic],
+    // the subtly different definitions affect how signed zeroes are handled.
+    // Also, PowerPC's nmadd/nmsub perform rounding before the final negation.
+    // So, negate using a separate instruction instead of using AArch64's nmadd/msub.
+    case 30:  // fnmsub: "D = -(A*C - B)" vs "Vd = -((-Va) + Vn*Vm)"
+      m_float_emit.FNMSUB(VD, VA, VC, VB);
+      m_float_emit.FNEG(VD, VD);
+      break;
+    case 31:  // fnmadd: "D = -(A*C + B)" vs "Vd = -(Va + Vn*Vm)"
+      m_float_emit.FMADD(VD, VA, VC, VB);
+      m_float_emit.FNEG(VD, VD);
+      break;
     default:
       ASSERT_MSG(DYNA_REC, 0, "fp_arith");
       break;
