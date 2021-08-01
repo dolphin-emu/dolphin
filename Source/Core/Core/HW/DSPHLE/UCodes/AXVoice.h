@@ -17,6 +17,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
@@ -473,6 +474,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   if (pb.initial_time_delay.on)
   {
     // TODO
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_INITIAL_TIME_DELAY);
   }
 
 #ifdef AX_WII
