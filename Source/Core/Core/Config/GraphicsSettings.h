@@ -42,7 +42,7 @@ extern const Info<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const Info<bool> GFX_DUMP_EFB_TARGET;
 extern const Info<bool> GFX_DUMP_XFB_TARGET;
 extern const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES;
-extern const Info<bool> GFX_USE_FFV1;
+extern const Info<bool> GFX_USE_MAGICYUV;
 extern const Info<std::string> GFX_DUMP_FORMAT;
 extern const Info<std::string> GFX_DUMP_CODEC;
 extern const Info<std::string> GFX_DUMP_ENCODER;

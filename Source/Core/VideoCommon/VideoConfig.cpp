@@ -70,7 +70,7 @@ void VideoConfig::Refresh()
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
   bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
-  bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
+  bUseMagicYUV = Config::Get(Config::GFX_USE_MAGICYUV);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
   sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);

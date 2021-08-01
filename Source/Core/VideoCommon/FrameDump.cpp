@@ -168,7 +168,7 @@ bool FrameDump::CreateVideoFile()
     return false;
   }
 
-  const std::string& codec_name = g_Config.bUseFFV1 ? "ffv1" : g_Config.sDumpCodec;
+  const std::string& codec_name = g_Config.bUseMagicYUV ? "magicyuv" : g_Config.sDumpCodec;
 
   AVCodecID codec_id = output_format->video_codec;
 
@@ -215,7 +215,7 @@ bool FrameDump::CreateVideoFile()
   m_context->codec->time_base = time_base;
   m_context->codec->gop_size = 1;
   m_context->codec->level = 1;
-  m_context->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGR0 : AV_PIX_FMT_YUV420P;
+  m_context->codec->pix_fmt = g_Config.bUseMagicYUV ? AV_PIX_FMT_GBRP : AV_PIX_FMT_YUV420P;
 
   if (output_format->flags & AVFMT_GLOBALHEADER)
     m_context->codec->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;

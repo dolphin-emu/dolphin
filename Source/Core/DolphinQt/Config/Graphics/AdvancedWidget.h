@@ -49,7 +49,7 @@ private:
   GraphicsBool* m_dump_base_textures;
 
   // Frame dumping
-  GraphicsBool* m_dump_use_ffv1;
+  GraphicsBool* m_dump_use_magicyuv;
   GraphicsBool* m_use_fullres_framedumps;
   GraphicsInteger* m_dump_bitrate;
   GraphicsInteger* m_png_compression_level;

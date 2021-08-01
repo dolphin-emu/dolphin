@@ -101,13 +101,13 @@ void AdvancedWidget::CreateWidgets()
 
   m_use_fullres_framedumps = new GraphicsBool(tr("Dump at Internal Resolution"),
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
-  m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
+  m_dump_use_magicyuv = new GraphicsBool(tr("Use Lossless Codec (MagicYUV)"), Config::GFX_USE_MAGICYUV);
   m_dump_bitrate = new GraphicsInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
   m_png_compression_level = new GraphicsInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
 
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
-  dump_layout->addWidget(m_dump_use_ffv1, 0, 1);
+  dump_layout->addWidget(m_dump_use_magicyuv, 0, 1);
   dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 1, 0);
   dump_layout->addWidget(m_dump_bitrate, 1, 1);
 #endif
@@ -162,7 +162,7 @@ void AdvancedWidget::CreateWidgets()
 void AdvancedWidget::ConnectWidgets()
 {
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
-  connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_dump_use_magicyuv, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
@@ -170,7 +170,7 @@ void AdvancedWidget::ConnectWidgets()
 void AdvancedWidget::LoadSettings()
 {
   m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
-  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
+  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_MAGICYUV));
 
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
@@ -180,7 +180,7 @@ void AdvancedWidget::LoadSettings()
 void AdvancedWidget::SaveSettings()
 {
   m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
-  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
+  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_MAGICYUV));
 
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
@@ -251,8 +251,8 @@ void AdvancedWidget::AddDescriptions()
       "the output image will be scaled horizontally to preserve the vertical resolution.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
-  static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
+  static const char TR_USE_MAGICYUV_DESCRIPTION[] =
+      QT_TR_NOOP("Encodes frame dumps using the MagicYUV codec.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
   static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
@@ -318,7 +318,7 @@ void AdvancedWidget::AddDescriptions()
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
   m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
 #ifdef HAVE_FFMPEG
-  m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
+  m_dump_use_magicyuv->SetDescription(tr(TR_USE_MAGICYUV_DESCRIPTION));
 #endif
   m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
