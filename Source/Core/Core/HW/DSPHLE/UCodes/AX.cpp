@@ -13,6 +13,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -173,6 +174,7 @@ void AXUCode::HandleCommandList()
       break;
 
     case CMD_UNK_08:
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNIMPLEMENTED_AX_COMMAND);
       curr_idx += 10;
       break;  // TODO: check
 

@@ -72,6 +72,10 @@ enum class GameQuirk
   // Track them separately.
   USES_CP_PERF_COMMAND,
 
+  // We don't implement all AX features yet.
+  USES_UNIMPLEMENTED_AX_COMMAND,
+  USES_AX_INITIAL_TIME_DELAY,
+
   COUNT,
 };
 
