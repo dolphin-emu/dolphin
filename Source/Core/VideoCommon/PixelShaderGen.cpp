@@ -318,7 +318,7 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
+  if (state.usedualsrc && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
       !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
     uid_data->blend_enable = state.blendenable;
@@ -613,13 +613,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
-  // Only use dual-source blending when required on drivers that don't support it very well.
-  const bool use_dual_source =
-      host_config.backend_dual_source_blend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->useDstAlpha);
-  const bool use_shader_blend =
-      !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
+  const bool use_dual_source = host_config.backend_dual_source_blend;
+  const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
