@@ -417,6 +417,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   g_Config.backend_info.AdapterName = g_ogl_config.gl_renderer;
 
   g_Config.backend_info.bSupportsDualSourceBlend =
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
        GLExtensions::Supports("GL_EXT_blend_func_extended"));
   g_Config.backend_info.bSupportsPrimitiveRestart =
@@ -1169,14 +1170,11 @@ void Renderer::ApplyBlendingState(const BlendingState state)
   if (m_current_blend_state == state)
     return;
 
-  bool useDualSource =
-      state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
-  // Only use shader blend if we need to and we don't support dual-source blending directly
-  bool useShaderBlend = !useDualSource && state.usedualsrc && state.dstalpha &&
-                        g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+  bool use_dual_source = state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+  bool use_shader_blend =
+      !use_dual_source && state.usedualsrc && g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
-  if (useShaderBlend)
+  if (use_shader_blend)
   {
     glDisable(GL_BLEND);
   }
@@ -1186,18 +1184,18 @@ void Renderer::ApplyBlendingState(const BlendingState state)
                                    GL_ONE,
                                    GL_DST_COLOR,
                                    GL_ONE_MINUS_DST_COLOR,
-                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   use_dual_source ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   use_dual_source ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                     (GLenum)GL_ONE_MINUS_SRC_ALPHA,
                                    GL_DST_ALPHA,
                                    GL_ONE_MINUS_DST_ALPHA};
     const GLenum dst_factors[8] = {GL_ZERO,
                                    GL_ONE,
                                    GL_SRC_COLOR,
                                    GL_ONE_MINUS_SRC_COLOR,
-                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   use_dual_source ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   use_dual_source ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                     (GLenum)GL_ONE_MINUS_SRC_ALPHA,
                                    GL_DST_ALPHA,
                                    GL_ONE_MINUS_DST_ALPHA};
 
