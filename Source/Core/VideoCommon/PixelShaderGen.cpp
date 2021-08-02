@@ -568,7 +568,44 @@ int4 readTextureLinear(in Texture2DArray tex, uint2 uv1, uint2 uv2, int layer, i
 }}
 )");
 
-    out.Write(R"(
+    if (host_config.manual_texture_sampling_custom_texture_sizes)
+    {
+      // This is slower, and doesn't result in the same odd behavior that happens on console when
+      // wrapping with non-power-of-2 sizes, but it's fine for custom textures to have non-console
+      // behavior.
+      out.Write(R"(
+// Both GLSL and HLSL produce undefined values when the modulo operator (%) is used with a negative
+// dividend and a positive divisor.  We want a positive value such that SafeModulo(-1, 3) is 2.
+int SafeModulo(int dividend, int divisor) {{
+  if (dividend >= 0) {{
+    return dividend % divisor;
+  }} else {{
+    // This works because ~x is the same as -x - 1.
+    // `~x % 5` over -5 to -1 gives 4, 3, 2, 1, 0.  `4 - (~x % 5)` gives 0, 1, 2, 3, 4.
+    return (divisor - 1) - (~dividend % divisor);
+  }}
+}}
+
+uint WrapCoord(int coord, uint wrap, int size) {{
+  switch (wrap) {{
+    case {:s}:
+    default: // confirmed that clamp is used for invalid (3) via hardware test
+      return uint(clamp(coord, 0, size - 1));
+    case {:s}:
+      return uint(SafeModulo(coord, size));  // coord % size
+    case {:s}:
+      if (SafeModulo(coord, 2 * size) >= size) {{  // coord % (2 * size)
+        coord = ~coord;
+      }}
+      return uint(SafeModulo(coord, size));  // coord % size
+  }}
+}}
+)",
+                WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+    }
+    else
+    {
+      out.Write(R"(
 uint WrapCoord(int coord, uint wrap, int size) {{
   switch (wrap) {{
     case {:s}:
@@ -584,7 +621,8 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   }}
 }}
 )",
-              WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+                WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+    }
   }
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -616,8 +654,6 @@ uint WrapCoord(int coord, uint wrap, int size) {{
     out.Write(R"(
   uint texmode0 = samp_texmode0(texmap);
   uint texmode1 = samp_texmode1(texmap);
-  int size_s = )" I_TEXDIMS R"([texmap].x;
-  int size_t = )" I_TEXDIMS R"([texmap].y;
 
   uint wrap_s = {};
   uint wrap_t = {};
@@ -642,6 +678,46 @@ uint WrapCoord(int coord, uint wrap, int size) {{
               BitfieldExtract<&SamplerState::TM0::lod_clamp>("texmode0"),
               BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
               BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
+
+    if (host_config.manual_texture_sampling_custom_texture_sizes)
+    {
+      out.Write(R"(
+  int native_size_s = )" I_TEXDIMS R"([texmap].x;
+  int native_size_t = )" I_TEXDIMS R"([texmap].y;
+)");
+
+      if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+      {
+        out.Write(R"(
+  int3 size = textureSize(tex, 0);
+  int size_s = size.x;
+  int size_t = size.y;
+  int number_of_levels = textureQueryLevels(tex);
+)");
+      }
+      else if (api_type == APIType::D3D)
+      {
+        out.Write(R"(
+  int size_s, size_t, layers, number_of_levels;
+  tex.GetDimensions(0, size_s, size_t, layers, number_of_levels);
+)");
+      }
+
+      out.Write(R"(
+  // Prevent out-of-bounds LOD values when using custom textures
+  max_lod = min(max_lod, (number_of_levels - 1) << 4);
+  // Rescale uv to account for the new texture size
+  uv.x = (uv.x * size_s) / native_size_s;
+  uv.y = (uv.y * size_t) / native_size_t;
+)");
+    }
+    else
+    {
+      out.Write(R"(
+  int size_s = )" I_TEXDIMS R"([texmap].x;
+  int size_t = )" I_TEXDIMS R"([texmap].y;
+)");
+    }
 
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {

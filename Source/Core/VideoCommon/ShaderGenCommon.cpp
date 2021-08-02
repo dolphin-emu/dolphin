@@ -40,6 +40,8 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
   bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
   bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
+  bits.manual_texture_sampling_custom_texture_sizes =
+      g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
   return bits;
 }
 

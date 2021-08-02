@@ -245,6 +245,16 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+  bool ManualTextureSamplingWithHiResTextures() const
+  {
+    // Hi-res textures (including hi-res EFB copies, but not native-resolution EFB copies at higher
+    // internal resolutions) breaks the wrapping logic used by manual texture sampling.
+    if (bFastTextureSampling)
+      return false;
+    if (iEFBScale != 1 && bCopyEFBScaled)
+      return true;
+    return bHiresTextures;
+  }
   bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
