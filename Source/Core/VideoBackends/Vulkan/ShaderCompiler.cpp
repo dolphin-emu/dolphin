@@ -54,6 +54,9 @@ static const char SHADER_HEADER[] = R"(
   #define VARYING_LOCATION(x) layout(location = x)
   #define FORCE_EARLY_Z layout(early_fragment_tests) in
 
+  // Metal framebuffer fetch helpers.
+  #define FB_FETCH_VALUE subpassLoad(in_ocol0)
+
   // hlsl to glsl function translation
   #define API_VULKAN 1
   #define float2 vec2
