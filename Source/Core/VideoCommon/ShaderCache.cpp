@@ -585,7 +585,9 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.blending_state = blending_state;
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
 
-  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
+  // We can use framebuffer fetch to emulate logic ops in the fragment shader.
+  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+      !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
   {
     WARN_LOG_FMT(VIDEO,
                  "Approximating logic op with blending, this will produce incorrect rendering.");
