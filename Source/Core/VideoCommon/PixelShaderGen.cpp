@@ -842,6 +842,7 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
@@ -930,10 +931,48 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
        uid_data->useDstAlpha);
   const bool use_shader_blend =
       !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
+  const bool use_shader_logic_op =
+#ifdef __APPLE__
+      !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
+#else
+      false;
+#endif
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
+    bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
+
+#ifdef __APPLE__
+    // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
+    // if we want to use it.
+    if (api_type == APIType::Vulkan)
+    {
+      if (use_dual_source)
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
+                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      }
+      else if (use_shader_blend)
+      {
+        // Metal doesn't support a single unified variable for both input and output, so we declare
+        // the output separately. The input will be defined later below.
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 real_ocol0;\n");
+      }
+      else
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      }
+
+      if (use_framebuffer_fetch)
+      {
+        // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
+        out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
+      }
+    }
+    else if (use_dual_source)
+#else
     if (use_dual_source)
+#endif
     {
       if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
       {
@@ -1009,11 +1048,16 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
     out.Write("void main()\n{{\n");
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
-    if (use_shader_blend)
+
+    if (use_framebuffer_fetch)
     {
       // Store off a copy of the initial fb value for blending
-      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
-                "\tfloat4 ocol0;\n"
+      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
+    }
+
+    if (use_shader_blend)
+    {
+      out.Write("\tfloat4 ocol0;\n"
                 "\tfloat4 ocol1;\n");
     }
   }
@@ -1263,6 +1307,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
 
   WriteFog(out, uid_data);
+
+  if (use_shader_logic_op)
+    WriteLogicOp(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
@@ -1881,6 +1928,34 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
+}
+
+static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+{
+  if (uid_data->logic_op_enable)
+  {
+    static constexpr std::array<const char*, 16> logic_op_mode{
+        "int4(0, 0, 0, 0)",          // CLEAR
+        "prev & fb_value",           // AND
+        "prev & ~fb_value",          // AND_REVERSE
+        "prev",                      // COPY
+        "~prev & fb_value",          // AND_INVERTED
+        "fb_value",                  // NOOP
+        "prev ^ fb_value",           // XOR
+        "prev | fb_value",           // OR
+        "~(prev | fb_value)",        // NOR
+        "~(prev ^ fb_value)",        // EQUIV
+        "~fb_value",                 // INVERT
+        "prev | ~fb_value",          // OR_REVERSE
+        "~prev",                     // COPY_INVERTED
+        "~prev | fb_value",          // OR_INVERTED
+        "~(prev & fb_value)",        // NAND
+        "int4(255, 255, 255, 255)",  // SET
+    };
+
+    out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
+    out.Write("\tprev = {};\n", logic_op_mode[uid_data->logic_op_mode]);
+  }
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
