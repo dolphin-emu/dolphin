@@ -59,6 +59,8 @@ struct pixel_shader_uid_data
   DstBlendFactor blend_dst_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
   u32 blend_subtract : 1;                     // Only used with shader_framebuffer_fetch blend
   u32 blend_subtract_alpha : 1;               // Only used with shader_framebuffer_fetch blend
+  u32 logic_op_enable : 1;                    // Only used with shader_framebuffer_fetch logic ops
+  u32 logic_op_mode : 4;                      // Only used with shader_framebuffer_fetch logic ops
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;

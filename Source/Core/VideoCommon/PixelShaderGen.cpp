@@ -331,6 +331,9 @@ PixelShaderUid GetPixelShaderUid()
     uid_data->blend_subtract_alpha = state.subtractAlpha;
   }
 
+  uid_data->logic_op_enable = state.logicopenable;
+  uid_data->logic_op_mode = u32(state.logicmode.Value());
+
   return out;
 }
 
