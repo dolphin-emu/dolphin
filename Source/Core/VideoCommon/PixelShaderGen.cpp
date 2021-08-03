@@ -423,6 +423,8 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "\tuint  blend_dst_factor_alpha;\n"
             "\tbool  blend_subtract;\n"
             "\tbool  blend_subtract_alpha;\n"
+            "\tbool  logic_op_enable;\n"
+            "\tuint  logic_op_mode;\n"
             "}};\n\n");
   out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
             "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"

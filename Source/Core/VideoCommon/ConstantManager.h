@@ -15,6 +15,7 @@ using int4 = std::array<s32, 4>;
 enum class DstBlendFactor : u32;
 enum class SrcBlendFactor : u32;
 enum class ZTexOp : u32;
+enum class LogicOp : u32;
 
 struct PixelShaderConstants
 {
@@ -54,6 +55,9 @@ struct PixelShaderConstants
   DstBlendFactor blend_dst_factor_alpha;
   u32 blend_subtract;
   u32 blend_subtract_alpha;
+  // For shader_framebuffer_fetch logic ops:
+  u32 logic_op_enable;  // bool
+  LogicOp logic_op_mode;
 };
 
 struct VertexShaderConstants
