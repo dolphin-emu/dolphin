@@ -583,7 +583,14 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.blending_state = blending_state;
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
 
+#ifdef __APPLE__
+  // We can use framebuffer fetch with Metal (Vulkan over MoltenVK) to emulate logic ops in the
+  // fragment shader.
+  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+      !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+#else
   if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
+#endif
   {
     WARN_LOG_FMT(VIDEO,
                  "Approximating logic op with blending, this will produce incorrect rendering.");
