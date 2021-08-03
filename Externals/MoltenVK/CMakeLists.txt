@@ -6,6 +6,8 @@ ExternalProject_Add(MoltenVK
 
   CONFIGURE_COMMAND <SOURCE_DIR>/fetchDependencies --macos
 
+  PATCH_COMMAND git reset --hard v1.1.4 && git apply ${CMAKE_SOURCE_DIR}/Externals/MoltenVK/patches/0001-SPIRVToMSLConverter-Enable-use_framebuffer_fetch_sub.patch
+
   BUILD_COMMAND make -C <SOURCE_DIR> macos
   BUILD_IN_SOURCE ON
   BUILD_BYPRODUCTS <SOURCE_DIR>/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib
