@@ -137,6 +137,15 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
   }
   }
 
+  // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
+  // See https://bugs.dolphin-emu.org/issues/11458
+  if (std::isnan(src.x))
+    src.x = 1;
+  if (std::isnan(src.y))
+    src.y = 1;
+  if (std::isnan(src.z))
+    src.z = 1;
+
   const float* mat = &xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
   Vec3* dst = &dstVertex->texCoords[coordNum];
 

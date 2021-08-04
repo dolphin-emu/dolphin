@@ -435,6 +435,13 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("    coord.z = 1.0f;\n"
             "\n");
 
+  // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
+  // See https://bugs.dolphin-emu.org/issues/11458
+  out.Write("  // Convert NaN to 1\n");
+  out.Write("  if (isnan(coord.x)) coord.x = 1.0;\n");
+  out.Write("  if (isnan(coord.y)) coord.y = 1.0;\n");
+  out.Write("  if (isnan(coord.z)) coord.z = 1.0;\n");
+
   out.Write("  // first transformation\n");
   out.Write("  uint texgentype = {};\n", BitfieldExtract<&TexMtxInfo::texgentype>("texMtxInfo"));
   out.Write("  float3 output_tex;\n"
