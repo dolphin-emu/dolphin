@@ -8,14 +8,17 @@
 #include <cstring>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -106,6 +109,7 @@ struct TranslateAddressResult
     PAGE_FAULT
   } result;
   u32 address;
+  bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
   bool Success() const { return result <= PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
@@ -255,9 +259,28 @@ static T ReadFromHardware(u32 em_address)
   return 0;
 }
 
-template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static void WriteToHardware(u32 em_address, const T data)
+template <XCheckTLBFlag flag, bool never_translate = false>
+static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 {
+  DEBUG_ASSERT(size <= 4);
+
+  const u32 em_address_start_page = em_address & ~(HW_PAGE_SIZE - 1);
+  const u32 em_address_end_page = (em_address + size - 1) & ~(HW_PAGE_SIZE - 1);
+  if (em_address_start_page != em_address_end_page)
+  {
+    // The write crosses a page boundary. Break it up into two writes.
+    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
+    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
+    const u32 first_half_size = em_address_end_page - em_address;
+    const u32 second_half_size = size - first_half_size;
+    WriteToHardware<flag, never_translate>(
+        em_address, Common::RotateRight(data, second_half_size * 8), first_half_size);
+    WriteToHardware<flag, never_translate>(em_address_end_page, data, second_half_size);
+    return;
+  }
+
+  bool wi = false;
+
   if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
@@ -267,72 +290,8 @@ static void WriteToHardware(u32 em_address, const T data)
         GenerateDSIException(em_address, true);
       return;
     }
-    if ((em_address & (sizeof(T) - 1)) &&
-        (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
-    {
-      // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-      // way isn't too terrible.
-      // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-      // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-      u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-      auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
-      if (!addr_next_page.Success())
-      {
-        if (flag == XCheckTLBFlag::Write)
-          GenerateDSIException(em_address_next_page, true);
-        return;
-      }
-      T val = bswap(data);
-      u32 addr_translated = translated_addr.address;
-      for (size_t i = 0; i < sizeof(T); i++, addr_translated++)
-      {
-        if (em_address + i == em_address_next_page)
-          addr_translated = addr_next_page.address;
-        WriteToHardware<flag, u8, true>(addr_translated, static_cast<u8>(val >> (i * 8)));
-      }
-      return;
-    }
     em_address = translated_addr.address;
-  }
-
-  // TODO: Make sure these are safe for unaligned addresses.
-
-  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
-  {
-    // Handle RAM; the masking intentionally discards bits (essentially creating
-    // mirrors of memory).
-    // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, sizeof(T));
-    return;
-  }
-
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
-  {
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
-    return;
-  }
-
-  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
-      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
-  {
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
-    return;
-  }
-
-  // In Fake-VMEM mode, we need to map the memory somewhere into
-  // physical memory for BAT translation to work; we currently use
-  // [0x7E000000, 0x80000000).
-  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
-  {
-    const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data,
-                sizeof(T));
-    return;
+    wi = translated_addr.wi;
   }
 
   // Check for a gather pipe write.
@@ -340,19 +299,24 @@ static void WriteToHardware(u32 em_address, const T data)
   // Pac-Man World 3 in particular is affected by this.
   if (flag == XCheckTLBFlag::Write && (em_address & 0xFFFFF000) == 0x0C008000)
   {
-    switch (sizeof(T))
+    switch (size)
     {
     case 1:
-      GPFifo::Write8((u8)data);
+      GPFifo::Write8(static_cast<u8>(data));
       return;
     case 2:
-      GPFifo::Write16((u16)data);
+      GPFifo::Write16(static_cast<u16>(data));
       return;
     case 4:
-      GPFifo::Write32((u32)data);
+      GPFifo::Write32(data);
       return;
-    case 8:
-      GPFifo::Write64((u64)data);
+    default:
+      // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
+      for (size_t i = size * 8; i > 0;)
+      {
+        i -= 8;
+        GPFifo::Write8(static_cast<u8>(data >> i));
+      }
       return;
     }
   }
@@ -361,14 +325,88 @@ static void WriteToHardware(u32 em_address, const T data)
   {
     if (em_address < 0x0c000000)
     {
-      EFB_Write((u32)data, em_address);
+      EFB_Write(data, em_address);
       return;
     }
-    else
+
+    switch (size)
     {
-      Memory::mmio_mapping->Write(em_address, data);
+    case 1:
+      Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data));
+      return;
+    case 2:
+      Memory::mmio_mapping->Write<u16>(em_address, static_cast<u16>(data));
+      return;
+    case 4:
+      Memory::mmio_mapping->Write<u32>(em_address, data);
+      return;
+    default:
+      // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
+      for (size_t i = size * 8; i > 0; em_address++)
+      {
+        i -= 8;
+        Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data >> i));
+      }
       return;
     }
+  }
+
+  const u32 swapped_data = Common::swap32(Common::RotateRight(data, size * 8));
+
+  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
+  if (Memory::m_pL1Cache && (em_address >> 28 == 0xE) &&
+      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  {
+    std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, size);
+    return;
+  }
+
+  if (wi && (size < 4 || (em_address & 0x3)))
+  {
+    // When a write to memory is performed in hardware, 64 bits of data are sent to the memory
+    // controller along with a mask. This mask is encoded using just two bits of data - one for
+    // the upper 32 bits and one for the lower 32 bits - which leads to some odd data duplication
+    // behavior for write-through/cache-inhibited writes with a start address or end address that
+    // isn't 32-bit aligned. See https://bugs.dolphin-emu.org/issues/12565 for details.
+
+    // TODO: This interrupt is supposed to have associated cause and address registers
+    // TODO: This should trigger the hwtest's interrupt handling, but it does not seem to
+    //       (https://github.com/dolphin-emu/hwtests/pull/42)
+    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
+
+    const u32 rotated_data = Common::RotateRight(data, ((em_address & 0x3) + size) * 8);
+
+    for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
+    {
+      WriteToHardware<flag, true>(addr, rotated_data, 4);
+      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+    }
+
+    return;
+  }
+
+  if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
+  {
+    // Handle RAM; the masking intentionally discards bits (essentially creating
+    // mirrors of memory).
+    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, size);
+    return;
+  }
+
+  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+  {
+    std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, size);
+    return;
+  }
+
+  // In Fake-VMEM mode, we need to map the memory somewhere into
+  // physical memory for BAT translation to work; we currently use
+  // [0x7E000000, 0x80000000).
+  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  {
+    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], &swapped_data, size);
+    return;
   }
 
   PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, PC);
@@ -607,42 +645,40 @@ u32 Read_U16_ZX(const u32 address)
   return Read_U16(address);
 }
 
-void Write_U8(const u8 var, const u32 address)
+void Write_U8(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 1);
 }
 
-void Write_U16(const u16 var, const u32 address)
+void Write_U16(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 2);
 }
-void Write_U16_Swap(const u16 var, const u32 address)
+void Write_U16_Swap(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 2);
-  Write_U16(Common::swap16(var), address);
+  Write_U16((var & 0xFFFF0000) | Common::swap16(static_cast<u16>(var)), address);
 }
 
 void Write_U32(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, var, 4);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
 {
-  Memcheck(address, var, true, 4);
   Write_U32(Common::swap32(var), address);
 }
 
 void Write_U64(const u64 var, const u32 address)
 {
   Memcheck(address, (u32)var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
 }
 void Write_U64_Swap(const u64 var, const u32 address)
 {
-  Memcheck(address, (u32)var, true, 8);
   Write_U64(Common::swap64(var), address);
 }
 
@@ -687,24 +723,25 @@ double HostRead_F64(const u32 address)
   return Common::BitCast<double>(integral);
 }
 
-void HostWrite_U8(const u8 var, const u32 address)
+void HostWrite_U8(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 1);
 }
 
-void HostWrite_U16(const u16 var, const u32 address)
+void HostWrite_U16(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 2);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, var, 4);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException>(address, static_cast<u32>(var >> 32), 4);
+  WriteToHardware<XCheckTLBFlag::NoException>(address + sizeof(u32), static_cast<u32>(var), 4);
 }
 
 void HostWrite_F32(const float var, const u32 address)
@@ -721,8 +758,8 @@ void HostWrite_F64(const double var, const u32 address)
   HostWrite_U64(integral, address);
 }
 
-template <typename T>
-static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAddressSpace space)
+static TryWriteResult HostTryWriteUX(const u32 var, const u32 address, const u32 size,
+                                     RequestedAddressSpace space)
 {
   if (!HostIsRAMAddress(address, space))
     return TryWriteResult();
@@ -730,15 +767,15 @@ static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAd
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
     return TryWriteResult(!!MSR.DR);
   case RequestedAddressSpace::Physical:
-    WriteToHardware<XCheckTLBFlag::NoException, T, true>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
     return TryWriteResult(false);
   case RequestedAddressSpace::Virtual:
     if (!MSR.DR)
       return TryWriteResult();
-    WriteToHardware<XCheckTLBFlag::NoException, T>(address, var);
+    WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
     return TryWriteResult(true);
   }
 
@@ -746,24 +783,28 @@ static TryWriteResult HostTryWriteUX(const T var, const u32 address, RequestedAd
   return TryWriteResult();
 }
 
-TryWriteResult HostTryWriteU8(const u8 var, const u32 address, RequestedAddressSpace space)
+TryWriteResult HostTryWriteU8(const u32 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u8>(var, address, space);
+  return HostTryWriteUX(var, address, 1, space);
 }
 
-TryWriteResult HostTryWriteU16(const u16 var, const u32 address, RequestedAddressSpace space)
+TryWriteResult HostTryWriteU16(const u32 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u16>(var, address, space);
+  return HostTryWriteUX(var, address, 2, space);
 }
 
 TryWriteResult HostTryWriteU32(const u32 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u32>(var, address, space);
+  return HostTryWriteUX(var, address, 4, space);
 }
 
 TryWriteResult HostTryWriteU64(const u64 var, const u32 address, RequestedAddressSpace space)
 {
-  return HostTryWriteUX<u64>(var, address, space);
+  const TryWriteResult result = HostTryWriteUX(static_cast<u32>(var >> 32), address, 4, space);
+  if (!result)
+    return result;
+
+  return HostTryWriteUX(static_cast<u32>(var), address + 4, 4, space);
 }
 
 TryWriteResult HostTryWriteF32(const float var, const u32 address, RequestedAddressSpace space)
@@ -1000,8 +1041,8 @@ void ClearCacheLine(u32 address)
 
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
-  for (u32 i = 0; i < 32; i += 8)
-    WriteToHardware<XCheckTLBFlag::Write, u64, true>(address + i, 0);
+  for (u32 i = 0; i < 32; i += 4)
+    WriteToHardware<XCheckTLBFlag::Write, true>(address + i, 0, 4);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
@@ -1015,7 +1056,8 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
   // Translate address
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
-  if (!TranslateBatAddess(dbat_table, &address))
+  bool wi = false;
+  if (!TranslateBatAddess(dbat_table, &address, &wi))
     return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
@@ -1037,7 +1079,8 @@ bool IsOptimizableGatherPipeWrite(u32 address)
   // Translate address, only check BAT mapping.
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
-  if (!TranslateBatAddess(dbat_table, &address))
+  bool wi = false;
+  if (!TranslateBatAddess(dbat_table, &address, &wi))
     return false;
 
   // Check whether the translated address equals the address in WPAR.
@@ -1206,18 +1249,20 @@ enum class TLBLookupResult
   UpdateC
 };
 
-static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
+static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr,
+                                            bool* wi)
 {
   const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 
   if (tlbe.tag[0] == tag)
   {
+    UPTE2 PTE2;
+    PTE2.Hex = tlbe.pte[0];
+
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      UPTE2 PTE2;
-      PTE2.Hex = tlbe.pte[0];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
@@ -1230,16 +1275,18 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 0;
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
+    *wi = (PTE2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
+    UPTE2 PTE2;
+    PTE2.Hex = tlbe.pte[0];
+
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      UPTE2 PTE2;
-      PTE2.Hex = tlbe.pte[1];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
@@ -1252,6 +1299,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 1;
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
+    *wi = (PTE2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
@@ -1286,14 +1334,14 @@ void InvalidateTLBEntry(u32 address)
 }
 
 // Page Address Translation
-static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag)
+static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag,
+                                                   bool* wi)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
-  // benefit
-  // much from optimization.
+  // benefit much from optimization.
   u32 translatedAddress = 0;
-  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress);
+  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress, wi);
   if (res == TLBLookupResult::Found)
     return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED, translatedAddress};
 
@@ -1368,6 +1416,8 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         if (res != TLBLookupResult::UpdateC)
           UpdateTLBEntry(flag, PTE2, address);
 
+        *wi = (PTE2.WIMG & 0b1100) != 0;
+
         return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED,
                                       (PTE2.RPN << 12) | offset};
       }
@@ -1379,7 +1429,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
-  // TODO: Handle PP/WIMG settings.
+  // TODO: Handle PP settings.
   // TODO: Check how hardware reacts to overlapping BATs (including
   // BATs which should cause a DSI).
   // TODO: Check how hardware reacts to invalid BATs (bad mask etc).
@@ -1424,19 +1474,38 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
         u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
 
-        // The bottom bit is whether the translation is valid; the second
-        // bit from the bottom is whether we can use the fastmem arena.
+        // BAT_MAPPED_BIT is whether the translation is valid
+        // BAT_PHYSICAL_BIT is whether we can use the fastmem arena
+        // BAT_WI_BIT is whether either W or I (of WIMG) is set
         u32 valid_bit = BAT_MAPPED_BIT;
-        if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address < Memory::GetRamSizeReal())
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
-                 (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
-          valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address >> 28 == 0xE &&
-                 physical_address < 0xE0000000 + Memory::GetL1CacheSize())
-          valid_bit |= BAT_PHYSICAL_BIT;
+
+        const bool wi = (batl.WIMG & 0b1100) != 0;
+        if (wi)
+          valid_bit |= BAT_WI_BIT;
+
+        // Enable fastmem mappings for cached memory. There are quirks related to uncached memory
+        // that fastmem doesn't emulate properly (though no normal games are known to rely on them).
+        if (!wi)
+        {
+          if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (physical_address < Memory::GetRamSizeReal())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
+                   (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+          else if (physical_address >> 28 == 0xE &&
+                   physical_address < 0xE0000000 + Memory::GetL1CacheSize())
+          {
+            valid_bit |= BAT_PHYSICAL_BIT;
+          }
+        }
 
         // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
         if (PowerPC::memchecks.OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
@@ -1511,10 +1580,12 @@ void IBATUpdated()
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(u32 address)
 {
-  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address))
-    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address};
+  bool wi = false;
 
-  return TranslatePageAddress(address, flag);
+  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address, &wi))
+    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address, wi};
+
+  return TranslatePageAddress(address, flag, &wi);
 }
 
 std::optional<u32> GetTranslatedAddress(u32 address)
