@@ -98,7 +98,7 @@ FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* 
   MOV(32, R(addr), MComplex(tmp, addr, SCALE_4, 0));
   BT(32, R(addr), Imm8(IntLog2(PowerPC::BAT_MAPPED_BIT)));
 
-  return J_CC(CC_Z, m_far_code.Enabled());
+  return J_CC(CC_NC, m_far_code.Enabled());
 }
 
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
