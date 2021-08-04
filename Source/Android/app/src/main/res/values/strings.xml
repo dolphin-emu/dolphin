@@ -389,6 +389,7 @@
     <!-- Cheats Screen -->
     <string name="cheats">Cheats</string>
     <string name="cheats_with_game_id">Cheats: %1$s</string>
+    <string name="cheats_name">Name</string>
 
     <!-- Convert Screen -->
     <string name="convert_format">Format</string>

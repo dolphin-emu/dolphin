@@ -2,11 +2,15 @@
 
 package org.dolphinemu.dolphinemu.features.cheats.model;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class CheatsViewModel extends ViewModel
 {
   private boolean mLoaded = false;
+
+  private final MutableLiveData<Cheat> mSelectedCheat = new MutableLiveData<>(null);
 
   private PatchCheat[] mPatchCheats;
   private ARCheat[] mARCheats;
@@ -60,6 +64,16 @@ public class CheatsViewModel extends ViewModel
       GeckoCheat.saveCodes(gameID, revision, mGeckoCheats);
       mGeckoCheatsNeedSaving = false;
     }
+  }
+
+  public LiveData<Cheat> getSelectedCheat()
+  {
+    return mSelectedCheat;
+  }
+
+  public void setSelectedCheat(Cheat cheat)
+  {
+    mSelectedCheat.setValue(cheat);
   }
 
   public Cheat[] getPatchCheats()

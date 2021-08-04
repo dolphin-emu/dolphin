@@ -34,7 +34,7 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatViewHolder>
   @Override
   public void onBindViewHolder(@NonNull CheatViewHolder holder, int position)
   {
-    holder.bind(getItemAt(position));
+    holder.bind(mViewModel, getItemAt(position));
   }
 
   @Override
