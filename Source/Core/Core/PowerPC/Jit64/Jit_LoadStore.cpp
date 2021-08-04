@@ -239,15 +239,17 @@ void Jit64::dcbx(UGeckoInstruction inst)
   RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(inst.RB, RCMode::Read);
   RCX64Reg tmp = gpr.Scratch();
-  RegCache::Realize(Ra, Rb, tmp);
+  RCX64Reg effective_address = gpr.Scratch();
+  RegCache::Realize(Ra, Rb, tmp, effective_address);
 
   // Translate effective address to physical address.
   MOV_sum(32, value, Ra, Rb);
   FixupBranch bat_lookup_failed;
+  MOV(32, R(effective_address), R(value));
   if (MSR.IR)
   {
-    MOV(32, R(addr), R(value));
     bat_lookup_failed = BATAddressLookup(value, tmp, PowerPC::ibat_table.data());
+    MOV(32, R(addr), R(effective_address));
     AND(32, R(addr), Imm32(0x0001ffff));
     AND(32, R(value), Imm32(0xfffe0000));
     OR(32, R(value), R(addr));
@@ -264,14 +266,14 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
-  SHL(32, R(addr), Imm8(5));
   if (MSR.IR)
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   registersInUse[X64Reg(tmp)] = false;
+  registersInUse[X64Reg(effective_address)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  MOV(32, R(ABI_PARAM1), R(addr));
+  MOV(32, R(ABI_PARAM1), R(effective_address));
   MOV(32, R(ABI_PARAM2), Imm32(32));
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
   ABI_CallFunction(JitInterface::InvalidateICache);
