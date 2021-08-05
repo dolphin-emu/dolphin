@@ -74,6 +74,8 @@
 #include "Core/MemoryWatcher.h"
 #endif
 
+#include "MSB_StatTracker.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
@@ -115,6 +117,8 @@ static std::atomic<bool> s_stop_frame_step;
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
 
+static std::unique_ptr<StatTracker> s_stat_tracker;
+
 struct HostJob
 {
   std::function<void()> job;
@@ -150,6 +154,10 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
+
+  if (s_stat_tracker) {
+    s_stat_tracker->Run();
+  }
 }
 
 // Display messages and return values
@@ -342,6 +350,9 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher = std::make_unique<MemoryWatcher>();
 #endif
+
+  s_stat_tracker = std::make_unique<StatTracker>();
+  s_stat_tracker->init();
 
   if (savestate_path)
   {
