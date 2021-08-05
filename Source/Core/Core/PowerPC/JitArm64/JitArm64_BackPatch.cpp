@@ -197,6 +197,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
+      MOV(ARM64Reg::W0, RS);
+
       const bool reverse = (flags & BackPatchInfo::FLAG_REVERSE) != 0;
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
@@ -206,7 +208,6 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       else
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
 
-      MOV(ARM64Reg::W0, RS);
       BLR(ARM64Reg::X8);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
