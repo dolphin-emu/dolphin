@@ -11,6 +11,7 @@
 #include <array>
 #include <iterator>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -45,6 +46,52 @@ const char* PatchTypeAsString(PatchType type)
   return s_patch_type_strings.at(static_cast<int>(type));
 }
 
+std::optional<PatchEntry> DeserializeLine(std::string line)
+{
+  std::string::size_type loc = line.find('=');
+  if (loc != std::string::npos)
+    line[loc] = ':';
+
+  const std::vector<std::string> items = SplitString(line, ':');
+  PatchEntry entry;
+
+  if (items.size() < 3)
+    return std::nullopt;
+
+  if (!TryParse(items[0], &entry.address))
+    return std::nullopt;
+  if (!TryParse(items[2], &entry.value))
+    return std::nullopt;
+
+  if (items.size() >= 4)
+  {
+    if (!TryParse(items[3], &entry.comparand))
+      return std::nullopt;
+    entry.conditional = true;
+  }
+
+  const auto iter = std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
+  if (iter == s_patch_type_strings.end())
+    return std::nullopt;
+  entry.type = static_cast<PatchType>(std::distance(s_patch_type_strings.begin(), iter));
+
+  return entry;
+}
+
+std::string SerializeLine(const PatchEntry& entry)
+{
+  if (entry.conditional)
+  {
+    return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
+                       PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
+  }
+  else
+  {
+    return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
+                       PatchEngine::PatchTypeAsString(entry.type), entry.value);
+  }
+}
+
 void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
                       const IniFile& globalIni, const IniFile& localIni)
 {
@@ -76,37 +123,8 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
       }
       else
       {
-        std::string::size_type loc = line.find('=');
-
-        if (loc != std::string::npos)
-        {
-          line[loc] = ':';
-        }
-
-        const std::vector<std::string> items = SplitString(line, ':');
-
-        if (items.size() >= 3)
-        {
-          PatchEntry pE;
-          bool success = true;
-          success &= TryParse(items[0], &pE.address);
-          success &= TryParse(items[2], &pE.value);
-          if (items.size() >= 4)
-          {
-            success &= TryParse(items[3], &pE.comparand);
-            pE.conditional = true;
-          }
-
-          const auto iter =
-              std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
-          pE.type = PatchType(std::distance(s_patch_type_strings.begin(), iter));
-
-          success &= (pE.type != (PatchType)3);
-          if (success)
-          {
-            currentPatch.entries.push_back(pE);
-          }
-        }
+        if (std::optional<PatchEntry> entry = DeserializeLine(line))
+          currentPatch.entries.push_back(*entry);
       }
     }
 
@@ -141,20 +159,8 @@ void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches)
 
     lines.emplace_back('$' + patch.name);
 
-    for (const auto& entry : patch.entries)
-    {
-      if (!entry.conditional)
-      {
-        lines.emplace_back(fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
-                                       PatchEngine::PatchTypeAsString(entry.type), entry.value));
-      }
-      else
-      {
-        lines.emplace_back(fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
-                                       PatchEngine::PatchTypeAsString(entry.type), entry.value,
-                                       entry.comparand));
-      }
-    }
+    for (const PatchEntry& entry : patch.entries)
+      lines.emplace_back(SerializeLine(entry));
   }
 
   local_ini->SetLines("OnFrame_Enabled", lines_enabled);
