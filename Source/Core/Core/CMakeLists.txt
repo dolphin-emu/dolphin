@@ -400,6 +400,8 @@ add_library(core
   IOS/WFS/WFSSRV.h
   LibusbUtils.cpp
   LibusbUtils.h
+  MSB_StatTracker.cpp
+  MSB_StatTracker.h
   MemTools.cpp
   MemTools.h
   Movie.cpp
