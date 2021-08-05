@@ -12,6 +12,8 @@ public class CheatsViewModel extends ViewModel
 
   private final MutableLiveData<Cheat> mSelectedCheat = new MutableLiveData<>(null);
 
+  private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
+
   private PatchCheat[] mPatchCheats;
   private ARCheat[] mARCheats;
   private GeckoCheat[] mGeckoCheats;
@@ -74,6 +76,17 @@ public class CheatsViewModel extends ViewModel
   public void setSelectedCheat(Cheat cheat)
   {
     mSelectedCheat.setValue(cheat);
+  }
+
+  public LiveData<Boolean> getOpenDetailsViewEvent()
+  {
+    return mOpenDetailsViewEvent;
+  }
+
+  public void openDetailsView()
+  {
+    mOpenDetailsViewEvent.setValue(true);
+    mOpenDetailsViewEvent.setValue(false);
   }
 
   public Cheat[] getPatchCheats()

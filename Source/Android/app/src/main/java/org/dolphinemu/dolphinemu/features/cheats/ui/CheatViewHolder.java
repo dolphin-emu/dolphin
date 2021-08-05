@@ -50,6 +50,7 @@ public class CheatViewHolder extends ViewHolder
   public void onClick(View root)
   {
     mViewModel.setSelectedCheat(mCheat);
+    mViewModel.openDetailsView();
   }
 
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
