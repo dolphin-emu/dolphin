@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Common/Common.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -54,6 +55,7 @@ void IMUGyroscope::RestartCalibration()
 {
   m_calibration_period_start = Clock::now();
   m_running_calibration.Clear();
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Restarted calibration");
 }
 
 void IMUGyroscope::UpdateCalibration(const StateData& state)
@@ -65,6 +67,7 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
   if (!calibration_period)
   {
     // Set calibration to zero.
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Calibration disabled");
     m_calibration = {};
     RestartCalibration();
     return;
@@ -74,6 +77,7 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
   // apply the current state as calibration, it's often better than zeros.
   if (!m_running_calibration.Count())
   {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Calibration set from current state");
     m_calibration = state;
   }
   else
@@ -89,10 +93,15 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
 
     // Check for required calibration update frequency
     // and if current data is within deadzone distance of mean stable value.
-    if (calibration_freq < WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY ||
-        std::any_of(current_difference.data.begin(), current_difference.data.end(),
+    if (calibration_freq < WORST_ACCEPTABLE_CALIBRATION_UPDATE_FREQUENCY)
+    {
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Update frequency too low");
+      RestartCalibration();
+    }
+    if (std::any_of(current_difference.data.begin(), current_difference.data.end(),
                     [&](auto c) { return std::abs(c) > deadzone; }))
     {
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Deadzone exceeded");
       RestartCalibration();
     }
   }
@@ -104,10 +113,12 @@ void IMUGyroscope::UpdateCalibration(const StateData& state)
   const auto calibration_duration = now - m_calibration_period_start;
   if (calibration_duration >= std::chrono::duration<double>(calibration_period))
   {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Calibration set from mean");
     m_calibration = m_running_calibration.Mean();
 
     if (calibration_duration >= MAXIMUM_CALIBRATION_DURATION)
     {
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Calibration duration exceeded");
       RestartCalibration();
       m_running_calibration.Push(m_calibration);
     }
@@ -140,6 +151,7 @@ std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState(bool update)
     if (update)
     {
       // Set calibration to zero.
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "No inputs bound");
       m_calibration = {};
       RestartCalibration();
     }

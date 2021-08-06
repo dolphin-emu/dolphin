@@ -3,6 +3,8 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 
+#include "Common/Logging/Log.h"
+
 using namespace ciface::ExpressionParser;
 
 static thread_local bool tls_input_gate = true;
@@ -34,9 +36,14 @@ void ControlReference::UpdateReference(ciface::ExpressionParser::ControlEnvironm
 int ControlReference::BoundCount() const
 {
   if (m_parsed_expression)
+  {
     return m_parsed_expression->CountNumControls();
+  }
   else
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Input expression not set");
     return 0;
+  }
 }
 
 ParseStatus ControlReference::GetParseStatus() const
