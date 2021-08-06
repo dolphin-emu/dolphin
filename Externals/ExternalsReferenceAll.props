@@ -94,5 +94,8 @@
     <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
       <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SDL\SDL2.vcxproj">
+      <Project>{8DC244EE-A0BD-4038-BAF7-CFAFA5EB2BAA}</Project>
+    </ProjectReference>
   </ItemGroup>
 </Project>
