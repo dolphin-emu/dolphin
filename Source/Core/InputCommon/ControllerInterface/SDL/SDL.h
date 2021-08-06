@@ -5,12 +5,22 @@
 
 #include <SDL.h>
 
+#define INIT_FLAGS SDL_INIT_JOYSTICK
+
 #if SDL_VERSION_ATLEAST(1, 3, 0)
 #define USE_SDL_HAPTIC
 #endif
 
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+#define USE_SDL_GAMECONTROLLER
+#endif
+
 #ifdef USE_SDL_HAPTIC
 #include <SDL_haptic.h>
+#endif
+
+#ifdef USE_SDL_GAMECONTROLLER
+#include <SDL_gamecontroller.h>
 #endif
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -137,6 +147,42 @@ private:
   };
 #endif
 
+#if SDL_VERSION_ATLEAST(2, 0, 9)
+  class Motor : public Output
+  {
+  public:
+    explicit Motor(SDL_Joystick* js) : m_js(js){};
+    std::string GetName() const override;
+    void SetState(ControlState state) override;
+
+  private:
+    SDL_Joystick* const m_js;
+  };
+#endif
+
+#ifdef USE_SDL_GAMECONTROLLER
+  class MotionInput : public Input
+  {
+  public:
+    MotionInput(const char* name, SDL_GameController* gc, SDL_SensorType type, int index,
+                ControlState scale)
+        : m_name(name), m_gc(gc), m_type(type), m_index(index), m_scale(scale){};
+
+    std::string GetName() const override { return m_name; };
+    bool IsDetectable() const override { return false; };
+    ControlState GetState() const override;
+
+  private:
+    const char* m_name;
+
+    SDL_GameController* const m_gc;
+    SDL_SensorType const m_type;
+    int const m_index;
+
+    ControlState const m_scale;
+  };
+#endif
+
 public:
   void UpdateInput() override;
 
@@ -153,6 +199,10 @@ private:
 
 #ifdef USE_SDL_HAPTIC
   SDL_Haptic* m_haptic;
+#endif
+
+#ifdef USE_SDL_GAMECONTROLLER
+  SDL_GameController* m_controller;
 #endif
 };
 }  // namespace ciface::SDL
