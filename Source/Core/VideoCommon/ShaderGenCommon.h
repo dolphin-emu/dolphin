@@ -199,6 +199,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 #define I_KCOLORS "k"
 #define I_ALPHA "alphaRef"
 #define I_TEXDIMS "texdim"
+#define I_LODBIAS "clodbias"
 #define I_ZBIAS "czbias"
 #define I_INDTEXSCALE "cindscale"
 #define I_INDTEXMTX "cindmtx"

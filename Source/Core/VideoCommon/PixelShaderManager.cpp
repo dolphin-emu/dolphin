@@ -285,6 +285,12 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
   constants.texdims[texmapid][1] = rheight;
 }
 
+void PixelShaderManager::SetLodBias(int texmapid, float bias)
+{
+  constants.lodbias[texmapid] = bias;
+  dirty = true;
+}
+
 void PixelShaderManager::SetZTextureBias()
 {
   constants.zbias[1][3] = bpmem.ztex1.bias;

@@ -28,14 +28,15 @@ enum : u32
   C_KCOLORS = C_COLORS + 4,         //  4
   C_ALPHA = C_KCOLORS + 4,          //  8
   C_TEXDIMS = C_ALPHA + 1,          //  9
-  C_ZBIAS = C_TEXDIMS + 8,          // 17
-  C_INDTEXSCALE = C_ZBIAS + 2,      // 19
-  C_INDTEXMTX = C_INDTEXSCALE + 2,  // 21
-  C_FOGCOLOR = C_INDTEXMTX + 6,     // 27
-  C_FOGI = C_FOGCOLOR + 1,          // 28
-  C_FOGF = C_FOGI + 1,              // 29
-  C_ZSLOPE = C_FOGF + 2,            // 31
-  C_EFBSCALE = C_ZSLOPE + 1,        // 32
+  C_LODBIAS = C_TEXDIMS + 8,        // 17
+  C_ZBIAS = C_TEXDIMS + 8,          // 25
+  C_INDTEXSCALE = C_ZBIAS + 2,      // 27
+  C_INDTEXMTX = C_INDTEXSCALE + 2,  // 29
+  C_FOGCOLOR = C_INDTEXMTX + 6,     // 35
+  C_FOGI = C_FOGCOLOR + 1,          // 36
+  C_FOGF = C_FOGI + 1,              // 37
+  C_ZSLOPE = C_FOGF + 2,            // 39
+  C_EFBSCALE = C_ZSLOPE + 1,        // 40
   C_PENVCONST_END = C_EFBSCALE + 1
 };
 
@@ -393,6 +394,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "\tint4 " I_KCOLORS "[4];\n"
             "\tint4 " I_ALPHA ";\n"
             "\tfloat4 " I_TEXDIMS "[8];\n"
+            "\tfloat4 " I_LODBIAS "[2];\n"
             "\tint4 " I_ZBIAS "[2];\n"
             "\tint4 " I_INDTEXSCALE "[2];\n"
             "\tint4 " I_INDTEXMTX "[6];\n"
@@ -440,6 +442,33 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
     out.Write("{}", s_shader_uniforms);
     out.Write("}};\n");
+  }
+
+#ifdef __APPLE__
+  if (api_type == APIType::Vulkan)  // Metal with MoltenVK
+#else
+  if (api_type == APIType::OpenGL && !host_config.backend_sampler_lod_bias)
+#endif
+  {
+    // Metal and OpenGL ES do not support setting the LOD bias value in the sampler, so we pass
+    // it to the fragment shader through the PSBlock and use it as the bias value in the call to
+    // texture().
+    //
+    // I_LODBIAS is defined as a two-element float4 array because SPIRV-Cross will transform an
+    // eight-element float array into an eight-element float4 array due to packing rules.
+    // See: https://github.com/KhronosGroup/SPIRV-Cross/issues/1313
+    //
+    // This helper function calculates the correct array and component indices and returns the
+    // correct lodbias value.
+    out.Write("float lodbias(uint i) {{\n"
+              "\treturn i < 4 ? " I_LODBIAS "[0][i] : " I_LODBIAS "[1][4 - i];\n"
+              "}}\n");
+  }
+  else
+  {
+    // Other APIs can pass in the LOD bias value directly to the sampler, so always return zero.
+    // This should be equivalent to not passing in the LOD bias value at all.
+    out.Write("#define lodbias(i) 0.0\n");
   }
 
   if (bounding_box)
@@ -1427,6 +1456,7 @@ static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::stri
                           int texmap, bool stereo, APIType api_type)
 {
   out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
+  out.SetConstantsUsed(C_LODBIAS + texmap, C_LODBIAS + texmap);
 
   if (api_type == APIType::D3D)
   {
@@ -1436,8 +1466,9 @@ static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::stri
   }
   else
   {
-    out.Write("iround(255.0 * texture(samp[{}], float3({}.xy * " I_TEXDIMS "[{}].xy, {}))).{};\n",
-              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+    out.Write("iround(255.0 * texture(samp[{}], float3({}.xy * " I_TEXDIMS
+              "[{}].xy, {}), lodbias({}u))).{};\n",
+              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texmap, texswap);
   }
 }
 

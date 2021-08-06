@@ -228,7 +228,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // supports this in the future.
     out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {{\n");
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write("  return iround(texture(samp[sampler_num], uv) * 255.0);\n");
+      out.Write("  return iround(texture(samp[sampler_num], uv, lodbias(sampler_num)) * 255.0);\n");
     else if (api_type == APIType::D3D)
       out.Write("  return iround(Tex[sampler_num].Sample(samp[sampler_num], uv) * 255.0);\n");
     out.Write("}}\n\n");
@@ -244,7 +244,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     for (int i = 0; i < 8; i++)
     {
       if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-        out.Write("  case {}u: return iround(texture(samp[{}], uv) * 255.0);\n", i, i);
+        out.Write("  case {}u: return iround(texture(samp[{}], uv, lodbias({}u)) * 255.0);\n", i, i,
+                  i);
       else if (api_type == APIType::D3D)
         out.Write("  case {}u: return iround(Tex[{}].Sample(samp[{}], uv) * 255.0);\n", i, i, i);
     }
