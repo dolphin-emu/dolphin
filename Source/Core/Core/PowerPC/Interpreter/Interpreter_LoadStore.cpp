@@ -443,7 +443,7 @@ void Interpreter::dcbf(UGeckoInstruction inst)
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(address);
 }
 
 void Interpreter::dcbi(UGeckoInstruction inst)
@@ -461,7 +461,7 @@ void Interpreter::dcbi(UGeckoInstruction inst)
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(address);
 }
 
 void Interpreter::dcbst(UGeckoInstruction inst)
@@ -473,7 +473,7 @@ void Interpreter::dcbst(UGeckoInstruction inst)
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
-  JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(address);
 }
 
 void Interpreter::dcbt(UGeckoInstruction inst)

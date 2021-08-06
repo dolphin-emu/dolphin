@@ -224,6 +224,11 @@ void InvalidateICache(u32 address, u32 size, bool forced)
     g_jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
+void InvalidateICacheLine(u32 address)
+{
+  InvalidateICache(address & ~0x1f, 32, false);
+}
+
 void CompileExceptionCheck(ExceptionType type)
 {
   if (!g_jit)
