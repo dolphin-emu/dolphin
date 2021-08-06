@@ -1282,7 +1282,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
   if (tlbe.tag[1] == tag)
   {
     UPTE2 PTE2;
-    PTE2.Hex = tlbe.pte[0];
+    PTE2.Hex = tlbe.pte[1];
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
