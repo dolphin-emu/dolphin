@@ -109,9 +109,14 @@ enum class TranslateAddressResultEnum : u8
 
 struct TranslateAddressResult
 {
-  TranslateAddressResultEnum result;
   u32 address;
+  TranslateAddressResultEnum result;
   bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
+
+  TranslateAddressResult(TranslateAddressResultEnum result_, u32 address_, bool wi_ = false)
+      : address(address_), result(result_), wi(wi_)
+  {
+  }
   bool Success() const { return result <= TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
