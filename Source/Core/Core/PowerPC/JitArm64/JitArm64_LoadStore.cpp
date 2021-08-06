@@ -602,10 +602,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   ABI_PushRegisters(gprs_to_push);
   m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
 
-  MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICache);
-  // W0 was already set earlier
-  MOVI2R(ARM64Reg::W1, 32);
-  MOVI2R(ARM64Reg::W2, 0);
+  // W0 (the function call argument) was already set earlier
+  MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLine);
   BLR(ARM64Reg::X8);
 
   m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);

@@ -274,9 +274,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   registersInUse[X64Reg(effective_address)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   MOV(32, R(ABI_PARAM1), R(effective_address));
-  MOV(32, R(ABI_PARAM2), Imm32(32));
-  XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
-  ABI_CallFunction(JitInterface::InvalidateICache);
+  ABI_CallFunction(JitInterface::InvalidateICacheLine);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
 
