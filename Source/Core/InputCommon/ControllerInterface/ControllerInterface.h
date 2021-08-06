@@ -30,6 +30,9 @@
 #define CIFACE_USE_PIPES
 #endif
 #define CIFACE_USE_DUALSHOCKUDPCLIENT
+#if defined(HAVE_SDL2)
+#define CIFACE_USE_SDL
+#endif
 
 namespace ciface
 {

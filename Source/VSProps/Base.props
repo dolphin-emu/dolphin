@@ -45,6 +45,7 @@
     <ExternalIncludePath>$(ExternalsDir)xxhash;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)zlib;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)zstd\lib;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(ExternalsDir)SDL\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->

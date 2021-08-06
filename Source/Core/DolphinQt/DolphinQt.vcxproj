@@ -42,6 +42,9 @@
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>(if not exist "$(BinaryOutputDir)" mkdir "$(BinaryOutputDir)") &amp; copy /Y "$(SolutionDir)$(Platform)\$(Configuration)\SDL2.dll" "$(BinaryOutputDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />

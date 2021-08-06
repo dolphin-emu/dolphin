@@ -88,5 +88,8 @@
     <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
       <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SDL\VisualC\SDL\SDL.vcxproj">
+      <Project>{81ce8daf-ebb2-4761-8e45-b71abcca8c68}</Project>
+    </ProjectReference>
   </ItemGroup>
 </Project>
