@@ -99,18 +99,20 @@ static bool IsNoExceptionFlag(XCheckTLBFlag flag)
   return flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::OpcodeNoException;
 }
 
+enum class TranslateAddressResultEnum : u8
+{
+  BAT_TRANSLATED,
+  PAGE_TABLE_TRANSLATED,
+  DIRECT_STORE_SEGMENT,
+  PAGE_FAULT,
+};
+
 struct TranslateAddressResult
 {
-  enum
-  {
-    BAT_TRANSLATED,
-    PAGE_TABLE_TRANSLATED,
-    DIRECT_STORE_SEGMENT,
-    PAGE_FAULT
-  } result;
+  TranslateAddressResultEnum result;
   u32 address;
   bool wi;  // Set to true if the view of memory is either write-through or cache-inhibited
-  bool Success() const { return result <= PAGE_TABLE_TRANSLATED; }
+  bool Success() const { return result <= TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(u32 address);
@@ -444,7 +446,7 @@ TryReadInstResult TryReadInstruction(u32 address)
     else
     {
       address = tlb_addr.address;
-      from_bat = tlb_addr.result == TranslateAddressResult::BAT_TRANSLATED;
+      from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
     }
   }
 
@@ -1023,14 +1025,14 @@ void ClearCacheLine(u32 address)
   if (MSR.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
-    if (translated_address.result == TranslateAddressResult::DIRECT_STORE_SEGMENT)
+    if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
     {
       // dcbz to direct store segments is ignored. This is a little
       // unintuitive, but this is consistent with both console and the PEM.
       // Advance Game Port crashes if we don't emulate this correctly.
       return;
     }
-    if (translated_address.result == TranslateAddressResult::PAGE_FAULT)
+    if (translated_address.result == TranslateAddressResultEnum::PAGE_FAULT)
     {
       // If translation fails, generate a DSI.
       GenerateDSIException(address, true);
@@ -1099,7 +1101,7 @@ TranslateResult JitCache_TranslateAddress(u32 address)
     return TranslateResult{false, false, 0};
   }
 
-  bool from_bat = tlb_addr.result == TranslateAddressResult::BAT_TRANSLATED;
+  bool from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
   return TranslateResult{true, from_bat, tlb_addr.address};
 }
 
@@ -1343,12 +1345,13 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   u32 translatedAddress = 0;
   TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress, wi);
   if (res == TLBLookupResult::Found)
-    return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED, translatedAddress};
+    return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
+                                  translatedAddress};
 
   u32 sr = PowerPC::ppcState.sr[EA_SR(address)];
 
   if (sr & 0x80000000)
-    return TranslateAddressResult{TranslateAddressResult::DIRECT_STORE_SEGMENT, 0};
+    return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
 
   // TODO: Handle KS/KP segment register flags.
 
@@ -1356,7 +1359,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) &&
       (sr & 0x10000000))
   {
-    return TranslateAddressResult{TranslateAddressResult::PAGE_FAULT, 0};
+    return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
   }
 
   u32 offset = EA_Offset(address);         // 12 bit
@@ -1418,12 +1421,12 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
         *wi = (PTE2.WIMG & 0b1100) != 0;
 
-        return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED,
+        return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
                                       (PTE2.RPN << 12) | offset};
       }
     }
   }
-  return TranslateAddressResult{TranslateAddressResult::PAGE_FAULT, 0};
+  return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
 }
 
 static void UpdateBATs(BatTable& bat_table, u32 base_spr)
@@ -1583,7 +1586,7 @@ static TranslateAddressResult TranslateAddress(u32 address)
   bool wi = false;
 
   if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address, &wi))
-    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address, wi};
+    return TranslateAddressResult{TranslateAddressResultEnum::BAT_TRANSLATED, address, wi};
 
   return TranslatePageAddress(address, flag, &wi);
 }
