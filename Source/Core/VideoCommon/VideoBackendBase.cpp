@@ -83,8 +83,8 @@ void VideoBackendBase::Video_ExitLoop()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                        u64 ticks)
+void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
+                                       u64 ticks)
 {
   if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
   {

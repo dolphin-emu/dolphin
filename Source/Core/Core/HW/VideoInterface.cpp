@@ -13,6 +13,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
@@ -757,7 +758,7 @@ static void LogField(FieldType field, u32 xfb_address)
                 GetTicksPerOddField());
 }
 
-static void BeginField(FieldType field, u64 ticks)
+static void OutputField(FieldType field, u64 ticks)
 {
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
@@ -811,16 +812,30 @@ static void BeginField(FieldType field, u64 ticks)
 
   LogField(field, xfbAddr);
 
-  // This assumes the game isn't going to change the VI registers while a
-  // frame is scanning out.
-  // To correctly handle that case we would need to collate all changes
-  // to VI during scanout and delay outputting the frame till then.
+  // Outputting the entire frame using a single set of VI register values isn't accurate, as games
+  // can change the register values during scanout. To correctly emulate the scanout process, we
+  // would need to collate all changes to the VI registers during scanout.
   if (xfbAddr)
-    g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
+    g_video_backend->Video_OutputXFB(xfbAddr, fbWidth, fbStride, fbHeight, ticks);
 }
 
-static void EndField()
+static void BeginField(FieldType field, u64 ticks)
 {
+  // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
+  // going to change the VI registers while a frame is scanning out.
+  if (Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
+    OutputField(field, ticks);
+}
+
+static void EndField(FieldType field, u64 ticks)
+{
+  // If the game does change VI registers while a frame is scanning out, we can defer output
+  // until the end so the last register values are used. This still isn't accurate, but it does
+  // produce more acceptable results in some problematic cases.
+  // Currently, this is only known to be necessary to eliminate flickering in WWE Crush Hour.
+  if (!Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))
+    OutputField(field, ticks);
+
   Core::VideoThrottle();
   Core::OnFrameEnd();
 }
@@ -849,11 +864,11 @@ void Update(u64 ticks)
   }
   else if (s_half_line_count == s_even_field_last_hl)
   {
-    EndField();
+    EndField(FieldType::Even, ticks);
   }
   else if (s_half_line_count == s_odd_field_last_hl)
   {
-    EndField();
+    EndField(FieldType::Odd, ticks);
   }
 
   // If this half-line is at a field boundary, deal with frame stepping before potentially
