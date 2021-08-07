@@ -157,9 +157,9 @@
     <string name="sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
     <string name="sensor_bar_position">Sensor Bar Position</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
-    <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
+    <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wii Remote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
-    <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
+    <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wii Remote (DolphinBar required).</string>
     <string name="override_region_settings">Allow Mismatched Region Settings</string>
     <string name="auto_disc_change">Change Discs Automatically</string>
     <string name="fallback_region">Fallback Region</string>
