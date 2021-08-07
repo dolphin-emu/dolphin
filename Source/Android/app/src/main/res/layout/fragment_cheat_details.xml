@@ -5,35 +5,91 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/label_name"
+    <ScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/TextAppearance.AppCompat.Headline"
-        android:textSize="18sp"
-        android:text="@string/cheats_name"
-        android:layout_margin="@dimen/spacing_large"
-        android:labelFor="@id/edit_name"
+        android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/edit_name" />
+        app:layout_constraintBottom_toTopOf="@id/barrier">
 
-    <EditText
-        android:id="@+id/edit_name"
-        android:layout_width="match_parent"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/label_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_name"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/edit_name" />
+
+            <EditText
+                android:id="@+id/edit_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_name"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="Hyrule Field Speed Hack" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:layout_marginHorizontal="@dimen/spacing_large"
-        android:importantForAutofill="no"
-        android:inputType="text"
-        android:enabled="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="button_edit,button_cancel,button_ok" />
+
+    <Button
+        android:id="@+id/button_edit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/cheats_edit"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/label_name"
-        tools:text="Hyrule Field Speed Hack" />
+        app:layout_constraintEnd_toStartOf="@id/button_cancel"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/button_cancel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/cancel"
+        app:layout_constraintStart_toEndOf="@id/button_edit"
+        app:layout_constraintEnd_toStartOf="@id/button_ok"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/button_ok"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/ok"
+        app:layout_constraintStart_toEndOf="@id/button_cancel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

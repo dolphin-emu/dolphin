@@ -22,7 +22,12 @@ public class ARCheat extends AbstractCheat
   @NonNull
   public native String getName();
 
+  public native boolean getUserDefined();
+
   public native boolean getEnabled();
+
+  @Override
+  protected native int trySetImpl(@NonNull String name);
 
   @Override
   protected native void setEnabledImpl(boolean enabled);
