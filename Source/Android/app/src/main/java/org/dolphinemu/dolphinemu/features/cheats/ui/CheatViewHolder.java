@@ -23,6 +23,7 @@ public class CheatViewHolder extends ViewHolder
 
   private CheatsViewModel mViewModel;
   private Cheat mCheat;
+  private int mPosition;
 
   public CheatViewHolder(@NonNull View itemView)
   {
@@ -33,7 +34,7 @@ public class CheatViewHolder extends ViewHolder
     mCheckbox = itemView.findViewById(R.id.checkbox);
   }
 
-  public void bind(CheatsViewModel viewModel, Cheat item)
+  public void bind(CheatsViewModel viewModel, Cheat item, int position)
   {
     mCheckbox.setOnCheckedChangeListener(null);
 
@@ -42,6 +43,7 @@ public class CheatViewHolder extends ViewHolder
 
     mViewModel = viewModel;
     mCheat = item;
+    mPosition = position;
 
     mRoot.setOnClickListener(this);
     mCheckbox.setOnCheckedChangeListener(this);
@@ -49,12 +51,13 @@ public class CheatViewHolder extends ViewHolder
 
   public void onClick(View root)
   {
-    mViewModel.setSelectedCheat(mCheat);
+    mViewModel.setSelectedCheat(mCheat, mPosition);
     mViewModel.openDetailsView();
   }
 
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
   {
     mCheat.setEnabled(isChecked);
+    mViewModel.notifyCheatChanged(mPosition);
   }
 }

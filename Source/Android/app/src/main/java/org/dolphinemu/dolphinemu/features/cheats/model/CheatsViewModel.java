@@ -10,9 +10,11 @@ public class CheatsViewModel extends ViewModel
 {
   private boolean mLoaded = false;
 
+  private int mSelectedCheatPosition = -1;
   private final MutableLiveData<Cheat> mSelectedCheat = new MutableLiveData<>(null);
   private final MutableLiveData<Boolean> mIsEditing = new MutableLiveData<>(false);
 
+  private final MutableLiveData<Integer> mCheatChangedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
 
   private PatchCheat[] mPatchCheats;
@@ -74,12 +76,13 @@ public class CheatsViewModel extends ViewModel
     return mSelectedCheat;
   }
 
-  public void setSelectedCheat(Cheat cheat)
+  public void setSelectedCheat(Cheat cheat, int position)
   {
     if (mIsEditing.getValue())
       setIsEditing(false);
 
     mSelectedCheat.setValue(cheat);
+    mSelectedCheatPosition = position;
   }
 
   public LiveData<Boolean> getIsEditing()
@@ -90,6 +93,32 @@ public class CheatsViewModel extends ViewModel
   public void setIsEditing(boolean isEditing)
   {
     mIsEditing.setValue(isEditing);
+  }
+
+  /**
+   * When a cheat is edited, the integer stored in the returned LiveData
+   * changes to the position of that cheat, then changes back to null.
+   */
+  public LiveData<Integer> getCheatChangedEvent()
+  {
+    return mCheatChangedEvent;
+  }
+
+  /**
+   * Notifies that an edit has been made to the contents of the currently selected cheat.
+   */
+  public void notifySelectedCheatChanged()
+  {
+    notifyCheatChanged(mSelectedCheatPosition);
+  }
+
+  /**
+   * Notifies that an edit has been made to the contents of the cheat at the given position.
+   */
+  public void notifyCheatChanged(int position)
+  {
+    mCheatChangedEvent.setValue(position);
+    mCheatChangedEvent.setValue(null);
   }
 
   public LiveData<Boolean> getOpenDetailsViewEvent()
