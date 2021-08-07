@@ -289,6 +289,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsFramebufferFetch = false;          // Dependent on OS and features.
   config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
   config->backend_info.bSupportsTextureQueryLevels = true;         // Assumed support.
+  config->backend_info.bSupportsLodBiasInSampler = false;          // Dependent on OS.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -315,6 +316,13 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
       (features.fragmentStoresAndAtomics == VK_TRUE);
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
   config->backend_info.bSupportsLogicOp = (features.logicOp == VK_TRUE);
+
+#ifdef __APPLE__
+  // Metal doesn't support this.
+  config->backend_info.bSupportsLodBiasInSampler = false;
+#else
+  config->backend_info.bSupportsLodBiasInSampler = true;
+#endif
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
