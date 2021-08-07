@@ -20,7 +20,7 @@ public:
   ~PulseAudio() override;
 
   bool Init() override;
-  bool SetRunning(bool running) override { return running; }
+  bool SetRunning(bool running) override { return true; }
   static bool isValid() { return true; }
   void StateCallback(pa_context* c);
   void WriteCallback(pa_stream* s, size_t length);

@@ -22,5 +22,6 @@ public:
   virtual void SetVolume(int) {}
   virtual void SoundLoop() {}
   virtual void Update() {}
+  // Returns true if successful.
   virtual bool SetRunning(bool running) { return false; }
 };
