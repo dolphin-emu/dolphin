@@ -20,7 +20,3 @@ bool NullSound::SetRunning(bool running)
 void NullSound::SetVolume(int volume)
 {
 }
-
-void NullSound::Update()
-{
-}

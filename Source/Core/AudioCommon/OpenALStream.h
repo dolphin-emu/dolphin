@@ -59,15 +59,12 @@ public:
   void SoundLoop() override;
   void SetVolume(int volume) override;
   bool SetRunning(bool running) override;
-  void Update() override;
 
   static bool isValid();
 
 private:
   std::thread m_thread;
   Common::Flag m_run_thread;
-
-  Common::Event m_sound_sync_event;
 
   std::vector<short> m_realtime_buffer;
   std::array<ALuint, OAL_BUFFERS> m_buffers;

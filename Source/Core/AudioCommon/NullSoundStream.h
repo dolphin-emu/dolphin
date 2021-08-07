@@ -12,7 +12,6 @@ public:
   void SoundLoop() override;
   bool SetRunning(bool running) override;
   void SetVolume(int volume) override;
-  void Update() override;
 
   static bool isValid() { return true; }
 };
