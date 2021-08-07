@@ -12,6 +12,7 @@
 #include "Core/PatchEngine.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/Cheats/Cheats.h"
 
 static PatchEngine::Patch* GetPointer(JNIEnv* env, jobject obj)
 {
@@ -40,9 +41,25 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getName(JNIEnv* 
 }
 
 JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getUserDefined(JNIEnv* env,
+                                                                               jobject obj)
+{
+  return static_cast<jboolean>(GetPointer(env, obj)->user_defined);
+}
+
+JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getEnabled(JNIEnv* env, jobject obj)
 {
   return static_cast<jboolean>(GetPointer(env, obj)->enabled);
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_trySetImpl(
+        JNIEnv* env, jobject obj, jstring name)
+{
+  PatchEngine::Patch* patch = GetPointer(env, obj);
+  patch->name = GetJString(env, name);
+
+  return TRY_SET_SUCCESS;
 }
 
 JNIEXPORT void JNICALL

@@ -11,6 +11,7 @@ public class CheatsViewModel extends ViewModel
   private boolean mLoaded = false;
 
   private final MutableLiveData<Cheat> mSelectedCheat = new MutableLiveData<>(null);
+  private final MutableLiveData<Boolean> mIsEditing = new MutableLiveData<>(false);
 
   private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
 
@@ -75,7 +76,20 @@ public class CheatsViewModel extends ViewModel
 
   public void setSelectedCheat(Cheat cheat)
   {
+    if (mIsEditing.getValue())
+      setIsEditing(false);
+
     mSelectedCheat.setValue(cheat);
+  }
+
+  public LiveData<Boolean> getIsEditing()
+  {
+    return mIsEditing;
+  }
+
+  public void setIsEditing(boolean isEditing)
+  {
+    mIsEditing.setValue(isEditing);
   }
 
   public LiveData<Boolean> getOpenDetailsViewEvent()

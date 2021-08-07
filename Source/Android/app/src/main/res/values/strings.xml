@@ -390,6 +390,8 @@
     <string name="cheats">Cheats</string>
     <string name="cheats_with_game_id">Cheats: %1$s</string>
     <string name="cheats_name">Name</string>
+    <string name="cheats_edit">Edit</string>
+    <string name="cheats_error_no_name">Name can\'t be empty</string>
 
     <!-- Convert Screen -->
     <string name="convert_format">Format</string>

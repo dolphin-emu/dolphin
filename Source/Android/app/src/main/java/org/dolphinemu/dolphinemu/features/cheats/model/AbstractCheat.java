@@ -2,11 +2,25 @@
 
 package org.dolphinemu.dolphinemu.features.cheats.model;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public abstract class AbstractCheat implements Cheat
 {
   private Runnable mChangedCallback = null;
+
+  public int trySet(@NonNull String name)
+  {
+    if (name.isEmpty())
+      return TRY_SET_FAIL_NO_NAME;
+
+    int result = trySetImpl(name);
+
+    if (result == TRY_SET_SUCCESS)
+      onChanged();
+
+    return result;
+  }
 
   public void setEnabled(boolean enabled)
   {
@@ -24,6 +38,8 @@ public abstract class AbstractCheat implements Cheat
     if (mChangedCallback != null)
       mChangedCallback.run();
   }
+
+  protected abstract int trySetImpl(@NonNull String name);
 
   protected abstract void setEnabledImpl(boolean enabled);
 }

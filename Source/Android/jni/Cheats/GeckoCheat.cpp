@@ -13,6 +13,7 @@
 #include "Core/GeckoCodeConfig.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/Cheats/Cheats.h"
 
 static Gecko::GeckoCode* GetPointer(JNIEnv* env, jobject obj)
 {
@@ -41,9 +42,25 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getName(JNIEnv* 
 }
 
 JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getUserDefined(JNIEnv* env,
+                                                                               jobject obj)
+{
+  return static_cast<jboolean>(GetPointer(env, obj)->user_defined);
+}
+
+JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getEnabled(JNIEnv* env, jobject obj)
 {
   return static_cast<jboolean>(GetPointer(env, obj)->enabled);
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_trySetImpl(
+        JNIEnv* env, jobject obj, jstring name)
+{
+  Gecko::GeckoCode* code = GetPointer(env, obj);
+  code->name = GetJString(env, name);
+
+  return TRY_SET_SUCCESS;
 }
 
 JNIEXPORT void JNICALL
