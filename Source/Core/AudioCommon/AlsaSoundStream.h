@@ -25,7 +25,7 @@ public:
   bool Init() override;
   bool SetRunning(bool running) override;
 
-  static bool isValid() { return true; }
+  static bool IsValid() { return true; }
 
 private:
   void SoundLoop();

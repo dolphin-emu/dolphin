@@ -21,7 +21,7 @@ public:
 
   bool Init() override;
   bool SetRunning(bool running) override { return true; }
-  static bool isValid() { return true; }
+  static bool IsValid() { return true; }
   void StateCallback(pa_context* c);
   void WriteCallback(pa_stream* s, size_t length);
   void UnderflowCallback(pa_stream* s);

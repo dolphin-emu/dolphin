@@ -59,7 +59,7 @@ public:
   void SetVolume(int volume) override;
   bool SetRunning(bool running) override;
 
-  static bool isValid();
+  static bool IsValid();
 
 private:
   void SoundLoop();

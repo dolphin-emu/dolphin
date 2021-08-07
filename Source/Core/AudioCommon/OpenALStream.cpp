@@ -83,7 +83,7 @@ static bool InitLibrary()
   return true;
 }
 
-bool OpenALStream::isValid()
+bool OpenALStream::IsValid()
 {
   return InitLibrary();
 }

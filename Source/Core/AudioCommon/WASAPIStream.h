@@ -36,7 +36,7 @@ public:
   bool Init() override;
   bool SetRunning(bool running) override;
 
-  static bool isValid();
+  static bool IsValid();
   static std::vector<std::string> GetAvailableDevices();
   static Microsoft::WRL::ComPtr<IMMDevice> GetDeviceByName(std::string_view name);
 
