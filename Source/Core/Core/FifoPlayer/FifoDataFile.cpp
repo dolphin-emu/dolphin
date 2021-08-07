@@ -209,15 +209,33 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   if (!file)
     return nullptr;
 
-  FileHeader header;
-  file.ReadBytes(&header, sizeof(header));
+  auto panic_failed_to_read = []() {
+    CriticalAlertFmtT("Failed to read DFF file.");
+    return nullptr;
+  };
 
-  if (header.fileId != FILE_ID || header.min_loader_version > VERSION_NUMBER)
+  if (file.GetSize() == 0)
+  {
+    CriticalAlertFmtT("DFF file size is 0; corrupt/incomplete file?");
+    return nullptr;
+  }
+
+  FileHeader header;
+  if (!file.ReadBytes(&header, sizeof(header)))
+    return panic_failed_to_read();
+
+  if (header.fileId != FILE_ID)
+  {
+    CriticalAlertFmtT("DFF file magic number is incorrect: got {0:08x}, expected {1:08x}",
+                      header.fileId, FILE_ID);
+    return nullptr;
+  }
+
+  if (header.min_loader_version > VERSION_NUMBER)
   {
     CriticalAlertFmtT(
         "The DFF's minimum loader version ({0}) exceeds the version of this FIFO Player ({1})",
         header.min_loader_version, VERSION_NUMBER);
-    file.Close();
     return nullptr;
   }
 
@@ -244,7 +262,6 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     Config::SetCurrent(Config::MAIN_MEM1_SIZE, header.mem1_size);
     Config::SetCurrent(Config::MAIN_MEM2_SIZE, header.mem2_size);
 
-    file.Close();
     return dataFile;
   }
 
@@ -263,7 +280,6 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
                       Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000,
                       header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
                       header.mem2_size / 0x100000);
-    file.Close();
     return nullptr;
   }
 
@@ -292,6 +308,9 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     file.ReadArray(dataFile->m_TexMem, size);
   }
 
+  if (!file.IsGood())
+    return panic_failed_to_read();
+
   // idk what else these could be used for, but it'd be a shame to not make them available.
   dataFile->m_ram_size_real = header.mem1_size;
   dataFile->m_exram_size_real = header.mem2_size;
@@ -302,7 +321,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     u64 frameOffset = header.frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, SEEK_SET);
     FileFrameInfo srcFrame;
-    file.ReadBytes(&srcFrame, sizeof(FileFrameInfo));
+    if (!file.ReadBytes(&srcFrame, sizeof(FileFrameInfo)))
+      return panic_failed_to_read();
 
     FifoFrameInfo dstFrame;
     dstFrame.fifoData.resize(srcFrame.fifoDataSize);
@@ -315,10 +335,11 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     ReadMemoryUpdates(srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates,
                       dstFrame.memoryUpdates, file);
 
+    if (!file.IsGood())
+      return panic_failed_to_read();
+
     dataFile->AddFrame(dstFrame);
   }
-
-  file.Close();
 
   return dataFile;
 }
