@@ -36,7 +36,7 @@ public class CheatListFragment extends Fragment
     CheatsActivity activity = (CheatsActivity) requireActivity();
     CheatsViewModel viewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
 
-    recyclerView.setAdapter(new CheatsAdapter(viewModel));
+    recyclerView.setAdapter(new CheatsAdapter(getViewLifecycleOwner(), viewModel));
     recyclerView.setLayoutManager(new LinearLayoutManager(activity));
     recyclerView.addItemDecoration(new DividerItemDecoration(activity, null));
   }

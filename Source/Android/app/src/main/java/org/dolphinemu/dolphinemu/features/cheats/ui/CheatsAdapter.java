@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.R;
@@ -17,9 +18,15 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatViewHolder>
 {
   private final CheatsViewModel mViewModel;
 
-  public CheatsAdapter(CheatsViewModel viewModel)
+  public CheatsAdapter(LifecycleOwner owner, CheatsViewModel viewModel)
   {
     mViewModel = viewModel;
+
+    mViewModel.getCheatChangedEvent().observe(owner, (position) ->
+    {
+      if (position != null)
+        notifyItemChanged(position);
+    });
   }
 
   @NonNull
@@ -34,7 +41,7 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatViewHolder>
   @Override
   public void onBindViewHolder(@NonNull CheatViewHolder holder, int position)
   {
-    holder.bind(mViewModel, getItemAt(position));
+    holder.bind(mViewModel, getItemAt(position), position);
   }
 
   @Override

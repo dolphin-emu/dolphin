@@ -76,6 +76,7 @@ public class CheatDetailsFragment extends Fragment
     switch (result)
     {
       case Cheat.TRY_SET_SUCCESS:
+        mViewModel.notifySelectedCheatChanged();
         mViewModel.setIsEditing(false);
         break;
       case Cheat.TRY_SET_FAIL_NO_NAME:
