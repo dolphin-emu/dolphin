@@ -27,7 +27,7 @@ public:
   void UnderflowCallback(pa_stream* s);
 
 private:
-  void SoundLoop() override;
+  void SoundLoop();
 
   bool PulseInit();
   void PulseShutdown();

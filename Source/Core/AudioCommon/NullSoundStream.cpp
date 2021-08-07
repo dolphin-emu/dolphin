@@ -3,10 +3,6 @@
 
 #include "AudioCommon/NullSoundStream.h"
 
-void NullSound::SoundLoop()
-{
-}
-
 bool NullSound::Init()
 {
   return true;
