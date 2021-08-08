@@ -1097,17 +1097,15 @@ bool IsOptimizableGatherPipeWrite(u32 address)
 TranslateResult JitCache_TranslateAddress(u32 address)
 {
   if (!MSR.IR)
-    return TranslateResult{true, true, address};
+    return TranslateResult{address};
 
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.
-  auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
+  const auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
   if (!tlb_addr.Success())
-  {
-    return TranslateResult{false, false, 0};
-  }
+    return TranslateResult{};
 
-  bool from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
-  return TranslateResult{true, from_bat, tlb_addr.address};
+  const bool from_bat = tlb_addr.result == TranslateAddressResultEnum::BAT_TRANSLATED;
+  return TranslateResult{from_bat, tlb_addr.address};
 }
 
 // *********************************************************************************

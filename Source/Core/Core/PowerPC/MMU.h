@@ -189,9 +189,17 @@ bool IsOptimizableGatherPipeWrite(u32 address);
 
 struct TranslateResult
 {
-  bool valid;
-  bool from_bat;
-  u32 address;
+  bool valid = false;
+  bool translated = false;
+  bool from_bat = false;
+  u32 address = 0;
+
+  TranslateResult() = default;
+  explicit TranslateResult(u32 address_) : valid(true), address(address_) {}
+  TranslateResult(bool from_bat_, u32 address_)
+      : valid(true), translated(true), from_bat(from_bat_), address(address_)
+  {
+  }
 };
 TranslateResult JitCache_TranslateAddress(u32 address);
 
