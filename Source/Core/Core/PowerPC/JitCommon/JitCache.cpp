@@ -96,10 +96,10 @@ void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
 
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
-  u32 physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
-  JitBlock& b = block_map.emplace(physicalAddress, JitBlock())->second;
+  const u32 physical_address = PowerPC::JitCache_TranslateAddress(em_address).address;
+  JitBlock& b = block_map.emplace(physical_address, JitBlock())->second;
   b.effectiveAddress = em_address;
-  b.physicalAddress = physicalAddress;
+  b.physicalAddress = physical_address;
   b.msrBits = MSR.Hex & JIT_CACHE_MSR_MASK;
   b.linkData.clear();
   b.fast_block_map_index = 0;
@@ -185,25 +185,25 @@ const u8* JitBaseBlockCache::Dispatch()
 
 void JitBaseBlockCache::InvalidateICache(u32 address, u32 length, bool forced)
 {
-  auto translated = PowerPC::JitCache_TranslateAddress(address);
+  const auto translated = PowerPC::JitCache_TranslateAddress(address);
   if (!translated.valid)
     return;
-  u32 pAddr = translated.address;
+  const u32 physical_address = translated.address;
 
   // Optimize the common case of length == 32 which is used by Interpreter::dcb*
   bool destroy_block = true;
   if (length == 32)
   {
-    if (!valid_block.Test(pAddr / 32))
+    if (!valid_block.Test(physical_address / 32))
       destroy_block = false;
     else
-      valid_block.Clear(pAddr / 32);
+      valid_block.Clear(physical_address / 32);
   }
 
   if (destroy_block)
   {
     // destroy JIT blocks
-    ErasePhysicalRange(pAddr, length);
+    ErasePhysicalRange(physical_address, length);
 
     // If the code was actually modified, we need to clear the relevant entries from the
     // FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
