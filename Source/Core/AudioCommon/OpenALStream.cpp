@@ -83,7 +83,7 @@ static bool InitLibrary()
   return true;
 }
 
-bool OpenALStream::isValid()
+bool OpenALStream::IsValid()
 {
   return InitLibrary();
 }
@@ -126,9 +126,6 @@ bool OpenALStream::Init()
 OpenALStream::~OpenALStream()
 {
   m_run_thread.Clear();
-  // kick the thread if it's waiting
-  m_sound_sync_event.Set();
-
   m_thread.join();
 
   palSourceStop(m_source);
@@ -153,11 +150,6 @@ void OpenALStream::SetVolume(int volume)
 
   if (m_source)
     palSourcef(m_source, AL_GAIN, m_volume);
-}
-
-void OpenALStream::Update()
-{
-  m_sound_sync_event.Set();
 }
 
 bool OpenALStream::SetRunning(bool running)

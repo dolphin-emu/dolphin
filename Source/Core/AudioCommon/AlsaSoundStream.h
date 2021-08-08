@@ -23,13 +23,13 @@ public:
   ~AlsaSound() override;
 
   bool Init() override;
-  void SoundLoop() override;
-  void Update() override;
   bool SetRunning(bool running) override;
 
-  static bool isValid() { return true; }
+  static bool IsValid() { return true; }
 
 private:
+  void SoundLoop();
+
   // maximum number of frames the buffer can hold
   static constexpr size_t BUFFER_SIZE_MAX = 8192;
 

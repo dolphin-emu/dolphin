@@ -30,17 +30,17 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 {
   if (backend == BACKEND_CUBEB)
     return std::make_unique<CubebStream>();
-  else if (backend == BACKEND_OPENAL && OpenALStream::isValid())
+  else if (backend == BACKEND_OPENAL && OpenALStream::IsValid())
     return std::make_unique<OpenALStream>();
   else if (backend == BACKEND_NULLSOUND)
     return std::make_unique<NullSound>();
-  else if (backend == BACKEND_ALSA && AlsaSound::isValid())
+  else if (backend == BACKEND_ALSA && AlsaSound::IsValid())
     return std::make_unique<AlsaSound>();
-  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
+  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::IsValid())
     return std::make_unique<PulseAudio>();
-  else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
+  else if (backend == BACKEND_OPENSLES && OpenSLESStream::IsValid())
     return std::make_unique<OpenSLESStream>();
-  else if (backend == BACKEND_WASAPI && WASAPIStream::isValid())
+  else if (backend == BACKEND_WASAPI && WASAPIStream::IsValid())
     return std::make_unique<WASAPIStream>();
   return {};
 }
@@ -96,7 +96,7 @@ std::string GetDefaultSoundBackend()
 #if defined ANDROID
   backend = BACKEND_OPENSLES;
 #elif defined __linux__
-  if (AlsaSound::isValid())
+  if (AlsaSound::IsValid())
     backend = BACKEND_ALSA;
 #elif defined(__APPLE__) || defined(_WIN32)
   backend = BACKEND_CUBEB;
@@ -115,15 +115,15 @@ std::vector<std::string> GetSoundBackends()
 
   backends.emplace_back(BACKEND_NULLSOUND);
   backends.emplace_back(BACKEND_CUBEB);
-  if (AlsaSound::isValid())
+  if (AlsaSound::IsValid())
     backends.emplace_back(BACKEND_ALSA);
-  if (PulseAudio::isValid())
+  if (PulseAudio::IsValid())
     backends.emplace_back(BACKEND_PULSEAUDIO);
-  if (OpenALStream::isValid())
+  if (OpenALStream::IsValid())
     backends.emplace_back(BACKEND_OPENAL);
-  if (OpenSLESStream::isValid())
+  if (OpenSLESStream::IsValid())
     backends.emplace_back(BACKEND_OPENSLES);
-  if (WASAPIStream::isValid())
+  if (WASAPIStream::IsValid())
     backends.emplace_back(BACKEND_WASAPI);
 
   return backends;
@@ -197,8 +197,6 @@ void SendAIBuffer(const short* samples, unsigned int num_samples)
   {
     pMixer->PushSamples(samples, num_samples);
   }
-
-  g_sound_stream->Update();
 }
 
 void StartAudioDump()
