@@ -17,11 +17,4 @@ constexpr bool IsBpTexMode0PointFiltering(const T& tm0)
 {
   return tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near;
 }
-
-// Check if the minification filter has mipmap based filtering modes enabled.
-template <class T>
-constexpr bool AreBpTexMode0MipmapsEnabled(const T& tm0)
-{
-  return tm0.mipmap_filter != MipMode::None;
-}
 }  // namespace SamplerCommon

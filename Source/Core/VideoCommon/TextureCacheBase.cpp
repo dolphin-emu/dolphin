@@ -979,9 +979,8 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   {
     state.min_filter = SamplerState::Filter::Linear;
     state.mag_filter = SamplerState::Filter::Linear;
-    state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                              SamplerState::Filter::Linear :
-                              SamplerState::Filter::Point;
+    state.mipmap_filter = tm0.mipmap_filter != MipMode::None ? SamplerState::Filter::Linear :
+                                                               SamplerState::Filter::Point;
   }
 
   // Custom textures may have a greater number of mips
@@ -1000,7 +999,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // disabling anisotropy, or changing the anisotropic algorithm employed.
     state.min_filter = SamplerState::Filter::Linear;
     state.mag_filter = SamplerState::Filter::Linear;
-    if (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+    if (tm0.mipmap_filter != MipMode::None)
       state.mipmap_filter = SamplerState::Filter::Linear;
     state.anisotropic_filtering = 1;
   }
@@ -1009,7 +1008,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     state.anisotropic_filtering = 0;
   }
 
-  if (has_arbitrary_mips && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+  if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)
   {
     // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
     // that have arbitrary contents, eg. are used for fog effects where the

@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/RenderState.h"
+
 #include <algorithm>
 #include <array>
-#include "VideoCommon/SamplerCommon.h"
+
 #include "VideoCommon/TextureConfig.h"
 
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
@@ -235,9 +236,9 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   mag_filter = tm0.mag_filter == FilterMode::Linear ? Filter::Linear : Filter::Point;
 
   // If mipmaps are disabled, clamp min/max lod
-  max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod.Value() : 0;
+  max_lod = tm0.mipmap_filter != MipMode::None ? tm1.max_lod.Value() : 0;
   min_lod = std::min(max_lod.Value(), static_cast<u64>(tm1.min_lod));
-  lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias * (256 / 32) : 0;
+  lod_bias = tm0.mipmap_filter != MipMode::None ? tm0.lod_bias * (256 / 32) : 0;
 
   // Address modes
   // Hardware testing indicates that wrap_mode set to 3 behaves the same as clamp.
