@@ -393,6 +393,8 @@ public final class NativeLibrary
 
   public static native void SurfaceDestroyed();
 
+  public static native boolean HasSurface();
+
   /**
    * Unpauses emulation from a paused state.
    */

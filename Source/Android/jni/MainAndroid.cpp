@@ -442,6 +442,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
   }
 }
 
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_HasSurface(JNIEnv*, jclass)
+{
+  std::lock_guard guard(s_surface_lock);
+
+  return s_surf ? JNI_TRUE : JNI_FALSE;
+}
+
 JNIEXPORT jfloat JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameAspectRatio(JNIEnv*,
                                                                                          jclass)
 {

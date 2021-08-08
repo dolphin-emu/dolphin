@@ -173,13 +173,15 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
   {
     Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height);
-    mEmulationState.newSurface(holder.getSurface());
+    NativeLibrary.SurfaceChanged(holder.getSurface());
+    mEmulationState.newSurface();
   }
 
   @Override
   public void surfaceDestroyed(@NonNull SurfaceHolder holder)
   {
-    mEmulationState.clearSurface();
+    Log.debug("[EmulationFragment] Surface destroyed.");
+    NativeLibrary.SurfaceDestroyed();
   }
 
   public void stopEmulation()
@@ -219,7 +221,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
     private final String[] mGamePaths;
     private State state;
-    private Surface mSurface;
     private boolean mRunWhenSurfaceIsValid;
     private boolean loadPreviousTemporaryState;
     private final String temporaryStatePath;
@@ -304,7 +305,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       }
 
       // If the surface is set, run now. Otherwise, wait for it to get set.
-      if (mSurface != null)
+      if (NativeLibrary.HasSurface())
       {
         runWithValidSurface();
       }
@@ -314,28 +315,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       }
     }
 
-    // Surface callbacks
-    public synchronized void newSurface(Surface surface)
+    public synchronized void newSurface()
     {
-      mSurface = surface;
       if (mRunWhenSurfaceIsValid)
       {
         runWithValidSurface();
-      }
-    }
-
-    public synchronized void clearSurface()
-    {
-      if (mSurface == null)
-      {
-        Log.warning("[EmulationFragment] clearSurface called, but surface already null.");
-      }
-      else
-      {
-        mSurface = null;
-        Log.debug("[EmulationFragment] Surface destroyed.");
-
-        NativeLibrary.SurfaceDestroyed();
       }
     }
 
@@ -346,7 +330,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       {
         Thread emulationThread = new Thread(() ->
         {
-          NativeLibrary.SurfaceChanged(mSurface);
           if (loadPreviousTemporaryState)
           {
             Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
@@ -363,7 +346,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       }
       else if (state == State.PAUSED)
       {
-        NativeLibrary.SurfaceChanged(mSurface);
         if (!EmulationActivity.getHasUserPausedEmulation() &&
                 !NativeLibrary.IsShowingAlertMessage())
         {
