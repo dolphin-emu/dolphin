@@ -231,7 +231,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       this.temporaryStatePath = temporaryStatePath;
     }
 
-    public synchronized void run(boolean isActivityRecreated)
+    public void run(boolean isActivityRecreated)
     {
       if (isActivityRecreated)
       {
@@ -264,7 +264,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       }
     }
 
-    public synchronized void newSurface()
+    public void newSurface()
     {
       if (mRunWhenSurfaceIsValid)
       {
