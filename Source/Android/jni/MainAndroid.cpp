@@ -443,7 +443,25 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv*,
                                                                                      jclass)
 {
-  std::lock_guard<std::mutex> guard(s_surface_lock);
+  {
+    // If emulation continues running without a valid surface, we will probably crash,
+    // so pause emulation until we get a valid surface again. EmulationFragment handles resuming.
+
+    std::unique_lock host_identity_guard(s_host_identity_lock);
+
+    while (s_is_booting.IsSet())
+    {
+      // Need to wait for boot to finish before we can pause
+      host_identity_guard.unlock();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      host_identity_guard.lock();
+    }
+
+    if (Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
+  }
+
+  std::lock_guard surface_guard(s_surface_lock);
 
   if (g_renderer)
     g_renderer->ChangeSurface(nullptr);

@@ -186,6 +186,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     Log.debug("[EmulationFragment] Surface destroyed.");
     NativeLibrary.SurfaceDestroyed();
+    mRunWhenSurfaceIsValid = true;
   }
 
   public void stopEmulation()
