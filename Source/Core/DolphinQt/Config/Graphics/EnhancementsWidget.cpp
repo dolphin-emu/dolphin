@@ -19,6 +19,8 @@
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/Graphics/PostProcessingShaderWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipPushButton.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
@@ -115,6 +117,7 @@ void EnhancementsWidget::CreateWidgets()
       new GraphicsBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
   m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
                                                   Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  m_pp_configure = new ToolTipPushButton(tr("Configure"));
 
   int row = 0;
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), row, 0);
@@ -129,6 +132,9 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_texture_filtering_combo, row, 1, 1, -1);
   ++row;
 
+  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), row, 0);
+  enhancements_layout->addWidget(m_pp_configure, row, 1, 1, -1);
+  ++row;
 
 
   enhancements_layout->addWidget(m_scaled_efb_copy, row, 0);
@@ -182,6 +188,20 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
     SaveSettings();
+  });
+  connect(m_pp_configure, &QPushButton::pressed, this, [this]() {
+    bool just_created = false;
+    if (!m_post_processing_shader_window)
+    {
+      just_created = true;
+      m_post_processing_shader_window =
+          new PostProcessingShaderWindow(&g_Config.m_post_processing_config);
+    }
+    m_post_processing_shader_window->show();
+    m_post_processing_shader_window->raise();
+    m_post_processing_shader_window->activateWindow();
+    if (!just_created)
+      m_post_processing_shader_window->SetShaderGroupConfig(&g_Config.m_post_processing_config);
   });
 }
 

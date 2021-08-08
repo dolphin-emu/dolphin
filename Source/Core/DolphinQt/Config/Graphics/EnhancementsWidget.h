@@ -11,11 +11,13 @@ class GraphicsBool;
 class GraphicsChoice;
 class GraphicsSlider;
 class GraphicsWindow;
+class PostProcessingShaderWindow;
 class QCheckBox;
 class QComboBox;
 class QPushButton;
 class QSlider;
 class ToolTipComboBox;
+class ToolTipPushButton;
 
 class EnhancementsWidget final : public GraphicsWidget
 {
@@ -43,6 +45,8 @@ private:
   GraphicsBool* m_force_24bit_color;
   GraphicsBool* m_disable_copy_filter;
   GraphicsBool* m_arbitrary_mipmap_detection;
+  ToolTipPushButton* m_pp_configure;
+  PostProcessingShaderWindow* m_post_processing_shader_window = nullptr;
 
   // Stereoscopy
   GraphicsChoice* m_3d_mode;
