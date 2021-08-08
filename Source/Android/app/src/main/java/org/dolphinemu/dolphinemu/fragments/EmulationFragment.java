@@ -123,8 +123,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   @Override
   public void onPause()
   {
-    if (mEmulationState.isRunning() && !NativeLibrary.IsShowingAlertMessage())
-      mEmulationState.pause();
+    if (NativeLibrary.IsRunningAndUnpaused() && !NativeLibrary.IsShowingAlertMessage())
+    {
+      Log.debug("[EmulationFragment] Pausing emulation.");
+      NativeLibrary.PauseEmulation();
+    }
+
     super.onPause();
   }
 
@@ -186,7 +190,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   public void stopEmulation()
   {
-    mEmulationState.stop();
+    Log.debug("[EmulationFragment] Stopping emulation.");
+    NativeLibrary.StopEmulation();
   }
 
   public void startConfiguringControls()
@@ -214,13 +219,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   private static class EmulationState
   {
-    private enum State
-    {
-      STOPPED, RUNNING, PAUSED
-    }
-
     private final String[] mGamePaths;
-    private State state;
     private boolean mRunWhenSurfaceIsValid;
     private boolean loadPreviousTemporaryState;
     private final String temporaryStatePath;
@@ -229,56 +228,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     {
       mGamePaths = gamePaths;
       this.temporaryStatePath = temporaryStatePath;
-      // Starting state is stopped.
-      state = State.STOPPED;
-    }
-
-    // Getters for the current state
-
-    public synchronized boolean isStopped()
-    {
-      return state == State.STOPPED;
-    }
-
-    public synchronized boolean isPaused()
-    {
-      return state == State.PAUSED;
-    }
-
-    public synchronized boolean isRunning()
-    {
-      return state == State.RUNNING;
-    }
-
-    // State changing methods
-
-    public synchronized void stop()
-    {
-      if (state != State.STOPPED)
-      {
-        Log.debug("[EmulationFragment] Stopping emulation.");
-        state = State.STOPPED;
-        NativeLibrary.StopEmulation();
-      }
-      else
-      {
-        Log.warning("[EmulationFragment] Stop called while already stopped.");
-      }
-    }
-
-    public synchronized void pause()
-    {
-      if (state != State.PAUSED)
-      {
-        state = State.PAUSED;
-        Log.debug("[EmulationFragment] Pausing emulation.");
-
-        NativeLibrary.PauseEmulation();
-      }
-      else
-      {
-        Log.warning("[EmulationFragment] Pause called while already paused.");
-      }
     }
 
     public synchronized void run(boolean isActivityRecreated)
@@ -288,7 +237,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         if (NativeLibrary.IsRunning())
         {
           loadPreviousTemporaryState = false;
-          state = State.PAUSED;
           deleteFile(temporaryStatePath);
         }
         else
@@ -326,8 +274,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     private void runWithValidSurface()
     {
       mRunWhenSurfaceIsValid = false;
-      if (state == State.STOPPED)
+      if (!NativeLibrary.IsRunning())
       {
+        NativeLibrary.SetIsBooting();
+
         Thread emulationThread = new Thread(() ->
         {
           if (loadPreviousTemporaryState)
@@ -344,7 +294,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         }, "NativeEmulation");
         emulationThread.start();
       }
-      else if (state == State.PAUSED)
+      else
       {
         if (!EmulationActivity.getHasUserPausedEmulation() &&
                 !NativeLibrary.IsShowingAlertMessage())
@@ -353,11 +303,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
           NativeLibrary.UnPauseEmulation();
         }
       }
-      else
-      {
-        Log.debug("[EmulationFragment] Bug, run called while already running.");
-      }
-      state = State.RUNNING;
     }
   }
 

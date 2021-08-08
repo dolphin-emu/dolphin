@@ -411,11 +411,20 @@ public final class NativeLibrary
   public static native void StopEmulation();
 
   /**
+   * Ensures that IsRunning will return true from now on until emulation exits.
+   * (If this is not called, IsRunning will start returning true at some point
+   * after calling Run.)
+   */
+  public static native void SetIsBooting();
+
+  /**
    * Returns true if emulation is running (or is paused).
    */
   public static native boolean IsRunning();
 
   public static native boolean IsRunningAndStarted();
+
+  public static native boolean IsRunningAndUnpaused();
 
   /**
    * Enables or disables CPU block profiling
