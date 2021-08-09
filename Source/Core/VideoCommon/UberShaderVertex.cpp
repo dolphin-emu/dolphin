@@ -214,20 +214,36 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   if (num_texgen > 0)
     GenVertexShaderTexGens(api_type, num_texgen, out);
 
+  out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
+            "// We have to provide the fields to match the interface, so set to zero\n"
+            "// if it's not enabled.\n");
+
+  const char* color_prefix;
+  if (per_pixel_lighting)
+  {
+    out.Write("\n// Since per-pixel lighting is enabled, the vertex colors are passed through\n"
+              "// unmodified so we can evaluate the lighting in the pixel shader.\n");
+    color_prefix = "vertex_color_";
+  }
+  else
+  {
+    color_prefix = "rawcolor";
+  }
+
   out.Write("if (xfmem_numColorChans == 0u) {{\n"
-            "  if ((components & {}u) != 0u)\n"
-            "    o.colors_0 = rawcolor0;\n"
+            "  if ((components & {}u) != 0u) // VB_HAS_COL0\n"
+            "    o.colors_0 = {}0;\n"
             "  else\n"
             "    o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n"
             "}}\n",
-            VB_HAS_COL0);
-  out.Write("if (xfmem_numColorChans < 2u) {{\n"
-            "  if ((components & {}u) != 0u)\n"
-            "    o.colors_1 = rawcolor1;\n"
+            VB_HAS_COL0, color_prefix);
+  out.Write("if (xfmem_numColorChans <= 1u) {{\n"
+            "  if ((components & {}u) != 0u) // VB_HAS_COL1\n"
+            "    o.colors_1 = {}1;\n"
             "  else\n"
             "    o.colors_1 = o.colors_0;\n"
             "}}\n",
-            VB_HAS_COL1);
+            VB_HAS_COL1, color_prefix);
 
   if (!host_config.fast_depth_calc)
   {
@@ -238,26 +254,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   if (per_pixel_lighting)
   {
     out.Write("o.Normal = _norm0;\n"
-              "o.WorldPos = pos.xyz;\n"
-              "// Pass through the vertex colors unmodified so we can evaluate the lighting\n"
-              "// in the same manner.\n");
-    out.Write("if ((components & {}u) != 0u) // VB_HAS_COL0\n"
-              "  o.colors_0 = vertex_color_0;\n",
-              VB_HAS_COL0);
-    out.Write("if ((components & {}u) != 0u) // VB_HAS_COL1\n"
-              "  o.colors_1 = vertex_color_1;\n",
-              VB_HAS_COL1);
-  }
-  else
-  {
-    out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
-              "// We have to provide the fields to match the interface, so set to zero\n"
-              "// if it's not enabled.\n"
-              "if (xfmem_numColorChans == 0u)\n"
-              "  o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n"
-              "if (xfmem_numColorChans <= 1u)\n"
-              "  o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n"
-              "\n");
+              "o.WorldPos = pos.xyz;\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
