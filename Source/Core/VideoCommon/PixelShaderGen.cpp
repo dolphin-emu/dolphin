@@ -414,7 +414,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "\tbool  bpmem_dither;\n"
             "\tbool  bpmem_bounding_box;\n"
             "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
-            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
+            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel, .zw - SamplerState tm0/tm1
             "\tint4  konstLookup[32];\n"
             "\tbool  blend_enable;\n"
             "\tuint  blend_src_factor;\n"

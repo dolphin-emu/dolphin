@@ -282,6 +282,15 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
   constants.texdims[texmapid][1] = height;
 }
 
+void PixelShaderManager::SetSamplerState(int texmapid, u32 tm0, u32 tm1)
+{
+  if (constants.pack2[texmapid][2] != tm0 || constants.pack2[texmapid][3] != tm1)
+    dirty = true;
+
+  constants.pack2[texmapid][2] = tm0;
+  constants.pack2[texmapid][3] = tm1;
+}
+
 void PixelShaderManager::SetZTextureBias()
 {
   constants.zbias[1][3] = bpmem.ztex1.bias;

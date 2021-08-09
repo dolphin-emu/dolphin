@@ -32,7 +32,7 @@ struct PixelShaderConstants
   float4 zslope;
   std::array<float, 2> efbscale;  // .xy
 
-  // Constants from here onwards are only used in ubershaders.
+  // Constants from here onwards are only used in ubershaders, other than pack2.
   u32 genmode;                  // .z
   u32 alphaTest;                // .w
   u32 fogParam3;                // .x
@@ -44,7 +44,7 @@ struct PixelShaderConstants
   u32 dither;                   // .z (bool)
   u32 bounding_box;             // .w (bool)
   std::array<uint4, 16> pack1;  // .xy - combiners, .z - tevind, .w - iref
-  std::array<uint4, 8> pack2;   // .x - tevorder, .y - tevksel
+  std::array<uint4, 8> pack2;   // .x - tevorder, .y - tevksel, .z/.w - SamplerState tm0/tm1
   std::array<int4, 32> konst;   // .rgba
   // The following are used in ubershaders when using shader_framebuffer_fetch blending
   u32 blend_enable;

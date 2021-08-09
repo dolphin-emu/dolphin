@@ -49,7 +49,7 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale
 {
   UpdateActiveConfig();
   for (SamplerState& m_sampler_state : m_sampler_states)
-    m_sampler_state.hex = RenderState::GetPointSamplerState().hex;
+    m_sampler_state = RenderState::GetPointSamplerState();
 }
 
 Renderer::~Renderer() = default;
@@ -545,7 +545,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   // Skip lookup if the state hasn't changed.
-  if (m_sampler_states[index].hex == state.hex)
+  if (m_sampler_states[index] == state)
     return;
 
   // Look up new state and replace in state tracker.
@@ -557,7 +557,7 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   }
 
   StateTracker::GetInstance()->SetSampler(index, sampler);
-  m_sampler_states[index].hex = state.hex;
+  m_sampler_states[index] = state;
 }
 
 void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
@@ -588,7 +588,7 @@ void Renderer::ResetSamplerStates()
   // Invalidate all sampler states, next draw will re-initialize them.
   for (u32 i = 0; i < m_sampler_states.size(); i++)
   {
-    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
+    m_sampler_states[i] = RenderState::GetPointSamplerState();
     StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());
   }
 

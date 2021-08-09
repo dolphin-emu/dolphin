@@ -145,30 +145,16 @@ union BlendingState
   u32 hex;
 };
 
-union SamplerState
+struct SamplerState
 {
-  using StorageType = u64;
-
-  enum class Filter : StorageType
-  {
-    Point,
-    Linear
-  };
-
-  enum class AddressMode : StorageType
-  {
-    Clamp,
-    Repeat,
-    MirroredRepeat
-  };
-
   void Generate(const BPMemory& bp, u32 index);
 
   SamplerState() = default;
   SamplerState(const SamplerState&) = default;
   SamplerState& operator=(const SamplerState& rhs)
   {
-    hex = rhs.hex;
+    tm0.hex = rhs.tm0.hex;
+    tm1.hex = rhs.tm1.hex;
     return *this;
   }
   SamplerState(SamplerState&&) = default;
@@ -179,21 +165,53 @@ union SamplerState
     return *this;
   }
 
-  bool operator==(const SamplerState& rhs) const { return hex == rhs.hex; }
+  bool operator==(const SamplerState& rhs) const { return Hex() == rhs.Hex(); }
   bool operator!=(const SamplerState& rhs) const { return !operator==(rhs); }
-  bool operator<(const SamplerState& rhs) const { return hex < rhs.hex; }
-  BitField<0, 1, Filter> min_filter;
-  BitField<1, 1, Filter> mag_filter;
-  BitField<2, 1, Filter> mipmap_filter;
-  BitField<3, 2, AddressMode> wrap_u;
-  BitField<5, 2, AddressMode> wrap_v;
-  BitField<7, 16, s64> lod_bias;  // multiplied by 256
-  BitField<23, 8, u64> min_lod;   // multiplied by 16
-  BitField<31, 8, u64> max_lod;   // multiplied by 16
-  BitField<39, 1, u64> anisotropic_filtering;
+  bool operator<(const SamplerState& rhs) const { return Hex() < rhs.Hex(); }
 
-  StorageType hex;
+  constexpr u64 Hex() const { return tm0.hex | (static_cast<u64>(tm1.hex) << 32); }
+
+  // Based on BPMemory TexMode0/TexMode1, but with slightly higher precision and some
+  // simplifications
+  union TM0
+  {
+    // BP's mipmap_filter can be None, but that is represented here by setting min_lod and max_lod
+    // to 0
+    BitField<0, 1, FilterMode> min_filter;
+    BitField<1, 1, FilterMode> mag_filter;
+    BitField<2, 1, FilterMode> mipmap_filter;
+    // Guaranteed to be valid values (i.e. not 3)
+    BitField<3, 2, WrapMode> wrap_u;
+    BitField<5, 2, WrapMode> wrap_v;
+    BitField<7, 1, LODType> diag_lod;
+    BitField<8, 16, s32> lod_bias;         // multiplied by 256, higher precision than normal
+    BitField<24, 1, bool, u32> lod_clamp;  // TODO: This isn't currently implemented
+    BitField<25, 1, bool, u32> anisotropic_filtering;  // TODO: This doesn't use the BP one yet
+    u32 hex;
+  };
+  union TM1
+  {
+    // Min is guaranteed to be less than or equal to max
+    BitField<0, 8, u32> min_lod;  // multiplied by 16
+    BitField<8, 8, u32> max_lod;  // multiplied by 16
+    u32 hex;
+  };
+
+  TM0 tm0;
+  TM1 tm1;
 };
+
+namespace std
+{
+template <>
+struct hash<SamplerState>
+{
+  std::size_t operator()(SamplerState const& state) const noexcept
+  {
+    return std::hash<u64>{}(state.Hex());
+  }
+};
+}  // namespace std
 
 namespace RenderState
 {
