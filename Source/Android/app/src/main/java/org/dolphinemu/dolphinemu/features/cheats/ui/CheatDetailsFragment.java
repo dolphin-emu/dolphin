@@ -23,6 +23,7 @@ public class CheatDetailsFragment extends Fragment
 {
   private View mRoot;
   private EditText mEditName;
+  private EditText mEditCode;
   private Button mButtonEdit;
   private Button mButtonCancel;
   private Button mButtonOk;
@@ -43,6 +44,7 @@ public class CheatDetailsFragment extends Fragment
   {
     mRoot = view.findViewById(R.id.root);
     mEditName = view.findViewById(R.id.edit_name);
+    mEditCode = view.findViewById(R.id.edit_code);
     mButtonEdit = view.findViewById(R.id.button_edit);
     mButtonCancel = view.findViewById(R.id.button_cancel);
     mButtonOk = view.findViewById(R.id.button_ok);
@@ -65,13 +67,14 @@ public class CheatDetailsFragment extends Fragment
   private void clearEditErrors()
   {
     mEditName.setError(null);
+    mEditCode.setError(null);
   }
 
   private void onOkClicked(View view)
   {
     clearEditErrors();
 
-    int result = mCheat.trySet(mEditName.getText().toString());
+    int result = mCheat.trySet(mEditName.getText().toString(), mEditCode.getText().toString());
 
     switch (result)
     {
@@ -80,7 +83,16 @@ public class CheatDetailsFragment extends Fragment
         mViewModel.setIsEditing(false);
         break;
       case Cheat.TRY_SET_FAIL_NO_NAME:
-        mEditName.setError(getText(R.string.cheats_error_no_name));
+        mEditName.setError(getString(R.string.cheats_error_no_name));
+        break;
+      case Cheat.TRY_SET_FAIL_NO_CODE_LINES:
+        mEditCode.setError(getString(R.string.cheats_error_no_code_lines));
+        break;
+      case Cheat.TRY_SET_FAIL_CODE_MIXED_ENCRYPTION:
+        mEditCode.setError(getString(R.string.cheats_error_mixed_encryption));
+        break;
+      default:
+        mEditCode.setError(getString(R.string.cheats_error_on_line, result));
         break;
     }
   }
@@ -101,6 +113,7 @@ public class CheatDetailsFragment extends Fragment
     if (!isEditing && cheat != null)
     {
       mEditName.setText(cheat.getName());
+      mEditCode.setText(cheat.getCode());
     }
 
     mCheat = cheat;
@@ -109,6 +122,7 @@ public class CheatDetailsFragment extends Fragment
   private void onIsEditingUpdated(boolean isEditing)
   {
     mEditName.setEnabled(isEditing);
+    mEditCode.setEnabled(isEditing);
 
     mButtonEdit.setVisibility(isEditing ? View.GONE : View.VISIBLE);
     mButtonCancel.setVisibility(isEditing ? View.VISIBLE : View.GONE);

@@ -40,6 +40,24 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getName(JNIEnv* 
   return ToJString(env, GetPointer(env, obj)->name);
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getCode(JNIEnv* env, jobject obj)
+{
+  PatchEngine::Patch* patch = GetPointer(env, obj);
+
+  std::string code_string;
+
+  for (size_t i = 0; i < patch->entries.size(); ++i)
+  {
+    if (i != 0)
+      code_string += '\n';
+
+    code_string += PatchEngine::SerializeLine(patch->entries[i]);
+  }
+
+  return ToJString(env, code_string);
+}
+
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getUserDefined(JNIEnv* env,
                                                                                jobject obj)
@@ -54,12 +72,34 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getEnabled(JNIEn
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_trySetImpl(
-        JNIEnv* env, jobject obj, jstring name)
+    JNIEnv* env, jobject obj, jstring name, jstring code_string)
 {
   PatchEngine::Patch* patch = GetPointer(env, obj);
-  patch->name = GetJString(env, name);
 
-  return TRY_SET_SUCCESS;
+  std::vector<PatchEngine::PatchEntry> entries;
+
+  std::vector<std::string> lines = SplitString(GetJString(env, code_string), '\n');
+
+  for (size_t i = 0; i < lines.size(); i++)
+  {
+    const std::string& line = lines[i];
+
+    if (line.empty())
+      continue;
+
+    if (std::optional<PatchEngine::PatchEntry> entry = PatchEngine::DeserializeLine(line))
+      entries.emplace_back(*std::move(entry));
+    else
+      return i + 1;  // Parse error on line i
+  }
+
+  if (entries.empty())
+    return Cheats::TRY_SET_FAIL_NO_CODE_LINES;
+
+  patch->name = GetJString(env, name);
+  patch->entries = std::move(entries);
+
+  return Cheats::TRY_SET_SUCCESS;
 }
 
 JNIEXPORT void JNICALL

@@ -41,6 +41,24 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getName(JNIEnv* 
   return ToJString(env, GetPointer(env, obj)->name);
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getCode(JNIEnv* env, jobject obj)
+{
+  Gecko::GeckoCode* code = GetPointer(env, obj);
+
+  std::string code_string;
+
+  for (size_t i = 0; i < code->codes.size(); ++i)
+  {
+    if (i != 0)
+      code_string += '\n';
+
+    code_string += code->codes[i].original_line;
+  }
+
+  return ToJString(env, code_string);
+}
+
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getUserDefined(JNIEnv* env,
                                                                                jobject obj)
@@ -55,12 +73,34 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getEnabled(JNIEn
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_trySetImpl(
-        JNIEnv* env, jobject obj, jstring name)
+    JNIEnv* env, jobject obj, jstring name, jstring code_string)
 {
   Gecko::GeckoCode* code = GetPointer(env, obj);
-  code->name = GetJString(env, name);
 
-  return TRY_SET_SUCCESS;
+  std::vector<Gecko::GeckoCode::Code> entries;
+
+  std::vector<std::string> lines = SplitString(GetJString(env, code_string), '\n');
+
+  for (size_t i = 0; i < lines.size(); i++)
+  {
+    const std::string& line = lines[i];
+
+    if (line.empty())
+      continue;
+
+    if (std::optional<Gecko::GeckoCode::Code> c = Gecko::DeserializeLine(line))
+      entries.emplace_back(*std::move(c));
+    else
+      return i + 1;  // Parse error on line i
+  }
+
+  if (entries.empty())
+    return Cheats::TRY_SET_FAIL_NO_CODE_LINES;
+
+  code->name = GetJString(env, name);
+  code->codes = std::move(entries);
+
+  return Cheats::TRY_SET_SUCCESS;
 }
 
 JNIEXPORT void JNICALL

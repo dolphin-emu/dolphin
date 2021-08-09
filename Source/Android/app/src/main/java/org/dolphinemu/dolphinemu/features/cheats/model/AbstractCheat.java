@@ -9,12 +9,12 @@ public abstract class AbstractCheat implements Cheat
 {
   private Runnable mChangedCallback = null;
 
-  public int trySet(@NonNull String name)
+  public int trySet(@NonNull String name, @NonNull String code)
   {
     if (name.isEmpty())
       return TRY_SET_FAIL_NO_NAME;
 
-    int result = trySetImpl(name);
+    int result = trySetImpl(name, code);
 
     if (result == TRY_SET_SUCCESS)
       onChanged();
@@ -39,7 +39,7 @@ public abstract class AbstractCheat implements Cheat
       mChangedCallback.run();
   }
 
-  protected abstract int trySetImpl(@NonNull String name);
+  protected abstract int trySetImpl(@NonNull String name, @NonNull String code);
 
   protected abstract void setEnabledImpl(boolean enabled);
 }
