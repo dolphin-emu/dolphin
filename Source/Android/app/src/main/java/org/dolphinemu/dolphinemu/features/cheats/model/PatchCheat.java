@@ -22,12 +22,15 @@ public class PatchCheat extends AbstractCheat
   @NonNull
   public native String getName();
 
+  @NonNull
+  public native String getCode();
+
   public native boolean getUserDefined();
 
   public native boolean getEnabled();
 
   @Override
-  protected native int trySetImpl(@NonNull String name);
+  protected native int trySetImpl(@NonNull String name, @NonNull String code);
 
   @Override
   protected native void setEnabledImpl(boolean enabled);
