@@ -72,7 +72,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getEnabled(JNIEn
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_trySetImpl(
-    JNIEnv* env, jobject obj, jstring name, jstring code_string)
+    JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   PatchEngine::Patch* patch = GetPointer(env, obj);
 

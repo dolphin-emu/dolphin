@@ -45,8 +45,62 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/label_name"
-                app:layout_constraintBottom_toTopOf="@id/label_code"
+                app:layout_constraintBottom_toTopOf="@id/label_creator"
                 tools:text="Hyrule Field Speed Hack" />
+
+            <TextView
+                android:id="@+id/label_creator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_creator"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_creator"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_name"
+                app:layout_constraintBottom_toTopOf="@id/edit_creator" />
+
+            <EditText
+                android:id="@+id/edit_creator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_creator"
+                app:layout_constraintBottom_toTopOf="@id/label_notes" />
+
+            <TextView
+                android:id="@+id/label_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_notes"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_notes"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_creator"
+                app:layout_constraintBottom_toTopOf="@id/edit_notes" />
+
+            <EditText
+                android:id="@+id/edit_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_notes"
+                app:layout_constraintBottom_toTopOf="@id/label_code" />
 
             <TextView
                 android:id="@+id/label_code"
@@ -59,7 +113,7 @@
                 android:labelFor="@id/edit_code"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edit_name"
+                app:layout_constraintTop_toBottomOf="@id/edit_notes"
                 app:layout_constraintBottom_toTopOf="@id/edit_code" />
 
             <EditText
