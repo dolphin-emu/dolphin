@@ -218,14 +218,14 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "  if ((components & {}u) != 0u)\n"
             "    o.colors_0 = rawcolor0;\n"
             "  else\n"
-            "    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n"
+            "    o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n"
             "}}\n",
             VB_HAS_COL0);
   out.Write("if (xfmem_numColorChans < 2u) {{\n"
             "  if ((components & {}u) != 0u)\n"
-            "    o.colors_0 = rawcolor1;\n"
+            "    o.colors_1 = rawcolor1;\n"
             "  else\n"
-            "    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n"
+            "    o.colors_1 = o.colors_0;\n"
             "}}\n",
             VB_HAS_COL1);
 
