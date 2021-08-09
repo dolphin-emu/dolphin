@@ -29,7 +29,8 @@
 
 namespace DiscIO
 {
-VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(reader))
+VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
+    : m_reader(std::move(reader)), m_is_triforce(false)
 {
   ASSERT(m_reader);
 
@@ -39,6 +40,20 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(read
   };
 
   m_converted_banner = [this] { return LoadBannerFile(); };
+
+  constexpr u32 BTID_MAGIC = 0x44495442;
+  auto tmp_fs = GetFileSystem(PARTITION_NONE);
+  if (tmp_fs)
+  {
+    std::unique_ptr<FileInfo> file_info = tmp_fs->FindFileInfo("boot.id");
+    if (!file_info)
+      return;
+    u32 triforce_magic;  // "BTID"
+    const u64 file_size = ReadFile(*this, PARTITION_NONE, file_info.get(),
+                                   reinterpret_cast<u8*>(&triforce_magic), sizeof(triforce_magic));
+    if (file_size >= 4 && triforce_magic == BTID_MAGIC)
+      m_is_triforce = true;
+  }
 }
 
 VolumeGC::~VolumeGC()
@@ -141,7 +156,10 @@ const BlobReader& VolumeGC::GetBlobReader() const
 
 Platform VolumeGC::GetVolumeType() const
 {
-  return Platform::GameCubeDisc;
+  if (m_is_triforce)
+    return Platform::Triforce;
+  else
+    return Platform::GameCubeDisc;
 }
 
 bool VolumeGC::IsDatelDisc() const

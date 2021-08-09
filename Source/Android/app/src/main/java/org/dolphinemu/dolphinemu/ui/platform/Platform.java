@@ -31,6 +31,9 @@ public enum Platform
 
   public static Platform fromNativeInt(int i)
   {
+    // TODO: Proper support for Triforce games
+    if (i >= 1)
+      i--;
     // TODO: Proper support for DOL and ELF files
     boolean in_range = i >= 0 && i < values().length;
     return values()[in_range ? i : WIIWARE.value];
