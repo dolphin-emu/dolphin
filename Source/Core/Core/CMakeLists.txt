@@ -649,9 +649,6 @@ elseif(APPLE)
     HW/EXI/BBA/TAP_Apple.cpp
     HW/EXI/BBA/TAPServer_Apple.cpp
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
-    HW/WiimoteReal/IOdarwin.h
-    HW/WiimoteReal/IOdarwin_private.h
-    HW/WiimoteReal/IOdarwin.mm
   )
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)
