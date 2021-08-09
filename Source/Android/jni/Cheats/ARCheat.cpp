@@ -74,7 +74,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getEnabled(JNIEnv* 
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_trySetImpl(
-    JNIEnv* env, jobject obj, jstring name, jstring code_string)
+    JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   ActionReplay::ARCode* code = GetPointer(env, obj);
 

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +24,10 @@ public class CheatDetailsFragment extends Fragment
 {
   private View mRoot;
   private EditText mEditName;
+  private TextView mLabelCreator;
+  private EditText mEditCreator;
+  private TextView mLabelNotes;
+  private EditText mEditNotes;
   private EditText mEditCode;
   private Button mButtonEdit;
   private Button mButtonCancel;
@@ -44,6 +49,10 @@ public class CheatDetailsFragment extends Fragment
   {
     mRoot = view.findViewById(R.id.root);
     mEditName = view.findViewById(R.id.edit_name);
+    mLabelCreator = view.findViewById(R.id.label_creator);
+    mEditCreator = view.findViewById(R.id.edit_creator);
+    mLabelNotes = view.findViewById(R.id.label_notes);
+    mEditNotes = view.findViewById(R.id.edit_notes);
     mEditCode = view.findViewById(R.id.edit_code);
     mButtonEdit = view.findViewById(R.id.button_edit);
     mButtonCancel = view.findViewById(R.id.button_cancel);
@@ -74,7 +83,8 @@ public class CheatDetailsFragment extends Fragment
   {
     clearEditErrors();
 
-    int result = mCheat.trySet(mEditName.getText().toString(), mEditCode.getText().toString());
+    int result = mCheat.trySet(mEditName.getText().toString(), mEditCreator.getText().toString(),
+            mEditNotes.getText().toString(), mEditCode.getText().toString());
 
     switch (result)
     {
@@ -103,6 +113,13 @@ public class CheatDetailsFragment extends Fragment
 
     mRoot.setVisibility(cheat == null ? View.GONE : View.VISIBLE);
 
+    int creatorVisibility = cheat != null && cheat.supportsCreator() ? View.VISIBLE : View.GONE;
+    int notesVisibility = cheat != null && cheat.supportsNotes() ? View.VISIBLE : View.GONE;
+    mLabelCreator.setVisibility(creatorVisibility);
+    mEditCreator.setVisibility(creatorVisibility);
+    mLabelNotes.setVisibility(notesVisibility);
+    mEditNotes.setVisibility(notesVisibility);
+
     boolean userDefined = cheat != null && cheat.getUserDefined();
     mButtonEdit.setEnabled(userDefined);
 
@@ -113,6 +130,8 @@ public class CheatDetailsFragment extends Fragment
     if (!isEditing && cheat != null)
     {
       mEditName.setText(cheat.getName());
+      mEditCreator.setText(cheat.getCreator());
+      mEditNotes.setText(cheat.getNotes());
       mEditCode.setText(cheat.getCode());
     }
 
@@ -122,6 +141,8 @@ public class CheatDetailsFragment extends Fragment
   private void onIsEditingUpdated(boolean isEditing)
   {
     mEditName.setEnabled(isEditing);
+    mEditCreator.setEnabled(isEditing);
+    mEditNotes.setEnabled(isEditing);
     mEditCode.setEnabled(isEditing);
 
     mButtonEdit.setVisibility(isEditing ? View.GONE : View.VISIBLE);

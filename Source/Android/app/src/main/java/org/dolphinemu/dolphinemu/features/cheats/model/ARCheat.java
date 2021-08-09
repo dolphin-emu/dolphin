@@ -19,6 +19,16 @@ public class ARCheat extends AbstractCheat
   @Override
   public native void finalize();
 
+  public boolean supportsCreator()
+  {
+    return false;
+  }
+
+  public boolean supportsNotes()
+  {
+    return false;
+  }
+
   @NonNull
   public native String getName();
 
@@ -30,7 +40,8 @@ public class ARCheat extends AbstractCheat
   public native boolean getEnabled();
 
   @Override
-  protected native int trySetImpl(@NonNull String name, @NonNull String code);
+  protected native int trySetImpl(@NonNull String name, @NonNull String creator,
+          @NonNull String notes, @NonNull String code);
 
   @Override
   protected native void setEnabledImpl(boolean enabled);
