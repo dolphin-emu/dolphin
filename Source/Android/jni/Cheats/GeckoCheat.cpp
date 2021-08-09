@@ -42,6 +42,18 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getName(JNIEnv* 
 }
 
 JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getCreator(JNIEnv* env, jobject obj)
+{
+  return ToJString(env, GetPointer(env, obj)->creator);
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getNotes(JNIEnv* env, jobject obj)
+{
+  return ToJString(env, JoinStrings(GetPointer(env, obj)->notes, "\n"));
+}
+
+JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getCode(JNIEnv* env, jobject obj)
 {
   Gecko::GeckoCode* code = GetPointer(env, obj);
@@ -73,7 +85,7 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getEnabled(JNIEn
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_trySetImpl(
-    JNIEnv* env, jobject obj, jstring name, jstring code_string)
+    JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
   Gecko::GeckoCode* code = GetPointer(env, obj);
 
@@ -98,6 +110,8 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_Geck
     return Cheats::TRY_SET_FAIL_NO_CODE_LINES;
 
   code->name = GetJString(env, name);
+  code->creator = GetJString(env, creator);
+  code->notes = SplitString(GetJString(env, notes), '\n');
   code->codes = std::move(entries);
 
   return Cheats::TRY_SET_SUCCESS;

@@ -13,13 +13,30 @@ public interface Cheat
   int TRY_SET_SUCCESS = 0;
   // Result codes greater than 0 represent an error on the corresponding code line (one-indexed)
 
+  boolean supportsCreator();
+
+  boolean supportsNotes();
+
   @NonNull
   String getName();
 
   @NonNull
+  default String getCreator()
+  {
+    return "";
+  }
+
+  @NonNull
+  default String getNotes()
+  {
+    return "";
+  }
+
+  @NonNull
   String getCode();
 
-  int trySet(@NonNull String name, @NonNull String code);
+  int trySet(@NonNull String name, @NonNull String creator, @NonNull String notes,
+          @NonNull String code);
 
   boolean getUserDefined();
 

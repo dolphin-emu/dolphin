@@ -19,8 +19,24 @@ public class GeckoCheat extends AbstractCheat
   @Override
   public native void finalize();
 
+  public boolean supportsCreator()
+  {
+    return true;
+  }
+
+  public boolean supportsNotes()
+  {
+    return true;
+  }
+
   @NonNull
   public native String getName();
+
+  @NonNull
+  public native String getCreator();
+
+  @NonNull
+  public native String getNotes();
 
   @NonNull
   public native String getCode();
@@ -30,7 +46,8 @@ public class GeckoCheat extends AbstractCheat
   public native boolean getEnabled();
 
   @Override
-  protected native int trySetImpl(@NonNull String name, @NonNull String code);
+  protected native int trySetImpl(@NonNull String name, @NonNull String creator,
+          @NonNull String notes, @NonNull String code);
 
   @Override
   protected native void setEnabledImpl(boolean enabled);

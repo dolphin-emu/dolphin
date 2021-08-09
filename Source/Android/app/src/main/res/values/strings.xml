@@ -390,6 +390,8 @@
     <string name="cheats">Cheats</string>
     <string name="cheats_with_game_id">Cheats: %1$s</string>
     <string name="cheats_name">Name</string>
+    <string name="cheats_creator">Creator</string>
+    <string name="cheats_notes">Notes</string>
     <string name="cheats_code">Code</string>
     <string name="cheats_edit">Edit</string>
     <string name="cheats_error_no_name">Name can\'t be empty</string>
