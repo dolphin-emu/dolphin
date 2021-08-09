@@ -93,6 +93,7 @@ QGroupBox* InfoWidget::CreateGameDetails()
   const QString game_name = QString::fromStdString(m_game.GetInternalName());
 
   bool is_disc_based = m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc ||
+                       m_game.GetPlatform() == DiscIO::Platform::Triforce ||
                        m_game.GetPlatform() == DiscIO::Platform::WiiDisc;
 
   QLineEdit* internal_name =

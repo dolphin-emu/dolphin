@@ -103,6 +103,8 @@ private:
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
   std::unique_ptr<BlobReader> m_reader;
+
+  bool m_is_triforce;
 };
 
 }  // namespace DiscIO
