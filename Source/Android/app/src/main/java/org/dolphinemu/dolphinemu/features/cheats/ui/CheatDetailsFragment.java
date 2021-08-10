@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -32,6 +33,7 @@ public class CheatDetailsFragment extends Fragment
   private TextView mLabelNotes;
   private EditText mEditNotes;
   private EditText mEditCode;
+  private Button mButtonDelete;
   private Button mButtonEdit;
   private Button mButtonCancel;
   private Button mButtonOk;
@@ -59,6 +61,7 @@ public class CheatDetailsFragment extends Fragment
     mLabelNotes = view.findViewById(R.id.label_notes);
     mEditNotes = view.findViewById(R.id.edit_notes);
     mEditCode = view.findViewById(R.id.edit_code);
+    mButtonDelete = view.findViewById(R.id.button_delete);
     mButtonEdit = view.findViewById(R.id.button_edit);
     mButtonCancel = view.findViewById(R.id.button_cancel);
     mButtonOk = view.findViewById(R.id.button_ok);
@@ -69,6 +72,7 @@ public class CheatDetailsFragment extends Fragment
     mViewModel.getSelectedCheat().observe(getViewLifecycleOwner(), this::onSelectedCheatUpdated);
     mViewModel.getIsEditing().observe(getViewLifecycleOwner(), this::onIsEditingUpdated);
 
+    mButtonDelete.setOnClickListener(this::onDeleteClicked);
     mButtonEdit.setOnClickListener((v) -> mViewModel.setIsEditing(true));
     mButtonCancel.setOnClickListener((v) ->
     {
@@ -82,6 +86,16 @@ public class CheatDetailsFragment extends Fragment
   {
     mEditName.setError(null);
     mEditCode.setError(null);
+  }
+
+  private void onDeleteClicked(View view)
+  {
+    AlertDialog.Builder builder =
+            new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase);
+    builder.setMessage(getString(R.string.cheats_delete_confirmation, mCheat.getName()));
+    builder.setPositiveButton(R.string.yes, (dialog, i) -> mViewModel.deleteSelectedCheat());
+    builder.setNegativeButton(R.string.no, null);
+    builder.show();
   }
 
   private void onOkClicked(View view)
@@ -138,6 +152,7 @@ public class CheatDetailsFragment extends Fragment
     mEditNotes.setVisibility(notesVisibility);
 
     boolean userDefined = cheat != null && cheat.getUserDefined();
+    mButtonDelete.setEnabled(userDefined);
     mButtonEdit.setEnabled(userDefined);
 
     // If the fragment was recreated while editing a cheat, it's vital that we
@@ -162,6 +177,7 @@ public class CheatDetailsFragment extends Fragment
     mEditNotes.setEnabled(isEditing);
     mEditCode.setEnabled(isEditing);
 
+    mButtonDelete.setVisibility(isEditing ? View.GONE : View.VISIBLE);
     mButtonEdit.setVisibility(isEditing ? View.GONE : View.VISIBLE);
     mButtonCancel.setVisibility(isEditing ? View.VISIBLE : View.GONE);
     mButtonOk.setVisibility(isEditing ? View.VISIBLE : View.GONE);
