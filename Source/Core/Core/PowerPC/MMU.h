@@ -222,5 +222,9 @@ inline bool TranslateBatAddess(const BatTable& bat_table, u32* address, bool* wi
   return true;
 }
 
+constexpr size_t HW_PAGE_SIZE = 4096;
+constexpr u32 HW_PAGE_INDEX_SHIFT = 12;
+constexpr u32 HW_PAGE_INDEX_MASK = 0x3f;
+
 std::optional<u32> GetTranslatedAddress(u32 address);
 }  // namespace PowerPC
