@@ -400,6 +400,8 @@
     <string name="cheats_notes">Notes</string>
     <string name="cheats_code">Code</string>
     <string name="cheats_edit">Edit</string>
+    <string name="cheats_delete">Delete</string>
+    <string name="cheats_delete_confirmation">Are you sure you want to delete "%1$s"?</string>
     <string name="cheats_error_no_name">Name can\'t be empty</string>
     <string name="cheats_error_no_code_lines">Code can\'t be empty</string>
     <string name="cheats_error_on_line">Error on line %1$d</string>

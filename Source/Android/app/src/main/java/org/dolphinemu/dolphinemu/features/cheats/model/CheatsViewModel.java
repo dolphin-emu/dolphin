@@ -20,6 +20,7 @@ public class CheatsViewModel extends ViewModel
 
   private final MutableLiveData<Integer> mCheatAddedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Integer> mCheatChangedEvent = new MutableLiveData<>(null);
+  private final MutableLiveData<Integer> mCheatDeletedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
 
   private ArrayList<PatchCheat> mPatchCheats;
@@ -198,6 +199,41 @@ public class CheatsViewModel extends ViewModel
   {
     mCheatChangedEvent.setValue(position);
     mCheatChangedEvent.setValue(null);
+  }
+
+  /**
+   * When a cheat is deleted, the integer stored in the returned LiveData
+   * changes to the position of that cheat, then changes back to null.
+   */
+  public LiveData<Integer> getCheatDeletedEvent()
+  {
+    return mCheatDeletedEvent;
+  }
+
+  public void deleteSelectedCheat()
+  {
+    Cheat cheat = mSelectedCheat.getValue();
+    int position = mSelectedCheatPosition;
+
+    setSelectedCheat(null, -1);
+
+    if (mPatchCheats.remove(cheat))
+      mPatchCheatsNeedSaving = true;
+    if (mARCheats.remove(cheat))
+      mARCheatsNeedSaving = true;
+    if (mGeckoCheats.remove(cheat))
+      mGeckoCheatsNeedSaving = true;
+
+    notifyCheatDeleted(position);
+  }
+
+  /**
+   * Notifies that the cheat at the given position has been deleted.
+   */
+  private void notifyCheatDeleted(int position)
+  {
+    mCheatDeletedEvent.setValue(position);
+    mCheatDeletedEvent.setValue(null);
   }
 
   public LiveData<Boolean> getOpenDetailsViewEvent()
