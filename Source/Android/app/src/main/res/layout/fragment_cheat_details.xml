@@ -141,7 +141,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="button_edit,button_cancel,button_ok" />
+        app:constraint_referenced_ids="button_delete,button_edit,button_cancel,button_ok" />
+
+    <Button
+        android:id="@+id/button_delete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/cheats_delete"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_edit"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <Button
         android:id="@+id/button_edit"
@@ -149,7 +160,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_large"
         android:text="@string/cheats_edit"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/button_delete"
         app:layout_constraintEnd_toStartOf="@id/button_cancel"
         app:layout_constraintTop_toBottomOf="@id/barrier"
         app:layout_constraintBottom_toBottomOf="parent" />

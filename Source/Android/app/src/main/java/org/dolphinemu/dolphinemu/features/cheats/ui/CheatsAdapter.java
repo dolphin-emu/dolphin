@@ -37,6 +37,12 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
       if (position != null)
         notifyItemChanged(position);
     });
+
+    mViewModel.getCheatDeletedEvent().observe(owner, (position) ->
+    {
+      if (position != null)
+        notifyItemRemoved(position);
+    });
   }
 
   @NonNull
