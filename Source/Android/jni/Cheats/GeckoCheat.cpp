@@ -35,6 +35,14 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_finalize(JNIEnv*
   delete GetPointer(env, obj);
 }
 
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_createNew(JNIEnv* env, jobject obj)
+{
+  auto* code = new Gecko::GeckoCode;
+  code->user_defined = true;
+  return reinterpret_cast<jlong>(code);
+}
+
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getName(JNIEnv* env, jobject obj)
 {

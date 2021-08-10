@@ -6,20 +6,25 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 public class CheatsViewModel extends ViewModel
 {
   private boolean mLoaded = false;
 
   private int mSelectedCheatPosition = -1;
   private final MutableLiveData<Cheat> mSelectedCheat = new MutableLiveData<>(null);
+  private final MutableLiveData<Boolean> mIsAdding = new MutableLiveData<>(false);
   private final MutableLiveData<Boolean> mIsEditing = new MutableLiveData<>(false);
 
+  private final MutableLiveData<Integer> mCheatAddedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Integer> mCheatChangedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
 
-  private PatchCheat[] mPatchCheats;
-  private ARCheat[] mARCheats;
-  private GeckoCheat[] mGeckoCheats;
+  private ArrayList<PatchCheat> mPatchCheats;
+  private ArrayList<ARCheat> mARCheats;
+  private ArrayList<GeckoCheat> mGeckoCheats;
 
   private boolean mPatchCheatsNeedSaving = false;
   private boolean mARCheatsNeedSaving = false;
@@ -30,9 +35,12 @@ public class CheatsViewModel extends ViewModel
     if (mLoaded)
       return;
 
-    mPatchCheats = PatchCheat.loadCodes(gameID, revision);
-    mARCheats = ARCheat.loadCodes(gameID, revision);
-    mGeckoCheats = GeckoCheat.loadCodes(gameID, revision);
+    mPatchCheats = new ArrayList<>();
+    Collections.addAll(mPatchCheats, PatchCheat.loadCodes(gameID, revision));
+    mARCheats = new ArrayList<>();
+    Collections.addAll(mARCheats, ARCheat.loadCodes(gameID, revision));
+    mGeckoCheats = new ArrayList<>();
+    Collections.addAll(mGeckoCheats, GeckoCheat.loadCodes(gameID, revision));
 
     for (PatchCheat cheat : mPatchCheats)
     {
@@ -54,19 +62,19 @@ public class CheatsViewModel extends ViewModel
   {
     if (mPatchCheatsNeedSaving)
     {
-      PatchCheat.saveCodes(gameID, revision, mPatchCheats);
+      PatchCheat.saveCodes(gameID, revision, mPatchCheats.toArray(new PatchCheat[0]));
       mPatchCheatsNeedSaving = false;
     }
 
     if (mARCheatsNeedSaving)
     {
-      ARCheat.saveCodes(gameID, revision, mARCheats);
+      ARCheat.saveCodes(gameID, revision, mARCheats.toArray(new ARCheat[0]));
       mARCheatsNeedSaving = false;
     }
 
     if (mGeckoCheatsNeedSaving)
     {
-      GeckoCheat.saveCodes(gameID, revision, mGeckoCheats);
+      GeckoCheat.saveCodes(gameID, revision, mGeckoCheats.toArray(new GeckoCheat[0]));
       mGeckoCheatsNeedSaving = false;
     }
   }
@@ -85,6 +93,56 @@ public class CheatsViewModel extends ViewModel
     mSelectedCheatPosition = position;
   }
 
+  public LiveData<Boolean> getIsAdding()
+  {
+    return mIsAdding;
+  }
+
+  public void startAddingCheat(Cheat cheat, int position)
+  {
+    mSelectedCheat.setValue(cheat);
+    mSelectedCheatPosition = position;
+
+    mIsAdding.setValue(true);
+    mIsEditing.setValue(true);
+  }
+
+  public void finishAddingCheat()
+  {
+    if (!mIsAdding.getValue())
+      throw new IllegalStateException();
+
+    mIsAdding.setValue(false);
+    mIsEditing.setValue(false);
+
+    Cheat cheat = mSelectedCheat.getValue();
+
+    if (cheat instanceof PatchCheat)
+    {
+      mPatchCheats.add((PatchCheat) mSelectedCheat.getValue());
+      cheat.setChangedCallback(() -> mPatchCheatsNeedSaving = true);
+      mPatchCheatsNeedSaving = true;
+    }
+    else if (cheat instanceof ARCheat)
+    {
+      mARCheats.add((ARCheat) mSelectedCheat.getValue());
+      cheat.setChangedCallback(() -> mPatchCheatsNeedSaving = true);
+      mARCheatsNeedSaving = true;
+    }
+    else if (cheat instanceof GeckoCheat)
+    {
+      mGeckoCheats.add((GeckoCheat) mSelectedCheat.getValue());
+      cheat.setChangedCallback(() -> mGeckoCheatsNeedSaving = true);
+      mGeckoCheatsNeedSaving = true;
+    }
+    else
+    {
+      throw new UnsupportedOperationException();
+    }
+
+    notifyCheatAdded();
+  }
+
   public LiveData<Boolean> getIsEditing()
   {
     return mIsEditing;
@@ -93,6 +151,27 @@ public class CheatsViewModel extends ViewModel
   public void setIsEditing(boolean isEditing)
   {
     mIsEditing.setValue(isEditing);
+
+    if (mIsAdding.getValue() && !isEditing)
+    {
+      mIsAdding.setValue(false);
+      setSelectedCheat(null, -1);
+    }
+  }
+
+  /**
+   * When a cheat is added, the integer stored in the returned LiveData
+   * changes to the position of that cheat, then changes back to null.
+   */
+  public LiveData<Integer> getCheatAddedEvent()
+  {
+    return mCheatAddedEvent;
+  }
+
+  private void notifyCheatAdded()
+  {
+    mCheatAddedEvent.setValue(mSelectedCheatPosition);
+    mCheatAddedEvent.setValue(null);
   }
 
   /**
@@ -132,17 +211,17 @@ public class CheatsViewModel extends ViewModel
     mOpenDetailsViewEvent.setValue(false);
   }
 
-  public Cheat[] getPatchCheats()
+  public ArrayList<PatchCheat> getPatchCheats()
   {
     return mPatchCheats;
   }
 
-  public ARCheat[] getARCheats()
+  public ArrayList<ARCheat> getARCheats()
   {
     return mARCheats;
   }
 
-  public Cheat[] getGeckoCheats()
+  public ArrayList<GeckoCheat> getGeckoCheats()
   {
     return mGeckoCheats;
   }
