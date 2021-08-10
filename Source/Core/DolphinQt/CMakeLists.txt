@@ -365,14 +365,6 @@ if (WIN32)
   )
 endif()
 
-if (MSVC)
-  # Don't propogate warnings in qt headers to Dolphin
-  target_compile_options(dolphin-emu PRIVATE /experimental:external)
-  target_compile_options(dolphin-emu PRIVATE /external:W0)
-  target_compile_options(dolphin-emu PRIVATE "/external:I${Qt5Gui_PRIVATE_INCLUDE_DIRS}")
-  target_compile_options(dolphin-emu PRIVATE "/external:I${Qt5Widgets_PRIVATE_INCLUDE_DIRS}")
-endif()
-
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
@@ -389,12 +381,7 @@ if(WIN32)
 
   # Copy COPYING
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/COPYING" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/COPYING"
-  )
-
-  # Copy Licenses dir
-  add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/LICENSES" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Licenses"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/Data/license.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/license.txt"
   )
 
   # Copy qt.conf

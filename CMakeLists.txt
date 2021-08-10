@@ -122,10 +122,11 @@ endif()
 # Set where the binary files will be built.  The program will not execute from
 # here.  You must run "make install" to install these to the proper location
 # as defined above.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+# Hack: Use a generator expression to avoid having per-configuration subdirectories for multi-config generators
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/Binaries>)
 
 if (WIN32)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/Binary>)
 
   if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
     string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /x64)

@@ -37,8 +37,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
-#include <WinUser.h>
-#include <windef.h>
+#include <Windows.h>
 #endif
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)

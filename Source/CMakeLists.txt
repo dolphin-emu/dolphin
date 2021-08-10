@@ -53,6 +53,8 @@ if (MSVC)
     # TODO: Enable this warning once possible
     /wd4245 # conversion from 'type1' to 'type2', signed/unsigned mismatch
     # Currently jits use some annoying code patterns which makes this common
+    /wd5054 # new behavior: operator deprecated between enumerations of different types
+    # used in DolphinQt for hotkey combinations
   )
 
   # Additional warnings
