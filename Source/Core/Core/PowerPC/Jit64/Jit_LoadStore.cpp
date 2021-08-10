@@ -234,20 +234,94 @@ void Jit64::dcbx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  X64Reg addr = RSCRATCH;
-  X64Reg value = RSCRATCH2;
+  // Check if the next instructions match a known looping pattern:
+  // - dcbx rX
+  // - addi rX,rX,32
+  // - bdnz+ -8
+  const bool make_loop = inst.RA == 0 && inst.RB != 0 && CanMergeNextInstructions(2) &&
+                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
+                         js.op[1].inst.RA_6 == inst.RB && js.op[1].inst.RD_2 == inst.RB &&
+                         js.op[2].inst.hex == 0x4200fff8;
+
   RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
-  RCOpArg Rb = gpr.Use(inst.RB, RCMode::Read);
+  RCX64Reg Rb = gpr.Bind(inst.RB, make_loop ? RCMode::ReadWrite : RCMode::Read);
   RCX64Reg tmp = gpr.Scratch();
   RCX64Reg effective_address = gpr.Scratch();
   RegCache::Realize(Ra, Rb, tmp, effective_address);
 
-  // Translate effective address to physical address.
+  RCX64Reg loop_counter;
+  if (make_loop)
+  {
+    // We'll execute somewhere between one single cacheline invalidation and however many are needed
+    // to reduce the downcount to zero, never exceeding the amount requested by the game.
+    // To stay consistent with the rest of the code we adjust the involved registers (CTR and Rb)
+    // by the amount of cache lines we invalidate minus one -- since we'll run the regular addi and
+    // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
+    // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
+
+    RCX64Reg& reg_cycle_count = tmp;
+    RCX64Reg& reg_downcount = effective_address;
+    loop_counter = gpr.Scratch();
+    RegCache::Realize(loop_counter);
+
+    // This must be true in order for us to pick up the DIV results and not trash any data.
+    static_assert(RSCRATCH == Gen::EAX && RSCRATCH2 == Gen::EDX);
+
+    // Alright, now figure out how many loops we want to do.
+    const u8 cycle_count_per_loop =
+        js.op[0].opinfo->numCycles + js.op[1].opinfo->numCycles + js.op[2].opinfo->numCycles;
+
+    // This is both setting the adjusted loop count to 0 for the downcount <= 0 case and clearing
+    // the upper bits for the DIV instruction in the downcount > 0 case.
+    XOR(32, R(RSCRATCH2), R(RSCRATCH2));
+
+    MOV(32, R(reg_downcount), PPCSTATE(downcount));
+    TEST(32, R(reg_downcount), R(reg_downcount));             // if (downcount <= 0)
+    FixupBranch downcount_is_zero_or_negative = J_CC(CC_LE);  // only do 1 invalidation; else:
+    MOV(32, R(loop_counter), PPCSTATE_CTR);
+    MOV(32, R(RSCRATCH), R(reg_downcount));
+    MOV(32, R(reg_cycle_count), Imm32(cycle_count_per_loop));
+    DIV(32, R(reg_cycle_count));                  // RSCRATCH = downcount / cycle_count
+    LEA(32, RSCRATCH2, MDisp(loop_counter, -1));  // RSCRATCH2 = CTR - 1
+    // ^ Note that this CTR-1 implicitly handles the CTR == 0 case correctly.
+    CMP(32, R(RSCRATCH), R(RSCRATCH2));
+    CMOVcc(32, RSCRATCH2, R(RSCRATCH), CC_B);  // RSCRATCH2 = min(RSCRATCH, RSCRATCH2)
+
+    // RSCRATCH2 now holds the amount of loops to execute minus 1, which is the amount we need to
+    // adjust downcount, CTR, and Rb by to exit the loop construct with the right values in those
+    // registers.
+    SUB(32, R(loop_counter), R(RSCRATCH2));
+    MOV(32, PPCSTATE_CTR, R(loop_counter));  // CTR -= RSCRATCH2
+    MOV(32, R(RSCRATCH), R(RSCRATCH2));
+    IMUL(32, RSCRATCH, R(reg_cycle_count));
+    // ^ Note that this cannot overflow because it's limited by (downcount/cycle_count).
+    SUB(32, R(reg_downcount), R(RSCRATCH));
+    MOV(32, PPCSTATE(downcount), R(reg_downcount));  // downcount -= (RSCRATCH2 * reg_cycle_count)
+
+    SetJumpTarget(downcount_is_zero_or_negative);
+
+    // Load the loop_counter register with the amount of invalidations to execute.
+    LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
+  }
+
+  X64Reg value = RSCRATCH;
   MOV_sum(32, value, Ra, Rb);
+
+  if (make_loop)
+  {
+    // This is the best place to adjust Rb to what it should be since RSCRATCH2 still has the
+    // adjusted loop count and we're done reading from Rb.
+    SHL(32, R(RSCRATCH2), Imm8(5));
+    ADD(32, R(Rb), R(RSCRATCH2));  // Rb += (RSCRATCH2 * 32)
+  }
+
+  X64Reg addr = RSCRATCH2;
   FixupBranch bat_lookup_failed;
   MOV(32, R(effective_address), R(value));
+  const u8* loop_start = GetCodePtr();
   if (MSR.IR)
   {
+    // Translate effective address to physical address.
     bat_lookup_failed = BATAddressLookup(value, tmp, PowerPC::ibat_table.data());
     MOV(32, R(addr), R(effective_address));
     AND(32, R(addr), Imm32(0x0001ffff));
@@ -264,6 +338,14 @@ void Jit64::dcbx(UGeckoInstruction inst)
   BT(32, R(value), R(addr));
   FixupBranch invalidate_needed = J_CC(CC_C, true);
 
+  if (make_loop)
+  {
+    ADD(32, R(effective_address), Imm8(32));
+    MOV(32, R(value), R(effective_address));
+    SUB(32, R(loop_counter), Imm8(1));
+    J_CC(CC_NZ, loop_start);
+  }
+
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
   if (MSR.IR)
@@ -272,9 +354,20 @@ void Jit64::dcbx(UGeckoInstruction inst)
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   registersInUse[X64Reg(tmp)] = false;
   registersInUse[X64Reg(effective_address)] = false;
+  if (make_loop)
+    registersInUse[X64Reg(loop_counter)] = false;
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  MOV(32, R(ABI_PARAM1), R(effective_address));
-  ABI_CallFunction(JitInterface::InvalidateICacheLine);
+  if (make_loop)
+  {
+    MOV(32, R(ABI_PARAM1), R(effective_address));
+    MOV(32, R(ABI_PARAM2), R(loop_counter));
+    ABI_CallFunction(JitInterface::InvalidateICacheLines);
+  }
+  else
+  {
+    MOV(32, R(ABI_PARAM1), R(effective_address));
+    ABI_CallFunction(JitInterface::InvalidateICacheLine);
+  }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   asm_routines.ResetStack(*this);
 
