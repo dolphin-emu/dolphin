@@ -372,13 +372,16 @@ Each version of the License is given a distinguishing version number. If the Doc
 
 \section{DSP Memory Map}
 
-The DSP accesses memory in words, so all addresses refer to words. A DSP word is 16 bits in size.
+The DSP has two address spaces, one for data and one for instructions.  The DSP accesses memory in words, so all addresses refer to words. A DSP word is 16 bits in size.
 
+\subsection{Instruction Memory}
 Instruction Memory (IMEM) is divided into instruction RAM (IRAM) and instruction ROM (IROM).
 
-Exception vectors are located at the top of the RAM and occupy the first 8 words.
+Exception vectors are located at the top of the RAM and occupy the first 16 words, with 2 words available for each exception (enough for a \Opcode{JMP} instruction for each exception).
 
 DSP IRAM is mapped through as first 8KB of ARAM (Accelerator RAM), therefore the CPU can DMA DSP code to DSP IRAM. This usually occurs during boot time, as the DSP ROM is not enabled at cold reset and needs to be reenabled by a small stub executed in IRAM.
+
+There are no DSP instructions that write to IMEM; however, the \texttt{ILLR} family of instructions can read from it.  This is sometimes used for jump tables or indexing into a list of pointers (which may point into either IMEM or DMEM).
 
 \begin{table}[htb]
 \centering
@@ -387,6 +390,25 @@ DSP IRAM is mapped through as first 8KB of ARAM (Accelerator RAM), therefore the
 \begin{tabular}[c]{@{}l@{}}\texttt{0x0000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x0FFF}\end{tabular} & \texttt{IRAM} \\ \hline
  &  \\ \hline
 \begin{tabular}[c]{@{}l@{}}\texttt{0x8000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x8FFF}\end{tabular} & \texttt{IROM} \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\subsection{Data Memory}
+Data Memory (DMEM) is divided into data RAM (DRAM) and resampling coefficient data (COEF).  Hardware registers (IFX) are also mapped into this space.
+
+It is possible to both read and write to DMEM, but coefficient data cannot be written to.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0x0000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x0FFF}\end{tabular} & \texttt{DRAM} \\ \hline
+ &  \\ \hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0x1000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x17FF}\end{tabular} & \texttt{COEF} \\ \hline
+ &  \\ \hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0xFF00}\\ \\ \\ \\\\ \\ \\ \\  \texttt{0xFFFF}\end{tabular} & \texttt{IFX} \\ \hline
 \end{tabular}
 \end{table}
 
