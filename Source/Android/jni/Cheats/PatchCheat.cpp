@@ -34,6 +34,14 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_finalize(JNIEnv*
   delete GetPointer(env, obj);
 }
 
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_createNew(JNIEnv* env, jobject obj)
+{
+  auto* patch = new PatchEngine::Patch;
+  patch->user_defined = true;
+  return reinterpret_cast<jlong>(patch);
+}
+
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_PatchCheat_getName(JNIEnv* env, jobject obj)
 {

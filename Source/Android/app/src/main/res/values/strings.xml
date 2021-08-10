@@ -392,6 +392,9 @@
     <string name="cheats_header_ar">AR Codes</string>
     <string name="cheats_header_gecko">Gecko Codes</string>
     <string name="cheats_header_patch">Patches</string>
+    <string name="cheats_add_ar">Add New AR Code</string>
+    <string name="cheats_add_gecko">Add New Gecko Code</string>
+    <string name="cheats_add_patch">Add New Patch</string>
     <string name="cheats_name">Name</string>
     <string name="cheats_creator">Creator</string>
     <string name="cheats_notes">Notes</string>

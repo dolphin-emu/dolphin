@@ -11,8 +11,12 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
+import org.dolphinemu.dolphinemu.features.cheats.model.ARCheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
+import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
+import org.dolphinemu.dolphinemu.features.cheats.model.PatchCheat;
+
+import java.util.ArrayList;
 
 public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
 {
@@ -21,6 +25,12 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
   public CheatsAdapter(LifecycleOwner owner, CheatsViewModel viewModel)
   {
     mViewModel = viewModel;
+
+    mViewModel.getCheatAddedEvent().observe(owner, (position) ->
+    {
+      if (position != null)
+        notifyItemInserted(position);
+    });
 
     mViewModel.getCheatChangedEvent().observe(owner, (position) ->
     {
@@ -43,6 +53,9 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
       case CheatItem.TYPE_HEADER:
         View headerView = inflater.inflate(R.layout.list_item_header, parent, false);
         return new HeaderViewHolder(headerView);
+      case CheatItem.TYPE_ACTION:
+        View actionView = inflater.inflate(R.layout.list_item_submenu, parent, false);
+        return new ActionViewHolder(actionView);
       default:
         throw new UnsupportedOperationException();
     }
@@ -57,8 +70,8 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
   @Override
   public int getItemCount()
   {
-    return mViewModel.getARCheats().length + mViewModel.getGeckoCheats().length +
-            mViewModel.getPatchCheats().length + 3;
+    return mViewModel.getARCheats().size() + mViewModel.getGeckoCheats().size() +
+            mViewModel.getPatchCheats().size() + 6;
   }
 
   @Override
@@ -69,32 +82,50 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
 
   private CheatItem getItemAt(int position)
   {
+    // Patches
+
     if (position == 0)
       return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_patch);
     position -= 1;
 
-    Cheat[] patchCheats = mViewModel.getPatchCheats();
-    if (position < patchCheats.length)
-      return new CheatItem(patchCheats[position]);
-    position -= patchCheats.length;
+    ArrayList<PatchCheat> patchCheats = mViewModel.getPatchCheats();
+    if (position < patchCheats.size())
+      return new CheatItem(patchCheats.get(position));
+    position -= patchCheats.size();
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_ACTION, R.string.cheats_add_patch);
+    position -= 1;
+
+    // AR codes
 
     if (position == 0)
       return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_ar);
     position -= 1;
 
-    Cheat[] arCheats = mViewModel.getARCheats();
-    if (position < arCheats.length)
-      return new CheatItem(arCheats[position]);
-    position -= arCheats.length;
+    ArrayList<ARCheat> arCheats = mViewModel.getARCheats();
+    if (position < arCheats.size())
+      return new CheatItem(arCheats.get(position));
+    position -= arCheats.size();
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_ACTION, R.string.cheats_add_ar);
+    position -= 1;
+
+    // Gecko codes
 
     if (position == 0)
       return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_gecko);
     position -= 1;
 
-    Cheat[] geckoCheats = mViewModel.getGeckoCheats();
-    if (position < geckoCheats.length)
-      return new CheatItem(geckoCheats[position]);
-    position -= geckoCheats.length;
+    ArrayList<GeckoCheat> geckoCheats = mViewModel.getGeckoCheats();
+    if (position < geckoCheats.size())
+      return new CheatItem(geckoCheats.get(position));
+    position -= geckoCheats.size();
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_ACTION, R.string.cheats_add_gecko);
+    position -= 1;
 
     throw new IndexOutOfBoundsException();
   }

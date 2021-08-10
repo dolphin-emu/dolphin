@@ -10,6 +10,11 @@ public class GeckoCheat extends AbstractCheat
   @Keep
   private final long mPointer;
 
+  public GeckoCheat()
+  {
+    mPointer = createNew();
+  }
+
   @Keep
   private GeckoCheat(long pointer)
   {
@@ -18,6 +23,8 @@ public class GeckoCheat extends AbstractCheat
 
   @Override
   public native void finalize();
+
+  private native long createNew();
 
   public boolean supportsCreator()
   {

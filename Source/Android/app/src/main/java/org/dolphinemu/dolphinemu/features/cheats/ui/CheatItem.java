@@ -11,6 +11,7 @@ public class CheatItem
 {
   public static final int TYPE_CHEAT = 0;
   public static final int TYPE_HEADER = 1;
+  public static final int TYPE_ACTION = 2;
 
   private final @Nullable Cheat mCheat;
   private final int mString;
