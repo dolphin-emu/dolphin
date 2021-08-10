@@ -10,6 +10,11 @@ public class PatchCheat extends AbstractCheat
   @Keep
   private final long mPointer;
 
+  public PatchCheat()
+  {
+    mPointer = createNew();
+  }
+
   @Keep
   private PatchCheat(long pointer)
   {
@@ -18,6 +23,8 @@ public class PatchCheat extends AbstractCheat
 
   @Override
   public native void finalize();
+
+  private native long createNew();
 
   public boolean supportsCreator()
   {

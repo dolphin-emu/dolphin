@@ -10,6 +10,11 @@ public class ARCheat extends AbstractCheat
   @Keep
   private final long mPointer;
 
+  public ARCheat()
+  {
+    mPointer = createNew();
+  }
+
   @Keep
   private ARCheat(long pointer)
   {
@@ -18,6 +23,8 @@ public class ARCheat extends AbstractCheat
 
   @Override
   public native void finalize();
+
+  private native long createNew();
 
   public boolean supportsCreator()
   {

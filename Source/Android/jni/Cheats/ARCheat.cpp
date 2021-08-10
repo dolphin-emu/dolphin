@@ -36,6 +36,14 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_finalize(JNIEnv* en
   delete GetPointer(env, obj);
 }
 
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_createNew(JNIEnv* env, jobject obj)
+{
+  auto* code = new ActionReplay::ARCode;
+  code->user_defined = true;
+  return reinterpret_cast<jlong>(code);
+}
+
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCheat_getName(JNIEnv* env, jobject obj)
 {

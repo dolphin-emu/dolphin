@@ -99,7 +99,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         return new SliderViewHolder(view, this, mContext);
 
       case SettingsItem.TYPE_SUBMENU:
-        view = inflater.inflate(R.layout.list_item_setting_submenu, parent, false);
+        view = inflater.inflate(R.layout.list_item_submenu, parent, false);
         return new SubmenuViewHolder(view, this);
 
       case SettingsItem.TYPE_INPUT_BINDING:
