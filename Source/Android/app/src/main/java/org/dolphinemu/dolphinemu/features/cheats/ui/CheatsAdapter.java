@@ -14,7 +14,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 
-public class CheatsAdapter extends RecyclerView.Adapter<CheatViewHolder>
+public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
 {
   private final CheatsViewModel mViewModel;
 
@@ -31,15 +31,25 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatViewHolder>
 
   @NonNull
   @Override
-  public CheatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+  public CheatItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
   {
     LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-    View view = inflater.inflate(R.layout.list_item_cheat, parent, false);
-    return new CheatViewHolder(view);
+
+    switch (viewType)
+    {
+      case CheatItem.TYPE_CHEAT:
+        View cheatView = inflater.inflate(R.layout.list_item_cheat, parent, false);
+        return new CheatViewHolder(cheatView);
+      case CheatItem.TYPE_HEADER:
+        View headerView = inflater.inflate(R.layout.list_item_header, parent, false);
+        return new HeaderViewHolder(headerView);
+      default:
+        throw new UnsupportedOperationException();
+    }
   }
 
   @Override
-  public void onBindViewHolder(@NonNull CheatViewHolder holder, int position)
+  public void onBindViewHolder(@NonNull CheatItemViewHolder holder, int position)
   {
     holder.bind(mViewModel, getItemAt(position), position);
   }
@@ -48,30 +58,42 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatViewHolder>
   public int getItemCount()
   {
     return mViewModel.getARCheats().length + mViewModel.getGeckoCheats().length +
-            mViewModel.getPatchCheats().length;
+            mViewModel.getPatchCheats().length + 3;
   }
 
-  private Cheat getItemAt(int position)
+  @Override
+  public int getItemViewType(int position)
   {
+    return getItemAt(position).getType();
+  }
+
+  private CheatItem getItemAt(int position)
+  {
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_patch);
+    position -= 1;
+
     Cheat[] patchCheats = mViewModel.getPatchCheats();
     if (position < patchCheats.length)
-    {
-      return patchCheats[position];
-    }
+      return new CheatItem(patchCheats[position]);
     position -= patchCheats.length;
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_ar);
+    position -= 1;
 
     Cheat[] arCheats = mViewModel.getARCheats();
     if (position < arCheats.length)
-    {
-      return arCheats[position];
-    }
+      return new CheatItem(arCheats[position]);
     position -= arCheats.length;
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_gecko);
+    position -= 1;
 
     Cheat[] geckoCheats = mViewModel.getGeckoCheats();
     if (position < geckoCheats.length)
-    {
-      return geckoCheats[position];
-    }
+      return new CheatItem(geckoCheats[position]);
     position -= geckoCheats.length;
 
     throw new IndexOutOfBoundsException();
