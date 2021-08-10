@@ -5,6 +5,24 @@
 #include <vector>
 #include "Core/HW/Memmap.h"
 
+enum class GAME_STATE
+{
+  PREGAME,
+  INGAME,
+  ENDGAME_LOGGED,
+};
+
+enum class AB_STATE
+{
+    PITCH_STARTED,
+    CONTACT,
+    CONTACT_RESULT,
+    LANDED,
+    NO_CONTACT,
+    PLAY_OVER,
+    WAITING_FOR_PITCH,
+};
+
 //Const for structs
 static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
@@ -12,7 +30,9 @@ static const int cNumOfTeams = 2;
 //Addrs for triggering evts
 static const u32 aGameId           = 0x802EBF90;
 static const u32 aEndOfGameFlag    = 0x80892AB3;
-static const u32 aBattingResultSet = 0xFFFFFFFF;
+
+static const u32 aAB_PitchThrown     = 0x8088A81B;
+static const u32 aAB_ContactResult   = 0x808926B3; //0=InAir, 1=Landed, 2=Fielded, 3=Caught, FF=Foul
 
 //Addrs for GameInfo
 static const u32 aTeam0_RosterCharId_Start = 0x80353C05;
@@ -36,8 +56,10 @@ static const u32 aPitcher_WasPitcher        = 0x803535DA;
 static const u32 aPitcher_BatterOuts        = 0x803535E1;
 static const u32 aPitcher_StrikeOuts        = 0x803535E4;
 static const u32 aPitcher_StarPitchesThrown = 0x803535E5;
+static const u32 aPitcher_IsStarred = 0x8035323B;
 
 static const u8 c_defensive_stat_offset = 0x1E;
+
 //Addrs for OffensiveStats
 static const u32 aBatter_AtBats       = 0x803537E8;
 static const u32 aBatter_Hits         = 0x803537E9;
@@ -54,7 +76,62 @@ static const u32 aBatter_BigPlays     = 0x80353807;
 static const u32 aBatter_StarHits     = 0x80353808;
 
 static const u8 c_offensive_stat_offset = 0x25;
-//At-Bat Stats
+
+
+//At-Bat Scenario 
+static const u32 aAB_Team1IsBatting  = 0x80892997;
+static const u32 aAB_RosterID        = 0x80890971;
+static const u32 aAB_Inning          = 0x808928A3;
+static const u32 aAB_HalfInning      = 0x8089294D;
+static const u32 aAB_Balls           = 0x8089296F;
+static const u32 aAB_Strikes         = 0x8089296B;
+static const u32 aAB_Outs            = 0x80892973;
+static const u32 aAB_P1_Stars        = 0x80892AD6;
+static const u32 aAB_P2_Stars        = 0x80892AD7;
+static const u32 aAB_IsStarChance    = 0x80892AD8;
+static const u32 aAB_ChemLinksOnBase = 0x808909BA;
+
+static const u32 aAB_RunnerOn1       = 0x80893B9C;
+static const u32 aAB_RunnerOn2       = 0x80893B9D;
+static const u32 aAB_RunnerOn3       = 0x80893B9E;
+
+//At-Bat Pitch
+static const u32 aAB_PitcherID         = 0x80890ADB;
+static const u32 aAB_PitcherHandedness = 0x80890B01;
+static const u32 aAB_PitchType         = 0x80890B21; //0=Curve, Charge=1, ChangeUp=2
+static const u32 aAB_ChargePitchType   = 0x80890B1F; //2=Slider, 3=Perfect
+static const u32 aAB_StarPitch         = 0x80890B34;
+static const u32 aAB_PitchSpeed        = 0x80890B0A;
+
+//At-Bat Hit
+static const u32 aAB_BallVel_X      = 0x80890E50;
+static const u32 aAB_BallVel_Y      = 0x80890E54;
+static const u32 aAB_BallVel_Z      = 0x80890E58;
+static const u32 aAB_BallAngle      = 0x808926D4;
+
+static const u32 aAB_ChargeSwing    = 0x8089099B;
+static const u32 aAB_Bunt           = 0x8089099B; //Bunt when =3 on contact
+static const u32 aAB_ChargeUp       = 0x80890968;
+static const u32 aAB_ChargeDown     = 0x8089096C;
+static const u32 aAB_BatterHand     = 0x8089098B; //Right=0, Left=1
+static const u32 aAB_InputDirection = 0x808909B9; //0=None, 1=PullingStickTowardsHitting, 2=PushStickAway
+static const u32 aAB_StarSwing      = 0x808909B4;
+static const u32 aAB_MoonShot       = 0x808909B5;
+static const u32 aAB_TypeOfContact  = 0x808909A2; //0=Sour, 1=Nice, 2=Perfect, 3=Nice, 4=Sour
+
+//At-Bat Miss
+static const u32 aAB_Miss_SwingOrBunt = 0x808909A9; //(0=NoSwing, 1=Swing, 2=Bunt)
+static const u32 aAB_Miss_AnyStrike = 0x80890B17;
+
+//At-Bat Contact Result
+static const u32 aAB_BallPos_X = 0x80890B38;
+static const u32 aAB_BallPos_Y = 0x80890B3C;
+static const u32 aAB_BallPos_Z = 0x80890B40;
+
+
+static const u32 aAB_HitByPitch = 0x808909A3;
+static const u32 aAB_BatterThrow_Tagged_Out = 0x80893B99; //0=Safe, 1=ThrownOutOrTagged, 255=
+
 
 class StatTracker{
 public:
@@ -81,6 +158,7 @@ public:
         u32 game_id;
         u32 team_id;
         u32 roster_id;
+        u8 is_starred;
 
         u8  batters_faced;
         u16 runs_allowed;
@@ -97,6 +175,7 @@ public:
 
         u8 big_plays;
 
+        //Calculated
         u32 ERA;
     };
     std::array<std::array<EndGameRosterDefensiveStats, cRosterSize>, cNumOfTeams> m_defensive_stats;
@@ -124,39 +203,67 @@ public:
     struct ABStats{
         u32 game_id;
         u32 team_id;
-        u32 roster_id;
+        u8 roster_id;
 
         //Scenario
-        u32 inning;
-        u32 outs;
-        u32 strikes;
-        u32 balls;
-        u32 chem_links_ob;
-        std::array<bool, 3> runner_ob; //1st and 2nd would be <true, true, false>
-        u32 batter_stars;
-        u32 is_star_chance;
+        u8 inning;
+        u8 half_inning;
+        u8 balls;
+        u8 strikes;
+        u8 outs;
+        u8 runner_on_1;
+        u8 runner_on_2;
+        u8 runner_on_3;
+        u8 chem_links_ob;
+        u8 is_star_chance;
+        u8 batter_stars;
+        u8 pitcher_stars;
 
         //Pitcher Status
-        u32 pitcher_id;
-        u32 pitch_type;
-        u32 pitch_speed;
-        u32 pitcher_stars;
+        u8 pitcher_id;
+        u8 pitcher_handedness;
+        u8 pitch_type;
+        u8 charge_type;
+        u8 star_pitch;
+        u8 pitch_speed;
 
         //Hit Status
-        u32 hit_type;
-        u32 left_right;
-        u32 batter_handedness;
-        u32 charge_power;
+        u8 type_of_contact;
+        u8 charge_swing;
+        u8 bunt;
+        u32 charge_power_up;
+        u32 charge_power_down;
+        u8 star_swing;
+        u8 moon_shot;
+        u8 input_direction;
+        u8 batter_handedness;
+        u8 hit_by_pitch;
+    
+        //  Ball Calcs
+        u16 ball_angle;
+        float ball_x_velocity;
+        float ball_y_velocity;
+        float ball_z_velocity;
         
         //Final Result Ball
-        u32 ball_angle;
-        u32 ball_x_velocity;
-        u32 ball_y_velocity;
-        u32 ball_z_velocity;
+        u32 ball_x_pos;
+        u32 ball_y_pos;
+        u32 ball_z_pos;
 
-        u32 result; //strike-swing, strike-looking, ball, foul, land (maybe bobble), caught
+        u8 batter_out_at_1st; //Could be tag between HP and 1st or thrown out
+
+        std::string result; //strike-swing, strike-looking, ball, foul, land, caught
+
+        bool operator==(const ABStats& rhs_ab){
+            return ( (this->inning      == rhs_ab.inning)
+                  && (this->half_inning == rhs_ab.half_inning)
+                  && (this->roster_id   == rhs_ab.roster_id)
+                  && (this->balls       == rhs_ab.balls)
+                  && (this->strikes     == rhs_ab.strikes)
+                  && (this->outs        == rhs_ab.outs) );
+        } 
     };
-    std::vector<ABStats> m_ab_stats;
+    std::array<std::array<std::vector<ABStats>, cRosterSize>, cNumOfTeams> m_ab_stats;
 
     void init(){
         m_game_info = GameInfo();
@@ -164,28 +271,36 @@ public:
             for (int roster=0; roster < cRosterSize; ++roster){
                 m_defensive_stats[team][roster] = EndGameRosterDefensiveStats();
                 m_offensive_stats[team][roster] = EndGameRosterOffensiveStats();
+                m_ab_stats[team][roster].clear();
             }
         }
-        m_ab_stats.clear();
 
         m_game_id = 0;
-        m_end_of_game = std::make_pair(false, false);
-        m_at_bat      = std::make_pair(false, false);
 
-        m_stats_collected_for_game = false;
+        //Reset state machines
+        m_game_state = GAME_STATE::PREGAME;
+        m_ab_state   = AB_STATE::WAITING_FOR_PITCH;
     }
 
     u32 m_game_id = 0;
-    std::pair<bool, bool> m_end_of_game; //Prev, Current
-    std::pair<bool, bool> m_at_bat; //Prev, Current
 
-    bool m_stats_collected_for_game = false;
+    GAME_STATE m_game_state = GAME_STATE::PREGAME;
+    AB_STATE   m_ab_state = AB_STATE::WAITING_FOR_PITCH;
+    
+    ABStats m_curr_ab_stat;
 
     void Run();
     void lookForTriggerEvents();
+
     void logGameInfo();
     void logDefensiveStats(int team_id, int roster_id);
     void logOffensiveStats(int team_id, int roster_id);
-    void logAB();
+    
+    void logABScenario();
+    void logABMiss();
+    void logABContact();
+    void logABPitch();
+    void logABContactResult();
+
     void printStatsToFile();
 };
