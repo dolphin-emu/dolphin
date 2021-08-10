@@ -618,7 +618,7 @@ Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory sp
 \textbf{Address} & \textbf{Name}    & \textbf{Description}          \\ \hline
 \multicolumn{3}{|l|}{\textit{DMA Interface}}                        \\ \hline
 \Address{0xFFC9} & \Register{DSCR}  & DMA control                   \\ \hline
-\Address{0xFFCB} & \Register{DSBL}  & Block size                    \\ \hline
+\Address{0xFFCB} & \Register{DSBL}  & Block length                  \\ \hline
 \Address{0xFFCD} & \Register{DSPA}  & DSP memory address            \\ \hline
 \Address{0xFFCE} & \Register{DSMAH} & Memory address H              \\ \hline
 \Address{0xFFCF} & \Register{DSMAL} & Memory address L              \\ \hline
@@ -646,13 +646,15 @@ Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory sp
 
 The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
 
-\RegisterBitOverview{0xFFC9}{DSCR}{DSP Address}{---- ---- ---- ----}
+\RegisterBitOverview{0xFFC9}{DSCR}{DMA Control}{---- ---- ---- -tid}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{}
+\RegisterBitDescription{2}{t}{R}{Transfer currently in progress if set}
+\RegisterBitDescription{1}{i}{R/W}{\begin{tabular}[c]{@{}l@{}}\Value{1} - DMA to/from IMEM\\ \Value{0} - DMA to/from DMEM\end{tabular}}
+\RegisterBitDescription{0}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}\Value{1} - DMA to CPU from DSP\\ \Value{0} - DMA from CPU to DSP\end{tabular}}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFCB}{DSBL}{DSP Address}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFCB}{DSBL}{Block length}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
 \RegisterBitDescription{15--0}{d}{W}{Length in bytes to transfer. Writing to this register starts a DMA transfer.}
@@ -661,19 +663,19 @@ The GameCube DSP is connected to the memory bus through a DMA channel. DMA can b
 \RegisterBitOverview{0xFFCD}{DSPA}{DSP Address}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{Bits 15--0 of the DSP memory address}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the DSP memory address}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFCE}{DSMAH}{Memory Address H}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Bits 31--16 of the main memory address}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the main memory address}
 \end{RegisterBitDescriptions}
 
 \RegisterBitOverview{0xFFCF}{DSMAL}{Memory Address L}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Bits 15--0 of the main memory address}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the main memory address}
 \end{RegisterBitDescriptions}
 
 \pagebreak{}
