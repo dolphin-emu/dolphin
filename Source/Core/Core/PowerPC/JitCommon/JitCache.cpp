@@ -190,9 +190,11 @@ void JitBaseBlockCache::InvalidateICache(u32 address, u32 length, bool forced)
     return;
   const u32 physical_address = translated.address;
 
-  // Optimize the common case of length == 32 which is used by Interpreter::dcb*
+  // Optimization for the case of invalidating a single cache line, which is used by the dcb*
+  // instructions. If the valid_block bit for that cacheline is not set, we can safely skip
+  // the remaining invalidation logic.
   bool destroy_block = true;
-  if (length == 32)
+  if (length == 32 && (physical_address & 0x1fu) == 0)
   {
     if (!valid_block.Test(physical_address / 32))
       destroy_block = false;
