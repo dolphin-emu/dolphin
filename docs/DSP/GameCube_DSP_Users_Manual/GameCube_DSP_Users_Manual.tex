@@ -609,34 +609,49 @@ Exception vectors are located at address \Address{0x0000} in Instruction RAM.
 
 \section{Hardware registers}
 
-Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory space. Each register is 16 bits in width.
+Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Data Memory space. Each register is 16 bits in width.
 
 \begin{table}[htb]
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Address} & \textbf{Name}    & \textbf{Description}          \\ \hline
-\multicolumn{3}{|l|}{\textit{DMA Interface}}                        \\ \hline
-\Address{0xFFC9} & \Register{DSCR}  & DMA control                   \\ \hline
-\Address{0xFFCB} & \Register{DSBL}  & Block length                  \\ \hline
-\Address{0xFFCD} & \Register{DSPA}  & DSP memory address            \\ \hline
-\Address{0xFFCE} & \Register{DSMAH} & Memory address H              \\ \hline
-\Address{0xFFCF} & \Register{DSMAL} & Memory address L              \\ \hline
-\multicolumn{3}{|l|}{\textit{Accelerator}}                          \\ \hline
-\Address{0xFFD4} & \Register{ACSAH} & Accelerator start address H   \\ \hline
-\Address{0xFFD5} & \Register{ACSAL} & Accelerator start address L   \\ \hline
-\Address{0xFFD6} & \Register{ACEAH} & Accelerator end address H     \\ \hline
-\Address{0xFFD7} & \Register{ACEAL} & Accelerator end address L     \\ \hline
-\Address{0xFFD8} & \Register{ACCAH} & Accelerator current address H \\ \hline
-\Address{0xFFD9} & \Register{ACCAL} & Accelerator current address L \\ \hline
-\Address{0xFFDD} & \Register{ACDAT} & Accelerator data              \\ \hline
-\multicolumn{3}{|l|}{\textit{Interrupts}}                           \\ \hline
-\Address{0xFFFB} & \Register{DIRQ}  & IRQ request                   \\ \hline
-\multicolumn{3}{|l|}{\textit{Mailboxes}}                            \\ \hline
-\Address{0xFFFC} & \Register{DMBH}  & DSP Mailbox H                 \\ \hline
-\Address{0xFFFD} & \Register{DMBL}  & DSP Mailbox L                 \\ \hline
-\Address{0xFFFE} & \Register{CMBH}  & CPU Mailbox H                 \\ \hline
-\Address{0xFFFF} & \Register{CMBL}  & CPU Mailbox L                 \\ \hline
+\textbf{Address} & \textbf{Name}      & \textbf{Description}          \\ \hline
+\multicolumn{3}{|l|}{\textit{ADPCM Coefficients}}                     \\ \hline
+\Address{0xFFA0} & \Register{COEF\_A1\_0} & A1 Coefficient \# 0 \\ \hline
+\Address{0xFFA1} & \Register{COEF\_A2\_0} & A2 Coefficient \# 0 \\ \hline
+\multicolumn{3}{|c|}{$\vdots$}                                  \\ \hline
+\Address{0xFFAE} & \Register{COEF\_A1\_7} & A1 Coefficient \# 7 \\ \hline
+\Address{0xFFAF} & \Register{COEF\_A2\_7} & A2 Coefficient \# 7 \\ \hline
+\multicolumn{3}{|l|}{\textit{DMA Interface}}                          \\ \hline
+\Address{0xFFC9} & \Register{DSCR}    & DMA control                   \\ \hline
+\Address{0xFFCB} & \Register{DSBL}    & Block length                  \\ \hline
+\Address{0xFFCD} & \Register{DSPA}    & DSP memory address            \\ \hline
+\Address{0xFFCE} & \Register{DSMAH}   & Memory address H              \\ \hline
+\Address{0xFFCF} & \Register{DSMAL}   & Memory address L              \\ \hline
+\multicolumn{3}{|l|}{\textit{Accelerator}}                            \\ \hline
+\Address{0xFFD1} & \Register{FORMAT}  & Accelerator sample format     \\ \hline
+\Address{0xFFD2} & \Register{ACUNK1}  & Unknown, usually 3            \\ \hline
+\Address{0xFFD3} & \Register{ACDATA1} & Alternative ARAM interface    \\ \hline
+\Address{0xFFD4} & \Register{ACSAH}   & Accelerator start address H   \\ \hline
+\Address{0xFFD5} & \Register{ACSAL}   & Accelerator start address L   \\ \hline
+\Address{0xFFD6} & \Register{ACEAH}   & Accelerator end address H     \\ \hline
+\Address{0xFFD7} & \Register{ACEAL}   & Accelerator end address L     \\ \hline
+\Address{0xFFD8} & \Register{ACCAH}   & Accelerator current address H \\ \hline
+\Address{0xFFD9} & \Register{ACCAL}   & Accelerator current address L \\ \hline
+\Address{0xFFDA} & \Register{SCALE}   & ADPCM predictor and scale     \\ \hline
+\Address{0xFFDB} & \Register{YN1}     & ADPCM YN1                     \\ \hline
+\Address{0xFFDC} & \Register{YN2}     & ADPCM YN2                     \\ \hline
+\Address{0xFFDD} & \Register{ACDAT}   & Accelerator data              \\ \hline
+\Address{0xFFDE} & \Register{GAIN}    & Gain                          \\ \hline
+\Address{0xFFDF} & \Register{ACUNK2}  & Unknown, usually \Value{0x0C} \\ \hline
+\Address{0xFFED} & \Register{AMDM}    & ARAM DMA Request Mask         \\ \hline
+\multicolumn{3}{|l|}{\textit{Interrupts}}                             \\ \hline
+\Address{0xFFFB} & \Register{DIRQ}    & IRQ request                   \\ \hline
+\multicolumn{3}{|l|}{\textit{Mailboxes}}                              \\ \hline
+\Address{0xFFFC} & \Register{DMBH}    & DSP Mailbox H                 \\ \hline
+\Address{0xFFFD} & \Register{DMBL}    & DSP Mailbox L                 \\ \hline
+\Address{0xFFFE} & \Register{CMBH}    & CPU Mailbox H                 \\ \hline
+\Address{0xFFFF} & \Register{CMBL}    & CPU Mailbox L                 \\ \hline
 \end{tabular}
 \end{table}
 
@@ -687,6 +702,113 @@ Current address for the accelerator can be set or read from the \Register{ACCA} 
 This register contains data from ARAM pointed to by the \Register{ACCA} register.
 After reading the data, \Register{ACCA} is incremented by one.
 After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
+
+\RegisterBitOverview{0xFFD1}{FORMAT}{Accelerator sample format}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{\begin{tabular}[c]{@{}l@{}}
+\Value{0x00} - ADPCM audio \\
+\Value{0x05} - u8 reads (D3) \\
+\Value{0x06} - u16 reads (D3) \\
+\Value{0x0A} - 16-bit PCM audio, u16 writes (D3) \\
+\Value{0x19} - 8-bit PCM audio
+\end{tabular}}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD2}{ACUNK1}{Unknown 1}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Usually 3}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD3}{ACDATA1}{Alternative ARAM interface}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Reads from or writes to data pointed to by current accelerator address, and then increments the current address.  It is unclear whether this respects the start and end addresses.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD4}{ACSAH}{Accelerator Start Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the accelerator start address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD5}{ACSAL}{Accelerator Start Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator start address}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\RegisterBitOverview{0xFFD6}{ACEAH}{Accelerator End Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the accelerator end address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD7}{ACEAL}{Accelerator End Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator end address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD8}{ACCAH}{Accelerator Current Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 31--16 of the accelerator current address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFD9}{ACSAH}{Accelerator Current Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Bits 15--0 of the accelerator current address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDA}{SCALE}{ADPCM predictor and scale}{---- ---- -ppp ssss}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{6--4}{d}{R/W}{Used to decide which pair of coefficients to use (\Register{COEF\_A1\_p} and \Register{COEF\_A2\_p}, at $\Address{0xFFA0} + 2p$ and $\Address{0xFFA0} + 2p + 1$)}
+\RegisterBitDescription{3--0}{s}{R/W}{The scale to use, as $2^s$}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\RegisterBitOverview{0xFFDB}{YN1}{ADPCM YN1}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Last value read by the accelerator, updated to the new value of \Register{ACDAT} when \Register{ACDAT} is read.  Used when calculating ADPCM, but updated for all sample formats.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDC}{YN1}{ADPCM YN2}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Second-last value read by the accelerator, updated to the previous value of \Register{YN1} when \Register{ACDAT} is read.  Used when calculating ADPCM, but updated for all sample formats.  Writing this value starts the accelerator.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDD}{ACDAT}{Accelerator data}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{Reads new data from the accelerator.  When there is no data left, returns 0.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDE}{GAIN}{Gain}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Exact behavior unknown}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFDF}{ACUNK2}{Unknown 2}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R/W}{Usually \Value{0x0C}}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFEF}{AMDM}{ARAM DMA Request Mask}{---- ---- ---- ---m}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{0}{m}{R/W}{\begin{tabular}[c]{@{}l@{}}\Value{0} - DMA with ARAM unmasked\\ \Value{1} - masked\end{tabular}}
+\end{RegisterBitDescriptions}
 
 \pagebreak{}
 
