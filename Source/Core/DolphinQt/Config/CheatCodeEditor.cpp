@@ -120,6 +120,8 @@ void CheatCodeEditor::ConnectWidgets()
 
 bool CheatCodeEditor::AcceptAR()
 {
+  QString name = m_name_edit->text();
+
   std::vector<ActionReplay::AREntry> entries;
   std::vector<std::string> encrypted_lines;
 
@@ -131,6 +133,14 @@ bool CheatCodeEditor::AcceptAR()
 
     if (line.isEmpty())
       continue;
+
+    if (i == 0 && line[0] == u'$')
+    {
+      if (name.isEmpty())
+        name = line.right(line.size() - 1);
+
+      continue;
+    }
 
     QStringList values = line.split(QLatin1Char{' '});
 
@@ -218,7 +228,7 @@ bool CheatCodeEditor::AcceptAR()
     return false;
   }
 
-  m_ar_code->name = m_name_edit->text().toStdString();
+  m_ar_code->name = name.toStdString();
   m_ar_code->ops = std::move(entries);
   m_ar_code->user_defined = true;
 
@@ -227,6 +237,8 @@ bool CheatCodeEditor::AcceptAR()
 
 bool CheatCodeEditor::AcceptGecko()
 {
+  QString name = m_name_edit->text();
+
   std::vector<Gecko::GeckoCode::Code> entries;
 
   QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
@@ -237,6 +249,14 @@ bool CheatCodeEditor::AcceptGecko()
 
     if (line.isEmpty())
       continue;
+
+    if (i == 0 && line[0] == u'$')
+    {
+      if (name.isEmpty())
+        name = line.right(line.size() - 1);
+
+      continue;
+    }
 
     QStringList values = line.split(QLatin1Char{' '});
 
@@ -282,7 +302,7 @@ bool CheatCodeEditor::AcceptGecko()
     return false;
   }
 
-  m_gecko_code->name = m_name_edit->text().toStdString();
+  m_gecko_code->name = name.toStdString();
   m_gecko_code->creator = m_creator_edit->text().toStdString();
   m_gecko_code->codes = std::move(entries);
   m_gecko_code->user_defined = true;
