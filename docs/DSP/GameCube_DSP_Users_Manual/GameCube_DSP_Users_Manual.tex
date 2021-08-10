@@ -72,10 +72,10 @@
 \newcommand{\RegisterBitOverview}[4]{
   \begin{table}[H]
   \centering
-  \begin{tabular}{|lcl|}
+  \begin{tabular}{|lcr|}
   \hline
-  \Address{#1} & \Register{#2} & \multicolumn{1}{r|}{#3} \\ \hline
-               & \texttt{#4}   &                         \\ \hline
+  \Address{#1} & \Register{#2} & {#3} \\ \hline
+  \multicolumn{3}{|c|}{\texttt{#4}}   \\ \hline
   \end{tabular}
   \end{table}
 }
