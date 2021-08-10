@@ -14,7 +14,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 
-public class CheatViewHolder extends ViewHolder
+public class CheatViewHolder extends CheatItemViewHolder
         implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
 {
   private final View mRoot;
@@ -34,16 +34,16 @@ public class CheatViewHolder extends ViewHolder
     mCheckbox = itemView.findViewById(R.id.checkbox);
   }
 
-  public void bind(CheatsViewModel viewModel, Cheat item, int position)
+  public void bind(CheatsViewModel viewModel, CheatItem item, int position)
   {
     mCheckbox.setOnCheckedChangeListener(null);
 
-    mName.setText(item.getName());
-    mCheckbox.setChecked(item.getEnabled());
-
     mViewModel = viewModel;
-    mCheat = item;
+    mCheat = item.getCheat();
     mPosition = position;
+
+    mName.setText(mCheat.getName());
+    mCheckbox.setChecked(mCheat.getEnabled());
 
     mRoot.setOnClickListener(this);
     mCheckbox.setOnCheckedChangeListener(this);

@@ -389,6 +389,9 @@
     <!-- Cheats Screen -->
     <string name="cheats">Cheats</string>
     <string name="cheats_with_game_id">Cheats: %1$s</string>
+    <string name="cheats_header_ar">AR Codes</string>
+    <string name="cheats_header_gecko">Gecko Codes</string>
+    <string name="cheats_header_patch">Patches</string>
     <string name="cheats_name">Name</string>
     <string name="cheats_creator">Creator</string>
     <string name="cheats_notes">Notes</string>
