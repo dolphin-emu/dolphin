@@ -562,11 +562,10 @@ hid_device * HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pr
 static void hid_device_removal_callback(void *context, IOReturn result,
                                         void *sender)
 {
-	/* Stop the Run Loop for this device. */
-	hid_device *d = context;
-
-	d->disconnected = 1;
-	CFRunLoopStop(d->run_loop);
+	/* Stop the Run Loop for this device. This callback will always
+	   be called on the device's registered run loop, so we can just
+	   get the current loop. */		
+	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
 /* The Run Loop calls this function for each input report received.
@@ -658,7 +657,7 @@ static void *read_thread(void *param)
 	while (!dev->shutdown_thread && !dev->disconnected) {
 		code = CFRunLoopRunInMode(dev->run_loop_mode, 1000/*sec*/, FALSE);
 		/* Return if the device has been disconnected */
-		if (code == kCFRunLoopRunFinished) {
+		if (code == kCFRunLoopRunFinished || code == kCFRunLoopRunStopped) {
 			dev->disconnected = 1;
 			break;
 		}
