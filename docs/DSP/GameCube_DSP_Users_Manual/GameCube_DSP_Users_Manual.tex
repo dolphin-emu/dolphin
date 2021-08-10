@@ -616,17 +616,12 @@ Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory sp
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Address} & \textbf{Name}    & \textbf{Description}          \\ \hline
-\multicolumn{3}{|l|}{\textit{Mailboxes}}                            \\ \hline
-\Address{0xFFFE} & \Register{CMBH}  & CPU Mailbox H                 \\ \hline
-\Address{0xFFFF} & \Register{CMBL}  & CPU Mailbox L                 \\ \hline
-\Address{0xFFFC} & \Register{DMBH}  & DSP Mailbox H                 \\ \hline
-\Address{0xFFFD} & \Register{DMBL}  & DSP Mailbox L                 \\ \hline
 \multicolumn{3}{|l|}{\textit{DMA Interface}}                        \\ \hline
-\Address{0xFFCE} & \Register{DSMAH} & Memory address H              \\ \hline
-\Address{0xFFCF} & \Register{DSMAL} & Memory address L              \\ \hline
-\Address{0xFFCD} & \Register{DSPA}  & DSP memory address            \\ \hline
 \Address{0xFFC9} & \Register{DSCR}  & DMA control                   \\ \hline
 \Address{0xFFCB} & \Register{DSBL}  & Block size                    \\ \hline
+\Address{0xFFCD} & \Register{DSPA}  & DSP memory address            \\ \hline
+\Address{0xFFCE} & \Register{DSMAH} & Memory address H              \\ \hline
+\Address{0xFFCF} & \Register{DSMAL} & Memory address L              \\ \hline
 \multicolumn{3}{|l|}{\textit{Accelerator}}                          \\ \hline
 \Address{0xFFD4} & \Register{ACSAH} & Accelerator start address H   \\ \hline
 \Address{0xFFD5} & \Register{ACSAL} & Accelerator start address L   \\ \hline
@@ -637,8 +632,59 @@ Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory sp
 \Address{0xFFDD} & \Register{ACDAT} & Accelerator data              \\ \hline
 \multicolumn{3}{|l|}{\textit{Interrupts}}                           \\ \hline
 \Address{0xFFFB} & \Register{DIRQ}  & IRQ request                   \\ \hline
+\multicolumn{3}{|l|}{\textit{Mailboxes}}                            \\ \hline
+\Address{0xFFFC} & \Register{DMBH}  & DSP Mailbox H                 \\ \hline
+\Address{0xFFFD} & \Register{DMBL}  & DSP Mailbox L                 \\ \hline
+\Address{0xFFFE} & \Register{CMBH}  & CPU Mailbox H                 \\ \hline
+\Address{0xFFFF} & \Register{CMBL}  & CPU Mailbox L                 \\ \hline
 \end{tabular}
 \end{table}
+
+\pagebreak{}
+
+\section{DMA}
+
+The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
+
+\RegisterBitOverview{0xFFC9}{DSCR}{DSP Address}{---- ---- ---- ----}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCB}{DSBL}{DSP Address}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{Length in bytes to transfer. Writing to this register starts a DMA transfer.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCD}{DSPA}{DSP Address}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{Bits 15--0 of the DSP memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCE}{DSMAH}{Memory Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{Bits 31--16 of the main memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCF}{DSMAL}{Memory Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{Bits 15--0 of the main memory address}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\section{Accelerator}
+
+The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
+Current address for the accelerator can be set or read from the \Register{ACCA} register. Reading from accelerator memory is done by reading from the \Register{ACDAT} register.
+This register contains data from ARAM pointed to by the \Register{ACCA} register.
+After reading the data, \Register{ACCA} is incremented by one.
+After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
 
 \pagebreak{}
 
@@ -655,40 +701,6 @@ The DSP can raise interrupts at the CPU. Interrupts are usually used to signal t
 \pagebreak{}
 
 \section{Mailboxes}
-
-\subsection{CPU Mailbox}
-
-The CPU Mailbox (CMB) is a register that allows sending 31 bits of information from the CPU to the DSP.
-
-\RegisterBitOverview{0xFFFE}{CMBH}{CPU Mailbox H}{Mddd dddd dddd dddd}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15}{M}{R}{
-  \begin{tabular}[c]{@{}l@{}}
-    \Value{1} - Mailbox contains mail from the CPU\\ \Value{0} - Mailbox empty
-  \end{tabular}
-}
-\RegisterBitDescription{14--0}{d}{R}{Bits 30--16 of the mail sent from the CPU}
-\end{RegisterBitDescriptions}
-
-\RegisterBitOverview{0xFFFF}{CMBL}{CPU Mailbox L}{dddd dddd dddd dddd}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{
-  Bits 15--0 of mail sent from the CPU. Reading of this register by the DSP causes the \RegisterField{CMBH.M}
-  bit to be cleared.
-}
-\end{RegisterBitDescriptions}
-
-\textbf{Operation:}
-
-From the CPU side, software usually checks the \RegisterField{M} bit of \Register{CMBH}. It takes action only in the case that this bit is \Value{0}.
-Said action is to write \Register{CMBH} first and then \Register{CMBL}. After writing to \Register{CMBL}, the mail is ready to be received by the DSP.
-
-From the DSP side, the DSP loops by probing the \RegisterField{M} bit. When this bit is \Value{1}, the DSP reads \Register{CMBH} first and then \Register{CMBL}.
-After reading \Register{CMBL}, \RegisterField{CMBH.M} will be cleared.
-
-\pagebreak{}
 
 \subsection{DSP Mailbox}
 
@@ -725,49 +737,37 @@ If the DSP does processing when the CPU receives a mail, then it waits for the \
 
 \pagebreak{}
 
-\subsection{DMA}
+\subsection{CPU Mailbox}
 
-The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
+The CPU Mailbox (CMB) is a register that allows sending 31 bits of information from the CPU to the DSP.
 
-\RegisterBitOverview{0xFFCE}{DSMAH}{Memory Address H}{dddd dddd dddd dddd}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Bits 31--16 of the main memory address}
-\end{RegisterBitDescriptions}
-
-\RegisterBitOverview{0xFFCF}{DSMAL}{Memory Address L}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFFE}{CMBH}{CPU Mailbox H}{Mddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{R}{Bits 15--0 of the main memory address}
+\RegisterBitDescription{15}{M}{R}{
+  \begin{tabular}[c]{@{}l@{}}
+    \Value{1} - Mailbox contains mail from the CPU\\ \Value{0} - Mailbox empty
+  \end{tabular}
+}
+\RegisterBitDescription{14--0}{d}{R}{Bits 30--16 of the mail sent from the CPU}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFCD}{DSPA}{DSP Address}{dddd dddd dddd dddd}
+\RegisterBitOverview{0xFFFF}{CMBL}{CPU Mailbox L}{dddd dddd dddd dddd}
 
 \begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{Bits 15--0 of the DSP memory address}
+\RegisterBitDescription{15--0}{d}{R}{
+  Bits 15--0 of mail sent from the CPU. Reading of this register by the DSP causes the \RegisterField{CMBH.M}
+  bit to be cleared.
+}
 \end{RegisterBitDescriptions}
 
-\RegisterBitOverview{0xFFCB}{DSBL}{DSP Address}{dddd dddd dddd dddd}
+\textbf{Operation:}
 
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{Length in bytes to transfer. Writing to this register starts a DMA transfer.}
-\end{RegisterBitDescriptions}
+From the CPU side, software usually checks the \RegisterField{M} bit of \Register{CMBH}. It takes action only in the case that this bit is \Value{0}.
+Said action is to write \Register{CMBH} first and then \Register{CMBL}. After writing to \Register{CMBL}, the mail is ready to be received by the DSP.
 
-\RegisterBitOverview{0xFFC9}{DSCR}{DSP Address}{---- ---- ---- ----}
-
-\begin{RegisterBitDescriptions}
-\RegisterBitDescription{15--0}{d}{W}{}
-\end{RegisterBitDescriptions}
-
-\pagebreak{}
-
-\section{Accelerator}
-
-The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
-Current address for the accelerator can be set or read from the \Register{ACCA} register. Reading from accelerator memory is done by reading from the \Register{ACDAT} register.
-This register contains data from ARAM pointed to by the \Register{ACCA} register.
-After reading the data, \Register{ACCA} is incremented by one.
-After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
+From the DSP side, the DSP loops by probing the \RegisterField{M} bit. When this bit is \Value{1}, the DSP reads \Register{CMBH} first and then \Register{CMBL}.
+After reading \Register{CMBL}, \RegisterField{CMBH.M} will be cleared.
 
 \pagebreak{}
 
