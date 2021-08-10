@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,6 +24,8 @@ import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 public class CheatDetailsFragment extends Fragment
 {
   private View mRoot;
+  private ScrollView mScrollView;
+  private TextView mLabelName;
   private EditText mEditName;
   private TextView mLabelCreator;
   private EditText mEditCreator;
@@ -48,6 +51,8 @@ public class CheatDetailsFragment extends Fragment
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
     mRoot = view.findViewById(R.id.root);
+    mScrollView = view.findViewById(R.id.scroll_view);
+    mLabelName = view.findViewById(R.id.label_name);
     mEditName = view.findViewById(R.id.edit_name);
     mLabelCreator = view.findViewById(R.id.label_creator);
     mEditCreator = view.findViewById(R.id.edit_creator);
@@ -94,15 +99,19 @@ public class CheatDetailsFragment extends Fragment
         break;
       case Cheat.TRY_SET_FAIL_NO_NAME:
         mEditName.setError(getString(R.string.cheats_error_no_name));
+        mScrollView.smoothScrollTo(0, mLabelName.getTop());
         break;
       case Cheat.TRY_SET_FAIL_NO_CODE_LINES:
         mEditCode.setError(getString(R.string.cheats_error_no_code_lines));
+        mScrollView.smoothScrollTo(0, mEditCode.getBottom());
         break;
       case Cheat.TRY_SET_FAIL_CODE_MIXED_ENCRYPTION:
         mEditCode.setError(getString(R.string.cheats_error_mixed_encryption));
+        mScrollView.smoothScrollTo(0, mEditCode.getBottom());
         break;
       default:
         mEditCode.setError(getString(R.string.cheats_error_on_line, result));
+        mScrollView.smoothScrollTo(0, mEditCode.getBottom());
         break;
     }
   }
