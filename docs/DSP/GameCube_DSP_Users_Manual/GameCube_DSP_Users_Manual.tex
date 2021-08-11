@@ -3681,13 +3681,13 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{'SLMN}
+\begin{DSPOpcode}{'SLNM}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{111s}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'SLMN $acS.m, $(0x18+D)
+    'SLNM $acS.m, $(0x18+D)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
