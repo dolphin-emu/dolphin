@@ -74,7 +74,6 @@ private:
   bool valid;
   bool bCPUThread;
   bool bJITFollowBranch;
-  bool bEnableCheats;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
   bool bAccurateNaNs;
@@ -109,7 +108,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bCPUThread = config.bCPUThread;
   bJITFollowBranch = config.bJITFollowBranch;
-  bEnableCheats = config.bEnableCheats;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
@@ -155,7 +153,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   config->bCPUThread = bCPUThread;
   config->bJITFollowBranch = bJITFollowBranch;
-  config->bEnableCheats = bEnableCheats;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
@@ -257,7 +254,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
-    core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
@@ -356,7 +352,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     const NetPlay::NetSettings& netplay_settings = NetPlay::GetNetSettings();
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCPUThread = netplay_settings.m_CPUthread;
-    StartUp.bEnableCheats = netplay_settings.m_EnableCheats;
     StartUp.bDSPHLE = netplay_settings.m_DSPHLE;
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
     StartUp.cpu_core = netplay_settings.m_CPUcore;
