@@ -45,6 +45,16 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
       if (position != null)
         notifyItemRemoved(position);
     });
+
+    mViewModel.getGeckoCheatsDownloadedEvent().observe(activity, (cheatsAdded) ->
+    {
+      if (cheatsAdded != null)
+      {
+        int positionEnd = getItemCount() - 2;  // Skip "Add Gecko Code" and "Download Gecko Codes"
+        int positionStart = positionEnd - cheatsAdded;
+        notifyItemRangeInserted(positionStart, cheatsAdded);
+      }
+    });
   }
 
   @NonNull
@@ -75,14 +85,14 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
   @Override
   public void onBindViewHolder(@NonNull CheatItemViewHolder holder, int position)
   {
-    holder.bind(mViewModel, getItemAt(position), position);
+    holder.bind(mActivity, getItemAt(position), position);
   }
 
   @Override
   public int getItemCount()
   {
     return mViewModel.getARCheats().size() + mViewModel.getGeckoCheats().size() +
-            mViewModel.getPatchCheats().size() + 6;
+            mViewModel.getPatchCheats().size() + 7;
   }
 
   @Override
@@ -143,6 +153,9 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
     if (position == 0)
       return new CheatItem(CheatItem.TYPE_ACTION, R.string.cheats_add_gecko);
     position -= 1;
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_ACTION, R.string.cheats_download_gecko);
 
     throw new IndexOutOfBoundsException();
   }
