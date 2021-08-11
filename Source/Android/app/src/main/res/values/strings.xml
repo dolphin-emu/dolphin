@@ -406,6 +406,8 @@
     <string name="cheats_error_no_code_lines">Code can\'t be empty</string>
     <string name="cheats_error_on_line">Error on line %1$d</string>
     <string name="cheats_error_mixed_encryption">Lines must either be all encrypted or all decrypted</string>
+    <string name="cheats_disabled_warning">Dolphin\'s cheat system is currently disabled.</string>
+    <string name="cheats_open_settings">Settings</string>
 
     <!-- Convert Screen -->
     <string name="convert_format">Format</string>
