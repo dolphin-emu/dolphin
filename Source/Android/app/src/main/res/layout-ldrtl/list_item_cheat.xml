@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:focusable="true"
-    android:nextFocusRight="@id/checkbox">
+    android:nextFocusLeft="@id/checkbox">
 
     <TextView
         android:id="@+id/text_name"
@@ -32,6 +32,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:gravity="center"
         android:focusable="true"
-        android:nextFocusLeft="@id/root" />
+        android:nextFocusRight="@id/root" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
