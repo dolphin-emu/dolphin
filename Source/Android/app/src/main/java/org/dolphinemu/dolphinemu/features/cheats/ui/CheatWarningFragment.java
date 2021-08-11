@@ -37,6 +37,10 @@ public class CheatWarningFragment extends Fragment implements View.OnClickListen
 
     Button settingsButton = view.findViewById(R.id.button_settings);
     settingsButton.setOnClickListener(this);
+
+    CheatsActivity activity = (CheatsActivity) requireActivity();
+    CheatsActivity.setOnFocusChangeListenerRecursively(view,
+            (v, hasFocus) -> activity.onListViewFocusChange(hasFocus));
   }
 
   @Override

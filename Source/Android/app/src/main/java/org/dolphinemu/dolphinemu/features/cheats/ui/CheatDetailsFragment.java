@@ -73,13 +73,12 @@ public class CheatDetailsFragment extends Fragment
     mViewModel.getIsEditing().observe(getViewLifecycleOwner(), this::onIsEditingUpdated);
 
     mButtonDelete.setOnClickListener(this::onDeleteClicked);
-    mButtonEdit.setOnClickListener((v) -> mViewModel.setIsEditing(true));
-    mButtonCancel.setOnClickListener((v) ->
-    {
-      mViewModel.setIsEditing(false);
-      onSelectedCheatUpdated(mCheat);
-    });
+    mButtonEdit.setOnClickListener(this::onEditClicked);
+    mButtonCancel.setOnClickListener(this::onCancelClicked);
     mButtonOk.setOnClickListener(this::onOkClicked);
+
+    CheatsActivity.setOnFocusChangeListenerRecursively(view,
+            (v, hasFocus) -> activity.onDetailsViewFocusChange(hasFocus));
   }
 
   private void clearEditErrors()
@@ -96,6 +95,19 @@ public class CheatDetailsFragment extends Fragment
     builder.setPositiveButton(R.string.yes, (dialog, i) -> mViewModel.deleteSelectedCheat());
     builder.setNegativeButton(R.string.no, null);
     builder.show();
+  }
+
+  private void onEditClicked(View view)
+  {
+    mViewModel.setIsEditing(true);
+    mButtonOk.requestFocus();
+  }
+
+  private void onCancelClicked(View view)
+  {
+    mViewModel.setIsEditing(false);
+    onSelectedCheatUpdated(mCheat);
+    mButtonDelete.requestFocus();
   }
 
   private void onOkClicked(View view)
@@ -118,6 +130,7 @@ public class CheatDetailsFragment extends Fragment
           mViewModel.notifySelectedCheatChanged();
           mViewModel.setIsEditing(false);
         }
+        mButtonEdit.requestFocus();
         break;
       case Cheat.TRY_SET_FAIL_NO_NAME:
         mEditName.setError(getString(R.string.cheats_error_no_name));

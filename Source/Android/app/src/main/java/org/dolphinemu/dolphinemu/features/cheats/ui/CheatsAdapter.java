@@ -20,25 +20,27 @@ import java.util.ArrayList;
 
 public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
 {
+  private final CheatsActivity mActivity;
   private final CheatsViewModel mViewModel;
 
-  public CheatsAdapter(LifecycleOwner owner, CheatsViewModel viewModel)
+  public CheatsAdapter(CheatsActivity activity, CheatsViewModel viewModel)
   {
+    mActivity = activity;
     mViewModel = viewModel;
 
-    mViewModel.getCheatAddedEvent().observe(owner, (position) ->
+    mViewModel.getCheatAddedEvent().observe(activity, (position) ->
     {
       if (position != null)
         notifyItemInserted(position);
     });
 
-    mViewModel.getCheatChangedEvent().observe(owner, (position) ->
+    mViewModel.getCheatChangedEvent().observe(activity, (position) ->
     {
       if (position != null)
         notifyItemChanged(position);
     });
 
-    mViewModel.getCheatDeletedEvent().observe(owner, (position) ->
+    mViewModel.getCheatDeletedEvent().observe(activity, (position) ->
     {
       if (position != null)
         notifyItemRemoved(position);
@@ -55,12 +57,15 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
     {
       case CheatItem.TYPE_CHEAT:
         View cheatView = inflater.inflate(R.layout.list_item_cheat, parent, false);
+        addViewListeners(cheatView);
         return new CheatViewHolder(cheatView);
       case CheatItem.TYPE_HEADER:
         View headerView = inflater.inflate(R.layout.list_item_header, parent, false);
+        addViewListeners(headerView);
         return new HeaderViewHolder(headerView);
       case CheatItem.TYPE_ACTION:
         View actionView = inflater.inflate(R.layout.list_item_submenu, parent, false);
+        addViewListeners(actionView);
         return new ActionViewHolder(actionView);
       default:
         throw new UnsupportedOperationException();
@@ -84,6 +89,12 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
   public int getItemViewType(int position)
   {
     return getItemAt(position).getType();
+  }
+
+  private void addViewListeners(View view)
+  {
+    CheatsActivity.setOnFocusChangeListenerRecursively(view,
+            (v, hasFocus) -> mActivity.onListViewFocusChange(hasFocus));
   }
 
   private CheatItem getItemAt(int position)

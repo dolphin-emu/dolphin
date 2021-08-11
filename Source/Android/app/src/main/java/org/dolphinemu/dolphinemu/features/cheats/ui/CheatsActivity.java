@@ -5,8 +5,12 @@ package org.dolphinemu.dolphinemu.features.cheats.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.slidingpanelayout.widget.SlidingPaneLayout;
 
@@ -18,6 +22,7 @@ import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 public class CheatsActivity extends AppCompatActivity
+        implements SlidingPaneLayout.PanelSlideListener
 {
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
@@ -29,6 +34,11 @@ public class CheatsActivity extends AppCompatActivity
   private CheatsViewModel mViewModel;
 
   private SlidingPaneLayout mSlidingPaneLayout;
+  private View mCheatList;
+  private View mCheatDetails;
+
+  private View mCheatListLastFocus;
+  private View mCheatDetailsLastFocus;
 
   public static void launch(Context context, String gameId, int revision, boolean isWii)
   {
@@ -59,6 +69,13 @@ public class CheatsActivity extends AppCompatActivity
     setContentView(R.layout.activity_cheats);
 
     mSlidingPaneLayout = findViewById(R.id.sliding_pane_layout);
+    mCheatList = findViewById(R.id.cheat_list);
+    mCheatDetails = findViewById(R.id.cheat_details);
+
+    mCheatListLastFocus = mCheatList;
+    mCheatDetailsLastFocus = mCheatDetails;
+
+    mSlidingPaneLayout.addPanelSlideListener(this);
 
     getOnBackPressedDispatcher().addCallback(this,
             new TwoPaneOnBackPressedCallback(mSlidingPaneLayout));
@@ -77,6 +94,25 @@ public class CheatsActivity extends AppCompatActivity
     mViewModel.saveIfNeeded(mGameId, mRevision);
   }
 
+  @Override
+  public void onPanelSlide(@NonNull View panel, float slideOffset)
+  {
+  }
+
+  @Override
+  public void onPanelOpened(@NonNull View panel)
+  {
+    boolean rtl = ViewCompat.getLayoutDirection(panel) == ViewCompat.LAYOUT_DIRECTION_RTL;
+    mCheatDetailsLastFocus.requestFocus(rtl ? View.FOCUS_LEFT : View.FOCUS_RIGHT);
+  }
+
+  @Override
+  public void onPanelClosed(@NonNull View panel)
+  {
+    boolean rtl = ViewCompat.getLayoutDirection(panel) == ViewCompat.LAYOUT_DIRECTION_RTL;
+    mCheatListLastFocus.requestFocus(rtl ? View.FOCUS_RIGHT : View.FOCUS_LEFT);
+  }
+
   private void onSelectedCheatChanged(Cheat selectedCheat)
   {
     boolean cheatSelected = selectedCheat != null;
@@ -86,6 +122,30 @@ public class CheatsActivity extends AppCompatActivity
 
     mSlidingPaneLayout.setLockMode(cheatSelected ?
             SlidingPaneLayout.LOCK_MODE_UNLOCKED : SlidingPaneLayout.LOCK_MODE_LOCKED_CLOSED);
+  }
+
+  public void onListViewFocusChange(boolean hasFocus)
+  {
+    if (hasFocus)
+    {
+      mCheatListLastFocus = mCheatList.findFocus();
+      if (mCheatListLastFocus == null)
+        throw new NullPointerException();
+
+      mSlidingPaneLayout.close();
+    }
+  }
+
+  public void onDetailsViewFocusChange(boolean hasFocus)
+  {
+    if (hasFocus)
+    {
+      mCheatDetailsLastFocus = mCheatDetails.findFocus();
+      if (mCheatDetailsLastFocus == null)
+        throw new NullPointerException();
+
+      mSlidingPaneLayout.open();
+    }
   }
 
   private void openDetailsView(boolean open)
@@ -99,5 +159,21 @@ public class CheatsActivity extends AppCompatActivity
     Settings settings = new Settings();
     settings.loadSettings(null, mGameId, mRevision, mIsWii);
     return settings;
+  }
+
+  public static void setOnFocusChangeListenerRecursively(@NonNull View view,
+          View.OnFocusChangeListener listener)
+  {
+    view.setOnFocusChangeListener(listener);
+
+    if (view instanceof ViewGroup)
+    {
+      ViewGroup viewGroup = (ViewGroup) view;
+      for (int i = 0; i < viewGroup.getChildCount(); i++)
+      {
+        View child = viewGroup.getChildAt(i);
+        setOnFocusChangeListenerRecursively(child, listener);
+      }
+    }
   }
 }
