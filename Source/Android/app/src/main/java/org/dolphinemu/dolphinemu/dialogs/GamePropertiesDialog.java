@@ -93,7 +93,7 @@ public class GamePropertiesDialog extends DialogFragment
             SettingsActivity.launch(getContext(), MenuTag.SETTINGS, gameId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_edit_cheats, (dialog, i) ->
-            CheatsActivity.launch(getContext(), gameId, revision));
+            CheatsActivity.launch(getContext(), gameId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettings(gameId));
