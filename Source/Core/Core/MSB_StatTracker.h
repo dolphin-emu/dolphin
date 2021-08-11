@@ -91,9 +91,9 @@ static const u32 aAB_P2_Stars        = 0x80892AD7;
 static const u32 aAB_IsStarChance    = 0x80892AD8;
 static const u32 aAB_ChemLinksOnBase = 0x808909BA;
 
-static const u32 aAB_RunnerOn1       = 0x80893B9C;
-static const u32 aAB_RunnerOn2       = 0x80893B9D;
-static const u32 aAB_RunnerOn3       = 0x80893B9E;
+static const u32 aAB_RunnerOn1       = 0x8088F09D;
+static const u32 aAB_RunnerOn2       = 0x8088F1F1;
+static const u32 aAB_RunnerOn3       = 0x8088F345;
 
 //At-Bat Pitch
 static const u32 aAB_PitcherID         = 0x80890ADB;

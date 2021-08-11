@@ -79,7 +79,7 @@ void StatTracker::lookForTriggerEvents(){
                 m_game_id = Memory::Read_U32(aGameId);
                 m_game_state = GAME_STATE::INGAME;
 
-                std::cout << "PREGAME->INGAME (GameID=" << std::hex << std::to_string(m_game_id) << ")" << std::endl;
+                std::cout << "PREGAME->INGAME (GameID=" << std::to_string(m_game_id) << ")" << std::endl;
             }
             break;
         case (GAME_STATE::INGAME):
@@ -99,8 +99,6 @@ void StatTracker::lookForTriggerEvents(){
             }
             break;
     }
-
-
 }
 
 void StatTracker::logGameInfo(){
@@ -190,9 +188,9 @@ void StatTracker::logABScenario(){
     m_curr_ab_stat.is_star_chance  = Memory::Read_U8(aAB_IsStarChance);
     m_curr_ab_stat.chem_links_ob   = Memory::Read_U8(aAB_ChemLinksOnBase);
 
-    m_curr_ab_stat.runner_on_1     = Memory::Read_U32(aAB_RunnerOn1);
-    m_curr_ab_stat.runner_on_2     = Memory::Read_U32(aAB_RunnerOn2);
-    m_curr_ab_stat.runner_on_3     = Memory::Read_U32(aAB_RunnerOn3);
+    m_curr_ab_stat.runner_on_1     = Memory::Read_U8(aAB_RunnerOn1);
+    m_curr_ab_stat.runner_on_2     = Memory::Read_U8(aAB_RunnerOn2);
+    m_curr_ab_stat.runner_on_3     = Memory::Read_U8(aAB_RunnerOn3);
 
     m_curr_ab_stat.batter_handedness = Memory::Read_U8(aAB_BatterHand);
 }
@@ -227,6 +225,7 @@ void StatTracker::logABMiss(){
     m_curr_ab_stat.charge_swing      = Memory::Read_U8(aAB_ChargeSwing);
     m_curr_ab_stat.charge_power_up   = Memory::Read_U32(aAB_ChargeUp);
     m_curr_ab_stat.charge_power_down = Memory::Read_U32(aAB_ChargeDown);
+
     m_curr_ab_stat.star_swing        = Memory::Read_U8(aAB_StarSwing);
     m_curr_ab_stat.moon_shot         = Memory::Read_U8(aAB_MoonShot);
     m_curr_ab_stat.input_direction   = Memory::Read_U8(aAB_InputDirection);
@@ -260,7 +259,6 @@ void StatTracker::logABMiss(){
             m_curr_ab_stat.result = "Unknown Miss Result";
         }
     }
-
 }
 
 void StatTracker::logABPitch(){
@@ -391,21 +389,21 @@ void StatTracker::printStatsToFile(){
                 MyFile << "          \"Type of Contact\": " << std::to_string(ab_stat.type_of_contact) << "," << std::endl;
                 MyFile << "          \"Charge Swing\": " << std::to_string(ab_stat.charge_swing) << "," << std::endl;
                 MyFile << "          \"Bunt\": " << std::to_string(ab_stat.bunt) << "," << std::endl;
-                MyFile << "          \"Charge Power Up\": \"" << float(ab_stat.charge_power_up) << "\"," << std::endl;
-                MyFile << "          \"Charge Power Down\": \"" << float(ab_stat.charge_power_down) << "\"," << std::endl;
+                MyFile << "          \"Charge Power Up\": \"" << std::hex << ab_stat.charge_power_up << "\"," << std::endl;
+                MyFile << "          \"Charge Power Down\": \"" << std::hex << ab_stat.charge_power_down << "\"," << std::endl;
                 MyFile << "          \"Star Swing\": " << std::to_string(ab_stat.star_swing) << "," << std::endl;
                 MyFile << "          \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
                 MyFile << "          \"Input Direction\": " << std::to_string(ab_stat.input_direction) << "," << std::endl;
                 MyFile << "          \"Batter Handedness\": " << std::to_string(ab_stat.batter_handedness) << "," << std::endl;
                 MyFile << "          \"Hit by Pitch\": " << std::to_string(ab_stat.hit_by_pitch) << "," << std::endl;
                 MyFile << "          \"Ball Angle\": \"" << ab_stat.ball_angle << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - X\": \"" << float(ab_stat.ball_x_velocity) << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - Y\": \"" << float(ab_stat.ball_y_velocity) << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - Z\": \"" << float(ab_stat.ball_z_velocity) << "\"," << std::endl;
+                MyFile << "          \"Ball Velocity - X\": \"" << std::hex << ab_stat.ball_x_velocity << "\"," << std::endl;
+                MyFile << "          \"Ball Velocity - Y\": \"" << std::hex << ab_stat.ball_y_velocity << "\"," << std::endl;
+                MyFile << "          \"Ball Velocity - Z\": \"" << std::hex << ab_stat.ball_z_velocity << "\"," << std::endl;
 
-                MyFile << "          \"Ball Landing Position - X\": \"" << float(ab_stat.ball_x_pos) << "\"," << std::endl;
-                MyFile << "          \"Ball Landing Position - Y\": \"" << float(ab_stat.ball_y_pos) << "\"," << std::endl;
-                MyFile << "          \"Ball Landing Position - Z\": \"" << float(ab_stat.ball_z_pos) << "\"," << std::endl;
+                MyFile << "          \"Ball Landing Position - X\": \"" << std::hex << ab_stat.ball_x_pos << "\"," << std::endl;
+                MyFile << "          \"Ball Landing Position - Y\": \"" << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
+                MyFile << "          \"Ball Landing Position - Z\": \"" << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
 
                 MyFile << "          \"Final Result\": \"" << ab_stat.result << "\"" << std::endl;
                 
@@ -418,6 +416,7 @@ void StatTracker::printStatsToFile(){
         }
     }
 
+    MyFile << "  ]" << std::endl;
     MyFile << "}" << std::endl;
 
     std::cout << "Logging to " << file_name << std::endl;
