@@ -319,6 +319,9 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
     return;
 
   m_state.compute_image_texture = dxtex;
+  if (dxtex)
+    dxtex->TransitionToState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
   m_dirty_bits |= DirtyState_ComputeImageTexture;
 }
 
