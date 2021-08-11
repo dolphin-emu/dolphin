@@ -215,7 +215,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SyncGpuOverclock", fSyncGpuOverclock);
   core->Set("FPRF", bFPRF);
   core->Set("AccurateNaNs", bAccurateNaNs);
-  core->Set("EnableCheats", bEnableCheats);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideRegionSettings", bOverrideRegionSettings);
   core->Set("DPL2Decoder", bDPL2Decoder);
@@ -473,7 +472,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("SelectedLanguage", &SelectedLanguage,
             DiscIO::ToGameCubeLanguage(Config::GetDefaultLanguage()));
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);

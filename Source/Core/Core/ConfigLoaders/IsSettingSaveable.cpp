@@ -50,6 +50,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.GetLocation(),
+      &Config::MAIN_ENABLE_CHEATS.GetLocation(),
       &Config::MAIN_MEMCARD_A_PATH.GetLocation(),
       &Config::MAIN_MEMCARD_B_PATH.GetLocation(),
       &Config::MAIN_AUTO_DISC_CHANGE.GetLocation(),

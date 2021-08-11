@@ -118,7 +118,6 @@ struct SConfig
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
-  bool bEnableCheats = false;
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
