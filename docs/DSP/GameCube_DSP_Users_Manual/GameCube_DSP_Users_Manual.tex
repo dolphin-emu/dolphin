@@ -49,7 +49,7 @@
 \date{\today\\v0.0.7}
 
 % Title formatting commands
-\newcommand{\OpcodeTitle}[1]{\subsection{\textbf{\Large #1}}}
+\newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
 
 % Formatting/self-documenting commands
 \newcommand{\Address}[1]{\texttt{#1}}
@@ -58,7 +58,7 @@
 \newcommand{\Flag}[1]{\texttt{#1}}
 \newcommand{\Function}[1]{\texttt{#1}}
 \newcommand{\InlineExpression}[1]{\texttt{#1}}
-\newcommand{\Opcode}[1]{\texttt{#1}}
+\newcommand{\Opcode}[1]{\texttt{\nameref{instruction:#1}}}
 \newcommand{\Register}[1]{\texttt{#1}}
 \newcommand{\RegisterField}[1]{\texttt{#1}}
 \newcommand{\Value}[1]{\texttt{#1}}
@@ -1005,7 +1005,7 @@ Opcode decoding uses special naming for bits and their decimal representations t
 \section{Conditional opcodes}
 
 Conditional opcodes are executed only when the condition described by their encoded conditional field has been met.
-The groups of conditional instructions are: \Opcode{CALL}, \Opcode{JMP}, \Opcode{IF}, and \Opcode{RET}.
+The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opcode{IFcc}, and \Opcode{RETcc}.
 
 \begin{table}[H]
 \centering
@@ -3750,149 +3750,178 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
 
 \section{Instructions sorted by opcode}
 
-
-\newcolumntype{T}{>{\ttfamily}l}
+\newcommand{\OpcodeRow}[2]{\Opcode{#2} & \texttt{#1} & \pageref{instruction:#2} \\*}
+\newcommand{\OpcodeRowUnk}[1]{Unknown & \texttt{#1} \\*}
+\newcommand{\OpcodeRowSkip}[0]{\\}
 
 \begin{center}
-\begin{longtable}{TllT}
-NOP         &          & *  & 0000 0000 0000 0000                     \\
-DAR         &          & *  & 0000 0000 0000 01aa                     \\
-IAR         &          & *  & 0000 0000 0000 10aa                     \\
-XXX         & NOT USED &    & 0000 0000 0000 11xx                     \\
-ADDARN      &          & *  & 0000 0000 0001 bbaa                     \\
-HALT        &          & *  & 0000 0000 0010 0001                     \\
-            &          &    &                                         \\
-LOOP        &          & *  & 0000 0000 010r rrrr                     \\
-BLOOP       &          & *  & 0000 0000 011r rrrr aaaa aaaa aaaa aaaa \\
-            &          &    &                                         \\
-LRI         &          & *  & 0000 0000 100r rrrr iiii iiii iiii iiii \\
-XXX         & NOT USED & *  & 0000 0000 101x xxxx                     \\
-LR          &          & *  & 0000 0000 110r rrrr mmmm mmmm mmmm mmmm \\
-SR          &          & *  & 0000 0000 111r rrrr mmmm mmmm mmmm mmmm \\
-            &          &    &                                         \\
-IF cc       &          & *  & 0000 0010 0111 cccc                     \\
-JMP cc      &          & *  & 0000 0010 1001 cccc aaaa aaaa aaaa aaaa \\
-CALL cc     &          & *  & 0000 0010 1011 cccc aaaa aaaa aaaa aaaa \\
-RET cc      &          & *  & 0000 0010 1101 cccc                     \\
-RTI         &          & *  & 0000 0010 1111 1111                     \\
-            &          &    &                                         \\
-ADDI        &          & *  & 0000 001r 0000 0000 iiii iiii iiii iiii \\
-XORI        &          & *  & 0000 001r 0010 0000 iiii iiii iiii iiii \\
-ANDI        &          & *  & 0000 001r 0100 0000 iiii iiii iiii iiii \\
-ORI         &          & *  & 0000 001r 0110 0000 iiii iiii iiii iiii \\
-CMPI        &          & *  & 0000 001r 1000 0000 iiii iiii iiii iiii \\
-ANDF        &          & *  & 0000 001r 1010 0000 iiii iiii iiii iiii \\
-ANDCF       &          & *  & 0000 001r 1100 0000 iiii iiii iiii iiii \\
-            &          &    &                                         \\
-ILRR        &          & *  & 0000 001r 0001 00aa                     \\
-ILRRD       &          & *  & 0000 001r 0001 01aa                     \\
-ILRRI       &          & *  & 0000 001r 0001 10aa                     \\
-ILRRN       &          & *  & 0000 001r 0001 11aa                     \\
-            &          &    &                                         \\
-ADDIS       &          & *  & 0000 010d iiii iiii                     \\
-CMPIS       &          & *  & 0000 011d iiii iiii                     \\
-LRIS        &          & *  & 0000 1rrr iiii iiii                     \\
-            &          &    &                                         \\
-LOOPI       &          & *  & 0001 0000 iiii iiii                     \\
-BLOOPI      &          & *  & 0001 0001 iiii iiii aaaa aaaa aaaa aaaa \\
-SBCLR       &          & *  & 0001 0010 ???? ?iii                     \\
-SBSET       &          & *  & 0001 0011 ???? ?iii                     \\
-LSL/LSR     &          & *  & 0001 010r 0sss ssss                     \\
-ASL/ASR     &          & *  & 0001 010r 1sss ssss                     \\
-SI          &          & *  & 0001 0110 iiii iiii mmmm mmmm mmmm mmmm \\
-CALLR       &          & *  & 0001 0111 rrr1 1111                     \\
-JMPR        &          & *  & 0001 0111 rrr0 1111                     \\
-LRR(I|D|X)  &          & *  & 0001 100x xaar rrrr                     \\
-SRR(I|D|X)  &          & *  & 0001 101x xaar rrrr                     \\
-MRR         &          & *  & 0001 11dd ddds ssss                     \\
-            &          &    &                                         \\
-LRS         &          & *  & 0010 0rrr mmmm mmmm                     \\
-SRS         &          & *  & 0010 1rrr mmmm mmmm                     \\
-            &          &    &                                         \\
-XORR        &          & *  & 0011 00sr xxxx xxxx                     \\
-ANDR        &          & *  & 0011 01sr xxxx xxxx                     \\
-ORR         &          & *  & 0011 10sr xxxx xxxx                     \\
-ANDC        &          & *  & 0011 110r xxxx xxxx                     \\
-ORC         &          & *  & 0011 111r xxxx xxxx                     \\
-            &          &    &                                         \\
-ADDR        &          & *  & 0100 0ssd xxxx xxxx                     \\
-ADDAX       &          & *  & 0100 10sd xxxx xxxx                     \\
-ADD         &          & *  & 0100 110d xxxx xxxx                     \\
-ADDP        &          & *  & 0100 111d xxxx xxxx                     \\
-            &          &    &                                         \\
-SUBR        &          & *  & 0101 0ssd xxxx xxxx                     \\
-SUBAX       &          & *  & 0101 10sd xxxx xxxx                     \\
-SUB         &          & *  & 0101 110d xxxx xxxx                     \\
-SUBP        &          & *  & 0101 111d xxxx xxxx                     \\
-            &          &    &                                         \\
-MOVR        &          & *  & 0110 0ssd xxxx xxxx                     \\
-MOVAX       &          & *  & 0110 10sd xxxx xxxx                     \\
-MOV         &          & *  & 0110 110d xxxx xxxx                     \\
-MOVP        &          & *  & 0110 111d xxxx xxxx                     \\
-            &          &    &                                         \\
-ADDAXL      &          & *  & 0111 00sr xxxx xxxx                     \\
-INCM        &          & *  & 0111 010r xxxx xxxx                     \\
-INC         &          & *  & 0111 011r xxxx xxxx                     \\
-DECM        &          & *  & 0111 100r xxxx xxxx                     \\
-DEC         &          & *  & 0111 101r xxxx xxxx                     \\
-NEG         &          & *  & 0111 110r xxxx xxxx                     \\
-MOVNP       &          & *  & 0111 111r xxxx xxxx                     \\
-            &          &    &                                         \\
-NX          &          & *  & 1000 x000 xxxx xxxx                     \\
-CLR         &          & *  & 1000 x001 xxxx xxxx                     \\
-CMP         &          & *  & 1000 0010 xxxx xxxx                     \\
-???         & UNUSED   & *  & 1000 0011 xxxx xxxx                     \\
-CLRP        &          & *  & 1000 0100 xxxx xxxx                     \\
-TSTAXH      &          & *  & 1000 011x xxxx xxxx                     \\
-M0/M2       &          &    & 1000 101x xxxx xxxx                     \\
-CLR15/SET15 &          &    & 1000 110x xxxx xxxx                     \\
-SET40/16    &          &    & 1000 111x xxxx xxxx                     \\
-            &          &    &                                         \\
-MUL         &          & *  & 1001 a000 xxxx xxxx                     \\
-ASR16       &          & *  & 1001 r001 xxxx xxxx                     \\
-MULMVZ      &          & *  & 1001 a01r xxxx xxxx                     \\
-MULAC       &          & *  & 1001 a10r xxxx xxxx                     \\
-MULMV       &          & *  & 1001 a11r xxxx xxxx                     \\
-            &          &    &                                         \\
-MULX        &          & *  & 101b a000 xxxx xxxx                     \\
-???         &          &    & 1010 r001 xxxx xxxx                     \\
-TST         &          &    & 1011 r001 xxxx xxxx                     \\
-MULXMVZ     &          & *  & 101b a01r xxxx xxxx                     \\
-MULXAC      &          & *  & 101b a10r xxxx xxxx                     \\
-MULXMV      &          & *  & 101b a11r xxxx xxxx                     \\
-            &          &    &                                         \\
-MULC        &          & *  & 110s a000 xxxx xxxx                     \\
-CMP         &          & *  & 110x r001 xxxx xxxx                     \\
-MULCMVZ     &          & *  & 110s a01r xxxx xxxx                     \\
-MULCAC      &          & *  & 110s a10r xxxx xxxx                     \\
-MULCMV      &          & *  & 110s a11r xxxx xxxx                     \\
-            &          &    &                                         \\
-MADDX       &          & ** & 1110 00st xxxx xxxx                     \\
-MSUBX       &          & ** & 1110 01st xxxx xxxx                     \\
-MADDC       &          & ** & 1110 10st xxxx xxxx                     \\
-MSUBC       &          & ** & 1110 11st xxxx xxxx                     \\
-            &          &    &                                         \\
-LSL16       &          & *  & 1111 000r xxxx xxxx                     \\
-MADD        &          & *  & 1111 001s xxxx xxxx                     \\
-LSR16       &          & *  & 1111 010r xxxx xxxx                     \\
-MSUB        &          & *  & 1111 011s xxxx xxxx                     \\
-ADDPAXZ     &          & *  & 1111 10ar xxxx xxxx                     \\
-CLRL        &          & *  & 1111 110r xxxx xxxx                     \\
-MOVPZ       &          & *  & 1111 111r xxxx xxxx
+\begin{longtable}{llr}
+Instruction & Opcode & Page \\ \hline
+\endhead
+\OpcodeRow{0000 0000 0000 0000}{NOP}
+\OpcodeRow{0000 0000 0000 01aa}{DAR}
+\OpcodeRow{0000 0000 0000 10aa}{IAR}
+\OpcodeRowUnk{0000 0000 0000 11xx}
+\OpcodeRow{0000 0000 0001 bbaa}{ADDARN}
+\OpcodeRow{0000 0000 0010 0001}{HALT}
+\OpcodeRowSkip
+\OpcodeRow{0000 0000 010r rrrr}{LOOP}
+\OpcodeRow{0000 0000 011r rrrr aaaa aaaa aaaa aaaa}{BLOOP}
+\OpcodeRowSkip
+\OpcodeRow{0000 0000 100r rrrr iiii iiii iiii iiii}{LRI}
+\OpcodeRowUnk{0000 0000 101x xxxx}
+\OpcodeRow{0000 0000 110r rrrr mmmm mmmm mmmm mmmm}{LR}
+\OpcodeRow{0000 0000 111r rrrr mmmm mmmm mmmm mmmm}{SR}
+\OpcodeRowSkip
+\OpcodeRow{0000 0010 0111 cccc}{IFcc}
+\OpcodeRow{0000 0010 1001 cccc aaaa aaaa aaaa aaaa}{Jcc}
+\OpcodeRow{0000 0010 1011 cccc aaaa aaaa aaaa aaaa}{CALLcc}
+\OpcodeRow{0000 0010 1101 cccc}{RETcc}
+\OpcodeRow{0000 0010 1111 1111}{RTI}
+\OpcodeRowSkip
+\OpcodeRow{0000 001r 0000 0000 iiii iiii iiii iiii}{ADDI}
+\OpcodeRow{0000 001r 0010 0000 iiii iiii iiii iiii}{XORI}
+\OpcodeRow{0000 001r 0100 0000 iiii iiii iiii iiii}{ANDI}
+\OpcodeRow{0000 001r 0110 0000 iiii iiii iiii iiii}{ORI}
+\OpcodeRow{0000 001r 1000 0000 iiii iiii iiii iiii}{CMPI}
+\OpcodeRow{0000 001r 1010 0000 iiii iiii iiii iiii}{ANDF}
+\OpcodeRow{0000 001r 1100 0000 iiii iiii iiii iiii}{ANDCF}
+\OpcodeRowSkip
+\OpcodeRow{0000 001r 0001 00aa}{ILRR}
+\OpcodeRow{0000 001r 0001 01aa}{ILRRD}
+\OpcodeRow{0000 001r 0001 10aa}{ILRRI}
+\OpcodeRow{0000 001r 0001 11aa}{ILRRN}
+\OpcodeRowSkip
+\OpcodeRow{0000 010d iiii iiii}{ADDIS}
+\OpcodeRow{0000 011d iiii iiii}{CMPIS}
+\OpcodeRow{0000 1rrr iiii iiii}{LRIS}
+\OpcodeRowSkip
+\OpcodeRow{0001 0000 iiii iiii}{LOOPI}
+\OpcodeRow{0001 0001 iiii iiii aaaa aaaa aaaa aaaa}{BLOOPI}
+\OpcodeRow{0001 0010 xxxx xiii}{SBCLR}
+\OpcodeRow{0001 0011 xxxx xiii}{SBSET}
+\OpcodeRowSkip
+\OpcodeRow{0001 010r 00ss ssss}{LSL}
+\OpcodeRow{0001 010r 01ss ssss}{LSR}
+\OpcodeRow{0001 010r 10ss ssss}{ASL}
+\OpcodeRow{0001 010r 11ss ssss}{ASR}
+\OpcodeRow{0001 0110 iiii iiii mmmm mmmm mmmm mmmm}{SI}
+\OpcodeRow{0001 0111 rrr1 1111}{CALLR}
+\OpcodeRow{0001 0111 rrr0 1111}{JMPR}
+\OpcodeRowSkip
+\OpcodeRow{0001 1000 0aar rrrr}{LRR}
+\OpcodeRow{0001 1000 1aar rrrr}{LRRD}
+\OpcodeRow{0001 1001 1aar rrrr}{LRRI}
+\OpcodeRow{0001 1001 1aar rrrr}{LRRN}
+\OpcodeRow{0001 1010 0aar rrrr}{SRR}
+\OpcodeRow{0001 1010 1aar rrrr}{SRRD}
+\OpcodeRow{0001 1011 0aar rrrr}{SRRI}
+\OpcodeRow{0001 1011 1aar rrrr}{SRRN}
+\OpcodeRow{0001 11dd ddds ssss}{MRR}
+\OpcodeRowSkip
+\OpcodeRow{0010 0rrr mmmm mmmm}{LRS}
+\OpcodeRow{0010 1rrr mmmm mmmm}{SRS}
+\OpcodeRowSkip
+\OpcodeRow{0011 00sr xxxx xxxx}{XORR}
+\OpcodeRow{0011 01sr xxxx xxxx}{ANDR}
+\OpcodeRow{0011 10sr xxxx xxxx}{ORR}
+\OpcodeRow{0011 110r xxxx xxxx}{ANDC}
+\OpcodeRow{0011 111r xxxx xxxx}{ORC}
+\OpcodeRowSkip
+\OpcodeRow{0100 0ssd xxxx xxxx}{ADDR}
+\OpcodeRow{0100 10sd xxxx xxxx}{ADDAX}
+\OpcodeRow{0100 110d xxxx xxxx}{ADD}
+\OpcodeRow{0100 111d xxxx xxxx}{ADDP}
+\OpcodeRowSkip
+\OpcodeRow{0101 0ssd xxxx xxxx}{SUBR}
+\OpcodeRow{0101 10sd xxxx xxxx}{SUBAX}
+\OpcodeRow{0101 110d xxxx xxxx}{SUB}
+\OpcodeRow{0101 111d xxxx xxxx}{SUBP}
+\OpcodeRowSkip
+\OpcodeRow{0110 0ssd xxxx xxxx}{MOVR}
+\OpcodeRow{0110 10sd xxxx xxxx}{MOVAX}
+\OpcodeRow{0110 110d xxxx xxxx}{MOV}
+\OpcodeRow{0110 111d xxxx xxxx}{MOVP}
+\OpcodeRowSkip
+\OpcodeRow{0111 00sr xxxx xxxx}{ADDAXL}
+\OpcodeRow{0111 010r xxxx xxxx}{INCM}
+\OpcodeRow{0111 011r xxxx xxxx}{INC}
+\OpcodeRow{0111 100r xxxx xxxx}{DECM}
+\OpcodeRow{0111 101r xxxx xxxx}{DEC}
+\OpcodeRow{0111 110r xxxx xxxx}{NEG}
+\OpcodeRow{0111 111r xxxx xxxx}{MOVNP}
+\OpcodeRowSkip
+\OpcodeRow{1000 x000 xxxx xxxx}{NX}
+\OpcodeRow{1000 x001 xxxx xxxx}{CLR}
+\OpcodeRow{1000 0010 xxxx xxxx}{CMP}
+\OpcodeRowUnk{1000 0011 xxxx xxxx}
+\OpcodeRow{1000 0100 xxxx xxxx}{CLRP}
+\OpcodeRow{1000 011x xxxx xxxx}{TSTAXH}
+\OpcodeRowSkip
+\OpcodeRow{1000 1010 xxxx xxxx}{M2}
+\OpcodeRow{1000 1011 xxxx xxxx}{M0}
+\OpcodeRow{1000 1100 xxxx xxxx}{CLR15}
+\OpcodeRow{1000 1101 xxxx xxxx}{SET15}
+\OpcodeRow{1000 1110 xxxx xxxx}{SET16}
+\OpcodeRow{1000 1111 xxxx xxxx}{SET40}
+\OpcodeRowSkip
+\OpcodeRow{1001 a000 xxxx xxxx}{MUL}
+\OpcodeRow{1001 r001 xxxx xxxx}{ASR16}
+\OpcodeRow{1001 a01r xxxx xxxx}{MULMVZ}
+\OpcodeRow{1001 a10r xxxx xxxx}{MULAC}
+\OpcodeRow{1001 a11r xxxx xxxx}{MULMV}
+\OpcodeRowSkip
+\OpcodeRow{101b a000 xxxx xxxx}{MULX}
+\OpcodeRowUnk{1010 r001 xxxx xxxx}
+\OpcodeRow{1011 r001 xxxx xxxx}{TST}
+\OpcodeRow{101b a01r xxxx xxxx}{MULXMVZ}
+\OpcodeRow{101b a10r xxxx xxxx}{MULXAC}
+\OpcodeRow{101b a11r xxxx xxxx}{MULXMV}
+\OpcodeRowSkip
+\OpcodeRow{110s a000 xxxx xxxx}{MULC}
+\OpcodeRow{110x r001 xxxx xxxx}{CMP}
+\OpcodeRow{110s a01r xxxx xxxx}{MULCMVZ}
+\OpcodeRow{110s a10r xxxx xxxx}{MULCAC}
+\OpcodeRow{110s a11r xxxx xxxx}{MULCMV}
+\OpcodeRowSkip
+\OpcodeRow{1110 00st xxxx xxxx}{MADDX}
+\OpcodeRow{1110 01st xxxx xxxx}{MSUBX}
+\OpcodeRow{1110 10st xxxx xxxx}{MADDC}
+\OpcodeRow{1110 11st xxxx xxxx}{MSUBC}
+\OpcodeRowSkip
+\OpcodeRow{1111 000r xxxx xxxx}{LSL16}
+\OpcodeRow{1111 001s xxxx xxxx}{MADD}
+\OpcodeRow{1111 010r xxxx xxxx}{LSR16}
+\OpcodeRow{1111 011s xxxx xxxx}{MSUB}
+\OpcodeRow{1111 10ar xxxx xxxx}{ADDPAXZ}
+\OpcodeRow{1111 110r xxxx xxxx}{CLRL}
+\OpcodeRow{1111 111r xxxx xxxx}{MOVPZ}
 \end{longtable}
 \end{center}
 
 \begin{center}
 Extension Opcodes
-\begin{longtable}{TllT}
-[D|I|N]R    &          & *  & xxxx xxxx 0000 nnaa \\
-MV          &          & *  & xxxx xxxx 0001 ddss \\
-S[N]        &          & *  & xxxx xxxx 001r rnaa \\
-L[N]        &          & *  & xxxx xxxx 01dd diss \\
-LS[NM|M|N]  &          & *  & xxxx xxxx 10dd ba0r \\
-SL[NM|M|N]  &          & *  & xxxx xxxx 10dd ba1r \\
-LD[NM|M|N]  &          &    & xxxx xxxx 11mn barr \\
-LD2[NM|M|N] &          &    & xxxx xxxx 11rm ba11
+\begin{longtable}{llr}
+Instruction & Opcode & Page \\ \hline
+\OpcodeRow{xxxx xxxx 0000 01aa}{'DR}
+\OpcodeRow{xxxx xxxx 0000 10aa}{'IR}
+\OpcodeRow{xxxx xxxx 0000 11aa}{'NR}
+\OpcodeRow{xxxx xxxx 0001 ddss}{'MV}
+\OpcodeRow{xxxx xxxx 001r r0aa}{'S}
+\OpcodeRow{xxxx xxxx 001r r1aa}{'SN}
+\OpcodeRow{xxxx xxxx 01dd d0ss}{'L}
+\OpcodeRow{xxxx xxxx 01dd d1ss}{'LN}
+\OpcodeRowSkip
+\OpcodeRow{xxxx xxxx 10dd 000r}{'LS}
+\OpcodeRow{xxxx xxxx 10dd 001r}{'SL}
+\OpcodeRow{xxxx xxxx 10dd 010r}{'LSN}
+\OpcodeRow{xxxx xxxx 10dd 011r}{'SLN}
+\OpcodeRow{xxxx xxxx 10dd 100r}{'LSM}
+\OpcodeRow{xxxx xxxx 10dd 101r}{'SLM}
+\OpcodeRow{xxxx xxxx 10dd 110r}{'LSNM}
+\OpcodeRow{xxxx xxxx 10dd 111r}{'SLNM}
+\OpcodeRow{xxxx xxxx 11mn barr}{'LD[NM|M|N]}
+\OpcodeRow{xxxx xxxx 11rm ba11}{'LD2[NM|M|N]}
 \end{longtable}
 \end{center}
 
