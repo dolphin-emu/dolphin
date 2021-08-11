@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -17,6 +18,7 @@ import androidx.slidingpanelayout.widget.SlidingPaneLayout;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
+import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
@@ -25,10 +27,12 @@ public class CheatsActivity extends AppCompatActivity
         implements SlidingPaneLayout.PanelSlideListener
 {
   private static final String ARG_GAME_ID = "game_id";
+  private static final String ARG_GAMETDB_ID = "gametdb_id";
   private static final String ARG_REVISION = "revision";
   private static final String ARG_IS_WII = "is_wii";
 
   private String mGameId;
+  private String mGameTdbId;
   private int mRevision;
   private boolean mIsWii;
   private CheatsViewModel mViewModel;
@@ -40,10 +44,12 @@ public class CheatsActivity extends AppCompatActivity
   private View mCheatListLastFocus;
   private View mCheatDetailsLastFocus;
 
-  public static void launch(Context context, String gameId, int revision, boolean isWii)
+  public static void launch(Context context, String gameId, String gameTdbId, int revision,
+          boolean isWii)
   {
     Intent intent = new Intent(context, CheatsActivity.class);
     intent.putExtra(ARG_GAME_ID, gameId);
+    intent.putExtra(ARG_GAMETDB_ID, gameTdbId);
     intent.putExtra(ARG_REVISION, revision);
     intent.putExtra(ARG_IS_WII, isWii);
     context.startActivity(intent);
@@ -58,6 +64,7 @@ public class CheatsActivity extends AppCompatActivity
 
     Intent intent = getIntent();
     mGameId = intent.getStringExtra(ARG_GAME_ID);
+    mGameTdbId = intent.getStringExtra(ARG_GAMETDB_ID);
     mRevision = intent.getIntExtra(ARG_REVISION, 0);
     mIsWii = intent.getBooleanExtra(ARG_IS_WII, true);
 
@@ -159,6 +166,49 @@ public class CheatsActivity extends AppCompatActivity
     Settings settings = new Settings();
     settings.loadSettings(null, mGameId, mRevision, mIsWii);
     return settings;
+  }
+
+  public void downloadGeckoCodes()
+  {
+    AlertDialog progressDialog = new AlertDialog.Builder(this, R.style.DolphinDialogBase).create();
+    progressDialog.setTitle(R.string.cheats_downloading);
+    progressDialog.setCancelable(false);
+    progressDialog.show();
+
+    new Thread(() ->
+    {
+      GeckoCheat[] codes = GeckoCheat.downloadCodes(mGameTdbId);
+
+      runOnUiThread(() ->
+      {
+        progressDialog.dismiss();
+
+        if (codes == null)
+        {
+          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+                  .setMessage(getString(R.string.cheats_download_failed))
+                  .setPositiveButton(R.string.ok, null)
+                  .show();
+        }
+        else if (codes.length == 0)
+        {
+          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+                  .setMessage(getString(R.string.cheats_download_empty))
+                  .setPositiveButton(R.string.ok, null)
+                  .show();
+        }
+        else
+        {
+          int cheatsAdded = mViewModel.addDownloadedGeckoCodes(codes);
+          String message = getString(R.string.cheats_download_succeeded, codes.length, cheatsAdded);
+
+          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+                  .setMessage(message)
+                  .setPositiveButton(R.string.ok, null)
+                  .show();
+        }
+      });
+    }).start();
   }
 
   public static void setOnFocusChangeListenerRecursively(@NonNull View view,

@@ -29,7 +29,8 @@ public class GamePropertiesDialog extends DialogFragment
 {
   public static final String TAG = "GamePropertiesDialog";
   private static final String ARG_PATH = "path";
-  private static final String ARG_GAMEID = "game_id";
+  private static final String ARG_GAME_ID = "game_id";
+  private static final String ARG_GAMETDB_ID = "gametdb_id";
   public static final String ARG_REVISION = "revision";
   private static final String ARG_PLATFORM = "platform";
   private static final String ARG_SHOULD_ALLOW_CONVERSION = "should_allow_conversion";
@@ -40,7 +41,8 @@ public class GamePropertiesDialog extends DialogFragment
 
     Bundle arguments = new Bundle();
     arguments.putString(ARG_PATH, gameFile.getPath());
-    arguments.putString(ARG_GAMEID, gameFile.getGameId());
+    arguments.putString(ARG_GAME_ID, gameFile.getGameId());
+    arguments.putString(ARG_GAMETDB_ID, gameFile.getGameTdbId());
     arguments.putInt(ARG_REVISION, gameFile.getRevision());
     arguments.putInt(ARG_PLATFORM, gameFile.getPlatform());
     arguments.putBoolean(ARG_SHOULD_ALLOW_CONVERSION, gameFile.shouldAllowConversion());
@@ -54,7 +56,8 @@ public class GamePropertiesDialog extends DialogFragment
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
     final String path = requireArguments().getString(ARG_PATH);
-    final String gameId = requireArguments().getString(ARG_GAMEID);
+    final String gameId = requireArguments().getString(ARG_GAME_ID);
+    final String gameTdbId = requireArguments().getString(ARG_GAMETDB_ID);
     final int revision = requireArguments().getInt(ARG_REVISION);
     final int platform = requireArguments().getInt(ARG_PLATFORM);
     final boolean shouldAllowConversion =
@@ -93,7 +96,7 @@ public class GamePropertiesDialog extends DialogFragment
             SettingsActivity.launch(getContext(), MenuTag.SETTINGS, gameId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_edit_cheats, (dialog, i) ->
-            CheatsActivity.launch(getContext(), gameId, revision, isWii));
+            CheatsActivity.launch(getContext(), gameId, gameTdbId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettings(gameId));

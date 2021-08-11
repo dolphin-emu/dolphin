@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.ARCheat;
@@ -17,6 +18,7 @@ public class ActionViewHolder extends CheatItemViewHolder implements View.OnClic
 {
   private final TextView mName;
 
+  private CheatsActivity mActivity;
   private CheatsViewModel mViewModel;
   private int mString;
   private int mPosition;
@@ -30,9 +32,10 @@ public class ActionViewHolder extends CheatItemViewHolder implements View.OnClic
     itemView.setOnClickListener(this);
   }
 
-  public void bind(CheatsViewModel viewModel, CheatItem item, int position)
+  public void bind(CheatsActivity activity, CheatItem item, int position)
   {
-    mViewModel = viewModel;
+    mActivity = activity;
+    mViewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
     mString = item.getString();
     mPosition = position;
 
@@ -55,6 +58,10 @@ public class ActionViewHolder extends CheatItemViewHolder implements View.OnClic
     {
       mViewModel.startAddingCheat(new PatchCheat(), mPosition);
       mViewModel.openDetailsView();
+    }
+    else if (mString == R.string.cheats_download_gecko)
+    {
+      mActivity.downloadGeckoCodes();
     }
   }
 }

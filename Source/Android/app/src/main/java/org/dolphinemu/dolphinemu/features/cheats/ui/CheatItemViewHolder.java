@@ -16,5 +16,5 @@ public abstract class CheatItemViewHolder extends RecyclerView.ViewHolder
     super(itemView);
   }
 
-  public abstract void bind(CheatsViewModel viewModel, CheatItem item, int position);
+  public abstract void bind(CheatsActivity activity, CheatItem item, int position);
 }
