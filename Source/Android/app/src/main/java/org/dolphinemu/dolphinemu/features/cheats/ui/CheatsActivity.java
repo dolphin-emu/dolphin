@@ -13,6 +13,7 @@ import androidx.slidingpanelayout.widget.SlidingPaneLayout;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.Cheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
@@ -20,18 +21,21 @@ public class CheatsActivity extends AppCompatActivity
 {
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
+  private static final String ARG_IS_WII = "is_wii";
 
   private String mGameId;
   private int mRevision;
+  private boolean mIsWii;
   private CheatsViewModel mViewModel;
 
   private SlidingPaneLayout mSlidingPaneLayout;
 
-  public static void launch(Context context, String gameId, int revision)
+  public static void launch(Context context, String gameId, int revision, boolean isWii)
   {
     Intent intent = new Intent(context, CheatsActivity.class);
     intent.putExtra(ARG_GAME_ID, gameId);
     intent.putExtra(ARG_REVISION, revision);
+    intent.putExtra(ARG_IS_WII, isWii);
     context.startActivity(intent);
   }
 
@@ -45,6 +49,7 @@ public class CheatsActivity extends AppCompatActivity
     Intent intent = getIntent();
     mGameId = intent.getStringExtra(ARG_GAME_ID);
     mRevision = intent.getIntExtra(ARG_REVISION, 0);
+    mIsWii = intent.getBooleanExtra(ARG_IS_WII, true);
 
     setTitle(getString(R.string.cheats_with_game_id, mGameId));
 
@@ -87,5 +92,12 @@ public class CheatsActivity extends AppCompatActivity
   {
     if (open)
       mSlidingPaneLayout.open();
+  }
+
+  public Settings loadGameSpecificSettings()
+  {
+    Settings settings = new Settings();
+    settings.loadSettings(null, mGameId, mRevision, mIsWii);
+    return settings;
   }
 }
