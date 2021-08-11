@@ -92,6 +92,13 @@ Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_getEnabled(JNIEn
   return static_cast<jboolean>(GetPointer(env, obj)->enabled);
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_equalsImpl(JNIEnv* env, jobject obj,
+                                                                           jobject other)
+{
+  return *GetPointer(env, obj) == *GetPointer(env, other);
+}
+
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_trySetImpl(
     JNIEnv* env, jobject obj, jstring name, jstring creator, jstring notes, jstring code_string)
 {
@@ -179,5 +186,27 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_Geck
   game_ini_local.Load(ini_path);
   Gecko::SaveCodes(game_ini_local, vector);
   game_ini_local.Save(ini_path);
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_org_dolphinemu_dolphinemu_features_cheats_model_GeckoCheat_downloadCodes(JNIEnv* env, jclass,
+                                                                              jstring jGameTdbId)
+{
+  const std::string gametdb_id = GetJString(env, jGameTdbId);
+
+  bool success = true;
+  const std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(gametdb_id, &success, false);
+
+  if (!success)
+    return nullptr;
+
+  const jobjectArray array =
+      env->NewObjectArray(static_cast<jsize>(codes.size()), IDCache::GetGeckoCheatClass(), nullptr);
+
+  jsize i = 0;
+  for (const Gecko::GeckoCode& code : codes)
+    env->SetObjectArrayElement(array, i++, GeckoCheatToJava(env, code));
+
+  return array;
 }
 }

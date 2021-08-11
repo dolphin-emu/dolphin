@@ -8,6 +8,7 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import org.dolphinemu.dolphinemu.R;
@@ -34,11 +35,11 @@ public class CheatViewHolder extends CheatItemViewHolder
     mCheckbox = itemView.findViewById(R.id.checkbox);
   }
 
-  public void bind(CheatsViewModel viewModel, CheatItem item, int position)
+  public void bind(CheatsActivity activity, CheatItem item, int position)
   {
     mCheckbox.setOnCheckedChangeListener(null);
 
-    mViewModel = viewModel;
+    mViewModel = new ViewModelProvider(activity).get(CheatsViewModel.class);
     mCheat = item.getCheat();
     mPosition = position;
 

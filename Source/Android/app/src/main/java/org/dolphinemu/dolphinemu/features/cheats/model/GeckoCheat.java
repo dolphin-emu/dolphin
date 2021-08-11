@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.features.cheats.model;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class GeckoCheat extends AbstractCheat
 {
@@ -25,6 +26,12 @@ public class GeckoCheat extends AbstractCheat
   public native void finalize();
 
   private native long createNew();
+
+  @Override
+  public boolean equals(@Nullable Object obj)
+  {
+    return obj != null && getClass() == obj.getClass() && equalsImpl((GeckoCheat) obj);
+  }
 
   public boolean supportsCreator()
   {
@@ -52,6 +59,8 @@ public class GeckoCheat extends AbstractCheat
 
   public native boolean getEnabled();
 
+  public native boolean equalsImpl(@NonNull GeckoCheat other);
+
   @Override
   protected native int trySetImpl(@NonNull String name, @NonNull String creator,
           @NonNull String notes, @NonNull String code);
@@ -63,4 +72,7 @@ public class GeckoCheat extends AbstractCheat
   public static native GeckoCheat[] loadCodes(String gameId, int revision);
 
   public static native void saveCodes(String gameId, int revision, GeckoCheat[] codes);
+
+  @Nullable
+  public static native GeckoCheat[] downloadCodes(String gameTdbId);
 }

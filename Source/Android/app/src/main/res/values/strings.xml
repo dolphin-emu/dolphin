@@ -395,6 +395,7 @@
     <string name="cheats_add_ar">Add New AR Code</string>
     <string name="cheats_add_gecko">Add New Gecko Code</string>
     <string name="cheats_add_patch">Add New Patch</string>
+    <string name="cheats_download_gecko">Download Gecko Codes</string>
     <string name="cheats_name">Name</string>
     <string name="cheats_creator">Creator</string>
     <string name="cheats_notes">Notes</string>
@@ -406,6 +407,10 @@
     <string name="cheats_error_no_code_lines">Code can\'t be empty</string>
     <string name="cheats_error_on_line">Error on line %1$d</string>
     <string name="cheats_error_mixed_encryption">Lines must either be all encrypted or all decrypted</string>
+    <string name="cheats_downloading">Downloading...</string>
+    <string name="cheats_download_failed">Failed to download codes.</string>
+    <string name="cheats_download_empty">File contained no codes.</string>
+    <string name="cheats_download_succeeded">Downloaded %1$d codes. (added %2$d)</string>
     <string name="cheats_disabled_warning">Dolphin\'s cheat system is currently disabled.</string>
     <string name="cheats_open_settings">Settings</string>
 

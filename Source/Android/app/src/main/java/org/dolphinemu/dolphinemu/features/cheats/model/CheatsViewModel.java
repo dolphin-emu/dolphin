@@ -21,6 +21,7 @@ public class CheatsViewModel extends ViewModel
   private final MutableLiveData<Integer> mCheatAddedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Integer> mCheatChangedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Integer> mCheatDeletedEvent = new MutableLiveData<>(null);
+  private final MutableLiveData<Integer> mGeckoCheatsDownloadedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
 
   private ArrayList<PatchCheat> mPatchCheats;
@@ -234,6 +235,38 @@ public class CheatsViewModel extends ViewModel
   {
     mCheatDeletedEvent.setValue(position);
     mCheatDeletedEvent.setValue(null);
+  }
+
+  /**
+   * When Gecko cheats are downloaded, the integer stored in the returned LiveData
+   * changes to the number of cheats added, then changes back to null.
+   */
+  public LiveData<Integer> getGeckoCheatsDownloadedEvent()
+  {
+    return mGeckoCheatsDownloadedEvent;
+  }
+
+  public int addDownloadedGeckoCodes(GeckoCheat[] cheats)
+  {
+    int cheatsAdded = 0;
+
+    for (GeckoCheat cheat : cheats)
+    {
+      if (!mGeckoCheats.contains(cheat))
+      {
+        mGeckoCheats.add(cheat);
+        cheatsAdded++;
+      }
+    }
+
+    if (cheatsAdded != 0)
+    {
+      mGeckoCheatsNeedSaving = true;
+      mGeckoCheatsDownloadedEvent.setValue(cheatsAdded);
+      mGeckoCheatsDownloadedEvent.setValue(null);
+    }
+
+    return cheatsAdded;
   }
 
   public LiveData<Boolean> getOpenDetailsViewEvent()

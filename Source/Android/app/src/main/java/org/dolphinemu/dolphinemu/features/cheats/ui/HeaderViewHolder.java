@@ -21,7 +21,7 @@ public class HeaderViewHolder extends CheatItemViewHolder
     mHeaderName = itemView.findViewById(R.id.text_header_name);
   }
 
-  public void bind(CheatsViewModel viewModel, CheatItem item, int position)
+  public void bind(CheatsActivity activity, CheatItem item, int position)
   {
     mHeaderName.setText(item.getString());
   }
