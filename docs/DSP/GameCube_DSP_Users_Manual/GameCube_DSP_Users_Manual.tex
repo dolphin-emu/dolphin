@@ -178,7 +178,7 @@
 {
 }
 
-% Environment for describing a not for a DSP opcode
+% Environment for describing a note for a DSP opcode
 \newenvironment{DSPOpcodeNote}
 {
   \textbf{Note:}
@@ -1248,7 +1248,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{ANDC}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -1264,6 +1264,10 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDCF}
@@ -1341,7 +1345,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{ANDR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -1357,6 +1361,10 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASL}
@@ -1423,6 +1431,66 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($ac0)
     $pc++
   \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASRNR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASRNR $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically shifts accumulator \Register{\$acD} either left or right based on \Register{\$ac(1-D).m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (ac(1-D).m & 64)
+        IF (ac(1-D).m & 63) != 0
+            $acD >>= (64 - (ac(1-D).m & 63))
+        ENDIF
+    ELSE
+        $acD <<= ac(1-D).m
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASRNRX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASRNRX $acD, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically shifts accumulator \Register{\$acD} either left or right based on \Register{\$axS.h}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (axS.h & 64)
+        IF (axS.h & 63) != 0
+            $acD >>= (64 - (axS.h & 63))
+        ENDIF
+    ELSE
+        $acD <<= axS.h
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASR16}
@@ -2415,6 +2483,66 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{LSRNR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSRNR $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically shifts accumulator \Register{\$acD} either left or right based on \Register{\$ac(1-D).m}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (ac(1-D).m & 64)
+        IF (ac(1-D).m & 63) != 0
+            $acD >>= (64 - (ac(1-D).m & 63))
+        ENDIF
+    ELSE
+        $acD <<= ac(1-D).m
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSRNRX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSRNRX $acD, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically shifts accumulator \Register{\$acD} either left or right based on \Register{\$axS.h}: if bit 6 is set, a right by the amount calculated by negating sign-extended bits 0--5 occurs, while if bit 6 is clear, a left shift occurs by bits 0--5.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (axS.h & 64)
+        IF (axS.h & 63) != 0
+            $acD >>= (64 - (axS.h & 63))
+        ENDIF
+    ELSE
+        $acD <<= axS.h
+    ENDIF
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{LSR16}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{1111} & \monobitbox{4}{010r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
@@ -3129,6 +3257,30 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{NOT}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{001d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    NOT $acD.m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Invert all bits in the middle part of accumulator \Register{\$acD.m} (i.e. XOR with \Value{0xffff}).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m = ~acD.m
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{NOP}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000}
@@ -3167,7 +3319,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{ORC}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -3183,6 +3335,10 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORI}
@@ -3208,7 +3364,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{ORR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -3224,6 +3380,10 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RET}
@@ -3698,6 +3858,30 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{XORC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{000d} & \monobitbox{4}{1xxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    XORC $acD.m, $ac(1-D).m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logical XOR (exclusive OR) middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ac(1-D).m}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m ^= $ac(1-D).m
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{XORI}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
@@ -3721,7 +3905,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \begin{DSPOpcode}{XORR}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0011} & \monobitbox{4}{00sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+    \monobitbox{4}{0011} & \monobitbox{4}{00sd} & \monobitbox{4}{0xxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
@@ -3737,12 +3921,20 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \section{Extended opcodes}
 
-Extended opcodes do not exist on their own. These opcodes can only be attached to opcodes that
-allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do not modify the program counter (\Register{\$pc} register).
+Extended opcodes do not exist on their own. These opcodes can only be attached to opcodes that allow extending.
+Specifically, opcodes where the first nybble is 0, 1, or 2 cannot be extended.
+Opcodes where the first nybble is 4 or higher can be extended, using the 8 lower bits.
+Opcodes where the first nybble is 3 can also be extended, but the main opcode is 9 bits and the extension opcode is 7 bits.  For these instructions, the extension opcode is treated as if the first bit were 0 (i.e. \texttt{0xxxxxxx}).
+
+Extended opcodes do not modify the program counter (\Register{\$pc} register).
 
 \pagebreak{}
 
@@ -4165,11 +4357,18 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0010 0ddd mmmm mmmm}{LRS}
 \OpcodeRow{0010 1sss mmmm mmmm}{SRS}
 \OpcodeRowSkip
-\OpcodeRow{0011 00sr xxxx xxxx}{XORR}
-\OpcodeRow{0011 01sr xxxx xxxx}{ANDR}
-\OpcodeRow{0011 10sr xxxx xxxx}{ORR}
-\OpcodeRow{0011 110r xxxx xxxx}{ANDC}
-\OpcodeRow{0011 111r xxxx xxxx}{ORC}
+\OpcodeRow{0011 00sd 0xxx xxxx}{XORR}
+\OpcodeRow{0011 01sd 0xxx xxxx}{ANDR}
+\OpcodeRow{0011 10sd 0xxx xxxx}{ORR}
+\OpcodeRow{0011 110d 0xxx xxxx}{ANDC}
+\OpcodeRow{0011 111d 0xxx xxxx}{ORC}
+\OpcodeRowSkip
+\OpcodeRow{0011 000d 1xxx xxxx}{XORC}
+\OpcodeRow{0011 001d 1xxx xxxx}{NOT}
+\OpcodeRow{0011 01sd 1xxx xxxx}{LSRNRX}
+\OpcodeRow{0011 10sd 1xxx xxxx}{ASRNRX}
+\OpcodeRow{0011 110d 1xxx xxxx}{LSRNR}
+\OpcodeRow{0011 111d 1xxx xxxx}{ASRNR}
 \OpcodeRowSkip
 \OpcodeRow{0100 0ssd xxxx xxxx}{ADDR}
 \OpcodeRow{0100 10sd xxxx xxxx}{ADDAX}
