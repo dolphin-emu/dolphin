@@ -4018,6 +4018,224 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{'LD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{00ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LD $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Increment both \Register{\$arS} and \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS++
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAX}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{10ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDM $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS++
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAXM}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDNM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{11ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDNM $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and add corresponding
+          indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS += $ixS
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAXNM}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11dr} & \monobitbox{4}{01ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDN $ax0.D, $ax1.R, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$ax0.D} (either \Register{\$ax0.l} or \Register{\$ax0.h}, as \Register{\$(0x18+D*2)}) with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$ax1.R} (either \Register{\$ax1.l} or \Register{\$ax1.h}, as \Register{\$(0x19+R*2)}) with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and increment \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $ax0.D = MEM[$arS]
+    $ax1.R = MEM[$ar3]
+    $arS += $ixS
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} cannot be 3, as that instead encodes \Opcode{'LDAXN}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAX $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Increment both \Register{\$arS} and \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS++
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAXM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAXM $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS++
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAXNM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAXNM $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and add corresponding
+          indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS += $ixS
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LDAXN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{11sr} & \monobitbox{4}{0011}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LDAXN $axR, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$axR.h} with value from memory pointed by register \Register{\$arS}.
+          Load register \Register{\$axR.l} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ixS} to addressing register \Register{\$arS} and increment \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $axR.h = MEM[$arS]
+    $axR.l = MEM[$ar3]
+    $arS += $ixS
+    $ar3++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item \texttt{S} can be either 0 or 1, corresponding to \Register{\$ar0} or \Register{\$ar1}.  Thus, \Register{\$arS} is guaranteed to be distinct from \Register{\$ar3}.  \Register{\$ar2} cannot be used with this instruction.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{'LS}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{01dd} & \monobitbox{4}{d1ss}
@@ -4442,6 +4660,8 @@ Instruction & Opcode & Page \\ \hline
 \end{longtable}
 \end{center}
 
+\pagebreak
+
 \begin{center}
 Extension Opcodes
 \begin{longtable}{llr}
@@ -4463,8 +4683,15 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{xxxx xxxx 10dd 101s}{'SLM}
 \OpcodeRow{xxxx xxxx 10dd 110s}{'LSNM}
 \OpcodeRow{xxxx xxxx 10dd 111s}{'SLNM}
-\OpcodeRow{xxxx xxxx 11mn barr}{'LD[NM|M|N]}
-\OpcodeRow{xxxx xxxx 11rm ba11}{'LD2[NM|M|N]}
+\OpcodeRowSkip
+\OpcodeRow{xxxx xxxx 11dr 00ss}{'LD}
+\OpcodeRow{xxxx xxxx 11sr 0011}{'LDAX}
+\OpcodeRow{xxxx xxxx 11dr 01ss}{'LDN}
+\OpcodeRow{xxxx xxxx 11sr 0111}{'LDAXN}
+\OpcodeRow{xxxx xxxx 11dr 10ss}{'LDM}
+\OpcodeRow{xxxx xxxx 11sr 1011}{'LDAXM}
+\OpcodeRow{xxxx xxxx 11dr 11ss}{'LDNM}
+\OpcodeRow{xxxx xxxx 11dr 1111}{'LDAXNM}
 \end{longtable}
 \end{center}
 
