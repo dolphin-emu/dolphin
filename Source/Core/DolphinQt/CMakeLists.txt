@@ -527,12 +527,12 @@ if(APPLE)
     # Code sign make file builds
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
     
     # Code sign builds for build systems that do have release/debug variants (Xcode)
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmuDebug.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
       
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
