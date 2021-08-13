@@ -247,7 +247,7 @@ void Interpreter::mulx(const UDSPInstruction opc)
 }
 
 // MULXAC $ax0.S, $ax1.T, $acR
-// 101s t01r xxxx xxxx
+// 101s t10r xxxx xxxx
 // Add product register to accumulator register $acR. Multiply one part
 // $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
@@ -343,7 +343,7 @@ void Interpreter::mulc(const UDSPInstruction opc)
 }
 
 // MULCAC $acS.m, $axT.h, $acR
-// 110s	t10r xxxx xxxx
+// 110s t10r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axS.h of
 // secondary accumulator $axS  (treat them both as signed). Add product
 // register before multiplication to accumulator $acR.
@@ -393,7 +393,7 @@ void Interpreter::mulcmv(const UDSPInstruction opc)
 }
 
 // MULCMVZ $acS.m, $axT.h, $acR
-// 110s	t01r xxxx xxxx
+// 110s t01r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR, set (round) low part of

@@ -76,9 +76,10 @@ void Interpreter::jcc(const UDSPInstruction opc)
 }
 
 // Generic jmpr implementation
-// JMPcc $R
+// JRcc $R
 // 0001 0111 rrr0 cccc
-// Jump to address; set program counter to a value from register $R.
+// Jump to address if condition cc has been met. Set program counter to
+// a value from register $R.
 void Interpreter::jmprcc(const UDSPInstruction opc)
 {
   if (!CheckCondition(opc & 0xf))
@@ -116,7 +117,7 @@ void Interpreter::rti(const UDSPInstruction)
 }
 
 // HALT
-// 0000 0000 0020 0001
+// 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void Interpreter::halt(const UDSPInstruction)
 {

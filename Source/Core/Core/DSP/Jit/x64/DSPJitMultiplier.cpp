@@ -416,7 +416,7 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
 }
 
 // MULXAC $ax0.S, $ax1.T, $acR
-// 101s t01r xxxx xxxx
+// 101s t10r xxxx xxxx
 // Add product register to accumulator register $acR. Multiply one part
 // $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
@@ -487,7 +487,7 @@ void DSPEmitter::mulxmv(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp1);
 }
 
-// MULXMV $ax0.S, $ax1.T, $acR
+// MULXMVZ $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
 // Move product register to accumulator register $acR and clear (round) low part
 // of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1
@@ -545,7 +545,7 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
 }
 
 // MULCAC $acS.m, $axT.h, $acR
-// 110s	t10r xxxx xxxx
+// 110s t10r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axS.h of
 // secondary accumulator $axS  (treat them both as signed). Add product
 // register before multiplication to accumulator $acR.
@@ -616,7 +616,7 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 }
 
 // MULCMVZ $acS.m, $axT.h, $acR
-// 110s	t01r xxxx xxxx
+// 110s t01r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR, set (round) low part of
