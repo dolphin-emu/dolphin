@@ -564,11 +564,11 @@ void JitArm64::dcbx(UGeckoInstruction inst)
                          js.op[1].inst.RA_6 == b && js.op[1].inst.RD_2 == b &&
                          js.op[2].inst.hex == 0x4200fff8;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  gpr.Lock(ARM64Reg::W0);
   if (make_loop)
     gpr.Lock(ARM64Reg::W1);
 
-  ARM64Reg WA = ARM64Reg::W30;
+  ARM64Reg WA = gpr.GetReg();
 
   if (make_loop)
     gpr.BindToRegister(b, true);
@@ -687,7 +687,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     gprs_to_push[DecodeReg(loop_counter)] = false;
 
   ABI_PushRegisters(gprs_to_push);
-  m_float_emit.ABI_PushRegisters(fprs_to_push, ARM64Reg::X30);
+  m_float_emit.ABI_PushRegisters(fprs_to_push, WA);
 
   // The function call arguments are already in the correct registers
   if (make_loop)
@@ -696,7 +696,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     MOVP2R(ARM64Reg::X8, &JitInterface::InvalidateICacheLine);
   BLR(ARM64Reg::X8);
 
-  m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);
+  m_float_emit.ABI_PopRegisters(fprs_to_push, WA);
   ABI_PopRegisters(gprs_to_push);
 
   FixupBranch near_addr = B();
