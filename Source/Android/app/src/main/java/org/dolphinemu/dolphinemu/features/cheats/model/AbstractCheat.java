@@ -12,6 +12,21 @@ public abstract class AbstractCheat implements Cheat
   public int trySet(@NonNull String name, @NonNull String creator, @NonNull String notes,
           @NonNull String code)
   {
+    if (!code.isEmpty() && code.charAt(0) == '$')
+    {
+      int firstLineEnd = code.indexOf('\n');
+      if (firstLineEnd == -1)
+      {
+        name = code.substring(1);
+        code = "";
+      }
+      else
+      {
+        name = code.substring(1, firstLineEnd);
+        code = code.substring(firstLineEnd + 1);
+      }
+    }
+
     if (name.isEmpty())
       return TRY_SET_FAIL_NO_NAME;
 
