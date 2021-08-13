@@ -1837,8 +1837,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    res = ($acD.hm - I) | $acD.l
-    FLAGS(res)
+    FLAGS($acD - (I << 16))
     $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -1858,7 +1857,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    FLAGS($acD - #I)
+    FLAGS($acD - (I << 16))
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
