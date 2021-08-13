@@ -4347,6 +4347,24 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{'NOP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0000} & \monobitbox{4}{00xx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'NOP
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item No operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeNote}
+     \item Generally written as by not including any extension operation, such as writing \texttt{INC \$ac0} instead of writing \texttt{INC'NOP \$ac0}.
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{'NR}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0000} & \monobitbox{4}{11rr}
@@ -4666,6 +4684,7 @@ Instruction & Opcode & Page \\ \hline
 Extension Opcodes
 \begin{longtable}{llr}
 Instruction & Opcode & Page \\ \hline
+\OpcodeRow{xxxx xxxx 0000 00xx}{'NOP}
 \OpcodeRow{xxxx xxxx 0000 01rr}{'DR}
 \OpcodeRow{xxxx xxxx 0000 10rr}{'IR}
 \OpcodeRow{xxxx xxxx 0000 11rr}{'NR}
