@@ -530,6 +530,17 @@ union UReg_FPSCR
     FI = 0;
     FR = 0;
   }
+
+  void SetException(u32 exception_mask)
+  {
+    if ((Hex & exception_mask) != exception_mask)
+    {
+      FX = 1;
+    }
+
+    *this |= exception_mask;
+    VX = (Hex & FPSCR_VX_ANY) != 0;
+  }
 };
 
 // Hardware Implementation-Dependent Register 0
