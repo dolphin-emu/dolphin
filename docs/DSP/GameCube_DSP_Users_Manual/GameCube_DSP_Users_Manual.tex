@@ -1402,7 +1402,9 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acR >>= I
+    IF I != 0
+        $acR >>= (64 - I)
+    ENDIF
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
@@ -2459,7 +2461,9 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acR >>= I
+    IF I != 0
+        $acR >>= (64 - I)
+    ENDIF
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
