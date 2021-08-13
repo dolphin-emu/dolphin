@@ -1736,14 +1736,22 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Clears \Register{\$acR.l} - low 16 bits of accumulator \Register{\$acR}.
+    \item Rounds \Register{\$acR} such that \Register{\$acR.l} is 0.  This is a round-to-even operation.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acR.l = 0
+    IF ($acR & 0x10000) != 0
+        $acR = ($acR + 0x8000) & ~0xffff
+    ELSE
+        $acR = ($acR + 0x7fff) & ~0xffff
+    ENDIF
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item An alternative interpretation is that if \Register{\$acR.m} is odd, then increment \Register{\$acsR} if \Register{\$acR.l} is greater than or equal to \Value{0x8000}; if \Register{\$acR.m} is even, then increment \Register{\$acsR} if \Register{\$acR.l} is greater than or equal to \Value{0x7fff}.  Afterwards set \Register{\$acR.l} to 0.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLRP}
