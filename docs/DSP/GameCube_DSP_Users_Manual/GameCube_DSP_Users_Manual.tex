@@ -1383,7 +1383,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $acR <<= I
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -1405,7 +1405,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     IF I != 0
         $acR >>= (64 - I)
     ENDIF
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -1511,7 +1511,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $acR >>= 16
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -2422,7 +2422,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $acR <<= I
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -2442,7 +2442,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $acR <<= 16
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -2464,7 +2464,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
     IF I != 0
         $acR >>= (64 - I)
     ENDIF
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -2570,7 +2570,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
   \begin{DSPOpcodeOperation}
     $acR >>= 16
-    FLAGS($acD)
+    FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
