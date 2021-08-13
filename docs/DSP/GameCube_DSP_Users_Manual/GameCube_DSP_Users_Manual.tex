@@ -1240,7 +1240,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD += $(0x18+S)
+    $acD += ($(0x18+S) << 16)
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
@@ -3802,7 +3802,7 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD -= $(0x18+S)
+    $acD -= ($(0x18+S) << 16)
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
