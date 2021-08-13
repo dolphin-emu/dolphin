@@ -627,8 +627,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   }
 
   ARM64Reg effective_addr = ARM64Reg::W0;
-  ARM64Reg physical_addr = MSR.IR ? gpr.GetReg() : effective_addr;
-  ARM64Reg value = gpr.GetReg();
+  ARM64Reg physical_addr = gpr.GetReg();
 
   if (a)
     ADD(effective_addr, gpr.R(a), gpr.R(b));
@@ -653,15 +652,15 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   }
 
   // Check whether a JIT cache line needs to be invalidated.
-  LSR(value, physical_addr, 5 + 5);  // >> 5 for cache line size, >> 5 for width of bitset
+  LSR(physical_addr, physical_addr, 5 + 5);  // >> 5 for cache line size, >> 5 for width of bitset
   MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
-  LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
+  LDR(physical_addr, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(physical_addr), true));
 
-  LSR(WA, physical_addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
+  LSR(WA, effective_addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
 
-  LSRV(value, value, WA);  // move current bit to bit 0
+  LSRV(physical_addr, physical_addr, WA);  // move current bit to bit 0
 
-  FixupBranch bit_not_set = TBZ(value, 0);
+  FixupBranch bit_not_set = TBZ(physical_addr, 0);
   FixupBranch invalidate_needed = B();
   SetJumpTarget(bit_not_set);
 
@@ -681,7 +680,6 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
   gprs_to_push[DecodeReg(effective_addr)] = false;
   gprs_to_push[DecodeReg(physical_addr)] = false;
-  gprs_to_push[DecodeReg(value)] = false;
   gprs_to_push[DecodeReg(WA)] = false;
   if (make_loop)
     gprs_to_push[DecodeReg(loop_counter)] = false;
@@ -703,9 +701,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   SwitchToNearCode();
   SetJumpTarget(near_addr);
 
-  gpr.Unlock(effective_addr, value, WA);
-  if (MSR.IR)
-    gpr.Unlock(physical_addr);
+  gpr.Unlock(effective_addr, physical_addr, WA);
   if (make_loop)
     gpr.Unlock(loop_counter);
 }

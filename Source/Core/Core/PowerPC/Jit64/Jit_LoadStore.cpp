@@ -245,9 +245,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
   RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
   RCX64Reg Rb = gpr.Bind(inst.RB, make_loop ? RCMode::ReadWrite : RCMode::Read);
-  RCX64Reg tmp = gpr.Scratch();
-  RCX64Reg effective_address = gpr.Scratch();
-  RegCache::Realize(Ra, Rb, tmp, effective_address);
+  RegCache::Realize(Ra, Rb);
 
   RCX64Reg loop_counter;
   if (make_loop)
@@ -259,10 +257,10 @@ void Jit64::dcbx(UGeckoInstruction inst)
     // bdnz afterwards! So if we invalidate a single cache line, we don't adjust the registers at
     // all, if we invalidate 2 cachelines we adjust the registers by one step, and so on.
 
-    RCX64Reg& reg_cycle_count = tmp;
-    RCX64Reg& reg_downcount = effective_address;
+    RCX64Reg reg_cycle_count = gpr.Scratch();
+    RCX64Reg reg_downcount = gpr.Scratch();
     loop_counter = gpr.Scratch();
-    RegCache::Realize(loop_counter);
+    RegCache::Realize(reg_cycle_count, reg_downcount, loop_counter);
 
     // This must be true in order for us to pick up the DIV results and not trash any data.
     static_assert(RSCRATCH == Gen::EAX && RSCRATCH2 == Gen::EDX);
@@ -304,8 +302,8 @@ void Jit64::dcbx(UGeckoInstruction inst)
     LEA(32, loop_counter, MDisp(RSCRATCH2, 1));
   }
 
-  X64Reg value = RSCRATCH;
-  MOV_sum(32, value, Ra, Rb);
+  X64Reg addr = RSCRATCH;
+  MOV_sum(32, addr, Ra, Rb);
 
   if (make_loop)
   {
@@ -315,33 +313,36 @@ void Jit64::dcbx(UGeckoInstruction inst)
     ADD(32, R(Rb), R(RSCRATCH2));  // Rb += (RSCRATCH2 * 32)
   }
 
-  X64Reg addr = RSCRATCH2;
+  X64Reg tmp = RSCRATCH2;
+  RCX64Reg effective_address = gpr.Scratch();
+  RegCache::Realize(effective_address);
+
   FixupBranch bat_lookup_failed;
-  MOV(32, R(effective_address), R(value));
+  MOV(32, R(effective_address), R(addr));
   const u8* loop_start = GetCodePtr();
   if (MSR.IR)
   {
     // Translate effective address to physical address.
-    bat_lookup_failed = BATAddressLookup(value, tmp, PowerPC::ibat_table.data());
-    MOV(32, R(addr), R(effective_address));
-    AND(32, R(addr), Imm32(0x0001ffff));
-    AND(32, R(value), Imm32(0xfffe0000));
-    OR(32, R(value), R(addr));
+    bat_lookup_failed = BATAddressLookup(addr, tmp, PowerPC::ibat_table.data());
+    MOV(32, R(tmp), R(effective_address));
+    AND(32, R(tmp), Imm32(0x0001ffff));
+    AND(32, R(addr), Imm32(0xfffe0000));
+    OR(32, R(addr), R(tmp));
   }
-  MOV(32, R(addr), R(value));
 
   // Check whether a JIT cache line needs to be invalidated.
-  SHR(32, R(value), Imm8(5 + 5));  // >> 5 for cache line size, >> 5 for width of bitset
+  SHR(32, R(addr), Imm8(5 + 5));  // >> 5 for cache line size, >> 5 for width of bitset
   MOV(64, R(tmp), ImmPtr(GetBlockCache()->GetBlockBitSet()));
-  MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
-  SHR(32, R(addr), Imm8(5));
-  BT(32, R(value), R(addr));
+  MOV(32, R(addr), MComplex(tmp, addr, SCALE_4, 0));
+  MOV(32, R(tmp), R(effective_address));
+  SHR(32, R(tmp), Imm8(5));
+  BT(32, R(addr), R(tmp));
   FixupBranch invalidate_needed = J_CC(CC_C, true);
 
   if (make_loop)
   {
     ADD(32, R(effective_address), Imm8(32));
-    MOV(32, R(value), R(effective_address));
+    MOV(32, R(addr), R(effective_address));
     SUB(32, R(loop_counter), Imm8(1));
     J_CC(CC_NZ, loop_start);
   }
