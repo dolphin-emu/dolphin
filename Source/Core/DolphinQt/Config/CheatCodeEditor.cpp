@@ -11,6 +11,8 @@
 #include <QStringList>
 #include <QTextEdit>
 
+#include "Common/StringUtil.h"
+
 #include "Core/ARDecrypt.h"
 #include "Core/ActionReplay.h"
 #include "Core/GeckoCodeConfig.h"
@@ -277,21 +279,15 @@ bool CheatCodeEditor::AcceptGecko()
 
   if (entries.empty())
   {
-    ModalMessageBox::critical(this, tr("Error"),
-                              tr("The resulting decrypted AR code doesn't contain any lines."));
+    ModalMessageBox::critical(this, tr("Error"), tr("This Gecko code doesn't contain any lines."));
     return false;
   }
 
   m_gecko_code->name = m_name_edit->text().toStdString();
   m_gecko_code->creator = m_creator_edit->text().toStdString();
   m_gecko_code->codes = std::move(entries);
+  m_gecko_code->notes = SplitString(m_notes_edit->toPlainText().toStdString(), '\n');
   m_gecko_code->user_defined = true;
-
-  std::vector<std::string> note_lines;
-  for (const QString& line : m_notes_edit->toPlainText().split(QLatin1Char{'\n'}))
-    note_lines.push_back(line.toStdString());
-
-  m_gecko_code->notes = std::move(note_lines);
 
   return true;
 }
