@@ -44,7 +44,7 @@ public final class NativeLibrary
   }
 
   /**
-   * Button type for use in onTouchEvent
+   * Button type, for legacy use only
    */
   public static final class ButtonType
   {

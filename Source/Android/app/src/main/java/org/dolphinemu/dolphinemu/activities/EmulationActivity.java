@@ -894,21 +894,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       return super.dispatchKeyEvent(event);
     }
 
-    int action;
-
-    switch (event.getAction())
-    {
-      case KeyEvent.ACTION_DOWN:
-        action = NativeLibrary.ButtonState.PRESSED;
-        break;
-      case KeyEvent.ACTION_UP:
-        action = NativeLibrary.ButtonState.RELEASED;
-        break;
-      default:
-        return false;
-    }
-    InputDevice input = event.getDevice();
-    return NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
+    // TODO
+    return false;
   }
 
   private void toggleControls()
@@ -1271,36 +1258,8 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
       return false;
     }
 
-    if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0))
-    {
-      return super.dispatchGenericMotionEvent(event);
-    }
-
-    // Don't attempt to do anything if we are disconnecting a device.
-    if (event.getActionMasked() == MotionEvent.ACTION_CANCEL)
-      return true;
-
-    InputDevice input = event.getDevice();
-    List<InputDevice.MotionRange> motions = input.getMotionRanges();
-
-    for (InputDevice.MotionRange range : motions)
-    {
-      int axis = range.getAxis();
-      float origValue = event.getAxisValue(axis);
-      float value = ControllerMappingHelper.scaleAxis(input, axis, origValue);
-      // If the input is still in the "flat" area, that means it's really zero.
-      // This is used to compensate for imprecision in joysticks.
-      if (Math.abs(value) > range.getFlat())
-      {
-        NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
-      }
-      else
-      {
-        NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, 0.0f);
-      }
-    }
-
-    return true;
+    // TODO
+    return false;
   }
 
   private void showSubMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)

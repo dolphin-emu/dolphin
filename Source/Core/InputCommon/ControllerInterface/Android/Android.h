@@ -5,7 +5,5 @@
 
 namespace ciface::Android
 {
-void SetMotionSensorsEnabled(bool accelerometer_enabled, bool gyroscope_enabled);
-
 void PopulateDevices();
 }  // namespace ciface::Android

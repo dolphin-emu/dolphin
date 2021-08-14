@@ -51,8 +51,6 @@
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
-#include "InputCommon/ControllerInterface/Android/Android.h"
-#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/GameFile.h"
@@ -293,19 +291,20 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndUnpaused(JNIEnv*, jclas
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(
     JNIEnv* env, jclass, jstring jDevice, jint Button, jint Action)
 {
-  return ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
+  // TODO
+  return JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(
     JNIEnv* env, jclass, jstring jDevice, jint Axis, jfloat Value)
 {
-  ButtonManager::GamepadAxisEvent(GetJString(env, jDevice), Axis, Value);
+  // TODO
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSensorsEnabled(
     JNIEnv*, jclass, jboolean accelerometer_enabled, jboolean gyroscope_enabled)
 {
-  ciface::Android::SetMotionSensorsEnabled(accelerometer_enabled, gyroscope_enabled);
+  // TODO
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
@@ -583,8 +582,6 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
 
   if (BootManager::BootCore(std::move(boot), wsi))
   {
-    ButtonManager::Init(SConfig::GetInstance().GetGameID());
-
     static constexpr int WAIT_STEP = 25;
     while (Core::GetState() == Core::State::Starting)
       std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_STEP));
@@ -604,7 +601,6 @@ static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivol
 
   s_game_metadata_is_valid = false;
   Core::Shutdown();
-  ButtonManager::Shutdown();
   host_identity_guard.unlock();
 
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
