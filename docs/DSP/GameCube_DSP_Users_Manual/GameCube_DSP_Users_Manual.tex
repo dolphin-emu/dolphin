@@ -198,6 +198,23 @@
   \end{description}
 }
 
+% Command to show flags.
+\newcommand{\DSPOpcodeFlags}[8]
+{
+  \textbf{Flags:}
+  \begin{description}
+  \item \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    OS & LZ & TB & S32 & S  & AZ & O  & C \\
+    \hline
+    #1 & #2 & #3 & #4  & #5 & #6 & #7 & #8 \\
+    \hline
+  \end{tabular}
+  \end{description}
+}
+
+\newcommand{\DSPOpcodeFlagsUnchanged}[0]{\DSPOpcodeFlags{-}{-}{-}{-}{-}{-}{-}{-}}
+
 \makeatother
 \begin{document}
 \maketitle{}
@@ -536,8 +553,8 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \texttt{9}   & \texttt{IE}   & Interrupt enable                                              \\ \hline
 \texttt{8}   & \texttt{0}    & Hardwired to 0?                                               \\ \hline
 \texttt{7}   & \texttt{OS}   & Overflow (sticky)                                             \\ \hline
-\texttt{6}   & \texttt{LZ}   & Logic zero                                                    \\ \hline
-\texttt{5}   &               & Top two bits are equal                                        \\ \hline
+\texttt{6}   & \texttt{LZ}   & Logic zero (used by \Opcode{ANDCF} and \Opcode{ANDF})         \\ \hline
+\texttt{5}   & \texttt{TB}   & Top two bits are equal                                        \\ \hline
 \texttt{4}   & \texttt{AS}   & Above s32                                                     \\ \hline
 \texttt{3}   & \texttt{S}    & Sign                                                          \\ \hline
 \texttt{2}   & \texttt{Z}    & Arithmetic zero                                               \\ \hline
@@ -1046,6 +1063,12 @@ Overflow (\texttt{O}) occurs when the result has wrapped around.  The expression
 
 Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to the next most significant word.  The expression $C = A + B$ generates a carry if $A > C$.  The DSP uses different logic for subtraction: the expression $C = A - B$ generates a carry if $A \ge C$ (so if $B = 0$, a carry is generated for all $A$).  This is because the DSP uses a carry flag, not a borrow flag.
 
+Each instruction has a table showing what flags it updates, such as this:
+
+\DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+
+A ``-'' indicates that the flag retains its previous value, a ``0'' indicates that the flag is set to 0, and a ``X'' indicates that the value of the flag changes depending on what the instruction did.
+
 \pagebreak{}
 
 \section{Alphabetical list of opcodes}
@@ -1072,6 +1095,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADD}
@@ -1092,6 +1117,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDARN}
@@ -1111,6 +1138,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD += $ixS
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDAX}
@@ -1131,6 +1160,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDAXL}
@@ -1152,6 +1183,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDI}
@@ -1173,6 +1206,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDIS}
@@ -1193,6 +1228,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDP}
@@ -1213,6 +1250,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDPAXZ}
@@ -1235,6 +1274,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ADDR}
@@ -1255,6 +1296,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDC}
@@ -1279,6 +1322,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDCF}
@@ -1305,6 +1350,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     ENDIF
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{X}{-}{-}{-}{-}{-}{-}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDF}
@@ -1331,6 +1378,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     ENDIF
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{X}{-}{-}{-}{-}{-}{-}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDI}
@@ -1352,6 +1401,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ANDR}
@@ -1376,6 +1427,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASL}
@@ -1396,6 +1449,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASR}
@@ -1418,6 +1473,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASRN}
@@ -1444,6 +1501,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($ac0)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASRNR}
@@ -1474,6 +1533,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASRNRX}
@@ -1504,6 +1565,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ASR16}
@@ -1524,6 +1587,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{BLOOP}
@@ -1560,6 +1625,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $pc = addrA + 1
     // Remove values from stack
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{BLOOPI}
@@ -1596,6 +1663,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $pc = addrA + 1
     // Remove values from stack
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALL}
@@ -1619,6 +1688,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $st0 = $pc + 2
     $pc = addressA
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALLcc}
@@ -1647,6 +1718,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALLR}
@@ -1668,6 +1741,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $st0 = $pc + 1
     $pc = $R
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CALLRcc}
@@ -1693,6 +1768,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
         $pc++
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 
@@ -1717,6 +1794,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{SET15}
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLR}
@@ -1737,6 +1816,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{1}{0}{0}{1}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLRL}
@@ -1765,6 +1846,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item An alternative interpretation is that if \Register{\$acR.m} is odd, then increment \Register{\$acsR} if \Register{\$acR.l} is greater than or equal to \Value{0x8000}; if \Register{\$acR.m} is even, then increment \Register{\$acsR} if \Register{\$acR.l} is greater than or equal to \Value{0x7fff}.  Afterwards set \Register{\$acR.l} to 0.
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CLRP}
@@ -1794,6 +1877,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
       $prod.m2 = 0x0010
     \end{lstlisting}
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMP}
@@ -1813,6 +1898,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $sr = FLAGS($ac0 - $ac1)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMPAR}
@@ -1832,6 +1919,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $sr = FLAGS($acS - ($axR.h << 16))
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMPI}
@@ -1853,6 +1942,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD - (I << 16))
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{CMPIS}
@@ -1873,6 +1964,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD - (I << 16))
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{DAR}
@@ -1892,6 +1985,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{DEC}
@@ -1912,6 +2007,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{DECM}
@@ -1932,6 +2029,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{HALT}
@@ -1950,6 +2049,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeOperation}
     DREG_CR |= DSP_CR_HALT;
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{IAR}
@@ -1969,6 +2070,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{IFcc}
@@ -1991,6 +2094,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRR}
@@ -2011,6 +2116,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $acD.m = MEM[$arS]
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRRD}
@@ -2032,6 +2139,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arS--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRRI}
@@ -2053,6 +2162,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arS++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ILRRN}
@@ -2075,6 +2186,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arS += $ixS
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{INC}
@@ -2095,6 +2208,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{INCM}
@@ -2115,6 +2230,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{JMP}
@@ -2135,6 +2252,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeOperation}
     $pc = addressA
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{Jcc}
@@ -2159,6 +2278,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{JMPR}
@@ -2177,6 +2298,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeOperation}
     $pc = $R
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{JRcc}
@@ -2199,6 +2322,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
         $pc++
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LOOP}
@@ -2223,6 +2348,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     END
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LOOPI}
@@ -2247,6 +2374,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     END
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LR}
@@ -2268,6 +2397,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $D = MEM[M]
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRI}
@@ -2289,6 +2420,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $D = I
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRIS}
@@ -2309,6 +2442,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $(0x18+D) = I
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRR}
@@ -2329,6 +2464,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $D = MEM[$arS]
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRRD}
@@ -2351,6 +2488,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arS--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRRI}
@@ -2373,6 +2512,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arS++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRRN}
@@ -2395,6 +2536,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arS += $ixS
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LRS}
@@ -2415,6 +2558,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $(0x18+D) = MEM[M]
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSL}
@@ -2435,6 +2580,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSL16}
@@ -2455,6 +2602,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSR}
@@ -2477,6 +2626,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSRN}
@@ -2503,6 +2654,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($ac0)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSRNR}
@@ -2533,6 +2686,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSRNRX}
@@ -2563,6 +2718,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{LSR16}
@@ -2583,6 +2740,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{M0}
@@ -2606,6 +2765,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{M2}
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{M2}
@@ -2629,6 +2790,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{M0}
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADD}
@@ -2653,6 +2816,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADDC}
@@ -2677,6 +2842,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MADDX}
@@ -2701,6 +2868,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOV}
@@ -2721,6 +2890,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{0}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVAX}
@@ -2741,6 +2912,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVNP}
@@ -2761,6 +2934,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVP}
@@ -2781,6 +2956,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVPZ}
@@ -2802,6 +2979,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MOVR}
@@ -2823,6 +3002,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MRR}
@@ -2843,6 +3024,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $D = $S
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MSUB}
@@ -2868,6 +3051,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MSUBC}
@@ -2892,6 +3077,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MSUBX}
@@ -2916,6 +3103,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MUL}
@@ -2940,6 +3129,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULAC}
@@ -2966,6 +3157,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULAXH}
@@ -2989,6 +3182,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULC}
@@ -3013,6 +3208,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCAC}
@@ -3040,6 +3237,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCMV}
@@ -3067,6 +3266,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULCMVZ}
@@ -3096,6 +3297,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULMV}
@@ -3122,6 +3325,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULMVZ}
@@ -3150,6 +3355,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULX}
@@ -3174,6 +3381,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXAC}
@@ -3201,6 +3410,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXMV}
@@ -3228,6 +3439,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{MULXMVZ}
@@ -3257,6 +3470,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \RegisterField{\$sr.AM} bit affects multiply result.
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NEG}
@@ -3277,6 +3492,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NOT}
@@ -3301,6 +3518,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NOP}
@@ -3319,6 +3538,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeOperation}
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NX}
@@ -3337,6 +3558,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeOperation}
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORC}
@@ -3361,6 +3584,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORI}
@@ -3382,6 +3607,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{ORR}
@@ -3406,6 +3633,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RET}
@@ -3425,6 +3654,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $pc = $st0
     POP_STACK($st0)
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RETcc}
@@ -3448,6 +3679,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
         $pc += 2
     ENDIF
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{RTI}
@@ -3470,6 +3703,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $pc = $st0
     POP_STACK($st0)
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SBCLR}
@@ -3489,6 +3724,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $sr &= ~(1 << (I + 6))
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SBSET}
@@ -3508,6 +3745,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $sr |= 1 << (I + 6)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SET15}
@@ -3531,6 +3770,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{CLR15}
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SET16}
@@ -3554,6 +3795,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{SET40}
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SET40}
@@ -3577,6 +3820,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{SET16}
   \end{DSPOpcodeSeeAlso}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SI}
@@ -3597,6 +3842,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     MEM[M] = I
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SR}
@@ -3618,6 +3865,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     MEM[M] = $S
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRR}
@@ -3638,6 +3887,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     MEM[$arD] = $S
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRRD}
@@ -3659,6 +3910,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD--
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRRI}
@@ -3680,6 +3933,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD++
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRRN}
@@ -3702,6 +3957,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD += $ixD
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SRS}
@@ -3722,6 +3979,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     MEM[M] = $(0x18+S)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUB}
@@ -3742,6 +4001,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBARN}
@@ -3761,6 +4022,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     $arD -= $ixD
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBAX}
@@ -3781,6 +4044,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBP}
@@ -3801,6 +4066,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{SUBR}
@@ -3821,6 +4088,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{TST}
@@ -3840,6 +4109,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acR)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{TSTAXH}
@@ -3859,6 +4130,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($axR.h)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{0}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{TSTPROD}
@@ -3878,6 +4151,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($prod)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{0}{X}{X}{0}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{XORC}
@@ -3902,6 +4177,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{XORI}
@@ -3923,6 +4200,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
     FLAGS($acD)
     $pc += 2
   \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{XORR}
@@ -3947,6 +4226,8 @@ Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to
   \begin{DSPOpcodeNote}
     \item The main opcode is 9 bits and the extension opcode is 7 bits.  The extension opcode is treated as if the 8th bit was 0 (i.e. it is \texttt{0xxxxxxx}).
   \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
 \end{DSPOpcode}
 
 \section{Extended opcodes}
