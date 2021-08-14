@@ -145,7 +145,7 @@ void retro_get_system_info(retro_system_info* info)
 
 void retro_get_system_av_info(retro_system_av_info* info)
 {
-  unsigned efb_scale         = Libretro::Options::efbScale
+  unsigned efb_scale         = Libretro::Options::efbScale;
   info->geometry.base_width  = EFB_WIDTH;
   info->geometry.base_height = EFB_HEIGHT;
 
