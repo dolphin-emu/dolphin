@@ -118,7 +118,10 @@ do_dma:
 	sr		@DSPA, $ax0.l
 	sr		@DSCR, $ax1.l
 	sr		@DSBL, $ax0.h	; This kicks off the DMA.
-	call	0x863d			; Wait for DMA to complete by watching a bit in DSCR.
+wait_dma_finish:
+	lr		$ac1.m, @DSCR
+	andcf	$ac1.m, #0x4
+	jlz		wait_dma_finish
 	ret
 
 ; IRQ handlers. Just send back exception# and die
