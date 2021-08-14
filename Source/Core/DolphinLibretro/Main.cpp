@@ -145,11 +145,12 @@ void retro_get_system_info(retro_system_info* info)
 
 void retro_get_system_av_info(retro_system_av_info* info)
 {
-  info->geometry.base_width = EFB_WIDTH * Libretro::Options::efbScale;
-  info->geometry.base_height = EFB_HEIGHT * Libretro::Options::efbScale;
+  unsigned efb_scale         = Libretro::Options::efbScale
+  info->geometry.base_width  = EFB_WIDTH;
+  info->geometry.base_height = EFB_HEIGHT;
 
-  info->geometry.max_width = info->geometry.base_width;
-  info->geometry.max_height = info->geometry.base_height;
+  info->geometry.max_width   = EFB_WIDTH  * efb_scale;
+  info->geometry.max_height  = EFB_HEIGHT * efb_scale;
 
   if (g_renderer)
     Libretro::widescreen = g_renderer->IsWideScreen() || g_Config.bWidescreenHack;
