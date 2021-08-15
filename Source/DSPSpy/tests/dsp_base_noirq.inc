@@ -97,7 +97,7 @@ ORG 0x10
 	lrri	$ac1.m, @$ar0
 	lr		$ar0, @REGS_BASE
 
-	jmp		start_of_test
+	jmp		test_main
 
 ; This is where we jump when we're done testing, see above.
 ; We just fall into a loop, playing dead until someone resets the DSP.
@@ -281,6 +281,3 @@ dma_copy:
 	lr	$sr, @(REGS_BASE+19)
 
 	ret		; from send_back
-
-; Obviously this must be included directly before your test code
-start_of_test:

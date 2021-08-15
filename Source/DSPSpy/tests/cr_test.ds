@@ -12,6 +12,7 @@ TEST_ADDR: equ 0xFFA0 ; 0x0000
 TEST_MEM: equ 0x00A0 ; 0x0000
 TEST_MEM_2: equ 0x01A0 ; 0x0100
 
+test_main:
 	LRI $AC0.L, #0xf00f
 	SR @TEST_REG, $AC0.L
 	SR @TEST_MEM, $AC0.L
