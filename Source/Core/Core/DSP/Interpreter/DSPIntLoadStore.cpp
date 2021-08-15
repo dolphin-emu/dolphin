@@ -8,15 +8,29 @@
 
 namespace DSP::Interpreter
 {
-// SRS @M, $(0x18+S)
-// 0010 1sss mmmm mmmm
-// Move value from register $(0x18+S) to data memory pointed by address
+// SRSH @M, $acS.h
+// 0010 10ss mmmm mmmm
+// Move value from register $acS.h to data memory pointed by address
+// CR[0-7] | M. That is, the upper 8 bits of the address are the
+// bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
+void Interpreter::srsh(const UDSPInstruction opc)
+{
+  auto& state = m_dsp_core.DSPState();
+  const auto reg = static_cast<u8>(((opc >> 8) & 0x1) + DSP_REG_ACH0);
+  const auto addr = static_cast<u16>((state.r.cr << 8) | (opc & 0xFF));
+
+  state.WriteDMEM(addr, OpReadRegister(reg));
+}
+
+// SRS @M, $(0x1C+S)
+// 0010 11ss mmmm mmmm
+// Move value from register $(0x1C+S) to data memory pointed by address
 // CR[0-7] | M. That is, the upper 8 bits of the address are the
 // bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
 void Interpreter::srs(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
-  const auto reg = static_cast<u8>(((opc >> 8) & 0x7) + 0x18);
+  const auto reg = static_cast<u8>(((opc >> 8) & 0x3) + DSP_REG_ACL0);
   const auto addr = static_cast<u16>((state.r.cr << 8) | (opc & 0xFF));
 
   if (reg >= DSP_REG_ACM0)

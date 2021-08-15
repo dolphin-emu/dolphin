@@ -88,6 +88,7 @@ public:
   void bloopi(UDSPInstruction opc);
 
   // Load/Store
+  void srsh(UDSPInstruction opc);
   void srs(UDSPInstruction opc);
   void lrs(UDSPInstruction opc);
   void lr(UDSPInstruction opc);

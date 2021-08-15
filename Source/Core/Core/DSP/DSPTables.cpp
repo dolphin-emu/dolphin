@@ -18,7 +18,7 @@
 namespace DSP
 {
 // clang-format off
-const std::array<DSPOPCTemplate, 214> s_opcodes =
+const std::array<DSPOPCTemplate, 215> s_opcodes =
 {{
   //              # of parameters----+   {type, size, loc, lshift, mask}                                                               branch        reads PC       // instruction approximation
   // name      opcode  mask  size-V  V   param 1                       param 2                       param 3                    extendable    uncond.       updates SR
@@ -192,7 +192,8 @@ const std::array<DSPOPCTemplate, 214> s_opcodes =
 
   //2
   {"LRS",      0x2000, 0xf800,    1, 2, {{P_REG18, 1, 0, 8, 0x0700},   {P_MEM, 1, 0, 0, 0x00ff}},                               false, false, false, false, false}, // $(D+24) = MEM[($cr[0-7] << 8) | I]
-  {"SRS",      0x2800, 0xf800,    1, 2, {{P_MEM,   1, 0, 0, 0x00ff},   {P_REG18, 1, 0, 8, 0x0700}},                             false, false, false, false, false}, // MEM[($cr[0-7] << 8) | I] = $(S+24)
+  {"SRSH",     0x2800, 0xfe00,    1, 2, {{P_MEM,   1, 0, 0, 0x00ff},   {P_ACCH, 1, 0, 8, 0x0100}},                              false, false, false, false, false}, // MEM[($cr[0-7] << 8) | I] = $acS.h
+  {"SRS",      0x2c00, 0xfc00,    1, 2, {{P_MEM,   1, 0, 0, 0x00ff},   {P_REG1C, 1, 0, 8, 0x0300}},                             false, false, false, false, false}, // MEM[($cr[0-7] << 8) | I] = $(S+24)
 
   // opcodes that can be extended
 

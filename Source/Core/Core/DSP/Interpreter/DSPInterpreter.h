@@ -149,6 +149,7 @@ public:
   void srri(UDSPInstruction opc);
   void srrn(UDSPInstruction opc);
   void srs(UDSPInstruction opc);
+  void srsh(UDSPInstruction opc);
   void sub(UDSPInstruction opc);
   void subarn(UDSPInstruction opc);
   void subax(UDSPInstruction opc);

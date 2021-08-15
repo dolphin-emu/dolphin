@@ -19,7 +19,7 @@ struct InterpreterOpInfo
 };
 
 // clang-format off
-constexpr std::array<InterpreterOpInfo, 124> s_opcodes
+constexpr std::array<InterpreterOpInfo, 125> s_opcodes
 {{
   {0x0000, 0xfffc, &Interpreter::nop},
 
@@ -101,7 +101,8 @@ constexpr std::array<InterpreterOpInfo, 124> s_opcodes
 
   // 2
   {0x2000, 0xf800, &Interpreter::lrs},
-  {0x2800, 0xf800, &Interpreter::srs},
+  {0x2800, 0xfe00, &Interpreter::srsh},
+  {0x2c00, 0xfc00, &Interpreter::srs},
 
   // opcodes that can be extended
 
