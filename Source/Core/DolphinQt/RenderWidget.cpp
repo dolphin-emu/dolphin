@@ -44,6 +44,12 @@
 #include <windef.h>
 #endif
 
+int win_x = 0;
+int win_y = 0;
+int win_w = 0;
+int win_h = 0;
+void* win_hdl = 0;
+
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(QStringLiteral("Dolphin"));
