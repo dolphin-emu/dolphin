@@ -482,6 +482,10 @@ The DSP has 32 16-bit registers, although their individual purpose and their fun
 The DSP has two long 40-bit accumulators (\Register{\$acX}) and their short 24-bit forms (\Register{\$acsX}) that reflect the
 upper part of 40-bit accumulator. There are additional two 32-bit accumulators (\Register{\$axX}).
 
+The high parts of the 40-bit accumulators (\Register{acX.h}) are sign-extended 8-bit registers.  Writes to the upper 8 bits are ignored,
+and the upper 8 bits read the same as the 7th bit.  For instance, \Value{0x007F} reads back as \Value{0x007F}, but \Value{0x0080} reads
+back as \Value{0xFF80}.
+
 \textbf{Accumulators \Register{\$acX}:}
 
 40-bit accumulator \Register{\$acX} (\Register{\$acX.hml}) consists of registers:
@@ -532,6 +536,8 @@ If the value is not zero, then the PC is modified by the value from call stack \
 
 Its purpose is unknown at this time. It is written with \Value{0x00FF} and \Value{0x0004} values.
 
+This is an 8-bit register.  Writes to the upper 8 bits are ignored and those bits always read back as 0.
+
 \pagebreak{}
 
 \section{Status register}
@@ -551,7 +557,7 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \texttt{11}  & \texttt{EIE}  & External interrupt enable                                     \\ \hline
 \texttt{10}  &               &                                                               \\ \hline
 \texttt{9}   & \texttt{IE}   & Interrupt enable                                              \\ \hline
-\texttt{8}   & \texttt{0}    & Hardwired to 0?                                               \\ \hline
+\texttt{8}   &               & Unknown, always reads back as 0                               \\ \hline
 \texttt{7}   & \texttt{OS}   & Overflow (sticky)                                             \\ \hline
 \texttt{6}   & \texttt{LZ}   & Logic zero (used by \Opcode{ANDCF} and \Opcode{ANDF})         \\ \hline
 \texttt{5}   & \texttt{TB}   & Top two bits are equal                                        \\ \hline
@@ -579,6 +585,8 @@ It needs to be noted that \InlineExpression{\$prod.m1 + \$prod.m2} overflow bit 
 
 Bit \RegisterField{\$sr.AM} affects the result of the multiply unit.
 If \RegisterField{\$sr.AM} is equal 0 then the result of every multiply operation will be multiplied by two.
+
+\Register{prod.h} is 8 bits.  The upper 8 bits always read back as 0.
 
 \pagebreak{}
 
