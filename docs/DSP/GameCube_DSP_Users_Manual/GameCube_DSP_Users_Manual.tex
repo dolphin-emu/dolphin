@@ -534,7 +534,7 @@ If the value is not zero, then the PC is modified by the value from call stack \
 
 \section{Config register}
 
-Serves as a base offset for \Opcode{SRS} and \Opcode{LRS}.  Zelda uCode writes it with \Value{0x0004}, but otherwise it is usually \Value{0x00FF}.
+Serves as a base offset for \Opcode{SRS}, \Opcode{SRSH}, and \Opcode{LRS}.  Zelda uCode writes it with \Value{0x0004}, but otherwise it is usually \Value{0x00FF}.
 
 This is an 8-bit register.  Writes to the upper 8 bits are ignored and those bits always read back as 0.
 
@@ -2567,6 +2567,10 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     $pc++
   \end{DSPOpcodeOperation}
 
+  \begin{DSPOpcodeNote}
+    \item \Opcode{LRS} can use \Register{\$axD} and cannot use \Register{\$acS.h}, while \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+  \end{DSPOpcodeNote}
+
   \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
@@ -3852,7 +3856,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeOperation}
 
   \begin{DSPOpcodeNote}
-    \item Unlike \Opcode{LRS} and \Opcode{SRS}, \Opcode{SI} does not use \Register{\$cr} to decide the base address and instead always uses \Address{0xFF00}.
+    \item Unlike \Opcode{SRS}, \Opcode{SRSH}, and \Opcode{LRS}, \Opcode{SI} does not use \Register{\$cr} to decide the base address and instead always uses \Address{0xFF00}.
   \end{DSPOpcodeNote}
 
   \DSPOpcodeFlagsUnchanged
@@ -3975,22 +3979,54 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{SRS}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0010} & \monobitbox{4}{1sss} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+    \monobitbox{4}{0010} & \monobitbox{4}{11ss} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SRS @M, $(0x18+S)
+    SRS @M, $(0x1C+S)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Store value from register \Register{\$(0x18+S)} to a memory pointed by address \Address{(\$cr << 8) | M}.
+    \item Store value from register \Register{\$(0x1C+S)} to a memory pointed by address \Address{(\$cr << 8) | M}.
           Perform an additional operation depending on destination register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[($cr << 8) | M] = $(0x18+S)
+    MEM[($cr << 8) | M] = $(0x1C+S)
     $pc++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Unlike \Opcode{LRS}, \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+          The pattern \Value{101s} is unused and does not perform any write.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRSH}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0010} & \monobitbox{4}{100s} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRSH @M, $acS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$acS.h} to a memory pointed by address \Address{(\$cr << 8) | M}.
+          Perform an additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[($cr << 8) | M] = $acS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Unlike \Opcode{LRS}, \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+          The pattern \Value{101s} is unused and does not perform any write.
+  \end{DSPOpcodeNote}
 
   \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
@@ -4906,7 +4942,9 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0001 11dd ddds ssss}{MRR}
 \OpcodeRowSkip
 \OpcodeRow{0010 0ddd mmmm mmmm}{LRS}
-\OpcodeRow{0010 1sss mmmm mmmm}{SRS}
+\OpcodeRow{0010 100s mmmm mmmm}{SRSH}
+\OpcodeRowUnk{0010 101x mmmm mmmm}
+\OpcodeRow{0010 11ss mmmm mmmm}{SRS}
 \OpcodeRowSkip
 \OpcodeRow{0011 00sd 0xxx xxxx}{XORR}
 \OpcodeRow{0011 01sd 0xxx xxxx}{ANDR}
