@@ -687,7 +687,7 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
 
   switch (reg)
   {
-  // 8-bit sign extended registers. Should look at prod.h too...
+  // 8-bit sign extended registers.
   case DSP_REG_ACH0:
   case DSP_REG_ACH1:
     // sign extend from the bottom 8 bits.
@@ -720,10 +720,10 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
     state.r.wr[reg - DSP_REG_WR0] = val;
     break;
   case DSP_REG_CR:
-    state.r.cr = val;
+    state.r.cr = val & 0x00ff;
     break;
   case DSP_REG_SR:
-    state.r.sr = val;
+    state.r.sr = val & ~SR_100;
     break;
   case DSP_REG_PRODL:
     state.r.prod.l = val;
@@ -732,7 +732,8 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
     state.r.prod.m = val;
     break;
   case DSP_REG_PRODH:
-    state.r.prod.h = val;
+    // Unlike ac0.h and ac1.h, prod.h is not sign-extended
+    state.r.prod.h = val & 0x00ff;
     break;
   case DSP_REG_PRODM2:
     state.r.prod.m2 = val;

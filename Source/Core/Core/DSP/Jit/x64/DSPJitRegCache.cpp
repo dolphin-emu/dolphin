@@ -751,6 +751,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
       else if (oparg.IsImm())
       {
         // TODO: Immediates?
+        ASSERT(false);
       }
       else
       {
@@ -770,6 +771,58 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
     {
       m_emitter.SHL(64, oparg, Imm8(64 - 40));  // sign extend
       m_emitter.SAR(64, oparg, Imm8(64 - 40));
+    }
+    break;
+  case DSP_REG_CR:
+  case DSP_REG_PRODH:
+    if (dirty)
+    {
+      if (oparg.IsSimpleReg())
+      {
+        // register is already shifted correctly
+        // (if at all)
+
+        // Zero extend from the bottom 8 bits.
+        m_emitter.MOVZX(16, 8, oparg.GetSimpleReg(), oparg);
+      }
+      else if (oparg.IsImm())
+      {
+        // TODO: Immediates?
+        ASSERT(false);
+      }
+      else
+      {
+        // This works on the memory, so use reg instead
+        // of real_reg, since it has the right loc
+        X64Reg tmp = GetFreeXReg();
+        // Zero extend from the bottom 8 bits.
+        m_emitter.MOVZX(16, 8, tmp, m_regs[reg].loc);
+        m_emitter.MOV(16, m_regs[reg].loc, R(tmp));
+        PutXReg(tmp);
+      }
+    }
+    break;
+  case DSP_REG_SR:
+    if (dirty)
+    {
+      if (oparg.IsSimpleReg())
+      {
+        // register is already shifted correctly
+        // (if at all)
+
+        // Clear SR_100, which always reads back as 0
+        m_emitter.AND(16, R(oparg.GetSimpleReg()), Gen::Imm16(~SR_100));
+      }
+      else if (oparg.IsImm())
+      {
+        // TODO: Immediates?
+        ASSERT(false);
+      }
+      else
+      {
+        // Clear SR_100, which always reads back as 0
+        m_emitter.AND(16, m_regs[reg].loc, Gen::Imm16(~SR_100));
+      }
     }
     break;
   default:
