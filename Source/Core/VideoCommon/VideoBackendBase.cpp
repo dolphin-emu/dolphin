@@ -200,7 +200,7 @@ static VideoBackendBase* GetDefaultVideoBackend()
   const auto& backends = VideoBackendBase::GetAvailableBackends();
   if (backends.empty())
     return nullptr;
-  return backends.front().get();
+  return backends[1].get();
 }
 
 std::string VideoBackendBase::GetDefaultBackendName()
