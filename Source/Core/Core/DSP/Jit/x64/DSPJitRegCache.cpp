@@ -23,6 +23,8 @@ namespace DSP::JIT::x64
 constexpr std::array<X64Reg, 15> s_allocation_order = {
     {R8, R9, R10, R11, R12, R13, R14, R15, RSI, RDI, RBX, RCX, RDX, RAX, RBP}};
 
+#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
+
 static Gen::OpArg GetRegisterPointer(size_t reg)
 {
   switch (reg)
@@ -31,25 +33,25 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
   case DSP_REG_AR1:
   case DSP_REG_AR2:
   case DSP_REG_AR3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ar[reg - DSP_REG_AR0])));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ar[reg - DSP_REG_AR0]));
   case DSP_REG_IX0:
   case DSP_REG_IX1:
   case DSP_REG_IX2:
   case DSP_REG_IX3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ix[reg - DSP_REG_IX0])));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ix[reg - DSP_REG_IX0]));
   case DSP_REG_WR0:
   case DSP_REG_WR1:
   case DSP_REG_WR2:
   case DSP_REG_WR3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.wr[reg - DSP_REG_WR0])));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.wr[reg - DSP_REG_WR0]));
   case DSP_REG_ST0:
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[reg - DSP_REG_ST0])));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.st[reg - DSP_REG_ST0]));
   case DSP_REG_ACH0:
   case DSP_REG_ACH1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACH0].h)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ac[reg - DSP_REG_ACH0].h));
   case DSP_REG_CR:
     return MDisp(R15, static_cast<int>(offsetof(SDSP, r.cr)));
   case DSP_REG_SR:
@@ -64,22 +66,22 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
     return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.m2)));
   case DSP_REG_AXL0:
   case DSP_REG_AXL1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AXL0].l)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ax[reg - DSP_REG_AXL0].l));
   case DSP_REG_AXH0:
   case DSP_REG_AXH1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AXH0].h)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ax[reg - DSP_REG_AXH0].h));
   case DSP_REG_ACL0:
   case DSP_REG_ACL1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACL0].l)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ac[reg - DSP_REG_ACL0].l));
   case DSP_REG_ACM0:
   case DSP_REG_ACM1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACM0].m)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ac[reg - DSP_REG_ACM0].m));
   case DSP_REG_AX0_32:
   case DSP_REG_AX1_32:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AX0_32].val)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ax[reg - DSP_REG_AX0_32].val));
   case DSP_REG_ACC0_64:
   case DSP_REG_ACC1_64:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACC0_64].val)));
+    return MDisp(R15, (int) OFFSETOF (SDSP, r.ac[reg - DSP_REG_ACC0_64].val));
   case DSP_REG_PROD_64:
     return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.val)));
   default:
