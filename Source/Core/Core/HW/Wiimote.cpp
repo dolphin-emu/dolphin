@@ -46,6 +46,11 @@ void SetSource(unsigned int index, WiimoteSource source)
     return;
   }
 
+  if (index == 0) {
+    SConfig::GetInstance().bEnablePrimeHack =
+      source == WiimoteSource::Real ? false : true;
+  }
+
   WiimoteReal::HandleWiimoteSourceChange(index);
 
   Core::RunAsCPUThread([index] { UpdateSource(index); });
