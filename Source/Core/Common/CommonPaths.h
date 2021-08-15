@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -35,6 +34,7 @@
 
 // Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
 #define GC_USER_DIR "GC"
+#define GBA_USER_DIR "GBA"
 #define WII_USER_DIR "Wii"
 #define CONFIG_DIR "Config"
 #define GAMESETTINGS_DIR "GameSettings"
@@ -62,6 +62,7 @@
 #define RESOURCES_DIR "Resources"
 #define THEMES_DIR "Themes"
 #define STYLES_DIR "Styles"
+#define GBASAVES_DIR "Saves"
 #define ANAGLYPH_DIR "Anaglyph"
 #define PASSIVE_DIR "Passive"
 #define PIPES_DIR "Pipes"
@@ -119,6 +120,9 @@
 #define GC_MEMCARDA "MemoryCardA"
 #define GC_MEMCARDB "MemoryCardB"
 #define GC_MEMCARD_NETPLAY "NetPlayTemp"
+
+#define GBA_BIOS "gba_bios.bin"
+#define GBA_SAVE_NETPLAY "NetPlayTemp"
 
 #define WII_STATE "state.dat"
 

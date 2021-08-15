@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cinttypes>
 #include <cstddef>
@@ -15,6 +14,7 @@
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -92,24 +92,22 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
       ARM64Reg temp = ARM64Reg::W0;
-      if (flags & BackPatchInfo::FLAG_SIZE_32)
-        REV32(temp, RS);
-      else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        REV16(temp, RS);
+      temp = ByteswapBeforeStore(this, temp, RS, flags, true);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
         STR(temp, MEM_REG, addr);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
         STRH(temp, MEM_REG, addr);
       else
-        STRB(RS, MEM_REG, addr);
+        STRB(temp, MEM_REG, addr);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
       // This literally only stores 32bytes of zeros to the target address
-      ADD(addr, addr, MEM_REG);
-      STP(IndexType::Signed, ARM64Reg::ZR, ARM64Reg::ZR, addr, 0);
-      STP(IndexType::Signed, ARM64Reg::ZR, ARM64Reg::ZR, addr, 16);
+      ARM64Reg temp = ARM64Reg::X30;
+      ADD(temp, addr, MEM_REG);
+      STP(IndexType::Signed, ARM64Reg::ZR, ARM64Reg::ZR, temp, 0);
+      STP(IndexType::Signed, ARM64Reg::ZR, ARM64Reg::ZR, temp, 16);
     }
     else
     {
@@ -120,16 +118,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
         LDRB(RS, MEM_REG, addr);
 
-      if (!(flags & BackPatchInfo::FLAG_REVERSE))
-      {
-        if (flags & BackPatchInfo::FLAG_SIZE_32)
-          REV32(RS, RS);
-        else if (flags & BackPatchInfo::FLAG_SIZE_16)
-          REV16(RS, RS);
-      }
-
-      if (flags & BackPatchInfo::FLAG_EXTEND)
-        SXTH(RS, RS);
+      ByteswapAfterLoad(this, RS, RS, flags, true, false);
     }
   }
   const u8* fastmem_end = GetCodePtr();
@@ -208,7 +197,10 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      MOV(ARM64Reg::W0, RS);
+      ARM64Reg temp = ARM64Reg::W0;
+      temp = ByteswapBeforeStore(this, temp, RS, flags, false);
+      if (temp != ARM64Reg::W0)
+        MOV(ARM64Reg::W0, temp);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
@@ -235,20 +227,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
 
       BLR(ARM64Reg::X8);
 
-      if (!(flags & BackPatchInfo::FLAG_REVERSE))
-      {
-        MOV(RS, ARM64Reg::W0);
-      }
-      else
-      {
-        if (flags & BackPatchInfo::FLAG_SIZE_32)
-          REV32(RS, ARM64Reg::W0);
-        else if (flags & BackPatchInfo::FLAG_SIZE_16)
-          REV16(RS, ARM64Reg::W0);
-      }
-
-      if (flags & BackPatchInfo::FLAG_EXTEND)
-        SXTH(RS, RS);
+      ByteswapAfterLoad(this, RS, ARM64Reg::W0, flags, false, false);
     }
 
     m_float_emit.ABI_PopRegisters(fprs_to_push, ARM64Reg::X30);

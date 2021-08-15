@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 
@@ -39,7 +38,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
     pad_status = GCAdapter::Input(m_device_number);
   }
 
-  HandleMoviePadStatus(&pad_status);
+  HandleMoviePadStatus(m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.

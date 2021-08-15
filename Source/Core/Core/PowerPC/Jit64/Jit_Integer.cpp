@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
 #include <limits>
@@ -898,28 +897,31 @@ void Jit64::subfic(UGeckoInstruction inst)
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rd);
 
-  if (d == a)
+  if (imm == 0)
   {
-    if (imm == 0)
-    {
-      // Flags act exactly like subtracting from 0
-      NEG(32, Rd);
-      // Output carry is inverted
-      FinalizeCarry(CC_NC);
-    }
-    else if (imm == -1)
-    {
-      NOT(32, Rd);
-      // CA is always set in this case
-      FinalizeCarry(true);
-    }
-    else
-    {
-      NOT(32, Rd);
-      ADD(32, Rd, Imm32(imm + 1));
-      // Output carry is normal
-      FinalizeCarry(CC_C);
-    }
+    if (d != a)
+      MOV(32, Rd, Ra);
+
+    // Flags act exactly like subtracting from 0
+    NEG(32, Rd);
+    // Output carry is inverted
+    FinalizeCarry(CC_NC);
+  }
+  else if (imm == -1)
+  {
+    if (d != a)
+      MOV(32, Rd, Ra);
+
+    NOT(32, Rd);
+    // CA is always set in this case
+    FinalizeCarry(true);
+  }
+  else if (d == a)
+  {
+    NOT(32, Rd);
+    ADD(32, Rd, Imm32(imm + 1));
+    // Output carry is normal
+    FinalizeCarry(CC_C);
   }
   else
   {
@@ -1662,6 +1664,47 @@ void Jit64::addx(UGeckoInstruction inst)
     if (inst.OE)
       GenerateConstantOverflow((s64)i + (s64)j);
   }
+  else if (gpr.IsImm(a) || gpr.IsImm(b))
+  {
+    auto [i, j] = gpr.IsImm(a) ? std::pair(a, b) : std::pair(b, a);
+
+    s32 imm = gpr.SImm32(i);
+    RCOpArg Rj = gpr.Use(j, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rj, Rd);
+
+    if (imm == 0)
+    {
+      if (d != j)
+        MOV(32, Rd, Rj);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (d == j)
+    {
+      ADD(32, Rd, Imm32(imm));
+      if (inst.OE)
+        GenerateOverflow();
+    }
+    else if (Rj.IsSimpleReg() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Rj.GetSimpleReg(), imm));
+    }
+    else if (imm >= -128 && imm <= 127)
+    {
+      MOV(32, Rd, Rj);
+      ADD(32, Rd, Imm32(imm));
+      if (inst.OE)
+        GenerateOverflow();
+    }
+    else
+    {
+      MOV(32, Rd, Imm32(imm));
+      ADD(32, Rd, Rj);
+      if (inst.OE)
+        GenerateOverflow();
+    }
+  }
   else
   {
     RCOpArg Ra = gpr.Use(a, RCMode::Read);
@@ -1669,51 +1712,14 @@ void Jit64::addx(UGeckoInstruction inst)
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Ra, Rb, Rd);
 
-    if ((d == a) || (d == b))
+    if (d == a || d == b)
     {
       RCOpArg& Rnotd = (d == a) ? Rb : Ra;
-      if (!Rnotd.IsZero() || inst.OE)
-      {
-        ADD(32, Rd, Rnotd);
-      }
+      ADD(32, Rd, Rnotd);
     }
     else if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
     {
       LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
-    }
-    else if ((Ra.IsSimpleReg() || Rb.IsSimpleReg()) && (Ra.IsImm() || Rb.IsImm()) && !inst.OE)
-    {
-      RCOpArg& Rimm = Ra.IsImm() ? Ra : Rb;
-      RCOpArg& Rreg = Ra.IsImm() ? Rb : Ra;
-
-      if (Rimm.IsZero())
-      {
-        MOV(32, Rd, Rreg);
-      }
-      else
-      {
-        LEA(32, Rd, MDisp(Rreg.GetSimpleReg(), Rimm.SImm32()));
-      }
-    }
-    else if (Ra.IsImm() || Rb.IsImm())
-    {
-      RCOpArg& Rimm = Ra.IsImm() ? Ra : Rb;
-      RCOpArg& Rother = Ra.IsImm() ? Rb : Ra;
-
-      s32 imm = Rimm.SImm32();
-      if (imm >= -128 && imm <= 127)
-      {
-        MOV(32, Rd, Rother);
-        if (imm != 0 || inst.OE)
-        {
-          ADD(32, Rd, Rimm);
-        }
-      }
-      else
-      {
-        MOV(32, Rd, Rimm);
-        ADD(32, Rd, Rother);
-      }
     }
     else
     {

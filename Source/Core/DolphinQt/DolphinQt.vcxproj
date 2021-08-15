@@ -87,6 +87,7 @@
     <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookGeneral.cpp" />
     <ClCompile Include="Config\Mapping\FreeLookRotation.cpp" />
+    <ClCompile Include="Config\Mapping\GBAPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
@@ -95,6 +96,7 @@
     <ClCompile Include="Config\Mapping\HotkeyControllerProfile.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGBA.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyPrimeHack.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
@@ -153,6 +155,8 @@
     <ClCompile Include="GameList\GameTracker.cpp" />
     <ClCompile Include="GameList\GridProxyModel.cpp" />
     <ClCompile Include="GameList\ListProxyModel.cpp" />
+    <ClCompile Include="GBAHost.cpp" />
+    <ClCompile Include="GBAWidget.cpp" />
     <ClCompile Include="GCMemcardCreateNewDialog.cpp" />
     <ClCompile Include="GCMemcardManager.cpp" />
     <ClCompile Include="Host.cpp" />
@@ -225,6 +229,7 @@
     <ClInclude Include="Config\Graphics\PrimeWidget.h" />
     <ClInclude Include="Config\PrimeCheatsWidget.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
+    <ClInclude Include="GBAHost.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\FlowLayout.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
@@ -274,6 +279,7 @@
     <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\Mapping\FreeLookGeneral.h" />
     <QtMoc Include="Config\Mapping\FreeLookRotation.h" />
+    <QtMoc Include="Config\Mapping\GBAPadEmu.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
     <QtMoc Include="Config\Mapping\GCMicrophone.h" />
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />
@@ -281,6 +287,7 @@
     <QtMoc Include="Config\Mapping\Hotkey3D.h" />
     <QtMoc Include="Config\Mapping\HotkeyControllerProfile.h" />
     <QtMoc Include="Config\Mapping\HotkeyDebugging.h" />
+    <QtMoc Include="Config\Mapping\HotkeyGBA.h" />
     <QtMoc Include="Config\Mapping\HotkeyGeneral.h" />
     <QtMoc Include="Config\Mapping\HotkeyGraphics.h" />
     <QtMoc Include="Config\Mapping\HotkeyStates.h" />
@@ -330,6 +337,7 @@
     <QtMoc Include="GameList\GameTracker.h" />
     <QtMoc Include="GameList\GridProxyModel.h" />
     <QtMoc Include="GameList\ListProxyModel.h" />
+    <QtMoc Include="GBAWidget.h" />
     <QtMoc Include="GCMemcardCreateNewDialog.h" />
     <QtMoc Include="GCMemcardManager.h" />
     <QtMoc Include="Host.h" />

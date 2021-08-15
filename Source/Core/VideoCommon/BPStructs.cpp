@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/BPStructs.h"
 
@@ -765,35 +764,25 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     // TODO: Description
 
   case BPMEM_IND_MTXA:  // 0x06
-  case BPMEM_IND_MTXB:  // 0x07
-  case BPMEM_IND_MTXC:  // 0x08
   case BPMEM_IND_MTXA + 3:
-  case BPMEM_IND_MTXB + 3:
-  case BPMEM_IND_MTXC + 3:
   case BPMEM_IND_MTXA + 6:
+    return std::make_pair(fmt::format("BPMEM_IND_MTXA Matrix {}", (cmd - BPMEM_IND_MTXA) / 3),
+                          fmt::format("Matrix {} column A\n{}", (cmd - BPMEM_IND_MTXA) / 3,
+                                      IND_MTXA{.hex = cmddata}));
+
+  case BPMEM_IND_MTXB:  // 0x07
+  case BPMEM_IND_MTXB + 3:
   case BPMEM_IND_MTXB + 6:
+    return std::make_pair(fmt::format("BPMEM_IND_MTXB Matrix {}", (cmd - BPMEM_IND_MTXB) / 3),
+                          fmt::format("Matrix {} column B\n{}", (cmd - BPMEM_IND_MTXB) / 3,
+                                      IND_MTXB{.hex = cmddata}));
+
+  case BPMEM_IND_MTXC:  // 0x08
+  case BPMEM_IND_MTXC + 3:
   case BPMEM_IND_MTXC + 6:
-  {
-    const u32 matrix_num = (cmd - BPMEM_IND_MTXA) / 3;
-    const u32 matrix_col = (cmd - BPMEM_IND_MTXA) % 3;
-    // These all use the same structure, though the meaning is *slightly* different;
-    // for conveninece implement it only once
-    const s32 row0 = cmddata & 0x0007ff;           // ma or mc or me
-    const s32 row1 = (cmddata & 0x3ff800) >> 11;   // mb or md or mf
-    const u32 scale = (cmddata & 0xc00000) >> 22;  // 2 bits of a 6-bit field for each column
-
-    const float row0f = static_cast<float>(row0) / (1 << 10);
-    const float row1f = static_cast<float>(row0) / (1 << 10);
-
-    return std::make_pair(fmt::format("BPMEM_IND_MTX{} Matrix {}", "ABC"[matrix_col], matrix_num),
-                          fmt::format("Matrix {} column {} ({})\n"
-                                      "Row 0 (m{}): {} ({})\n"
-                                      "Row 1 (m{}): {} ({})\n"
-                                      "Scale bits: {} (shifted: {})",
-                                      matrix_num, matrix_col, "ABC"[matrix_col], "ace"[matrix_col],
-                                      row0f, row0, "bdf"[matrix_col], row1f, row1, scale,
-                                      scale << (2 * matrix_col)));
-  }
+    return std::make_pair(fmt::format("BPMEM_IND_MTXC Matrix {}", (cmd - BPMEM_IND_MTXC) / 3),
+                          fmt::format("Matrix {} column C\n{}", (cmd - BPMEM_IND_MTXC) / 3,
+                                      IND_MTXC{.hex = cmddata}));
 
   case BPMEM_IND_IMASK:  // 0x0F
     return DescriptionlessReg(BPMEM_IND_IMASK);

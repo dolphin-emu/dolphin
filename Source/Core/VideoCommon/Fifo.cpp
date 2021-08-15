@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/Fifo.h"
 
@@ -297,10 +296,10 @@ void RunGpuLoop()
   AsyncRequests::GetInstance()->SetEnable(true);
   AsyncRequests::GetInstance()->SetPassthrough(false);
 
-  s_gpu_mainloop.Run(
-      [] {
-        const SConfig& param = SConfig::GetInstance();
+  const SConfig& param = SConfig::GetInstance();
 
+  s_gpu_mainloop.Run(
+      [&param] {
         // Run events from the CPU thread.
         AsyncRequests::GetInstance()->PullEvents();
 

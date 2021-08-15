@@ -35,10 +35,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros">
-    <CScript Condition="'$(ProgramFiles(x86))' != ''">%windir%\System32\cscript</CScript>
-    <CScript Condition="'$(ProgramFiles(x86))' == ''">%windir%\Sysnative\cscript</CScript>
-  </PropertyGroup>
   <!--
     OutDir is always created, which is annoying for SCMRevGen as it doesn't really have an outdir.
     Here it's redirected to some other place to hide the annoyance.

@@ -16,15 +16,6 @@
     <Import Project="$(VSPropsDir)Base.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <!--Output directly to binary directory...-->
-  <PropertyGroup>
-    <OutDir>$(BinaryOutputDir)</OutDir>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <msgfmt Include="po\ar.po" />
     <msgfmt Include="po\ca.po" />
@@ -59,4 +50,10 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="po.targets" />
   </ImportGroup>
+  <ItemGroup>
+    <PoFiles Include="$(OutDir)\**\*.*" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(PoFiles)" Outputs="@(PoFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(PoFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" />
+  </Target>
 </Project>

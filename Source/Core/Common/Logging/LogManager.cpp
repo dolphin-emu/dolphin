@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Logging/LogManager.h"
 
@@ -157,7 +156,6 @@ LogManager::LogManager()
   m_log[OSHLE] = {"HLE", "OSHLE"};
   m_log[OSREPORT] = {"OSREPORT", "OSReport EXI"};
   m_log[OSREPORT_HLE] = {"OSREPORT_HLE", "OSReport HLE"};
-  m_log[PAD] = {"PAD", "Pad"};
   m_log[PIXELENGINE] = {"PE", "Pixel Engine"};
   m_log[PROCESSORINTERFACE] = {"PI", "Processor Interface"};
   m_log[POWERPC] = {"PowerPC", "PowerPC IBM CPU"};

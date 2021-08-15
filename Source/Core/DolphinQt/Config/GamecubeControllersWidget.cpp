@@ -1,6 +1,5 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/GamecubeControllersWidget.h"
 
@@ -11,8 +10,9 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include <map>
 #include <optional>
+#include <utility>
+#include <vector>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -25,23 +25,37 @@
 
 #include "InputCommon/GCAdapter.h"
 
-static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
-    {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},
-    {SerialInterface::SIDEVICE_WIIU_ADAPTER, 2}, {SerialInterface::SIDEVICE_GC_STEERING, 3},
-    {SerialInterface::SIDEVICE_DANCEMAT, 4},     {SerialInterface::SIDEVICE_GC_TARUKONGA, 5},
-    {SerialInterface::SIDEVICE_GC_GBA, 6},       {SerialInterface::SIDEVICE_GC_KEYBOARD, 7}};
+static const std::vector<std::pair<SerialInterface::SIDevices, const char*>> s_gc_types = {
+    {SerialInterface::SIDEVICE_NONE, _trans("None")},
+    {SerialInterface::SIDEVICE_GC_CONTROLLER, _trans("Standard Controller")},
+    {SerialInterface::SIDEVICE_WIIU_ADAPTER, _trans("GameCube Adapter for Wii U")},
+    {SerialInterface::SIDEVICE_GC_STEERING, _trans("Steering Wheel")},
+    {SerialInterface::SIDEVICE_DANCEMAT, _trans("Dance Mat")},
+    {SerialInterface::SIDEVICE_GC_TARUKONGA, _trans("DK Bongos")},
+#ifdef HAS_LIBMGBA
+    {SerialInterface::SIDEVICE_GC_GBA_EMULATED, _trans("GBA (Integrated)")},
+#endif
+    {SerialInterface::SIDEVICE_GC_GBA, _trans("GBA (TCP)")},
+    {SerialInterface::SIDEVICE_GC_KEYBOARD, _trans("Keyboard")}};
 
 static std::optional<int> ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
 {
-  auto it = s_gc_types.find(sidevice);
-  return it != s_gc_types.end() ? it->second : std::optional<int>();
+  for (size_t i = 0; i < s_gc_types.size(); ++i)
+  {
+    if (s_gc_types[i].first == sidevice)
+      return static_cast<int>(i);
+  }
+  return {};
 }
 
-static std::optional<SerialInterface::SIDevices> FromGCMenuIndex(const int menudevice)
+static SerialInterface::SIDevices FromGCMenuIndex(const int menudevice)
 {
-  auto it = std::find_if(s_gc_types.begin(), s_gc_types.end(),
-                         [=](auto pair) { return pair.second == menudevice; });
-  return it != s_gc_types.end() ? it->first : std::optional<SerialInterface::SIDevices>();
+  return s_gc_types[menudevice].first;
+}
+
+static bool IsConfigurable(SerialInterface::SIDevices sidevice)
+{
+  return sidevice != SerialInterface::SIDEVICE_NONE && sidevice != SerialInterface::SIDEVICE_GC_GBA;
 }
 
 GamecubeControllersWidget::GamecubeControllersWidget(QWidget* parent) : QWidget(parent)
@@ -64,11 +78,9 @@ void GamecubeControllersWidget::CreateLayout()
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
     auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
 
-    for (const auto& item :
-         {tr("None"), tr("Standard Controller"), tr("GameCube Adapter for Wii U"),
-          tr("Steering Wheel"), tr("Dance Mat"), tr("DK Bongos"), tr("GBA"), tr("Keyboard")})
+    for (const auto& item : s_gc_types)
     {
-      gc_box->addItem(item);
+      gc_box->addItem(tr(item.second));
     }
 
     int controller_row = m_gc_layout->rowCount();
@@ -106,8 +118,8 @@ void GamecubeControllersWidget::OnGCTypeChanged(int type)
   {
     if (m_gc_controller_boxes[i] == box)
     {
-      const int index = box->currentIndex();
-      m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
+      const SerialInterface::SIDevices si_device = FromGCMenuIndex(box->currentIndex());
+      m_gc_buttons[i]->setEnabled(IsConfigurable(si_device));
       return;
     }
   }
@@ -126,27 +138,30 @@ void GamecubeControllersWidget::OnGCPadConfigure()
 
   MappingWindow::Type type;
 
-  switch (m_gc_controller_boxes[index]->currentIndex())
+  switch (FromGCMenuIndex(m_gc_controller_boxes[index]->currentIndex()))
   {
-  case 0:  // None
-  case 6:  // GBA
+  case SerialInterface::SIDEVICE_NONE:
+  case SerialInterface::SIDEVICE_GC_GBA:
     return;
-  case 1:  // Standard Controller
+  case SerialInterface::SIDEVICE_GC_CONTROLLER:
     type = MappingWindow::Type::MAPPING_GCPAD;
     break;
-  case 2:  // GameCube Adapter for Wii U
+  case SerialInterface::SIDEVICE_WIIU_ADAPTER:
     GCPadWiiUConfigDialog(static_cast<int>(index), this).exec();
     return;
-  case 3:  // Steering Wheel
+  case SerialInterface::SIDEVICE_GC_STEERING:
     type = MappingWindow::Type::MAPPING_GC_STEERINGWHEEL;
     break;
-  case 4:  // Dance Mat
+  case SerialInterface::SIDEVICE_DANCEMAT:
     type = MappingWindow::Type::MAPPING_GC_DANCEMAT;
     break;
-  case 5:  // DK Bongos
+  case SerialInterface::SIDEVICE_GC_TARUKONGA:
     type = MappingWindow::Type::MAPPING_GC_BONGOS;
     break;
-  case 7:  // Keyboard
+  case SerialInterface::SIDEVICE_GC_GBA_EMULATED:
+    type = MappingWindow::Type::MAPPING_GC_GBA;
+    break;
+  case SerialInterface::SIDEVICE_GC_KEYBOARD:
     type = MappingWindow::Type::MAPPING_GC_KEYBOARD;
     break;
   default:
@@ -163,11 +178,12 @@ void GamecubeControllersWidget::LoadSettings()
 {
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    const std::optional<int> gc_index = ToGCMenuIndex(SConfig::GetInstance().m_SIDevice[i]);
+    const SerialInterface::SIDevices si_device = SConfig::GetInstance().m_SIDevice[i];
+    const std::optional<int> gc_index = ToGCMenuIndex(si_device);
     if (gc_index)
     {
       m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
-      m_gc_buttons[i]->setEnabled(*gc_index != 0 && *gc_index != 6);
+      m_gc_buttons[i]->setEnabled(IsConfigurable(si_device));
     }
   }
 }
@@ -177,16 +193,13 @@ void GamecubeControllersWidget::SaveSettings()
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
-    const std::optional<SerialInterface::SIDevices> si_device = FromGCMenuIndex(index);
-    if (si_device)
-    {
-      SConfig::GetInstance().m_SIDevice[i] = *si_device;
+    const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);
+    SConfig::GetInstance().m_SIDevice[i] = si_device;
 
-      if (Core::IsRunning())
-        SerialInterface::ChangeDevice(*si_device, static_cast<s32>(i));
-    }
+    if (Core::IsRunning())
+      SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));
 
-    m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
+    m_gc_buttons[i]->setEnabled(IsConfigurable(si_device));
   }
 
   if (GCAdapter::UseAdapter())

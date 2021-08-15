@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigManager.h"
 
@@ -782,7 +781,6 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
-  bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideRegionSettings = false;
   bWii = false;

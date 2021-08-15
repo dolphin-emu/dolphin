@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DVD/DVDInterface.h"
 
@@ -1251,7 +1250,9 @@ void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
                            const DiscIO::Partition& partition, ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
-  SetDriveState(DriveState::Ready);
+
+  if (s_drive_state == DriveState::ReadyNoReadsMade)
+    SetDriveState(DriveState::Ready);
 
   const bool command_handled_by_thread =
       ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length, partition,
@@ -1365,6 +1366,9 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
   const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WiiDisc;
 
+  // Whether we have performed a seek.
+  bool seek = false;
+
   // Where the DVD read head is (usually parked at the end of the buffer,
   // unless we've interrupted it mid-buffer-read).
   u64 head_position;
@@ -1379,6 +1383,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
   u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
+  const u64 first_block = dvd_offset;
 
   if (SConfig::GetInstance().bFastDiscSpeed)
   {
@@ -1473,6 +1478,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
       if (dvd_offset != head_position)
       {
         // Unbuffered seek+read
+        seek = true;
         ticks_until_completion += static_cast<u64>(
             ticks_per_second * DVDMath::CalculateSeekTime(head_position, dvd_offset));
 
@@ -1512,27 +1518,45 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
     dvd_offset += DVD_ECC_BLOCK_SIZE;
   } while (length > 0);
 
-  // Update the buffer based on this read. Based on experimental testing,
-  // we will only reuse the old buffer while reading forward. Note that the
-  // buffer start we calculate here is not the actual start of the buffer -
-  // it is just the start of the portion we need to read.
+  // Evict blocks from the buffer which are unlikely to be used again after this read,
+  // so that the buffer gets space for prefetching new blocks. Based on hardware testing,
+  // the blocks which are kept are the most recently accessed block, the block immediately
+  // before it, and all blocks after it.
+  //
+  // If the block immediately before the most recently accessed block is not kept, loading
+  // screens in Pitfall: The Lost Expedition are longer than they should be.
+  // https://bugs.dolphin-emu.org/issues/12279
   const u64 last_block = dvd_offset;
-  if (last_block == buffer_start + DVD_ECC_BLOCK_SIZE && buffer_start != buffer_end)
+  constexpr u32 BUFFER_BACKWARD_SEEK_LIMIT = DVD_ECC_BLOCK_SIZE * 2;
+  if (last_block - buffer_start <= BUFFER_BACKWARD_SEEK_LIMIT && buffer_start != buffer_end)
   {
-    // Special case: reading less than one block at the start of the
-    // buffer won't change the buffer state
+    // Special case: reading the first two blocks of the buffer doesn't change the buffer state
   }
   else
   {
+    // Note that the s_read_buffer_start_offset value we calculate here is not the
+    // actual start of the buffer - it is just the start of the portion we need to read.
+    // The actual start of the buffer is s_read_buffer_end_offset - STREAMING_BUFFER_SIZE.
     if (last_block >= buffer_end)
+    {
       // Full buffer read
       s_read_buffer_start_offset = last_block;
+    }
     else
+    {
       // Partial buffer read
       s_read_buffer_start_offset = buffer_end;
+    }
 
-    s_read_buffer_end_offset = last_block + STREAMING_BUFFER_SIZE - DVD_ECC_BLOCK_SIZE;
-    // Assume the buffer starts reading right after the end of the last operation
+    s_read_buffer_end_offset = last_block + STREAMING_BUFFER_SIZE - BUFFER_BACKWARD_SEEK_LIMIT;
+    if (seek)
+    {
+      // If we seek, the block preceding the first accessed block never gets read into the buffer
+      s_read_buffer_end_offset =
+          std::max(s_read_buffer_end_offset, first_block + STREAMING_BUFFER_SIZE);
+    }
+
+    // Assume the buffer starts prefetching new blocks right after the end of the last operation
     s_read_buffer_start_time = current_time + ticks_until_completion;
     s_read_buffer_end_time =
         s_read_buffer_start_time +

@@ -1,6 +1,5 @@
 // Copyright 2003 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 /*
 Here is a nice ascii overview of audio flow affected by this file:
@@ -111,7 +110,7 @@ static u32 s_sample_counter = 0;
 static u32 s_interrupt_timing = 0;
 
 static u64 s_last_cpu_time = 0;
-static u64 s_cpu_cycles_per_sample = 0xFFFFFFFFFFFULL;
+static u64 s_cpu_cycles_per_sample = 0;
 
 static u32 s_ais_sample_rate = 48000;
 static u32 s_aid_sample_rate = 32000;
@@ -142,15 +141,16 @@ void Init()
 {
   s_control.hex = 0;
   s_control.AISFR = AIS_48KHz;
+  s_control.AIDFR = AID_32KHz;
   s_volume.hex = 0;
   s_sample_counter = 0;
   s_interrupt_timing = 0;
 
   s_last_cpu_time = 0;
-  s_cpu_cycles_per_sample = 0xFFFFFFFFFFFULL;
 
   s_ais_sample_rate = Get48KHzSampleRate();
   s_aid_sample_rate = Get32KHzSampleRate();
+  s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
 
@@ -240,9 +240,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](u32) {
+                   const u64 cycles_streamed =
+                       IsPlaying() ? (CoreTiming::GetTicks() - s_last_cpu_time) : s_last_cpu_time;
                    return s_sample_counter +
-                          static_cast<u32>((CoreTiming::GetTicks() - s_last_cpu_time) /
-                                           s_cpu_cycles_per_sample);
+                          static_cast<u32>(cycles_streamed / s_cpu_cycles_per_sample);
                  }),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    s_sample_counter = val;
@@ -344,4 +345,4 @@ int GetAIPeriod()
   return static_cast<int>(std::min(period, s_period));
 }
 
-}  // end of namespace AudioInterface
+}  // namespace AudioInterface

@@ -1,9 +1,9 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/TextureInfo.h"
 
+#include <fmt/format.h>
 #include <xxhash.h>
 
 #include "Common/Align.h"
@@ -84,8 +84,10 @@ TextureInfo::TextureInfo(const u8* ptr, const u8* tlut_ptr, u32 address,
     const u32 limited_mip_count =
         std::min<u32>(IntLog2(std::max(width, height)) + 1, raw_mip_count + 1) - 1;
 
-    // load mips - TODO: Loading mipmaps from tmem is untested!
+    // load mips
     const u8* src_data = m_ptr + GetTextureSize();
+    if (tmem_even)
+      tmem_even += GetTextureSize();
 
     for (u32 i = 0; i < limited_mip_count; i++)
     {
@@ -93,6 +95,11 @@ TextureInfo::TextureInfo(const u8* ptr, const u8* tlut_ptr, u32 address,
       m_mip_levels.push_back(std::move(mip_level));
     }
   }
+}
+
+std::string TextureInfo::NameDetails::GetFullName() const
+{
+  return fmt::format("{}_{}{}_{}", base_name, texture_name, tlut_name, format_name);
 }
 
 TextureInfo::NameDetails TextureInfo::CalculateTextureName()
@@ -151,10 +158,11 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName()
   const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
   NameDetails result;
-  result.base_name = fmt::format("{}{}x{}{}_{:016x}", format_prefix, m_raw_width, m_raw_height,
-                                 m_mipmaps_enabled ? "_m" : "", tex_hash);
+  result.base_name = fmt::format("{}{}x{}{}", format_prefix, m_raw_width, m_raw_height,
+                                 m_mipmaps_enabled ? "_m" : "");
+  result.texture_name = fmt::format("{:016x}", tex_hash);
   result.tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "";
-  result.format_name = fmt::format("_{}", static_cast<int>(m_texture_format));
+  result.format_name = fmt::to_string(static_cast<int>(m_texture_format));
 
   return result;
 }
@@ -259,8 +267,6 @@ TextureInfo::MipLevel::MipLevel(u32 level, const TextureInfo& parent, bool from_
   m_raw_height = std::max(parent.GetRawHeight() >> level, 1u);
   m_expanded_width = Common::AlignUp(m_raw_width, parent.GetBlockWidth());
   m_expanded_height = Common::AlignUp(m_raw_height, parent.GetBlockHeight());
-
-  // load mips - TODO: Loading mipmaps from tmem is untested!
 
   m_texture_size = TexDecoder_GetTextureSizeInBytes(m_expanded_width, m_expanded_height,
                                                     parent.GetTextureFormat());

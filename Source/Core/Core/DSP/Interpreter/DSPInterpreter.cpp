@@ -1,7 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
@@ -200,14 +199,14 @@ int Interpreter::RunCycles(int cycles)
 void Interpreter::WriteCR(u16 val)
 {
   // reset
-  if ((val & 1) != 0)
+  if ((val & CR_RESET) != 0)
   {
     INFO_LOG_FMT(DSPLLE, "DSP_CONTROL RESET");
     m_dsp_core.Reset();
     val &= ~CR_RESET;
   }
   // init
-  else if (val == 4)
+  else if (val == CR_HALT)
   {
     // HAX!
     // OSInitAudioSystem ucode should send this mail - not DSP core itself

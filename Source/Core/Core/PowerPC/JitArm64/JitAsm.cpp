@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <limits>
 
@@ -103,7 +102,7 @@ void JitArm64::GenerateAsm()
     ARM64Reg pc_masked = ARM64Reg::W25;
     ARM64Reg cache_base = ARM64Reg::X27;
     ARM64Reg block = ARM64Reg::X30;
-    ORRI2R(pc_masked, ARM64Reg::WZR, JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3);
+    ORR(pc_masked, ARM64Reg::WZR, LogicalImm(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3, 32));
     AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ShiftType::LSL, 1));
     MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
     LDR(block, cache_base, EncodeRegTo64(pc_masked));
@@ -117,7 +116,7 @@ void JitArm64::GenerateAsm()
     FixupBranch pc_missmatch = B(CC_NEQ);
 
     LDR(IndexType::Unsigned, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
-    ANDI2R(pc_and_msr2, pc_and_msr2, JitBaseBlockCache::JIT_CACHE_MSR_MASK);
+    AND(pc_and_msr2, pc_and_msr2, LogicalImm(JitBaseBlockCache::JIT_CACHE_MSR_MASK, 32));
     LDR(IndexType::Unsigned, pc_and_msr, block, offsetof(JitBlockData, msrBits));
     CMP(pc_and_msr, pc_and_msr2);
     FixupBranch msr_missmatch = B(CC_NEQ);
@@ -239,7 +238,7 @@ void JitArm64::GenerateFres()
   UBFX(ARM64Reg::X2, ARM64Reg::X1, 52, 11);  // Grab the exponent
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
   CMP(ARM64Reg::X2, 895);
-  ANDI2R(ARM64Reg::X3, ARM64Reg::X1, Common::DOUBLE_SIGN);
+  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Common::DOUBLE_SIGN, 64));
   FixupBranch small_exponent = B(CCFlags::CC_LO);
 
   MOVI2R(ARM64Reg::X4, 1148LL);
@@ -252,14 +251,14 @@ void JitArm64::GenerateFres()
   LDP(IndexType::Signed, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X1, ARM64Reg::X1, 37, 10);  // Grab lower part of mantissa
   MOVI2R(ARM64Reg::W4, 1);
-  ANDI2R(ARM64Reg::X0, ARM64Reg::X0, Common::DOUBLE_SIGN | Common::DOUBLE_EXP);
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   MADD(ARM64Reg::W1, ARM64Reg::W3, ARM64Reg::W1, ARM64Reg::W4);
   SUB(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W1, ArithOption(ARM64Reg::W1, ShiftType::LSR, 1));
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X1, ArithOption(ARM64Reg::X1, ShiftType::LSL, 29));
   RET();
 
   SetJumpTarget(small_exponent);
-  TSTI2R(ARM64Reg::X1, Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+  TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, 64));
   FixupBranch zero = B(CCFlags::CC_EQ);
   MOVI2R(ARM64Reg::X4,
          Common::BitCast<u64>(static_cast<double>(std::numeric_limits<float>::max())));
@@ -290,15 +289,15 @@ void JitArm64::GenerateFrsqrte()
   // inf, even the mantissa matches. But the mantissa does not match for most other inputs, so in
   // the normal case we calculate the mantissa using the table-based algorithm from the interpreter.
 
-  TSTI2R(ARM64Reg::X1, Common::DOUBLE_EXP | Common::DOUBLE_FRAC);
+  TST(ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP | Common::DOUBLE_FRAC, 64));
   m_float_emit.FMOV(ARM64Reg::X0, ARM64Reg::D0);
   FixupBranch zero = B(CCFlags::CC_EQ);
-  ANDI2R(ARM64Reg::X2, ARM64Reg::X1, Common::DOUBLE_EXP);
+  AND(ARM64Reg::X2, ARM64Reg::X1, LogicalImm(Common::DOUBLE_EXP, 64));
   MOVI2R(ARM64Reg::X3, Common::DOUBLE_EXP);
   CMP(ARM64Reg::X2, ARM64Reg::X3);
   FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
   FixupBranch negative = TBNZ(ARM64Reg::X1, 63);
-  ANDI2R(ARM64Reg::X3, ARM64Reg::X1, Common::DOUBLE_FRAC);
+  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(Common::DOUBLE_FRAC, 64));
   FixupBranch normal = CBNZ(ARM64Reg::X2);
 
   // "Normalize" denormal values
@@ -307,18 +306,18 @@ void JitArm64::GenerateFrsqrte()
   MOVI2R(ARM64Reg::X2, 0x00C0'0000'0000'0000);
   LSLV(ARM64Reg::X4, ARM64Reg::X1, ARM64Reg::X4);
   SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
-  ANDI2R(ARM64Reg::X3, ARM64Reg::X4, Common::DOUBLE_FRAC - 1);
+  AND(ARM64Reg::X3, ARM64Reg::X4, LogicalImm(Common::DOUBLE_FRAC - 1, 64));
 
   SetJumpTarget(normal);
   LSR(ARM64Reg::X2, ARM64Reg::X2, 48);
-  ANDI2R(ARM64Reg::X2, ARM64Reg::X2, 0x10);
+  AND(ARM64Reg::X2, ARM64Reg::X2, LogicalImm(0x10, 64));
   MOVP2R(ARM64Reg::X1, &Common::frsqrte_expected);
   ORR(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X8, ShiftType::LSR, 48));
-  EORI2R(ARM64Reg::X2, ARM64Reg::X2, 0x10);
+  EOR(ARM64Reg::X2, ARM64Reg::X2, LogicalImm(0x10, 64));
   ADD(ARM64Reg::X2, ARM64Reg::X1, ARM64Reg::X2, ArithOption(ARM64Reg::X2, ShiftType::LSL, 3));
   LDP(IndexType::Signed, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::X2, 0);
   UBFX(ARM64Reg::X3, ARM64Reg::X3, 37, 11);
-  ANDI2R(ARM64Reg::X0, ARM64Reg::X0, Common::DOUBLE_SIGN | Common::DOUBLE_EXP);
+  AND(ARM64Reg::X0, ARM64Reg::X0, LogicalImm(Common::DOUBLE_SIGN | Common::DOUBLE_EXP, 64));
   MSUB(ARM64Reg::W3, ARM64Reg::W3, ARM64Reg::W2, ARM64Reg::W1);
   ORR(ARM64Reg::X0, ARM64Reg::X0, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 26));
   RET();
@@ -355,17 +354,17 @@ void JitArm64::GenerateConvertDoubleToSingle()
   LSR(ARM64Reg::X1, ARM64Reg::X0, 32);
   FixupBranch denormal = B(CCFlags::CC_LS);
 
-  ANDI2R(ARM64Reg::X1, ARM64Reg::X1, 0xc0000000);
+  AND(ARM64Reg::X1, ARM64Reg::X1, LogicalImm(0xc0000000, 64));
   BFXIL(ARM64Reg::X1, ARM64Reg::X0, 29, 30);
   RET();
 
   SetJumpTarget(denormal);
   LSR(ARM64Reg::X3, ARM64Reg::X0, 21);
   MOVZ(ARM64Reg::X0, 905);
-  ORRI2R(ARM64Reg::W3, ARM64Reg::W3, 0x80000000);
+  ORR(ARM64Reg::W3, ARM64Reg::W3, LogicalImm(0x80000000, 32));
   SUB(ARM64Reg::W2, ARM64Reg::W0, ARM64Reg::W2);
   LSRV(ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W2);
-  ANDI2R(ARM64Reg::X3, ARM64Reg::X1, 0x80000000);
+  AND(ARM64Reg::X3, ARM64Reg::X1, LogicalImm(0x80000000, 64));
   ORR(ARM64Reg::X1, ARM64Reg::X3, ARM64Reg::X2);
   RET();
 }
@@ -376,7 +375,7 @@ void JitArm64::GenerateConvertSingleToDouble()
   UBFX(ARM64Reg::W1, ARM64Reg::W0, 23, 8);
   FixupBranch normal_or_nan = CBNZ(ARM64Reg::W1);
 
-  ANDI2R(ARM64Reg::W1, ARM64Reg::W0, 0x007fffff);
+  AND(ARM64Reg::W1, ARM64Reg::W0, LogicalImm(0x007fffff, 32));
   FixupBranch denormal = CBNZ(ARM64Reg::W1);
 
   // Zero
@@ -384,10 +383,10 @@ void JitArm64::GenerateConvertSingleToDouble()
   RET();
 
   SetJumpTarget(denormal);
-  ANDI2R(ARM64Reg::W2, ARM64Reg::W0, 0x80000000);
+  AND(ARM64Reg::W2, ARM64Reg::W0, LogicalImm(0x80000000, 32));
   CLZ(ARM64Reg::X3, ARM64Reg::X1);
   LSL(ARM64Reg::X2, ARM64Reg::X2, 32);
-  ORRI2R(ARM64Reg::X4, ARM64Reg::X3, 0xffffffffffffffc0);
+  ORR(ARM64Reg::X4, ARM64Reg::X3, LogicalImm(0xffffffffffffffc0, 64));
   SUB(ARM64Reg::X2, ARM64Reg::X2, ARM64Reg::X3, ArithOption(ARM64Reg::X3, ShiftType::LSL, 52));
   ADD(ARM64Reg::X3, ARM64Reg::X4, 23);
   LSLV(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::X3);
@@ -398,12 +397,12 @@ void JitArm64::GenerateConvertSingleToDouble()
 
   SetJumpTarget(normal_or_nan);
   CMP(ARM64Reg::W1, 0xff);
-  ANDI2R(ARM64Reg::W2, ARM64Reg::W0, 0x40000000);
+  AND(ARM64Reg::W2, ARM64Reg::W0, LogicalImm(0x40000000, 32));
   CSET(ARM64Reg::W4, CCFlags::CC_NEQ);
-  ANDI2R(ARM64Reg::W3, ARM64Reg::W0, 0xc0000000);
+  AND(ARM64Reg::W3, ARM64Reg::W0, LogicalImm(0xc0000000, 32));
   EOR(ARM64Reg::W2, ARM64Reg::W4, ARM64Reg::W2, ArithOption(ARM64Reg::W2, ShiftType::LSR, 30));
   MOVI2R(ARM64Reg::X1, 0x3800000000000000);
-  ANDI2R(ARM64Reg::W4, ARM64Reg::W0, 0x3fffffff);
+  AND(ARM64Reg::W4, ARM64Reg::W0, LogicalImm(0x3fffffff, 32));
   LSL(ARM64Reg::X3, ARM64Reg::X3, 32);
   CMP(ARM64Reg::W2, 0);
   CSEL(ARM64Reg::X1, ARM64Reg::X1, ARM64Reg::ZR, CCFlags::CC_NEQ);
@@ -424,9 +423,10 @@ void JitArm64::GenerateFPRF(bool single)
   constexpr ARM64Reg fprf_reg = ARM64Reg::W3;
   constexpr ARM64Reg fpscr_reg = ARM64Reg::W4;
 
-  const auto INPUT_EXP_MASK = single ? Common::FLOAT_EXP : Common::DOUBLE_EXP;
-  const auto INPUT_FRAC_MASK = single ? Common::FLOAT_FRAC : Common::DOUBLE_FRAC;
-  constexpr u32 OUTPUT_SIGN_MASK = 0xC;
+  const int input_size = single ? 32 : 64;
+  const u64 input_exp_mask = single ? Common::FLOAT_EXP : Common::DOUBLE_EXP;
+  const u64 input_frac_mask = single ? Common::FLOAT_FRAC : Common::DOUBLE_FRAC;
+  constexpr u32 output_sign_mask = 0xC;
 
   // This code is duplicated for the most common cases for performance.
   // For the less common cases, we branch to an existing copy of this code.
@@ -440,7 +440,7 @@ void JitArm64::GenerateFPRF(bool single)
   LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
 
   CMP(input_reg, 0);  // Grab sign bit (conveniently the same bit for floats as for integers)
-  ANDI2R(exp_reg, input_reg, INPUT_EXP_MASK);  // Grab exponent
+  AND(exp_reg, input_reg, LogicalImm(input_exp_mask, input_size));  // Grab exponent
 
   // Most branches handle the sign in the same way. Perform that handling before branching
   MOVI2R(ARM64Reg::W3, Common::PPC_FPCLASS_PN);
@@ -450,48 +450,34 @@ void JitArm64::GenerateFPRF(bool single)
   FixupBranch zero_or_denormal = CBZ(exp_reg);
 
   // exp != 0
-  MOVI2R(temp_reg, INPUT_EXP_MASK);
+  MOVI2R(temp_reg, input_exp_mask);
   CMP(exp_reg, temp_reg);
   FixupBranch nan_or_inf = B(CCFlags::CC_EQ);
 
   // exp != 0 && exp != EXP_MASK
-  const u8* normal = GetCodePtr();
   emit_write_fprf_and_ret();
 
   // exp == 0
   SetJumpTarget(zero_or_denormal);
-  TSTI2R(input_reg, INPUT_FRAC_MASK);
-  FixupBranch denormal;
-  if (single)
-  {
-    // To match the interpreter, what we output should be based on how the input would be classified
-    // after conversion to double. Converting a denormal single to a double always results in a
-    // normal double, so for denormal singles we need to output PPC_FPCLASS_PN/PPC_FPCLASS_NN.
-    // TODO: Hardware test that the interpreter actually is correct.
-    B(CCFlags::CC_NEQ, normal);
-  }
-  else
-  {
-    denormal = B(CCFlags::CC_NEQ);
-  }
+  TST(input_reg, LogicalImm(input_frac_mask, input_size));
+  FixupBranch denormal = B(CCFlags::CC_NEQ);
 
   // exp == 0 && frac == 0
   LSR(ARM64Reg::W1, fprf_reg, 3);
-  MOVI2R(fprf_reg, Common::PPC_FPCLASS_PZ & ~OUTPUT_SIGN_MASK);
+  MOVI2R(fprf_reg, Common::PPC_FPCLASS_PZ & ~output_sign_mask);
   BFI(fprf_reg, ARM64Reg::W1, 4, 1);
   const u8* write_fprf_and_ret = GetCodePtr();
   emit_write_fprf_and_ret();
 
   // exp == 0 && frac != 0
-  if (!single)
-    SetJumpTarget(denormal);
-  ORRI2R(fprf_reg, fprf_reg, Common::PPC_FPCLASS_PD & ~OUTPUT_SIGN_MASK);
+  SetJumpTarget(denormal);
+  ORR(fprf_reg, fprf_reg, LogicalImm(Common::PPC_FPCLASS_PD & ~output_sign_mask, 32));
   B(write_fprf_and_ret);
 
   // exp == EXP_MASK
   SetJumpTarget(nan_or_inf);
-  TSTI2R(input_reg, INPUT_FRAC_MASK);
-  ORRI2R(ARM64Reg::W1, fprf_reg, Common::PPC_FPCLASS_PINF & ~OUTPUT_SIGN_MASK);
+  TST(input_reg, LogicalImm(input_frac_mask, input_size));
+  ORR(ARM64Reg::W1, fprf_reg, LogicalImm(Common::PPC_FPCLASS_PINF & ~output_sign_mask, 32));
   MOVI2R(ARM64Reg::W2, Common::PPC_FPCLASS_QNAN);
   CSEL(fprf_reg, ARM64Reg::W1, ARM64Reg::W2, CCFlags::CC_EQ);
   B(write_fprf_and_ret);

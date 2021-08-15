@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -130,11 +129,9 @@ struct pixel_shader_uid_data
     u32 tevorders_texcoord : 3;
     u32 tevorders_enable : 1;
     RasColorChan tevorders_colorchan : 3;
-    u32 pad1 : 6;
+    u32 pad1 : 7;
 
     // TODO: Clean up the swapXY mess
-    // TODO: remove hasindstage, as it no longer does anything useful
-    u32 hasindstage : 1;
     u32 tevind : 21;
     u32 tevksel_swap1a : 2;
     u32 tevksel_swap2a : 2;

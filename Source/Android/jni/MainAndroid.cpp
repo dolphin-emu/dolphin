@@ -1,6 +1,5 @@
 // Copyright 2003 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <EGL/egl.h>
 #include <UICommon/GameFile.h>
@@ -174,15 +173,28 @@ void Host_TitleChanged()
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTitleChanged());
 }
 
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
+}
+
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
 {
-  JNIEnv* env = IDCache::GetEnvForThread();
+  // If a panic alert happens very early in the execution of a game, we can crash here with
+  // the error "JNI NewString called with pending exception java.lang.StackOverflowError".
+  // As a workaround, let's put the call on a new thread with a brand new stack.
 
-  // Execute the Java method.
-  jboolean result =
-      env->CallStaticBooleanMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(),
-                                   ToJString(env, caption), ToJString(env, text), yes_no,
-                                   style == Common::MsgType::Warning, s_need_nonblocking_alert_msg);
+  jboolean result;
+
+  std::thread([&] {
+    JNIEnv* env = IDCache::GetEnvForThread();
+
+    // Execute the Java method.
+    result = env->CallStaticBooleanMethod(
+        IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
+        ToJString(env, text), yes_no, style == Common::MsgType::Warning,
+        s_need_nonblocking_alert_msg);
+  }).join();
 
   return result != JNI_FALSE;
 }

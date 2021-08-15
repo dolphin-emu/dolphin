@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/UberShaderPixel.h"
 
@@ -829,24 +828,24 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "          break;\n"
               "        case {:s}:\n",
               IndTexFormat::ITF_5);
-    out.Write("          indcoord.x = (indcoord.x & 0x1f) + ((bias & 1u) != 0u ? 1 : 0);\n"
-              "          indcoord.y = (indcoord.y & 0x1f) + ((bias & 2u) != 0u ? 1 : 0);\n"
-              "          indcoord.z = (indcoord.z & 0x1f) + ((bias & 4u) != 0u ? 1 : 0);\n"
-              "          s.AlphaBump = s.AlphaBump & 0xe0;\n"
+    out.Write("          indcoord.x = (indcoord.x >> 3) + ((bias & 1u) != 0u ? 1 : 0);\n"
+              "          indcoord.y = (indcoord.y >> 3) + ((bias & 2u) != 0u ? 1 : 0);\n"
+              "          indcoord.z = (indcoord.z >> 3) + ((bias & 4u) != 0u ? 1 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump << 5;\n"
               "          break;\n"
               "        case {:s}:\n",
               IndTexFormat::ITF_4);
-    out.Write("          indcoord.x = (indcoord.x & 0x0f) + ((bias & 1u) != 0u ? 1 : 0);\n"
-              "          indcoord.y = (indcoord.y & 0x0f) + ((bias & 2u) != 0u ? 1 : 0);\n"
-              "          indcoord.z = (indcoord.z & 0x0f) + ((bias & 4u) != 0u ? 1 : 0);\n"
-              "          s.AlphaBump = s.AlphaBump & 0xf0;\n"
+    out.Write("          indcoord.x = (indcoord.x >> 4) + ((bias & 1u) != 0u ? 1 : 0);\n"
+              "          indcoord.y = (indcoord.y >> 4) + ((bias & 2u) != 0u ? 1 : 0);\n"
+              "          indcoord.z = (indcoord.z >> 4) + ((bias & 4u) != 0u ? 1 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump << 4;\n"
               "          break;\n"
               "        case {:s}:\n",
               IndTexFormat::ITF_3);
-    out.Write("          indcoord.x = (indcoord.x & 0x07) + ((bias & 1u) != 0u ? 1 : 0);\n"
-              "          indcoord.y = (indcoord.y & 0x07) + ((bias & 2u) != 0u ? 1 : 0);\n"
-              "          indcoord.z = (indcoord.z & 0x07) + ((bias & 4u) != 0u ? 1 : 0);\n"
-              "          s.AlphaBump = s.AlphaBump & 0xf8;\n"
+    out.Write("          indcoord.x = (indcoord.x >> 5) + ((bias & 1u) != 0u ? 1 : 0);\n"
+              "          indcoord.y = (indcoord.y >> 5) + ((bias & 2u) != 0u ? 1 : 0);\n"
+              "          indcoord.z = (indcoord.z >> 5) + ((bias & 4u) != 0u ? 1 : 0);\n"
+              "          s.AlphaBump = s.AlphaBump << 3;\n"
               "          break;\n"
               "        }}\n"
               "\n"
@@ -893,7 +892,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "      // Emulate s24 overflows\n"
               "      tevcoord.xy = (tevcoord.xy << 8) >> 8;\n"
               "    }}\n"
-              "    else if (texture_enabled)\n"
+              "    else\n"
               "    {{\n"
               "      tevcoord.xy = fixedPoint_uv;\n"
               "    }}\n"

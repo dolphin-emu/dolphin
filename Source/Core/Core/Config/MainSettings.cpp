@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Config/MainSettings.h"
 
@@ -21,7 +20,6 @@ namespace Config
 // Main.Core
 
 const Info<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
-const Info<bool> MAIN_LOAD_IPL_DUMP{{System::Main, "Core", "LoadIPLDump"}, true};
 const Info<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
                                            PowerPC::DefaultCPUCore()};
 const Info<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
@@ -49,9 +47,6 @@ const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-const Info<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
-    {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
-const Info<bool> MAIN_CODE_SYNC_OVERRIDE{{System::Main, "Core", "CheatSyncOverride"}, false};
 const Info<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                             ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDEVICE_NONE};
@@ -77,7 +72,6 @@ Info<bool> GetInfoForSimulateKonga(u32 channel)
 }
 
 const Info<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};
-const Info<bool> MAIN_WII_SD_CARD_WRITABLE{{System::Main, "Core", "WiiSDCardWritable"}, true};
 const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
@@ -114,6 +108,8 @@ const Info<DiscIO::Region> MAIN_FALLBACK_REGION{{System::Main, "Core", "Fallback
 const Info<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
 const Info<bool> MAIN_ALLOW_SD_WRITES{{System::Main, "Core", "WiiSDCardAllowWrites"}, true};
 const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates"}, false};
+const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS{
+    {System::Main, "Core", "RealWiiRemoteRepeatReports"}, true};
 
 // Main.Display
 
@@ -148,6 +144,18 @@ const Info<std::string> MAIN_LOAD_PATH{{System::Main, "General", "LoadPath"}, ""
 const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "ResourcePackPath"}, ""};
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
+
+// Main.GBA
+
+const Info<std::string> MAIN_GBA_BIOS_PATH{{System::Main, "GBA", "BIOS"}, ""};
+const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
+    Info<std::string>{{System::Main, "GBA", "Rom1"}, ""},
+    Info<std::string>{{System::Main, "GBA", "Rom2"}, ""},
+    Info<std::string>{{System::Main, "GBA", "Rom3"}, ""},
+    Info<std::string>{{System::Main, "GBA", "Rom4"}, ""}};
+const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, ""};
+const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
+const Info<bool> MAIN_GBA_THREADS{{System::Main, "GBA", "Threads"}, true};
 
 // Main.Network
 

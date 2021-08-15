@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
@@ -35,7 +37,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
   static
   {
-    titles.put(MenuTag.SETTINGS, R.string.preferences_settings);
+    titles.put(MenuTag.SETTINGS, R.string.settings);
     titles.put(MenuTag.CONFIG, R.string.config);
     titles.put(MenuTag.CONFIG_GENERAL, R.string.general_submenu);
     titles.put(MenuTag.CONFIG_INTERFACE, R.string.interface_submenu);

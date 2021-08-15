@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
 #include <vector>
@@ -27,10 +26,10 @@ static UICommon::GameFileCache* GetPointer(JNIEnv* env, jobject obj)
 extern "C" {
 #endif
 
-JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_newGameFileCache(
-    JNIEnv* env, jclass, jstring path)
+JNIEXPORT jlong JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFileCache_newGameFileCache(JNIEnv* env, jclass)
 {
-  return reinterpret_cast<jlong>(new UICommon::GameFileCache(GetJString(env, path)));
+  return reinterpret_cast<jlong>(new UICommon::GameFileCache());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_finalize(JNIEnv* env,

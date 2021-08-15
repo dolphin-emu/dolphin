@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Enable define below to enable oprofile integration. For this to work,
 // it requires at least oprofile version 0.9.4, and changing the build
@@ -268,6 +267,11 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
     else
       start++;
   }
+}
+
+u32* JitBaseBlockCache::GetBlockBitSet() const
+{
+  return valid_block.m_valid_block.get();
 }
 
 void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)

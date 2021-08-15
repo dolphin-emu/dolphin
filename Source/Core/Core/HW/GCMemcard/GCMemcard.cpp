@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
@@ -673,7 +672,7 @@ std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
 BlockAlloc::BlockAlloc(u16 size_mbits)
 {
   memset(this, 0, BLOCK_SIZE);
-  m_free_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
+  m_free_blocks = MbitToFreeBlocks(size_mbits);
   m_last_allocated_block = 4;
   FixChecksums();
 }

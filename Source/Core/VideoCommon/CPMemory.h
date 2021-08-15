@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -210,7 +209,7 @@ struct TVtxDesc
     BitField<15, 2, VertexComponentFormat> Color1;
     BitFieldArray<13, 2, 2, VertexComponentFormat> Color;
 
-    u32 Hex;
+    u32 Hex = 0;
   };
   union High
   {
@@ -224,24 +223,11 @@ struct TVtxDesc
     BitField<14, 2, VertexComponentFormat> Tex7Coord;
     BitFieldArray<0, 2, 8, VertexComponentFormat> TexCoord;
 
-    u32 Hex;
+    u32 Hex = 0;
   };
 
   Low low;
   High high;
-
-  // This structure was originally packed into bits 0..32, using 33 total bits.
-  // The actual format has 17 bits in the low one and 16 bits in the high one,
-  // but the old format is still supported for compatibility.
-  u64 GetLegacyHex() const { return (low.Hex & 0x1FFFF) | (u64(high.Hex) << 17); }
-  u32 GetLegacyHex0() const { return static_cast<u32>(GetLegacyHex()); }
-  // Only *1* bit is used in this
-  u32 GetLegacyHex1() const { return static_cast<u32>(GetLegacyHex() >> 32); }
-  void SetLegacyHex(u64 value)
-  {
-    low.Hex = value & 0x1FFFF;
-    high.Hex = value >> 17;
-  }
 };
 template <>
 struct fmt::formatter<TVtxDesc::Low>
@@ -305,7 +291,7 @@ struct fmt::formatter<TVtxDesc>
 
 union UVAT_group0
 {
-  u32 Hex;
+  u32 Hex = 0;
   // 0:8
   BitField<0, 1, CoordComponentCount> PosElements;
   BitField<1, 3, ComponentFormat> PosFormat;
@@ -364,7 +350,7 @@ struct fmt::formatter<UVAT_group0>
 
 union UVAT_group1
 {
-  u32 Hex;
+  u32 Hex = 0;
   // 0:8
   BitField<0, 1, TexComponentCount> Tex1CoordElements;
   BitField<1, 3, ComponentFormat> Tex1CoordFormat;
@@ -413,7 +399,7 @@ struct fmt::formatter<UVAT_group1>
 
 union UVAT_group2
 {
-  u32 Hex;
+  u32 Hex = 0;
   // 0:4
   BitField<0, 5, u8, u32> Tex4Frac;
   // 5:13

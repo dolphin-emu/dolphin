@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Movie.h"
 
@@ -83,7 +82,8 @@ static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
 
-static u8 s_controllers = 0;
+static std::array<ControllerType, 4> s_controllers{};
+static std::array<bool, 4> s_wiimotes{};
 static ControllerState s_padState;
 static DTMHeader tmpHeader;
 static std::vector<u8> s_temp_input;
@@ -158,23 +158,32 @@ std::string GetInputDisplay()
 {
   if (!IsMovieActive())
   {
-    s_controllers = 0;
+    s_controllers = {};
+    s_wiimotes = {};
     for (int i = 0; i < 4; ++i)
     {
-      if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
-        s_controllers |= (1 << i);
-      if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-        s_controllers |= (1 << (i + 4));
+      if (SerialInterface::GetDeviceType(i) == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+        s_controllers[i] = ControllerType::GBA;
+      else if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
+        s_controllers[i] = ControllerType::GC;
+      else
+        s_controllers[i] = ControllerType::None;
+      s_wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
     }
   }
 
   std::string input_display;
   {
     std::lock_guard guard(s_input_display_lock);
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 4; ++i)
     {
-      if ((s_controllers & (1 << i)) != 0)
+      if (IsUsingPad(i))
         input_display += s_InputDisplay[i] + '\n';
+    }
+    for (int i = 0; i < 4; ++i)
+    {
+      if (IsUsingWiimote(i))
+        input_display += s_InputDisplay[i + 4] + '\n';
     }
   }
   return input_display;
@@ -387,7 +396,7 @@ void SetReset(bool reset)
 
 bool IsUsingPad(int controller)
 {
-  return ((s_controllers & (1 << controller)) != 0);
+  return s_controllers[controller] != ControllerType::None;
 }
 
 bool IsUsingBongo(int controller)
@@ -395,9 +404,14 @@ bool IsUsingBongo(int controller)
   return ((s_bongos & (1 << controller)) != 0);
 }
 
+bool IsUsingGBA(int controller)
+{
+  return s_controllers[controller] == ControllerType::GBA;
+}
+
 bool IsUsingWiimote(int wiimote)
 {
-  return ((s_controllers & (1 << (wiimote + 4))) != 0);
+  return s_wiimotes[wiimote];
 }
 
 bool IsConfigSaved()
@@ -426,21 +440,29 @@ void ChangePads()
   if (!Core::IsRunning())
     return;
 
-  int controllers = 0;
+  ControllerTypeArray controllers{};
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
-      controllers |= (1 << i);
+    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      controllers[i] = ControllerType::GBA;
+    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      controllers[i] = ControllerType::GC;
+    else
+      controllers[i] = ControllerType::None;
   }
 
-  if ((s_controllers & 0x0F) == controllers)
+  if (s_controllers == controllers)
     return;
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     SerialInterface::SIDevices device = SerialInterface::SIDEVICE_NONE;
-    if (IsUsingPad(i))
+    if (IsUsingGBA(i))
+    {
+      device = SerialInterface::SIDEVICE_GC_GBA_EMULATED;
+    }
+    else if (IsUsingPad(i))
     {
       if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       {
@@ -460,14 +482,15 @@ void ChangePads()
 // NOTE: Host / Emu Threads
 void ChangeWiiPads(bool instantly)
 {
-  int controllers = 0;
+  WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
-    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-      controllers |= (1 << i);
+  {
+    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+  }
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
-  if (instantly && (s_controllers >> 4) == controllers)
+  if (instantly && s_wiimotes == wiimotes)
     return;
 
   const auto bt = WiiUtils::GetBluetoothEmuDevice();
@@ -482,13 +505,16 @@ void ChangeWiiPads(bool instantly)
 }
 
 // NOTE: Host Thread
-bool BeginRecordingInput(int controllers)
+bool BeginRecordingInput(const ControllerTypeArray& controllers,
+                         const WiimoteEnabledArray& wiimotes)
 {
-  if (s_playMode != MODE_NONE || controllers == 0)
+  if (s_playMode != MODE_NONE ||
+      (controllers == ControllerTypeArray{} && wiimotes == WiimoteEnabledArray{}))
     return false;
 
-  Core::RunAsCPUThread([controllers] {
+  Core::RunAsCPUThread([controllers, wiimotes] {
     s_controllers = controllers;
+    s_wiimotes = wiimotes;
     s_currentFrame = s_totalFrames = 0;
     s_currentLagCount = s_totalLagCount = 0;
     s_currentInputCount = s_totalInputCount = 0;
@@ -843,7 +869,16 @@ void RecordWiimote(int wiimote, const u8* data, u8 size)
 // NOTE: EmuThread / Host Thread
 void ReadHeader()
 {
-  s_controllers = tmpHeader.controllers;
+  for (int i = 0; i < 4; ++i)
+  {
+    if (tmpHeader.GBAControllers & (1 << i))
+      s_controllers[i] = ControllerType::GBA;
+    else if (tmpHeader.controllers & (1 << i))
+      s_controllers[i] = ControllerType::GC;
+    else
+      s_controllers[i] = ControllerType::None;
+    s_wiimotes[i] = (tmpHeader.controllers & (1 << (i + 4))) != 0;
+  }
   s_recordingStartTime = tmpHeader.recordingStartTime;
   if (s_rerecords < tmpHeader.numRerecords)
     s_rerecords = tmpHeader.numRerecords;
@@ -1220,9 +1255,10 @@ bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
     PanicAlertFmtT(
         "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte {2}.){3}",
         sizeInMovie, size, s_currentByte,
-        (s_controllers & 0xF) ? " Try re-creating the recording with all GameCube controllers "
-                                "disabled (in Configure > GameCube > Device Settings)." :
-                                "");
+        (s_controllers == ControllerTypeArray{}) ?
+            " Try re-creating the recording with all GameCube controllers "
+            "disabled (in Configure > GameCube > Device Settings)." :
+            "");
     EndPlayInput(!s_bReadOnly);
     return false;
   }
@@ -1297,7 +1333,17 @@ void SaveRecording(const std::string& filename)
   strncpy(header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6);
   header.bWii = SConfig::GetInstance().bWii;
   header.bFollowBranch = SConfig::GetInstance().bJITFollowBranch;
-  header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
+  header.controllers = 0;
+  header.GBAControllers = 0;
+  for (int i = 0; i < 4; ++i)
+  {
+    if (IsUsingGBA(i))
+      header.GBAControllers |= 1 << i;
+    if (IsUsingPad(i))
+      header.controllers |= 1 << i;
+    if (IsUsingWiimote(i) && SConfig::GetInstance().bWii)
+      header.controllers |= 1 << (i + 4);
+  }
 
   header.bFromSaveState = s_bRecordingFromSaveState;
   header.frameCount = s_totalFrames;

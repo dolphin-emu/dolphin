@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -26,6 +25,8 @@ public:
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
   std::unique_ptr<AbstractFramebuffer>
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
+
+  void BindBackbuffer(const ClearColor& clear_color = {}) override;
 
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
                                                          std::string_view source) override;

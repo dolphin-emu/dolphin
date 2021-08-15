@@ -79,6 +79,11 @@ bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
+
 ### macOS Build Steps:
 
 A binary supporting a single architecture can be built using the following steps: 
@@ -139,6 +144,11 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 These instructions assume familiarity with Android development. If you do not have an
 Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
+
 If using Android Studio, import the Gradle project located in `./Source/Android`.
 
 Android apps are compiled using a build system called Gradle. Dolphin's native component,
@@ -160,15 +170,15 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 
 ## Command Line Usage
 
-`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]`
+`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-v <str>] [-a <str>]`
 
 * -h, --help Show this help message
 * -d, --debugger Opens the debugger
 * -l, --logger Opens the logger
 * -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)
 * -b, --batch Exit Dolphin with emulator
-* -V, --video_backend=<str> Specify a video backend
-* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
+* -v, --video_backend=<str> Specify a video backend
+* -a, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is faster but less accurate whereas

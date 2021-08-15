@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
@@ -374,7 +373,6 @@ private:
   void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
                    int extrabytes = 0);
   void WriteMOVBE(int bits, u8 op, X64Reg regOp, const OpArg& arg);
-  void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, const OpArg& arg);
   void WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg& a2);
 
   void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size,
@@ -580,31 +578,6 @@ public:
   void REPNE();
   void FSOverride();
   void GSOverride();
-
-  // x87
-  enum x87StatusWordBits
-  {
-    x87_InvalidOperation = 0x1,
-    x87_DenormalizedOperand = 0x2,
-    x87_DivisionByZero = 0x4,
-    x87_Overflow = 0x8,
-    x87_Underflow = 0x10,
-    x87_Precision = 0x20,
-    x87_StackFault = 0x40,
-    x87_ErrorSummary = 0x80,
-    x87_C0 = 0x100,
-    x87_C1 = 0x200,
-    x87_C2 = 0x400,
-    x87_TopOfStack = 0x2000 | 0x1000 | 0x800,
-    x87_C3 = 0x4000,
-    x87_FPUBusy = 0x8000,
-  };
-
-  void FLD(int bits, const OpArg& src);
-  void FST(int bits, const OpArg& dest);
-  void FSTP(int bits, const OpArg& dest);
-  void FNSTSW_AX();
-  void FWAIT();
 
   // SSE/SSE2: Floating point arithmetic
   void ADDSS(X64Reg regOp, const OpArg& arg);

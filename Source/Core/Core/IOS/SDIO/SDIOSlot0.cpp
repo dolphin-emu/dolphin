@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 
@@ -16,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
@@ -277,8 +277,7 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
     INFO_LOG_FMT(IOS_SD, "{}Write {} Block(s) from {:#010x} bsize {} to offset {:#010x}!",
                  req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-    if (m_card && SConfig::GetInstance().bEnableMemcardSdWriting &&
-        Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    if (m_card && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     {
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);

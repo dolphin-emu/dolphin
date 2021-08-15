@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -363,6 +362,20 @@ union IND_MTXA
   BitField<22, 2, u8, u32> s0;  // bits 0-1 of scale factor
   u32 hex;
 };
+template <>
+struct fmt::formatter<IND_MTXA>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXA& col, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Row 0 (ma): {} ({})\n"
+                     "Row 1 (mb): {} ({})\n"
+                     "Scale bits: {} (shifted: {})",
+                     col.ma / 1024.0f, col.ma, col.mb / 1024.0f, col.mb, col.s0, col.s0);
+  }
+};
 
 union IND_MTXB
 {
@@ -371,13 +384,45 @@ union IND_MTXB
   BitField<22, 2, u8, u32> s1;  // bits 2-3 of scale factor
   u32 hex;
 };
+template <>
+struct fmt::formatter<IND_MTXB>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXB& col, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Row 0 (mc): {} ({})\n"
+                     "Row 1 (md): {} ({})\n"
+                     "Scale bits: {} (shifted: {})",
+                     col.mc / 1024.0f, col.mc, col.md / 1024.0f, col.md, col.s1, col.s1 << 2);
+  }
+};
 
 union IND_MTXC
 {
   BitField<0, 11, s32> me;
   BitField<11, 11, s32> mf;
-  BitField<22, 2, u8, u32> s2;  // bits 4-5 of scale factor
+  BitField<22, 1, u8, u32> s2;  // bit 4 of scale factor
+  // The SDK treats the scale factor as 6 bits, 2 on each column; however, hardware seems to ignore
+  // the top bit.
+  BitField<22, 2, u8, u32> sdk_s2;
   u32 hex;
+};
+template <>
+struct fmt::formatter<IND_MTXC>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXC& col, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Row 0 (me): {} ({})\n"
+                     "Row 1 (mf): {} ({})\n"
+                     "Scale bits: {} (shifted: {}), given to SDK as {} ({})",
+                     col.me / 1024.0f, col.me, col.mf / 1024.0f, col.mf, col.s2, col.s2 << 4,
+                     col.sdk_s2, col.sdk_s2 << 4);
+  }
 };
 
 struct IND_MTX
@@ -668,6 +713,8 @@ enum class WrapMode : u32
   Clamp = 0,
   Repeat = 1,
   Mirror = 2,
+  // Hardware testing indicates that WrapMode set to 3 behaves the same as clamp, though this is an
+  // invalid value
 };
 template <>
 struct fmt::formatter<WrapMode> : EnumFormatter<WrapMode::Mirror>
@@ -718,7 +765,7 @@ enum class MaxAnsio
 template <>
 struct fmt::formatter<MaxAnsio> : EnumFormatter<MaxAnsio::Four>
 {
-  formatter() : EnumFormatter({"1", "2 (requires edge LOD)", "4 (requires edge LOD)"}) {}
+  formatter() : EnumFormatter({"1", "2", "4"}) {}
 };
 
 union TexMode0
@@ -749,7 +796,7 @@ struct fmt::formatter<TexMode0>
                      "Min filter: {}\n"
                      "LOD type: {}\n"
                      "LOD bias: {} ({})\n"
-                     "Max aniso: {}\n"
+                     "Max anisotropic filtering: {}\n"
                      "LOD/bias clamp: {}",
                      mode.wrap_s, mode.wrap_t, mode.mag_filter, mode.mipmap_filter, mode.min_filter,
                      mode.diag_lod, mode.lod_bias, mode.lod_bias / 32.f, mode.max_aniso,

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // High-level emulation for the AX GameCube UCode.
 //
@@ -99,6 +98,8 @@ protected:
   bool m_coeffs_available;
   s16 m_coeffs[0x800];
 
+  u16 m_compressor_pos;
+
   void LoadResamplingCoefficients();
 
   // Copy a command list from memory to our temp buffer
@@ -139,6 +140,7 @@ protected:
   void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
   void UploadLRS(u32 dst_addr);
   void SetMainLR(u32 src_addr);
+  void RunCompressor(u16 threshold, u16 release_stages, u32 table_addr, u32 millis);
   void OutputSamples(u32 out_addr, u32 surround_addr);
   void MixAUXBLR(u32 ul_addr, u32 dl_addr);
   void SetOppositeLR(u32 src_addr);
@@ -161,7 +163,7 @@ private:
     CMD_SET_LR = 0x07,
     CMD_UNK_08 = 0x08,
     CMD_MIX_AUXB_NOWRITE = 0x09,
-    CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
+    CMD_UNK_0A = 0x0A,
     CMD_UNK_0B = 0x0B,
     CMD_UNK_0C = 0x0C,
     CMD_MORE = 0x0D,
@@ -169,7 +171,7 @@ private:
     CMD_END = 0x0F,
     CMD_MIX_AUXB_LR = 0x10,
     CMD_SET_OPPOSITE_LR = 0x11,
-    CMD_UNK_12 = 0x12,
+    CMD_COMPRESSOR = 0x12,
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
 };

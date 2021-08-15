@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
@@ -349,7 +351,7 @@ public final class TvMainActivity extends FragmentActivity
     mGameRows.add(row);
 
     // Create a header for this row.
-    HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
+    HeaderItem header = new HeaderItem(platform.toInt(), getString(platform.getHeaderName()));
 
     // Create the row, passing it the filled adapter and the header, and give it to the master adapter.
     return new ListRow(header, row);
@@ -388,8 +390,7 @@ public final class TvMainActivity extends FragmentActivity
             R.string.grid_menu_import_nand_backup));
 
     // Create a header for this row.
-    HeaderItem header =
-            new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
+    HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));
 
     return new ListRow(header, rowItems);
   }

@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
@@ -364,11 +363,8 @@ void JitArm64::frspx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::fcmpX(UGeckoInstruction inst)
+void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-  INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
-
   const bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
 
   const u32 a = inst.FA;
@@ -387,12 +383,16 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   const bool input_ftz_workaround =
       !cpu_info.bAFP && (!js.fpr_is_store_safe[a] || !js.fpr_is_store_safe[b]);
 
-  const bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true) && !input_ftz_workaround;
-  const RegType type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const bool singles = fpr.IsSingle(a, !upper) && fpr.IsSingle(b, !upper) && !input_ftz_workaround;
+  const RegType lower_type = singles ? RegType::LowerPairSingle : RegType::LowerPair;
+  const RegType upper_type = singles ? RegType::Single : RegType::Register;
   const auto reg_encoder = singles ? EncodeRegToSingle : EncodeRegToDouble;
+  const auto paired_reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
-  const ARM64Reg VA = reg_encoder(fpr.R(a, type));
-  const ARM64Reg VB = reg_encoder(fpr.R(b, type));
+  const bool upper_a = upper && !js.op->fprIsDuplicated[a];
+  const bool upper_b = upper && !js.op->fprIsDuplicated[b];
+  ARM64Reg VA = reg_encoder(fpr.R(a, upper_a ? upper_type : lower_type));
+  ARM64Reg VB = reg_encoder(fpr.R(b, upper_b ? upper_type : lower_type));
 
   gpr.BindCRToRegister(crf, false);
   const ARM64Reg XA = gpr.CR(crf);
@@ -402,14 +402,40 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   {
     fpscr_reg = gpr.GetReg();
     LDR(IndexType::Unsigned, fpscr_reg, PPC_REG, PPCSTATE_OFF(fpscr));
-    ANDI2R(fpscr_reg, fpscr_reg, ~FPRF_MASK);
+    AND(fpscr_reg, fpscr_reg, LogicalImm(~FPCC_MASK, 32));
   }
+
+  ARM64Reg V0Q = ARM64Reg::INVALID_REG;
+  ARM64Reg V1Q = ARM64Reg::INVALID_REG;
+  if (upper_a)
+  {
+    V0Q = fpr.GetReg();
+    m_float_emit.DUP(singles ? 32 : 64, paired_reg_encoder(V0Q), paired_reg_encoder(VA), 1);
+    VA = reg_encoder(V0Q);
+  }
+  if (upper_b)
+  {
+    if (a == b)
+    {
+      VB = VA;
+    }
+    else
+    {
+      V1Q = fpr.GetReg();
+      m_float_emit.DUP(singles ? 32 : 64, paired_reg_encoder(V1Q), paired_reg_encoder(VB), 1);
+      VB = reg_encoder(V1Q);
+    }
+  }
+
+  m_float_emit.FCMP(VA, VB);
+
+  if (V0Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V0Q);
+  if (V1Q != ARM64Reg::INVALID_REG)
+    fpr.Unlock(V1Q);
 
   FixupBranch pNaN, pLesser, pGreater;
   FixupBranch continue1, continue2, continue3;
-  ORR(XA, ARM64Reg::ZR, 32, 0, true);
-
-  m_float_emit.FCMP(VA, VB);
 
   if (a != b)
   {
@@ -422,34 +448,32 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   pNaN = B(CC_VS);
 
   // A == B
-  ORR(XA, XA, 64 - 63, 0, true);
+  MOVI2R(XA, 0);
   if (fprf)
-    ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_EQ << FPRF_SHIFT);
+    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_EQ << FPRF_SHIFT, 32));
 
   continue1 = B();
 
   SetJumpTarget(pNaN);
-
-  MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
+  MOVI2R(XA, ~(1ULL << PowerPC::CR_EMU_LT_BIT));
   if (fprf)
-    ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_SO << FPRF_SHIFT);
+    ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_SO << FPRF_SHIFT, 32));
 
   if (a != b)
   {
     continue2 = B();
 
     SetJumpTarget(pGreater);
-    ORR(XA, XA, 0, 0, true);
+    MOVI2R(XA, 1);
     if (fprf)
-      ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_GT << FPRF_SHIFT);
+      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_GT << FPRF_SHIFT, 32));
 
     continue3 = B();
 
     SetJumpTarget(pLesser);
-    ORR(XA, XA, 64 - 62, 1, true);
-    ORR(XA, XA, 0, 0, true);
+    MOVI2R(XA, ~(1ULL << PowerPC::CR_EMU_SO_BIT));
     if (fprf)
-      ORRI2R(fpscr_reg, fpscr_reg, PowerPC::CR_LT << FPRF_SHIFT);
+      ORR(fpscr_reg, fpscr_reg, LogicalImm(PowerPC::CR_LT << FPRF_SHIFT, 32));
 
     SetJumpTarget(continue2);
     SetJumpTarget(continue3);
@@ -466,6 +490,14 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   }
 }
 
+void JitArm64::fcmpX(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITFloatingPointOff);
+
+  FloatCompare(inst);
+}
+
 void JitArm64::fctiwzx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -480,27 +512,29 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   const ARM64Reg VB = fpr.R(b, single ? RegType::LowerPairSingle : RegType::LowerPair);
   const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
 
-  const ARM64Reg V0 = fpr.GetReg();
-
-  // Generate 0xFFF8000000000000ULL
-  m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF000000000000ULL);
-  m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
-
   if (single)
   {
+    const ARM64Reg V0 = fpr.GetReg();
+
+    // Generate 0xFFF8'0000'0000'0000ULL
+    m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF'0000'0000'0000ULL);
+    m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
+
     m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), RoundingMode::Z);
+    m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
+
+    fpr.Unlock(V0);
   }
   else
   {
     const ARM64Reg WA = gpr.GetReg();
 
     m_float_emit.FCVTS(WA, EncodeRegToDouble(VB), RoundingMode::Z);
-    m_float_emit.FMOV(EncodeRegToSingle(VD), WA);
+    ORR(EncodeRegTo64(WA), EncodeRegTo64(WA), LogicalImm(0xFFF8'0000'0000'0000ULL, 64));
+    m_float_emit.FMOV(EncodeRegToDouble(VD), EncodeRegTo64(WA));
 
     gpr.Unlock(WA);
   }
-  m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
-  fpr.Unlock(V0);
 
   ASSERT_MSG(DYNA_REC, b == d || single == fpr.IsSingle(b, true),
              "Register allocation turned singles into doubles in the middle of fctiwzx");

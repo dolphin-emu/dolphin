@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 //
 #define AX_WII  // Used in AXVoice.
 
@@ -28,7 +27,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
 
   INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode");
 
-  m_old_axwii = (crc == 0xfa450138);
+  m_old_axwii = (crc == 0xfa450138) || (crc == 0x7699af32);
 }
 
 AXWiiUCode::~AXWiiUCode()
@@ -114,11 +113,15 @@ void AXWiiUCode::HandleCommandList()
         break;
       }
 
-      // TODO(delroth): figure this one out, it's used by almost every
-      // game I've tested so far.
-      case CMD_UNK_0B_OLD:
-        curr_idx += 4;
+      case CMD_COMPRESSOR_OLD:
+      {
+        u16 threshold = m_cmdlist[curr_idx++];
+        u16 frames = m_cmdlist[curr_idx++];
+        addr_hi = m_cmdlist[curr_idx++];
+        addr_lo = m_cmdlist[curr_idx++];
+        RunCompressor(threshold, frames, HILO_TO_32(addr), 3);
         break;
+      }
 
       case CMD_OUTPUT_OLD:
       case CMD_OUTPUT_DPL2_OLD:
@@ -207,15 +210,19 @@ void AXWiiUCode::HandleCommandList()
         break;
       }
 
-      // TODO(delroth): figure this one out, it's used by almost every
-      // game I've tested so far.
-      case CMD_UNK_0A:
-        curr_idx += 4;
+      case CMD_COMPRESSOR:
+      {
+        u16 threshold = m_cmdlist[curr_idx++];
+        u16 frames = m_cmdlist[curr_idx++];
+        addr_hi = m_cmdlist[curr_idx++];
+        addr_lo = m_cmdlist[curr_idx++];
+        RunCompressor(threshold, frames, HILO_TO_32(addr), 3);
         break;
+      }
 
       case CMD_OUTPUT:
       case CMD_OUTPUT_DPL2:
-        volume = m_cmdlist[curr_idx++];
+        volume = m_crc == 0xd9c4bf34 ? 0x8000 : m_cmdlist[curr_idx++];
         addr_hi = m_cmdlist[curr_idx++];
         addr_lo = m_cmdlist[curr_idx++];
         addr2_hi = m_cmdlist[curr_idx++];

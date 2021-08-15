@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
@@ -169,6 +169,7 @@
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
     <ClInclude Include="Core\Config\NetplaySettings.h" />
+    <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
@@ -245,7 +246,6 @@
     <ClInclude Include="Core\HW\DSPHLE\UCodes\Zelda.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPLLE.h" />
-    <ClInclude Include="Core\HW\DSPLLE\DSPLLEGlobals.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="Core\HW\DVD\DVDInterface.h" />
     <ClInclude Include="Core\HW\DVD\DVDMath.h" />
@@ -263,6 +263,9 @@
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="Core\HW\EXI\EXI.h" />
+    <ClInclude Include="Core\HW\GBACore.h" />
+    <ClInclude Include="Core\HW\GBAPad.h" />
+    <ClInclude Include="Core\HW\GBAPadEmu.h" />
     <ClInclude Include="Core\HW\GCKeyboard.h" />
     <ClInclude Include="Core\HW\GCKeyboardEmu.h" />
     <ClInclude Include="Core\HW\GCMemcard\GCIFile.h" />
@@ -283,6 +286,7 @@
     <ClInclude Include="Core\HW\SI\SI_Device.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceDanceMat.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBA.h" />
+    <ClInclude Include="Core\HW\SI\SI_DeviceGBAEmu.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCAdapter.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCController.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCSteeringWheel.h" />
@@ -374,6 +378,7 @@
     <ClInclude Include="Core\MemTools.h" />
     <ClInclude Include="Core\Movie.h" />
     <ClInclude Include="Core\NetPlayClient.h" />
+    <ClInclude Include="Core\NetPlayCommon.h" />
     <ClInclude Include="Core\NetPlayProto.h" />
     <ClInclude Include="Core\NetPlayServer.h" />
     <ClInclude Include="Core\NetworkCaptureLogger.h" />
@@ -742,6 +747,7 @@
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
     <ClCompile Include="Core\Config\MainSettings.cpp" />
     <ClCompile Include="Core\Config\NetplaySettings.cpp" />
+    <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />
@@ -822,7 +828,6 @@
     <ClCompile Include="Core\HW\DSPHLE\UCodes\Zelda.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPLLE.cpp" />
-    <ClCompile Include="Core\HW\DSPLLE\DSPLLEGlobals.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDInterface.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDMath.cpp" />
@@ -841,6 +846,9 @@
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI.cpp" />
+    <ClCompile Include="Core\HW\GBACore.cpp" />
+    <ClCompile Include="Core\HW\GBAPad.cpp" />
+    <ClCompile Include="Core\HW\GBAPadEmu.cpp" />
     <ClCompile Include="Core\HW\GCKeyboard.cpp" />
     <ClCompile Include="Core\HW\GCKeyboardEmu.cpp" />
     <ClCompile Include="Core\HW\GCMemcard\GCIFile.cpp" />
@@ -859,6 +867,7 @@
     <ClCompile Include="Core\HW\SI\SI_Device.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBA.cpp" />
+    <ClCompile Include="Core\HW\SI\SI_DeviceGBAEmu.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCAdapter.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCController.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCSteeringWheel.cpp" />
@@ -950,6 +959,7 @@
     <ClCompile Include="Core\MemTools.cpp" />
     <ClCompile Include="Core\Movie.cpp" />
     <ClCompile Include="Core\NetPlayClient.cpp" />
+    <ClCompile Include="Core\NetPlayCommon.cpp" />
     <ClCompile Include="Core\NetPlayServer.cpp" />
     <ClCompile Include="Core\NetworkCaptureLogger.cpp" />
     <ClCompile Include="Core\PatchEngine.cpp" />

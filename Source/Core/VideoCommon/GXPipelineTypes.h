@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -20,8 +19,7 @@ namespace VideoCommon
 // As pipelines encompass both shader UIDs and render states, changes to either of these should
 // also increment the pipeline UID version. Incrementing the UID version will cause all UID
 // caches to be invalidated.
-// TODO: Remove PixelShaderUid hasindstage on the next UID version bump
-constexpr u32 GX_PIPELINE_UID_VERSION = 2;  // Last changed in PR 9122
+constexpr u32 GX_PIPELINE_UID_VERSION = 3;  // Last changed in PR 9532
 
 struct GXPipelineUid
 {

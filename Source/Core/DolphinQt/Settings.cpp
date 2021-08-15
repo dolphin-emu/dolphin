@@ -1,8 +1,9 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings.h"
+
+#include <atomic>
 
 #include <QApplication>
 #include <QDir>
@@ -25,6 +26,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -41,11 +43,40 @@ Settings::Settings()
     QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
   });
 
-  Config::AddConfigChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
+  Config::AddConfigChangedCallback([this] {
+    static std::atomic<bool> do_once{true};
+    if (do_once.exchange(false))
+    {
+      // Calling ConfigChanged() with a "delay" can have risks, for example, if from
+      // code we change some configs that result in Qt greying out some setting, we could
+      // end up editing that setting before its greyed out, sending out an event,
+      // which might not be expected or handled by the code, potentially crashing.
+      // The only safe option would be to wait on the Qt thread to have finished executing this.
+      QueueOnObject(this, [this] {
+        do_once = true;
+        emit ConfigChanged();
+      });
+    }
+  });
 
-  g_controller_interface.RegisterDevicesChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit DevicesChanged(); }); });
+  g_controller_interface.RegisterDevicesChangedCallback([this] {
+    if (Host::GetInstance()->IsHostThread())
+    {
+      emit DevicesChanged();
+    }
+    else
+    {
+      // Any device shared_ptr in the host thread needs to be released immediately as otherwise
+      // they'd continue living until the queued event has run, but some devices can't be recreated
+      // until they are destroyed.
+      // This is safe from any thread. Devices will be refreshed and re-acquired and in
+      // DevicesChanged(). Waiting on QueueOnObject() to have finished running was not feasible as
+      // it would cause deadlocks without heavy workarounds.
+      emit ReleaseDevices();
+
+      QueueOnObject(this, [this] { emit DevicesChanged(); });
+    }
+  });
 }
 
 Settings::~Settings() = default;

@@ -1,7 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2005 Duddie
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/DSPDisassembler.h"
 
@@ -106,8 +105,9 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
         // LSL, LSR, ASL, ASR
         if (opc.params[j].mask == 0x003f)
         {
-          // 6-bit sign extension
-          buf += fmt::format("#{}", (val & 0x20) != 0 ? (val | 0xFFFFFFC0) : val);
+          // Left and right shifts function essentially as a single shift by a 7-bit signed value,
+          // but are split into two intructions for clarity.
+          buf += fmt::format("#{}", (val & 0x20) != 0 ? (64 - val) : val);
         }
         else
         {

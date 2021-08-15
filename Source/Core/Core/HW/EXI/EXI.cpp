@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI.h"
 
@@ -75,11 +74,12 @@ void Init()
   CEXIMemoryCard::Init();
 
   {
-    bool use_memcard_251;
+    u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
+    int size_override;
     IniFile gameIni = SConfig::GetInstance().LoadGameIni();
-    gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &use_memcard_251, false);
-    const u16 size_mbits =
-        use_memcard_251 ? Memcard::MBIT_SIZE_MEMORY_CARD_251 : Memcard::MBIT_SIZE_MEMORY_CARD_2043;
+    gameIni.GetOrCreateSection("Core")->Get("MemoryCardSize", &size_override, -1);
+    if (size_override >= 0 && size_override <= 4)
+      size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override;
     const bool shift_jis =
         SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region) == DiscIO::Region::NTSC_J;
     const CardFlashId& flash_id = g_SRAM.settings_ex.flash_id[Memcard::SLOT_A];
@@ -204,4 +204,4 @@ void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late)
   CoreTiming::ScheduleEvent(cycles_late, updateInterrupts, 0, from);
 }
 
-}  // end of namespace ExpansionInterface
+}  // namespace ExpansionInterface

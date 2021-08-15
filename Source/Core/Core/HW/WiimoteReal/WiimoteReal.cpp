@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
@@ -16,6 +15,7 @@
 #include "Common/IniFile.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -96,8 +96,15 @@ static void TryToFillWiimoteSlot(u32 index)
     s_wiimote_pool.erase(s_wiimote_pool.begin());
 }
 
+void PopulateDevices()
+{
+  // There is a very small chance of deadlocks if we didn't do it in another thread
+  s_wiimote_scanner.PopulateDevices();
+}
+
 // Attempts to fill enabled real wiimote slots.
 // Push/pull wiimotes to/from ControllerInterface as needed.
+// Should be called PopulateDevices() to be in line with other implementations.
 void ProcessWiimotePool()
 {
   std::lock_guard lk(g_wiimotes_mutex);
@@ -430,12 +437,17 @@ void Wiimote::Update()
 {
   // Wii remotes send input at 200hz once a Wii enables "sniff mode" on the connection.
   // PC bluetooth stacks do not enable sniff mode causing remotes to send input at only 100hz.
+  //
   // Commercial games do not send speaker data unless input rates approach 200hz.
+  // Some games will also present input issues.
+  // e.g. Super Mario Galaxy's star cursor drops in and out.
+  //
   // If we want speaker data we must pretend input is at 200hz.
   // We duplicate data reports to accomplish this.
   // Unfortunately this breaks detection of motion gestures in some games.
   // e.g. Sonic and the Secret Rings, Jett Rocket
-  const bool repeat_reports_to_maintain_200hz = SConfig::GetInstance().m_WiimoteEnableSpeaker;
+  const bool repeat_reports_to_maintain_200hz =
+      Config::Get(Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS);
 
   const Report& rpt = ProcessReadQueue(repeat_reports_to_maintain_200hz);
 
@@ -538,6 +550,12 @@ void WiimoteScanner::StopThread()
   if (m_scan_thread_running.TestAndClear())
   {
     SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
+
+    for (const auto& backend : m_backends)
+    {
+      backend->RequestStopSearching();
+    }
+
     m_scan_thread.join();
   }
 }
@@ -545,7 +563,7 @@ void WiimoteScanner::StopThread()
 void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
 {
   m_scan_mode.store(scan_mode);
-  m_scan_mode_changed_event.Set();
+  m_scan_mode_changed_or_population_event.Set();
 }
 
 bool WiimoteScanner::IsReady() const
@@ -610,6 +628,12 @@ void WiimoteScanner::PoolThreadFunc()
   }
 }
 
+void WiimoteScanner::PopulateDevices()
+{
+  m_populate_devices.Set();
+  m_scan_mode_changed_or_population_event.Set();
+}
+
 void WiimoteScanner::ThreadFunc()
 {
   std::thread pool_thread(&WiimoteScanner::PoolThreadFunc, this);
@@ -634,7 +658,12 @@ void WiimoteScanner::ThreadFunc()
 
   while (m_scan_thread_running.IsSet())
   {
-    m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
+    m_scan_mode_changed_or_population_event.WaitFor(std::chrono::milliseconds(500));
+
+    if (m_populate_devices.TestAndClear())
+    {
+      g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
+    }
 
     // Does stuff needed to detect disconnects on Windows
     for (const auto& backend : m_backends)
@@ -675,7 +704,7 @@ void WiimoteScanner::ThreadFunc()
           }
 
           AddWiimoteToPool(std::unique_ptr<Wiimote>(wiimote));
-          ProcessWiimotePool();
+          g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
         }
 
         if (found_board)
@@ -956,12 +985,12 @@ void HandleWiimoteSourceChange(unsigned int index)
     if (auto removed_wiimote = std::move(g_wiimotes[index]))
       AddWiimoteToPool(std::move(removed_wiimote));
   });
-  ProcessWiimotePool();
+  g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
 }
 
 void HandleWiimotesInControllerInterfaceSettingChange()
 {
-  ProcessWiimotePool();
+  g_controller_interface.PlatformPopulateDevices([] { ProcessWiimotePool(); });
 }
 
 }  // namespace WiimoteReal

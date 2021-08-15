@@ -30,6 +30,7 @@
     <ExternalIncludePath>$(ExternalsDir)libpng;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)libusb\libusb;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)LZO;$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>$(ExternalsDir)mGBA\mgba\include;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)miniupnpc\src;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)minizip;$(ExternalIncludePath)</ExternalIncludePath>
     <ExternalIncludePath>$(ExternalsDir)mbedtls\include;$(ExternalIncludePath)</ExternalIncludePath>
@@ -76,6 +77,7 @@
       <PreprocessorDefinitions>USE_GDBSTUB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'!='ARM64'">HAS_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAS_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAS_LIBMGBA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
       Make sure we include a clean version of windows.h.
       -->
@@ -84,7 +86,6 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <MinimalRebuild>false</MinimalRebuild>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <!--Enable latest C++ standard-->

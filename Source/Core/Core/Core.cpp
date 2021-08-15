@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Core.h"
 
@@ -25,6 +24,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FPURoundMode.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -48,6 +48,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI/EXI.h"
+#include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/HW.h"
@@ -241,6 +242,9 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
+
+  // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
+  VideoBackendBase::PopulateBackendInfo();
 
   // Issue any API calls which must occur on the main thread for the graphics backend.
   WindowSystemInfo prepared_wsi(wsi);
@@ -457,6 +461,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   {
     g_controller_interface.Initialize(wsi);
     Pad::Initialize();
+    Pad::InitializeGBA();
     Keyboard::Initialize();
     init_controllers = true;
   }
@@ -464,6 +469,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   {
     g_controller_interface.ChangeWindow(wsi.render_window);
     Pad::LoadConfig();
+    Pad::LoadGBAConfig();
     Keyboard::LoadConfig();
   }
 
@@ -514,6 +520,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     Keyboard::Shutdown();
     Pad::Shutdown();
+    Pad::ShutdownGBA();
     g_controller_interface.Shutdown();
   }};
 
@@ -625,6 +632,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     // thread, and then takes over and becomes the video thread
     Common::SetCurrentThreadName("Video thread");
     UndeclareAsCPUThread();
+    FPURoundMode::LoadDefaultSIMDState();
 
     // Spawn the CPU thread. The CPU thread will signal the event that boot is complete.
     s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);

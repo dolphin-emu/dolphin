@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -162,9 +161,6 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
                std::string* extension);
 
 std::string PathToFileName(std::string_view path);
-
-void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
-                           std::string_view filename);
 
 bool StringBeginsWith(std::string_view str, std::string_view begin);
 bool StringEndsWith(std::string_view str, std::string_view end);

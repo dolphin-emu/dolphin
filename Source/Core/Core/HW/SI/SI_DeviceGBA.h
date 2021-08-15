@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -61,7 +60,7 @@ private:
 
   GBASockServer m_sock_server;
   NextAction m_next_action = NextAction::SendCommand;
-  u8 m_last_cmd;
+  EBufferCommands m_last_cmd;
   u64 m_timestamp_sent = 0;
 };
 }  // namespace SerialInterface

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
@@ -276,7 +275,8 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0xfa450138:  // Wii Sports - PAL
   case 0xadbc06bd:  // Elebits
   case 0x4cc52064:  // Bleach: Versus Crusade
-  case 0xd9c4bf34:  // WiiMenu
+  case 0xd9c4bf34:  // Wii System Menu 1.0
+  case 0x7699af32:  // Wii Startup Menu
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: Wii - AXWii chosen", crc);
     return std::make_unique<AXWiiUCode>(dsphle, crc);
 

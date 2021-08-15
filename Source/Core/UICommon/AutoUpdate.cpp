@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/AutoUpdate.h"
 
@@ -227,7 +226,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["parent-pid"] = std::to_string(getpid());
 #endif
   updater_flags["install-base-path"] = File::GetExeDirectory();
-  updater_flags["log-file"] = File::GetExeDirectory() + DIR_SEP + UPDATER_LOG_FILE;
+  updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILE;
 
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();

@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -24,8 +23,8 @@ public:
   VertexLoaderUID() {}
   VertexLoaderUID(const TVtxDesc& vtx_desc, const VAT& vat)
   {
-    vid[0] = vtx_desc.GetLegacyHex0();
-    vid[1] = vtx_desc.GetLegacyHex1();
+    vid[0] = vtx_desc.low.Hex;
+    vid[1] = vtx_desc.high.Hex;
     vid[2] = vat.g0.Hex;
     vid[3] = vat.g1.Hex;
     vid[4] = vat.g2.Hex;

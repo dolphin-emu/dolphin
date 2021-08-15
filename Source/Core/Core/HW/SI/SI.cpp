@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI.h"
 
@@ -211,6 +210,7 @@ union USIEXIClockCount
 
 static CoreTiming::EventType* s_change_device_event;
 static CoreTiming::EventType* s_tranfer_pending_event;
+static std::array<CoreTiming::EventType*, MAX_SI_CHANNELS> s_device_events;
 
 // User-configured device type. possibly overridden by TAS/Netplay
 static std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> s_desired_device_types;
@@ -371,8 +371,44 @@ void DoState(PointerWrap& p)
   p.Do(s_si_buffer);
 }
 
+template <int device_number>
+static void DeviceEventCallback(u64 userdata, s64 cyclesLate)
+{
+  s_channel[device_number].device->OnEvent(userdata, cyclesLate);
+}
+
+static void RegisterEvents()
+{
+  s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
+  s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
+
+  constexpr std::array<CoreTiming::TimedCallback, MAX_SI_CHANNELS> event_callbacks = {
+      DeviceEventCallback<0>,
+      DeviceEventCallback<1>,
+      DeviceEventCallback<2>,
+      DeviceEventCallback<3>,
+  };
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  {
+    s_device_events[i] =
+        CoreTiming::RegisterEvent(fmt::format("SIEventChannel{}", i), event_callbacks[i]);
+  }
+}
+
+void ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata)
+{
+  CoreTiming::ScheduleEvent(cycles_into_future, s_device_events[device_number], userdata);
+}
+
+void RemoveEvent(int device_number)
+{
+  CoreTiming::RemoveEvent(s_device_events[device_number]);
+}
+
 void Init()
 {
+  RegisterEvents();
+
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
     s_channel[i].out.hex = 0;
@@ -384,7 +420,11 @@ void Init()
     {
       s_desired_device_types[i] = SIDEVICE_NONE;
 
-      if (Movie::IsUsingPad(i))
+      if (Movie::IsUsingGBA(i))
+      {
+        s_desired_device_types[i] = SIDEVICE_GC_GBA_EMULATED;
+      }
+      else if (Movie::IsUsingPad(i))
       {
         SIDevices current = SConfig::GetInstance().m_SIDevice[i];
         // GC pad-compatible devices can be used for both playing and recording
@@ -417,9 +457,6 @@ void Init()
   // s_exi_clock_count.LOCK = 1;
 
   s_si_buffer = {};
-
-  s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
-  s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
 }
 
 void Shutdown()
@@ -512,12 +549,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // be careful: run si-buffer after updating the INT flags
                    if (tmp_com_csr.TSTART)
                    {
+                     if (s_com_csr.TSTART)
+                       CoreTiming::RemoveEvent(s_tranfer_pending_event);
                      s_com_csr.TSTART = 1;
                      RunSIBuffer(0, 0);
-                   }
-                   else if (s_com_csr.TSTART)
-                   {
-                     CoreTiming::RemoveEvent(s_tranfer_pending_event);
                    }
 
                    if (!s_com_csr.TSTART)
@@ -680,7 +715,7 @@ void UpdateDevices()
 
 SIDevices GetDeviceType(int channel)
 {
-  if (channel < 0 || channel > 3)
+  if (channel < 0 || channel >= MAX_SI_CHANNELS || !s_channel[channel].device)
     return SIDEVICE_NONE;
 
   return s_channel[channel].device->GetDeviceType();
@@ -691,4 +726,4 @@ u32 GetPollXLines()
   return s_poll.X;
 }
 
-}  // end of namespace SerialInterface
+}  // namespace SerialInterface

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -83,7 +82,7 @@ private:
     CMD_MIX_AUXC = 0x07,
     CMD_UPL_AUXA_MIX_LRSC = 0x08,
     CMD_UPL_AUXB_MIX_LRSC = 0x09,
-    CMD_UNK_0A = 0x0A,
+    CMD_COMPRESSOR = 0x0A,
     CMD_OUTPUT = 0x0B,
     CMD_OUTPUT_DPL2 = 0x0C,
     CMD_WM_OUTPUT = 0x0D,
@@ -106,7 +105,7 @@ private:
     CMD_MIX_AUXC_OLD = 0x08,
     CMD_UPL_AUXA_MIX_LRSC_OLD = 0x09,
     CMD_UPL_AUXB_MIX_LRSC_OLD = 0x0a,
-    CMD_UNK_0B_OLD = 0x0B,
+    CMD_COMPRESSOR_OLD = 0x0B,
     CMD_OUTPUT_OLD = 0x0C,  // no volume!
     CMD_OUTPUT_DPL2_OLD = 0x0D,
     CMD_WM_OUTPUT_OLD = 0x0E,

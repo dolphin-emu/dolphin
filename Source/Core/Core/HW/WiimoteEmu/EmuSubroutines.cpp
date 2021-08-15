@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cmath>
 #include <fstream>
@@ -54,7 +53,7 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
     return;
   }
 
-  (this->*handler)(Common::BitCastPtr<T>(rpt.data));
+  (this->*handler)(Common::BitCastPtr<T>(&rpt.data[0]));
 }
 
 void Wiimote::EventLinked()

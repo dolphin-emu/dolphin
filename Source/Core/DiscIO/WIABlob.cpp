@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/WIABlob.h"
 
@@ -1305,7 +1304,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     std::vector<u8>& data = parameters.data;
 
     if (AllSame(data))
-      entry.reuse_id = ReuseID{nullptr, data.size(), false, data.front()};
+      entry.reuse_id = ReuseID{WiiKey{}, data.size(), false, data.front()};
 
     if constexpr (RVZ)
     {
@@ -1344,7 +1343,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     const auto create_reuse_id = [&partition_entry, blocks,
                                   blocks_per_chunk](u8 value, bool encrypted, u64 block) {
       const u64 size = std::min(blocks - block, blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
-      return ReuseID{&partition_entry.partition_key, size, encrypted, value};
+      return ReuseID{partition_entry.partition_key, size, encrypted, value};
     };
 
     const u8* parameters_data_end = parameters.data.data() + parameters.data.size();

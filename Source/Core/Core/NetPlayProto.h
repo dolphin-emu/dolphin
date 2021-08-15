@@ -1,10 +1,10 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -87,7 +87,7 @@ struct NetSettings
   float m_ArbitraryMipmapDetectionThreshold;
   bool m_EnableGPUTextureDecoding;
   bool m_DeferEFBCopies;
-  bool m_EFBAccessTileSize;
+  int m_EFBAccessTileSize;
   bool m_EFBAccessDeferInvalidation;
 
   bool m_StrictSettingsSync;
@@ -97,10 +97,13 @@ struct NetSettings
   bool m_SyncAllWiiSaves;
   std::array<int, 4> m_WiimoteExtension;
   bool m_GolfMode;
+  bool m_UseFMA;
+  bool m_HideRemoteGBAs;
 
   // These aren't sent over the network directly
   bool m_IsHosting;
   bool m_HostInputAuthority;
+  std::array<std::string, 4> m_GBARomPaths;
 };
 
 struct NetTraversalConfig
@@ -115,11 +118,6 @@ struct NetTraversalConfig
   bool use_traversal = false;
   std::string traversal_host;
   u16 traversal_port = 0;
-};
-
-struct Rpt : public std::vector<u8>
-{
-  u16 channel;
 };
 
 // messages
@@ -141,6 +139,7 @@ enum
   NP_MSG_PAD_MAPPING = 0x61,
   NP_MSG_PAD_BUFFER = 0x62,
   NP_MSG_PAD_HOST_DATA = 0x63,
+  NP_MSG_GBA_CONFIG = 0x64,
 
   NP_MSG_WIIMOTE_DATA = 0x70,
   NP_MSG_WIIMOTE_MAPPING = 0x71,
@@ -156,7 +155,7 @@ enum
   NP_MSG_STOP_GAME = 0xA2,
   NP_MSG_DISABLE_GAME = 0xA3,
   NP_MSG_GAME_STATUS = 0xA4,
-  NP_MSG_IPL_STATUS = 0xA5,
+  NP_MSG_CLIENT_CAPABILITIES = 0xA5,
   NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
   NP_MSG_POWER_BUTTON = 0xA7,
 
@@ -196,7 +195,8 @@ enum
   SYNC_SAVE_DATA_FAILURE = 2,
   SYNC_SAVE_DATA_RAW = 3,
   SYNC_SAVE_DATA_GCI = 4,
-  SYNC_SAVE_DATA_WII = 5
+  SYNC_SAVE_DATA_WII = 5,
+  SYNC_SAVE_DATA_GBA = 6
 };
 
 enum
@@ -210,13 +210,15 @@ enum
   SYNC_CODES_FAILURE = 6,
 };
 
-constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
-constexpr u32 NETPLAY_LZO_OUT_LEN = NETPLAY_LZO_IN_LEN + (NETPLAY_LZO_IN_LEN / 16) + 64 + 3;
 constexpr u32 MAX_NAME_LENGTH = 30;
 constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
-constexpr u8 CHANNEL_COUNT = 2;
-constexpr u8 DEFAULT_CHANNEL = 0;
-constexpr u8 CHUNKED_DATA_CHANNEL = 1;
+
+enum : u8
+{
+  DEFAULT_CHANNEL,
+  CHUNKED_DATA_CHANNEL,
+  CHANNEL_COUNT
+};
 
 struct WiimoteInput
 {
@@ -228,7 +230,26 @@ using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
 using PadMappingArray = std::array<PlayerId, 4>;
+struct GBAConfig
+{
+  bool enabled;
+  bool has_rom;
+  std::string title;
+  std::array<u8, 20> hash;
+};
+using GBAConfigArray = std::array<GBAConfig, 4>;
 
+struct PadDetails
+{
+  std::string player_name;
+  bool is_local;
+  int local_pad;
+  bool hide_gba;
+};
+
+std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
+                                   const GBAConfigArray& gba_config,
+                                   const PadMappingArray& wiimote_map);
 bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
@@ -241,4 +262,6 @@ void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();
 void SetupWiimotes();
+std::string GetGBASavePath(int pad_num);
+PadDetails GetPadDetails(int pad_num);
 }  // namespace NetPlay

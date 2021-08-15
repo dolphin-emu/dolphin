@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -87,7 +86,6 @@ enum PPCFpClass
 // Uses PowerPC conventions for the return value, so it can be easily
 // used directly in CPU emulation.
 u32 ClassifyDouble(double dvalue);
-// More efficient float version.
 u32 ClassifyFloat(float fvalue);
 
 struct BaseAndDec

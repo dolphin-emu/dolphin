@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -36,15 +35,13 @@ inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
   fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
 }
 
-inline double ForceSingle(const UReg_FPSCR& fpscr, double value)
+inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 {
-  // convert to float...
-  float x = (float)value;
+  float x = static_cast<float>(value);
   if (!cpu_info.bFlushToZero && fpscr.NI)
   {
     x = Common::FlushToZero(x);
   }
-  // ...and back to double:
   return x;
 }
 
@@ -238,7 +235,7 @@ inline FPResult NI_sub(UReg_FPSCR* fpscr, double a, double b)
 // inputs are checked for NaN is still a, b, c.
 inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
 {
-  FPResult result{a * c};
+  FPResult result{std::fma(a, c, b)};
 
   if (std::isnan(result.value))
   {
@@ -263,27 +260,7 @@ inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
       return result;
     }
 
-    result.SetException(fpscr, FPSCR_VXIMZ);
-    result.value = PPC_NAN;
-    return result;
-  }
-
-  result.value += b;
-
-  if (std::isnan(result.value))
-  {
-    if (Common::IsSNAN(b))
-      result.SetException(fpscr, FPSCR_VXSNAN);
-
-    fpscr->ClearFIFR();
-
-    if (std::isnan(b))
-    {
-      result.value = MakeQuiet(b);
-      return result;
-    }
-
-    result.SetException(fpscr, FPSCR_VXISI);
+    result.SetException(fpscr, std::isnan(a * c) ? FPSCR_VXIMZ : FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }
@@ -296,7 +273,7 @@ inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
 
 inline FPResult NI_msub(UReg_FPSCR* fpscr, double a, double c, double b)
 {
-  FPResult result{a * c};
+  FPResult result{std::fma(a, c, -b)};
 
   if (std::isnan(result.value))
   {
@@ -321,27 +298,7 @@ inline FPResult NI_msub(UReg_FPSCR* fpscr, double a, double c, double b)
       return result;
     }
 
-    result.SetException(fpscr, FPSCR_VXIMZ);
-    result.value = PPC_NAN;
-    return result;
-  }
-
-  result.value -= b;
-
-  if (std::isnan(result.value))
-  {
-    if (Common::IsSNAN(b))
-      result.SetException(fpscr, FPSCR_VXSNAN);
-
-    fpscr->ClearFIFR();
-
-    if (std::isnan(b))
-    {
-      result.value = MakeQuiet(b);
-      return result;
-    }
-
-    result.SetException(fpscr, FPSCR_VXISI);
+    result.SetException(fpscr, std::isnan(a * c) ? FPSCR_VXIMZ : FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }

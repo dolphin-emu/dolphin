@@ -26,6 +26,8 @@ add_library(core
   Config/MainSettings.h
   Config/NetplaySettings.cpp
   Config/NetplaySettings.h
+  Config/SessionSettings.cpp
+  Config/SessionSettings.h
   Config/SYSCONFSettings.cpp
   Config/SYSCONFSettings.h
   Config/UISettings.cpp
@@ -161,8 +163,6 @@ add_library(core
   HW/DSPLLE/DSPHost.cpp
   HW/DSPLLE/DSPLLE.cpp
   HW/DSPLLE/DSPLLE.h
-  HW/DSPLLE/DSPLLEGlobals.cpp
-  HW/DSPLLE/DSPLLEGlobals.h
   HW/DSPLLE/DSPSymbols.cpp
   HW/DSPLLE/DSPSymbols.h
   HW/DVD/DVDInterface.cpp
@@ -195,6 +195,10 @@ add_library(core
   HW/EXI/EXI_DeviceMic.h
   HW/EXI/EXI.cpp
   HW/EXI/EXI.h
+  HW/GBAPad.cpp
+  HW/GBAPad.h
+  HW/GBAPadEmu.cpp
+  HW/GBAPadEmu.h
   HW/GCKeyboard.cpp
   HW/GCKeyboard.h
   HW/GCKeyboardEmu.cpp
@@ -406,6 +410,8 @@ add_library(core
   Movie.h
   NetPlayClient.cpp
   NetPlayClient.h
+  NetPlayCommon.cpp
+  NetPlayCommon.h
   NetPlayServer.cpp
   NetPlayServer.h
   NetworkCaptureLogger.cpp
@@ -432,8 +438,8 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
   PowerPC/Interpreter/Interpreter.cpp
   PowerPC/Interpreter/Interpreter.h
-	PowerPC/JitCommon/DivUtils.cpp
-	PowerPC/JitCommon/DivUtils.h
+  PowerPC/JitCommon/DivUtils.cpp
+  PowerPC/JitCommon/DivUtils.h
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitAsmCommon.h
   PowerPC/JitCommon/JitBase.cpp
@@ -633,6 +639,17 @@ endif()
 
 if(ENABLE_VULKAN)
   target_link_libraries(core PUBLIC videovulkan)
+endif()
+
+if(USE_MGBA)
+  target_sources(core PRIVATE
+    HW/GBACore.cpp
+    HW/GBACore.h
+    HW/SI/SI_DeviceGBAEmu.cpp
+    HW/SI/SI_DeviceGBAEmu.h
+  )
+  target_link_libraries(core PUBLIC mGBA::mgba)
+  target_compile_definitions(core PUBLIC -DHAS_LIBMGBA)
 endif()
 
 if(WIN32)

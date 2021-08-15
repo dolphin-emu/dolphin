@@ -1,21 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.model;
+
+import android.net.Uri;
 
 /**
  * Represents a home screen channel for Android TV api 26+
  */
 public class HomeScreenChannel
 {
-
   private long channelId;
   private String name;
   private String description;
-  private String appLinkIntentUri;
+  private Uri appLinkIntentUri;
 
-  public HomeScreenChannel()
-  {
-  }
-
-  public HomeScreenChannel(String name, String description, String appLinkIntentUri)
+  public HomeScreenChannel(String name, String description, Uri appLinkIntentUri)
   {
     this.name = name;
     this.description = description;
@@ -52,12 +51,12 @@ public class HomeScreenChannel
     this.description = description;
   }
 
-  public String getAppLinkIntentUri()
+  public Uri getAppLinkIntentUri()
   {
     return appLinkIntentUri;
   }
 
-  public void setAppLinkIntentUri(String appLinkIntentUri)
+  public void setAppLinkIntentUri(Uri appLinkIntentUri)
   {
     this.appLinkIntentUri = appLinkIntentUri;
   }

@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cctype>
 #include <cstring>
@@ -199,8 +198,6 @@ TEST_INSTR_NO_OPERANDS(CBW, "cbw")
 TEST_INSTR_NO_OPERANDS(CWDE, "cwde")
 TEST_INSTR_NO_OPERANDS(CDQE, "cdqe")
 TEST_INSTR_NO_OPERANDS(XCHG_AHAL, "xchg al, ah")
-TEST_INSTR_NO_OPERANDS(FWAIT, "fwait")
-TEST_INSTR_NO_OPERANDS(FNSTSW_AX, "fnstsw ax")
 TEST_INSTR_NO_OPERANDS(RDTSC, "rdtsc")
 
 TEST_F(x64EmitterTest, NOP_MultiByte)
@@ -747,30 +744,6 @@ TEST_F(x64EmitterTest, LDMXCSR)
 {
   emitter->LDMXCSR(MatR(R12));
   ExpectDisassembly("ldmxcsr dword ptr ds:[r12]");
-}
-
-TEST_F(x64EmitterTest, FLD_FST_FSTP)
-{
-  emitter->FLD(32, MatR(RBP));
-  emitter->FLD(64, MatR(RBP));
-  emitter->FLD(80, MatR(RBP));
-
-  emitter->FST(32, MatR(RBP));
-  emitter->FST(64, MatR(RBP));
-  // No 80 bit version of FST
-
-  emitter->FSTP(32, MatR(RBP));
-  emitter->FSTP(64, MatR(RBP));
-  emitter->FSTP(80, MatR(RBP));
-
-  ExpectDisassembly("fld dword ptr ss:[rbp] "
-                    "fld qword ptr ss:[rbp] "
-                    "fld tbyte ptr ss:[rbp] "
-                    "fst dword ptr ss:[rbp] "
-                    "fst qword ptr ss:[rbp] "
-                    "fstp dword ptr ss:[rbp] "
-                    "fstp qword ptr ss:[rbp] "
-                    "fstp tbyte ptr ss:[rbp]");
 }
 
 #define TWO_OP_SSE_TEST(Name, MemBits)                                                             \

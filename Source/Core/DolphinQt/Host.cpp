@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Host.h"
 
@@ -25,6 +24,9 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 
+#ifdef HAS_LIBMGBA
+#include "DolphinQt/GBAWidget.h"
+#endif
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
@@ -34,6 +36,8 @@
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+static thread_local bool tls_is_host_thread = false;
 
 Host::Host()
 {
@@ -51,6 +55,16 @@ Host* Host::GetInstance()
   return s_instance;
 }
 
+void Host::DeclareAsHostThread()
+{
+  tls_is_host_thread = true;
+}
+
+bool Host::IsHostThread()
+{
+  return tls_is_host_thread;
+}
+
 void Host::SetRenderHandle(void* handle)
 {
   m_render_to_main = Config::Get(Config::MAIN_RENDER_TO_MAIN);
@@ -62,8 +76,7 @@ void Host::SetRenderHandle(void* handle)
   if (g_renderer)
   {
     g_renderer->ChangeSurface(handle);
-    if (g_controller_interface.IsInit())
-      g_controller_interface.ChangeWindow(handle);
+    g_controller_interface.ChangeWindow(handle);
   }
 }
 
@@ -77,7 +90,7 @@ bool Host::GetRenderFocus()
 #ifdef _WIN32
   // Unfortunately Qt calls SetRenderFocus() with a slight delay compared to what we actually need
   // to avoid inputs that cause a focus loss to be processed by the emulation
-  if (m_render_to_main)
+  if (m_render_to_main && !m_render_fullscreen)
     return GetForegroundWindow() == (HWND)m_main_window_handle.load();
   return GetForegroundWindow() == (HWND)m_render_handle.load();
 #else
@@ -103,6 +116,15 @@ void Host::SetRenderFocus(bool focus)
 void Host::SetRenderFullFocus(bool focus)
 {
   m_render_full_focus = focus;
+}
+
+bool Host::GetGBAFocus()
+{
+#ifdef HAS_LIBMGBA
+  return qobject_cast<GBAWidget*>(QApplication::activeWindow()) != nullptr;
+#else
+  return false;
+#endif
 }
 
 bool Host::GetRenderFullscreen()
@@ -157,7 +179,7 @@ void Host_UpdateTitle(const std::string& title)
 
 bool Host_RendererHasFocus()
 {
-  return Host::GetInstance()->GetRenderFocus();
+  return Host::GetInstance()->GetRenderFocus() || Host::GetInstance()->GetGBAFocus();
 }
 
 bool Host_RendererHasFullFocus()
@@ -219,3 +241,10 @@ void Host_TitleChanged()
     Discord::UpdateDiscordPresence();
 #endif
 }
+
+#ifndef HAS_LIBMGBA
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
+}
+#endif

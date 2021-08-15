@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexLoaderARM64.h"
 
@@ -98,8 +97,9 @@ void VertexLoaderARM64::GetVertexAddr(int array, VertexComponentFormat attribute
 
     if (array == ARRAY_POSITION)
     {
-      EOR(scratch2_reg, scratch1_reg, 0,
-          attribute == VertexComponentFormat::Index8 ? 7 : 15);  // 0xFF : 0xFFFF
+      EOR(scratch2_reg, scratch1_reg,
+          attribute == VertexComponentFormat::Index8 ? LogicalImm(0xFF, 32) :
+                                                       LogicalImm(0xFFFF, 32));
       m_skip_vertex = CBZ(scratch2_reg);
     }
 
@@ -245,7 +245,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
       LDR(IndexType::Unsigned, scratch2_reg, src_reg, offset);
 
     if (format != ColorFormat::RGBA8888)
-      ORRI2R(scratch2_reg, scratch2_reg, 0xFF000000);
+      ORR(scratch2_reg, scratch2_reg, LogicalImm(0xFF000000, 32));
     STR(IndexType::Unsigned, scratch2_reg, dst_reg, m_dst_ofs);
     load_bytes = format == ColorFormat::RGB888 ? 3 : 4;
     break;
@@ -263,7 +263,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     REV16(scratch3_reg, scratch3_reg);
 
     // B
-    AND(scratch2_reg, scratch3_reg, 32, 4);
+    AND(scratch2_reg, scratch3_reg, LogicalImm(0x1F, 32));
     ORR(scratch2_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 3));
     ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 5));
     ORR(scratch1_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 16));
@@ -280,7 +280,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 2));
 
     // A
-    ORRI2R(scratch1_reg, scratch1_reg, 0xFF000000);
+    ORR(scratch1_reg, scratch1_reg, LogicalImm(0xFF000000, 32));
 
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
     load_bytes = 2;
@@ -301,7 +301,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     UBFM(scratch1_reg, scratch3_reg, 4, 7);
 
     // G
-    AND(scratch2_reg, scratch3_reg, 32, 3);
+    AND(scratch2_reg, scratch3_reg, LogicalImm(0xF, 32));
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 8));
 
     // B
@@ -414,7 +414,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   if (m_VtxDesc.low.PosMatIdx)
   {
     LDRB(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
-    AND(scratch1_reg, scratch1_reg, 0, 5);
+    AND(scratch1_reg, scratch1_reg, LogicalImm(0x3F, 32));
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 
     // Z-Freeze

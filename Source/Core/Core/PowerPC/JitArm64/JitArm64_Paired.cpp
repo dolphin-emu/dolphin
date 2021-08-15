@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
@@ -451,4 +450,13 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   fpr.FixSinglePrecision(d);
 
   SetFPRFIfNeeded(true, VD);
+}
+
+void JitArm64::ps_cmpXX(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITPairedOff);
+
+  const bool upper = inst.SUBOP10 & 64;
+  FloatCompare(inst, upper);
 }

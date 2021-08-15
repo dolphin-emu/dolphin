@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/ShaderCache.h"
 
@@ -36,7 +35,7 @@ ShaderCache::~ShaderCache()
 bool ShaderCache::Initialize()
 {
   m_api_type = g_ActiveConfig.backend_info.api_type;
-  m_host_config = ShaderHostConfig::GetCurrent();
+  m_host_config.bits = ShaderHostConfig::GetCurrent().bits;
 
   if (!CompileSharedPipelines())
     return false;

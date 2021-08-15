@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
@@ -839,7 +838,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   EmulatedController::LoadDefaults(ciface);
 
   // Fire
-#ifdef HAVE_X11
+#if defined HAVE_X11 && HAVE_X11
   m_buttons->SetControlExpression(0, "`Click 1` | RETURN");
 #else
   m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
@@ -847,7 +846,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
   // Jump
   // Map screen
-#ifdef HAVE_X11
+#if defined HAVE_X11 && HAVE_X11
   m_buttons->SetControlExpression(1, "Space");
 
   m_buttons->SetControlExpression(2, "Tab");
@@ -858,7 +857,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Pause menu
-#ifdef HAVE_X11
+#if defined HAVE_X11 && HAVE_X11
   m_buttons->SetControlExpression(3, "`dead_grave`");
 #else
   m_buttons->SetControlExpression(3, "GRAVE");

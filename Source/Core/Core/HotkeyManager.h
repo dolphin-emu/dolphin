@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -165,6 +164,19 @@ enum Hotkey
   HK_SAVE_STATE_FILE,
   HK_LOAD_STATE_FILE,
 
+  HK_GBA_LOAD,
+  HK_GBA_UNLOAD,
+  HK_GBA_RESET,
+
+  HK_GBA_VOLUME_DOWN,
+  HK_GBA_VOLUME_UP,
+  HK_GBA_TOGGLE_MUTE,
+
+  HK_GBA_1X,
+  HK_GBA_2X,
+  HK_GBA_3X,
+  HK_GBA_4X,
+
   HK_NOCLIP_TOGGLE,
   HK_INVULNERABILITY_TOGGLE,
   HK_SKIP_CUTSCENE,
@@ -199,6 +211,9 @@ enum HotkeyGroup : int
   HKGP_SELECT_STATE,
   HKGP_LOAD_LAST_STATE,
   HKGP_STATE_MISC,
+  HKGP_GBA_CORE,
+  HKGP_GBA_VOLUME,
+  HKGP_GBA_SIZE,
   HKGP_PRIMEHACK_CHEATS,
   HKGP_PRIMEHACK_GFX,
 
@@ -217,7 +232,7 @@ public:
   HotkeyManager();
   ~HotkeyManager();
 
-  void GetInput(HotkeyStatus* const hk);
+  void GetInput(HotkeyStatus* hk, bool ignore_focus);
   std::string GetName() const override;
   ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;
   int FindGroupByID(int id) const;
@@ -237,7 +252,7 @@ void LoadConfig();
 
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group);
-void GetStatus();
+void GetStatus(bool ignore_focus);
 bool IsEnabled();
 void Enable(bool enable_toggle);
 bool IsPressed(int Id, bool held);

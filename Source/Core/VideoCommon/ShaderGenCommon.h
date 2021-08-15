@@ -1,6 +1,5 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,6 +11,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
@@ -144,33 +144,30 @@ union ShaderHostConfig
 {
   u32 bits;
 
-  struct
-  {
-    u32 msaa : 1;
-    u32 ssaa : 1;
-    u32 stereo : 1;
-    u32 wireframe : 1;
-    u32 per_pixel_lighting : 1;
-    u32 vertex_rounding : 1;
-    u32 fast_depth_calc : 1;
-    u32 bounding_box : 1;
-    u32 backend_dual_source_blend : 1;
-    u32 backend_geometry_shaders : 1;
-    u32 backend_early_z : 1;
-    u32 backend_bbox : 1;
-    u32 backend_gs_instancing : 1;
-    u32 backend_clip_control : 1;
-    u32 backend_ssaa : 1;
-    u32 backend_atomics : 1;
-    u32 backend_depth_clamp : 1;
-    u32 backend_reversed_depth_range : 1;
-    u32 backend_bitfield : 1;
-    u32 backend_dynamic_sampler_indexing : 1;
-    u32 backend_shader_framebuffer_fetch : 1;
-    u32 backend_logic_op : 1;
-    u32 backend_palette_conversion : 1;
-    u32 pad : 9;
-  };
+  BitField<0, 1, bool, u32> msaa;
+  BitField<1, 1, bool, u32> ssaa;
+  BitField<2, 1, bool, u32> stereo;
+  BitField<3, 1, bool, u32> wireframe;
+  BitField<4, 1, bool, u32> per_pixel_lighting;
+  BitField<5, 1, bool, u32> vertex_rounding;
+  BitField<6, 1, bool, u32> fast_depth_calc;
+  BitField<7, 1, bool, u32> bounding_box;
+  BitField<8, 1, bool, u32> backend_dual_source_blend;
+  BitField<9, 1, bool, u32> backend_geometry_shaders;
+  BitField<10, 1, bool, u32> backend_early_z;
+  BitField<11, 1, bool, u32> backend_bbox;
+  BitField<12, 1, bool, u32> backend_gs_instancing;
+  BitField<13, 1, bool, u32> backend_clip_control;
+  BitField<14, 1, bool, u32> backend_ssaa;
+  BitField<15, 1, bool, u32> backend_atomics;
+  BitField<16, 1, bool, u32> backend_depth_clamp;
+  BitField<17, 1, bool, u32> backend_reversed_depth_range;
+  BitField<18, 1, bool, u32> backend_bitfield;
+  BitField<19, 1, bool, u32> backend_dynamic_sampler_indexing;
+  BitField<20, 1, bool, u32> backend_shader_framebuffer_fetch;
+  BitField<21, 1, bool, u32> backend_logic_op;
+  BitField<22, 1, bool, u32> backend_palette_conversion;
+  BitField<23, 1, bool, u32> enable_validation_layer;
 
   static ShaderHostConfig GetCurrent();
 };
@@ -229,7 +226,8 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint    xfmem_dualTexInfo;\n"
                                         "\tuint    xfmem_numColorChans;\n"
-                                        "\tuint    color_chan_alpha;\n"
+                                        "\tuint    missing_color_hex;\n"
+                                        "\tfloat4  missing_color_value;\n"
                                         "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
                                         "\tfloat4 " I_PROJECTION "[4];\n"
                                         "\tint4 " I_MATERIALS "[4];\n"

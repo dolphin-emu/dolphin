@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -140,6 +139,11 @@ constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 // number of palette entries in a CI8 palette of a banner or icon
 // each palette entry is 16 bits in RGB5A3 format
 constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
+
+constexpr u32 MbitToFreeBlocks(u16 size_mb)
+{
+  return size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+}
 
 struct GCMBlock
 {
