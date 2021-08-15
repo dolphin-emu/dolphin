@@ -48,10 +48,16 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
       break;
 
     case XFMEM_CLIPDISABLE:
-      // if (data & 1) {} // disable clipping detection
-      // if (data & 2) {} // disable trivial rejection
-      // if (data & 4) {} // disable cpoly clipping acceleration
+    {
+      ClipDisable setting{.hex = newValue};
+      if (setting.disable_clipping_detection)
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_0);
+      if (setting.disable_trivial_rejection)
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_1);
+      if (setting.disable_cpoly_clipping_acceleration)
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::SETS_XF_CLIPDISABLE_BIT_2);
       break;
+    }
 
     case XFMEM_VTXSPECS:  //__GXXfVtxSpecs, wrote 0004
       break;
