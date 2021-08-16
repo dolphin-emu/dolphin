@@ -30,8 +30,11 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   // X2 is a temporary
   // Q0 is the return register
   // Q1 is a temporary
-  const bool update = inst.OPCD == 57;
   const s32 offset = inst.SIMM_12;
+  const bool indexed = inst.OPCD == 4;
+  const bool update = inst.OPCD == 57 || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
+  const int i = indexed ? inst.Ix : inst.I;
+  const int w = indexed ? inst.Wx : inst.W;
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
@@ -63,7 +66,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   if (js.assumeNoPairedQuantize)
   {
     VS = fpr.RW(inst.RS, RegType::Single);
-    if (!inst.W)
+    if (!w)
     {
       ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), MEM_REG);
       m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
@@ -76,11 +79,11 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   }
   else
   {
-    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
+    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + i));
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
 
-    MOVP2R(ARM64Reg::X30, inst.W ? single_load_quantized : paired_load_quantized);
+    MOVP2R(ARM64Reg::X30, w ? single_load_quantized : paired_load_quantized);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
@@ -88,7 +91,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     m_float_emit.ORR(EncodeRegToDouble(VS), ARM64Reg::D0, ARM64Reg::D0);
   }
 
-  if (inst.W)
+  if (w)
   {
     m_float_emit.FMOV(ARM64Reg::S0, 0x70);  // 1.0 as a Single
     m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
@@ -112,8 +115,11 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   // X1 is the address
   // Q0 is the store register
 
-  const bool update = inst.OPCD == 61;
   const s32 offset = inst.SIMM_12;
+  const bool indexed = inst.OPCD == 4;
+  const bool update = inst.OPCD == 61 || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
+  const int i = indexed ? inst.Ix : inst.I;
+  const int w = indexed ? inst.Wx : inst.W;
 
   fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
@@ -127,7 +133,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     {
       const ARM64Reg single_reg = fpr.GetReg();
 
-      if (inst.W)
+      if (w)
         m_float_emit.FCVT(32, 64, EncodeRegToDouble(single_reg), EncodeRegToDouble(VS));
       else
         m_float_emit.FCVTN(32, EncodeRegToDouble(single_reg), EncodeRegToDouble(VS));
@@ -143,7 +149,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     }
     else
     {
-      if (inst.W)
+      if (w)
         m_float_emit.FCVT(32, 64, ARM64Reg::D0, VS);
       else
         m_float_emit.FCVTN(32, ARM64Reg::D0, VS);
@@ -187,14 +193,14 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   {
     u32 flags = BackPatchInfo::FLAG_STORE;
 
-    flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
+    flags |= (w ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
 
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg), gprs_in_use,
                          fprs_in_use);
   }
   else
   {
-    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
+    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + i));
     UBFM(type_reg, scale_reg, 0, 2);    // Type
     UBFM(scale_reg, scale_reg, 8, 13);  // Scale
 
@@ -207,7 +213,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(fail);
     // Slow
-    MOVP2R(ARM64Reg::X30, &paired_store_quantized[16 + inst.W * 8]);
+    MOVP2R(ARM64Reg::X30, &paired_store_quantized[16 + w * 8]);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
 
     ABI_PushRegisters(gprs_in_use);
@@ -220,7 +226,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     SetJumpTarget(pass);
 
     // Fast
-    MOVP2R(ARM64Reg::X30, &paired_store_quantized[inst.W * 8]);
+    MOVP2R(ARM64Reg::X30, &paired_store_quantized[w * 8]);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
