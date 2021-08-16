@@ -3,6 +3,9 @@
 #include "VideoCommon\OnScreenDisplay.h"
 #include "Core\ConfigManager.h"
 
+int win_w = 0, win_h = 0;
+void* win_hdl = nullptr;
+
 namespace prime
 {
 void InitMouse(IDirectInput8* const idi8)

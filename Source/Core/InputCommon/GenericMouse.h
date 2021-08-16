@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-extern int win_x;
-extern int win_y;
 extern int win_w, win_h;
 extern void* win_hdl;
 

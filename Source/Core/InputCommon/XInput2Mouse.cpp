@@ -4,9 +4,6 @@
 #include <cstring>
 #include <math.h>
 
-// UNUSED -- DInput only
-int win_x, win_y;
-
 int win_w = 0, win_h = 0;
 void* win_hdl = nullptr;
 

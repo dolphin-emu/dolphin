@@ -43,12 +43,6 @@
 #include <windef.h>
 #endif
 
-int win_x = 0;
-int win_y = 0;
-int win_w = 0;
-int win_h = 0;
-void* win_hdl = 0;
-
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(QStringLiteral("Dolphin"));
@@ -440,8 +434,6 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Move:
     SetCursorLocked(m_cursor_locked);
-    win_x = pos().x() + (size().width() / 2);
-    win_y = pos().y() + (size().height() / 2);
     win_w = size().width() / 2;
     win_h = size().height() / 2;
     win_hdl = reinterpret_cast<void*>(winId());
