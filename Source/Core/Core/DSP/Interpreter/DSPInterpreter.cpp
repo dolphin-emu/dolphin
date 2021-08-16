@@ -394,13 +394,14 @@ s16 Interpreter::GetAXHigh(s32 reg) const
 s64 Interpreter::GetLongAcc(s32 reg) const
 {
   const auto& state = m_dsp_core.DSPState();
-  return static_cast<s64>(state.r.ac[reg].val << 24) >> 24;
+  return static_cast<s64>(state.r.ac[reg].val);
 }
 
 void Interpreter::SetLongAcc(s32 reg, s64 value)
 {
   auto& state = m_dsp_core.DSPState();
-  state.r.ac[reg].val = static_cast<u64>(value);
+  // 40-bit sign extension
+  state.r.ac[reg].val = static_cast<u64>((value << (64 - 40)) >> (64 - 40));
 }
 
 s16 Interpreter::GetAccLow(s32 reg) const
@@ -690,8 +691,8 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
   // 8-bit sign extended registers.
   case DSP_REG_ACH0:
   case DSP_REG_ACH1:
-    // sign extend from the bottom 8 bits.
-    state.r.ac[reg - DSP_REG_ACH0].h = (u16)(s16)(s8)(u8)val;
+    // Sign extend from the bottom 8 bits.
+    state.r.ac[reg - DSP_REG_ACH0].h = static_cast<s8>(val);
     break;
 
   // Stack registers.
