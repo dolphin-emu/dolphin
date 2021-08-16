@@ -11,7 +11,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/x64Emitter.h"
+
 #include "Core/CoreTiming.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
@@ -2562,6 +2564,7 @@ void Jit64::twX(UGeckoInstruction inst)
     }
     LOCK();
     OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
+    MOV(32, PPCSTATE_SRR1, Imm32(static_cast<u32>(ProgramExceptionCause::Trap)));
 
     gpr.Flush();
     fpr.Flush();

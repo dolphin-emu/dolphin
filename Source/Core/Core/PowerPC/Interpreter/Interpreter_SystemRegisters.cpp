@@ -141,7 +141,7 @@ void Interpreter::mfmsr(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -152,7 +152,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -163,7 +163,7 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -175,7 +175,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -190,7 +190,7 @@ void Interpreter::mtsr(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -203,7 +203,7 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -227,7 +227,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
       index != SPR_TU)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
@@ -270,7 +270,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   // XER, LR, and CTR are the only ones available to be written to in user mode
   if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 

@@ -483,8 +483,8 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_PROGRAM)
   {
     SRR0 = PC;
-    // say that it's a trap exception
-    SRR1 = (MSR.Hex & 0x87C0FFFF) | 0x20000;
+    // SRR1 was partially set by GenerateProgramException, so bitwise or is used here
+    SRR1 |= MSR.Hex & 0x87C0FFFF;
     MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000700;
