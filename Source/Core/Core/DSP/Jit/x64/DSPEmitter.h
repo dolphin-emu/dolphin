@@ -221,6 +221,7 @@ private:
   void r_callr(UDSPInstruction opc);
   void r_ifcc(UDSPInstruction opc);
   void r_ret(UDSPInstruction opc);
+  void r_rti(UDSPInstruction opc);
 
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
 

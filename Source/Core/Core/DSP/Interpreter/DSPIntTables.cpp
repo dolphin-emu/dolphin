@@ -32,7 +32,7 @@ constexpr std::array<InterpreterOpInfo, 125> s_opcodes
 
   {0x02d0, 0xfff0, &Interpreter::ret},
 
-  {0x02ff, 0xffff, &Interpreter::rti},
+  {0x02f0, 0xfff0, &Interpreter::rti},
 
   {0x02b0, 0xfff0, &Interpreter::call},
 

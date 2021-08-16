@@ -32,7 +32,7 @@ const std::array<JITOpInfo, 125> s_opcodes =
 
   {0x02d0, 0xfff0, &DSPEmitter::ret},
 
-  {0x02ff, 0xffff, &DSPEmitter::rti},
+  {0x02f0, 0xfff0, &DSPEmitter::rti},
 
   {0x02b0, 0xfff0, &DSPEmitter::call},
 

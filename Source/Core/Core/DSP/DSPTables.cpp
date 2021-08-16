@@ -18,7 +18,7 @@
 namespace DSP
 {
 // clang-format off
-const std::array<DSPOPCTemplate, 215> s_opcodes =
+const std::array<DSPOPCTemplate, 230> s_opcodes =
 {{
   //              # of parameters----+   {type, size, loc, lshift, mask}                                                               branch        reads PC       // instruction approximation
   // name      opcode  mask  size-V  V   param 1                       param 2                       param 3                    extendable    uncond.       updates SR
@@ -48,7 +48,22 @@ const std::array<DSPOPCTemplate, 215> s_opcodes =
   {"RETO",     0x02de, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return if overflow
   {"RET",      0x02df, 0xffff,    1, 0, {},                                                                                     false, true, true, false, false}, // unconditional return
 
-  {"RTI",      0x02ff, 0xffff,    1, 0, {},                                                                                     false, true, true, false, false}, // return from interrupt
+  {"RTIGE",    0x02f0, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if greater or equal
+  {"RTIL",     0x02f1, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if less
+  {"RTIG",     0x02f2, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if greater
+  {"RTILE",    0x02f3, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if less or equal
+  {"RTINZ",    0x02f4, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if not zero
+  {"RTIZ",     0x02f5, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if zero
+  {"RTINC",    0x02f6, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if not carry
+  {"RTIC",     0x02f7, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if carry
+  {"RTIx8",    0x02f8, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIx9",    0x02f9, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIxA",    0x02fa, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTIxB",    0x02fb, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if TODO
+  {"RTILNZ",   0x02fc, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if logic not zero
+  {"RTILZ",    0x02fd, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if logic zero
+  {"RTIO",     0x02fe, 0xffff,    1, 0, {},                                                                                     false, true, false, true, false}, // return from interrupt if overflow
+  {"RTI",      0x02ff, 0xffff,    1, 0, {},                                                                                     false, true, true, false, false}, // return from interrupt unconditionally
 
   {"CALLGE",   0x02b0, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if greater or equal
   {"CALLL",    0x02b1, 0xffff,    2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false}, // call if less
