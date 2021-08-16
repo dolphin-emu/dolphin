@@ -630,14 +630,17 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     // IOS9 is the only IOS which can be assumed to exist in a working state on any Wii
     // regardless of what updates have been installed. At least Mario Party 8
     // (RM8E01, revision 2) uses IOS9 without having it in its update partition.
-    bool has_correct_ios = tmd.IsValid() && (tmd.GetIOSId() & 0xFF) == 9;
+    const u64 ios_ver = tmd.GetIOSId() & 0xFF;
+    bool has_correct_ios = tmd.IsValid() && ios_ver == 9;
 
     if (!has_correct_ios && tmd.IsValid())
     {
       std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
       if (file_info)
       {
-        const std::string correct_ios = "IOS" + std::to_string(tmd.GetIOSId() & 0xFF) + "-";
+        const std::string ios_ver_str = std::to_string(ios_ver);
+        const std::string correct_ios =
+            IsDebugSigned() ? ("firmware.64." + ios_ver_str + ".") : ("IOS" + ios_ver_str + "-");
         for (const FileInfo& f : *file_info)
         {
           if (StringBeginsWith(f.GetName(), correct_ios))
