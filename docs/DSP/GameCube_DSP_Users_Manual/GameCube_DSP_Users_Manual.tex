@@ -396,8 +396,6 @@ Instruction Memory (IMEM) is divided into instruction RAM (IRAM) and instruction
 
 Exception vectors are located at the top of the RAM and occupy the first 16 words, with 2 words available for each exception (enough for a \Opcode{JMP} instruction for each exception).
 
-DSP IRAM is mapped through as first 8KB of ARAM (Accelerator RAM), therefore the CPU can DMA DSP code to DSP IRAM. This usually occurs during boot time, as the DSP ROM is not enabled at cold reset and needs to be reenabled by a small stub executed in IRAM.
-
 There are no DSP instructions that write to IMEM; however, the \texttt{ILLR} family of instructions can read from it.  This is sometimes used for jump tables or indexing into a list of pointers (which may point into either IMEM or DMEM).
 
 \begin{table}[htb]
@@ -428,6 +426,23 @@ It is possible to both read and write to DMEM, but coefficient data cannot be wr
 \begin{tabular}[c]{@{}l@{}}\texttt{0xFF00}\\ \\ \\ \\\\ \\ \\ \\  \texttt{0xFFFF}\end{tabular} & \texttt{IFX} \\ \hline
 \end{tabular}
 \end{table}
+
+\pagebreak{}
+
+\section{Initialization}
+
+The DSP is initialized before it is used.  This is done by copying a small program to physical address \Address{0x01000000} (virtual \Address{0x81000000}) in GameCube/Wii main memory, and then writing to \Register{DSP\_CONTROL\_STATUS} at \texttt{0xCC00500A} with the 11th and 0th bits set (SDK titles write \Value{0x08ad}).  The 11th bit being set appears to cause data from \Address{0x01000000} to be DMAd to the start of IMEM; at least 128 bytes of data (64 DSP words) are transferred.  (None of this has been extensively hardware tested, and is instead based on libogc's \Code{\_\_dsp\_bootstrap}.)
+
+The program that SDK titles send does the following:
+\begin{enumerate}
+\item Reads all \Value{0x1000} words of IROM from \Address{0x8000} through \Address{0x8FFF} (using \Opcode{ILRRI})
+\item Writes zero to all \Value{0x1000} words of DRAM from \Address{0x0000} through \Address{0x0FFF} (using \Opcode{SRRI})
+\item Reads all \Value{0x0800} words of COEF data from \Address{0x1000} through \Address{0x17FF} (using \Opcode{LRRI})
+\item Waits for the top bit of \Register{DMBH} to be clear (indicating the CPU is ready to receive mail)
+\item Writes \Value{0x0054} to \Register{DMBH} and \Value{0x4348} to \Register{DMBL}, sending \Value{0x00543448} (``TCH''?) to the CPU.  The CPU does not check for this value, but it does wait for mail to be sent.
+\end{enumerate}
+
+It is not clear why this is done, as the values read from IROM and COEF are not used; perhaps it works around a hardware bug where incorrect values are read from ROM initially.
 
 \pagebreak{}
 
