@@ -1030,7 +1030,7 @@ Opcode decoding uses special naming for bits and their decimal representations t
 \section{Conditional opcodes}
 
 Conditional opcodes are executed only when the condition described by their encoded conditional field has been met.
-The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opcode{IFcc}, \Opcode{RETcc}, \Opcode{JRcc}, and \Opcode{CALLRcc}.
+The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opcode{IFcc}, \Opcode{RETcc}, \Opcode{RTIcc}, \Opcode{JRcc}, and \Opcode{CALLRcc}.
 
 \begin{table}[H]
 \centering
@@ -3720,6 +3720,34 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \DSPOpcodeFlagsUnchanged
 \end{DSPOpcode}
 
+\begin{DSPOpcode}{RTIcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1111} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    RTIcc
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Return from exception if condition \Flag{cc} has been met. Pops stored status register \Register{\$sr} from data stack \Register{\$st1} and
+          program counter PC from call stack \Register{\$st0} and sets \Register{\$pc} to this location.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        $sr = $st1
+        POP_STACK($st1)
+        $pc = $st0
+        POP_STACK($st0)
+    ELSE
+        $pc++
+    ENDIF
+  \end{DSPOpcodeOperation}
+
+  \DSPOpcodeFlagsUnchanged
+\end{DSPOpcode}
+
 \begin{DSPOpcode}{SBCLR}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{0001} & \monobitbox{4}{0010} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
@@ -4897,7 +4925,7 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0000 0010 1001 cccc aaaa aaaa aaaa aaaa}{Jcc}
 \OpcodeRow{0000 0010 1011 cccc aaaa aaaa aaaa aaaa}{CALLcc}
 \OpcodeRow{0000 0010 1101 cccc}{RETcc}
-\OpcodeRow{0000 0010 1111 1111}{RTI}
+\OpcodeRow{0000 0010 1111 cccc}{RTIcc}
 \OpcodeRowSkip
 \OpcodeRow{0000 001r 0000 0000 iiii iiii iiii iiii}{ADDI}
 \OpcodeRow{0000 001r 0010 0000 iiii iiii iiii iiii}{XORI}
