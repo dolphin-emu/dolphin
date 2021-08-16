@@ -16,8 +16,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-31 23:46+0200\n"
-"PO-Revision-Date: 2021-07-31 21:46+0000\n"
+"POT-Creation-Date: 2021-08-16 16:48+0200\n"
+"PO-Revision-Date: 2021-08-16 14:48+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Turkish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/tr/)\n"
@@ -874,7 +874,7 @@ msgstr "İvmeölçer"
 msgid "Accuracy:"
 msgstr "Doğruluk:"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:88
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:89
 msgid "Action"
 msgstr "Eylem"
 
@@ -887,58 +887,58 @@ msgid ""
 "{0}"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:524
+#: Source/Core/Core/ActionReplay.cpp:525
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Add Code "
 "({2})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:615
+#: Source/Core/Core/ActionReplay.cpp:616
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Fill and "
 "Slide ({2})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:402
+#: Source/Core/Core/ActionReplay.cpp:403
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Ram Write "
 "And Fill ({2})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:462
+#: Source/Core/Core/ActionReplay.cpp:463
 msgid ""
 "Action Replay Error: Invalid size ({0:08x} : address = {1:08x}) in Write To "
 "Pointer ({2})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:670
+#: Source/Core/Core/ActionReplay.cpp:671
 msgid "Action Replay Error: Invalid value ({0:08x}) in Memory Copy ({1})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:539
+#: Source/Core/Core/ActionReplay.cpp:540
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented "
 "({0})\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:232
+#: Source/Core/Core/ActionReplay.cpp:233
 msgid "Action Replay Error: invalid AR code line: {0}"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:781
+#: Source/Core/Core/ActionReplay.cpp:782
 msgid "Action Replay: Conditional Code: Invalid Size {0:08x} ({1})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:749
+#: Source/Core/Core/ActionReplay.cpp:750
 msgid "Action Replay: Invalid Normal Code Type {0:08x} ({1})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:707
+#: Source/Core/Core/ActionReplay.cpp:708
 msgid "Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:805
+#: Source/Core/Core/ActionReplay.cpp:806
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr ""
 
@@ -1035,9 +1035,9 @@ msgstr "Ekle..."
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:147
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:80
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:48
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:163
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:175
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:49
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:166
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:178
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:180
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
@@ -1050,8 +1050,8 @@ msgid "Address Space"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:155
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:42
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:134
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:43
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:137
 msgid "Address:"
 msgstr ""
 
@@ -1595,7 +1595,7 @@ msgid "Branches"
 msgstr ""
 
 #. i18n: This is a selectable action when adding a breakpoint
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:66
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
 msgid "Break"
 msgstr ""
 
@@ -1853,11 +1853,15 @@ msgstr ""
 msgid "Changing cheats will only take effect when the game is restarted."
 msgstr "Değiştirilen hileler oyunu yeniden başlattığınızda etkili olacaktır."
 
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:149
+msgid "Channel Partition (%1)"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:210
 msgid "Chat"
 msgstr "Sohbet"
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:23
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:25
 msgid "Cheat Code Editor"
 msgstr "Hile Kodu Düzenleyici"
 
@@ -1907,7 +1911,7 @@ msgstr ""
 msgid "Choose secondary input file"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:160
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:214
 msgid "Choose the folder to extract to"
 msgstr "Genişletmek için bir klasör seçin"
 
@@ -1958,7 +1962,7 @@ msgstr "Ya&pılandırma"
 msgid "Code"
 msgstr "Kod"
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:101
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:103
 msgid "Code:"
 msgstr "Code:"
 
@@ -2002,7 +2006,7 @@ msgstr ""
 msgid "Compression:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:79
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:80
 msgid "Condition"
 msgstr ""
 
@@ -2423,7 +2427,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:90
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:92
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:96
 msgid "Creator:"
 msgstr ""
@@ -2477,6 +2481,14 @@ msgstr "Özel RTC Seçenekleri"
 msgid "D-Pad"
 msgstr "Yön Tuşları"
 
+#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:229
+msgid "DFF file magic number is incorrect: got {0:08x}, expected {1:08x}"
+msgstr ""
+
+#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:219
+msgid "DFF file size is 0; corrupt/incomplete file?"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:147
 msgid "DJ Turntable"
@@ -2525,6 +2537,10 @@ msgstr "Dance Mat"
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:109
 msgid "Data"
 msgstr "Veri"
+
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:143
+msgid "Data Partition (%1)"
+msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/ChunkedProgressDialog.cpp:46
 msgid "Data Transfer"
@@ -2821,7 +2837,7 @@ msgid ""
 "checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:93
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:95
 msgid "Disc"
 msgstr "Disk"
 
@@ -3235,7 +3251,7 @@ msgstr "Wii'nin Bluetooth adaptörünü taklit et"
 msgid "Emulated Wii Remote"
 msgstr "Taklit Wii Remote"
 
-#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:259
+#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:276
 msgid ""
 "Emulated memory size mismatch!\n"
 "Current: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
@@ -3403,9 +3419,9 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:205
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
-"in debugging graphical issues. On D3D backends, this also enables debug "
-"symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, leave "
-"this unchecked.</dolphin_emphasis>"
+"in debugging graphical issues. On the Vulkan and D3D backends, this also "
+"enables debug symbols for the compiled shaders.<br><br><dolphin_emphasis>If "
+"unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:248
@@ -3473,10 +3489,10 @@ msgstr "RSO modül adresini girin:"
 msgid "Equals to"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:216
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:280
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:205
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:328
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:228
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:302
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:259
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:382
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:309
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:315
@@ -3494,7 +3510,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:545
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:578
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:585
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:140
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:143
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:259
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:375
@@ -3773,31 +3789,31 @@ msgstr "Harici Çerçeve Arabelleği (XFB)"
 msgid "Extract Certificates from NAND"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:212
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:266
 msgid "Extract Entire Disc..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:236
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:290
 msgid "Extract Entire Partition..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:243
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:297
 msgid "Extract File..."
 msgstr "Dosyayı Genişlet..."
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:185
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:239
 msgid "Extract Files..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:195
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:249
 msgid "Extract System Data..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:299
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:353
 msgid "Extracting All Files..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:300
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:354
 msgid "Extracting Directory..."
 msgstr ""
 
@@ -3896,11 +3912,11 @@ msgstr ""
 msgid "Failed to extract certificates from NAND"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:328
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:382
 msgid "Failed to extract file."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:205
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:259
 msgid "Failed to extract system data."
 msgstr ""
 
@@ -4045,6 +4061,10 @@ msgstr ""
 #: Source/Core/DiscIO/VolumeVerifier.cpp:219
 #: Source/Core/DiscIO/VolumeVerifier.cpp:317
 msgid "Failed to parse Redump.org data"
+msgstr ""
+
+#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:213
+msgid "Failed to read DFF file."
 msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:848
@@ -4478,11 +4498,11 @@ msgstr ""
 msgid "Frets"
 msgstr "Perdeler"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:175
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:178
 msgid "From"
 msgstr "Buradan"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:134
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:137
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:92
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:107
 msgid "From:"
@@ -5259,6 +5279,10 @@ msgstr "SD Kart Ekle"
 msgid "Install"
 msgstr "Kur"
 
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:152
+msgid "Install Partition (%1)"
+msgstr ""
+
 #: Source/Core/DolphinQt/Updater.cpp:72
 msgid "Install Update"
 msgstr "Güncellemeyi Kur"
@@ -5279,7 +5303,7 @@ msgstr ""
 msgid "Instruction"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:35
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:36
 msgid "Instruction Breakpoint"
 msgstr ""
 
@@ -5342,7 +5366,7 @@ msgstr ""
 msgid "Invalid Expression."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:188
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:200
 msgid "Invalid Mixed Code"
 msgstr "Geçersiz Karma Kod"
 
@@ -5371,7 +5395,7 @@ msgstr ""
 msgid "Invalid host"
 msgstr "Geçersiz host"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:141
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:144
 msgid "Invalid input for the field \"%1\""
 msgstr ""
 
@@ -5631,7 +5655,7 @@ msgid ""
 "Right click to re-center it."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:86
+#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:89
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -5641,7 +5665,7 @@ msgstr ""
 "temizlemek için orta, \n"
 "daha çok seçenek için sağ tıklatın."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:90
+#: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:93
 msgid ""
 "Left/Right-click to configure output.\n"
 "Middle-click to clear."
@@ -5982,7 +6006,7 @@ msgstr ""
 msgid "Memory"
 msgstr "Hafıza"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:46
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:47
 msgid "Memory Breakpoint"
 msgstr ""
 
@@ -6165,7 +6189,7 @@ msgid "NTSC-U"
 msgstr "NTSC-U"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:643
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:60
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:302
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:324
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:222
@@ -6186,7 +6210,7 @@ msgstr ""
 msgid "Name of your session shown in the server browser"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:95
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:97
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:95
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:120
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:155
@@ -6246,7 +6270,7 @@ msgstr ""
 msgid "New"
 msgstr "Yeni"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:22
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:23
 msgid "New Breakpoint"
 msgstr ""
 
@@ -6436,7 +6460,7 @@ msgid ""
 "use."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:91
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:93
 msgid "Notes:"
 msgstr "Notlar:"
 
@@ -6616,6 +6640,10 @@ msgstr ""
 msgid "Other"
 msgstr "Diğer"
 
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:156
+msgid "Other Partition (%1)"
+msgstr ""
+
 #: Source/Core/Core/HotkeyManager.cpp:351
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:25
 msgid "Other State Hotkeys"
@@ -6672,14 +6700,10 @@ msgstr "Kollar"
 msgid "Parameters"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:171
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:257
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:183
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:279
 msgid "Parsing Error"
 msgstr "Ayrıştırma Hatası"
-
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:104
-msgid "Partition %1"
-msgstr "Bölüm %1"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:120
 msgid "Passive"
@@ -6958,7 +6982,7 @@ msgstr "Profil"
 msgid "Program Counter"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:288
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:342
 #: Source/Core/DolphinQt/ConvertDialog.cpp:411
 msgid "Progress"
 msgstr ""
@@ -7040,7 +7064,7 @@ msgstr ""
 
 #. i18n: A range of memory addresses
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:323
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:51
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:52
 msgid "Range"
 msgstr "Aralık"
 
@@ -7049,7 +7073,7 @@ msgid "Re&place instruction"
 msgstr ""
 
 #. i18n: This is a selectable condition when adding a breakpoint
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:57
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:58
 msgid "Read"
 msgstr ""
 
@@ -7068,7 +7092,7 @@ msgid "Read only"
 msgstr "Salt okunur"
 
 #. i18n: This is a selectable condition when adding a breakpoint
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:61
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:62
 msgid "Read or Write"
 msgstr ""
 
@@ -7476,7 +7500,7 @@ msgstr ""
 msgid "Save FIFO log"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:245
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:299
 msgid "Save File to"
 msgstr ""
 
@@ -8260,7 +8284,7 @@ msgstr "DK Bongos'u Taklit Et"
 msgid "Six Axis"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:60
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
 msgid "Size"
 msgstr "Boyut"
@@ -8602,8 +8626,8 @@ msgstr "Tıngırtı"
 msgid "Stylus"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:326
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:256
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:380
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:258
 #: Source/Core/DolphinQt/ConvertDialog.cpp:509
 #: Source/Core/DolphinQt/GameList/GameList.cpp:555
@@ -8640,11 +8664,11 @@ msgstr ""
 msgid "Successfully extracted certificates from NAND"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:326
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:380
 msgid "Successfully extracted file."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:203
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:257
 msgid "Successfully extracted system data."
 msgstr ""
 
@@ -8828,7 +8852,7 @@ msgstr ""
 msgid "Texture Format Overlay"
 msgstr "Doku Biçimi Kaplaması"
 
-#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:218
+#: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:237
 msgid ""
 "The DFF's minimum loader version ({0}) exceeds the version of this FIFO "
 "Player ({1})"
@@ -8869,7 +8893,7 @@ msgid ""
 "copy or move it back to the NAND."
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:235
+#: Source/Core/Core/ActionReplay.cpp:236
 msgid "The address is invalid"
 msgstr "Adres geçersiz"
 
@@ -9046,8 +9070,7 @@ msgid ""
 "elements might be offset, or the game might not run at all."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:217
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:281
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:229
 msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "Ortaya çıkan şifresi çözülmüş AR kodu herhangi bir satır içermiyor."
 
@@ -9117,7 +9140,7 @@ msgstr ""
 msgid "The update partition is not at its normal position."
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:238
+#: Source/Core/Core/ActionReplay.cpp:239
 msgid "The value is invalid"
 msgstr "Değer hatalı"
 
@@ -9157,7 +9180,7 @@ msgstr ""
 "Bu ayarlar Dolphin'in kendi ayarları yerine kullanılır. \n"
 "Dolu kareler oyunun Dolphin'in ayarlarını kullandığını gösterir."
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:189
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:201
 msgid ""
 "This Action Replay code contains both encrypted and unencrypted lines; you "
 "should check that you have entered it correctly.\n"
@@ -9168,6 +9191,10 @@ msgstr ""
 "içeriyor; doğru girdiğinizden emin olmanız gerekir.\n"
 "\n"
 "Şifrelenmemiş tüm satırları silmek istiyor musunuz?"
+
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:302
+msgid "This Gecko code doesn't contain any lines."
+msgstr ""
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
@@ -9181,15 +9208,15 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "Bu USB aygıtı zaten beyaz listeye eklenmiş."
 
-#: Source/Core/Core/ConfigManager.cpp:889
+#: Source/Core/Core/ConfigManager.cpp:887
 msgid "This WAD is not bootable."
 msgstr "Bu WAD önyüklenebilir değil."
 
-#: Source/Core/Core/ConfigManager.cpp:884
+#: Source/Core/Core/ConfigManager.cpp:882
 msgid "This WAD is not valid."
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:890
+#: Source/Core/Core/ActionReplay.cpp:891
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
@@ -9293,7 +9320,7 @@ msgstr ""
 msgid "This software should not be used to play games you do not legally own."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:907
+#: Source/Core/Core/ConfigManager.cpp:905
 msgid "This title cannot be booted."
 msgstr ""
 
@@ -9382,11 +9409,11 @@ msgstr ""
 msgid "Title"
 msgstr "Başlık"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:184
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:187
 msgid "To"
 msgstr "Buraya"
 
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:55
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:56
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:94
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:109
 msgid "To:"
@@ -9620,7 +9647,7 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:172
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:184
 msgid ""
 "Unable to parse line %1 of the entered AR code as a valid encrypted or "
 "decrypted code. Make sure you typed it correctly.\n"
@@ -9628,7 +9655,7 @@ msgid ""
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:258
+#: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:280
 msgid ""
 "Unable to parse line %1 of the entered Gecko code as a valid code. Make sure "
 "you typed it correctly.\n"
@@ -9761,6 +9788,10 @@ msgstr "Yukarı"
 #: Source/Core/DolphinQt/MenuBar.cpp:567
 msgid "Update"
 msgstr "Güncelle"
+
+#: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:146
+msgid "Update Partition (%1)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Updater.cpp:63
 msgid "Update after closing Dolphin"
@@ -10303,7 +10334,7 @@ msgid "World"
 msgstr "Dünya"
 
 #. i18n: This is a selectable condition when adding a breakpoint
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:59
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:60
 msgid "Write"
 msgstr ""
 
@@ -10327,12 +10358,12 @@ msgid "Write to File"
 msgstr "Dosyaya Yaz"
 
 #. i18n: This is a selectable action when adding a breakpoint
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:64
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:65
 msgid "Write to Log"
 msgstr ""
 
 #. i18n: This is a selectable action when adding a breakpoint
-#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:68
+#: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:69
 msgid "Write to Log and Break"
 msgstr ""
 
@@ -10465,11 +10496,11 @@ msgstr ""
 msgid "Z"
 msgstr "Z"
 
-#: Source/Core/Core/ActionReplay.cpp:923
+#: Source/Core/Core/ActionReplay.cpp:924
 msgid "Zero 3 code not supported"
 msgstr "Sıfır 3 kodu desteklenmemektedir"
 
-#: Source/Core/Core/ActionReplay.cpp:943
+#: Source/Core/Core/ActionReplay.cpp:944
 msgid "Zero code unknown to Dolphin: {0:08x}"
 msgstr ""
 
