@@ -1037,29 +1037,30 @@ The groups of conditional instructions are: \Opcode{CALLcc}, \Opcode{Jcc}, \Opco
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textbf{Bits} & \textbf{\texttt{cc}} & \textbf{Name}                & \textbf{Evaluated expression} \\ \hline
-\texttt{0b0000}        & \texttt{GE} & Greater than or equal        &                               \\ \hline
-\texttt{0b0001}        & \texttt{L}  & Less than                    &                               \\ \hline
-\texttt{0b0010}        & \texttt{G}  & Greater than                 &                               \\ \hline
-\texttt{0b0011}        & \texttt{LE} & Less than or equal           &                               \\ \hline
-\texttt{0b0100}        & \texttt{NE} & Not equal                    & \texttt{(\$sr \& 0x4) == 0}   \\ \hline
-\texttt{0b0101}        & \texttt{EQ} & Equal                        & \texttt{(\$sr \& 0x4) != 0}   \\ \hline
-\texttt{0b0110}        & \texttt{NC} & Not carry                    & \texttt{(\$sr \& 0x1) == 0}   \\ \hline
-\texttt{0b0111}        & \texttt{C}  & Carry                        & \texttt{(\$sr \& 0x1) != 0}   \\ \hline
-\texttt{0b1000}        &             & Below s32                    & \texttt{(\$sr \& 0x10) == 0}  \\ \hline
-\texttt{0b1001}        &             & Above s32                    & \texttt{(\$sr \& 0x10) != 0}  \\ \hline
-\texttt{0b1010}        &             &                              &                               \\ \hline
-\texttt{0b1011}        &             &                              &                               \\ \hline
-\texttt{0b1100}        & \texttt{NZ} & Not zero                     & \texttt{(\$sr \& 0x40) == 0}  \\ \hline
-\texttt{0b1101}        & \texttt{ZR} & Zero                         & \texttt{(\$sr \& 0x40) != 0}  \\ \hline
-\texttt{0b1110}        & \texttt{O}  & Overflow                     & \texttt{(\$sr \& 0x2) != 0}   \\ \hline
-\texttt{0b1111}        &             & \textless always\textgreater &                               \\ \hline
+\texttt{0b0000}       & \texttt{GE}  & Greater than or equal        & \Code{\$sr.O == \$sr.S}       \\ \hline
+\texttt{0b0001}       & \texttt{L}   & Less than                    & \Code{\$sr.O != \$sr.S}       \\ \hline
+\texttt{0b0010}       & \texttt{G}   & Greater than                 & \Code{(\$sr.O == \$sr.S) \&\& (\$sr.Z == 0)} \\ \hline
+\texttt{0b0011}       & \texttt{LE}  & Less than or equal           & \Code{(\$sr.O != \$sr.S)  ||  (\$sr.Z != 0)} \\ \hline
+\texttt{0b0100}       & \texttt{NZ}  & Not zero                     & \Code{\$sr.Z == 0}            \\ \hline
+\texttt{0b0101}       & \texttt{Z}   & Zero                         & \Code{\$sr.Z != 0}            \\ \hline
+\texttt{0b0110}       & \texttt{NC}  & Not carry                    & \Code{\$sr.C == 0}            \\ \hline
+\texttt{0b0111}       & \texttt{C}   & Carry                        & \Code{\$sr.C != 0}            \\ \hline
+\texttt{0b1000}       & \texttt{x8}  & Below s32                    & \Code{\$sr.AS == 0}           \\ \hline
+\texttt{0b1001}       & \texttt{x9}  & Above s32                    & \Code{\$sr.AS != 0}           \\ \hline
+\texttt{0b1010}       & \texttt{xA}  &                              & \Code{((\$sr.AS != 0)  ||  (\$sr.TB != 0)) \&\& (\$sr.Z == 0)} \\ \hline
+\texttt{0b1011}       & \texttt{xB}  &                              & \Code{((\$sr.AS == 0) \&\& (\$sr.TB == 0))  ||  (\$sr.Z != 0)} \\ \hline
+\texttt{0b1100}       & \texttt{LNZ} & Not logic zero               & \Code{\$sr.LZ == 0}           \\ \hline
+\texttt{0b1101}       & \texttt{LZ}  & Logic zero                   & \Code{\$sr.LZ != 0}           \\ \hline
+\texttt{0b1110}       & \texttt{O}   & Overflow                     & \Code{\$sr.O != 0}            \\ \hline
+\texttt{0b1111}       &              & \textless always\textgreater &                               \\ \hline
 \end{tabular}
 \end{table}
 
 \textbf{Note:}
 
-There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} and \texttt{ZR}/\texttt{NZ}.
-\texttt{EQ}/\texttt{NE} pair operates on arithmetic zero flag (arithmetic 0) while \texttt{ZR}/\texttt{NZ} pair operates on logic zero flag (logic 0).
+There are two pairs of conditions that work similarly: \texttt{Z}/\texttt{NZ} and \texttt{LZ}/\texttt{LNZ}.
+\texttt{Z}/\texttt{NZ} pair operates on arithmetic zero flag (arithmetic 0) while \texttt{LZ}/\texttt{LNZ} pair operates on logic zero flag (logic 0).
+The logic zero flag is only set by \Opcode{ANDCF} and \Opcode{ANDF}.
 
 \pagebreak{}
 
