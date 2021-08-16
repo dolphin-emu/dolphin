@@ -250,10 +250,7 @@ bool Interpreter::CheckCondition(u8 condition) const
   const auto IsCarry = [this] { return IsSRFlagSet(SR_CARRY); };
   const auto IsOverflow = [this] { return IsSRFlagSet(SR_OVERFLOW); };
   const auto IsOverS32 = [this] { return IsSRFlagSet(SR_OVER_S32); };
-  const auto IsLess = [this] {
-    const auto& state = m_dsp_core.DSPState();
-    return (state.r.sr & SR_OVERFLOW) != (state.r.sr & SR_SIGN);
-  };
+  const auto IsLess = [this] { return IsSRFlagSet(SR_OVERFLOW) != IsSRFlagSet(SR_SIGN); };
   const auto IsZero = [this] { return IsSRFlagSet(SR_ARITH_ZERO); };
   const auto IsLogicZero = [this] { return IsSRFlagSet(SR_LOGIC_ZERO); };
   const auto IsConditionA = [this] {
