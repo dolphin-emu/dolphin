@@ -183,16 +183,51 @@ const u8* JitBaseBlockCache::Dispatch()
   return block->normalEntry;
 }
 
-void JitBaseBlockCache::InvalidateICache(u32 address, u32 length, bool forced)
+void JitBaseBlockCache::InvalidateICacheLine(u32 address)
 {
-  const auto translated = PowerPC::JitCache_TranslateAddress(address);
-  if (!translated.valid)
-    return;
-  const u32 physical_address = translated.address;
+  const u32 cache_line_address = address & ~0x1f;
+  const auto translated = PowerPC::JitCache_TranslateAddress(cache_line_address);
+  if (translated.valid)
+    InvalidateICacheInternal(translated.address, cache_line_address, 32, false);
+}
 
-  // Optimize the common case of length == 32 which is used by Interpreter::dcb*
+void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length, bool forced)
+{
+  u32 address = initial_address;
+  u32 length = initial_length;
+  while (length > 0)
+  {
+    const auto translated = PowerPC::JitCache_TranslateAddress(address);
+
+    const bool address_from_bat = translated.valid && translated.translated && translated.from_bat;
+    const int shift = address_from_bat ? PowerPC::BAT_INDEX_SHIFT : PowerPC::HW_PAGE_INDEX_SHIFT;
+    const u32 mask = ~((1u << shift) - 1u);
+    const u32 first_address = address;
+    const u32 last_address = address + (length - 1u);
+    if ((first_address & mask) == (last_address & mask))
+    {
+      if (translated.valid)
+        InvalidateICacheInternal(translated.address, address, length, forced);
+      return;
+    }
+
+    const u32 end_of_page = (first_address + (1u << shift)) & mask;
+    const u32 length_this_page = end_of_page - first_address;
+    if (translated.valid)
+      InvalidateICacheInternal(translated.address, address, length_this_page, forced);
+    address = address + length_this_page;
+    length = length - length_this_page;
+  }
+}
+
+void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 address, u32 length,
+                                                 bool forced)
+{
+  // Optimization for the case of invalidating a single cache line, which is used by the dcb*
+  // instructions. If the valid_block bit for that cacheline is not set, we can safely skip
+  // the remaining invalidation logic.
   bool destroy_block = true;
-  if (length == 32)
+  if (length == 32 && (physical_address & 0x1fu) == 0)
   {
     if (!valid_block.Test(physical_address / 32))
       destroy_block = false;

@@ -161,6 +161,7 @@ public:
   const u8* Dispatch();
 
   void InvalidateICache(u32 address, u32 length, bool forced);
+  void InvalidateICacheLine(u32 address);
   void ErasePhysicalRange(u32 address, u32 length);
 
   u32* GetBlockBitSet() const;
@@ -177,6 +178,7 @@ private:
   void LinkBlockExits(JitBlock& block);
   void LinkBlock(JitBlock& block);
   void UnlinkBlock(const JitBlock& block);
+  void InvalidateICacheInternal(u32 physical_address, u32 address, u32 length, bool forced);
 
   JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
 

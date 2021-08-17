@@ -128,7 +128,7 @@ void InstructionCache::Invalidate(u32 addr)
     }
   }
   valid[set] = 0;
-  JitInterface::InvalidateICache(addr & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(addr);
 }
 
 u32 InstructionCache::ReadInstruction(u32 addr)
