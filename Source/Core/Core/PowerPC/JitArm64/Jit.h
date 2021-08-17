@@ -159,8 +159,8 @@ public:
   void ps_cmpXX(UGeckoInstruction inst);
 
   // Loadstore paired
-  void psq_l(UGeckoInstruction inst);
-  void psq_st(UGeckoInstruction inst);
+  void psq_lXX(UGeckoInstruction inst);
+  void psq_stXX(UGeckoInstruction inst);
 
   void ConvertDoubleToSingleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                   Arm64Gen::ARM64Reg src_reg);
