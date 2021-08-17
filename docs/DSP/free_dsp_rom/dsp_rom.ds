@@ -86,11 +86,11 @@ WARNPC 0x8b
 ORG 0x8b
 ; called by GBA ucode
 dram_to_cpu:
-    srs @DSMAH, $AX0.H
-    srs @DSMAL, $AX0.L
+    sr @DSMAH, $AX0.H
+    sr @DSMAL, $AX0.L
     si @DSCR, #0x1
-    srs @DSPA, $AX1.H
-    srs @DSBL, $AX1.L
+    sr @DSPA, $AX1.H
+    sr @DSBL, $AX1.L
     call wait_dma+#IROM_BASE
     ret
 
@@ -108,11 +108,11 @@ ORG 0xbc
 ; called by GBA ucode
 bootucode_ax:
     lris $AC0.M, #0
-    srs  @DSCR, $AC0.M
-    srs  @DSMAH, $AX0.H
-    srs  @DSMAL, $AX0.L
-    srs  @DSPA, $AX1.H
-    srs  @DSBL, $AX1.L
+    srs @DSCR, $AC0.M
+    sr  @DSMAH, $AX0.H
+    sr  @DSMAL, $AX0.L
+    sr  @DSPA, $AX1.H
+    sr  @DSBL, $AX1.L
     call wait_dma+#IROM_BASE
 
 bootucode_ix:

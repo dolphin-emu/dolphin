@@ -1,3 +1,13 @@
+Legal GC/WII DSP IROM replacement (v0.4)
+-------------------------------------------------------
+
+- irom: Minor accuracy and documentation improvements
+- irom: Remove use of SRS instruction with AX registers, as those instructions
+  do not actually exist
+
+Tilka, Pokechu22
+17/aug/2021
+
 Legal GC/WII DSP IROM replacement (v0.3.1)
 -------------------------------------------------------
 
