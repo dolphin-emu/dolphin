@@ -24,6 +24,12 @@ enum class FPCC
   FU = 1,  // ?
 };
 
+inline void UpdateFPExceptionSummary(UReg_FPSCR* fpscr)
+{
+  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
+  fpscr->FEX = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
+}
+
 inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 {
   if ((fpscr->Hex & mask) != mask)
@@ -32,7 +38,7 @@ inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
   }
 
   fpscr->Hex |= mask;
-  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
+  UpdateFPExceptionSummary(fpscr);
 }
 
 inline float ForceSingle(const UReg_FPSCR& fpscr, double value)

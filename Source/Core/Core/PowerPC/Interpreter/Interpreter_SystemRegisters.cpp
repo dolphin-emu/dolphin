@@ -25,22 +25,10 @@ mffsx: 80036650 (huh?)
 
 */
 
-static void FPSCRUpdated(UReg_FPSCR fp)
+static void FPSCRUpdated(UReg_FPSCR* fpscr)
 {
+  UpdateFPExceptionSummary(fpscr);
   PowerPC::RoundingModeUpdated();
-
-  if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
-  {
-    // PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
-    // fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
-    // Pokemon Colosseum does this. Gah.
-  }
-}
-
-static void UpdateFPSCR(UReg_FPSCR* fpscr)
-{
-  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
-  fpscr->FEX = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction inst)
@@ -48,7 +36,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
   u32 b = 0x80000000 >> inst.CRBD;
 
   FPSCR.Hex &= ~b;
-  FPSCRUpdated(FPSCR);
+  FPSCRUpdated(&FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -65,7 +53,7 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
   else
     FPSCR |= b;
 
-  FPSCRUpdated(FPSCR);
+  FPSCRUpdated(&FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -80,7 +68,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
 
   FPSCR = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
-  FPSCRUpdated(FPSCR);
+  FPSCRUpdated(&FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -97,7 +85,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
   }
 
   FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
-  FPSCRUpdated(FPSCR);
+  FPSCRUpdated(&FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();
@@ -563,22 +551,18 @@ void Interpreter::isync(UGeckoInstruction inst)
 
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
-  UpdateFPSCR(&FPSCR);
   const u32 shift = 4 * (7 - inst.CRFS);
   const u32 fpflags = (FPSCR.Hex >> shift) & 0xF;
 
   // If any exception bits were read, clear them
   FPSCR.Hex &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
+  FPSCRUpdated(&FPSCR);
 
   PowerPC::ppcState.cr.SetField(inst.CRFD, fpflags);
 }
 
 void Interpreter::mffsx(UGeckoInstruction inst)
 {
-  // load from FPSCR
-  // TODO(ector): grab all overflow flags etc and set them in FPSCR
-
-  UpdateFPSCR(&FPSCR);
   rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
 
   if (inst.Rc)
