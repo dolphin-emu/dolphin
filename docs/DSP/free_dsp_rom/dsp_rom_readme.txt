@@ -1,4 +1,4 @@
-Legal GC/WII DSP IROM replacement (v0.4)
+Legal GC/WII DSP IROM replacement (v0.4) (0xe789b5a5, 0xa4a575f5)
 -------------------------------------------------------
 
 - irom: Minor accuracy and documentation improvements
@@ -8,7 +8,7 @@ Legal GC/WII DSP IROM replacement (v0.4)
 Tilka, Pokechu22
 17/aug/2021
 
-Legal GC/WII DSP IROM replacement (v0.3.1)
+Legal GC/WII DSP IROM replacement (v0.3.1) (0x128ea7a2, 0xa4a575f5)
 -------------------------------------------------------
 
 - irom: When running from the ROM entrypoint, skip the bootucode_ax branch
@@ -18,7 +18,7 @@ Legal GC/WII DSP IROM replacement (v0.3.1)
 ligfx
 10/aug/2017
 
-Legal GC/WII DSP IROM replacement (v0.3)
+Legal GC/WII DSP IROM replacement (v0.3) (0x3aa4a793, 0xa4a575f5)
 -------------------------------------------------------
 
 - coef: Explicitly set 23 different values that are used by GBA UCode, and
@@ -31,7 +31,7 @@ Legal GC/WII DSP IROM replacement (v0.3)
 ligfx
 2/june/2017
 
-Legal GC/WII DSP IROM replacement (v0.2.1)
+Legal GC/WII DSP IROM replacement (v0.2.1) (0xd9907f71, 0xdb6880c1)
 -------------------------------------------------------
 
 - coef: 4-tap polyphase FIR filters
@@ -44,7 +44,7 @@ See generate_coefs.py for details.
 stgn
 29/june/2015
 
-Legal GC/WII DSP IROM replacement (v0.2)
+Legal GC/WII DSP IROM replacement (v0.2) (0xd9907f71, 0xb019c2fb)
 -------------------------------------------------------
 
 - coef: crafted to use a linear interpolation when resampling (instead of
@@ -58,8 +58,9 @@ likely still broken with it and require a real DSP ROM.
 delroth
 16/march/2013
 
-Legal GC/WII DSP IROM replacement (v0.1)
+Legal GC/WII DSP IROM replacement (v0.1) (0x9c8f593c, 0x10000001)
 -------------------------------------------------------
+
 - coef: fake (zeroes)
 - irom: reversed and rewrote ucode loading/reset part, everything else is missing
 

@@ -37,23 +37,23 @@ static bool VerifyRoms(const SDSP& dsp)
       // Official Nintendo ROM
       {0x66f334fe, 0xf3b93527},
 
-      // LM1234 replacement ROM (Zelda UCode only)
+      // v0.1: LM1234 replacement ROM (Zelda UCode only)
       {0x9c8f593c, 0x10000001},
 
-      // delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
+      // v0.2: delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
       // IPL/Card/GBA still broken)
       {0xd9907f71, 0xb019c2fb},
 
-      // above with improved resampling coefficients
+      // v0.2.1: above with improved resampling coefficients
       {0xd9907f71, 0xdb6880c1},
 
-      // above with support for GBA ucode
+      // v0.3: above with support for GBA ucode
       {0x3aa4a793, 0xa4a575f5},
 
-      // above with fix to skip bootucode_ax when running from ROM entrypoint
+      // v0.3.1: above with fix to skip bootucode_ax when running from ROM entrypoint
       {0x128ea7a2, 0xa4a575f5},
 
-      // above with fixes for invalid use of SRS instruction
+      // v0.4: above with fixes for invalid use of SRS instruction
       {0xe789b5a5, 0xa4a575f5},
   }};
 
