@@ -419,11 +419,17 @@ enum FPSCRExceptionFlag : u32
   FPSCR_VXSQRT = 1U << (31 - 22),
   FPSCR_VXCVI = 1U << (31 - 23),
   FPSCR_VE = 1U << (31 - 24),
+  FPSCR_OE = 1U << (31 - 25),
+  FPSCR_UE = 1U << (31 - 26),
+  FPSCR_ZE = 1U << (31 - 27),
+  FPSCR_XE = 1U << (31 - 28),
 
   FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ | FPSCR_VXIMZ | FPSCR_VXVC |
                  FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI,
 
   FPSCR_ANY_X = FPSCR_OX | FPSCR_UX | FPSCR_ZX | FPSCR_XX | FPSCR_VX_ANY,
+
+  FPSCR_ANY_E = FPSCR_VE | FPSCR_OE | FPSCR_UE | FPSCR_ZE | FPSCR_XE,
 };
 
 // Floating Point Status and Control Register

@@ -40,8 +40,7 @@ static void FPSCRUpdated(UReg_FPSCR fp)
 static void UpdateFPSCR(UReg_FPSCR* fpscr)
 {
   fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
-  fpscr->FEX = (fpscr->VX & fpscr->VE) | (fpscr->OX & fpscr->OE) | (fpscr->UX & fpscr->UE) |
-               (fpscr->ZX & fpscr->ZE) | (fpscr->XX & fpscr->XE);
+  fpscr->FEX = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction inst)
