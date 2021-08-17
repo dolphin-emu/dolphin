@@ -606,7 +606,7 @@ void JitArm64::frsqrtex(UGeckoInstruction inst)
 
 void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  if (js.fpr_is_store_safe[guest_reg])
+  if (js.fpr_is_store_safe[guest_reg] && js.op->fprIsSingle[guest_reg])
   {
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
     return;
@@ -626,7 +626,7 @@ void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, A
 
 void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  if (js.fpr_is_store_safe[guest_reg])
+  if (js.fpr_is_store_safe[guest_reg] && js.op->fprIsSingle[guest_reg])
   {
     m_float_emit.FCVTN(32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
     return;
