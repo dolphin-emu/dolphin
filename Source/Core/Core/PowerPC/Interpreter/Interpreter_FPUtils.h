@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
 constexpr double PPC_NAN = std::numeric_limits<double>::quiet_NaN();
@@ -24,10 +25,18 @@ enum class FPCC
   FU = 1,  // ?
 };
 
+inline void CheckFPExceptions(UReg_FPSCR fpscr)
+{
+  if (fpscr.FEX && (MSR.FE0 || MSR.FE1))
+    GenerateProgramException(ProgramExceptionCause::FloatingPoint);
+}
+
 inline void UpdateFPExceptionSummary(UReg_FPSCR* fpscr)
 {
   fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
   fpscr->FEX = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
+
+  CheckFPExceptions(*fpscr);
 }
 
 inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)

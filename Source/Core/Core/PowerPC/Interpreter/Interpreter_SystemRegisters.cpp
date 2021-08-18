@@ -167,6 +167,10 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
   }
 
   MSR.Hex = rGPR[inst.RS];
+
+  // FE0/FE1 may have been set
+  CheckFPExceptions(FPSCR);
+
   PowerPC::CheckExceptions();
   m_end_block = true;
 }
