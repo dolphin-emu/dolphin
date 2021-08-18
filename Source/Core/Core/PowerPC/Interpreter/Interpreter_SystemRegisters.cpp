@@ -549,34 +549,12 @@ void Interpreter::isync(UGeckoInstruction inst)
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
   UpdateFPSCR(&FPSCR);
-  u32 fpflags = ((FPSCR.Hex >> (4 * (7 - inst.CRFS))) & 0xF);
-  switch (inst.CRFS)
-  {
-  case 0:
-    FPSCR.FX = 0;
-    FPSCR.OX = 0;
-    break;
-  case 1:
-    FPSCR.UX = 0;
-    FPSCR.ZX = 0;
-    FPSCR.XX = 0;
-    FPSCR.VXSNAN = 0;
-    break;
-  case 2:
-    FPSCR.VXISI = 0;
-    FPSCR.VXIDI = 0;
-    FPSCR.VXZDZ = 0;
-    FPSCR.VXIMZ = 0;
-    break;
-  case 3:
-    FPSCR.VXVC = 0;
-    break;
-  case 5:
-    FPSCR.VXSOFT = 0;
-    FPSCR.VXSQRT = 0;
-    FPSCR.VXCVI = 0;
-    break;
-  }
+  const u32 shift = 4 * (7 - inst.CRFS);
+  const u32 fpflags = (FPSCR.Hex >> shift) & 0xF;
+
+  // If any exception bits were read, clear them
+  FPSCR.Hex &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
+
   PowerPC::ppcState.cr.SetField(inst.CRFD, fpflags);
 }
 
