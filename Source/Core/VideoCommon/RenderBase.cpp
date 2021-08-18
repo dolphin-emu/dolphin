@@ -314,17 +314,17 @@ void Renderer::RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc
 
 unsigned int Renderer::GetEFBScale() const
 {
-  return m_efb_scale;
+  return m_efb_scale / 100.0f;
 }
 
 int Renderer::EFBToScaledX(int x) const
 {
-  return x * static_cast<int>(m_efb_scale);
+  return x * m_efb_scale / 100.0f;
 }
 
 int Renderer::EFBToScaledY(int y) const
 {
-  return y * static_cast<int>(m_efb_scale);
+  return y * m_efb_scale / 100.0f;
 }
 
 float Renderer::EFBToScaledXf(float x) const
@@ -339,7 +339,7 @@ float Renderer::EFBToScaledYf(float y) const
 
 std::tuple<int, int> Renderer::CalculateTargetScale(int x, int y) const
 {
-  return std::make_tuple(x * static_cast<int>(m_efb_scale), y * static_cast<int>(m_efb_scale));
+  return std::make_tuple(x * m_efb_scale / 100.0f, y * m_efb_scale / 100.0f);
 }
 
 // return true if target size changed
@@ -348,18 +348,20 @@ bool Renderer::CalculateTargetSize()
   if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
   {
     // Set a scale based on the window size
-    int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
-    int height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
+    int width = EFB_WIDTH * m_target_rectangle.GetWidth() * 100 / m_last_xfb_width;
+    int height = EFB_HEIGHT * m_target_rectangle.GetHeight() * 100 / m_last_xfb_height;
     m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
   }
   else
   {
     m_efb_scale = g_ActiveConfig.iEFBScale;
+    if (m_efb_scale < 10)
+      m_efb_scale *= 100;
   }
 
   const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
-  if (max_size < EFB_WIDTH * m_efb_scale)
-    m_efb_scale = max_size / EFB_WIDTH;
+  if (max_size < EFB_WIDTH * m_efb_scale / 100)
+    m_efb_scale = max_size * 100 / EFB_WIDTH;
 
   auto [new_efb_width, new_efb_height] = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
   new_efb_width = std::max(new_efb_width, 1);
