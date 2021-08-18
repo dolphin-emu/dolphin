@@ -1002,20 +1002,33 @@ void DSPEmitter::dec(const UDSPInstruction opc)
 // 0111 110d xxxx xxxx
 // Negate accumulator $acD.
 //
-// flags out: --xx xx00
+// flags out: x-xx xxxx
+//
+// The carry flag is set only if $acD was zero.
+// The overflow flag is set only if $acD was 0x8000000000 (the minimum value),
+// as -INT_MIN is INT_MIN in two's complement. In both of these cases,
+// the value of $acD after the operation is the same as it was before.
 void DSPEmitter::neg(const UDSPInstruction opc)
 {
   u8 dreg = (opc >> 8) & 0x1;
-  //	s64 acc = dsp_get_long_acc(dreg);
-  get_long_acc(dreg);
-  //	acc = 0 - acc;
-  NEG(64, R(RAX));
-  //	dsp_set_long_acc(dreg, acc);
-  set_long_acc(dreg);
-  //	Update_SR_Register64(dsp_get_long_acc(dreg));
+  // const s64 acc = GetLongAcc(dreg);
+  X64Reg acc = RAX;
+  get_long_acc(dreg, acc);
+  // const s64 res = 0 - acc;
+  X64Reg res = RCX;
+  MOV(64, R(res), R(acc));
+  NEG(64, R(res));
+  // SetLongAcc(dreg, res);
+  set_long_acc(dreg, res);
   if (FlagsNeeded())
   {
-    Update_SR_Register64();
+    // UpdateSR64Sub(0, acc, GetLongAcc(dreg));
+    get_long_acc(dreg, res);
+    X64Reg imm_reg = RDX;
+    XOR(64, R(imm_reg), R(imm_reg));
+    X64Reg tmp1 = m_gpr.GetFreeXReg();
+    UpdateSR64Sub(imm_reg, acc, res, tmp1);
+    m_gpr.PutXReg(tmp1);
   }
 }
 

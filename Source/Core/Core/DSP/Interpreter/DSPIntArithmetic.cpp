@@ -704,18 +704,23 @@ void Interpreter::dec(const UDSPInstruction opc)
 // 0111 110d xxxx xxxx
 // Negate accumulator $acD.
 //
-// flags out: --xx xx00
+// flags out: x-xx xxxx
+//
+// The carry flag is set only if $acD was zero.
+// The overflow flag is set only if $acD was 0x8000000000 (the minimum value),
+// as -INT_MIN is INT_MIN in two's complement. In both of these cases,
+// the value of $acD after the operation is the same as it was before.
 void Interpreter::neg(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 8) & 0x1;
 
-  s64 acc = GetLongAcc(dreg);
-  acc = 0 - acc;
+  const s64 acc = GetLongAcc(dreg);
+  const s64 res = 0 - acc;
 
   ZeroWriteBackLog();
 
-  SetLongAcc(dreg, acc);
-  UpdateSR64(GetLongAcc(dreg));
+  SetLongAcc(dreg, res);
+  UpdateSR64Sub(0, acc, GetLongAcc(dreg));
 }
 
 // ABS  $acD
