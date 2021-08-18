@@ -795,29 +795,27 @@ std::string GetBundleDirectory()
   // this function, so bundle_ref will be untranslocated if necessary.
   //
   // More information: https://objective-see.com/blog/blog_0x15.html
-  if (__builtin_available(macOS 10.12, *))
+
+  // The APIs to deal with translocated paths are private, so we have
+  // to dynamically load them from the Security framework.
+  //
+  // The headers can be found under "Security" on opensource.apple.com:
+  // Security/OSX/libsecurity_translocate/lib/SecTranslocate.h
+  if (!s_security_framework.IsOpen())
   {
-    // The APIs to deal with translocated paths are private, so we have
-    // to dynamically load them from the Security framework.
-    //
-    // The headers can be found under "Security" on opensource.apple.com:
-    // Security/OSX/libsecurity_translocate/lib/SecTranslocate.h
-    if (!s_security_framework.IsOpen())
-    {
-      s_security_framework.Open("/System/Library/Frameworks/Security.framework/Security");
-      s_security_framework.GetSymbol("SecTranslocateIsTranslocatedURL", &s_is_translocated_url);
-      s_security_framework.GetSymbol("SecTranslocateCreateOriginalPathForURL", &s_create_orig_path);
-    }
+    s_security_framework.Open("/System/Library/Frameworks/Security.framework/Security");
+    s_security_framework.GetSymbol("SecTranslocateIsTranslocatedURL", &s_is_translocated_url);
+    s_security_framework.GetSymbol("SecTranslocateCreateOriginalPathForURL", &s_create_orig_path);
+  }
 
-    bool is_translocated = false;
-    s_is_translocated_url(bundle_ref, &is_translocated, nullptr);
+  bool is_translocated = false;
+  s_is_translocated_url(bundle_ref, &is_translocated, nullptr);
 
-    if (is_translocated)
-    {
-      CFURLRef untranslocated_ref = s_create_orig_path(bundle_ref, nullptr);
-      CFRelease(bundle_ref);
-      bundle_ref = untranslocated_ref;
-    }
+  if (is_translocated)
+  {
+    CFURLRef untranslocated_ref = s_create_orig_path(bundle_ref, nullptr);
+    CFRelease(bundle_ref);
+    bundle_ref = untranslocated_ref;
   }
 
   char app_bundle_path[MAXPATHLEN];
