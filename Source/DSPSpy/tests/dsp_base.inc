@@ -173,6 +173,9 @@ send_back:
 	; first, store $sr so we can modify it
 	sr	@(REGS_BASE + 19), $sr
 	set16
+	; Now store $wr0, as it must be 0xffff for srri to work as we expect
+	sr	@(REGS_BASE + 8), $wr0
+	lri	$wr0, #0xffff
 	; store registers to reg table
 	sr		@REGS_BASE,  $ar0
 	lri		$ar0, #(REGS_BASE + 1)
@@ -183,7 +186,8 @@ send_back:
 	srri	@$ar0, $ix1
 	srri	@$ar0, $ix2
 	srri	@$ar0, $ix3
-	srri	@$ar0, $wr0
+	; skip $wr0 since we already stored and modified it
+	iar	$ar0
 	srri	@$ar0, $wr1
 	srri	@$ar0, $wr2
 	srri	@$ar0, $wr3
@@ -210,6 +214,9 @@ send_back:
 	srri	@$ar0, $ac1.m
 
 ; Regs are stored. Prepare DMA.
+; $cr must be 0x00ff because the ROM uses lrs and srs with the assumption that
+; they will modify hardware registers.
+	lri		$cr, #0x00ff
 	lri		$ax0.l, #0x0000
 	lri		$ax1.l, #1		;(DSP_CR_IMEM | DSP_CR_TO_CPU)
 	lri		$ax0.h, #0x200
@@ -246,7 +253,8 @@ dma_copy:
 	lrri	$ix1, @$ar0
 	lrri	$ix2, @$ar0
 	lrri	$ix3, @$ar0
-	lrri	$wr0, @$ar0
+	; leave $wr for later
+	iar $ar0
 	lrri	$wr1, @$ar0
 	lrri	$wr2, @$ar0
 	lrri	$wr3, @$ar0
@@ -272,6 +280,7 @@ dma_copy:
 	lrri	$ac0.m, @$ar0
 	lrri	$ac1.m, @$ar0
 	lr	$ar0, @REGS_BASE
+	lr	$wr0, @(REGS_BASE+8)
 	lr	$sr, @(REGS_BASE+19)
 
 	ret		; from send_back
