@@ -3516,12 +3516,19 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $acD = -$acD
+    $acD = 0 - $acD
     FLAGS($acD)
     $pc++
   \end{DSPOpcodeOperation}
 
-  \DSPOpcodeFlags{-}{-}{X}{X}{X}{X}{0}{0}
+  \begin{DSPOpcodeNote}
+    \item The carry flag is set only if \Register{\$acD} was zero.
+          The overflow flag is set only if \Register{\$acD} was \Value{0x8000000000} (the minimum value),
+          as \Code{-INT\_MIN} is \Code{INT\_MIN} in two's complement.
+          In both of these cases, the value of \Register{\$acD} after the operation is the same as it was before.
+  \end{DSPOpcodeNote}
+
+  \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{NOT}
