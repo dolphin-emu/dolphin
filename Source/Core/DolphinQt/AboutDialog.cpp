@@ -41,7 +41,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 </p>
 
 <p>
-<a href='https://github.com/dolphin-emu/dolphin/blob/master/license.txt'>%LICENSE%</a> |
+<a href='https://github.com/dolphin-emu/dolphin/blob/master/COPYING'>%LICENSE%</a> |
 <a href='https://github.com/dolphin-emu/dolphin/graphs/contributors'>%AUTHORS%</a> |
 <a href='https://forums.dolphin-emu.org/'>%SUPPORT%</a>
 )")
