@@ -208,6 +208,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5 == 18));
 
   int a = inst.FA;
   int b = inst.FB;
@@ -292,6 +293,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   // We would like to emulate FMA instructions accurately without rounding error if possible, but
   // unfortunately emulating FMA in software is just too slow on CPUs that are too old to have FMA
@@ -733,6 +735,7 @@ void Jit64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   FloatCompare(inst);
 }
@@ -742,6 +745,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   int d = inst.RD;
   int b = inst.RB;
@@ -784,6 +788,7 @@ void Jit64::frspx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
   int b = inst.FB;
   int d = inst.FD;
   bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
@@ -800,6 +805,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
   int b = inst.FB;
   int d = inst.FD;
 
@@ -818,6 +824,7 @@ void Jit64::fresx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
   int b = inst.FB;
   int d = inst.FD;
 

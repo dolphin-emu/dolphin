@@ -424,6 +424,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   {
     RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
@@ -777,6 +778,7 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const u32 mask = 0x80000000 >> inst.CRBD;
 
@@ -814,6 +816,7 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   u8 imm = (inst.hex >> (31 - 19)) & 0xF;
   u32 mask = 0xF0000000 >> (4 * inst.CRFD);
@@ -844,6 +847,7 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
   for (int i = 0; i < 8; i++)

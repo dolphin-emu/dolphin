@@ -69,6 +69,8 @@ public:
     layer->Set(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
                m_settings.m_SafeTextureCacheColorSamples);
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.m_PerfQueriesEnable);
+    layer->Set(Config::MAIN_FLOAT_EXCEPTIONS, m_settings.m_FloatExceptions);
+    layer->Set(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS, m_settings.m_DivideByZeroExceptions);
     layer->Set(Config::MAIN_FPRF, m_settings.m_FPRF);
     layer->Set(Config::MAIN_ACCURATE_NANS, m_settings.m_AccurateNaNs);
     layer->Set(Config::MAIN_DISABLE_ICACHE, m_settings.m_DisableICache);
