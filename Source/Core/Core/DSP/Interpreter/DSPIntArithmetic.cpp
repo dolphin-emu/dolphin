@@ -119,8 +119,7 @@ void Interpreter::cmp(const UDSPInstruction)
   const s64 acc1 = GetLongAcc(1);
   const s64 res = dsp_convert_long_acc(acc0 - acc1);
 
-  UpdateSR64(res, isCarry2(acc0, res),
-             isOverflow(acc0, -acc1, res));  // CF -> influence on ABS/0xa100
+  UpdateSR64Sub(acc0, acc1, res);
   ZeroWriteBackLog();
 }
 
@@ -139,7 +138,7 @@ void Interpreter::cmpar(const UDSPInstruction opc)
   ax <<= 16;
   const s64 res = dsp_convert_long_acc(acc - ax);
 
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -ax, res));
+  UpdateSR64Sub(acc, ax, res);
   ZeroWriteBackLog();
 }
 
@@ -157,10 +156,11 @@ void Interpreter::cmpi(const UDSPInstruction opc)
 
   const s64 val = GetLongAcc(reg);
   // Immediate is considered to be at M level in the 40-bit accumulator.
-  const s64 imm = (s64)(s16)state.FetchInstruction() << 16;
+  s64 imm = static_cast<s16>(state.FetchInstruction());
+  imm <<= 16;
   const s64 res = dsp_convert_long_acc(val - imm);
 
-  UpdateSR64(res, isCarry2(val, res), isOverflow(val, -imm, res));
+  UpdateSR64Sub(val, imm, res);
 }
 
 // CMPIS $acD, #I
@@ -175,11 +175,11 @@ void Interpreter::cmpis(const UDSPInstruction opc)
   const u8 areg = (opc >> 8) & 0x1;
 
   const s64 acc = GetLongAcc(areg);
-  s64 val = (s8)opc;
-  val <<= 16;
-  const s64 res = dsp_convert_long_acc(acc - val);
+  s64 imm = static_cast<s8>(opc);
+  imm <<= 16;
+  const s64 res = dsp_convert_long_acc(acc - imm);
 
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -val, res));
+  UpdateSR64Sub(acc, imm, res);
 }
 
 //----
@@ -401,13 +401,12 @@ void Interpreter::addr(const UDSPInstruction opc)
   }
 
   ax <<= 16;
-  s64 res = acc + ax;
+  const s64 res = acc + ax;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, ax, res));
+  UpdateSR64Add(acc, ax, GetLongAcc(dreg));
 }
 
 // ADDAX $acD, $axS
@@ -422,13 +421,12 @@ void Interpreter::addax(const UDSPInstruction opc)
 
   const s64 acc = GetLongAcc(dreg);
   const s64 ax = GetLongACX(sreg);
-  s64 res = acc + ax;
+  const s64 res = acc + ax;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, ax, res));
+  UpdateSR64Add(acc, ax, GetLongAcc(dreg));
 }
 
 // ADD $acD, $ac(1-D)
@@ -442,13 +440,12 @@ void Interpreter::add(const UDSPInstruction opc)
 
   const s64 acc0 = GetLongAcc(dreg);
   const s64 acc1 = GetLongAcc(1 - dreg);
-  s64 res = acc0 + acc1;
+  const s64 res = acc0 + acc1;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc0, res), isOverflow(acc0, acc1, res));
+  UpdateSR64Add(acc0, acc1, GetLongAcc(dreg));
 }
 
 // ADDP $acD
@@ -462,13 +459,12 @@ void Interpreter::addp(const UDSPInstruction opc)
 
   const s64 acc = GetLongAcc(dreg);
   const s64 prod = GetLongProduct();
-  s64 res = acc + prod;
+  const s64 res = acc + prod;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, prod, res));
+  UpdateSR64Add(acc, prod, GetLongAcc(dreg));
 }
 
 // ADDAXL $acD, $axS.l
@@ -484,15 +480,12 @@ void Interpreter::addaxl(const UDSPInstruction opc)
 
   const u64 acc = GetLongAcc(dreg);
   const u16 acx = static_cast<u16>(GetAXLow(sreg));
-
-  u64 res = acc + acx;
+  const u64 res = acc + acx;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, static_cast<s64>(res));
-  res = GetLongAcc(dreg);
-  UpdateSR64(static_cast<s64>(res), isCarry(acc, res),
-             isOverflow(static_cast<s64>(acc), static_cast<s64>(acx), static_cast<s64>(res)));
+  UpdateSR64Add(acc, acx, GetLongAcc(dreg));
 }
 
 // ADDI $amR, #I
@@ -509,11 +502,10 @@ void Interpreter::addi(const UDSPInstruction opc)
   const s64 acc = GetLongAcc(areg);
   s64 imm = static_cast<s16>(state.FetchInstruction());
   imm <<= 16;
-  s64 res = acc + imm;
+  const s64 res = acc + imm;
 
   SetLongAcc(areg, res);
-  res = GetLongAcc(areg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, imm, res));
+  UpdateSR64Add(acc, imm, GetLongAcc(areg));
 }
 
 // ADDIS $acD, #I
@@ -526,13 +518,12 @@ void Interpreter::addis(const UDSPInstruction opc)
   const u8 dreg = (opc >> 8) & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
-  s64 imm = static_cast<s8>(static_cast<u8>(opc));
+  s64 imm = static_cast<s8>(opc);
   imm <<= 16;
-  s64 res = acc + imm;
+  const s64 res = acc + imm;
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, imm, res));
+  UpdateSR64Add(acc, imm, GetLongAcc(dreg));
 }
 
 // INCM $acsD
@@ -546,13 +537,12 @@ void Interpreter::incm(const UDSPInstruction opc)
 
   const s64 sub = 0x10000;
   const s64 acc = GetLongAcc(dreg);
-  s64 res = acc + sub;
+  const s64 res = acc + sub;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, sub, res));
+  UpdateSR64Add(acc, sub, GetLongAcc(dreg));
 }
 
 // INC $acD
@@ -565,13 +555,12 @@ void Interpreter::inc(const UDSPInstruction opc)
   const u8 dreg = (opc >> 8) & 0x1;
 
   const s64 acc = GetLongAcc(dreg);
-  s64 res = acc + 1;
+  const s64 res = acc + 1;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(acc, res), isOverflow(acc, 1, res));
+  UpdateSR64Add(acc, 1, GetLongAcc(dreg));
 }
 
 //----
@@ -606,13 +595,12 @@ void Interpreter::subr(const UDSPInstruction opc)
   }
 
   ax <<= 16;
-  s64 res = acc - ax;
+  const s64 res = acc - ax;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -ax, res));
+  UpdateSR64Sub(acc, ax, GetLongAcc(dreg));
 }
 
 // SUBAX $acD, $axS
@@ -627,13 +615,12 @@ void Interpreter::subax(const UDSPInstruction opc)
 
   const s64 acc = GetLongAcc(dreg);
   const s64 acx = GetLongACX(sreg);
-  s64 res = acc - acx;
+  const s64 res = acc - acx;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -acx, res));
+  UpdateSR64Sub(acc, acx, GetLongAcc(dreg));
 }
 
 // SUB $acD, $ac(1-D)
@@ -647,13 +634,12 @@ void Interpreter::sub(const UDSPInstruction opc)
 
   const s64 acc1 = GetLongAcc(dreg);
   const s64 acc2 = GetLongAcc(1 - dreg);
-  s64 res = acc1 - acc2;
+  const s64 res = acc1 - acc2;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry2(acc1, res), isOverflow(acc1, -acc2, res));
+  UpdateSR64Sub(acc1, acc2, GetLongAcc(dreg));
 }
 
 // SUBP $acD
@@ -667,13 +653,12 @@ void Interpreter::subp(const UDSPInstruction opc)
 
   const s64 acc = GetLongAcc(dreg);
   const s64 prod = GetLongProduct();
-  s64 res = acc - prod;
+  const s64 res = acc - prod;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -prod, res));
+  UpdateSR64Sub(acc, prod, GetLongAcc(dreg));
 }
 
 // DECM $acsD
@@ -687,13 +672,12 @@ void Interpreter::decm(const UDSPInstruction opc)
 
   const s64 sub = 0x10000;
   const s64 acc = GetLongAcc(dreg);
-  s64 res = acc - sub;
+  const s64 res = acc - sub;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -sub, res));
+  UpdateSR64Sub(acc, sub, GetLongAcc(dreg));
 }
 
 // DEC $acD
@@ -706,13 +690,12 @@ void Interpreter::dec(const UDSPInstruction opc)
   const u8 dreg = (opc >> 8) & 0x01;
 
   const s64 acc = GetLongAcc(dreg);
-  s64 res = acc - 1;
+  const s64 res = acc - 1;
 
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, res);
-  res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -1, res));
+  UpdateSR64Sub(acc, 1, GetLongAcc(dreg));
 }
 
 //----
@@ -752,7 +735,7 @@ void Interpreter::abs(const UDSPInstruction opc)
   ZeroWriteBackLog();
 
   SetLongAcc(dreg, acc);
-  UpdateSR64(GetLongAcc(dreg));
+  UpdateSR64(GetLongAcc(dreg));  // TODO: Is this right?
 }
 //----
 
@@ -856,7 +839,7 @@ void Interpreter::lsr16(const UDSPInstruction opc)
 
   u64 acc = GetLongAcc(areg);
   // Lop off the extraneous sign extension our 64-bit fake accum causes
-  acc &= 0x000000FFFFFFFFFFULL;
+  acc &= 0x0000'00FF'FFFF'FFFFULL;
   acc >>= 16;
 
   ZeroWriteBackLog();
@@ -912,7 +895,7 @@ void Interpreter::lsr(const UDSPInstruction opc)
   u16 shift;
   u64 acc = GetLongAcc(rreg);
   // Lop off the extraneous sign extension our 64-bit fake accum causes
-  acc &= 0x000000FFFFFFFFFFULL;
+  acc &= 0x0000'00FF'FFFF'FFFFULL;
 
   if ((opc & 0x3f) == 0)
     shift = 0;
@@ -977,7 +960,7 @@ void Interpreter::lsrn(const UDSPInstruction opc)
   s16 shift;
   const u16 accm = static_cast<u16>(GetAccMid(1));
   u64 acc = GetLongAcc(0);
-  acc &= 0x000000FFFFFFFFFFULL;
+  acc &= 0x0000'00FF'FFFF'FFFFULL;
 
   if ((accm & 0x3f) == 0)
     shift = 0;
@@ -1046,7 +1029,7 @@ void Interpreter::lsrnrx(const UDSPInstruction opc)
   s16 shift;
   const u16 axh = state.r.ax[sreg].h;
   u64 acc = GetLongAcc(dreg);
-  acc &= 0x000000FFFFFFFFFFULL;
+  acc &= 0x0000'00FF'FFFF'FFFFULL;
 
   if ((axh & 0x3f) == 0)
     shift = 0;
@@ -1121,7 +1104,7 @@ void Interpreter::lsrnr(const UDSPInstruction opc)
   s16 shift;
   const u16 accm = static_cast<u16>(GetAccMid(1 - dreg));
   u64 acc = GetLongAcc(dreg);
-  acc &= 0x000000FFFFFFFFFFULL;
+  acc &= 0x0000'00FF'FFFF'FFFFULL;
 
   if ((accm & 0x3f) == 0)
     shift = 0;
