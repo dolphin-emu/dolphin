@@ -769,7 +769,7 @@ void Interpreter::ConditionalExtendAccum(int reg)
   // Sign extend into whole accum.
   auto& state = m_dsp_core.DSPState();
   const u16 val = state.r.ac[reg - DSP_REG_ACM0].m;
-  state.r.ac[reg - DSP_REG_ACM0].h = (val & 0x8000) != 0 ? 0xFFFF : 0x0000;
+  state.r.ac[reg - DSP_REG_ACM0].h = (val & 0x8000) != 0 ? 0xFFFFFFFF : 0x0000;
   state.r.ac[reg - DSP_REG_ACM0].l = 0;
 }
 
