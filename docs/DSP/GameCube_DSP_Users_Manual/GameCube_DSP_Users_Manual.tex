@@ -3279,14 +3279,14 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
-          secondary accumulator \Register{\$axS} (treat them both as signed).
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axT.h} of
+          secondary accumulator \Register{\$axT} (treat them both as signed).
           Move product register before multiplication to accumulator \Register{\$acR}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     temp = $prod
-    $prod = $acS.m * $axS.h
+    $prod = $acS.m * $axT.h
     $acR = temp
     $pc++
   \end{DSPOpcodeOperation}
@@ -3308,15 +3308,15 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
-          secondary accumulator \Register{\$axS} (treat them both as signed).
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$aTS.h} of
+          secondary accumulator \Register{\$axT} (treat them both as signed).
           Move product register before multiplication to accumulator \Register{\$acR}.
           Set low part of accumulator \Register{\$acR.l} to zero.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
     temp = $prod
-    $prod = $acS.m * $axS.h
+    $prod = $acS.m * $axT.h
     $acR.hm = temp.hm
     $acR.l = 0
     $pc++

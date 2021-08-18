@@ -372,7 +372,6 @@ void Interpreter::mulcac(const UDSPInstruction opc)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR.
-// possible mistake in duddie's doc axT.h rather than axS.h
 //
 // flags out: --xx xx0x
 void Interpreter::mulcmv(const UDSPInstruction opc)
@@ -395,7 +394,6 @@ void Interpreter::mulcmv(const UDSPInstruction opc)
 
 // MULCMVZ $acS.m, $axT.h, $acR
 // 110s	t01r xxxx xxxx
-// (fixed possible bug in duddie's description, s->t)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR, set (round) low part of
