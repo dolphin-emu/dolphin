@@ -78,12 +78,12 @@ constexpr std::array<GekkoOPTemplate, 54> primarytable{{
     {54, &JitArm64::stfXX},  // stfd
     {55, &JitArm64::stfXX},  // stfdu
 
-    {56, &JitArm64::psq_l},   // psq_l
-    {57, &JitArm64::psq_l},   // psq_lu
-    {60, &JitArm64::psq_st},  // psq_st
-    {61, &JitArm64::psq_st},  // psq_stu
+    {56, &JitArm64::psq_lXX},   // psq_l
+    {57, &JitArm64::psq_lXX},   // psq_lu
+    {60, &JitArm64::psq_stXX},  // psq_st
+    {61, &JitArm64::psq_stXX},  // psq_stu
 
-    // missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
+    // missing: 0, 1, 2, 5, 6, 9, 22, 30, 58, 62
 }};
 
 constexpr std::array<GekkoOPTemplate, 13> table4{{
@@ -125,10 +125,10 @@ constexpr std::array<GekkoOPTemplate, 17> table4_2{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 4> table4_3{{
-    {6, &JitArm64::FallBackToInterpreter},   // psq_lx
-    {7, &JitArm64::FallBackToInterpreter},   // psq_stx
-    {38, &JitArm64::FallBackToInterpreter},  // psq_lux
-    {39, &JitArm64::FallBackToInterpreter},  // psq_stux
+    {6, &JitArm64::psq_lXX},    // psq_lx
+    {7, &JitArm64::psq_stXX},   // psq_stx
+    {38, &JitArm64::psq_lXX},   // psq_lux
+    {39, &JitArm64::psq_stXX},  // psq_stux
 }};
 
 constexpr std::array<GekkoOPTemplate, 13> table19{{

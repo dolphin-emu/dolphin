@@ -15,7 +15,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::psq_l(UGeckoInstruction inst)
+void JitArm64::psq_lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
@@ -39,7 +39,6 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
-  const ARM64Reg arm_addr = gpr.R(inst.RA);
   constexpr ARM64Reg scale_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
@@ -47,20 +46,25 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
   if (inst.RA || update)  // Always uses the register on update
   {
-    if (offset >= 0)
-      ADD(addr_reg, arm_addr, offset);
+    if (indexed)
+      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
+    else if (offset >= 0)
+      ADD(addr_reg, gpr.R(inst.RA), offset);
     else
-      SUB(addr_reg, arm_addr, std::abs(offset));
+      SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
   }
   else
   {
-    MOVI2R(addr_reg, (u32)offset);
+    if (indexed)
+      MOV(addr_reg, gpr.R(inst.RB));
+    else
+      MOVI2R(addr_reg, (u32)offset);
   }
 
   if (update)
   {
-    gpr.BindToRegister(inst.RA, true);
-    MOV(arm_addr, addr_reg);
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
@@ -101,7 +105,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
 }
 
-void JitArm64::psq_st(UGeckoInstruction inst)
+void JitArm64::psq_stXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
@@ -158,8 +162,6 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
 
-  const ARM64Reg arm_addr = gpr.R(inst.RA);
-
   constexpr ARM64Reg scale_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
@@ -173,20 +175,25 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
   if (inst.RA || update)  // Always uses the register on update
   {
-    if (offset >= 0)
+    if (indexed)
+      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
+    else if (offset >= 0)
       ADD(addr_reg, gpr.R(inst.RA), offset);
     else
       SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
   }
   else
   {
-    MOVI2R(addr_reg, (u32)offset);
+    if (indexed)
+      MOV(addr_reg, gpr.R(inst.RB));
+    else
+      MOVI2R(addr_reg, (u32)offset);
   }
 
   if (update)
   {
-    gpr.BindToRegister(inst.RA, true);
-    MOV(arm_addr, addr_reg);
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
