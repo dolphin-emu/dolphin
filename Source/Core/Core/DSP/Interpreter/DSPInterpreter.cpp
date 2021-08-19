@@ -289,7 +289,7 @@ bool Interpreter::CheckCondition(u8 condition) const
     return !IsLogicZero();
   case 0xd:  // LZ - Logic Zero
     return IsLogicZero();
-  case 0xe:  // 0 - Overflow
+  case 0xe:  // O - Overflow
     return IsOverflow();
   default:
     return true;

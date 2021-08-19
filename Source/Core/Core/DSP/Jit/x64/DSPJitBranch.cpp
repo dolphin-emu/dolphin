@@ -65,7 +65,7 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
   case 0xd:  // LZ - Logic Zero
     TEST(16, R(EAX), Imm16(SR_LOGIC_ZERO));
     break;
-  case 0xe:  // 0 - Overflow
+  case 0xe:  // O - Overflow
     TEST(16, R(EAX), Imm16(SR_OVERFLOW));
     break;
   }
