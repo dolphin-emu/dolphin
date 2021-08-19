@@ -111,7 +111,7 @@ void MappingWindow::CreateProfilesLayout()
   auto* button_layout = new QHBoxLayout();
 
   m_profiles_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-  m_profiles_combo->setMinimumWidth(100);
+  m_profiles_combo->setMinimumWidth(200);
   m_profiles_combo->setEditable(true);
 
   m_profiles_layout->addWidget(m_profiles_combo);
