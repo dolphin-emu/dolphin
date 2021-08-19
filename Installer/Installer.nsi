@@ -135,7 +135,7 @@ Section "Base" SEC01
   RMDir /r "$INSTDIR\Sys"
   RMDir /r "$INSTDIR\Languages"
 
-  File "${BASE_DIR}\Dolphin.exe"
+  File "${BASE_DIR}\ProjectRio.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
   File "${BASE_DIR}\DSPTool.exe"
