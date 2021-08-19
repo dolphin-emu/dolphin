@@ -1,7 +1,7 @@
 !define DOLPHIN_ARCH x64
 !define BASE_INSTALL_DIR "$PROGRAMFILES64"
 !define PRODUCT_NAME "Project Rio"
-!define PRODUCT_VERSION 5.0
+!define PRODUCT_VERSION 1.0
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
@@ -29,8 +29,6 @@ SetCompressor /SOLID lzma
 !define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
-; License page
-!insertmacro MUI_PAGE_LICENSE "..\license.txt"
 ; Components page
 !insertmacro MUI_PAGE_COMPONENTS
 ; Directory page
