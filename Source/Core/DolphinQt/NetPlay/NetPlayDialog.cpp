@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
+#include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
 #include <QFileDialog>
@@ -105,7 +106,10 @@ void NetPlayDialog::CreateMainLayout()
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
   m_menu_bar = new QMenuBar(this);
+  m_ranked_box = new QCheckBox(tr("Ranked"));
 
+  m_ranked_box->setChecked(false);
+  m_current_ranked_value = 0;
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
   m_write_save_data_action = m_data_menu->addAction(tr("Write Save Data"));
@@ -196,8 +200,9 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 3, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->addWidget(m_quit_button, 0, 4, Qt::AlignVCenter | Qt::AlignRight);
   options_widget->setColumnStretch(3, 1000);
+  options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -307,6 +312,13 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
+  connect(m_ranked_box, qOverload<int>(&QCheckBox::stateChanged), [this](int is_ranked) {
+    //if (is_ranked == m_current_ranked_value)
+      //return;
+    auto server = Settings::Instance().GetNetPlayServer();
+    server->AdjustRankedBox(is_ranked);
+  });
+
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
@@ -358,6 +370,7 @@ void NetPlayDialog::ConnectWidgets()
 
   // SaveSettings() - Save Hosting-Dialog Settings
 
+  connect(m_ranked_box, &QCheckBox::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), this,
           &NetPlayDialog::SaveSettings);
   connect(m_write_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
@@ -396,6 +409,20 @@ void NetPlayDialog::OnChat()
     SendMessage(msg);
   });
 }
+
+
+void NetPlayDialog::OnRankedEnabled(unsigned int is_ranked)
+{
+  if (is_ranked != 0)
+  {
+    DisplayMessage(tr("Ranked Mode Enabled"), "green");
+  }
+  else
+  {
+    DisplayMessage(tr("Ranked Mode Disabled"), "red");
+  }
+}
+
 
 void NetPlayDialog::OnIndexAdded(bool success, const std::string error)
 {
@@ -461,6 +488,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_chat_type_edit->clear();
 
   bool is_hosting = Settings::Instance().GetNetPlayServer() != nullptr;
+
 
   if (is_hosting)
   {
@@ -800,9 +828,11 @@ void NetPlayDialog::OnMsgStartGame()
     if (client)
     {
       if (auto game = FindGameFile(m_current_game_identifier))
+      {
         client->StartGame(game->GetFilePath());
-      else
-        PanicAlertFmtT("Selected game doesn't exist in game list!");
+        m_ranked_box->setEnabled(false);
+      }
+      else PanicAlertFmtT("Selected game doesn't exist in game list!");
     }
     UpdateDiscordPresence();
   });
@@ -813,6 +843,7 @@ void NetPlayDialog::OnMsgStopGame()
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
+  m_ranked_box->setEnabled(true);
 }
 
 void NetPlayDialog::OnMsgPowerButton()
@@ -1046,6 +1077,7 @@ void NetPlayDialog::LoadSettings()
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
   const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
 
+  m_ranked_box->setChecked(false);
   m_buffer_size_box->setValue(buffer_size);
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);

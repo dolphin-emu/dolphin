@@ -67,6 +67,8 @@ public:
   void AdjustPadBufferSize(unsigned int size);
   void SetHostInputAuthority(bool enable);
 
+  void AdjustRankedBox(unsigned int is_ranked);
+
   void KickPlayer(PlayerId player);
 
   u16 GetPort() const;
@@ -167,6 +169,8 @@ private:
   bool m_host_input_authority = false;
   PlayerId m_current_golfer = 1;
   PlayerId m_pending_golfer = 0;
+
+  int m_current_ranked_value = 0;
 
   std::map<PlayerId, Client> m_players;
 

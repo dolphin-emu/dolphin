@@ -577,6 +577,13 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_RANKED_BOX:
+  {
+    packet >>m_ranked_client;
+    m_dialog->OnRankedEnabled(m_ranked_client);
+  }
+  break;
+
   case NP_MSG_PAD_BUFFER:
   {
     u32 size = 0;
@@ -2401,6 +2408,12 @@ void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
 {
   m_target_buffer_size = size;
   m_dialog->OnPadBufferChanged(size);
+}
+
+void NetPlayClient::AdjustRankedBox(const unsigned int is_ranked)
+{
+  m_ranked_client = is_ranked;
+  m_dialog->OnRankedEnabled(is_ranked);
 }
 
 SyncIdentifier NetPlayClient::GetSDCardIdentifier()
