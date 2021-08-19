@@ -1,6 +1,6 @@
 !define DOLPHIN_ARCH x64
 !define BASE_INSTALL_DIR "$PROGRAMFILES64"
-!define PRODUCT_NAME "Dolphin"
+!define PRODUCT_NAME "Project Rio"
 !define PRODUCT_VERSION 5.0
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
@@ -109,7 +109,7 @@ SetCompressor /SOLID lzma
 
 Name "${PRODUCT_NAME}"
 !define UN_NAME "Uninstall $(^Name)"
-OutFile "dolphin-${DOLPHIN_ARCH}-${PRODUCT_VERSION}.exe"
+OutFile "ProjectRioInstaller.exe"
 InstallDir "${BASE_INSTALL_DIR}\$(^Name)"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
