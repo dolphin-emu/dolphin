@@ -734,6 +734,7 @@ void SConfig::LoadDefaults()
   bEnableDebugging = false;
   bAutomaticStart = false;
   bBootToPause = false;
+  bRecordStats = true;
 
 #ifdef USE_GDBSTUB
   iGDBPort = -1;

@@ -535,6 +535,13 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
 
   // Debugging mode only
+  m_record_stats = options_menu->addAction(tr("Record Stats"));
+  m_record_stats->setCheckable(true);
+  m_record_stats->setChecked(SConfig::GetInstance().bRecordStats);
+
+  connect(m_record_stats, &QAction::toggled, this,
+          [](bool enable) { SConfig::GetInstance().bRecordStats = enable; });
+
   m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
   m_boot_to_pause->setCheckable(true);
   m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);

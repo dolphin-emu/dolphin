@@ -87,6 +87,7 @@ struct SConfig
 #endif
   bool bAutomaticStart = false;
   bool bBootToPause = false;
+  bool bRecordStats = true;
 
   PowerPC::CPUCore cpu_core;
 
