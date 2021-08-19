@@ -17,7 +17,7 @@ const Info<std::string> NETPLAY_TRAVERSAL_SERVER{{System::Main, "NetPlay", "Trav
                                                  "stun.dolphin-emu.org"};
 const Info<u16> NETPLAY_TRAVERSAL_PORT{{System::Main, "NetPlay", "TraversalPort"}, 6262};
 const Info<std::string> NETPLAY_TRAVERSAL_CHOICE{{System::Main, "NetPlay", "TraversalChoice"},
-                                                 "direct"};
+                                                 "traversal"};
 const Info<std::string> NETPLAY_INDEX_URL{{System::Main, "NetPlay", "IndexServer"},
                                           "https://lobby.dolphin-emu.org"};
 
@@ -42,8 +42,8 @@ const Info<bool> NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT{
     {System::Main, "NetPlay", "EnableChunkedUploadLimit"}, false};
 const Info<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT{{System::Main, "NetPlay", "ChunkedUploadLimit"}, 3000};
 
-const Info<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 5};
-const Info<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 1};
+const Info<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 8};
+const Info<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 8};
 
 const Info<bool> NETPLAY_WRITE_SAVE_DATA{{System::Main, "NetPlay", "WriteSaveData"}, true};
 const Info<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiSave"}, false};
