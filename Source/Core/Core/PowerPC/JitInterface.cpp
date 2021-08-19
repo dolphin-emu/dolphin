@@ -240,7 +240,7 @@ void InvalidateICacheLines(u32 address, u32 count)
   // with an extra optimization for the case of a single cache line invalidation
   if (count == 1)
     InvalidateICacheLine(address);
-  if (count == 0 || count >= static_cast<u32>(0x1'0000'0000 / 32))
+  else if (count == 0 || count >= static_cast<u32>(0x1'0000'0000 / 32))
     InvalidateICache(address & ~0x1f, 0xffffffff, false);
   else
     InvalidateICache(address & ~0x1f, 32 * count, false);
