@@ -134,12 +134,12 @@ void Interpreter::cmpar(const UDSPInstruction opc)
   const u8 rreg = (opc >> 12) & 0x1;
   const u8 sreg = (opc >> 11) & 0x1;
 
-  const s64 sr = GetLongAcc(sreg);
-  s64 rr = GetAXHigh(rreg);
-  rr <<= 16;
-  const s64 res = dsp_convert_long_acc(sr - rr);
+  const s64 acc = GetLongAcc(sreg);
+  s64 ax = GetAXHigh(rreg);
+  ax <<= 16;
+  const s64 res = dsp_convert_long_acc(acc - ax);
 
-  UpdateSR64(res, isCarry2(sr, res), isOverflow(sr, -rr, res));
+  UpdateSR64(res, isCarry2(acc, res), isOverflow(acc, -ax, res));
   ZeroWriteBackLog();
 }
 
