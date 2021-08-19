@@ -253,8 +253,8 @@ bool Interpreter::CheckCondition(u8 condition) const
   const auto IsLess = [this] { return IsSRFlagSet(SR_OVERFLOW) != IsSRFlagSet(SR_SIGN); };
   const auto IsZero = [this] { return IsSRFlagSet(SR_ARITH_ZERO); };
   const auto IsLogicZero = [this] { return IsSRFlagSet(SR_LOGIC_ZERO); };
-  const auto IsConditionA = [this] {
-    return (IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS)) && !IsSRFlagSet(SR_ARITH_ZERO);
+  const auto IsConditionB = [this] {
+    return (!(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))) || IsSRFlagSet(SR_ARITH_ZERO);
   };
 
   switch (condition & 0xf)
@@ -282,9 +282,9 @@ bool Interpreter::CheckCondition(u8 condition) const
   case 0x9:  // ? - Over s32
     return IsOverS32();
   case 0xa:  // ?
-    return IsConditionA();
+    return !IsConditionB();
   case 0xb:  // ?
-    return !IsConditionA();
+    return IsConditionB();
   case 0xc:  // LNZ  - Logic Not Zero
     return !IsLogicZero();
   case 0xd:  // LZ - Logic Zero
