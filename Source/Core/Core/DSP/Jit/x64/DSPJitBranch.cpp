@@ -54,12 +54,25 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
     break;
   case 0xa:  // ?
   case 0xb:  // ?
+    // We want to test this expression, which corresponds to xB:
+    // (!(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))) || IsSRFlagSet(SR_ARITH_ZERO)
+    // The xB expression is used due to even instructions (i.e. xA) looking for the expression to
+    // evaluate to false, while odd ones look for it to be true.
+
+    // Since SR_OVER_S32 is bit 4 (0x10) and SR_TOP2BITS is bit 5 (0x20),
+    // set EDX to 2*EAX, so that SR_OVER_S32 is in bit 5 of EDX.
     LEA(16, EDX, MRegSum(EAX, EAX));
-    OR(16, R(EAX), R(EDX));
-    SHL(16, R(EDX), Imm8(3));
-    NOT(16, R(EAX));
-    OR(16, R(EAX), R(EDX));
-    TEST(16, R(EAX), Imm16(0x20));
+    // Now OR them together, so bit 5 of EDX is
+    // (IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))
+    OR(16, R(EDX), R(EAX));
+    // EDX bit 5 is !(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))
+    NOT(16, R(EDX));
+    // SR_ARITH_ZERO is bit 2 (0x04).  We want that in bit 5, so shift left by 3.
+    SHL(16, R(EAX), Imm8(3));
+    // Bit 5 of EAX is IsSRFlagSet(SR_OVER_S32), so or-ing EDX with EAX gives our target expression.
+    OR(16, R(EDX), R(EAX));
+    // Test bit 5
+    TEST(16, R(EDX), Imm16(0x20));
     break;
   case 0xc:  // LNZ  - Logic Not Zero
   case 0xd:  // LZ - Logic Zero
@@ -70,8 +83,14 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
     break;
   }
   DSPJitRegCache c1(m_gpr);
-  FixupBranch skip_code =
-      cond == 0xe ? J_CC(CC_E, true) : J_CC((CCFlags)(CC_NE - (cond & 1)), true);
+  CCFlags flag;
+  if (cond == 0xe)  // Overflow, special case as there is no inverse case
+    flag = CC_Z;
+  else if ((cond & 1) == 0)  // Even conditions run if the bit is zero, so jump if it IS NOT zero
+    flag = CC_NZ;
+  else  // Odd conditions run if the bit IS NOT zero, so jump if it IS zero
+    flag = CC_Z;
+  FixupBranch skip_code = J_CC(flag, true);
   (this->*conditional_fn)(opc);
   m_gpr.FlushRegs(c1);
   SetJumpTarget(skip_code);
