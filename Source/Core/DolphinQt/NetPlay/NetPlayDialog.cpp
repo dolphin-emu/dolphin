@@ -108,8 +108,6 @@ void NetPlayDialog::CreateMainLayout()
   m_menu_bar = new QMenuBar(this);
   m_ranked_box = new QCheckBox(tr("Ranked"));
 
-  m_ranked_box->setChecked(false);
-  m_current_ranked_value = 0;
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
   m_write_save_data_action = m_data_menu->addAction(tr("Write Save Data"));
@@ -519,6 +517,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
+  m_ranked_box->setDisabled(!is_hosting);
 
   SetOptionsEnabled(true);
 
@@ -767,6 +766,7 @@ void NetPlayDialog::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifi
     UpdateDiscordPresence();
   });
   DisplayMessage(tr("Game changed to \"%1\"").arg(qname), "magenta");
+  m_ranked_box->setChecked(false);
 }
 
 void NetPlayDialog::OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config)
@@ -843,7 +843,9 @@ void NetPlayDialog::OnMsgStopGame()
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
-  m_ranked_box->setEnabled(true);
+
+  const bool is_hosting = IsHosting();
+  m_ranked_box->setEnabled(is_hosting);
 }
 
 void NetPlayDialog::OnMsgPowerButton()
