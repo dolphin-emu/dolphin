@@ -262,7 +262,10 @@ public:
   Arm64Gen::ARM64Reg CR(size_t preg) { return R(GetGuestCR(preg)); }
 
   // Set a register to an immediate. Only valid for guest GPRs.
-  void SetImmediate(size_t preg, u32 imm) { SetImmediate(GetGuestGPR(preg), imm); }
+  void SetImmediate(size_t preg, u32 imm, bool dirty = true)
+  {
+    SetImmediate(GetGuestGPR(preg), imm, dirty);
+  }
 
   // Returns if a register is set as an immediate. Only valid for guest GPRs.
   bool IsImm(size_t preg) const { return GetGuestGPROpArg(preg).GetType() == RegType::Immediate; }
@@ -345,7 +348,7 @@ private:
   GuestRegInfo GetGuestByIndex(size_t index);
 
   Arm64Gen::ARM64Reg R(const GuestRegInfo& guest_reg);
-  void SetImmediate(const GuestRegInfo& guest_reg, u32 imm);
+  void SetImmediate(const GuestRegInfo& guest_reg, u32 imm, bool dirty);
   void BindToRegister(const GuestRegInfo& guest_reg, bool will_read, bool will_write = true);
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
