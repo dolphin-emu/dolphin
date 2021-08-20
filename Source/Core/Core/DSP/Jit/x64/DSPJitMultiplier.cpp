@@ -259,13 +259,14 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
   //	s64 oldprod = dsp_get_long_prod();
   //	dsp_set_long_acc(dreg, res);
   //	res = dsp_get_long_acc(dreg);
-  //	Update_SR_Register64(res, isCarry(oldprod, res), false);
+  //	Update_SR_Register64(res, isCarryAdd(oldprod, res), false);
   if (FlagsNeeded())
   {
     get_long_prod(RDX);
     MOV(64, R(RCX), R(RAX));
     set_long_acc(dreg, RCX);
-    Update_SR_Register64_Carry(EAX, tmp1);
+    // TODO: Why does this not set the overflow bit?  (And thus, why can't it use UpdateSR64Add?)
+    Update_SR_Register64(EAX, tmp1);
   }
   else
   {
