@@ -1327,6 +1327,36 @@ void JitArm64::divwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(imm_d);
   }
+  else if (gpr.IsImm(a))
+  {
+    const u32 dividend = gpr.GetImm(a);
+
+    gpr.BindToRegister(d, d == b);
+
+    ARM64Reg RB = gpr.R(b);
+    ARM64Reg RD = gpr.R(d);
+
+    FixupBranch overflow1 = CBZ(RB);
+    FixupBranch overflow2;
+    if (dividend == 0x80000000)
+    {
+      CMN(RB, 1);
+      overflow2 = B(CC_EQ);
+    }
+    SDIV(RD, gpr.R(a), RB);
+    FixupBranch done = B();
+
+    SetJumpTarget(overflow1);
+    if (dividend == 0x80000000)
+      SetJumpTarget(overflow2);
+
+    MOVI2R(RD, dividend & 0x80000000 ? 0xFFFFFFFF : 0);
+
+    SetJumpTarget(done);
+
+    if (inst.Rc)
+      ComputeRC0(RD);
+  }
   else if (gpr.IsImm(b) && gpr.GetImm(b) != 0 && gpr.GetImm(b) != UINT32_C(0xFFFFFFFF))
   {
     ARM64Reg WA = gpr.GetReg();
@@ -1352,16 +1382,16 @@ void JitArm64::divwx(UGeckoInstruction inst)
     ARM64Reg RB = gpr.R(b);
     ARM64Reg RD = gpr.R(d);
 
-    FixupBranch slow1 = CBZ(RB);
+    FixupBranch overflow1 = CBZ(RB);
     MOVI2R(WA, -0x80000000LL);
     CMP(RA, WA);
     CCMN(RB, 1, 0, CC_EQ);
-    FixupBranch slow2 = B(CC_EQ);
+    FixupBranch overflow2 = B(CC_EQ);
     SDIV(RD, RA, RB);
     FixupBranch done = B();
 
-    SetJumpTarget(slow1);
-    SetJumpTarget(slow2);
+    SetJumpTarget(overflow1);
+    SetJumpTarget(overflow2);
 
     ASR(RD, RA, 31);
 
