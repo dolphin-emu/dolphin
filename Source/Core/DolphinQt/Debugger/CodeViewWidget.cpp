@@ -638,15 +638,15 @@ void CodeViewWidget::OnRenameSymbol()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  QString name =
+  const QString name =
       QInputDialog::getText(this, tr("Rename symbol"), tr("Symbol name:"), QLineEdit::Normal,
-                            QString::fromStdString(symbol->name), &good);
+                            QString::fromStdString(symbol->name), &good, Qt::WindowCloseButtonHint);
 
   if (good && !name.isEmpty())
   {
@@ -673,16 +673,16 @@ void CodeViewWidget::OnSetSymbolSize()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  int size =
+  const int size =
       QInputDialog::getInt(this, tr("Rename symbol"),
                            tr("Set symbol size (%1):").arg(QString::fromStdString(symbol->name)),
-                           symbol->size, 1, 0xFFFF, 1, &good);
+                           symbol->size, 1, 0xFFFF, 1, &good, Qt::WindowCloseButtonHint);
 
   if (!good)
     return;
@@ -696,18 +696,19 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  QString name = QInputDialog::getText(
+  const QString name = QInputDialog::getText(
       this, tr("Set symbol end address"),
       tr("Symbol (%1) end address:").arg(QString::fromStdString(symbol->name)), QLineEdit::Normal,
-      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good);
+      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good,
+      Qt::WindowCloseButtonHint);
 
-  u32 address = name.toUInt(&good, 16);
+  const u32 address = name.toUInt(&good, 16);
 
   if (!good)
     return;
