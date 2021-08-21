@@ -10,10 +10,12 @@
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
+#include "Core/PowerPC/JitCommon/DivUtils.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;
+using namespace JitCommon;
 
 #define CARRY_IF_NEEDED(inst_without_carry, inst_with_carry, ...)                                  \
   do                                                                                               \
@@ -1364,16 +1366,80 @@ void JitArm64::divwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(RD);
   }
-  else if (gpr.IsImm(b) && gpr.GetImm(b) != 0 && gpr.GetImm(b) != UINT32_C(0xFFFFFFFF))
+  else if (gpr.IsImm(b) && gpr.GetImm(b) != UINT32_C(0x80000000))
   {
-    ARM64Reg WA = gpr.GetReg();
-    MOVI2R(WA, gpr.GetImm(b));
+    const s32 divisor = s32(gpr.GetImm(b));
 
     gpr.BindToRegister(d, d == a);
 
-    SDIV(gpr.R(d), gpr.R(a), WA);
+    // Handle 0, 1, and -1 explicitly
+    if (divisor == 0)
+    {
+      ASR(gpr.R(d), gpr.R(a), 31);
+    }
+    else if (divisor == 1)
+    {
+      if (d != a)
+        MOV(gpr.R(d), gpr.R(a));
+    }
+    else if (divisor == -1)
+    {
+      ARM64Reg WA = gpr.GetReg();
 
-    gpr.Unlock(WA);
+      // Rd = (Ra == 0x80000000) ? 0xFFFFFFFF : -Ra
+      MOVI2R(WA, 0x80000000);
+      CMP(gpr.R(a), WA);
+      NEG(gpr.R(d), gpr.R(a));
+      CSINV(gpr.R(d), gpr.R(d), ARM64Reg::WZR, CCFlags::CC_NEQ);
+
+      gpr.Unlock(WA);
+    }
+    else
+    {
+      // Optimize signed 32-bit integer division by a constant
+      Magic m = SignedDivisionConstants(divisor);
+
+      ARM64Reg WA = gpr.GetReg();
+      ARM64Reg WB = gpr.GetReg();
+      ARM64Reg RD = gpr.R(d);
+
+      ARM64Reg XA = EncodeRegTo64(WA);
+      ARM64Reg XB = EncodeRegTo64(WB);
+      ARM64Reg XD = EncodeRegTo64(RD);
+
+      SXTW(XA, gpr.R(a));
+      MOVI2R(XB, s64(m.multiplier));
+
+      if (divisor > 0 && m.multiplier < 0)
+      {
+        MUL(XD, XA, XB);
+        ADD(XD, XA, XD, ArithOption(XD, ShiftType::LSR, 32));
+        LSR(WA, WA, 31);
+        ADD(RD, WA, RD, ArithOption(RD, ShiftType::ASR, m.shift));
+      }
+      else if (divisor < 0 && m.multiplier > 0)
+      {
+        MNEG(XD, XA, XB);
+        ADD(XA, XD, XA, ArithOption(XA, ShiftType::LSR, 32));
+        LSR(RD, WA, 31);
+        ADD(RD, RD, WA, ArithOption(WA, ShiftType::ASR, m.shift));
+      }
+      else if (m.multiplier > 0)
+      {
+        MUL(XD, XA, XB);
+        ASR(XD, XD, 32 + m.shift);
+        ADD(RD, RD, WA, ArithOption(WA, ShiftType::LSR, 31));
+      }
+      else
+      {
+        MUL(XD, XA, XB);
+        LSR(XA, XD, 63);
+        ASR(XD, XD, 32 + m.shift);
+        ADD(RD, WA, RD);
+      }
+
+      gpr.Unlock(WA, WB);
+    }
 
     if (inst.Rc)
       ComputeRC0(gpr.R(d));
