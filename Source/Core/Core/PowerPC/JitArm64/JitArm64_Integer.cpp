@@ -1394,6 +1394,18 @@ void JitArm64::divwx(UGeckoInstruction inst)
 
       gpr.Unlock(WA);
     }
+    else if (divisor == 2 || divisor == -2)
+    {
+      ARM64Reg RA = gpr.R(a);
+      ARM64Reg RD = gpr.R(d);
+
+      ADD(RD, RA, RA, ArithOption(RA, ShiftType::LSR, 31));
+
+      if (divisor < 0)
+        NEG(RD, RD, ArithOption(RD, ShiftType::ASR, 1));
+      else
+        ASR(RD, RD, 1);
+    }
     else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-static_cast<s64>(divisor)))
     {
       const u32 abs_val = static_cast<u32>(std::abs(static_cast<s64>(divisor)));
