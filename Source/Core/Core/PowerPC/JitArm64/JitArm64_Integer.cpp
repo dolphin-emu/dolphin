@@ -1366,7 +1366,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(RD);
   }
-  else if (gpr.IsImm(b) && gpr.GetImm(b) != UINT32_C(0x80000000))
+  else if (gpr.IsImm(b))
   {
     const s32 divisor = s32(gpr.GetImm(b));
 
@@ -1393,6 +1393,28 @@ void JitArm64::divwx(UGeckoInstruction inst)
       CSINV(gpr.R(d), gpr.R(d), ARM64Reg::WZR, CCFlags::CC_NEQ);
 
       gpr.Unlock(WA);
+    }
+    else if (MathUtil::IsPow2(divisor) || MathUtil::IsPow2(-static_cast<s64>(divisor)))
+    {
+      const u32 abs_val = static_cast<u32>(std::abs(static_cast<s64>(divisor)));
+
+      ARM64Reg RA = gpr.R(a);
+      ARM64Reg RD = gpr.R(d);
+
+      const bool allocate_reg = a == d;
+      ARM64Reg WA = allocate_reg ? gpr.GetReg() : RD;
+
+      TST(RA, RA);
+      ADDI2R(WA, RA, abs_val - 1, WA);
+      CSEL(WA, RA, WA, CCFlags::CC_PL);
+
+      if (divisor < 0)
+        NEG(RD, WA, ArithOption(WA, ShiftType::ASR, IntLog2(abs_val)));
+      else
+        ASR(RD, WA, IntLog2(abs_val));
+
+      if (allocate_reg)
+        gpr.Unlock(WA);
     }
     else
     {
