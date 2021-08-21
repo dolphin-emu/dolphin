@@ -1327,6 +1327,13 @@ void JitArm64::divwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(imm_d);
   }
+  else if (gpr.IsImm(a) && gpr.GetImm(a) == 0)
+  {
+    // Zero divided by anything is always zero
+    gpr.SetImmediate(d, 0);
+    if (inst.Rc)
+      ComputeRC0(0);
+  }
   else if (gpr.IsImm(a))
   {
     const u32 dividend = gpr.GetImm(a);
