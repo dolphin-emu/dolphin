@@ -1384,15 +1384,9 @@ void JitArm64::divwx(UGeckoInstruction inst)
     }
     else if (divisor == -1)
     {
-      ARM64Reg WA = gpr.GetReg();
-
       // Rd = (Ra == 0x80000000) ? 0xFFFFFFFF : -Ra
-      MOVI2R(WA, 0x80000000);
-      CMP(gpr.R(a), WA);
-      NEG(gpr.R(d), gpr.R(a));
-      CSINV(gpr.R(d), gpr.R(d), ARM64Reg::WZR, CCFlags::CC_NEQ);
-
-      gpr.Unlock(WA);
+      NEGS(gpr.R(d), gpr.R(a));
+      CSINV(gpr.R(d), gpr.R(d), ARM64Reg::WZR, CCFlags::CC_VC);
     }
     else if (divisor == 2 || divisor == -2)
     {
@@ -1484,15 +1478,13 @@ void JitArm64::divwx(UGeckoInstruction inst)
 
     gpr.BindToRegister(d, d == a || d == b);
 
-    ARM64Reg WA = gpr.GetReg();
     ARM64Reg RA = gpr.R(a);
     ARM64Reg RB = gpr.R(b);
     ARM64Reg RD = gpr.R(d);
 
     FixupBranch overflow1 = CBZ(RB);
-    MOVI2R(WA, -0x80000000LL);
-    CMP(RA, WA);
-    CCMN(RB, 1, 0, CC_EQ);
+    NEGS(ARM64Reg::WZR, RA);  // Is RA 0x80000000?
+    CCMN(RB, 1, 0, CC_VS);    // Is RB -1?
     FixupBranch overflow2 = B(CC_EQ);
     SDIV(RD, RA, RB);
     FixupBranch done = B();
@@ -1503,8 +1495,6 @@ void JitArm64::divwx(UGeckoInstruction inst)
     ASR(RD, RA, 31);
 
     SetJumpTarget(done);
-
-    gpr.Unlock(WA);
 
     if (inst.Rc)
       ComputeRC0(RD);
