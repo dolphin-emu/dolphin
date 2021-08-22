@@ -1038,6 +1038,16 @@ There are two pairs of conditions that work similarly: \texttt{EQ}/\texttt{NE} a
 
 \pagebreak{}
 
+\section{Flags}
+
+Most opcodes update flags in the status register (\Register{\$sr}) based on their result.  (Extended opcodes do not update flags.)
+
+Overflow (\texttt{O}) occurs when the result has wrapped around.  The expression $C = A + B$ has overflown if $A > 0$ and $B > 0$ but $C \le 0$ or if $A < 0$ and $B < 0$ but $C \ge 0$.  Any instruction that sets the \texttt{O} flag will also set the \texttt{OS} flag; when the \texttt{O} flag is set, \texttt{OS} is also set, but \texttt{OS} is not cleared when \texttt{O} is cleared.
+
+Carry (\texttt{C}) occurs when an arithmetic carry occurs and should be added to the next most significant word.  The expression $C = A + B$ generates a carry if $A > C$.  The DSP uses different logic for subtraction: the expression $C = A - B$ generates a carry if $A \ge C$ (so if $B = 0$, a carry is generated for all $A$).  This is because the DSP uses a carry flag, not a borrow flag.
+
+\pagebreak{}
+
 \section{Alphabetical list of opcodes}
 
 \pagebreak{}
