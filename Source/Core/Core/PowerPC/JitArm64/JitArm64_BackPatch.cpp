@@ -269,7 +269,7 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
     return false;
 
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
-  ARM64XEmitter emitter(const_cast<u8*>(fastmem_area_start));
+  ARM64XEmitter emitter(const_cast<u8*>(fastmem_area_start), const_cast<u8*>(fastmem_area_end));
 
   emitter.BL(slow_handler_iter->second.slowmem_code);
 

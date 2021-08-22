@@ -191,20 +191,23 @@ protected:
   // Simple functions to switch between near and far code emitting
   void SwitchToFarCode()
   {
-    nearcode = GetWritableCodePtr();
-    SetCodePtrUnsafe(farcode.GetWritableCodePtr());
+    m_near_code = GetWritableCodePtr();
+    m_near_code_end = GetWritableCodeEnd();
+    m_near_code_write_failed = HasWriteFailed();
+    SetCodePtrUnsafe(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd(),
+                     m_far_code.HasWriteFailed());
     AlignCode16();
-    m_in_farcode = true;
+    m_in_far_code = true;
   }
 
   void SwitchToNearCode()
   {
-    farcode.SetCodePtrUnsafe(GetWritableCodePtr());
-    SetCodePtrUnsafe(nearcode);
-    m_in_farcode = false;
+    m_far_code.SetCodePtrUnsafe(GetWritableCodePtr(), GetWritableCodeEnd(), HasWriteFailed());
+    SetCodePtrUnsafe(m_near_code, m_near_code_end, m_near_code_write_failed);
+    m_in_far_code = false;
   }
 
-  bool IsInFarCode() const { return m_in_farcode; }
+  bool IsInFarCode() const { return m_in_far_code; }
 
   // Dump a memory range of code
   void DumpCode(const u8* start, const u8* end);
@@ -288,9 +291,13 @@ protected:
 
   Arm64Gen::ARM64FloatEmitter m_float_emit;
 
-  Arm64Gen::ARM64CodeBlock farcode;
-  u8* nearcode;  // Backed up when we switch to far code.
-  bool m_in_farcode = false;
+  Arm64Gen::ARM64CodeBlock m_far_code;
+  bool m_in_far_code = false;
+
+  // Backed up when we switch to far code.
+  u8* m_near_code;
+  u8* m_near_code_end;
+  bool m_near_code_write_failed;
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault = false;

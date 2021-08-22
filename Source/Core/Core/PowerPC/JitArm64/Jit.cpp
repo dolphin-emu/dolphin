@@ -45,7 +45,7 @@ void JitArm64::Init()
 {
   const size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
-  AddChildCodeSpace(&farcode, child_code_size);
+  AddChildCodeSpace(&m_far_code, child_code_size);
 
   jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
   jo.enableBlocklink = true;
@@ -127,7 +127,7 @@ void JitArm64::ClearCache()
   blocks.Clear();
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
-  farcode.ClearCodeSpace();
+  m_far_code.ClearCodeSpace();
   UpdateMemoryAndExceptionOptions();
 
   GenerateAsm();
@@ -588,7 +588,7 @@ void JitArm64::Jit(u32)
 #endif
   }
 
-  if (IsAlmostFull() || farcode.IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
+  if (IsAlmostFull() || m_far_code.IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
   }
@@ -874,5 +874,5 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   b->originalSize = code_block.m_num_instructions;
 
   FlushIcache();
-  farcode.FlushIcache();
+  m_far_code.FlushIcache();
 }

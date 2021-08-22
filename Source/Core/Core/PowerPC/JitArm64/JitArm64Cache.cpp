@@ -60,7 +60,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 {
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   u8* location = source.exitPtrs;
-  ARM64XEmitter emit(location);
+  ARM64XEmitter emit(location, location + 12);
 
   WriteLinkBlock(emit, source, dest);
   emit.FlushIcache();
@@ -69,7 +69,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 void JitArm64BlockCache::WriteDestroyBlock(const JitBlock& block)
 {
   // Only clear the entry points as we might still be within this block.
-  ARM64XEmitter emit(block.checkedEntry);
+  ARM64XEmitter emit(block.checkedEntry, block.normalEntry + 4);
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   while (emit.GetWritableCodePtr() <= block.normalEntry)
     emit.BRK(0x123);
