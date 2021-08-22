@@ -13,7 +13,6 @@ namespace DSP::Interpreter
 // Move value from register $(0x18+S) to data memory pointed by address
 // CR[0-7] | M. That is, the upper 8 bits of the address are the
 // bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
-// Note: pc+=2 in duddie's doc seems wrong
 void Interpreter::srs(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
@@ -86,9 +85,9 @@ void Interpreter::si(const UDSPInstruction opc)
   state.WriteDMEM(addr, imm);
 }
 
-// LRR $D, @$S
+// LRR $D, @$arS
 // 0001 1000 0ssd dddd
-// Move value from data memory pointed by addressing register $S to register $D.
+// Move value from data memory pointed by addressing register $arS to register $D.
 void Interpreter::lrr(const UDSPInstruction opc)
 {
   const u8 sreg = (opc >> 5) & 0x3;
@@ -100,10 +99,10 @@ void Interpreter::lrr(const UDSPInstruction opc)
   ConditionalExtendAccum(dreg);
 }
 
-// LRRD $D, @$S
+// LRRD $D, @$arS
 // 0001 1000 1ssd dddd
-// Move value from data memory pointed by addressing register $S to register $D.
-// Decrement register $S.
+// Move value from data memory pointed by addressing register $arS to register $D.
+// Decrement register $arS.
 void Interpreter::lrrd(const UDSPInstruction opc)
 {
   const u8 sreg = (opc >> 5) & 0x3;
@@ -116,10 +115,10 @@ void Interpreter::lrrd(const UDSPInstruction opc)
   state.r.ar[sreg] = DecrementAddressRegister(sreg);
 }
 
-// LRRI $D, @$S
+// LRRI $D, @$arS
 // 0001 1001 0ssd dddd
-// Move value from data memory pointed by addressing register $S to register $D.
-// Increment register $S.
+// Move value from data memory pointed by addressing register $arS to register $D.
+// Increment register $arS.
 void Interpreter::lrri(const UDSPInstruction opc)
 {
   const u8 sreg = (opc >> 5) & 0x3;
@@ -132,10 +131,10 @@ void Interpreter::lrri(const UDSPInstruction opc)
   state.r.ar[sreg] = IncrementAddressRegister(sreg);
 }
 
-// LRRN $D, @$S
+// LRRN $D, @$arS
 // 0001 1001 1ssd dddd
-// Move value from data memory pointed by addressing register $S to register $D.
-// Add indexing register $(0x4+S) to register $S.
+// Move value from data memory pointed by addressing register $arS to register $D.
+// Add corresponding indexing register $ixS to register $arS.
 void Interpreter::lrrn(const UDSPInstruction opc)
 {
   const u8 sreg = (opc >> 5) & 0x3;
@@ -148,10 +147,10 @@ void Interpreter::lrrn(const UDSPInstruction opc)
   state.r.ar[sreg] = IncreaseAddressRegister(sreg, static_cast<s16>(state.r.ix[sreg]));
 }
 
-// SRR @$D, $S
+// SRR @$arD, $S
 // 0001 1010 0dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D.
+// addressing register $arD.
 void Interpreter::srr(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 5) & 0x3;
@@ -164,10 +163,10 @@ void Interpreter::srr(const UDSPInstruction opc)
     state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
 }
 
-// SRRD @$D, $S
+// SRRD @$arD, $S
 // 0001 1010 1dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D. Decrement register $D.
+// addressing register $arD. Decrement register $arD.
 void Interpreter::srrd(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 5) & 0x3;
@@ -182,10 +181,10 @@ void Interpreter::srrd(const UDSPInstruction opc)
   state.r.ar[dreg] = DecrementAddressRegister(dreg);
 }
 
-// SRRI @$D, $S
+// SRRI @$arD, $S
 // 0001 1011 0dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D. Increment register $D.
+// addressing register $arD. Increment register $arD.
 void Interpreter::srri(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 5) & 0x3;
@@ -200,10 +199,10 @@ void Interpreter::srri(const UDSPInstruction opc)
   state.r.ar[dreg] = IncrementAddressRegister(dreg);
 }
 
-// SRRN @$D, $S
+// SRRN @$arD, $S
 // 0001 1011 1dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D. Add DSP_REG_IX0 register to register $D.
+// addressing register $arD. Add corresponding indexing register $ixD to register $arD.
 void Interpreter::srrn(const UDSPInstruction opc)
 {
   const u8 dreg = (opc >> 5) & 0x3;

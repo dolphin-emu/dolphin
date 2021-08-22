@@ -47,7 +47,7 @@ void Interpreter::clrl(const UDSPInstruction opc)
 // 0000 001r 1100 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logic AND of
-// accumulator mid part $acD.m with immediate value I is equal I.
+// accumulator mid part $acD.m with immediate value I is equal to I.
 //
 // flags out: -x-- ----
 void Interpreter::andcf(const UDSPInstruction opc)
@@ -64,7 +64,7 @@ void Interpreter::andcf(const UDSPInstruction opc)
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logical AND
 // operation of accumulator mid part $acD.m with immediate value I is equal
-// immediate value 0.
+// to immediate value 0.
 //
 // flags out: -x-- ----
 void Interpreter::andf(const UDSPInstruction opc)
@@ -126,8 +126,7 @@ void Interpreter::cmp(const UDSPInstruction)
 
 // CMPAR $acS axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator axR.h.
-// Not described by Duddie's doc - at least not as a separate instruction.
+// Compares accumulator $acS with accumulator $axR.h.
 //
 // flags out: x-xx xxxx
 void Interpreter::cmpar(const UDSPInstruction opc)
@@ -794,7 +793,7 @@ void Interpreter::movr(const UDSPInstruction opc)
 
 // MOVAX $acD, $axS
 // 0110 10sd xxxx xxxx
-// Moves secondary accumulator $axS to accumulator $axD.
+// Moves secondary accumulator $axS to accumulator $acD.
 //
 // flags out: --xx xx00
 void Interpreter::movax(const UDSPInstruction opc)
@@ -812,7 +811,7 @@ void Interpreter::movax(const UDSPInstruction opc)
 
 // MOV $acD, $ac(1-D)
 // 0110 110d xxxx xxxx
-// Moves accumulator $ax(1-D) to accumulator $axD.
+// Moves accumulator $ac(1-D) to accumulator $acD.
 //
 // flags out: --x0 xx00
 void Interpreter::mov(const UDSPInstruction opc)

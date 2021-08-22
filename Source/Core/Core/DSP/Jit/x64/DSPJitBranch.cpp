@@ -156,9 +156,10 @@ void DSPEmitter::r_jmprcc(const UDSPInstruction opc)
   WriteBranchExit();
 }
 // Generic jmpr implementation
-// JMPcc $R
+// JRcc $R
 // 0001 0111 rrr0 cccc
-// Jump to address; set program counter to a value from register $R.
+// Jump to address if condition cc has been met. Set program counter to
+// a value from register $R.
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::jmprcc(const UDSPInstruction opc)
 {
@@ -270,7 +271,7 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 }
 
 // HALT
-// 0000 0000 0020 0001
+// 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void DSPEmitter::halt(const UDSPInstruction)
 {
