@@ -7,6 +7,8 @@
 #include <map>
 #include <tuple>
 
+#include <rangeset/rangesizeset.h>
+
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -39,7 +41,8 @@ public:
   void Run() override;
   void SingleStep() override;
 
-  void Jit(u32) override;
+  void Jit(u32 em_address) override;
+  void Jit(u32 em_address, bool clear_cache_and_retry_on_failure);
 
   const char* GetName() const override { return "JITARM64"; }
 
@@ -226,13 +229,19 @@ protected:
   Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
                                            Arm64Gen::ARM64Reg tmp2);
 
-  void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+  bool DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+
+  // Finds a free memory region and sets the near and far code emitters to point at that region.
+  // Returns false if no free memory region can be found for either of the two.
+  bool SetEmitterStateToFreeCodeRegion();
 
   void DoDownCount();
   void Cleanup();
   void ResetStack();
   void AllocStack();
   void FreeStack();
+
+  void ResetFreeMemoryRanges();
 
   // AsmRoutines
   void GenerateAsm();
@@ -304,4 +313,7 @@ protected:
   u8* m_stack_base = nullptr;
   u8* m_stack_pointer = nullptr;
   u8* m_saved_stack_pointer = nullptr;
+
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;
 };
