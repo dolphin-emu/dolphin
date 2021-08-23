@@ -125,10 +125,10 @@ constexpr std::array<GekkoOPTemplate, 17> table4_2{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 4> table4_3{{
-    {6, &JitArm64::FallBackToInterpreter},   // psq_lx (disabled for the time being due to bugs)
-    {7, &JitArm64::FallBackToInterpreter},   // psq_stx (disabled for the time being due to bugs)
-    {38, &JitArm64::FallBackToInterpreter},  // psq_lux (disabled for the time being due to bugs)
-    {39, &JitArm64::FallBackToInterpreter},  // psq_stux (disabled for the time being due to bugs)
+    {6, &JitArm64::psq_lXX},    // psq_lx
+    {7, &JitArm64::psq_stXX},   // psq_stx
+    {38, &JitArm64::psq_lXX},   // psq_lux
+    {39, &JitArm64::psq_stXX},  // psq_stux
 }};
 
 constexpr std::array<GekkoOPTemplate, 13> table19{{
