@@ -12,14 +12,35 @@ using namespace Gen;
 
 namespace DSP::JIT::x64
 {
-// SRS @M, $(0x18+S)
+// SRSH @M, $acS.h
 // 0010 1sss mmmm mmmm
-// Move value from register $(0x18+S) to data memory pointed by address
+// Move value from register $acS.h to data memory pointed by address
+// CR[0-7] | M. That is, the upper 8 bits of the address are the
+// bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
+void DSPEmitter::srsh(const UDSPInstruction opc)
+{
+  u8 reg = ((opc >> 8) & 0x1) + DSP_REG_ACH0;
+  // u16 addr = (g_dsp.r.cr << 8) | (opc & 0xFF);
+
+  X64Reg tmp1 = m_gpr.GetFreeXReg();
+
+  dsp_op_read_reg(reg, tmp1, RegisterExtension::Zero);
+  dsp_op_read_reg(DSP_REG_CR, RAX, RegisterExtension::Zero);
+  SHL(16, R(EAX), Imm8(8));
+  OR(16, R(EAX), Imm16(opc & 0xFF));
+  dmem_write(tmp1);
+
+  m_gpr.PutXReg(tmp1);
+}
+
+// SRS @M, $(0x1C+S)
+// 0010 1sss mmmm mmmm
+// Move value from register $(0x1C+S) to data memory pointed by address
 // CR[0-7] | M. That is, the upper 8 bits of the address are the
 // bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
 void DSPEmitter::srs(const UDSPInstruction opc)
 {
-  u8 reg = ((opc >> 8) & 0x7) + 0x18;
+  u8 reg = ((opc >> 8) & 0x3) + DSP_REG_ACL0;
   // u16 addr = (g_dsp.r.cr << 8) | (opc & 0xFF);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();

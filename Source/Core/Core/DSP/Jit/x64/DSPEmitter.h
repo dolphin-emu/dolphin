@@ -88,6 +88,7 @@ public:
   void bloopi(UDSPInstruction opc);
 
   // Load/Store
+  void srsh(UDSPInstruction opc);
   void srs(UDSPInstruction opc);
   void lrs(UDSPInstruction opc);
   void lr(UDSPInstruction opc);
@@ -220,6 +221,7 @@ private:
   void r_callr(UDSPInstruction opc);
   void r_ifcc(UDSPInstruction opc);
   void r_ret(UDSPInstruction opc);
+  void r_rti(UDSPInstruction opc);
 
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
 

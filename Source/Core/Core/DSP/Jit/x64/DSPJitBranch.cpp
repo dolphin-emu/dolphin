@@ -255,12 +255,7 @@ void DSPEmitter::ret(const UDSPInstruction opc)
   ReJitConditional(opc, &DSPEmitter::r_ret);
 }
 
-// RTI
-// 0000 0010 1111 1111
-// Return from exception. Pops stored status register $sr from data stack
-// $st1 and program counter PC from call stack $st0 and sets $pc to this
-// location.
-void DSPEmitter::rti(const UDSPInstruction opc)
+void DSPEmitter::r_rti(const UDSPInstruction opc)
 {
   //	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(StackRegister::Data);
   dsp_reg_load_stack(StackRegister::Data);
@@ -268,6 +263,20 @@ void DSPEmitter::rti(const UDSPInstruction opc)
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M_SDSP_pc(), R(DX));
+  WriteBranchExit();
+}
+
+// RTIcc
+// 0000 0010 1111 1111
+// Return from exception. Pops stored status register $sr from data stack
+// $st1 and program counter PC from call stack $st0 and sets $pc to this
+// location.
+// This instruction has a conditional form, but it is not used by any official ucode.
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
+void DSPEmitter::rti(const UDSPInstruction opc)
+{
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
+  ReJitConditional(opc, &DSPEmitter::r_rti);
 }
 
 // HALT

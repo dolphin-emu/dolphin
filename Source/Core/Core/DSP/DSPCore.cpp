@@ -33,25 +33,28 @@ static bool VerifyRoms(const SDSP& dsp)
     u32 hash_drom;  // dsp_coef.bin
   };
 
-  static const std::array<DspRomHashes, 6> known_roms = {{
+  static const std::array<DspRomHashes, 7> known_roms = {{
       // Official Nintendo ROM
       {0x66f334fe, 0xf3b93527},
 
-      // LM1234 replacement ROM (Zelda UCode only)
+      // v0.1: LM1234 replacement ROM (Zelda UCode only)
       {0x9c8f593c, 0x10000001},
 
-      // delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
+      // v0.2: delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
       // IPL/Card/GBA still broken)
       {0xd9907f71, 0xb019c2fb},
 
-      // above with improved resampling coefficients
+      // v0.2.1: above with improved resampling coefficients
       {0xd9907f71, 0xdb6880c1},
 
-      // above with support for GBA ucode
+      // v0.3: above with support for GBA ucode
       {0x3aa4a793, 0xa4a575f5},
 
-      // above with fix to skip bootucode_ax when running from ROM entrypoint
+      // v0.3.1: above with fix to skip bootucode_ax when running from ROM entrypoint
       {0x128ea7a2, 0xa4a575f5},
+
+      // v0.4: above with fixes for invalid use of SRS instruction
+      {0xe789b5a5, 0xa4a575f5},
   }};
 
   const u32 hash_irom =
@@ -69,28 +72,30 @@ static bool VerifyRoms(const SDSP& dsp)
 
   if (rom_idx < 0)
   {
-    if (AskYesNoFmtT("Your DSP ROMs have incorrect hashes.\n"
+    if (AskYesNoFmtT("Your DSP ROMs have incorrect hashes.\n\n"
+                     "Delete the dsp_rom.bin and dsp_coef.bin files in the GC folder in the Global "
+                     "User Directory to use the free DSP ROM, or replace them with good dumps from "
+                     "a real GameCube/Wii.\n\n"
                      "Would you like to stop now to fix the problem?\n"
                      "If you select \"No\", audio might be garbled."))
+    {
       return false;
+    }
   }
 
-  if (rom_idx == 1)
+  if (rom_idx >= 1 && rom_idx <= 5)
   {
-    Host::OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
-    Host::OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
-  }
-  else if (rom_idx == 2 || rom_idx == 3)
-  {
-    Host::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
-    Host::OSD_AddMessage("All Wii games will work correctly, and most GameCube games", 8000);
-    Host::OSD_AddMessage("should also work fine, but the GBA/CARD UCodes will not work.", 8000);
-  }
-  else if (rom_idx == 4)
-  {
-    Host::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
-    Host::OSD_AddMessage("All Wii games will work correctly, and most GameCube games", 8000);
-    Host::OSD_AddMessage("should also work fine, but the CARD UCode will not work.", 8000);
+    if (AskYesNoFmtT(
+            "You are using an old free DSP ROM made by the Dolphin Team.\n"
+            "Due to emulation accuracy improvements, this ROM no longer works correctly.\n\n"
+            "Delete the dsp_rom.bin and dsp_coef.bin files in the GC folder in the Global "
+            "User Directory to use the most recent free DSP ROM, or replace them with "
+            "good dumps from a real GameCube/Wii.\n\n"
+            "Would you like to stop now to fix the problem?\n"
+            "If you select \"No\", audio might be garbled."))
+    {
+      return false;
+    }
   }
 
   return true;

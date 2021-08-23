@@ -1,0 +1,131 @@
+incdir "tests"
+include "dsp_base.inc"
+
+test_main:
+; Test registers used by LRS and SRS
+	LRI $CR, #0x0000
+	CALL clear_regs
+	CALL store_mem_sr
+
+	; Write with SR, read with LR
+	LRI $AR0, #0xA00A
+	CALL create_pattern
+	CALL store_mem_sr
+	CALL send_back
+	CALL clear_regs
+	CALL read_mem_lr
+	CALL send_back
+
+	; Write with SR, read with LRS
+	LRI $AR0, #0xB00B
+	CALL create_pattern
+	CALL store_mem_sr
+	CALL send_back
+	CALL clear_regs
+	CALL read_mem_lrs
+	CALL send_back
+
+	; Write with SRS, read with LR
+	LRI $AR0, #0xC00C
+	CALL create_pattern
+	CALL store_mem_srs
+	CALL send_back
+	CALL clear_regs
+	CALL read_mem_lr
+	CALL send_back
+
+	; Write with SR, read with LRS
+	LRI $AR0, #0xD00D
+	CALL create_pattern
+	CALL store_mem_srs
+	CALL send_back
+	CALL clear_regs
+	CALL read_mem_lrs
+	CALL send_back
+
+; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test
+
+create_pattern:
+	LRI $IX0, #0x0110
+	MRR $AX0.L, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AX1.L, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AX0.H, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AX1.H, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AC0.L, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AC1.L, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AC0.M, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AC1.M, $AR0
+	ADDARN $AR0, $IX0
+	; AC0.H and AC1.H have odd results since they're 8-bit sign-extended, but that's fine.
+	MRR $AC0.H, $AR0
+	ADDARN $AR0, $IX0
+	MRR $AC1.H, $AR0
+	RET
+
+clear_regs:
+	LRI $AX0.L, #0x0000
+	LRI $AX1.L, #0x0000
+	LRI $AX0.H, #0x0000
+	LRI $AX1.H, #0x0000
+	LRI $AC0.L, #0x0000
+	LRI $AC1.L, #0x0000
+	LRI $AC0.M, #0x0000
+	LRI $AC1.M, #0x0000
+	LRI $AC0.H, #0x0000
+	LRI $AC1.H, #0x0000
+	RET
+
+read_mem_lr:
+	LR $AX0.L, @0x0000
+	LR $AX1.L, @0x0001
+	LR $AX0.H, @0x0002
+	LR $AX1.H, @0x0003
+	LR $AC0.L, @0x0004
+	LR $AC1.L, @0x0005
+	LR $AC0.M, @0x0006
+	LR $AC1.M, @0x0007
+	RET
+
+read_mem_lrs:
+	LRS $AX0.L, @0x00
+	LRS $AX1.L, @0x01
+	LRS $AX0.H, @0x02
+	LRS $AX1.H, @0x03
+	LRS $AC0.L, @0x04
+	LRS $AC1.L, @0x05
+	LRS $AC0.M, @0x06
+	LRS $AC1.M, @0x07
+	RET
+
+store_mem_sr:
+	SR @0x0000, $AX0.L
+	SR @0x0001, $AX1.L
+	SR @0x0002, $AX0.H
+	SR @0x0003, $AX1.H
+	SR @0x0004, $AC0.L
+	SR @0x0005, $AC1.L
+	SR @0x0006, $AC0.M
+	SR @0x0007, $AC1.M
+	RET
+
+store_mem_srs:
+	; For future compatibility these have been changed to cw.
+	; The way the instructions were originally encoded is commented,
+	; but this does not match their behavior.
+	cw 0x2800 ; SRS @0x00, $AX0.L - actually SRSH @0x00, $AC0.H
+	cw 0x2901 ; SRS @0x01, $AX1.L - actually SRSH @0x01, $AC1.H
+	cw 0x2A02 ; SRS @0x02, $AX0.H - actually unknown, no store performed
+	cw 0x2B03 ; SRS @0x03, $AX1.H - actually unknown, no store performed
+	cw 0x2C04 ; SRS @0x04, $AC0.L
+	cw 0x2D05 ; SRS @0x05, $AC1.L
+	cw 0x2E06 ; SRS @0x06, $AC0.M
+	cw 0x2F07 ; SRS @0x07, $AC1.M
+	RET

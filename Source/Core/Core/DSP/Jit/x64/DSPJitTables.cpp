@@ -19,7 +19,7 @@ struct JITOpInfo
 };
 
 // clang-format off
-const std::array<JITOpInfo, 124> s_opcodes =
+const std::array<JITOpInfo, 125> s_opcodes =
 {{
   {0x0000, 0xfffc, &DSPEmitter::nop},
 
@@ -32,7 +32,7 @@ const std::array<JITOpInfo, 124> s_opcodes =
 
   {0x02d0, 0xfff0, &DSPEmitter::ret},
 
-  {0x02ff, 0xffff, &DSPEmitter::rti},
+  {0x02f0, 0xfff0, &DSPEmitter::rti},
 
   {0x02b0, 0xfff0, &DSPEmitter::call},
 
@@ -101,7 +101,8 @@ const std::array<JITOpInfo, 124> s_opcodes =
 
   // 2
   {0x2000, 0xf800, &DSPEmitter::lrs},
-  {0x2800, 0xf800, &DSPEmitter::srs},
+  {0x2800, 0xfe00, &DSPEmitter::srsh},
+  {0x2c00, 0xfc00, &DSPEmitter::srs},
 
   // opcodes that can be extended
 

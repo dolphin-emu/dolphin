@@ -1,0 +1,55 @@
+; This test needs to manually specify IRQs
+	jmp		irq0
+	jmp		irq1
+	jmp		irq2
+	jmp		irq3
+	jmp		irq4
+	jmp		accov_irq
+	jmp		irq6
+	jmp		irq7
+
+incdir  "tests"
+include "dsp_base_noirq.inc"
+
+test_main:
+	; Use the accelerator to generate an IRQ by setting the start and end address to 0
+	; This will result in an interrupt on every read
+	SI @0xffda, #0 ; pred_scale
+	SI @0xffdb, #0 ; yn1
+	SI @0xffdc, #0 ; yn2
+	SI @0xffd1, #0 ; SampleFormat
+	SI @ACSAH, #0
+	SI @ACCAH, #0
+	SI @ACSAL, #0
+	SI @ACCAL, #0
+	SI @ACEAH, #0
+	SI @ACEAL, #0
+
+
+	LRI $AX1.H, #0x0000
+	LRS $AX0.L, @ARAM ; Trigger interrupt
+	CALL send_back
+
+	LRI $AX1.H, #0x0001
+	LRS $AX0.L, @ARAM ; Trigger interrupt
+	CALL send_back
+
+	LRI $AX1.H, #0x0000
+	LRS $AX0.L, @ARAM ; Trigger interrupt
+	CALL send_back
+
+	jmp end_of_test
+
+accov_irq:
+	; Restore registers, otherwise no new interrupt will be generated
+	SI @0xffda, #0 ; pred_scale
+	SI @0xffdb, #0 ; yn1
+	SI @0xffdc, #0 ; yn2
+
+	TSTAXH $AX1.H
+	LRI $AX1.L, #0x1111
+	cw 0x02f4              ; RTINZ if it exists
+	LRI $AX1.L, #0x2222
+	cw 0x02f5              ; RTIZ if it exists
+	LRI $AX1.L, #0x3333
+	RTI
