@@ -704,6 +704,23 @@ OpArg DSPJitRegCache::GetReg(int reg, bool load)
   const OpArg oparg = m_regs[real_reg].loc;
   m_regs[real_reg].used = true;
 
+  // do some register specific fixup
+  switch (reg)
+  {
+  case DSP_REG_ACC0_64:
+  case DSP_REG_ACC1_64:
+    if (load)
+    {
+      // need to do this because interpreter only does 48 bits
+      // (and PutReg does the same)
+      m_emitter.SHL(64, oparg, Imm8(64 - 40));  // sign extend
+      m_emitter.SAR(64, oparg, Imm8(64 - 40));
+    }
+    break;
+  default:
+    break;
+  }
+
   return oparg;
 }
 
@@ -721,13 +738,15 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
   case DSP_REG_ACH1:
     if (dirty)
     {
+      // no need to extend to full 64bit here until interpreter
+      // uses that
       if (oparg.IsSimpleReg())
       {
         // register is already shifted correctly
         // (if at all)
 
         // sign extend from the bottom 8 bits.
-        m_emitter.MOVSX(32, 8, oparg.GetSimpleReg(), oparg);
+        m_emitter.MOVSX(16, 8, oparg.GetSimpleReg(), oparg);
       }
       else if (oparg.IsImm())
       {
@@ -740,8 +759,8 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
         // of real_reg, since it has the right loc
         X64Reg tmp = GetFreeXReg();
         // Sign extend from the bottom 8 bits.
-        m_emitter.MOVSX(32, 8, tmp, m_regs[reg].loc);
-        m_emitter.MOV(32, m_regs[reg].loc, R(tmp));
+        m_emitter.MOVSX(16, 8, tmp, m_regs[reg].loc);
+        m_emitter.MOV(16, m_regs[reg].loc, R(tmp));
         PutXReg(tmp);
       }
     }
