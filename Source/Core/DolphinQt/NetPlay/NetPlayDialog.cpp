@@ -311,8 +311,6 @@ void NetPlayDialog::ConnectWidgets()
   });
 
   connect(m_ranked_box, qOverload<int>(&QCheckBox::stateChanged), [this](int is_ranked) {
-    //if (is_ranked == m_current_ranked_value)
-      //return;
     auto server = Settings::Instance().GetNetPlayServer();
     server->AdjustRankedBox(is_ranked);
   });
@@ -408,16 +406,23 @@ void NetPlayDialog::OnChat()
   });
 }
 
+void NetPlayDialog::OnResetRankedEnabled(unsigned int is_ranked)
+{
+  m_ranked_box->setChecked(false);
+  DisplayMessage(tr("Ranked Mode Disabled"), "red");
+}
 
 void NetPlayDialog::OnRankedEnabled(unsigned int is_ranked)
 {
   if (is_ranked != 0)
   {
     DisplayMessage(tr("Ranked Mode Enabled"), "green");
+    // m_ranked_box->setChecked(true);
   }
   else
   {
     DisplayMessage(tr("Ranked Mode Disabled"), "red");
+   // m_ranked_box->setChecked(false);
   }
 }
 
@@ -517,7 +522,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
-  m_ranked_box->setDisabled(!is_hosting);
+  m_ranked_box->setHidden(!is_hosting);
 
   SetOptionsEnabled(true);
 
@@ -766,7 +771,6 @@ void NetPlayDialog::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifi
     UpdateDiscordPresence();
   });
   DisplayMessage(tr("Game changed to \"%1\"").arg(qname), "magenta");
-  m_ranked_box->setChecked(false);
 }
 
 void NetPlayDialog::OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config)

@@ -577,9 +577,16 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_RESET_RANKED_BOX:
+  {
+    packet >> m_ranked_client;
+    m_dialog->OnResetRankedEnabled(m_ranked_client);
+  }
+  break;
+
   case NP_MSG_RANKED_BOX:
   {
-    packet >>m_ranked_client;
+    packet >> m_ranked_client;
     m_dialog->OnRankedEnabled(m_ranked_client);
   }
   break;

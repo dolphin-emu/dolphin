@@ -62,6 +62,7 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
+  void OnResetRankedEnabled(unsigned int is_ranked) override;
   void OnRankedEnabled(unsigned int is_ranked) override;
 
   void OnIndexAdded(bool success, const std::string error) override;

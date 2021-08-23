@@ -58,6 +58,7 @@ public:
   virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
+  virtual void OnResetRankedEnabled(unsigned int is_ranked) = 0;
   virtual void OnRankedEnabled(unsigned int is_ranked) = 0;
 
   virtual bool IsRecording() = 0;
