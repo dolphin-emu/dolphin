@@ -690,7 +690,15 @@ void DSPEmitter::set_long_prod()
   m_gpr.PutReg(DSP_REG_PROD_64, true);
 }
 
-// Returns s64 in RAX
+// s64 -> s40 in long_acc
+void DSPEmitter::dsp_convert_long_acc(Gen::X64Reg long_acc)
+{
+  // return ((long_acc << (64 - 40)) >> (64 - 40))
+  SHL(64, R(long_acc), Imm8(64 - 40));  // sign extend
+  SAR(64, R(long_acc), Imm8(64 - 40));
+}
+
+// Returns s64 in long_acc
 void DSPEmitter::round_long_acc(X64Reg long_acc)
 {
   // if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;

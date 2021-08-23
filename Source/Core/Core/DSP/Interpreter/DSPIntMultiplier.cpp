@@ -117,7 +117,7 @@ void Interpreter::addpaxz(const UDSPInstruction opc)
 
   SetLongAcc(dreg, res);
   res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(oldprod, res), false);
+  UpdateSR64(res, isCarryAdd(oldprod, res), false);  // TODO: Why doesn't this set the overflow bit?
 }
 
 //----

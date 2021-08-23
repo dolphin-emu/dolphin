@@ -271,7 +271,7 @@ struct DSP_Regs
     {
       u16 l;
       u16 m;
-      u16 h;
+      u32 h;  // 32 bits so that val is fully sign-extended (only 8 bits are actually used)
     };
   } ac[2];
 };
