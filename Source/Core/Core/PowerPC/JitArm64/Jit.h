@@ -178,21 +178,6 @@ public:
   bool IsFPRStoreSafe(size_t guest_reg) const;
 
 protected:
-  struct SlowmemHandler
-  {
-    Arm64Gen::ARM64Reg dest_reg;
-    Arm64Gen::ARM64Reg addr_reg;
-    BitSet32 gprs;
-    BitSet32 fprs;
-    u32 flags;
-
-    bool operator<(const SlowmemHandler& rhs) const
-    {
-      return std::tie(dest_reg, addr_reg, gprs, fprs, flags) <
-             std::tie(rhs.dest_reg, rhs.addr_reg, rhs.gprs, rhs.fprs, rhs.flags);
-    }
-  };
-
   struct FastmemArea
   {
     const u8* fastmem_code;
@@ -296,7 +281,6 @@ protected:
 
   // <Fastmem fault location, slowmem handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler;
-  std::map<SlowmemHandler, const u8*> m_handler_to_loc;
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 

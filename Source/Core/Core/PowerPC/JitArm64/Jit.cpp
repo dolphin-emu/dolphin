@@ -123,7 +123,6 @@ bool JitArm64::HandleStackFault()
 void JitArm64::ClearCache()
 {
   m_fault_to_handler.clear();
-  m_handler_to_loc.clear();
 
   blocks.Clear();
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;

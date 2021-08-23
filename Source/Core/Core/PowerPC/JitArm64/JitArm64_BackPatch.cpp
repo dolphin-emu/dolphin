@@ -122,39 +122,14 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
   {
     if (fastmem && do_farcode)
     {
-      if (emitting_routine)
-      {
-        in_far_code = true;
-        SwitchToFarCode();
-      }
-      else
-      {
-        SlowmemHandler handler;
-        handler.dest_reg = RS;
-        handler.addr_reg = addr;
-        handler.gprs = gprs_to_push;
-        handler.fprs = fprs_to_push;
-        handler.flags = flags;
+      in_far_code = true;
+      SwitchToFarCode();
 
+      if (!emitting_routine)
+      {
         FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_end];
-        auto handler_loc_iter = m_handler_to_loc.find(handler);
-
-        if (handler_loc_iter == m_handler_to_loc.end())
-        {
-          in_far_code = true;
-          SwitchToFarCode();
-          const u8* handler_loc = GetCodePtr();
-          m_handler_to_loc[handler] = handler_loc;
-          fastmem_area->fastmem_code = fastmem_start;
-          fastmem_area->slowmem_code = handler_loc;
-        }
-        else
-        {
-          const u8* handler_loc = handler_loc_iter->second;
-          fastmem_area->fastmem_code = fastmem_start;
-          fastmem_area->slowmem_code = handler_loc;
-          return;
-        }
+        fastmem_area->fastmem_code = fastmem_start;
+        fastmem_area->slowmem_code = GetCodePtr();
       }
     }
 
