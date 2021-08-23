@@ -107,6 +107,11 @@ void NetPlayDialog::CreateMainLayout()
   m_splitter = new QSplitter(Qt::Horizontal);
   m_menu_bar = new QMenuBar(this);
   m_ranked_box = new QCheckBox(tr("Ranked"));
+  m_ranked_box->setToolTip(
+      tr("Enabling Ranked Mode will mark down your games as being rankd in the stats files.\nWhen "
+         "sorting through the database, this game will be included as a ranked game.\nThis should "
+         "only be toggled for serious games as to keep our database accurate and organized.\nToggling this box will always record & sumit stats, ignoring user configurations."));
+
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
