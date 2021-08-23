@@ -534,7 +534,7 @@ void MenuBar::AddOptionsMenu()
 
   options_menu->addSeparator();
 
-  // Debugging mode only
+ 
   m_record_stats = options_menu->addAction(tr("Record Stats"));
   m_record_stats->setCheckable(true);
   m_record_stats->setChecked(SConfig::GetInstance().bRecordStats);
@@ -542,6 +542,16 @@ void MenuBar::AddOptionsMenu()
   connect(m_record_stats, &QAction::toggled, this,
           [](bool enable) { SConfig::GetInstance().bRecordStats = enable; });
 
+
+  m_submit_stats = options_menu->addAction(tr("Submit Stats"));
+  m_submit_stats->setCheckable(true);
+  m_submit_stats->setChecked(SConfig::GetInstance().bSubmitStats);
+
+  connect(m_submit_stats, &QAction::toggled, this,
+          [](bool enable) { SConfig::GetInstance().bSubmitStats = enable; });
+
+
+  // Debugging mode only
   m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
   m_boot_to_pause->setCheckable(true);
   m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);
