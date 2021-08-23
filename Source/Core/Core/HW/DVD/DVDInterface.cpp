@@ -753,6 +753,15 @@ void DVDInterface::ExecuteCommand(ReplyType reply_type)
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
 
+  // Swaps endian of Triforce DI commands, and zeroes out random bytes to prevent unknown read
+  // subcommand errors
+  auto& dvd_thread = m_system.GetDVDThread();
+  if (dvd_thread.GetDiscType() == DiscIO::Platform::Triforce)
+  {
+    // TODO(C++23): Use std::byteswap and a bitwise AND for increased clarity
+    m_DICMDBUF[0] <<= 24;
+  }
+
   // DVDLowRequestError needs access to the error code set by the previous command
   if (static_cast<DICommand>(m_DICMDBUF[0] >> 24) != DICommand::RequestError)
     SetDriveError(DriveError::None);

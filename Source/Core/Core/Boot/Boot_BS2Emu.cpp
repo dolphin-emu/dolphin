@@ -227,6 +227,13 @@ bool CBoot::RunApploader(Core::System& system, const Core::CPUThreadGuard& guard
   ppc_state.pc = ppc_state.gpr[3];
 
   branch_watch.SetRecordingActive(guard, resume_branch_watch);
+  // Blank out session key (https://debugmo.de/2008/05/part-2-dumping-the-media-board/)
+  if (volume.GetVolumeType() == DiscIO::Platform::Triforce)
+  {
+    auto& memory = system.GetMemory();
+
+    memory.Memset(0, 0, 12);
+  }
 
   return true;
 }
