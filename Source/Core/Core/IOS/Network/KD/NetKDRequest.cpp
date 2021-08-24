@@ -3,9 +3,11 @@
 
 #include "Core/IOS/Network/KD/NetKDRequest.h"
 
+#include <algorithm>
 #include <array>
-#include <map>
 #include <string>
+#include <string_view>
+#include <utility>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -33,31 +35,44 @@ enum class HardwareModel : u8
   Unknown = 7
 };
 
-u8 GetAreaCode(const std::string& area)
+u8 GetAreaCode(std::string_view area)
 {
-  static const std::map<std::string, u8> regions = {
-      {"JPN", 0}, {"USA", 1}, {"EUR", 2}, {"AUS", 2}, {"BRA", 1}, {"TWN", 3}, {"ROC", 3},
-      {"KOR", 4}, {"HKG", 5}, {"ASI", 5}, {"LTN", 1}, {"SAF", 2}, {"CHN", 6},
-  };
+  static constexpr std::array<std::pair<std::string_view, u8>, 13> regions{{
+      {"JPN", 0},
+      {"USA", 1},
+      {"EUR", 2},
+      {"AUS", 2},
+      {"BRA", 1},
+      {"TWN", 3},
+      {"ROC", 3},
+      {"KOR", 4},
+      {"HKG", 5},
+      {"ASI", 5},
+      {"LTN", 1},
+      {"SAF", 2},
+      {"CHN", 6},
+  }};
 
-  const auto entry_pos = regions.find(area);
+  const auto entry_pos = std::find_if(regions.cbegin(), regions.cend(),
+                                      [&area](const auto& entry) { return entry.first == area; });
   if (entry_pos != regions.end())
     return entry_pos->second;
 
   return 7;  // Unknown
 }
 
-HardwareModel GetHardwareModel(const std::string& model)
+HardwareModel GetHardwareModel(std::string_view model)
 {
-  static const std::map<std::string, HardwareModel> models = {
+  static constexpr std::array<std::pair<std::string_view, HardwareModel>, 4> models{{
       {"RVL", HardwareModel::RVL},
       {"RVT", HardwareModel::RVT},
       {"RVV", HardwareModel::RVV},
       {"RVD", HardwareModel::RVD},
-  };
+  }};
 
-  const auto entry_pos = models.find(model);
-  if (entry_pos != models.end())
+  const auto entry_pos = std::find_if(models.cbegin(), models.cend(),
+                                      [&model](const auto& entry) { return entry.first == model; });
+  if (entry_pos != models.cend())
     return entry_pos->second;
 
   return HardwareModel::Unknown;
