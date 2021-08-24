@@ -159,9 +159,20 @@ public final class GameFileCacheService extends IntentService
 
   public static GameFile addOrGet(String gamePath)
   {
-    // The existence of this one function, which is called from one
-    // single place, forces us to use synchronization in onHandleIntent...
-    // A bit annoying, but should be good enough for now
+    // Common case: The game is in the cache, so just grab it from there.
+    // (Actually, addOrGet already checks for this case, but we want to avoid calling it if possible
+    // because onHandleIntent may hold a lock on gameFileCache for extended periods of time.)
+    GameFile[] allGames = gameFiles.get();
+    for (GameFile game : allGames)
+    {
+      if (game.getPath().equals(gamePath))
+      {
+        return game;
+      }
+    }
+
+    // Unusual case: The game wasn't found in the cache.
+    // Scan the game and add it to the cache so that we can return it.
     synchronized (gameFileCache)
     {
       return gameFileCache.addOrGet(gamePath);
