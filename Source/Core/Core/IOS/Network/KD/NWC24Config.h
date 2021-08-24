@@ -35,14 +35,6 @@ enum class NWC24CreationStage : u32
 class NWC24Config final
 {
 public:
-  enum
-  {
-    URL_COUNT = 0x05,
-    MAX_URL_LENGTH = 0x80,
-    MAX_EMAIL_LENGTH = 0x40,
-    MAX_PASSWORD_LENGTH = 0x20,
-  };
-
   explicit NWC24Config(std::shared_ptr<FS::FileSystem> fs);
 
   void ReadConfig();
@@ -82,6 +74,14 @@ public:
   void SetEmail(const char* email);
 
 private:
+  enum
+  {
+    URL_COUNT = 0x05,
+    MAX_URL_LENGTH = 0x80,
+    MAX_EMAIL_LENGTH = 0x40,
+    MAX_PASSWORD_LENGTH = 0x20,
+  };
+
 #pragma pack(push, 1)
   struct ConfigData final
   {
