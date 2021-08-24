@@ -255,8 +255,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
+  {
     ModalMessageBox::critical(this, tr("Error"),
-                              tr("Error occured while loading some texture packs"));
+                              tr("Error occurred while loading some texture packs"));
+  }
 
   for (auto& pack : ResourcePack::GetPacks())
   {
