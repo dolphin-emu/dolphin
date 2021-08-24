@@ -1379,16 +1379,15 @@ bool MainWindow::NetPlayJoin()
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1447,16 +1446,15 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1480,9 +1478,8 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
     ModalMessageBox::critical(
-        nullptr, QObject::tr("Failed to open server"),
-        QObject::tr(
-            "Failed to listen on port %1. Is another instance of the NetPlay server running?")
+        nullptr, tr("Failed to open server"),
+        tr("Failed to listen on port %1. Is another instance of the NetPlay server running?")
             .arg(host_port));
     NetPlayQuit();
     return false;
