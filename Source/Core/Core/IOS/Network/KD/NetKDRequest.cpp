@@ -22,6 +22,112 @@
 
 namespace IOS::HLE
 {
+namespace
+{
+enum : u8
+{
+  MODEL_RVT = 0,
+  MODEL_RVV = 0,
+  MODEL_RVL = 1,
+  MODEL_RVD = 2,
+  MODEL_ELSE = 7
+};
+
+u8 GetAreaCode(const std::string& area)
+{
+  static const std::map<std::string, u8> regions = {
+      {"JPN", 0}, {"USA", 1}, {"EUR", 2}, {"AUS", 2}, {"BRA", 1}, {"TWN", 3}, {"ROC", 3},
+      {"KOR", 4}, {"HKG", 5}, {"ASI", 5}, {"LTN", 1}, {"SAF", 2}, {"CHN", 6},
+  };
+
+  const auto entry_pos = regions.find(area);
+  if (entry_pos != regions.end())
+    return entry_pos->second;
+
+  return 7;  // Unknown
+}
+
+u8 GetHardwareModel(const std::string& model)
+{
+  static const std::map<std::string, u8> models = {
+      {"RVL", MODEL_RVL},
+      {"RVT", MODEL_RVT},
+      {"RVV", MODEL_RVV},
+      {"RVD", MODEL_RVD},
+  };
+
+  const auto entry_pos = models.find(model);
+  if (entry_pos != models.end())
+    return entry_pos->second;
+
+  return MODEL_ELSE;
+}
+
+s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code)
+{
+  static constexpr std::array<u8, 8> table2{
+      0x1, 0x5, 0x0, 0x4, 0x2, 0x3, 0x6, 0x7,
+  };
+  static constexpr std::array<u8, 16> table1{
+      0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3, 0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5,
+  };
+
+  constexpr auto u64_get_byte = [](u64 value, u32 shift) -> u8 { return u8(value >> (shift * 8)); };
+
+  constexpr auto u64_insert_byte = [](u64 value, u32 shift, u8 byte) -> u64 {
+    const u64 mask = 0x00000000000000FFULL << (shift * 8);
+    const u64 inst = u64{byte} << (shift * 8);
+    return (value & ~mask) | inst;
+  };
+
+  u64 mix_id = (u64{area_code} << 50) | (u64{hardware_model} << 47) | (u64{hollywood_id} << 15) |
+               (u64{id_ctr} << 10);
+  const u64 mix_id_copy1 = mix_id;
+
+  u32 ctr = 0;
+  for (ctr = 0; ctr <= 42; ctr++)
+  {
+    u64 value = mix_id >> (52 - ctr);
+    if ((value & 1) != 0)
+    {
+      value = 0x0000000000000635ULL << (42 - ctr);
+      mix_id ^= value;
+    }
+  }
+
+  mix_id = (mix_id_copy1 | (mix_id & 0xFFFFFFFFUL)) ^ 0x0000B3B3B3B3B3B3ULL;
+  mix_id = (mix_id >> 10) | ((mix_id & 0x3FF) << (11 + 32));
+
+  for (ctr = 0; ctr <= 5; ctr++)
+  {
+    const u8 ret = u64_get_byte(mix_id, ctr);
+    const u8 foobar = u8((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
+    mix_id = u64_insert_byte(mix_id, ctr, foobar & 0xff);
+  }
+
+  const u64 mix_id_copy2 = mix_id;
+
+  for (ctr = 0; ctr <= 5; ctr++)
+  {
+    const u8 ret = u64_get_byte(mix_id_copy2, ctr);
+    mix_id = u64_insert_byte(mix_id, table2[ctr], ret);
+  }
+
+  mix_id &= 0x001FFFFFFFFFFFFFULL;
+  mix_id = (mix_id << 1) | ((mix_id >> 52) & 1);
+
+  mix_id ^= 0x00005E5E5E5E5E5EULL;
+  mix_id &= 0x001FFFFFFFFFFFFFULL;
+
+  *nwc24_id = mix_id;
+
+  if (mix_id > 9999999999999999ULL)
+    return NWC24::WC24_ERR_FATAL;
+
+  return NWC24::WC24_OK;
+}
+}  // Anonymous namespace
+
 NetKDRequestDevice::NetKDRequestDevice(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name), config{ios.GetFS()}
 {
@@ -34,6 +140,32 @@ NetKDRequestDevice::~NetKDRequestDevice()
 
 std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 {
+  enum : u32
+  {
+    IOCTL_NWC24_SUSPEND_SCHEDULAR = 0x01,
+    IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR = 0x02,
+    IOCTL_NWC24_EXEC_RESUME_SCHEDULAR = 0x03,
+    IOCTL_NWC24_KD_GET_TIME_TRIGGERS = 0x04,
+    IOCTL_NWC24_SET_SCHEDULE_SPAN = 0x05,
+    IOCTL_NWC24_STARTUP_SOCKET = 0x06,
+    IOCTL_NWC24_CLEANUP_SOCKET = 0x07,
+    IOCTL_NWC24_LOCK_SOCKET = 0x08,
+    IOCTL_NWC24_UNLOCK_SOCKET = 0x09,
+    IOCTL_NWC24_CHECK_MAIL_NOW = 0x0A,
+    IOCTL_NWC24_SEND_MAIL_NOW = 0x0B,
+    IOCTL_NWC24_RECEIVE_MAIL_NOW = 0x0C,
+    IOCTL_NWC24_SAVE_MAIL_NOW = 0x0D,
+    IOCTL_NWC24_DOWNLOAD_NOW_EX = 0x0E,
+    IOCTL_NWC24_REQUEST_GENERATED_USER_ID = 0x0F,
+    IOCTL_NWC24_REQUEST_REGISTER_USER_ID = 0x10,
+    IOCTL_NWC24_GET_SCHEDULAR_STAT = 0x1E,
+    IOCTL_NWC24_SET_FILTER_MODE = 0x1F,
+    IOCTL_NWC24_SET_DEBUG_MODE = 0x20,
+    IOCTL_NWC24_KD_SET_NEXT_WAKEUP = 0x21,
+    IOCTL_NWC24_SET_SCRIPT_MODE = 0x22,
+    IOCTL_NWC24_REQUEST_SHUTDOWN = 0x28,
+  };
+
   s32 return_value = 0;
   switch (request.request)
   {
@@ -170,102 +302,5 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   }
 
   return IPCReply(return_value);
-}
-
-u8 NetKDRequestDevice::GetAreaCode(const std::string& area) const
-{
-  static const std::map<std::string, u8> regions = {
-      {"JPN", 0}, {"USA", 1}, {"EUR", 2}, {"AUS", 2}, {"BRA", 1}, {"TWN", 3}, {"ROC", 3},
-      {"KOR", 4}, {"HKG", 5}, {"ASI", 5}, {"LTN", 1}, {"SAF", 2}, {"CHN", 6},
-  };
-
-  auto entryPos = regions.find(area);
-  if (entryPos != regions.end())
-    return entryPos->second;
-
-  return 7;  // Unknown
-}
-
-u8 NetKDRequestDevice::GetHardwareModel(const std::string& model) const
-{
-  static const std::map<std::string, u8> models = {
-      {"RVL", MODEL_RVL},
-      {"RVT", MODEL_RVT},
-      {"RVV", MODEL_RVV},
-      {"RVD", MODEL_RVD},
-  };
-
-  auto entryPos = models.find(model);
-  if (entryPos != models.end())
-    return entryPos->second;
-
-  return MODEL_ELSE;
-}
-
-s32 NetKDRequestDevice::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr,
-                                        u8 hardware_model, u8 area_code)
-{
-  static constexpr std::array<u8, 8> table2{
-      0x1, 0x5, 0x0, 0x4, 0x2, 0x3, 0x6, 0x7,
-  };
-  static constexpr std::array<u8, 16> table1{
-      0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3, 0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5,
-  };
-
-  constexpr auto u64_get_byte = [](u64 value, u32 shift) -> u8 {
-    return u8(value >> (shift * 8));
-  };
-
-  constexpr auto u64_insert_byte = [](u64 value, u32 shift, u8 byte) -> u64 {
-    const u64 mask = 0x00000000000000FFULL << (shift * 8);
-    const u64 inst = u64{byte} << (shift * 8);
-    return (value & ~mask) | inst;
-  };
-
-  u64 mix_id = (u64{area_code} << 50) | (u64{hardware_model} << 47) | (u64{hollywood_id} << 15) |
-               (u64{id_ctr} << 10);
-  const u64 mix_id_copy1 = mix_id;
-
-  u32 ctr = 0;
-  for (ctr = 0; ctr <= 42; ctr++)
-  {
-    u64 value = mix_id >> (52 - ctr);
-    if ((value & 1) != 0)
-    {
-      value = 0x0000000000000635ULL << (42 - ctr);
-      mix_id ^= value;
-    }
-  }
-
-  mix_id = (mix_id_copy1 | (mix_id & 0xFFFFFFFFUL)) ^ 0x0000B3B3B3B3B3B3ULL;
-  mix_id = (mix_id >> 10) | ((mix_id & 0x3FF) << (11 + 32));
-
-  for (ctr = 0; ctr <= 5; ctr++)
-  {
-    const u8 ret = u64_get_byte(mix_id, ctr);
-    const u8 foobar = u8((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
-    mix_id = u64_insert_byte(mix_id, ctr, foobar & 0xff);
-  }
-
-  const u64 mix_id_copy2 = mix_id;
-
-  for (ctr = 0; ctr <= 5; ctr++)
-  {
-    const u8 ret = u64_get_byte(mix_id_copy2, ctr);
-    mix_id = u64_insert_byte(mix_id, table2[ctr], ret);
-  }
-
-  mix_id &= 0x001FFFFFFFFFFFFFULL;
-  mix_id = (mix_id << 1) | ((mix_id >> 52) & 1);
-
-  mix_id ^= 0x00005E5E5E5E5E5EULL;
-  mix_id &= 0x001FFFFFFFFFFFFFULL;
-
-  *nwc24_id = mix_id;
-
-  if (mix_id > 9999999999999999ULL)
-    return NWC24::WC24_ERR_FATAL;
-
-  return NWC24::WC24_OK;
 }
 }  // namespace IOS::HLE
