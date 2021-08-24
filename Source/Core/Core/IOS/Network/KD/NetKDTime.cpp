@@ -85,13 +85,17 @@ std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
 
 u64 NetKDTimeDevice::GetAdjustedUTC() const
 {
-  return ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH) +
-         utcdiff;
+  using namespace ExpansionInterface;
+
+  const u32 emulated_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  return u64(s64(emulated_time) + utcdiff);
 }
 
 void NetKDTimeDevice::SetAdjustedUTC(u64 wii_utc)
 {
-  utcdiff = ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH) -
-            wii_utc;
+  using namespace ExpansionInterface;
+
+  const u32 emulated_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  utcdiff = s64(emulated_time - wii_utc);
 }
 }  // namespace IOS::HLE
