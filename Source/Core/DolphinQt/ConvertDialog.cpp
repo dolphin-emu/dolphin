@@ -412,9 +412,9 @@ void ConvertDialog::Convert()
 
     if (m_files.size() > 1)
     {
+      // i18n: %1 is a filename.
       progress_dialog.GetRaw()->setLabelText(
-          tr("Converting...") + QLatin1Char{'\n'} +
-          QFileInfo(QString::fromStdString(original_path)).fileName());
+          tr("Converting...\n%1").arg(QFileInfo(QString::fromStdString(original_path)).fileName()));
     }
 
     std::unique_ptr<DiscIO::BlobReader> blob_reader;
