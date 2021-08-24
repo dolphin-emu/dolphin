@@ -160,7 +160,7 @@ void FIFOAnalyzer::UpdateTree()
     const AnalyzedFrameInfo& frame_info = FifoPlayer::GetInstance().GetAnalyzedFrameInfo(frame);
     ASSERT(frame_info.parts.size() != 0);
 
-    Common::EnumMap<u32, FramePartType::PrimitiveData> part_counts;
+    Common::EnumMap<u32, FramePartType::EFBCopy> part_counts;
     u32 part_start = 0;
 
     for (u32 part_nr = 0; part_nr < frame_info.parts.size(); part_nr++)
@@ -173,6 +173,8 @@ void FIFOAnalyzer::UpdateTree()
       QTreeWidgetItem* object_item = nullptr;
       if (part.m_type == FramePartType::PrimitiveData)
         object_item = new QTreeWidgetItem({tr("Object %1").arg(part_type_nr)});
+      else if (part.m_type == FramePartType::EFBCopy)
+        object_item = new QTreeWidgetItem({tr("EFB copy %1").arg(part_type_nr)});
       // We don't create dedicated labels for FramePartType::Command;
       // those are grouped with the primitive
 
@@ -188,17 +190,8 @@ void FIFOAnalyzer::UpdateTree()
       }
     }
 
-    // Final data (the XFB copy)
-    if (part_start != frame_info.parts.size())
-    {
-      QTreeWidgetItem* object_item = new QTreeWidgetItem({tr("Final Data")});
-      frame_item->addChild(object_item);
-
-      object_item->setData(0, FRAME_ROLE, frame);
-      object_item->setData(0, PART_START_ROLE, part_start);
-      object_item->setData(0, PART_END_ROLE, u32(frame_info.parts.size() - 1));
-    }
-
+    // We shouldn't end on a Command (it should end with an EFB copy)
+    ASSERT(part_start == frame_info.parts.size());
     // The counts we computed should match the frame's counts
     ASSERT(std::equal(frame_info.part_type_counts.begin(), frame_info.part_type_counts.end(),
                       part_counts.begin()));

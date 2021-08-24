@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -56,6 +57,7 @@ enum class FramePartType
 {
   Commands,
   PrimitiveData,
+  EFBCopy,
 };
 
 struct FramePart
@@ -74,7 +76,7 @@ struct FramePart
 struct AnalyzedFrameInfo
 {
   std::vector<FramePart> parts;
-  Common::EnumMap<u32, FramePartType::PrimitiveData> part_type_counts;
+  Common::EnumMap<u32, FramePartType::EFBCopy> part_type_counts;
 
   void AddPart(FramePartType type, u32 start, u32 end, const CPState& cpmem)
   {

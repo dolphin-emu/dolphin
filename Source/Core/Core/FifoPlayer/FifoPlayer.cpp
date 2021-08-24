@@ -42,7 +42,7 @@ public:
 
   OPCODE_CALLBACK(void OnXF(u16 address, u8 count, const u8* data)) {}
   OPCODE_CALLBACK(void OnCP(u8 command, u32 value)) { GetCPState().LoadCPReg(command, value); }
-  OPCODE_CALLBACK(void OnBP(u8 command, u32 value)) {}
+  OPCODE_CALLBACK(void OnBP(u8 command, u32 value));
   OPCODE_CALLBACK(void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size)) {}
   OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
                                           u32 vertex_size, u16 num_vertices,
@@ -57,9 +57,11 @@ public:
 
   bool m_start_of_primitives = false;
   bool m_end_of_primitives = false;
+  bool m_efb_copy = false;
   // Internal state, copied to above in OnCommand
   bool m_was_primitive = false;
   bool m_is_primitive = false;
+  bool m_is_copy = false;
   bool m_is_nop = false;
   CPState m_cpmem;
 };
@@ -103,16 +105,25 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       }
 
       offset += cmd_size;
+
+      if (analyzer.m_efb_copy)
+      {
+        // We increase the offset beforehand, so that the trigger EFB copy command is included.
+        analyzed.AddPart(FramePartType::EFBCopy, part_start, offset, analyzer.m_cpmem);
+        part_start = offset;
+      }
     }
 
-    if (part_start != offset)
-    {
-      // Remaining data, usually without any primitives
-      analyzed.AddPart(FramePartType::Commands, part_start, offset, analyzer.m_cpmem);
-    }
-
+    // The frame should end with an EFB copy, so part_start should have been updated to the end.
+    ASSERT(part_start == frame.fifoData.size());
     ASSERT(offset == frame.fifoData.size());
   }
+}
+
+void FifoPlaybackAnalyzer::OnBP(u8 command, u32 value)
+{
+  if (command == BPMEM_TRIGGER_EFB_COPY)
+    m_is_copy = true;
 }
 
 void FifoPlaybackAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
@@ -131,6 +142,7 @@ void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
 {
   m_start_of_primitives = false;
   m_end_of_primitives = false;
+  m_efb_copy = false;
 
   if (!m_is_nop)
   {
@@ -138,10 +150,13 @@ void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
       m_start_of_primitives = true;
     else if (m_was_primitive && !m_is_primitive)
       m_end_of_primitives = true;
+    else if (m_is_copy)
+      m_efb_copy = true;
 
     m_was_primitive = m_is_primitive;
   }
   m_is_primitive = false;
+  m_is_copy = false;
   m_is_nop = false;
 }
 }  // namespace
