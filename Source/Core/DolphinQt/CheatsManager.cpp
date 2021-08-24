@@ -648,7 +648,7 @@ void CheatsManager::Update()
     return;
   }
 
-  m_result_label->setText(tr("%1 Match(es)").arg(m_results.size()));
+  m_result_label->setText(tr("%n Match(es)", "", static_cast<int>(m_results.size())));
   m_match_table->setRowCount(static_cast<int>(m_results.size()));
 
   if (m_results.empty())
