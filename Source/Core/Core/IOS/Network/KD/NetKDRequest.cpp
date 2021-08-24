@@ -24,13 +24,13 @@ namespace IOS::HLE
 {
 namespace
 {
-enum : u8
+enum class HardwareModel : u8
 {
-  MODEL_RVT = 0,
-  MODEL_RVV = 0,
-  MODEL_RVL = 1,
-  MODEL_RVD = 2,
-  MODEL_ELSE = 7
+  RVT = 0,
+  RVV = 0,
+  RVL = 1,
+  RVD = 2,
+  Unknown = 7
 };
 
 u8 GetAreaCode(const std::string& area)
@@ -47,23 +47,24 @@ u8 GetAreaCode(const std::string& area)
   return 7;  // Unknown
 }
 
-u8 GetHardwareModel(const std::string& model)
+HardwareModel GetHardwareModel(const std::string& model)
 {
-  static const std::map<std::string, u8> models = {
-      {"RVL", MODEL_RVL},
-      {"RVT", MODEL_RVT},
-      {"RVV", MODEL_RVV},
-      {"RVD", MODEL_RVD},
+  static const std::map<std::string, HardwareModel> models = {
+      {"RVL", HardwareModel::RVL},
+      {"RVT", HardwareModel::RVT},
+      {"RVV", HardwareModel::RVV},
+      {"RVD", HardwareModel::RVD},
   };
 
   const auto entry_pos = models.find(model);
   if (entry_pos != models.end())
     return entry_pos->second;
 
-  return MODEL_ELSE;
+  return HardwareModel::Unknown;
 }
 
-s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code)
+s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel hardware_model,
+                    u8 area_code)
 {
   static constexpr std::array<u8, 8> table2{
       0x1, 0x5, 0x0, 0x4, 0x2, 0x3, 0x6, 0x7,
@@ -80,7 +81,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_mod
     return (value & ~mask) | inst;
   };
 
-  u64 mix_id = (u64{area_code} << 50) | (u64{hardware_model} << 47) | (u64{hollywood_id} << 15) |
+  u64 mix_id = (u64{area_code} << 50) | (u64(hardware_model) << 47) | (u64{hollywood_id} << 15) |
                (u64{id_ctr} << 10);
   const u64 mix_id_copy1 = mix_id;
 
@@ -232,15 +233,15 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
       if (!area.empty() && !model.empty())
       {
-        u8 area_code = GetAreaCode(area);
-        u8 id_ctr = config.IdGen();
-        u8 hardware_model = GetHardwareModel(model);
+        const u8 area_code = GetAreaCode(area);
+        const u8 id_ctr = u8(config.IdGen());
+        const HardwareModel hardware_model = GetHardwareModel(model);
 
-        u32 HollywoodID = m_ios.GetIOSC().GetDeviceId();
-        u64 UserID = 0;
+        const u32 hollywood_id = m_ios.GetIOSC().GetDeviceId();
+        u64 user_id = 0;
 
-        s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);
-        config.SetId(UserID);
+        const s32 ret = NWC24MakeUserID(&user_id, hollywood_id, id_ctr, hardware_model, area_code);
+        config.SetId(user_id);
         config.IncrementIdGen();
         config.SetCreationStage(NWC24::NWC24Config::NWC24_IDCS_GENERATED);
         config.WriteConfig();
