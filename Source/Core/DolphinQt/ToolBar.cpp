@@ -126,6 +126,11 @@ void ToolBar::MakeActions()
 
   addSeparator();
 
+  m_start_netplay_action = addAction(tr("Start NetPlay"), this, &ToolBar::StartNetPlayPressed);
+  m_join_netplay_action = addAction(tr("Join NetPlay"), this, &ToolBar::JoinNetPlayPressed);
+
+  addSeparator();
+
   m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
@@ -194,4 +199,6 @@ void ToolBar::UpdateIcons()
   m_config_action->setIcon(Resources::GetScaledThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetScaledThemeIcon("classic"));
   m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
+  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("netplay"));
+  m_join_netplay_action->setIcon(Resources::GetScaledThemeIcon("join_netplay"));
 }

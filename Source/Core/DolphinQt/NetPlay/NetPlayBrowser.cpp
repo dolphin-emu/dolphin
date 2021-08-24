@@ -376,8 +376,10 @@ void NetPlayBrowser::RestoreSettings()
   else if (visibility == QStringLiteral("private"))
     m_radio_private->setChecked(true);
 
-  m_check_hide_incompatible->setChecked(
-      settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
-  m_check_hide_ingame->setChecked(
-      settings.value(QStringLiteral("netplaybrowser/hide_ingame")).toBool());
+  m_check_hide_incompatible->setChecked(true);
+  m_check_hide_ingame->setChecked(true);
+  // m_check_hide_incompatible->setChecked(
+     // settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
+  // m_check_hide_ingame->setChecked(
+      // settings.value(QStringLiteral("netplaybrowser/hide_ingame")).toBool());
 }

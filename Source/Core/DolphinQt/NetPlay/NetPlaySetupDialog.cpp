@@ -87,6 +87,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel);
   m_nickname_edit = new QLineEdit;
   m_connection_type = new QComboBox;
+  m_connection_type->setCurrentIndex(1);
   m_reset_traversal_button = new QPushButton(tr("Reset Traversal Settings"));
   m_tab_widget = new QTabWidget;
 
@@ -203,6 +204,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   setLayout(m_main_layout);
 }
 
+
 void NetPlaySetupDialog::ConnectWidgets()
 {
   connect(m_connection_type, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -314,6 +316,12 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
 
 void NetPlaySetupDialog::show()
 {
+  // Here i'm setting default configs to make NetPlay sessions start more easily
+  std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
+  m_host_server_name->setText(QString::fromStdString(nickname));
+  m_host_server_browser->setChecked(true);
+  m_connection_type->setCurrentIndex(1);
+
   PopulateGameList();
   QDialog::show();
 }
