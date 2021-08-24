@@ -348,6 +348,8 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
     }
 
+    menu->addAction(tr("&Project Rio Website"), this, &GameList::OpenProjectRio);
+
     menu->addSeparator();
 
     if (DiscIO::IsDisc(platform))
@@ -528,6 +530,13 @@ void GameList::OpenWiki()
   QString game_id = QString::fromStdString(game->GetGameID());
   QString url =
       QStringLiteral("https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=").append(game_id);
+  QDesktopServices::openUrl(QUrl(url));
+}
+
+void GameList::OpenProjectRio()
+{
+  QString url =
+      QStringLiteral("https://projectrio.online");
   QDesktopServices::openUrl(QUrl(url));
 }
 
