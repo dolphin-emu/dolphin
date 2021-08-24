@@ -228,7 +228,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_REQUEST_GENERATED_USER_ID:  // (Input: none, Output: 32 bytes)
     INFO_LOG_FMT(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-    if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
+    if (config.IsCreated())
     {
       const std::string settings_file_path =
           Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING;
@@ -258,7 +258,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
         const s32 ret = NWC24MakeUserID(&user_id, hollywood_id, id_ctr, hardware_model, area_code);
         config.SetId(user_id);
         config.IncrementIdGen();
-        config.SetCreationStage(NWC24::NWC24Config::NWC24_IDCS_GENERATED);
+        config.SetCreationStage(NWC24::NWC24CreationStage::Generated);
         config.WriteConfig();
 
         WriteReturnValue(ret, request.buffer_out);
@@ -268,16 +268,16 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
         WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
       }
     }
-    else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_GENERATED)
+    else if (config.IsGenerated())
     {
       WriteReturnValue(NWC24::WC24_ERR_ID_GENERATED, request.buffer_out);
     }
-    else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_REGISTERED)
+    else if (config.IsRegistered())
     {
       WriteReturnValue(NWC24::WC24_ERR_ID_REGISTERED, request.buffer_out);
     }
     Memory::Write_U64(config.Id(), request.buffer_out + 4);
-    Memory::Write_U32(config.CreationStage(), request.buffer_out + 0xC);
+    Memory::Write_U32(u32(config.CreationStage()), request.buffer_out + 0xC);
     break;
 
   case IOCTL_NWC24_GET_SCHEDULER_STAT:

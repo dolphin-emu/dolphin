@@ -25,16 +25,16 @@ enum ErrorCode : s32
   WC24_ERR_ID_NOT_REGISTERED = -44,
 };
 
+enum class NWC24CreationStage : u32
+{
+  Initial = 0,
+  Generated = 1,
+  Registered = 2
+};
+
 class NWC24Config final
 {
 public:
-  enum
-  {
-    NWC24_IDCS_INITIAL = 0,
-    NWC24_IDCS_GENERATED = 1,
-    NWC24_IDCS_REGISTERED = 2
-  };
-
   enum
   {
     URL_COUNT = 0x05,
@@ -65,8 +65,12 @@ public:
   u32 Checksum() const;
   void SetChecksum(u32 checksum);
 
-  u32 CreationStage() const;
-  void SetCreationStage(u32 creation_stage);
+  NWC24CreationStage CreationStage() const;
+  void SetCreationStage(NWC24CreationStage creation_stage);
+
+  bool IsCreated() const { return CreationStage() == NWC24CreationStage::Initial; }
+  bool IsGenerated() const { return CreationStage() == NWC24CreationStage::Generated; }
+  bool IsRegistered() const { return CreationStage() == NWC24CreationStage::Registered; }
 
   u32 EnableBooting() const;
   void SetEnableBooting(u32 enable_booting);
@@ -85,7 +89,7 @@ private:
     u32 unk_04;  // must be 8
     u64 nwc24_id;
     u32 id_generation;
-    u32 creation_stage;  // 0:not_generated; 1:generated; 2:registered
+    NWC24CreationStage creation_stage;
     char email[MAX_EMAIL_LENGTH];
     char paswd[MAX_PASSWORD_LENGTH];
     char mlchkid[0x24];
