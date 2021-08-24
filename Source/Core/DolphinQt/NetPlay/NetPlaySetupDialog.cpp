@@ -321,6 +321,7 @@ void NetPlaySetupDialog::show()
   m_host_server_name->setText(QString::fromStdString(nickname));
   m_host_server_browser->setChecked(true);
   m_connection_type->setCurrentIndex(1);
+  m_tab_widget->setCurrentIndex(1);
 
   PopulateGameList();
   QDialog::show();
