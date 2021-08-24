@@ -31,15 +31,6 @@ private:
   // what the host OS thinks
   void SetAdjustedUTC(u64 wii_utc);
 
-  enum
-  {
-    IOCTL_NW24_GET_UNIVERSAL_TIME = 0x14,
-    IOCTL_NW24_SET_UNIVERSAL_TIME = 0x15,
-    IOCTL_NW24_UNIMPLEMENTED = 0x16,
-    IOCTL_NW24_SET_RTC_COUNTER = 0x17,
-    IOCTL_NW24_GET_TIME_DIFF = 0x18,
-  };
-
   u64 rtc = 0;
   s64 utcdiff = 0;
 };

@@ -20,6 +20,15 @@ NetKDTimeDevice::~NetKDTimeDevice() = default;
 
 std::optional<IPCReply> NetKDTimeDevice::IOCtl(const IOCtlRequest& request)
 {
+  enum : u32
+  {
+    IOCTL_NW24_GET_UNIVERSAL_TIME = 0x14,
+    IOCTL_NW24_SET_UNIVERSAL_TIME = 0x15,
+    IOCTL_NW24_UNIMPLEMENTED = 0x16,
+    IOCTL_NW24_SET_RTC_COUNTER = 0x17,
+    IOCTL_NW24_GET_TIME_DIFF = 0x18,
+  };
+
   s32 result = 0;
   u32 common_result = 0;
   // TODO Writes stuff to /shared2/nwc24/misc.bin
