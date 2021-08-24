@@ -117,6 +117,8 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_screenshot_action->setEnabled(running);
   m_state_load_menu->setEnabled(running);
   m_state_save_menu->setEnabled(running);
+  m_record_stats->setDisabled(running);
+  m_submit_stats->setDisabled(running);
 
   // Movie
   m_recording_read_only->setEnabled(running);
