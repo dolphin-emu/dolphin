@@ -47,8 +47,8 @@ public:
   u32 Magic() const;
   void SetMagic(u32 magic);
 
-  u32 Unk() const;
-  void SetUnk(u32 unk_04);
+  u32 Version() const;
+  void SetVersion(u32 version);
 
   u32 IdGen() const;
   void SetIdGen(u32 id_generation);
@@ -85,8 +85,8 @@ private:
 #pragma pack(push, 1)
   struct ConfigData final
   {
-    u32 magic;   // 'WcCf' 0x57634366
-    u32 unk_04;  // must be 8
+    u32 magic;    // 'WcCf' 0x57634366
+    u32 version;  // must be 8
     u64 nwc24_id;
     u32 id_generation;
     NWC24CreationStage creation_stage;
