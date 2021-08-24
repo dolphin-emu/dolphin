@@ -194,26 +194,27 @@ public final class GameFileCacheService extends IntentService
       {
         String[] gamePaths = GameFileCache.getAllGamePaths();
 
+        boolean changed;
         synchronized (gameFileCache)
         {
-          boolean changed = gameFileCache.update(gamePaths);
-          if (changed)
-          {
-            updateGameFileArray();
-            sendBroadcast(CACHE_UPDATED);
-          }
+          changed = gameFileCache.update(gamePaths);
+        }
+        if (changed)
+        {
+          updateGameFileArray();
+          sendBroadcast(CACHE_UPDATED);
+        }
 
-          boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
-          if (additionalMetadataChanged)
-          {
-            updateGameFileArray();
-            sendBroadcast(CACHE_UPDATED);
-          }
+        boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
+        if (additionalMetadataChanged)
+        {
+          updateGameFileArray();
+          sendBroadcast(CACHE_UPDATED);
+        }
 
-          if (changed || additionalMetadataChanged)
-          {
-            gameFileCache.save();
-          }
+        if (changed || additionalMetadataChanged)
+        {
+          gameFileCache.save();
         }
       }
 
