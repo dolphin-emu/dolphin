@@ -195,7 +195,7 @@ protected:
 
   struct FastmemArea
   {
-    u32 length;
+    const u8* fastmem_code;
     const u8* slowmem_code;
   };
 
