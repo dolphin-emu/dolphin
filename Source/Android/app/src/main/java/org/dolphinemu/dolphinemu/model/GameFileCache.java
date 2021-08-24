@@ -96,12 +96,7 @@ public class GameFileCache
     return pathSet;
   }
 
-  /**
-   * Scans through the file system and updates the cache to match.
-   *
-   * @return true if the cache was modified
-   */
-  public boolean update()
+  public static String[] getAllGamePaths()
   {
     boolean recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
 
@@ -109,8 +104,10 @@ public class GameFileCache
 
     String[] folderPaths = folderPathsSet.toArray(new String[0]);
 
-    return update(folderPaths, recursiveScan);
+    return getAllGamePaths(folderPaths, recursiveScan);
   }
+
+  public static native String[] getAllGamePaths(String[] folderPaths, boolean recursiveScan);
 
   public native int getSize();
 
@@ -118,8 +115,22 @@ public class GameFileCache
 
   public native GameFile addOrGet(String gamePath);
 
-  public native boolean update(String[] folderPaths, boolean recursiveScan);
+  /**
+   * Sets the list of games to cache.
+   *
+   * Games which are in the passed-in list but not in the cache are scanned and added to the cache,
+   * and games which are in the cache but not in the passed-in list are removed from the cache.
+   *
+   * @return true if the cache was modified
+   */
+  public native boolean update(String[] gamePaths);
 
+  /**
+   * For each game that already is in the cache, scans the folder that contains the game
+   * for additional metadata files (PNG/XML).
+   *
+   * @return true if the cache was modified
+   */
   public native boolean updateAdditionalMetadata();
 
   public native boolean load();
