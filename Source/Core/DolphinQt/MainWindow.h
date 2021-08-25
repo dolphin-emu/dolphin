@@ -25,6 +25,7 @@ class FIFOPlayerWindow;
 class FreeLookWindow;
 class GameList;
 class GCTASInputWindow;
+class GeckoDialog;
 class GraphicsWindow;
 class HotkeyScheduler;
 class JITWidget;
@@ -157,6 +158,7 @@ private:
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
+  void ShowGeckoCodes();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -215,6 +217,7 @@ private:
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
+  GeckoDialog* m_gecko_dialog = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;

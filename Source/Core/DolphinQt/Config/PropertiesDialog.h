@@ -19,3 +19,13 @@ public:
 signals:
   void OpenGeneralSettings();
 };
+
+class GeckoDialog final : public QDialog
+{
+  Q_OBJECT
+public:
+  explicit GeckoDialog(QWidget* parent);
+
+signals:
+  void OpenGeneralSettings();
+};

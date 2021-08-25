@@ -348,6 +348,8 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
     }
 
+    QString game_id = QString::fromStdString(game->GetGameID());
+
     menu->addAction(tr("&Project Rio Website"), this, &GameList::OpenProjectRio);
 
     menu->addSeparator();

@@ -117,6 +117,9 @@
 
 #include "UICommon/UICommon.h"
 
+#include "DolphinQt/Config/PropertiesDialog.h"
+#include "DolphinQt/GameList/GameList.h"
+
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -627,6 +630,7 @@ void MainWindow::ConnectToolBar()
 
   connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_tool_bar, &ToolBar::JoinNetPlayPressed, this, &MainWindow::ShowNetPlayBrowser);
+  connect(m_tool_bar, &ToolBar::ViewGeckoCodes, this, &MainWindow::ShowGeckoCodes);
 
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
@@ -1258,6 +1262,22 @@ void MainWindow::ShowNetPlayBrowser()
   connect(browser, &NetPlayBrowser::Join, this, &MainWindow::NetPlayJoin);
   browser->exec();
 }
+
+
+void MainWindow::ShowGeckoCodes()
+{
+  if (!m_gecko_dialog)
+  {
+    m_gecko_dialog = new GeckoDialog(this);
+    InstallHotkeyFilter(m_gecko_dialog);
+  }
+
+  m_gecko_dialog->show();
+  m_gecko_dialog->raise();
+  m_gecko_dialog->activateWindow();
+}
+
+
 
 void MainWindow::ShowFIFOPlayer()
 {

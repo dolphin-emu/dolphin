@@ -67,7 +67,7 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_description = new QTextEdit;
   m_code_description->setFont(monospace);
   m_code_description->setReadOnly(true);
-  m_code_description->setFixedHeight(line_height * 5);
+  m_code_description->setFixedHeight(line_height * 10);
 
   m_code_view = new QTextEdit;
   m_code_view->setFont(monospace);
@@ -118,7 +118,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
-
   setLayout(layout);
 }
 

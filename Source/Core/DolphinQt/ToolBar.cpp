@@ -136,6 +136,10 @@ void ToolBar::MakeActions()
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
 
+  addSeparator();
+
+  m_view_gecko_codes_action = addAction(tr("Gecko Codes"), this, &ToolBar::ViewGeckoCodes);
+
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
   for (const auto& action :
@@ -201,4 +205,6 @@ void ToolBar::UpdateIcons()
   m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
   m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("netplay"));
   m_join_netplay_action->setIcon(Resources::GetScaledThemeIcon("join_netplay"));
+  m_view_gecko_codes_action->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint@2x"));
+  
 }
