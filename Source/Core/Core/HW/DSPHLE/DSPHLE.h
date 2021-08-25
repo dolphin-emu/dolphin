@@ -66,8 +66,5 @@ private:
 
   DSP::UDSPControl m_dsp_control;
   CMailHandler m_mail_handler;
-
-  bool m_halt;
-  bool m_assert_interrupt;
 };
 }  // namespace DSP::HLE
