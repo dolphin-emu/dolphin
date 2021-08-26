@@ -40,7 +40,7 @@ This struct is stored at offset 0x48, immediately after `wia_file_head_t`.
 |Type and name|Description|
 |--|--|
 |`u32 disc_type`|wit sets this to 0 for "unknown" (does this ever happen in practice?), 1 for GameCube discs, 2 for Wii discs.|
-|`u32 compression`|0 for NONE, 1 for PURGE (see the `wia_exception_t` section), 2 for BZIP2, 3 for LZMA, 4 for LZMA2.
+|`u32 compression`|0 for NONE, 1 for PURGE (see the `wia_segment_t` section), 2 for BZIP2, 3 for LZMA, 4 for LZMA2.
 |`u32 compr_level`|The compression level used by the compressor. The possible values are compressor-specific. For informational purposes only.|
 |`u32 chunk_size`|The size of the chunks that data is divided into. Must be a multiple of 2 MiB.|
 |`u8 dhead[0x80]`|The first 0x80 bytes of the disc image.
