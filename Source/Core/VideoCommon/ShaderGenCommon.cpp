@@ -120,6 +120,12 @@ void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
               "  uint mask = uint((1 << size) - 1);\n"
               "  return uint(val >> off) & mask;\n"
               "}}\n\n");
+    out.Write("int bitfieldExtract(int val, int off, int size) {{\n"
+              "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
+              "  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract "
+              "instruction.\n"
+              "  return ((val << (32 - size - off)) >> (32 - size));\n"
+              "}}\n\n");
   }
 }
 

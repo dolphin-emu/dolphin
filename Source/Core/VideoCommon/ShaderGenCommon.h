@@ -203,7 +203,8 @@ template <auto ptr_to_bitfield_member>
 std::string BitfieldExtract(std::string_view source)
 {
   using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
-  return fmt::format("bitfieldExtract({}, {}, {})", source, static_cast<u32>(BitFieldT::StartBit()),
+  return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
+                     source, static_cast<u32>(BitFieldT::StartBit()),
                      static_cast<u32>(BitFieldT::NumBits()));
 }
 
