@@ -692,14 +692,12 @@ union UReg_DMAL
 
 union UReg_BAT_Up
 {
-  struct
-  {
-    u32 VP : 1;
-    u32 VS : 1;
-    u32 BL : 11;  // Block length (aka block size mask)
-    u32 : 4;
-    u32 BEPI : 15;
-  };
+  BitField<0, 1, u32> VP;
+  BitField<1, 1, u32> VS;
+  BitField<2, 11, u32> BL;  // Block length (aka block size mask)
+  BitField<13, 4, u32> reserved;
+  BitField<17, 15, u32> BEPI;
+
   u32 Hex = 0;
 
   UReg_BAT_Up() = default;
