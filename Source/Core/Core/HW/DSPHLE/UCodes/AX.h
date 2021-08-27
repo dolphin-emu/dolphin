@@ -90,15 +90,15 @@ protected:
   int m_samples_auxB_surround[32 * 5];
 
   u16 m_cmdlist[512];
-  u32 m_cmdlist_size;
+  u32 m_cmdlist_size = 0;
 
   // Table of coefficients for polyphase sample rate conversion.
   // The coefficients aren't always available (they are part of the DSP DROM)
   // so we also need to know if they are valid or not.
-  bool m_coeffs_available;
+  bool m_coeffs_available = false;
   s16 m_coeffs[0x800];
 
-  u16 m_compressor_pos;
+  u16 m_compressor_pos = 0;
 
   void LoadResamplingCoefficients();
 

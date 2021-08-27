@@ -24,8 +24,7 @@
 
 namespace DSP::HLE
 {
-AXUCode::AXUCode(DSPHLE* dsphle, u32 crc)
-    : UCodeInterface(dsphle, crc), m_cmdlist_size(0), m_compressor_pos(0)
+AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 }
