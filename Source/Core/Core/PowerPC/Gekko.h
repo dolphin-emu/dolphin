@@ -590,20 +590,18 @@ union UReg_HID2
 // Hardware Implementation-Dependent Register 4
 union UReg_HID4
 {
-  struct
-  {
-    u32 : 20;
-    u32 L2CFI : 1;
-    u32 L2MUM : 1;
-    u32 DBP : 1;
-    u32 LPE : 1;
-    u32 ST0 : 1;
-    u32 SBE : 1;
-    u32 : 1;
-    u32 BPD : 2;
-    u32 L2FM : 2;
-    u32 : 1;
-  };
+  BitField<0, 20, u32> reserved_1;
+  BitField<20, 1, u32> L2CFI;
+  BitField<21, 1, u32> L2MUM;
+  BitField<22, 1, u32> DBP;
+  BitField<23, 1, u32> LPE;
+  BitField<24, 1, u32> ST0;
+  BitField<25, 1, u32> SBE;
+  BitField<26, 1, u32> reserved_2;
+  BitField<27, 2, u32> BPD;
+  BitField<29, 2, u32> L2FM;
+  BitField<31, 1, u32> reserved_3;
+
   u32 Hex = 0;
 
   UReg_HID4() = default;
