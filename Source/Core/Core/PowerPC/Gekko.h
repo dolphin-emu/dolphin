@@ -367,29 +367,27 @@ union UReg_XER
 // Machine State Register
 union UReg_MSR
 {
-  struct
-  {
-    u32 LE : 1;
-    u32 RI : 1;
-    u32 PM : 1;
-    u32 : 1;  // res28
-    u32 DR : 1;
-    u32 IR : 1;
-    u32 IP : 1;
-    u32 : 1;  // res24
-    u32 FE1 : 1;
-    u32 BE : 1;
-    u32 SE : 1;
-    u32 FE0 : 1;
-    u32 MCHECK : 1;
-    u32 FP : 1;
-    u32 PR : 1;
-    u32 EE : 1;
-    u32 ILE : 1;
-    u32 : 1;  // res14
-    u32 POW : 1;
-    u32 res : 13;
-  };
+  BitField<0, 1, u32> LE;
+  BitField<1, 1, u32> RI;
+  BitField<2, 1, u32> PM;
+  BitField<3, 1, u32> reserved_1;
+  BitField<4, 1, u32> DR;
+  BitField<5, 1, u32> IR;
+  BitField<6, 1, u32> IP;
+  BitField<7, 1, u32> reserved_2;
+  BitField<8, 1, u32> FE1;
+  BitField<9, 1, u32> BE;
+  BitField<10, 1, u32> SE;
+  BitField<11, 1, u32> FE0;
+  BitField<12, 1, u32> MCHECK;
+  BitField<13, 1, u32> FP;
+  BitField<14, 1, u32> PR;
+  BitField<15, 1, u32> EE;
+  BitField<16, 1, u32> ILE;
+  BitField<17, 1, u32> reserved_3;
+  BitField<18, 1, u32> POW;
+  BitField<19, 13, u32> reserved_4;
+
   u32 Hex = 0;
 
   UReg_MSR() = default;
