@@ -608,16 +608,14 @@ union UReg_HID4
   explicit UReg_HID4(u32 hex_) : Hex{hex_} {}
 };
 
-// SPR1 - Page Table format
-union UReg_SPR1
+// SDR1 - Page Table format
+union UReg_SDR1
 {
-  u32 Hex;
-  struct
-  {
-    u32 htaborg : 16;
-    u32 : 7;
-    u32 htabmask : 9;
-  };
+  BitField<0, 16, u32> htaborg;
+  BitField<16, 7, u32> reserved;
+  BitField<23, 9, u32> htabmask;
+
+  u32 Hex = 0;
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
