@@ -678,14 +678,12 @@ union UReg_DMAU
 // Direct Memory Access Lower (DMAL) register
 union UReg_DMAL
 {
-  struct
-  {
-    u32 DMA_F : 1;
-    u32 DMA_T : 1;
-    u32 DMA_LEN_L : 2;
-    u32 DMA_LD : 1;
-    u32 LC_ADDR : 27;
-  };
+  BitField<0, 1, u32> DMA_F;
+  BitField<1, 1, u32> DMA_T;
+  BitField<2, 2, u32> DMA_LEN_L;
+  BitField<4, 1, u32> DMA_LD;
+  BitField<5, 27, u32> LC_ADDR;
+
   u32 Hex = 0;
 
   UReg_DMAL() = default;
