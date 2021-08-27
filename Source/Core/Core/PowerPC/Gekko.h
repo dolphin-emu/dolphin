@@ -429,64 +429,62 @@ enum FPSCRExceptionFlag : u32
 // Floating Point Status and Control Register
 union UReg_FPSCR
 {
-  struct
-  {
-    // Rounding mode (towards: nearest, zero, +inf, -inf)
-    FPURoundMode::RoundMode RN : 2;
-    // Non-IEEE mode enable (aka flush-to-zero)
-    u32 NI : 1;
-    // Inexact exception enable
-    u32 XE : 1;
-    // IEEE division by zero exception enable
-    u32 ZE : 1;
-    // IEEE underflow exception enable
-    u32 UE : 1;
-    // IEEE overflow exception enable
-    u32 OE : 1;
-    // Invalid operation exception enable
-    u32 VE : 1;
-    // Invalid operation exception for integer conversion (sticky)
-    u32 VXCVI : 1;
-    // Invalid operation exception for square root (sticky)
-    u32 VXSQRT : 1;
-    // Invalid operation exception for software request (sticky)
-    u32 VXSOFT : 1;
-    // reserved
-    u32 : 1;
-    // Floating point result flags (includes FPCC) (not sticky)
-    // from more to less significand: class, <, >, =, ?
-    u32 FPRF : 5;
-    // Fraction inexact (not sticky)
-    u32 FI : 1;
-    // Fraction rounded (not sticky)
-    u32 FR : 1;
-    // Invalid operation exception for invalid comparison (sticky)
-    u32 VXVC : 1;
-    // Invalid operation exception for inf * 0 (sticky)
-    u32 VXIMZ : 1;
-    // Invalid operation exception for 0 / 0 (sticky)
-    u32 VXZDZ : 1;
-    // Invalid operation exception for inf / inf (sticky)
-    u32 VXIDI : 1;
-    // Invalid operation exception for inf - inf (sticky)
-    u32 VXISI : 1;
-    // Invalid operation exception for SNaN (sticky)
-    u32 VXSNAN : 1;
-    // Inexact exception (sticky)
-    u32 XX : 1;
-    // Division by zero exception (sticky)
-    u32 ZX : 1;
-    // Underflow exception (sticky)
-    u32 UX : 1;
-    // Overflow exception (sticky)
-    u32 OX : 1;
-    // Invalid operation exception summary (not sticky)
-    u32 VX : 1;
-    // Enabled exception summary (not sticky)
-    u32 FEX : 1;
-    // Exception summary (sticky)
-    u32 FX : 1;
-  };
+  // Rounding mode (towards: nearest, zero, +inf, -inf)
+  BitField<0, 2, FPURoundMode::RoundMode> RN;
+  // Non-IEEE mode enable (aka flush-to-zero)
+  BitField<2, 1, u32> NI;
+  // Inexact exception enable
+  BitField<3, 1, u32> XE;
+  // IEEE division by zero exception enable
+  BitField<4, 1, u32> ZE;
+  // IEEE underflow exception enable
+  BitField<5, 1, u32> UE;
+  // IEEE overflow exception enable
+  BitField<6, 1, u32> OE;
+  // Invalid operation exception enable
+  BitField<7, 1, u32> VE;
+  // Invalid operation exception for integer conversion (sticky)
+  BitField<8, 1, u32> VXCVI;
+  // Invalid operation exception for square root (sticky)
+  BitField<9, 1, u32> VXSQRT;
+  // Invalid operation exception for software request (sticky)
+  BitField<10, 1, u32> VXSOFT;
+  // reserved
+  BitField<11, 1, u32> reserved;
+  // Floating point result flags (includes FPCC) (not sticky)
+  // from more to less significand: class, <, >, =, ?
+  BitField<12, 5, u32> FPRF;
+  // Fraction inexact (not sticky)
+  BitField<17, 1, u32> FI;
+  // Fraction rounded (not sticky)
+  BitField<18, 1, u32> FR;
+  // Invalid operation exception for invalid comparison (sticky)
+  BitField<19, 1, u32> VXVC;
+  // Invalid operation exception for inf * 0 (sticky)
+  BitField<20, 1, u32> VXIMZ;
+  // Invalid operation exception for 0 / 0 (sticky)
+  BitField<21, 1, u32> VXZDZ;
+  // Invalid operation exception for inf / inf (sticky)
+  BitField<22, 1, u32> VXIDI;
+  // Invalid operation exception for inf - inf (sticky)
+  BitField<23, 1, u32> VXISI;
+  // Invalid operation exception for SNaN (sticky)
+  BitField<24, 1, u32> VXSNAN;
+  // Inexact exception (sticky)
+  BitField<25, 1, u32> XX;
+  // Division by zero exception (sticky)
+  BitField<26, 1, u32> ZX;
+  // Underflow exception (sticky)
+  BitField<27, 1, u32> UX;
+  // Overflow exception (sticky)
+  BitField<28, 1, u32> OX;
+  // Invalid operation exception summary (not sticky)
+  BitField<29, 1, u32> VX;
+  // Enabled exception summary (not sticky)
+  BitField<30, 1, u32> FEX;
+  // Exception summary (sticky)
+  BitField<31, 1, u32> FX;
+
   u32 Hex = 0;
 
   // The FPSCR's 20th bit (11th from a little endian perspective)
