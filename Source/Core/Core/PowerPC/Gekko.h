@@ -621,25 +621,23 @@ union UReg_SDR1
 // MMCR0 - Monitor Mode Control Register 0 format
 union UReg_MMCR0
 {
-  u32 Hex;
-  struct
-  {
-    u32 PMC2SELECT : 6;
-    u32 PMC1SELECT : 7;
-    u32 PMCTRIGGER : 1;
-    u32 PMCINTCONTROL : 1;
-    u32 PMC1INTCONTROL : 1;
-    u32 THRESHOLD : 6;
-    u32 INTONBITTRANS : 1;
-    u32 RTCSELECT : 2;
-    u32 DISCOUNT : 1;
-    u32 ENINT : 1;
-    u32 DMR : 1;
-    u32 DMS : 1;
-    u32 DU : 1;
-    u32 DP : 1;
-    u32 DIS : 1;
-  };
+  BitField<0, 6, u32> PMC2SELECT;
+  BitField<6, 7, u32> PMC1SELECT;
+  BitField<13, 1, u32> PMCTRIGGER;
+  BitField<14, 1, u32> PMCINTCONTROL;
+  BitField<15, 1, u32> PMC1INTCONTROL;
+  BitField<16, 6, u32> THRESHOLD;
+  BitField<22, 1, u32> INTONBITTRANS;
+  BitField<23, 2, u32> RTCSELECT;
+  BitField<25, 1, u32> DISCOUNT;
+  BitField<26, 1, u32> ENINT;
+  BitField<27, 1, u32> DMR;
+  BitField<28, 1, u32> DMS;
+  BitField<29, 1, u32> DU;
+  BitField<30, 1, u32> DP;
+  BitField<31, 1, u32> DIS;
+
+  u32 Hex = 0;
 };
 
 // MMCR1 - Monitor Mode Control Register 1 format
