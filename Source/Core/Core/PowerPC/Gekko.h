@@ -529,39 +529,37 @@ union UReg_FPSCR
 // Hardware Implementation-Dependent Register 0
 union UReg_HID0
 {
-  struct
-  {
-    u32 NOOPTI : 1;
-    u32 : 1;
-    u32 BHT : 1;
-    u32 ABE : 1;
-    u32 : 1;
-    u32 BTIC : 1;
-    u32 DCFA : 1;
-    u32 SGE : 1;
-    u32 IFEM : 1;
-    u32 SPD : 1;
-    u32 DCFI : 1;
-    u32 ICFI : 1;
-    u32 DLOCK : 1;
-    u32 ILOCK : 1;
-    u32 DCE : 1;
-    u32 ICE : 1;
-    u32 NHR : 1;
-    u32 : 3;
-    u32 DPM : 1;
-    u32 SLEEP : 1;
-    u32 NAP : 1;
-    u32 DOZE : 1;
-    u32 PAR : 1;
-    u32 ECLK : 1;
-    u32 : 1;
-    u32 BCLK : 1;
-    u32 EBD : 1;
-    u32 EBA : 1;
-    u32 DBP : 1;
-    u32 EMCP : 1;
-  };
+  BitField<0, 1, u32> NOOPTI;
+  BitField<1, 1, u32> reserved_1;
+  BitField<2, 1, u32> BHT;
+  BitField<3, 1, u32> ABE;
+  BitField<4, 1, u32> reserved_2;
+  BitField<5, 1, u32> BTIC;
+  BitField<6, 1, u32> DCFA;
+  BitField<7, 1, u32> SGE;
+  BitField<8, 1, u32> IFEM;
+  BitField<9, 1, u32> SPD;
+  BitField<10, 1, u32> DCFI;
+  BitField<11, 1, u32> ICFI;
+  BitField<12, 1, u32> DLOCK;
+  BitField<13, 1, u32> ILOCK;
+  BitField<14, 1, u32> DCE;
+  BitField<15, 1, u32> ICE;
+  BitField<16, 1, u32> NHR;
+  BitField<17, 3, u32> reserved_3;
+  BitField<20, 1, u32> DPM;
+  BitField<21, 1, u32> SLEEP;
+  BitField<22, 1, u32> NAP;
+  BitField<23, 1, u32> DOZE;
+  BitField<24, 1, u32> PAR;
+  BitField<25, 1, u32> ECLK;
+  BitField<26, 1, u32> reserved_4;
+  BitField<27, 1, u32> BCLK;
+  BitField<28, 1, u32> EBD;
+  BitField<29, 1, u32> EBA;
+  BitField<30, 1, u32> DBP;
+  BitField<31, 1, u32> EMCP;
+
   u32 Hex = 0;
 };
 
