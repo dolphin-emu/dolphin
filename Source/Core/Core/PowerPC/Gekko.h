@@ -653,12 +653,10 @@ union UReg_MMCR1
 // Write Pipe Address Register
 union UReg_WPAR
 {
-  struct
-  {
-    u32 BNE : 1;
-    u32 : 4;
-    u32 GB_ADDR : 27;
-  };
+  BitField<0, 1, u32> BNE;
+  BitField<1, 4, u32> reserved;
+  BitField<5, 27, u32> GB_ADDR;
+
   u32 Hex = 0;
 
   UReg_WPAR() = default;
