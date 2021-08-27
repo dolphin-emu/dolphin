@@ -566,23 +566,21 @@ union UReg_HID0
 // Hardware Implementation-Dependent Register 2
 union UReg_HID2
 {
-  struct
-  {
-    u32 : 16;
-    u32 DQOEE : 1;
-    u32 DCMEE : 1;
-    u32 DNCEE : 1;
-    u32 DCHEE : 1;
-    u32 DQOERR : 1;
-    u32 DCMERR : 1;
-    u32 DNCERR : 1;
-    u32 DCHERR : 1;
-    u32 DMAQL : 4;
-    u32 LCE : 1;
-    u32 PSE : 1;
-    u32 WPE : 1;
-    u32 LSQE : 1;
-  };
+  BitField<0, 16, u32> reserved;
+  BitField<16, 1, u32> DQOEE;
+  BitField<17, 1, u32> DCMEE;
+  BitField<18, 1, u32> DNCEE;
+  BitField<19, 1, u32> DCHEE;
+  BitField<20, 1, u32> DQOERR;
+  BitField<21, 1, u32> DCMERR;
+  BitField<22, 1, u32> DNCERR;
+  BitField<23, 1, u32> DCHERR;
+  BitField<24, 4, u32> DMAQL;
+  BitField<28, 1, u32> LCE;
+  BitField<29, 1, u32> PSE;
+  BitField<30, 1, u32> WPE;
+  BitField<31, 1, u32> LSQE;
+
   u32 Hex = 0;
 
   UReg_HID2() = default;
