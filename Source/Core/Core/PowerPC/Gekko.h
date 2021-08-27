@@ -643,13 +643,11 @@ union UReg_MMCR0
 // MMCR1 - Monitor Mode Control Register 1 format
 union UReg_MMCR1
 {
-  u32 Hex;
-  struct
-  {
-    u32 : 22;
-    u32 PMC4SELECT : 5;
-    u32 PMC3SELECT : 5;
-  };
+  BitField<0, 22, u32> reserved;
+  BitField<22, 5, u32> PMC4SELECT;
+  BitField<27, 5, u32> PMC3SELECT;
+
+  u32 Hex = 0;
 };
 
 // Write Pipe Address Register
