@@ -720,16 +720,14 @@ union UReg_BAT_Lo
 
 union UReg_THRM12
 {
-  struct
-  {
-    u32 V : 1;    // Valid
-    u32 TIE : 1;  // Thermal Interrupt Enable
-    u32 TID : 1;  // Thermal Interrupt Direction
-    u32 : 20;
-    u32 THRESHOLD : 7;  // Temperature Threshold, 0-127°C
-    u32 TIV : 1;        // Thermal Interrupt Valid
-    u32 TIN : 1;        // Thermal Interrupt
-  };
+  BitField<0, 1, u32> V;    // Valid
+  BitField<1, 1, u32> TIE;  // Thermal Interrupt Enable
+  BitField<2, 1, u32> TID;  // Thermal Interrupt Direction
+  BitField<3, 20, u32> reserved;
+  BitField<23, 7, u32> THRESHOLD;  // Temperature Threshold, 0-127°C
+  BitField<30, 1, u32> TIV;        // Thermal Interrupt Valid
+  BitField<31, 1, u32> TIN;        // Thermal Interrupt
+
   u32 Hex = 0;
 
   UReg_THRM12() = default;
