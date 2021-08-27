@@ -748,20 +748,17 @@ union UReg_THRM3
 
 union UReg_PTE
 {
-  struct
-  {
-    u64 API : 6;
-    u64 H : 1;
-    u64 VSID : 24;
-    u64 V : 1;
-    u64 PP : 2;
-    u64 : 1;
-    u64 WIMG : 4;
-    u64 C : 1;
-    u64 R : 1;
-    u64 : 3;
-    u64 RPN : 20;
-  };
+  BitField<0, 6, u64> API;
+  BitField<6, 1, u64> H;
+  BitField<7, 24, u64> VSID;
+  BitField<31, 1, u64> V;
+  BitField<32, 2, u64> PP;
+  BitField<34, 1, u64> reserved_1;
+  BitField<35, 4, u64> WIMG;
+  BitField<39, 1, u64> C;
+  BitField<40, 1, u64> R;
+  BitField<41, 3, u64> reserved_2;
+  BitField<44, 20, u64> RPN;
 
   u64 Hex = 0;
   u32 Hex32[2];
