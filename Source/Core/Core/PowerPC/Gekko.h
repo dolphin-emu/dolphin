@@ -666,11 +666,9 @@ union UReg_WPAR
 // Direct Memory Access Upper register
 union UReg_DMAU
 {
-  struct
-  {
-    u32 DMA_LEN_U : 5;
-    u32 MEM_ADDR : 27;
-  };
+  BitField<0, 5, u32> DMA_LEN_U;
+  BitField<5, 27, u32> MEM_ADDR;
+
   u32 Hex = 0;
 
   UReg_DMAU() = default;
