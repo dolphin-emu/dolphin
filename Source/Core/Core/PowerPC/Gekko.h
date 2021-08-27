@@ -706,14 +706,12 @@ union UReg_BAT_Up
 
 union UReg_BAT_Lo
 {
-  struct
-  {
-    u32 PP : 2;
-    u32 : 1;
-    u32 WIMG : 4;
-    u32 : 10;
-    u32 BRPN : 15;  // Physical Block Number
-  };
+  BitField<0, 2, u32> PP;
+  BitField<2, 1, u32> reserved_1;
+  BitField<3, 4, u32> WIMG;
+  BitField<7, 10, u32> reserved_2;
+  BitField<17, 15, u32> BRPN;  // Physical Block Number
+
   u32 Hex = 0;
 
   UReg_BAT_Lo() = default;
