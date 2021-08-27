@@ -736,12 +736,10 @@ union UReg_THRM12
 
 union UReg_THRM3
 {
-  struct
-  {
-    u32 E : 1;      // Enable
-    u32 SITV : 13;  // Sample Interval Timer Value
-    u32 : 18;
-  };
+  BitField<0, 1, u32> E;      // Enable
+  BitField<1, 13, u32> SITV;  // Sample Interval Timer Value
+  BitField<14, 18, u32> reserved;
+
   u32 Hex = 0;
 
   UReg_THRM3() = default;
