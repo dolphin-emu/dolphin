@@ -350,16 +350,14 @@ union UGQR
 // XER
 union UReg_XER
 {
-  struct
-  {
-    u32 BYTE_COUNT : 7;
-    u32 : 1;
-    u32 BYTE_CMP : 8;
-    u32 : 13;
-    u32 CA : 1;
-    u32 OV : 1;
-    u32 SO : 1;
-  };
+  BitField<0, 7, u32> BYTE_COUNT;
+  BitField<7, 1, u32> reserved_1;
+  BitField<8, 8, u32> BYTE_CMP;
+  BitField<16, 13, u32> reserved_2;
+  BitField<29, 1, u32> CA;
+  BitField<30, 1, u32> OV;
+  BitField<31, 1, u32> SO;
+
   u32 Hex = 0;
 
   UReg_XER() = default;
