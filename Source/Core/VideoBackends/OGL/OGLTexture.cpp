@@ -104,7 +104,8 @@ bool UsePersistentStagingBuffers()
 }
 }  // Anonymous namespace
 
-OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
+OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
+    : AbstractTexture(tex_config), m_name(name)
 {
   DEBUG_ASSERT_MSG(VIDEO, !tex_config.IsMultisampled() || tex_config.levels == 1,
                    "OpenGL does not support multisampled textures with mip levels");
@@ -113,6 +114,11 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_co
   glGenTextures(1, &m_texId);
   glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
   glBindTexture(target, m_texId);
+
+  if (!m_name.empty())
+  {
+    glObjectLabel(GL_TEXTURE, m_texId, -1, m_name.c_str());
+  }
 
   glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, m_config.levels - 1);
 

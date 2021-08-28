@@ -23,11 +23,20 @@
 namespace Vulkan
 {
 VKTexture::VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
-                     VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
+                     std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
                      ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
     : AbstractTexture(tex_config), m_device_memory(device_memory), m_image(image), m_layout(layout),
-      m_compute_layout(compute_layout)
+      m_compute_layout(compute_layout), m_name(name)
 {
+  if (!m_name.empty())
+  {
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+    name_info.objectHandle = reinterpret_cast<uint64_t>(image);
+    name_info.pObjectName = m_name.c_str();
+    vkSetDebugUtilsObjectNameEXT(g_vulkan_context->GetDevice(), &name_info);
+  }
 }
 
 VKTexture::~VKTexture()
@@ -43,7 +52,7 @@ VKTexture::~VKTexture()
   }
 }
 
-std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
+std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, std::string_view name)
 {
   // Determine image usage, we need to flag as an attachment if it can be used as a rendertarget.
   VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -109,8 +118,9 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
     return nullptr;
   }
 
-  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, device_memory, image, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
+  std::unique_ptr<VKTexture> texture =
+      std::make_unique<VKTexture>(tex_config, device_memory, image, name, VK_IMAGE_LAYOUT_UNDEFINED,
+                                  ComputeImageLayout::Undefined);
   if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
     return nullptr;
 
@@ -121,7 +131,7 @@ std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_con
                                                     VkImageViewType view_type, VkImageLayout layout)
 {
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, VkDeviceMemory(VK_NULL_HANDLE), image, layout, ComputeImageLayout::Undefined);
+      tex_config, VkDeviceMemory(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 
