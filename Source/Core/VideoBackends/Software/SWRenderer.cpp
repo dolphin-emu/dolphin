@@ -38,7 +38,8 @@ bool SWRenderer::IsHeadless() const
   return m_window->IsHeadless();
 }
 
-std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config,
+                                                           [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWTexture>(config);
 }
@@ -78,13 +79,15 @@ public:
 };
 
 std::unique_ptr<AbstractShader>
-SWRenderer::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source)
+SWRenderer::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source,
+                                   [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWShader>(stage);
 }
 
-std::unique_ptr<AbstractShader> SWRenderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                   const void* data, size_t length)
+std::unique_ptr<AbstractShader>
+SWRenderer::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
+                                   [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWShader>(stage);
 }

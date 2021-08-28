@@ -4,6 +4,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/GL/GLUtil.h"
@@ -17,7 +19,7 @@ namespace OGL
 class OGLTexture final : public AbstractTexture
 {
 public:
-  explicit OGLTexture(const TextureConfig& tex_config);
+  explicit OGLTexture(const TextureConfig& tex_config, std::string_view name);
   ~OGLTexture();
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
@@ -42,6 +44,7 @@ private:
                        u32 dst_layer, u32 dst_level);
 
   GLuint m_texId;
+  std::string m_name;
 };
 
 class OGLStagingTexture final : public AbstractStagingTexture

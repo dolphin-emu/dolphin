@@ -4,6 +4,7 @@
 #include "VideoBackends/D3D12/DX12Texture.h"
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/StringUtil.h"
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12Renderer.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
@@ -41,9 +42,13 @@ static ComPtr<ID3D12Resource> CreateTextureUploadBuffer(u32 buffer_size)
 }
 
 DXTexture::DXTexture(const TextureConfig& config, ID3D12Resource* resource,
-                     D3D12_RESOURCE_STATES state)
-    : AbstractTexture(config), m_resource(resource), m_state(state)
+                     D3D12_RESOURCE_STATES state, std::string_view name)
+    : AbstractTexture(config), m_resource(resource), m_state(state), m_name(UTF8ToWString(name))
 {
+  if (!m_name.empty())
+  {
+    resource->SetName(m_name.c_str());
+  }
 }
 
 DXTexture::~DXTexture()
@@ -63,7 +68,7 @@ DXTexture::~DXTexture()
     g_dx_context->DeferResourceDestruction(m_resource.Get());
 }
 
-std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config)
+std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::string_view name)
 {
   constexpr D3D12_HEAP_PROPERTIES heap_properties = {D3D12_HEAP_TYPE_DEFAULT};
   D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -113,7 +118,8 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config)
   if (FAILED(hr))
     return nullptr;
 
-  auto tex = std::unique_ptr<DXTexture>(new DXTexture(config, resource.Get(), resource_state));
+  auto tex =
+      std::unique_ptr<DXTexture>(new DXTexture(config, resource.Get(), resource_state, name));
   if (!tex->CreateSRVDescriptor() || (config.IsComputeImage() && !tex->CreateUAVDescriptor()))
     return nullptr;
 
@@ -142,7 +148,7 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ID3D12Resource* resource)
     config.flags |= AbstractTextureFlag_ComputeImage;
 
   auto tex =
-      std::unique_ptr<DXTexture>(new DXTexture(config, resource, D3D12_RESOURCE_STATE_COMMON));
+      std::unique_ptr<DXTexture>(new DXTexture(config, resource, D3D12_RESOURCE_STATE_COMMON, ""));
   if (!tex->CreateSRVDescriptor())
     return nullptr;
 
