@@ -2,34 +2,43 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D12/DX12Shader.h"
+
+#include "Common/StringUtil.h"
+
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12
 {
-DXShader::DXShader(ShaderStage stage, BinaryData bytecode)
-    : D3DCommon::Shader(stage, std::move(bytecode))
+DXShader::DXShader(ShaderStage stage, BinaryData bytecode, std::string_view name)
+    : D3DCommon::Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
 {
+  if (!m_name.empty())
+  {
+    m_compute_pipeline->SetName(m_name.c_str());
+  }
 }
 
 DXShader::~DXShader() = default;
 
-std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, BinaryData bytecode)
+std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, BinaryData bytecode,
+                                                       std::string_view name)
 {
-  std::unique_ptr<DXShader> shader(new DXShader(stage, std::move(bytecode)));
+  std::unique_ptr<DXShader> shader(new DXShader(stage, std::move(bytecode), name));
   if (stage == ShaderStage::Compute && !shader->CreateComputePipeline())
     return nullptr;
 
   return shader;
 }
 
-std::unique_ptr<DXShader> DXShader::CreateFromSource(ShaderStage stage, std::string_view source)
+std::unique_ptr<DXShader> DXShader::CreateFromSource(ShaderStage stage, std::string_view source,
+                                                     std::string_view name)
 {
   auto bytecode = CompileShader(g_dx_context->GetFeatureLevel(), stage, source);
   if (!bytecode)
     return nullptr;
 
-  return CreateFromBytecode(stage, std::move(*bytecode));
+  return CreateFromBytecode(stage, std::move(*bytecode), name);
 }
 
 D3D12_SHADER_BYTECODE DXShader::GetD3DByteCode() const
