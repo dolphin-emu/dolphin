@@ -4,6 +4,7 @@
 #include "Common/MsgHandler.h"
 
 #include <cstdarg>
+#include <cstdlib>
 #include <string>
 
 #ifdef _WIN32
@@ -51,6 +52,7 @@ std::string DefaultStringTranslator(const char* text)
 MsgAlertHandler s_msg_handler = DefaultMsgHandler;
 StringTranslator s_str_translator = DefaultStringTranslator;
 bool s_alert_enabled = true;
+bool s_abort_on_panic_alert = false;
 
 const char* GetCaption(MsgType style)
 {
@@ -94,6 +96,11 @@ void SetEnableAlert(bool enable)
   s_alert_enabled = enable;
 }
 
+void SetAbortOnPanicAlert(bool should_abort)
+{
+  s_abort_on_panic_alert = should_abort;
+}
+
 std::string GetStringT(const char* string)
 {
   return s_str_translator(string);
@@ -113,6 +120,12 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
   va_end(args);
 
   ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, buffer);
+
+  // Panic alerts.
+  if (style == MsgType::Warning && s_abort_on_panic_alert)
+  {
+    std::abort();
+  }
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
   if (s_msg_handler != nullptr &&

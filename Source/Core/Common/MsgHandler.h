@@ -49,6 +49,7 @@ bool MsgAlertFmt(bool yes_no, MsgType style, const S& format, const Args&... arg
 }
 
 void SetEnableAlert(bool enable);
+void SetAbortOnPanicAlert(bool should_abort);
 
 // Like fmt::format, except the string becomes translatable
 template <typename... Args>

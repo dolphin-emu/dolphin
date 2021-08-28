@@ -68,10 +68,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
       // Main.Interface
 
       &Config::MAIN_USE_PANIC_HANDLERS.GetLocation(),
+      &Config::MAIN_ABORT_ON_PANIC_ALERT.GetLocation(),
       &Config::MAIN_OSD_MESSAGES.GetLocation(),
-
-      // Main.Interface
-
       &Config::MAIN_SKIP_NKIT_WARNING.GetLocation(),
 
       // UI.General
