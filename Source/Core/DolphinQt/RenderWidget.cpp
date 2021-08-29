@@ -96,7 +96,6 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
-  setAttribute(Qt::WA_PaintOnScreen);
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
