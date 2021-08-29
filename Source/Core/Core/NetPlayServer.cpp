@@ -458,7 +458,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 
   // send ranked box state
   spac.clear();
-  spac << static_cast<MessageId>(NP_MSG_RESET_RANKED_BOX);
+  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
   spac << m_current_ranked_value;
   Send(player.socket, spac);
 
@@ -671,7 +671,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   }
 }
 
-void NetPlayServer::AdjustRankedBox(unsigned int is_ranked)
+void NetPlayServer::AdjustRankedBox(bool is_ranked)
 {
   m_current_ranked_value = is_ranked;
   std::lock_guard lkg(m_crit.game);
@@ -680,7 +680,7 @@ void NetPlayServer::AdjustRankedBox(unsigned int is_ranked)
   // tell clients to change ranked box
   sf::Packet spac;
   spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
-  spac << static_cast<u32>(m_current_ranked_value);
+  spac << m_current_ranked_value;
 
   SendAsyncToClients(std::move(spac));
 }

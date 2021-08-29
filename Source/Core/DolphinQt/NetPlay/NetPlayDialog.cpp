@@ -117,7 +117,6 @@ void NetPlayDialog::CreateMainLayout()
          "sorting through the database, this game will be included as a ranked game.\nThis should "
          "only be toggled for serious games as to keep our database accurate and organized.\nToggling this box will always record & sumit stats, ignoring user configurations."));
 
-
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
   m_write_save_data_action = m_data_menu->addAction(tr("Write Save Data"));
@@ -320,10 +319,7 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
-  connect(m_ranked_box, qOverload<int>(&QCheckBox::stateChanged), [this](int is_ranked) {
-    auto server = Settings::Instance().GetNetPlayServer();
-    server->AdjustRankedBox(is_ranked);
-  });
+  connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::OnRankedEnabled);
 
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
@@ -376,7 +372,7 @@ void NetPlayDialog::ConnectWidgets()
 
   // SaveSettings() - Save Hosting-Dialog Settings
 
-  connect(m_ranked_box, &QCheckBox::toggled, this, &NetPlayDialog::SaveSettings);
+  connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), this,
           &NetPlayDialog::SaveSettings);
   connect(m_write_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
@@ -416,23 +412,23 @@ void NetPlayDialog::OnChat()
   });
 }
 
-void NetPlayDialog::OnResetRankedEnabled(unsigned int is_ranked)
+void NetPlayDialog::OnRankedEnabled(bool is_ranked)
 {
-  m_ranked_box->setChecked(false);
-  DisplayMessage(tr("Ranked Mode Disabled"), "red");
-}
-
-void NetPlayDialog::OnRankedEnabled(unsigned int is_ranked)
-{
+  m_current_ranked_value = is_ranked;
   if (is_ranked != 0)
   {
     DisplayMessage(tr("Ranked Mode Enabled"), "green");
-    // m_ranked_box->setChecked(true);
+    Core::setRankedStatus(is_ranked);
   }
   else
   {
+    if (m_ranked_box->isChecked())
+    {
+      m_ranked_box->setChecked(false);
+      return;
+    }
     DisplayMessage(tr("Ranked Mode Disabled"), "red");
-   // m_ranked_box->setChecked(false);
+    Core::setRankedStatus(is_ranked);
   }
 }
 
@@ -818,6 +814,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
     m_golf_mode_action->setEnabled(enabled);
     m_fixed_delay_action->setEnabled(enabled);
+    m_ranked_box->setCheckable(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -1092,8 +1089,9 @@ void NetPlayDialog::LoadSettings()
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
   const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  const bool ranked_mode = Config::Get(Config::NETPLAY_RANKED);
 
-  m_ranked_box->setChecked(false);
+  m_ranked_box->setChecked(ranked_mode);
   m_buffer_size_box->setValue(buffer_size);
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);
@@ -1144,6 +1142,8 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
+  Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
+
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())

@@ -67,7 +67,7 @@ public:
   void AdjustPadBufferSize(unsigned int size);
   void SetHostInputAuthority(bool enable);
 
-  void AdjustRankedBox(unsigned int is_ranked);
+  void AdjustRankedBox(bool is_ranked);
 
   void KickPlayer(PlayerId player);
 

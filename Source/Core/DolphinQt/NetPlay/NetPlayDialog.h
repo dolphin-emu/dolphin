@@ -62,8 +62,7 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
-  void OnResetRankedEnabled(unsigned int is_ranked) override;
-  void OnRankedEnabled(unsigned int is_ranked) override;
+  void OnRankedEnabled(bool is_ranked) override;
 
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;
@@ -166,5 +165,5 @@ private:
   int m_player_count = 0;
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
-  int m_current_ranked_value = 0;
+  bool m_current_ranked_value = false;
 };

@@ -735,6 +735,7 @@ void SConfig::LoadDefaults()
   bAutomaticStart = false;
   bBootToPause = false;
   bRecordStats = true;
+  bSubmitStats = true;
 
 #ifdef USE_GDBSTUB
   iGDBPort = -1;

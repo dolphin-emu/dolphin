@@ -1132,4 +1132,21 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
   ControlReference::SetInputGate(focus_passes && full_focus_passes);
 }
 
+//void setRankedStatus(bool inNewStatus);
+
+void setRecordStatus(bool inNewStatus)
+{
+  //is_record = inNewStatus;
+  }
+
+void setSubmitStatus(bool inNewStatus)
+{
+  //is_submit = inNewStatus;
+}
+
+void setRankedStatus(bool inNewStatus)
+{
+  // is_ranked = inNewStatus;
+}
+
 }  // namespace Core

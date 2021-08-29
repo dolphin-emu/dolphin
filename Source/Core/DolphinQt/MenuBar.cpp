@@ -537,21 +537,23 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
 
  
-  m_record_stats = options_menu->addAction(tr("Record Stats"));
+  m_record_stats = options_menu->addAction(tr("Record Stats"), this, &Core::setRecordStatus);
   m_record_stats->setCheckable(true);
   m_record_stats->setChecked(SConfig::GetInstance().bRecordStats);
 
   connect(m_record_stats, &QAction::toggled, this,
           [](bool enable) { SConfig::GetInstance().bRecordStats = enable; });
 
+  Core::setRecordStatus(SConfig::GetInstance().bRecordStats);
 
-  m_submit_stats = options_menu->addAction(tr("Submit Stats"));
+  m_submit_stats = options_menu->addAction(tr("Submit Stats"), this, &Core::setSubmitStatus);
   m_submit_stats->setCheckable(true);
   m_submit_stats->setChecked(SConfig::GetInstance().bSubmitStats);
 
   connect(m_submit_stats, &QAction::toggled, this,
           [](bool enable) { SConfig::GetInstance().bSubmitStats = enable; });
 
+  Core::setSubmitStatus(SConfig::GetInstance().bSubmitStats);
 
   // Debugging mode only
   m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
@@ -600,6 +602,10 @@ void MenuBar::AddHelpMenu()
   QAction* projectrio = help_menu->addAction(tr("&Project Rio Website"));
   connect(projectrio, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.projectrio.online/"))); });
+  QAction* discord = help_menu->addAction(tr("&Discord"));
+  connect(discord, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.com/invite/9ZZtpuEPCd")));
+  });
 
   help_menu->addSeparator();
 
