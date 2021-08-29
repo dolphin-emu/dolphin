@@ -1439,10 +1439,12 @@ bool MainWindow::NetPlayJoin()
   const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
   const bool host_input_authority = network_mode == "hostinputauthority" || network_mode == "golf";
 
+
   if (server)
   {
     server->SetHostInputAuthority(host_input_authority);
     server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
+    server->AdjustRankedBox(Config::Get(Config::NETPLAY_RANKED));
   }
 
   // Create Client

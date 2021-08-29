@@ -321,6 +321,15 @@ void NetPlayDialog::ConnectWidgets()
 
   connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::OnRankedEnabled);
 
+  const auto ranked_thingy = [this](bool enable) {
+    if (m_current_ranked_value != enable)
+    {
+      auto server = Settings::Instance().GetNetPlayServer();
+      if (server)
+        server->AdjustRankedBox(enable);
+    }
+  };
+
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
@@ -414,7 +423,6 @@ void NetPlayDialog::OnChat()
 
 void NetPlayDialog::OnRankedEnabled(bool is_ranked)
 {
-  m_current_ranked_value = is_ranked;
   if (is_ranked != 0)
   {
     DisplayMessage(tr("Ranked Mode Enabled"), "green");
@@ -529,6 +537,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
   m_ranked_box->setHidden(!is_hosting);
+  m_ranked_box->setEnabled(is_hosting);
 
   SetOptionsEnabled(true);
 

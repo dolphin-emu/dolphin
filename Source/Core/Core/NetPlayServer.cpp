@@ -671,7 +671,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   }
 }
 
-void NetPlayServer::AdjustRankedBox(bool is_ranked)
+void NetPlayServer::AdjustRankedBox(const bool is_ranked)
 {
   m_current_ranked_value = is_ranked;
   std::lock_guard lkg(m_crit.game);

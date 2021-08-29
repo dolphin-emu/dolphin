@@ -170,7 +170,7 @@ private:
   PlayerId m_current_golfer = 1;
   PlayerId m_pending_golfer = 0;
 
-  int m_current_ranked_value = 0;
+  bool m_current_ranked_value = false;
 
   std::map<PlayerId, Client> m_players;
 
