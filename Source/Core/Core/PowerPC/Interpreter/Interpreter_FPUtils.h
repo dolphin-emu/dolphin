@@ -138,7 +138,15 @@ inline FPResult NI_div(UReg_FPSCR* fpscr, double a, double b)
 {
   FPResult result{a / b};
 
-  if (std::isnan(result.value))
+  if (std::isinf(result.value))
+  {
+    if (b == 0.0)
+    {
+      result.SetException(fpscr, FPSCR_ZX);
+      return result;
+    }
+  }
+  else if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
       result.SetException(fpscr, FPSCR_VXSNAN);
@@ -157,20 +165,9 @@ inline FPResult NI_div(UReg_FPSCR* fpscr, double a, double b)
     }
 
     if (b == 0.0)
-    {
-      if (a == 0.0)
-      {
-        result.SetException(fpscr, FPSCR_VXZDZ);
-      }
-      else
-      {
-        result.SetException(fpscr, FPSCR_ZX);
-      }
-    }
+      result.SetException(fpscr, FPSCR_VXZDZ);
     else if (std::isinf(a) && std::isinf(b))
-    {
       result.SetException(fpscr, FPSCR_VXIDI);
-    }
 
     result.value = PPC_NAN;
     return result;
