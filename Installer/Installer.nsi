@@ -107,7 +107,7 @@ SetCompressor /SOLID lzma
 
 Name "${PRODUCT_NAME}"
 !define UN_NAME "Uninstall $(^Name)"
-OutFile "ProjectRioInstaller.exe"
+OutFile "Project Rio Installer.exe"
 InstallDir "${BASE_INSTALL_DIR}\$(^Name)"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -135,7 +135,7 @@ Section "Base" SEC01
   RMDir /r "$INSTDIR\Sys"
   RMDir /r "$INSTDIR\Languages"
 
-  File "${BASE_DIR}\ProjectRio.exe"
+  File "${BASE_DIR}\Project Rio.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
   File "${BASE_DIR}\DSPTool.exe"
