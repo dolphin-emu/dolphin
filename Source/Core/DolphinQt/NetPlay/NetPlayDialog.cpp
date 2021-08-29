@@ -319,16 +319,17 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
-  connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::OnRankedEnabled);
+  //connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::OnRankedEnabled);
 
-  const auto ranked_thingy = [this](bool enable) {
-    if (m_current_ranked_value != enable)
-    {
-      auto server = Settings::Instance().GetNetPlayServer();
-      if (server)
-        server->AdjustRankedBox(enable);
-    }
-  };
+  connect(m_ranked_box, &QCheckBox::stateChanged, [this](bool is_ranked) {
+    auto client = Settings::Instance().GetNetPlayClient();
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->AdjustRankedBox(is_ranked);
+    else
+      client->AdjustRankedBox(is_ranked);
+  });
+
 
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
@@ -430,21 +431,15 @@ void NetPlayDialog::OnRankedEnabled(bool is_ranked)
   }
   else
   {
-    if (m_ranked_box->isChecked())
-    {
-      m_ranked_box->setChecked(false);
-      return;
-    }
     DisplayMessage(tr("Ranked Mode Disabled"), "red");
     Core::setRankedStatus(is_ranked);
   }
 }
 
-
 void NetPlayDialog::OnIndexAdded(bool success, const std::string error)
 {
-  DisplayMessage(success ? tr("Successfully added to the NetPlay index") :
-                           tr("Failed to add this session to the NetPlay index: %1")
+  DisplayMessage(success ? tr("Success: Session can now be joined.") :
+                           tr("Failed to host session. Check your internet connection: %1")
                                .arg(QString::fromStdString(error)),
                  success ? "green" : "red");
 }
