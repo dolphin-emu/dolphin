@@ -111,9 +111,9 @@ void Interpreter::Shutdown()
 {
 }
 
-static int startTrace = 0;
+static bool s_start_trace = false;
 
-static void Trace(UGeckoInstruction& inst)
+static void Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
   for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
@@ -166,12 +166,12 @@ int Interpreter::SingleStepInner()
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
   // Uncomment to trace the interpreter
-  // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
-  //	startTrace = 1;
+  // if ((PC & 0x00FFFFFF) >= 0x000AB54C && (PC & 0x00FFFFFF) <= 0x000AB624)
+  //   s_start_trace = true;
   // else
-  //	startTrace = 0;
+  //   s_start_trace = false;
 
-  if (startTrace)
+  if (s_start_trace)
   {
     Trace(m_prev_inst);
   }
@@ -186,7 +186,7 @@ int Interpreter::SingleStepInner()
     else if (MSR.FP)
     {
       m_op_table[m_prev_inst.OPCD](m_prev_inst);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+      if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
       }
@@ -202,7 +202,7 @@ int Interpreter::SingleStepInner()
       else
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
-        if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+        if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
         }
@@ -234,7 +234,7 @@ void Interpreter::SingleStep()
   CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
-  if (PowerPC::ppcState.Exceptions)
+  if (PowerPC::ppcState.Exceptions != 0)
   {
     PowerPC::CheckExceptions();
     PC = NPC;
@@ -243,10 +243,10 @@ void Interpreter::SingleStep()
 
 //#define SHOW_HISTORY
 #ifdef SHOW_HISTORY
-std::vector<int> PCVec;
-std::vector<int> PCBlockVec;
-int ShowBlocks = 30;
-int ShowSteps = 300;
+static std::vector<u32> s_pc_vec;
+static std::vector<u32> s_pc_block_vec;
+constexpr u32 s_show_blocks = 30;
+constexpr u32 s_show_steps = 300;
 #endif
 
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
@@ -263,9 +263,9 @@ void Interpreter::Run()
     if (SConfig::GetInstance().bEnableDebugging)
     {
 #ifdef SHOW_HISTORY
-      PCBlockVec.push_back(PC);
-      if (PCBlockVec.size() > ShowBlocks)
-        PCBlockVec.erase(PCBlockVec.begin());
+      s_pc_block_vec.push_back(PC);
+      if (s_pc_block_vec.size() > s_show_blocks)
+        s_pc_block_vec.erase(s_pc_block_vec.begin());
 #endif
 
       // Debugging friendly version of inner loop. Tries to do the timing as similarly to the
@@ -277,9 +277,9 @@ void Interpreter::Run()
         for (i = 0; !m_end_block; i++)
         {
 #ifdef SHOW_HISTORY
-          PCVec.push_back(PC);
-          if (PCVec.size() > ShowSteps)
-            PCVec.erase(PCVec.begin());
+          s_pc_vec.push_back(PC);
+          if (s_pc_vec.size() > s_show_steps)
+            s_pc_vec.erase(s_pc_vec.begin());
 #endif
 
           // 2: check for breakpoint
@@ -288,20 +288,20 @@ void Interpreter::Run()
 #ifdef SHOW_HISTORY
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
             NOTICE_LOG_FMT(POWERPC, "Blocks:");
-            for (const int entry : PCBlockVec)
+            for (const u32 entry : s_pc_block_vec)
               NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", entry);
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
             NOTICE_LOG_FMT(POWERPC, "Steps:");
-            for (size_t j = 0; j < PCVec.size(); j++)
+            for (size_t j = 0; j < s_pc_vec.size(); j++)
             {
               // Write space
               if (j > 0)
               {
-                if (PCVec[j] != PCVec[(j - 1) + 4]
+                if (s_pc_vec[j] != s_pc_vec[(j - 1) + 4]
                   NOTICE_LOG_FMT(POWERPC, "");
               }
 
-              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", PCVec[j]);
+              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", s_pc_vec[j]);
             }
 #endif
             INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
