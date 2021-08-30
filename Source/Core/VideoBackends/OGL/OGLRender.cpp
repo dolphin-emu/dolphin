@@ -486,17 +486,14 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
   if (m_main_gl_context->IsGLES())
   {
-    g_ogl_config.SupportedESPointSize =
-        GLExtensions::Supports("GL_OES_geometry_point_size") ?
-            1 :
-            GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 : 0;
-    g_ogl_config.SupportedESTextureBuffer = GLExtensions::Supports("VERSION_GLES_3_2") ?
-                                                EsTexbufType::TexbufCore :
-                                                GLExtensions::Supports("GL_OES_texture_buffer") ?
-                                                EsTexbufType::TexbufOes :
-                                                GLExtensions::Supports("GL_EXT_texture_buffer") ?
-                                                EsTexbufType::TexbufExt :
-                                                EsTexbufType::TexbufNone;
+    g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 :
+                                        GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 :
+                                                                                               0;
+    g_ogl_config.SupportedESTextureBuffer =
+        GLExtensions::Supports("VERSION_GLES_3_2")      ? EsTexbufType::TexbufCore :
+        GLExtensions::Supports("GL_OES_texture_buffer") ? EsTexbufType::TexbufOes :
+        GLExtensions::Supports("GL_EXT_texture_buffer") ? EsTexbufType::TexbufExt :
+                                                          EsTexbufType::TexbufNone;
 
     supports_glsl_cache = true;
     g_ogl_config.bSupportsGLSync = true;
