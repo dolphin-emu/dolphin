@@ -11,6 +11,9 @@
 
 #pragma once
 
+#include <array>
+#include <optional>
+
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
@@ -90,17 +93,17 @@ protected:
   int m_samples_auxB_surround[32 * 5];
 
   u16 m_cmdlist[512];
-  u32 m_cmdlist_size;
+  u32 m_cmdlist_size = 0;
 
   // Table of coefficients for polyphase sample rate conversion.
   // The coefficients aren't always available (they are part of the DSP DROM)
   // so we also need to know if they are valid or not.
-  bool m_coeffs_available;
-  s16 m_coeffs[0x800];
+  std::optional<u32> m_coeffs_checksum = std::nullopt;
+  std::array<s16, 0x800> m_coeffs;
 
-  u16 m_compressor_pos;
+  u16 m_compressor_pos = 0;
 
-  void LoadResamplingCoefficients();
+  bool LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum);
 
   // Copy a command list from memory to our temp buffer
   void CopyCmdList(u32 addr, u16 size);
