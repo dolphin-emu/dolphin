@@ -226,7 +226,7 @@ void Interpreter::fcmpu(UGeckoInstruction inst)
 
 void Interpreter::fctiwx(UGeckoInstruction inst)
 {
-  ConvertToInteger(inst, static_cast<RoundingMode>(FPSCR.RN));
+  ConvertToInteger(inst, static_cast<RoundingMode>(FPSCR.RN.Value()));
 }
 
 void Interpreter::fctiwzx(UGeckoInstruction inst)
