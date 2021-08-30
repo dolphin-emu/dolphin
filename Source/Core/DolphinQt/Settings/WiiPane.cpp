@@ -179,7 +179,7 @@ void WiiPane::CreateWiiRemoteSettings()
   auto* wii_remote_settings_group_layout = new QGridLayout();
   wii_remote_settings_group->setLayout(wii_remote_settings_group_layout);
   m_main_layout->addWidget(wii_remote_settings_group);
-  m_wiimote_motor = new QCheckBox(tr("Wii Remote Rumble"));
+  m_wiimote_motor = new QCheckBox(tr("Enable Rumble"));
 
   m_wiimote_sensor_position_label = new QLabel(tr("Sensor Bar Position:"));
   m_wiimote_ir_sensor_position = new QComboBox();
