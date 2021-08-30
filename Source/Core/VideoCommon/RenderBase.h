@@ -93,7 +93,8 @@ public:
   virtual bool IsFullscreen() const { return false; }
   virtual void BeginUtilityDrawing();
   virtual void EndUtilityDrawing();
-  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                         std::string_view name = "") = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
@@ -125,9 +126,11 @@ public:
 
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source) = 0;
-  virtual std::unique_ptr<AbstractShader>
-  CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
+                                                                 std::string_view source,
+                                                                 std::string_view name = "") = 0;
+  virtual std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage,
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name = "") = 0;
   virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
   virtual std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,

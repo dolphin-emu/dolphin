@@ -52,9 +52,10 @@ bool Renderer::IsHeadless() const
   return !m_swap_chain;
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         std::string_view name)
 {
-  return DXTexture::Create(config);
+  return DXTexture::Create(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
@@ -70,20 +71,21 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
                                static_cast<DXTexture*>(depth_attachment));
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
   auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
   if (!bytecode)
     return nullptr;
 
-  return DXShader::CreateFromBytecode(stage, std::move(*bytecode));
+  return DXShader::CreateFromBytecode(stage, std::move(*bytecode), name);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name)
 {
-  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length));
+  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
 
 std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
