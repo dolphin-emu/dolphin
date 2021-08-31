@@ -247,14 +247,10 @@ static void UpdateInterrupts()
     s_com_csr.RDSTINT = 0;
 
   // check if we have to generate an interrupt
-  if ((s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) || (s_com_csr.TCINT & s_com_csr.TCINTMSK))
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
-  }
-  else
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, false);
-  }
+  const bool generate_interrupt = (s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) != 0 ||
+                                  (s_com_csr.TCINT & s_com_csr.TCINTMSK) != 0;
+
+  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, generate_interrupt);
 }
 
 static void GenerateSIInterrupt(SIInterruptType type)
