@@ -489,28 +489,28 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   // In and out for the 4 SI channels.
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (u32 i = 0; i < u32(MAX_SI_CHANNELS); ++i)
   {
     // We need to clear the RDST bit for the SI channel when reading.
     // CH0 -> Bit 24 + 5
     // CH1 -> Bit 16 + 5
     // CH2 -> Bit 8 + 5
     // CH3 -> Bit 0 + 5
-    int rdst_bit = 8 * (3 - i) + 5;
+    const u32 rdst_bit = 8 * (3 - i) + 5;
 
     mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
                    MMIO::DirectRead<u32>(&s_channel[i].out.hex),
                    MMIO::DirectWrite<u32>(&s_channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     s_status_reg.hex &= ~(1 << rdst_bit);
+                     s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
                      return s_channel[i].in_hi.hex;
                    }),
                    MMIO::DirectWrite<u32>(&s_channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     s_status_reg.hex &= ~(1 << rdst_bit);
+                     s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
                      return s_channel[i].in_lo.hex;
                    }),
