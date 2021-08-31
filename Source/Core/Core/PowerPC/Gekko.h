@@ -770,24 +770,6 @@ union UReg_THRM3
   explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
 };
 
-union UReg_PTE
-{
-  BitField<0, 6, u64> API;
-  BitField<6, 1, u64> H;
-  BitField<7, 24, u64> VSID;
-  BitField<31, 1, u64> V;
-  BitField<32, 2, u64> PP;
-  BitField<34, 1, u64> reserved_1;
-  BitField<35, 4, u64> WIMG;
-  BitField<39, 1, u64> C;
-  BitField<40, 1, u64> R;
-  BitField<41, 3, u64> reserved_2;
-  BitField<44, 20, u64> RPN;
-
-  u64 Hex = 0;
-  u32 Hex32[2];
-};
-
 union UPTE_Lo
 {
   BitField<0, 6, u32> API;
