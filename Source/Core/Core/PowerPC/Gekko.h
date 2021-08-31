@@ -611,11 +611,14 @@ union UReg_HID4
 // SDR1 - Page Table format
 union UReg_SDR1
 {
-  BitField<0, 16, u32> htaborg;
-  BitField<16, 7, u32> reserved;
-  BitField<23, 9, u32> htabmask;
+  BitField<0, 9, u32> htabmask;
+  BitField<9, 7, u32> reserved;
+  BitField<16, 16, u32> htaborg;
 
   u32 Hex = 0;
+
+  UReg_SDR1() = default;
+  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format

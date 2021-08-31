@@ -1199,7 +1199,9 @@ static void GenerateISIException(u32 effective_address)
 
 void SDRUpdated()
 {
-  u32 htabmask = SDR1_HTABMASK(PowerPC::ppcState.spr[SPR_SDR]);
+  const auto sdr = UReg_SDR1{ppcState.spr[SPR_SDR]};
+  const u32 htabmask = sdr.htabmask;
+
   if (!Common::IsValidLowMask(htabmask))
     WARN_LOG_FMT(POWERPC, "Invalid HTABMASK: 0b{:032b}", htabmask);
 
@@ -1207,12 +1209,12 @@ void SDRUpdated()
   // must be equal to the number of trailing ones in the mask (i.e. HTABORG must be
   // properly aligned), this is actually not a hard requirement. Real hardware will just OR
   // the base address anyway. Ignoring SDR changes would lead to incorrect emulation.
-  u32 htaborg = SDR1_HTABORG(PowerPC::ppcState.spr[SPR_SDR]);
-  if (htaborg & htabmask)
+  const u32 htaborg = sdr.htaborg;
+  if ((htaborg & htabmask) != 0)
     WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
 
-  PowerPC::ppcState.pagetable_base = htaborg << 16;
-  PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
+  ppcState.pagetable_base = htaborg << 16;
+  ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
 
 enum class TLBLookupResult
