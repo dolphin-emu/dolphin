@@ -179,7 +179,6 @@
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />
-    <ClCompile Include="Settings\BroadbandAdapterSettingsDialog.cpp" />
     <ClCompile Include="Settings\GameCubePane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
@@ -347,7 +346,6 @@
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\AudioPane.h" />
-    <QtMoc Include="Settings\BroadbandAdapterSettingsDialog.h" />
     <QtMoc Include="Settings\GameCubePane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
