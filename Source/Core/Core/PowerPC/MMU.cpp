@@ -499,7 +499,7 @@ TryReadResult<u32> HostTryReadInstruction(const u32 address, RequestedAddressSpa
   return TryReadResult<u32>();
 }
 
-static void Memcheck(u32 address, u32 var, bool write, size_t size)
+static void Memcheck(u32 address, u64 var, bool write, size_t size)
 {
   if (!memchecks.HasAny())
     return;
@@ -556,7 +556,7 @@ u32 Read_U32(const u32 address)
 u64 Read_U64(const u32 address)
 {
   u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
-  Memcheck(address, (u32)var, false, 8);
+  Memcheck(address, var, false, 8);
   return var;
 }
 
@@ -679,7 +679,7 @@ void Write_U32_Swap(const u32 var, const u32 address)
 
 void Write_U64(const u64 var, const u32 address)
 {
-  Memcheck(address, (u32)var, true, 8);
+  Memcheck(address, var, true, 8);
   WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
   WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
 }
