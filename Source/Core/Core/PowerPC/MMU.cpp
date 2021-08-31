@@ -1295,13 +1295,8 @@ void InvalidateTLBEntry(u32 address)
 {
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
-  TLBEntry& tlbe = ppcState.tlb[0][entry_index];
-  tlbe.tag[0] = TLBEntry::INVALID_TAG;
-  tlbe.tag[1] = TLBEntry::INVALID_TAG;
-
-  TLBEntry& tlbe_i = ppcState.tlb[1][entry_index];
-  tlbe_i.tag[0] = TLBEntry::INVALID_TAG;
-  tlbe_i.tag[1] = TLBEntry::INVALID_TAG;
+  ppcState.tlb[0][entry_index].Invalidate();
+  ppcState.tlb[1][entry_index].Invalidate();
 }
 
 // Page Address Translation
