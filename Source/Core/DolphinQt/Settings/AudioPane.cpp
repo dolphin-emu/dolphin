@@ -87,9 +87,8 @@ void AudioPane::CreateWidgets()
     m_latency_spin = new QSpinBox();
     m_latency_spin->setMinimum(0);
     m_latency_spin->setMaximum(200);
-    m_latency_spin->setToolTip(
-        tr("Sets the latency in milliseconds. Higher values may reduce audio "
-           "crackling. Certain backends only."));
+    m_latency_spin->setToolTip(tr("Sets the latency (in ms). Higher values may reduce audio "
+                                  "crackling. Certain backends only."));
   }
 
   m_dolby_pro_logic->setToolTip(
@@ -402,7 +401,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
 void AudioPane::OnVolumeChanged(int volume)
 {
   m_volume_slider->setValue(volume);
-  m_volume_indicator->setText(tr("%1%").arg(volume));
+  m_volume_indicator->setText(tr("%1 %").arg(volume));
 }
 
 void AudioPane::CheckNeedForLatencyControl()
@@ -432,13 +431,13 @@ QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value
   switch (value)
   {
   case AudioCommon::DPL2Quality::Lowest:
-    return tr("Latency: ~10 ms");
+    return tr("Latency: ~10ms");
   case AudioCommon::DPL2Quality::Low:
-    return tr("Latency: ~20 ms");
+    return tr("Latency: ~20ms");
   case AudioCommon::DPL2Quality::Highest:
-    return tr("Latency: ~80 ms");
+    return tr("Latency: ~80ms");
   default:
-    return tr("Latency: ~40 ms");
+    return tr("Latency: ~40ms");
   }
 }
 
