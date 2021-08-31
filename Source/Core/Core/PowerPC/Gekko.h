@@ -764,6 +764,35 @@ union UReg_PTE
   u32 Hex32[2];
 };
 
+union UPTE_Lo
+{
+  BitField<0, 6, u32> API;
+  BitField<6, 1, u32> H;
+  BitField<7, 24, u32> VSID;
+  BitField<31, 1, u32> V;
+
+  u32 Hex = 0;
+
+  UPTE_Lo() = default;
+  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
+};
+
+union UPTE_Hi
+{
+  BitField<0, 2, u32> PP;
+  BitField<2, 1, u32> reserved_1;
+  BitField<3, 4, u32> WIMG;
+  BitField<7, 1, u32> C;
+  BitField<8, 1, u32> R;
+  BitField<9, 3, u32> reserved_2;
+  BitField<12, 20, u32> RPN;
+
+  u32 Hex = 0;
+
+  UPTE_Hi() = default;
+  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
+};
+
 //
 // --- Gekko Types and Defs ---
 //

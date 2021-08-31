@@ -1168,36 +1168,6 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 #define PTE2_WIMG(v) (((v) >> 3) & 0xf)
 #define PTE2_PP(v) ((v)&3)
 
-// Hey! these duplicate a structure in Gekko.h
-union UPTE1
-{
-  BitField<0, 6, u32> API;
-  BitField<6, 1, u32> H;
-  BitField<7, 24, u32> VSID;
-  BitField<31, 1, u32> V;
-
-  u32 Hex = 0;
-
-  UPTE1() = default;
-  explicit UPTE1(u32 hex_) : Hex{hex_} {}
-};
-
-union UPTE2
-{
-  BitField<0, 2, u32> PP;
-  BitField<2, 1, u32> reserved_1;
-  BitField<3, 4, u32> WIMG;
-  BitField<7, 1, u32> C;
-  BitField<8, 1, u32> R;
-  BitField<9, 3, u32> reserved_2;
-  BitField<12, 20, u32> RPN;
-
-  u32 Hex = 0;
-
-  UPTE2() = default;
-  explicit UPTE2(u32 hex_) : Hex{hex_} {}
-};
-
 static void GenerateDSIException(u32 effective_address, bool write)
 {
   // DSI exceptions are only supported in MMU mode.
@@ -1260,15 +1230,15 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
   if (tlbe.tag[0] == tag)
   {
-    UPTE2 PTE2(tlbe.pte[0]);
+    UPTE_Hi pte2(tlbe.pte[0]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (PTE2.C == 0)
+      if (pte2.C == 0)
       {
-        PTE2.C = 1;
-        tlbe.pte[0] = PTE2.Hex;
+        pte2.C = 1;
+        tlbe.pte[0] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1277,21 +1247,21 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 0;
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
-    *wi = (PTE2.WIMG & 0b1100) != 0;
+    *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
-    UPTE2 PTE2(tlbe.pte[1]);
+    UPTE_Hi pte2(tlbe.pte[1]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (PTE2.C == 0)
+      if (pte2.C == 0)
       {
-        PTE2.C = 1;
-        tlbe.pte[1] = PTE2.Hex;
+        pte2.C = 1;
+        tlbe.pte[1] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1300,14 +1270,14 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 1;
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
-    *wi = (PTE2.WIMG & 0b1100) != 0;
+    *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
   return TLBLookupResult::NotFound;
 }
 
-static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
+static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE_Hi pte2, const u32 address)
 {
   if (IsNoExceptionFlag(flag))
     return;
@@ -1316,8 +1286,8 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 addre
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
   const int index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
-  tlbe.paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe.pte[index] = PTE2.Hex;
+  tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
+  tlbe.pte[index] = pte2.Hex;
   tlbe.tag[index] = tag;
 }
 
@@ -1388,7 +1358,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
       if (pte1 == pteg)
       {
-        UPTE2 PTE2(Memory::Read_U32(pteg_addr + 4));
+        UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
@@ -1397,30 +1367,30 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         case XCheckTLBFlag::OpcodeNoException:
           break;
         case XCheckTLBFlag::Read:
-          PTE2.R = 1;
+          pte2.R = 1;
           break;
         case XCheckTLBFlag::Write:
-          PTE2.R = 1;
-          PTE2.C = 1;
+          pte2.R = 1;
+          pte2.C = 1;
           break;
         case XCheckTLBFlag::Opcode:
-          PTE2.R = 1;
+          pte2.R = 1;
           break;
         }
 
         if (!IsNoExceptionFlag(flag))
         {
-          Memory::Write_U32(PTE2.Hex, pteg_addr + 4);
+          Memory::Write_U32(pte2.Hex, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
-          UpdateTLBEntry(flag, PTE2, address);
+          UpdateTLBEntry(flag, pte2, address);
 
-        *wi = (PTE2.WIMG & 0b1100) != 0;
+        *wi = (pte2.WIMG & 0b1100) != 0;
 
         return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                      (PTE2.RPN << 12) | offset};
+                                      (pte2.RPN << 12) | offset};
       }
     }
   }
