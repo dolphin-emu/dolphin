@@ -1282,9 +1282,9 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE_Hi pte2, const u32 add
   if (IsNoExceptionFlag(flag))
     return;
 
-  const int tag = address >> HW_PAGE_INDEX_SHIFT;
+  const u32 tag = address >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  const int index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
+  const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
   tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
   tlbe.pte[index] = pte2.Hex;

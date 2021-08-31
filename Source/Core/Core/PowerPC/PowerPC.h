@@ -54,7 +54,7 @@ struct TLBEntry
   u32 tag[TLB_WAYS] = {INVALID_TAG, INVALID_TAG};
   u32 paddr[TLB_WAYS] = {};
   u32 pte[TLB_WAYS] = {};
-  u8 recent = 0;
+  u32 recent = 0;
 };
 
 struct PairedSingle
