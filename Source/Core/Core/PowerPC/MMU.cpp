@@ -501,32 +501,35 @@ TryReadResult<u32> HostTryReadInstruction(const u32 address, RequestedAddressSpa
 
 static void Memcheck(u32 address, u32 var, bool write, size_t size)
 {
-  if (PowerPC::memchecks.HasAny())
+  if (!memchecks.HasAny())
+    return;
+
+  TMemCheck* mc = memchecks.GetMemCheck(address, size);
+  if (mc == nullptr)
+    return;
+
+  if (CPU::IsStepping())
   {
-    TMemCheck* mc = PowerPC::memchecks.GetMemCheck(address, size);
-    if (mc)
-    {
-      if (CPU::IsStepping())
-      {
-        // Disable when stepping so that resume works.
-        return;
-      }
-      mc->num_hits++;
-      bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
-      if (pause)
-      {
-        CPU::Break();
-        // Fake a DSI so that all the code that tests for it in order to skip
-        // the rest of the instruction will apply.  (This means that
-        // watchpoints will stop the emulator before the offending load/store,
-        // not after like GDB does, but that's better anyway.  Just need to
-        // make sure resuming after that works.)
-        // It doesn't matter if ReadFromHardware triggers its own DSI because
-        // we'll take it after resuming.
-        PowerPC::ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
-      }
-    }
+    // Disable when stepping so that resume works.
+    return;
   }
+
+  mc->num_hits++;
+
+  const bool pause = mc->Action(&debug_interface, var, address, write, size, PC);
+  if (!pause)
+    return;
+
+  CPU::Break();
+
+  // Fake a DSI so that all the code that tests for it in order to skip
+  // the rest of the instruction will apply.  (This means that
+  // watchpoints will stop the emulator before the offending load/store,
+  // not after like GDB does, but that's better anyway.  Just need to
+  // make sure resuming after that works.)
+  // It doesn't matter if ReadFromHardware triggers its own DSI because
+  // we'll take it after resuming.
+  ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
 }
 
 u8 Read_U8(const u32 address)
