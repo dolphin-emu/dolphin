@@ -1308,34 +1308,39 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
   // benefit much from optimization.
-  u32 translatedAddress = 0;
-  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress, wi);
+  u32 translated_address = 0;
+  const TLBLookupResult res = LookupTLBPageAddress(flag, address, &translated_address, wi);
   if (res == TLBLookupResult::Found)
+  {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                  translatedAddress};
+                                  translated_address};
+  }
 
-  u32 sr = PowerPC::ppcState.sr[EA_SR(address)];
+  const auto sr = UReg_SR{ppcState.sr[EA_SR(address)]};
 
-  if (sr & 0x80000000)
+  if (sr.T != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
 
   // TODO: Handle KS/KP segment register flags.
 
   // No-execute segment register flag.
-  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) &&
-      (sr & 0x10000000))
+  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N != 0)
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
   }
 
-  u32 offset = EA_Offset(address);         // 12 bit
-  u32 page_index = EA_PageIndex(address);  // 16 bit
-  u32 VSID = SR_VSID(sr);                  // 24 bit
-  u32 api = EA_API(address);               //  6 bit (part of page_index)
+  const u32 offset = EA_Offset(address);         // 12 bit
+  const u32 page_index = EA_PageIndex(address);  // 16 bit
+  const u32 VSID = sr.VSID;                      // 24 bit
+  const u32 api = EA_API(address);               //  6 bit (part of page_index)
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
-  u32 pte1 = (VSID << 7) | api | PTE1_V;
+
+  UPTE_Lo pte1;
+  pte1.VSID = VSID;
+  pte1.API = api;
+  pte1.V = 1;
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1343,7 +1348,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
     if (hash_func == 1)
     {
       hash = ~hash;
-      pte1 |= PTE1_H;
+      pte1.H = 1;
     }
 
     u32 pteg_addr =
@@ -1353,7 +1358,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
     {
       const u32 pteg = Memory::Read_U32(pteg_addr);
 
-      if (pte1 == pteg)
+      if (pte1.Hex == pteg)
       {
         UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
 
