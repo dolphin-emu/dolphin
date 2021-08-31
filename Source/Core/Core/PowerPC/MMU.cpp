@@ -1171,29 +1171,31 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 // Hey! these duplicate a structure in Gekko.h
 union UPTE1
 {
-  struct
-  {
-    u32 API : 6;
-    u32 H : 1;
-    u32 VSID : 24;
-    u32 V : 1;
-  };
-  u32 Hex;
+  BitField<0, 6, u32> API;
+  BitField<6, 1, u32> H;
+  BitField<7, 24, u32> VSID;
+  BitField<31, 1, u32> V;
+
+  u32 Hex = 0;
+
+  UPTE1() = default;
+  explicit UPTE1(u32 hex_) : Hex{hex_} {}
 };
 
 union UPTE2
 {
-  struct
-  {
-    u32 PP : 2;
-    u32 : 1;
-    u32 WIMG : 4;
-    u32 C : 1;
-    u32 R : 1;
-    u32 : 3;
-    u32 RPN : 20;
-  };
-  u32 Hex;
+  BitField<0, 2, u32> PP;
+  BitField<2, 1, u32> reserved_1;
+  BitField<3, 4, u32> WIMG;
+  BitField<7, 1, u32> C;
+  BitField<8, 1, u32> R;
+  BitField<9, 3, u32> reserved_2;
+  BitField<12, 20, u32> RPN;
+
+  u32 Hex = 0;
+
+  UPTE2() = default;
+  explicit UPTE2(u32 hex_) : Hex{hex_} {}
 };
 
 static void GenerateDSIException(u32 effective_address, bool write)
@@ -1258,8 +1260,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
   if (tlbe.tag[0] == tag)
   {
-    UPTE2 PTE2;
-    PTE2.Hex = tlbe.pte[0];
+    UPTE2 PTE2(tlbe.pte[0]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1282,8 +1283,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
   }
   if (tlbe.tag[1] == tag)
   {
-    UPTE2 PTE2;
-    PTE2.Hex = tlbe.pte[1];
+    UPTE2 PTE2(tlbe.pte[1]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1388,8 +1388,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
       if (pte1 == pteg)
       {
-        UPTE2 PTE2;
-        PTE2.Hex = Memory::Read_U32(pteg_addr + 4);
+        UPTE2 PTE2(Memory::Read_U32(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
