@@ -611,11 +611,14 @@ union UReg_HID4
 // SDR1 - Page Table format
 union UReg_SDR1
 {
-  BitField<0, 16, u32> htaborg;
-  BitField<16, 7, u32> reserved;
-  BitField<23, 9, u32> htabmask;
+  BitField<0, 9, u32> htabmask;
+  BitField<9, 7, u32> reserved;
+  BitField<16, 16, u32> htaborg;
 
   u32 Hex = 0;
+
+  UReg_SDR1() = default;
+  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
@@ -718,6 +721,27 @@ union UReg_BAT_Lo
   explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
+// Segment register
+union UReg_SR
+{
+  BitField<0, 24, u32> VSID;      // Virtual segment ID
+  BitField<24, 4, u32> reserved;  // Reserved
+  BitField<28, 1, u32> N;         // No-execute protection
+  BitField<29, 1, u32> Kp;        // User-state protection
+  BitField<30, 1, u32> Ks;        // Supervisor-state protection
+  BitField<31, 1, u32> T;         // Segment register format selector
+
+  // These override other fields if T = 1
+
+  BitField<0, 20, u32> CNTLR_SPEC;  // Device-specific data for I/O controller
+  BitField<20, 9, u32> BUID;        // Bus unit ID
+
+  u32 Hex = 0;
+
+  UReg_SR() = default;
+  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
+};
+
 union UReg_THRM12
 {
   BitField<0, 1, u32> V;    // Valid
@@ -746,22 +770,33 @@ union UReg_THRM3
   explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
 };
 
-union UReg_PTE
+union UPTE_Lo
 {
-  BitField<0, 6, u64> API;
-  BitField<6, 1, u64> H;
-  BitField<7, 24, u64> VSID;
-  BitField<31, 1, u64> V;
-  BitField<32, 2, u64> PP;
-  BitField<34, 1, u64> reserved_1;
-  BitField<35, 4, u64> WIMG;
-  BitField<39, 1, u64> C;
-  BitField<40, 1, u64> R;
-  BitField<41, 3, u64> reserved_2;
-  BitField<44, 20, u64> RPN;
+  BitField<0, 6, u32> API;
+  BitField<6, 1, u32> H;
+  BitField<7, 24, u32> VSID;
+  BitField<31, 1, u32> V;
 
-  u64 Hex = 0;
-  u32 Hex32[2];
+  u32 Hex = 0;
+
+  UPTE_Lo() = default;
+  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
+};
+
+union UPTE_Hi
+{
+  BitField<0, 2, u32> PP;
+  BitField<2, 1, u32> reserved_1;
+  BitField<3, 4, u32> WIMG;
+  BitField<7, 1, u32> C;
+  BitField<8, 1, u32> R;
+  BitField<9, 3, u32> reserved_2;
+  BitField<12, 20, u32> RPN;
+
+  u32 Hex = 0;
+
+  UPTE_Hi() = default;
+  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
 };
 
 //

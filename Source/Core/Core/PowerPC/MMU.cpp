@@ -1137,68 +1137,6 @@ TranslateResult JitCache_TranslateAddress(u32 address)
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define PPC_EXC_DSISR_PAGE (1 << 30)
-#define PPC_EXC_DSISR_PROT (1 << 27)
-#define PPC_EXC_DSISR_STORE (1 << 25)
-
-#define SDR1_HTABORG(v) (((v) >> 16) & 0xffff)
-#define SDR1_HTABMASK(v) ((v)&0x1ff)
-#define SDR1_PAGETABLE_BASE(v) ((v)&0xffff)
-#define SR_T (1 << 31)
-#define SR_Ks (1 << 30)
-#define SR_Kp (1 << 29)
-#define SR_N (1 << 28)
-#define SR_VSID(v) ((v)&0xffffff)
-#define SR_BUID(v) (((v) >> 20) & 0x1ff)
-#define SR_CNTRL_SPEC(v) ((v)&0xfffff)
-
-#define EA_SR(v) (((v) >> 28) & 0xf)
-#define EA_PageIndex(v) (((v) >> 12) & 0xffff)
-#define EA_Offset(v) ((v)&0xfff)
-#define EA_API(v) (((v) >> 22) & 0x3f)
-
-#define PA_RPN(v) (((v) >> 12) & 0xfffff)
-#define PA_Offset(v) ((v)&0xfff)
-
-#define PTE1_V (1 << 31)
-#define PTE1_VSID(v) (((v) >> 7) & 0xffffff)
-#define PTE1_H (1 << 6)
-#define PTE1_API(v) ((v)&0x3f)
-
-#define PTE2_RPN(v) ((v)&0xfffff000)
-#define PTE2_R (1 << 8)
-#define PTE2_C (1 << 7)
-#define PTE2_WIMG(v) (((v) >> 3) & 0xf)
-#define PTE2_PP(v) ((v)&3)
-
-// Hey! these duplicate a structure in Gekko.h
-union UPTE1
-{
-  struct
-  {
-    u32 API : 6;
-    u32 H : 1;
-    u32 VSID : 24;
-    u32 V : 1;
-  };
-  u32 Hex;
-};
-
-union UPTE2
-{
-  struct
-  {
-    u32 PP : 2;
-    u32 : 1;
-    u32 WIMG : 4;
-    u32 C : 1;
-    u32 R : 1;
-    u32 : 3;
-    u32 RPN : 20;
-  };
-  u32 Hex;
-};
-
 static void GenerateDSIException(u32 effective_address, bool write)
 {
   // DSI exceptions are only supported in MMU mode.
@@ -1209,14 +1147,17 @@ static void GenerateDSIException(u32 effective_address, bool write)
     return;
   }
 
-  if (effective_address)
-    PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
+  constexpr u32 dsisr_page = 1U << 30;
+  constexpr u32 dsisr_store = 1U << 25;
+
+  if (effective_address != 0)
+    ppcState.spr[SPR_DSISR] = dsisr_page | dsisr_store;
   else
-    PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE;
+    ppcState.spr[SPR_DSISR] = dsisr_page;
 
-  PowerPC::ppcState.spr[SPR_DAR] = effective_address;
+  ppcState.spr[SPR_DAR] = effective_address;
 
-  PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+  ppcState.Exceptions |= EXCEPTION_DSI;
 }
 
 static void GenerateISIException(u32 effective_address)
@@ -1230,7 +1171,9 @@ static void GenerateISIException(u32 effective_address)
 
 void SDRUpdated()
 {
-  u32 htabmask = SDR1_HTABMASK(PowerPC::ppcState.spr[SPR_SDR]);
+  const auto sdr = UReg_SDR1{ppcState.spr[SPR_SDR]};
+  const u32 htabmask = sdr.htabmask;
+
   if (!Common::IsValidLowMask(htabmask))
     WARN_LOG_FMT(POWERPC, "Invalid HTABMASK: 0b{:032b}", htabmask);
 
@@ -1238,12 +1181,12 @@ void SDRUpdated()
   // must be equal to the number of trailing ones in the mask (i.e. HTABORG must be
   // properly aligned), this is actually not a hard requirement. Real hardware will just OR
   // the base address anyway. Ignoring SDR changes would lead to incorrect emulation.
-  u32 htaborg = SDR1_HTABORG(PowerPC::ppcState.spr[SPR_SDR]);
-  if (htaborg & htabmask)
+  const u32 htaborg = sdr.htaborg;
+  if ((htaborg & htabmask) != 0)
     WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
 
-  PowerPC::ppcState.pagetable_base = htaborg << 16;
-  PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
+  ppcState.pagetable_base = htaborg << 16;
+  ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
 
 enum class TLBLookupResult
@@ -1261,16 +1204,15 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
   if (tlbe.tag[0] == tag)
   {
-    UPTE2 PTE2;
-    PTE2.Hex = tlbe.pte[0];
+    UPTE_Hi pte2(tlbe.pte[0]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (PTE2.C == 0)
+      if (pte2.C == 0)
       {
-        PTE2.C = 1;
-        tlbe.pte[0] = PTE2.Hex;
+        pte2.C = 1;
+        tlbe.pte[0] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1279,22 +1221,21 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 0;
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
-    *wi = (PTE2.WIMG & 0b1100) != 0;
+    *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
-    UPTE2 PTE2;
-    PTE2.Hex = tlbe.pte[1];
+    UPTE_Hi pte2(tlbe.pte[1]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (PTE2.C == 0)
+      if (pte2.C == 0)
       {
-        PTE2.C = 1;
-        tlbe.pte[1] = PTE2.Hex;
+        pte2.C = 1;
+        tlbe.pte[1] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1303,24 +1244,24 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 1;
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
-    *wi = (PTE2.WIMG & 0b1100) != 0;
+    *wi = (pte2.WIMG & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
   return TLBLookupResult::NotFound;
 }
 
-static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
+static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE_Hi pte2, const u32 address)
 {
   if (IsNoExceptionFlag(flag))
     return;
 
-  const int tag = address >> HW_PAGE_INDEX_SHIFT;
+  const u32 tag = address >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  const int index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
+  const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
-  tlbe.paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe.pte[index] = PTE2.Hex;
+  tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
+  tlbe.pte[index] = pte2.Hex;
   tlbe.tag[index] = tag;
 }
 
@@ -1328,50 +1269,63 @@ void InvalidateTLBEntry(u32 address)
 {
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
-  TLBEntry& tlbe = ppcState.tlb[0][entry_index];
-  tlbe.tag[0] = TLBEntry::INVALID_TAG;
-  tlbe.tag[1] = TLBEntry::INVALID_TAG;
-
-  TLBEntry& tlbe_i = ppcState.tlb[1][entry_index];
-  tlbe_i.tag[0] = TLBEntry::INVALID_TAG;
-  tlbe_i.tag[1] = TLBEntry::INVALID_TAG;
+  ppcState.tlb[0][entry_index].Invalidate();
+  ppcState.tlb[1][entry_index].Invalidate();
 }
 
+union EffectiveAddress
+{
+  BitField<0, 12, u32> offset;
+  BitField<12, 16, u32> page_index;
+  BitField<22, 6, u32> API;
+  BitField<28, 4, u32> SR;
+
+  u32 Hex = 0;
+
+  EffectiveAddress() = default;
+  explicit EffectiveAddress(u32 address) : Hex{address} {}
+};
+
 // Page Address Translation
-static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag,
-                                                   bool* wi)
+static TranslateAddressResult TranslatePageAddress(const EffectiveAddress address,
+                                                   const XCheckTLBFlag flag, bool* wi)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
   // benefit much from optimization.
-  u32 translatedAddress = 0;
-  TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress, wi);
+  u32 translated_address = 0;
+  const TLBLookupResult res = LookupTLBPageAddress(flag, address.Hex, &translated_address, wi);
   if (res == TLBLookupResult::Found)
+  {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                  translatedAddress};
+                                  translated_address};
+  }
 
-  u32 sr = PowerPC::ppcState.sr[EA_SR(address)];
+  const auto sr = UReg_SR{ppcState.sr[address.SR]};
 
-  if (sr & 0x80000000)
+  if (sr.T != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
 
   // TODO: Handle KS/KP segment register flags.
 
   // No-execute segment register flag.
-  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) &&
-      (sr & 0x10000000))
+  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N != 0)
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
   }
 
-  u32 offset = EA_Offset(address);         // 12 bit
-  u32 page_index = EA_PageIndex(address);  // 16 bit
-  u32 VSID = SR_VSID(sr);                  // 24 bit
-  u32 api = EA_API(address);               //  6 bit (part of page_index)
+  const u32 offset = address.offset;          // 12 bit
+  const u32 page_index = address.page_index;  // 16 bit
+  const u32 VSID = sr.VSID;                   // 24 bit
+  const u32 api = address.API;                //  6 bit (part of page_index)
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
-  u32 pte1 = (VSID << 7) | api | PTE1_V;
+
+  UPTE_Lo pte1;
+  pte1.VSID = VSID;
+  pte1.API = api;
+  pte1.V = 1;
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1379,7 +1333,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
     if (hash_func == 1)
     {
       hash = ~hash;
-      pte1 |= PTE1_H;
+      pte1.H = 1;
     }
 
     u32 pteg_addr =
@@ -1389,10 +1343,9 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
     {
       const u32 pteg = Memory::Read_U32(pteg_addr);
 
-      if (pte1 == pteg)
+      if (pte1.Hex == pteg)
       {
-        UPTE2 PTE2;
-        PTE2.Hex = Memory::Read_U32(pteg_addr + 4);
+        UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
@@ -1401,30 +1354,30 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         case XCheckTLBFlag::OpcodeNoException:
           break;
         case XCheckTLBFlag::Read:
-          PTE2.R = 1;
+          pte2.R = 1;
           break;
         case XCheckTLBFlag::Write:
-          PTE2.R = 1;
-          PTE2.C = 1;
+          pte2.R = 1;
+          pte2.C = 1;
           break;
         case XCheckTLBFlag::Opcode:
-          PTE2.R = 1;
+          pte2.R = 1;
           break;
         }
 
         if (!IsNoExceptionFlag(flag))
         {
-          Memory::Write_U32(PTE2.Hex, pteg_addr + 4);
+          Memory::Write_U32(pte2.Hex, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
-          UpdateTLBEntry(flag, PTE2, address);
+          UpdateTLBEntry(flag, pte2, address.Hex);
 
-        *wi = (PTE2.WIMG & 0b1100) != 0;
+        *wi = (pte2.WIMG & 0b1100) != 0;
 
         return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                      (PTE2.RPN << 12) | offset};
+                                      (pte2.RPN << 12) | offset};
       }
     }
   }
@@ -1590,7 +1543,7 @@ static TranslateAddressResult TranslateAddress(u32 address)
   if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address, &wi))
     return TranslateAddressResult{TranslateAddressResultEnum::BAT_TRANSLATED, address, wi};
 
-  return TranslatePageAddress(address, flag, &wi);
+  return TranslatePageAddress(EffectiveAddress{address}, flag, &wi);
 }
 
 std::optional<u32> GetTranslatedAddress(u32 address)
