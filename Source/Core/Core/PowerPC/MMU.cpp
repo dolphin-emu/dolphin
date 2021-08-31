@@ -499,34 +499,37 @@ TryReadResult<u32> HostTryReadInstruction(const u32 address, RequestedAddressSpa
   return TryReadResult<u32>();
 }
 
-static void Memcheck(u32 address, u32 var, bool write, size_t size)
+static void Memcheck(u32 address, u64 var, bool write, size_t size)
 {
-  if (PowerPC::memchecks.HasAny())
+  if (!memchecks.HasAny())
+    return;
+
+  TMemCheck* mc = memchecks.GetMemCheck(address, size);
+  if (mc == nullptr)
+    return;
+
+  if (CPU::IsStepping())
   {
-    TMemCheck* mc = PowerPC::memchecks.GetMemCheck(address, size);
-    if (mc)
-    {
-      if (CPU::IsStepping())
-      {
-        // Disable when stepping so that resume works.
-        return;
-      }
-      mc->num_hits++;
-      bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
-      if (pause)
-      {
-        CPU::Break();
-        // Fake a DSI so that all the code that tests for it in order to skip
-        // the rest of the instruction will apply.  (This means that
-        // watchpoints will stop the emulator before the offending load/store,
-        // not after like GDB does, but that's better anyway.  Just need to
-        // make sure resuming after that works.)
-        // It doesn't matter if ReadFromHardware triggers its own DSI because
-        // we'll take it after resuming.
-        PowerPC::ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
-      }
-    }
+    // Disable when stepping so that resume works.
+    return;
   }
+
+  mc->num_hits++;
+
+  const bool pause = mc->Action(&debug_interface, var, address, write, size, PC);
+  if (!pause)
+    return;
+
+  CPU::Break();
+
+  // Fake a DSI so that all the code that tests for it in order to skip
+  // the rest of the instruction will apply.  (This means that
+  // watchpoints will stop the emulator before the offending load/store,
+  // not after like GDB does, but that's better anyway.  Just need to
+  // make sure resuming after that works.)
+  // It doesn't matter if ReadFromHardware triggers its own DSI because
+  // we'll take it after resuming.
+  ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
 }
 
 u8 Read_U8(const u32 address)
@@ -553,7 +556,7 @@ u32 Read_U32(const u32 address)
 u64 Read_U64(const u32 address)
 {
   u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
-  Memcheck(address, (u32)var, false, 8);
+  Memcheck(address, var, false, 8);
   return var;
 }
 
@@ -676,7 +679,7 @@ void Write_U32_Swap(const u32 var, const u32 address)
 
 void Write_U64(const u64 var, const u32 address)
 {
-  Memcheck(address, (u32)var, true, 8);
+  Memcheck(address, var, true, 8);
   WriteToHardware<XCheckTLBFlag::Write>(address, static_cast<u32>(var >> 32), 4);
   WriteToHardware<XCheckTLBFlag::Write>(address + sizeof(u32), static_cast<u32>(var), 4);
 }
