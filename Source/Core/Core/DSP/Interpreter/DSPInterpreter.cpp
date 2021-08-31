@@ -76,7 +76,7 @@ int Interpreter::RunCyclesThread(int cycles)
 
     Step();
     cycles--;
-    if (cycles < 0)
+    if (cycles <= 0)
       return 0;
   }
 }
@@ -99,7 +99,7 @@ int Interpreter::RunCyclesDebug(int cycles)
     }
     Step();
     cycles--;
-    if (cycles < 0)
+    if (cycles <= 0)
       return 0;
   }
 
@@ -123,7 +123,7 @@ int Interpreter::RunCyclesDebug(int cycles)
 
       Step();
       cycles--;
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
     }
 
@@ -137,7 +137,7 @@ int Interpreter::RunCyclesDebug(int cycles)
       }
       Step();
       cycles--;
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
       // We don't bother directly supporting pause - if the main emu pauses,
       // it just won't call this function anymore.
@@ -160,7 +160,7 @@ int Interpreter::RunCycles(int cycles)
     Step();
     cycles--;
 
-    if (cycles < 0)
+    if (cycles <= 0)
       return 0;
   }
 
@@ -179,7 +179,7 @@ int Interpreter::RunCycles(int cycles)
       Step();
       cycles--;
 
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
     }
 
@@ -188,7 +188,7 @@ int Interpreter::RunCycles(int cycles)
     {
       Step();
       cycles--;
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
       // We don't bother directly supporting pause - if the main emu pauses,
       // it just won't call this function anymore.
