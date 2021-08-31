@@ -721,6 +721,27 @@ union UReg_BAT_Lo
   explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
+// Segment register
+union UReg_SR
+{
+  BitField<0, 24, u32> VSID;      // Virtual segment ID
+  BitField<24, 4, u32> reserved;  // Reserved
+  BitField<28, 1, u32> N;         // No-execute protection
+  BitField<29, 1, u32> Kp;        // User-state protection
+  BitField<30, 1, u32> Ks;        // Supervisor-state protection
+  BitField<31, 1, u32> T;         // Segment register format selector
+
+  // These override other fields if T = 1
+
+  BitField<0, 20, u32> CNTLR_SPEC;  // Device-specific data for I/O controller
+  BitField<20, 9, u32> BUID;        // Bus unit ID
+
+  u32 Hex = 0;
+
+  UReg_SR() = default;
+  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
+};
+
 union UReg_THRM12
 {
   BitField<0, 1, u32> V;    // Valid
