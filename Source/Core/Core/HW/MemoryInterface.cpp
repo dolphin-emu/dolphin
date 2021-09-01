@@ -3,6 +3,7 @@
 
 #include "Core/HW/MemoryInterface.h"
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
@@ -51,7 +52,7 @@ enum
 
 union MIRegion
 {
-  u32 hex;
+  u32 hex = 0;
   struct
   {
     u16 first_page;
@@ -61,64 +62,55 @@ union MIRegion
 
 union MIProtType
 {
-  u16 hex;
-  struct
-  {
-    u16 reg0 : 2;
-    u16 reg1 : 2;
-    u16 reg2 : 2;
-    u16 reg3 : 2;
-    u16 : 8;
-  };
+  u16 hex = 0;
+
+  BitField<0, 2, u16> reg0;
+  BitField<2, 2, u16> reg1;
+  BitField<4, 2, u16> reg2;
+  BitField<6, 2, u16> reg3;
+  BitField<8, 8, u16> reserved;
 };
 
 union MIIRQMask
 {
-  u16 hex;
-  struct
-  {
-    u16 reg0 : 1;
-    u16 reg1 : 1;
-    u16 reg2 : 1;
-    u16 reg3 : 1;
-    u16 all_regs : 1;
-    u16 : 11;
-  };
+  u16 hex = 0;
+
+  BitField<0, 1, u16> reg0;
+  BitField<1, 1, u16> reg1;
+  BitField<2, 1, u16> reg2;
+  BitField<3, 1, u16> reg3;
+  BitField<4, 1, u16> all_regs;
+  BitField<5, 11, u16> reserved;
 };
 
 union MIIRQFlag
 {
-  u16 hex;
-  struct
-  {
-    u16 reg0 : 1;
-    u16 reg1 : 1;
-    u16 reg2 : 1;
-    u16 reg3 : 1;
-    u16 all_regs : 1;
-    u16 : 11;
-  };
+  u16 hex = 0;
+
+  BitField<0, 1, u16> reg0;
+  BitField<1, 1, u16> reg1;
+  BitField<2, 1, u16> reg2;
+  BitField<3, 1, u16> reg3;
+  BitField<4, 1, u16> all_regs;
+  BitField<5, 11, u16> reserved;
 };
 
 union MIProtAddr
 {
-  u32 hex;
+  u32 hex = 0;
   struct
   {
     u16 lo;
     u16 hi;
   };
-  struct
-  {
-    u32 : 5;
-    u32 addr : 25;
-    u32 : 2;
-  };
+  BitField<0, 5, u32> reserved_1;
+  BitField<5, 25, u32> addr;
+  BitField<30, 2, u32> reserved_2;
 };
 
 union MITimer
 {
-  u32 hex;
+  u32 hex = 0;
   struct
   {
     u16 lo;
@@ -132,10 +124,10 @@ struct MIMemStruct
   MIProtType prot_type;
   MIIRQMask irq_mask;
   MIIRQFlag irq_flag;
-  u16 unknown1;
+  u16 unknown1 = 0;
   MIProtAddr prot_addr;
   MITimer timers[10];
-  u16 unknown2;
+  u16 unknown2 = 0;
 };
 
 // STATE_TO_SAVE
