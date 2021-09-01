@@ -3,6 +3,7 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -449,26 +450,21 @@ void MemoryWidget::SetAddress(u32 address)
 
 void MemoryWidget::OnSearchAddress()
 {
-  bool good_addr, good_offset;
-  // Returns 0 if conversion fails
-  const u32 addr = m_search_address->text().toUInt(&good_addr, 16);
-  const u32 offset = m_search_offset->text().toUInt(&good_offset, 16);
+  const auto target_addr = GetTargetAddress();
+
+  if (target_addr.is_good_address && target_addr.is_good_offset)
+    m_memory_view->SetAddress(target_addr.address);
 
   QFont addr_font, offset_font;
   QPalette addr_palette, offset_palette;
 
-  if (good_addr || m_search_address->text().isEmpty())
-  {
-    if (good_addr)
-      m_memory_view->SetAddress(addr + offset);
-  }
-  else
+  if (!target_addr.is_good_address)
   {
     addr_font.setBold(true);
     addr_palette.setColor(QPalette::Text, Qt::red);
   }
 
-  if (!good_offset && !m_search_offset->text().isEmpty())
+  if (!target_addr.is_good_offset)
   {
     offset_font.setBold(true);
     offset_palette.setColor(QPalette::Text, Qt::red);
@@ -500,18 +496,15 @@ void MemoryWidget::OnSetValue()
   if (!Core::IsRunning())
     return;
 
-  bool good_address, good_offset;
-  // Returns 0 if conversion fails
-  u32 addr = m_search_address->text().toUInt(&good_address, 16);
-  addr += m_search_offset->text().toUInt(&good_offset, 16);
+  auto target_addr = GetTargetAddress();
 
-  if (!good_address)
+  if (!target_addr.is_good_address)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
     return;
   }
 
-  if (!good_offset)
+  if (!target_addr.is_good_offset)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
     return;
@@ -533,7 +526,7 @@ void MemoryWidget::OnSetValue()
 
   const QByteArray bytes = GetValueData();
   for (const char c : bytes)
-    accessors->WriteU8(addr++, static_cast<u8>(c));
+    accessors->WriteU8(target_addr.address++, static_cast<u8>(c));
 
   Update();
 }
@@ -612,34 +605,66 @@ QByteArray MemoryWidget::GetValueData() const
   return QByteArray::fromHex(value);
 }
 
+MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
+{
+  TargetAddress target;
+
+  // Returns 0 if conversion fails
+  const u32 addr = m_search_address->text().toUInt(&target.is_good_address, 16);
+  target.is_good_address |= m_search_address->text().isEmpty();
+  const s32 offset = m_search_offset->text().toInt(&target.is_good_offset, 16);
+  const u32 neg_offset = offset != std::numeric_limits<s32>::min() ?
+                             -offset :
+                             u32(std::numeric_limits<s32>::max()) + 1;
+  target.is_good_offset |= m_search_offset->text().isEmpty();
+  target.is_good_offset &= offset >= 0 || neg_offset <= addr;
+  target.is_good_offset &= offset <= 0 || (std::numeric_limits<u32>::max() - u32(offset)) >= addr;
+
+  if (!target.is_good_address || !target.is_good_offset)
+    return target;
+
+  if (offset < 0)
+    target.address = addr - neg_offset;
+  else
+    target.address = addr + u32(offset);
+  return target;
+}
+
 void MemoryWidget::FindValue(bool next)
 {
-  if (!IsValueValid())
+  auto target_addr = GetTargetAddress();
+
+  if (!target_addr.is_good_address)
   {
-    m_result_label->setText(tr("Bad value provided."));
+    m_result_label->setText(tr("Bad address provided."));
     return;
+  }
+
+  if (!target_addr.is_good_offset)
+  {
+    m_result_label->setText(tr("Bad offset provided."));
+    return;
+  }
+
+  if (!m_search_address->text().isEmpty())
+  {
+    // skip the quoted address so we don't potentially refind the last result
+    target_addr.address += next ? 1 : -1;
   }
 
   const QByteArray search_for = GetValueData();
 
   if (search_for.isEmpty())
   {
-    m_result_label->setText(tr("No Value Given"));
+    m_result_label->setText(tr("No value provided."));
     return;
-  }
-  u32 addr = 0;
-
-  if (!m_search_address->text().isEmpty())
-  {
-    // skip the quoted address so we don't potentially refind the last result
-    addr = m_search_address->text().toUInt(nullptr, 16) +
-           m_search_offset->text().toUInt(nullptr, 16) + (next ? 1 : -1);
   }
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  const auto found_addr = accessors->Search(addr, reinterpret_cast<const u8*>(search_for.data()),
-                                            static_cast<u32>(search_for.size()), next);
+  const auto found_addr =
+      accessors->Search(target_addr.address, reinterpret_cast<const u8*>(search_for.data()),
+                        static_cast<u32>(search_for.size()), next);
 
   if (found_addr.has_value())
   {
