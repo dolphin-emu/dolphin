@@ -12,8 +12,9 @@ using float4 = std::array<float, 4>;
 using uint4 = std::array<u32, 4>;
 using int4 = std::array<s32, 4>;
 
-enum class SrcBlendFactor : u32;
 enum class DstBlendFactor : u32;
+enum class SrcBlendFactor : u32;
+enum class ZTexOp : u32;
 
 struct PixelShaderConstants
 {
@@ -37,7 +38,7 @@ struct PixelShaderConstants
   u32 fogParam3;                // .x
   u32 fogRangeBase;             // .y
   u32 dstalpha;                 // .z
-  u32 ztex_op;                  // .w
+  ZTexOp ztex_op;               // .w
   u32 late_ztest;               // .x (bool)
   u32 rgba6_format;             // .y (bool)
   u32 dither;                   // .z (bool)
