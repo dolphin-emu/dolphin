@@ -3,6 +3,8 @@
 
 #include "Core/HW/MemoryInterface.h"
 
+#include <array>
+
 #include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -120,13 +122,13 @@ union MITimer
 
 struct MIMemStruct
 {
-  MIRegion regions[4];
+  std::array<MIRegion, 4> regions;
   MIProtType prot_type;
   MIIRQMask irq_mask;
   MIIRQFlag irq_flag;
   u16 unknown1 = 0;
   MIProtAddr prot_addr;
-  MITimer timers[10];
+  std::array<MITimer, 10> timers;
   u16 unknown2 = 0;
 };
 
@@ -140,7 +142,7 @@ void DoState(PointerWrap& p)
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  for (int i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
+  for (u32 i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
   {
     auto& region = g_mi_mem.regions[i / 4];
     mmio->Register(base | i, MMIO::DirectRead<u16>(&region.first_page),
@@ -161,7 +163,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | MI_UNKNOWN1, MMIO::DirectRead<u16>(&g_mi_mem.unknown1),
                  MMIO::DirectWrite<u16>(&g_mi_mem.unknown1));
 
-  // The naming is confusing here: the registed contains the lower part of
+  // The naming is confusing here: the register contains the lower part of
   // the address (hence MI_..._LO but this is still the high part of the
   // overall register.
   mmio->Register(base | MI_PROT_ADDR_LO, MMIO::DirectRead<u16>(&g_mi_mem.prot_addr.hi),
@@ -169,7 +171,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | MI_PROT_ADDR_HI, MMIO::DirectRead<u16>(&g_mi_mem.prot_addr.lo),
                  MMIO::DirectWrite<u16>(&g_mi_mem.prot_addr.lo));
 
-  for (int i = 0; i < 10; ++i)
+  for (u32 i = 0; i < g_mi_mem.timers.size(); ++i)
   {
     auto& timer = g_mi_mem.timers[i];
     mmio->Register(base | (MI_TIMER0_HI + 4 * i), MMIO::DirectRead<u16>(&timer.hi),
@@ -181,7 +183,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | MI_UNKNOWN2, MMIO::DirectRead<u16>(&g_mi_mem.unknown2),
                  MMIO::DirectWrite<u16>(&g_mi_mem.unknown2));
 
-  for (int i = 0; i < 0x1000; i += 4)
+  for (u32 i = 0; i < 0x1000; i += 4)
   {
     mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
                    MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
