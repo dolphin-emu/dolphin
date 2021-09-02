@@ -241,7 +241,7 @@ struct fmt::formatter<ZTexFormat> : EnumFormatter<ZTexFormat::U24>
 };
 
 // Z texture operator
-enum ZTexOp : u32
+enum class ZTexOp : u32
 {
   Disabled = 0,
   Add = 1,
