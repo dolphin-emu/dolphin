@@ -89,6 +89,9 @@ void SpringballButton::springball_check(u32 ball_address, u32 movement_address) 
     if ((ball_state == 1 || ball_state == 2) && movement_state == 0) { 
       prime::GetVariableManager()->set_variable("springball_trigger", u8{ 1 });
     }
+    else {
+      prime::GetVariableManager()->set_variable("springball_trigger", u8{ 0 });
+    }
   }
 }
 
