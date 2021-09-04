@@ -137,7 +137,7 @@ private:
   };
 #pragma pack(pop)
 
-  ConfigData m_data;
+  ConfigData m_data{};
 };
 }  // namespace Net
 }  // namespace IOS::HLE

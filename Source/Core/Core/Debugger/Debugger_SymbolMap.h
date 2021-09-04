@@ -15,7 +15,7 @@ namespace Dolphin_Debugger
 struct CallstackEntry
 {
   std::string Name;
-  u32 vAddress;
+  u32 vAddress = 0;
 };
 
 bool GetCallstack(std::vector<CallstackEntry>& output);

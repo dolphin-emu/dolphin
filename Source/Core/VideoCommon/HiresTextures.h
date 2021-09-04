@@ -54,6 +54,6 @@ private:
   static bool LoadTexture(Level& level, const std::vector<u8>& buffer);
   static void Prefetch();
 
-  HiresTexture() {}
-  bool m_has_arbitrary_mipmaps;
+  HiresTexture() = default;
+  bool m_has_arbitrary_mipmaps = false;
 };

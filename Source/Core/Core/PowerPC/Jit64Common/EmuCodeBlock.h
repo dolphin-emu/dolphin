@@ -134,9 +134,9 @@ protected:
   FarCodeCache m_far_code;
 
   // Backed up when we switch to far code.
-  u8* m_near_code;
-  u8* m_near_code_end;
-  bool m_near_code_write_failed;
+  u8* m_near_code = nullptr;
+  u8* m_near_code_end = nullptr;
+  bool m_near_code_write_failed = false;
 
   std::unordered_map<u8*, TrampolineInfo> m_back_patch_info;
   std::unordered_map<u8*, u8*> m_exception_handler_at_loc;

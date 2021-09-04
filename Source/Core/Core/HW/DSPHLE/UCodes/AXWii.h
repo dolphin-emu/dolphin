@@ -21,27 +21,27 @@ public:
 
 protected:
   // Additional AUX buffers
-  int m_samples_auxC_left[32 * 3];
-  int m_samples_auxC_right[32 * 3];
-  int m_samples_auxC_surround[32 * 3];
+  int m_samples_auxC_left[32 * 3]{};
+  int m_samples_auxC_right[32 * 3]{};
+  int m_samples_auxC_surround[32 * 3]{};
 
   // Wiimote buffers
-  int m_samples_wm0[6 * 3];
-  int m_samples_aux0[6 * 3];
-  int m_samples_wm1[6 * 3];
-  int m_samples_aux1[6 * 3];
-  int m_samples_wm2[6 * 3];
-  int m_samples_aux2[6 * 3];
-  int m_samples_wm3[6 * 3];
-  int m_samples_aux3[6 * 3];
+  int m_samples_wm0[6 * 3]{};
+  int m_samples_aux0[6 * 3]{};
+  int m_samples_wm1[6 * 3]{};
+  int m_samples_aux1[6 * 3]{};
+  int m_samples_wm2[6 * 3]{};
+  int m_samples_aux2[6 * 3]{};
+  int m_samples_wm3[6 * 3]{};
+  int m_samples_aux3[6 * 3]{};
 
   // Are we implementing an old version of AXWii which still has updates?
-  bool m_old_axwii;
+  bool m_old_axwii = false;
 
   // Last volume values for MAIN and AUX. Used to generate volume ramps to
   // interpolate nicely between old and new volume values.
-  u16 m_last_main_volume;
-  u16 m_last_aux_volumes[3];
+  u16 m_last_main_volume = 0;
+  u16 m_last_aux_volumes[3]{};
 
   // If needed, extract the updates related fields from a PB. We need to
   // reinject them afterwards so that the correct PB typs is written to RAM.

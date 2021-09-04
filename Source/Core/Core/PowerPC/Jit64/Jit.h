@@ -266,9 +266,9 @@ private:
 
   Jit64AsmRoutineManager asm_routines{*this};
 
-  bool m_enable_blr_optimization;
-  bool m_cleanup_after_stackfault;
-  u8* m_stack;
+  bool m_enable_blr_optimization = false;
+  bool m_cleanup_after_stackfault = false;
+  u8* m_stack = nullptr;
 
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
   HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;

@@ -90,14 +90,14 @@ public:
     // common members
     std::unique_ptr<AbstractTexture> texture;
     std::unique_ptr<AbstractFramebuffer> framebuffer;
-    u32 addr;
-    u32 size_in_bytes;
-    u64 base_hash;
-    u64 hash;  // for paletted textures, hash = base_hash ^ palette_hash
+    u32 addr = 0;
+    u32 size_in_bytes = 0;
+    u64 base_hash = 0;
+    u64 hash = 0;  // for paletted textures, hash = base_hash ^ palette_hash
     TextureAndTLUTFormat format;
-    u32 memory_stride;
-    bool is_efb_copy;
-    bool is_custom_tex;
+    u32 memory_stride = 0;
+    bool is_efb_copy = false;
+    bool is_custom_tex = false;
     bool may_have_overlapping_textures = true;
     bool tmem_only = false;           // indicates that this texture only exists in the tmem cache
     bool has_arbitrary_mips = false;  // indicates that the mips in this texture are arbitrary
@@ -105,13 +105,14 @@ public:
     bool should_force_safe_hashing = false;  // for XFB
     bool is_xfb_copy = false;
     bool is_xfb_container = false;
-    u64 id;
+    u64 id = 0;
 
     bool reference_changed = false;  // used by xfb to determine when a reference xfb changed
 
-    unsigned int native_width,
-        native_height;  // Texture dimensions from the GameCube's point of view
-    unsigned int native_levels;
+    // Texture dimensions from the GameCube's point of view
+    u32 native_width = 0;
+    u32 native_height = 0;
+    u32 native_levels = 0;
 
     // used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
     int frameCount = FRAMECOUNT_INVALID;

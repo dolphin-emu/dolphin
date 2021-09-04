@@ -23,7 +23,7 @@ using UnderlyingType = typename std::enable_if_t<std::is_enum<T>{}, std::underly
 
 struct Location
 {
-  System system;
+  System system{};
   std::string section;
   std::string key;
 

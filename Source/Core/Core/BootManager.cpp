@@ -64,44 +64,44 @@ public:
 
   // These store if the relevant setting should be reset back later (true) or if it should be left
   // alone on restore (false)
-  bool bSetEmulationSpeed;
-  bool bSetVolume;
-  std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
-  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads;
-  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice;
+  bool bSetEmulationSpeed = false;
+  bool bSetVolume = false;
+  std::array<bool, MAX_BBMOTES> bSetWiimoteSource{};
+  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads{};
+  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice{};
 
 private:
-  bool valid;
-  bool bCPUThread;
-  bool bJITFollowBranch;
-  bool bSyncGPUOnSkipIdleHack;
-  bool bFloatExceptions;
-  bool bDivideByZeroExceptions;
-  bool bFPRF;
-  bool bAccurateNaNs;
-  bool bMMU;
-  bool bLowDCBZHack;
-  bool bDisableICache;
-  bool m_EnableJIT;
-  bool bSyncGPU;
-  int iSyncGpuMaxDistance;
-  int iSyncGpuMinDistance;
-  float fSyncGpuOverclock;
-  bool bFastDiscSpeed;
-  bool bDSPHLE;
-  bool bHLE_BS2;
-  int iSelectedLanguage;
-  PowerPC::CPUCore cpu_core;
-  int Volume;
-  float m_EmulationSpeed;
-  float m_OCFactor;
-  bool m_OCEnable;
-  bool m_bt_passthrough_enabled;
+  bool valid = false;
+  bool bCPUThread = false;
+  bool bJITFollowBranch = false;
+  bool bSyncGPUOnSkipIdleHack = false;
+  bool bFloatExceptions = false;
+  bool bDivideByZeroExceptions = false;
+  bool bFPRF = false;
+  bool bAccurateNaNs = false;
+  bool bMMU = false;
+  bool bLowDCBZHack = false;
+  bool bDisableICache = false;
+  bool m_EnableJIT = false;
+  bool bSyncGPU = false;
+  int iSyncGpuMaxDistance = 0;
+  int iSyncGpuMinDistance = 0;
+  float fSyncGpuOverclock = 0;
+  bool bFastDiscSpeed = false;
+  bool bDSPHLE = false;
+  bool bHLE_BS2 = false;
+  int iSelectedLanguage = 0;
+  PowerPC::CPUCore cpu_core = PowerPC::CPUCore::Interpreter;
+  int Volume = 0;
+  float m_EmulationSpeed = 0;
+  float m_OCFactor = 0;
+  bool m_OCEnable = false;
+  bool m_bt_passthrough_enabled = false;
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
-  std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource;
-  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
-  std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
+  std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
+  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
+  std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice{};
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)

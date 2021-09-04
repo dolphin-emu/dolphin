@@ -58,9 +58,7 @@ std::optional<std::string> ControlReference::SetExpression(std::string expr)
   return parse_result.description;
 }
 
-ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)
-{
-}
+ControlReference::ControlReference() = default;
 
 ControlReference::~ControlReference() = default;
 

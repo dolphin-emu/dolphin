@@ -233,10 +233,10 @@ public:
 
   struct PollCommand
   {
-    u32 request_addr;
-    u32 buffer_out;
+    u32 request_addr = 0;
+    u32 buffer_out = 0;
     std::vector<pollfd_t> wii_fds;
-    s64 timeout;
+    s64 timeout = 0;
   };
 
   static s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
@@ -292,7 +292,7 @@ private:
   void UpdatePollCommands();
 
   std::unordered_map<s32, WiiSocket> WiiSockets;
-  s32 errno_last;
+  s32 errno_last = 0;
   std::vector<PollCommand> pending_polls;
   std::chrono::time_point<std::chrono::high_resolution_clock> last_time =
       std::chrono::high_resolution_clock::now();
