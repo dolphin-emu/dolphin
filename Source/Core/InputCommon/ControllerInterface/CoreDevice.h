@@ -174,7 +174,7 @@ protected:
   void AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs);
 
 private:
-  int m_id;
+  int m_id = 0;
   std::vector<Input*> m_inputs;
   std::vector<Output*> m_outputs;
 };
@@ -216,10 +216,10 @@ public:
   struct InputDetection
   {
     std::shared_ptr<Device> device;
-    Device::Input* input;
+    Device::Input* input = nullptr;
     Clock::time_point press_time;
     std::optional<Clock::time_point> release_time;
-    ControlState smoothness;
+    ControlState smoothness = 0;
   };
 
   Device::Input* FindInput(std::string_view name, const Device* def_dev) const;

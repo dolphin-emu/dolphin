@@ -298,10 +298,10 @@ static std::map<double, int> GetSavedStates()
 
 struct CompressAndDumpState_args
 {
-  std::vector<u8>* buffer_vector;
-  std::mutex* buffer_mutex;
+  std::vector<u8>* buffer_vector = nullptr;
+  std::mutex* buffer_mutex = nullptr;
   std::string filename;
-  bool wait;
+  bool wait = false;
 };
 
 static void CompressAndDumpState(CompressAndDumpState_args save_args)

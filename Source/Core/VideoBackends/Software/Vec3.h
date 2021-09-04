@@ -11,7 +11,7 @@ class Vec3
 public:
   float x, y, z;
 
-  Vec3() {}
+  Vec3() = default;
   explicit Vec3(float f) { x = y = z = f; }
   explicit Vec3(const float* f)
   {

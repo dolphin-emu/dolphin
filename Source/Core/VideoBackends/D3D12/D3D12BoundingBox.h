@@ -34,7 +34,7 @@ private:
   ComPtr<ID3D12Resource> m_gpu_buffer;
   ComPtr<ID3D12Resource> m_readback_buffer;
   StreamBuffer m_upload_buffer;
-  DescriptorHandle m_gpu_descriptor;
+  DescriptorHandle m_gpu_descriptor{};
 };
 
 }  // namespace DX12

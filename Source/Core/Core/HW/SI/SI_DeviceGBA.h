@@ -60,7 +60,7 @@ private:
 
   GBASockServer m_sock_server;
   NextAction m_next_action = NextAction::SendCommand;
-  EBufferCommands m_last_cmd;
+  EBufferCommands m_last_cmd = EBufferCommands::CMD_STATUS;
   u64 m_timestamp_sent = 0;
 };
 }  // namespace SerialInterface

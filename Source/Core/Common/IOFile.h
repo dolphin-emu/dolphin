@@ -59,9 +59,9 @@ public:
   }
 
   template <typename T, std::size_t N>
-  bool ReadArray(std::array<T, N>& elements, size_t* num_read = nullptr)
+  bool ReadArray(std::array<T, N>* elements, size_t* num_read = nullptr)
   {
-    return ReadArray(elements.data(), elements.size(), num_read);
+    return ReadArray(elements->data(), elements->size(), num_read);
   }
 
   template <typename T, std::size_t N>

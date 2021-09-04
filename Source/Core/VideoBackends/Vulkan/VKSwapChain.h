@@ -86,7 +86,7 @@ private:
 
   struct SwapChainImage
   {
-    VkImage image;
+    VkImage image{};
     std::unique_ptr<VKTexture> texture;
     std::unique_ptr<VKFramebuffer> framebuffer;
   };
