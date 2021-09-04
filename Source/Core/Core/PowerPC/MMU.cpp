@@ -3,7 +3,6 @@
 
 #include "Core/PowerPC/MMU.h"
 
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -495,7 +494,7 @@ TryReadResult<u32> HostTryReadInstruction(const u32 address, RequestedAddressSpa
   }
   }
 
-  assert(0);
+  ASSERT(0);
   return TryReadResult<u32>();
 }
 
@@ -601,7 +600,7 @@ static TryReadResult<T> HostTryReadUX(const u32 address, RequestedAddressSpace s
   }
   }
 
-  assert(0);
+  ASSERT(0);
   return TryReadResult<T>();
 }
 
@@ -785,7 +784,7 @@ static TryWriteResult HostTryWriteUX(const u32 var, const u32 address, const u32
     return TryWriteResult(true);
   }
 
-  assert(0);
+  ASSERT(0);
   return TryWriteResult();
 }
 
@@ -925,7 +924,7 @@ bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
     return IsRAMAddress<XCheckTLBFlag::NoException>(address, true);
   }
 
-  assert(0);
+  ASSERT(0);
   return false;
 }
 
@@ -947,7 +946,7 @@ bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
     return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, true);
   }
 
-  assert(0);
+  ASSERT(0);
   return false;
 }
 
