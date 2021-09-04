@@ -354,8 +354,8 @@ struct SmallBlockAccessors : Accessors
   }
 
 private:
-  u8** alloc_base;
-  u32 size;
+  u8** alloc_base = nullptr;
+  u32 size = 0;
 };
 
 struct NullAccessors : Accessors

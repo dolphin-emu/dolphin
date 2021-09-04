@@ -120,19 +120,19 @@ bool FifoDataFile::Save(const std::string& filename)
   PadFile(m_Frames.size() * sizeof(FileFrameInfo), file);
 
   u64 bpMemOffset = file.Tell();
-  file.WriteArray(m_BPMem, BP_MEM_SIZE);
+  file.WriteArray(m_BPMem);
 
   u64 cpMemOffset = file.Tell();
-  file.WriteArray(m_CPMem, CP_MEM_SIZE);
+  file.WriteArray(m_CPMem);
 
   u64 xfMemOffset = file.Tell();
-  file.WriteArray(m_XFMem, XF_MEM_SIZE);
+  file.WriteArray(m_XFMem);
 
   u64 xfRegsOffset = file.Tell();
-  file.WriteArray(m_XFRegs, XF_REGS_SIZE);
+  file.WriteArray(m_XFRegs);
 
   u64 texMemOffset = file.Tell();
-  file.WriteArray(m_TexMem, TEX_MEM_SIZE);
+  file.WriteArray(m_TexMem);
 
   // Write header
   FileHeader header;
@@ -285,27 +285,27 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
 
   u32 size = std::min<u32>(BP_MEM_SIZE, header.bpMemSize);
   file.Seek(header.bpMemOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_BPMem, size);
+  file.ReadArray(&dataFile->m_BPMem);
 
   size = std::min<u32>(CP_MEM_SIZE, header.cpMemSize);
   file.Seek(header.cpMemOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_CPMem, size);
+  file.ReadArray(&dataFile->m_CPMem);
 
   size = std::min<u32>(XF_MEM_SIZE, header.xfMemSize);
   file.Seek(header.xfMemOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_XFMem, size);
+  file.ReadArray(&dataFile->m_XFMem);
 
   size = std::min<u32>(XF_REGS_SIZE, header.xfRegsSize);
   file.Seek(header.xfRegsOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_XFRegs, size);
+  file.ReadArray(&dataFile->m_XFRegs);
 
   // Texture memory saving was added in version 4.
-  std::memset(dataFile->m_TexMem, 0, TEX_MEM_SIZE);
+  dataFile->m_TexMem.fill(0);
   if (dataFile->m_Version >= 4)
   {
     size = std::min<u32>(TEX_MEM_SIZE, header.texMemSize);
     file.Seek(header.texMemOffset, SEEK_SET);
-    file.ReadArray(dataFile->m_TexMem, size);
+    file.ReadArray(&dataFile->m_TexMem);
   }
 
   if (!file.IsGood())

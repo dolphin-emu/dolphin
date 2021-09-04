@@ -35,10 +35,10 @@
 
 struct CodeViewBranch
 {
-  u32 src_addr;
-  u32 dst_addr;
+  u32 src_addr = 0;
+  u32 dst_addr = 0;
   u32 indentation = 0;
-  bool is_link;
+  bool is_link = false;
 };
 
 constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
