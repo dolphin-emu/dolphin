@@ -43,7 +43,7 @@ public:
     return true;
   }
 
-  void* m_data;
+  void* m_data = nullptr;
   std::chrono::time_point<std::chrono::high_resolution_clock> m_pre_unprotect_time,
       m_post_unprotect_time;
 };

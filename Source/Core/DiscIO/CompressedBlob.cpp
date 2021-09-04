@@ -173,17 +173,17 @@ struct CompressThreadState
 
 struct CompressParameters
 {
-  std::vector<u8> data;
-  u32 block_number;
-  u64 inpos;
+  std::vector<u8> data{};
+  u32 block_number = 0;
+  u64 inpos = 0;
 };
 
 struct OutputParameters
 {
-  std::vector<u8> data;
-  u32 block_number;
-  bool compressed;
-  u64 inpos;
+  std::vector<u8> data{};
+  u32 block_number = 0;
+  bool compressed = false;
+  u64 inpos = 0;
 };
 
 static ConversionResultCode SetUpCompressThreadState(CompressThreadState* state)

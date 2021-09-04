@@ -16,10 +16,10 @@ namespace ActionReplay
 {
 struct AREntry
 {
-  AREntry() {}
+  AREntry() = default;
   AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
-  u32 cmd_addr;
-  u32 value;
+  u32 cmd_addr = 0;
+  u32 value = 0;
 };
 constexpr bool operator==(const AREntry& left, const AREntry& right)
 {

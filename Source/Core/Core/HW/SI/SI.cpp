@@ -101,12 +101,12 @@ union USIChannelIn_Lo
 // SI Channel
 struct SSIChannel
 {
-  USIChannelOut out;
-  USIChannelIn_Hi in_hi;
-  USIChannelIn_Lo in_lo;
+  USIChannelOut out{};
+  USIChannelIn_Hi in_hi{};
+  USIChannelIn_Lo in_lo{};
   std::unique_ptr<ISIDevice> device;
 
-  bool has_recent_device_change;
+  bool has_recent_device_change = false;
 };
 
 // SI Poll: Controls how often a device is polled

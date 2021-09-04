@@ -132,14 +132,14 @@ private:
   std::vector<u8> m_apploader;
   std::vector<u8> m_fst_data;
 
-  std::array<u8, VolumeWii::AES_KEY_SIZE> m_key;
+  std::array<u8, VolumeWii::AES_KEY_SIZE> m_key{};
 
   std::string m_root_directory;
   bool m_is_wii = false;
   // GameCube has no shift, Wii has 2 bit shift
   u32 m_address_shift = 0;
 
-  u64 m_data_size;
+  u64 m_data_size = 0;
 };
 
 class DirectoryBlobReader : public BlobReader
