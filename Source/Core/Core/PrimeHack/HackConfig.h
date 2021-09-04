@@ -73,6 +73,7 @@ void SetLockCamera(CameraLock lock);
 CameraLock GetLockCamera();
 
 bool CheckPitchRecentre();
+bool ControllerMode();
 
 double GetHorizontalAxis();
 double GetVerticalAxis();

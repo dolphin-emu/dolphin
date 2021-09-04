@@ -6,6 +6,7 @@
 #include <QDialog>
 
 class QTabWidget;
+class InterfacePane;
 
 enum class TabIndex
 {
@@ -20,7 +21,9 @@ public:
   explicit SettingsWindow(QWidget* parent = nullptr);
   void SelectGeneralPane();
   void SelectAudioPane();
+  void UpdateTabs();
 
 private:
   QTabWidget* m_tab_widget;
+  InterfacePane* m_interface_pane;
 };

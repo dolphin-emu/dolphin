@@ -410,8 +410,8 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  bHideCursor = true;
-  interface->Get("LockCursor", &bLockCursor, false);
+  interface->Get("HideCursor", &bHideCursor, true);
+  interface->Get("LockCursor", &bLockCursor, true);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);

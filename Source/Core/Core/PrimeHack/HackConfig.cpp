@@ -316,16 +316,27 @@ void SetScaleCursorSensitivity(bool scale) {
 }
 
 bool CheckPitchRecentre() {
-  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
-    if (Pad::PrimeUseController()) {
+  if (ControllerMode()) {
+    if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
       return Pad::CheckPitchRecentre();
-    } 
-  }
-  else if (Wiimote::PrimeUseController()) {
-    return Wiimote::CheckPitchRecentre();
+    } else {
+      return Wiimote::CheckPitchRecentre();
+    }
   }
 
   return false;
+}
+
+bool ControllerMode() {
+  if (hack_mgr.get_active_game() == Game::INVALID_GAME)
+    return true;
+
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
+    return Pad::PrimeUseController();
+  }
+  else {
+    return Wiimote::PrimeUseController();
+  }
 }
 
 double GetHorizontalAxis() {

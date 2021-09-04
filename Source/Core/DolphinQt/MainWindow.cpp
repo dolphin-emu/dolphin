@@ -1196,6 +1196,7 @@ void MainWindow::ShowSettingsWindow()
     InstallHotkeyFilter(m_settings_window);
   }
 
+  m_settings_window->UpdateTabs();
   m_settings_window->show();
   m_settings_window->raise();
   m_settings_window->activateWindow();

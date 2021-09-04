@@ -15,6 +15,7 @@ class InterfacePane final : public QWidget
   Q_OBJECT
 public:
   explicit InterfacePane(QWidget* parent = nullptr);
+  void UpdateMouseOptions();
 
 private:
   void CreateLayout();

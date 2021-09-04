@@ -25,6 +25,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
+#include "Core/PrimeHack/HackConfig.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
@@ -308,7 +309,11 @@ void Settings::SetHideCursor(bool hide_cursor)
 
 bool Settings::GetHideCursor() const
 {
-  return SConfig::GetInstance().bHideCursor;
+  if (prime::ControllerMode()) {
+    return SConfig::GetInstance().bHideCursor;
+  }
+
+  return true;
 }
 
 void Settings::SetLockCursor(bool lock_cursor)
@@ -319,7 +324,11 @@ void Settings::SetLockCursor(bool lock_cursor)
 
 bool Settings::GetLockCursor() const
 {
-  return SConfig::GetInstance().bLockCursor;
+  if (prime::ControllerMode()) {
+    return SConfig::GetInstance().bLockCursor;
+  }
+
+  return true;
 }
 
 void Settings::SetKeepWindowOnTop(bool top)

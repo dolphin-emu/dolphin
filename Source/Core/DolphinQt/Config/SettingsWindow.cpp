@@ -33,8 +33,10 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_tab_widget = new QTabWidget();
   layout->addWidget(m_tab_widget);
 
+  m_interface_pane = new InterfacePane();
+
   m_tab_widget->addTab(GetWrappedWidget(new GeneralPane, this, 125, 100), tr("General"));
-  m_tab_widget->addTab(GetWrappedWidget(new InterfacePane, this, 125, 100), tr("Interface"));
+  m_tab_widget->addTab(GetWrappedWidget(m_interface_pane, this, 125, 100), tr("Interface"));
   m_tab_widget->addTab(GetWrappedWidget(new AudioPane, this, 125, 100), tr("Audio"));
   m_tab_widget->addTab(GetWrappedWidget(new PathPane, this, 125, 100), tr("Paths"));
   m_tab_widget->addTab(GetWrappedWidget(new GameCubePane, this, 125, 100), tr("GameCube"));
@@ -49,6 +51,11 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   layout->addWidget(close_box);
 
   setLayout(layout);
+}
+
+void SettingsWindow::UpdateTabs()
+{
+  m_interface_pane->UpdateMouseOptions();
 }
 
 void SettingsWindow::SelectAudioPane()
