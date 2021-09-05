@@ -180,7 +180,7 @@ Option<ShaderCompilationMode> shaderCompilationMode(
      {"a-sync Skip Rendering", ShaderCompilationMode::AsynchronousSkipRendering},
      {"sync UberShaders", ShaderCompilationMode::SynchronousUberShaders},
      {"a-sync UberShaders", ShaderCompilationMode::AsynchronousUberShaders}});
-Option<int> maxAnisotropy("dolphin_max_anisotropy", "Max Anisotropy", 0, 17);
+Option<int> maxAnisotropy("dolphin_max_anisotropy", "Max Anisotropy", {"1x", "2x", "4x", "8x", "16x"});
 Option<bool> efbScaledCopy("dolphin_efb_scaled_copy", "Scaled EFB Copy", true);
 Option<bool> efbToTexture("dolphin_efb_to_texture", "Store EFB Copies on GPU", true);
 Option<bool> efbToVram("dolphin_efb_to_vram", "Disable EFB to VRAM", false);
