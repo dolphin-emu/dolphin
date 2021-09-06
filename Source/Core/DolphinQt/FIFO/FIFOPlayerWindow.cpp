@@ -150,18 +150,18 @@ void FIFOPlayerWindow::CreateWidgets()
   layout->addWidget(recording_group);
   layout->addWidget(m_button_box);
 
-  QWidget* main_widget = new QWidget(this);
-  main_widget->setLayout(layout);
+  m_main_widget = new QWidget(this);
+  m_main_widget->setLayout(layout);
 
-  auto* tab_widget = new QTabWidget(this);
+  m_tab_widget = new QTabWidget(this);
 
   m_analyzer = new FIFOAnalyzer;
 
-  tab_widget->addTab(main_widget, tr("Play / Record"));
-  tab_widget->addTab(m_analyzer, tr("Analyze"));
+  m_tab_widget->addTab(m_main_widget, tr("Play / Record"));
+  m_tab_widget->addTab(m_analyzer, tr("Analyze"));
 
   auto* tab_layout = new QVBoxLayout;
-  tab_layout->addWidget(tab_widget);
+  tab_layout->addWidget(m_tab_widget);
 
   setLayout(tab_layout);
 }
@@ -250,6 +250,8 @@ void FIFOPlayerWindow::OnEmulationStopped()
     StopRecording();
 
   UpdateControls();
+  // When emulation stops, switch away from the analyzer tab, as it no longer shows anything useful
+  m_tab_widget->setCurrentWidget(m_main_widget);
   m_analyzer->Update();
 }
 

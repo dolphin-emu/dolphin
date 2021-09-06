@@ -12,6 +12,7 @@ class QDialogButtonBox;
 class QLabel;
 class QPushButton;
 class QSpinBox;
+class QTabWidget;
 class FIFOAnalyzer;
 
 class FIFOPlayerWindow : public QWidget
@@ -63,6 +64,9 @@ private:
   QLabel* m_object_range_to_label;
   QCheckBox* m_early_memory_updates;
   QDialogButtonBox* m_button_box;
+
+  QWidget* m_main_widget;
+  QTabWidget* m_tab_widget;
 
   FIFOAnalyzer* m_analyzer;
   Core::State m_emu_state = Core::State::Uninitialized;
