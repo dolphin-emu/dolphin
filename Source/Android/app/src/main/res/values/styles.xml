@@ -14,6 +14,7 @@
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
 
         <item name="android:colorControlHighlight">?attr/colorAccent</item>
     </style>
@@ -23,6 +24,7 @@
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
     <!-- Themes for Dialogs -->
@@ -34,6 +36,7 @@
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
         <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
 
         <item name="android:windowBackground">@android:color/black</item>
 
@@ -58,6 +61,7 @@
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
 
         <!-- Use CustomTitleView as the leanback title view. -->
         <item name="browseTitleViewLayout">@layout/titleview</item>
