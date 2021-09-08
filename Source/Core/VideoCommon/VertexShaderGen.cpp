@@ -96,7 +96,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("struct VS_OUTPUT {{\n");
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
-  out.Write("}};\n");
+  out.Write("}};\n\n");
+
+  WriteIsNanHeader(out, api_type);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -335,9 +337,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
     // See https://bugs.dolphin-emu.org/issues/11458
     out.Write("// Convert NaN to 1\n");
-    out.Write("if (isnan(coord.x)) coord.x = 1.0;\n");
-    out.Write("if (isnan(coord.y)) coord.y = 1.0;\n");
-    out.Write("if (isnan(coord.z)) coord.z = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
     // first transformation
     switch (texinfo.texgentype)

@@ -176,6 +176,8 @@ union ShaderHostConfig
 std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
                                        bool include_host_config, bool include_api = true);
 
+void WriteIsNanHeader(ShaderCode& out, APIType api_type);
+
 void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
                              const ShaderHostConfig& host_config, std::string_view qualifier);
 

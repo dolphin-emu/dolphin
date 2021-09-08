@@ -50,6 +50,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("}};\n\n");
 
   WriteUberShaderCommonHeader(out, api_type, host_config);
+  WriteIsNanHeader(out, api_type);
   WriteLightingFunction(out);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -438,9 +439,9 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
   // See https://bugs.dolphin-emu.org/issues/11458
   out.Write("  // Convert NaN to 1\n");
-  out.Write("  if (isnan(coord.x)) coord.x = 1.0;\n");
-  out.Write("  if (isnan(coord.y)) coord.y = 1.0;\n");
-  out.Write("  if (isnan(coord.z)) coord.z = 1.0;\n");
+  out.Write("  if (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
+  out.Write("  if (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
+  out.Write("  if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
   out.Write("  // first transformation\n");
   out.Write("  uint texgentype = {};\n", BitfieldExtract<&TexMtxInfo::texgentype>("texMtxInfo"));
