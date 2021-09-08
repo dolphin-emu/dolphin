@@ -39,7 +39,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
-  const ARM64Reg arm_addr = gpr.R(inst.RA);
   constexpr ARM64Reg scale_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
@@ -48,11 +47,11 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   if (inst.RA || update)  // Always uses the register on update
   {
     if (indexed)
-      ADD(addr_reg, arm_addr, gpr.R(inst.RB));
+      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
     else if (offset >= 0)
-      ADD(addr_reg, arm_addr, offset);
+      ADD(addr_reg, gpr.R(inst.RA), offset);
     else
-      SUB(addr_reg, arm_addr, std::abs(offset));
+      SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
   }
   else
   {
@@ -65,7 +64,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   if (update)
   {
     gpr.BindToRegister(inst.RA, false);
-    MOV(arm_addr, addr_reg);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
@@ -163,26 +162,18 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
 
-  const ARM64Reg arm_addr = gpr.R(inst.RA);
   constexpr ARM64Reg scale_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
 
-  BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-
-  // Wipe the registers we are using as temporaries
-  gprs_in_use &= BitSet32(~7);
-  fprs_in_use &= BitSet32(~3);
-
   if (inst.RA || update)  // Always uses the register on update
   {
     if (indexed)
-      ADD(addr_reg, arm_addr, gpr.R(inst.RB));
+      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
     else if (offset >= 0)
-      ADD(addr_reg, arm_addr, offset);
+      ADD(addr_reg, gpr.R(inst.RA), offset);
     else
-      SUB(addr_reg, arm_addr, std::abs(offset));
+      SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
   }
   else
   {
@@ -195,8 +186,15 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   if (update)
   {
     gpr.BindToRegister(inst.RA, false);
-    MOV(arm_addr, addr_reg);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
+
+  BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
+  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+
+  // Wipe the registers we are using as temporaries
+  gprs_in_use &= BitSet32(~7);
+  fprs_in_use &= BitSet32(~3);
 
   if (js.assumeNoPairedQuantize)
   {
