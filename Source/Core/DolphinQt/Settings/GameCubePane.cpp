@@ -245,6 +245,7 @@ void GameCubePane::UpdateButton(int slot)
   case SLOT_B_INDEX:
     has_config =
         (value == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+         value == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER ||
          value == ExpansionInterface::EXIDEVICE_AGP || value == ExpansionInterface::EXIDEVICE_MIC);
     break;
   case SLOT_SP1_INDEX:
@@ -260,12 +261,16 @@ void GameCubePane::OnConfigPressed(int slot)
 {
   QString filter;
   bool memcard = false;
+  bool memcardfolder = false;
 
   switch (m_slot_combos[slot]->currentData().toInt())
   {
   case ExpansionInterface::EXIDEVICE_MEMORYCARD:
     filter = tr("GameCube Memory Cards (*.raw *.gcp)");
     memcard = true;
+    break;
+  case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
+    memcardfolder = true;
     break;
   case ExpansionInterface::EXIDEVICE_AGP:
     filter = tr("Game Boy Advance Carts (*.gba)");
@@ -301,14 +306,32 @@ void GameCubePane::OnConfigPressed(int slot)
     qFatal("unknown settings pressed");
   }
 
-  QString filename = QFileDialog::getSaveFileName(
-      this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      filter, 0, QFileDialog::DontConfirmOverwrite);
+  QString path_abs = QString();
+  QString filename = QString();
+  QString foldername = QString();
 
-  if (filename.isEmpty())
-    return;
+  if (memcardfolder)
+  {
+    foldername = QFileDialog::getExistingDirectory(
+        this, tr("Choose a folder to open"),
+        QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)), QFileDialog::DontConfirmOverwrite);
 
-  QString path_abs = QFileInfo(filename).absoluteFilePath();
+    if (foldername.isEmpty())
+      return;
+
+    path_abs = QDir(foldername).absolutePath();
+  }
+  else
+  {
+    filename = QFileDialog::getSaveFileName(this, tr("Choose a file to open"),
+                                            QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+                                            filter, 0, QFileDialog::DontConfirmOverwrite);
+
+    if (filename.isEmpty())
+      return;
+
+    path_abs = QFileInfo(filename).absoluteFilePath();
+  }
 
   // Memcard validity checks
   if (memcard)
@@ -355,6 +378,13 @@ void GameCubePane::OnConfigPressed(int slot)
                                                      Config::Get(Config::MAIN_MEMCARD_B_PATH)))
             .absoluteFilePath();
   }
+  else if (memcardfolder)
+  {
+    path_old = QDir(QString::fromStdString(
+                        slot == 0 ? Config::Get(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE) :
+                                    Config::Get(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE)))
+                   .absolutePath();
+  }
   else
   {
     path_old = QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
@@ -373,6 +403,17 @@ void GameCubePane::OnConfigPressed(int slot)
       Config::SetBase(Config::MAIN_MEMCARD_B_PATH, path_abs.toStdString());
     }
   }
+  else if (memcardfolder)
+  {
+    if (slot == SLOT_A_INDEX)
+    {
+      Config::SetBase(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE, path_abs.toStdString());
+    }
+    else
+    {
+      Config::SetBase(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE, path_abs.toStdString());
+    }
+  }
   else
   {
     if (slot == SLOT_A_INDEX)
@@ -385,13 +426,19 @@ void GameCubePane::OnConfigPressed(int slot)
     }
   }
 
+  ExpansionInterface::TEXIDevices device = ExpansionInterface::EXIDEVICE_AGP;
+  if (memcard)
+    device = ExpansionInterface::EXIDEVICE_MEMORYCARD;
+  else if (memcardfolder)
+    device = ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+
   if (Core::IsRunning() && path_abs != path_old)
   {
     ExpansionInterface::ChangeDevice(
         // SlotB is on channel 1, slotA and SP1 are on 0
         slot,
         // The device enum to change to
-        memcard ? ExpansionInterface::EXIDEVICE_MEMORYCARD : ExpansionInterface::EXIDEVICE_AGP,
+        device,
         // SP1 is device 2, slots are device 0
         0);
   }
