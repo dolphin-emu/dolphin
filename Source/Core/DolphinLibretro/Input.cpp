@@ -27,7 +27,7 @@
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
-#define RETRO_DEVICE_WIIMOTE ((1 << 8) | RETRO_DEVICE_JOYPAD)
+#define RETRO_DEVICE_WIIMOTE RETRO_DEVICE_JOYPAD
 #define RETRO_DEVICE_WIIMOTE_SW ((2 << 8) | RETRO_DEVICE_JOYPAD)
 #define RETRO_DEVICE_WIIMOTE_NC ((3 << 8) | RETRO_DEVICE_JOYPAD)
 #define RETRO_DEVICE_WIIMOTE_CC ((4 << 8) | RETRO_DEVICE_JOYPAD)
@@ -43,6 +43,7 @@ static retro_input_poll_t poll_cb;
 static retro_input_state_t input_cb;
 struct retro_rumble_interface rumble;
 static const std::string source = "Libretro";
+static unsigned input_types[8];
 static bool init_wiimotes = false;
 
 static struct retro_input_descriptor descEmpty[] = {{0}};
@@ -56,11 +57,12 @@ static struct retro_input_descriptor descGC[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, "A"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X, "X"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y, "Y"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L, "L"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R, "R"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2, "Z"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2, "L"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2, "R"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3, "L-Analog"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "R-Analog"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R, "Z"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Select"},
     {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X,
      "Control Stick X"},
     {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y,
@@ -81,10 +83,10 @@ static struct retro_input_descriptor descWiimoteCC[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, "A"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X, "X"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y, "Y"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L, "L"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R, "R"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2, "ZL"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2, "ZR"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2, "L"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2, "R"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L, "ZL"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R, "ZR"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "Home"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "+"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "-"},
@@ -112,6 +114,10 @@ static struct retro_input_descriptor descWiimote[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "+"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "-"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "Home"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X,
+     "Tilt Left/Right"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y,
+     "Tilt Forward/Backward"},
     {0},
 };
 
@@ -128,6 +134,10 @@ static struct retro_input_descriptor descWiimoteSideways[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "+"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "-"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "Home"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X,
+     "Tilt Left/Right"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y,
+     "Tilt Forward/Backward"},
     {0},
 };
 
@@ -147,10 +157,14 @@ static struct retro_input_descriptor descWiimoteNunchuk[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "1"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "2"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "Home"},
-    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X,
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,
      "Nunchuk Stick X"},
-    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y,
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,
      "Nunchuk Stick Y"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,
+     "Tilt Left/Right"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,
+     "Tilt Forward/Backward"},
     {0},
 };
 
@@ -258,6 +272,7 @@ public:
   }
   std::string GetName() const override { return GetDeviceName(m_device); }
   std::string GetSource() const override { return source; }
+  unsigned int GetPort() const { return m_port; }
 
 private:
   unsigned m_device;
@@ -296,10 +311,8 @@ Device::Device(unsigned device, unsigned p) : m_device(device), m_port(p)
     AddAxis(RETRO_DEVICE_ID_ANALOG_X, 0x7FFF, "X1+", RETRO_DEVICE_INDEX_ANALOG_RIGHT);
     AddAxis(RETRO_DEVICE_ID_ANALOG_Y, -0x8000, "Y1-", RETRO_DEVICE_INDEX_ANALOG_RIGHT);
     AddAxis(RETRO_DEVICE_ID_ANALOG_Y, 0x7FFF, "Y1+", RETRO_DEVICE_INDEX_ANALOG_RIGHT);
-    AddAxis(RETRO_DEVICE_ID_ANALOG_X, -0x8000, "Trigger0-", RETRO_DEVICE_INDEX_ANALOG_BUTTON);
-    AddAxis(RETRO_DEVICE_ID_ANALOG_X, 0x7FFF, "Trigger0+", RETRO_DEVICE_INDEX_ANALOG_BUTTON);
-    AddAxis(RETRO_DEVICE_ID_ANALOG_Y, -0x8000, "Trigger1-", RETRO_DEVICE_INDEX_ANALOG_BUTTON);
-    AddAxis(RETRO_DEVICE_ID_ANALOG_Y, 0x7FFF, "Trigger1+", RETRO_DEVICE_INDEX_ANALOG_BUTTON);
+    AddAxis(RETRO_DEVICE_ID_JOYPAD_L2, 0x7FFF, "Trigger0+", RETRO_DEVICE_INDEX_ANALOG_BUTTON);
+    AddAxis(RETRO_DEVICE_ID_JOYPAD_R2, 0x7FFF, "Trigger1+", RETRO_DEVICE_INDEX_ANALOG_BUTTON);
     return;
   case RETRO_DEVICE_MOUSE:
     // TODO: handle last poll_cb relative coordinates correctly.
@@ -319,20 +332,10 @@ Device::Device(unsigned device, unsigned p) : m_device(device), m_port(p)
     return;
   case RETRO_DEVICE_POINTER:
     AddButton(RETRO_DEVICE_ID_POINTER_PRESSED, "Pressed0", 0);
-    AddButton(RETRO_DEVICE_ID_POINTER_PRESSED, "Pressed1", 1);
-    AddButton(RETRO_DEVICE_ID_POINTER_PRESSED, "Pressed2", 2);
     AddAxis(RETRO_DEVICE_ID_POINTER_X, -0x8000, "X0-", 0);
     AddAxis(RETRO_DEVICE_ID_POINTER_X, 0x7FFF, "X0+", 0);
     AddAxis(RETRO_DEVICE_ID_POINTER_Y, -0x8000, "Y0-", 0);
     AddAxis(RETRO_DEVICE_ID_POINTER_Y, 0x7FFF, "Y0+", 0);
-    AddAxis(RETRO_DEVICE_ID_POINTER_X, -0x8000, "X1-", 1);
-    AddAxis(RETRO_DEVICE_ID_POINTER_X, 0x7FFF, "X1+", 1);
-    AddAxis(RETRO_DEVICE_ID_POINTER_Y, -0x8000, "Y1-", 1);
-    AddAxis(RETRO_DEVICE_ID_POINTER_Y, 0x7FFF, "Y1+", 1);
-    AddAxis(RETRO_DEVICE_ID_POINTER_X, -0x8000, "X2-", 2);
-    AddAxis(RETRO_DEVICE_ID_POINTER_X, 0x7FFF, "X2+", 2);
-    AddAxis(RETRO_DEVICE_ID_POINTER_Y, -0x8000, "Y2-", 2);
-    AddAxis(RETRO_DEVICE_ID_POINTER_Y, 0x7FFF, "Y2+", 2);
     return;
   case RETRO_DEVICE_KEYBOARD:
     return;
@@ -358,6 +361,24 @@ Device::Device(unsigned device, unsigned p) : m_device(device), m_port(p)
   }
 }
 
+static void AddDevicesForPort(unsigned port)
+{
+  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, port));
+  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_ANALOG, port));
+  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_POINTER, port));
+}
+
+static void RemoveDevicesForPort(unsigned port)
+{
+  g_controller_interface.RemoveDevice([&port](const auto& device) {
+    return device->GetSource() == source &&
+           (device->GetName() == GetDeviceName(RETRO_DEVICE_ANALOG) ||
+            device->GetName() == GetDeviceName(RETRO_DEVICE_JOYPAD) ||
+            device->GetName() == GetDeviceName(RETRO_DEVICE_POINTER)) &&
+           dynamic_cast<const Device*>(device)->GetPort() == port;
+  });
+}
+
 void Init()
 {
   environ_cb(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &rumble);
@@ -365,24 +386,14 @@ void Init()
   WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
   g_controller_interface.Initialize(wsi);
 
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, 0));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, 1));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, 2));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, 3));
-
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_ANALOG, 0));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_ANALOG, 1));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_ANALOG, 2));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_ANALOG, 3));
-
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_MOUSE, 0));
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_KEYBOARD, 0));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_LIGHTGUN, 0));
-  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_POINTER, 0));
 
   Pad::Initialize();
   Keyboard::Initialize();
 
+  static const struct retro_controller_description gcpad_desc[] = {
+      {"GameCube Controller", RETRO_DEVICE_JOYPAD},
+  };
   if (SConfig::GetInstance().bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     init_wiimotes = true;
@@ -402,6 +413,10 @@ void Init()
         {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
         {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
         {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
         {0},
     };
 
@@ -409,10 +424,15 @@ void Init()
   }
   else
   {
-    retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
-    retro_set_controller_port_device(1, RETRO_DEVICE_JOYPAD);
-    retro_set_controller_port_device(2, RETRO_DEVICE_JOYPAD);
-    retro_set_controller_port_device(3, RETRO_DEVICE_JOYPAD);
+    static const struct retro_controller_info ports[] = {
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+        {0},
+    };
+
+    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
   }
 }
 
@@ -464,8 +484,10 @@ void retro_set_input_state(retro_input_state_t cb)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-  if (port > 4)
+  if (port > 7)
     return;
+
+  Libretro::Input::input_types[port] = device;
 
   std::string devJoypad = Libretro::Input::GetQualifiedName(port, RETRO_DEVICE_JOYPAD);
   std::string devAnalog = Libretro::Input::GetQualifiedName(port, RETRO_DEVICE_ANALOG);
@@ -476,10 +498,13 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
   std::string devLightgun = Libretro::Input::GetQualifiedName(port, RETRO_DEVICE_LIGHTGUN);
 #endif
 
-  retro_input_descriptor* desc = Libretro::Input::descGC;
+  Libretro::Input::RemoveDevicesForPort(port);
+  if (device != RETRO_DEVICE_NONE && device != RETRO_DEVICE_REAL_WIIMOTE)
+    Libretro::Input::AddDevicesForPort(port);
 
+  if (!SConfig::GetInstance().bWii || port > 3)
   {
-    GCPad* gcPad = (GCPad*)Pad::GetConfig()->GetController(port);
+    GCPad* gcPad = (GCPad*)Pad::GetConfig()->GetController(port > 3 ? port - 4 : port);
     // load an empty inifile section, clears everything
     IniFile::Section sec;
     gcPad->LoadConfig(&sec);
@@ -495,36 +520,38 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
     ControllerEmu::ControlGroup* gcMic = gcPad->GetGroup(PadGroup::Mic);
     ControllerEmu::ControlGroup* gcOptions = gcPad->GetGroup(PadGroup::Options);
 #endif
-
-    gcButtons->SetControlExpression(0, "A");                              // A
-    gcButtons->SetControlExpression(1, "B");                              // B
-    gcButtons->SetControlExpression(2, "X");                              // X
-    gcButtons->SetControlExpression(3, "Y");                              // Y
-    gcButtons->SetControlExpression(4, "R2");                             // Z
-    gcButtons->SetControlExpression(5, "Start");                          // Start
-    gcMainStick->SetControlExpression(0, "`" + devAnalog + ":Y0-`");      // Up
-    gcMainStick->SetControlExpression(1, "`" + devAnalog + ":Y0+`");      // Down
-    gcMainStick->SetControlExpression(2, "`" + devAnalog + ":X0-`");      // Left
-    gcMainStick->SetControlExpression(3, "`" + devAnalog + ":X0+`");      // Right
-    gcCStick->SetControlExpression(0, "`" + devAnalog + ":Y1-`");         // Up
-    gcCStick->SetControlExpression(1, "`" + devAnalog + ":Y1+`");         // Down
-    gcCStick->SetControlExpression(2, "`" + devAnalog + ":X1-`");         // Left
-    gcCStick->SetControlExpression(3, "`" + devAnalog + ":X1+`");         // Right
-    gcDPad->SetControlExpression(0, "Up");                                // Up
-    gcDPad->SetControlExpression(1, "Down");                              // Down
-    gcDPad->SetControlExpression(2, "Left");                              // Left
-    gcDPad->SetControlExpression(3, "Right");                             // Right
-    gcTriggers->SetControlExpression(0, "L");                             // L
-    gcTriggers->SetControlExpression(1, "R");                             // R
-    gcTriggers->SetControlExpression(2, "`" + devAnalog + "Trigger0+`");  // L-trigger Analog
-    gcTriggers->SetControlExpression(3, "`" + devAnalog + "Trigger1+`");  // R-trigger Analog
+    gcButtons->SetControlExpression(0, "A");                          // A
+    gcButtons->SetControlExpression(1, "B");                          // B
+    gcButtons->SetControlExpression(2, "X");                          // X
+    gcButtons->SetControlExpression(3, "Y");                          // Y
+    gcButtons->SetControlExpression(4, "R");                          // Z
+    gcButtons->SetControlExpression(5, "Start");                      // Start
+    gcMainStick->SetControlExpression(0, "`" + devAnalog + ":Y0-`");  // Up
+    gcMainStick->SetControlExpression(1, "`" + devAnalog + ":Y0+`");  // Down
+    gcMainStick->SetControlExpression(2, "`" + devAnalog + ":X0-`");  // Left
+    gcMainStick->SetControlExpression(3, "`" + devAnalog + ":X0+`");  // Right
+    gcCStick->SetControlExpression(0, "`" + devAnalog + ":Y1-`");     // Up
+    gcCStick->SetControlExpression(1, "`" + devAnalog + ":Y1+`");     // Down
+    gcCStick->SetControlExpression(2, "`" + devAnalog + ":X1-`");     // Left
+    gcCStick->SetControlExpression(3, "`" + devAnalog + ":X1+`");     // Right
+    gcDPad->SetControlExpression(0, "Up");                            // Up
+    gcDPad->SetControlExpression(1, "Down");                          // Down
+    gcDPad->SetControlExpression(2, "Left");                          // Left
+    gcDPad->SetControlExpression(3, "Right");                         // Right
+    gcTriggers->SetControlExpression(0, "`" + devAnalog + ":Trigger0+`|(L2&!`" + devAnalog +
+                                            ":Trigger0+`)");  // L-trigger Full Press
+    gcTriggers->SetControlExpression(1, "`" + devAnalog + ":Trigger1+`|(R2&!`" + devAnalog +
+                                            ":Trigger1+`)");  // R-trigger Full Press
+    gcTriggers->SetControlExpression(2,
+                                     "`" + devAnalog + ":Trigger0+`|L3");  // L-trigger Soft Press
+    gcTriggers->SetControlExpression(3,
+                                     "`" + devAnalog + ":Trigger1+`|R3");  // R-trigger Soft Press
     gcRumble->SetControlExpression(0, "Rumble");
 
     gcPad->UpdateReferences(g_controller_interface);
     Pad::GetConfig()->SaveConfig();
   }
-
-  if (SConfig::GetInstance().bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
+  else if (!SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     WiimoteEmu::Wiimote* wm = (WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(port);
     // load an empty inifile section, clears everything
@@ -541,31 +568,31 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       ControllerEmu::ControlGroup* ccLeftStick = wm->GetClassicGroup(ClassicGroup::LeftStick);
       ControllerEmu::ControlGroup* ccRightStick = wm->GetClassicGroup(ClassicGroup::RightStick);
 
-      ccButtons->SetControlExpression(0, "A");                              // A
-      ccButtons->SetControlExpression(1, "B");                              // B
-      ccButtons->SetControlExpression(2, "X");                              // X
-      ccButtons->SetControlExpression(3, "Y");                              // Y
-      ccButtons->SetControlExpression(4, "L2");                             // ZL
-      ccButtons->SetControlExpression(5, "R2");                             // ZR
-      ccButtons->SetControlExpression(6, "Select");                         // -
-      ccButtons->SetControlExpression(7, "Start");                          // +
-      ccButtons->SetControlExpression(8, "R3");                             // Home
-      ccTriggers->SetControlExpression(0, "L");                             // L-trigger
-      ccTriggers->SetControlExpression(1, "R");                             // R-trigger
-      ccTriggers->SetControlExpression(2, "`" + devAnalog + "Trigger0+`");  // L-trigger Analog
-      ccTriggers->SetControlExpression(3, "`" + devAnalog + "Trigger1+`");  // R-trigger Analog
-      ccDpad->SetControlExpression(0, "Up");                                // Up
-      ccDpad->SetControlExpression(1, "Down");                              // Down
-      ccDpad->SetControlExpression(2, "Left");                              // Left
-      ccDpad->SetControlExpression(3, "Right");                             // Right
-      ccLeftStick->SetControlExpression(0, "`" + devAnalog + ":Y0-`");      // Up
-      ccLeftStick->SetControlExpression(1, "`" + devAnalog + ":Y0+`");      // Down
-      ccLeftStick->SetControlExpression(2, "`" + devAnalog + ":X0-`");      // Left
-      ccLeftStick->SetControlExpression(3, "`" + devAnalog + ":X0+`");      // Right
-      ccRightStick->SetControlExpression(0, "`" + devAnalog + ":Y1-`");     // Up
-      ccRightStick->SetControlExpression(1, "`" + devAnalog + ":Y1+`");     // Down
-      ccRightStick->SetControlExpression(2, "`" + devAnalog + ":X1-`");     // Left
-      ccRightStick->SetControlExpression(3, "`" + devAnalog + ":X1+`");     // Right
+      ccButtons->SetControlExpression(0, "A");                               // A
+      ccButtons->SetControlExpression(1, "B");                               // B
+      ccButtons->SetControlExpression(2, "X");                               // X
+      ccButtons->SetControlExpression(3, "Y");                               // Y
+      ccButtons->SetControlExpression(4, "L");                               // ZL
+      ccButtons->SetControlExpression(5, "R");                               // ZR
+      ccButtons->SetControlExpression(6, "Select");                          // -
+      ccButtons->SetControlExpression(7, "Start");                           // +
+      ccButtons->SetControlExpression(8, "R3");                              // Home
+      ccTriggers->SetControlExpression(0, "`" + devAnalog + ":Trigger0+`");  // L-trigger
+      ccTriggers->SetControlExpression(1, "`" + devAnalog + ":Trigger1+`");  // R-trigger
+      ccTriggers->SetControlExpression(2, "`" + devAnalog + ":Trigger0+`");  // L-trigger Analog
+      ccTriggers->SetControlExpression(3, "`" + devAnalog + ":Trigger1+`");  // R-trigger Analog
+      ccDpad->SetControlExpression(0, "Up");                                 // Up
+      ccDpad->SetControlExpression(1, "Down");                               // Down
+      ccDpad->SetControlExpression(2, "Left");                               // Left
+      ccDpad->SetControlExpression(3, "Right");                              // Right
+      ccLeftStick->SetControlExpression(0, "`" + devAnalog + ":Y0-`");       // Up
+      ccLeftStick->SetControlExpression(1, "`" + devAnalog + ":Y0+`");       // Down
+      ccLeftStick->SetControlExpression(2, "`" + devAnalog + ":X0-`");       // Left
+      ccLeftStick->SetControlExpression(3, "`" + devAnalog + ":X0+`");       // Right
+      ccRightStick->SetControlExpression(0, "`" + devAnalog + ":Y1-`");      // Up
+      ccRightStick->SetControlExpression(1, "`" + devAnalog + ":Y1+`");      // Down
+      ccRightStick->SetControlExpression(2, "`" + devAnalog + ":X1-`");      // Left
+      ccRightStick->SetControlExpression(3, "`" + devAnalog + ":X1+`");      // Right
     }
     else if (device != RETRO_DEVICE_REAL_WIIMOTE)
     {
@@ -573,14 +600,12 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       ControllerEmu::ControlGroup* wmDPad = wm->GetWiimoteGroup(WiimoteGroup::DPad);
       ControllerEmu::ControlGroup* wmIR = wm->GetWiimoteGroup(WiimoteGroup::Point);
       ControllerEmu::ControlGroup* wmShake = wm->GetWiimoteGroup(WiimoteGroup::Shake);
-#if 0
       ControllerEmu::ControlGroup* wmTilt = wm->GetWiimoteGroup(WiimoteGroup::Tilt);
+#if 0
       ControllerEmu::ControlGroup* wmSwing = wm->GetWiimoteGroup(WiimoteGroup::Swing);
       ControllerEmu::ControlGroup* wmHotkeys = wm->GetWiimoteGroup(WiimoteGroup::Hotkeys);
 #endif
 
-      wmButtons->SetControlExpression(0, "A | `" + devMouse + ":Left`");   // A
-      wmButtons->SetControlExpression(1, "B | `" + devMouse + ":Right`");  // B
 
       if (device == RETRO_DEVICE_WIIMOTE_NC)
       {
@@ -602,24 +627,60 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         ncShake->SetControlExpression(1, "L2");                       // Y
         ncShake->SetControlExpression(2, "L2");                       // Z
 
-        wmButtons->SetControlExpression(2, "Start");   // 1
-        wmButtons->SetControlExpression(3, "Select");  // 2
-        wmButtons->SetControlExpression(4, "L");       // -
-        wmButtons->SetControlExpression(5, "R");       // +
+        wmButtons->SetControlExpression(0, "A | `" + devMouse + ":Left`");   // A
+        wmButtons->SetControlExpression(1, "B | `" + devMouse + ":Right`");  // B
+        wmButtons->SetControlExpression(2, "Start");                         // 1
+        wmButtons->SetControlExpression(3, "Select");                        // 2
+        wmButtons->SetControlExpression(4, "L");                             // -
+        wmButtons->SetControlExpression(5, "R");                             // +
+        wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y1-`");  // Forward
+        wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y1+`");  // Backward
+        wmTilt->SetControlExpression(2, "`" + devAnalog + ":X1-`");  // Left
+        wmTilt->SetControlExpression(3, "`" + devAnalog + ":X1+`");  // Right
       }
       else
       {
-        wmButtons->SetControlExpression(2, "X");       // 1
-        wmButtons->SetControlExpression(3, "Y");       // 2
-        wmButtons->SetControlExpression(4, "Select");  // -
-        wmButtons->SetControlExpression(5, "Start");   // +
+        if (device == RETRO_DEVICE_WIIMOTE)
+        {
+          wmButtons->SetControlExpression(0, "A | `" + devMouse + ":Left`");   // A
+          wmButtons->SetControlExpression(1, "B | `" + devMouse + ":Right`");  // B
+          wmButtons->SetControlExpression(2, "X");                             // 1
+          wmButtons->SetControlExpression(3, "Y");                             //
+          wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y0-`");  // Forward
+          wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y0+`");  // Backward
+          wmTilt->SetControlExpression(2, "`" + devAnalog + ":X0-`");  // Left
+          wmTilt->SetControlExpression(3, "`" + devAnalog + ":X0+`");  // Right
+        }
+        else
+        {
+          wmButtons->SetControlExpression(0, "X");  // A
+          wmButtons->SetControlExpression(1, "Y");  // B
+          wmButtons->SetControlExpression(2, "B");  // 2
+          wmButtons->SetControlExpression(3, "A");  // 1
+          wmTilt->SetControlExpression(0, "`" + devAnalog + ":X0-`");  // Left
+          wmTilt->SetControlExpression(1, "`" + devAnalog + ":X0+`");  // Right
+          wmTilt->SetControlExpression(2, "`" + devAnalog + ":Y0+`");  // Backward
+          wmTilt->SetControlExpression(3, "`" + devAnalog + ":Y0-`");  // Forward
+        }
+        wmButtons->SetControlExpression(4, "Select");                // -
+        wmButtons->SetControlExpression(5, "Start");                 // +
       }
 
-      wmButtons->SetControlExpression(6, "R3");                   // Home
-      wmDPad->SetControlExpression(0, "Up");                      // Up
-      wmDPad->SetControlExpression(1, "Down");                    // Down
-      wmDPad->SetControlExpression(2, "Left");                    // Left
-      wmDPad->SetControlExpression(3, "Right");                   // Right
+      wmButtons->SetControlExpression(6, "R3");  // Home
+      if (device == RETRO_DEVICE_WIIMOTE_SW)
+      {
+        wmDPad->SetControlExpression(0, "Left");   // Left
+        wmDPad->SetControlExpression(1, "Right");  // Right
+        wmDPad->SetControlExpression(2, "Down");   // Down
+        wmDPad->SetControlExpression(3, "Up");     // Up
+      }
+      else
+      {
+        wmDPad->SetControlExpression(0, "Up");     // Up
+        wmDPad->SetControlExpression(1, "Down");   // Down
+        wmDPad->SetControlExpression(2, "Left");   // Left
+        wmDPad->SetControlExpression(3, "Right");  // Right
+      }
       wmIR->SetControlExpression(0, "`" + devPointer + ":Y0-`");  // Up
       wmIR->SetControlExpression(1, "`" + devPointer + ":Y0+`");  // Down
       wmIR->SetControlExpression(2, "`" + devPointer + ":X0-`");  // Left
@@ -655,13 +716,11 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
     switch (device)
     {
     case RETRO_DEVICE_WIIMOTE:
-      desc = Libretro::Input::descWiimote;
       wmExtension->SetSelectedAttachment(ExtensionNumber::NONE);
       WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
 
     case RETRO_DEVICE_WIIMOTE_SW:
-      desc = Libretro::Input::descWiimoteSideways;
       wmExtension->SetSelectedAttachment(ExtensionNumber::NONE);
       static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[2].get())
           ->SetValue(true);  // Sideways Wiimote
@@ -669,34 +728,69 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       break;
 
     case RETRO_DEVICE_WIIMOTE_NC:
-      desc = Libretro::Input::descWiimoteNunchuk;
       wmExtension->SetSelectedAttachment(ExtensionNumber::NUNCHUK);
       WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
 
     case RETRO_DEVICE_WIIMOTE_CC:
     case RETRO_DEVICE_WIIMOTE_CC_PRO:
-      desc = Libretro::Input::descWiimoteCC;
       wmExtension->SetSelectedAttachment(ExtensionNumber::CLASSIC);
       WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
 
     case RETRO_DEVICE_REAL_WIIMOTE:
-      desc = Libretro::Input::descEmpty;
       WiimoteCommon::SetSource(port, WiimoteSource::Real);
 
     default:
-      desc = Libretro::Input::descGC;
       WiimoteCommon::SetSource(port, WiimoteSource::None);
       break;
     }
     wm->UpdateReferences(g_controller_interface);
     ::Wiimote::GetConfig()->SaveConfig();
   }
+  std::vector<retro_input_descriptor> all_descs;
 
-  retro_input_descriptor* desc_ptr = desc;
-  while (desc_ptr->description)
-    (desc_ptr++)->port = port;
+  int port_max = SConfig::GetInstance().bWii ? 8 : 4;
+  for (int i = 0; i < port_max; i++)
+  {
+    retro_input_descriptor* desc;
 
-  Libretro::environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
+    switch (Libretro::Input::input_types[i])
+    {
+    case RETRO_DEVICE_WIIMOTE_SW:
+      desc = Libretro::Input::descWiimoteSideways;
+      break;
+
+    case RETRO_DEVICE_WIIMOTE_NC:
+      desc = Libretro::Input::descWiimoteNunchuk;
+      break;
+
+    case RETRO_DEVICE_WIIMOTE_CC:
+    case RETRO_DEVICE_WIIMOTE_CC_PRO:
+      desc = Libretro::Input::descWiimoteCC;
+      break;
+
+    case RETRO_DEVICE_NONE:
+      continue;
+
+    default:
+      if (!SConfig::GetInstance().bWii || port > 3)
+      {
+        desc = Libretro::Input::descGC;
+      }
+      else
+      {
+        desc = Libretro::Input::descWiimote;
+      }
+      break;
+    }
+    for (int j = 0; desc[j].description != NULL; j++)
+    {
+      retro_input_descriptor new_desc = desc[j];
+      new_desc.port = i;
+      all_descs.push_back(new_desc);
+    }
+  }
+  all_descs.push_back({0});
+  Libretro::environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, &all_descs[0]);
 }
