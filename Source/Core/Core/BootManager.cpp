@@ -245,7 +245,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (!StartUp.SetPathsAndGameMetadata(*boot))
     return false;
 
-  	// Block running anything other than MSSB
+ // Block running anything other than MSSB
   if (!StartUp.GetGameID().empty() && !StartUp.GameHasDefaultGameIni())
   {
     PanicAlertT("This is not a copy of Mario Superstar Baseball.\n"
@@ -255,6 +255,12 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     return false;
   }
 
+  // Block running if no UserID
+  if (!StartUp.UserHasUserID())
+  {
+    PanicAlertT("You do not have a User ID or you have not placed your User.json file in the correct location.\nPlease go to https://www.projectrio.online and follow the instructions to create an account.");
+    return false;
+  }
 
   // Load game specific settings
   if (!std::holds_alternative<BootParameters::IPL>(boot->parameters))
