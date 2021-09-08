@@ -234,6 +234,16 @@ void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 addre
     else
       valid_block.Clear(physical_address / 32);
   }
+  else if (length > 32)
+  {
+    // Even if we can't check the set for optimization, we still want to remove all fully covered
+    // cache lines from the valid_block set so that later calls don't try to invalidate already
+    // cleared regions.
+    const u32 covered_block_start = (physical_address + 0x1f) / 32;
+    const u32 covered_block_end = (physical_address + length) / 32;
+    for (u32 i = covered_block_start; i < covered_block_end; ++i)
+      valid_block.Clear(i);
+  }
 
   if (destroy_block)
   {
