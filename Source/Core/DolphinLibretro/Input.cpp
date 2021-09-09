@@ -157,9 +157,9 @@ static struct retro_input_descriptor descWiimoteNunchuk[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "1"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "2"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "Home"},
-    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X,
      "Nunchuk Stick X"},
-    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y,
      "Nunchuk Stick Y"},
     {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,
      "Tilt Left/Right"},
@@ -365,6 +365,7 @@ static void AddDevicesForPort(unsigned port)
 {
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, port));
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_ANALOG, port));
+  g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_MOUSE, port));
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_POINTER, port));
 }
 
@@ -374,6 +375,7 @@ static void RemoveDevicesForPort(unsigned port)
     return device->GetSource() == source &&
            (device->GetName() == GetDeviceName(RETRO_DEVICE_ANALOG) ||
             device->GetName() == GetDeviceName(RETRO_DEVICE_JOYPAD) ||
+            device->GetName() == GetDeviceName(RETRO_DEVICE_MOUSE) ||
             device->GetName() == GetDeviceName(RETRO_DEVICE_POINTER)) &&
            dynamic_cast<const Device*>(device)->GetPort() == port;
   });
