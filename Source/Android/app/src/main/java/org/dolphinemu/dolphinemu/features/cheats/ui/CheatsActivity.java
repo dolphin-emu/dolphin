@@ -5,6 +5,9 @@ package org.dolphinemu.dolphinemu.features.cheats.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -91,6 +94,27 @@ public class CheatsActivity extends AppCompatActivity
     onSelectedCheatChanged(mViewModel.getSelectedCheat().getValue());
 
     mViewModel.getOpenDetailsViewEvent().observe(this, this::openDetailsView);
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu)
+  {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.menu_settings, menu);
+
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item)
+  {
+    if (item.getItemId() == R.id.menu_save_exit)
+    {
+      finish();
+      return true;
+    }
+
+    return false;
   }
 
   @Override
