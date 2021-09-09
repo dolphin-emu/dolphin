@@ -443,19 +443,38 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("}}\n");
   }
 
+  // The number of colors available to TEV is determined by numColorChans.
+  // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+
+  // When per-pixel lighting is enabled, the vertex colors are passed through unmodified so we can
+  // evaluate the lighting in the same manner in the pixel shader.
   if (uid_data->numColorChans == 0)
   {
     if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = rawcolor0;\n");
+    {
+      if (per_pixel_lighting)
+        out.Write("o.colors_0 = vertex_color_0;\n");
+      else
+        out.Write("o.colors_0 = rawcolor0;\n");
+    }
     else
-      out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
+    {
+      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+    }
   }
-  if (uid_data->numColorChans < 2)
+  if (uid_data->numColorChans <= 1)
   {
     if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = rawcolor1;\n");
+    {
+      if (per_pixel_lighting)
+        out.Write("o.colors_1 = vertex_color_1;\n");
+      else
+        out.Write("o.colors_1 = rawcolor1;\n");
+    }
     else
-      out.Write("o.colors_1 = o.colors_0;\n");
+    {
+      out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
+    }
   }
 
   // clipPos/w needs to be done in pixel shader, not here
@@ -466,22 +485,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     out.Write("o.Normal = _norm0;\n"
               "o.WorldPos = pos.xyz;\n");
-
-    // Pass through the vertex colors unmodified so we can evaluate the lighting in the same manner.
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = vertex_color_0;\n");
-
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = vertex_color_1;\n");
-  }
-  else
-  {
-    // The number of colors available to TEV is determined by numColorChans.
-    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
-    if (uid_data->numColorChans == 0)
-      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    if (uid_data->numColorChans <= 1)
-      out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
