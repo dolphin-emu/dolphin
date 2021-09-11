@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "Common/MsgHandler.h"
+
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -74,11 +76,11 @@ static void SaveLocalPlayers(std::vector<std::string>& lines, const AddPlayers& 
   lines.push_back(MakePlayerTitle(gcode));
 }
 
-void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& names)
+void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& player)
 {
   std::vector<std::string> lines;
 
-  for (const AddPlayers& userName : names)
+  for (const AddPlayers& userName : player)
   {
     SaveLocalPlayers(lines, userName);
   }

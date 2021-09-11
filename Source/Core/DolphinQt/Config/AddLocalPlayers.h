@@ -32,6 +32,7 @@ private:
 
   QLineEdit* m_username_edit;
   QLineEdit* m_userid_edit;
+  QLabel* m_description;
 
   QDialogButtonBox* m_button_box;
 

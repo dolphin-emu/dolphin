@@ -38,6 +38,10 @@ LocalPlayersWidget::LocalPlayersWidget(QWidget* parent) : QWidget(parent)
   CreateLayout();
   LoadPlayers();
   ConnectWidgets();
+
+  IniFile local_players_ini;
+  local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  m_local_players = AddPlayers::LoadPlayers(local_players_ini);
 }
 
 void LocalPlayersWidget::CreateLayout()
@@ -152,25 +156,15 @@ void LocalPlayersWidget::SavePlayers()
   local_players_path.Load(ini_path);
   AddPlayers::SavePlayers(local_players_path, m_local_players);
   local_players_path.Save(ini_path);
-  /*
-  const int index = m_player_list_1->currentIndex();
-  const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);
-  SConfig::GetInstance().m_SIDevice[i] = si_device;
-
-  m_player_list[i]->setEnabled(IsConfigurable(si_device));
-
-
-  SConfig::GetInstance().SaveSettings();
-  */
 }
 
 void LocalPlayersWidget::LoadPlayers()
 {
   // done so that no players are selected upon loading Rio for the first time
-  m_player_list_1->setCurrentIndex(-1);
-  m_player_list_2->setCurrentIndex(-1);
-  m_player_list_3->setCurrentIndex(-1);
-  m_player_list_4->setCurrentIndex(-1);
+  m_player_list_1->setCurrentIndex(0);
+  m_player_list_2->setCurrentIndex(0);
+  m_player_list_3->setCurrentIndex(0);
+  m_player_list_4->setCurrentIndex(0);
  
 /*
   m_player_list_1->setCurrentIndex(
@@ -187,7 +181,6 @@ void LocalPlayersWidget::LoadPlayers()
 
 void LocalPlayersWidget::ConnectWidgets()
 {
-
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &LocalPlayersWidget::SavePlayers);
   connect(m_player_list_2, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -196,7 +189,7 @@ void LocalPlayersWidget::ConnectWidgets()
           &LocalPlayersWidget::SavePlayers);
   connect(m_player_list_4, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &LocalPlayersWidget::SavePlayers);
-
+          
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { Settings::Instance().SetPlayerOne(m_player_list_1->itemText(index)); });
   connect(
