@@ -80,6 +80,7 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
+  SaveLocalSettings();
 }
 
 void SConfig::SaveSettings()
@@ -102,6 +103,19 @@ void SConfig::SaveSettings()
   SaveJitDebugSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+
+  Config::Save();
+}
+
+void SConfig::SaveLocalSettings()
+{
+  NOTICE_LOG_FMT(BOOT, "Saving settings to {}", File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  IniFile ini;
+  ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));  // load first to not kill unknown stuff
+
+  SaveLocalPlayerSettings(ini);
+
+  ini.Save(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
 
   Config::Save();
 }
@@ -344,6 +358,17 @@ void SConfig::SaveJitDebugSettings(IniFile& ini)
   section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
 }
 
+void SConfig::SaveLocalPlayerSettings(IniFile& ini)
+{
+  IniFile::Section* localplayers = ini.GetOrCreateSection("Local Players");
+
+  localplayers->Set("Player 1", m_local_player_1);
+  localplayers->Set("Player 2", m_local_player_2);
+  localplayers->Set("Player 3", m_local_player_3);
+  localplayers->Set("Player 4", m_local_player_4);
+}
+
+
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -364,6 +389,17 @@ void SConfig::LoadSettings()
   LoadUSBPassthroughSettings(ini);
   LoadAutoUpdateSettings(ini);
   LoadJitDebugSettings(ini);
+}
+
+void SConfig::LoadLocalSettings()
+{
+  Config::Load();
+
+  INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  IniFile ini;
+  ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+
+  LoadLocalPlayerSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -619,6 +655,16 @@ void SConfig::LoadJitDebugSettings(IniFile& ini)
   section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
   section->Get("JitBranchOff", &bJITBranchOff, false);
   section->Get("JitRegisterCacheOff", &bJITRegisterCacheOff, false);
+}
+
+void SConfig::LoadLocalPlayerSettings(IniFile& ini)
+{
+  IniFile::Section* localplayers = ini.GetOrCreateSection("Local_Players");
+
+  localplayers->Get("Player 1", &m_local_player_1, "");
+  localplayers->Get("Player 2", &m_local_player_2, "");
+  localplayers->Get("Player 3", &m_local_player_3, "");
+  localplayers->Get("Player 4", &m_local_player_4, "");
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -1050,6 +1096,12 @@ bool SConfig::GameHasDefaultGameIni(const std::string& id, u16 revision)
 	return std::any_of(filenames.begin(), filenames.end(), [](const std::string& filename) {
 		return File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename);
 	});
+}
+
+
+bool SConfig::UserHasUserID()
+{
+  return File::Exists(File::GetExeDirectory() + DIR_SEP + "User.json");
 }
 
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)

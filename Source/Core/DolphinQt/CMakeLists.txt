@@ -116,6 +116,10 @@ add_executable(dolphin-emu
   Config/Graphics/SoftwareRendererWidget.h
   Config/InfoWidget.cpp
   Config/InfoWidget.h
+  Config/LocalPlayersWindow.cpp
+  Config/LocalPlayersWindow.h
+  Config/LocalPlayersWidget.cpp
+  Config/LocalPlayersWidget.h
   Config/LogConfigWidget.cpp
   Config/LogConfigWidget.h
   Config/LogWidget.cpp

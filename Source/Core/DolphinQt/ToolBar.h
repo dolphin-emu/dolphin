@@ -36,6 +36,7 @@ signals:
   void StartNetPlayPressed();
   void JoinNetPlayPressed();
   void ViewGeckoCodes();
+  void ViewLocalPlayers();
 
   void StepPressed();
   void StepOverPressed();
@@ -62,6 +63,7 @@ private:
   QAction* m_start_netplay_action;
   QAction* m_join_netplay_action;
   QAction* m_view_gecko_codes_action;
+  QAction* m_local_players_action;
   QAction* m_controllers_action;
   QAction* m_graphics_action;
   QAction* m_step_action;

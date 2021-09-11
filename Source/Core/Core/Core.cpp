@@ -1137,7 +1137,7 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
 void setRecordStatus(bool inNewStatus)
 {
   //is_record = inNewStatus;
-  }
+}
 
 void setSubmitStatus(bool inNewStatus)
 {

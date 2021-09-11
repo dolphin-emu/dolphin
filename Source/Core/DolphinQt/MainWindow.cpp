@@ -66,6 +66,7 @@
 #include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/LocalPlayersWindow.h"
 #include "DolphinQt/Config/LogConfigWidget.h"
 #include "DolphinQt/Config/LogWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -631,6 +632,8 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_tool_bar, &ToolBar::JoinNetPlayPressed, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_tool_bar, &ToolBar::ViewGeckoCodes, this, &MainWindow::ShowGeckoCodes);
+  connect(m_tool_bar, &ToolBar::ViewLocalPlayers, this, &MainWindow::ShowLocalPlayersWindow);
+
 
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
@@ -1165,6 +1168,19 @@ void MainWindow::ShowControllersWindow()
   m_controllers_window->show();
   m_controllers_window->raise();
   m_controllers_window->activateWindow();
+}
+
+void MainWindow::ShowLocalPlayersWindow()
+{
+  if (!m_local_players_window)
+  {
+    m_local_players_window = new LocalPlayersWindow(this);
+    InstallHotkeyFilter(m_local_players_window);
+  }
+
+  m_local_players_window->show();
+  m_local_players_window->raise();
+  m_local_players_window->activateWindow();
 }
 
 void MainWindow::ShowFreeLookWindow()

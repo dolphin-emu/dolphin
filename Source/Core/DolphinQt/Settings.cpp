@@ -101,6 +101,35 @@ void Settings::SetThemeName(const QString& theme_name)
   emit ThemeChanged();
 }
 
+
+
+
+void Settings::SetPlayerOne(const QString& m_local_player_2)
+{
+  SConfig::GetInstance().m_local_player_1 = m_local_player_2.toStdString();
+}
+
+void Settings::SetPlayerTwo(const QString& m_local_player_3)
+{
+  SConfig::GetInstance().m_local_player_2 = m_local_player_3.toStdString();
+}
+
+void Settings::SetPlayerThree(const QString& m_local_player_4)
+{
+  SConfig::GetInstance().m_local_player_3 = m_local_player_4.toStdString();
+}
+
+void Settings::SetPlayerFour(const QString& theme_name)
+{
+  SConfig::GetInstance().m_local_player_4 = theme_name.toStdString();
+  emit ThemeChanged();
+}
+
+
+
+
+
+
 QString Settings::GetCurrentUserStyle() const
 {
   if (GetQSettings().contains(QStringLiteral("userstyle/name")))
