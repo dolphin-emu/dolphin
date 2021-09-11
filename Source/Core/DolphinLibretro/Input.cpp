@@ -122,10 +122,10 @@ static struct retro_input_descriptor descWiimote[] = {
 };
 
 static struct retro_input_descriptor descWiimoteSideways[] = {
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, "Up"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, "Right"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, "Left"},
-    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Down"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, "Left"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, "Up"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, "Down"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B, "1"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, "2"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X, "A"},
@@ -647,11 +647,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
           wmButtons->SetControlExpression(0, "A | `" + devMouse + ":Left`");   // A
           wmButtons->SetControlExpression(1, "B | `" + devMouse + ":Right`");  // B
           wmButtons->SetControlExpression(2, "X");                             // 1
-          wmButtons->SetControlExpression(3, "Y");                             //
-          wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y0-`");  // Forward
-          wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y0+`");  // Backward
-          wmTilt->SetControlExpression(2, "`" + devAnalog + ":X0-`");  // Left
-          wmTilt->SetControlExpression(3, "`" + devAnalog + ":X0+`");  // Right
+          wmButtons->SetControlExpression(3, "Y");                             // 2
         }
         else
         {
@@ -659,30 +655,21 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
           wmButtons->SetControlExpression(1, "Y");  // B
           wmButtons->SetControlExpression(2, "B");  // 2
           wmButtons->SetControlExpression(3, "A");  // 1
-          wmTilt->SetControlExpression(0, "`" + devAnalog + ":X0-`");  // Left
-          wmTilt->SetControlExpression(1, "`" + devAnalog + ":X0+`");  // Right
-          wmTilt->SetControlExpression(2, "`" + devAnalog + ":Y0+`");  // Backward
-          wmTilt->SetControlExpression(3, "`" + devAnalog + ":Y0-`");  // Forward
         }
+        wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y0-`");  // Forward
+        wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y0+`");  // Backward
+        wmTilt->SetControlExpression(2, "`" + devAnalog + ":X0-`");  // Left
+        wmTilt->SetControlExpression(3, "`" + devAnalog + ":X0+`");  // Right
         wmButtons->SetControlExpression(4, "Select");                // -
         wmButtons->SetControlExpression(5, "Start");                 // +
       }
 
       wmButtons->SetControlExpression(6, "R3");  // Home
-      if (device == RETRO_DEVICE_WIIMOTE_SW)
-      {
-        wmDPad->SetControlExpression(0, "Left");   // Left
-        wmDPad->SetControlExpression(1, "Right");  // Right
-        wmDPad->SetControlExpression(2, "Down");   // Down
-        wmDPad->SetControlExpression(3, "Up");     // Up
-      }
-      else
-      {
-        wmDPad->SetControlExpression(0, "Up");     // Up
-        wmDPad->SetControlExpression(1, "Down");   // Down
-        wmDPad->SetControlExpression(2, "Left");   // Left
-        wmDPad->SetControlExpression(3, "Right");  // Right
-      }
+      wmDPad->SetControlExpression(0, "Up");     // Up
+      wmDPad->SetControlExpression(1, "Down");   // Down
+      wmDPad->SetControlExpression(2, "Left");   // Left
+      wmDPad->SetControlExpression(3, "Right");  // Right
+
       wmIR->SetControlExpression(0, "`" + devPointer + ":Y0-`");  // Up
       wmIR->SetControlExpression(1, "`" + devPointer + ":Y0+`");  // Down
       wmIR->SetControlExpression(2, "`" + devPointer + ":X0-`");  // Left
@@ -724,7 +711,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
     case RETRO_DEVICE_WIIMOTE_SW:
       wmExtension->SetSelectedAttachment(ExtensionNumber::NONE);
-      static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[2].get())
+      static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[3].get())
           ->SetValue(true);  // Sideways Wiimote
       WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
