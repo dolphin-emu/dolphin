@@ -1979,6 +1979,49 @@ struct BPS_TmemConfig
   u32 texinvalidate;
 };
 
+// The addressing of the texture units is a bit non-obvious.
+// This struct abstracts the complexity away.
+union TexUnitAddress
+{
+  enum class Register : u32
+  {
+    SETMODE0 = 0,
+    SETMODE1 = 1,
+    SETIMAGE0 = 2,
+    SETIMAGE1 = 3,
+    SETIMAGE2 = 4,
+    SETIMAGE3 = 5,
+    SETTLUT = 6,
+    UNKNOWN = 7,
+  };
+
+  BitField<0, 2, u32> UnitIdLow;
+  BitField<2, 3, Register> Reg;
+  BitField<5, 1, u32> UnitIdHigh;
+
+  BitField<0, 6, u32> FullAddress;
+  u32 hex;
+
+  TexUnitAddress() : hex(0) {}
+  TexUnitAddress(u32 unit_id, Register reg = Register::SETMODE0) : hex(0)
+  {
+    UnitIdLow = unit_id & 3;
+    UnitIdHigh = unit_id >> 2;
+    Reg = reg;
+  }
+
+  static TexUnitAddress FromBPAddress(u32 Address)
+  {
+    TexUnitAddress Val;
+    // Clear upper two bits (which should always be 0x80)
+    Val.FullAddress = Address & 0x3f;
+    return Val;
+  }
+
+  u32 GetUnitID() const { return UnitIdLow | (UnitIdHigh << 2); }
+};
+static_assert(sizeof(TexUnitAddress) == sizeof(u32));
+
 // All of BP memory
 
 struct BPCmd
