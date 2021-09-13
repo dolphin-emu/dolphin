@@ -42,14 +42,16 @@ LocalPlayersWidget::LocalPlayersWidget(QWidget* parent) : QWidget(parent)
   IniFile local_players_ini;
   local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
   m_local_players = AddPlayers::LoadPlayers(local_players_ini);
+
+  UpdatePlayers();
 }
 
 void LocalPlayersWidget::CreateLayout()
 {
-  m_gc_box = new QGroupBox(tr("Players list"));
-  m_gc_layout = new QGridLayout();
-  m_gc_layout->setVerticalSpacing(7);
-  m_gc_layout->setColumnStretch(100, 100);
+  m_player_box = new QGroupBox(tr("Players list"));
+  m_player_layout = new QGridLayout();
+  m_player_layout->setVerticalSpacing(7);
+  m_player_layout->setColumnStretch(100, 100);
 
   auto* gc_label1 = new QLabel(tr("Player 1"));
   auto* gc_box1 = m_player_list_1 = new QComboBox();
@@ -63,34 +65,17 @@ void LocalPlayersWidget::CreateLayout()
   auto* gc_label4 = new QLabel(tr("Player 4"));
   auto gc_box4 = m_player_list_4 = new QComboBox();
 
-  // IniFile local_players_ini;
-  // local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
-  // m_local_players = AddPlayers::LoadPlayers(local_players_ini);
+  m_player_layout->addWidget(gc_label1, 0, 0);
+  m_player_layout->addWidget(gc_box1, 0, 1);
+  m_player_layout->addWidget(gc_label2, 1, 0);
+  m_player_layout->addWidget(gc_box2, 1, 1);
+  m_player_layout->addWidget(gc_label3, 2, 0);
+  m_player_layout->addWidget(gc_box3, 2, 1);
+  m_player_layout->addWidget(gc_label4, 3, 0);
+  m_player_layout->addWidget(gc_box4, 3, 1);
 
-  // List avalable players
-  auto player_search_results =
-      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& path : player_search_results)
-  {
-    const QString qt_name = QString::fromStdString(PathToFileName(path));
-    m_player_list_1->addItem(qt_name);
-    m_player_list_2->addItem(qt_name);
-    m_player_list_3->addItem(qt_name);
-    m_player_list_4->addItem(qt_name);
-  }
-
-
-  m_gc_layout->addWidget(gc_label1, 0, 0);
-  m_gc_layout->addWidget(gc_box1, 0, 1);
-  m_gc_layout->addWidget(gc_label2, 1, 0);
-  m_gc_layout->addWidget(gc_box2, 1, 1);
-  m_gc_layout->addWidget(gc_label3, 2, 0);
-  m_gc_layout->addWidget(gc_box3, 2, 1);
-  m_gc_layout->addWidget(gc_label4, 3, 0);
-  m_gc_layout->addWidget(gc_box4, 3, 1);
-
-  m_gc_button = new QPushButton(tr("Add Players"));
-  m_gc_button
+  m_add_button = new QPushButton(tr("Add Players"));
+  m_add_button
       ->setToolTip(
           (tr("Local Players System:\n\nAdd players using the \"Add Players\" button.\n"
               "The Local Players are used for recording stats locally.\nThese players are not used "
@@ -102,34 +87,47 @@ void LocalPlayersWidget::CreateLayout()
               "Emulator Config folder"
               "and edit the file in a notepad or any text editor.\n")));
 
-  m_gc_box->setLayout(m_gc_layout);
+  m_player_box->setLayout(m_player_layout);
 
   auto* layout = new QVBoxLayout;
   layout->setMargin(0);
   layout->setAlignment(Qt::AlignTop);
-  layout->addWidget(m_gc_box);
-  layout->addWidget(m_gc_button);
+  layout->addWidget(m_player_box);
+  layout->addWidget(m_add_button);
   layout->addStretch(1);
   setLayout(layout);
 }
 
 void LocalPlayersWidget::UpdatePlayers()
 {
+  // Currently, this removes the combo box selections that were made previous to adding a player
+  // I don't know how to fix that. If you remove these clears then each item in the list gets duplicated
   m_player_list_1->clear();
   m_player_list_2->clear();
   m_player_list_3->clear();
   m_player_list_4->clear();
 
-  // List avalable players
-  auto player_search_results =
-      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& path : player_search_results)
+  // List an option to not select a player
+  m_player_list_1->addItem(tr("No Player Selected"));
+  m_player_list_2->addItem(tr("No Player Selected"));
+  m_player_list_3->addItem(tr("No Player Selected"));
+  m_player_list_4->addItem(tr("No Player Selected"));
+
+  // List avalable players in LocalPlayers.ini
+  for (size_t i = 0; i < m_local_players.size(); i++)
   {
-    const QString qt_name = QString::fromStdString(PathToFileName(path));
-    m_player_list_1->addItem(qt_name);
-    m_player_list_2->addItem(qt_name);
-    m_player_list_3->addItem(qt_name);
-    m_player_list_4->addItem(qt_name);
+    const auto& player = m_local_players[i];
+
+    auto username = QString::fromStdString(player.username)
+                                         .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
+                                         .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
+
+    // In the future, i should add in a feature that if a player is selected on another port, they won't appear on the dropdown
+    // some conditional that checks the other ports before adding the item
+    m_player_list_1->addItem(username);
+    m_player_list_2->addItem(username);
+    m_player_list_3->addItem(username);
+    m_player_list_4->addItem(username);
   }
 }
 
@@ -156,40 +154,22 @@ void LocalPlayersWidget::SavePlayers()
   local_players_path.Load(ini_path);
   AddPlayers::SavePlayers(local_players_path, m_local_players);
   local_players_path.Save(ini_path);
+
+  SConfig& settings = SConfig::GetInstance();
+  settings.SaveLocalSettings();
 }
 
 void LocalPlayersWidget::LoadPlayers()
 {
-  // done so that no players are selected upon loading Rio for the first time
+  // do this so that no players are selected upon loading Rio for the first time. prevent accidental stat recording for players
   m_player_list_1->setCurrentIndex(0);
   m_player_list_2->setCurrentIndex(0);
   m_player_list_3->setCurrentIndex(0);
   m_player_list_4->setCurrentIndex(0);
- 
-/*
-  m_player_list_1->setCurrentIndex(
-      m_player_list_1->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_1)));
-  m_player_list_2->setCurrentIndex(
-      m_player_list_2->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_2)));
-  m_player_list_3->setCurrentIndex(
-      m_player_list_3->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_3)));
-  m_player_list_4->setCurrentIndex(
-      m_player_list_4->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_4)));
-*/
 }
 
-
 void LocalPlayersWidget::ConnectWidgets()
-{
-  connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &LocalPlayersWidget::SavePlayers);
-  connect(m_player_list_2, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &LocalPlayersWidget::SavePlayers);
-  connect(m_player_list_3, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &LocalPlayersWidget::SavePlayers);
-  connect(m_player_list_4, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &LocalPlayersWidget::SavePlayers);
-          
+{          
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { Settings::Instance().SetPlayerOne(m_player_list_1->itemText(index)); });
   connect(
@@ -200,5 +180,14 @@ void LocalPlayersWidget::ConnectWidgets()
   connect(m_player_list_4, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { Settings::Instance().SetPlayerFour(m_player_list_4->itemText(index)); });
 
-  connect(m_gc_button, &QPushButton::clicked, this, &LocalPlayersWidget::OnAddPlayers);
+  connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &LocalPlayersWidget::SavePlayers);
+  connect(m_player_list_2, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &LocalPlayersWidget::SavePlayers);
+  connect(m_player_list_3, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &LocalPlayersWidget::SavePlayers);
+  connect(m_player_list_4, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &LocalPlayersWidget::SavePlayers);
+
+  connect(m_add_button, &QPushButton::clicked, this, &LocalPlayersWidget::OnAddPlayers);
 }

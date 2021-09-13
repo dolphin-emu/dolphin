@@ -37,9 +37,9 @@ void AddLocalPlayersEditor::CreateWidgets()
   m_username_edit = new QLineEdit;
   m_userid_edit = new QLineEdit;
   m_description = new QLabel(
-      tr("\nEnter the Username and User ID EXACTLY\nas they apear on projectrio.online.\n"
-         "This is necessary to send stats to our\ndatabase properly. If you enter an\n"
-         " invalid Username and/or User ID, your\nstats will not be saved to the database.\n"));
+      tr("\nEnter the Username and User ID EXACTLY\nas they appear on projectrio.online.\n"
+         "This is necessary to send stat files to\nour database properly. If you enter an\n"
+         "invalid Username and/or User ID, your\nstats will not be saved to the database.\n"));
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Save);
 

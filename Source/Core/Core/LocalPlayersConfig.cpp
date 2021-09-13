@@ -18,14 +18,14 @@ namespace AddPlayers
 {
 std::vector<AddPlayers> LoadPlayers(const IniFile& localIni)
 {
-  std::vector<AddPlayers> gcodes;
+  std::vector<AddPlayers> players;
 
   for (const IniFile* ini : {&localIni})
   {
     std::vector<std::string> lines;
     ini->GetLines("Local_Players_List", &lines, false);
 
-    AddPlayers gcode;
+    AddPlayers player;
 
     for (auto& line : lines)
     {
@@ -39,16 +39,16 @@ std::vector<AddPlayers> LoadPlayers(const IniFile& localIni)
       {
       // enabled or disabled code
       case '+':
-        if (!gcode.username.empty())
-          gcodes.push_back(gcode);
-        gcode = AddPlayers();
+        if (!player.username.empty())
+          players.push_back(player);
+        player = AddPlayers();
         ss.seekg(1, std::ios_base::cur);
         // read the code name
-        std::getline(ss, gcode.username,
+        std::getline(ss, player.username,
                      '[');  // stop at [ character (beginning of contributor name)
-        gcode.username = StripSpaces(gcode.username);
+        player.username = StripSpaces(player.username);
         // read the code creator name
-        std::getline(ss, gcode.userid, ']');
+        std::getline(ss, player.userid, ']');
         break;
 
       break;
@@ -56,24 +56,24 @@ std::vector<AddPlayers> LoadPlayers(const IniFile& localIni)
     }
 
     // add the last code
-    if (!gcode.username.empty())
+    if (!player.username.empty())
     {
-      gcodes.push_back(gcode);
+      players.push_back(player);
     }
   }
-  return gcodes;
+  return players;
 }
 
-static std::string MakePlayerTitle(const AddPlayers& code)
+static std::string MakePlayerTitle(const AddPlayers& player)
 {
-  std::string title = '+' + code.username + "[" + code.userid + "]";
+  std::string title = '+' + player.username + "[" + player.userid + "]";
   return title;
 }
 
 
-static void SaveLocalPlayers(std::vector<std::string>& lines, const AddPlayers& gcode)
+static void SaveLocalPlayers(std::vector<std::string>& lines, const AddPlayers& player)
 {
-  lines.push_back(MakePlayerTitle(gcode));
+  lines.push_back(MakePlayerTitle(player));
 }
 
 void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& player)

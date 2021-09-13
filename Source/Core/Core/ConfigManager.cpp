@@ -64,6 +64,7 @@ SConfig::SConfig()
   LoadDefaults();
   // Make sure we have log manager
   LoadSettings();
+  LoadLocalSettings();
 }
 
 void SConfig::Init()
@@ -661,10 +662,17 @@ void SConfig::LoadLocalPlayerSettings(IniFile& ini)
 {
   IniFile::Section* localplayers = ini.GetOrCreateSection("Local_Players");
 
+  localplayers->Set("Player 1", "No Player Selected");
+  localplayers->Set("Player 2", "No Player Selected");
+  localplayers->Set("Player 3", "No Player Selected");
+  localplayers->Set("Player 4", "No Player Selected");
+
+  /*
   localplayers->Get("Player 1", &m_local_player_1, "");
   localplayers->Get("Player 2", &m_local_player_2, "");
   localplayers->Get("Player 3", &m_local_player_3, "");
   localplayers->Get("Player 4", &m_local_player_4, "");
+  */
 }
 
 void SConfig::ResetRunningGameMetadata()

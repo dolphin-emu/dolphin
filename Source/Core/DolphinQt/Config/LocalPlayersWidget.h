@@ -34,16 +34,15 @@ private:
 
   void ConnectWidgets();
 
-  // Gamecube
-  QGroupBox* m_gc_box;
-  QGridLayout* m_gc_layout;
+  QGroupBox* m_player_box;
+  QGridLayout* m_player_layout;
 
   QComboBox* m_player_list_1;
   QComboBox* m_player_list_2;
   QComboBox* m_player_list_3;
   QComboBox* m_player_list_4;
 
-  QPushButton* m_gc_button;
-  std::array<QHBoxLayout*, 4> m_gc_groups;
+  QPushButton* m_add_button;
+  std::array<QHBoxLayout*, 4> m_player_groups;
   std::vector<AddPlayers::AddPlayers> m_local_players;
 };

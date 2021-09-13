@@ -12,5 +12,5 @@ class IniFile;
 namespace AddPlayers
 {
   std::vector<AddPlayers> LoadPlayers(const IniFile& localIni);
-  void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& gcodes);
+  void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& players);
 }  // namespace AddPlayers

@@ -14,6 +14,8 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/ToolBar.h"
 
+
+
 static QSize ICON_SIZE(32, 32);
 
 ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
@@ -208,6 +210,4 @@ void ToolBar::UpdateIcons()
   m_join_netplay_action->setIcon(Resources::GetScaledThemeIcon("join_netplay"));
   m_view_gecko_codes_action->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint@2x"));
   m_local_players_action->setIcon(Resources::GetScaledThemeIcon("browse"));
-
-  
 }
