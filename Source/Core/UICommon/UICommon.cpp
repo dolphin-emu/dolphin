@@ -30,6 +30,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/State.h"
 #include "Core/WiiRoot.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -381,6 +382,22 @@ void SaveWiimoteSources()
 
 bool TriggerSTMPowerEvent()
 {
+  if (!CanTriggerSTMPowerEvent())
+    return false;
+
+  // Unpause because gracefully shutting down needs the game to actually request a shutdown.
+  // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
+  if (Core::GetState() == Core::State::Paused)
+    Core::SetState(Core::State::Running);
+
+  Core::DisplayMessage("Shutting down", 30000);
+  ProcessorInterface::PowerButton_Tap();
+
+  return true;
+}
+
+bool CanTriggerSTMPowerEvent()
+{
   const auto ios = IOS::HLE::GetIOS();
   if (!ios)
     return false;
@@ -388,9 +405,6 @@ bool TriggerSTMPowerEvent()
   const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (!stm || !std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->HasHookInstalled())
     return false;
-
-  Core::DisplayMessage("Shutting down", 30000);
-  ProcessorInterface::PowerButton_Tap();
 
   return true;
 }
