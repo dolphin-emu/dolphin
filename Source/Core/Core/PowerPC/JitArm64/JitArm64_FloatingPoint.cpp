@@ -564,13 +564,15 @@ void JitArm64::fresx(UGeckoInstruction inst)
 
   BL(GetAsmRoutines()->fres);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
 
   const ARM64Reg VD = fpr.RW(d, RegType::Duplicated);
   m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
 
   SetFPRFIfNeeded(false, ARM64Reg::X0);
+
+  gpr.Unlock(ARM64Reg::W0);
 }
 
 void JitArm64::frsqrtex(UGeckoInstruction inst)
@@ -591,13 +593,15 @@ void JitArm64::frsqrtex(UGeckoInstruction inst)
 
   BL(GetAsmRoutines()->frsqrte);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
 
   const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
   m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
 
   SetFPRFIfNeeded(false, ARM64Reg::X0);
+
+  gpr.Unlock(ARM64Reg::W0);
 }
 
 // Since the following float conversion functions are used in non-arithmetic PPC float
