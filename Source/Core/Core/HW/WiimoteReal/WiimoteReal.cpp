@@ -280,6 +280,14 @@ void Wiimote::Read()
   Report rpt(MAX_PAYLOAD);
   auto const result = IORead(rpt.data());
 
+  if (0 == result)
+  {
+    ERROR_LOG_FMT(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
+    DisconnectInternal();
+
+    return;
+  }
+
   // Drop the report if not connected.
   if (!m_is_linked)
     return;
@@ -296,11 +304,6 @@ void Wiimote::Read()
     // Add it to queue
     rpt.resize(result);
     m_read_reports.Push(std::move(rpt));
-  }
-  else if (0 == result)
-  {
-    ERROR_LOG_FMT(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
-    DisconnectInternal();
   }
 }
 
