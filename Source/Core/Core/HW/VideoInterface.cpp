@@ -71,8 +71,10 @@ static constexpr std::array<u32, 2> s_clock_freqs{{
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;        // number of halflines that have occurred for this full frame
-static u32 s_half_line_of_next_si_poll;  // halfline when next SI poll results should be available
-static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1;  // this is how long an SI poll takes
+static u32 s_half_line_of_next_si_poll;   // halfline when next SI poll results should be available
+static u64 s_prev_si_poll_ticks;          // number of ticks at the last SI poll
+static double s_prev_si_poll_delta_time;  // delta time between the last two SI polls
+static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1;  // this is how long a SI poll takes
 
 // below indexes are 0-based
 static u32 s_even_field_first_hl;  // index first halfline of the even field
@@ -106,6 +108,8 @@ void DoState(PointerWrap& p)
   p.Do(m_BorderHBlank);
   p.Do(s_ticks_last_line_start);
   p.Do(s_half_line_count);
+  p.Do(s_prev_si_poll_ticks);
+  p.Do(s_prev_si_poll_delta_time);
   p.Do(s_half_line_of_next_si_poll);
 
   UpdateParameters();
@@ -189,6 +193,8 @@ void Preset(bool _bNTSC)
 
   s_ticks_last_line_start = 0;
   s_half_line_count = 0;
+  s_prev_si_poll_ticks = 0;
+  s_prev_si_poll_delta_time = 0.0;
   s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first sampling starts at vsync
 
   UpdateParameters();
@@ -881,9 +887,18 @@ void Update(u64 ticks)
 
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
-    Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput,
-                          SConfig::GetInstance().bLockCursor);
-    SerialInterface::UpdateDevices();
+    double delta_time =
+        double(CoreTiming::GetTicks() - s_prev_si_poll_ticks) / SystemTimers::GetTicksPerSecond();
+    // Clamp just to be sure our values won't be extremely high in the first frame or when
+    // switching between GC and Wii.
+    delta_time = std::min(delta_time, 1.0 / VideoInterface::GetTargetRefreshRate());
+    s_prev_si_poll_ticks = CoreTiming::GetTicks();
+
+    // Input delta time will average itself to the video refresh rate every two updates.
+    // Ignore cases where s_prev_si_poll_delta_time might be 0 or "wrong" as it likely won't matter.
+    SerialInterface::UpdateDevices(delta_time, (delta_time + s_prev_si_poll_delta_time) / 2.0);
+    s_prev_si_poll_delta_time = delta_time;
+
     s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }
 

@@ -717,13 +717,11 @@ std::string evdevDevice::RumbleEffect::GetName() const
   return (Motor::Strong == m_motor) ? "Strong" : "Weak";
 }
 
-void evdevDevice::Effect::SetState(ControlState state)
+void evdevDevice::Effect::SetStateInternal(ControlState state)
 {
-  if (UpdateParameters(state))
-  {
-    // Update effect if parameters changed.
-    UpdateEffect();
-  }
+  UpdateParameters(state);
+  // Keep setting it even if the value hasn't changed to prevent it from stopping
+  UpdateEffect();
 }
 
 void evdevDevice::Effect::UpdateEffect()

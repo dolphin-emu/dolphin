@@ -271,6 +271,7 @@ static void LoadLegacyConfig(ControllerEmu::EmulatedController* controller)
           {
             std::string expression;
             sec->Get(key, &expression, "");
+            const auto lock = ControllerEmu::EmulatedController::GetStateLock();
             control->control_ref->SetExpression(std::move(expression));
           }
         }
@@ -378,7 +379,8 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
 {
-  const auto lock = GetStateLock();
+  CacheInputAndRefreshOutput();
+
   for (std::size_t group = 0; group < s_groups_info.size(); group++)
   {
     if (s_groups_info[group].ignore_focus != ignore_focus)
@@ -416,6 +418,8 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+  const auto lock = GetStateLock();
+
   auto set_key_expression = [this](int index, const std::string& expression) {
     m_keys[FindGroupByID(index)]
         ->controls[GetIndexForGroup(FindGroupByID(index), index)]
@@ -429,11 +433,14 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   // General hotkeys
   set_key_expression(HK_OPEN, hotkey_string({"Ctrl", "O"}));
   set_key_expression(HK_PLAY_PAUSE, "F10");
+  // We need ignoreOnFocusChange() when calling HK_STOP, as it opens a message box
+  // from the render window, and if we pressed ESC again to close that window,
+  // then the emulator would re-open it.
 #ifdef _WIN32
-  set_key_expression(HK_STOP, "ESCAPE");
+  set_key_expression(HK_STOP, "ignoreOnFocusChange(ESCAPE)");
   set_key_expression(HK_FULLSCREEN, hotkey_string({"Alt", "RETURN"}));
 #else
-  set_key_expression(HK_STOP, "Escape");
+  set_key_expression(HK_STOP, "ignoreOnFocusChange(Escape)");
   set_key_expression(HK_FULLSCREEN, hotkey_string({"Alt", "Return"}));
 #endif
   set_key_expression(HK_STEP, "F11");

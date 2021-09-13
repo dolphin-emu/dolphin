@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -14,6 +15,7 @@
 
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::Core
 {
@@ -79,6 +81,19 @@ void Device::AddOutput(Device::Output* const o)
   m_outputs.push_back(o);
 }
 
+// Used to reset the state of relative inputs
+void Device::ResetInput()
+{
+  for (Device::Input* i : Inputs())
+    i->ResetState();
+}
+
+void Device::ResetOutput()
+{
+  for (Device::Output* o : Outputs())
+    o->ResetState();
+}
+
 std::string Device::GetQualifiedName() const
 {
   return fmt::format("{}/{}/{}", GetSource(), GetId(), GetName());
@@ -125,6 +140,38 @@ bool Device::Control::IsMatchingName(std::string_view name) const
   return GetName() == name;
 }
 
+void Device::Output::SetState(ControlState state, const void* source_object)
+{
+  if (state == 0)
+    m_states.erase(source_object);
+  else
+    m_states[source_object] = state;  // Add or update the value
+
+  // Find the sum and only set it if is changed.
+  // We assume the sum is always what we want, if not, we could have different settings.
+  const ControlState final_state =
+      std::accumulate(std::begin(m_states), std::end(m_states), ControlState(0),
+                      [](const ControlState value, const std::pair<const void*, ControlState>& p) {
+                        return value + p.second;
+                      });
+  const bool state_changed = m_final_state != final_state;
+  // Some devices will automatically reset outputs states if the value isn't re-appleid once in a
+  // while, so always update the state. Now, theoretically, it would be better to do this based on
+  // the device, and to check if the state changed internally, as it could be casted to any type,
+  // but given how rare this case is, we can just use this global "fix".
+  if (state_changed || (final_state != 0))
+  {
+    m_final_state = final_state;
+    SetStateInternal(m_final_state);
+  }
+}
+
+void Device::Output::ResetState()
+{
+  m_states.clear();
+  SetStateInternal(0);
+}
+
 ControlState Device::FullAnalogSurface::GetState() const
 {
   return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
@@ -138,7 +185,7 @@ std::string Device::FullAnalogSurface::GetName() const
 
 bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
 {
-  if (Control::IsMatchingName(name))
+  if (Input::IsMatchingName(name))
     return true;
 
   // Old naming scheme was "Axis X-+" which is too visually similar to "Axis X+".
@@ -264,6 +311,7 @@ std::string DeviceContainer::GetDefaultDeviceString() const
   if (m_devices.empty())
     return "";
 
+  // Reset to device 0 as in general they are added in order of relevancy
   DeviceQualifier device_qualifier;
   device_qualifier.FromDevice(m_devices[0].get());
   return device_qualifier.ToString();
@@ -271,6 +319,7 @@ std::string DeviceContainer::GetDefaultDeviceString() const
 
 Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* def_dev) const
 {
+  std::lock_guard lk(m_devices_mutex);
   if (def_dev)
   {
     Device::Input* const inp = def_dev->FindInput(name);
@@ -278,7 +327,6 @@ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* d
       return inp;
   }
 
-  std::lock_guard lk(m_devices_mutex);
   for (const auto& d : m_devices)
   {
     Device::Input* const i = d->FindInput(name);
@@ -293,6 +341,12 @@ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* d
 Device::Output* DeviceContainer::FindOutput(std::string_view name, const Device* def_dev) const
 {
   return def_dev->FindOutput(name);
+}
+
+std::unique_lock<std::mutex> DeviceContainer::GetDevicesOutputLock() const
+{
+  std::unique_lock<std::mutex> lock(m_devices_output_mutex);
+  return lock;
 }
 
 bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
@@ -340,7 +394,7 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
       last_state = new_state;
     }
 
-    bool IsPressed()
+    bool IsPressed() const
     {
       if (!is_ready)
         return false;
@@ -374,6 +428,8 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
     for (auto* input : device->Inputs())
     {
       // Don't detect things like absolute cursor positions, accelerometers, or gyroscopes.
+      // TODO: theoretically we could detect almost any input, by having more detection modes,
+      // like: Default (from 0 to 1), Custom Range (then normalized) or Change/Delta Based.
       if (!input->IsDetectable())
         continue;
 
@@ -443,5 +499,10 @@ auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings
   }
 
   return detections;
+}
+
+InputChannel Device::Input::GetCurrentInputChannel() const
+{
+  return ControllerInterface::GetCurrentInputChannel();
 }
 }  // namespace ciface::Core

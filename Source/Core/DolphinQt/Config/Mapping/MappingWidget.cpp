@@ -4,7 +4,6 @@
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
 #include <QCheckBox>
-#include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -96,6 +95,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   if (indicator)
   {
+    indicator->SetMappingWindow(GetParent());
     const auto indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
     indicator_layout->addWidget(indicator);
     indicator_layout->setAlignment(Qt::AlignCenter);
@@ -124,19 +124,20 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& setting : group->numeric_settings)
   {
     QWidget* setting_widget = nullptr;
+    bool has_edit_condition = false;
 
     switch (setting->GetType())
     {
     case ControllerEmu::SettingType::Double:
       setting_widget = new MappingDouble(
           this, static_cast<ControllerEmu::NumericSetting<double>*>(setting.get()));
+      has_edit_condition = setting.get()->HasEditCondition();
       break;
-
     case ControllerEmu::SettingType::Bool:
       setting_widget =
           new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
+      has_edit_condition = setting.get()->HasEditCondition();
       break;
-
     default:
       // FYI: Widgets for additional types can be implemented as needed.
       break;
@@ -150,6 +151,16 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
 
       form_layout->addRow(tr(setting->GetUIName()), hbox);
+
+      QFormLayout::TakeRowResult row;
+      row.fieldItem = form_layout->itemAt(form_layout->rowCount() - 1, QFormLayout::FieldRole);
+      row.labelItem = form_layout->itemAt(form_layout->rowCount() - 1, QFormLayout::LabelRole);
+      row.labelItem->widget()->setToolTip(tr(setting->GetUIDescription()));
+
+      if (has_edit_condition)
+      {
+        m_edit_condition_numeric_settings.emplace_back(std::make_tuple(setting.get(), row, group));
+      }
     }
   }
 
@@ -166,7 +177,21 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       {
         QWidget* widget = form_layout->itemAt(i)->widget();
         if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
+        {
           widget->setEnabled(group->enabled);
+        }
+        // Layouts could be even more nested but they likely never will
+        else if (QLayout* nested_layout = form_layout->itemAt(i)->layout())
+        {
+          for (int k = 0; k < nested_layout->count(); ++k)
+          {
+            widget = nested_layout->itemAt(k)->widget();
+            if (widget)
+            {
+              widget->setEnabled(group->enabled);
+            }
+          }
+        }
       }
     };
     enable_group_by_checkbox();
@@ -174,6 +199,12 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     connect(this, &MappingWidget::ConfigChanged, this,
             [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
+
+  // This isn't called immediately when the edit condition changes
+  // but it's called at frequent regular intervals so it's fine.
+  // Connecting checkbox changes events would have been quite complicated
+  // given that groups have the ability to override the enabled value as well
+  connect(this, &MappingWidget::Update, this, &MappingWidget::RefreshSettingsEnabled);
 
   return group_box;
 }
@@ -204,14 +235,38 @@ QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::
 void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
                                   bool indicator)
 {
-  auto* button = new MappingButton(this, control->control_ref.get(), indicator);
-
-  button->setMinimumWidth(100);
-  button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   const bool translate = control->translate == ControllerEmu::Translate;
   const QString translated_name =
       translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
+
+  auto* button = new MappingButton(this, control->control_ref.get(), indicator, translated_name);
+
+  button->setMinimumWidth(100);
+  button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   layout->addRow(translated_name, button);
+}
+
+void MappingWidget::RefreshSettingsEnabled()
+{
+  if (m_block_update)
+    return;
+
+  for (auto& numeric_settings : m_edit_condition_numeric_settings)
+  {
+    const ControllerEmu::NumericSettingBase* setting = std::get<0>(numeric_settings);
+    bool enabled = setting->IsEnabled() && std::get<2>(numeric_settings)->enabled;
+
+    if (QWidget* widget = std::get<1>(numeric_settings).labelItem->widget())
+      widget->setEnabled(enabled);
+    if (QLayout* layout = std::get<1>(numeric_settings).fieldItem->layout())
+    {
+      for (int i = 0; i < layout->count(); ++i)
+      {
+        if (QWidget* widget = layout->itemAt(i)->widget())
+          widget->setEnabled(enabled);
+      }
+    }
+  }
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const
@@ -224,18 +279,21 @@ MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingB
 {
   const auto button = new QPushButton(tr("..."));
   button->setFixedWidth(QFontMetrics(font()).boundingRect(button->text()).width() * 2);
+  button->setToolTip(tr("Advanced mapping"));
 
   button->connect(button, &QPushButton::clicked, [this, &setting]() {
-    if (setting.IsSimpleValue())
-      setting.SetExpressionFromValue();
+    // Don't update values in the parent widget as we are customizing them. Can't use QSignalBlocker
+    m_block_update = true;
 
-    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::InputSetting,
+                tr(setting.GetUIName()), &setting);
     io.exec();
-
-    setting.SimplifyIfPossible();
 
     ConfigChanged();
     SaveSettings();
+
+    m_block_update = false;
+    RefreshSettingsEnabled();
   });
 
   return button;

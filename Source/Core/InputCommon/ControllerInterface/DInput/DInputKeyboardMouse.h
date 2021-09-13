@@ -4,9 +4,9 @@
 #pragma once
 
 #include <windows.h>
+#include <vector>
 
 #include "Common/Matrix.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 
@@ -14,7 +14,6 @@ namespace ciface::DInput
 {
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
 
-using RelativeMouseState = RelativeInputState<Common::TVec3<LONG>>;
 void SetKeyboardMouseWindow(HWND hwnd);
 
 class KeyboardMouse : public Core::Device
@@ -29,9 +28,6 @@ private:
 
     // Normalized mouse cursor position.
     Common::TVec2<ControlState> cursor;
-
-    // Raw relative mouse movement.
-    RelativeMouseState relative_mouse;
   };
 
   // Keyboard key
@@ -54,6 +50,11 @@ private:
     Button(u8 index, const BYTE& button) : m_button(button), m_index(index) {}
     std::string GetName() const override;
     ControlState GetState() const override;
+    FocusFlags GetFocusFlags() const override
+    {
+      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus) |
+                        u8(FocusFlags::IgnoreOnFocusChanged));
+    }
 
   private:
     const BYTE& m_button;
@@ -61,17 +62,17 @@ private:
   };
 
   // Mouse movement offset axis. Includes mouse wheel
-  class Axis : public Input
+  class Axis : public RelativeInput<LONG>
   {
   public:
-    Axis(u8 index, const LONG& axis, LONG range) : m_axis(axis), m_range(range), m_index(index) {}
+    Axis(ControlState scale, u8 index) : RelativeInput(scale), m_index(index) {}
     std::string GetName() const override;
-    bool IsDetectable() const override { return false; }
-    ControlState GetState() const override;
+    FocusFlags GetFocusFlags() const override
+    {
+      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus));
+    }
 
   private:
-    const LONG& m_axis;
-    const LONG m_range;
     const u8 m_index;
   };
 
@@ -84,8 +85,12 @@ private:
     {
     }
     std::string GetName() const override;
-    bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
+    bool IsDetectable() const override { return false; }
+    FocusFlags GetFocusFlags() const override
+    {
+      return FocusFlags((u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus)));
+    }
 
   private:
     const ControlState& m_axis;
@@ -110,7 +115,8 @@ private:
   const LPDIRECTINPUTDEVICE8 m_kb_device;
   const LPDIRECTINPUTDEVICE8 m_mo_device;
 
-  DWORD m_last_update;
+  std::vector<Axis*> m_mouse_axes;
+
   State m_state_in;
 };
 }  // namespace ciface::DInput

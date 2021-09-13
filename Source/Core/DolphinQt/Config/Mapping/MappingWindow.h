@@ -16,8 +16,8 @@ class EmulatedController;
 
 class InputConfig;
 class QComboBox;
+class QCheckBox;
 class QDialogButtonBox;
-class QEvent;
 class QHBoxLayout;
 class QGroupBox;
 class QVBoxLayout;
@@ -51,13 +51,14 @@ public:
 
   int GetPort() const;
   ControllerEmu::EmulatedController* GetController() const;
-  bool IsMappingAllDevices() const;
+  bool IsDetectingAllDevices() const;
   void ShowExtensionMotionTabs(bool show);
+  int GetIndicatorUpdateFrequency() const { return m_indicator_update_freq; }
 
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
   void ConfigChanged();
-  // Emitted at 30hz for real-time indicators to be updated.
+  // Emitted at indicator_update_freq(Hz) for real-time indicators to be updated.
   void Update();
   void Save();
 
@@ -99,6 +100,7 @@ private:
   QHBoxLayout* m_devices_layout;
   QComboBox* m_devices_combo;
   QPushButton* m_devices_refresh;
+  QCheckBox* m_detect_all_devices;
 
   // Profiles
   QGroupBox* m_profiles_box;
@@ -123,4 +125,6 @@ private:
   Type m_mapping_type;
   const int m_port;
   InputConfig* m_config;
+
+  int m_indicator_update_freq = 60;
 };

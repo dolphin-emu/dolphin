@@ -11,41 +11,12 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 
-// (lower would be more sensitive) user can lower sensitivity by setting range
-// seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
-// and user can lower it much farther than they would want to with the range
-#define MOUSE_AXIS_SENSITIVITY 8
-
-// if input hasn't been received for this many ms, mouse input will be skipped
-// otherwise it is just some crazy value
-#define DROP_INPUT_TIME 250
+// Just a default value which works well at 800dpi.
+// Users can multiply it anyway (lower is more sensitive)
+#define MOUSE_AXIS_SENSITIVITY 17
 
 namespace ciface::DInput
 {
-class RelativeMouseAxis final : public Core::Device::RelativeInput
-{
-public:
-  std::string GetName() const override
-  {
-    return fmt::format("RelativeMouse {}{}", char('X' + m_index), (m_scale > 0) ? '+' : '-');
-  }
-
-  RelativeMouseAxis(u8 index, bool positive, const RelativeMouseState* state)
-      : m_state(*state), m_index(index), m_scale(positive * 2 - 1)
-  {
-  }
-
-  ControlState GetState() const override
-  {
-    return ControlState(m_state.GetValue().data[m_index] * m_scale);
-  }
-
-private:
-  const RelativeMouseState& m_state;
-  const u8 m_index;
-  const s8 m_scale;
-};
-
 static const struct
 {
   const BYTE code;
@@ -68,10 +39,17 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
   // Mouse and keyboard are a combined device, to allow shift+click and stuff
   // if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from
   // other devices
-  // so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
+  // so there can be a separated Keyboard and Mouse, as well as combined KeyboardMouse
 
   LPDIRECTINPUTDEVICE8 kb_device = nullptr;
   LPDIRECTINPUTDEVICE8 mo_device = nullptr;
+
+  DIPROPDWORD dw;
+  dw.dwData = DIPROPAXISMODE_ABS;
+  dw.diph.dwSize = sizeof(DIPROPDWORD);
+  dw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+  dw.diph.dwHow = DIPH_DEVICE;
+  dw.diph.dwObj = 0;
 
   // These are "virtual" system devices, so they are always there even if we have no physical
   // mouse and keyboard plugged into the computer
@@ -80,6 +58,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd)
       SUCCEEDED(kb_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)) &&
       SUCCEEDED(idi8->CreateDevice(GUID_SysMouse, &mo_device, nullptr)) &&
       SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)) &&
+      SUCCEEDED(mo_device->SetProperty(DIPROP_AXISMODE, &dw.diph)) &&  // Set absolute coordinates
       SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
   {
     g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(kb_device, mo_device));
@@ -118,7 +97,7 @@ KeyboardMouse::~KeyboardMouse()
 
 KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
                              const LPDIRECTINPUTDEVICE8 mo_device)
-    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), m_state_in()
+    : m_kb_device(kb_device), m_mo_device(mo_device), m_state_in()
 {
   s_keyboard_mouse_exists = true;
 
@@ -142,28 +121,24 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   mouse_caps.dwSize = sizeof(mouse_caps);
   m_mo_device->GetCapabilities(&mouse_caps);
   // mouse buttons
+  mouse_caps.dwButtons = std::min(mouse_caps.dwButtons, (DWORD)sizeof(m_state_in.mouse.rgbButtons));
   for (u8 i = 0; i < mouse_caps.dwButtons; ++i)
     AddInput(new Button(i, m_state_in.mouse.rgbButtons[i]));
   // mouse axes
+  mouse_caps.dwAxes = std::min(mouse_caps.dwAxes, (DWORD)3);
   for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
   {
-    const LONG& ax = (&m_state_in.mouse.lX)[i];
-
     // each axis gets a negative and a positive input instance associated with it
-    AddInput(new Axis(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
-    AddInput(new Axis(i, ax, -(2 == i) ? 1 : MOUSE_AXIS_SENSITIVITY));
+    Axis* axis = new Axis((2 == i) ? -1.0 : (-1.0 / MOUSE_AXIS_SENSITIVITY), i);
+    m_mouse_axes.push_back(axis);
+    AddInput(axis);
+    axis = new Axis((2 == i) ? 1.0 : (1.0 / MOUSE_AXIS_SENSITIVITY), i);
+    m_mouse_axes.push_back(axis);
+    AddInput(axis);
   }
-
   // cursor, with a hax for-loop
-  for (unsigned int i = 0; i < 4; ++i)
+  for (unsigned int i = 0; i <= 3; ++i)
     AddInput(new Cursor(!!(i & 2), (&m_state_in.cursor.x)[i / 2], !!(i & 1)));
-
-  // Raw relative mouse movement.
-  for (unsigned int i = 0; i != mouse_caps.dwAxes; ++i)
-  {
-    AddInput(new RelativeMouseAxis(i, false, &m_state_in.relative_mouse));
-    AddInput(new RelativeMouseAxis(i, true, &m_state_in.relative_mouse));
-  }
 }
 
 void KeyboardMouse::UpdateCursorInput()
@@ -192,52 +167,41 @@ void KeyboardMouse::UpdateCursorInput()
 
 void KeyboardMouse::UpdateInput()
 {
+  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+  if (DIERR_INPUTLOST == kb_hr || DIERR_NOTACQUIRED == kb_hr)
+  {
+    INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");
+    if (SUCCEEDED(m_kb_device->Acquire()))
+      kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+    else
+      INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to re-acquire, we'll retry later");
+  }
+
   UpdateCursorInput();
 
   DIMOUSESTATE2 tmp_mouse;
-
-  // if mouse position hasn't been updated in a short while, skip a dev state
-  DWORD cur_time = GetTickCount();
-  if (cur_time - m_last_update > DROP_INPUT_TIME)
-  {
-    // set axes to zero
-    m_state_in.mouse = {};
-    m_state_in.relative_mouse = {};
-
-    // skip this input state
-    m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
-  }
-
-  m_last_update = cur_time;
 
   HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to get state");
-    if (FAILED(m_mo_device->Acquire()))
+    // We assume in case the mouse device failed to retrieve the state once, that the
+    // state will somehow be reset. This probably can't even happen as its an emulated device
+    for (unsigned int i = 0; i < m_mouse_axes.size(); ++i)
+      m_mouse_axes[i]->ResetAllStates();
+    if (SUCCEEDED(m_mo_device->Acquire()))
+      mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
+    else
       INFO_LOG_FMT(CONTROLLERINTERFACE, "Mouse device failed to re-acquire, we'll retry later");
   }
-  else if (SUCCEEDED(mo_hr))
+  if (SUCCEEDED(mo_hr))
   {
-    m_state_in.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
-    m_state_in.relative_mouse.Update();
-
-    // need to smooth out the axes, otherwise it doesn't work for shit
-    for (unsigned int i = 0; i < 3; ++i)
-      ((&m_state_in.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
-
-    // copy over the buttons
-    std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
-  }
-
-  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
-  if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
-  {
-    INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");
-    if (SUCCEEDED(m_kb_device->Acquire()))
-      m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
-    else
-      INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to re-acquire, we'll retry later");
+    m_state_in.mouse = tmp_mouse;
+    for (unsigned int i = 0; i < m_mouse_axes.size(); ++i)
+    {
+      const LONG& axis = (&m_state_in.mouse.lX)[i / 2];
+      m_mouse_axes[i]->UpdateState(axis);
+    }
   }
 }
 
@@ -277,7 +241,7 @@ std::string KeyboardMouse::Axis::GetName() const
 {
   static char tmpstr[] = "Axis ..";
   tmpstr[5] = (char)('X' + m_index);
-  tmpstr[6] = (m_range < 0 ? '-' : '+');
+  tmpstr[6] = (m_scale < 0.0 ? '-' : '+');
   return tmpstr;
 }
 
@@ -300,13 +264,8 @@ ControlState KeyboardMouse::Button::GetState() const
   return (m_button != 0);
 }
 
-ControlState KeyboardMouse::Axis::GetState() const
-{
-  return ControlState(m_axis) / m_range;
-}
-
 ControlState KeyboardMouse::Cursor::GetState() const
 {
-  return m_axis / (m_positive ? 1.0 : -1.0);
+  return m_axis * (m_positive ? 1.0 : -1.0);
 }
 }  // namespace ciface::DInput

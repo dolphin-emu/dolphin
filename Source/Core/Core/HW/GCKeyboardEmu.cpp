@@ -108,9 +108,9 @@ ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)
   }
 }
 
-KeyboardStatus GCKeyboard::GetInput() const
+KeyboardStatus GCKeyboard::GetInput()
 {
-  const auto lock = GetStateLock();
+  CacheInputAndRefreshOutput();
 
   KeyboardStatus kb = {};
 
@@ -127,6 +127,8 @@ KeyboardStatus GCKeyboard::GetInput() const
 void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
+
+  const auto lock = GetStateLock();
 
   // Buttons
   m_keys0x->SetControlExpression(5, "A");

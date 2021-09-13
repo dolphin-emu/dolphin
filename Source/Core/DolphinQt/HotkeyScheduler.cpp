@@ -21,10 +21,11 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
-#include "Core/Host.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
@@ -40,10 +41,11 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
+constexpr u32 UPDATE_FREQUENCY = 200;
+constexpr double UPDATE_SECONDS = 1.0 / UPDATE_FREQUENCY;
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
@@ -143,16 +145,57 @@ void HotkeyScheduler::Run()
 {
   Common::SetCurrentThreadName("HotkeyScheduler");
 
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::FreeLook, true);
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::Host, true);
+
   while (!m_stop_requested.IsSet())
   {
-    Common::SleepCurrentThread(5);
+    // We don't need this to be too accurate or to catch up after longer sleeps.
+    // We sleep before and not after just to avoid dealing with all the continue cases.
+    std::this_thread::sleep_for(std::chrono::duration<double>(UPDATE_SECONDS));
 
-    g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::FreeLook);
-    g_controller_interface.UpdateInput();
+    g_controller_interface.UpdateInput(ciface::InputChannel::FreeLook, UPDATE_SECONDS);
+    // FreeLook input gate does not have any pre-requisites (e.g. no window focus required)
     FreeLook::UpdateInput();
 
-    g_controller_interface.SetCurrentInputChannel(ciface::InputChannel::Host);
-    g_controller_interface.UpdateInput();
+    // We always pass in UPDATE_FREQUENCY as the input doesn't care about sleep ms variations.
+    // The actual time delta is already calculated inside here.
+    g_controller_interface.UpdateInput(ciface::InputChannel::Host, UPDATE_SECONDS);
+
+    // Cache input for emulation related controllers when emulation is not running (for UI).
+    // As an optimization we only process currently attached controllers, but we don't have to.
+    // While this doesn't seem thread safe, caching input already has its thread locking inside.
+    Core::State state = Core::GetState();
+    if (state == Core::State::Uninitialized || state == Core::State::Paused)
+    {
+      // Wii Remotes aren't updated when emulating GC but they are also not accessible from the UI
+      // so we wouldn't need to cache them
+      InputConfig* config;
+      if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+      {
+        config = Wiimote::GetConfig();
+        for (int i = 0; i < config->GetControllerCount(); ++i)
+        {
+          if (WiimoteCommon::GetSource((unsigned int)(i)) == WiimoteSource::Emulated)
+            config->GetController(i)->CacheInputAndRefreshOutput();
+        }
+      }
+      config = Pad::GetConfig();
+      for (int i = 0; i < config->GetControllerCount(); ++i)
+      {
+        if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+          config->GetController(i)->CacheInputAndRefreshOutput();
+      }
+      config = Keyboard::GetConfig();
+      for (int i = 0; i < config->GetControllerCount(); ++i)
+      {
+        if (SConfig::GetInstance().m_SIDevice[i] ==
+            SerialInterface::SIDevices::SIDEVICE_GC_KEYBOARD)
+        {
+          config->GetController(i)->CacheInputAndRefreshOutput();
+        }
+      }
+    }
 
     if (!HotkeyManagerEmu::IsEnabled())
       continue;
@@ -160,12 +203,15 @@ void HotkeyScheduler::Run()
     if (Core::GetState() != Core::State::Stopping)
     {
       // Obey window focus (config permitting) before checking hotkeys.
-      Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
+      // Note that hotkeys, like emulated controllers, check the render widget focus,
+      // not the main window focus. This is kind of a limitation but it's fine for now.
+      ControlReference::UpdateGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS), false, true,
+                                   ciface::InputChannel::Host);
 
       HotkeyManagerEmu::GetStatus(false);
 
-      // Everything else on the host thread (controller config dialog) should always get input.
-      ControlReference::SetInputGate(true);
+      // Everything else on this thread (controller config dialog) should always get input.
+      ControlReference::SetCurrentGateOpen();
 
       HotkeyManagerEmu::GetStatus(true);
 
@@ -188,7 +234,7 @@ void HotkeyScheduler::Run()
       {
         emit FullScreenHotkey();
 
-        // Prevent fullscreen from getting toggled too often
+        // Hack: prevent fullscreen from getting toggled too often
         Common::SleepCurrentThread(100);
       }
 
@@ -588,6 +634,9 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_SAVE_STATE_FILE))
       emit StateSaveFile();
   }
+
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::FreeLook, false);
+  g_controller_interface.SetChannelRunning(ciface::InputChannel::Host, false);
 }
 
 void HotkeyScheduler::CheckDebuggingHotkeys()

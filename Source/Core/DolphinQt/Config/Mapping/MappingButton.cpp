@@ -18,8 +18,6 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-constexpr int SLIDER_TICK_COUNT = 100;
-
 // Escape ampersands and simplify the text for a short preview
 static QString RefToDisplayString(ControlReference* ref)
 {
@@ -72,8 +70,10 @@ bool MappingButton::IsInput() const
   return m_reference->IsInput();
 }
 
-MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
-    : ElidedButton(RefToDisplayString(ref)), m_parent(parent), m_reference(ref)
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator,
+                             const QString& button_name)
+    : ElidedButton(RefToDisplayString(ref)), m_parent(parent), m_reference(ref),
+      m_button_name(button_name)
 {
   // Force all mapping buttons to stay at a minimal height.
   setFixedHeight(minimumSizeHint().height());
@@ -103,12 +103,18 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool 
 
 void MappingButton::AdvancedPressed()
 {
+  // Don't update values in the parent widget as we are customizing them. Can't use QSignalBlocker
+  m_parent->SetBlockUpdate(true);
+
   IOWindow io(m_parent, m_parent->GetController(), m_reference,
-              m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
+              m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output,
+              m_button_name);
   io.exec();
 
   ConfigChanged();
   m_parent->SaveSettings();
+
+  m_parent->SetBlockUpdate(false);
 }
 
 void MappingButton::Clicked()
@@ -123,7 +129,7 @@ void MappingButton::Clicked()
 
   QString expression;
 
-  if (m_parent->GetParent()->IsMappingAllDevices())
+  if (m_parent->GetParent()->IsDetectingAllDevices())
   {
     expression = MappingCommon::DetectExpression(this, g_controller_interface,
                                                  g_controller_interface.GetAllDeviceStrings(),
@@ -139,8 +145,11 @@ void MappingButton::Clicked()
   if (expression.isEmpty())
     return;
 
-  m_reference->SetExpression(expression.toStdString());
-  m_parent->GetController()->UpdateSingleControlReference(g_controller_interface, m_reference);
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    m_reference->SetExpression(expression.toStdString());
+    m_parent->GetController()->UpdateSingleControlReference(g_controller_interface, m_reference);
+  }
 
   ConfigChanged();
   m_parent->SaveSettings();
@@ -148,10 +157,14 @@ void MappingButton::Clicked()
 
 void MappingButton::Clear()
 {
-  m_reference->range = 100.0 / SLIDER_TICK_COUNT;
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
 
-  m_reference->SetExpression("");
-  m_parent->GetController()->UpdateSingleControlReference(g_controller_interface, m_reference);
+    m_reference->range = m_reference->default_range;
+
+    m_reference->SetExpression("");
+    m_parent->GetController()->UpdateSingleControlReference(g_controller_interface, m_reference);
+  }
 
   m_parent->SaveSettings();
   ConfigChanged();
@@ -159,18 +172,22 @@ void MappingButton::Clear()
 
 void MappingButton::UpdateIndicator()
 {
-  if (!isActiveWindow())
-    return;
-
   QFont f = m_parent->font();
 
-  // If the input state is "true" (we can't know the state of outputs), show it in bold.
-  if (m_reference->IsInput() && m_reference->GetState<bool>())
-    f.setBold(true);
-  // If the expression has failed to parse, show it in italic.
-  // Some expressions still work even the failed to parse so don't prevent the GetState() above.
-  if (m_reference->GetParseStatus() == ciface::ExpressionParser::ParseStatus::SyntaxError)
-    f.setItalic(true);
+  // We don't want to show the results here if we are editing the mapping,
+  // as it would show the previous expression highlighting based on the new (pending)
+  // expression result.
+  if (!m_parent->GetBlockUpdate())
+  {
+    // If the input or output state is "true"
+    // (input comes from the device, output comes from the emulator) show it in bold.
+    if (m_reference->GetState<bool>())
+      f.setBold(true);
+    // If the expression has failed to parse, show it in italic.
+    // Some expressions still work even the failed to parse so don't prevent the GetState() above.
+    if (m_reference->GetParseStatus() == ciface::ExpressionParser::ParseStatus::SyntaxError)
+      f.setItalic(true);
+  }
 
   setFont(f);
 }

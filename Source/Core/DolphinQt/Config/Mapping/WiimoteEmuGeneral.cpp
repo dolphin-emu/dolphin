@@ -107,7 +107,35 @@ void WiimoteEmuGeneral::ConfigChanged()
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
-  m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
+  if (m_extension_combo->count() > 0)
+    m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
+
+  // If the name of an attachment was inserted, immediately set the NumericSetting
+  // to the number of the attachment, which will also simplify it.
+  // This also helps with consistency with the way attachments are loaded and saved
+  // in our config, as they are always saved by name, even if we did not do this now,
+  // the NumericSetting would be simplified on the next load.
+  if (!ce_extension->GetSelectionSetting().IsSimpleValue())
+  {
+    const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+    u32 n = 0;
+    for (auto& ai : ce_extension->GetAttachmentList())
+    {
+      const std::string& attachment_text =
+          ce_extension->GetSelectionSetting().GetInputReference().GetExpression();
+      // Allow users to write both the code and translated/display name.
+      // This is because if they accidentally wrote the code name, without knowing it was
+      // such, the expression would then be simplified again anyway on the next load,
+      // and could confuse the user.
+      // Expressions with a space between text can't be saved so this can't always happen.
+      if (ai->GetName() == attachment_text || ai->GetDisplayName() == attachment_text)
+      {
+        ce_extension->SetSelectedAttachment(n);
+        break;
+      }
+      n++;
+    }
+  }
 
   m_extension_combo_dynamic_indicator->setVisible(
       !ce_extension->GetSelectionSetting().IsSimpleValue());
@@ -118,7 +146,8 @@ void WiimoteEmuGeneral::Update()
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
 
-  m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
+  if (m_extension_combo->count() > 0 && !m_block_update)
+    m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
 }
 
 void WiimoteEmuGeneral::LoadSettings()
