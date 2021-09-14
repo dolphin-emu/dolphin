@@ -483,8 +483,16 @@ bool CreateEmptyFile(const std::string& filename)
 }
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
+FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 {
+#ifdef _WIN32
+  if (!directory.empty() && (directory.back() == '/' || directory.back() == '\\'))
+    directory.pop_back();
+#else
+  if (!directory.empty() && directory.back() == '/')
+    directory.pop_back();
+#endif
+
   INFO_LOG_FMT(COMMON, "ScanDirectoryTree: directory {}", directory);
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
