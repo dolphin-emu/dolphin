@@ -249,8 +249,8 @@ static void BPWritten(const BPCmd& bp)
       srcRect.bottom = std::clamp<int>(srcRect.bottom, 0, EFB_HEIGHT);
     }
 
-    u32 copy_width = srcRect.GetWidth();
-    u32 copy_height = srcRect.GetHeight();
+    const u32 copy_width = srcRect.GetWidth();
+    const u32 copy_height = srcRect.GetHeight();
 
     // Check if we are to copy from the EFB or draw to the XFB
     const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
