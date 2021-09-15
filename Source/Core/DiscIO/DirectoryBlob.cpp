@@ -179,6 +179,9 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
     // Zero fill to start of DiscContent data
     PadToAddress(it->GetOffset(), &offset, &length, &buffer);
 
+    if (length == 0)
+      return true;
+
     if (!it->Read(&offset, &length, &buffer))
       return false;
 
