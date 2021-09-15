@@ -240,7 +240,7 @@ private:
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
 
-  u32 OnData(sf::Packet& packet);
+  void OnData(sf::Packet& packet);
   void OnPlayerJoin(sf::Packet& packet);
   void OnPlayerLeave(sf::Packet& packet);
   void OnChatMessage(sf::Packet& packet);

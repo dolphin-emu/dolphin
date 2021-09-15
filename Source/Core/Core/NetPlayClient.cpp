@@ -311,7 +311,7 @@ static void ReceiveSyncIdentifier(sf::Packet& spac, SyncIdentifier& sync_identif
 }
 
 // called from ---NETPLAY--- thread
-u32 NetPlayClient::OnData(sf::Packet& packet)
+void NetPlayClient::OnData(sf::Packet& packet)
 {
   MessageId mid;
   packet >> mid;
@@ -457,8 +457,6 @@ u32 NetPlayClient::OnData(sf::Packet& packet)
     PanicAlertFmtT("Unknown message received with id : {0}", mid);
     break;
   }
-
-  return 0;
 }
 
 void NetPlayClient::OnPlayerJoin(sf::Packet& packet)
