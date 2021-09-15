@@ -16,6 +16,10 @@ set(CMAKE_AUTOMOC ON)
 add_executable(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
+  CheatSearchFactoryWidget.cpp
+  CheatSearchFactoryWidget.h
+  CheatSearchWidget.cpp
+  CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
   ConvertDialog.cpp
@@ -269,6 +273,8 @@ add_executable(dolphin-emu
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
   QtUtils/ParallelProgressDialog.h
+  QtUtils/PartiallyClosableTabWidget.cpp
+  QtUtils/PartiallyClosableTabWidget.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
   QtUtils/UTF8CodePointCountValidator.cpp

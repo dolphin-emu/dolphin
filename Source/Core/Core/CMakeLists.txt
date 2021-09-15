@@ -15,6 +15,10 @@ add_library(core
   BootManager.cpp
   BootManager.h
   CheatCodes.h
+  CheatGeneration.cpp
+  CheatGeneration.h
+  CheatSearch.cpp
+  CheatSearch.h
   CommonTitles.h
   Config/DefaultLocale.cpp
   Config/DefaultLocale.h
