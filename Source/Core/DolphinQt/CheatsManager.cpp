@@ -30,24 +30,30 @@ CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &CheatsManager::OnStateChanged);
 
-  OnStateChanged(Core::GetState());
-
   CreateWidgets();
   ConnectWidgets();
+
+  RefreshCodeTabs(Core::GetState(), true);
 }
 
 CheatsManager::~CheatsManager() = default;
 
 void CheatsManager::OnStateChanged(Core::State state)
 {
-  if (state != Core::State::Running && state != Core::State::Paused)
+  RefreshCodeTabs(state, false);
+}
+
+void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
+{
+  if (!force && (state == Core::State::Starting || state == Core::State::Stopping))
     return;
 
-  const auto& game_id = SConfig::GetInstance().GetGameID();
+  const auto& game_id =
+      state != Core::State::Uninitialized ? SConfig::GetInstance().GetGameID() : std::string();
   const auto& game_tdb_id = SConfig::GetInstance().GetGameTDBID();
   const u16 revision = SConfig::GetInstance().GetRevision();
 
-  if (m_game_id == game_id && m_game_tdb_id == game_tdb_id && m_revision == revision)
+  if (!force && m_game_id == game_id && m_game_tdb_id == game_tdb_id && m_revision == revision)
     return;
 
   m_game_id = game_id;
