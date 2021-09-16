@@ -57,4 +57,16 @@ jmethodID GetNetworkHelperGetNetworkGateway();
 
 jmethodID GetBooleanSupplierGet();
 
+jclass GetARCheatClass();
+jfieldID GetARCheatPointer();
+jmethodID GetARCheatConstructor();
+
+jclass GetGeckoCheatClass();
+jfieldID GetGeckoCheatPointer();
+jmethodID GetGeckoCheatConstructor();
+
+jclass GetPatchCheatClass();
+jfieldID GetPatchCheatPointer();
+jmethodID GetPatchCheatConstructor();
+
 }  // namespace IDCache

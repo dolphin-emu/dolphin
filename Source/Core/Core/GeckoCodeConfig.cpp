@@ -17,10 +17,13 @@
 
 namespace Gecko
 {
-std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded)
+std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bool use_https)
 {
+  // TODO: Fix https://bugs.dolphin-emu.org/issues/11772 so we don't need this workaround
+  const std::string protocol = use_https ? "https://" : "http://";
+
   // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
-  std::string endpoint{"https://codes.rc24.xyz/txt.php?txt=" + gametdb_id};
+  std::string endpoint{protocol + "codes.rc24.xyz/txt.php?txt=" + gametdb_id};
   Common::HttpRequest http;
 
   // The server always redirects once to the same location.

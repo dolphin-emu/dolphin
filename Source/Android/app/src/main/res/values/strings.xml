@@ -135,6 +135,7 @@
     <string name="general_submenu">General</string>
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
+    <string name="enable_cheats">Enable Cheats</string>
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
@@ -361,7 +362,8 @@
     <string name="properties_convert">Convert File</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
-    <string name="properties_clear_game_settings">Clear Game Settings</string>
+    <string name="properties_edit_cheats">Edit Cheats</string>
+    <string name="properties_clear_game_settings">Clear Game Settings and Cheats</string>
     <string name="properties_clear_success">Cleared settings for %1$s</string>
     <string name="properties_clear_failure">Unable to clear settings for %1$s</string>
     <string name="properties_clear_missing">No game settings to delete</string>
@@ -371,6 +373,8 @@
     <string name="preferences_extensions">Extension Bindings</string>
     <string name="game_ini_junk_title">Junk Data Found</string>
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
+
+    <!-- Game Details Screen -->
     <string name="game_details_country">Country</string>
     <string name="game_details_company">Company</string>
     <string name="game_details_game_id">Game ID</string>
@@ -381,6 +385,34 @@
     <string name="game_details_block_size">Block Size</string>
     <string name="game_details_no_compression">No Compression</string>
     <string name="game_details_size_and_format">%1$s (%2$s)</string>
+
+    <!-- Cheats Screen -->
+    <string name="cheats">Cheats</string>
+    <string name="cheats_with_game_id">Cheats: %1$s</string>
+    <string name="cheats_header_ar">AR Codes</string>
+    <string name="cheats_header_gecko">Gecko Codes</string>
+    <string name="cheats_header_patch">Patches</string>
+    <string name="cheats_add_ar">Add New AR Code</string>
+    <string name="cheats_add_gecko">Add New Gecko Code</string>
+    <string name="cheats_add_patch">Add New Patch</string>
+    <string name="cheats_download_gecko">Download Gecko Codes</string>
+    <string name="cheats_name">Name</string>
+    <string name="cheats_creator">Creator</string>
+    <string name="cheats_notes">Notes</string>
+    <string name="cheats_code">Code</string>
+    <string name="cheats_edit">Edit</string>
+    <string name="cheats_delete">Delete</string>
+    <string name="cheats_delete_confirmation">Are you sure you want to delete "%1$s"?</string>
+    <string name="cheats_error_no_name">Name can\'t be empty</string>
+    <string name="cheats_error_no_code_lines">Code can\'t be empty</string>
+    <string name="cheats_error_on_line">Error on line %1$d</string>
+    <string name="cheats_error_mixed_encryption">Lines must either be all encrypted or all decrypted</string>
+    <string name="cheats_downloading">Downloading...</string>
+    <string name="cheats_download_failed">Failed to download codes.</string>
+    <string name="cheats_download_empty">File contained no codes.</string>
+    <string name="cheats_download_succeeded">Downloaded %1$d codes. (added %2$d)</string>
+    <string name="cheats_disabled_warning">Dolphin\'s cheat system is currently disabled.</string>
+    <string name="cheats_open_settings">Settings</string>
 
     <!-- Convert Screen -->
     <string name="convert_format">Format</string>

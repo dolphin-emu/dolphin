@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/barrier">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/label_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_name"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/edit_name" />
+
+            <EditText
+                android:id="@+id/edit_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_name"
+                app:layout_constraintBottom_toTopOf="@id/label_creator"
+                tools:text="Hyrule Field Speed Hack" />
+
+            <TextView
+                android:id="@+id/label_creator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_creator"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_creator"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_name"
+                app:layout_constraintBottom_toTopOf="@id/edit_creator" />
+
+            <EditText
+                android:id="@+id/edit_creator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_creator"
+                app:layout_constraintBottom_toTopOf="@id/label_notes" />
+
+            <TextView
+                android:id="@+id/label_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_notes"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_notes"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_creator"
+                app:layout_constraintBottom_toTopOf="@id/edit_notes" />
+
+            <EditText
+                android:id="@+id/edit_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_notes"
+                app:layout_constraintBottom_toTopOf="@id/label_code" />
+
+            <TextView
+                android:id="@+id/label_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:textSize="18sp"
+                android:text="@string/cheats_code"
+                android:layout_margin="@dimen/spacing_large"
+                android:labelFor="@id/edit_code"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_notes"
+                app:layout_constraintBottom_toTopOf="@id/edit_code" />
+
+            <EditText
+                android:id="@+id/edit_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="108sp"
+                android:layout_marginHorizontal="@dimen/spacing_large"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine"
+                android:typeface="monospace"
+                android:gravity="start"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_code"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="0x8003d63c:dword:0x60000000\n0x8003d658:dword:0x60000000" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="button_delete,button_edit,button_cancel,button_ok" />
+
+    <Button
+        android:id="@+id/button_delete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/cheats_delete"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_edit"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/button_edit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/cheats_edit"
+        app:layout_constraintStart_toEndOf="@id/button_delete"
+        app:layout_constraintEnd_toStartOf="@id/button_cancel"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/button_cancel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/cancel"
+        app:layout_constraintStart_toEndOf="@id/button_edit"
+        app:layout_constraintEnd_toStartOf="@id/button_ok"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/button_ok"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_large"
+        android:text="@string/ok"
+        app:layout_constraintStart_toEndOf="@id/button_cancel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
