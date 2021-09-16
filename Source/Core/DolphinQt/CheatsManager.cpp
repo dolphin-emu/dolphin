@@ -78,6 +78,10 @@ void CheatsManager::OnStateChanged(Core::State state)
   m_tab_widget->insertTab(1, m_gecko_code, tr("Gecko Codes"));
   m_tab_widget->setTabUnclosable(0);
   m_tab_widget->setTabUnclosable(1);
+
+  connect(m_ar_code, &ARCodeWidget::OpenGeneralSettings, this, &CheatsManager::OpenGeneralSettings);
+  connect(m_gecko_code, &GeckoCodeWidget::OpenGeneralSettings, this,
+          &CheatsManager::OpenGeneralSettings);
 }
 
 void CheatsManager::CreateWidgets()

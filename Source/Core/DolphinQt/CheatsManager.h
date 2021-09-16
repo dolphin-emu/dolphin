@@ -33,6 +33,9 @@ public:
   explicit CheatsManager(QWidget* parent = nullptr);
   ~CheatsManager();
 
+signals:
+  void OpenGeneralSettings();
+
 private:
   void CreateWidgets();
   void ConnectWidgets();
