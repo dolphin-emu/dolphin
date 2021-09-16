@@ -106,6 +106,12 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
           success &= TryParse(items[0], &pE.address);
           success &= TryParse(items[2], &pE.value);
 
+          if (items.size() >= 4)
+          {
+            success &= TryParse(items[3], &pE.comparand);
+            pE.conditional = true;
+          }
+
           const auto iter =
               std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
           pE.type = PatchType(std::distance(s_patch_type_strings.begin(), iter));
@@ -191,16 +197,20 @@ static void ApplyPatches(const std::vector<Patch>& patches)
       {
         u32 addr = entry.address;
         u32 value = entry.value;
+        u32 comparand = entry.comparand;
         switch (entry.type)
         {
         case PatchType::Patch8Bit:
-          PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+          if (!entry.conditional || PowerPC::HostRead_U8(addr) == static_cast<u8>(comparand))
+            PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
           break;
         case PatchType::Patch16Bit:
-          PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+          if (!entry.conditional || PowerPC::HostRead_U16(addr) == static_cast<u16>(comparand))
+            PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
           break;
         case PatchType::Patch32Bit:
-          PowerPC::HostWrite_U32(value, addr);
+          if (!entry.conditional || PowerPC::HostRead_U32(addr) == comparand)
+            PowerPC::HostWrite_U32(value, addr);
           break;
         default:
           // unknown patchtype
