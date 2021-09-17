@@ -244,6 +244,15 @@ static void BPWritten(const BPCmd& bp)
       WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", srcRect.GetWidth(),
                    srcRect.GetHeight(), srcRect.left, srcRect.top, destStride);
 
+      if (u32(srcRect.left) >= EFB_WIDTH || u32(srcRect.top) >= EFB_HEIGHT)
+      {
+        // This is not a sane src rectangle, it doesn't touch any valid image data at all
+        // Just ignore it
+        // Apparently Mario Kart Wii in wifi mode can generate a deformed EFB copy of size 4x4
+        // at offset (328,1020)
+        return;
+      }
+
       // Clamp the copy region to fit within EFB. So that we don't end up with a stretched image.
       srcRect.right = std::clamp<int>(srcRect.right, 0, EFB_WIDTH);
       srcRect.bottom = std::clamp<int>(srcRect.bottom, 0, EFB_HEIGHT);
