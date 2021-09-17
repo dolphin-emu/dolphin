@@ -1806,11 +1806,39 @@ void Jit64::arithXex(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::arithcx(UGeckoInstruction inst)
+void Jit64::addcx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  bool add = !!(inst.SUBOP10 & 2);  // add or sub
+  int a = inst.RA, b = inst.RB, d = inst.RD;
+
+  {
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rd);
+
+    if (d == a)
+    {
+      ADD(32, Rd, Rb);
+    }
+    else
+    {
+      if (d != b)
+        MOV(32, Rd, Rb);
+      ADD(32, Rd, Ra);
+    }
+  }
+
+  FinalizeCarryOverflow(inst.OE);
+  if (inst.Rc)
+    ComputeRC(d);
+}
+
+void Jit64::subfcx(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
   {
@@ -1821,30 +1849,20 @@ void Jit64::arithcx(UGeckoInstruction inst)
 
     if (d == a && d != b)
     {
-      if (add)
-      {
-        ADD(32, Rd, Rb);
-      }
-      else
-      {
-        // special case, because sub isn't reversible
-        MOV(32, R(RSCRATCH), Ra);
-        MOV(32, Rd, Rb);
-        SUB(32, Rd, R(RSCRATCH));
-      }
+      // special case, because sub isn't reversible
+      MOV(32, R(RSCRATCH), Ra);
+      MOV(32, Rd, Rb);
+      SUB(32, Rd, R(RSCRATCH));
     }
     else
     {
       if (d != b)
         MOV(32, Rd, Rb);
-      if (add)
-        ADD(32, Rd, Ra);
-      else
-        SUB(32, Rd, Ra);
+      SUB(32, Rd, Ra);
     }
   }
 
-  FinalizeCarryOverflow(inst.OE, !add);
+  FinalizeCarryOverflow(inst.OE, true);
   if (inst.Rc)
     ComputeRC(d);
 }
