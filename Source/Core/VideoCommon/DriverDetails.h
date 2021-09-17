@@ -305,6 +305,12 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_SSBO_FIELD_ATOMICS,
+
+  // BUG: Accessing gl_SubgroupInvocationID causes the Metal shader compiler to crash.
+  // Affected devices: AMD (macOS)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_SUBGROUP_INVOCATION_ID,
 };
 
 // Initializes our internal vendor, device family, and driver version
