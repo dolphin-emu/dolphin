@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.ConvertActivity;
 import org.dolphinemu.dolphinemu.features.cheats.ui.CheatsActivity;
@@ -99,7 +101,7 @@ public class GamePropertiesDialog extends DialogFragment
             CheatsActivity.launch(getContext(), gameId, gameTdbId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
-            clearGameSettings(gameId));
+            clearGameSettingsWithConfirmation(gameId));
 
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
             R.style.DolphinDialogBase);
@@ -109,8 +111,19 @@ public class GamePropertiesDialog extends DialogFragment
     return builder.create();
   }
 
-  private void clearGameSettings(String gameId)
+  private void clearGameSettingsWithConfirmation(String gameId)
   {
+    new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+            .setTitle(R.string.properties_clear_game_settings)
+            .setMessage(R.string.properties_clear_game_settings_confirmation)
+            .setPositiveButton(R.string.yes, (dialog, i) -> clearGameSettings(gameId))
+            .setNegativeButton(R.string.no, null)
+            .show();
+  }
+
+  private static void clearGameSettings(String gameId)
+  {
+    Context context = DolphinApplication.getAppContext();
     String gameSettingsPath =
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
     String gameProfilesPath = DirectoryInitialization.getUserDirectory() + "/Config/Profiles/";
@@ -122,24 +135,24 @@ public class GamePropertiesDialog extends DialogFragment
     {
       if (gameSettingsFile.delete() || hadGameProfiles)
       {
-        Toast.makeText(getContext(),
-                getResources().getString(R.string.properties_clear_success, gameId),
+        Toast.makeText(context,
+                context.getResources().getString(R.string.properties_clear_success, gameId),
                 Toast.LENGTH_SHORT).show();
       }
       else
       {
-        Toast.makeText(getContext(),
-                getResources().getString(R.string.properties_clear_failure, gameId),
+        Toast.makeText(context,
+                context.getResources().getString(R.string.properties_clear_failure, gameId),
                 Toast.LENGTH_SHORT).show();
       }
     }
     else
     {
-      Toast.makeText(getContext(), R.string.properties_clear_missing, Toast.LENGTH_SHORT).show();
+      Toast.makeText(context, R.string.properties_clear_missing, Toast.LENGTH_SHORT).show();
     }
   }
 
-  private boolean recursivelyDeleteGameProfiles(@NonNull final File file, String gameId)
+  private static boolean recursivelyDeleteGameProfiles(@NonNull final File file, String gameId)
   {
     boolean hadGameProfiles = false;
 
