@@ -107,7 +107,6 @@ static std::thread s_emu_thread;
 static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
 static std::thread s_cpu_thread;
-static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
@@ -765,11 +764,6 @@ void SaveScreenShot(std::string_view name)
   });
 }
 
-void RequestRefreshInfo()
-{
-  s_request_refresh_info = true;
-}
-
 static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
   // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
@@ -868,7 +862,7 @@ void VideoThrottle()
 {
   // Update info per second
   u32 ElapseTime = (u32)s_timer.GetTimeElapsed();
-  if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
+  if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
   {
     s_timer.Start();
 
@@ -916,7 +910,6 @@ void Callback_NewField()
 
 void UpdateTitle(u32 ElapseTime)
 {
-  s_request_refresh_info = false;
   SConfig& _CoreParameter = SConfig::GetInstance();
 
   if (ElapseTime == 0)
@@ -1111,7 +1104,6 @@ void DoFrameStep()
     // if already paused, frame advance for 1 frame
     s_stop_frame_step = false;
     s_frame_step = true;
-    RequestRefreshInfo();
     SetState(State::Running);
   }
   else if (!s_frame_step)
