@@ -212,9 +212,16 @@ Cheats::NewSearch(const std::vector<Cheats::MemoryRange>& memory_ranges,
 
     for (const Cheats::MemoryRange& range : memory_ranges)
     {
+      if (range.m_length < data_size)
+        continue;
+
       const u32 increment_per_loop = aligned ? data_size : 1;
       const u32 start_address = aligned ? Common::AlignUp(range.m_start, data_size) : range.m_start;
       const u64 aligned_length = range.m_length - (start_address - range.m_start);
+
+      if (aligned_length < data_size)
+        continue;
+
       const u64 length = aligned_length - (data_size - 1);
       for (u64 i = 0; i < length; i += increment_per_loop)
       {
