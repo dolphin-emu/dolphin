@@ -179,12 +179,12 @@ void TASInputWindow::GetButton(TASCheckBox* checkbox, UX& buttons, UX mask)
     if (pressed)
     {
       m_checkbox_set_by_controller[checkbox] = true;
-      QueueOnObject(checkbox, [checkbox] { checkbox->setChecked(true); });
+      QueueOnObjectBlocking(checkbox, [checkbox] { checkbox->setChecked(true); });
     }
     else if (m_checkbox_set_by_controller.count(checkbox) && m_checkbox_set_by_controller[checkbox])
     {
       m_checkbox_set_by_controller[checkbox] = false;
-      QueueOnObject(checkbox, [checkbox] { checkbox->setChecked(false); });
+      QueueOnObjectBlocking(checkbox, [checkbox] { checkbox->setChecked(false); });
     }
   }
 
@@ -202,7 +202,9 @@ void TASInputWindow::GetSpinBoxU8(QSpinBox* spin, u8& controller_value)
   {
     if (!m_spinbox_most_recent_values_u8.count(spin) ||
         m_spinbox_most_recent_values_u8[spin] != controller_value)
-      QueueOnObject(spin, [spin, controller_value] { spin->setValue(controller_value); });
+    {
+      QueueOnObjectBlocking(spin, [spin, controller_value] { spin->setValue(controller_value); });
+    }
 
     m_spinbox_most_recent_values_u8[spin] = controller_value;
   }
@@ -220,7 +222,9 @@ void TASInputWindow::GetSpinBoxU16(QSpinBox* spin, u16& controller_value)
   {
     if (!m_spinbox_most_recent_values_u16.count(spin) ||
         m_spinbox_most_recent_values_u16[spin] != controller_value)
-      QueueOnObject(spin, [spin, controller_value] { spin->setValue(controller_value); });
+    {
+      QueueOnObjectBlocking(spin, [spin, controller_value] { spin->setValue(controller_value); });
+    }
 
     m_spinbox_most_recent_values_u16[spin] = controller_value;
   }
