@@ -128,6 +128,8 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   // General
   general->Set("ShowLag", m_ShowLag);
   general->Set("ShowFrameCount", m_ShowFrameCount);
+  general->Set("Record Stats", bRecordStats);
+  general->Set("Submit Stats", bSubmitStats);
 
   // ISO folders
   // Clear removed folders
@@ -409,6 +411,8 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("ShowLag", &m_ShowLag, false);
   general->Get("ShowFrameCount", &m_ShowFrameCount, false);
+  general->Get("Record Stats", &bRecordStats, true);
+  general->Get("Submit Stats", &bSubmitStats, true);
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
   general->Get("GDBSocket", &gdb_socket, "");
@@ -662,17 +666,10 @@ void SConfig::LoadLocalPlayerSettings(IniFile& ini)
 {
   IniFile::Section* localplayers = ini.GetOrCreateSection("Local_Players");
 
-  localplayers->Set("Player 1", "No Player Selected");
-  localplayers->Set("Player 2", "No Player Selected");
-  localplayers->Set("Player 3", "No Player Selected");
-  localplayers->Set("Player 4", "No Player Selected");
-
-  /*
-  localplayers->Get("Player 1", &m_local_player_1, "");
-  localplayers->Get("Player 2", &m_local_player_2, "");
-  localplayers->Get("Player 3", &m_local_player_3, "");
-  localplayers->Get("Player 4", &m_local_player_4, "");
-  */
+  localplayers->Set("Player 1", m_local_player_reset);
+  localplayers->Set("Player 2", m_local_player_reset);
+  localplayers->Set("Player 3", m_local_player_reset);
+  localplayers->Set("Player 4", m_local_player_reset);
 }
 
 void SConfig::ResetRunningGameMetadata()

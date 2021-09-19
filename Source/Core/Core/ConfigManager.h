@@ -329,6 +329,8 @@ struct SConfig
   std::string m_local_player_3{"No Player Selected"};
   std::string m_local_player_4{"No Player Selected"};
 
+  std::string m_local_player_reset = "No Player Selected";
+
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
