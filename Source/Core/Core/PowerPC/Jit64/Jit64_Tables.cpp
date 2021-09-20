@@ -150,8 +150,8 @@ constexpr std::array<GekkoOPTemplate, 13> s_table19{{
 constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {266, &Jit64::addx},      // addx
     {778, &Jit64::addx},      // addox
-    {10, &Jit64::addcx},    // addcx
-    {522, &Jit64::addcx},   // addcox
+    {10, &Jit64::addx},       // addcx
+    {522, &Jit64::addx},      // addcox
     {138, &Jit64::arithXex},  // addex
     {650, &Jit64::arithXex},  // addeox
     {234, &Jit64::arithXex},  // addmex
@@ -170,8 +170,8 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {616, &Jit64::negx},      // negox
     {40, &Jit64::subfx},      // subfx
     {552, &Jit64::subfx},     // subfox
-    {8, &Jit64::subfcx},     // subfcx
-    {520, &Jit64::subfcx},   // subfcox
+    {8, &Jit64::subfcx},       // subfcx
+    {520, &Jit64::subfcx},     // subfcox
     {136, &Jit64::arithXex},  // subfex
     {648, &Jit64::arithXex},  // subfeox
     {232, &Jit64::arithXex},  // subfmex

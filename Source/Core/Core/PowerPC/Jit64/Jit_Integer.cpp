@@ -1656,19 +1656,21 @@ void Jit64::addx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
+  bool carry = !(inst.SUBOP10 & (1 << 8));
 
   if (gpr.IsImm(a, b))
   {
-    s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
+    const s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
     gpr.SetImmediate32(d, i + j);
+    if (carry)
+      FinalizeCarry(Interpreter::Helper_Carry(i, j));
     if (inst.OE)
       GenerateConstantOverflow((s64)i + (s64)j);
   }
   else if (gpr.IsImm(a) || gpr.IsImm(b))
   {
-    auto [i, j] = gpr.IsImm(a) ? std::pair(a, b) : std::pair(b, a);
-
-    s32 imm = gpr.SImm32(i);
+    const auto [i, j] = gpr.IsImm(a) ? std::pair(a, b) : std::pair(b, a);
+    const s32 imm = gpr.SImm32(i);
     RCOpArg Rj = gpr.Use(j, RCMode::Read);
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Rj, Rd);
@@ -1677,16 +1679,20 @@ void Jit64::addx(UGeckoInstruction inst)
     {
       if (d != j)
         MOV(32, Rd, Rj);
+      if (carry)
+        FinalizeCarry(false);
       if (inst.OE)
         GenerateConstantOverflow(false);
     }
     else if (d == j)
     {
       ADD(32, Rd, Imm32(imm));
+      if (carry)
+        FinalizeCarry(CC_C);
       if (inst.OE)
         GenerateOverflow();
     }
-    else if (Rj.IsSimpleReg() && !inst.OE)
+    else if (Rj.IsSimpleReg() && !carry && !inst.OE)
     {
       LEA(32, Rd, MDisp(Rj.GetSimpleReg(), imm));
     }
@@ -1694,6 +1700,8 @@ void Jit64::addx(UGeckoInstruction inst)
     {
       MOV(32, Rd, Rj);
       ADD(32, Rd, Imm32(imm));
+      if (carry)
+        FinalizeCarry(CC_C);
       if (inst.OE)
         GenerateOverflow();
     }
@@ -1701,6 +1709,8 @@ void Jit64::addx(UGeckoInstruction inst)
     {
       MOV(32, Rd, Imm32(imm));
       ADD(32, Rd, Rj);
+      if (carry)
+        FinalizeCarry(CC_C);
       if (inst.OE)
         GenerateOverflow();
     }
@@ -1717,7 +1727,7 @@ void Jit64::addx(UGeckoInstruction inst)
       RCOpArg& Rnotd = (d == a) ? Rb : Ra;
       ADD(32, Rd, Rnotd);
     }
-    else if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
+    else if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !carry && !inst.OE)
     {
       LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
     }
@@ -1726,6 +1736,8 @@ void Jit64::addx(UGeckoInstruction inst)
       MOV(32, Rd, Ra);
       ADD(32, Rd, Rb);
     }
+    if (carry)
+      FinalizeCarry(CC_C);
     if (inst.OE)
       GenerateOverflow();
   }
@@ -1802,35 +1814,6 @@ void Jit64::arithXex(UGeckoInstruction inst)
     }
   }
   FinalizeCarryOverflow(inst.OE, invertedCarry);
-  if (inst.Rc)
-    ComputeRC(d);
-}
-
-void Jit64::addcx(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITIntegerOff);
-  int a = inst.RA, b = inst.RB, d = inst.RD;
-
-  {
-    RCOpArg Ra = gpr.Use(a, RCMode::Read);
-    RCOpArg Rb = gpr.Use(b, RCMode::Read);
-    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
-    RegCache::Realize(Ra, Rb, Rd);
-
-    if (d == a)
-    {
-      ADD(32, Rd, Rb);
-    }
-    else
-    {
-      if (d != b)
-        MOV(32, Rd, Rb);
-      ADD(32, Rd, Ra);
-    }
-  }
-
-  FinalizeCarryOverflow(inst.OE);
   if (inst.Rc)
     ComputeRC(d);
 }
