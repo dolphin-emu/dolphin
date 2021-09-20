@@ -1373,6 +1373,10 @@ void ARM64XEmitter::CMP(ARM64Reg Rn, u32 imm, bool shift)
 {
   EncodeAddSubImmInst(1, true, shift, imm, Rn, Is64Bit(Rn) ? ARM64Reg::SP : ARM64Reg::WSP);
 }
+void ARM64XEmitter::CMN(ARM64Reg Rn, u32 imm, bool shift)
+{
+  EncodeAddSubImmInst(0, true, shift, imm, Rn, Is64Bit(Rn) ? ARM64Reg::SP : ARM64Reg::WSP);
+}
 
 // Data Processing (Immediate)
 void ARM64XEmitter::MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos)
