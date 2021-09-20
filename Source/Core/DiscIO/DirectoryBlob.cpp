@@ -471,10 +471,7 @@ u64 DirectoryBlobReader::GetDataSize() const
 void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
                                                     const std::string& game_partition_root)
 {
-  constexpr u64 NONPARTITION_DISCHEADER_ADDRESS = 0;
-  constexpr u64 NONPARTITION_DISCHEADER_SIZE = 0x100;
-
-  m_disc_header_nonpartition.resize(NONPARTITION_DISCHEADER_SIZE);
+  m_disc_header_nonpartition.resize(WII_NONPARTITION_DISCHEADER_SIZE);
   const size_t header_bin_bytes_read =
       ReadFileToVector(game_partition_root + "disc/header.bin", &m_disc_header_nonpartition);
 
@@ -492,7 +489,7 @@ void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& parti
   m_encrypted = std::all_of(m_disc_header_nonpartition.data() + 0x60,
                             m_disc_header_nonpartition.data() + 0x64, [](u8 x) { return x == 0; });
 
-  m_nonpartition_contents.Add(NONPARTITION_DISCHEADER_ADDRESS, m_disc_header_nonpartition);
+  m_nonpartition_contents.Add(WII_NONPARTITION_DISCHEADER_ADDRESS, m_disc_header_nonpartition);
 }
 
 void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_root)
@@ -508,8 +505,6 @@ void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_roo
   else if (bytes_read < 0x20)
     ERROR_LOG_FMT(DISCIO, "Couldn't read age ratings from {}", region_bin_path);
 
-  constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
-  [[maybe_unused]] constexpr u64 WII_REGION_DATA_SIZE = 0x20;
   m_nonpartition_contents.Add(WII_REGION_DATA_ADDRESS, m_wii_region_data);
 }
 
@@ -584,16 +579,14 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
 void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
                                              u64 partition_address)
 {
-  constexpr u32 TICKET_OFFSET = 0x0;
-  constexpr u32 TICKET_SIZE = 0x2a4;
   constexpr u32 TMD_OFFSET = 0x2c0;
   constexpr u32 H3_OFFSET = 0x4000;
-  constexpr u32 H3_SIZE = 0x18000;
 
   const std::string& partition_root = partition->GetRootDirectory();
 
   const u64 ticket_size = m_nonpartition_contents.CheckSizeAndAdd(
-      partition_address + TICKET_OFFSET, TICKET_SIZE, partition_root + "ticket.bin");
+      partition_address + WII_PARTITION_TICKET_ADDRESS, WII_PARTITION_TICKET_SIZE,
+      partition_root + "ticket.bin");
 
   const u64 tmd_size = m_nonpartition_contents.CheckSizeAndAdd(
       partition_address + TMD_OFFSET, IOS::ES::MAX_TMD_SIZE, partition_root + "tmd.bin");
@@ -603,7 +596,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   const u64 cert_size = m_nonpartition_contents.CheckSizeAndAdd(
       partition_address + cert_offset, max_cert_size, partition_root + "cert.bin");
 
-  m_nonpartition_contents.CheckSizeAndAdd(partition_address + H3_OFFSET, H3_SIZE,
+  m_nonpartition_contents.CheckSizeAndAdd(partition_address + H3_OFFSET, WII_PARTITION_H3_SIZE,
                                           partition_root + "h3.bin");
 
   constexpr u32 PARTITION_HEADER_SIZE = 0x1c;
@@ -618,10 +611,10 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   Write32(PARTITION_DATA_OFFSET >> 2, 0x14, &partition_header);
   Write32(static_cast<u32>(data_size >> 2), 0x18, &partition_header);
 
-  m_nonpartition_contents.Add(partition_address + TICKET_SIZE, partition_header);
+  m_nonpartition_contents.Add(partition_address + WII_PARTITION_TICKET_SIZE, partition_header);
 
   std::vector<u8> ticket_buffer(ticket_size);
-  m_nonpartition_contents.Read(partition_address + TICKET_OFFSET, ticket_size,
+  m_nonpartition_contents.Read(partition_address + WII_PARTITION_TICKET_ADDRESS, ticket_size,
                                ticket_buffer.data());
   IOS::ES::TicketReader ticket(std::move(ticket_buffer));
   if (ticket.IsValid())
@@ -639,9 +632,6 @@ DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory
 
 void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii)
 {
-  constexpr u64 DISCHEADER_ADDRESS = 0;
-  constexpr u64 DISCHEADER_SIZE = 0x440;
-
   m_disc_header.resize(DISCHEADER_SIZE);
   const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
   if (ReadFileToVector(boot_bin_path, &m_disc_header) < 0x20)
@@ -666,8 +656,6 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
 
 void DirectoryBlobPartition::SetBI2()
 {
-  constexpr u64 BI2_ADDRESS = 0x440;
-  constexpr u64 BI2_SIZE = 0x2000;
   m_bi2.resize(BI2_SIZE);
 
   if (!m_is_wii)
@@ -708,8 +696,6 @@ u64 DirectoryBlobPartition::SetApploader()
     // Make sure BS2 HLE doesn't try to run the apploader
     Write32(static_cast<u32>(-1), 0x10, &m_apploader);
   }
-
-  constexpr u64 APPLOADER_ADDRESS = 0x2440;
 
   m_contents.Add(APPLOADER_ADDRESS, m_apploader);
 

@@ -137,7 +137,8 @@ bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, 0, 0x100, export_filename);
+  return ExportData(volume, PARTITION_NONE, WII_NONPARTITION_DISCHEADER_ADDRESS,
+                    WII_NONPARTITION_DISCHEADER_SIZE, export_filename);
 }
 
 bool ExportWiiRegionData(const Volume& volume, const std::string& export_filename)
@@ -145,7 +146,8 @@ bool ExportWiiRegionData(const Volume& volume, const std::string& export_filenam
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, 0x4E000, 0x20, export_filename);
+  return ExportData(volume, PARTITION_NONE, WII_REGION_DATA_ADDRESS, WII_REGION_DATA_SIZE,
+                    export_filename);
 }
 
 bool ExportTicket(const Volume& volume, const Partition& partition,
@@ -154,7 +156,8 @@ bool ExportTicket(const Volume& volume, const Partition& partition,
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, partition.offset, 0x2a4, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + WII_PARTITION_TICKET_ADDRESS,
+                    WII_PARTITION_TICKET_SIZE, export_filename);
 }
 
 bool ExportTMD(const Volume& volume, const Partition& partition, const std::string& export_filename)
@@ -162,9 +165,10 @@ bool ExportTMD(const Volume& volume, const Partition& partition, const std::stri
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2a4, PARTITION_NONE);
-  const std::optional<u64> offset =
-      volume.ReadSwappedAndShifted(partition.offset + 0x2a8, PARTITION_NONE);
+  const std::optional<u32> size =
+      volume.ReadSwapped<u32>(partition.offset + WII_PARTITION_TMD_SIZE_ADDRESS, PARTITION_NONE);
+  const std::optional<u64> offset = volume.ReadSwappedAndShifted(
+      partition.offset + WII_PARTITION_TMD_OFFSET_ADDRESS, PARTITION_NONE);
   if (!size || !offset)
     return false;
 
@@ -177,9 +181,10 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2ac, PARTITION_NONE);
-  const std::optional<u64> offset =
-      volume.ReadSwappedAndShifted(partition.offset + 0x2b0, PARTITION_NONE);
+  const std::optional<u32> size = volume.ReadSwapped<u32>(
+      partition.offset + WII_PARTITION_CERT_CHAIN_SIZE_ADDRESS, PARTITION_NONE);
+  const std::optional<u64> offset = volume.ReadSwappedAndShifted(
+      partition.offset + WII_PARTITION_CERT_CHAIN_OFFSET_ADDRESS, PARTITION_NONE);
   if (!size || !offset)
     return false;
 
@@ -192,12 +197,13 @@ bool ExportH3Hashes(const Volume& volume, const Partition& partition,
   if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
-  const std::optional<u64> offset =
-      volume.ReadSwappedAndShifted(partition.offset + 0x2b4, PARTITION_NONE);
+  const std::optional<u64> offset = volume.ReadSwappedAndShifted(
+      partition.offset + WII_PARTITION_H3_OFFSET_ADDRESS, PARTITION_NONE);
   if (!offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, 0x18000, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, WII_PARTITION_H3_SIZE,
+                    export_filename);
 }
 
 bool ExportHeader(const Volume& volume, const Partition& partition,
@@ -206,7 +212,7 @@ bool ExportHeader(const Volume& volume, const Partition& partition,
   if (!IsDisc(volume.GetVolumeType()))
     return false;
 
-  return ExportData(volume, partition, 0, 0x440, export_filename);
+  return ExportData(volume, partition, DISCHEADER_ADDRESS, DISCHEADER_SIZE, export_filename);
 }
 
 bool ExportBI2Data(const Volume& volume, const Partition& partition,
@@ -215,7 +221,7 @@ bool ExportBI2Data(const Volume& volume, const Partition& partition,
   if (!IsDisc(volume.GetVolumeType()))
     return false;
 
-  return ExportData(volume, partition, 0x440, 0x2000, export_filename);
+  return ExportData(volume, partition, BI2_ADDRESS, BI2_SIZE, export_filename);
 }
 
 bool ExportApploader(const Volume& volume, const Partition& partition,
@@ -228,7 +234,7 @@ bool ExportApploader(const Volume& volume, const Partition& partition,
   if (!apploader_size)
     return false;
 
-  return ExportData(volume, partition, 0x2440, *apploader_size, export_filename);
+  return ExportData(volume, partition, APPLOADER_ADDRESS, *apploader_size, export_filename);
 }
 
 bool ExportDOL(const Volume& volume, const Partition& partition, const std::string& export_filename)

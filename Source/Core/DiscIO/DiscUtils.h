@@ -29,6 +29,26 @@ constexpr u32 PARTITION_UPDATE = 1;
 constexpr u32 PARTITION_CHANNEL = 2;  // Mario Kart Wii, Wii Fit, Wii Fit Plus, Rabbids Go Home
 constexpr u32 PARTITION_INSTALL = 3;  // Dragon Quest X only
 
+constexpr u32 DISCHEADER_ADDRESS = 0;
+constexpr u32 DISCHEADER_SIZE = 0x440;
+constexpr u32 BI2_ADDRESS = 0x440;
+constexpr u32 BI2_SIZE = 0x2000;
+constexpr u32 APPLOADER_ADDRESS = 0x2440;
+
+constexpr u32 WII_PARTITION_TICKET_ADDRESS = 0;
+constexpr u32 WII_PARTITION_TICKET_SIZE = 0x2a4;
+constexpr u32 WII_PARTITION_TMD_SIZE_ADDRESS = 0x2a4;
+constexpr u32 WII_PARTITION_TMD_OFFSET_ADDRESS = 0x2a8;
+constexpr u32 WII_PARTITION_CERT_CHAIN_SIZE_ADDRESS = 0x2ac;
+constexpr u32 WII_PARTITION_CERT_CHAIN_OFFSET_ADDRESS = 0x2b0;
+constexpr u32 WII_PARTITION_H3_OFFSET_ADDRESS = 0x2b4;
+constexpr u32 WII_PARTITION_H3_SIZE = 0x18000;
+
+constexpr u32 WII_NONPARTITION_DISCHEADER_ADDRESS = 0;
+constexpr u32 WII_NONPARTITION_DISCHEADER_SIZE = 0x100;
+constexpr u32 WII_REGION_DATA_ADDRESS = 0x4E000;
+constexpr u32 WII_REGION_DATA_SIZE = 0x20;
+
 std::string NameForPartitionType(u32 partition_type, bool include_prefix);
 
 std::optional<u64> GetApploaderSize(const Volume& volume, const Partition& partition);
