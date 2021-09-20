@@ -37,14 +37,17 @@ GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u1
   CreateWidgets();
   ConnectWidgets();
 
-  IniFile game_ini_local;
+  if (!m_game_id.empty())
+  {
+    IniFile game_ini_local;
 
-  // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
-  // will always be stored in GS/${GAMEID}.ini
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+    // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
+    // will always be stored in GS/${GAMEID}.ini
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
-  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
-  m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+    const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
+    m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+  }
 
   UpdateList();
 }
@@ -81,9 +84,16 @@ void GeckoCodeWidget::CreateWidgets()
 
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 
-  m_download_codes->setEnabled(!m_game_id.empty());
+  m_code_list->setEnabled(!m_game_id.empty());
+  m_name_label->setEnabled(!m_game_id.empty());
+  m_creator_label->setEnabled(!m_game_id.empty());
+  m_code_description->setEnabled(!m_game_id.empty());
+  m_code_view->setEnabled(!m_game_id.empty());
+
+  m_add_code->setEnabled(!m_game_id.empty());
   m_edit_code->setEnabled(false);
   m_remove_code->setEnabled(false);
+  m_download_codes->setEnabled(!m_game_id.empty());
 
   auto* layout = new QVBoxLayout;
 
@@ -228,6 +238,9 @@ void GeckoCodeWidget::RemoveCode()
 
 void GeckoCodeWidget::SaveCodes()
 {
+  if (m_game_id.empty())
+    return;
+
   const auto ini_path =
       std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
 

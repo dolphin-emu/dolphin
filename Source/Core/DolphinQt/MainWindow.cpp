@@ -220,6 +220,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectMenuBar();
   ConnectHotkeys();
 
+  connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
+          &MainWindow::ShowGeneralWindow);
+
   InitCoreCallbacks();
 
   NetPlayInit();

@@ -33,12 +33,17 @@ public:
   explicit CheatsManager(QWidget* parent = nullptr);
   ~CheatsManager();
 
+signals:
+  void OpenGeneralSettings();
+
 private:
   void CreateWidgets();
   void ConnectWidgets();
   void OnStateChanged(Core::State state);
   void OnNewSessionCreated(const Cheats::CheatSearchSessionBase& session);
   void OnTabCloseRequested(int index);
+
+  void RefreshCodeTabs(Core::State state, bool force);
 
   std::string m_game_id;
   std::string m_game_tdb_id;
