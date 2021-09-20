@@ -45,6 +45,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -1230,6 +1231,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 
   SetInputDisplayString(s_padState, controllerID);
   CheckInputEnd();
+
+  WARN_LOG_FMT(COMMON, "At input {}, RAM checksum is {:08x}", GetCurrentInputCount(),
+               Common::HashAdler32(Memory::m_pRAM, Memory::GetRamSize()));
 }
 
 // NOTE: CPU Thread
