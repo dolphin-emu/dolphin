@@ -577,6 +577,13 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_RANKED_BOX:
+  {
+    packet >> m_ranked_client;
+    m_dialog->OnRankedEnabled(m_ranked_client);
+  }
+  break;
+
   case NP_MSG_PAD_BUFFER:
   {
     u32 size = 0;
@@ -779,6 +786,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
+      m_net_settings.m_RankedMode = m_ranked_client;
     }
 
     m_dialog->OnMsgStartGame();
@@ -2401,6 +2409,12 @@ void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
 {
   m_target_buffer_size = size;
   m_dialog->OnPadBufferChanged(size);
+}
+
+void NetPlayClient::AdjustRankedBox(bool is_ranked)
+{
+  m_ranked_client = is_ranked;
+  m_dialog->OnRankedEnabled(is_ranked);
 }
 
 SyncIdentifier NetPlayClient::GetSDCardIdentifier()

@@ -155,7 +155,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     is_connected = true;
     m_do_loop = true;
     m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
-    m_target_buffer_size = 5;
+    m_target_buffer_size = 8;
     m_chunked_data_thread = std::thread(&NetPlayServer::ChunkedDataThreadFunc, this);
 
 #ifdef USE_UPNP
@@ -456,6 +456,12 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
     Send(player.socket, spac);
   }
 
+  // send ranked box state
+  spac.clear();
+  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
+  spac << m_current_ranked_value;
+  Send(player.socket, spac);
+
   // send input authority state
   spac.clear();
   spac << static_cast<MessageId>(NP_MSG_HOST_INPUT_AUTHORITY);
@@ -663,6 +669,19 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 
     SendAsyncToClients(std::move(spac));
   }
+}
+
+void NetPlayServer::AdjustRankedBox(const bool is_ranked)
+{
+  std::lock_guard lkg(m_crit.game);
+  m_current_ranked_value = is_ranked;
+
+  // tell clients to change ranked box
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
+  spac << m_current_ranked_value;
+
+  SendAsyncToClients(std::move(spac));
 }
 
 void NetPlayServer::SetHostInputAuthority(const bool enable)

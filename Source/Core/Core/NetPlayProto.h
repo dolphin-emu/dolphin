@@ -99,6 +99,7 @@ struct NetSettings
   bool m_GolfMode;
   bool m_UseFMA;
   bool m_HideRemoteGBAs;
+  bool m_RankedMode;
 
   // These aren't sent over the network directly
   bool m_IsHosting;
@@ -134,6 +135,8 @@ enum
   NP_MSG_CHUNKED_DATA_PROGRESS = 0x43,
   NP_MSG_CHUNKED_DATA_COMPLETE = 0x44,
   NP_MSG_CHUNKED_DATA_ABORT = 0x45,
+
+  NP_MSG_RANKED_BOX = 0x5F,
 
   NP_MSG_PAD_DATA = 0x60,
   NP_MSG_PAD_MAPPING = 0x61,

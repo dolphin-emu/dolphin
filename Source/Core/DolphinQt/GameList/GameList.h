@@ -62,6 +62,7 @@ private:
   void OpenWiiSaveFolder();
   void OpenGCSaveFolder();
   void OpenWiki();
+  void OpenProjectRio();
   void SetDefaultISO();
   void DeleteFile();
 #ifdef _WIN32

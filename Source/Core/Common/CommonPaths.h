@@ -81,6 +81,7 @@
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG "Dolphin.ini"
+#define LOCALPLAYERS_CONFIG "LocalPlayers.ini"
 #define GCPAD_CONFIG "GCPadNew.ini"
 #define WIIPAD_CONFIG "WiimoteNew.ini"
 #define GCKEYBOARD_CONFIG "GCKeyNew.ini"

@@ -17,7 +17,7 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-const std::string scm_rev_str = "Dolphin "
+const std::string scm_rev_str = "Project Rio "
 #if !SCM_IS_MASTER
                                 "[" SCM_BRANCH_STR "] "
 #endif

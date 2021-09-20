@@ -14,6 +14,8 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/ToolBar.h"
 
+
+
 static QSize ICON_SIZE(32, 32);
 
 ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
@@ -126,10 +128,20 @@ void ToolBar::MakeActions()
 
   addSeparator();
 
+  m_start_netplay_action = addAction(tr("Start NetPlay"), this, &ToolBar::StartNetPlayPressed);
+  m_join_netplay_action = addAction(tr("Join NetPlay"), this, &ToolBar::JoinNetPlayPressed);
+
+  addSeparator();
+
   m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
+
+  addSeparator();
+
+  m_view_gecko_codes_action = addAction(tr("Gecko Codes"), this, &ToolBar::ViewGeckoCodes);
+  m_local_players_action = addAction(tr("Local Players"), this, &ToolBar::ViewLocalPlayers);
 
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
@@ -194,4 +206,8 @@ void ToolBar::UpdateIcons()
   m_config_action->setIcon(Resources::GetScaledThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetScaledThemeIcon("classic"));
   m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
+  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("netplay"));
+  m_join_netplay_action->setIcon(Resources::GetScaledThemeIcon("join_netplay"));
+  m_view_gecko_codes_action->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint@2x"));
+  m_local_players_action->setIcon(Resources::GetScaledThemeIcon("browse"));
 }

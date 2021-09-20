@@ -233,6 +233,8 @@ private:
   QAction* m_recording_read_only;
 
   // Options
+  QAction* m_record_stats;
+  QAction* m_submit_stats;
   QAction* m_boot_to_pause;
   QAction* m_automatic_start;
   QAction* m_change_font;

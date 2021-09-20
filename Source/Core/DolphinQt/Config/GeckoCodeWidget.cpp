@@ -67,7 +67,7 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_description = new QTextEdit;
   m_code_description->setFont(monospace);
   m_code_description->setReadOnly(true);
-  m_code_description->setFixedHeight(line_height * 5);
+  m_code_description->setFixedHeight(line_height * 10);
 
   m_code_view = new QTextEdit;
   m_code_view->setFont(monospace);
@@ -79,7 +79,9 @@ void GeckoCodeWidget::CreateWidgets()
   m_remove_code = new QPushButton(tr("&Remove Code"));
   m_download_codes = new QPushButton(tr("Download Codes"));
 
-  m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
+  m_download_codes->setToolTip(tr(m_game_id == "GYQE01" ?
+                                      "Download Mario Superstar Baseball Codes" :
+                                      "Download Codes from WiiRD Database"));
 
   m_download_codes->setEnabled(!m_game_id.empty());
   m_edit_code->setEnabled(false);
@@ -116,7 +118,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
-
   setLayout(layout);
 }
 

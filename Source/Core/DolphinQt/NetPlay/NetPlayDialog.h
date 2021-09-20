@@ -62,6 +62,8 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
+  void OnRankedEnabled(bool is_ranked) override;
+
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;
 
@@ -144,6 +146,7 @@ private:
   QAction* m_hide_remote_gbas_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
+  QCheckBox* m_ranked_box;
   QActionGroup* m_network_mode_group;
 
   QGridLayout* m_main_layout;
@@ -162,4 +165,5 @@ private:
   int m_player_count = 0;
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
+  bool m_current_ranked_value = false;
 };
