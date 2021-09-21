@@ -71,7 +71,7 @@ class DiscContentContainer
 {
 public:
   template <typename T>
-  void Add(u64 offset, const std::vector<T>& vector)
+  void AddReference(u64 offset, const std::vector<T>& vector)
   {
     return Add(offset, vector.size() * sizeof(T), reinterpret_cast<const u8*>(vector.data()));
   }
