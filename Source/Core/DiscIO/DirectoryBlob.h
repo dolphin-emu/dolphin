@@ -33,8 +33,18 @@ class DirectoryBlobReader;
 // Returns true if the path is inside a DirectoryBlob and doesn't represent the DirectoryBlob itself
 bool ShouldHideFromGameList(const std::string& volume_path);
 
+// Content chunk that is loaded from a file in the host file system.
+struct ContentFile
+{
+  // Path where the file can be found.
+  std::string m_filename;
+
+  // Offset from the start of the file where the first byte of this content chunk is.
+  u64 m_offset;
+};
+
 using ContentSource =
-    std::variant<std::string,          // File
+    std::variant<ContentFile,          // File
                  const u8*,            // Memory
                  DirectoryBlobReader*  // Partition (which one it is is determined by m_offset)
                  >;
