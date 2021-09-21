@@ -60,8 +60,13 @@ public:
   bool operator>=(const DiscContent& other) const { return !(*this < other); }
 
 private:
+  // Position of this content chunk within its parent DiscContentContainer.
   u64 m_offset;
+
+  // Number of bytes this content chunk takes up.
   u64 m_size = 0;
+
+  // Where and how to find the data for this content chunk.
   ContentSource m_content_source;
 };
 
