@@ -33,18 +33,16 @@ class DirectoryBlobReader;
 // Returns true if the path is inside a DirectoryBlob and doesn't represent the DirectoryBlob itself
 bool ShouldHideFromGameList(const std::string& volume_path);
 
+using ContentSource =
+    std::variant<std::string,          // File
+                 const u8*,            // Memory
+                 DirectoryBlobReader*  // Partition (which one it is is determined by m_offset)
+                 >;
+
 class DiscContent
 {
 public:
-  using ContentSource =
-      std::variant<std::string,          // File
-                   const u8*,            // Memory
-                   DirectoryBlobReader*  // Partition (which one it is is determined by m_offset)
-                   >;
-
-  DiscContent(u64 offset, u64 size, const std::string& path);
-  DiscContent(u64 offset, u64 size, const u8* data);
-  DiscContent(u64 offset, u64 size, DirectoryBlobReader* blob);
+  DiscContent(u64 offset, u64 size, ContentSource source);
 
   // Provided because it's convenient when searching for DiscContent in an std::set
   explicit DiscContent(u64 offset);
@@ -75,9 +73,7 @@ public:
   {
     return Add(offset, vector.size() * sizeof(T), reinterpret_cast<const u8*>(vector.data()));
   }
-  void Add(u64 offset, u64 size, const std::string& path);
-  void Add(u64 offset, u64 size, const u8* data);
-  void Add(u64 offset, u64 size, DirectoryBlobReader* blob);
+  void Add(u64 offset, u64 size, ContentSource source);
   u64 CheckSizeAndAdd(u64 offset, const std::string& path);
   u64 CheckSizeAndAdd(u64 offset, u64 max_size, const std::string& path);
 
