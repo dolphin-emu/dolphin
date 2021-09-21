@@ -61,18 +61,8 @@ constexpr u8 ENTRY_SIZE = 0x0c;
 constexpr u8 FILE_ENTRY = 0;
 constexpr u8 DIRECTORY_ENTRY = 1;
 
-DiscContent::DiscContent(u64 offset, u64 size, const std::string& path)
-    : m_offset(offset), m_size(size), m_content_source(path)
-{
-}
-
-DiscContent::DiscContent(u64 offset, u64 size, const u8* data)
-    : m_offset(offset), m_size(size), m_content_source(data)
-{
-}
-
-DiscContent::DiscContent(u64 offset, u64 size, DirectoryBlobReader* blob)
-    : m_offset(offset), m_size(size), m_content_source(blob)
+DiscContent::DiscContent(u64 offset, u64 size, ContentSource source)
+    : m_offset(offset), m_size(size), m_content_source(std::move(source))
 {
 }
 
@@ -137,22 +127,10 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   return true;
 }
 
-void DiscContentContainer::Add(u64 offset, u64 size, const std::string& path)
+void DiscContentContainer::Add(u64 offset, u64 size, ContentSource source)
 {
   if (size != 0)
-    m_contents.emplace(offset, size, path);
-}
-
-void DiscContentContainer::Add(u64 offset, u64 size, const u8* data)
-{
-  if (size != 0)
-    m_contents.emplace(offset, size, data);
-}
-
-void DiscContentContainer::Add(u64 offset, u64 size, DirectoryBlobReader* blob)
-{
-  if (size != 0)
-    m_contents.emplace(offset, size, blob);
+    m_contents.emplace(offset, size, std::move(source));
 }
 
 u64 DiscContentContainer::CheckSizeAndAdd(u64 offset, const std::string& path)
