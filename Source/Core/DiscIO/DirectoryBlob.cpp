@@ -489,7 +489,8 @@ void DirectoryBlobReader::SetNonpartitionDiscHeader(const std::vector<u8>& parti
   m_encrypted = std::all_of(m_disc_header_nonpartition.data() + 0x60,
                             m_disc_header_nonpartition.data() + 0x64, [](u8 x) { return x == 0; });
 
-  m_nonpartition_contents.Add(WII_NONPARTITION_DISCHEADER_ADDRESS, m_disc_header_nonpartition);
+  m_nonpartition_contents.AddReference(WII_NONPARTITION_DISCHEADER_ADDRESS,
+                                       m_disc_header_nonpartition);
 }
 
 void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_root)
@@ -505,7 +506,7 @@ void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_roo
   else if (bytes_read < 0x20)
     ERROR_LOG_FMT(DISCIO, "Couldn't read age ratings from {}", region_bin_path);
 
-  m_nonpartition_contents.Add(WII_REGION_DATA_ADDRESS, m_wii_region_data);
+  m_nonpartition_contents.AddReference(WII_REGION_DATA_ADDRESS, m_wii_region_data);
 }
 
 void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partitions)
@@ -571,7 +572,7 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
   }
   m_data_size = partition_address;
 
-  m_nonpartition_contents.Add(PARTITION_TABLE_ADDRESS, m_partition_table);
+  m_nonpartition_contents.AddReference(PARTITION_TABLE_ADDRESS, m_partition_table);
 }
 
 // This function sets the header that's shortly before the start of the encrypted
@@ -611,7 +612,8 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
   Write32(PARTITION_DATA_OFFSET >> 2, 0x14, &partition_header);
   Write32(static_cast<u32>(data_size >> 2), 0x18, &partition_header);
 
-  m_nonpartition_contents.Add(partition_address + WII_PARTITION_TICKET_SIZE, partition_header);
+  m_nonpartition_contents.AddReference(partition_address + WII_PARTITION_TICKET_SIZE,
+                                       partition_header);
 
   std::vector<u8> ticket_buffer(ticket_size);
   m_nonpartition_contents.Read(partition_address + WII_PARTITION_TICKET_ADDRESS, ticket_size,
@@ -637,7 +639,7 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
   if (ReadFileToVector(boot_bin_path, &m_disc_header) < 0x20)
     ERROR_LOG_FMT(DISCIO, "{} doesn't exist or is too small", boot_bin_path);
 
-  m_contents.Add(DISCHEADER_ADDRESS, m_disc_header);
+  m_contents.AddReference(DISCHEADER_ADDRESS, m_disc_header);
 
   if (is_wii.has_value())
   {
@@ -666,7 +668,7 @@ void DirectoryBlobPartition::SetBI2()
   if (!m_is_wii && bytes_read < 0x1C)
     ERROR_LOG_FMT(DISCIO, "Couldn't read region from {}", bi2_path);
 
-  m_contents.Add(BI2_ADDRESS, m_bi2);
+  m_contents.AddReference(BI2_ADDRESS, m_bi2);
 }
 
 u64 DirectoryBlobPartition::SetApploader()
@@ -697,7 +699,7 @@ u64 DirectoryBlobPartition::SetApploader()
     Write32(static_cast<u32>(-1), 0x10, &m_apploader);
   }
 
-  m_contents.Add(APPLOADER_ADDRESS, m_apploader);
+  m_contents.AddReference(APPLOADER_ADDRESS, m_apploader);
 
   // Return DOL address, 32 byte aligned (plus 32 byte padding)
   return Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
@@ -748,7 +750,7 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disc_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disc_header);
 
-  m_contents.Add(fst_address, m_fst_data);
+  m_contents.AddReference(fst_address, m_fst_data);
 
   m_data_size = current_data_address;
 }
