@@ -58,8 +58,8 @@ public:
   bool operator!=(const DiscContent& other) const { return !(*this == other); }
   bool operator<(const DiscContent& other) const { return GetEndOffset() < other.GetEndOffset(); }
   bool operator>(const DiscContent& other) const { return other < *this; }
-  bool operator<=(const DiscContent& other) const { return !(*this < other); }
-  bool operator>=(const DiscContent& other) const { return !(*this > other); }
+  bool operator<=(const DiscContent& other) const { return !(*this > other); }
+  bool operator>=(const DiscContent& other) const { return !(*this < other); }
 
 private:
   u64 m_offset;
