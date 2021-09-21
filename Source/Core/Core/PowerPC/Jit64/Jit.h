@@ -232,7 +232,6 @@ public:
 
   void subfic(UGeckoInstruction inst);
   void subfx(UGeckoInstruction inst);
-  void subfcx(UGeckoInstruction inst);
 
   void twX(UGeckoInstruction inst);
 

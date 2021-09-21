@@ -170,8 +170,8 @@ constexpr std::array<GekkoOPTemplate, 107> s_table31{{
     {616, &Jit64::negx},      // negox
     {40, &Jit64::subfx},      // subfx
     {552, &Jit64::subfx},     // subfox
-    {8, &Jit64::subfcx},       // subfcx
-    {520, &Jit64::subfcx},     // subfcox
+    {8, &Jit64::subfx},       // subfcx
+    {520, &Jit64::subfx},     // subfcox
     {136, &Jit64::arithXex},  // subfex
     {648, &Jit64::arithXex},  // subfeox
     {232, &Jit64::arithXex},  // subfmex
