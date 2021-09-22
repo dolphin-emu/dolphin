@@ -16,6 +16,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
 namespace File
@@ -57,9 +58,23 @@ struct ContentPartition
   u64 m_partition_data_offset;
 };
 
-using ContentSource = std::variant<ContentFile,      // File
-                                   const u8*,        // Memory
-                                   ContentPartition  // Partition
+// Content chunk that loads data from a Volume.
+struct ContentVolume
+{
+  // Offset from the start of the volume for the first byte represented by this chunk.
+  u64 m_offset;
+
+  // The volume to read data from.
+  const Volume* m_volume;
+
+  // The partition passed to the Volume's Read() method.
+  Partition m_partition;
+};
+
+using ContentSource = std::variant<ContentFile,       // File
+                                   const u8*,         // Memory
+                                   ContentPartition,  // Partition
+                                   ContentVolume      // Volume
                                    >;
 
 class DiscContent
