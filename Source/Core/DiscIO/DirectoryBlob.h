@@ -71,10 +71,18 @@ struct ContentVolume
   Partition m_partition;
 };
 
+// Content chunk representing a run of identical bytes.
+// Useful for padding between chunks within a file.
+struct ContentFixedByte
+{
+  u8 m_byte;
+};
+
 using ContentSource = std::variant<ContentFile,       // File
                                    const u8*,         // Memory
                                    ContentPartition,  // Partition
-                                   ContentVolume      // Volume
+                                   ContentVolume,     // Volume
+                                   ContentFixedByte   // Fixed value padding
                                    >;
 
 class DiscContent
