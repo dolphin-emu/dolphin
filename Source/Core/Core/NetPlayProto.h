@@ -121,7 +121,7 @@ struct NetTraversalConfig
 };
 
 // messages
-enum
+enum MessageID : u8
 {
   NP_MSG_PLAYER_JOIN = 0x10,
   NP_MSG_PLAYER_LEAVE = 0x11,
