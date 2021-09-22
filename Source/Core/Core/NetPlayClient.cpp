@@ -244,25 +244,25 @@ bool NetPlayClient::Connect()
     return false;
   }
 
-  MessageId error;
+  ConnectionError error;
   rpac >> error;
 
   // got error message
-  if (error)
+  if (error != ConnectionError::NoError)
   {
     switch (error)
     {
-    case CON_ERR_SERVER_FULL:
+    case ConnectionError::ServerFull:
       m_dialog->OnConnectionError(_trans("The server is full."));
       break;
-    case CON_ERR_VERSION_MISMATCH:
+    case ConnectionError::VersionMismatch:
       m_dialog->OnConnectionError(
           _trans("The server and client's NetPlay versions are incompatible."));
       break;
-    case CON_ERR_GAME_RUNNING:
+    case ConnectionError::GameRunning:
       m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
-    case CON_ERR_NAME_TOO_LONG:
+    case ConnectionError::NameTooLong:
       m_dialog->OnConnectionError(_trans("Nickname is too long."));
       break;
     default:

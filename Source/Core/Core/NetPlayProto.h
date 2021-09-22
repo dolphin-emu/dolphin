@@ -179,12 +179,13 @@ enum class MessageID : u8
   SyncCodes = 0xF2,
 };
 
-enum
+enum class ConnectionError : u8
 {
-  CON_ERR_SERVER_FULL = 1,
-  CON_ERR_GAME_RUNNING = 2,
-  CON_ERR_VERSION_MISMATCH = 3,
-  CON_ERR_NAME_TOO_LONG = 4
+  NoError = 0,
+  ServerFull = 1,
+  GameRunning = 2,
+  VersionMismatch = 3,
+  NameTooLong = 4
 };
 
 enum class SyncSaveDataID : u8

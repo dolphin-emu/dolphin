@@ -297,16 +297,16 @@ void NetPlayServer::ThreadFunc()
         if (!netEvent.peer->data)
         {
           // uninitialized client, we'll assume this is their initialization packet
-          unsigned int error;
+          ConnectionError error;
           {
             std::lock_guard lkg(m_crit.game);
             error = OnConnect(netEvent.peer, rpac);
           }
 
-          if (error)
+          if (error != ConnectionError::NoError)
           {
             sf::Packet spac;
-            spac << static_cast<MessageId>(error);
+            spac << error;
             // don't need to lock, this client isn't in the client map
             Send(netEvent.peer, spac);
 
@@ -374,7 +374,7 @@ static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_iden
 }
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
+ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 {
   // give new client first available id
   PlayerId pid = 1;
@@ -392,15 +392,15 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   rpac >> npver;
   // Dolphin netplay version
   if (npver != Common::scm_rev_git_str)
-    return CON_ERR_VERSION_MISMATCH;
+    return ConnectionError::VersionMismatch;
 
   // game is currently running or game start is pending
   if (m_is_running || m_start_pending)
-    return CON_ERR_GAME_RUNNING;
+    return ConnectionError::GameRunning;
 
   // too many players
   if (m_players.size() >= 255)
-    return CON_ERR_SERVER_FULL;
+    return ConnectionError::ServerFull;
 
   Client player;
   player.pid = pid;
@@ -410,7 +410,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   rpac >> player.name;
 
   if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
-    return CON_ERR_NAME_TOO_LONG;
+    return ConnectionError::NameTooLong;
 
   // cause pings to be updated
   m_update_pings = true;
@@ -488,7 +488,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
     UpdateWiimoteMapping();
   }
 
-  return 0;
+  return ConnectionError::NoError;
 }
 
 // called from ---NETPLAY--- thread
