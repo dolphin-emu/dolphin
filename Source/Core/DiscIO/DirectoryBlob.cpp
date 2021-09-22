@@ -123,6 +123,15 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
         return false;
       }
     }
+    else if (std::holds_alternative<ContentVolume>(m_content_source))
+    {
+      const auto& source = std::get<ContentVolume>(m_content_source);
+      if (!source.m_volume->Read(source.m_offset + offset_in_content, bytes_to_read, *buffer,
+                                 source.m_partition))
+      {
+        return false;
+      }
+    }
     else
     {
       PanicAlertFmt("DirectoryBlob: Invalid content source in DiscContent.");
