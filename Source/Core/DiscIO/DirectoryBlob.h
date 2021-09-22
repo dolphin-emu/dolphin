@@ -43,11 +43,24 @@ struct ContentFile
   u64 m_offset;
 };
 
-using ContentSource =
-    std::variant<ContentFile,          // File
-                 const u8*,            // Memory
-                 DirectoryBlobReader*  // Partition (which one it is is determined by m_offset)
-                 >;
+// Content chunk that loads data from a DirectoryBlobReader.
+// Intented for representing a partition within a disc.
+struct ContentPartition
+{
+  // The reader to read data from.
+  DirectoryBlobReader* m_reader;
+
+  // Offset from the start of the partition for the first byte represented by this chunk.
+  u64 m_offset;
+
+  // The value passed as partition_data_offset to EncryptPartitionData().
+  u64 m_partition_data_offset;
+};
+
+using ContentSource = std::variant<ContentFile,      // File
+                                   const u8*,        // Memory
+                                   ContentPartition  // Partition
+                                   >;
 
 class DiscContent
 {
