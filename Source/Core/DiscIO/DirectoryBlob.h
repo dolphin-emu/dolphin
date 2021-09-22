@@ -30,6 +30,7 @@ namespace DiscIO
 enum class PartitionType : u32;
 
 class DirectoryBlobReader;
+class VolumeDisc;
 
 // Returns true if the path is inside a DirectoryBlob and doesn't represent the DirectoryBlob itself
 bool ShouldHideFromGameList(const std::string& volume_path);
@@ -85,6 +86,47 @@ using ContentSource = std::variant<ContentFile,       // File
                                    ContentFixedByte   // Fixed value padding
                                    >;
 
+struct BuilderContentSource
+{
+  u64 m_offset;
+  u64 m_size;
+  ContentSource m_source;
+};
+
+struct FSTBuilderNode
+{
+  std::string m_filename;
+  u64 m_size;
+  std::variant<std::vector<BuilderContentSource>, std::vector<FSTBuilderNode>> m_content;
+
+  bool IsFile() const
+  {
+    return std::holds_alternative<std::vector<BuilderContentSource>>(m_content);
+  }
+
+  std::vector<BuilderContentSource>& GetFileContent()
+  {
+    return std::get<std::vector<BuilderContentSource>>(m_content);
+  }
+
+  const std::vector<BuilderContentSource>& GetFileContent() const
+  {
+    return std::get<std::vector<BuilderContentSource>>(m_content);
+  }
+
+  bool IsFolder() const { return std::holds_alternative<std::vector<FSTBuilderNode>>(m_content); }
+
+  std::vector<FSTBuilderNode>& GetFolderContent()
+  {
+    return std::get<std::vector<FSTBuilderNode>>(m_content);
+  }
+
+  const std::vector<FSTBuilderNode>& GetFolderContent() const
+  {
+    return std::get<std::vector<FSTBuilderNode>>(m_content);
+  }
+};
+
 class DiscContent
 {
 public:
@@ -139,6 +181,8 @@ class DirectoryBlobPartition
 public:
   DirectoryBlobPartition() = default;
   DirectoryBlobPartition(const std::string& root_directory, std::optional<bool> is_wii);
+  DirectoryBlobPartition(DiscIO::VolumeDisc* volume, const DiscIO::Partition& partition,
+                         std::optional<bool> is_wii);
 
   // We do not allow copying, because it might mess up the pointers inside DiscContents
   DirectoryBlobPartition(const DirectoryBlobPartition&) = delete;
@@ -151,27 +195,38 @@ public:
   const std::string& GetRootDirectory() const { return m_root_directory; }
   const std::vector<u8>& GetHeader() const { return m_disc_header; }
   const DiscContentContainer& GetContents() const { return m_contents; }
+  const std::optional<DiscIO::Partition>& GetWrappedPartition() const
+  {
+    return m_wrapped_partition;
+  }
 
   const std::array<u8, VolumeWii::AES_KEY_SIZE>& GetKey() const { return m_key; }
   void SetKey(std::array<u8, VolumeWii::AES_KEY_SIZE> key) { m_key = key; }
 
 private:
-  void SetDiscHeaderAndDiscType(std::optional<bool> is_wii);
-  void SetBI2();
+  void SetDiscHeaderFromFile(const std::string& boot_bin_path);
+  void SetDiscHeader(std::vector<u8> boot_bin);
+  void SetDiscType(std::optional<bool> is_wii);
+  void SetBI2FromFile(const std::string& bi2_path);
+  void SetBI2(std::vector<u8> bi2);
 
   // Returns DOL address
-  u64 SetApploader();
+  u64 SetApploaderFromFile(const std::string& path);
+  u64 SetApploader(std::vector<u8> apploader, const std::string& log_path);
   // Returns FST address
-  u64 SetDOL(u64 dol_address);
+  u64 SetDOLFromFile(const std::string& path, u64 dol_address);
+  u64 SetDOL(FSTBuilderNode dol_node, u64 dol_address);
 
-  void BuildFST(u64 fst_address);
+  void BuildFSTFromFolder(const std::string& fst_root_path, u64 fst_address);
+  void BuildFST(std::vector<FSTBuilderNode> root_nodes, u64 fst_address);
 
   // FST creation
   void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
                       u32 address_shift);
   void WriteEntryName(u32* name_offset, const std::string& name, u64 name_table_offset);
-  void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
-                      u64* data_offset, u32 parent_entry_index, u64 name_table_offset);
+  void WriteDirectory(std::vector<FSTBuilderNode>* parent_entries, u32* fst_offset,
+                      u32* name_offset, u64* data_offset, u32 parent_entry_index,
+                      u64 name_table_offset);
 
   DiscContentContainer m_contents;
   std::vector<u8> m_disc_header;
@@ -187,6 +242,8 @@ private:
   u32 m_address_shift = 0;
 
   u64 m_data_size = 0;
+
+  std::optional<DiscIO::Partition> m_wrapped_partition = std::nullopt;
 };
 
 class DirectoryBlobReader : public BlobReader
