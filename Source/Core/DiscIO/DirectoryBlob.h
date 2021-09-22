@@ -252,6 +252,7 @@ class DirectoryBlobReader : public BlobReader
 
 public:
   static std::unique_ptr<DirectoryBlobReader> Create(const std::string& dol_path);
+  static std::unique_ptr<DirectoryBlobReader> Create(std::unique_ptr<DiscIO::VolumeDisc> volume);
 
   // We do not allow copying, because it might mess up the pointers inside DiscContents
   DirectoryBlobReader(const DirectoryBlobReader&) = delete;
@@ -287,15 +288,19 @@ private:
 
   explicit DirectoryBlobReader(const std::string& game_partition_root,
                                const std::string& true_root);
+  explicit DirectoryBlobReader(std::unique_ptr<DiscIO::VolumeDisc> volume);
 
   const DirectoryBlobPartition* GetPartition(u64 offset, u64 size, u64 partition_data_offset) const;
 
   bool EncryptPartitionData(u64 offset, u64 size, u8* buffer, u64 partition_data_offset,
                             u64 partition_data_decrypted_size);
 
+  void SetNonpartitionDiscHeaderFromFile(const std::vector<u8>& partition_header,
+                                         const std::string& game_partition_root);
   void SetNonpartitionDiscHeader(const std::vector<u8>& partition_header,
-                                 const std::string& game_partition_root);
-  void SetWiiRegionData(const std::string& game_partition_root);
+                                 std::vector<u8> header_bin);
+  void SetWiiRegionDataFromFile(const std::string& game_partition_root);
+  void SetWiiRegionData(const std::vector<u8>& wii_region_data, const std::string& log_path);
   void SetPartitions(std::vector<PartitionWithType>&& partitions);
   void SetPartitionHeader(DirectoryBlobPartition* partition, u64 partition_address);
 
@@ -313,9 +318,11 @@ private:
   std::vector<u8> m_disc_header_nonpartition;
   std::vector<u8> m_partition_table;
   std::vector<u8> m_wii_region_data;
-  std::vector<std::vector<u8>> m_partition_headers;
+  std::vector<std::vector<u8>> m_extra_data;
 
   u64 m_data_size;
+
+  std::unique_ptr<DiscIO::VolumeDisc> m_wrapped_volume;
 };
 
 }  // namespace DiscIO
