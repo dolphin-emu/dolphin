@@ -112,15 +112,21 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
       const u8* const content_pointer = std::get<const u8*>(m_content_source) + offset_in_content;
       std::copy(content_pointer, content_pointer + bytes_to_read, *buffer);
     }
-    else
+    else if (std::holds_alternative<ContentPartition>(m_content_source))
     {
-      DirectoryBlobReader* blob = std::get<DirectoryBlobReader*>(m_content_source);
+      const auto& content = std::get<ContentPartition>(m_content_source);
+      DirectoryBlobReader* blob = content.m_reader;
       const u64 decrypted_size = m_size * VolumeWii::BLOCK_DATA_SIZE / VolumeWii::BLOCK_TOTAL_SIZE;
-      if (!blob->EncryptPartitionData(offset_in_content, bytes_to_read, *buffer, m_offset,
-                                      decrypted_size))
+      if (!blob->EncryptPartitionData(content.m_offset + offset_in_content, bytes_to_read, *buffer,
+                                      content.m_partition_data_offset, decrypted_size))
       {
         return false;
       }
+    }
+    else
+    {
+      PanicAlertFmt("DirectoryBlob: Invalid content source in DiscContent.");
+      return false;
     }
 
     *length -= bytes_to_read;
@@ -545,9 +551,10 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
     SetPartitionHeader(&partitions[i].partition, partition_address);
 
     const u64 data_size = partitions[i].partition.GetDataSize();
-    m_partitions.emplace(partition_address + PARTITION_DATA_OFFSET,
-                         std::move(partitions[i].partition));
-    m_nonpartition_contents.Add(partition_address + PARTITION_DATA_OFFSET, data_size, this);
+    const u64 partition_data_offset = partition_address + PARTITION_DATA_OFFSET;
+    m_partitions.emplace(partition_data_offset, std::move(partitions[i].partition));
+    m_nonpartition_contents.Add(partition_data_offset, data_size,
+                                ContentPartition{this, 0, partition_data_offset});
     const u64 unaligned_next_partition_address = VolumeWii::EncryptedPartitionOffsetToRawOffset(
         data_size, Partition(partition_address), PARTITION_DATA_OFFSET);
     partition_address = Common::AlignUp(unaligned_next_partition_address, 0x10000ull);
