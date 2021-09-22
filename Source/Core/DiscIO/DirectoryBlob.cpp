@@ -356,13 +356,16 @@ std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(const std::stri
   return std::unique_ptr<DirectoryBlobReader>(new DirectoryBlobReader(partition_root, true_root));
 }
 
-std::unique_ptr<DirectoryBlobReader>
-DirectoryBlobReader::Create(std::unique_ptr<DiscIO::VolumeDisc> volume)
+std::unique_ptr<DirectoryBlobReader> DirectoryBlobReader::Create(
+    std::unique_ptr<DiscIO::VolumeDisc> volume,
+    const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
+        fst_callback)
 {
   if (!volume)
     return nullptr;
 
-  return std::unique_ptr<DirectoryBlobReader>(new DirectoryBlobReader(std::move(volume)));
+  return std::unique_ptr<DirectoryBlobReader>(
+      new DirectoryBlobReader(std::move(volume), fst_callback));
 }
 
 DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root,
@@ -409,11 +412,14 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root,
   }
 }
 
-DirectoryBlobReader::DirectoryBlobReader(std::unique_ptr<DiscIO::VolumeDisc> volume)
+DirectoryBlobReader::DirectoryBlobReader(
+    std::unique_ptr<DiscIO::VolumeDisc> volume,
+    const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
+        fst_callback)
     : m_encryption_cache(this), m_wrapped_volume(std::move(volume))
 {
-  DirectoryBlobPartition game_partition(m_wrapped_volume.get(),
-                                        m_wrapped_volume->GetGamePartition(), std::nullopt);
+  DirectoryBlobPartition game_partition(
+      m_wrapped_volume.get(), m_wrapped_volume->GetGamePartition(), std::nullopt, fst_callback);
   m_is_wii = game_partition.IsWii();
 
   if (!m_is_wii)
@@ -452,8 +458,9 @@ DirectoryBlobReader::DirectoryBlobReader(std::unique_ptr<DiscIO::VolumeDisc> vol
       auto type = m_wrapped_volume->GetPartitionType(partition);
       if (type)
       {
-        partitions.emplace_back(DirectoryBlobPartition(m_wrapped_volume.get(), partition, m_is_wii),
-                                static_cast<PartitionType>(*type));
+        partitions.emplace_back(
+            DirectoryBlobPartition(m_wrapped_volume.get(), partition, m_is_wii, nullptr),
+            static_cast<PartitionType>(*type));
       }
     }
 
@@ -809,9 +816,10 @@ DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory
   BuildFSTFromFolder(m_root_directory + "files/", fst_address);
 }
 
-DirectoryBlobPartition::DirectoryBlobPartition(DiscIO::VolumeDisc* volume,
-                                               const DiscIO::Partition& partition,
-                                               std::optional<bool> is_wii)
+DirectoryBlobPartition::DirectoryBlobPartition(
+    DiscIO::VolumeDisc* volume, const DiscIO::Partition& partition, std::optional<bool> is_wii,
+    const std::function<void(std::vector<FSTBuilderNode>* fst_nodes, FSTBuilderNode* dol_node)>&
+        fst_callback)
     : m_wrapped_partition(partition)
 {
   std::vector<u8> disc_header(DISCHEADER_SIZE);
@@ -849,14 +857,17 @@ DirectoryBlobPartition::DirectoryBlobPartition(DiscIO::VolumeDisc* volume,
       dol_node.m_content = std::move(dol_contents);
     }
   }
-  const u64 new_fst_address = SetDOL(std::move(dol_node), new_dol_address);
-
-  const FileSystem* fs = volume->GetFileSystem(partition);
-  if (!fs || !fs->IsValid())
-    return;
 
   std::vector<FSTBuilderNode> nodes;
-  GenerateBuilderNodesFromFileSystem(*volume, partition, &nodes, fs->GetRoot());
+
+  const FileSystem* fs = volume->GetFileSystem(partition);
+  if (fs && fs->IsValid())
+    GenerateBuilderNodesFromFileSystem(*volume, partition, &nodes, fs->GetRoot());
+
+  if (fst_callback)
+    fst_callback(&nodes, &dol_node);
+
+  const u64 new_fst_address = SetDOL(std::move(dol_node), new_dol_address);
   BuildFST(std::move(nodes), new_fst_address);
 }
 
