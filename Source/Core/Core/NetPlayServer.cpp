@@ -472,7 +472,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 
     spac.clear();
     spac << MessageID::GameStatus;
-    spac << p.second.pid << static_cast<u32>(p.second.game_status);
+    spac << p.second.pid << p.second.game_status;
     Send(player.socket, spac);
   }
 
@@ -986,10 +986,10 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case MessageID::GameStatus:
   {
-    u32 status;
+    SyncIdentifierComparison status;
     packet >> status;
 
-    m_players[player.pid].game_status = static_cast<SyncIdentifierComparison>(status);
+    m_players[player.pid].game_status = status;
 
     // send msg to other clients
     sf::Packet spac;
@@ -1473,7 +1473,7 @@ bool NetPlayServer::StartGame()
   spac << MessageID::StartGame;
   spac << m_current_game;
   spac << m_settings.m_CPUthread;
-  spac << static_cast<std::underlying_type_t<PowerPC::CPUCore>>(m_settings.m_CPUcore);
+  spac << m_settings.m_CPUcore;
   spac << m_settings.m_EnableCheats;
   spac << m_settings.m_SelectedLanguage;
   spac << m_settings.m_OverrideRegionSettings;
@@ -1483,7 +1483,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_RAMOverrideEnable;
   spac << m_settings.m_Mem1Size;
   spac << m_settings.m_Mem2Size;
-  spac << static_cast<std::underlying_type_t<DiscIO::Region>>(m_settings.m_FallbackRegion);
+  spac << m_settings.m_FallbackRegion;
   spac << m_settings.m_AllowSDWrites;
   spac << m_settings.m_CopyWiiSave;
   spac << m_settings.m_OCEnable;
@@ -1797,7 +1797,7 @@ bool NetPlayServer::SyncSaveData()
         // Files
         for (const WiiSave::Storage::SaveFile& file : *files)
         {
-          pac << file.mode << file.attributes << static_cast<u8>(file.type) << file.path;
+          pac << file.mode << file.attributes << file.type << file.path;
 
           if (file.type == WiiSave::Storage::SaveFile::Type::File)
           {

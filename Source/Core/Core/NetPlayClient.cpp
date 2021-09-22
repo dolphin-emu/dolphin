@@ -784,10 +784,7 @@ void NetPlayClient::OnGameStatus(sf::Packet& packet)
 
   {
     std::lock_guard lkp(m_crit.players);
-    Player& player = m_players[pid];
-    u32 status;
-    packet >> status;
-    player.game_status = static_cast<SyncIdentifierComparison>(status);
+    packet >> m_players[pid].game_status;
   }
 
   m_dialog->Update();
@@ -797,19 +794,12 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 {
   {
     std::lock_guard lkg(m_crit.game);
-    packet >> m_current_game;
-    packet >> m_net_settings.m_CPUthread;
 
     INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
 
-    {
-      std::underlying_type_t<PowerPC::CPUCore> core;
-      if (packet >> core)
-        m_net_settings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
-      else
-        m_net_settings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
-    }
-
+    packet >> m_current_game;
+    packet >> m_net_settings.m_CPUthread;
+    packet >> m_net_settings.m_CPUcore;
     packet >> m_net_settings.m_EnableCheats;
     packet >> m_net_settings.m_SelectedLanguage;
     packet >> m_net_settings.m_OverrideRegionSettings;
@@ -819,24 +809,14 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.m_RAMOverrideEnable;
     packet >> m_net_settings.m_Mem1Size;
     packet >> m_net_settings.m_Mem2Size;
-
-    {
-      std::underlying_type_t<DiscIO::Region> tmp;
-      packet >> tmp;
-      m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
-    }
-
+    packet >> m_net_settings.m_FallbackRegion;
     packet >> m_net_settings.m_AllowSDWrites;
     packet >> m_net_settings.m_CopyWiiSave;
     packet >> m_net_settings.m_OCEnable;
     packet >> m_net_settings.m_OCFactor;
 
     for (auto& device : m_net_settings.m_EXIDevice)
-    {
-      int tmp;
-      packet >> tmp;
-      device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
-    }
+      packet >> device;
 
     for (u32& value : m_net_settings.m_SYSCONFSettings)
       packet >> value;
@@ -1183,11 +1163,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     {
       WiiSave::Storage::SaveFile file;
       packet >> file.mode >> file.attributes;
-      {
-        u8 tmp;
-        packet >> tmp;
-        file.type = static_cast<WiiSave::Storage::SaveFile::Type>(tmp);
-      }
+      packet >> file.type;
       packet >> file.path;
 
       if (file.type == WiiSave::Storage::SaveFile::Type::File)
