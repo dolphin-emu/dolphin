@@ -28,6 +28,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscUtils.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -40,9 +41,7 @@ static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
 static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer);
 static void Write32(u32 data, u32 offset, std::vector<u8>* buffer);
 
-static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
 static std::string ASCIIToUppercase(std::string str);
-static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry* parent_entry);
 
 enum class PartitionType : u32
 {
@@ -626,24 +625,112 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
     partition->SetKey(ticket.GetTitleKey());
 }
 
+static void GenerateBuilderNodesFromFileSystem(const DiscIO::VolumeDisc& volume,
+                                               const DiscIO::Partition& partition,
+                                               std::vector<FSTBuilderNode>* nodes,
+                                               const FileInfo& parent_info)
+{
+  for (const FileInfo& file_info : parent_info)
+  {
+    if (file_info.IsDirectory())
+    {
+      std::vector<FSTBuilderNode> child_nodes;
+      GenerateBuilderNodesFromFileSystem(volume, partition, &child_nodes, file_info);
+      nodes->emplace_back(FSTBuilderNode{file_info.GetName(), file_info.GetTotalChildren(),
+                                         std::move(child_nodes)});
+    }
+    else
+    {
+      std::vector<BuilderContentSource> source;
+      source.emplace_back(BuilderContentSource{
+          0, file_info.GetSize(), ContentVolume{file_info.GetOffset(), &volume, partition}});
+      nodes->emplace_back(
+          FSTBuilderNode{file_info.GetName(), file_info.GetSize(), std::move(source)});
+    }
+  }
+}
+
 DirectoryBlobPartition::DirectoryBlobPartition(const std::string& root_directory,
                                                std::optional<bool> is_wii)
     : m_root_directory(root_directory)
 {
-  SetDiscHeaderAndDiscType(is_wii);
-  SetBI2();
-  BuildFST(SetDOL(SetApploader()));
+  SetDiscHeaderFromFile(m_root_directory + "sys/boot.bin");
+  SetDiscType(is_wii);
+  SetBI2FromFile(m_root_directory + "sys/bi2.bin");
+  const u64 dol_address = SetApploaderFromFile(m_root_directory + "sys/apploader.img");
+  const u64 fst_address = SetDOLFromFile(m_root_directory + "sys/main.dol", dol_address);
+  BuildFSTFromFolder(m_root_directory + "files/", fst_address);
 }
 
-void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii)
+DirectoryBlobPartition::DirectoryBlobPartition(DiscIO::VolumeDisc* volume,
+                                               const DiscIO::Partition& partition,
+                                               std::optional<bool> is_wii)
+    : m_wrapped_partition(partition)
+{
+  std::vector<u8> disc_header(DISCHEADER_SIZE);
+  if (!volume->Read(DISCHEADER_ADDRESS, DISCHEADER_SIZE, disc_header.data(), partition))
+    disc_header.clear();
+  SetDiscHeader(std::move(disc_header));
+  SetDiscType(is_wii);
+
+  std::vector<u8> bi2(BI2_SIZE);
+  if (!volume->Read(BI2_ADDRESS, BI2_SIZE, bi2.data(), partition))
+    bi2.clear();
+  SetBI2(std::move(bi2));
+
+  std::vector<u8> apploader;
+  const auto apploader_size = GetApploaderSize(*volume, partition);
+  if (apploader_size)
+  {
+    apploader.resize(*apploader_size);
+    if (!volume->Read(APPLOADER_ADDRESS, *apploader_size, apploader.data(), partition))
+      apploader.clear();
+  }
+  const u64 new_dol_address = SetApploader(apploader, "apploader");
+
+  FSTBuilderNode dol_node{"main.dol", 0, {}};
+  const auto dol_offset = GetBootDOLOffset(*volume, partition);
+  if (dol_offset)
+  {
+    const auto dol_size = GetBootDOLSize(*volume, partition, *dol_offset);
+    if (dol_size)
+    {
+      std::vector<BuilderContentSource> dol_contents;
+      dol_contents.emplace_back(
+          BuilderContentSource{0, *dol_size, ContentVolume{*dol_offset, volume, partition}});
+      dol_node.m_size = *dol_size;
+      dol_node.m_content = std::move(dol_contents);
+    }
+  }
+  const u64 new_fst_address = SetDOL(std::move(dol_node), new_dol_address);
+
+  const FileSystem* fs = volume->GetFileSystem(partition);
+  if (!fs || !fs->IsValid())
+    return;
+
+  std::vector<FSTBuilderNode> nodes;
+  GenerateBuilderNodesFromFileSystem(*volume, partition, &nodes, fs->GetRoot());
+  BuildFST(std::move(nodes), new_fst_address);
+}
+
+void DirectoryBlobPartition::SetDiscHeaderFromFile(const std::string& boot_bin_path)
 {
   m_disc_header.resize(DISCHEADER_SIZE);
-  const std::string boot_bin_path = m_root_directory + "sys/boot.bin";
   if (ReadFileToVector(boot_bin_path, &m_disc_header) < 0x20)
     ERROR_LOG_FMT(DISCIO, "{} doesn't exist or is too small", boot_bin_path);
 
   m_contents.AddReference(DISCHEADER_ADDRESS, m_disc_header);
+}
 
+void DirectoryBlobPartition::SetDiscHeader(std::vector<u8> boot_bin)
+{
+  m_disc_header = std::move(boot_bin);
+  m_disc_header.resize(DISCHEADER_SIZE);
+  m_contents.AddReference(DISCHEADER_ADDRESS, m_disc_header);
+}
+
+void DirectoryBlobPartition::SetDiscType(std::optional<bool> is_wii)
+{
   if (is_wii.has_value())
   {
     m_is_wii = *is_wii;
@@ -653,20 +740,22 @@ void DirectoryBlobPartition::SetDiscHeaderAndDiscType(std::optional<bool> is_wii
     m_is_wii = Common::swap32(&m_disc_header[0x18]) == WII_DISC_MAGIC;
     const bool is_gc = Common::swap32(&m_disc_header[0x1c]) == GAMECUBE_DISC_MAGIC;
     if (m_is_wii == is_gc)
-      ERROR_LOG_FMT(DISCIO, "Couldn't detect disc type based on {}", boot_bin_path);
+    {
+      ERROR_LOG_FMT(DISCIO, "Couldn't detect disc type based on disc header; assuming {}",
+                    m_is_wii ? "Wii" : "GameCube");
+    }
   }
 
   m_address_shift = m_is_wii ? 2 : 0;
 }
 
-void DirectoryBlobPartition::SetBI2()
+void DirectoryBlobPartition::SetBI2FromFile(const std::string& bi2_path)
 {
   m_bi2.resize(BI2_SIZE);
 
   if (!m_is_wii)
     Write32(INVALID_REGION, 0x18, &m_bi2);
 
-  const std::string bi2_path = m_root_directory + "sys/bi2.bin";
   const size_t bytes_read = ReadFileToVector(bi2_path, &m_bi2);
   if (!m_is_wii && bytes_read < 0x1C)
     ERROR_LOG_FMT(DISCIO, "Couldn't read region from {}", bi2_path);
@@ -674,23 +763,41 @@ void DirectoryBlobPartition::SetBI2()
   m_contents.AddReference(BI2_ADDRESS, m_bi2);
 }
 
-u64 DirectoryBlobPartition::SetApploader()
+void DirectoryBlobPartition::SetBI2(std::vector<u8> bi2)
+{
+  const size_t bi2_size = bi2.size();
+  m_bi2 = std::move(bi2);
+  m_bi2.resize(BI2_SIZE);
+
+  if (!m_is_wii && bi2_size < 0x1C)
+    Write32(INVALID_REGION, 0x18, &m_bi2);
+
+  m_contents.AddReference(BI2_ADDRESS, m_bi2);
+}
+
+u64 DirectoryBlobPartition::SetApploaderFromFile(const std::string& path)
+{
+  File::IOFile file(path, "rb");
+  std::vector<u8> apploader(file.GetSize());
+  file.ReadBytes(apploader.data(), apploader.size());
+  return SetApploader(std::move(apploader), path);
+}
+
+u64 DirectoryBlobPartition::SetApploader(std::vector<u8> apploader, const std::string& log_path)
 {
   bool success = false;
 
-  const std::string path = m_root_directory + "sys/apploader.img";
-  File::IOFile file(path, "rb");
-  m_apploader.resize(file.GetSize());
-  if (m_apploader.size() < 0x20 || !file.ReadBytes(m_apploader.data(), m_apploader.size()))
+  m_apploader = std::move(apploader);
+  if (m_apploader.size() < 0x20)
   {
-    ERROR_LOG_FMT(DISCIO, "{} couldn't be accessed or is too small", path);
+    ERROR_LOG_FMT(DISCIO, "{} couldn't be accessed or is too small", log_path);
   }
   else
   {
     const size_t apploader_size = 0x20 + Common::swap32(*(u32*)&m_apploader[0x14]) +
                                   Common::swap32(*(u32*)&m_apploader[0x18]);
     if (apploader_size != m_apploader.size())
-      ERROR_LOG_FMT(DISCIO, "{} is the wrong size... Is it really an apploader?", path);
+      ERROR_LOG_FMT(DISCIO, "{} is the wrong size... Is it really an apploader?", log_path);
     else
       success = true;
   }
@@ -708,9 +815,9 @@ u64 DirectoryBlobPartition::SetApploader()
   return Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
 }
 
-u64 DirectoryBlobPartition::SetDOL(u64 dol_address)
+u64 DirectoryBlobPartition::SetDOLFromFile(const std::string& path, u64 dol_address)
 {
-  const u64 dol_size = m_contents.CheckSizeAndAdd(dol_address, m_root_directory + "sys/main.dol");
+  const u64 dol_size = m_contents.CheckSizeAndAdd(dol_address, path);
 
   Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disc_header);
 
@@ -718,16 +825,92 @@ u64 DirectoryBlobPartition::SetDOL(u64 dol_address)
   return Common::AlignUp(dol_address + dol_size + 0x20, 0x20ull);
 }
 
-void DirectoryBlobPartition::BuildFST(u64 fst_address)
+u64 DirectoryBlobPartition::SetDOL(FSTBuilderNode dol_node, u64 dol_address)
+{
+  for (auto& content : dol_node.GetFileContent())
+    m_contents.Add(dol_address + content.m_offset, content.m_size, std::move(content.m_source));
+
+  Write32(static_cast<u32>(dol_address >> m_address_shift), 0x0420, &m_disc_header);
+
+  // Return FST address, 32 byte aligned (plus 32 byte padding)
+  return Common::AlignUp(dol_address + dol_node.m_size + 0x20, 0x20ull);
+}
+
+static std::vector<FSTBuilderNode> ConvertFSTEntriesToBuilderNodes(const File::FSTEntry& parent)
+{
+  std::vector<FSTBuilderNode> nodes;
+  nodes.reserve(parent.children.size());
+  for (const File::FSTEntry& entry : parent.children)
+  {
+    std::variant<std::vector<BuilderContentSource>, std::vector<FSTBuilderNode>> content;
+    if (entry.isDirectory)
+    {
+      content = ConvertFSTEntriesToBuilderNodes(entry);
+    }
+    else
+    {
+      content =
+          std::vector<BuilderContentSource>{{0, entry.size, ContentFile{entry.physicalName, 0}}};
+    }
+
+    nodes.emplace_back(FSTBuilderNode{entry.virtualName, entry.size, std::move(content)});
+  }
+  return nodes;
+}
+
+void DirectoryBlobPartition::BuildFSTFromFolder(const std::string& fst_root_path, u64 fst_address)
+{
+  auto nodes = ConvertFSTEntriesToBuilderNodes(File::ScanDirectoryTree(fst_root_path, true));
+  BuildFST(std::move(nodes), fst_address);
+}
+
+static void ConvertUTF8NamesToSHIFTJIS(std::vector<FSTBuilderNode>* fst)
+{
+  for (FSTBuilderNode& entry : *fst)
+  {
+    if (entry.IsFolder())
+      ConvertUTF8NamesToSHIFTJIS(&entry.GetFolderContent());
+    entry.m_filename = UTF8ToSHIFTJIS(entry.m_filename);
+  }
+}
+
+static u32 ComputeNameSize(const std::vector<FSTBuilderNode>& files)
+{
+  u32 name_size = 0;
+  for (const FSTBuilderNode& entry : files)
+  {
+    if (entry.IsFolder())
+      name_size += ComputeNameSize(entry.GetFolderContent());
+    name_size += static_cast<u32>(entry.m_filename.length() + 1);
+  }
+  return name_size;
+}
+
+static size_t RecalculateFolderSizes(std::vector<FSTBuilderNode>* fst)
+{
+  size_t size = 0;
+  for (FSTBuilderNode& entry : *fst)
+  {
+    ++size;
+    if (entry.IsFile())
+      continue;
+
+    entry.m_size = RecalculateFolderSizes(&entry.GetFolderContent());
+    size += entry.m_size;
+  }
+  return size;
+}
+
+void DirectoryBlobPartition::BuildFST(std::vector<FSTBuilderNode> root_nodes, u64 fst_address)
 {
   m_fst_data.clear();
 
-  File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory + "files/", true);
+  ConvertUTF8NamesToSHIFTJIS(&root_nodes);
 
-  ConvertUTF8NamesToSHIFTJIS(&rootEntry);
+  u32 name_table_size = Common::AlignUp(ComputeNameSize(root_nodes), 1ull << m_address_shift);
 
-  u32 name_table_size = Common::AlignUp(ComputeNameSize(rootEntry), 1ull << m_address_shift);
-  u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
+  // 1 extra for the root entry
+  u64 total_entries = RecalculateFolderSizes(&root_nodes) + 1;
 
   const u64 name_table_offset = total_entries * ENTRY_SIZE;
   m_fst_data.resize(name_table_offset + name_table_size);
@@ -742,7 +925,7 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
   // write root entry
   WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);
 
-  WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset,
+  WriteDirectory(&root_nodes, &fst_offset, &name_offset, &current_data_address, root_offset,
                  name_table_offset);
 
   // overflow check, compare the aligned name offset with the aligned name table size
@@ -782,44 +965,51 @@ void DirectoryBlobPartition::WriteEntryName(u32* name_offset, const std::string&
   *name_offset += (u32)(name.length() + 1);
 }
 
-void DirectoryBlobPartition::WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset,
-                                            u32* name_offset, u64* data_offset,
+void DirectoryBlobPartition::WriteDirectory(std::vector<FSTBuilderNode>* parent_entries,
+                                            u32* fst_offset, u32* name_offset, u64* data_offset,
                                             u32 parent_entry_index, u64 name_table_offset)
 {
-  std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
+  std::vector<FSTBuilderNode>& sorted_entries = *parent_entries;
 
   // Sort for determinism
   std::sort(sorted_entries.begin(), sorted_entries.end(),
-            [](const File::FSTEntry& one, const File::FSTEntry& two) {
-              const std::string one_upper = ASCIIToUppercase(one.virtualName);
-              const std::string two_upper = ASCIIToUppercase(two.virtualName);
-              return one_upper == two_upper ? one.virtualName < two.virtualName :
+            [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
+              const std::string one_upper = ASCIIToUppercase(one.m_filename);
+              const std::string two_upper = ASCIIToUppercase(two.m_filename);
+              return one_upper == two_upper ? one.m_filename < two.m_filename :
                                               one_upper < two_upper;
             });
 
-  for (const File::FSTEntry& entry : sorted_entries)
+  for (FSTBuilderNode& entry : sorted_entries)
   {
-    if (entry.isDirectory)
+    if (entry.IsFolder())
     {
       u32 entry_index = *fst_offset / ENTRY_SIZE;
       WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
-                     entry_index + entry.size + 1, 0);
-      WriteEntryName(name_offset, entry.virtualName, name_table_offset);
+                     entry_index + entry.m_size + 1, 0);
+      WriteEntryName(name_offset, entry.m_filename, name_table_offset);
 
-      WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index, name_table_offset);
+      auto& child_nodes = entry.GetFolderContent();
+      WriteDirectory(&child_nodes, fst_offset, name_offset, data_offset, entry_index,
+                     name_table_offset);
     }
     else
     {
       // put entry in FST
-      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size,
+      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.m_size,
                      m_address_shift);
-      WriteEntryName(name_offset, entry.virtualName, name_table_offset);
+      WriteEntryName(name_offset, entry.m_filename, name_table_offset);
 
       // write entry to virtual disc
-      m_contents.Add(*data_offset, entry.size, ContentFile{entry.physicalName, 0});
+      auto& contents = entry.GetFileContent();
+      for (BuilderContentSource& content : contents)
+      {
+        m_contents.Add(*data_offset + content.m_offset, content.m_size,
+                       std::move(content.m_source));
+      }
 
       // 32 KiB aligned - many games are fine with less alignment, but not all
-      *data_offset = Common::AlignUp(*data_offset + entry.size, 0x8000ull);
+      *data_offset = Common::AlignUp(*data_offset + entry.m_size, 0x8000ull);
     }
   }
 }
@@ -850,30 +1040,6 @@ static void Write32(u32 data, u32 offset, std::vector<u8>* buffer)
   (*buffer)[offset++] = (data >> 16) & 0xff;
   (*buffer)[offset++] = (data >> 8) & 0xff;
   (*buffer)[offset] = data & 0xff;
-}
-
-static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
-{
-  u32 name_size = 0;
-  for (const File::FSTEntry& entry : parent_entry.children)
-  {
-    if (entry.isDirectory)
-      name_size += ComputeNameSize(entry);
-
-    name_size += (u32)entry.virtualName.length() + 1;
-  }
-  return name_size;
-}
-
-static void ConvertUTF8NamesToSHIFTJIS(File::FSTEntry* parent_entry)
-{
-  for (File::FSTEntry& entry : parent_entry->children)
-  {
-    if (entry.isDirectory)
-      ConvertUTF8NamesToSHIFTJIS(&entry);
-
-    entry.virtualName = UTF8ToSHIFTJIS(entry.virtualName);
-  }
 }
 
 static std::string ASCIIToUppercase(std::string str)
