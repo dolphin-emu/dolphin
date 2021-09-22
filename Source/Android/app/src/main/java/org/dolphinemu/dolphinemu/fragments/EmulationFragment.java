@@ -32,7 +32,9 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   private InputOverlay mInputOverlay;
 
-  private EmulationState mEmulationState;
+  private String[] mGamePaths;
+  private boolean mRunWhenSurfaceIsValid;
+  private boolean mLoadPreviousTemporaryState;
 
   private EmulationActivity activity;
 
@@ -73,8 +75,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     // So this fragment doesn't restart on configuration changes; i.e. rotation.
     setRetainInstance(true);
 
-    String[] gamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
-    mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath());
+    mGamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
   }
 
   /**
@@ -117,14 +118,18 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void onResume()
   {
     super.onResume();
-    mEmulationState.run(activity.isActivityRecreated());
+    run(activity.isActivityRecreated());
   }
 
   @Override
   public void onPause()
   {
-    if (mEmulationState.isRunning() && !NativeLibrary.IsShowingAlertMessage())
-      mEmulationState.pause();
+    if (NativeLibrary.IsRunningAndUnpaused() && !NativeLibrary.IsShowingAlertMessage())
+    {
+      Log.debug("[EmulationFragment] Pausing emulation.");
+      NativeLibrary.PauseEmulation();
+    }
+
     super.onPause();
   }
 
@@ -173,18 +178,25 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
   {
     Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height);
-    mEmulationState.newSurface(holder.getSurface());
+    NativeLibrary.SurfaceChanged(holder.getSurface());
+    if (mRunWhenSurfaceIsValid)
+    {
+      runWithValidSurface();
+    }
   }
 
   @Override
   public void surfaceDestroyed(@NonNull SurfaceHolder holder)
   {
-    mEmulationState.clearSurface();
+    Log.debug("[EmulationFragment] Surface destroyed.");
+    NativeLibrary.SurfaceDestroyed();
+    mRunWhenSurfaceIsValid = true;
   }
 
   public void stopEmulation()
   {
-    mEmulationState.stop();
+    Log.debug("[EmulationFragment] Stopping emulation.");
+    NativeLibrary.StopEmulation();
   }
 
   public void startConfiguringControls()
@@ -210,172 +222,69 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     return mInputOverlay != null && mInputOverlay.isInEditMode();
   }
 
-  private static class EmulationState
+  private void run(boolean isActivityRecreated)
   {
-    private enum State
+    if (isActivityRecreated)
     {
-      STOPPED, RUNNING, PAUSED
-    }
-
-    private final String[] mGamePaths;
-    private State state;
-    private Surface mSurface;
-    private boolean mRunWhenSurfaceIsValid;
-    private boolean loadPreviousTemporaryState;
-    private final String temporaryStatePath;
-
-    EmulationState(String[] gamePaths, String temporaryStatePath)
-    {
-      mGamePaths = gamePaths;
-      this.temporaryStatePath = temporaryStatePath;
-      // Starting state is stopped.
-      state = State.STOPPED;
-    }
-
-    // Getters for the current state
-
-    public synchronized boolean isStopped()
-    {
-      return state == State.STOPPED;
-    }
-
-    public synchronized boolean isPaused()
-    {
-      return state == State.PAUSED;
-    }
-
-    public synchronized boolean isRunning()
-    {
-      return state == State.RUNNING;
-    }
-
-    // State changing methods
-
-    public synchronized void stop()
-    {
-      if (state != State.STOPPED)
+      if (NativeLibrary.IsRunning())
       {
-        Log.debug("[EmulationFragment] Stopping emulation.");
-        state = State.STOPPED;
-        NativeLibrary.StopEmulation();
+        mLoadPreviousTemporaryState = false;
+        deleteFile(getTemporaryStateFilePath());
       }
       else
       {
-        Log.warning("[EmulationFragment] Stop called while already stopped.");
+        mLoadPreviousTemporaryState = true;
       }
     }
-
-    public synchronized void pause()
+    else
     {
-      if (state != State.PAUSED)
-      {
-        state = State.PAUSED;
-        Log.debug("[EmulationFragment] Pausing emulation.");
-
-        NativeLibrary.PauseEmulation();
-      }
-      else
-      {
-        Log.warning("[EmulationFragment] Pause called while already paused.");
-      }
+      Log.debug("[EmulationFragment] activity resumed or fresh start");
+      mLoadPreviousTemporaryState = false;
+      // activity resumed without being killed or this is the first run
+      deleteFile(getTemporaryStateFilePath());
     }
 
-    public synchronized void run(boolean isActivityRecreated)
+    // If the surface is set, run now. Otherwise, wait for it to get set.
+    if (NativeLibrary.HasSurface())
     {
-      if (isActivityRecreated)
+      runWithValidSurface();
+    }
+    else
+    {
+      mRunWhenSurfaceIsValid = true;
+    }
+  }
+
+  private void runWithValidSurface()
+  {
+    mRunWhenSurfaceIsValid = false;
+    if (!NativeLibrary.IsRunning())
+    {
+      NativeLibrary.SetIsBooting();
+
+      Thread emulationThread = new Thread(() ->
       {
-        if (NativeLibrary.IsRunning())
+        if (mLoadPreviousTemporaryState)
         {
-          loadPreviousTemporaryState = false;
-          state = State.PAUSED;
-          deleteFile(temporaryStatePath);
+          Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
+          NativeLibrary.Run(mGamePaths, getTemporaryStateFilePath(), true);
         }
         else
         {
-          loadPreviousTemporaryState = true;
+          Log.debug("[EmulationFragment] Starting emulation thread.");
+          NativeLibrary.Run(mGamePaths);
         }
-      }
-      else
-      {
-        Log.debug("[EmulationFragment] activity resumed or fresh start");
-        loadPreviousTemporaryState = false;
-        // activity resumed without being killed or this is the first run
-        deleteFile(temporaryStatePath);
-      }
-
-      // If the surface is set, run now. Otherwise, wait for it to get set.
-      if (mSurface != null)
-      {
-        runWithValidSurface();
-      }
-      else
-      {
-        mRunWhenSurfaceIsValid = true;
-      }
+        EmulationActivity.stopIgnoringLaunchRequests();
+      }, "NativeEmulation");
+      emulationThread.start();
     }
-
-    // Surface callbacks
-    public synchronized void newSurface(Surface surface)
+    else
     {
-      mSurface = surface;
-      if (mRunWhenSurfaceIsValid)
+      if (!EmulationActivity.getHasUserPausedEmulation() && !NativeLibrary.IsShowingAlertMessage())
       {
-        runWithValidSurface();
+        Log.debug("[EmulationFragment] Resuming emulation.");
+        NativeLibrary.UnPauseEmulation();
       }
-    }
-
-    public synchronized void clearSurface()
-    {
-      if (mSurface == null)
-      {
-        Log.warning("[EmulationFragment] clearSurface called, but surface already null.");
-      }
-      else
-      {
-        mSurface = null;
-        Log.debug("[EmulationFragment] Surface destroyed.");
-
-        NativeLibrary.SurfaceDestroyed();
-      }
-    }
-
-    private void runWithValidSurface()
-    {
-      mRunWhenSurfaceIsValid = false;
-      if (state == State.STOPPED)
-      {
-        Thread emulationThread = new Thread(() ->
-        {
-          NativeLibrary.SurfaceChanged(mSurface);
-          if (loadPreviousTemporaryState)
-          {
-            Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-            NativeLibrary.Run(mGamePaths, temporaryStatePath, true);
-          }
-          else
-          {
-            Log.debug("[EmulationFragment] Starting emulation thread.");
-            NativeLibrary.Run(mGamePaths);
-          }
-          EmulationActivity.stopIgnoringLaunchRequests();
-        }, "NativeEmulation");
-        emulationThread.start();
-      }
-      else if (state == State.PAUSED)
-      {
-        NativeLibrary.SurfaceChanged(mSurface);
-        if (!EmulationActivity.getHasUserPausedEmulation() &&
-                !NativeLibrary.IsShowingAlertMessage())
-        {
-          Log.debug("[EmulationFragment] Resuming emulation.");
-          NativeLibrary.UnPauseEmulation();
-        }
-      }
-      else
-      {
-        Log.debug("[EmulationFragment] Bug, run called while already running.");
-      }
-      state = State.RUNNING;
     }
   }
 

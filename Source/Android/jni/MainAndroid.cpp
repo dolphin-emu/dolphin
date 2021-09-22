@@ -23,6 +23,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
+#include "Common/Flag.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
@@ -81,6 +82,7 @@ Common::Event s_update_main_frame_event;
 std::mutex s_surface_lock;
 bool s_need_nonblocking_alert_msg;
 
+Common::Flag s_is_booting;
 bool s_have_wm_user_stop = false;
 bool s_game_metadata_is_valid = false;
 }  // Anonymous namespace
@@ -247,15 +249,26 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
   s_update_main_frame_event.Set();
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetIsBooting(JNIEnv*, jclass)
+{
+  s_is_booting.Set();
+}
+
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunning(JNIEnv*, jclass)
 {
-  return static_cast<jboolean>(Core::IsRunning());
+  return s_is_booting.IsSet() || static_cast<jboolean>(Core::IsRunning());
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndStarted(JNIEnv*,
                                                                                             jclass)
 {
   return static_cast<jboolean>(Core::IsRunningAndStarted());
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndUnpaused(JNIEnv*, jclass)
+{
+  return static_cast<jboolean>(Core::GetState() == Core::State::Running);
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(
@@ -430,7 +443,25 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv*,
                                                                                      jclass)
 {
-  std::lock_guard<std::mutex> guard(s_surface_lock);
+  {
+    // If emulation continues running without a valid surface, we will probably crash,
+    // so pause emulation until we get a valid surface again. EmulationFragment handles resuming.
+
+    std::unique_lock host_identity_guard(s_host_identity_lock);
+
+    while (s_is_booting.IsSet())
+    {
+      // Need to wait for boot to finish before we can pause
+      host_identity_guard.unlock();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      host_identity_guard.lock();
+    }
+
+    if (Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
+  }
+
+  std::lock_guard surface_guard(s_surface_lock);
 
   if (g_renderer)
     g_renderer->ChangeSurface(nullptr);
@@ -440,6 +471,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     ANativeWindow_release(s_surf);
     s_surf = nullptr;
   }
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_HasSurface(JNIEnv*, jclass)
+{
+  std::lock_guard guard(s_surface_lock);
+
+  return s_surf ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jfloat JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameAspectRatio(JNIEnv*,
@@ -554,6 +592,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
     }
   }
 
+  s_is_booting.Clear();
   s_need_nonblocking_alert_msg = false;
   surface_guard.unlock();
 
