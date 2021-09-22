@@ -187,26 +187,26 @@ enum
   CON_ERR_NAME_TOO_LONG = 4
 };
 
-enum
+enum class SyncSaveDataID : u8
 {
-  SYNC_SAVE_DATA_NOTIFY = 0,
-  SYNC_SAVE_DATA_SUCCESS = 1,
-  SYNC_SAVE_DATA_FAILURE = 2,
-  SYNC_SAVE_DATA_RAW = 3,
-  SYNC_SAVE_DATA_GCI = 4,
-  SYNC_SAVE_DATA_WII = 5,
-  SYNC_SAVE_DATA_GBA = 6
+  Notify = 0,
+  Success = 1,
+  Failure = 2,
+  RawData = 3,
+  GCIData = 4,
+  WiiData = 5,
+  GBAData = 6
 };
 
-enum
+enum class SyncCodeID : u8
 {
-  SYNC_CODES_NOTIFY = 0,
-  SYNC_CODES_NOTIFY_GECKO = 1,
-  SYNC_CODES_NOTIFY_AR = 2,
-  SYNC_CODES_DATA_GECKO = 3,
-  SYNC_CODES_DATA_AR = 4,
-  SYNC_CODES_SUCCESS = 5,
-  SYNC_CODES_FAILURE = 6,
+  Notify = 0,
+  NotifyGecko = 1,
+  NotifyAR = 2,
+  GeckoData = 3,
+  ARData = 4,
+  Success = 5,
+  Failure = 6,
 };
 
 constexpr u32 MAX_NAME_LENGTH = 30;

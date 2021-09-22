@@ -981,7 +981,7 @@ void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
 
 void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
 {
-  MessageId sub_id;
+  SyncSaveDataID sub_id;
   packet >> sub_id;
 
   if (m_local_player->IsHost())
@@ -989,23 +989,23 @@ void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
 
   switch (sub_id)
   {
-  case SYNC_SAVE_DATA_NOTIFY:
+  case SyncSaveDataID::Notify:
     OnSyncSaveDataNotify(packet);
     break;
 
-  case SYNC_SAVE_DATA_RAW:
+  case SyncSaveDataID::RawData:
     OnSyncSaveDataRaw(packet);
     break;
 
-  case SYNC_SAVE_DATA_GCI:
+  case SyncSaveDataID::GCIData:
     OnSyncSaveDataGCI(packet);
     break;
 
-  case SYNC_SAVE_DATA_WII:
+  case SyncSaveDataID::WiiData:
     OnSyncSaveDataWii(packet);
     break;
 
-  case SYNC_SAVE_DATA_GBA:
+  case SyncSaveDataID::GBAData:
     OnSyncSaveDataGBA(packet);
     break;
 
@@ -1239,29 +1239,29 @@ void NetPlayClient::OnSyncSaveDataGBA(sf::Packet& packet)
 void NetPlayClient::OnSyncCodes(sf::Packet& packet)
 {
   // Recieve Data Packet
-  MessageId sub_id;
+  SyncCodeID sub_id;
   packet >> sub_id;
 
   // Check Which Operation to Perform with This Packet
   switch (sub_id)
   {
-  case SYNC_CODES_NOTIFY:
+  case SyncCodeID::Notify:
     OnSyncCodesNotify();
     break;
 
-  case SYNC_CODES_NOTIFY_GECKO:
+  case SyncCodeID::NotifyGecko:
     OnSyncCodesNotifyGecko(packet);
     break;
 
-  case SYNC_CODES_DATA_GECKO:
+  case SyncCodeID::GeckoData:
     OnSyncCodesDataGecko(packet);
     break;
 
-  case SYNC_CODES_NOTIFY_AR:
+  case SyncCodeID::NotifyAR:
     OnSyncCodesNotifyAR(packet);
     break;
 
-  case SYNC_CODES_DATA_AR:
+  case SyncCodeID::ARData:
     OnSyncCodesDataAR(packet);
     break;
 
@@ -1761,7 +1761,7 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
     {
       sf::Packet response_packet;
       response_packet << MessageID::SyncSaveData;
-      response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_SUCCESS);
+      response_packet << SyncSaveDataID::Success;
 
       Send(response_packet);
     }
@@ -1770,7 +1770,7 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
   {
     sf::Packet response_packet;
     response_packet << MessageID::SyncSaveData;
-    response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_FAILURE);
+    response_packet << SyncSaveDataID::Failure;
 
     Send(response_packet);
   }
@@ -1785,7 +1785,7 @@ void NetPlayClient::SyncCodeResponse(const bool success)
 
     sf::Packet response_packet;
     response_packet << MessageID::SyncCodes;
-    response_packet << static_cast<MessageId>(SYNC_CODES_FAILURE);
+    response_packet << SyncCodeID::Failure;
 
     Send(response_packet);
     return;
@@ -1798,7 +1798,7 @@ void NetPlayClient::SyncCodeResponse(const bool success)
 
     sf::Packet response_packet;
     response_packet << MessageID::SyncCodes;
-    response_packet << static_cast<MessageId>(SYNC_CODES_SUCCESS);
+    response_packet << SyncCodeID::Success;
 
     Send(response_packet);
   }

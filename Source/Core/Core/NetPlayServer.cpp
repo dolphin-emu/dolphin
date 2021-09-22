@@ -1105,12 +1105,12 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case MessageID::SyncSaveData:
   {
-    MessageId sub_id;
+    SyncSaveDataID sub_id;
     packet >> sub_id;
 
     switch (sub_id)
     {
-    case SYNC_SAVE_DATA_SUCCESS:
+    case SyncSaveDataID::Success:
     {
       if (m_start_pending)
       {
@@ -1127,7 +1127,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     }
     break;
 
-    case SYNC_SAVE_DATA_FAILURE:
+    case SyncSaveDataID::Failure:
     {
       m_dialog->AppendChat(Common::FmtFormatT("{0} failed to synchronize.", player.name));
       m_dialog->OnGameStartAborted();
@@ -1148,13 +1148,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   case MessageID::SyncCodes:
   {
     // Receive Status of Code Sync
-    MessageId sub_id;
+    SyncCodeID sub_id;
     packet >> sub_id;
 
     // Check If Code Sync was successful or not
     switch (sub_id)
     {
-    case SYNC_CODES_SUCCESS:
+    case SyncCodeID::Success:
     {
       if (m_start_pending)
       {
@@ -1170,7 +1170,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     }
     break;
 
-    case SYNC_CODES_FAILURE:
+    case SyncCodeID::Failure:
     {
       m_dialog->AppendChat(Common::FmtFormatT("{0} failed to synchronize codes.", player.name));
       m_dialog->OnGameStartAborted();
@@ -1620,7 +1620,7 @@ bool NetPlayServer::SyncSaveData()
   {
     sf::Packet pac;
     pac << MessageID::SyncSaveData;
-    pac << static_cast<MessageId>(SYNC_SAVE_DATA_NOTIFY);
+    pac << SyncSaveDataID::Notify;
     pac << save_count;
 
     // send this on the chunked data channel to ensure it's sequenced properly
@@ -1657,7 +1657,7 @@ bool NetPlayServer::SyncSaveData()
 
       sf::Packet pac;
       pac << MessageID::SyncSaveData;
-      pac << static_cast<MessageId>(SYNC_SAVE_DATA_RAW);
+      pac << SyncSaveDataID::RawData;
       pac << is_slot_a << region << size_override;
 
       if (File::Exists(path))
@@ -1682,7 +1682,7 @@ bool NetPlayServer::SyncSaveData()
 
       sf::Packet pac;
       pac << MessageID::SyncSaveData;
-      pac << static_cast<MessageId>(SYNC_SAVE_DATA_GCI);
+      pac << SyncSaveDataID::GCIData;
       pac << is_slot_a;
 
       if (File::IsDirectory(path))
@@ -1734,7 +1734,7 @@ bool NetPlayServer::SyncSaveData()
 
     sf::Packet pac;
     pac << MessageID::SyncSaveData;
-    pac << static_cast<MessageId>(SYNC_SAVE_DATA_WII);
+    pac << SyncSaveDataID::WiiData;
 
     // Shove the Mii data into the start the packet
     {
@@ -1825,7 +1825,7 @@ bool NetPlayServer::SyncSaveData()
     {
       sf::Packet pac;
       pac << MessageID::SyncSaveData;
-      pac << static_cast<MessageId>(SYNC_SAVE_DATA_GBA);
+      pac << SyncSaveDataID::GBAData;
       pac << static_cast<u8>(i);
 
       std::string path;
@@ -1882,7 +1882,7 @@ bool NetPlayServer::SyncCodes()
   {
     sf::Packet pac;
     pac << MessageID::SyncCodes;
-    pac << static_cast<MessageId>(SYNC_CODES_NOTIFY);
+    pac << SyncCodeID::Notify;
     SendAsyncToClients(std::move(pac));
   }
   // Sync Gecko Codes
@@ -1910,7 +1910,7 @@ bool NetPlayServer::SyncCodes()
     {
       sf::Packet pac;
       pac << MessageID::SyncCodes;
-      pac << static_cast<MessageId>(SYNC_CODES_NOTIFY_GECKO);
+      pac << SyncCodeID::NotifyGecko;
       pac << codelines;
       SendAsyncToClients(std::move(pac));
     }
@@ -1919,7 +1919,7 @@ bool NetPlayServer::SyncCodes()
     {
       sf::Packet pac;
       pac << MessageID::SyncCodes;
-      pac << static_cast<MessageId>(SYNC_CODES_DATA_GECKO);
+      pac << SyncCodeID::GeckoData;
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
@@ -1960,7 +1960,7 @@ bool NetPlayServer::SyncCodes()
     {
       sf::Packet pac;
       pac << MessageID::SyncCodes;
-      pac << static_cast<MessageId>(SYNC_CODES_NOTIFY_AR);
+      pac << SyncCodeID::NotifyAR;
       pac << codelines;
       SendAsyncToClients(std::move(pac));
     }
@@ -1969,7 +1969,7 @@ bool NetPlayServer::SyncCodes()
     {
       sf::Packet pac;
       pac << MessageID::SyncCodes;
-      pac << static_cast<MessageId>(SYNC_CODES_DATA_AR);
+      pac << SyncCodeID::ARData;
       // Iterate through the active code vector and send each codeline
       for (const ActionReplay::ARCode& active_code : s_active_codes)
       {
