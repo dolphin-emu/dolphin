@@ -431,9 +431,9 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   spac << player.pid << player.name << player.revision;
   SendToClients(spac);
 
-  // send new client success message with their id
+  // send new client success message with their ID
   spac.clear();
-  spac << static_cast<MessageId>(0);
+  spac << MessageID::ConnectionSuccessful;
   spac << player.pid;
   Send(player.socket, spac);
 

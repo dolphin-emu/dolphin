@@ -122,6 +122,8 @@ struct NetTraversalConfig
 
 enum class MessageID : u8
 {
+  ConnectionSuccessful = 0,
+
   PlayerJoin = 0x10,
   PlayerLeave = 0x11,
 
@@ -225,7 +227,6 @@ struct WiimoteInput
   u8 report_id;
   std::vector<u8> data;
 };
-using MessageId = u8;
 using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
