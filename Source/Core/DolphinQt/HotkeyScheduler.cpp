@@ -169,11 +169,24 @@ void HotkeyScheduler::Run()
 
       HotkeyManagerEmu::GetStatus(true);
 
-      if (!Core::IsRunningAndStarted())
-        continue;
-
+      // Open
       if (IsHotkey(HK_OPEN))
         emit Open();
+
+      // Refresh Game List
+      if (IsHotkey(HK_REFRESH_LIST))
+        emit RefreshGameListHotkey();
+
+      // Recording
+      if (IsHotkey(HK_START_RECORDING))
+        emit StartRecording();
+
+      // Exit
+      if (IsHotkey(HK_EXIT))
+        emit ExitHotkey();
+
+      if (!Core::IsRunningAndStarted())
+        continue;
 
       // Disc
 
@@ -191,10 +204,6 @@ void HotkeyScheduler::Run()
         // Prevent fullscreen from getting toggled too often
         Common::SleepCurrentThread(100);
       }
-
-      // Refresh Game List
-      if (IsHotkey(HK_REFRESH_LIST))
-        emit RefreshGameListHotkey();
 
       // Pause and Unpause
       if (IsHotkey(HK_PLAY_PAUSE))
@@ -215,10 +224,6 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_SCREENSHOT))
         emit ScreenShotHotkey();
 
-      // Exit
-      if (IsHotkey(HK_EXIT))
-        emit ExitHotkey();
-
       // Unlock Cursor
       if (IsHotkey(HK_UNLOCK_CURSOR))
         emit UnlockCursor();
@@ -231,10 +236,6 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_REQUEST_GOLF_CONTROL))
         emit RequestGolfControl();
-
-      // Recording
-      if (IsHotkey(HK_START_RECORDING))
-        emit StartRecording();
 
       if (IsHotkey(HK_EXPORT_RECORDING))
         emit ExportRecording();
