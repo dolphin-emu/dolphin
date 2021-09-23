@@ -35,6 +35,7 @@ signals:
 private:
   void HandleCursorTimer();
   void OnHideCursorChanged();
+  void OnNeverHideCursorChanged();
   void OnLockCursorChanged();
   void OnKeepOnTopChanged(bool top);
   void UpdateCursor();

@@ -146,7 +146,14 @@ struct SConfig
 
   // Interface settings
   bool bConfirmStop = false;
-  bool bHideCursor = false;
+
+  enum ShowCursor
+  {
+    Never,
+    Constantly,
+    Movement
+  } m_show_cursor;
+
   bool bLockCursor = false;
   std::string theme_name;
 
