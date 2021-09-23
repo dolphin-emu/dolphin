@@ -295,18 +295,18 @@ void GenerateAISInterrupt()
 
 static void IncreaseSampleCount(const u32 amount)
 {
-  if (s_control.PSTAT)
-  {
-    const u32 old_sample_counter = s_sample_counter + 1;
-    s_sample_counter += amount;
+  if (!IsPlaying())
+    return;
 
-    if ((s_interrupt_timing - old_sample_counter) <= (s_sample_counter - old_sample_counter))
-    {
-      DEBUG_LOG_FMT(AUDIO_INTERFACE,
-                    "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} s_control.AIINTVLD={}",
-                    s_sample_counter, s_interrupt_timing, PowerPC::ppcState.pc, s_control.AIINTVLD);
-      GenerateAudioInterrupt();
-    }
+  const u32 old_sample_counter = s_sample_counter + 1;
+  s_sample_counter += amount;
+
+  if ((s_interrupt_timing - old_sample_counter) <= (s_sample_counter - old_sample_counter))
+  {
+    DEBUG_LOG_FMT(AUDIO_INTERFACE,
+                  "GenerateAudioInterrupt {:08x}:{:08x} at PC {:08x} s_control.AIINTVLD={}",
+                  s_sample_counter, s_interrupt_timing, PowerPC::ppcState.pc, s_control.AIINTVLD);
+    GenerateAudioInterrupt();
   }
 }
 
@@ -337,17 +337,17 @@ u32 Get48KHzSampleRateDivisor()
 
 static void Update(u64 userdata, s64 cycles_late)
 {
-  if (s_control.PSTAT)
+  if (!IsPlaying())
+    return;
+
+  const u64 diff = CoreTiming::GetTicks() - s_last_cpu_time;
+  if (diff > s_cpu_cycles_per_sample)
   {
-    const u64 diff = CoreTiming::GetTicks() - s_last_cpu_time;
-    if (diff > s_cpu_cycles_per_sample)
-    {
-      const u32 samples = static_cast<u32>(diff / s_cpu_cycles_per_sample);
-      s_last_cpu_time += samples * s_cpu_cycles_per_sample;
-      IncreaseSampleCount(samples);
-    }
-    CoreTiming::ScheduleEvent(GetAIPeriod() - cycles_late, event_type_ai);
+    const u32 samples = static_cast<u32>(diff / s_cpu_cycles_per_sample);
+    s_last_cpu_time += samples * s_cpu_cycles_per_sample;
+    IncreaseSampleCount(samples);
   }
+  CoreTiming::ScheduleEvent(GetAIPeriod() - cycles_late, event_type_ai);
 }
 
 int GetAIPeriod()
