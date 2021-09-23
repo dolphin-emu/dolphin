@@ -70,6 +70,12 @@ enum
   AID_48KHz = 0
 };
 
+enum class SampleRate
+{
+  AI32KHz,
+  AI48KHz,
+};
+
 // AI Control Register
 union AICR
 {
@@ -189,30 +195,56 @@ void Update(u64 userdata, s64 cycles_late)
   }
   CoreTiming::ScheduleEvent(GetAIPeriod() - cycles_late, event_type_ai);
 }
+
+void SetAIDSampleRate(SampleRate sample_rate)
+{
+  if (sample_rate == SampleRate::AI32KHz)
+  {
+    s_control.AIDFR = AID_32KHz;
+    s_aid_sample_rate_divisor = Get32KHzSampleRateDivisor();
+  }
+  else
+  {
+    s_control.AIDFR = AID_48KHz;
+    s_aid_sample_rate_divisor = Get48KHzSampleRateDivisor();
+  }
+
+  SoundStream* sound_stream = Core::System::GetInstance().GetSoundStream();
+  sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(s_aid_sample_rate_divisor);
+}
+
+void SetAISSampleRate(SampleRate sample_rate)
+{
+  if (sample_rate == SampleRate::AI32KHz)
+  {
+    s_control.AISFR = AIS_32KHz;
+    s_ais_sample_rate_divisor = Get32KHzSampleRateDivisor();
+  }
+  else
+  {
+    s_control.AISFR = AIS_48KHz;
+    s_ais_sample_rate_divisor = Get48KHzSampleRateDivisor();
+  }
+
+  s_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+                            s_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
+  SoundStream* sound_stream = Core::System::GetInstance().GetSoundStream();
+  sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(s_ais_sample_rate_divisor);
+}
 }  // namespace
 
 void Init()
 {
   s_control.hex = 0;
-  s_control.AISFR = AIS_48KHz;
-  s_control.AIDFR = AID_32KHz;
+  SetAISSampleRate(SampleRate::AI48KHz);
+  SetAIDSampleRate(SampleRate::AI32KHz);
   s_volume.hex = 0;
   s_sample_counter = 0;
   s_interrupt_timing = 0;
 
   s_last_cpu_time = 0;
 
-  s_ais_sample_rate_divisor = Get48KHzSampleRateDivisor();
-  s_aid_sample_rate_divisor = Get32KHzSampleRateDivisor();
-  s_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
-                            s_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
-
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
-
-  auto& system = Core::System::GetInstance();
-  SoundStream* sound_stream = system.GetSoundStream();
-  sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(GetAIDSampleRateDivisor());
-  sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(GetAISSampleRateDivisor());
 }
 
 void Shutdown()
@@ -238,31 +270,21 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           s_control.AIINTVLD = tmp_ai_ctrl.AIINTVLD;
         }
 
-        auto& system = Core::System::GetInstance();
-        SoundStream* sound_stream = system.GetSoundStream();
-
         // Set frequency of streaming audio
         if (tmp_ai_ctrl.AISFR != s_control.AISFR)
         {
           // AISFR rates below are intentionally inverted wrt yagcd
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AISFR to {}",
                         tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
-          s_control.AISFR = tmp_ai_ctrl.AISFR;
-          s_ais_sample_rate_divisor =
-              tmp_ai_ctrl.AISFR ? Get48KHzSampleRateDivisor() : Get32KHzSampleRateDivisor();
-          sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(s_ais_sample_rate_divisor);
-          s_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
-                                    s_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
+          SetAISSampleRate(tmp_ai_ctrl.AISFR ? SampleRate::AI48KHz : SampleRate::AI32KHz);
         }
+
         // Set frequency of DMA
         if (tmp_ai_ctrl.AIDFR != s_control.AIDFR)
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIDFR to {}",
                         tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
-          s_control.AIDFR = tmp_ai_ctrl.AIDFR;
-          s_aid_sample_rate_divisor =
-              tmp_ai_ctrl.AIDFR ? Get32KHzSampleRateDivisor() : Get48KHzSampleRateDivisor();
-          sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(s_aid_sample_rate_divisor);
+          SetAIDSampleRate(tmp_ai_ctrl.AIDFR ? SampleRate::AI32KHz : SampleRate::AI48KHz);
         }
 
         // Streaming counter
