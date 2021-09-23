@@ -30,6 +30,8 @@ add_library(discio
   NANDImporter.h
   RiivolutionParser.cpp
   RiivolutionParser.h
+  RiivolutionPatcher.cpp
+  RiivolutionPatcher.h
   ScrubbedBlob.cpp
   ScrubbedBlob.h
   TGCBlob.cpp
