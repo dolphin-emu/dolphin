@@ -28,6 +28,8 @@ add_library(discio
   MultithreadedCompressor.h
   NANDImporter.cpp
   NANDImporter.h
+  RiivolutionParser.cpp
+  RiivolutionParser.h
   ScrubbedBlob.cpp
   ScrubbedBlob.h
   TGCBlob.cpp
