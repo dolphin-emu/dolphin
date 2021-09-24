@@ -362,16 +362,18 @@ bool RenderWidget::event(QEvent* event)
     {
       // Lock the cursor with any mouse button click (behave the same as window focus change).
       // This event is occasionally missed because isActiveWindow is laggy
-      if (Settings::Instance().GetLockCursor() && event->type() == QEvent::MouseButtonPress)
+      if (Settings::Instance().GetLockCursor())
       {
         SetCursorLocked(true);
       }
-      // Unhide on movement
-      if (!Settings::Instance().GetHideCursor())
-      {
-        setCursor(Qt::ArrowCursor);
-        m_mouse_timer->start(MOUSE_HIDE_DELAY);
-      }
+    }
+    break;
+  case QEvent::MouseMove:
+    // Unhide on movement
+    if (!Settings::Instance().GetHideCursor())
+    {
+      setCursor(Qt::ArrowCursor);
+      m_mouse_timer->start(MOUSE_HIDE_DELAY);
     }
     break;
   case QEvent::WinIdChange:
