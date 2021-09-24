@@ -64,7 +64,7 @@ SConfig::SConfig()
   LoadDefaults();
   // Make sure we have log manager
   LoadSettings();
-  LoadLocalSettings();
+  //LoadLocalSettings();
 }
 
 void SConfig::Init()
@@ -393,7 +393,7 @@ void SConfig::LoadSettings()
   LoadAutoUpdateSettings(ini);
   LoadJitDebugSettings(ini);
 }
-
+/*
 void SConfig::LoadLocalSettings()
 {
   Config::Load();
@@ -404,7 +404,7 @@ void SConfig::LoadLocalSettings()
 
   LoadLocalPlayerSettings(ini);
 }
-
+*/
 void SConfig::LoadGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
@@ -661,7 +661,7 @@ void SConfig::LoadJitDebugSettings(IniFile& ini)
   section->Get("JitBranchOff", &bJITBranchOff, false);
   section->Get("JitRegisterCacheOff", &bJITRegisterCacheOff, false);
 }
-
+/*
 void SConfig::LoadLocalPlayerSettings(IniFile& ini)
 {
   IniFile::Section* localplayers = ini.GetOrCreateSection("Local_Players");
@@ -671,7 +671,7 @@ void SConfig::LoadLocalPlayerSettings(IniFile& ini)
   localplayers->Set("Player 3", m_local_player_reset);
   localplayers->Set("Player 4", m_local_player_reset);
 }
-
+*/
 void SConfig::ResetRunningGameMetadata()
 {
   SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);

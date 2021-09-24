@@ -320,13 +320,13 @@ struct SConfig
   // Auto-update settings
   std::string m_auto_update_track;
   std::string m_auto_update_hash_override;
-
+  
   std::string m_local_player_1{"No Player Selected"};
   std::string m_local_player_2{"No Player Selected"};
   std::string m_local_player_3{"No Player Selected"};
   std::string m_local_player_4{"No Player Selected"};
-
-  std::string m_local_player_reset = "No Player Selected";
+  
+  //std::string m_local_player_reset = "No Player Selected";
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
@@ -339,7 +339,7 @@ struct SConfig
 
   // Load settings
   void LoadSettings();
-  void LoadLocalSettings();
+  //void LoadLocalSettings();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
@@ -370,7 +370,7 @@ private:
   void LoadCoreSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
-  void LoadLocalPlayerSettings(IniFile& ini);
+  //void LoadLocalPlayerSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
