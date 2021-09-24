@@ -66,13 +66,6 @@ void CheatWarningWidget::Update(bool running)
     m_text->setText(tr("Changing cheats will only take effect when the game is restarted."));
   }
 
-  if (!Settings::Instance().GetCheatsEnabled())
-  {
-    hide_widget = false;
-    hide_config_button = false;
-    m_text->setText(tr("Dolphin's cheat system is currently disabled."));
-  }
-
   setHidden(hide_widget);
   m_config_button->setHidden(hide_config_button);
 }
