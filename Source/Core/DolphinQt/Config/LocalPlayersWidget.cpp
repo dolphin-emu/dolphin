@@ -58,10 +58,10 @@ void LocalPlayersWidget::CreateLayout()
 
   auto* gc_label3 = new QLabel(tr("Player 3"));
   auto gc_box3 = m_player_list_3 = new QComboBox();
-
+  
   auto* gc_label4 = new QLabel(tr("Player 4"));
   auto gc_box4 = m_player_list_4 = new QComboBox();
-
+ 
   m_player_layout->addWidget(gc_label1, 0, 0);
   m_player_layout->addWidget(gc_box1, 0, 1);
   m_player_layout->addWidget(gc_label2, 1, 0);
@@ -161,6 +161,12 @@ void LocalPlayersWidget::SavePlayers()
 
 void LocalPlayersWidget::LoadPlayers()
 {
+  // List an option to not select a player
+  m_player_list_1->addItem(tr("No Player Selected"));
+  m_player_list_2->addItem(tr("No Player Selected"));
+  m_player_list_3->addItem(tr("No Player Selected"));
+  m_player_list_4->addItem(tr("No Player Selected"));
+
   // List avalable players in LocalPlayers.ini
   for (size_t i = 0; i < m_local_players.size(); i++)
   {
@@ -178,17 +184,11 @@ void LocalPlayersWidget::LoadPlayers()
     m_player_list_3->addItem(username);
     m_player_list_4->addItem(username);
   }
-
+  /*
   m_player_list_1->setCurrentIndex(m_player_list_1->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_1)));
   m_player_list_2->setCurrentIndex(m_player_list_2->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_2)));
   m_player_list_3->setCurrentIndex(m_player_list_3->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_3)));
-  m_player_list_4->setCurrentIndex(m_player_list_4->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_4)));
-
-  // List an option to not select a player
-  m_player_list_1->addItem(tr("No Player Selected"));
-  m_player_list_2->addItem(tr("No Player Selected"));
-  m_player_list_3->addItem(tr("No Player Selected"));
-  m_player_list_4->addItem(tr("No Player Selected"));
+  m_player_list_4->setCurrentIndex(m_player_list_4->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_4)));*/
 }
 
 void LocalPlayersWidget::ConnectWidgets()
