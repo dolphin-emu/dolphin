@@ -36,14 +36,12 @@
 LocalPlayersWidget::LocalPlayersWidget(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  LoadPlayers();
   ConnectWidgets();
 
   IniFile local_players_ini;
   local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
   m_local_players = AddPlayers::LoadPlayers(local_players_ini);
-
-  UpdatePlayers();
+  LoadPlayers();
 }
 
 void LocalPlayersWidget::CreateLayout()
@@ -107,28 +105,7 @@ void LocalPlayersWidget::UpdatePlayers()
   m_player_list_3->clear();
   m_player_list_4->clear();
 
-  // List an option to not select a player
-  m_player_list_1->addItem(tr("No Player Selected"));
-  m_player_list_2->addItem(tr("No Player Selected"));
-  m_player_list_3->addItem(tr("No Player Selected"));
-  m_player_list_4->addItem(tr("No Player Selected"));
-
-  // List avalable players in LocalPlayers.ini
-  for (size_t i = 0; i < m_local_players.size(); i++)
-  {
-    const auto& player = m_local_players[i];
-
-    auto username = QString::fromStdString(player.username)
-                                         .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
-                                         .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
-
-    // In the future, i should add in a feature that if a player is selected on another port, they won't appear on the dropdown
-    // some conditional that checks the other ports before adding the item
-    m_player_list_1->addItem(username);
-    m_player_list_2->addItem(username);
-    m_player_list_3->addItem(username);
-    m_player_list_4->addItem(username);
-  }
+  LoadPlayers();
 }
 
 void LocalPlayersWidget::OnAddPlayers()
@@ -161,11 +138,31 @@ void LocalPlayersWidget::SavePlayers()
 
 void LocalPlayersWidget::LoadPlayers()
 {
-  // do this so that no players are selected upon loading Rio for the first time. prevent accidental stat recording for players
-  m_player_list_1->setCurrentIndex(0);
-  m_player_list_2->setCurrentIndex(0);
-  m_player_list_3->setCurrentIndex(0);
-  m_player_list_4->setCurrentIndex(0);
+
+
+  // List an option to not select a player
+  m_player_list_1->addItem(tr("No Player Selected"));
+  m_player_list_2->addItem(tr("No Player Selected"));
+  m_player_list_3->addItem(tr("No Player Selected"));
+  m_player_list_4->addItem(tr("No Player Selected"));
+
+  // List avalable players in LocalPlayers.ini
+  for (size_t i = 0; i < m_local_players.size(); i++)
+  {
+    const auto& player = m_local_players[i];
+
+    auto username = QString::fromStdString(player.username)
+                        .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
+                        .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
+
+    // In the future, i should add in a feature that if a player is selected on another port, they
+    // won't appear on the dropdown some conditional that checks the other ports before adding the
+    // item
+    m_player_list_1->addItem(username);
+    m_player_list_2->addItem(username);
+    m_player_list_3->addItem(username);
+    m_player_list_4->addItem(username);
+  }
 }
 
 void LocalPlayersWidget::ConnectWidgets()

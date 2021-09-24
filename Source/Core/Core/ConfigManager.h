@@ -223,9 +223,6 @@ struct SConfig
   IniFile LoadLocalGameIni() const;
   IniFile LoadGameIni() const;
 
-  void GetLocalPlayerSettings(IniFile& ini);
-
-  static bool UserHasUserID();
   static bool GameHasDefaultGameIni(const std::string& id, u16 revision);
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
@@ -380,7 +377,6 @@ private:
   void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadAutoUpdateSettings(IniFile& ini);
   void LoadJitDebugSettings(IniFile& ini);
-  void LoadUserIDSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);

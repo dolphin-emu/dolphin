@@ -1103,12 +1103,6 @@ bool SConfig::GameHasDefaultGameIni(const std::string& id, u16 revision)
 	});
 }
 
-
-bool SConfig::UserHasUserID()
-{
-  return File::Exists(File::GetExeDirectory() + DIR_SEP + "User.json");
-}
-
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
