@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
 
@@ -75,6 +74,9 @@ void MappingDouble::Update()
 MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bool>* setting)
     : QCheckBox(parent), m_setting(*setting)
 {
+  if (const auto ui_description = m_setting.GetUIDescription())
+    setToolTip(tr(ui_description));
+
   connect(this, &QCheckBox::stateChanged, this, [this, parent](int value) {
     m_setting.SetValue(value != 0);
     ConfigChanged();

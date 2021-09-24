@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/State.h"
 
@@ -74,7 +73,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 130;  // Last changed in PR 9545
+constexpr u32 STATE_VERSION = 134;  // Last changed in PR 7896
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,

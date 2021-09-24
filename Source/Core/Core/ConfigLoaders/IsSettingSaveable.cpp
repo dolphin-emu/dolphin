@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -26,15 +25,28 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
   if (config_location.system == Config::System::Main)
   {
-    for (const std::string& section : {"NetPlay", "General", "Display", "Network", "Analytics",
-                                       "AndroidOverlayButtons", "Android"})
+    for (const std::string_view section :
+         {"NetPlay", "General", "GBA", "Display", "Network", "Analytics", "AndroidOverlayButtons"})
     {
       if (config_location.section == section)
         return true;
     }
+
+    // Android controller mappings are not saveable, other Android settings are.
+    // TODO: Kill the current Android controller mappings system
+    if (config_location.section == "Android")
+    {
+      static constexpr std::array<const char*, 8> android_setting_saveable = {
+          "ControlScale",    "ControlOpacity", "EmulationOrientation", "JoystickRelCenter",
+          "LastPlatformTab", "MotionControls", "PhoneRumble",          "ShowInputOverlay"};
+
+      return std::any_of(
+          android_setting_saveable.cbegin(), android_setting_saveable.cend(),
+          [&config_location](const char* key) { return key == config_location.key; });
+    }
   }
 
-  static constexpr std::array<const Config::Location*, 17> s_setting_saveable = {
+  static constexpr auto s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.GetLocation(),
@@ -50,6 +62,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_GFX_BACKEND.GetLocation(),
       &Config::MAIN_ENABLE_SAVESTATES.GetLocation(),
       &Config::MAIN_FALLBACK_REGION.GetLocation(),
+      &Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS.GetLocation(),
 
       // Main.Interface
 
@@ -65,7 +78,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_USE_DISCORD_PRESENCE.GetLocation(),
   };
 
-  return std::any_of(s_setting_saveable.cbegin(), s_setting_saveable.cend(),
+  return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),
                      [&config_location](const Config::Location* location) {
                        return *location == config_location;
                      });

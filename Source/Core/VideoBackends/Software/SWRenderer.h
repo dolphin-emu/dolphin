@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,6 +26,8 @@ public:
   std::unique_ptr<AbstractFramebuffer>
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
 
+  void BindBackbuffer(const ClearColor& clear_color = {}) override;
+
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
                                                          std::string_view source) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
@@ -39,8 +40,8 @@ public:
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
-  u16 BBoxRead(int index) override;
-  void BBoxWrite(int index, u16 value) override;
+  u16 BBoxReadImpl(int index) override;
+  void BBoxWriteImpl(int index, u16 value) override;
 
   void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                          const AbstractTexture* source_texture,

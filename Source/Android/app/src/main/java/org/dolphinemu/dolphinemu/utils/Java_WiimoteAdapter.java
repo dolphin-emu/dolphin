@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.utils;
 
 import android.app.PendingIntent;
@@ -13,7 +15,7 @@ import android.os.Build;
 
 import androidx.annotation.Keep;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.services.USBPermService;
 
 import java.util.Arrays;
@@ -38,34 +40,27 @@ public class Java_WiimoteAdapter
 
   private static void RequestPermission()
   {
-    Context context = NativeLibrary.getEmulationActivity();
-    if (context != null)
+    HashMap<String, UsbDevice> devices = manager.getDeviceList();
+    for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
     {
-      HashMap<String, UsbDevice> devices = manager.getDeviceList();
-      for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
+      UsbDevice dev = pair.getValue();
+      if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID &&
+              dev.getVendorId() == NINTENDO_VENDOR_ID)
       {
-        UsbDevice dev = pair.getValue();
-        if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID &&
-                dev.getVendorId() == NINTENDO_VENDOR_ID)
+        if (!manager.hasPermission(dev))
         {
-          if (!manager.hasPermission(dev))
-          {
-            Log.warning("Requesting permission for Wii Remote adapter");
+          Log.warning("Requesting permission for Wii Remote adapter");
 
-            Intent intent = new Intent(context, USBPermService.class);
+          Context context = DolphinApplication.getAppContext();
+          Intent intent = new Intent(context, USBPermService.class);
 
-            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
-                    PendingIntent.FLAG_IMMUTABLE : 0;
-            PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, flags);
+          int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+                  PendingIntent.FLAG_IMMUTABLE : 0;
+          PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, flags);
 
-            manager.requestPermission(dev, pendingIntent);
-          }
+          manager.requestPermission(dev, pendingIntent);
         }
       }
-    }
-    else
-    {
-      Log.warning("Cannot request Wiimote adapter permission as EmulationActivity is null.");
     }
   }
 

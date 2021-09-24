@@ -28,9 +28,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\LocalPlayers.h" />
+    <ClInclude Include="Core\LocalPlayersConfig.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\DivUtils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\LocalPlayersConfig.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\DivUtils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

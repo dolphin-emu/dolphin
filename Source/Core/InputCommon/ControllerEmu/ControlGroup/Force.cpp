@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 
@@ -65,7 +64,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
              90, 1, 180);
 }
 
-Force::ReshapeData Force::GetReshapableState(bool adjusted)
+Force::ReshapeData Force::GetReshapableState(bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -77,7 +76,7 @@ Force::ReshapeData Force::GetReshapableState(bool adjusted)
   return Reshape(x, y);
 }
 
-Force::StateData Force::GetState(bool adjusted)
+Force::StateData Force::GetState(bool adjusted) const
 {
   const auto state = GetReshapableState(adjusted);
   ControlState z = controls[4]->GetState() - controls[5]->GetState();

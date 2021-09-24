@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.view.View;
@@ -28,7 +30,7 @@ public final class HeaderViewHolder extends SettingViewHolder
   @Override
   public void bind(SettingsItem item)
   {
-    mHeaderName.setText(item.getNameId());
+    mHeaderName.setText(item.getName());
   }
 
   @Override

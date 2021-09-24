@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -103,7 +102,7 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
   #define SUPPORTS_SUBGROUP_REDUCTION 1
   #define CAN_USE_SUBGROUP_REDUCTION true
   #define IS_HELPER_INVOCATION gl_HelperInvocation
-  #define IS_FIRST_ACTIVE_INVOCATION (gl_SubgroupInvocationID == subgroupBallotFindLSB(subgroupBallot(true)))
+  #define IS_FIRST_ACTIVE_INVOCATION (gl_SubgroupInvocationID == subgroupBallotFindLSB(subgroupBallot(!gl_HelperInvocation)))
   #define SUBGROUP_MIN(value) value = subgroupMin(value)
   #define SUBGROUP_MAX(value) value = subgroupMax(value)
 )";

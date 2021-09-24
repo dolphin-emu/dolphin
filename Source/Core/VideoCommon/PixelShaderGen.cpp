@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/PixelShaderGen.h"
 
@@ -220,13 +219,10 @@ PixelShaderUid GetPixelShaderUid()
 
   // indirect texture map lookup
   int nIndirectStagesUsed = 0;
-  if (uid_data->genMode_numindstages > 0)
+  for (unsigned int i = 0; i < numStages; ++i)
   {
-    for (unsigned int i = 0; i < numStages; ++i)
-    {
-      if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < uid_data->genMode_numindstages)
-        nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
-    }
+    if (bpmem.tevind[i].IsActive())
+      nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
   }
 
   uid_data->nIndirectStagesUsed = nIndirectStagesUsed;
@@ -238,16 +234,8 @@ PixelShaderUid GetPixelShaderUid()
 
   for (unsigned int n = 0; n < numStages; n++)
   {
-    int texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
-    bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
-    // HACK to handle cases where the tex gen is not enabled
-    if (!bHasTexCoord)
-      texcoord = bpmem.genMode.numtexgens;
-
-    uid_data->stagehash[n].hasindstage = bpmem.tevind[n].bt < bpmem.genMode.numindstages;
-    uid_data->stagehash[n].tevorders_texcoord = texcoord;
-    if (uid_data->stagehash[n].hasindstage)
-      uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
+    uid_data->stagehash[n].tevorders_texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
+    uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
 
     TevStageCombiner::ColorCombiner& cc = bpmem.combiners[n].colorC;
     TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[n].alphaC;
@@ -361,7 +349,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   uid_data->bounding_box &= host_config.bounding_box & host_config.backend_bbox;
 }
 
-void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type, u32 num_texgens,
+void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
                                   const ShaderHostConfig& host_config, bool bounding_box)
 {
   // dot product for integer vectors
@@ -456,20 +444,37 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type, u32 num_tex
 
   if (bounding_box)
   {
+    if (api_type == APIType::D3D)
+    {
+      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n"
+                "#define atomicMin InterlockedMin\n"
+                "#define atomicMax InterlockedMax");
+    }
+    else
+    {
+      out.Write("SSBO_BINDING(0) buffer BBox {{\n");
+
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SSBO_FIELD_ATOMICS))
+      {
+        // AMD drivers on Windows seemingly ignore atomic writes to fields or array elements of an
+        // SSBO other than the first one, but using an int4 seems to work fine
+        out.Write("  int4 bbox_data;\n");
+      }
+      else
+      {
+        // The Metal shader compiler fails to compile the atomic instructions when operating on
+        // individual components of a vector
+        out.Write("  int bbox_data[4];\n");
+      }
+
+      out.Write("}};");
+    }
+
     out.Write(R"(
-#ifdef API_D3D
-globallycoherent RWBuffer<int> bbox_data : register(u2);
-#define atomicMin InterlockedMin
-#define atomicMax InterlockedMax
 #define bbox_left bbox_data[0]
 #define bbox_right bbox_data[1]
 #define bbox_top bbox_data[2]
 #define bbox_bottom bbox_data[3]
-#else
-SSBO_BINDING(0) buffer BBox {{
-  int bbox_left, bbox_right, bbox_top, bbox_bottom;
-}};
-#endif
 
 void UpdateBoundingBoxBuffer(int2 min_pos, int2 max_pos) {{
   if (bbox_left > min_pos.x)
@@ -483,37 +488,50 @@ void UpdateBoundingBoxBuffer(int2 min_pos, int2 max_pos) {{
 }}
 
 void UpdateBoundingBox(float2 rawpos) {{
-  // The pixel center in the GameCube GPU is 7/12, not 0.5 (see VertexShaderGen.cpp)
-  // Adjust for this by unapplying the offset we added in the vertex shader.
-  const float PIXEL_CENTER_OFFSET = 7.0 / 12.0 - 0.5;
-  float2 offset = float2(PIXEL_CENTER_OFFSET, -PIXEL_CENTER_OFFSET);
-
-#ifdef API_OPENGL
-  // OpenGL lower-left origin means that Y goes in the opposite direction.
-  offset.y = -offset.y;
-#endif
+  // We only want to include coordinates for pixels aligned with the native resolution pixel centers.
+  // This makes bounding box sizes more accurate (though not perfect) at higher resolutions,
+  // avoiding EFB copy buffer overflow in affected games.
+  //
+  // For a more detailed explanation, see https://dolp.in/pr9801
+  int2 int_efb_scale = iround(1.0 / {efb_scale}.xy);
+  if (int(rawpos.x) % int_efb_scale.x != int_efb_scale.x >> 1 ||
+      int(rawpos.y) % int_efb_scale.y != int_efb_scale.y >> 1)  // right shift for fast divide by two
+  {{
+    return;
+  }}
 
   // The rightmost shaded pixel is not included in the right bounding box register,
   // such that width = right - left + 1. This has been verified on hardware.
-  int2 pos = iround(rawpos * cefbscale + offset);
+  int2 pos = int2(rawpos * {efb_scale}.xy);
+
+#ifdef API_OPENGL
+  // We need to invert the Y coordinate due to OpenGL's lower-left origin
+  pos.y = {efb_height} - pos.y - 1;
+#endif
+
+  // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
+  // extents of these groups, rather than the exact pixel.
+  int2 pos_tl = pos & ~1;  // round down to even
+  int2 pos_br = pos | 1;   // round up to odd
 
 #ifdef SUPPORTS_SUBGROUP_REDUCTION
   if (CAN_USE_SUBGROUP_REDUCTION) {{
-    int2 min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : pos;
-    int2 max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : pos;
+    int2 min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : pos_tl;
+    int2 max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : pos_br;
     SUBGROUP_MIN(min_pos);
     SUBGROUP_MAX(max_pos);
     if (IS_FIRST_ACTIVE_INVOCATION)
       UpdateBoundingBoxBuffer(min_pos, max_pos);
   }} else {{
-    UpdateBoundingBoxBuffer(pos, pos);
+    UpdateBoundingBoxBuffer(pos_tl, pos_br);
   }}
 #else
-  UpdateBoundingBoxBuffer(pos, pos);
+  UpdateBoundingBoxBuffer(pos_tl, pos_br);
 #endif
 }}
 
-)");
+)",
+              fmt::arg("efb_height", EFB_HEIGHT), fmt::arg("efb_scale", I_EFBSCALE));
   }
 }
 
@@ -546,8 +564,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
             uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
-  WritePixelShaderCommonHeader(out, api_type, uid_data->genMode_numtexgens, host_config,
-                               uid_data->bounding_box);
+  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
 
   if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
@@ -775,9 +792,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("col1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
-  // HACK to handle cases where the tex gen is not enabled
   if (uid_data->genMode_numtexgens == 0)
   {
+    // TODO: This is a hack to ensure that shaders still compile when setting out of bounds tex
+    // coord indices to 0.  Ideally, it shouldn't exist at all, but the exact behavior hasn't been
+    // tested.
     out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n\n");
   }
   else
@@ -796,19 +815,19 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   {
     if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
     {
-      const u32 texcoord = uid_data->GetTevindirefCoord(i);
+      u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);
 
-      if (texcoord < uid_data->genMode_numtexgens)
-      {
-        out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
-        out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
-                  (i & 1) != 0 ? "zw" : "xy");
-      }
-      else
-      {
-        out.Write("\ttempcoord = int2(0, 0);\n");
-      }
+      // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
+      // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
+      // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
+      // the number of tex gens to 2 (bug 11462).
+      if (texcoord >= uid_data->genMode_numtexgens)
+        texcoord = 0;
+
+      out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
+      out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
+                (i & 1) ? "zw" : "xy");
 
       out.Write("\tint3 iindtex{} = ", i);
       SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
@@ -950,22 +969,28 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   const auto& stage = uid_data->stagehash[n];
   out.Write("\n\t// TEV stage {}\n", n);
 
-  // HACK to handle cases where the tex gen is not enabled
+  // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does not
+  // exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
   u32 texcoord = stage.tevorders_texcoord;
   const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens;
   if (!has_tex_coord)
     texcoord = 0;
 
-  if (stage.hasindstage)
   {
-    TevStageIndirect tevind;
-    tevind.hex = stage.tevind;
-
+    const TevStageIndirect tevind{.hex = stage.tevind};
     out.Write("\t// indirect op\n");
+
+    // Quirk: Referencing a stage above the number of ind stages is undefined behavior,
+    // and on console produces a noise pattern (details unknown).
+    // Instead, just skip applying the indirect operation, which is close enough.
+    // We need to do *something*, as there won't be an iindtex variable otherwise.
+    // Viewtiful Joe hits this case (bug 12525).
+    // Wrapping and add to previous still apply in this case (and when the stage is disabled).
+    const bool has_ind_stage = tevind.bt < uid_data->genMode_numindstages;
 
     // Perform the indirect op on the incoming regular coordinates
     // using iindtex{} as the offset coords
-    if (tevind.bs != IndTexBumpAlpha::Off)
+    if (has_ind_stage && tevind.bs != IndTexBumpAlpha::Off)
     {
       static constexpr std::array<const char*, 4> tev_ind_alpha_sel{
           "",
@@ -974,34 +999,39 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           "z",
       };
 
-      // 0b11111000, 0b11100000, 0b11110000, 0b11111000
-      static constexpr std::array<const char*, 4> tev_ind_alpha_mask{
-          "248",
-          "224",
-          "240",
-          "248",
+      // According to libogc, the bump alpha value is 5 bits, and comes from the bottom bits of the
+      // component byte, except in the case of ITF_8, which presumably uses the top bits with a
+      // mask.
+      // https://github.com/devkitPro/libogc/blob/bd24a9b3f59502f9b30d6bac0ae35fc485045f78/gc/ogc/gx.h#L3038-L3041
+      // https://github.com/devkitPro/libogc/blob/bd24a9b3f59502f9b30d6bac0ae35fc485045f78/gc/ogc/gx.h#L790-L800
+
+      static constexpr std::array<char, 4> tev_ind_alpha_shift{
+          '0',  // ITF_8: 0bXXXXXYYY -> 0bXXXXX000? No shift?
+          '5',  // ITF_5: 0bIIIIIAAA -> 0bAAA00000, shift of 5
+          '4',  // ITF_4: 0bIIIIAAAA -> 0bAAAA0000, shift of 4
+          '3',  // ITF_3: 0bIIIAAAAA -> 0bAAAAA000, shift of 3
       };
 
-      out.Write("alphabump = iindtex{}.{} & {};\n", tevind.bt.Value(),
+      out.Write("\talphabump = (iindtex{}.{} << {}) & 248;\n", tevind.bt.Value(),
                 tev_ind_alpha_sel[u32(tevind.bs.Value())],
-                tev_ind_alpha_mask[u32(tevind.fmt.Value())]);
+                tev_ind_alpha_shift[u32(tevind.fmt.Value())]);
     }
     else
     {
       // TODO: Should we reset alphabump to 0 here?
     }
 
-    if (tevind.mid != 0)
+    if (has_ind_stage && tevind.matrix_index != IndMtxIndex::Off)
     {
       // format
-      static constexpr std::array<const char*, 4> tev_ind_fmt_mask{
-          "255",
-          "31",
-          "15",
-          "7",
+      static constexpr std::array<char, 4> tev_ind_fmt_shift{
+          '0',  // ITF_8: 0bXXXXXXXX -> 0bXXXXXXXX, no shift
+          '3',  // ITF_5: 0bIIIIIAAA -> 0b000IIIII, shift of 3
+          '4',  // ITF_4: 0bIIIIAAAA -> 0b0000IIII, shift of 4
+          '5',  // ITF_3: 0bIIIAAAAA -> 0b00000III, shift of 5
       };
-      out.Write("\tint3 iindtevcrd{} = iindtex{} & {};\n", n, tevind.bt.Value(),
-                tev_ind_fmt_mask[u32(tevind.fmt.Value())]);
+      out.Write("\tint3 iindtevcrd{} = iindtex{} >> {};\n", n, tevind.bt.Value(),
+                tev_ind_fmt_shift[u32(tevind.fmt.Value())]);
 
       // bias - TODO: Check if this needs to be this complicated...
       // indexed by bias
@@ -1038,11 +1068,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
                   tev_ind_bias_add[u32(tevind.fmt.Value())]);
       }
 
+      // Multiplied by 2 because each matrix has two rows.
+      // Note also that the 4th column of the matrix contains the scale factor.
+      const u32 mtxidx = 2 * (static_cast<u32>(tevind.matrix_index.Value()) - 1);
+
       // multiply by offset matrix and scale - calculations are likely to overflow badly,
       // yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
-      if (tevind.mid <= 3)
+      if (tevind.matrix_id == IndMtxId::Indirect)
       {
-        const u32 mtxidx = 2 * (tevind.mid - 1);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans{} = int2(idot(" I_INDTEXMTX
@@ -1064,10 +1097,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
-      else if (tevind.mid <= 7 && has_tex_coord)
-      {  // s matrix
-        ASSERT(tevind.mid >= 5);
-        const u32 mtxidx = 2 * (tevind.mid - 5);
+      else if (tevind.matrix_id == IndMtxId::S)
+      {
+        ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n,
@@ -1086,10 +1118,9 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
           out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
         }
       }
-      else if (tevind.mid <= 11 && has_tex_coord)
-      {  // t matrix
-        ASSERT(tevind.mid >= 9);
-        const u32 mtxidx = 2 * (tevind.mid - 9);
+      else if (tevind.matrix_id == IndMtxId::T)
+      {
+        ASSERT(has_tex_coord);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
         out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n,
@@ -1112,20 +1143,25 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       else
       {
         out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
+        ASSERT(false);  // Unknown value for matrix_id
       }
     }
     else
     {
       out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
+      if (tevind.matrix_index == IndMtxIndex::Off)
+      {
+        // If matrix_index is Off (0), matrix_id should be Indirect (0)
+        ASSERT(tevind.matrix_id == IndMtxId::Indirect);
+      }
     }
 
     // ---------
     // Wrapping
     // ---------
 
-    // TODO: Should the last element be 1 or (1<<7)?
-    static constexpr std::array<const char*, 7> tev_ind_wrap_start{
-        "0", "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)", "1",
+    static constexpr std::array<const char*, 5> tev_ind_wrap_start{
+        "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)",
     };
 
     // wrap S
@@ -1133,14 +1169,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     {
       out.Write("\twrappedcoord.x = fixpoint_uv{}.x;\n", texcoord);
     }
-    else if (tevind.sw == IndTexWrap::ITW_0)
+    else if (tevind.sw >= IndTexWrap::ITW_0)  // 7 (Invalid) appears to behave the same as 6 (ITW_0)
     {
       out.Write("\twrappedcoord.x = 0;\n");
     }
     else
     {
       out.Write("\twrappedcoord.x = fixpoint_uv{}.x & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.sw.Value())]);
+                tev_ind_wrap_start[u32(tevind.sw.Value()) - u32(IndTexWrap::ITW_256)]);
     }
 
     // wrap T
@@ -1148,14 +1184,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     {
       out.Write("\twrappedcoord.y = fixpoint_uv{}.y;\n", texcoord);
     }
-    else if (tevind.tw == IndTexWrap::ITW_0)
+    else if (tevind.tw >= IndTexWrap::ITW_0)  // 7 (Invalid) appears to behave the same as 6 (ITW_0)
     {
       out.Write("\twrappedcoord.y = 0;\n");
     }
     else
     {
       out.Write("\twrappedcoord.y = fixpoint_uv{}.y & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.tw.Value())]);
+                tev_ind_wrap_start[u32(tevind.tw.Value()) - u32(IndTexWrap::ITW_256)]);
     }
 
     if (tevind.fb_addprev)  // add previous tevcoord
@@ -1191,7 +1227,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("\trastemp = {}.{};\n", tev_ras_table[u32(stage.tevorders_colorchan)], rasswap);
   }
 
-  if (stage.tevorders_enable)
+  if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
     const char texswap[5] = {
@@ -1202,16 +1238,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         '\0',
     };
 
-    if (!stage.hasindstage)
-    {
-      // calc tevcord
-      if (has_tex_coord)
-        out.Write("\ttevcoord.xy = fixpoint_uv{};\n", texcoord);
-      else
-        out.Write("\ttevcoord.xy = int2(0, 0);\n");
-    }
     out.Write("\ttextemp = ");
     SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, api_type);
+  }
+  else if (uid_data->genMode_numtexgens == 0)
+  {
+    // It seems like the result is always black when no tex coords are enabled, but further testing
+    // is needed.
+    out.Write("\ttextemp = int4(0, 0, 0, 0);\n");
   }
   else
   {

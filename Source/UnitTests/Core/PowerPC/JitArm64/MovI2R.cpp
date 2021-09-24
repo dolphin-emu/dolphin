@@ -1,6 +1,5 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstddef>
 #include <type_traits>
@@ -26,8 +25,11 @@ public:
     ResetCodePtr();
 
     const u8* fn = GetCodePtr();
-    MOVI2R(ARM64Reg::W0, value);
-    RET();
+    {
+      const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
+      MOVI2R(ARM64Reg::W0, value);
+      RET();
+    }
 
     FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
 
@@ -40,8 +42,11 @@ public:
     ResetCodePtr();
 
     const u8* fn = GetCodePtr();
-    MOVI2R(ARM64Reg::X0, value);
-    RET();
+    {
+      const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
+      MOVI2R(ARM64Reg::X0, value);
+      RET();
+    }
 
     FlushIcacheSection(const_cast<u8*>(fn), const_cast<u8*>(GetCodePtr()));
 

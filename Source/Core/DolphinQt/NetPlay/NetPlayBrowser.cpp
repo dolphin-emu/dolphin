@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 
@@ -377,8 +376,10 @@ void NetPlayBrowser::RestoreSettings()
   else if (visibility == QStringLiteral("private"))
     m_radio_private->setChecked(true);
 
-  m_check_hide_incompatible->setChecked(
-      settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
-  m_check_hide_ingame->setChecked(
-      settings.value(QStringLiteral("netplaybrowser/hide_ingame")).toBool());
+  m_check_hide_incompatible->setChecked(true);
+  m_check_hide_ingame->setChecked(true);
+  // m_check_hide_incompatible->setChecked(
+     // settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
+  // m_check_hide_ingame->setChecked(
+      // settings.value(QStringLiteral("netplaybrowser/hide_ingame")).toBool());
 }

@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -39,11 +42,11 @@ public final class SliderViewHolder extends SettingViewHolder
   {
     mItem = (SliderSetting) item;
 
-    mTextSettingName.setText(item.getNameId());
+    mTextSettingName.setText(item.getName());
 
-    if (item.getDescriptionId() > 0)
+    if (!TextUtils.isEmpty(item.getDescription()))
     {
-      mTextSettingDescription.setText(item.getDescriptionId());
+      mTextSettingDescription.setText(item.getDescription());
     }
     else
     {

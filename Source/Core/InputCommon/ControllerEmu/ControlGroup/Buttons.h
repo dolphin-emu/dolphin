@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -20,7 +19,7 @@ public:
   Buttons(const std::string& ini_name, const std::string& group_name);
 
   template <typename C>
-  void GetState(C* const buttons, const C* bitmasks)
+  void GetState(C* const buttons, const C* bitmasks) const
   {
     for (auto& control : controls)
       *buttons |= *(bitmasks++) * control->GetState<bool>();

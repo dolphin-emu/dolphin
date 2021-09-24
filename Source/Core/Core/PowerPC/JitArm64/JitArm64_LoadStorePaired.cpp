@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
@@ -201,7 +200,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 
     // Inline address check
     // FIXME: This doesn't correctly account for the BAT configuration.
-    TST(addr_reg, 6, 1);
+    TST(addr_reg, LogicalImm(0x0c000000, 32));
     FixupBranch pass = B(CC_EQ);
     FixupBranch fail = B();
 

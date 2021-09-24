@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteCommon/DataReport.h"
 
@@ -335,7 +334,7 @@ InputReportID DataReportBuilder::GetMode() const
 bool DataReportBuilder::IsValidMode(InputReportID mode)
 {
   return (mode >= InputReportID::ReportCore && mode <= InputReportID::ReportCoreAccelIR10Ext6) ||
-         (mode >= InputReportID::ReportExt21 && InputReportID::ReportInterleave2 <= mode);
+         (mode >= InputReportID::ReportExt21 && mode <= InputReportID::ReportInterleave2);
 }
 
 bool DataReportBuilder::HasCore() const

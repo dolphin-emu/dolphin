@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 
@@ -26,52 +25,52 @@ ModifySettingsButton::ModifySettingsButton(std::string button_name)
 void ModifySettingsButton::AddInput(std::string button_name, bool toggle)
 {
   ControlGroup::AddInput(Translate, std::move(button_name));
-  threshold_exceeded.emplace_back(false);
-  associated_settings.emplace_back(false);
-  associated_settings_toggle.emplace_back(toggle);
+  m_threshold_exceeded.emplace_back(false);
+  m_associated_settings.emplace_back(false);
+  m_associated_settings_toggle.emplace_back(toggle);
 }
 
-void ModifySettingsButton::GetState()
+void ModifySettingsButton::UpdateState()
 {
   for (size_t i = 0; i < controls.size(); ++i)
   {
     const bool state = controls[i]->GetState<bool>();
 
-    if (!associated_settings_toggle[i])
+    if (!m_associated_settings_toggle[i])
     {
       // not toggled
-      associated_settings[i] = state;
+      m_associated_settings[i] = state;
     }
     else
     {
       // toggle (loading savestates does not en-/disable toggle)
       // after we passed the threshold, we en-/disable. but after that, we don't change it
       // anymore
-      if (!threshold_exceeded[i] && state)
+      if (!m_threshold_exceeded[i] && state)
       {
-        associated_settings[i] = !associated_settings[i];
+        m_associated_settings[i] = !m_associated_settings[i];
 
-        if (associated_settings[i])
+        if (m_associated_settings[i])
           OSD::AddMessage(controls[i]->ui_name + ": on");
         else
           OSD::AddMessage(controls[i]->ui_name + ": off");
 
-        threshold_exceeded[i] = true;
+        m_threshold_exceeded[i] = true;
       }
 
       if (!state)
-        threshold_exceeded[i] = false;
+        m_threshold_exceeded[i] = false;
     }
   }
 }
 
-const std::vector<bool>& ModifySettingsButton::isSettingToggled() const
+const std::vector<bool>& ModifySettingsButton::IsSettingToggled() const
 {
-  return associated_settings_toggle;
+  return m_associated_settings_toggle;
 }
 
-const std::vector<bool>& ModifySettingsButton::getSettingsModifier() const
+const std::vector<bool>& ModifySettingsButton::GetSettingsModifier() const
 {
-  return associated_settings;
+  return m_associated_settings;
 }
 }  // namespace ControllerEmu

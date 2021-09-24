@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.model;
 
 import androidx.annotation.Keep;
@@ -17,12 +19,12 @@ public class GameFileCache
   @Keep
   private long mPointer;
 
-  public GameFileCache(String path)
+  public GameFileCache()
   {
-    mPointer = newGameFileCache(path);
+    mPointer = newGameFileCache();
   }
 
-  private static native long newGameFileCache(String path);
+  private static native long newGameFileCache();
 
   @Override
   public native void finalize();

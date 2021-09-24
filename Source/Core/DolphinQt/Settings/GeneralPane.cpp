@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings/GeneralPane.h"
 
@@ -55,6 +54,7 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &GeneralPane::OnEmulationStateChanged);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GeneralPane::LoadConfig);
 
   OnEmulationStateChanged(Core::GetState());
 }
@@ -235,6 +235,8 @@ void GeneralPane::CreateAnalytics()
 
 void GeneralPane::LoadConfig()
 {
+  const QSignalBlocker blocker(this);
+
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();

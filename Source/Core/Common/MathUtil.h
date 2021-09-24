@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -192,7 +191,7 @@ private:
 float MathFloatVectorSum(const std::vector<float>&);
 
 // Rounds down. 0 -> undefined
-inline int IntLog2(u64 val)
+constexpr int IntLog2(u64 val)
 {
   return 63 - Common::CountLeadingZeros(val);
 }

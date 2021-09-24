@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
@@ -26,7 +28,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   private static final String ARGUMENT_MENU_TAG = "menu_tag";
   private static final String ARGUMENT_GAME_ID = "game_id";
 
-  private SettingsFragmentPresenter mPresenter = new SettingsFragmentPresenter(this);
+  private SettingsFragmentPresenter mPresenter;
   private SettingsActivityView mActivity;
 
   private SettingsAdapter mAdapter;
@@ -35,7 +37,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
   static
   {
-    titles.put(MenuTag.SETTINGS, R.string.preferences_settings);
+    titles.put(MenuTag.SETTINGS, R.string.settings);
     titles.put(MenuTag.CONFIG, R.string.config);
     titles.put(MenuTag.CONFIG_GENERAL, R.string.general_submenu);
     titles.put(MenuTag.CONFIG_INTERFACE, R.string.interface_submenu);
@@ -102,7 +104,8 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     MenuTag menuTag = (MenuTag) args.getSerializable(ARGUMENT_MENU_TAG);
     String gameId = getArguments().getString(ARGUMENT_GAME_ID);
 
-    mAdapter = new SettingsAdapter(this, getActivity());
+    mPresenter = new SettingsFragmentPresenter(this, getContext());
+    mAdapter = new SettingsAdapter(this, getContext());
 
     mPresenter.onCreate(menuTag, gameId, args);
   }

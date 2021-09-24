@@ -1,11 +1,11 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -25,14 +25,14 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
                                          std::vector<AnalyzedFrameInfo>& frameInfo)
 {
   u32* cpMem = file->GetCPMem();
-  FifoAnalyzer::LoadCPReg(0x50, cpMem[0x50], s_CpMem);
-  FifoAnalyzer::LoadCPReg(0x60, cpMem[0x60], s_CpMem);
+  FifoAnalyzer::LoadCPReg(VCD_LO, cpMem[VCD_LO], s_CpMem);
+  FifoAnalyzer::LoadCPReg(VCD_HI, cpMem[VCD_HI], s_CpMem);
 
-  for (int i = 0; i < 8; ++i)
+  for (u32 i = 0; i < CP_NUM_VAT_REG; ++i)
   {
-    FifoAnalyzer::LoadCPReg(0x70 + i, cpMem[0x70 + i], s_CpMem);
-    FifoAnalyzer::LoadCPReg(0x80 + i, cpMem[0x80 + i], s_CpMem);
-    FifoAnalyzer::LoadCPReg(0x90 + i, cpMem[0x90 + i], s_CpMem);
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_A + i, cpMem[CP_VAT_REG_A + i], s_CpMem);
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_B + i, cpMem[CP_VAT_REG_B + i], s_CpMem);
+    FifoAnalyzer::LoadCPReg(CP_VAT_REG_C + i, cpMem[CP_VAT_REG_C + i], s_CpMem);
   }
 
   frameInfo.clear();
@@ -80,6 +80,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       {
         // Clean up frame analysis
         analyzed.objectStarts.clear();
+        analyzed.objectCPStates.clear();
         analyzed.objectEnds.clear();
 
         return;
@@ -88,9 +89,14 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
       if (wasDrawing != s_DrawingObject)
       {
         if (s_DrawingObject)
+        {
           analyzed.objectStarts.push_back(cmdStart);
+          analyzed.objectCPStates.push_back(s_CpMem);
+        }
         else
+        {
           analyzed.objectEnds.push_back(cmdStart);
+        }
       }
 
       cmdStart += cmdSize;
@@ -98,5 +104,8 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
     if (analyzed.objectEnds.size() < analyzed.objectStarts.size())
       analyzed.objectEnds.push_back(cmdStart);
+
+    ASSERT(analyzed.objectStarts.size() == analyzed.objectCPStates.size());
+    ASSERT(analyzed.objectStarts.size() == analyzed.objectEnds.size());
   }
 }

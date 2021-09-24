@@ -1,5 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.view.InputDevice;
@@ -17,9 +20,10 @@ public class InputBindingSetting extends SettingsItem
 
   private String mGameId;
 
-  public InputBindingSetting(String file, String section, String key, int titleId, String gameId)
+  public InputBindingSetting(Context context, String file, String section, String key, int titleId,
+          String gameId)
   {
-    super(titleId, 0);
+    super(context, titleId, 0);
     mFile = file;
     mSection = section;
     mKey = key;

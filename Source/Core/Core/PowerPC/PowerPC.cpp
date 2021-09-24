@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/PowerPC.h"
 
@@ -20,6 +19,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/SystemTimers.h"
@@ -125,10 +125,14 @@ void DoState(PointerWrap& p)
   p.Do(ppcState.pagetable_base);
   p.Do(ppcState.pagetable_hashmask);
 
+  p.Do(ppcState.reserve);
+  p.Do(ppcState.reserve_address);
+
   ppcState.iCache.DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
+    RoundingModeUpdated();
     IBATUpdated();
     DBATUpdated();
   }
@@ -174,12 +178,17 @@ static void ResetRegisters()
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
+
+  ppcState.reserve = false;
+  ppcState.reserve_address = 0;
+
   for (auto& v : ppcState.cr.fields)
   {
     v = 0x8000000000000001;
   }
   SetXER({});
 
+  RoundingModeUpdated();
   DBATUpdated();
   IBATUpdated();
 
@@ -246,10 +255,6 @@ CPUCore DefaultCPUCore()
 
 void Init(CPUCore cpu_core)
 {
-  // NOTE: This function runs on EmuThread, not the CPU Thread.
-  //   Changing the rounding mode has a limited effect.
-  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
-
   s_invalidate_cache_thread_safe =
       CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
@@ -627,9 +632,22 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 // FPSCR update functions
 
-void UpdateFPRF(double dvalue)
+void UpdateFPRFDouble(double dvalue)
 {
   FPSCR.FPRF = Common::ClassifyDouble(dvalue);
+}
+
+void UpdateFPRFSingle(float fvalue)
+{
+  FPSCR.FPRF = Common::ClassifyFloat(fvalue);
+}
+
+void RoundingModeUpdated()
+{
+  // The rounding mode is separate for each thread, so this must run on the CPU thread
+  ASSERT(Core::IsCPUThread());
+
+  FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
 }
 
 }  // namespace PowerPC

@@ -36,6 +36,7 @@
     <ClInclude Include="Core\DSP\DSPTestText.h" />
     <ClInclude Include="Core\DSP\HermesBinary.h" />
     <ClInclude Include="Core\IOS\ES\TestBinaryData.h" />
+    <ClInclude Include="Core\PowerPC\TestValues.h" />
   </ItemGroup>
   <ItemGroup>
     <!--gtest is rather small, so just include it into the build here-->
@@ -51,6 +52,7 @@
     <ClCompile Include="Common\Crypto\EcTest.cpp" />
     <ClCompile Include="Common\EnumFormatterTest.cpp" />
     <ClCompile Include="Common\EventTest.cpp" />
+    <ClCompile Include="Common\FileUtilTest.cpp" />
     <ClCompile Include="Common\FixedSizeQueueTest.cpp" />
     <ClCompile Include="Common\FlagTest.cpp" />
     <ClCompile Include="Common\FloatUtilsTest.cpp" />
@@ -69,8 +71,7 @@
     <ClCompile Include="Core\IOS\FS\FileSystemTest.cpp" />
     <ClCompile Include="Core\MMIOTest.cpp" />
     <ClCompile Include="Core\PageFaultTest.cpp" />
-    <ClCompile Include="DivUtilsTest.cpp" />
-    <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="Core\PowerPC\DivUtilsTest.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
     <ClCompile Include="StubHost.cpp" />
   </ItemGroup>
@@ -82,6 +83,9 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)'=='ARM64'">
     <ClCompile Include="Core\PowerPC\JitArm64\ConvertSingleDouble.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\FPRF.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\Fres.cpp" />
+    <ClCompile Include="Core\PowerPC\JitArm64\Frsqrte.cpp" />
     <ClCompile Include="Core\PowerPC\JitArm64\MovI2R.cpp" />
   </ItemGroup>
   <ItemGroup>

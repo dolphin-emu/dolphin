@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
@@ -183,6 +182,30 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
 void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
 {
   g_framebuffer_manager->ReinterpretPixelData(convtype);
+}
+
+u16 Renderer::BBoxRead(int index)
+{
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+    return m_bounding_box_fallback[index];
+
+  return BBoxReadImpl(index);
+}
+
+void Renderer::BBoxWrite(int index, u16 value)
+{
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    m_bounding_box_fallback[index] = value;
+    return;
+  }
+
+  BBoxWriteImpl(index, value);
+}
+
+void Renderer::BBoxFlush()
+{
+  BBoxFlushImpl();
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
@@ -776,6 +799,7 @@ void Renderer::UpdateDrawRectangle()
   const float win_width = static_cast<float>(m_backbuffer_width);
   const float win_height = static_cast<float>(m_backbuffer_height);
 
+  // FIXME: this breaks at very low widget sizes
   // Make ControllerInterface aware of the render window region actually being used
   // to adjust mouse cursor inputs.
   g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / (win_width / win_height));
@@ -889,7 +913,9 @@ void Renderer::CheckFifoRecording()
     RecordVideoMemory();
   }
 
-  FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase, CommandProcessor::fifo.CPEnd);
+  FifoRecorder::GetInstance().EndFrame(
+      CommandProcessor::fifo.CPBase.load(std::memory_order_relaxed),
+      CommandProcessor::fifo.CPEnd.load(std::memory_order_relaxed));
 }
 
 void Renderer::RecordVideoMemory()
@@ -1335,7 +1361,12 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         // Remove stale EFB/XFB copies.
         g_texture_cache->Cleanup(m_frame_count);
-        Core::Callback_FramePresented();
+        const double last_speed_denominator =
+            m_fps_counter.GetDeltaTime() * VideoInterface::GetTargetRefreshRate();
+        // The denominator should always be > 0 but if it's not, just return 1
+        const double last_speed =
+            last_speed_denominator > 0.0 ? (1.0 / last_speed_denominator) : 1.0;
+        Core::Callback_FramePresented(last_speed);
       }
 
       // Handle any config changes, this gets propagated to the backend.
@@ -1725,6 +1756,7 @@ void Renderer::DoState(PointerWrap& p)
   p.Do(m_last_xfb_width);
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
+  p.DoArray(m_bounding_box_fallback);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {

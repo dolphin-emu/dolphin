@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 
@@ -30,6 +29,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -164,7 +164,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
     File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
   }
 
-  const bool current_game_only = Config::Get(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY);
+  const bool current_game_only = Config::Get(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY);
   std::vector<std::string> filenames = Common::DoFileSearch({m_save_directory}, {".gci"});
 
   // split up into files for current games we should definitely load,
@@ -203,8 +203,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
   }
 
   // leave about 10% of free space on the card if possible
-  const int total_blocks =
-      m_hdr.m_data.m_size_mb * Memcard::MBIT_TO_BLOCKS - Memcard::MC_FST_BLOCKS;
+  const int total_blocks = Memcard::MbitToFreeBlocks(m_hdr.m_data.m_size_mb);
   const int reserved_blocks = total_blocks / 10;
 
   // load files for other games
@@ -237,7 +236,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
 
 void GCMemcardDirectory::FlushThread()
 {
-  if (!SConfig::GetInstance().bEnableMemcardSdWriting)
+  if (!Config::Get(Config::SESSION_SAVE_DATA_WRITABLE))
   {
     return;
   }

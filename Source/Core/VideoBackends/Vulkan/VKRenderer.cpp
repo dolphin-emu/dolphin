@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstddef>
@@ -131,17 +130,17 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-u16 Renderer::BBoxRead(int index)
+u16 Renderer::BBoxReadImpl(int index)
 {
   return static_cast<u16>(m_bounding_box->Get(index));
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWriteImpl(int index, u16 value)
 {
   m_bounding_box->Set(index, value);
 }
 
-void Renderer::BBoxFlush()
+void Renderer::BBoxFlushImpl()
 {
   m_bounding_box->Flush();
   m_bounding_box->Invalidate();

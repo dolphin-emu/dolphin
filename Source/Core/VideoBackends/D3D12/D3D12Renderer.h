@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -47,9 +46,9 @@ public:
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
 
-  u16 BBoxRead(int index) override;
-  void BBoxWrite(int index, u16 value) override;
-  void BBoxFlush() override;
+  u16 BBoxReadImpl(int index) override;
+  void BBoxWriteImpl(int index, u16 value) override;
+  void BBoxFlushImpl() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
 #include <string>
@@ -104,4 +103,14 @@ TEST(StringUtil, ToString_TryParse_Roundtrip)
   DoRoundTripTest<unsigned int>({0u, 1u, 123u, 123456789u, 4023456789u});
   DoRoundTripTest<float>({0.0f, 1.0f, -1.0f, -0.5f, 0.5f, -1e-3f, 1e-3f, 1e3f, -1e3f});
   DoRoundTripTest<double>({0.0, 1.0, -1.0, -0.5, 0.5, -1e-3, 1e-3, 1e3, -1e3});
+}
+
+TEST(StringUtil, GetEscapedHtml)
+{
+  static constexpr auto no_escape_needed =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+      "!@#$%^*()-_=+,./?;:[]{}| \\\t\n";
+  EXPECT_EQ(GetEscapedHtml(no_escape_needed), no_escape_needed);
+  EXPECT_EQ(GetEscapedHtml("&<>'\""), "&amp;&lt;&gt;&apos;&quot;");
+  EXPECT_EQ(GetEscapedHtml("&&&"), "&amp;&amp;&amp;");
 }

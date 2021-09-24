@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -31,8 +30,7 @@ public:
     Yes = 1,
   };
 
-  GameFileCache();  // Uses the default path
-  explicit GameFileCache(std::string path);
+  GameFileCache();
 
   void ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const;
 

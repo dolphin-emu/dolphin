@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -50,9 +49,8 @@ public:
   bool AbortMD5();
   void SendChatMessage(const std::string& msg);
 
-  void SetNetSettings(const NetSettings& settings);
-
   bool DoAllPlayersHaveIPLDump() const;
+  bool DoAllPlayersHaveHardwareFMA() const;
   bool StartGame();
   bool RequestStartGame();
   void AbortGameStart();
@@ -60,11 +58,16 @@ public:
   PadMappingArray GetPadMapping() const;
   void SetPadMapping(const PadMappingArray& mappings);
 
+  GBAConfigArray GetGBAConfig() const;
+  void SetGBAConfig(const GBAConfigArray& configs, bool update_rom);
+
   PadMappingArray GetWiimoteMapping() const;
   void SetWiimoteMapping(const PadMappingArray& mappings);
 
   void AdjustPadBufferSize(unsigned int size);
   void SetHostInputAuthority(bool enable);
+
+  void AdjustRankedBox(bool is_ranked);
 
   void KickPlayer(PlayerId player);
 
@@ -84,6 +87,7 @@ private:
     std::string revision;
     SyncIdentifierComparison game_status;
     bool has_ipl_dump;
+    bool has_hardware_fma;
 
     ENetPeer* socket;
     u32 ping;
@@ -117,11 +121,10 @@ private:
     std::string title;
   };
 
+  bool SetupNetSettings();
   bool SyncSaveData();
   bool SyncCodes();
   void CheckSyncAndStartGame();
-  bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
-  bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
 
   u64 GetInitialNetPlayRTC() const;
 
@@ -136,6 +139,7 @@ private:
   void OnConnectReady(ENetAddress) override {}
   void OnConnectFailed(TraversalConnectFailedReason) override {}
   void UpdatePadMapping();
+  void UpdateGBAConfig();
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
@@ -155,6 +159,7 @@ private:
   u32 m_current_game = 0;
   unsigned int m_target_buffer_size = 0;
   PadMappingArray m_pad_map;
+  GBAConfigArray m_gba_config;
   PadMappingArray m_wiimote_map;
   unsigned int m_save_data_synced_players = 0;
   unsigned int m_codes_synced_players = 0;
@@ -164,6 +169,8 @@ private:
   bool m_host_input_authority = false;
   PlayerId m_current_golfer = 1;
   PlayerId m_pending_golfer = 0;
+
+  bool m_current_ranked_value = false;
 
   std::map<PlayerId, Client> m_players;
 

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/OGLRender.h"
 
@@ -11,7 +10,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
@@ -745,8 +743,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     OSD::AddMessage(fmt::format("Your OpenGL driver does not support {}_buffer_storage.",
                                 m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
                     60000);
-    OSD::AddMessage("This device's performance will be terrible.", 60000);
-    OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
+    OSD::AddMessage("This device's performance may be poor.", 60000);
   }
 
   WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
@@ -855,32 +852,19 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-u16 Renderer::BBoxRead(int index)
+u16 Renderer::BBoxReadImpl(int index)
 {
-  // swap 2 and 3 for top/bottom
-  if (index >= 2)
-    index ^= 1;
-
-  int value = BoundingBox::Get(index);
-  if (index >= 2)
-  {
-    // up/down -- we have to swap up and down
-    value = EFB_HEIGHT - value;
-  }
-
-  return static_cast<u16>(value);
+  return static_cast<u16>(BoundingBox::Get(index));
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWriteImpl(int index, u16 value)
 {
-  s32 swapped_value = value;
-  if (index >= 2)
-  {
-    index ^= 1;  // swap 2 and 3 for top/bottom
-    swapped_value = EFB_HEIGHT - swapped_value;
-  }
+  BoundingBox::Set(index, value);
+}
 
-  BoundingBox::Set(index, swapped_value);
+void Renderer::BBoxFlushImpl()
+{
+  BoundingBox::Flush();
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,

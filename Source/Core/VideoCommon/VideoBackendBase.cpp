@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -168,10 +167,8 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
                     "for this game.");
     }
     warn_once = false;
-    return 0;
   }
-
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  else if (!g_ActiveConfig.backend_info.bSupportsBBox)
   {
     static bool warn_once = true;
     if (warn_once)
@@ -182,7 +179,6 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
           "freezes while running this game.");
     }
     warn_once = false;
-    return 0;
   }
 
   Fifo::SyncGPU(Fifo::SyncGPUReason::BBox);

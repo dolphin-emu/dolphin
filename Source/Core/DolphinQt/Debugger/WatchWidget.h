@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -34,6 +33,10 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
 
+  void OnDelete();
+  void OnClear();
+  void OnNewWatch();
+
   void OnLoad();
   void OnSave();
 
@@ -47,6 +50,9 @@ private:
 
   void UpdateIcons();
 
+  QAction* m_new;
+  QAction* m_delete;
+  QAction* m_clear;
   QAction* m_load;
   QAction* m_save;
   QToolBar* m_toolbar;

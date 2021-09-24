@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -149,4 +148,4 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 void SetInterruptEnabled(DIInterruptType interrupt, bool enabled);
 void ClearInterrupt(DIInterruptType interrupt);
 
-}  // end of namespace DVDInterface
+}  // namespace DVDInterface

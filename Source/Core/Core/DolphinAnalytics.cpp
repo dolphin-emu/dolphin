@@ -289,11 +289,17 @@ void DolphinAnalytics::MakeBaseBuilder()
       s64 minor_version;  // NSInteger minorVersion
       s64 patch_version;  // NSInteger patchVersion
     };
-
+    // Under arm64, we need to call objc_msgSend to recieve a struct.
+    // On x86_64, we need to explicitly call objc_msgSend_stret for a struct.
+#if _M_ARM_64
+#define msgSend objc_msgSend
+#else
+#define msgSend objc_msgSend_stret
+#endif
     // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
-    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(objc_msgSend_stret)(
+    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(msgSend)(
         processInfo, sel_getUid("operatingSystemVersion"));
-
+#undef msgSend
     builder.AddData("osx-ver-major", version.major_version);
     builder.AddData("osx-ver-minor", version.minor_version);
     builder.AddData("osx-ver-bugfix", version.patch_version);

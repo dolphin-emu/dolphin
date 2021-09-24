@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/SWRenderer.h"
 
@@ -27,7 +26,8 @@
 namespace SW
 {
 SWRenderer::SWRenderer(std::unique_ptr<SWOGLWindow> window)
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT), 1.0f,
+    : ::Renderer(static_cast<int>(std::max(window->GetContext()->GetBackBufferWidth(), 1u)),
+                 static_cast<int>(std::max(window->GetContext()->GetBackBufferHeight(), 1u)), 1.0f,
                  AbstractTextureFormat::RGBA8),
       m_window(std::move(window))
 {
@@ -54,6 +54,18 @@ SWRenderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture
 {
   return SWFramebuffer::Create(static_cast<SWTexture*>(color_attachment),
                                static_cast<SWTexture*>(depth_attachment));
+}
+
+void SWRenderer::BindBackbuffer(const ClearColor& clear_color)
+{
+  // Look for framebuffer resizes
+  if (!m_surface_resized.TestAndClear())
+    return;
+
+  GLContext* context = m_window->GetContext();
+  context->Update();
+  m_backbuffer_width = context->GetBackBufferWidth();
+  m_backbuffer_height = context->GetBackBufferHeight();
 }
 
 class SWShader final : public AbstractShader
@@ -126,12 +138,12 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
   return value;
 }
 
-u16 SWRenderer::BBoxRead(int index)
+u16 SWRenderer::BBoxReadImpl(int index)
 {
   return BoundingBox::GetCoordinate(static_cast<BoundingBox::Coordinate>(index));
 }
 
-void SWRenderer::BBoxWrite(int index, u16 value)
+void SWRenderer::BBoxWriteImpl(int index, u16 value)
 {
   BoundingBox::SetCoordinate(static_cast<BoundingBox::Coordinate>(index), value);
 }

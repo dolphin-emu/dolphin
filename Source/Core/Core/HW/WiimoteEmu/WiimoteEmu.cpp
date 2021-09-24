@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
@@ -428,7 +427,7 @@ void Wiimote::Update()
 
   // Hotkey / settings modifier
   // Data is later accessed in IsSideways and IsUpright
-  m_hotkeys->GetState();
+  m_hotkeys->UpdateState();
 
   // Update our motion simulations.
   StepDynamics();
@@ -614,6 +613,11 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "`Click 1`");
   // B
   m_buttons->SetControlExpression(1, "`Click 3`");
+#elif __APPLE__
+  // A
+  m_buttons->SetControlExpression(0, "`Left Click`");
+  // B
+  m_buttons->SetControlExpression(1, "`Right Click`");
 #else
   // A
   m_buttons->SetControlExpression(0, "`Click 0`");
@@ -634,7 +638,11 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
   // Shake
   for (int i = 0; i < 3; ++i)
+#ifdef __APPLE__
+    m_shake->SetControlExpression(i, "`Middle Click`");
+#else
     m_shake->SetControlExpression(i, "`Click 2`");
+#endif
 
   // Pointing (IR)
   m_ir->SetControlExpression(0, "`Cursor Y-`");
@@ -700,15 +708,15 @@ EncryptionKey Wiimote::GetExtensionEncryptionKey() const
 
 bool Wiimote::IsSideways() const
 {
-  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
-  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
+  const bool sideways_modifier_toggle = m_hotkeys->GetSettingsModifier()[0];
+  const bool sideways_modifier_switch = m_hotkeys->GetSettingsModifier()[2];
   return m_sideways_setting.GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
 }
 
 bool Wiimote::IsUpright() const
 {
-  const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
-  const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
+  const bool upright_modifier_toggle = m_hotkeys->GetSettingsModifier()[1];
+  const bool upright_modifier_switch = m_hotkeys->GetSettingsModifier()[3];
   return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 

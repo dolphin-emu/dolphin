@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
@@ -41,12 +43,8 @@ public final class RunRunnableViewHolder extends SettingViewHolder
   {
     mItem = (RunRunnable) item;
 
-    mTextSettingName.setText(item.getNameId());
-
-    if (item.getDescriptionId() > 0)
-    {
-      mTextSettingDescription.setText(item.getDescriptionId());
-    }
+    mTextSettingName.setText(item.getName());
+    mTextSettingDescription.setText(item.getDescription());
   }
 
   @Override
@@ -57,7 +55,7 @@ public final class RunRunnableViewHolder extends SettingViewHolder
     if (alertTextID > 0)
     {
       AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
-              .setTitle(mItem.getNameId())
+              .setTitle(mItem.getName())
               .setMessage(alertTextID);
 
       builder

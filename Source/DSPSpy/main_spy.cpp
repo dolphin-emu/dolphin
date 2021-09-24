@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // This is a test program for running code on the Wii DSP, with full control over input
 // and automatic compare with output. VERY useful for figuring out what those little
@@ -179,8 +178,10 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
 
   u64 prod = (u64(regs[DSP_REG_PRODH]) << 32) + (u64(regs[DSP_REG_PRODM]) << 16) +
              (u64(regs[DSP_REG_PRODM2]) << 16) + u64(regs[DSP_REG_PRODL]);
-  CON_Printf(x + 2, y + 13, "PROD: %02x %04x %04x", (prod >> 32) & 0xff, (prod >> 16) & 0xffff,
-             prod & 0xffff);
+  u8 prod_h = (prod >> 32) & 0xff;
+  u16 prod_m = (prod >> 16) & 0xffff;
+  u16 prod_l = prod & 0xffff;
+  CON_Printf(x + 2, y + 13, "PROD: %02x %04x %04x", prod_h, prod_m, prod_l);
 
   CON_Printf(x + 2, y + 14, "SR:");
   for (int i = 0; i < 16; ++i)

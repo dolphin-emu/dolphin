@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/RenderState.h"
 #include <algorithm>
@@ -241,8 +240,9 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias * (256 / 32) : 0;
 
   // Address modes
+  // Hardware testing indicates that wrap_mode set to 3 behaves the same as clamp.
   static constexpr std::array<AddressMode, 4> address_modes = {
-      {AddressMode::Clamp, AddressMode::Repeat, AddressMode::MirroredRepeat, AddressMode::Repeat}};
+      {AddressMode::Clamp, AddressMode::Repeat, AddressMode::MirroredRepeat, AddressMode::Clamp}};
   wrap_u = address_modes[u32(tm0.wrap_s.Value())];
   wrap_v = address_modes[u32(tm0.wrap_t.Value())];
   anisotropic_filtering = 0;

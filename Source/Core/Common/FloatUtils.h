@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,18 +9,6 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
-#ifdef _MSC_VER
-
-// MSVC needs a workaround, because its std::numeric_limits<double>::signaling_NaN()
-// will use __builtin_nans, which is improperly handled by the compiler and generates
-// a bad constant. Here we go back to the version MSVC used before the builtin.
-// TODO: Remove this and use numeric_limits directly whenever this bug is fixed.
-// See Visual Studio bug # 128935 "std::numeric_limits<float>::signaling_NaN() is broken"
-
-#include <ymath.h>
-
-#endif  // _MSC_VER
-
 namespace Common
 {
 template <typename T>
@@ -29,23 +16,6 @@ constexpr T SNANConstant()
 {
   return std::numeric_limits<T>::signaling_NaN();
 }
-
-#ifdef _MSC_VER
-
-// See workaround note above.
-
-template <>
-constexpr double SNANConstant()
-{
-  return (_CSTD _Snan._Double);
-}
-template <>
-constexpr float SNANConstant()
-{
-  return (_CSTD _Snan._Float);
-}
-
-#endif  // _MSC_VER
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 enum : u64
@@ -116,7 +86,6 @@ enum PPCFpClass
 // Uses PowerPC conventions for the return value, so it can be easily
 // used directly in CPU emulation.
 u32 ClassifyDouble(double dvalue);
-// More efficient float version.
 u32 ClassifyFloat(float fvalue);
 
 struct BaseAndDec

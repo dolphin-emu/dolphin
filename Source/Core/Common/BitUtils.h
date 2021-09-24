@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -413,5 +412,14 @@ constexpr int CountLeadingZeros(uint32_t value)
 }
 
 #undef CONSTEXPR_FROM_INTRINSIC
+
+template <typename T>
+constexpr T LargestPowerOf2Divisor(T value)
+{
+  static_assert(std::is_unsigned<T>(),
+                "LargestPowerOf2Divisor only makes sense for unsigned types.");
+
+  return value & -static_cast<std::make_signed_t<T>>(value);
+}
 
 }  // namespace Common

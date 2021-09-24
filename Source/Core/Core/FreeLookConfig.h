@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // IMPORTANT: UI etc should modify the value returned by FreeLook::GetConfig().
 // Free Look code should read from the value returned by FreeLook::GetActiveConfig().

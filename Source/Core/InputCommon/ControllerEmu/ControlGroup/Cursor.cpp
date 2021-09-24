@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
@@ -64,7 +63,7 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
 }
 
-Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
+Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();

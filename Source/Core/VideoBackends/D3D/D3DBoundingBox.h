@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 #include "VideoBackends/D3D/D3DBase.h"
@@ -13,6 +12,9 @@ public:
   static ID3D11UnorderedAccessView* GetUAV();
   static void Init();
   static void Shutdown();
+
+  static void Flush();
+  static void Readback();
 
   static void Set(int index, int value);
   static int Get(int index);

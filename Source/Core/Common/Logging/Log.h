@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -20,6 +19,7 @@ enum LOG_TYPE
   COMMANDPROCESSOR,
   COMMON,
   CONSOLE,
+  CONTROLLERINTERFACE,
   CORE,
   DISCIO,
   DSPHLE,
@@ -53,7 +53,6 @@ enum LOG_TYPE
   OSHLE,
   OSREPORT,
   OSREPORT_HLE,
-  PAD,
   PIXELENGINE,
   PROCESSORINTERFACE,
   POWERPC,

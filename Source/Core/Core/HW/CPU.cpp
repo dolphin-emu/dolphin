@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/CPU.h"
 
@@ -87,6 +86,10 @@ static void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 
 void Run()
 {
+  // Updating the host CPU's rounding mode must be done on the CPU thread.
+  // We can't rely on PowerPC::Init doing it, since it's called from EmuThread.
+  PowerPC::RoundingModeUpdated();
+
   std::unique_lock state_lock(s_state_change_lock);
   while (s_state != State::PowerDown)
   {

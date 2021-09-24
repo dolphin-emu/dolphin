@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
@@ -32,7 +31,7 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
   AddInput(Translate, _trans("Modifier"));
 }
 
-AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)
+AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted) const
 {
   const ControlState y = controls[0]->GetState() - controls[1]->GetState();
   const ControlState x = controls[3]->GetState() - controls[2]->GetState();
@@ -46,7 +45,7 @@ AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)
   return Reshape(x, y, modifier);
 }
 
-AnalogStick::StateData AnalogStick::GetState()
+AnalogStick::StateData AnalogStick::GetState() const
 {
   return GetReshapableState(true);
 }

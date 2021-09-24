@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
@@ -74,6 +73,35 @@ void JitArm64::ComputeCarry()
     return;
 
   FlushCarry();
+}
+
+void JitArm64::LoadCarry()
+{
+  switch (js.carryFlag)
+  {
+  case CarryFlag::InPPCState:
+  {
+    ARM64Reg WA = gpr.GetReg();
+    LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+    CMP(WA, 1);
+    gpr.Unlock(WA);
+    break;
+  }
+  case CarryFlag::InHostCarry:
+  {
+    break;
+  }
+  case CarryFlag::ConstantTrue:
+  {
+    CMP(ARM64Reg::WZR, ARM64Reg::WZR);
+    break;
+  }
+  case CarryFlag::ConstantFalse:
+  {
+    CMN(ARM64Reg::WZR, ARM64Reg::WZR);
+    break;
+  }
+  }
 }
 
 void JitArm64::FlushCarry()
@@ -583,7 +611,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   else if (!inst.SH)
   {
     // Immediate mask
-    ANDI2R(gpr.R(a), gpr.R(s), mask);
+    AND(gpr.R(a), gpr.R(s), LogicalImm(mask, 32));
   }
   else if (inst.ME == 31 && 31 < inst.SH + inst.MB)
   {
@@ -938,11 +966,12 @@ void JitArm64::subfex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
+  bool mex = inst.SUBOP10 & 32;
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
   {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+    u32 i = gpr.GetImm(a), j = mex ? -1 : gpr.GetImm(b);
 
     gpr.BindToRegister(d, false);
 
@@ -994,50 +1023,24 @@ void JitArm64::subfex(UGeckoInstruction inst)
   }
   else
   {
-    ARM64Reg WA = js.carryFlag != CarryFlag::ConstantTrue ? gpr.GetReg() : ARM64Reg::INVALID_REG;
     gpr.BindToRegister(d, d == a || d == b);
+    ARM64Reg RB = mex ? gpr.GetReg() : gpr.R(b);
+    if (mex)
+      MOVI2R(RB, -1);
 
-    switch (js.carryFlag)
+    if (js.carryFlag == CarryFlag::ConstantTrue)
     {
-    case CarryFlag::InPPCState:
-    {
-      // upload the carry state
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      CMP(WA, 1);
-      [[fallthrough]];
+      CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), RB, gpr.R(a));
     }
-    case CarryFlag::InHostCarry:
+    else
     {
-      if (gpr.IsImm(a))
-        MOVI2R(WA, u32(~gpr.GetImm(a)));
-      else
-        MVN(WA, gpr.R(a));
-
-      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), WA, gpr.R(b));
-      ComputeCarry();
-      break;
-    }
-    case CarryFlag::ConstantTrue:
-    {
-      CARRY_IF_NEEDED(SUB, SUBS, gpr.R(d), gpr.R(b), gpr.R(a));
-      ComputeCarry();
-      break;
-    }
-    case CarryFlag::ConstantFalse:
-    {
-      if (gpr.IsImm(a))
-        MOVI2R(WA, u32(~gpr.GetImm(a)));
-      else
-        MVN(WA, gpr.R(a));
-
-      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), WA, gpr.R(b));
-      ComputeCarry();
-      break;
-    }
+      LoadCarry();
+      CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), RB, gpr.R(a));
     }
 
-    if (WA != ARM64Reg::INVALID_REG)
-      gpr.Unlock(WA);
+    ComputeCarry();
+    if (mex)
+      gpr.Unlock(RB);
   }
 
   if (inst.Rc)
@@ -1100,8 +1103,7 @@ void JitArm64::subfzex(UGeckoInstruction inst)
   }
   case CarryFlag::InHostCarry:
   {
-    MVN(gpr.R(d), gpr.R(a));
-    CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(d), ARM64Reg::WZR);
+    CARRY_IF_NEEDED(SBC, SBCS, gpr.R(d), ARM64Reg::WZR, gpr.R(a));
     ComputeCarry();
     break;
   }
@@ -1158,11 +1160,12 @@ void JitArm64::addex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
+  bool mex = inst.SUBOP10 & 32;
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.IsImm(a) && gpr.IsImm(b))
+  if (gpr.IsImm(a) && (mex || gpr.IsImm(b)))
   {
-    u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+    u32 i = gpr.GetImm(a), j = mex ? -1 : gpr.GetImm(b);
 
     gpr.BindToRegister(d, false);
 
@@ -1215,61 +1218,23 @@ void JitArm64::addex(UGeckoInstruction inst)
   else
   {
     gpr.BindToRegister(d, d == a || d == b);
+    ARM64Reg RB = mex ? gpr.GetReg() : gpr.R(b);
+    if (mex)
+      MOVI2R(RB, -1);
 
-    if (js.carryFlag == CarryFlag::ConstantTrue && !gpr.IsImm(a) && !gpr.IsImm(b))
+    if (js.carryFlag == CarryFlag::ConstantFalse)
     {
-      CMP(ARM64Reg::WZR, ARM64Reg::WZR);
-      js.carryFlag = CarryFlag::InHostCarry;
+      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), RB);
+    }
+    else
+    {
+      LoadCarry();
+      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), RB);
     }
 
-    switch (js.carryFlag)
-    {
-    case CarryFlag::InPPCState:
-    {
-      // upload the carry state
-      ARM64Reg WA = gpr.GetReg();
-      LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      CMP(WA, 1);
-      gpr.Unlock(WA);
-      [[fallthrough]];
-    }
-    case CarryFlag::InHostCarry:
-    {
-      CARRY_IF_NEEDED(ADC, ADCS, gpr.R(d), gpr.R(a), gpr.R(b));
-      ComputeCarry();
-      break;
-    }
-    case CarryFlag::ConstantTrue:
-    {
-      if (!gpr.IsImm(b))
-        std::swap(a, b);
-      ASSERT(gpr.IsImm(b));
-
-      ARM64Reg WA = gpr.GetReg();
-      const u32 imm = gpr.GetImm(b) + 1;
-      if (imm == 0)
-      {
-        if (d != a)
-          MOV(gpr.R(d), gpr.R(a));
-
-        ComputeCarry(true);
-      }
-      else
-      {
-        CARRY_IF_NEEDED(ADDI2R, ADDSI2R, gpr.R(d), gpr.R(a), imm, WA);
-        ComputeCarry();
-      }
-      gpr.Unlock(WA);
-
-      break;
-    }
-    case CarryFlag::ConstantFalse:
-    {
-      CARRY_IF_NEEDED(ADD, ADDS, gpr.R(d), gpr.R(a), gpr.R(b));
-      ComputeCarry();
-      break;
-    }
-    }
+    ComputeCarry();
+    if (mex)
+      gpr.Unlock(RB);
   }
 
   if (inst.Rc)
@@ -1451,15 +1416,12 @@ void JitArm64::slwx(UGeckoInstruction inst)
   {
     gpr.BindToRegister(a, a == b || a == s);
 
-    // PowerPC any shift in the 32-63 register range results in zero
-    // Since it has 32bit registers
-    // AArch64 it will use a mask of the register size for determining what shift amount
-    // So if we use a 64bit so the bits will end up in the high 32bits, and
-    // Later instructions will just eat high 32bits since it'll run 32bit operations for everything.
+    // On PowerPC, shifting a 32-bit register by an amount from 32 to 63 results in 0.
+    // We emulate this by using a 64-bit operation and then discarding the top 32 bits.
     LSLV(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(s)), EncodeRegTo64(gpr.R(b)));
-
     if (inst.Rc)
       ComputeRC0(gpr.R(a));
+    MOV(gpr.R(a), gpr.R(a));
   }
 }
 
@@ -1498,10 +1460,6 @@ void JitArm64::srwx(UGeckoInstruction inst)
   else
   {
     gpr.BindToRegister(a, a == b || a == s);
-
-    // wipe upper bits. TODO: get rid of it, but then no instruction is allowed to emit some higher
-    // bits.
-    MOV(gpr.R(s), gpr.R(s));
 
     LSRV(EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(s)), EncodeRegTo64(gpr.R(b)));
 
