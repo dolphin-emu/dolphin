@@ -404,6 +404,10 @@ add_library(core
   IOS/WFS/WFSSRV.h
   LibusbUtils.cpp
   LibusbUtils.h
+  LocalPlayers.cpp
+  LocalPlayers.h
+  LocalPlayersConfig.cpp
+  LocalPlayersConfig.h
   MemTools.cpp
   MemTools.h
   Movie.cpp

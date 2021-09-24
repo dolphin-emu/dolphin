@@ -53,6 +53,8 @@ add_executable(dolphin-emu
   Translation.h
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/AddLocalPlayers.cpp
+  Config/AddLocalPlayers.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
