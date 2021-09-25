@@ -648,8 +648,16 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
     if (padState.reset)
       display_str += " RESET";
 
-    display_str += Analog1DToString(padState.TriggerL, " L");
-    display_str += Analog1DToString(padState.TriggerR, " R");
+    if (padState.TriggerL == 255 || padState.L)
+      display_str += " L";
+    else
+      display_str += Analog1DToString(padState.TriggerL, " L");
+
+    if (padState.TriggerR == 255 || padState.R)
+      display_str += " R";
+    else
+      display_str += Analog1DToString(padState.TriggerR, " R");
+
     display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
     display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
   }
