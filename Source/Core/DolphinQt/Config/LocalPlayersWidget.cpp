@@ -25,7 +25,6 @@
 #include "Core/LocalPlayersConfig.h"
 #include "DolphinQt/Config/AddLocalPlayers.h"
 
-#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"

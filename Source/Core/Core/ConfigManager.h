@@ -326,8 +326,6 @@ struct SConfig
   std::string m_local_player_3{"No Player Selected"};
   std::string m_local_player_4{"No Player Selected"};
   
-  //std::string m_local_player_reset = "No Player Selected";
-
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -339,7 +337,6 @@ struct SConfig
 
   // Load settings
   void LoadSettings();
-  //void LoadLocalSettings();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
@@ -363,14 +360,12 @@ private:
   void SaveAutoUpdateSettings(IniFile& ini);
   void SaveJitDebugSettings(IniFile& ini);
   void SaveLocalPlayerSettings(IniFile& ini);
-
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
-  //void LoadLocalPlayerSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
