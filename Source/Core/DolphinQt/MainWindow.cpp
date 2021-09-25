@@ -283,8 +283,6 @@ MainWindow::~MainWindow()
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
 
-  ResetLocalPlayers();
-
   delete m_render_widget;
   delete m_netplay_dialog;
 
@@ -552,12 +550,6 @@ void MainWindow::ConnectMenuBar()
     m_code_widget->UpdateSymbols();
     m_code_widget->Update();
   });
-}
-
-void MainWindow::ResetLocalPlayers()
-{
-  SConfig& settings = SConfig::GetInstance();
-  settings.LoadLocalSettings();
 }
 
 void MainWindow::ConnectHotkeys()
