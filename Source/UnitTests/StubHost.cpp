@@ -46,6 +46,10 @@ bool Host_RendererHasFullFocus()
 {
   return false;
 }
+bool Host_TASInputHasFullFocus()
+{
+  return false;
+}
 bool Host_RendererIsFullscreen()
 {
   return false;

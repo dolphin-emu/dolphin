@@ -52,6 +52,7 @@ std::vector<std::string> Host_GetPreferredLocales();
 bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererHasFullFocus();
+bool Host_TASInputHasFullFocus();
 bool Host_RendererIsFullscreen();
 
 void Host_Message(HostMessageID id);

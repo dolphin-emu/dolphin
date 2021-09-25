@@ -16,6 +16,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Resources.h"
@@ -234,4 +235,14 @@ void TASInputWindow::GetSpinBoxU16(QSpinBox* spin, u16& controller_value)
   }
 
   controller_value = spin->value();
+}
+
+void TASInputWindow::focusOutEvent(QFocusEvent* event)
+{
+  Host::GetInstance()->SetTASInputFullFocus(false);
+}
+
+void TASInputWindow::focusInEvent(QFocusEvent* event)
+{
+  Host::GetInstance()->SetTASInputFullFocus(true);
 }

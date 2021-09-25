@@ -103,6 +103,11 @@ bool Host_RendererHasFullFocus()
   return Host_RendererHasFocus();
 }
 
+bool Host_TASInputHasFullFocus()
+{
+  return false;
+}
+
 bool Host_RendererIsFullscreen()
 {
   return s_platform->IsWindowFullscreen();

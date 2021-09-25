@@ -45,6 +45,9 @@ protected:
   QSpinBox* m_turbo_press_frames;
   QSpinBox* m_turbo_release_frames;
 
+  void focusOutEvent(QFocusEvent* event);
+  void focusInEvent(QFocusEvent* event);
+
 private:
   std::map<TASCheckBox*, bool> m_checkbox_set_by_controller;
   std::map<QSpinBox*, u8> m_spinbox_most_recent_values_u8;
