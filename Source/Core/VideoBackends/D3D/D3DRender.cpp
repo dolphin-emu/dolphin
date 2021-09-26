@@ -155,6 +155,7 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize
   D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
   D3D::stateman->SyncComputeBindings();
   D3D::context->Dispatch(groups_x, groups_y, groups_z);
+  D3D::stateman->SetComputeUAV(nullptr);
 }
 
 void Renderer::BindBackbuffer(const ClearColor& clear_color)
