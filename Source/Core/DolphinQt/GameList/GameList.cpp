@@ -353,6 +353,11 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (DiscIO::IsDisc(platform))
     {
+      menu->addAction(tr("Start with Riivolution Patches..."), this,
+                      &GameList::StartWithRiivolution);
+
+      menu->addSeparator();
+
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
 
       if (game->ShouldAllowConversion())
@@ -585,6 +590,15 @@ void GameList::UninstallWAD()
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
   result_dialog.exec();
+}
+
+void GameList::StartWithRiivolution()
+{
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  emit OnStartWithRiivolution(*game);
 }
 
 void GameList::SetDefaultISO()
