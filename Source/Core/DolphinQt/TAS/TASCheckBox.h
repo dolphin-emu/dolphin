@@ -14,7 +14,9 @@ class TASCheckBox : public QCheckBox
 public:
   explicit TASCheckBox(const QString& text, TASInputWindow* parent);
 
-  bool GetValue() const;
+  bool GetValue();
+  bool GetIsTurbo();
+  bool GetStateChanged();
 
 protected:
   void mousePressEvent(QMouseEvent* event) override;
@@ -26,4 +28,6 @@ private:
   int m_frame_turbo_started;
   int m_turbo_press_frames;
   int m_turbo_total_frames;
+  bool m_is_turbo;
+  bool m_state_changed;
 };

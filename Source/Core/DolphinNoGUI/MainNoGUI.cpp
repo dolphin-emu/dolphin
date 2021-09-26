@@ -119,6 +119,10 @@ void Host_TitleChanged()
 #endif
 }
 
+void Host_NotifyEndOfFrame()
+{
+}
+
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
   return nullptr;

@@ -156,6 +156,8 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
+
+  Host_NotifyEndOfFrame();
 }
 
 // Display messages and return values

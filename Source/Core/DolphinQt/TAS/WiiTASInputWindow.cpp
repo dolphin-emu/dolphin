@@ -27,6 +27,7 @@
 #include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
@@ -245,6 +246,9 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   layout->addWidget(m_settings_box);
 
   setLayout(layout);
+
+  connect(Host::GetInstance(), &Host::NotifyEndOfFrame, this,
+          &WiiTASInputWindow::ToggleTurboValues);
 
   u8 ext = 0;
   if (Core::IsRunning())
@@ -491,5 +495,79 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     cc.SetLeftTrigger(lt);
 
     key.Encrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
+  }
+}
+
+void WiiTASInputWindow::ToggleTurboValues()
+{
+  if (!isVisible())
+    return;
+
+  if (m_remote_buttons_box->isVisible())
+  {
+    if (m_a_button->GetIsTurbo() && m_a_button->GetStateChanged())
+      m_a_button->toggle();
+    if (m_b_button->GetIsTurbo() && m_b_button->GetStateChanged())
+      m_b_button->toggle();
+    if (m_1_button->GetIsTurbo() && m_1_button->GetStateChanged())
+      m_1_button->toggle();
+    if (m_2_button->GetIsTurbo() && m_2_button->GetStateChanged())
+      m_2_button->toggle();
+    if (m_plus_button->GetIsTurbo() && m_plus_button->GetStateChanged())
+      m_plus_button->toggle();
+    if (m_minus_button->GetIsTurbo() && m_minus_button->GetStateChanged())
+      m_minus_button->toggle();
+    if (m_home_button->GetIsTurbo() && m_home_button->GetStateChanged())
+      m_home_button->toggle();
+    if (m_left_button->GetIsTurbo() && m_left_button->GetStateChanged())
+      m_left_button->toggle();
+    if (m_up_button->GetIsTurbo() && m_up_button->GetStateChanged())
+      m_up_button->toggle();
+    if (m_down_button->GetIsTurbo() && m_down_button->GetStateChanged())
+      m_down_button->toggle();
+    if (m_right_button->GetIsTurbo() && m_right_button->GetStateChanged())
+      m_right_button->toggle();
+  }
+
+  if (m_nunchuk_stick_box->isVisible())
+  {
+    if (m_c_button->GetIsTurbo() && m_c_button->GetStateChanged())
+      m_c_button->toggle();
+    if (m_z_button->GetIsTurbo() && m_z_button->GetStateChanged())
+      m_z_button->toggle();
+  }
+
+  if (m_classic_left_stick_box->isVisible())
+  {
+    if (m_classic_a_button->GetIsTurbo() && m_classic_a_button->GetStateChanged())
+      m_classic_a_button->toggle();
+    if (m_classic_b_button->GetIsTurbo() && m_classic_b_button->GetStateChanged())
+      m_classic_b_button->toggle();
+    if (m_classic_x_button->GetIsTurbo() && m_classic_x_button->GetStateChanged())
+      m_classic_x_button->toggle();
+    if (m_classic_y_button->GetIsTurbo() && m_classic_y_button->GetStateChanged())
+      m_classic_y_button->toggle();
+    if (m_classic_plus_button->GetIsTurbo() && m_classic_plus_button->GetStateChanged())
+      m_classic_plus_button->toggle();
+    if (m_classic_minus_button->GetIsTurbo() && m_classic_minus_button->GetStateChanged())
+      m_classic_minus_button->toggle();
+    if (m_classic_l_button->GetIsTurbo() && m_classic_l_button->GetStateChanged())
+      m_classic_l_button->toggle();
+    if (m_classic_r_button->GetIsTurbo() && m_classic_r_button->GetStateChanged())
+      m_classic_r_button->toggle();
+    if (m_classic_zl_button->GetIsTurbo() && m_classic_zl_button->GetStateChanged())
+      m_classic_zl_button->toggle();
+    if (m_classic_zr_button->GetIsTurbo() && m_classic_zr_button->GetStateChanged())
+      m_classic_zr_button->toggle();
+    if (m_classic_home_button->GetIsTurbo() && m_classic_home_button->GetStateChanged())
+      m_classic_home_button->toggle();
+    if (m_classic_left_button->GetIsTurbo() && m_classic_left_button->GetStateChanged())
+      m_classic_left_button->toggle();
+    if (m_classic_up_button->GetIsTurbo() && m_classic_up_button->GetStateChanged())
+      m_classic_up_button->toggle();
+    if (m_classic_down_button->GetIsTurbo() && m_classic_down_button->GetStateChanged())
+      m_classic_down_button->toggle();
+    if (m_classic_right_button->GetIsTurbo() && m_classic_right_button->GetStateChanged())
+      m_classic_right_button->toggle();
   }
 }

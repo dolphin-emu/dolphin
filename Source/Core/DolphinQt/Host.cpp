@@ -248,3 +248,8 @@ std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core
   return nullptr;
 }
 #endif
+
+void Host_NotifyEndOfFrame()
+{
+  emit Host::GetInstance()->NotifyEndOfFrame();
+}
