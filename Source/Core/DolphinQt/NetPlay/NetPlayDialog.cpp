@@ -103,7 +103,7 @@ void NetPlayDialog::CreateMainLayout()
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
   m_buffer_size_box->setToolTip(
-      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\nFor a simple method, "
+      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\nEnabling the \"Batter Lag Reduction\" Gecko Code removes 1 frame (4 buffer) from swings.\n\nFor a simple method, "
          "use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and "
          "less.\nGames above 150 ping will be very laggy and are not recommended for competitive "
          "play."));
@@ -113,7 +113,7 @@ void NetPlayDialog::CreateMainLayout()
   m_menu_bar = new QMenuBar(this);
   m_ranked_box = new QCheckBox(tr("Ranked"));
   m_ranked_box->setToolTip(
-      tr("Enabling Ranked Mode will mark down your games as being rankd in the stats files.\nWhen "
+      tr("Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
          "sorting through the database, this game will be included as a ranked game.\nThis should "
          "only be toggled for serious games as to keep our database accurate and organized.\nToggling this box will always record & sumit stats, ignoring user configurations."));
 
