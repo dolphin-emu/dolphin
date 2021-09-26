@@ -47,6 +47,7 @@
 #define SCREENSHOTS_DIR "ScreenShots"
 #define LOAD_DIR "Load"
 #define HIRES_TEXTURES_DIR "Textures"
+#define RIIVOLUTION_DIR "Riivolution"
 #define DUMP_DIR "Dump"
 #define DUMP_TEXTURES_DIR "Textures"
 #define DUMP_FRAMES_DIR "Frames"
