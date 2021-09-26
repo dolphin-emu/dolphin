@@ -58,7 +58,9 @@
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
 
+#include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/CheatsManager.h"
@@ -100,6 +102,7 @@
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
 #include "DolphinQt/Resources.h"
+#include "DolphinQt/RiivolutionBootWidget.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/TAS/GCTASInputWindow.h"
@@ -643,6 +646,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, [this]() { Play(); });
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+  connect(m_game_list, &GameList::OnStartWithRiivolution, this,
+          &MainWindow::ShowRiivolutionBootWidget);
 
   connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
@@ -1805,6 +1810,39 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
+}
+
+void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
+{
+  auto second_game = m_game_list->FindSecondDisc(game);
+  std::vector<std::string> paths = {game.GetFilePath()};
+  if (second_game != nullptr)
+    paths.push_back(second_game->GetFilePath());
+  std::unique_ptr<BootParameters> boot_params =
+      BootParameters::GenerateFromFile(paths, std::nullopt);
+  if (!boot_params)
+    return;
+  if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
+    return;
+
+  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
+  RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
+                          disc.volume->GetDiscNumber(), this);
+  w.exec();
+  if (!w.ShouldBoot())
+    return;
+
+  if (!w.GetPatches().empty())
+  {
+    disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
+        std::move(disc.volume),
+        [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
+          DiscIO::Riivolution::ApplyPatchesToFiles(w.GetPatches(), fst, dol_node);
+        }));
+    boot_params->riivolution_patches = std::move(w.GetPatches());
+  }
+
+  StartGame(std::move(boot_params));
 }
 
 void MainWindow::Show()
