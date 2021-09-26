@@ -103,10 +103,11 @@ void NetPlayDialog::CreateMainLayout()
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
   m_buffer_size_box->setToolTip(
-      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\nEnabling the \"Batter Lag Reduction\" Gecko Code removes 1 frame (4 buffer) from swings.\n\nFor a simple method, "
-         "use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and "
-         "less.\nGames above 150 ping will be very laggy and are not recommended for competitive "
-         "play."));
+      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\n"
+      "Project Rio's Batter Lag Reduction mod removes 1 frame (4 buffer) from swings on NetPlay,\n"
+      "and a 120 Hz or greater monitor reduces another 0.5 frames (2 buffer) of general lag.\n\n"
+      "For a simple method, use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and less.\n"
+      "Games above 150 ping will be very laggy and are not recommended for competitive play."));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
