@@ -20,6 +20,8 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Core/HW/AddressSpace.h"
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -153,6 +155,15 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
+  if (!NetPlay::IsNetPlayRunning())
+  {
+    // sets a specific address to 1 each frame
+    // this address is read by Project Rio's version of Batter Lag Reduction. It only activates when this addr = 1
+    // this system prevents user error of forgetting to turn off lag reduciton when playing local and turning it on for netplay
+    AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+    accessors->WriteU8(0x802EBF96, 1);
+  }
+
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
     s_memory_watcher->Step();
