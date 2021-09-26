@@ -20,6 +20,8 @@ protected:
   void mousePressEvent(QMouseEvent* event) override;
 
 private:
+  void setCheckboxWeight(QFont::Weight weight);
+
   const TASInputWindow* m_parent;
   int m_frame_turbo_started;
   int m_turbo_press_frames;
