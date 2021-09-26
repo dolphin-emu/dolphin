@@ -157,6 +157,7 @@ private:
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
+  void ShowRiivolutionBootWidget();
 
   void NetPlayInit();
   bool NetPlayJoin();

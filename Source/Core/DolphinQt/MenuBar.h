@@ -67,6 +67,7 @@ signals:
   void Screenshot();
   void StartNetPlay();
   void BrowseNetPlay();
+  void StartWithRiivolution();
   void StateLoad();
   void StateSave();
   void StateLoadSlot();
