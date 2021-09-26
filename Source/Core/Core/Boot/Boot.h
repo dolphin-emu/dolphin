@@ -15,6 +15,7 @@
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
@@ -78,6 +79,7 @@ struct BootParameters
   BootParameters(Parameters&& parameters_, const std::optional<std::string>& savestate_path_ = {});
 
   Parameters parameters;
+  std::vector<DiscIO::Riivolution::Patch> riivolution_patches;
   std::optional<std::string> savestate_path;
   bool delete_savestate = false;
 };

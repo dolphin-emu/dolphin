@@ -57,6 +57,7 @@ namespace fs = std::filesystem;
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
@@ -546,6 +547,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
   if (!std::visit(BootTitle(), boot->parameters))
     return false;
+
+  DiscIO::Riivolution::ApplyPatchesToMemory(boot->riivolution_patches);
 
   return true;
 }
