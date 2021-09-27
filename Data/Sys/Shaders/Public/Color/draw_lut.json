@@ -1,0 +1,39 @@
+{
+	"meta":
+	{
+		"author": "iwubcode, Fubaxiusz",
+		"description": "A shader that draws a color LUT (lookup-table)"
+	},
+	"options":
+	[
+		{
+			"type": "int",
+			"name": "_LutSize",
+			"ui_name": "LUT Block Size",
+			"min": [ 16.0 ],
+			"max": [ 64.0 ],
+			"default": [ 32.0 ]
+		},
+		{
+			"type": "bool",
+			"name": "LUT_VERTICAL",
+			"ui_name": "LUT Vertical",
+			"default": false,
+			"is_constant": true
+		}
+	],
+	"passes":
+	[
+		{
+			"entry_point": "main",
+			"inputs":
+			[
+				{
+					"type": "previous_pass",
+					"texture_filter": "linear",
+					"texture_mode": "clamp"
+				}
+			]
+		}
+	]
+}

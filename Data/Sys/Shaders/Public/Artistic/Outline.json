@@ -1,0 +1,74 @@
+{
+	"meta":
+	{
+		"author": "kingeric1992, JPulowski, iwubcode",
+		"description": "Ported from Reshade.  Add outline"
+	},
+	"options":
+	[
+		{
+			"type": "bool",
+			"name": "_UseBackgroundColor",
+			"ui_name": "UseBackgroundColor",
+			"default": false
+		},
+		{
+			"type": "rgb",
+			"name": "_BackgroundColor",
+			"ui_name": "BackgroundColor",
+			"default": [0.0, 0.0, 0.0],
+			"dependent_option": "_UseBackgroundColor"
+		},
+		{
+			"type": "rgba",
+			"name": "_OutlineColor",
+			"ui_name": "OutlineColor",
+			"default": [0.0, 0.0, 0.0, 1.0]
+		},
+		{
+			"type": "float",
+			"name": "_EdgeSlope",
+			"ui_name": "EdgeSlope",
+			"min": [ 0.0 ],
+			"max": [ 10.0 ],
+			"step": [ 1.0 ],
+			"default": [ 1.0 ]
+		},
+		{
+			"type": "float",
+			"name": "_EdgeDetectionAccuracy",
+			"ui_name": "EdgeDetectionAccuracy",
+			"min": [ 0.0 ],
+			"max": [ 100.0 ],
+			"step": [ 1.0 ],
+			"default": [ 1.0 ]
+		},
+		{
+			"type": "enum",
+			"name": "_EdgeDetectionMode",
+			"ui_name": "EdgeDetectionMode",
+			"ui_choices": [ "Color", "Depth" ],
+			"values": [ 0.0, 1.0 ],
+			"default_index": 0.0
+		}
+	],
+	"passes":
+	[
+		{
+			"entry_point": "main",
+			"inputs":
+			[
+				{
+					"type": "previous_pass",
+					"texture_filter": "linear",
+					"texture_mode": "clamp"
+				},
+				{
+					"type": "depth_buffer",
+					"texture_filter": "point",
+					"texture_mode": "clamp"
+				}
+			]
+		}
+	]
+}
