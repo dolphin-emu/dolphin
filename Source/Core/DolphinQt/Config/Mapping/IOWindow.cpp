@@ -509,7 +509,6 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
 
   UpdateExpression(m_expression_text->toPlainText().toStdString());
-  m_original_expression = m_reference->GetExpression();
 
   if (ciface::ExpressionParser::ParseStatus::SyntaxError == m_reference->GetParseStatus())
   {
@@ -518,6 +517,7 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   else
   {
     // must be the OK button
+    m_original_expression = m_reference->GetExpression();
     accept();
   }
 }
