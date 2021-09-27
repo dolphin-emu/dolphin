@@ -807,6 +807,8 @@ void MainWindow::OnStopComplete()
 
   SetFullScreenResolution(false);
 
+  Host::GetInstance()->SetMainWindowFocus(true);
+
   if (m_exit_requested || Settings::Instance().IsBatchModeEnabled())
     QGuiApplication::instance()->quit();
 
@@ -1035,6 +1037,8 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
   // We need the render widget before booting.
   ShowRenderWidget();
+
+  Host::GetInstance()->SetMainWindowFocus(false);
 
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(std::move(parameters),
@@ -1530,6 +1534,17 @@ bool MainWindow::eventFilter(QObject* object, QEvent* event)
       m_exit_requested = true;
 
     static_cast<QCloseEvent*>(event)->ignore();
+    return true;
+  }
+
+  if (event->type() == QEvent::WindowActivate)
+  {
+    Host::GetInstance()->SetMainWindowFocus(true);
+    return true;
+  }
+  else if (event->type() == QEvent::WindowDeactivate)
+  {
+    Host::GetInstance()->SetMainWindowFocus(false);
     return true;
   }
 

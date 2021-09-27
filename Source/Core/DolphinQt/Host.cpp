@@ -118,6 +118,16 @@ void Host::SetRenderFullFocus(bool focus)
   m_render_full_focus = focus;
 }
 
+bool Host::GetMainWindowFocus()
+{
+  return m_main_window_focus;
+}
+
+void Host::SetMainWindowFocus(bool focus)
+{
+  m_main_window_focus = focus;
+}
+
 bool Host::GetGBAFocus()
 {
 #ifdef HAS_LIBMGBA
@@ -180,6 +190,11 @@ void Host_UpdateTitle(const std::string& title)
 bool Host_RendererHasFocus()
 {
   return Host::GetInstance()->GetRenderFocus() || Host::GetInstance()->GetGBAFocus();
+}
+
+bool Host_MainWindowHasFocus()
+{
+  return Host::GetInstance()->GetMainWindowFocus();
 }
 
 bool Host_RendererHasFullFocus()
