@@ -515,9 +515,11 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   {
     ModalMessageBox::warning(this, tr("Error"), tr("The expression contains a syntax error."));
   }
-
-  // must be the OK button
-  accept();
+  else
+  {
+    // must be the OK button
+    accept();
+  }
 }
 
 void IOWindow::OnDetectButtonPressed()
