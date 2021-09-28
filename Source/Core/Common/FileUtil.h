@@ -32,6 +32,7 @@ enum
   D_CONFIG_IDX,           // global settings
   D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
                           // settings (per game)
+  D_STATFILES_IDX,
   D_MAPS_IDX,
   D_CACHE_IDX,
   D_COVERCACHE_IDX,
