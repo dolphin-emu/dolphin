@@ -20,6 +20,160 @@
 
 namespace DiscIO::Riivolution
 {
+FileDataLoader::~FileDataLoader() = default;
+
+FileDataLoaderHostFS::FileDataLoaderHostFS(std::string sd_root, const std::string& xml_path,
+                                           std::string_view patch_root)
+    : m_sd_root(std::move(sd_root))
+{
+  // Riivolution treats 'external' file paths as follows:
+  // - If it starts with a '/', it's an absolute path, ie. relative to the SD card root.
+  // - Otherwise:
+  //   - If the 'root' parameter of the current patch is not set or is empty, the path is relative
+  //     to the folder the XML file is in.
+  //   - If the 'root' parameter of the current patch starts with a '/', the path is relative to
+  //     that folder on the SD card, starting at the SD card root.
+  //   - If the 'root' parameter of the current patch starts without a '/', the path is relative to
+  //     that folder on the SD card, starting at the folder the XML file is in.
+  // The following initialization should properly replicate this behavior.
+
+  // First set m_patch_root to the folder the parsed XML file is in.
+  SplitPath(xml_path, &m_patch_root, nullptr, nullptr);
+
+  // Then try to resolve the given patch_root as if it was a file path, and on success replace the
+  // m_patch_root with it.
+  if (!patch_root.empty())
+  {
+    auto r = MakeAbsoluteFromRelative(patch_root);
+    if (r)
+      m_patch_root = std::move(*r);
+  }
+}
+
+std::optional<std::string>
+FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relative_path)
+{
+#ifdef _WIN32
+  // Riivolution treats a backslash as just a standard filename character, but we can't replicate
+  // this properly on Windows. So if a file contains a backslash, immediately error out.
+  if (external_relative_path.find("\\") != std::string_view::npos)
+    return std::nullopt;
+#endif
+
+  std::string result = StringBeginsWith(external_relative_path, "/") ? m_sd_root : m_patch_root;
+  std::string_view work = external_relative_path;
+
+  // Strip away all leading and trailing path separators.
+  while (StringBeginsWith(work, "/"))
+    work.remove_prefix(1);
+  while (StringEndsWith(work, "/"))
+    work.remove_suffix(1);
+  size_t depth = 0;
+  while (true)
+  {
+    if (work.empty())
+      break;
+
+    // Extract a single path element.
+    size_t separator_position = work.find('/');
+    std::string_view element = work.substr(0, separator_position);
+
+    if (element == ".")
+    {
+      // This is a harmless element, doesn't change any state.
+    }
+    else if (element == "..")
+    {
+      // We're going up a level.
+      // If this isn't possible someone is trying to exit the root directory, prevent that.
+      if (depth == 0)
+        return std::nullopt;
+      --depth;
+
+      // Remove the last path element from the result string.
+      // This must have been previously attached in the branch below (otherwise depth would have
+      // been 0), so there's no need to check whether the string is empty or anything like that.
+      while (result.back() != '/')
+        result.pop_back();
+      result.pop_back();
+    }
+    else
+    {
+      // We're going down a level.
+      ++depth;
+
+      // Append path element to result string.
+      result += '/';
+      result += element;
+    }
+
+    // If this was the last path element, we're done.
+    if (separator_position == std::string_view::npos)
+      break;
+
+    // Remove element from work string.
+    work = work.substr(separator_position + 1);
+
+    // Remove any potential extra path separators.
+    while (StringBeginsWith(work, "/"))
+      work = work.substr(1);
+  }
+  return result;
+}
+
+std::optional<u64>
+FileDataLoaderHostFS::GetExternalFileSize(std::string_view external_relative_path)
+{
+  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  if (!path)
+    return std::nullopt;
+  ::File::IOFile f(*path, "rb");
+  if (!f)
+    return std::nullopt;
+  return f.GetSize();
+}
+
+std::vector<u8> FileDataLoaderHostFS::GetFileContents(std::string_view external_relative_path)
+{
+  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  if (!path)
+    return {};
+  ::File::IOFile f(*path, "rb");
+  if (!f)
+    return {};
+  const u64 length = f.GetSize();
+  std::vector<u8> value;
+  value.resize(length);
+  if (!f.ReadBytes(value.data(), length))
+    return {};
+  return value;
+}
+
+std::vector<FileDataLoader::Node>
+FileDataLoaderHostFS::GetFolderContents(std::string_view external_relative_path)
+{
+  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  if (!path)
+    return {};
+  ::File::FSTEntry external_files = ::File::ScanDirectoryTree(*path, false);
+  std::vector<FileDataLoader::Node> nodes;
+  nodes.reserve(external_files.children.size());
+  for (auto& file : external_files.children)
+    nodes.emplace_back(FileDataLoader::Node{std::move(file.virtualName), file.isDirectory});
+  return nodes;
+}
+
+BuilderContentSource
+FileDataLoaderHostFS::MakeContentSource(std::string_view external_relative_path,
+                                        u64 external_offset, u64 external_size, u64 disc_offset)
+{
+  auto path = MakeAbsoluteFromRelative(external_relative_path);
+  if (!path)
+    return BuilderContentSource{disc_offset, external_size, ContentFixedByte{0}};
+  return BuilderContentSource{disc_offset, external_size,
+                              ContentFile{std::move(*path), external_offset}};
+}
+
 // 'before' and 'after' should be two copies of the same source
 // 'split_at' needs to be between the start and end of the source, may not match either boundary
 static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, u64 split_at)
@@ -45,16 +199,16 @@ static void SplitAt(BuilderContentSource* before, BuilderContentSource* after, u
 }
 
 static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_node,
-                             std::string external_filename, u64 file_patch_offset,
+                             std::string_view external_filename, u64 file_patch_offset,
                              u64 raw_external_file_offset, u64 file_patch_length, bool resize)
 {
-  ::File::IOFile f(external_filename, "rb");
+  const auto f = patch.m_file_data_loader->GetExternalFileSize(external_filename);
   if (!f)
     return;
 
   auto& content = std::get<std::vector<BuilderContentSource>>(file_node->m_content);
 
-  const u64 raw_external_filesize = f.GetSize();
+  const u64 raw_external_filesize = *f;
   const u64 external_file_offset = std::min(raw_external_file_offset, raw_external_filesize);
   const u64 external_filesize = raw_external_filesize - external_file_offset;
 
@@ -118,8 +272,9 @@ static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_no
   // Insert the actual patch data.
   if (patch_size > 0 && external_filesize > 0)
   {
-    BuilderContentSource source{patch_start, std::min(patch_size, external_filesize),
-                                ContentFile{std::move(external_filename), external_file_offset}};
+    BuilderContentSource source = patch.m_file_data_loader->MakeContentSource(
+        external_filename, external_file_offset, std::min(patch_size, external_filesize),
+        patch_start);
     content.emplace(content.begin() + insert_where, std::move(source));
     ++insert_where;
   }
@@ -143,9 +298,8 @@ static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_no
 static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
                              DiscIO::FSTBuilderNode* file_node)
 {
-  ApplyPatchToFile(patch, file_node, patch.m_root + "/" + file_patch.m_external,
-                   file_patch.m_offset, file_patch.m_fileoffset, file_patch.m_length,
-                   file_patch.m_resize);
+  ApplyPatchToFile(patch, file_node, file_patch.m_external, file_patch.m_offset,
+                   file_patch.m_fileoffset, file_patch.m_length, file_patch.m_resize);
 }
 
 static bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
@@ -213,42 +367,56 @@ static void FindFilenameNodesInFST(std::vector<DiscIO::FSTBuilderNode*>* nodes_o
 }
 
 static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
-                                  const ::File::FSTEntry& external_files,
+                                  const std::vector<FileDataLoader::Node>& external_files,
+                                  const std::string& external_path, bool recursive,
                                   std::string_view disc_path,
                                   std::vector<DiscIO::FSTBuilderNode>* fst)
 {
-  for (const auto& child : external_files.children)
+  for (const auto& child : external_files)
   {
-    std::string child_disc_patch = std::string(disc_path) + "/" + child.virtualName;
-    if (child.isDirectory)
+    const std::string child_disc_path = std::string(disc_path) + "/" + child.m_filename;
+    const std::string child_external_path = external_path + "/" + child.m_filename;
+    if (child.m_is_directory)
     {
-      ApplyFolderPatchToFST(patch, folder, child, child_disc_patch, fst);
+      if (recursive)
+      {
+        ApplyFolderPatchToFST(patch, folder,
+                              patch.m_file_data_loader->GetFolderContents(child_external_path),
+                              child_external_path, recursive, child_disc_path, fst);
+      }
     }
     else
     {
-      DiscIO::FSTBuilderNode* node = FindFileNodeInFST(child_disc_patch, fst, folder.m_create);
+      DiscIO::FSTBuilderNode* node = FindFileNodeInFST(child_disc_path, fst, folder.m_create);
       if (node)
-        ApplyPatchToFile(patch, node, child.physicalName, 0, 0, folder.m_length, folder.m_resize);
+        ApplyPatchToFile(patch, node, child_external_path, 0, 0, folder.m_length, folder.m_resize);
     }
   }
 }
 
 static void ApplyUnknownFolderPatchToFST(const Patch& patch, const Folder& folder,
-                                         const ::File::FSTEntry& external_files,
+                                         const std::vector<FileDataLoader::Node>& external_files,
+                                         const std::string& external_path, bool recursive,
                                          std::vector<DiscIO::FSTBuilderNode>* fst)
 {
-  for (const auto& child : external_files.children)
+  for (const auto& child : external_files)
   {
-    if (child.isDirectory)
+    const std::string child_external_path = external_path + "/" + child.m_filename;
+    if (child.m_is_directory)
     {
-      ApplyUnknownFolderPatchToFST(patch, folder, child, fst);
+      if (recursive)
+      {
+        ApplyUnknownFolderPatchToFST(
+            patch, folder, patch.m_file_data_loader->GetFolderContents(child_external_path),
+            child_external_path, recursive, fst);
+      }
     }
     else
     {
       std::vector<DiscIO::FSTBuilderNode*> nodes;
-      FindFilenameNodesInFST(&nodes, child.virtualName, fst);
+      FindFilenameNodesInFST(&nodes, child.m_filename, fst);
       for (auto* node : nodes)
-        ApplyPatchToFile(patch, node, child.physicalName, 0, 0, folder.m_length, folder.m_resize);
+        ApplyPatchToFile(patch, node, child_external_path, 0, 0, folder.m_length, folder.m_resize);
     }
   }
 }
@@ -286,18 +454,24 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches,
 
     for (const auto& folder : patch.m_folder_patches)
     {
-      ::File::FSTEntry external_files =
-          ::File::ScanDirectoryTree(patch.m_root + "/" + folder.m_external, folder.m_recursive);
+      const auto external_files = patch.m_file_data_loader->GetFolderContents(folder.m_external);
 
       std::string_view disc_path = folder.m_disc;
       while (StringBeginsWith(disc_path, "/"))
         disc_path.remove_prefix(1);
       while (StringEndsWith(disc_path, "/"))
         disc_path.remove_suffix(1);
+
       if (disc_path.empty())
-        ApplyUnknownFolderPatchToFST(patch, folder, external_files, fst);
+      {
+        ApplyUnknownFolderPatchToFST(patch, folder, external_files, folder.m_external,
+                                     folder.m_recursive, fst);
+      }
       else
-        ApplyFolderPatchToFST(patch, folder, external_files, disc_path, fst);
+      {
+        ApplyFolderPatchToFST(patch, folder, external_files, folder.m_external, folder.m_recursive,
+                              disc_path, fst);
+      }
     }
   }
 
@@ -339,19 +513,7 @@ static void ApplyMemoryPatch(u32 offset, const std::vector<u8>& value,
 static std::vector<u8> GetMemoryPatchValue(const Patch& patch, const Memory& memory_patch)
 {
   if (!memory_patch.m_valuefile.empty())
-  {
-    ::File::IOFile f(patch.m_root + "/" + memory_patch.m_valuefile, "rb");
-    if (!f)
-      return {};
-    const u64 length = f.GetSize();
-    std::vector<u8> value;
-    value.resize(length);
-    if (!f.ReadBytes(value.data(), length))
-      return {};
-
-    return value;
-  }
-
+    return patch.m_file_data_loader->GetFileContents(memory_patch.m_valuefile);
   return memory_patch.m_value;
 }
 
