@@ -30,5 +30,6 @@ private:
   QGroupBox* m_common_box;
   QVBoxLayout* m_common_layout;
   QCheckBox* m_common_bg_input;
+  QCheckBox* m_common_xbox_dinput;
   QPushButton* m_common_configure_controller_interface;
 };

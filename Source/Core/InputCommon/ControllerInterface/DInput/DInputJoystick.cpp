@@ -40,8 +40,8 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
   for (DIDEVICEINSTANCE& joystick : joysticks)
   {
-    // Skip XInput Devices
-    if (xinput_guids.count(joystick.guidProduct.Data1))
+    // Skip XInput Devices if "Allow Accessing Xbox Controllers via DInput" is not selected
+    if ( /* &&*/ (xinput_guids.count(joystick.guidProduct.Data1)))
     {
       continue;
     }
