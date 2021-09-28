@@ -13,9 +13,12 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 namespace DiscIO::Riivolution
 {
+Patch::~Patch() = default;
+
 std::optional<Disc> ParseFile(const std::string& filename)
 {
   ::File::IOFile f(filename, "rb");

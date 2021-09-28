@@ -16,8 +16,8 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 #include "DiscIO/RiivolutionParser.h"
+#include "DiscIO/RiivolutionPatcher.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 struct GuiRiivolutionPatchIndex
@@ -178,13 +178,11 @@ void RiivolutionBootWidget::BootGame()
   {
     auto patches = disc.GeneratePatches(m_game_id);
 
-    // set the root path for each patch
+    // set the file loader for each patch
     for (auto& patch : patches)
     {
-      if (patch.m_root.empty())
-        SplitPath(disc.m_xml_path, &patch.m_root, nullptr, nullptr);
-      else
-        patch.m_root = riivolution_dir + "/" + patch.m_root;
+      patch.m_file_data_loader = std::make_shared<DiscIO::Riivolution::FileDataLoaderHostFS>(
+          riivolution_dir, disc.m_xml_path, patch.m_root);
     }
 
     m_patches.insert(m_patches.end(), patches.begin(), patches.end());
