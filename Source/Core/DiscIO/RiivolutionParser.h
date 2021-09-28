@@ -4,6 +4,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -13,6 +14,8 @@
 
 namespace DiscIO::Riivolution
 {
+class FileDataLoader;
+
 // Data to determine the game patches are valid for.
 struct GameFilter
 {
@@ -152,14 +155,17 @@ struct Patch
   std::string m_id;
 
   // Defines a SD card path that all other paths are relative to.
-  // We need to manually set this somehow because we have no SD root, and should ignore the path
-  // from the XML.
+  // For actually loading file data Dolphin uses the loader below instead.
   std::string m_root;
+
+  std::shared_ptr<FileDataLoader> m_file_data_loader;
 
   std::vector<File> m_file_patches;
   std::vector<Folder> m_folder_patches;
   std::vector<Savegame> m_savegame_patches;
   std::vector<Memory> m_memory_patches;
+
+  ~Patch();
 };
 
 struct Disc
