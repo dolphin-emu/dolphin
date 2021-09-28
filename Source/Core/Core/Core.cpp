@@ -158,7 +158,7 @@ void OnFrameEnd()
   if (!NetPlay::IsNetPlayRunning())
   {
     // sets a specific address to 1 each frame
-    // this address is read by Project Rio's version of Batter Lag Reduction. It only activates when this addr = 1
+    // this address is read by Project Rio's version of Batter Lag Reduction. It only activates when this addr = 0/
     // this system prevents user error of forgetting to turn off lag reduciton when playing local and turning it on for netplay
     AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
     accessors->WriteU8(0x802EBF96, 1);
