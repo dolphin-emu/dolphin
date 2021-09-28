@@ -41,7 +41,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   for (DIDEVICEINSTANCE& joystick : joysticks)
   {
     // Skip XInput Devices if "Allow Accessing Xbox Controllers via DInput" is not selected
-    if ( /* &&*/ (xinput_guids.count(joystick.guidProduct.Data1)))
+    if (/* &&*/ (xinput_guids.count(joystick.guidProduct.Data1)))
     {
       continue;
     }
