@@ -928,9 +928,9 @@ void UpdateTitle(u32 ElapseTime)
   std::string SFPS;
   if (Movie::IsPlayingInput())
   {
-    SFPS = fmt::format("Input: {}/{} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
+    SFPS = fmt::format("Input: {}/{} - VI: {}/{} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
                        Movie::GetCurrentInputCount(), Movie::GetTotalInputCount(),
-                       Movie::GetCurrentFrame(), FPS, VPS, Speed);
+                       Movie::GetCurrentFrame(), Movie::GetTotalFrames(), FPS, VPS, Speed);
   }
   else if (Movie::IsRecordingInput())
   {
