@@ -248,3 +248,13 @@ std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core
   return nullptr;
 }
 #endif
+
+void Host_EnableTASInput()
+{
+  emit Host::GetInstance()->EnableTASInput();
+}
+
+void Host_DisableTASInput()
+{
+  emit Host::GetInstance()->DisableTASInput();
+}

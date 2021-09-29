@@ -60,6 +60,8 @@ void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
 void Host_UpdateMainFrame();
+void Host_EnableTASInput();
+void Host_DisableTASInput();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
