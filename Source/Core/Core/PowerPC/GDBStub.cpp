@@ -55,6 +55,8 @@ static u32 sig = 0;
 static u32 send_signal = 0;
 static u32 step_break = 0;
 
+static CoreTiming::EventType* m_gdbStubUpdateEvent;
+
 typedef struct
 {
   u32 active;
@@ -112,6 +114,12 @@ static void hex2mem(u8* dst, u8* src, u32 len)
     *dst++ = (hex2char(*src) << 4) | hex2char(*(src + 1));
     src += 2;
   }
+}
+
+void GDBStubUpdateCallback(u64 userdata, s64 cycles_late)
+{
+  gdb_handle_exception(false);
+  CoreTiming::ScheduleEvent(GDB_UPDATE_CYCLES, m_gdbStubUpdateEvent);
 }
 
 static u8 gdb_read_byte()
@@ -732,13 +740,20 @@ static void gdb_remove_bp()
   gdb_reply("OK");
 }
 
-void gdb_handle_exception()
+
+void gdb_handle_exception(bool loop_until_continue)
 {
   while (gdb_active())
   {
     if (!gdb_data_available())
-      continue;
+    {
+      if (loop_until_continue)
+        continue;
+      else
+        return;
+    }
     gdb_read_command();
+    // No more commands
     if (cmd_len == 0)
       continue;
 
@@ -868,6 +883,9 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
   close(tmpsock);
 #endif
   tmpsock = -1;
+
+  m_gdbStubUpdateEvent = CoreTiming::RegisterEvent("GDBStubUpdate", GDBStubUpdateCallback);
+  CoreTiming::ScheduleEvent(GDB_UPDATE_CYCLES, m_gdbStubUpdateEvent);
 }
 
 void gdb_deinit()
