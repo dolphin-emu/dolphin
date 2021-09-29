@@ -186,7 +186,13 @@ void HotkeyScheduler::Run()
         emit ExitHotkey();
 
       if (!Core::IsRunningAndStarted())
+      {
+        // Only check for Play Recording hotkey when no game is running
+        if (IsHotkey(HK_PLAY_RECORDING))
+          emit PlayRecording();
+
         continue;
+      }
 
       // Disc
 
