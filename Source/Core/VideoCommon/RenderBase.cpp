@@ -569,6 +569,7 @@ void Renderer::DrawDebugText()
       else if (config.m_ShowFrameCount)
       {
         ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
+        ImGui::Text("Input: %" PRIu64, Movie::GetCurrentInputCount());
       }
       if (SConfig::GetInstance().m_ShowLag)
         ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
