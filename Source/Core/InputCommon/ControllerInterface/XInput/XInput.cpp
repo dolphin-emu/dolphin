@@ -186,7 +186,7 @@ void PopulateDevices()
   g_controller_interface.RemoveDevice([](const auto* dev) { return dev->GetSource() == "XInput"; });
 
   XINPUT_CAPABILITIES caps;
-  for (int i = 0; i != 16; ++i)  // TODO: Make the number of xinput controllers dolphin tries to
+  for (int i = 0; i != 24; ++i)  // TODO: Make the number of xinput controllers dolphin tries to
                                  // initialize adjustable via the UI
     // NOTE: over 4 devices via XInput requires either an openxinput dll (compiled to support enough
     // controllers) placed in the root of dolphin, or for dolphin to be used with Steam input
