@@ -298,7 +298,8 @@ static void ApplyPatchToFile(const Patch& patch, DiscIO::FSTBuilderNode* file_no
 static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
                              DiscIO::FSTBuilderNode* file_node)
 {
-  ApplyPatchToFile(patch, file_node, file_patch.m_external, file_patch.m_offset,
+  // The last two bits of the offset seem to be ignored by actual Riivolution.
+  ApplyPatchToFile(patch, file_node, file_patch.m_external, file_patch.m_offset & ~u64(3),
                    file_patch.m_fileoffset, file_patch.m_length, file_patch.m_resize);
 }
 
