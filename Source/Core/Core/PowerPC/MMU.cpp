@@ -24,10 +24,6 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
-
 namespace PowerPC
 {
 // EFB RE
