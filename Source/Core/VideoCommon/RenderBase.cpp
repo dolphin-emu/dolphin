@@ -559,14 +559,16 @@ void Renderer::DrawDebugText()
         ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      if (config.m_ShowFrameCount)
-      {
-        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
-      }
       if (Movie::IsPlayingInput())
       {
+        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, Movie::GetCurrentFrame(),
+                    Movie::GetTotalFrames());
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
                     Movie::GetTotalInputCount());
+      }
+      else if (config.m_ShowFrameCount)
+      {
+        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
       }
       if (SConfig::GetInstance().m_ShowLag)
         ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
