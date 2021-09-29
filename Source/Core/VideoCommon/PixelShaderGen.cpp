@@ -535,18 +535,10 @@ void UpdateBoundingBox(float2 rawpos) {{
   }
 }
 
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo);
-static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale, bool alpha);
-static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::string_view texswap,
-                          int texmap, bool stereo, APIType api_type);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
                            bool per_pixel_depth, bool use_dual_source);
-static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
-static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
 ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data)
@@ -811,6 +803,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
+  /*
   for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
   {
     if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
@@ -833,29 +826,37 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
     }
   }
+  */
 
-  for (u32 i = 0; i < numStages; i++)
+  if ((api_type == APIType::OpenGL || api_type == APIType::Vulkan) &&
+      uid_data->genMode_numtexgens > 0)
   {
-    // Build the equation for this stage
-    WriteStage(out, uid_data, i, api_type, stereo);
+    out.Write(R"(
+    int min_lod = 0;
+    int max_lod = textureQueryLevels(samp[0]) - 1;  // Just assume textureQueryLevels exists
+
+    // Simplified version of GC/Wii LOD calculation (new code to #9956)
+    float2 uv_delta_x = abs(dFdx(fixpoint_uv0));
+    float2 uv_delta_y = abs(dFdy(fixpoint_uv0));
+    float2 uv_delta = max(uv_delta_x, uv_delta_y);
+    float max_delta = max(uv_delta.x / 128, uv_delta.y / 128);
+    int lod = max_delta == 0 ? min_lod : int(floor(log2(max_delta)));
+
+    // Alternatives
+    // int lod = textureQueryLod(samp[0]).y;  // textureQueryLod doesn't exist with my hacky setup
+    // int lod = 1;  // (no issue)
+    // int lod = size0_s / size0_t;  // 1 for a square texture, but in a way that isn't a constant (still no issue)
+
+    lod = clamp(lod, min_lod, max_lod);
+
+    prev.rgba = iround(textureLod(samp[0], tex0, lod) * 255);
+)");
+  }
+  else
+  {
+    out.Write("\tprev.rgba = int4(255, 0, 255, 255);\n");
   }
 
-  {
-    // The results of the last texenv stage are put onto the screen,
-    // regardless of the used destination register
-    TevStageCombiner::ColorCombiner last_cc;
-    TevStageCombiner::AlphaCombiner last_ac;
-    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc;
-    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac;
-    if (last_cc.dest != TevOutput::Prev)
-    {
-      out.Write("\tprev.rgb = {};\n", tev_c_output_table[u32(last_cc.dest.Value())]);
-    }
-    if (last_ac.dest != TevOutput::Prev)
-    {
-      out.Write("\tprev.a = {};\n", tev_a_output_table[u32(last_ac.dest.Value())]);
-    }
-  }
   out.Write("\tprev = prev & 255;\n");
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
@@ -946,14 +947,14 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
 
-  WriteFog(out, uid_data);
+  // WriteFog(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
   WriteColor(out, api_type, uid_data, use_dual_source || use_shader_blend);
 
-  if (use_shader_blend)
-    WriteBlend(out, uid_data);
+  // if (use_shader_blend)
+  //   WriteBlend(out, uid_data);
 
   if (uid_data->bounding_box)
     out.Write("\tUpdateBoundingBox(rawpos.xy);\n");
@@ -961,484 +962,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   out.Write("}}\n");
 
   return out;
-}
-
-static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType api_type, bool stereo)
-{
-  const auto& stage = uid_data->stagehash[n];
-  out.Write("\n\t// TEV stage {}\n", n);
-
-  // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does not
-  // exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
-  u32 texcoord = stage.tevorders_texcoord;
-  const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens;
-  if (!has_tex_coord)
-    texcoord = 0;
-
-  {
-    const TevStageIndirect tevind{.hex = stage.tevind};
-    out.Write("\t// indirect op\n");
-
-    // Quirk: Referencing a stage above the number of ind stages is undefined behavior,
-    // and on console produces a noise pattern (details unknown).
-    // Instead, just skip applying the indirect operation, which is close enough.
-    // We need to do *something*, as there won't be an iindtex variable otherwise.
-    // Viewtiful Joe hits this case (bug 12525).
-    // Wrapping and add to previous still apply in this case (and when the stage is disabled).
-    const bool has_ind_stage = tevind.bt < uid_data->genMode_numindstages;
-
-    // Perform the indirect op on the incoming regular coordinates
-    // using iindtex{} as the offset coords
-    if (has_ind_stage && tevind.bs != IndTexBumpAlpha::Off)
-    {
-      static constexpr std::array<const char*, 4> tev_ind_alpha_sel{
-          "",
-          "x",
-          "y",
-          "z",
-      };
-
-      // According to libogc, the bump alpha value is 5 bits, and comes from the bottom bits of the
-      // component byte, except in the case of ITF_8, which presumably uses the top bits with a
-      // mask.
-      // https://github.com/devkitPro/libogc/blob/bd24a9b3f59502f9b30d6bac0ae35fc485045f78/gc/ogc/gx.h#L3038-L3041
-      // https://github.com/devkitPro/libogc/blob/bd24a9b3f59502f9b30d6bac0ae35fc485045f78/gc/ogc/gx.h#L790-L800
-
-      static constexpr std::array<char, 4> tev_ind_alpha_shift{
-          '0',  // ITF_8: 0bXXXXXYYY -> 0bXXXXX000? No shift?
-          '5',  // ITF_5: 0bIIIIIAAA -> 0bAAA00000, shift of 5
-          '4',  // ITF_4: 0bIIIIAAAA -> 0bAAAA0000, shift of 4
-          '3',  // ITF_3: 0bIIIAAAAA -> 0bAAAAA000, shift of 3
-      };
-
-      out.Write("\talphabump = (iindtex{}.{} << {}) & 248;\n", tevind.bt.Value(),
-                tev_ind_alpha_sel[u32(tevind.bs.Value())],
-                tev_ind_alpha_shift[u32(tevind.fmt.Value())]);
-    }
-    else
-    {
-      // TODO: Should we reset alphabump to 0 here?
-    }
-
-    if (has_ind_stage && tevind.matrix_index != IndMtxIndex::Off)
-    {
-      // format
-      static constexpr std::array<char, 4> tev_ind_fmt_shift{
-          '0',  // ITF_8: 0bXXXXXXXX -> 0bXXXXXXXX, no shift
-          '3',  // ITF_5: 0bIIIIIAAA -> 0b000IIIII, shift of 3
-          '4',  // ITF_4: 0bIIIIAAAA -> 0b0000IIII, shift of 4
-          '5',  // ITF_3: 0bIIIAAAAA -> 0b00000III, shift of 5
-      };
-      out.Write("\tint3 iindtevcrd{} = iindtex{} >> {};\n", n, tevind.bt.Value(),
-                tev_ind_fmt_shift[u32(tevind.fmt.Value())]);
-
-      // bias - TODO: Check if this needs to be this complicated...
-      // indexed by bias
-      static constexpr std::array<const char*, 8> tev_ind_bias_field{
-          "", "x", "y", "xy", "z", "xz", "yz", "xyz",
-      };
-
-      // indexed by fmt
-      static constexpr std::array<const char*, 4> tev_ind_bias_add{
-          "-128",
-          "1",
-          "1",
-          "1",
-      };
-
-      if (tevind.bias == IndTexBias::S || tevind.bias == IndTexBias::T ||
-          tevind.bias == IndTexBias::U)
-      {
-        out.Write("\tiindtevcrd{}.{} += int({});\n", n,
-                  tev_ind_bias_field[u32(tevind.bias.Value())],
-                  tev_ind_bias_add[u32(tevind.fmt.Value())]);
-      }
-      else if (tevind.bias == IndTexBias::ST || tevind.bias == IndTexBias::SU ||
-               tevind.bias == IndTexBias::TU_)
-      {
-        out.Write("\tiindtevcrd{0}.{1} += int2({2}, {2});\n", n,
-                  tev_ind_bias_field[u32(tevind.bias.Value())],
-                  tev_ind_bias_add[u32(tevind.fmt.Value())]);
-      }
-      else if (tevind.bias == IndTexBias::STU)
-      {
-        out.Write("\tiindtevcrd{0}.{1} += int3({2}, {2}, {2});\n", n,
-                  tev_ind_bias_field[u32(tevind.bias.Value())],
-                  tev_ind_bias_add[u32(tevind.fmt.Value())]);
-      }
-
-      // Multiplied by 2 because each matrix has two rows.
-      // Note also that the 4th column of the matrix contains the scale factor.
-      const u32 mtxidx = 2 * (static_cast<u32>(tevind.matrix_index.Value()) - 1);
-
-      // multiply by offset matrix and scale - calculations are likely to overflow badly,
-      // yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
-      if (tevind.matrix_id == IndMtxId::Indirect)
-      {
-        out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
-
-        out.Write("\tint2 indtevtrans{} = int2(idot(" I_INDTEXMTX
-                  "[{}].xyz, iindtevcrd{}), idot(" I_INDTEXMTX "[{}].xyz, iindtevcrd{})) >> 3;\n",
-                  n, mtxidx, n, mtxidx + 1, n);
-
-        // TODO: should use a shader uid branch for this for better performance
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
-        {
-          out.Write("\tint indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= indtexmtx_w_inverse_{};\n", n, n);
-        }
-        else
-        {
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
-        }
-      }
-      else if (tevind.matrix_id == IndMtxId::S)
-      {
-        ASSERT(has_tex_coord);
-        out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
-
-        out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.xx) >> 8;\n", n,
-                  texcoord, n);
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
-        {
-          out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (indtexmtx_w_inverse_{});\n", n, n);
-        }
-        else
-        {
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
-        }
-      }
-      else if (tevind.matrix_id == IndMtxId::T)
-      {
-        ASSERT(has_tex_coord);
-        out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
-
-        out.Write("\tint2 indtevtrans{} = int2(fixpoint_uv{} * iindtevcrd{}.yy) >> 8;\n", n,
-                  texcoord, n);
-
-        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BITWISE_OP_NEGATION))
-        {
-          out.Write("\tint  indtexmtx_w_inverse_{} = -" I_INDTEXMTX "[{}].w;\n", n, mtxidx);
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (indtexmtx_w_inverse_{});\n", n, n);
-        }
-        else
-        {
-          out.Write("\tif (" I_INDTEXMTX "[{}].w >= 0) indtevtrans{} >>= " I_INDTEXMTX "[{}].w;\n",
-                    mtxidx, n, mtxidx);
-          out.Write("\telse indtevtrans{} <<= (-" I_INDTEXMTX "[{}].w);\n", n, mtxidx);
-        }
-      }
-      else
-      {
-        out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
-        ASSERT(false);  // Unknown value for matrix_id
-      }
-    }
-    else
-    {
-      out.Write("\tint2 indtevtrans{} = int2(0, 0);\n", n);
-      if (tevind.matrix_index == IndMtxIndex::Off)
-      {
-        // If matrix_index is Off (0), matrix_id should be Indirect (0)
-        ASSERT(tevind.matrix_id == IndMtxId::Indirect);
-      }
-    }
-
-    // ---------
-    // Wrapping
-    // ---------
-
-    static constexpr std::array<const char*, 5> tev_ind_wrap_start{
-        "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)",
-    };
-
-    // wrap S
-    if (tevind.sw == IndTexWrap::ITW_OFF)
-    {
-      out.Write("\twrappedcoord.x = fixpoint_uv{}.x;\n", texcoord);
-    }
-    else if (tevind.sw >= IndTexWrap::ITW_0)  // 7 (Invalid) appears to behave the same as 6 (ITW_0)
-    {
-      out.Write("\twrappedcoord.x = 0;\n");
-    }
-    else
-    {
-      out.Write("\twrappedcoord.x = fixpoint_uv{}.x & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.sw.Value()) - u32(IndTexWrap::ITW_256)]);
-    }
-
-    // wrap T
-    if (tevind.tw == IndTexWrap::ITW_OFF)
-    {
-      out.Write("\twrappedcoord.y = fixpoint_uv{}.y;\n", texcoord);
-    }
-    else if (tevind.tw >= IndTexWrap::ITW_0)  // 7 (Invalid) appears to behave the same as 6 (ITW_0)
-    {
-      out.Write("\twrappedcoord.y = 0;\n");
-    }
-    else
-    {
-      out.Write("\twrappedcoord.y = fixpoint_uv{}.y & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.tw.Value()) - u32(IndTexWrap::ITW_256)]);
-    }
-
-    if (tevind.fb_addprev)  // add previous tevcoord
-      out.Write("\ttevcoord.xy += wrappedcoord + indtevtrans{};\n", n);
-    else
-      out.Write("\ttevcoord.xy = wrappedcoord + indtevtrans{};\n", n);
-
-    // Emulate s24 overflows
-    out.Write("\ttevcoord.xy = (tevcoord.xy << 8) >> 8;\n");
-  }
-
-  TevStageCombiner::ColorCombiner cc;
-  TevStageCombiner::AlphaCombiner ac;
-  cc.hex = stage.cc;
-  ac.hex = stage.ac;
-
-  if (cc.a == TevColorArg::RasAlpha || cc.a == TevColorArg::RasColor ||
-      cc.b == TevColorArg::RasAlpha || cc.b == TevColorArg::RasColor ||
-      cc.c == TevColorArg::RasAlpha || cc.c == TevColorArg::RasColor ||
-      cc.d == TevColorArg::RasAlpha || cc.d == TevColorArg::RasColor ||
-      ac.a == TevAlphaArg::RasAlpha || ac.b == TevAlphaArg::RasAlpha ||
-      ac.c == TevAlphaArg::RasAlpha || ac.d == TevAlphaArg::RasAlpha)
-  {
-    // Generate swizzle string to represent the Ras color channel swapping
-    const char rasswap[5] = {
-        "rgba"[stage.tevksel_swap1a],
-        "rgba"[stage.tevksel_swap2a],
-        "rgba"[stage.tevksel_swap1b],
-        "rgba"[stage.tevksel_swap2b],
-        '\0',
-    };
-
-    out.Write("\trastemp = {}.{};\n", tev_ras_table[u32(stage.tevorders_colorchan)], rasswap);
-  }
-
-  if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
-  {
-    // Generate swizzle string to represent the texture color channel swapping
-    const char texswap[5] = {
-        "rgba"[stage.tevksel_swap1c],
-        "rgba"[stage.tevksel_swap2c],
-        "rgba"[stage.tevksel_swap1d],
-        "rgba"[stage.tevksel_swap2d],
-        '\0',
-    };
-
-    out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, api_type);
-  }
-  else if (uid_data->genMode_numtexgens == 0)
-  {
-    // It seems like the result is always black when no tex coords are enabled, but further testing
-    // is needed.
-    out.Write("\ttextemp = int4(0, 0, 0, 0);\n");
-  }
-  else
-  {
-    out.Write("\ttextemp = int4(255, 255, 255, 255);\n");
-  }
-
-  if (cc.a == TevColorArg::Konst || cc.b == TevColorArg::Konst || cc.c == TevColorArg::Konst ||
-      cc.d == TevColorArg::Konst || ac.a == TevAlphaArg::Konst || ac.b == TevAlphaArg::Konst ||
-      ac.c == TevAlphaArg::Konst || ac.d == TevAlphaArg::Konst)
-  {
-    out.Write("\tkonsttemp = int4({}, {});\n", tev_ksel_table_c[u32(stage.tevksel_kc)],
-              tev_ksel_table_a[u32(stage.tevksel_ka)]);
-
-    if (u32(stage.tevksel_kc) > 7)
-    {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4));
-    }
-    if (u32(stage.tevksel_ka) > 7)
-    {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4));
-    }
-  }
-
-  if (cc.d == TevColorArg::Color0 || cc.d == TevColorArg::Alpha0 || ac.d == TevAlphaArg::Alpha0)
-    out.SetConstantsUsed(C_COLORS + 1, C_COLORS + 1);
-
-  if (cc.d == TevColorArg::Color1 || cc.d == TevColorArg::Alpha1 || ac.d == TevAlphaArg::Alpha1)
-    out.SetConstantsUsed(C_COLORS + 2, C_COLORS + 2);
-
-  if (cc.d == TevColorArg::Color2 || cc.d == TevColorArg::Alpha2 || ac.d == TevAlphaArg::Alpha2)
-    out.SetConstantsUsed(C_COLORS + 3, C_COLORS + 3);
-
-  if (cc.dest >= TevOutput::Color0)
-    out.SetConstantsUsed(C_COLORS + u32(cc.dest.Value()), C_COLORS + u32(cc.dest.Value()));
-
-  if (ac.dest >= TevOutput::Color0)
-    out.SetConstantsUsed(C_COLORS + u32(ac.dest.Value()), C_COLORS + u32(ac.dest.Value()));
-
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VECTOR_BITWISE_AND))
-  {
-    out.Write("\ttevin_a = int4({} & 255, {} & 255);\n", tev_c_input_table[u32(cc.a.Value())],
-              tev_a_input_table[u32(ac.a.Value())]);
-    out.Write("\ttevin_b = int4({} & 255, {} & 255);\n", tev_c_input_table[u32(cc.b.Value())],
-              tev_a_input_table[u32(ac.b.Value())]);
-    out.Write("\ttevin_c = int4({} & 255, {} & 255);\n", tev_c_input_table[u32(cc.c.Value())],
-              tev_a_input_table[u32(ac.c.Value())]);
-  }
-  else
-  {
-    out.Write("\ttevin_a = int4({}, {})&int4(255, 255, 255, 255);\n",
-              tev_c_input_table[u32(cc.a.Value())], tev_a_input_table[u32(ac.a.Value())]);
-    out.Write("\ttevin_b = int4({}, {})&int4(255, 255, 255, 255);\n",
-              tev_c_input_table[u32(cc.b.Value())], tev_a_input_table[u32(ac.b.Value())]);
-    out.Write("\ttevin_c = int4({}, {})&int4(255, 255, 255, 255);\n",
-              tev_c_input_table[u32(cc.c.Value())], tev_a_input_table[u32(ac.c.Value())]);
-  }
-  out.Write("\ttevin_d = int4({}, {});\n", tev_c_input_table[u32(cc.d.Value())],
-            tev_a_input_table[u32(ac.d.Value())]);
-
-  out.Write("\t// color combine\n");
-  out.Write("\t{} = clamp(", tev_c_output_table[u32(cc.dest.Value())]);
-  if (cc.bias != TevBias::Compare)
-  {
-    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.scale, false);
-  }
-  else
-  {
-    static constexpr std::array<const char*, 8> function_table{
-        "((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",   // TevCompareMode::R8, GT
-        "((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",  // R8, TevComparison::EQ
-        "((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : "
-        "int3(0,0,0))",  // GR16, GT
-        "((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : "
-        "int3(0,0,0))",  // GR16, EQ
-        "((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : "
-        "int3(0,0,0))",  // BGR24, GT
-        "((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : "
-        "int3(0,0,0))",                                                         // BGR24, EQ
-        "(max(sign(tevin_a.rgb - tevin_b.rgb), int3(0,0,0)) * tevin_c.rgb)",    // RGB8, GT
-        "((int3(1,1,1) - sign(abs(tevin_a.rgb - tevin_b.rgb))) * tevin_c.rgb)"  // RGB8, EQ
-    };
-
-    const u32 mode = (u32(cc.compare_mode.Value()) << 1) | u32(cc.comparison.Value());
-    out.Write("   tevin_d.rgb + ");
-    out.Write("{}", function_table[mode]);
-  }
-  if (cc.clamp)
-    out.Write(", int3(0,0,0), int3(255,255,255))");
-  else
-    out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
-  out.Write(";\n");
-
-  out.Write("\t// alpha combine\n");
-  out.Write("\t{} = clamp(", tev_a_output_table[u32(ac.dest.Value())]);
-  if (ac.bias != TevBias::Compare)
-  {
-    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.scale, true);
-  }
-  else
-  {
-    static constexpr std::array<const char*, 8> function_table{
-        "((tevin_a.r > tevin_b.r) ? tevin_c.a : 0)",   // TevCompareMode::R8, GT
-        "((tevin_a.r == tevin_b.r) ? tevin_c.a : 0)",  // R8, TevComparison::EQ
-        "((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)",  // GR16, GT
-        "((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)",  // GR16, EQ
-        "((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)",  // BGR24, GT
-        "((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)",  // BGR24, EQ
-        "((tevin_a.a >  tevin_b.a) ? tevin_c.a : 0)",                                  // A8, GT
-        "((tevin_a.a == tevin_b.a) ? tevin_c.a : 0)"                                   // A8, EQ
-    };
-
-    const u32 mode = (u32(ac.compare_mode.Value()) << 1) | u32(ac.comparison.Value());
-    out.Write("   tevin_d.a + ");
-    out.Write("{}", function_table[mode]);
-  }
-  if (ac.clamp)
-    out.Write(", 0, 255)");
-  else
-    out.Write(", -1024, 1023)");
-
-  out.Write(";\n");
-}
-
-static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale, bool alpha)
-{
-  static constexpr std::array<const char*, 4> tev_scale_table_left{
-      "",       // Scale1
-      " << 1",  // Scale2
-      " << 2",  // Scale4
-      "",       // Divide2
-  };
-
-  static constexpr std::array<const char*, 4> tev_scale_table_right{
-      "",       // Scale1
-      "",       // Scale2
-      "",       // Scale4
-      " >> 1",  // Divide2
-  };
-
-  // indexed by 2*op+(scale==Divide2)
-  static constexpr std::array<const char*, 4> tev_lerp_bias{
-      "",
-      " + 128",
-      "",
-      " + 127",
-  };
-
-  static constexpr std::array<const char*, 4> tev_bias_table{
-      "",        // Zero,
-      " + 128",  // AddHalf,
-      " - 128",  // SubHalf,
-      "",
-  };
-
-  static constexpr std::array<char, 2> tev_op_table{
-      '+',  // TevOp::Add = 0,
-      '-',  // TevOp::Sub = 1,
-  };
-
-  // Regular TEV stage: (d + bias + lerp(a,b,c)) * scale
-  // The GameCube/Wii GPU uses a very sophisticated algorithm for scale-lerping:
-  // - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
-  // - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
-  // - a rounding bias is added before dividing by 256
-  out.Write("(((tevin_d.{}{}){})", components, tev_bias_table[u32(bias)],
-            tev_scale_table_left[u32(scale)]);
-  out.Write(" {} ", tev_op_table[u32(op)]);
-  out.Write("(((((tevin_a.{}<<8) + (tevin_b.{}-tevin_a.{})*(tevin_c.{}+(tevin_c.{}>>7))){}){})>>8)",
-            components, components, components, components, components,
-            tev_scale_table_left[u32(scale)],
-            tev_lerp_bias[2 * u32(op) + ((scale == TevScale::Divide2) == alpha)]);
-  out.Write("){}", tev_scale_table_right[u32(scale)]);
-}
-
-static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::string_view texswap,
-                          int texmap, bool stereo, APIType api_type)
-{
-  out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
-
-  if (api_type == APIType::D3D)
-  {
-    out.Write("iround(255.0 * Tex[{}].Sample(samp[{}], float3({}.xy * " I_TEXDIMS
-              "[{}].xy, {}))).{};\n",
-              texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
-  }
-  else
-  {
-    out.Write("iround(255.0 * texture(samp[{}], float3({}.xy * " I_TEXDIMS "[{}].xy, {}))).{};\n",
-              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
-  }
 }
 
 constexpr std::array<const char*, 8> tev_alpha_funcs_table{
@@ -1516,75 +1039,6 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   out.Write("\t}}\n");
 }
 
-constexpr std::array<const char*, 8> tev_fog_funcs_table{
-    "",                                                       // No Fog
-    "",                                                       // ?
-    "",                                                       // Linear
-    "",                                                       // ?
-    "\tfog = 1.0 - exp2(-8.0 * fog);\n",                      // exp
-    "\tfog = 1.0 - exp2(-8.0 * fog * fog);\n",                // exp2
-    "\tfog = exp2(-8.0 * (1.0 - fog));\n",                    // backward exp
-    "\tfog = 1.0 - fog;\n   fog = exp2(-8.0 * fog * fog);\n"  // backward exp2
-};
-
-static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
-{
-  if (uid_data->fog_fsel == FogType::Off)
-    return;  // no Fog
-
-  out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
-  out.SetConstantsUsed(C_FOGI, C_FOGI);
-  out.SetConstantsUsed(C_FOGF, C_FOGF + 1);
-  if (uid_data->fog_proj == FogProjection::Perspective)
-  {
-    // perspective
-    // ze = A/(B - (Zs >> B_SHF)
-    // TODO: Verify that we want to drop lower bits here! (currently taken over from software
-    // renderer)
-    //       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
-    //       That's equivalent, but keeps the lower bits of Zs.
-    out.Write("\tfloat ze = (" I_FOGF ".x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
-              ".w));\n");
-  }
-  else
-  {
-    // orthographic
-    // ze = a*Zs    (here, no B_SHF)
-    out.Write("\tfloat ze = " I_FOGF ".x * float(zCoord) / 16777216.0;\n");
-  }
-
-  // x_adjust = sqrt((x-center)^2 + k^2)/k
-  // ze *= x_adjust
-  if (uid_data->fog_RangeBaseEnabled)
-  {
-    out.SetConstantsUsed(C_FOGF, C_FOGF);
-    out.Write("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
-              "\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
-              "\tuint indexlower = uint(floatindex);\n"
-              "\tuint indexupper = indexlower + 1u;\n"
-              "\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
-              "\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
-              "\tfloat k = lerp(klower, kupper, frac(floatindex));\n"
-              "\tfloat x_adjust = sqrt(offset * offset + k * k) / k;\n"
-              "\tze *= x_adjust;\n");
-  }
-
-  out.Write("\tfloat fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n");
-
-  if (uid_data->fog_fsel >= FogType::Exp)
-  {
-    out.Write("{}", tev_fog_funcs_table[u32(uid_data->fog_fsel)]);
-  }
-  else
-  {
-    if (uid_data->fog_fsel != FogType::Linear)
-      WARN_LOG_FMT(VIDEO, "Unknown Fog Type! {}", uid_data->fog_fsel);
-  }
-
-  out.Write("\tint ifog = iround(fog * 256.0);\n");
-  out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
-}
-
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source)
 {
@@ -1620,82 +1074,4 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
     if (use_dual_source)
       out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
   }
-}
-
-static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
-{
-  if (uid_data->blend_enable)
-  {
-    static constexpr std::array<const char*, 8> blend_src_factor{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "initial_ocol0.rgb;",                  // DSTCLR
-        "float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "ocol1.aaa;",                          // SRCALPHA
-        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    };
-    static constexpr std::array<const char*, 8> blend_src_factor_alpha{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "initial_ocol0.a;",        // DSTCLR
-        "1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "ocol1.a;",                // SRCALPHA
-        "1.0 - ocol1.a;",          // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    };
-    static constexpr std::array<const char*, 8> blend_dst_factor{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "ocol0.rgb;",                          // SRCCLR
-        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "ocol1.aaa;",                          // SRCALHA
-        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    };
-    static constexpr std::array<const char*, 8> blend_dst_factor_alpha{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "ocol0.a;",                // SRCCLR
-        "1.0 - ocol0.a;",          // INVSRCCLR
-        "ocol1.a;",                // SRCALPHA
-        "1.0 - ocol1.a;",          // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    };
-    out.Write("\tfloat4 blend_src;\n");
-    out.Write("\tblend_src.rgb = {}\n", blend_src_factor[u32(uid_data->blend_src_factor)]);
-    out.Write("\tblend_src.a = {}\n",
-              blend_src_factor_alpha[u32(uid_data->blend_src_factor_alpha)]);
-    out.Write("\tfloat4 blend_dst;\n");
-    out.Write("\tblend_dst.rgb = {}\n", blend_dst_factor[u32(uid_data->blend_dst_factor)]);
-    out.Write("\tblend_dst.a = {}\n",
-              blend_dst_factor_alpha[u32(uid_data->blend_dst_factor_alpha)]);
-
-    out.Write("\tfloat4 blend_result;\n");
-    if (uid_data->blend_subtract)
-    {
-      out.Write("\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * "
-                "blend_src.rgb;\n");
-    }
-    else
-    {
-      out.Write(
-          "\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * blend_src.rgb;\n");
-    }
-
-    if (uid_data->blend_subtract_alpha)
-      out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n");
-    else
-      out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a + ocol0.a * blend_src.a;\n");
-  }
-  else
-  {
-    out.Write("\tfloat4 blend_result = ocol0;\n");
-  }
-
-  out.Write("\treal_ocol0 = blend_result;\n");
 }

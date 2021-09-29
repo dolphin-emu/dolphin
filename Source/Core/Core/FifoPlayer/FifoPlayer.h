@@ -141,6 +141,7 @@ private:
   static bool IsHighWatermarkSet();
 
   bool m_Loop;
+  int m_LoopCount = 0;
 
   u32 m_CurrentFrame = 0;
   u32 m_FrameRangeStart = 0;

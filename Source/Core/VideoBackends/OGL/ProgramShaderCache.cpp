@@ -747,6 +747,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // shader image load store
       "%s\n"  // shader framebuffer fetch
       "%s\n"  // shader thread shuffle
+      "#extension GL_ARB_texture_query_levels : enable\n"
 
       // Precision defines for GLSL ES
       "%s\n"

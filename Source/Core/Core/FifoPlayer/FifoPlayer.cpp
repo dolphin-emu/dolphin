@@ -133,7 +133,14 @@ CPU::State FifoPlayer::AdvanceFrame()
   if (m_CurrentFrame > m_FrameRangeEnd)
   {
     if (!m_Loop)
-      return CPU::State::PowerDown;
+    {
+      // Hack - fifoci seems to be losing frames; loop 3 times to ensure they show up
+      m_LoopCount++;
+      if (m_LoopCount >= 3)
+      {
+        return CPU::State::PowerDown;
+      }
+    }
 
     // When looping, reload the contents of all the BP/CP/CF registers.
     // This ensures that each time the first frame is played back, the state of the

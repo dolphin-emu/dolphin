@@ -22,7 +22,6 @@ public:
   Impl()
   {
     const int ret = libusb_init(&m_context);
-    ASSERT_MSG(IOS_USB, ret == LIBUSB_SUCCESS, "Failed to init libusb: %s", libusb_error_name(ret));
     if (ret != LIBUSB_SUCCESS)
       return;
 

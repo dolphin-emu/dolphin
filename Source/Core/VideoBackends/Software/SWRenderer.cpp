@@ -31,6 +31,8 @@ SWRenderer::SWRenderer(std::unique_ptr<SWOGLWindow> window)
                  AbstractTextureFormat::RGBA8),
       m_window(std::move(window))
 {
+  // Hack - avoid running the software renderer for this test
+  std::abort();
 }
 
 bool SWRenderer::IsHeadless() const
