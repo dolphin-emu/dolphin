@@ -86,6 +86,7 @@ static DTMHeader tmpHeader;
 static std::vector<u8> s_temp_input;
 static u64 s_currentByte = 0;
 static u64 s_currentFrame = 0, s_totalFrames = 0;  // VI
+static bool s_timebase_desync_occur = false;
 static u64 s_currentLagCount = 0;
 static u64 s_totalLagCount = 0;                               // just stats
 static u64 s_currentInputCount = 0, s_totalInputCount = 0;    // just stats
@@ -932,6 +933,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   s_currentFrame = 0;
   s_currentLagCount = 0;
   s_currentInputCount = 0;
+  s_timebase_desync_occur = false;
 
   s_playMode = MODE_PLAYING;
 
@@ -1183,7 +1185,23 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   }
 
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
-  s_currentByte += DTMGCFrameLength;
+  s_currentByte += sizeof(ControllerState);
+  u64 movTimebase;
+  memcpy(&movTimebase, &s_temp_input[s_currentByte], sizeof(u64));
+  s_currentByte += sizeof(u64);
+  u64 curTimebase = SystemTimers::GetFakeTimeBase();
+
+  if (movTimebase != curTimebase && !s_timebase_desync_occur)
+  {
+    PanicAlertFmtT(
+        "Warning: On frame {0} of movie playback, the current timebase no longer matches the "
+        "movie's timebase. This is heavily indicative of a desync, and it is highly suggested you "
+        "do not record to this movie after this point.\n\n"
+        "On frame {1}, the current playback has timebase {2:#08x}.\n"
+        "On frame {3}, the current movie has timebase {4:#08x}.",
+        s_totalFrames, s_totalFrames, curTimebase, s_totalFrames, movTimebase);
+    s_timebase_desync_occur = true;
+  }
 
   PadStatus->isConnected = s_padState.is_connected;
 
