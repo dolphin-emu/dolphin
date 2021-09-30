@@ -1072,8 +1072,7 @@ void LoadInput(const std::string& movie_path)
           memcpy(&curPadState, &s_temp_input[frame * sizeof(ControllerState)],
                  sizeof(ControllerState));
           ControllerState movPadState;
-          memcpy(&movPadState, &s_temp_input[frame * sizeof(ControllerState)],
-                 sizeof(ControllerState));
+          memcpy(&movPadState, &movInput[frame * sizeof(ControllerState)], sizeof(ControllerState));
           PanicAlertFmtT(
               "Warning: You loaded a save whose movie mismatches on frame {0}. You should load "
               "another save before continuing, or load this state with read-only mode off. "
