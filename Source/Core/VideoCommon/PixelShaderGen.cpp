@@ -832,6 +832,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       uid_data->genMode_numtexgens > 0)
   {
     out.Write(R"(
+    int3 size0 = textureSize(samp[0], 0);
+    int size0_s = size0.x;
+    int size0_t = size0.y;
+
     int min_lod = 0;
     int max_lod = textureQueryLevels(samp[0]) - 1;  // Just assume textureQueryLevels exists
 
@@ -849,7 +853,23 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
     lod = clamp(lod, min_lod, max_lod);
 
+    int3 size = textureSize(samp[0], lod);
+    int size_s = size.x;
+    int size_t = size.y;
+
+    int expected_size_s = size0_s >> lod;
+    int expected_size_t = size0_t >> lod;
+
     prev.rgba = iround(textureLod(samp[0], tex0, lod) * 255);
+
+    if (size0_s == size0_t) {{  // This test assumes square textures
+      if (expected_size_s > size_s)
+        prev.rgba = int4(255, clamp(size_s, 0, 255), lod, 255);
+      else if (expected_size_s < size_s)
+        prev.rgba = int4(lod, clamp(size_s, 0, 255), 255, 255);
+      else if (expected_size_t != size_t)
+        prev.rgba = int4(0, 255, 0, 255);
+    }}
 )");
   }
   else
