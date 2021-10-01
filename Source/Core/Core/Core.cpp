@@ -393,6 +393,15 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
+
+#ifdef USE_GDBSTUB
+  if (gdb_active())
+  {
+    gdb_deinit();
+    INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
+    return;
+  }
+#endif
 }
 
 static void FifoPlayerThread(const std::optional<std::string>& savestate_path,

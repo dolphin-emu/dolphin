@@ -689,6 +689,13 @@ void gdb_handle_exception(bool loop_until_continue)
 {
   while (gdb_active())
   {
+    if (CPU::GetState() == CPU::State::PowerDown)
+    {
+      gdb_deinit();
+      INFO_LOG_FMT(GDB_STUB, "killed by power down");
+      return;
+    }
+
     if (!gdb_data_available())
     {
       if (loop_until_continue)
@@ -822,7 +829,7 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
   INFO_LOG_FMT(GDB_STUB, "Client connected.");
 
 #ifdef _WIN32
-  closesocket(tmpsock);
+  closesocket(s_tmpsock);
 #else
   close(tmpsock);
 #endif
