@@ -203,6 +203,7 @@ static void ReadCommand()
     CPU::Break();
     SendSignal(Signal::Sigtrap);
     s_has_control = true;
+    INFO_LOG_FMT(GDB_STUB, "gdb: CPU::Break due to break command");
     return;
   }
   else if (c != GDB_STUB_START)
