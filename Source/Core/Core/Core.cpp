@@ -316,12 +316,12 @@ void UndeclareAsCPUThread()
 }
 
 // For the CPU Thread only.
-static void CPUSetInitialExecutionState()
+static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
-  QueueHostJob([]() {
-    SetState(SConfig::GetInstance().bBootToPause ? State::Paused : State::Running);
+  QueueHostJob([force_paused]() {
+    SetState(SConfig::GetInstance().bBootToPause || force_paused ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
     Host_Message(HostMessageID::WMUserCreate);
@@ -363,22 +363,22 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   }
 
   s_is_started = true;
-  CPUSetInitialExecutionState();
-
-#ifdef USE_GDBSTUB
 #ifndef _WIN32
   if (!_CoreParameter.gdb_socket.empty())
   {
-    gdb_init_local(_CoreParameter.gdb_socket.data());
-    gdb_break();
+    GDBStub::InitLocal(_CoreParameter.gdb_socket.data());
+    CPUSetInitialExecutionState(true);
   }
   else
 #endif
       if (_CoreParameter.iGDBPort > 0)
   {
-    gdb_init(_CoreParameter.iGDBPort);
-    // break at next instruction (the first instruction)
-    gdb_break();
+    GDBStub::Init(_CoreParameter.iGDBPort);
+    CPUSetInitialExecutionState(true);
+  }
+  else
+  {
+    CPUSetInitialExecutionState();
   }
 #endif
 
