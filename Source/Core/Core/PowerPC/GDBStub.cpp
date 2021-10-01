@@ -309,7 +309,15 @@ static void gdb_handle_query()
 static void gdb_handle_set_thread()
 {
   if (memcmp(cmd_bfr, "Hg0", 3) == 0 || memcmp(cmd_bfr, "Hc-1", 4) == 0 ||
-      memcmp(cmd_bfr, "Hc0", 4) == 0 || memcmp(cmd_bfr, "Hc1", 4) == 0)
+      memcmp(cmd_bfr, "Hc0", 3) == 0 || memcmp(cmd_bfr, "Hc1", 3) == 0)
+    return gdb_reply("OK");
+  gdb_reply("E01");
+}
+
+static void gdb_handle_thread_alive()
+{
+  if (memcmp(cmd_bfr, "T0", 2) == 0 || memcmp(cmd_bfr, "T1", 4) == 0 ||
+      memcmp(cmd_bfr, "T-1", 3) == 0)
     return gdb_reply("OK");
   gdb_reply("E01");
 }
@@ -708,6 +716,9 @@ void gdb_handle_exception(bool loop_until_continue)
       break;
     case 'H':
       gdb_handle_set_thread();
+      break;
+    case 'T':
+      gdb_handle_thread_alive();
       break;
     case '?':
       gdb_handle_signal();
