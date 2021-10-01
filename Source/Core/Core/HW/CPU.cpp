@@ -97,6 +97,7 @@ void Run()
     s_state_cpu_cvar.wait(state_lock, [] { return !s_state_paused_and_locked; });
     ExecutePendingJobs(state_lock);
 
+    Common::Event gdb_step_sync_event;
     switch (s_state)
     {
     case State::Running:
@@ -130,16 +131,24 @@ void Run()
 
     case State::Stepping:
       // Wait for step command.
-      s_state_cpu_cvar.wait(state_lock, [&state_lock] {
+      s_state_cpu_cvar.wait(state_lock, [&state_lock, &gdb_step_sync_event] {
         ExecutePendingJobs(state_lock);
         state_lock.unlock();
-        if (gdb_active() && gdb_hasControl())
+        if (GDBStub::IsActive() && GDBStub::HasControl())
         {
-          gdb_signal(GDB_SIGTRAP);
-          gdb_handle_exception(true);
+          GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
+          GDBStub::ProcessCommands(true);
           // If we are still going to step, emulate the fact we just sent a step command
-          if (gdb_hasControl())
+          if (GDBStub::HasControl())
+          {
+            // Make sure the previous step by gdb was serviced
+            if (s_state_cpu_step_instruction_sync &&
+                s_state_cpu_step_instruction_sync != &gdb_step_sync_event)
+              s_state_cpu_step_instruction_sync->Set();
+
             s_state_cpu_step_instruction = true;
+            s_state_cpu_step_instruction_sync = &gdb_step_sync_event;
+          }
         }
         state_lock.lock();
         return s_state_cpu_step_instruction || !IsStepping();
@@ -291,6 +300,12 @@ void Break()
   // finish resulting in the CPU loop never terminating.
   SetStateLocked(State::Stepping);
   RunAdjacentSystems(false);
+}
+
+void Continue()
+{
+  CPU::EnableStepping(false);
+  Core::CallOnStateChangedCallbacks(Core::State::Running);
 }
 
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)

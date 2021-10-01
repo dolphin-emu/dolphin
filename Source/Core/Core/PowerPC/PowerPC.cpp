@@ -614,8 +614,8 @@ void CheckBreakPoints()
   if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
   {
     CPU::Break();
-    if (gdb_active())
-      gdb_takeControl();
+    if (GDBStub::IsActive())
+      GDBStub::TakeControl();
   }
   if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
   {

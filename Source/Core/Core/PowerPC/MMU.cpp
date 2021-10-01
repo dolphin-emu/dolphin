@@ -519,8 +519,8 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
 
   CPU::Break();
 
-  if (gdb_active())
-    gdb_takeControl();
+  if (GDBStub::IsActive())
+    GDBStub::TakeControl();
 
   // Fake a DSI so that all the code that tests for it in order to skip
   // the rest of the instruction will apply.  (This means that

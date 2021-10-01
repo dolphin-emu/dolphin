@@ -318,7 +318,8 @@ static void CPUSetInitialExecutionState(bool force_paused = false)
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
   QueueHostJob([force_paused]() {
-    SetState(SConfig::GetInstance().bBootToPause || force_paused ? State::Paused : State::Running);
+    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+    SetState(paused ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
     Host_Message(HostMessageID::WMUserCreate);
@@ -390,9 +391,9 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
 
-  if (gdb_active())
+  if (GDBStub::IsActive())
   {
-    gdb_deinit();
+    GDBStub::Deinit();
     INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
     return;
   }
@@ -657,7 +658,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
-  gdb_deinit();
+  GDBStub::Deinit();
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
 }
 

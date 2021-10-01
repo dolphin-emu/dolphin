@@ -293,8 +293,8 @@ void Interpreter::Run()
 #endif
             INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
             CPU::Break();
-            if (gdb_active())
-              gdb_takeControl();
+            if (GDBStub::IsActive())
+              GDBStub::TakeControl();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);
 
