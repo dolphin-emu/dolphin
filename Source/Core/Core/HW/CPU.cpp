@@ -141,6 +141,9 @@ void Run()
         {
           gdb_signal(GDB_SIGTRAP);
           gdb_handle_exception(true);
+          // If we are still going to step, emulate the fact we just sent a step command
+          if (gdb_hasControl())
+            s_state_cpu_step_instruction = true;
         }
         state_lock.lock();
 #endif

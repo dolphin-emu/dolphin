@@ -573,14 +573,6 @@ void gdb_break()
 
 static void gdb_step()
 {
-  Common::Event sync_event;
-
-  PowerPC::CoreMode old_mode = PowerPC::GetMode();
-  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  PowerPC::breakpoints.ClearAllTemporary();
-  CPU::StepOpcode(&sync_event);
-  sync_event.WaitFor(std::chrono::milliseconds(20));
-  PowerPC::SetMode(old_mode);
   send_signal = 1;
 }
 
