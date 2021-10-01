@@ -30,6 +30,10 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
+#ifdef USE_GDBSTUB
+#include "Core/PowerPC/GDBStub.h"
+#endif
+
 namespace PowerPC
 {
 // STATE_TO_SAVE
@@ -611,7 +615,12 @@ void CheckBreakPoints()
     return;
 
   if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
+  {
     CPU::Break();
+#ifdef USE_GDBSTUB
+    gdb_takeControl();
+#endif
+  }
   if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
   {
     NOTICE_LOG_FMT(MEMMAP,

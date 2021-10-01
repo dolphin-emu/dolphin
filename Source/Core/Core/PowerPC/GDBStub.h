@@ -35,6 +35,8 @@ void gdb_init(u32 port);
 void gdb_init_local(const char* socket);
 void gdb_deinit();
 bool gdb_active();
+bool gdb_hasControl();
+void gdb_takeControl();
 void gdb_break();
 
 void gdb_handle_exception(bool loopUntilContinue);

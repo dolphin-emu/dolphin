@@ -22,11 +22,14 @@ typedef SSIZE_T ssize_t;
 #include <unistd.h>
 #endif
 
+#include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
+#include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
@@ -38,12 +41,13 @@ std::optional<Common::SocketContext> s_socket_context;
 }  // namespace
 
 #define GDB_BFR_MAX 10000
-#define GDB_MAX_BP 10
 
 #define GDB_STUB_START '$'
 #define GDB_STUB_END '#'
 #define GDB_STUB_ACK '+'
 #define GDB_STUB_NAK '-'
+
+static bool hasControl = false;
 
 static int tmpsock = -1;
 static int sock = -1;
@@ -56,18 +60,6 @@ static u32 send_signal = 0;
 static u32 step_break = 0;
 
 static CoreTiming::EventType* m_gdbStubUpdateEvent;
-
-typedef struct
-{
-  u32 active;
-  u32 addr;
-  u32 len;
-} gdb_bp_t;
-
-static gdb_bp_t bp_x[GDB_MAX_BP];
-static gdb_bp_t bp_r[GDB_MAX_BP];
-static gdb_bp_t bp_w[GDB_MAX_BP];
-static gdb_bp_t bp_a[GDB_MAX_BP];
 
 static const char* CommandBufferAsString()
 {
@@ -148,91 +140,24 @@ static u8 gdb_calc_chksum()
   return c;
 }
 
-static gdb_bp_t* gdb_bp_ptr(u32 type)
-{
-  switch (type)
-  {
-  case GDB_BP_TYPE_X:
-    return bp_x;
-  case GDB_BP_TYPE_R:
-    return bp_x;
-  case GDB_BP_TYPE_W:
-    return bp_x;
-  case GDB_BP_TYPE_A:
-    return bp_x;
-  default:
-    return nullptr;
-  }
-}
-
-static gdb_bp_t* gdb_bp_empty_slot(u32 type)
-{
-  gdb_bp_t* p;
-  u32 i;
-
-  p = gdb_bp_ptr(type);
-  if (p == nullptr)
-    return nullptr;
-
-  for (i = 0; i < GDB_MAX_BP; i++)
-  {
-    if (p[i].active == 0)
-      return &p[i];
-  }
-
-  return nullptr;
-}
-
-static gdb_bp_t* gdb_bp_find(u32 type, u32 addr, u32 len)
-{
-  gdb_bp_t* p;
-  u32 i;
-
-  p = gdb_bp_ptr(type);
-  if (p == nullptr)
-    return nullptr;
-
-  for (i = 0; i < GDB_MAX_BP; i++)
-  {
-    if (p[i].active == 1 && p[i].addr == addr && p[i].len == len)
-      return &p[i];
-  }
-
-  return nullptr;
-}
-
 static void gdb_bp_remove(u32 type, u32 addr, u32 len)
 {
-  gdb_bp_t* p;
-
-  do
+  if (type == GDB_BP_TYPE_X)
   {
-    p = gdb_bp_find(type, addr, len);
-    if (p != nullptr)
+    while (PowerPC::breakpoints.IsAddressBreakPoint(addr))
     {
+      PowerPC::breakpoints.Remove(addr);
       DEBUG_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
-      p->active = 0;
-      memset(p, 0, sizeof(gdb_bp_t));
     }
-  } while (p != nullptr);
-}
-
-static int gdb_bp_check(u32 addr, u32 type)
-{
-  gdb_bp_t* p;
-  u32 i;
-
-  p = gdb_bp_ptr(type);
-  if (p == nullptr)
-    return 0;
-
-  for (i = 0; i < GDB_MAX_BP; i++)
-  {
-    if (p[i].active == 1 && (addr >= p[i].addr && addr < p[i].addr + p[i].len))
-      return 1;
   }
-
-  return 0;
+  else
+  {
+    while (PowerPC::memchecks.GetMemCheck(addr, len) != nullptr)
+    {
+      PowerPC::memchecks.Remove(addr);
+      DEBUG_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
+    }
+  }
 }
 
 static void gdb_nak()
@@ -268,6 +193,7 @@ static void gdb_read_command()
   {
     CPU::Break();
     gdb_signal(GDB_SIGTRAP);
+    hasControl = true;
     return;
   }
   else if (c != GDB_STUB_START)
@@ -639,27 +565,45 @@ void gdb_break()
 
 static void gdb_step()
 {
-  gdb_break();
+  Common::Event sync_event;
+
+  PowerPC::CoreMode old_mode = PowerPC::GetMode();
+  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+  PowerPC::breakpoints.ClearAllTemporary();
+  CPU::StepOpcode(&sync_event);
+  sync_event.WaitFor(std::chrono::milliseconds(20));
+  PowerPC::SetMode(old_mode);
+  send_signal = 1;
 }
 
 static void gdb_continue()
 {
   send_signal = 1;
+  CPU::EnableStepping(false);
+  Core::CallOnStateChangedCallbacks(Core::State::Running);
 }
 
 bool gdb_add_bp(u32 type, u32 addr, u32 len)
 {
-  gdb_bp_t* bp;
-  bp = gdb_bp_empty_slot(type);
-  if (bp == nullptr)
-    return false;
-
-  bp->active = 1;
-  bp->addr = addr;
-  bp->len = len;
-
-  DEBUG_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, bp->len,
-                bp->addr);
+  if (type == GDB_BP_TYPE_X)
+  {
+    PowerPC::breakpoints.Add(addr);
+    DEBUG_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, len, addr);
+  }
+  else
+  {
+    TMemCheck new_memcheck;
+    new_memcheck.start_address = addr;
+    new_memcheck.end_address = addr + len - 1;
+    new_memcheck.is_ranged = (len > 1);
+    new_memcheck.is_break_on_read = (type == GDB_BP_TYPE_R || type == GDB_BP_TYPE_A);
+    new_memcheck.is_break_on_write = (type == GDB_BP_TYPE_W || type == GDB_BP_TYPE_A);
+    new_memcheck.break_on_hit = true;
+    new_memcheck.log_on_hit = false;
+    new_memcheck.is_enabled = true;
+    PowerPC::memchecks.Add(new_memcheck);
+    INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", type, len, addr);
+  }
   return true;
 }
 
@@ -798,6 +742,7 @@ void gdb_handle_exception(bool loop_until_continue)
     case 'C':
     case 'c':
       gdb_continue();
+      hasControl = false;
       return;
     case 'z':
       gdb_remove_bp();
@@ -851,10 +796,6 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
                              sockaddr* client_addr, socklen_t* client_addrlen)
 {
   s_socket_context.emplace();
-  memset(bp_x, 0, sizeof bp_x);
-  memset(bp_r, 0, sizeof bp_r);
-  memset(bp_w, 0, sizeof bp_w);
-  memset(bp_a, 0, sizeof bp_a);
 
   tmpsock = socket(domain, SOCK_STREAM, 0);
   if (tmpsock == -1)
@@ -886,6 +827,7 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
 
   m_gdbStubUpdateEvent = CoreTiming::RegisterEvent("GDBStubUpdate", GDBStubUpdateCallback);
   CoreTiming::ScheduleEvent(GDB_UPDATE_CYCLES, m_gdbStubUpdateEvent);
+  hasControl = true;
 }
 
 void gdb_deinit()
@@ -902,11 +844,22 @@ void gdb_deinit()
   }
 
   s_socket_context.reset();
+  hasControl = false;
 }
 
 bool gdb_active()
 {
   return tmpsock != -1 || sock != -1;
+}
+
+bool gdb_hasControl()
+{
+  return hasControl;
+}
+
+void gdb_takeControl()
+{
+  hasControl = true;
 }
 
 int gdb_signal(u32 s)
@@ -923,44 +876,4 @@ int gdb_signal(u32 s)
   }
 
   return 0;
-}
-
-int gdb_bp_x(u32 addr)
-{
-  if (sock == -1)
-    return 0;
-
-  if (step_break)
-  {
-    step_break = 0;
-
-    DEBUG_LOG_FMT(GDB_STUB, "Step was successful.");
-    return 1;
-  }
-
-  return gdb_bp_check(addr, GDB_BP_TYPE_X);
-}
-
-int gdb_bp_r(u32 addr)
-{
-  if (sock == -1)
-    return 0;
-
-  return gdb_bp_check(addr, GDB_BP_TYPE_R);
-}
-
-int gdb_bp_w(u32 addr)
-{
-  if (sock == -1)
-    return 0;
-
-  return gdb_bp_check(addr, GDB_BP_TYPE_W);
-}
-
-int gdb_bp_a(u32 addr)
-{
-  if (sock == -1)
-    return 0;
-
-  return gdb_bp_check(addr, GDB_BP_TYPE_A);
 }

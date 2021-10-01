@@ -24,6 +24,10 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
+#ifdef USE_GDBSTUB
+#include "Core/PowerPC/GDBStub.h"
+#endif
+
 namespace PowerPC
 {
 // EFB RE
@@ -517,6 +521,10 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
     return;
 
   CPU::Break();
+
+#ifdef USE_GDBSTUB
+  gdb_takeControl();
+#endif
 
   // Fake a DSI so that all the code that tests for it in order to skip
   // the rest of the instruction will apply.  (This means that
