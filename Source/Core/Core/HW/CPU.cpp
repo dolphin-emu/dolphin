@@ -15,6 +15,10 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/Fifo.h"
 
+#ifdef USE_GDBSTUB
+#include "Core/PowerPC/GDBStub.h"
+#endif
+
 namespace CPU
 {
 // CPU Thread execution state.
@@ -131,6 +135,15 @@ void Run()
       // Wait for step command.
       s_state_cpu_cvar.wait(state_lock, [&state_lock] {
         ExecutePendingJobs(state_lock);
+#ifdef USE_GDBSTUB
+        state_lock.unlock();
+        if (gdb_active() && gdb_hasControl())
+        {
+          gdb_signal(GDB_SIGTRAP);
+          gdb_handle_exception(true);
+        }
+        state_lock.lock();
+#endif
         return s_state_cpu_step_instruction || !IsStepping();
       });
       if (!IsStepping())

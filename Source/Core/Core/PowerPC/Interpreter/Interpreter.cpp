@@ -152,16 +152,6 @@ int Interpreter::SingleStepInner()
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
 
-#ifdef USE_GDBSTUB
-  if (gdb_active() && gdb_bp_x(PC))
-  {
-    Host_UpdateDisasmDialog();
-
-    gdb_signal(GDB_SIGTRAP);
-    gdb_handle_exception(true);
-  }
-#endif
-
   NPC = PC + sizeof(UGeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
