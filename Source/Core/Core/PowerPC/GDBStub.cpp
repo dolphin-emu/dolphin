@@ -704,6 +704,7 @@ void ProcessCommands(bool loop_until_continue)
       Host_UpdateDisasmDialog();
       break;
     case 's':
+      Step();
       return;
     case 'C':
     case 'c':
