@@ -156,7 +156,7 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
     while (PowerPC::breakpoints.IsAddressBreakPoint(addr))
     {
       PowerPC::breakpoints.Remove(addr);
-      DEBUG_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
+      INFO_LOG_FMT(GDB_STUB, "gdb: removed a breakpoint: {:08x} bytes at {:08x}", len, addr);
     }
   }
   else
@@ -164,7 +164,7 @@ static void RemoveBreakpoint(BreakpointType type, u32 addr, u32 len)
     while (PowerPC::memchecks.GetMemCheck(addr, len) != nullptr)
     {
       PowerPC::memchecks.Remove(addr);
-      DEBUG_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
+      INFO_LOG_FMT(GDB_STUB, "gdb: removed a memcheck: {:08x} bytes at {:08x}", len, addr);
     }
   }
 }
@@ -207,7 +207,7 @@ static void ReadCommand()
   }
   else if (c != GDB_STUB_START)
   {
-    DEBUG_LOG_FMT(GDB_STUB, "gdb: read invalid byte {:02x}", c);
+    WARN_LOG_FMT(GDB_STUB, "gdb: read invalid byte {:02x}", c);
     return;
   }
 
@@ -530,7 +530,7 @@ static void ReadMemory()
   len = 0;
   while (i < s_cmd_len)
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
-  DEBUG_LOG_FMT(GDB_STUB, "gdb: read memory: {:08x} bytes from {:08x}", len, addr);
+  INFO_LOG_FMT(GDB_STUB, "gdb: read memory: {:08x} bytes from {:08x}", len, addr);
 
   if (len * 2 > sizeof reply)
     SendReply("E01");
@@ -556,7 +556,7 @@ static void WriteMemory()
   len = 0;
   while (s_cmd_bfr[i] != ':')
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
-  DEBUG_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
+  INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
   u8* dst = Memory::GetPointer(addr);
   if (!dst)
@@ -576,7 +576,7 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
     PowerPC::breakpoints.Add(addr);
-    DEBUG_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, len, addr);
+    INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, len, addr);
   }
   else
   {
