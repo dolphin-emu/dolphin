@@ -12,12 +12,9 @@
 #include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/Fifo.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace CPU
 {
@@ -135,7 +132,6 @@ void Run()
       // Wait for step command.
       s_state_cpu_cvar.wait(state_lock, [&state_lock] {
         ExecutePendingJobs(state_lock);
-#ifdef USE_GDBSTUB
         state_lock.unlock();
         if (gdb_active() && gdb_hasControl())
         {
@@ -146,7 +142,6 @@ void Run()
             s_state_cpu_step_instruction = true;
         }
         state_lock.lock();
-#endif
         return s_state_cpu_step_instruction || !IsStepping();
       });
       if (!IsStepping())

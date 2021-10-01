@@ -59,7 +59,6 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
-option(GDBSTUB "Enable gdb stub for remote debugging." ON)
 option(OPROFILING "Enable profiling" OFF)
 
 # TODO: Add DSPSpy
@@ -387,10 +386,6 @@ endif()
 
 if(FASTLOG)
   add_definitions(-DDEBUGFAST)
-endif()
-
-if(GDBSTUB)
-  add_definitions(-DUSE_GDBSTUB)
 endif()
 
 if(ENABLE_VTUNE)

@@ -62,14 +62,11 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
@@ -380,7 +377,6 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   {
     CPUSetInitialExecutionState();
   }
-#endif
 
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
@@ -394,14 +390,12 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
 
-#ifdef USE_GDBSTUB
   if (gdb_active())
   {
     gdb_deinit();
     INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
     return;
   }
-#endif
 }
 
 static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
@@ -662,11 +656,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     cpuThreadFunc(savestate_path, delete_savestate);
   }
 
-#ifdef USE_GDBSTUB
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
   gdb_deinit();
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
-#endif
 }
 
 // Set or get the running state

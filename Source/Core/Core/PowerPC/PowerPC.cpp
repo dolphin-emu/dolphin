@@ -25,14 +25,11 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace PowerPC
 {
@@ -617,9 +614,8 @@ void CheckBreakPoints()
   if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
   {
     CPU::Break();
-#ifdef USE_GDBSTUB
-    gdb_takeControl();
-#endif
+    if (gdb_active())
+      gdb_takeControl();
   }
   if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
   {

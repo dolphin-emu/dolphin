@@ -8,10 +8,6 @@
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
 
-#ifndef MSG_WAITALL
-#define MSG_WAITALL (8)
-#endif
-
 typedef enum
 {
   GDB_SIGTRAP = 5,
