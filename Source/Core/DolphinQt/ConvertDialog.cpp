@@ -329,6 +329,21 @@ void ConvertDialog::Convert()
     }
   }
 
+  if (std::any_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsNKit)))
+  {
+    if (!ShowAreYouSureDialog(
+            tr("Dolphin can't convert NKit files to non-NKit files. Converting an NKit file in "
+               "Dolphin will result in another NKit file.\n"
+               "\n"
+               "If you want to convert an NKit file to a non-NKit file, you can use the same "
+               "program as you originally used when converting the file to the NKit format.\n"
+               "\n"
+               "Do you want to continue anyway?")))
+    {
+      return;
+    }
+  }
+
   QString extension;
   QString filter;
   switch (format)
