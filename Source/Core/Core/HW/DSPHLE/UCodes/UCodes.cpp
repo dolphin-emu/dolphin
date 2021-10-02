@@ -16,6 +16,7 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
@@ -183,7 +184,7 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
         Common::HashEctor(static_cast<u8*>(HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr)),
                           m_next_ucode.iram_size);
 
-    if (SConfig::GetInstance().m_DumpUCode)
+    if (Config::Get(Config::MAIN_DUMP_UCODE))
     {
       DSP::DumpDSPCode(Memory::GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
                        ector_crc);

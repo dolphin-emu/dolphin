@@ -11,6 +11,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSPEmulator.h"
@@ -40,8 +41,9 @@ static void ReinitHardware()
   PowerPC::Reset();
   Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
-  DSP::Reinit(SConfig::GetInstance().bDSPHLE);
-  DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii, SConfig::GetInstance().bDSPThread);
+  DSP::Reinit(Config::Get(Config::MAIN_DSP_HLE));
+  DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii,
+                                    Config::Get(Config::MAIN_DSP_THREAD));
 
   SystemTimers::ChangePPCClock(SystemTimers::Mode::GC);
 }

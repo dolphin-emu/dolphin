@@ -6,8 +6,18 @@
 #include <array>
 #include <string>
 
+#include "Common/Common.h"
 #include "Common/Config/Config.h"
 #include "DiscIO/Enums.h"
+
+// DSP Backend Types
+#define BACKEND_NULLSOUND _trans("No Audio Output")
+#define BACKEND_ALSA "ALSA"
+#define BACKEND_CUBEB "Cubeb"
+#define BACKEND_OPENAL "OpenAL"
+#define BACKEND_PULSEAUDIO "Pulse"
+#define BACKEND_OPENSLES "OpenSLES"
+#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
 
 namespace PowerPC
 {
@@ -91,6 +101,7 @@ extern const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS;
 
 // Main.DSP
 
+extern const Info<bool> MAIN_DSP_THREAD;
 extern const Info<bool> MAIN_DSP_CAPTURE_LOG;
 extern const Info<bool> MAIN_DSP_JIT;
 extern const Info<bool> MAIN_DUMP_AUDIO;
@@ -98,6 +109,10 @@ extern const Info<bool> MAIN_DUMP_AUDIO_SILENT;
 extern const Info<bool> MAIN_DUMP_UCODE;
 extern const Info<std::string> MAIN_AUDIO_BACKEND;
 extern const Info<int> MAIN_AUDIO_VOLUME;
+extern const Info<bool> MAIN_AUDIO_MUTED;
+#ifdef _WIN32
+extern const Info<std::string> MAIN_WASAPI_DEVICE;
+#endif
 
 // Main.Display
 

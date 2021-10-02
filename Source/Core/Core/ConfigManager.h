@@ -47,15 +47,6 @@ enum SIDevices : int;
 
 struct BootParameters;
 
-// DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No Audio Output")
-#define BACKEND_ALSA "ALSA"
-#define BACKEND_CUBEB "Cubeb"
-#define BACKEND_OPENAL "OpenAL"
-#define BACKEND_PULSEAUDIO "Pulse"
-#define BACKEND_OPENSLES "OpenSLES"
-#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
-
 enum class GPUDeterminismMode
 {
   Auto,
@@ -114,16 +105,9 @@ struct SConfig
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
-  bool bDSPThread = false;
-  bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
   bool bCopyWiiSaveNetplay = true;
-
-  bool bDPL2Decoder = false;
-  int iLatency = 20;
-  bool m_audio_stretch = false;
-  int m_audio_stretch_max_latency = 80;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
@@ -292,18 +276,6 @@ struct SConfig
 
   // DSP settings
   bool m_DSPEnableJIT;
-  bool m_DSPCaptureLog;
-  bool m_DumpAudio;
-  bool m_DumpAudioSilent;
-  bool m_IsMuted;
-  bool m_DumpUCode;
-  int m_Volume;
-  std::string sBackend;
-
-#ifdef _WIN32
-  // WSAPI settings
-  std::string sWASAPIDevice;
-#endif
 
   // Input settings
   bool m_BackgroundInput;
@@ -338,7 +310,6 @@ private:
   void SaveInterfaceSettings(IniFile& ini);
   void SaveGameListSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
-  void SaveDSPSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
@@ -351,7 +322,6 @@ private:
   void LoadInterfaceSettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
-  void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
