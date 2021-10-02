@@ -49,6 +49,7 @@ extern const Info<std::string> GFX_DUMP_ENCODER;
 extern const Info<std::string> GFX_DUMP_PATH;
 extern const Info<int> GFX_BITRATE_KBPS;
 extern const Info<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS;
+extern const Info<int> GFX_PNG_COMPRESSION_LEVEL;
 extern const Info<bool> GFX_ENABLE_GPU_TEXTURE_DECODING;
 extern const Info<bool> GFX_ENABLE_PIXEL_LIGHTING;
 extern const Info<bool> GFX_FAST_DEPTH_CALC;
