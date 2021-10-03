@@ -159,6 +159,11 @@ void CheatSearchWidget::CreateWidgets()
 
   auto* value_layout = new QHBoxLayout();
 
+  // i18n: This label is followed by a dropdown where the user can select things like "is equal to"
+  // or "is less than or equal to", followed by another dropdown where the user can select "any
+  // value", "last value", or "this value:". These three UI elements are intended to form a sentence
+  // together. Because the UI elements can't be reordered by a translation, you may have to give
+  // up on the idea of having them form a sentence depending on the grammar of your target language.
   auto* instructions_label = new QLabel(tr("Keep addresses where value in memory"));
   value_layout->addWidget(instructions_label);
 
