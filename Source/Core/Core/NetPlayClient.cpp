@@ -32,6 +32,8 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/HW/Memmap.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -317,6 +319,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   packet >> mid;
 
   INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", mid);
+
+  if (g_ActiveConfig.bShowBatterFielder)
+  {
+    DisplayFielder();
+    DisplayBatter();
+  }
 
   switch (mid)
   {
@@ -832,7 +840,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       Player& player = m_players[pid];
       packet >> player.ping;
     }
-
     DisplayPlayersPing();
     m_dialog->Update();
   }
@@ -1362,6 +1369,110 @@ void NetPlayClient::DisplayPlayersPing()
 
   OSD::AddTypedMessage(OSD::MessageType::NetPlayPing, fmt::format("Ping: {}", GetPlayersMaxPing()),
                        OSD::Duration::SHORT, OSD::Color::CYAN);
+}
+
+void NetPlayClient::DisplayFielder()
+{
+  std::string playername = "";
+  u32 color = OSD::Color::CYAN;
+  bool fielderExists = false;
+  if (m_is_running.IsSet())
+  {
+    if (GetFielderPort() == 1)
+    {
+      playername = GetPortPlayer(1);
+      color = OSD::Color::RED;
+      fielderExists = true;
+    }
+    if (GetFielderPort() == 2)
+    {
+      playername = GetPortPlayer(2);
+      color = OSD::Color::BLUE;
+      fielderExists = true;
+    }
+    if (GetFielderPort() == 3)
+    {
+      playername = GetPortPlayer(3);
+      color = OSD::Color::YELLOW;
+      fielderExists = true;
+    }
+    if (GetFielderPort() == 4)
+    {
+      playername = GetPortPlayer(4);
+      color = OSD::Color::GREEN;
+      fielderExists = true;
+    }
+  }
+  if (fielderExists)
+  {
+    OSD::AddTypedMessage(OSD::MessageType::CurrentFielder, fmt::format("Fielder: {}", playername),
+                         OSD::Duration::SHORT, color);
+  }
+
+  return;
+}
+
+void NetPlayClient::DisplayBatter()
+{
+  std::string playername = "";
+  u32 color = OSD::Color::CYAN;
+  bool batterExists = false;
+  if (m_is_running.IsSet())
+  {
+    if (GetBatterPort() == 1)
+    {
+      playername = GetPortPlayer(1);
+      color = OSD::Color::RED;
+      batterExists = true;
+    }
+    if (GetBatterPort() == 2)
+    {
+      playername = GetPortPlayer(2);
+      color = OSD::Color::BLUE;
+      batterExists = true;
+    }
+    if (GetBatterPort() == 3)
+    {
+      playername = GetPortPlayer(3);
+      color = OSD::Color::YELLOW;
+      batterExists = true;
+    }
+    if (GetBatterPort() == 4)
+    {
+      playername = GetPortPlayer(4);
+      color = OSD::Color::GREEN;
+      batterExists = true;
+    }
+  }
+  if (batterExists)
+  {
+    OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
+                         OSD::Duration::SHORT, color);
+  }
+
+  return;
+}
+
+u8 NetPlayClient::GetFielderPort()
+{
+  return Memory::Read_U8(fielderPort);
+}
+
+u8 NetPlayClient::GetBatterPort()
+{
+  return Memory::Read_U8(batterPort);
+}
+
+std::string NetPlayClient::GetPortPlayer(int port)
+{
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (portnum == port)
+      return m_players[player_id].name;
+  }
+  return "";
 }
 
 u32 NetPlayClient::GetPlayersMaxPing() const

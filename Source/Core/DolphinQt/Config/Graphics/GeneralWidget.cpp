@@ -87,6 +87,7 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_layout = new QGridLayout();
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
+  m_show_batter_fielder = new GraphicsBool(tr("Show NetPlay Batter/Fielder"), Config::GFX_SHOW_BATTER_FIELDER);
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
@@ -106,6 +107,8 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_show_messages, 2, 0);
   m_options_layout->addWidget(m_show_ping, 2, 1);
+
+  m_options_layout->addWidget(m_show_batter_fielder, 3, 0);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));

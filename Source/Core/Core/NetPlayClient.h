@@ -243,7 +243,15 @@ private:
   void SendGameStatus();
   void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
+  void DisplayBatter();
+  void DisplayFielder();
+  u8 GetFielderPort();
+  u8 GetBatterPort();
+  std::string GetPortPlayer(int port);
   u32 GetPlayersMaxPing() const;
+
+  static const u32 fielderPort = 0x802EBF94;
+  static const u32 batterPort = 0x802EBF95;
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;
