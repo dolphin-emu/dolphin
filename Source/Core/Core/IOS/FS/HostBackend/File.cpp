@@ -80,7 +80,7 @@ Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, M
   if (!handle)
     return ResultCode::NoFreeHandle;
 
-  const std::string host_path = BuildFilename(path);
+  const std::string host_path = BuildFilename(path).host_path;
   if (!File::IsFile(host_path))
   {
     *handle = Handle{};

@@ -72,6 +72,12 @@ enum class SeekMode : u32
 
 using FileAttribute = u8;
 
+struct NandRedirect
+{
+  std::string source_path;
+  std::string target_path;
+};
+
 struct Modes
 {
   Mode owner, group, other;
@@ -239,6 +245,8 @@ public:
   virtual Result<NandStats> GetNandStats() = 0;
   /// Get usage information about a directory (used cluster and inode counts).
   virtual Result<DirectoryStats> GetDirectoryStats(const std::string& path) = 0;
+
+  virtual void SetNandRedirects(std::vector<IOS::HLE::FS::NandRedirect> nand_redirects) = 0;
 };
 
 template <typename T>
@@ -269,7 +277,9 @@ enum class Location
   Session,
 };
 
-std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session);
+std::unique_ptr<FileSystem>
+MakeFileSystem(Location location = Location::Session,
+               std::vector<NandRedirect> nand_redirects = std::vector<NandRedirect>());
 
 /// Convert a FS result code to an IOS error code.
 IOS::HLE::ReturnCode ConvertResult(ResultCode code);

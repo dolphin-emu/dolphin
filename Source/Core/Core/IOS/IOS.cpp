@@ -498,7 +498,7 @@ void Kernel::AddDevice(std::unique_ptr<Device> device)
 
 void Kernel::AddCoreDevices()
 {
-  m_fs = FS::MakeFileSystem();
+  m_fs = FS::MakeFileSystem(IOS::HLE::FS::Location::Session, Core::GetActiveNandRedirects());
   ASSERT(m_fs);
 
   std::lock_guard lock(m_device_map_mutex);
