@@ -4,6 +4,7 @@
 #include "Core/WiiRoot.h"
 
 #include <cinttypes>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,12 @@ namespace FS = IOS::HLE::FS;
 
 static std::string s_temp_wii_root;
 static bool s_wii_root_initialized = false;
+static std::vector<IOS::HLE::FS::NandRedirect> s_nand_redirects;
+
+const std::vector<IOS::HLE::FS::NandRedirect>& GetActiveNandRedirects()
+{
+  return s_nand_redirects;
+}
 
 static bool CopyBackupFile(const std::string& path_from, const std::string& path_to)
 {
@@ -202,6 +209,7 @@ void InitializeWiiRoot(bool use_temporary)
     File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
   }
 
+  s_nand_redirects.clear();
   s_wii_root_initialized = true;
 }
 
@@ -213,6 +221,7 @@ void ShutdownWiiRoot()
     s_temp_wii_root.clear();
   }
 
+  s_nand_redirects.clear();
   s_wii_root_initialized = false;
 }
 
@@ -288,7 +297,8 @@ static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_sou
   return true;
 }
 
-void InitializeWiiFileSystemContents()
+void InitializeWiiFileSystemContents(
+    std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect)
 {
   const auto fs = IOS::HLE::GetIOS()->GetFS();
 
@@ -299,14 +309,31 @@ void InitializeWiiFileSystemContents()
   if (!CopySysmenuFilesToFS(fs.get(), File::GetSysDirectory() + WII_USER_DIR, ""))
     WARN_LOG_FMT(CORE, "Failed to copy initial System Menu files to the NAND");
 
-  if (!WiiRootIsTemporary())
-    return;
+  if (WiiRootIsTemporary())
+  {
+    // Generate a SYSCONF with default settings for the temporary Wii NAND.
+    SysConf sysconf{fs};
+    sysconf.Save();
 
-  // Generate a SYSCONF with default settings for the temporary Wii NAND.
-  SysConf sysconf{fs};
-  sysconf.Save();
-
-  InitializeDeterministicWiiSaves(fs.get());
+    InitializeDeterministicWiiSaves(fs.get());
+  }
+  else if (save_redirect)
+  {
+    const u64 title_id = SConfig::GetInstance().GetTitleID();
+    std::string source_path = Common::GetTitleDataPath(title_id);
+    if (!File::IsDirectory(save_redirect->m_target_path))
+    {
+      File::CreateFullPath(save_redirect->m_target_path + "/");
+      if (save_redirect->m_clone)
+      {
+        File::CopyDir(Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT),
+                      save_redirect->m_target_path);
+      }
+    }
+    s_nand_redirects.emplace_back(IOS::HLE::FS::NandRedirect{
+        std::move(source_path), std::move(save_redirect->m_target_path)});
+    fs->SetNandRedirects(s_nand_redirects);
+  }
 }
 
 void CleanUpWiiFileSystemContents()
