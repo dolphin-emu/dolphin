@@ -72,6 +72,15 @@ enum class SeekMode : u32
 
 using FileAttribute = u8;
 
+struct NandRedirect
+{
+  // A Wii FS path, eg. "/title/00010000/534d4e45/data".
+  std::string source_path;
+
+  // An absolute host filesystem path the above should be redirected to.
+  std::string target_path;
+};
+
 struct Modes
 {
   Mode owner, group, other;
@@ -239,6 +248,8 @@ public:
   virtual Result<NandStats> GetNandStats() = 0;
   /// Get usage information about a directory (used cluster and inode counts).
   virtual Result<DirectoryStats> GetDirectoryStats(const std::string& path) = 0;
+
+  virtual void SetNandRedirects(std::vector<NandRedirect> nand_redirects) = 0;
 };
 
 template <typename T>
@@ -269,7 +280,8 @@ enum class Location
   Session,
 };
 
-std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session);
+std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session,
+                                           std::vector<NandRedirect> nand_redirects = {});
 
 /// Convert a FS result code to an IOS error code.
 IOS::HLE::ReturnCode ConvertResult(ResultCode code);
