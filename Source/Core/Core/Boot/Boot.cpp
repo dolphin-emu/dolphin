@@ -407,7 +407,7 @@ static void CopyDefaultExceptionHandlers()
 }
 
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
-bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
+bool CBoot::BootUp(BootParameters* boot)
 {
   SConfig& config = SConfig::GetInstance();
 
