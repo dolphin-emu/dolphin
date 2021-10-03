@@ -87,7 +87,7 @@ struct BootParameters
 class CBoot
 {
 public:
-  static bool BootUp(std::unique_ptr<BootParameters> boot);
+  static bool BootUp(BootParameters* boot);
 
   // Tries to find a map file for the current game by looking first in the
   // local user directory, then in the shared user directory.

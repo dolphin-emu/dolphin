@@ -76,6 +76,8 @@
 #include "Core/MemoryWatcher.h"
 #endif
 
+#include "DiscIO/RiivolutionPatcher.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
@@ -599,7 +601,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   else
     cpuThreadFunc = CpuThread;
 
-  if (!CBoot::BootUp(std::move(boot)))
+  if (!CBoot::BootUp(boot.get()))
     return;
 
   // Initialise Wii filesystem contents.
@@ -607,9 +609,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // with the correct title context since save copying requires title directories to exist.
   Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
   if (SConfig::GetInstance().bWii)
-    Core::InitializeWiiFileSystemContents();
+  {
+    Core::InitializeWiiFileSystemContents(
+        DiscIO::Riivolution::ExtractSavegameRedirects(boot->riivolution_patches));
+  }
   else
+  {
     wiifs_guard.Dismiss();
+  }
+
+  boot.reset();
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
