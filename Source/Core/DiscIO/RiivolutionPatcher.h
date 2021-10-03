@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -12,6 +13,12 @@
 
 namespace DiscIO::Riivolution
 {
+struct SavegameRedirect
+{
+  std::string m_target_path;
+  bool m_clone;
+};
+
 class FileDataLoader
 {
 public:
@@ -28,6 +35,8 @@ public:
   virtual BuilderContentSource MakeContentSource(std::string_view external_relative_path,
                                                  u64 external_offset, u64 external_size,
                                                  u64 disc_offset) = 0;
+  virtual std::optional<std::string>
+  ResolveSavegameRedirectPath(std::string_view external_relative_path) = 0;
 };
 
 class FileDataLoaderHostFS : public FileDataLoader
@@ -46,6 +55,8 @@ public:
   BuilderContentSource MakeContentSource(std::string_view external_relative_path,
                                          u64 external_offset, u64 external_size,
                                          u64 disc_offset) override;
+  std::optional<std::string>
+  ResolveSavegameRedirectPath(std::string_view external_relative_path) override;
 
 private:
   std::optional<std::string> MakeAbsoluteFromRelative(std::string_view external_relative_path);
@@ -58,4 +69,6 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches,
                          std::vector<DiscIO::FSTBuilderNode>* fst,
                          DiscIO::FSTBuilderNode* dol_node);
 void ApplyPatchesToMemory(const std::vector<Patch>& patches);
+std::optional<SavegameRedirect>
+ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches);
 }  // namespace DiscIO::Riivolution
