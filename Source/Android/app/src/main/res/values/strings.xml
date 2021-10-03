@@ -425,6 +425,7 @@
     <string name="convert_converting">Converting</string>
     <string name="convert_warning_iso">Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?</string>
     <string name="convert_warning_gcz">Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?</string>
+    <string name="convert_warning_nkit">Dolphin can\'t convert NKit files to non-NKit files. Converting an NKit file in Dolphin will result in another NKit file.\n\nIf you want to convert an NKit file to a non-NKit file, you can use the same program as you originally used when converting the file to the NKit format.\n\nDo you want to continue anyway?</string>
     <string name="convert_success_message">The disc image was successfully converted.</string>
     <string name="convert_failure_message">Dolphin failed to complete the requested action.</string>
     <string name="convert_format_info">

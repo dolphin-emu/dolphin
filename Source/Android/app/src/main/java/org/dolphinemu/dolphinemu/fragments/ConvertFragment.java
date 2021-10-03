@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
@@ -331,32 +332,42 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   @Override
   public void onClick(View view)
   {
-    Context context = requireContext();
-
     boolean scrub = getRemoveJunkData();
-    int format = mFormat.getValue(context);
+    int format = mFormat.getValue(requireContext());
 
-    boolean iso_warning = scrub && format == BLOB_TYPE_PLAIN;
-    boolean gcz_warning = !scrub && format == BLOB_TYPE_GCZ && !gameFile.isDatelDisc() &&
-            gameFile.getPlatform() == Platform.WII.toInt();
+    Runnable action = this::showSavePrompt;
 
-    if (iso_warning || gcz_warning)
+    if (gameFile.isNKit())
     {
+      action = addAreYouSureDialog(action, R.string.convert_warning_nkit);
+    }
+
+    if (!scrub && format == BLOB_TYPE_GCZ && !gameFile.isDatelDisc() &&
+            gameFile.getPlatform() == Platform.WII.toInt())
+    {
+      action = addAreYouSureDialog(action, R.string.convert_warning_gcz);
+    }
+
+    if (scrub && format == BLOB_TYPE_PLAIN)
+    {
+      action = addAreYouSureDialog(action, R.string.convert_warning_iso);
+    }
+
+    action.run();
+  }
+
+  private Runnable addAreYouSureDialog(Runnable action, @StringRes int warning_text)
+  {
+    return () ->
+    {
+      Context context = requireContext();
       AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
-      builder.setMessage(iso_warning ? R.string.convert_warning_iso : R.string.convert_warning_gcz)
-              .setPositiveButton(R.string.yes, (dialog, i) ->
-              {
-                dialog.dismiss();
-                showSavePrompt();
-              })
-              .setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
+      builder.setMessage(warning_text)
+              .setPositiveButton(R.string.yes, (dialog, i) -> action.run())
+              .setNegativeButton(R.string.no, null);
       AlertDialog alert = builder.create();
       alert.show();
-    }
-    else
-    {
-      showSavePrompt();
-    }
+    };
   }
 
   private void showSavePrompt()
