@@ -14,6 +14,7 @@
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/PowerPC/MMU.h"
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/RiivolutionParser.h"
@@ -172,6 +173,12 @@ FileDataLoaderHostFS::MakeContentSource(std::string_view external_relative_path,
     return BuilderContentSource{disc_offset, external_size, ContentFixedByte{0}};
   return BuilderContentSource{disc_offset, external_size,
                               ContentFile{std::move(*path), external_offset}};
+}
+
+std::optional<std::string>
+FileDataLoaderHostFS::ResolveSavegameRedirectPath(std::string_view external_relative_path)
+{
+  return MakeAbsoluteFromRelative(external_relative_path);
 }
 
 // 'before' and 'after' should be two copies of the same source
@@ -587,5 +594,22 @@ void ApplyPatchesToMemory(const std::vector<Patch>& patches)
         ApplyMemoryPatch(patch, memory);
     }
   }
+}
+
+std::optional<SavegameRedirect>
+ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches)
+{
+  for (const auto& patch : riivolution_patches)
+  {
+    if (!patch.m_savegame_patches.empty())
+    {
+      const auto& save_patch = patch.m_savegame_patches[0];
+      auto resolved = patch.m_file_data_loader->ResolveSavegameRedirectPath(save_patch.m_external);
+      if (resolved)
+        return SavegameRedirect{std::move(*resolved), save_patch.m_clone};
+      return std::nullopt;
+    }
+  }
+  return std::nullopt;
 }
 }  // namespace DiscIO::Riivolution
