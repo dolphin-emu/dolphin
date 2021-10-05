@@ -378,8 +378,8 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   {
   case Type::MAPPING_GC_GBA:
     widget = new GBAPadEmu(this);
-    setWindowTitle(tr("GameBoy Advance at Port %1").arg(GetPort() + 1));
-    AddWidget(tr("GameBoy Advance"), widget);
+    setWindowTitle(tr("Game Boy Advance at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("Game Boy Advance"), widget);
     break;
   case Type::MAPPING_GC_KEYBOARD:
     widget = new GCKeyboardEmu(this);
@@ -436,7 +436,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));
-    AddWidget(tr("GameBoy Advance"), new HotkeyGBA(this));
+    AddWidget(tr("Game Boy Advance"), new HotkeyGBA(this));
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }
