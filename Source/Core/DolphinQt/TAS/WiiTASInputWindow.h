@@ -26,9 +26,9 @@ public:
   explicit WiiTASInputWindow(QWidget* parent, int num);
   void GetValues(WiimoteCommon::DataReportBuilder& rpt, int ext,
                  const WiimoteEmu::EncryptionKey& key);
+  void UpdateExt(u8 ext);
 
 private:
-  void UpdateExt(u8 ext);
   int m_num;
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;

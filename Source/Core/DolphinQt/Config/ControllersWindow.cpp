@@ -41,3 +41,8 @@ void ControllersWindow::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
+
+WiimoteControllersWidget* ControllersWindow::GetWiimoteControllers()
+{
+  return m_wiimote_controllers;
+}

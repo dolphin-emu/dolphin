@@ -178,6 +178,7 @@ private:
   void OnActivateChat();
   void OnRequestGolfControl();
   void ShowTASInput();
+  void UpdateWiiTASInputExt(int port, int ext);
 
   void ChangeDisc();
   void EjectDisc();

@@ -29,6 +29,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
+#include "Common/CommonTypes.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
@@ -70,6 +71,7 @@
 #include "DolphinQt/Config/LogWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/SettingsWindow.h"
+#include "DolphinQt/Config/WiimoteControllersWidget.h"
 #include "DolphinQt/Debugger/BreakpointWidget.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 #include "DolphinQt/Debugger/CodeWidget.h"
@@ -1159,6 +1161,9 @@ void MainWindow::ShowControllersWindow()
   {
     m_controllers_window = new ControllersWindow(this);
     InstallHotkeyFilter(m_controllers_window);
+    connect(m_controllers_window->GetWiimoteControllers(),
+            &WiimoteControllersWidget::WiimoteExtChanged, this,
+            [this](int port, int extension) { UpdateWiiTASInputExt(port, extension); });
   }
 
   m_controllers_window->show();
@@ -1815,4 +1820,11 @@ void MainWindow::Show()
     StartGame(std::move(m_pending_boot));
     m_pending_boot.reset();
   }
+}
+
+void MainWindow::UpdateWiiTASInputExt(int port, int ext)
+{
+  m_wii_tas_input_windows[port]->UpdateExt(static_cast<u8>(ext));
+  QSize newSize = m_wii_tas_input_windows[port]->sizeHint();
+  m_wii_tas_input_windows[port]->resize(newSize);
 }

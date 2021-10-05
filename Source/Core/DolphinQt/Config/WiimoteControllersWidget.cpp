@@ -337,3 +337,8 @@ void WiimoteControllersWidget::SaveSettings()
 
   SConfig::GetInstance().SaveSettings();
 }
+
+void WiimoteControllersWidget::OnExtensionChanged(int port, int extension)
+{
+  emit WiimoteExtChanged(port, extension);
+}

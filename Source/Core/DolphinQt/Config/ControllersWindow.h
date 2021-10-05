@@ -15,6 +15,7 @@ class ControllersWindow final : public QDialog
   Q_OBJECT
 public:
   explicit ControllersWindow(QWidget* parent);
+  WiimoteControllersWidget* GetWiimoteControllers();
 
 private:
   void CreateMainLayout();

@@ -22,6 +22,9 @@ class WiimoteControllersWidget final : public QWidget
 public:
   explicit WiimoteControllersWidget(QWidget* parent);
 
+signals:
+  void WiimoteExtChanged(int port, int extension);
+
 private:
   void OnWiimoteModeChanged();
   void UpdateDisabledWiimoteControls();
@@ -30,6 +33,7 @@ private:
   void OnBluetoothPassthroughResetPressed();
   void OnWiimoteRefreshPressed();
   void OnWiimoteConfigure();
+  void OnExtensionChanged(int port, int extension);
 
   void CreateLayout();
   void ConnectWidgets();
