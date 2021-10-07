@@ -167,6 +167,15 @@ if(FFmpeg_FOUND)
     FFmpeg::avcodec
     FFmpeg::avformat
     FFmpeg::avutil
+    FFmpeg::swresample
     FFmpeg::swscale
   )
+  if(APPLE) 
+    target_link_libraries(videocommon PRIVATE
+      ${COREMEDIA_LIBRARY}
+      ${VIDEOTOOLBOX_LIBRARY}
+      ${COREVIDEO_LIBRARY}
+      ${AUDIOTOOLBOX_LIBRARY}    
+    )
+  endif()
 endif()
