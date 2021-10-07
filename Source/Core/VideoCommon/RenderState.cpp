@@ -18,29 +18,11 @@ void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_ty
     cullmode = CullMode::None;
 }
 
-RasterizationState& RasterizationState::operator=(const RasterizationState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
-}
-
-FramebufferState& FramebufferState::operator=(const FramebufferState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
-}
-
 void DepthState::Generate(const BPMemory& bp)
 {
   testenable = bp.zmode.testenable.Value();
   updateenable = bp.zmode.updateenable.Value();
   func = bp.zmode.func.Value();
-}
-
-DepthState& DepthState::operator=(const DepthState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
 }
 
 // If the framebuffer format has no alpha channel, it is assumed to
@@ -217,12 +199,6 @@ void BlendingState::ApproximateLogicOpWithBlending()
   dstfactor = approximations[u32(logicmode.Value())].dstfactor;
 }
 
-BlendingState& BlendingState::operator=(const BlendingState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
-}
-
 void SamplerState::Generate(const BPMemory& bp, u32 index)
 {
   auto tex = bp.tex.GetUnit(index);
@@ -247,12 +223,6 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   wrap_u = address_modes[u32(tm0.wrap_s.Value())];
   wrap_v = address_modes[u32(tm0.wrap_t.Value())];
   anisotropic_filtering = 0;
-}
-
-SamplerState& SamplerState::operator=(const SamplerState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
 }
 
 namespace RenderState

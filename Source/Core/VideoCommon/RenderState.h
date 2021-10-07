@@ -22,11 +22,24 @@ union RasterizationState
 {
   void Generate(const BPMemory& bp, PrimitiveType primitive_type);
 
-  RasterizationState& operator=(const RasterizationState& rhs);
+  RasterizationState() = default;
+  RasterizationState(const RasterizationState&) = default;
+  RasterizationState& operator=(const RasterizationState& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
+  RasterizationState(RasterizationState&&) = default;
+  RasterizationState& operator=(RasterizationState&& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
 
   bool operator==(const RasterizationState& rhs) const { return hex == rhs.hex; }
-  bool operator!=(const RasterizationState& rhs) const { return hex != rhs.hex; }
+  bool operator!=(const RasterizationState& rhs) const { return !operator==(rhs); }
   bool operator<(const RasterizationState& rhs) const { return hex < rhs.hex; }
+
   BitField<0, 2, CullMode> cullmode;
   BitField<3, 2, PrimitiveType> primitive;
 
@@ -35,14 +48,27 @@ union RasterizationState
 
 union FramebufferState
 {
+  FramebufferState() = default;
+  FramebufferState(const FramebufferState&) = default;
+  FramebufferState& operator=(const FramebufferState& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
+  FramebufferState(FramebufferState&&) = default;
+  FramebufferState& operator=(FramebufferState&& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
+
+  bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const FramebufferState& rhs) const { return !operator==(rhs); }
+
   BitField<0, 8, AbstractTextureFormat> color_texture_format;
   BitField<8, 8, AbstractTextureFormat> depth_texture_format;
   BitField<16, 8, u32> samples;
   BitField<24, 1, u32> per_sample_shading;
-
-  bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
-  bool operator!=(const FramebufferState& rhs) const { return hex != rhs.hex; }
-  FramebufferState& operator=(const FramebufferState& rhs);
 
   u32 hex;
 };
@@ -51,11 +77,24 @@ union DepthState
 {
   void Generate(const BPMemory& bp);
 
-  DepthState& operator=(const DepthState& rhs);
+  DepthState() = default;
+  DepthState(const DepthState&) = default;
+  DepthState& operator=(const DepthState& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
+  DepthState(DepthState&&) = default;
+  DepthState& operator=(DepthState&& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
 
   bool operator==(const DepthState& rhs) const { return hex == rhs.hex; }
-  bool operator!=(const DepthState& rhs) const { return hex != rhs.hex; }
+  bool operator!=(const DepthState& rhs) const { return !operator==(rhs); }
   bool operator<(const DepthState& rhs) const { return hex < rhs.hex; }
+
   BitField<0, 1, u32> testenable;
   BitField<1, 1, u32> updateenable;
   BitField<2, 3, CompareMode> func;
@@ -71,11 +110,24 @@ union BlendingState
   // Will not be bit-correct, and in some cases not even remotely in the same ballpark.
   void ApproximateLogicOpWithBlending();
 
-  BlendingState& operator=(const BlendingState& rhs);
+  BlendingState() = default;
+  BlendingState(const BlendingState&) = default;
+  BlendingState& operator=(const BlendingState& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
+  BlendingState(BlendingState&&) = default;
+  BlendingState& operator=(BlendingState&& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
 
   bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }
-  bool operator!=(const BlendingState& rhs) const { return hex != rhs.hex; }
+  bool operator!=(const BlendingState& rhs) const { return !operator==(rhs); }
   bool operator<(const BlendingState& rhs) const { return hex < rhs.hex; }
+
   BitField<0, 1, u32> blendenable;
   BitField<1, 1, u32> logicopenable;
   BitField<2, 1, u32> dstalpha;
@@ -112,10 +164,23 @@ union SamplerState
 
   void Generate(const BPMemory& bp, u32 index);
 
-  SamplerState& operator=(const SamplerState& rhs);
+  SamplerState() = default;
+  SamplerState(const SamplerState&) = default;
+  SamplerState& operator=(const SamplerState& rhs)
+  {
+    hex = rhs.hex;
+    return *this;
+  }
+  SamplerState(SamplerState&&) = default;
+  SamplerState& operator=(SamplerState&& rhs)
+  {
+    tm0.hex = rhs.tm0.hex;
+    tm1.hex = rhs.tm1.hex;
+    return *this;
+  }
 
   bool operator==(const SamplerState& rhs) const { return hex == rhs.hex; }
-  bool operator!=(const SamplerState& rhs) const { return hex != rhs.hex; }
+  bool operator!=(const SamplerState& rhs) const { return !operator==(rhs); }
   bool operator<(const SamplerState& rhs) const { return hex < rhs.hex; }
   BitField<0, 1, Filter> min_filter;
   BitField<1, 1, Filter> mag_filter;
