@@ -252,7 +252,17 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     IniFile::Section* dsp_section = game_ini.GetOrCreateSection("DSP");
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
-    core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
+    bool bCPUThreadPresent =
+        core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
+    if (Movie::IsRecordingInput() && StartUp.bCPUThread && !bCPUThreadPresent)
+    {
+      PanicAlertFmtT(
+          "You currently have Dual Core enabled.\n\n"
+          "This can produce nondeterministic outcomes, resulting in movie instability.\n\n"
+          "To assure that your movie plays back correctly, it is recommended that you\n"
+          "disable Dual Core in the Configuration menu.");
+    }
+
     core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
