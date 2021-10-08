@@ -539,7 +539,7 @@
     <ClInclude Include="VideoBackends\D3DCommon\D3DCommon.h" />
     <ClInclude Include="VideoBackends\D3DCommon\Shader.h" />
     <ClInclude Include="VideoBackends\D3DCommon\SwapChain.h" />
-    <ClInclude Include="VideoBackends\Null\NullPerfQuery.h" />
+    <ClInclude Include="VideoBackends\Null\NullBoundingBox.h" />
     <ClInclude Include="VideoBackends\Null\NullRender.h" />
     <ClInclude Include="VideoBackends\Null\NullTexture.h" />
     <ClInclude Include="VideoBackends\Null\NullVertexManager.h" />
@@ -566,6 +566,7 @@
     <ClInclude Include="VideoBackends\Software\NativeVertexFormat.h" />
     <ClInclude Include="VideoBackends\Software\Rasterizer.h" />
     <ClInclude Include="VideoBackends\Software\SetupUnit.h" />
+    <ClInclude Include="VideoBackends\Software\SWBoundingBox.h" />
     <ClInclude Include="VideoBackends\Software\SWOGLWindow.h" />
     <ClInclude Include="VideoBackends\Software\SWRenderer.h" />
     <ClInclude Include="VideoBackends\Software\SWTexture.h" />
@@ -1138,6 +1139,7 @@
     <ClCompile Include="VideoBackends\Software\Rasterizer.cpp" />
     <ClCompile Include="VideoBackends\Software\SetupUnit.cpp" />
     <ClCompile Include="VideoBackends\Software\SWmain.cpp" />
+    <ClCompile Include="VideoBackends\Software\SWBoundingBox.cpp" />
     <ClCompile Include="VideoBackends\Software\SWOGLWindow.cpp" />
     <ClCompile Include="VideoBackends\Software\SWRenderer.cpp" />
     <ClCompile Include="VideoBackends\Software\SWTexture.cpp" />

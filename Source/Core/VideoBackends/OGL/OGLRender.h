@@ -11,6 +11,8 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/RenderBase.h"
 
+class BoundingBox;
+
 namespace OGL
 {
 class OGLFramebuffer;
@@ -128,10 +130,6 @@ public:
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
 
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
-  void BBoxFlushImpl() override;
-
   void BeginUtilityDrawing() override;
   void EndUtilityDrawing() override;
 
@@ -163,6 +161,9 @@ public:
 
   // Restores FBO binding after it's been changed.
   void RestoreFramebufferBinding();
+
+protected:
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   void CheckForSurfaceChange();

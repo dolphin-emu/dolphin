@@ -851,19 +851,9 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<::BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(BoundingBox::Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  BoundingBox::Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  BoundingBox::Flush();
+  return std::make_unique<OGLBoundingBox>();
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,

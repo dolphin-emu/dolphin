@@ -17,6 +17,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
@@ -62,13 +63,6 @@ bool Renderer::Initialize()
 {
   if (!::Renderer::Initialize())
     return false;
-
-  m_bounding_box = std::make_unique<BoundingBox>();
-  if (!m_bounding_box->Initialize())
-  {
-    PanicAlertFmt("Failed to initialize bounding box.");
-    return false;
-  }
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
@@ -132,20 +126,9 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(m_bounding_box->Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  m_bounding_box->Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  m_bounding_box->Flush();
-  m_bounding_box->Invalidate();
+  return std::make_unique<VKBoundingBox>();
 }
 
 void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,

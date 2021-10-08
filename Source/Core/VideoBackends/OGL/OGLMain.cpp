@@ -44,7 +44,6 @@ Make AA apply instantly during gameplay if possible
 
 #include "Core/Config/GraphicsSettings.h"
 
-#include "VideoBackends/OGL/OGLBoundingBox.h"
 #include "VideoBackends/OGL/OGLPerfQuery.h"
 #include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"
@@ -186,7 +185,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_perf_query = GetPerfQuery();
   g_texture_cache = std::make_unique<TextureCacheBase>();
   g_sampler_cache = std::make_unique<SamplerCache>();
-  BoundingBox::Init();
 
   if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
       !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
@@ -205,7 +203,6 @@ void VideoBackend::Shutdown()
 {
   g_shader_cache->Shutdown();
   g_renderer->Shutdown();
-  BoundingBox::Shutdown();
   g_sampler_cache.reset();
   g_texture_cache.reset();
   g_perf_query.reset();

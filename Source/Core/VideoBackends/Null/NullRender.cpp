@@ -3,6 +3,7 @@
 
 #include "VideoBackends/Null/NullRender.h"
 
+#include "VideoBackends/Null/NullBoundingBox.h"
 #include "VideoBackends/Null/NullTexture.h"
 
 #include "VideoCommon/AbstractPipeline.h"
@@ -82,5 +83,10 @@ std::unique_ptr<NativeVertexFormat>
 Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<NativeVertexFormat>(vtx_decl);
+}
+
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
+{
+  return std::make_unique<NullBoundingBox>();
 }
 }  // namespace Null

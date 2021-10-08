@@ -57,6 +57,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/FPSCounter.h"
@@ -124,6 +125,13 @@ bool Renderer::Initialize()
   if (!m_post_processor->Initialize(m_backbuffer_format))
     return false;
 
+  m_bounding_box = CreateBoundingBox();
+  if (g_ActiveConfig.backend_info.bSupportsBBox && !m_bounding_box->Initialize())
+  {
+    PanicAlertFmt("Failed to initialize bounding box.");
+    return false;
+  }
+
   return true;
 }
 
@@ -137,6 +145,7 @@ void Renderer::Shutdown()
   ShutdownFrameDumping();
   ShutdownImGui();
   m_post_processor.reset();
+  m_bounding_box.reset();
 }
 
 void Renderer::BeginUtilityDrawing()
@@ -184,15 +193,30 @@ void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
-u16 Renderer::BBoxRead(int index)
+bool Renderer::IsBBoxEnabled() const
+{
+  return m_bounding_box->IsEnabled();
+}
+
+void Renderer::BBoxEnable()
+{
+  m_bounding_box->Enable();
+}
+
+void Renderer::BBoxDisable()
+{
+  m_bounding_box->Disable();
+}
+
+u16 Renderer::BBoxRead(u32 index)
 {
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
     return m_bounding_box_fallback[index];
 
-  return BBoxReadImpl(index);
+  return m_bounding_box->Get(index);
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWrite(u32 index, u16 value)
 {
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
   {
@@ -200,12 +224,15 @@ void Renderer::BBoxWrite(int index, u16 value)
     return;
   }
 
-  BBoxWriteImpl(index, value);
+  m_bounding_box->Set(index, value);
 }
 
 void Renderer::BBoxFlush()
 {
-  BBoxFlushImpl();
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+    return;
+
+  m_bounding_box->Flush();
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
@@ -1760,6 +1787,8 @@ void Renderer::DoState(PointerWrap& p)
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
   p.DoArray(m_bounding_box_fallback);
+
+  m_bounding_box->DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {

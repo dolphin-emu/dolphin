@@ -3,18 +3,26 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+#include "Common/GL/GLUtil.h"
+
+#include "VideoCommon/BoundingBox.h"
+
 namespace OGL
 {
-class BoundingBox
+class OGLBoundingBox final : public BoundingBox
 {
 public:
-  static void Init();
-  static void Shutdown();
+  ~OGLBoundingBox() override;
 
-  static void Flush();
-  static void Readback();
+  bool Initialize() override;
 
-  static void Set(int index, int value);
-  static int Get(int index);
+protected:
+  std::vector<BBoxType> Read(u32 index, u32 length) override;
+  void Write(u32 index, const std::vector<BBoxType>& values) override;
+
+private:
+  GLuint m_buffer_id = 0;
 };
-};  // namespace OGL
+
+}  // namespace OGL
