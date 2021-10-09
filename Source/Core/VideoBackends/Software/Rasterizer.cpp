@@ -163,13 +163,12 @@ static void InitSlope(Slope* slope, float f1, float f2, float f3, float DX31, fl
 
 static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
 {
-  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  const u8 subTexmap = texmap & 3;
+  auto texUnit = bpmem.tex.GetUnit(texmap);
 
   // LOD calculation requires data from the texture mode for bias, etc.
   // it does not seem to use the actual texture size
-  const TexMode0& tm0 = texUnit.texMode0[subTexmap];
-  const TexMode1& tm1 = texUnit.texMode1[subTexmap];
+  const TexMode0& tm0 = texUnit.texMode0;
+  const TexMode1& tm1 = texUnit.texMode1;
 
   float sDelta, tDelta;
   if (tm0.diag_lod == LODType::Diagonal)
