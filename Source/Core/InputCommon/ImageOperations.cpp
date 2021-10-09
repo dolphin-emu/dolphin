@@ -37,8 +37,13 @@ void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect&
 
   for (u32 x = 0; x < dst_region.GetWidth(); x++)
   {
+    if ((x + dst_region.left) >= dst.width)
+      continue;
+
     for (u32 y = 0; y < dst_region.GetHeight(); y++)
     {
+      if ((y + dst_region.top) >= dst.height)
+        continue;
       dst.pixels[(y + dst_region.top) * dst.width + x + dst_region.left] =
           src.pixels[(y + src_region.top) * src.width + x + src_region.left];
     }
@@ -56,10 +61,16 @@ void OverlayImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Re
 
   for (u32 x = 0; x < dst_region.GetWidth(); x++)
   {
+    if ((x + dst_region.left) >= dst.width)
+      continue;
+
     for (u32 y = 0; y < dst_region.GetHeight(); y++)
     {
       const auto& src_pixel = src.pixels[(y + src_region.top) * src.width + x + src_region.left];
       if (src_pixel == pixel_skip_color)
+        continue;
+
+      if ((y + dst_region.top) >= dst.height)
         continue;
 
       dst.pixels[(y + dst_region.top) * dst.width + x + dst_region.left] = src_pixel;
