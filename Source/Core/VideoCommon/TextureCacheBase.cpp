@@ -970,8 +970,7 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
 static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
                             bool has_arbitrary_mips)
 {
-  const FourTexUnits& tex = bpmem.tex[index / 4];
-  const TexMode0& tm0 = tex.texMode0[index % 4];
+  const TexMode0& tm0 = bpmem.tex.GetUnit(index).texMode0;
 
   SamplerState state = {};
   state.Generate(bpmem, index);

@@ -224,9 +224,9 @@ BlendingState& BlendingState::operator=(const BlendingState& rhs)
 
 void SamplerState::Generate(const BPMemory& bp, u32 index)
 {
-  const FourTexUnits& tex = bpmem.tex[index / 4];
-  const TexMode0& tm0 = tex.texMode0[index % 4];
-  const TexMode1& tm1 = tex.texMode1[index % 4];
+  auto tex = bp.tex.GetUnit(index);
+  const TexMode0& tm0 = tex.texMode0;
+  const TexMode1& tm1 = tex.texMode1;
 
   // GX can configure the mip filter to none. However, D3D and Vulkan can't express this in their
   // sampler states. Therefore, we set the min/max LOD to zero if this option is used.

@@ -951,18 +951,6 @@ struct fmt::formatter<ZTex2>
   }
 };
 
-struct FourTexUnits
-{
-  TexMode0 texMode0[4];
-  TexMode1 texMode1[4];
-  TexImage0 texImage0[4];
-  TexImage1 texImage1[4];
-  TexImage2 texImage2[4];
-  TexImage3 texImage3[4];
-  TexTLUT texTlut[4];
-  u32 unknown[4];
-};
-
 // Geometry/other structs
 enum class CullMode : u32
 {
@@ -1979,6 +1967,160 @@ struct BPS_TmemConfig
   u32 texinvalidate;
 };
 
+union AllTexUnits;
+
+// The addressing of the texture units is a bit non-obvious.
+// This struct abstracts the complexity away.
+union TexUnitAddress
+{
+  enum class Register : u32
+  {
+    SETMODE0 = 0,
+    SETMODE1 = 1,
+    SETIMAGE0 = 2,
+    SETIMAGE1 = 3,
+    SETIMAGE2 = 4,
+    SETIMAGE3 = 5,
+    SETTLUT = 6,
+    UNKNOWN = 7,
+  };
+
+  BitField<0, 2, u32> UnitIdLow;
+  BitField<2, 3, Register> Reg;
+  BitField<5, 1, u32> UnitIdHigh;
+
+  BitField<0, 6, u32> FullAddress;
+  u32 hex;
+
+  TexUnitAddress() : hex(0) {}
+  TexUnitAddress(u32 unit_id, Register reg = Register::SETMODE0) : hex(0)
+  {
+    UnitIdLow = unit_id & 3;
+    UnitIdHigh = unit_id >> 2;
+    Reg = reg;
+  }
+
+  static TexUnitAddress FromBPAddress(u32 Address)
+  {
+    TexUnitAddress Val;
+    // Clear upper two bits (which should always be 0x80)
+    Val.FullAddress = Address & 0x3f;
+    return Val;
+  }
+
+  u32 GetUnitID() const { return UnitIdLow | (UnitIdHigh << 2); }
+
+private:
+  friend AllTexUnits;
+
+  size_t GetOffset() const { return FullAddress; }
+  size_t GetBPAddress() const { return FullAddress | 0x80; }
+
+  static constexpr size_t ComputeOffset(u32 unit_id)
+  {
+    // FIXME: Would be nice to construct a TexUnitAddress and get its offset,
+    // but that doesn't seem to be possible in c++17
+
+    // So we manually re-implement the calculation
+    return (unit_id & 3) | ((unit_id & 4) << 3);
+  }
+};
+static_assert(sizeof(TexUnitAddress) == sizeof(u32));
+
+// A view of the registers of a single TexUnit
+struct TexUnit
+{
+  TexMode0 texMode0;
+  u32 : 32;  // doing u32 : 96 is legal according to the standard, but msvc
+  u32 : 32;  // doesn't like it. So we stack multiple lines of u32 : 32;
+  u32 : 32;
+  TexMode1 texMode1;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage0 texImage0;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage1 texImage1;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage2 texImage2;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage3 texImage3;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexTLUT texTlut;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  u32 unknown;
+};
+static_assert(sizeof(TexUnit) == sizeof(u32) * 4 * 7 + sizeof(u32));
+
+union AllTexUnits
+{
+  std::array<u32, 8 * 8> AllRegisters;
+
+  const TexUnit& GetUnit(u32 UnitId) const
+  {
+    auto address = TexUnitAddress(UnitId);
+    const u32* ptr = &AllRegisters[address.GetOffset()];
+    return *reinterpret_cast<const TexUnit*>(ptr);
+  }
+
+private:
+  // For debuggers since GetUnit can be optimised out in release builds
+  template <u32 UnitId>
+  struct TexUnitPadding
+  {
+    static_assert(UnitId != 0, "Can't use 0 as sizeof(std::array<u32, 0>) != 0");
+    std::array<u32, TexUnitAddress::ComputeOffset(UnitId)> pad;
+  };
+
+  TexUnit tex0;
+  struct
+  {
+    TexUnitPadding<1> pad1;
+    TexUnit tex1;
+  };
+  struct
+  {
+    TexUnitPadding<2> pad2;
+    TexUnit tex2;
+  };
+  struct
+  {
+    TexUnitPadding<3> pad3;
+    TexUnit tex3;
+  };
+  struct
+  {
+    TexUnitPadding<4> pad4;
+    TexUnit tex4;
+  };
+  struct
+  {
+    TexUnitPadding<5> pad5;
+    TexUnit tex5;
+  };
+  struct
+  {
+    TexUnitPadding<6> pad6;
+    TexUnit tex6;
+  };
+  struct
+  {
+    TexUnitPadding<7> pad7;
+    TexUnit tex7;
+  };
+};
+static_assert(sizeof(AllTexUnits) == 8 * 8 * sizeof(u32));
+
 // All of BP memory
 
 struct BPCmd
@@ -2043,7 +2185,7 @@ struct BPMemory
   FieldMode fieldmode;                // 68
   u32 unknown10[7];                   // 69-6F
   u32 unknown11[16];                  // 70-7F
-  FourTexUnits tex[2];                // 80-bf
+  AllTexUnits tex;                    // 80-bf
   TevStageCombiner combiners[16];     // 0xC0-0xDF
   TevReg tevregs[4];                  // 0xE0
   FogRangeParams fogRange;            // 0xE8
