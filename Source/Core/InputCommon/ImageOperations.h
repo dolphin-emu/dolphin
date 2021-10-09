@@ -47,6 +47,8 @@ struct ImagePixelData
 
 void CopyImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
                      const Rect& dst_region);
+void OverlayImageRegion(const ImagePixelData& src, ImagePixelData& dst, const Rect& src_region,
+                        const Rect& dst_region, const Pixel& pixel_skip_color = Pixel{});
 
 std::optional<ImagePixelData> LoadImage(const std::string& path);
 

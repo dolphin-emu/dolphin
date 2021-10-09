@@ -205,7 +205,8 @@ bool Configuration::ApplyEmulatedEntry(const Configuration::HostEntries& host_en
                           section->Get(entry.m_key, &host_key);
                           return ApplyEmulatedSingleEntry(
                               host_entries, std::vector<std::string>{host_key}, entry.m_tag,
-                              entry.m_region, image_to_write, preserve_aspect_ratio);
+                              entry.m_region, entry.m_copy_type, image_to_write,
+                              preserve_aspect_ratio);
                         },
                         [&, this](const Data::EmulatedMultiEntry& entry) {
                           return ApplyEmulatedMultiEntry(host_entries, entry, section,
@@ -218,7 +219,8 @@ bool Configuration::ApplyEmulatedEntry(const Configuration::HostEntries& host_en
 bool Configuration::ApplyEmulatedSingleEntry(const Configuration::HostEntries& host_entries,
                                              const std::vector<std::string> keys,
                                              const std::optional<std::string> tag,
-                                             const Rect& region, ImagePixelData& image_to_write,
+                                             const Rect& region, Data::CopyType copy_type,
+                                             ImagePixelData& image_to_write,
                                              bool preserve_aspect_ratio) const
 {
   for (auto& host_entry : host_entries)
@@ -243,8 +245,16 @@ bool Configuration::ApplyEmulatedSingleEntry(const Configuration::HostEntries& h
             Resize(ResizeMode::Nearest, *host_key_image, region.GetWidth(), region.GetHeight());
       }
 
-      CopyImageRegion(pixel_data, image_to_write, Rect{0, 0, region.GetWidth(), region.GetHeight()},
-                      region);
+      if (copy_type == DynamicInputTextures::Data::CopyType::Overwrite)
+      {
+        CopyImageRegion(pixel_data, image_to_write,
+                        Rect{0, 0, region.GetWidth(), region.GetHeight()}, region);
+      }
+      else
+      {
+        OverlayImageRegion(pixel_data, image_to_write,
+                           Rect{0, 0, region.GetWidth(), region.GetHeight()}, region);
+      }
 
       return true;
     }
@@ -270,8 +280,8 @@ bool Configuration::ApplyEmulatedMultiEntry(const Configuration::HostEntries& ho
     host_keys.push_back(host_key);
   }
   if (ApplyEmulatedSingleEntry(host_entries, host_keys, emulated_entry.m_combined_tag,
-                               emulated_entry.m_combined_region, image_to_write,
-                               preserve_aspect_ratio))
+                               emulated_entry.m_combined_region, emulated_entry.m_copy_type,
+                               image_to_write, preserve_aspect_ratio))
   {
     return true;
   }
@@ -287,10 +297,20 @@ bool Configuration::ApplyEmulatedMultiEntry(const Configuration::HostEntries& ho
 
   if (apply)
   {
-    CopyImageRegion(temporary_pixel_data, image_to_write,
-                    Rect{0, 0, emulated_entry.m_combined_region.GetWidth(),
-                         emulated_entry.m_combined_region.GetHeight()},
-                    emulated_entry.m_combined_region);
+    if (emulated_entry.m_copy_type == DynamicInputTextures::Data::CopyType::Overwrite)
+    {
+      CopyImageRegion(temporary_pixel_data, image_to_write,
+                      Rect{0, 0, emulated_entry.m_combined_region.GetWidth(),
+                           emulated_entry.m_combined_region.GetHeight()},
+                      emulated_entry.m_combined_region);
+    }
+    else
+    {
+      OverlayImageRegion(temporary_pixel_data, image_to_write,
+                         Rect{0, 0, emulated_entry.m_combined_region.GetWidth(),
+                              emulated_entry.m_combined_region.GetHeight()},
+                         emulated_entry.m_combined_region);
+    }
   }
 
   return apply;

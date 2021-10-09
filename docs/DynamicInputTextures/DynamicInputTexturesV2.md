@@ -84,6 +84,17 @@ Here is an example of a single key with a tag:
 }
 ```
 
+By default the region expressed by the key will be overwritten by the host image.  For many games though, there are colors or details that we do not want to completely remove and therefore want to overlay the host image on top of the underlying game texture.  To do this you can use "copy_type".  By default "copy_type" defaults to 'overwrite' but you may also set it to 'overlay'.  Here is an example of a key with the 'overlay' copy_type:
+
+```js
+{
+    "bind_type": "single",
+    "key": "Buttons/A",
+    "copy_type": "overlay",
+    "region": [0, 0, 30, 30]
+}
+```
+
 ##### Multi Key
 
 The single key case works well when an image maps directly to Dolphin's emulated controller bindings.  However, what about the case where there is a dpad icon?  Dolphin has four mappings for that.  This is where a "bind_type" of ``multi`` is helpful.
@@ -96,6 +107,7 @@ Here's an example of that:
 {
     "bind_type": "multi",
     "tag": "dpad",
+    "copy_type": "overlay",
     "region": [0, 0, 45, 45],
     "sub_entries": [
       {

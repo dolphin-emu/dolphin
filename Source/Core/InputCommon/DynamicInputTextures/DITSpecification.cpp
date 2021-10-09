@@ -98,6 +98,29 @@ std::optional<Data::EmulatedEntry> GetEmulatedEntry(const picojson::object& entr
     entry.m_key = *entry_key;
     entry.m_tag = GetJsonValueFromMap<std::string>(entry_obj, "tag", json_file, false);
 
+    const auto copy_type =
+        GetJsonValueFromMap<std::string>(entry_obj, "copy_type", json_file, false);
+    if (copy_type)
+    {
+      const auto& copy_type_str = *copy_type;
+      if (copy_type_str == "overwrite")
+      {
+        entry.m_copy_type = DynamicInputTextures::Data::CopyType::Overwrite;
+      }
+      else if (copy_type_str == "overlay")
+      {
+        entry.m_copy_type = DynamicInputTextures::Data::CopyType::Overlay;
+      }
+      else
+      {
+        ERROR_LOG_FMT(VIDEO,
+                      "Failed to load dynamic input json file '{}' because field "
+                      "'copy_type' had invalid value '{}'",
+                      json_file, copy_type_str);
+        return std::nullopt;
+      }
+    }
+
     const auto entry_region = GetRect(entry_obj, "region", json_file);
     if (!entry_region)
       return std::nullopt;

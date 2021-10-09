@@ -23,17 +23,25 @@ struct Data
   struct EmulatedMultiEntry;
   using EmulatedEntry = std::variant<EmulatedSingleEntry, EmulatedMultiEntry>;
 
+  enum class CopyType
+  {
+    Overwrite,
+    Overlay
+  };
+
   struct EmulatedSingleEntry
   {
     std::string m_key;
     std::optional<std::string> m_tag;
     Rect m_region;
+    CopyType m_copy_type = CopyType::Overwrite;
   };
 
   struct EmulatedMultiEntry
   {
     std::string m_combined_tag;
     Rect m_combined_region;
+    CopyType m_copy_type = CopyType::Overwrite;
 
     std::vector<EmulatedEntry> m_sub_entries;
   };

@@ -35,7 +35,8 @@ private:
   bool ApplyEmulatedSingleEntry(const HostEntries& host_entries,
                                 const std::vector<std::string> keys,
                                 const std::optional<std::string> tag, const Rect& region,
-                                ImagePixelData& image_to_write, bool preserve_aspect_ratio) const;
+                                Data::CopyType copy_type, ImagePixelData& image_to_write,
+                                bool preserve_aspect_ratio) const;
   bool ApplyEmulatedMultiEntry(const HostEntries& host_entries,
                                const Data::EmulatedMultiEntry& emulated_entry,
                                const IniFile::Section* section, ImagePixelData& image_to_write,
