@@ -12,6 +12,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DiscIO
+{
+struct GameModDescriptorRiivolution;
+}
+
 namespace DiscIO::Riivolution
 {
 class FileDataLoader;
@@ -196,4 +201,7 @@ struct Disc
 
 std::optional<Disc> ParseFile(const std::string& filename);
 std::optional<Disc> ParseString(std::string_view xml, std::string xml_path);
+std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
+    const GameModDescriptorRiivolution& descriptor, const std::string& game_id,
+    std::optional<u16> revision, std::optional<u8> disc_number);
 }  // namespace DiscIO::Riivolution
