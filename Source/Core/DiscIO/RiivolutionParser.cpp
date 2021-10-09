@@ -13,6 +13,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionPatcher.h"
 
 namespace DiscIO::Riivolution
@@ -333,5 +334,48 @@ std::vector<Patch> Disc::GeneratePatches(const std::string& game_id) const
   }
 
   return active_patches;
+}
+
+std::vector<DiscIO::Riivolution::Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
+    const DiscIO::GameModDescriptorRiivolution& descriptor, const std::string& game_id,
+    int revision, int disc_number)
+{
+  std::vector<DiscIO::Riivolution::Patch> result;
+  for (const auto& patch_info : descriptor.m_patches)
+  {
+    auto parsed = DiscIO::Riivolution::ParseFile(patch_info.m_xml);
+    if (!parsed || !parsed->IsValidForGame(game_id, revision, disc_number))
+      continue;
+
+    for (auto& section : parsed->m_sections)
+    {
+      for (auto& option : section.m_options)
+      {
+        const auto* info = [&]() -> const DiscIO::GameModDescriptorRiivolutionPatchOption* {
+          for (const auto& o : patch_info.m_options)
+          {
+            if (o.m_section_name == section.m_name)
+            {
+              if (!o.m_option_id.empty() && o.m_option_id == option.m_id)
+                return &o;
+              if (!o.m_option_name.empty() && o.m_option_name == option.m_name)
+                return &o;
+            }
+          }
+          return nullptr;
+        }();
+        if (info && info->m_choice <= option.m_choices.size())
+          option.m_selected_choice = info->m_choice;
+      }
+    }
+
+    for (auto& p : parsed->GeneratePatches(game_id))
+    {
+      p.m_file_data_loader = std::make_shared<DiscIO::Riivolution::FileDataLoaderHostFS>(
+          patch_info.m_root, parsed->m_xml_path, p.m_root);
+      result.emplace_back(std::move(p));
+    }
+  }
+  return result;
 }
 }  // namespace DiscIO::Riivolution
