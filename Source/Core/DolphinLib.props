@@ -430,6 +430,7 @@
     <ClInclude Include="DiscIO\FileBlob.h" />
     <ClInclude Include="DiscIO\Filesystem.h" />
     <ClInclude Include="DiscIO\FileSystemGCWii.h" />
+    <ClInclude Include="DiscIO\GameModDescriptor.h" />
     <ClInclude Include="DiscIO\LaggedFibonacciGenerator.h" />
     <ClInclude Include="DiscIO\MultithreadedCompressor.h" />
     <ClInclude Include="DiscIO\NANDImporter.h" />
@@ -1019,6 +1020,7 @@
     <ClCompile Include="DiscIO\FileBlob.cpp" />
     <ClCompile Include="DiscIO\Filesystem.cpp" />
     <ClCompile Include="DiscIO\FileSystemGCWii.cpp" />
+    <ClCompile Include="DiscIO\GameModDescriptor.cpp" />
     <ClCompile Include="DiscIO\LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="DiscIO\NANDImporter.cpp" />
     <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
