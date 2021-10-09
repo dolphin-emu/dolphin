@@ -23,6 +23,8 @@ add_library(discio
   FileSystemGCWii.h
   Filesystem.cpp
   Filesystem.h
+  GameModDescriptor.cpp
+  GameModDescriptor.h
   LaggedFibonacciGenerator.cpp
   LaggedFibonacciGenerator.h
   MultithreadedCompressor.h
