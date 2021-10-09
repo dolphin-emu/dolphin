@@ -57,6 +57,8 @@ namespace fs = std::filesystem;
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/GameModDescriptor.h"
+#include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
@@ -215,6 +217,40 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path));
     if (wad)
       return std::make_unique<BootParameters>(std::move(*wad), savestate_path);
+  }
+
+  if (extension == ".json")
+  {
+    auto descriptor = DiscIO::ParseGameModDescriptorFile(path);
+    if (descriptor)
+    {
+      auto boot_params = GenerateFromFile(descriptor->base_file, savestate_path);
+      if (!boot_params)
+      {
+        PanicAlertFmtT("Could not recognize file {0}", descriptor->base_file);
+        return nullptr;
+      }
+
+      if (descriptor->riivolution && std::holds_alternative<Disc>(boot_params->parameters))
+      {
+        auto& disc = std::get<Disc>(boot_params->parameters);
+        const auto& volume = *disc.volume;
+        boot_params->riivolution_patches =
+            DiscIO::Riivolution::GenerateRiivolutionPatchesFromGameModDescriptor(
+                *descriptor->riivolution, volume.GetGameID(), volume.GetRevision(),
+                volume.GetDiscNumber());
+        if (!boot_params->riivolution_patches.empty())
+        {
+          disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
+              std::move(disc.volume),
+              [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
+                DiscIO::Riivolution::ApplyPatchesToFiles(boot_params->riivolution_patches, fst,
+                                                         dol_node);
+              }));
+        }
+      }
+      return boot_params;
+    }
   }
 
   PanicAlertFmtT("Could not recognize file {0}", path);
