@@ -1,6 +1,6 @@
 # Copyright 2018 Dolphin Emulator Project
 # Licensed under GPLv2+
-# Refer to the license.txt file included.
+# Refer to the LICENSES/GPL-2.0-or-later.txt file included.
 
 from collections import namedtuple
 
@@ -27,6 +27,8 @@ def ida_main():
     import idc
 
     filepath = idc.AskFile(1, "*.map", "Save a Dolphin emulator symbol map")
+    if filepath is None:
+        return
     text_map = []
     data_map = []
     for ea, name in idautils.Names():

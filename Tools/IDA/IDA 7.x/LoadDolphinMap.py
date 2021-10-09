@@ -1,6 +1,6 @@
-# Copyright 2018 Dolphin Emulator Project
+# Copyright 2021 Dolphin Emulator Project
 # Licensed under GPLv2+
-# Refer to the license.txt file included.
+# Refer to the LICENSES/GPL-2.0-or-later.txt file included.
 
 from collections import namedtuple
 
@@ -28,24 +28,26 @@ def load_dolphin_map(filepath):
 def ida_main():
     import idc
 
-    filepath = idc.AskFile(0, "*.map", "Load a Dolphin emulator symbol map")
+    filepath = ida_kernwin.ask_file(0, "*.map", "Load a Dolphin emulator symbol map")
+    if filepath is None:
+        return
     symbol_map = load_dolphin_map(filepath)
 
     for symbol in symbol_map:
         addr = int(symbol.vaddr, 16)
         size = int(symbol.size, 16)
-        idc.MakeUnknown(addr, size, 0)
+        ida_bytes.del_items(addr, size, 0)
         if symbol.section in [".init", ".text"]:
-            idc.MakeCode(addr)
-            success = idc.MakeFunction(
+            idc.create_insn(addr)
+            success = ida_funcs.add_func(
                 addr,
                 idc.BADADDR if not size else (addr+size)
             )
         else:
-            success = idc.MakeData(addr, idc.FF_BYTE, size, 0)
+            success = ida_bytes.create_data(addr, idc.FF_BYTE, size, 0)
 
         if not success:
-            idc.Message("Can't apply properties for symbol:"
+            ida_kernwin.msg("Can't apply properties for symbol:"
                         " {0.vaddr} - {0.name}\n".format(symbol))
 
         flags = idc.SN_NOCHECK | idc.SN_PUBLIC
@@ -53,7 +55,7 @@ def ida_main():
             flags |= idc.SN_AUTO | idc.SN_WEAK
         else:
             flags |= idc.SN_NON_AUTO
-        idc.MakeNameEx(addr, symbol.name, flags)
+        idc.set_name(addr, symbol.name, flags)
 
 
 if __name__ == "__main__":
