@@ -418,6 +418,10 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
+  // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
+  if (!boot->riivolution_patches.empty())
+    StartUp.bFastDiscSpeed = true;
+
   Core::UpdateWantDeterminism(/*initial*/ true);
 
   if (StartUp.bWii)
