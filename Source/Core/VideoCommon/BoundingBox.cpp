@@ -9,6 +9,8 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include <algorithm>
+
 void BoundingBox::Enable()
 {
   m_is_active = true;
