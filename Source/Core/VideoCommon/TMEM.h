@@ -18,4 +18,8 @@ void Bind(u32 unit, int num_blocks_width, int num_blocks_height, bool is_mipmapp
 void FinalizeBinds(BitSet32 used_textures);
 bool IsCached(u32 unit);
 bool IsValid(u32 unit);
+
+void Init();
+void DoState(PointerWrap& p);
+
 }  // namespace TMEM

@@ -4,6 +4,8 @@
 
 #include <array>
 
+#include "Common/ChunkFile.h"
+
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TMEM.h"
 
@@ -32,9 +34,9 @@ struct TextureUnitState
     bool Overlaps(const BankConfig& other) const;
   };
 
-  BankConfig even;
-  BankConfig odd;
-  State state;
+  BankConfig even = {};
+  BankConfig odd = {};
+  State state = State::INVALID;
 
   bool Overlaps(const TextureUnitState& other) const;
 };
@@ -219,6 +221,16 @@ bool IsCached(u32 unit)
 bool IsValid(u32 unit)
 {
   return s_unit[unit].state != TextureUnitState::State::INVALID;
+}
+
+void Init()
+{
+  s_unit.fill({});
+}
+
+void DoState(PointerWrap& p)
+{
+  p.DoArray(s_unit);
 }
 
 }  // namespace TMEM
