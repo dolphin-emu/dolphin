@@ -11,7 +11,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -26,6 +25,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/WIABlob.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
@@ -374,7 +374,7 @@ void ConvertDialog::Convert()
 
   if (m_files.size() > 1)
   {
-    dst_dir = QFileDialog::getExistingDirectory(
+    dst_dir = DolphinFileDialog::getExistingDirectory(
         this, tr("Select where you want to save the converted images"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath())).dir().absolutePath());
 
@@ -383,7 +383,7 @@ void ConvertDialog::Convert()
   }
   else
   {
-    dst_path = QFileDialog::getSaveFileName(
+    dst_path = DolphinFileDialog::getSaveFileName(
         this, tr("Select where you want to save the converted image"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath()))
             .dir()

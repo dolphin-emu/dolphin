@@ -5,7 +5,6 @@
 
 #include <QApplication>
 #include <QCoreApplication>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
@@ -23,6 +22,7 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Resources.h"
@@ -211,7 +211,8 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
 
 QString FilesystemWidget::SelectFolder()
 {
-  return QFileDialog::getExistingDirectory(this, QObject::tr("Choose the folder to extract to"));
+  return DolphinFileDialog::getExistingDirectory(this,
+                                                 QObject::tr("Choose the folder to extract to"));
 }
 
 void FilesystemWidget::ShowContextMenu(const QPoint&)
@@ -296,7 +297,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   case EntryType::File:
     menu->addAction(tr("Extract File..."), this, [this, partition, path] {
       auto dest =
-          QFileDialog::getSaveFileName(this, tr("Save File to"), QFileInfo(path).fileName());
+          DolphinFileDialog::getSaveFileName(this, tr("Save File to"), QFileInfo(path).fileName());
 
       if (!dest.isEmpty())
         ExtractFile(partition, path, dest);
