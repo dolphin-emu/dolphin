@@ -2552,13 +2552,21 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
 
   for (size_t i = 0; i < bound_textures.size(); ++i)
   {
-    // If the entry is currently bound and tmem has it recorded as cached, keep it, but mark it as
-    // invalidated. This way it can still be used via tmem cache emulation, but nothing else.
-    // Spyro: A Hero's Tail is known for using such overwritten textures.
-    if (bound_textures[i] == entry && TMEM::IsCached(static_cast<u32>(i)))
+    if (bound_textures[i] == entry)
     {
-      bound_textures[i]->tmem_only = true;
-      return ++iter;
+      if (TMEM::IsCached(static_cast<u32>(i)))
+      {
+        // If the entry is currently bound and tmem has it recorded as cached, keep it, but mark it
+        // as invalidated. This way it can still be used via tmem cache emulation, but nothing else.
+        // Spyro: A Hero's Tail is known for using such overwritten textures.
+        bound_textures[i]->tmem_only = true;
+        return ++iter;
+      }
+      else
+      {
+        // Otherwise, delete the reference to it from bound_textures
+        bound_textures[i] = nullptr;
+      }
     }
   }
 
