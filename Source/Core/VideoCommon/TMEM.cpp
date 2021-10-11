@@ -9,6 +9,60 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TMEM.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// TMEM emulation tracks which textures should be cached in TMEM on a real console.
+// There are two good reasons to do this:
+//
+// 1. Some games deliberately avoid invalidating a texture, overwrite it with an EFB copy,
+//    and then expect the original texture to still be found in TMEM for another draw call.
+//    Spyro: A Hero's Tail is known for using such overwritten textures.
+//    However, other games like:
+//      * Sonic Riders
+//      * Metal Arms: Glitch in the System
+//      * Godzilla: Destroy All Monsters Melee
+//      * NHL Slapshot
+//      * Tak and the Power of Juju
+//      * Night at the Museum: Battle of the Smithsonian
+//      * 428: Fūsa Sareta Shibuya de
+//    are known to (accidentally or deliberately) avoid invalidating and then expect the pattern
+//    of the draw and the fact that the whole texture doesn't fit in TMEM to self-invalidate the
+//    texture. These are usually full-screen efb copies.
+//    So we must track the size of the textures as an heuristic to see if they will self-invalidate
+//    or not.
+//
+// 2. It actually improves Dolphin's performance in safer texture hashing modes, by reducing the
+//    amount of times a texture needs to be hashed when reused in subsequent draws.
+//
+// As a side-effect, TMEM emulation also tracks if the texture unit configuration has changed at
+// all, which Dolphin's TextureCache takes advantage of.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Checking if a texture fits in TMEM or not is complicated by the fact that Flipper's TMEM is quite
+// configurable.
+// Each of the eight texture units has two banks (even and odd) that can be pointed at any offset
+// and set to any size. It is completely valid to have overlapping banks, and performance can be
+// improved by overlapping the caches of texture units that are drawing the same textures.
+//
+// For trilinear textures, the even/odd banks contain the even/odd LODs of the texture. TMEM has two
+// banks of 512KB each, covering the upper and lower halves of TMEM's address space. The two banks
+// be accessed simultaneously, allowing a trilinear texture sample to be completed at the same cost
+// as a bilinear sample, assuming the even and odd banks are mapped onto different banks.
+//
+// 32bit textures are actually stored as two 16bit textures in separate banks, allowing a bilinear
+// sample of a 32bit texture at the same cost as a 16bit bilinear/trilinear sample. A trilinear
+// sample of a 32bit texture costs more.
+//
+// TODO: I'm not sure if it's valid for a texture unit's even and odd banks to overlap. There might
+//       actually be a hard requirement for even and odd banks to live in different banks of TMEM.
+//
+// Note: This is still very much a heuristic.
+//       Actually knowing if a texture is partially or fully cached within TMEM would require
+//       extensive software rasterization, or sampler feedback from a hardware backend.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace TMEM
 {
 struct TextureUnitState
