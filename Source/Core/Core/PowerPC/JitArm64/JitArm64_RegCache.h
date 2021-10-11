@@ -291,7 +291,7 @@ protected:
   void FlushRegister(size_t index, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
+  bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
 
   struct GuestRegInfo
   {
@@ -350,7 +350,7 @@ protected:
   void FlushRegister(size_t preg, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
+  bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
   bool IsTopHalfUsed(Arm64Gen::ARM64Reg reg) const;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
