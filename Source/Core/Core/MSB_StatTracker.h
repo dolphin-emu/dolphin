@@ -5,6 +5,8 @@
 #include <vector>
 #include "Core/HW/Memmap.h"
 
+#include "Core/LocalPlayers.h"
+
 enum class GAME_STATE
 {
   PREGAME,
@@ -17,9 +19,9 @@ enum class AB_STATE
     PITCH_STARTED,
     CONTACT,
     CONTACT_RESULT,
-    LANDED,
     NO_CONTACT,
     PLAY_OVER,
+    FINAL_RESULT,
     WAITING_FOR_PITCH,
 };
 
@@ -40,6 +42,9 @@ static const u32 aTeam1_RosterCharId_Start = 0x803541A5;
 
 static const u32 aTeam0_Captain = 0x80353083;
 static const u32 aTeam1_Captain = 0x80353087;
+
+static const u32 aTeam0_Score = 0x808928a4;
+static const u32 aTeam1_Score = 0x808928CA;
 
 static const u8 c_roster_table_offset = 0xa0;
 
@@ -75,7 +80,7 @@ static const u32 aBatter_BasesStolen  = 0x803537F6;
 static const u32 aBatter_BigPlays     = 0x80353807;
 static const u32 aBatter_StarHits     = 0x80353808;
 
-static const u8 c_offensive_stat_offset = 0x25;
+static const u8 c_offensive_stat_offset = 0x26;
 
 
 //At-Bat Scenario 
@@ -104,10 +109,13 @@ static const u32 aAB_StarPitch         = 0x80890B34;
 static const u32 aAB_PitchSpeed        = 0x80890B0A;
 
 //At-Bat Hit
+static const u32 aAB_HorizPower     = 0x808926D6;
+static const u32 aAB_VertPower      = 0x808926D2;
+static const u32 aAB_BallAngle      = 0x808926D4;
+
 static const u32 aAB_BallVel_X      = 0x80890E50;
 static const u32 aAB_BallVel_Y      = 0x80890E54;
 static const u32 aAB_BallVel_Z      = 0x80890E58;
-static const u32 aAB_BallAngle      = 0x808926D4;
 
 static const u32 aAB_ChargeSwing    = 0x8089099B;
 static const u32 aAB_Bunt           = 0x8089099B; //Bunt when =3 on contact
@@ -118,7 +126,7 @@ static const u32 aAB_InputDirection = 0x808909B9; //0=None, 1=PullingStickToward
 static const u32 aAB_StarSwing      = 0x808909B4;
 static const u32 aAB_MoonShot       = 0x808909B5;
 static const u32 aAB_TypeOfContact  = 0x808909A2; //0=Sour, 1=Nice, 2=Perfect, 3=Nice, 4=Sour
-
+static const u32 aAB_RBI            = 0x80892962; //RBI for the AB
 //At-Bat Miss
 static const u32 aAB_Miss_SwingOrBunt = 0x808909A9; //(0=NoSwing, 1=Swing, 2=Bunt)
 static const u32 aAB_Miss_AnyStrike = 0x80890B17;
@@ -128,9 +136,11 @@ static const u32 aAB_BallPos_X = 0x80890B38;
 static const u32 aAB_BallPos_Y = 0x80890B3C;
 static const u32 aAB_BallPos_Z = 0x80890B40;
 
-
+static const u32 aAB_NumOutsDuringPlay = 0x808938AD;
 static const u32 aAB_HitByPitch = 0x808909A3;
 static const u32 aAB_BatterThrow_Tagged_Out = 0x80893B99; //0=Safe, 1=ThrownOutOrTagged, 255=
+
+static const u32 aAB_FinalResult = 0x80893BAA;
 
 
 class StatTracker{
@@ -142,6 +152,7 @@ public:
         std::string date_time;
         std::string p1_name;
         std::string p2_name;
+        u8 ranked;
 
         //Auto capture
         u16 team0_captain;
@@ -149,8 +160,8 @@ public:
 
         std::array<std::array<u8, cRosterSize>, cNumOfTeams> rosters_char_id;
 
-        u8 team0_score;
-        u8 team1_score;
+        u16 team0_score;
+        u16 team1_score;
     };
     GameInfo m_game_info;
 
@@ -208,6 +219,8 @@ public:
         //Scenario
         u8 inning;
         u8 half_inning;
+        u16 team0_score;
+        u16 team1_score;
         u8 balls;
         u8 strikes;
         u8 outs;
@@ -241,18 +254,22 @@ public:
     
         //  Ball Calcs
         u16 ball_angle;
-        float ball_x_velocity;
-        float ball_y_velocity;
-        float ball_z_velocity;
+        u16 horiz_power;
+        u16 vert_power;
+        u32 ball_x_velocity;
+        u32 ball_y_velocity;
+        u32 ball_z_velocity;
         
         //Final Result Ball
         u32 ball_x_pos;
         u32 ball_y_pos;
         u32 ball_z_pos;
 
-        u8 batter_out_at_1st; //Could be tag between HP and 1st or thrown out
+        u8 num_outs;
+        u8 rbi;
 
-        std::string result; //strike-swing, strike-looking, ball, foul, land, caught
+        std::string result_inferred; //strike-swing, strike-looking, ball, foul, land, caught
+        u8 result_game;
 
         bool operator==(const ABStats& rhs_ab){
             return ( (this->inning      == rhs_ab.inning)
@@ -288,6 +305,10 @@ public:
     AB_STATE   m_ab_state = AB_STATE::WAITING_FOR_PITCH;
     
     ABStats m_curr_ab_stat;
+
+    //Local Players
+    AddPlayers player1;
+    AddPlayers player2;
 
     void Run();
     void lookForTriggerEvents();

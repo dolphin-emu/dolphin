@@ -1,14 +1,22 @@
 
 #include "Core/MSB_StatTracker.h"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <ctime>
+
+//For LocalPLayers
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/LocalPlayers.h"
 
 #include "Common/Swap.h"
 
 void StatTracker::Run(){
     lookForTriggerEvents();
 }
+
 void StatTracker::lookForTriggerEvents(){
     //At Bat - Need RosterID (FOUND) and Team1 vs Team2 (MIA)
     switch(m_ab_state){
@@ -38,33 +46,31 @@ void StatTracker::lookForTriggerEvents(){
         case (AB_STATE::CONTACT):
             if (Memory::Read_U8(aAB_ContactResult) != 0){
                 logABContactResult(); //Land vs Caught vs Foul, Landing POS.
-                if (Memory::Read_U8(aAB_ContactResult) == 1){m_ab_state = AB_STATE::LANDED; }
-                else{ m_ab_state = AB_STATE::PLAY_OVER; }
-            }
-            break;
-        case (AB_STATE::LANDED): 
-            if (Memory::Read_U8(aAB_BatterThrow_Tagged_Out) == 1){
-                m_curr_ab_stat.result = "Landed - Out at 1st";
-                m_ab_state = AB_STATE::PLAY_OVER;
-
-                std::cout << "Batter thrown or tagged out" << std::endl;
-            }
-            else if (Memory::Read_U8(aAB_PitchThrown) == 0){
-                m_curr_ab_stat.result = "Landed";
                 m_ab_state = AB_STATE::PLAY_OVER;
             }
             break;
         case (AB_STATE::PLAY_OVER):
             if (Memory::Read_U8(aAB_PitchThrown) == 0){
-                m_ab_state = AB_STATE::WAITING_FOR_PITCH;
-
-                //Store current AB stat to the players vector
-                m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
-                m_curr_ab_stat = ABStats();
-
-                std::cout << "Play over. Logging AB. Waiting for next pitch..." << std::endl;
+                m_curr_ab_stat.rbi = Memory::Read_U8(aAB_RBI);
+                m_ab_state = AB_STATE::FINAL_RESULT;
+                std::cout << "Play over. Logging final results next frame." << std::endl;
                 std::cout << std::endl;
             }
+            break;
+        case (AB_STATE::FINAL_RESULT):
+            
+            //Final Stats - Collected 1 frame after aAB_PitchThrown==0
+            m_curr_ab_stat.num_outs = Memory::Read_U8(aAB_NumOutsDuringPlay);
+            m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
+
+            //Store current AB stat to the players vector
+            m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
+            m_curr_ab_stat = ABStats();
+
+            
+            m_ab_state = AB_STATE::WAITING_FOR_PITCH;
+            std::cout << "Final Result. Logging AB. Waiting for next pitch..." << std::endl;
+            std::cout << std::endl;
             break;
         default:
             std::cout << "Unknown State" << std::endl;
@@ -83,7 +89,7 @@ void StatTracker::lookForTriggerEvents(){
             }
             break;
         case (GAME_STATE::INGAME):
-            if (Memory::Read_U8(aEndOfGameFlag) == 1){
+            if ((Memory::Read_U8(aEndOfGameFlag) == 1) && (m_ab_state == AB_STATE::WAITING_FOR_PITCH) ){
                 logGameInfo();
                 printStatsToFile();
                 m_game_state = GAME_STATE::ENDGAME_LOGGED;
@@ -105,12 +111,18 @@ void StatTracker::logGameInfo(){
     std::cout << "Logging EngGame Stats" << std::endl;
 
     time_t now = time(0);
-    char* date_time = ctime(&now);
-    m_game_info.date_time = std::string(date_time);
+    //char* date_time = ctime(&now);
+    tm *gmtm = gmtime(&now);
+    char* dt = asctime(gmtm);
+    m_game_info.date_time = std::string(dt);
     m_game_info.date_time.pop_back();
+    m_game_info.ranked = 0;
 
     m_game_info.team0_captain = Memory::Read_U8(aTeam0_Captain);
     m_game_info.team1_captain = Memory::Read_U8(aTeam1_Captain);
+
+    m_game_info.team0_score = Memory::Read_U16(aTeam0_Score);
+    m_game_info.team1_score = Memory::Read_U16(aTeam1_Score);
 
     for (int team=0; team < cNumOfTeams; ++team){
         for (int roster=0; roster < cRosterSize; ++roster){
@@ -180,6 +192,8 @@ void StatTracker::logABScenario(){
 
     m_curr_ab_stat.inning          = Memory::Read_U8(aAB_Inning);
     m_curr_ab_stat.half_inning     = Memory::Read_U8(aAB_HalfInning);
+    m_curr_ab_stat.team0_score     = Memory::Read_U16(aTeam0_Score);
+    m_curr_ab_stat.team1_score     = Memory::Read_U16(aTeam1_Score);
     m_curr_ab_stat.balls           = Memory::Read_U8(aAB_Balls);
     m_curr_ab_stat.strikes         = Memory::Read_U8(aAB_Strikes);
     m_curr_ab_stat.outs            = Memory::Read_U8(aAB_Outs);
@@ -193,6 +207,8 @@ void StatTracker::logABScenario(){
     m_curr_ab_stat.runner_on_3     = Memory::Read_U8(aAB_RunnerOn3);
 
     m_curr_ab_stat.batter_handedness = Memory::Read_U8(aAB_BatterHand);
+
+    std::cout << "Inning: " << std::to_string(m_curr_ab_stat.inning) << std::endl;
 }
 
 void StatTracker::logABContact(){
@@ -200,19 +216,22 @@ void StatTracker::logABContact(){
 
     m_curr_ab_stat.type_of_contact   = Memory::Read_U8(aAB_TypeOfContact);
     m_curr_ab_stat.bunt              =(Memory::Read_U8(aAB_Bunt) == 3);
-    m_curr_ab_stat.charge_swing      = Memory::Read_U8(aAB_ChargeSwing);
+    m_curr_ab_stat.charge_swing      = Memgory::Read_U8(aAB_ChargeSwing);
     m_curr_ab_stat.charge_power_up   = Memory::Read_U32(aAB_ChargeUp);
     m_curr_ab_stat.charge_power_down = Memory::Read_U32(aAB_ChargeDown);
     m_curr_ab_stat.star_swing        = Memory::Read_U8(aAB_StarSwing);
     m_curr_ab_stat.moon_shot         = Memory::Read_U8(aAB_MoonShot);
     m_curr_ab_stat.input_direction   = Memory::Read_U8(aAB_InputDirection);
 
+    m_curr_ab_stat.horiz_power       = Memory::Read_U16(aAB_HorizPower);
+    m_curr_ab_stat.vert_power        = Memory::Read_U16(aAB_VertPower);
+    m_curr_ab_stat.ball_angle        = Memory::Read_U16(aAB_BallAngle);
+
     m_curr_ab_stat.ball_x_velocity   = Memory::Read_U32(aAB_BallVel_X);
     m_curr_ab_stat.ball_y_velocity   = Memory::Read_U32(aAB_BallVel_Y);
     m_curr_ab_stat.ball_z_velocity   = Memory::Read_U32(aAB_BallVel_Z);
-    m_curr_ab_stat.ball_angle        = Memory::Read_U16(aAB_BallAngle);
 
-    m_curr_ab_stat.hit_by_pitch = 0;
+    m_curr_ab_stat.hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
     logABPitch();
 }
@@ -230,10 +249,13 @@ void StatTracker::logABMiss(){
     m_curr_ab_stat.moon_shot         = Memory::Read_U8(aAB_MoonShot);
     m_curr_ab_stat.input_direction   = Memory::Read_U8(aAB_InputDirection);
 
+    m_curr_ab_stat.horiz_power       = 0;
+    m_curr_ab_stat.vert_power        = 0;
+    m_curr_ab_stat.ball_angle        = 0;
+
     m_curr_ab_stat.ball_x_velocity   = 0;
     m_curr_ab_stat.ball_y_velocity   = 0;
     m_curr_ab_stat.ball_z_velocity   = 0;
-    m_curr_ab_stat.ball_angle        = 0;
 
     m_curr_ab_stat.hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
@@ -241,22 +263,22 @@ void StatTracker::logABMiss(){
     u8 miss_type  = Memory::Read_U8(aAB_Miss_SwingOrBunt);
 
     if (!any_strike){
-        if (m_curr_ab_stat.hit_by_pitch){ m_curr_ab_stat.result = "Walk-HPB"; }
-        else if (m_curr_ab_stat.balls == 3) {  m_curr_ab_stat.result = "Walk-BB"; }
-        else {m_curr_ab_stat.result = "Ball";};
+        if (m_curr_ab_stat.hit_by_pitch){ m_curr_ab_stat.result_inferred = "Walk-HPB"; }
+        else if (m_curr_ab_stat.balls == 3) {  m_curr_ab_stat.result_inferred = "Walk-BB"; }
+        else {m_curr_ab_stat.result_inferred = "Ball";};
     }
     else{
         if (miss_type == 0){
-            m_curr_ab_stat.result = "Strike-looking";
+            m_curr_ab_stat.result_inferred = "Strike-looking";
         }
         else if (miss_type == 1){
-            m_curr_ab_stat.result = "Strike-swing";
+            m_curr_ab_stat.result_inferred = "Strike-swing";
         }
         else if (miss_type == 2){
-            m_curr_ab_stat.result = "Strike-bunting";
+            m_curr_ab_stat.result_inferred = "Strike-bunting";
         }
         else{
-            m_curr_ab_stat.result = "Unknown Miss Result";
+            m_curr_ab_stat.result_inferred = "Unknown Miss Result";
         }
     }
 }
@@ -278,16 +300,16 @@ void StatTracker::logABContactResult(){
     u8 result = Memory::Read_U8(aAB_ContactResult);
 
     if (result == 1){
-        m_curr_ab_stat.result = "Landed";
+        m_curr_ab_stat.result_inferred = "Landed";
     }
     else if (result == 3){
-        m_curr_ab_stat.result = "Caught";
+        m_curr_ab_stat.result_inferred = "Caught";
     }
     else if (result == 0xFF){
-        m_curr_ab_stat.result = "Foul";
+        m_curr_ab_stat.result_inferred = "Foul";
     }
     else{
-        m_curr_ab_stat.result = "Unknown: " + std::to_string(result);
+        m_curr_ab_stat.result_inferred = "Unknown: " + std::to_string(result);
     }
     m_curr_ab_stat.ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
     m_curr_ab_stat.ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
@@ -299,10 +321,14 @@ void StatTracker::printStatsToFile(){
     std::ofstream MyFile(file_name);
 
     MyFile << "{" << std::endl;
-    MyFile << "  \"GameID\": \"" << m_game_id << "\"," << std::endl;
+    MyFile << "  \"GameID\": \"" << std::hex << m_game_id << "\"," << std::endl;
     MyFile << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
-    MyFile << "  \"Team1 Player\": \"<PLAYER1_NAME>\"," << std::endl;
+    MyFile << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
+    MyFile << "  \"Team1 Player\": \"<PLAYER1_NAME>\"," << std::endl; //TODO MAKE THIS AN ID
     MyFile << "  \"Team2 Player\": \"<PLAYER2_NAME>\"," << std::endl;
+
+    MyFile << "  \"Team1 Score\": \"" << std::dec << m_game_info.team0_score << "\"," << std::endl;
+    MyFile << "  \"Team2 Score\": \"" << std::dec << m_game_info.team1_score << "\"," << std::endl;
     
     //Team Captain and Roster
     for (int team=0; team < cNumOfTeams; ++team){
@@ -332,7 +358,7 @@ void StatTracker::printStatsToFile(){
             MyFile << "      \"Is Starred\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
             MyFile << "      \"Defensive Stats\": {" << std::endl;
             MyFile << "        \"Batters Faced\": " << std::to_string(def_stat.batters_faced) << "," << std::endl;
-            MyFile << "        \"Runs Allowed\": " << def_stat.runs_allowed << "," << std::endl;
+            MyFile << "        \"Runs Allowed\": " << std::dec << def_stat.runs_allowed << "," << std::endl;
             MyFile << "        \"Batters Walked\": " << def_stat.batters_walked << "," << std::endl;
             MyFile << "        \"Batters Hit\": " << def_stat.batters_hit << "," << std::endl;
             MyFile << "        \"Hits Allowed\": " << def_stat.hits_allowed << "," << std::endl;
@@ -368,6 +394,8 @@ void StatTracker::printStatsToFile(){
                 MyFile << "        {" << std::endl;
                 MyFile << "          \"Inning\": " << std::to_string(ab_stat.inning) << "," << std::endl;
                 MyFile << "          \"Half Inning\": " << std::to_string(ab_stat.half_inning) << "," << std::endl;
+                MyFile << "          \"Team1 Score\": \"" << std::dec << ab_stat.team0_score << "\"," << std::endl;
+                MyFile << "          \"Team2 Score\": \"" << std::dec << ab_stat.team1_score << "\"," << std::endl;
                 MyFile << "          \"Balls\": " << std::to_string(ab_stat.balls) << "," << std::endl;
                 MyFile << "          \"Strikes\": " << std::to_string(ab_stat.strikes) << "," << std::endl;
                 MyFile << "          \"Outs\": " << std::to_string(ab_stat.outs) << "," << std::endl;
@@ -382,30 +410,36 @@ void StatTracker::printStatsToFile(){
                 MyFile << "          \"PitcherID \": " << std::to_string(ab_stat.pitcher_id) << "," << std::endl;
                 MyFile << "          \"Pitcher Handedness\": " << std::to_string(ab_stat.pitcher_handedness) << "," << std::endl;
                 MyFile << "          \"Pitch Type\": " << std::to_string(ab_stat.pitch_type) << "," << std::endl;
-                MyFile << "          \"Charge Pitch Type \": " << std::to_string(ab_stat.charge_type) << "," << std::endl;
+                MyFile << "          \"Charge Pitch Type\": " << std::to_string(ab_stat.charge_type) << "," << std::endl;
                 MyFile << "          \"Star Pitch\": " << std::to_string(ab_stat.star_pitch) << "," << std::endl;
                 MyFile << "          \"Pitch Speed\": " << std::to_string(ab_stat.pitch_speed) << "," << std::endl;
 
                 MyFile << "          \"Type of Contact\": " << std::to_string(ab_stat.type_of_contact) << "," << std::endl;
                 MyFile << "          \"Charge Swing\": " << std::to_string(ab_stat.charge_swing) << "," << std::endl;
                 MyFile << "          \"Bunt\": " << std::to_string(ab_stat.bunt) << "," << std::endl;
-                MyFile << "          \"Charge Power Up\": \"" << std::hex << ab_stat.charge_power_up << "\"," << std::endl;
-                MyFile << "          \"Charge Power Down\": \"" << std::hex << ab_stat.charge_power_down << "\"," << std::endl;
+                MyFile << "          \"Charge Power Up\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_up << "\"," << std::endl;
+                MyFile << "          \"Charge Power Down\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_down << "\"," << std::endl;
                 MyFile << "          \"Star Swing\": " << std::to_string(ab_stat.star_swing) << "," << std::endl;
                 MyFile << "          \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
                 MyFile << "          \"Input Direction\": " << std::to_string(ab_stat.input_direction) << "," << std::endl;
                 MyFile << "          \"Batter Handedness\": " << std::to_string(ab_stat.batter_handedness) << "," << std::endl;
                 MyFile << "          \"Hit by Pitch\": " << std::to_string(ab_stat.hit_by_pitch) << "," << std::endl;
-                MyFile << "          \"Ball Angle\": \"" << ab_stat.ball_angle << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - X\": \"" << std::hex << ab_stat.ball_x_velocity << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - Y\": \"" << std::hex << ab_stat.ball_y_velocity << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - Z\": \"" << std::hex << ab_stat.ball_z_velocity << "\"," << std::endl;
+                MyFile << "          \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
+                MyFile << "          \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
+                MyFile << "          \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
+                MyFile << "          \"Ball Velocity - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_velocity << "\"," << std::endl;
+                MyFile << "          \"Ball Velocity - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_velocity << "\"," << std::endl;
+                MyFile << "          \"Ball Velocity - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_velocity << "\"," << std::endl;
 
-                MyFile << "          \"Ball Landing Position - X\": \"" << std::hex << ab_stat.ball_x_pos << "\"," << std::endl;
-                MyFile << "          \"Ball Landing Position - Y\": \"" << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
-                MyFile << "          \"Ball Landing Position - Z\": \"" << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
+                MyFile << "          \"Ball Landing Position - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_pos << "\"," << std::endl;
+                MyFile << "          \"Ball Landing Position - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
+                MyFile << "          \"Ball Landing Position - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
 
-                MyFile << "          \"Final Result\": \"" << ab_stat.result << "\"" << std::endl;
+                MyFile << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs) << "," << std::endl;
+                MyFile << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
+
+                MyFile << "          \"Final Result - Inferred\": \"" << ab_stat.result_inferred << "\"," << std::endl;
+                MyFile << "          \"Final Result - Game\": \"" << std::to_string(ab_stat.result_game) << "\"" << std::endl;
                 
                 std::string end_comma = (ab_stat == m_ab_stats[team][roster].back()) ? "" : ",";
                 MyFile << "        }" << end_comma << std::endl;
@@ -420,4 +454,51 @@ void StatTracker::printStatsToFile(){
     MyFile << "}" << std::endl;
 
     std::cout << "Logging to " << file_name << std::endl;
+}
+
+
+IniFile local_players_ini;
+local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+
+for (const IniFile* ini : {&local_players_ini})
+  {
+    std::vector<std::string> lines;
+    ini->GetLines("Local_Players_List", &lines, false);
+
+    AddPlayers player;
+
+    for (auto& line : lines)
+    {
+      std::istringstream ss(line);
+
+      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
+      // Use the C locale to workaround this behavior
+      ss.imbue(std::locale::classic());
+
+      switch ((line)[0])
+      {
+      case '+':
+        if (!player.username.empty())
+          players.push_back(player);
+        player = AddPlayers();
+        ss.seekg(1, std::ios_base::cur);
+        // read the code name
+        std::getline(ss, player.username,
+                     '[');  // stop at [ character (beginning of contributor name)
+        player.username = StripSpaces(player.username);
+        // read the code creator name
+        std::getline(ss, player.userid, ']');
+        break;
+
+      break;
+      }
+    }
+
+    // add the last code
+    if (!player.username.empty())
+    {
+      players.push_back(player);
+    }
+  }
+  return players;
 }
