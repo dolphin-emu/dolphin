@@ -59,6 +59,7 @@
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -254,7 +255,7 @@ void GameList::MakeEmptyView()
   m_empty->installEventFilter(event_filter);
   connect(event_filter, &DoubleClickEventFilter::doubleClicked, [this] {
     auto current_dir = QDir::currentPath();
-    auto dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
+    auto dir = DolphinFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
     if (!dir.isEmpty())
       Settings::Instance().AddPath(dir);
   });
@@ -489,7 +490,7 @@ void GameList::OpenProperties()
 
 void GameList::ExportWiiSave()
 {
-  const QString export_dir = QFileDialog::getExistingDirectory(
+  const QString export_dir = DolphinFileDialog::getExistingDirectory(
       this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
       QFileDialog::ShowDirsOnly);
   if (export_dir.isEmpty())

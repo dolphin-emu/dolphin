@@ -7,7 +7,6 @@
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
@@ -91,6 +90,7 @@
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -712,7 +712,7 @@ void MainWindow::RefreshGameList()
 QStringList MainWindow::PromptFileNames()
 {
   auto& settings = Settings::Instance().GetQSettings();
-  QStringList paths = QFileDialog::getOpenFileNames(
+  QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
@@ -1278,15 +1278,17 @@ void MainWindow::ShowFIFOPlayer()
 
 void MainWindow::StateLoad()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::LoadAs(path.toStdString());
 }
 
 void MainWindow::StateSave()
 {
-  QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::SaveAs(path.toStdString());
 }
 
@@ -1612,9 +1614,10 @@ void MainWindow::OnImportNANDBackup()
   if (response == QMessageBox::No)
     return;
 
-  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("BootMii NAND backup file (*.bin);;"
-                                                 "All Files (*)"));
+  QString file =
+      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                         tr("BootMii NAND backup file (*.bin);;"
+                                            "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1637,10 +1640,10 @@ void MainWindow::OnImportNANDBackup()
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
-            return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
-                                                QDir::currentPath(),
-                                                tr("BootMii keys file (*.bin);;"
-                                                   "All Files (*)"))
+            return DolphinFileDialog::getOpenFileName(
+                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       tr("BootMii keys file (*.bin);;"
+                          "All Files (*)"))
                 .toStdString();
           });
           if (keys_file)
@@ -1659,8 +1662,8 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File to Play"),
-                                                  QString(), tr("Dolphin TAS Movies (*.dtm)"));
+  QString dtm_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
     return;
@@ -1729,8 +1732,8 @@ void MainWindow::OnStopRecording()
 void MainWindow::OnExportRecording()
 {
   Core::RunAsCPUThread([this] {
-    QString dtm_file = QFileDialog::getSaveFileName(this, tr("Save Recording File As"), QString(),
-                                                    tr("Dolphin TAS Movies (*.dtm)"));
+    QString dtm_file = DolphinFileDialog::getSaveFileName(
+        this, tr("Save Recording File As"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
     if (!dtm_file.isEmpty())
       Movie::SaveRecording(dtm_file.toStdString());
   });

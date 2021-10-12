@@ -11,7 +11,6 @@
 
 #include <QDialogButtonBox>
 #include <QDir>
-#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -40,6 +39,7 @@
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
 #include "DolphinQt/GCMemcardCreateNewDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr int ROW_HEIGHT = 36;
@@ -339,7 +339,7 @@ void GCMemcardManager::SetSlotFile(int slot, QString path)
 
 void GCMemcardManager::SetSlotFileInteractive(int slot)
 {
-  QString path = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
+  QString path = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this,
       slot == 0 ? tr("Set memory card file for Slot A") : tr("Set memory card file for Slot B"),
       QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
@@ -418,7 +418,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
     const QString qformatdesc = GetFormatDescription(format);
     const std::string default_path =
         fmt::format("{}/{}{}", File::GetUserPath(D_GCUSER_IDX), basename, extension);
-    const QString qfilename = QFileDialog::getSaveFileName(
+    const QString qfilename = DolphinFileDialog::getSaveFileName(
         this, tr("Export Save File"), QString::fromStdString(default_path),
         QStringLiteral("%1 (*%2);;%3 (*)")
             .arg(qformatdesc, QString::fromStdString(extension), tr("All Files")));
@@ -435,9 +435,9 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
     return;
   }
 
-  const QString qdirpath =
-      QFileDialog::getExistingDirectory(this, QObject::tr("Export Save Files"),
-                                        QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
+  const QString qdirpath = DolphinFileDialog::getExistingDirectory(
+      this, QObject::tr("Export Save Files"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
   if (qdirpath.isEmpty())
     return;
 
@@ -567,7 +567,7 @@ void GCMemcardManager::ImportFile()
   if (!card)
     return;
 
-  const QStringList paths = QFileDialog::getOpenFileNames(
+  const QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Import Save File(s)"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       QStringLiteral("%1 (*.gci *.gcs *.sav);;%2 (*.gci);;%3 (*.gcs);;%4 (*.sav);;%5 (*)")
           .arg(tr("Supported file formats"), GetFormatDescription(Memcard::SavefileFormat::GCI),

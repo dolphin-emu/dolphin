@@ -4,7 +4,6 @@
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
-#include <QFileDialog>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -19,6 +18,7 @@
 #include "DiscIO/Volume.h"
 
 #include "DolphinQt/Config/InfoWidget.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ImageConverter.h"
 
 #include "UICommon/UICommon.h"
@@ -190,8 +190,8 @@ QWidget* InfoWidget::CreateBannerGraphic(const QPixmap& image)
 
 void InfoWidget::SaveBanner()
 {
-  QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("PNG image file (*.png);; All Files (*)"));
+  QString path = DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                                    tr("PNG image file (*.png);; All Files (*)"));
   ToQPixmap(m_game.GetBannerImage()).save(path, "PNG");
 }
 
