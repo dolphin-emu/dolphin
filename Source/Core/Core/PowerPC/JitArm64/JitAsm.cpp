@@ -508,7 +508,7 @@ void JitArm64::GenerateQuantizedLoads()
                           BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
 
     EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
-                         gprs_to_push & ~BitSet32{1}, fprs_to_push);
+                         gprs_to_push & ~BitSet32{1}, fprs_to_push, true);
 
     RET(ARM64Reg::X30);
   }
@@ -589,7 +589,7 @@ void JitArm64::GenerateQuantizedLoads()
         BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
     EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
-                         gprs_to_push & ~BitSet32{1}, fprs_to_push);
+                         gprs_to_push & ~BitSet32{1}, fprs_to_push, true);
 
     RET(ARM64Reg::X30);
   }
@@ -799,7 +799,7 @@ void JitArm64::GenerateQuantizedStores()
         BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
     EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
-                         gprs_to_push, fprs_to_push);
+                         gprs_to_push, fprs_to_push, true);
 
     RET(ARM64Reg::X30);
   }
