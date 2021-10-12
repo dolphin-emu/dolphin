@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/FreeLookManager.h"
 
@@ -143,11 +142,17 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
   m_fov_buttons->SetControlExpression(FieldOfViewButtons::DecreaseY,
                                       hotkey_string({"Shift", "`Axis Z-`"}));
 
+  // Left Click
 #if defined HAVE_X11 && HAVE_X11
   m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
                                         "if(`Click 3`,`RelativeMouse Y-` * 0.10, 0)");
   m_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
                                         "if(`Click 3`,`RelativeMouse Y+` * 0.10, 0)");
+#elif __APPLE__
+  m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
+                                        "if(`Left Click`,`RelativeMouse Y-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::PitchDown,
+                                        "if(`Left Click`,`RelativeMouse Y+` * 0.10, 0)");
 #else
   m_rotation_gyro->SetControlExpression(GyroButtons::PitchUp,
                                         "if(`Click 1`,`RelativeMouse Y-` * 0.10, 0)");
@@ -155,16 +160,30 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
                                         "if(`Click 1`,`RelativeMouse Y+` * 0.10, 0)");
 #endif
 
+  // Middle Click
+#ifdef __APPLE__
+  m_rotation_gyro->SetControlExpression(GyroButtons::RollLeft,
+                                        "if(`Middle Click`,`RelativeMouse X-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::RollRight,
+                                        "if(`Middle Click`,`RelativeMouse X+` * 0.10, 0)");
+#else
   m_rotation_gyro->SetControlExpression(GyroButtons::RollLeft,
                                         "if(`Click 2`,`RelativeMouse X-` * 0.10, 0)");
   m_rotation_gyro->SetControlExpression(GyroButtons::RollRight,
                                         "if(`Click 2`,`RelativeMouse X+` * 0.10, 0)");
+#endif
 
+  // Right Click
 #if defined HAVE_X11 && HAVE_X11
   m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
                                         "if(`Click 3`,`RelativeMouse X-` * 0.10, 0)");
   m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
                                         "if(`Click 3`,`RelativeMouse X+` * 0.10, 0)");
+#elif __APPLE__
+  m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
+                                        "if(`Right Click`,`RelativeMouse X-` * 0.10, 0)");
+  m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
+                                        "if(`Right Click`,`RelativeMouse X+` * 0.10, 0)");
 #else
   m_rotation_gyro->SetControlExpression(GyroButtons::YawLeft,
                                         "if(`Click 1`,`RelativeMouse X-` * 0.10, 0)");
@@ -290,12 +309,12 @@ void Initialize()
 
   FreeLook::GetConfig().Refresh();
 
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
 }
 
 void LoadInputConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig(InputConfig::InputClass::GC);
 }
 
 bool IsInitialized()

@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/GeckoCode.h"
 
@@ -69,7 +68,7 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
   std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
-  if (SConfig::GetInstance().bEnableCheats)
+  if (true)
   {
     s_active_codes.reserve(gcodes.size());
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
@@ -101,7 +100,7 @@ std::vector<GeckoCode> SetAndReturnActiveCodes(const std::vector<GeckoCode>& gco
   std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
-  if (SConfig::GetInstance().bEnableCheats)
+  if (true)
   {
     s_active_codes.reserve(gcodes.size());
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
@@ -232,9 +231,6 @@ void Shutdown()
 
 void RunCodeHandler()
 {
-  if (!SConfig::GetInstance().bEnableCheats)
-    return;
-
   // NOTE: Need to release the lock because of GUI deadlocks with PanicAlert in HostWrite_*
   {
     std::lock_guard codes_lock(s_active_codes_lock);

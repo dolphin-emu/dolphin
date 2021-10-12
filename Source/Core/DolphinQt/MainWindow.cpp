@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QApplication>
 #include <QCloseEvent>
@@ -43,6 +42,7 @@
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -66,6 +66,7 @@
 #include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/LocalPlayersWindow.h"
 #include "DolphinQt/Config/LogConfigWidget.h"
 #include "DolphinQt/Config/LogWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
@@ -116,6 +117,9 @@
 #include "UICommon/ResourcePack/ResourcePack.h"
 
 #include "UICommon/UICommon.h"
+
+#include "DolphinQt/Config/PropertiesDialog.h"
+#include "DolphinQt/GameList/GameList.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/VideoConfig.h"
@@ -269,6 +273,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       return;
     }
   }
+
+  Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 }
 
 MainWindow::~MainWindow()
@@ -305,6 +311,7 @@ void MainWindow::InitControllers()
 
   g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
   Pad::Initialize();
+  Pad::InitializeGBA();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   FreeLook::Initialize();
@@ -319,6 +326,9 @@ void MainWindow::InitControllers()
   Pad::LoadConfig();
   Pad::GetConfig()->SaveConfig();
 
+  Pad::LoadGBAConfig();
+  Pad::GetGBAConfig()->SaveConfig();
+
   Keyboard::LoadConfig();
   Keyboard::GetConfig()->SaveConfig();
 
@@ -331,6 +341,7 @@ void MainWindow::ShutdownControllers()
   m_hotkey_scheduler->Stop();
 
   Pad::Shutdown();
+  Pad::ShutdownGBA();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
@@ -409,7 +420,7 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
-  m_cheats_manager = new CheatsManager(m_game_list->GetGameListModel(), this);
+  m_cheats_manager = new CheatsManager(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
@@ -547,6 +558,7 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::ChangeDisc, this, &MainWindow::ChangeDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::EjectDisc, this, &MainWindow::EjectDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::UnlockCursor, this, &MainWindow::UnlockCursor);
   connect(m_hotkey_scheduler, &HotkeyScheduler::TogglePauseHotkey, this, &MainWindow::TogglePause);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ActivateChat, this, &MainWindow::OnActivateChat);
   connect(m_hotkey_scheduler, &HotkeyScheduler::RequestGolfControl, this,
@@ -616,6 +628,12 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
+
+  connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
+  connect(m_tool_bar, &ToolBar::JoinNetPlayPressed, this, &MainWindow::ShowNetPlayBrowser);
+  connect(m_tool_bar, &ToolBar::ViewGeckoCodes, this, &MainWindow::ShowGeckoCodes);
+  connect(m_tool_bar, &ToolBar::ViewLocalPlayers, this, &MainWindow::ShowLocalPlayersWindow);
+
 
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
@@ -786,7 +804,7 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  HideRenderWidget();
+  HideRenderWidget(true, m_exit_requested);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -813,6 +831,13 @@ bool MainWindow::RequestStop()
     return true;
   }
 
+  const bool rendered_widget_was_active =
+      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
+  QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
+                                m_render_widget :
+                                static_cast<QWidget*>(this);
+  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
+
   if (!m_render_widget->isFullScreen())
     m_render_widget_geometry = m_render_widget->saveGeometry();
   else
@@ -833,20 +858,43 @@ bool MainWindow::RequestStop()
     if (pause)
       Core::SetState(Core::State::Paused);
 
+    if (rendered_widget_was_active)
+    {
+      // We have to do this before creating the message box, otherwise we might receive the window
+      // activation event before we know we need to lock the cursor again.
+      m_render_widget->SetCursorLockedOnNextActivation(was_cursor_locked);
+    }
+
+    // This is to avoid any "race conditions" between the "Window Activate" message and the
+    // message box returning, which could break cursor locking depending on the order
+    m_render_widget->SetWaitingForMessageBox(true);
     auto confirm = ModalMessageBox::question(
-        m_rendering_to_main ? static_cast<QWidget*>(this) : m_render_widget, tr("Confirm"),
+        confirm_parent, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
                            tr("Do you want to stop the current emulation?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
+    // If a user confirmed stopping the emulation, we do not capture the cursor again,
+    // even if the render widget will stay alive for a while.
+    // If a used rejected stopping the emulation, we instead capture the cursor again,
+    // and let them continue playing as if nothing had happened
+    // (assuming cursor locking is on).
     if (confirm != QMessageBox::Yes)
     {
+      m_render_widget->SetWaitingForMessageBox(false);
+
       if (pause)
         Core::SetState(state);
 
       return false;
+    }
+    else
+    {
+      m_render_widget->SetCursorLockedOnNextActivation(false);
+      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
+      m_render_widget->SetWaitingForMessageBox(false);
     }
   }
 
@@ -915,6 +963,12 @@ void MainWindow::FullScreen()
   {
     m_render_widget->showFullScreen();
   }
+}
+
+void MainWindow::UnlockCursor()
+{
+  if (!m_render_widget->isFullScreen())
+    m_render_widget->SetCursorLocked(false);
 }
 
 void MainWindow::ScreenShot()
@@ -1060,7 +1114,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit)
+void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 {
   if (m_rendering_to_main)
   {
@@ -1097,7 +1151,9 @@ void MainWindow::HideRenderWidget(bool reinit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window);
+    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
+                                        is_exit ? ControllerInterface::WindowChangeReason::Exit :
+                                                  ControllerInterface::WindowChangeReason::Other);
   }
 }
 
@@ -1112,6 +1168,19 @@ void MainWindow::ShowControllersWindow()
   m_controllers_window->show();
   m_controllers_window->raise();
   m_controllers_window->activateWindow();
+}
+
+void MainWindow::ShowLocalPlayersWindow()
+{
+  if (!m_local_players_window)
+  {
+    m_local_players_window = new LocalPlayersWindow(this);
+    InstallHotkeyFilter(m_local_players_window);
+  }
+
+  m_local_players_window->show();
+  m_local_players_window->raise();
+  m_local_players_window->activateWindow();
 }
 
 void MainWindow::ShowFreeLookWindow()
@@ -1210,11 +1279,27 @@ void MainWindow::ShowNetPlayBrowser()
   browser->exec();
 }
 
+
+void MainWindow::ShowGeckoCodes()
+{
+  if (!m_gecko_dialog)
+  {
+    m_gecko_dialog = new GeckoDialog(this);
+    InstallHotkeyFilter(m_gecko_dialog);
+  }
+
+  m_gecko_dialog->show();
+  m_gecko_dialog->raise();
+  m_gecko_dialog->activateWindow();
+}
+
+
+
 void MainWindow::ShowFIFOPlayer()
 {
   if (!m_fifo_window)
   {
-    m_fifo_window = new FIFOPlayerWindow(this);
+    m_fifo_window = new FIFOPlayerWindow;
     connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
             [this](const QString& path) { StartGame(path, ScanForSecondDisc::No); });
   }
@@ -1370,10 +1455,12 @@ bool MainWindow::NetPlayJoin()
   const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
   const bool host_input_authority = network_mode == "hostinputauthority" || network_mode == "golf";
 
+
   if (server)
   {
     server->SetHostInputAuthority(host_input_authority);
     server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
+    server->AdjustRankedBox(Config::Get(Config::NETPLAY_RANKED));
   }
 
   // Create Client
@@ -1645,18 +1732,21 @@ void MainWindow::OnStartRecording()
     emit ReadOnlyModeChanged(true);
   }
 
-  int controllers = 0;
+  Movie::ControllerTypeArray controllers{};
+  Movie::WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < 4; i++)
   {
-    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
-      controllers |= (1 << i);
-
-    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-      controllers |= (1 << (i + 4));
+    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      controllers[i] = Movie::ControllerType::GBA;
+    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      controllers[i] = Movie::ControllerType::GC;
+    else
+      controllers[i] = Movie::ControllerType::None;
+    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
   }
 
-  if (Movie::BeginRecordingInput(controllers))
+  if (Movie::BeginRecordingInput(controllers, wiimotes))
   {
     emit RecordingStatusChanged(true);
 

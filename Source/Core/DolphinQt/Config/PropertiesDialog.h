@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -16,6 +15,16 @@ class PropertiesDialog final : public QDialog
   Q_OBJECT
 public:
   explicit PropertiesDialog(QWidget* parent, const UICommon::GameFile& game);
+
+signals:
+  void OpenGeneralSettings();
+};
+
+class GeckoDialog final : public QDialog
+{
+  Q_OBJECT
+public:
+  explicit GeckoDialog(QWidget* parent);
 
 signals:
   void OpenGeneralSettings();

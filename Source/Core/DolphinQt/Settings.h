@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -54,6 +53,10 @@ public:
   void SetUserStylesEnabled(bool enabled);
   bool AreUserStylesEnabled() const;
 
+  void GetToolTipStyle(QColor& window_color, QColor& text_color, QColor& emphasis_text_color,
+                       QColor& border_color, const QPalette& palette,
+                       const QPalette& high_contrast_palette) const;
+
   bool IsLogVisible() const;
   void SetLogVisible(bool visible);
   bool IsLogConfigVisible() const;
@@ -96,6 +99,8 @@ public:
   // Graphics
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
+  void SetLockCursor(bool lock_cursor);
+  bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
   bool IsKeepWindowOnTopEnabled() const;
 
@@ -149,6 +154,12 @@ public:
   bool IsAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool enabled);
 
+  // Local Players
+  void SetPlayerOne(const QString& m_local_player_1);
+  void SetPlayerTwo(const QString& m_local_player_2);
+  void SetPlayerThree(const QString& m_local_player_3);
+  void SetPlayerFour(const QString& m_local_player_4);
+
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
@@ -164,6 +175,7 @@ signals:
   void MetadataRefreshCompleted();
   void AutoRefreshToggled(bool enabled);
   void HideCursorChanged();
+  void LockCursorChanged();
   void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);
   void NANDRefresh();
@@ -185,6 +197,7 @@ signals:
   void AutoUpdateTrackChanged(const QString& mode);
   void FallbackRegionChanged(const DiscIO::Region& region);
   void AnalyticsToggled(bool enabled);
+  void ReleaseDevices();
   void DevicesChanged();
   void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);

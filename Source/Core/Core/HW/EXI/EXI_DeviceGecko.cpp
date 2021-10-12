@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 
@@ -44,7 +43,7 @@ GeckoSockServer::~GeckoSockServer()
     clientThread.join();
   }
 
-  if (client_count <= 0)
+  if (client_count <= 0 && connectionThread.joinable())
   {
     server_running.Clear();
     connectionThread.join();

@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,7 +11,9 @@
 
 std::string GetJString(JNIEnv* env, jstring jstr);
 jstring ToJString(JNIEnv* env, const std::string& str);
+
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array);
+jobjectArray VectorToJStringArray(JNIEnv* env, std::vector<std::string> vector);
 
 // Returns true if the given path should be opened as Android content instead of a normal file.
 bool IsPathAndroidContent(const std::string& uri);

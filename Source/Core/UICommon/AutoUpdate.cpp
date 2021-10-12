@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/AutoUpdate.h"
 
@@ -12,7 +11,7 @@
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 
 #ifdef _WIN32
@@ -28,6 +27,8 @@
 #if defined _WIN32 || defined __APPLE__
 #define OS_SUPPORTS_UPDATER
 #endif
+
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
 namespace
 {
@@ -107,10 +108,10 @@ std::string GenerateChangelog(const picojson::array& versions)
       {
         changelog += ver_obj["shortrev"].get<std::string>();
       }
-
+      const std::string escaped_description =
+          GetEscapedHtml(ver_obj["short_descr"].get<std::string>());
       changelog += " by <a href = \"" + ver_obj["author_url"].get<std::string>() + "\">" +
-                   ver_obj["author"].get<std::string>() + "</a> &mdash; " +
-                   ver_obj["short_descr"].get<std::string>();
+                   ver_obj["author"].get<std::string>() + "</a> &mdash; " + escaped_description;
     }
     else
     {
@@ -138,7 +139,11 @@ static std::string GetPlatformID()
 #if defined _WIN32
   return "win";
 #elif defined __APPLE__
+#if defined(MACOS_UNIVERSAL_BUILD)
+  return "macos-universal";
+#else
   return "macos";
+#endif
 #else
   return "unknown";
 #endif
@@ -155,12 +160,12 @@ void AutoUpdateChecker::CheckForUpdate()
 #endif
 
   std::string version_hash = SConfig::GetInstance().m_auto_update_hash_override.empty() ?
-                                 SCM_REV_STR :
+                                 Common::scm_rev_git_str :
                                  SConfig::GetInstance().m_auto_update_hash_override;
   std::string url = "https://dolphin-emu.org/update/check/v1/" +
                     SConfig::GetInstance().m_auto_update_track + "/" + version_hash + "/" +
                     GetPlatformID();
-
+  /*
   Common::HttpRequest req{std::chrono::seconds{10}};
   auto resp = req.Get(url);
   if (!resp)
@@ -197,17 +202,20 @@ void AutoUpdateChecker::CheckForUpdate()
   nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
 
   OnUpdateAvailable(nvi);
+  */
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
                                       AutoUpdateChecker::RestartMode restart_mode)
 {
   // Check to make sure we don't already have an update triggered
+  /*
   if (s_update_triggered)
   {
     WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
     return;
   }
+  */
 
   s_update_triggered = true;
 #ifdef OS_SUPPORTS_UPDATER
@@ -221,7 +229,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["parent-pid"] = std::to_string(getpid());
 #endif
   updater_flags["install-base-path"] = File::GetExeDirectory();
-  updater_flags["log-file"] = File::GetExeDirectory() + DIR_SEP + UPDATER_LOG_FILE;
+  updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILE;
 
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();

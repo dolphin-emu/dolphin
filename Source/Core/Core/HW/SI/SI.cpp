@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI.h"
 
@@ -210,6 +209,7 @@ union USIEXIClockCount
 
 static CoreTiming::EventType* s_change_device_event;
 static CoreTiming::EventType* s_tranfer_pending_event;
+static std::array<CoreTiming::EventType*, MAX_SI_CHANNELS> s_device_events;
 
 // User-configured device type. possibly overridden by TAS/Netplay
 static std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> s_desired_device_types;
@@ -240,7 +240,6 @@ static void SetNoResponse(u32 channel)
     s_status_reg.NOREP3 = 1;
     break;
   }
-  s_com_csr.COMERR = 1;
 }
 
 static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
@@ -286,7 +285,7 @@ static void GenerateSIInterrupt(SIInterruptType type)
 constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
 
 // Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
-constexpr u32 ConvertSILengthField(u32 field)
+constexpr s32 ConvertSILengthField(u32 field)
 {
   return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
 }
@@ -295,19 +294,19 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   if (s_com_csr.TSTART)
   {
-    const u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
-    const u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
+    const s32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
+    const s32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
     const std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
     const std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    const u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
+    const s32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
 
     DEBUG_LOG_FMT(SERIALINTERFACE,
                   "RunSIBuffer  chan: {}  request_length: {}  expected_response_length: {}  "
                   "actual_response_length: {}",
                   s_com_csr.CHANNEL, request_length, expected_response_length,
                   actual_response_length);
-    if (expected_response_length != actual_response_length)
+    if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
       std::ostringstream ss;
       for (u8 b : request_copy)
@@ -331,6 +330,9 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     if (actual_response_length != 0)
     {
       s_com_csr.TSTART = 0;
+      s_com_csr.COMERR = actual_response_length < 0;
+      if (actual_response_length < 0)
+        SetNoResponse(s_com_csr.CHANNEL);
       GenerateSIInterrupt(INT_TCINT);
     }
     else
@@ -368,8 +370,44 @@ void DoState(PointerWrap& p)
   p.Do(s_si_buffer);
 }
 
+template <int device_number>
+static void DeviceEventCallback(u64 userdata, s64 cyclesLate)
+{
+  s_channel[device_number].device->OnEvent(userdata, cyclesLate);
+}
+
+static void RegisterEvents()
+{
+  s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
+  s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
+
+  constexpr std::array<CoreTiming::TimedCallback, MAX_SI_CHANNELS> event_callbacks = {
+      DeviceEventCallback<0>,
+      DeviceEventCallback<1>,
+      DeviceEventCallback<2>,
+      DeviceEventCallback<3>,
+  };
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  {
+    s_device_events[i] =
+        CoreTiming::RegisterEvent(fmt::format("SIEventChannel{}", i), event_callbacks[i]);
+  }
+}
+
+void ScheduleEvent(int device_number, s64 cycles_into_future, u64 userdata)
+{
+  CoreTiming::ScheduleEvent(cycles_into_future, s_device_events[device_number], userdata);
+}
+
+void RemoveEvent(int device_number)
+{
+  CoreTiming::RemoveEvent(s_device_events[device_number]);
+}
+
 void Init()
 {
+  RegisterEvents();
+
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
     s_channel[i].out.hex = 0;
@@ -381,7 +419,11 @@ void Init()
     {
       s_desired_device_types[i] = SIDEVICE_NONE;
 
-      if (Movie::IsUsingPad(i))
+      if (Movie::IsUsingGBA(i))
+      {
+        s_desired_device_types[i] = SIDEVICE_GC_GBA_EMULATED;
+      }
+      else if (Movie::IsUsingPad(i))
       {
         SIDevices current = SConfig::GetInstance().m_SIDevice[i];
         // GC pad-compatible devices can be used for both playing and recording
@@ -414,9 +456,6 @@ void Init()
   // s_exi_clock_count.LOCK = 1;
 
   s_si_buffer = {};
-
-  s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
-  s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
 }
 
 void Shutdown()
@@ -501,8 +540,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK;
                    s_com_csr.TCINTMSK = tmp_com_csr.TCINTMSK;
 
-                   s_com_csr.COMERR = 0;
-
                    if (tmp_com_csr.RDSTINT)
                      s_com_csr.RDSTINT = 0;
                    if (tmp_com_csr.TCINT)
@@ -511,12 +548,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // be careful: run si-buffer after updating the INT flags
                    if (tmp_com_csr.TSTART)
                    {
+                     if (s_com_csr.TSTART)
+                       CoreTiming::RemoveEvent(s_tranfer_pending_event);
                      s_com_csr.TSTART = 1;
                      RunSIBuffer(0, 0);
-                   }
-                   else if (s_com_csr.TSTART)
-                   {
-                     CoreTiming::RemoveEvent(s_tranfer_pending_event);
                    }
 
                    if (!s_com_csr.TSTART)
@@ -676,7 +711,7 @@ void UpdateDevices()
 
 SIDevices GetDeviceType(int channel)
 {
-  if (channel < 0 || channel > 3)
+  if (channel < 0 || channel >= MAX_SI_CHANNELS || !s_channel[channel].device)
     return SIDEVICE_NONE;
 
   return s_channel[channel].device->GetDeviceType();
@@ -687,4 +722,4 @@ u32 GetPollXLines()
   return s_poll.X;
 }
 
-}  // end of namespace SerialInterface
+}  // namespace SerialInterface

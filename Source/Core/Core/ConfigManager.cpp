@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigManager.h"
 
@@ -29,7 +28,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
@@ -81,6 +80,7 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
+  SaveLocalSettings();
 }
 
 void SConfig::SaveSettings()
@@ -107,6 +107,19 @@ void SConfig::SaveSettings()
   Config::Save();
 }
 
+void SConfig::SaveLocalSettings()
+{
+  NOTICE_LOG_FMT(BOOT, "Saving settings to {}", File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  IniFile ini;
+  ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));  // load first to not kill unknown stuff
+
+  SaveLocalPlayerSettings(ini);
+
+  ini.Save(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+
+  Config::Save();
+}
+
 void SConfig::SaveGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
@@ -114,6 +127,8 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   // General
   general->Set("ShowLag", m_ShowLag);
   general->Set("ShowFrameCount", m_ShowFrameCount);
+  general->Set("Record Stats", bRecordStats);
+  general->Set("Submit Stats", bSubmitStats);
 
   // ISO folders
   // Clear removed folders
@@ -147,6 +162,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 
   interface->Set("ConfirmStop", bConfirmStop);
   interface->Set("HideCursor", bHideCursor);
+  interface->Set("LockCursor", bLockCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
@@ -344,6 +360,17 @@ void SConfig::SaveJitDebugSettings(IniFile& ini)
   section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
 }
 
+void SConfig::SaveLocalPlayerSettings(IniFile& ini)
+{
+  IniFile::Section* localplayers = ini.GetOrCreateSection("Local Players");
+
+  localplayers->Set("Player 1", m_local_player_1);
+  localplayers->Set("Player 2", m_local_player_2);
+  localplayers->Set("Player 3", m_local_player_3);
+  localplayers->Set("Player 4", m_local_player_4);
+}
+
+
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -372,6 +399,8 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("ShowLag", &m_ShowLag, false);
   general->Get("ShowFrameCount", &m_ShowFrameCount, false);
+  general->Get("Record Stats", &bRecordStats, true);
+  general->Get("Submit Stats", &bSubmitStats, true);
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
   general->Get("GDBSocket", &gdb_socket, "");
@@ -401,6 +430,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
   interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("LockCursor", &bLockCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
@@ -472,7 +502,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("EnableCheats", &bEnableCheats, false);
+  core->Get("EnableCheats", &bEnableCheats, true);
   core->Get("SelectedLanguage", &SelectedLanguage,
             DiscIO::ToGameCubeLanguage(Config::GetDefaultLanguage()));
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
@@ -482,8 +512,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
-  core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
-  core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
+  core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_NONE);
+  core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_DUMMY);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("BBA_MAC", &m_bba_mac);
   core->Get("BBA_XLINK_IP", &m_bba_xlink_ip, "127.0.0.1");
@@ -601,7 +631,7 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  section->Get("UpdateTrack", &m_auto_update_track, SCM_UPDATE_TRACK_STR);
+  section->Get("UpdateTrack", &m_auto_update_track, Common::scm_update_track_str);
   section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
@@ -733,6 +763,8 @@ void SConfig::LoadDefaults()
   bEnableDebugging = false;
   bAutomaticStart = false;
   bBootToPause = false;
+  bRecordStats = true;
+  bSubmitStats = true;
 
 #ifdef USE_GDBSTUB
   iGDBPort = -1;
@@ -756,7 +788,6 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
-  bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideRegionSettings = false;
   bWii = false;
@@ -1013,6 +1044,11 @@ DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region 
   return language;
 }
 
+bool SConfig::GameHasDefaultGameIni() const
+{
+  return GameHasDefaultGameIni(GetGameID_Wrapper(), m_revision);
+}
+
 IniFile SConfig::LoadDefaultGameIni() const
 {
   return LoadDefaultGameIni(GetGameID(), m_revision);
@@ -1026,6 +1062,23 @@ IniFile SConfig::LoadLocalGameIni() const
 IniFile SConfig::LoadGameIni() const
 {
   return LoadGameIni(GetGameID(), m_revision);
+}
+
+u16 SConfig::GetGameRevision() const
+{
+  return m_revision;
+}
+std::string SConfig::GetGameID_Wrapper() const
+{
+  return m_gametdb_id;
+}
+
+bool SConfig::GameHasDefaultGameIni(const std::string& id, u16 revision)
+{
+	const std::vector<std::string> filenames = ConfigLoaders::GetGameIniFilenames(id, revision);
+	return std::any_of(filenames.begin(), filenames.end(), [](const std::string& filename) {
+		return File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename);
+	});
 }
 
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)

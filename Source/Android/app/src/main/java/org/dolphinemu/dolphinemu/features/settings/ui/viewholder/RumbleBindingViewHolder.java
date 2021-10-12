@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
@@ -43,7 +45,7 @@ public class RumbleBindingViewHolder extends SettingViewHolder
 
     mItem = (RumbleBindingSetting) item;
 
-    mTextSettingName.setText(item.getNameId());
+    mTextSettingName.setText(item.getName());
     mTextSettingDescription
             .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
 

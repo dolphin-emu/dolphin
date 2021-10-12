@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -33,6 +32,7 @@ enum
   D_CONFIG_IDX,           // global settings
   D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
                           // settings (per game)
+  D_STATFILES_IDX,
   D_MAPS_IDX,
   D_CACHE_IDX,
   D_COVERCACHE_IDX,
@@ -60,7 +60,10 @@ enum
   D_BACKUP_IDX,
   D_RESOURCEPACK_IDX,
   D_DYNAMICINPUT_IDX,
+  D_GBAUSER_IDX,
+  D_GBASAVES_IDX,
   F_DOLPHINCONFIG_IDX,
+  F_LOCALPLAYERSCONFIG_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
   F_GCKEYBOARDCONFIG_IDX,
@@ -78,6 +81,7 @@ enum
   F_WIISDCARD_IDX,
   F_DUALSHOCKUDPCLIENTCONFIG_IDX,
   F_FREELOOKCONFIG_IDX,
+  F_GBABIOS_IDX,
   NUM_PATH_INDICES
 };
 

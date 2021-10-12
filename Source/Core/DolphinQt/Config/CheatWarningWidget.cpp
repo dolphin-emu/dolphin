@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/CheatWarningWidget.h"
 
@@ -65,13 +64,6 @@ void CheatWarningWidget::Update(bool running)
   {
     hide_widget = false;
     m_text->setText(tr("Changing cheats will only take effect when the game is restarted."));
-  }
-
-  if (!Settings::Instance().GetCheatsEnabled())
-  {
-    hide_widget = false;
-    hide_config_button = false;
-    m_text->setText(tr("Dolphin's cheat system is currently disabled."));
   }
 
   setHidden(hide_widget);

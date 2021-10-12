@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
@@ -170,7 +172,7 @@ public final class SettingsActivityPresenter
         break;
 
       case 2:
-        mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
+        mView.showToastMessage(mContext.getString(R.string.make_sure_continuous_scan_enabled));
         break;
     }
   }

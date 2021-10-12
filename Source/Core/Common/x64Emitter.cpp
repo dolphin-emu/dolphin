@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cinttypes>
 #include <cstring>
@@ -3397,56 +3396,6 @@ void XEmitter::FSOverride()
 void XEmitter::GSOverride()
 {
   Write8(0x65);
-}
-
-void XEmitter::FWAIT()
-{
-  Write8(0x9B);
-}
-
-// TODO: make this more generic
-void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, const OpArg& arg)
-{
-  int mf = 0;
-  ASSERT_MSG(DYNA_REC, !(bits == 80 && op_80b == FloatOp::Invalid),
-             "WriteFloatLoadStore: 80 bits not supported for this instruction");
-  switch (bits)
-  {
-  case 32:
-    mf = 0;
-    break;
-  case 64:
-    mf = 4;
-    break;
-  case 80:
-    mf = 2;
-    break;
-  default:
-    ASSERT_MSG(DYNA_REC, 0, "WriteFloatLoadStore: invalid bits (should be 32/64/80)");
-  }
-  Write8(0xd9 | mf);
-  // x87 instructions use the reg field of the ModR/M byte as opcode:
-  if (bits == 80)
-    op = op_80b;
-  arg.WriteRest(this, 0, static_cast<X64Reg>(op));
-}
-
-void XEmitter::FLD(int bits, const OpArg& src)
-{
-  WriteFloatLoadStore(bits, FloatOp::LD, FloatOp::LD80, src);
-}
-void XEmitter::FST(int bits, const OpArg& dest)
-{
-  WriteFloatLoadStore(bits, FloatOp::ST, FloatOp::Invalid, dest);
-}
-void XEmitter::FSTP(int bits, const OpArg& dest)
-{
-  WriteFloatLoadStore(bits, FloatOp::STP, FloatOp::STP80, dest);
-}
-void XEmitter::FNSTSW_AX()
-{
-  Write8(0xDF);
-  Write8(0xE0);
 }
 
 void XEmitter::RDTSC()

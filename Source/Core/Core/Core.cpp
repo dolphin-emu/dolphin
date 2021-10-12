@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Core.h"
 
@@ -21,10 +20,13 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Core/HW/AddressSpace.h"
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FPURoundMode.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -48,6 +50,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI/EXI.h"
+#include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/HW.h"
@@ -105,11 +108,12 @@ static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
 static std::thread s_emu_thread;
-static StateChangedCallbackFunc s_on_state_changed_callback;
+static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
+static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
 
@@ -142,6 +146,11 @@ void SetIsThrottlerTempDisabled(bool disable)
   s_is_throttler_temp_disabled = disable;
 }
 
+double GetActualEmulationSpeed()
+{
+  return s_last_actual_emulation_speed;
+}
+
 void FrameUpdateOnCPUThread()
 {
   if (NetPlay::IsNetPlayRunning())
@@ -150,6 +159,21 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
+  if (!NetPlay::IsNetPlayRunning())
+  {
+    // for some unknown reason, when playing locally the game gets a write error at frme 6457
+    // no idea why, so imma just write to the addr on some arbiturary frame number
+    if (Movie::GetCurrentFrame()==500)
+    {
+      // sets a specific address to 1 each frame
+      // this address is read by Project Rio's version of Batter Lag Reduction. It only activates
+      // when this addr = 0. this system prevents user error of forgetting to turn off lag reduciton
+      // when playing local and turning it on for netplay
+      AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+      accessors->WriteU8(0x802EBF96, 1);
+    }
+  }
+
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
     s_memory_watcher->Step();
@@ -244,6 +268,9 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
+  // Manually reactivate the video backend in case a GameINI overrides the video backend setting.
+  VideoBackendBase::PopulateBackendInfo();
+
   // Issue any API calls which must occur on the main thread for the graphics backend.
   WindowSystemInfo prepared_wsi(wsi);
   g_video_backend->PrepareWindow(prepared_wsi);
@@ -275,9 +302,9 @@ void Stop()  // - Hammertime!
 
   s_is_stopping = true;
 
-  // Notify state changed callback
-  if (s_on_state_changed_callback)
-    s_on_state_changed_callback(State::Stopping);
+  s_timer.Stop();
+
+  CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
   HostDispatchJobs();
@@ -299,6 +326,8 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
+
+  s_last_actual_emulation_speed = 1.0;
 }
 
 void DeclareAsCPUThread()
@@ -433,16 +462,14 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
-  if (s_on_state_changed_callback)
-    s_on_state_changed_callback(State::Starting);
+  CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
     s_is_started = false;
     s_is_stopping = false;
     s_wants_determinism = false;
 
-    if (s_on_state_changed_callback)
-      s_on_state_changed_callback(State::Uninitialized);
+    CallOnStateChangedCallbacks(State::Uninitialized);
 
     INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -462,6 +489,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   {
     g_controller_interface.Initialize(wsi);
     Pad::Initialize();
+    Pad::InitializeGBA();
     Keyboard::Initialize();
     init_controllers = true;
   }
@@ -469,6 +497,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   {
     g_controller_interface.ChangeWindow(wsi.render_window);
     Pad::LoadConfig();
+    Pad::LoadGBAConfig();
     Keyboard::LoadConfig();
   }
 
@@ -519,6 +548,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
     Keyboard::Shutdown();
     Pad::Shutdown();
+    Pad::ShutdownGBA();
     g_controller_interface.Shutdown();
   }};
 
@@ -630,6 +660,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     // thread, and then takes over and becomes the video thread
     Common::SetCurrentThreadName("Video thread");
     UndeclareAsCPUThread();
+    FPURoundMode::LoadDefaultSIMDState();
 
     // Spawn the CPU thread. The CPU thread will signal the event that boot is complete.
     s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);
@@ -673,18 +704,27 @@ void SetState(State state)
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
+    s_timer.Update();
     break;
   case State::Running:
     CPU::EnableStepping(false);
     Wiimote::Resume();
+    if (!s_timer.IsRunning())
+    {
+      s_timer.Start();
+    }
+    else
+    {
+      // Add time difference from the last pause
+      s_timer.AddTimeDifference();
+    }
     break;
   default:
     PanicAlertFmt("Invalid state");
     break;
   }
 
-  if (s_on_state_changed_callback)
-    s_on_state_changed_callback(GetState());
+  CallOnStateChangedCallbacks(GetState());
 }
 
 State GetState()
@@ -855,13 +895,13 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 void VideoThrottle()
 {
   // Update info per second
-  u32 ElapseTime = (u32)s_timer.GetTimeDifference();
+  u32 ElapseTime = (u32)s_timer.GetTimeElapsed();
   if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
   {
-    UpdateTitle();
+    s_timer.Start();
 
-    // Reset counter
-    s_timer.Update();
+    UpdateTitle(ElapseTime);
+
     s_drawn_frame.store(0);
     s_drawn_video.store(0);
   }
@@ -873,8 +913,10 @@ void VideoThrottle()
 
 // Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
 // frame is presented to the host screen
-void Callback_FramePresented()
+void Callback_FramePresented(double actual_emulation_speed)
 {
+  s_last_actual_emulation_speed = actual_emulation_speed;
+
   s_drawn_frame++;
   s_stop_frame_step.store(true);
 }
@@ -895,15 +937,13 @@ void Callback_NewField()
     {
       s_frame_step = false;
       CPU::Break();
-      if (s_on_state_changed_callback)
-        s_on_state_changed_callback(Core::GetState());
+      CallOnStateChangedCallbacks(Core::GetState());
     }
   }
 }
 
-void UpdateTitle()
+void UpdateTitle(u32 ElapseTime)
 {
-  u32 ElapseTime = (u32)s_timer.GetTimeDifference();
   s_request_refresh_info = false;
   SConfig& _CoreParameter = SConfig::GetInstance();
 
@@ -993,9 +1033,38 @@ void Shutdown()
   HostDispatchJobs();
 }
 
-void SetOnStateChangedCallback(StateChangedCallbackFunc callback)
+int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 {
-  s_on_state_changed_callback = std::move(callback);
+  for (size_t i = 0; i < s_on_state_changed_callbacks.size(); ++i)
+  {
+    if (!s_on_state_changed_callbacks[i])
+    {
+      s_on_state_changed_callbacks[i] = std::move(callback);
+      return int(i);
+    }
+  }
+  s_on_state_changed_callbacks.emplace_back(std::move(callback));
+  return int(s_on_state_changed_callbacks.size()) - 1;
+}
+
+bool RemoveOnStateChangedCallback(int* handle)
+{
+  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > *handle)
+  {
+    s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
+    *handle = -1;
+    return true;
+  }
+  return false;
+}
+
+void CallOnStateChangedCallbacks(Core::State state)
+{
+  for (const StateChangedCallbackFunc& on_state_changed_callback : s_on_state_changed_callbacks)
+  {
+    if (on_state_changed_callback)
+      on_state_changed_callback(state);
+  }
 }
 
 void UpdateWantDeterminism(bool initial)
@@ -1080,10 +1149,34 @@ void DoFrameStep()
   }
 }
 
-void UpdateInputGate(bool require_focus)
+void UpdateInputGate(bool require_focus, bool require_full_focus)
 {
-  ControlReference::SetInputGate((!require_focus || Host_RendererHasFocus()) &&
-                                 !Host_UIBlocksControllerState());
+  // If the user accepts background input, controls should pass even if an on screen interface is on
+  const bool focus_passes =
+      !require_focus || (Host_RendererHasFocus() && !Host_UIBlocksControllerState());
+  // Ignore full focus if we don't require basic focus
+  const bool full_focus_passes =
+      !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
+  ControlReference::SetInputGate(focus_passes && full_focus_passes);
+}
+
+void setRecordStatus(bool inNewStatus)
+{
+  SConfig& settings = SConfig::GetInstance();
+  settings.SaveSettings();
+  //is_record = inNewStatus;
+}
+
+void setSubmitStatus(bool inNewStatus)
+{
+  SConfig& settings = SConfig::GetInstance();
+  settings.SaveSettings();
+  //is_submit = inNewStatus;
+}
+
+void setRankedStatus(bool inNewStatus)
+{
+  // is_ranked = inNewStatus;
 }
 
 }  // namespace Core

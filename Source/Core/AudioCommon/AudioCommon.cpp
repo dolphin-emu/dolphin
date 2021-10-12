@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/AlsaSoundStream.h"
@@ -69,7 +68,8 @@ void InitSoundStream()
 
 void PostInitSoundStream()
 {
-  // This needs to be called after AudioInterface::Init where input sample rates are set
+  // This needs to be called after AudioInterface::Init and SerialInterface::Init (for GBA devices)
+  // where input sample rates are set
   UpdateSoundStream();
   SetSoundStreamRunning(true);
 

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/GameFileCache.h"
 
@@ -40,10 +39,6 @@ std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& direct
 }
 
 GameFileCache::GameFileCache() : m_path(File::GetUserPath(D_CACHE_IDX) + "gamelist.cache")
-{
-}
-
-GameFileCache::GameFileCache(std::string path) : m_path(std::move(path))
 {
 }
 

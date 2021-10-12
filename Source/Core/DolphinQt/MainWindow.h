@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -26,9 +25,11 @@ class FIFOPlayerWindow;
 class FreeLookWindow;
 class GameList;
 class GCTASInputWindow;
+class GeckoDialog;
 class GraphicsWindow;
 class HotkeyScheduler;
 class JITWidget;
+class LocalPlayersWindow;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
@@ -108,6 +109,7 @@ private:
   void SetFullScreenResolution(bool fullscreen);
 
   void FullScreen();
+  void UnlockCursor();
   void ScreenShot();
 
   void CreateComponents();
@@ -141,12 +143,13 @@ private:
                  const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
-  void HideRenderWidget(bool reinit = true);
+  void HideRenderWidget(bool reinit = true, bool is_exit = false);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();
   void ShowAudioWindow();
   void ShowControllersWindow();
+  void ShowLocalPlayersWindow();
   void ShowGraphicsWindow();
   void ShowFreeLookWindow();
   void ShowAboutDialog();
@@ -157,6 +160,7 @@ private:
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
+  void ShowGeckoCodes();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -215,6 +219,8 @@ private:
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
+  GeckoDialog* m_gecko_dialog = nullptr;
+  LocalPlayersWindow* m_local_players_window = nullptr;
   FreeLookWindow* m_freelook_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;

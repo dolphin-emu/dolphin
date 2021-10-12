@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Gekko related unions, structs, ...
 
@@ -8,6 +7,7 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/FPURoundMode.h"
 
 // --- Gekko Instruction ---
 
@@ -399,7 +399,9 @@ union UReg_MSR
 };
 
 #define FPRF_SHIFT 12
+#define FPRF_WIDTH 5
 #define FPRF_MASK (0x1F << FPRF_SHIFT)
+#define FPCC_MASK (0xF << FPRF_SHIFT)
 
 // FPSCR exception flags
 enum FPSCRExceptionFlag : u32
@@ -434,7 +436,7 @@ union UReg_FPSCR
   struct
   {
     // Rounding mode (towards: nearest, zero, +inf, -inf)
-    u32 RN : 2;
+    FPURoundMode::RoundMode RN : 2;
     // Non-IEEE mode enable (aka flush-to-zero)
     u32 NI : 1;
     // Inexact exception enable

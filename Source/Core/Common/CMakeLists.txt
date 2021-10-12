@@ -2,7 +2,6 @@ add_library(common
   Analytics.cpp
   Analytics.h
   Assert.h
-  Atomic.h
   BitField.h
   BitSet.h
   BitUtils.h
@@ -125,6 +124,7 @@ add_library(common
   TraversalClient.cpp
   TraversalClient.h
   TraversalProto.h
+  TypeUtils.h
   UPnP.cpp
   UPnP.h
   VariantUtil.h

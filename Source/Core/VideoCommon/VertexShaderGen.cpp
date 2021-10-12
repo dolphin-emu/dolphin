@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -214,10 +213,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     else
     {
-      // The default alpha channel depends on the number of components in the vertex format.
-      out.Write(
-          "vertex_color_{0} = float4(1.0, 1.0, 1.0, float((color_chan_alpha >> {0}) & 1u));\n",
-          color);
+      out.Write("vertex_color_{0} = missing_color_value;\n", color);
     }
   }
 

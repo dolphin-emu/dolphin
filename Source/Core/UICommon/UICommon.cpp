@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <clocale>
@@ -82,9 +81,10 @@ static void InitCustomPaths()
   CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
   CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
-  const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
-  if (!sd_path.empty())
-    File::SetUserPath(F_WIISDCARD_IDX, sd_path);
+  File::SetUserPath(F_WIISDCARD_IDX, Config::Get(Config::MAIN_SD_PATH));
+  File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
+  File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+  File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
 }
 
 void Init()
@@ -193,6 +193,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_STATFILES_IDX));
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));
@@ -266,7 +267,7 @@ void SetUserDirectory(const std::string& custom_path)
   else if (configPath)  // Case 3
     user_path = TStrToUTF8(configPath.get());
   else if (my_documents_found)  // Case 4
-    user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+    user_path = TStrToUTF8(my_documents) + DIR_SEP "Project Rio" DIR_SEP;
   else  // Case 5
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 

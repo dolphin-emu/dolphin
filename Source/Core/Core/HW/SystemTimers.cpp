@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // This file controls all system timers
 
@@ -49,7 +48,6 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include <cmath>
 #include <cstdlib>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"

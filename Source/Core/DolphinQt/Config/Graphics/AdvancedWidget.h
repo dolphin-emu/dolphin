@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -40,6 +39,7 @@ private:
   // Utility
   GraphicsBool* m_prefetch_custom_textures;
   GraphicsBool* m_dump_efb_target;
+  GraphicsBool* m_dump_xfb_target;
   GraphicsBool* m_disable_vram_copies;
   GraphicsBool* m_load_custom_textures;
 

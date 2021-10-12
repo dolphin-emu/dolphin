@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
 #include <limits>
@@ -898,28 +897,31 @@ void Jit64::subfic(UGeckoInstruction inst)
   RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rd);
 
-  if (d == a)
+  if (imm == 0)
   {
-    if (imm == 0)
-    {
-      // Flags act exactly like subtracting from 0
-      NEG(32, Rd);
-      // Output carry is inverted
-      FinalizeCarry(CC_NC);
-    }
-    else if (imm == -1)
-    {
-      NOT(32, Rd);
-      // CA is always set in this case
-      FinalizeCarry(true);
-    }
-    else
-    {
-      NOT(32, Rd);
-      ADD(32, Rd, Imm32(imm + 1));
-      // Output carry is normal
-      FinalizeCarry(CC_C);
-    }
+    if (d != a)
+      MOV(32, Rd, Ra);
+
+    // Flags act exactly like subtracting from 0
+    NEG(32, Rd);
+    // Output carry is inverted
+    FinalizeCarry(CC_NC);
+  }
+  else if (imm == -1)
+  {
+    if (d != a)
+      MOV(32, Rd, Ra);
+
+    NOT(32, Rd);
+    // CA is always set in this case
+    FinalizeCarry(true);
+  }
+  else if (d == a)
+  {
+    NOT(32, Rd);
+    ADD(32, Rd, Imm32(imm + 1));
+    // Output carry is normal
+    FinalizeCarry(CC_C);
   }
   else
   {
@@ -1271,14 +1273,29 @@ void Jit64::divwux(UGeckoInstruction inst)
           RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
           RegCache::Realize(Ra, Rd);
 
-          if (d == a)
+          magic++;
+
+          // Use smallest magic number and shift amount possible
+          while ((magic & 1) == 0 && shift > 0)
           {
-            MOV(32, R(RSCRATCH), Imm32(magic + 1));
+            magic >>= 1;
+            shift--;
+          }
+
+          // Three-operand IMUL sign extends the immediate to 64 bits, so we may only
+          // use it when the magic number has its most significant bit set to 0
+          if ((magic & 0x80000000) == 0)
+          {
+            IMUL(64, Rd, Ra, Imm32(magic));
+          }
+          else if (d == a)
+          {
+            MOV(32, R(RSCRATCH), Imm32(magic));
             IMUL(64, Rd, R(RSCRATCH));
           }
           else
           {
-            MOV(32, Rd, Imm32(magic + 1));
+            MOV(32, Rd, Imm32(magic));
             IMUL(64, Rd, Ra);
           }
           SHR(64, Rd, Imm8(shift + 32));
@@ -1375,37 +1392,48 @@ void Jit64::divwx(UGeckoInstruction inst)
       // Check for divisor == 0
       TEST(32, Rb, Rb);
 
-      FixupBranch normal_path;
+      FixupBranch done;
 
-      if (dividend == 0x80000000)
+      if (d == b && (dividend & 0x80000000) == 0 && !inst.OE)
       {
-        // Divisor is 0, proceed to overflow case
-        const FixupBranch overflow = J_CC(CC_Z);
-        // Otherwise, check for divisor == -1
-        CMP(32, Rb, Imm32(0xFFFFFFFF));
-        normal_path = J_CC(CC_NE);
-
-        SetJumpTarget(overflow);
+        // Divisor is 0, skip to the end
+        // No need to explicitly set destination to 0 due to overlapping registers
+        done = J_CC(CC_Z);
+        // Otherwise, proceed to normal path
       }
       else
       {
-        // Divisor is not 0, take normal path
-        normal_path = J_CC(CC_NZ);
-        // Otherwise, proceed to overflow case
+        FixupBranch normal_path;
+        if (dividend == 0x80000000)
+        {
+          // Divisor is 0, proceed to overflow case
+          const FixupBranch overflow = J_CC(CC_Z);
+          // Otherwise, check for divisor == -1
+          CMP(32, Rb, Imm32(0xFFFFFFFF));
+          normal_path = J_CC(CC_NE);
+
+          SetJumpTarget(overflow);
+        }
+        else
+        {
+          // Divisor is not 0, take normal path
+          normal_path = J_CC(CC_NZ);
+          // Otherwise, proceed to overflow case
+        }
+
+        // Set Rd to all ones or all zeroes
+        if (dividend & 0x80000000)
+          MOV(32, Rd, Imm32(0xFFFFFFFF));
+        else if (d != b)
+          XOR(32, Rd, Rd);
+
+        if (inst.OE)
+          GenerateConstantOverflow(true);
+
+        done = J();
+
+        SetJumpTarget(normal_path);
       }
-
-      // Set Rd to all ones or all zeroes
-      if (dividend & 0x80000000)
-        MOV(32, Rd, Imm32(0xFFFFFFFF));
-      else
-        XOR(32, Rd, Rd);
-
-      if (inst.OE)
-        GenerateConstantOverflow(true);
-
-      const FixupBranch done = J();
-
-      SetJumpTarget(normal_path);
 
       MOV(32, eax, Imm32(dividend));
       CDQ();
@@ -1464,12 +1492,21 @@ void Jit64::divwx(UGeckoInstruction inst)
     else if (divisor == 2 || divisor == -2)
     {
       X64Reg tmp = RSCRATCH;
-      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
-        tmp = Ra.GetSimpleReg();
-      else
+      if (!Ra.IsSimpleReg())
+      {
         MOV(32, R(tmp), Ra);
+        MOV(32, Rd, R(tmp));
+      }
+      else if (d == a)
+      {
+        MOV(32, R(tmp), Ra);
+      }
+      else
+      {
+        MOV(32, Rd, Ra);
+        tmp = Ra.GetSimpleReg();
+      }
 
-      MOV(32, Rd, R(tmp));
       SHR(32, Rd, Imm8(31));
       ADD(32, Rd, R(tmp));
       SAR(32, Rd, Imm8(1));
@@ -1484,15 +1521,39 @@ void Jit64::divwx(UGeckoInstruction inst)
     {
       const u32 abs_val = static_cast<u32>(std::abs(static_cast<s64>(divisor)));
 
-      X64Reg tmp = RSCRATCH;
-      if (Ra.IsSimpleReg() && Ra.GetSimpleReg() != Rd)
-        tmp = Ra.GetSimpleReg();
-      else
-        MOV(32, R(tmp), Ra);
+      X64Reg dividend, sum, src;
+      CCFlags cond = CC_NS;
 
-      TEST(32, R(tmp), R(tmp));
-      LEA(32, Rd, MDisp(tmp, abs_val - 1));
-      CMOVcc(32, Rd, R(tmp), CC_NS);
+      if (!Ra.IsSimpleReg())
+      {
+        dividend = RSCRATCH;
+        sum = Rd;
+        src = RSCRATCH;
+
+        // Load dividend from memory
+        MOV(32, R(dividend), Ra);
+      }
+      else if (d == a)
+      {
+        // Rd holds the dividend, while RSCRATCH holds the sum
+        // This is opposite of the other cases
+        dividend = Rd;
+        sum = RSCRATCH;
+        src = RSCRATCH;
+        // Negate condition to compensate the swapped values
+        cond = CC_S;
+      }
+      else
+      {
+        // Use dividend from register directly
+        dividend = Ra.GetSimpleReg();
+        sum = Rd;
+        src = dividend;
+      }
+
+      TEST(32, R(dividend), R(dividend));
+      LEA(32, sum, MDisp(dividend, abs_val - 1));
+      CMOVcc(32, Rd, R(src), cond);
       SAR(32, Rd, Imm8(IntLog2(abs_val)));
 
       if (divisor < 0)
@@ -1603,6 +1664,47 @@ void Jit64::addx(UGeckoInstruction inst)
     if (inst.OE)
       GenerateConstantOverflow((s64)i + (s64)j);
   }
+  else if (gpr.IsImm(a) || gpr.IsImm(b))
+  {
+    auto [i, j] = gpr.IsImm(a) ? std::pair(a, b) : std::pair(b, a);
+
+    s32 imm = gpr.SImm32(i);
+    RCOpArg Rj = gpr.Use(j, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rj, Rd);
+
+    if (imm == 0)
+    {
+      if (d != j)
+        MOV(32, Rd, Rj);
+      if (inst.OE)
+        GenerateConstantOverflow(false);
+    }
+    else if (d == j)
+    {
+      ADD(32, Rd, Imm32(imm));
+      if (inst.OE)
+        GenerateOverflow();
+    }
+    else if (Rj.IsSimpleReg() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Rj.GetSimpleReg(), imm));
+    }
+    else if (imm >= -128 && imm <= 127)
+    {
+      MOV(32, Rd, Rj);
+      ADD(32, Rd, Imm32(imm));
+      if (inst.OE)
+        GenerateOverflow();
+    }
+    else
+    {
+      MOV(32, Rd, Imm32(imm));
+      ADD(32, Rd, Rj);
+      if (inst.OE)
+        GenerateOverflow();
+    }
+  }
   else
   {
     RCOpArg Ra = gpr.Use(a, RCMode::Read);
@@ -1610,51 +1712,14 @@ void Jit64::addx(UGeckoInstruction inst)
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Ra, Rb, Rd);
 
-    if ((d == a) || (d == b))
+    if (d == a || d == b)
     {
       RCOpArg& Rnotd = (d == a) ? Rb : Ra;
-      if (!Rnotd.IsZero() || inst.OE)
-      {
-        ADD(32, Rd, Rnotd);
-      }
+      ADD(32, Rd, Rnotd);
     }
     else if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
     {
       LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
-    }
-    else if ((Ra.IsSimpleReg() || Rb.IsSimpleReg()) && (Ra.IsImm() || Rb.IsImm()) && !inst.OE)
-    {
-      RCOpArg& Rimm = Ra.IsImm() ? Ra : Rb;
-      RCOpArg& Rreg = Ra.IsImm() ? Rb : Ra;
-
-      if (Rimm.IsZero())
-      {
-        MOV(32, Rd, Rreg);
-      }
-      else
-      {
-        LEA(32, Rd, MDisp(Rreg.GetSimpleReg(), Rimm.SImm32()));
-      }
-    }
-    else if (Ra.IsImm() || Rb.IsImm())
-    {
-      RCOpArg& Rimm = Ra.IsImm() ? Ra : Rb;
-      RCOpArg& Rother = Ra.IsImm() ? Rb : Ra;
-
-      s32 imm = Rimm.SImm32();
-      if (imm >= -128 && imm <= 127)
-      {
-        MOV(32, Rd, Rother);
-        if (imm != 0 || inst.OE)
-        {
-          ADD(32, Rd, Rimm);
-        }
-      }
-      else
-      {
-        MOV(32, Rd, Rimm);
-        ADD(32, Rd, Rother);
-      }
     }
     else
     {

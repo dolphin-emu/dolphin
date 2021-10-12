@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -63,6 +62,7 @@ private:
   void OpenWiiSaveFolder();
   void OpenGCSaveFolder();
   void OpenWiki();
+  void OpenProjectRio();
   void SetDefaultISO();
   void DeleteFile();
 #ifdef _WIN32

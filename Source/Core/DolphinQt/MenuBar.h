@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -234,6 +233,8 @@ private:
   QAction* m_recording_read_only;
 
   // Options
+  QAction* m_record_stats;
+  QAction* m_submit_stats;
   QAction* m_boot_to_pause;
   QAction* m_automatic_start;
   QAction* m_change_font;

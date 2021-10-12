@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
@@ -43,7 +45,7 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
 
     mItem = (InputBindingSetting) item;
 
-    mTextSettingName.setText(mItem.getNameId());
+    mTextSettingName.setText(mItem.getName());
     mTextSettingDescription
             .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
 

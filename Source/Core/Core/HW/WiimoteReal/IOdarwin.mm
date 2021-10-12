@@ -21,27 +21,40 @@
 
 namespace WiimoteReal
 {
+WiimoteScannerDarwin::WiimoteScannerDarwin()
+{
+  m_host_controller = [IOBluetoothHostController defaultController];
+  if (![m_host_controller addressAsString])
+  {
+    WARN_LOG_FMT(WIIMOTE, "No Bluetooth host controller");
+
+    [m_host_controller release];
+    m_host_controller = nil;
+
+    return;
+  }
+
+  [m_host_controller retain];
+}
+
 WiimoteScannerDarwin::~WiimoteScannerDarwin()
 {
-  stopScanning = true;
+  [m_host_controller release];
+  m_host_controller = nil;
+
+  m_stop_scanning = true;
 }
 
 void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
                                         Wiimote*& found_board)
 {
-  // TODO: find the device in the constructor and save it for later
-  IOBluetoothHostController* bth;
-  IOBluetoothDeviceInquiry* bti;
-  found_board = nullptr;
-
-  bth = [[IOBluetoothHostController alloc] init];
-  bool btFailed = [bth addressAsString] == nil;
-  if (btFailed)
+  if (!m_host_controller)
   {
-    WARN_LOG_FMT(WIIMOTE, "No Bluetooth host controller");
-    [bth release];
     return;
   }
+
+  IOBluetoothDeviceInquiry* bti;
+  found_board = nullptr;
 
   SearchBT* sbt = [[SearchBT alloc] init];
   sbt->maxDevices = 32;
@@ -52,15 +65,15 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   if ([bti start] != kIOReturnSuccess)
   {
     ERROR_LOG_FMT(WIIMOTE, "Unable to do Bluetooth discovery");
-    [bth release];
     [sbt release];
-    btFailed = true;
+
+    return;
   }
 
   do
   {
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
-  } while (!sbt->done && !stopScanning);
+  } while (!sbt->done && !m_stop_scanning);
 
   int found_devices = [[bti foundDevices] count];
 
@@ -86,15 +99,13 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
     }
   }
 
-  [bth release];
   [bti release];
   [sbt release];
 }
 
 bool WiimoteScannerDarwin::IsReady() const
 {
-  // TODO: only return true when a BT device is present
-  return true;
+  return m_host_controller != nil;
 }
 
 WiimoteDarwin::WiimoteDarwin(IOBluetoothDevice* device) : m_btd(device)

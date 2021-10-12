@@ -1,7 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -420,7 +419,7 @@ struct SDSP
 
   u8 reg_stack_ptrs[4]{};
   u8 exceptions = 0;  // pending exceptions
-  volatile bool external_interrupt_waiting = false;
+  std::atomic<bool> external_interrupt_waiting = false;
   bool reset_dspjit_codespace = false;
 
   // DSP hardware stacks. They're mapped to a bunch of registers, such that writes

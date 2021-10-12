@@ -1,13 +1,12 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef _WIN32
 
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
 
-#if defined _MSC_FULL_VER && _MSC_FULL_VER < 192829335
+#if defined _MSC_FULL_VER && _MSC_FULL_VER < 192930037
 #pragma message("Current _MSC_FULL_VER: " STRINGIFY(_MSC_FULL_VER))
 #error Please update your build environment to the latest Visual Studio 2019!
 #endif

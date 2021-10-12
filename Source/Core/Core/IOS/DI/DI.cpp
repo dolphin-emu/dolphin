@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/DI/DI.h"
 
@@ -18,6 +17,7 @@
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/WII_IPC.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
@@ -38,6 +38,9 @@ static RegisterWrapper<0x0D806014> DIMAR;
 static RegisterWrapper<0x0D806018> DILENGTH;
 static RegisterWrapper<0x0D80601C> DICR;
 static RegisterWrapper<0x0D806020> DIIMMBUF;
+
+static RegisterWrapper<0x0D8000E0> HW_GPIO_OUT;
+static RegisterWrapper<0x0D800194> HW_RESETS;
 
 namespace IOS::HLE
 {
@@ -267,8 +270,30 @@ std::optional<DIDevice::DIResult> DIDevice::StartIOCtl(const IOCtlRequest& reque
   case DIIoctl::DVDLowReset:
   {
     const bool spinup = Memory::Read_U32(request.buffer_in + 4);
-    INFO_LOG_FMT(IOS_DI, "DVDLowReset {} spinup", spinup ? "with" : "without");
-    DVDInterface::ResetDrive(spinup);
+
+    // The GPIO *disables* spinning up the drive.  Normally handled via syscall 0x4e.
+    const u32 old_gpio = HW_GPIO_OUT;
+    if (spinup)
+      HW_GPIO_OUT = old_gpio & ~static_cast<u32>(GPIO::DI_SPIN);
+    else
+      HW_GPIO_OUT = old_gpio | static_cast<u32>(GPIO::DI_SPIN);
+
+    // Syscall 0x46 check_di_reset
+    const bool was_resetting = (HW_RESETS & (1 << 10)) == 0;
+    if (was_resetting)
+    {
+      // This route will not generally be taken in Dolphin but is included for completeness
+      // Syscall 0x45 deassert_di_reset
+      HW_RESETS = HW_RESETS | (1 << 10);
+    }
+    else
+    {
+      // Syscall 0x44 assert_di_reset
+      HW_RESETS = HW_RESETS & ~(1 << 10);
+      // Normally IOS sleeps for 12 microseconds here, but we can't easily emulate that
+      // Syscall 0x45 deassert_di_reset
+      HW_RESETS = HW_RESETS | (1 << 10);
+    }
     ResetDIRegisters();
     return DIResult::Success;
   }

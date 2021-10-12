@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model.view;
+
+import android.content.Context;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
@@ -6,10 +10,10 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public final class InvertedCheckBoxSetting extends CheckBoxSetting
 {
-  public InvertedCheckBoxSetting(AbstractBooleanSetting setting, int titleId,
+  public InvertedCheckBoxSetting(Context context, AbstractBooleanSetting setting, int titleId,
           int descriptionId)
   {
-    super(setting, titleId, descriptionId);
+    super(context, setting, titleId, descriptionId);
   }
 
   @Override

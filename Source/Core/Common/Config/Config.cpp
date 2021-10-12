@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <atomic>
@@ -141,7 +140,9 @@ static const std::map<System, std::string> system_to_name = {
     {System::Logger, "Logger"},
     {System::Debugger, "Debugger"},
     {System::SYSCONF, "SYSCONF"},
-    {System::DualShockUDPClient, "DualShockUDPClient"}};
+    {System::DualShockUDPClient, "DualShockUDPClient"},
+    {System::FreeLook, "FreeLook"},
+    {System::Session, "Session"}};
 
 const std::string& GetSystemName(System system)
 {

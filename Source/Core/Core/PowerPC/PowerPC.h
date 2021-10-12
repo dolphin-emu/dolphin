@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -168,6 +167,10 @@ struct PowerPCState
 
   InstructionCache iCache;
 
+  // Reservation monitor for lwarx and its friend stwcxd.
+  bool reserve;
+  u32 reserve_address;
+
   void UpdateCR1()
   {
     cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
@@ -304,6 +307,9 @@ inline void SetXER_OV(bool value)
   SetXER_SO(value);
 }
 
-void UpdateFPRF(double dvalue);
+void UpdateFPRFDouble(double dvalue);
+void UpdateFPRFSingle(float fvalue);
+
+void RoundingModeUpdated();
 
 }  // namespace PowerPC

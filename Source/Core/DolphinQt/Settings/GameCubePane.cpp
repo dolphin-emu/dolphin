@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings/GameCubePane.h"
 
@@ -12,6 +11,7 @@
 #include <QGroupBox>
 #include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -20,16 +20,19 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/NetPlayServer.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/Settings.h"
 
 enum
 {
@@ -124,8 +127,51 @@ void GameCubePane::CreateWidgets()
   device_layout->addWidget(m_slot_combos[2], 2, 1);
   device_layout->addWidget(m_slot_buttons[2], 2, 2);
 
+#ifdef HAS_LIBMGBA
+  // GBA Settings
+  auto* gba_box = new QGroupBox(tr("GBA Settings"), this);
+  auto* gba_layout = new QGridLayout(gba_box);
+  gba_box->setLayout(gba_layout);
+  int gba_row = 0;
+
+  m_gba_threads = new QCheckBox(tr("Run GBA Cores in Dedicated Threads"));
+  gba_layout->addWidget(m_gba_threads, gba_row, 0, 1, -1);
+  gba_row++;
+
+  m_gba_bios_edit = new QLineEdit();
+  m_gba_browse_bios = new QPushButton(QStringLiteral("..."));
+  gba_layout->addWidget(new QLabel(tr("BIOS:")), gba_row, 0);
+  gba_layout->addWidget(m_gba_bios_edit, gba_row, 1);
+  gba_layout->addWidget(m_gba_browse_bios, gba_row, 2);
+  gba_row++;
+
+  for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
+  {
+    m_gba_rom_edits[i] = new QLineEdit();
+    m_gba_browse_roms[i] = new QPushButton(QStringLiteral("..."));
+    gba_layout->addWidget(new QLabel(tr("Port %1 ROM:").arg(i + 1)), gba_row, 0);
+    gba_layout->addWidget(m_gba_rom_edits[i], gba_row, 1);
+    gba_layout->addWidget(m_gba_browse_roms[i], gba_row, 2);
+    gba_row++;
+  }
+
+  m_gba_save_rom_path = new QCheckBox(tr("Save in Same Directory as the ROM"));
+  gba_layout->addWidget(m_gba_save_rom_path, gba_row, 0, 1, -1);
+  gba_row++;
+
+  m_gba_saves_edit = new QLineEdit();
+  m_gba_browse_saves = new QPushButton(QStringLiteral("..."));
+  gba_layout->addWidget(new QLabel(tr("Saves:")), gba_row, 0);
+  gba_layout->addWidget(m_gba_saves_edit, gba_row, 1);
+  gba_layout->addWidget(m_gba_browse_saves, gba_row, 2);
+  gba_row++;
+#endif
+
   layout->addWidget(ipl_box);
   layout->addWidget(device_box);
+#ifdef HAS_LIBMGBA
+  layout->addWidget(gba_box);
+#endif
 
   layout->addStretch();
 
@@ -148,6 +194,44 @@ void GameCubePane::ConnectWidgets()
             &GameCubePane::SaveSettings);
     connect(m_slot_buttons[i], &QPushButton::clicked, [this, i] { OnConfigPressed(i); });
   }
+
+#ifdef HAS_LIBMGBA
+  // GBA Settings
+  connect(m_gba_threads, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
+  connect(m_gba_bios_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
+  connect(m_gba_browse_bios, &QPushButton::clicked, this, &GameCubePane::BrowseGBABios);
+  connect(m_gba_save_rom_path, &QCheckBox::stateChanged, this, &GameCubePane::SaveRomPathChanged);
+  connect(m_gba_saves_edit, &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
+  connect(m_gba_browse_saves, &QPushButton::clicked, this, &GameCubePane::BrowseGBASaves);
+  for (size_t i = 0; i < m_gba_browse_roms.size(); ++i)
+  {
+    connect(m_gba_rom_edits[i], &QLineEdit::editingFinished, this, &GameCubePane::SaveSettings);
+    connect(m_gba_browse_roms[i], &QPushButton::clicked, this, [this, i] { BrowseGBARom(i); });
+  }
+#endif
+
+  // Emulation State
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &GameCubePane::OnEmulationStateChanged);
+  OnEmulationStateChanged();
+}
+
+void GameCubePane::OnEmulationStateChanged()
+{
+#ifdef HAS_LIBMGBA
+  bool gba_enabled = !NetPlay::IsNetPlayRunning();
+  m_gba_threads->setEnabled(gba_enabled);
+  m_gba_bios_edit->setEnabled(gba_enabled);
+  m_gba_browse_bios->setEnabled(gba_enabled);
+  m_gba_save_rom_path->setEnabled(gba_enabled);
+  m_gba_saves_edit->setEnabled(gba_enabled);
+  m_gba_browse_saves->setEnabled(gba_enabled);
+  for (size_t i = 0; i < m_gba_browse_roms.size(); ++i)
+  {
+    m_gba_rom_edits[i]->setEnabled(gba_enabled);
+    m_gba_browse_roms[i]->setEnabled(gba_enabled);
+  }
+#endif
 }
 
 void GameCubePane::UpdateButton(int slot)
@@ -313,6 +397,47 @@ void GameCubePane::OnConfigPressed(int slot)
   }
 }
 
+void GameCubePane::BrowseGBABios()
+{
+  QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
+      this, tr("Select GBA BIOS"), QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)),
+      tr("All Files (*)")));
+  if (!file.isEmpty())
+  {
+    m_gba_bios_edit->setText(file);
+    SaveSettings();
+  }
+}
+
+void GameCubePane::BrowseGBARom(size_t index)
+{
+  QString file = QString::fromStdString(GetOpenGBARom({}));
+  if (!file.isEmpty())
+  {
+    m_gba_rom_edits[index]->setText(file);
+    SaveSettings();
+  }
+}
+
+void GameCubePane::SaveRomPathChanged()
+{
+  m_gba_saves_edit->setEnabled(!m_gba_save_rom_path->isChecked());
+  m_gba_browse_saves->setEnabled(!m_gba_save_rom_path->isChecked());
+  SaveSettings();
+}
+
+void GameCubePane::BrowseGBASaves()
+{
+  QString dir = QDir::toNativeSeparators(
+      QFileDialog::getExistingDirectory(this, tr("Select GBA Saves Path"),
+                                        QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX))));
+  if (!dir.isEmpty())
+  {
+    m_gba_saves_edit->setText(dir);
+    SaveSettings();
+  }
+}
+
 void GameCubePane::LoadSettings()
 {
   const SConfig& params = SConfig::GetInstance();
@@ -347,6 +472,16 @@ void GameCubePane::LoadSettings()
         m_slot_combos[i]->findData(SConfig::GetInstance().m_EXIDevice[i]));
     UpdateButton(i);
   }
+
+#ifdef HAS_LIBMGBA
+  // GBA Settings
+  m_gba_threads->setChecked(Config::Get(Config::MAIN_GBA_THREADS));
+  m_gba_bios_edit->setText(QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)));
+  m_gba_save_rom_path->setChecked(Config::Get(Config::MAIN_GBA_SAVES_IN_ROM_PATH));
+  m_gba_saves_edit->setText(QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX)));
+  for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
+    m_gba_rom_edits[i]->setText(QString::fromStdString(Config::Get(Config::MAIN_GBA_ROM_PATHS[i])));
+#endif
 }
 
 void GameCubePane::SaveSettings()
@@ -361,6 +496,7 @@ void GameCubePane::SaveSettings()
   params.SelectedLanguage = m_language_combo->currentData().toInt();
   Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
 
+  // Device Settings
   for (int i = 0; i < SLOT_COUNT; i++)
   {
     const auto dev = ExpansionInterface::TEXIDevices(m_slot_combos[i]->currentData().toInt());
@@ -390,5 +526,41 @@ void GameCubePane::SaveSettings()
       break;
     }
   }
+
+#ifdef HAS_LIBMGBA
+  // GBA Settings
+  if (!NetPlay::IsNetPlayRunning())
+  {
+    Config::SetBaseOrCurrent(Config::MAIN_GBA_THREADS, m_gba_threads->isChecked());
+    Config::SetBaseOrCurrent(Config::MAIN_GBA_BIOS_PATH, m_gba_bios_edit->text().toStdString());
+    Config::SetBaseOrCurrent(Config::MAIN_GBA_SAVES_IN_ROM_PATH, m_gba_save_rom_path->isChecked());
+    Config::SetBaseOrCurrent(Config::MAIN_GBA_SAVES_PATH, m_gba_saves_edit->text().toStdString());
+    File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
+    File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
+    for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
+    {
+      Config::SetBaseOrCurrent(Config::MAIN_GBA_ROM_PATHS[i],
+                               m_gba_rom_edits[i]->text().toStdString());
+    }
+
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->SetGBAConfig(server->GetGBAConfig(), true);
+  }
+#endif
+
   LoadSettings();
+}
+
+std::string GameCubePane::GetOpenGBARom(std::string_view title)
+{
+  QString caption = tr("Select GBA ROM");
+  if (!title.empty())
+    caption += QStringLiteral(": %1").arg(QString::fromStdString(std::string(title)));
+  return QDir::toNativeSeparators(
+             QFileDialog::getOpenFileName(
+                 nullptr, caption, QString(),
+                 tr("Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
+                    "All Files (*)")))
+      .toStdString();
 }

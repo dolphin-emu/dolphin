@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/HotkeyScheduler.h"
 
@@ -8,6 +7,7 @@
 #include <cmath>
 #include <thread>
 
+#include <QApplication>
 #include <QCoreApplication>
 
 #include "AudioCommon/AudioCommon.h"
@@ -29,6 +29,10 @@
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
 
+#ifdef HAS_LIBMGBA
+#include "DolphinQt/GBAWidget.h"
+#endif
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -158,10 +162,12 @@ void HotkeyScheduler::Run()
       // Obey window focus (config permitting) before checking hotkeys.
       Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
 
-      HotkeyManagerEmu::GetStatus();
+      HotkeyManagerEmu::GetStatus(false);
 
       // Everything else on the host thread (controller config dialog) should always get input.
       ControlReference::SetInputGate(true);
+
+      HotkeyManagerEmu::GetStatus(true);
 
       if (!Core::IsRunningAndStarted())
         continue;
@@ -185,6 +191,19 @@ void HotkeyScheduler::Run()
         // Prevent fullscreen from getting toggled too often
         Common::SleepCurrentThread(100);
       }
+
+      // add permanent fullscreen hotkey "F + S"
+      if (GetKeyState('F') & 0x8000)
+      {
+        if (GetKeyState('S') & 0x8000)
+        {
+          emit FullScreenHotkey();
+
+          // Prevent fullscreen from getting toggled too often
+          Common::SleepCurrentThread(500);
+        }
+      }
+
 
       // Refresh Game List
       if (IsHotkey(HK_REFRESH_LIST))
@@ -212,6 +231,10 @@ void HotkeyScheduler::Run()
       // Exit
       if (IsHotkey(HK_EXIT))
         emit ExitHotkey();
+
+      // Unlock Cursor
+      if (IsHotkey(HK_UNLOCK_CURSOR))
+        emit UnlockCursor();
 
       auto& settings = Settings::Instance();
 
@@ -517,6 +540,8 @@ void HotkeyScheduler::Run()
           Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
         }
       }
+
+      CheckGBAHotkeys();
     }
 
     const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);
@@ -603,4 +628,43 @@ void HotkeyScheduler::CheckDebuggingHotkeys()
 
   if (IsHotkey(HK_BP_ADD))
     emit AddBreakpoint();
+}
+
+void HotkeyScheduler::CheckGBAHotkeys()
+{
+#ifdef HAS_LIBMGBA
+  GBAWidget* gba_widget = qobject_cast<GBAWidget*>(QApplication::activeWindow());
+  if (!gba_widget)
+    return;
+
+  if (IsHotkey(HK_GBA_LOAD))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->LoadROM(); });
+
+  if (IsHotkey(HK_GBA_UNLOAD))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->UnloadROM(); });
+
+  if (IsHotkey(HK_GBA_RESET))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->ResetCore(); });
+
+  if (IsHotkey(HK_GBA_VOLUME_DOWN))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->VolumeDown(); });
+
+  if (IsHotkey(HK_GBA_VOLUME_UP))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->VolumeUp(); });
+
+  if (IsHotkey(HK_GBA_TOGGLE_MUTE))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->ToggleMute(); });
+
+  if (IsHotkey(HK_GBA_1X))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->Resize(1); });
+
+  if (IsHotkey(HK_GBA_2X))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->Resize(2); });
+
+  if (IsHotkey(HK_GBA_3X))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->Resize(3); });
+
+  if (IsHotkey(HK_GBA_4X))
+    QueueOnObject(gba_widget, [gba_widget] { gba_widget->Resize(4); });
+#endif
 }

@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstring>
@@ -12,7 +11,7 @@
 #include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
-#include "Common/scmrev.h"
+#include "Common/Version.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -59,10 +58,10 @@ IPCReply GetVersion(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const auto length = std::min(size_t(request.io_vectors[0].size), std::strlen(SCM_DESC_STR));
+  const auto length = std::min(size_t(request.io_vectors[0].size), Common::scm_desc_str.size());
 
   Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
-  Memory::CopyToEmu(request.io_vectors[0].address, SCM_DESC_STR, length);
+  Memory::CopyToEmu(request.io_vectors[0].address, Common::scm_desc_str.data(), length);
 
   return IPCReply(IPC_SUCCESS);
 }

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
 
 public class LegacyStringSetting extends AbstractLegacySetting implements AbstractStringSetting

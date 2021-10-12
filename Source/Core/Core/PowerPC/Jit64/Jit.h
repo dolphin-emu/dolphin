@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // ========================
 // See comments in Jit.cpp.
@@ -116,12 +115,16 @@ public:
   void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
+  void FixGTBeforeSettingCRFieldBit(Gen::X64Reg reg);
 
   // Generates a branch that will check if a given bit of a CR register part
   // is set or not.
   Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
-  void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
+  void SetFPRFIfNeeded(const Gen::OpArg& xmm, bool single);
+  void FinalizeSingleResult(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
+                            bool duplicate = false);
+  void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
   void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
                   Gen::X64Reg clobber = Gen::XMM0);
 

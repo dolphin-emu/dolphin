@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/AddressSpace.h"
 
@@ -247,22 +246,22 @@ struct CompositeAddressSpaceAccessors : Accessors
 
   u8 ReadU8(u32 address) const override
   {
-    auto it = FindAppropriateAccessor(address);
-    if (it == m_accessor_mappings.end())
+    auto mapping = FindAppropriateAccessor(address);
+    if (mapping == m_accessor_mappings.end())
     {
       return 0;
     }
-    return it->accessors->ReadU8(address);
+    return mapping->accessors->ReadU8(address - mapping->base);
   }
 
   void WriteU8(u32 address, u8 value) override
   {
-    auto it = FindAppropriateAccessor(address);
-    if (it == m_accessor_mappings.end())
+    auto mapping = FindAppropriateAccessor(address);
+    if (mapping == m_accessor_mappings.end())
     {
       return;
     }
-    return it->accessors->WriteU8(address, value);
+    return mapping->accessors->WriteU8(address - mapping->base, value);
   }
 
   std::optional<u32> Search(u32 haystack_offset, const u8* needle_start, std::size_t needle_size,

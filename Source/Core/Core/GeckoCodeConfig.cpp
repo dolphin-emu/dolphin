@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/GeckoCodeConfig.h"
 
@@ -20,7 +19,9 @@ namespace Gecko
 std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded)
 {
   // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
-  std::string endpoint{"https://codes.rc24.xyz/txt.php?txt=" + gametdb_id};
+  std::string endpoint = (gametdb_id == "GYQE01") ?
+                             "https://pastebin.com/raw/cPBAFkKf" :
+                             "https://codes.rc24.xyz/txt.php?txt=" + gametdb_id;
   Common::HttpRequest http;
 
   // The server always redirects once to the same location.

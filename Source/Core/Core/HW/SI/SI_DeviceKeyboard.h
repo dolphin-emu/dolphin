@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -33,34 +32,6 @@ public:
   void DoState(PointerWrap& p) override;
 
 protected:
-  // Commands
-  enum EBufferCommands
-  {
-    CMD_RESET = 0x00,
-    CMD_DIRECT = 0x54,
-    CMD_ID = 0xff,
-  };
-
-  enum EDirectCommands
-  {
-    CMD_WRITE = 0x40,
-    CMD_POLL = 0x54
-  };
-
-  union UCommand
-  {
-    u32 hex = 0;
-    struct
-    {
-      u32 parameter1 : 8;
-      u32 parameter2 : 8;
-      u32 command : 8;
-      u32 : 8;
-    };
-    UCommand() = default;
-    UCommand(u32 value) : hex{value} {}
-  };
-
   // PADAnalogMode
   u8 m_mode = 0;
 

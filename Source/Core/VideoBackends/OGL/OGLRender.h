@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -126,8 +125,9 @@ public:
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
 
-  u16 BBoxRead(int index) override;
-  void BBoxWrite(int index, u16 value) override;
+  u16 BBoxReadImpl(int index) override;
+  void BBoxWriteImpl(int index, u16 value) override;
+  void BBoxFlushImpl() override;
 
   void BeginUtilityDrawing() override;
   void EndUtilityDrawing() override;

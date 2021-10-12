@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -88,6 +87,8 @@ struct SConfig
 #endif
   bool bAutomaticStart = false;
   bool bBootToPause = false;
+  bool bRecordStats;
+  bool bSubmitStats;
 
   PowerPC::CPUCore cpu_core;
 
@@ -120,7 +121,6 @@ struct SConfig
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
-  bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
@@ -150,6 +150,7 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
+  bool bLockCursor = false;
   std::string theme_name;
 
   // Bluetooth passthrough mode settings
@@ -190,6 +191,7 @@ struct SConfig
   bool m_disc_booted_from_game_list = false;
 
   const std::string& GetGameID() const { return m_game_id; }
+  const std::string& GetGameTDBID() const { return m_gametdb_id; }
   const std::string& GetTitleName() const { return m_title_name; }
   const std::string& GetTitleDescription() const { return m_title_description; }
   u64 GetTitleID() const { return m_title_id; }
@@ -214,10 +216,14 @@ struct SConfig
   DiscIO::Language GetCurrentLanguage(bool wii) const;
   DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
 
+	u16 GetGameRevision() const;
+  std::string GetGameID_Wrapper() const;
+  bool GameHasDefaultGameIni() const;
   IniFile LoadDefaultGameIni() const;
   IniFile LoadLocalGameIni() const;
   IniFile LoadGameIni() const;
 
+  static bool GameHasDefaultGameIni(const std::string& id, u16 revision);
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
@@ -314,7 +320,12 @@ struct SConfig
   // Auto-update settings
   std::string m_auto_update_track;
   std::string m_auto_update_hash_override;
-
+  
+  std::string m_local_player_1{"No Player Selected"};
+  std::string m_local_player_2{"No Player Selected"};
+  std::string m_local_player_3{"No Player Selected"};
+  std::string m_local_player_4{"No Player Selected"};
+  
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -322,6 +333,7 @@ struct SConfig
 
   // Save settings
   void SaveSettings();
+  void SaveLocalSettings();
 
   // Load settings
   void LoadSettings();
@@ -347,7 +359,7 @@ private:
   void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveAutoUpdateSettings(IniFile& ini);
   void SaveJitDebugSettings(IniFile& ini);
-
+  void SaveLocalPlayerSettings(IniFile& ini);
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);

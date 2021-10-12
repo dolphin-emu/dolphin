@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <chrono>
@@ -20,6 +19,9 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#ifdef __APPLE__
+#include "Common/DynamicLibrary.h"
+#endif
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -66,6 +68,18 @@ namespace File
 static std::string s_android_sys_directory;
 #endif
 
+#ifdef __APPLE__
+static Common::DynamicLibrary s_security_framework;
+
+using DolSecTranslocateIsTranslocatedURL = Boolean (*)(CFURLRef path, bool* isTranslocated,
+                                                       CFErrorRef* __nullable error);
+using DolSecTranslocateCreateOriginalPathForURL = CFURLRef
+__nullable (*)(CFURLRef translocatedPath, CFErrorRef* __nullable error);
+
+static DolSecTranslocateIsTranslocatedURL s_is_translocated_url;
+static DolSecTranslocateCreateOriginalPathForURL s_create_orig_path;
+#endif
+
 #ifdef _WIN32
 FileInfo::FileInfo(const std::string& path)
 {
@@ -78,12 +92,6 @@ FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 #else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
-#ifdef ANDROID
-  if (IsPathAndroidContent(path))
-    AndroidContentInit(path);
-  else
-#endif
-    m_exists = stat(path.c_str(), &m_stat) == 0;
 }
 
 FileInfo::FileInfo(const char* path)
@@ -776,16 +784,49 @@ std::string GetTempFilenameForAtomicWrite(std::string path)
 #if defined(__APPLE__)
 std::string GetBundleDirectory()
 {
-  CFURLRef BundleRef;
-  char AppBundlePath[MAXPATHLEN];
-  // Get the main bundle for the app
-  BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-  CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
-  CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
-  CFRelease(BundleRef);
-  CFRelease(BundlePath);
+  CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
 
-  return AppBundlePath;
+  // Starting in macOS Sierra, apps downloaded from the Internet may be
+  // "translocated" to a read-only DMG and executed from there. This is
+  // done to prevent a scenario where an attacker can replace a trusted
+  // app's resources to load untrusted code.
+  //
+  // We should return Dolphin's actual location on the filesystem in
+  // this function, so bundle_ref will be untranslocated if necessary.
+  //
+  // More information: https://objective-see.com/blog/blog_0x15.html
+  if (__builtin_available(macOS 10.12, *))
+  {
+    // The APIs to deal with translocated paths are private, so we have
+    // to dynamically load them from the Security framework.
+    //
+    // The headers can be found under "Security" on opensource.apple.com:
+    // Security/OSX/libsecurity_translocate/lib/SecTranslocate.h
+    if (!s_security_framework.IsOpen())
+    {
+      s_security_framework.Open("/System/Library/Frameworks/Security.framework/Security");
+      s_security_framework.GetSymbol("SecTranslocateIsTranslocatedURL", &s_is_translocated_url);
+      s_security_framework.GetSymbol("SecTranslocateCreateOriginalPathForURL", &s_create_orig_path);
+    }
+
+    bool is_translocated = false;
+    s_is_translocated_url(bundle_ref, &is_translocated, nullptr);
+
+    if (is_translocated)
+    {
+      CFURLRef untranslocated_ref = s_create_orig_path(bundle_ref, nullptr);
+      CFRelease(bundle_ref);
+      bundle_ref = untranslocated_ref;
+    }
+  }
+
+  char app_bundle_path[MAXPATHLEN];
+  CFStringRef bundle_path = CFURLCopyFileSystemPath(bundle_ref, kCFURLPOSIXPathStyle);
+  CFStringGetFileSystemRepresentation(bundle_path, app_bundle_path, sizeof(app_bundle_path));
+  CFRelease(bundle_ref);
+  CFRelease(bundle_path);
+
+  return app_bundle_path;
 }
 #endif
 
@@ -886,6 +927,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_WIIROOT_IDX] = s_user_paths[D_USER_IDX] + WII_USER_DIR;
     s_user_paths[D_CONFIG_IDX] = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
     s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
+    s_user_paths[D_STATFILES_IDX] = s_user_paths[D_USER_IDX] + STATFILES_DIR DIR_SEP;
     s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
     s_user_paths[D_CACHE_IDX] = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
     s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
@@ -913,6 +955,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_RESOURCEPACK_IDX] = s_user_paths[D_USER_IDX] + RESOURCEPACK_DIR DIR_SEP;
     s_user_paths[D_DYNAMICINPUT_IDX] = s_user_paths[D_LOAD_IDX] + DYNAMICINPUT_DIR DIR_SEP;
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+    s_user_paths[F_LOCALPLAYERSCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOCALPLAYERS_CONFIG;
     s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
     s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
@@ -936,6 +979,10 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_MEMORYWATCHERSOCKET_IDX] =
         s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
 
+    s_user_paths[D_GBAUSER_IDX] = s_user_paths[D_USER_IDX] + GBA_USER_DIR DIR_SEP;
+    s_user_paths[D_GBASAVES_IDX] = s_user_paths[D_GBAUSER_IDX] + GBASAVES_DIR DIR_SEP;
+    s_user_paths[F_GBABIOS_IDX] = s_user_paths[D_GBAUSER_IDX] + GBA_BIOS;
+
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
     File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
@@ -943,11 +990,16 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
   case D_CONFIG_IDX:
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+    s_user_paths[F_LOCALPLAYERSCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOCALPLAYERS_CONFIG;
     s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
+    s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
     s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+    s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
+        s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
+    s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
     break;
 
   case D_CACHE_IDX:

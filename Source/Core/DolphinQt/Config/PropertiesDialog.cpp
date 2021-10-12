@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
 
@@ -38,8 +37,9 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   QTabWidget* tab_widget = new QTabWidget(this);
   InfoWidget* info = new InfoWidget(game);
 
-  ARCodeWidget* ar = new ARCodeWidget(game);
-  GeckoCodeWidget* gecko = new GeckoCodeWidget(game);
+  ARCodeWidget* ar = new ARCodeWidget(game.GetGameID(), game.GetRevision());
+  GeckoCodeWidget* gecko =
+      new GeckoCodeWidget(game.GetGameID(), game.GetGameTDBID(), game.GetRevision());
   PatchesWidget* patches = new PatchesWidget(game);
   GameConfigWidget* game_config = new GameConfigWidget(game);
 
@@ -49,7 +49,7 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
   const int padding_width = 120;
-  const int padding_height = 100;
+  const int padding_height = 200;
   tab_widget->addTab(GetWrappedWidget(game_config, this, padding_width, padding_height),
                      tr("Game Config"));
   tab_widget->addTab(GetWrappedWidget(patches, this, padding_width, padding_height), tr("Patches"));
@@ -84,5 +84,33 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   layout->addWidget(close_box);
 
+  setLayout(layout);
+  // tab_widget->setCurrentIndex(3);
+}
+
+GeckoDialog::GeckoDialog(QWidget* parent)
+    : QDialog(parent)
+{
+  setWindowTitle(QStringLiteral("%1 - %2")
+                     .arg(QString::fromStdString("Mario Superstar Baseball Gecko Codes"), QString::fromStdString("(Game ID: GYQE01)")));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+  QVBoxLayout* layout = new QVBoxLayout();
+  QTabWidget* tab_widget = new QTabWidget(this);
+  GeckoCodeWidget* gecko = new GeckoCodeWidget("GYQE01", "GYQE01", 0);
+
+  connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this, &GeckoDialog::OpenGeneralSettings);
+
+  const int padding_width = 120;
+  const int padding_height = 200;
+  
+  tab_widget->addTab(GetWrappedWidget(gecko, this, padding_width, padding_height),tr("Gecko Codes"));
+
+  layout->addWidget(tab_widget);
+  
+  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  
+  layout->addWidget(close_box);
   setLayout(layout);
 }

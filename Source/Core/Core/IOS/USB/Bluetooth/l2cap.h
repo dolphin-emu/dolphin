@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 /*      $NetBSD: l2cap.h,v 1.9 2009/09/13 18:45:11 pooka Exp $  */
 

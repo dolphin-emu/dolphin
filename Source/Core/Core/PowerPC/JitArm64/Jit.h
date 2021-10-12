@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -118,6 +117,9 @@ public:
   void crXXX(UGeckoInstruction inst);
   void mfcr(UGeckoInstruction inst);
   void mtcrf(UGeckoInstruction inst);
+  void mcrfs(UGeckoInstruction inst);
+  void mffsx(UGeckoInstruction inst);
+  void mtfsb0x(UGeckoInstruction inst);
 
   // LoadStore
   void lXX(UGeckoInstruction inst);
@@ -140,6 +142,8 @@ public:
   void fcmpX(UGeckoInstruction inst);
   void frspx(UGeckoInstruction inst);
   void fctiwzx(UGeckoInstruction inst);
+  void fresx(UGeckoInstruction inst);
+  void frsqrtex(UGeckoInstruction inst);
 
   // Paired
   void ps_maddXX(UGeckoInstruction inst);
@@ -147,6 +151,9 @@ public:
   void ps_mulsX(UGeckoInstruction inst);
   void ps_sel(UGeckoInstruction inst);
   void ps_sumX(UGeckoInstruction inst);
+  void ps_res(UGeckoInstruction inst);
+  void ps_rsqrte(UGeckoInstruction inst);
+  void ps_cmpXX(UGeckoInstruction inst);
 
   // Loadstore paired
   void psq_l(UGeckoInstruction inst);
@@ -162,6 +169,8 @@ public:
   void ConvertSingleToDoublePair(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                  Arm64Gen::ARM64Reg src_reg,
                                  Arm64Gen::ARM64Reg scratch_reg = Arm64Gen::ARM64Reg::INVALID_REG);
+
+  void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
   bool IsFPRStoreSafe(size_t guest_reg) const;
 
@@ -232,8 +241,11 @@ protected:
   // AsmRoutines
   void GenerateAsm();
   void GenerateCommonAsm();
+  void GenerateFres();
+  void GenerateFrsqrte();
   void GenerateConvertDoubleToSingle();
   void GenerateConvertSingleToDouble();
+  void GenerateFPRF(bool single);
   void GenerateQuantizedLoadStores();
 
   // Profiling
@@ -243,24 +255,33 @@ protected:
   // Exits
   void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
   void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
-  void WriteExceptionExit(u32 destination, bool only_external = false);
-  void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
+  void WriteExceptionExit(u32 destination, bool only_external = false,
+                          bool always_exception = false);
+  void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
+                          bool always_exception = false);
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+  void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
+  void UpdateRoundingMode();
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u64 imm);
   void ComputeCarry(Arm64Gen::ARM64Reg reg);  // reg must contain 0 or 1
   void ComputeCarry(bool carry);
   void ComputeCarry();
+  void LoadCarry();
   void FlushCarry();
 
   void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
                void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
                                          Arm64Gen::ARM64Reg),
                bool Rc = false);
+
+  void SetFPRFIfNeeded(bool single, Arm64Gen::ARM64Reg reg);
+  void Force25BitPrecision(Arm64Gen::ARM64Reg output, Arm64Gen::ARM64Reg input,
+                           Arm64Gen::ARM64Reg temp);
 
   // <Fastmem fault location, slowmem handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler;
