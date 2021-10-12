@@ -350,7 +350,7 @@ void VertexManagerBase::LoadTextures()
   for (unsigned int i : usedtextures)
     g_texture_cache->Load(i);
 
-  g_texture_cache->BindTextures();
+  g_texture_cache->BindTextures(usedtextures);
 }
 
 void VertexManagerBase::Flush()

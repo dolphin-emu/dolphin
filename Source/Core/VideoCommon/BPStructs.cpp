@@ -32,6 +32,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -353,7 +354,7 @@ static void BPWritten(const BPCmd& bp)
     if (OpcodeDecoder::g_record_fifo_data)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
-    TextureCacheBase::InvalidateAllBindPoints();
+    TMEM::InvalidateAll();
 
     return;
   }
@@ -459,8 +460,7 @@ static void BPWritten(const BPCmd& bp)
   }
     return;
   case BPMEM_TEXINVALIDATE:
-    // TODO: Needs some restructuring in TextureCacheBase.
-    TextureCacheBase::InvalidateAllBindPoints();
+    TMEM::Invalidate(bp.newvalue);
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
@@ -568,7 +568,7 @@ static void BPWritten(const BPCmd& bp)
       if (OpcodeDecoder::g_record_fifo_data)
         FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
 
-      TextureCacheBase::InvalidateAllBindPoints();
+      TMEM::InvalidateAll();
     }
     return;
 
@@ -661,7 +661,7 @@ static void BPWritten(const BPCmd& bp)
     // ------------------------
     case TexUnitAddress::Register::SETMODE0:
     case TexUnitAddress::Register::SETMODE1:
-      TextureCacheBase::InvalidateAllBindPoints();
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
       return;
 
     // --------------------------------------------
@@ -675,7 +675,7 @@ static void BPWritten(const BPCmd& bp)
     case TexUnitAddress::Register::SETIMAGE1:
     case TexUnitAddress::Register::SETIMAGE2:
     case TexUnitAddress::Register::SETIMAGE3:
-      TextureCacheBase::InvalidateAllBindPoints();
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
       return;
 
     // -------------------------------
@@ -683,7 +683,7 @@ static void BPWritten(const BPCmd& bp)
     // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
     // -------------------------------
     case TexUnitAddress::Register::SETTLUT:
-      TextureCacheBase::InvalidateAllBindPoints();
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
       return;
     case TexUnitAddress::Register::UNKNOWN:
       break;  // Not handled

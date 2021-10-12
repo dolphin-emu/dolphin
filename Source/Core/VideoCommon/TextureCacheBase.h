@@ -14,6 +14,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -175,6 +176,7 @@ public:
 
     bool IsEfbCopy() const { return is_efb_copy; }
     bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
+    u32 NumBlocksX() const;
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 
@@ -214,13 +216,11 @@ public:
   void Invalidate();
 
   TCacheEntry* Load(const u32 stage);
-  static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
-  static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
   TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 
-  virtual void BindTextures();
+  virtual void BindTextures(BitSet32 used_textures);
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy,
                                  const MathUtil::Rectangle<int>& srcRect, bool isIntensity,

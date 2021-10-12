@@ -43,6 +43,7 @@
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -56,8 +57,6 @@ static const int TEXTURE_KILL_THRESHOLD = 64;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
-
-std::bitset<8> TextureCacheBase::valid_bind_points;
 
 TextureCacheBase::TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                                            std::unique_ptr<AbstractFramebuffer> fb)
@@ -95,7 +94,7 @@ TextureCacheBase::TextureCacheBase()
 
   Common::SetHash64Function();
 
-  InvalidateAllBindPoints();
+  TMEM::InvalidateAll();
 }
 
 TextureCacheBase::~TextureCacheBase()
@@ -123,7 +122,7 @@ bool TextureCacheBase::Initialize()
 void TextureCacheBase::Invalidate()
 {
   FlushEFBCopies();
-  InvalidateAllBindPoints();
+  TMEM::InvalidateAll();
 
   bound_textures.fill(nullptr);
   for (auto& tex : textures_by_address)
@@ -1026,12 +1025,12 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   g_renderer->SetSamplerState(index, state);
 }
 
-void TextureCacheBase::BindTextures()
+void TextureCacheBase::BindTextures(BitSet32 used_textures)
 {
   for (u32 i = 0; i < bound_textures.size(); i++)
   {
     const TCacheEntry* tentry = bound_textures[i];
-    if (IsValidBindPoint(i) && tentry)
+    if (used_textures[i] && tentry)
     {
       g_renderer->SetTexture(i, tentry->texture.get());
       PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
@@ -1040,6 +1039,8 @@ void TextureCacheBase::BindTextures()
       SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
     }
   }
+
+  TMEM::FinalizeBinds(used_textures);
 }
 
 class ArbitraryMipmapDetector
@@ -1190,9 +1191,22 @@ private:
 TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (IsValidBindPoint(stage) && bound_textures[stage])
+  if (TMEM::IsValid(stage) && bound_textures[stage])
   {
-    return bound_textures[stage];
+    TCacheEntry* entry = bound_textures[stage];
+    // If the TMEM configuration is such that this texture is more or less guaranteed to still
+    // be in TMEM, then we know we can reuse the old entry without even hashing the memory
+    if (TMEM::IsCached(stage))
+    {
+      return entry;
+    }
+
+    // Otherwise, hash the backing memory and check it's unchanged.
+    // FIXME: this doesn't correctly handle textures from tmem.
+    if (!entry->tmem_only && entry->base_hash == entry->CalculateHash())
+    {
+      return entry;
+    }
   }
 
   TextureInfo texture_info = TextureInfo::FromStage(stage);
@@ -1207,7 +1221,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
   // We need to keep track of invalided textures until they have actually been replaced or
   // re-loaded
-  valid_bind_points.set(stage);
+  TMEM::Bind(stage, entry->NumBlocksX(), entry->NumBlocksY(), entry->GetNumLevels() > 1,
+             entry->format == TextureFormat::RGBA8);
 
   return entry;
 }
@@ -1510,7 +1525,7 @@ TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize, Textur
   const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : texture_info.GetLevelCount();
 
   // We can decode on the GPU if it is a supported format and the flag is enabled.
-  // Currently we don't decode RGBA8 textures from Tmem, as that would require copying from both
+  // Currently we don't decode RGBA8 textures from TMEM, as that would require copying from both
   // banks, and if we're doing an copy we may as well just do the whole thing on the CPU, since
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
@@ -2537,13 +2552,21 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
 
   for (size_t i = 0; i < bound_textures.size(); ++i)
   {
-    // If the entry is currently bound and not invalidated, keep it, but mark it as invalidated.
-    // This way it can still be used via tmem cache emulation, but nothing else.
-    // Spyro: A Hero's Tail is known for using such overwritten textures.
-    if (bound_textures[i] == entry && IsValidBindPoint(static_cast<u32>(i)))
+    if (bound_textures[i] == entry)
     {
-      bound_textures[i]->tmem_only = true;
-      return ++iter;
+      if (TMEM::IsCached(static_cast<u32>(i)))
+      {
+        // If the entry is currently bound and tmem has it recorded as cached, keep it, but mark it
+        // as invalidated. This way it can still be used via tmem cache emulation, but nothing else.
+        // Spyro: A Hero's Tail is known for using such overwritten textures.
+        bound_textures[i]->tmem_only = true;
+        return ++iter;
+      }
+      else
+      {
+        // Otherwise, delete the reference to it from bound_textures
+        bound_textures[i] = nullptr;
+      }
     }
   }
 
@@ -2816,17 +2839,20 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
 
 u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
 {
+  // RGBA takes two cache lines per block; all others take one
+  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
+
+  return NumBlocksX() * bytes_per_block;
+}
+
+u32 TextureCacheBase::TCacheEntry::NumBlocksX() const
+{
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
   // Round up source height to multiple of block size
   const u32 actualWidth = Common::AlignUp(native_width, blockW);
 
-  const u32 numBlocksX = actualWidth / blockW;
-
-  // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
-
-  return numBlocksX * bytes_per_block;
+  return actualWidth / blockW;
 }
 
 u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
@@ -2883,6 +2909,8 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
 {
   const u32 bytes_per_row = BytesPerRow();
   const u32 hash_sample_size = HashSampleSize();
+
+  // FIXME: textures from tmem won't get the correct hash.
   u8* ptr = Memory::GetPointer(addr);
   if (memory_stride == bytes_per_row)
   {

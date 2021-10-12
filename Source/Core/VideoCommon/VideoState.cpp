@@ -13,6 +13,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -45,6 +46,10 @@ void VideoCommon_DoState(PointerWrap& p)
   // Texture decoder
   p.DoArray(texMem);
   p.DoMarker("texMem");
+
+  // TMEM
+  TMEM::DoState(p);
+  p.DoMarker("TMEM");
 
   // FIFO
   Fifo::DoState(p);
