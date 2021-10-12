@@ -19,7 +19,6 @@ struct CallstackEntry
 };
 
 bool GetCallstack(std::vector<CallstackEntry>& output);
-void PrintCallstack();
 void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level);
 void PrintDataBuffer(Common::Log::LOG_TYPE type, const u8* data, size_t size,
                      std::string_view title);

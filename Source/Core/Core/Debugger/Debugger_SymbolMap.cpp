@@ -97,28 +97,6 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   return true;
 }
 
-void PrintCallstack()
-{
-  fmt::print("== STACK TRACE - SP = {:08x} ==", PowerPC::ppcState.gpr[1]);
-
-  if (LR == 0)
-  {
-    fmt::print(" LR = 0 - this is bad");
-  }
-
-  if (g_symbolDB.GetDescription(PC) != g_symbolDB.GetDescription(LR))
-  {
-    fmt::print(" * {}  [ LR = {:08x} ]", g_symbolDB.GetDescription(LR), LR);
-  }
-
-  WalkTheStack([](u32 func_addr) {
-    std::string func_desc = g_symbolDB.GetDescription(func_addr);
-    if (func_desc.empty() || func_desc == "Invalid")
-      func_desc = "(unknown)";
-    fmt::print(" * {} [ addr = {:08x} ]", func_desc, func_addr);
-  });
-}
-
 void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level)
 {
   GENERIC_LOG_FMT(type, level, "== STACK TRACE - SP = {:08x} ==", PowerPC::ppcState.gpr[1]);
