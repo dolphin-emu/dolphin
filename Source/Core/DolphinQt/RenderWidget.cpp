@@ -454,6 +454,8 @@ bool RenderWidget::event(QEvent* event)
   case QEvent::Close:
     emit Closed();
     break;
+  default:
+    break;
   }
   return QWidget::event(event);
 }
