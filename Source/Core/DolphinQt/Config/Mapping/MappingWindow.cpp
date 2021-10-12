@@ -14,6 +14,7 @@
 #include <QVBoxLayout>
 
 #include "Core/Core.h"
+#include "Core/HotkeyManager.h"
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -44,6 +45,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -77,6 +79,14 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
 
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
+
+  auto* filter = new WindowActivationEventFilter(this);
+  installEventFilter(filter);
+
+  filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
+                  [] { HotkeyManagerEmu::Enable(true); });
+  filter->connect(filter, &WindowActivationEventFilter::windowActivated,
+                  [] { HotkeyManagerEmu::Enable(false); });
 }
 
 void MappingWindow::CreateDevicesLayout()
