@@ -145,7 +145,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("HideCursor", bHideCursor);
+  interface->Set("CursorVisibility", m_show_cursor);
   interface->Set("LockCursor", bLockCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
@@ -399,7 +399,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("CursorVisibility", &m_show_cursor, ShowCursor::OnMovement);
   interface->Get("LockCursor", &bLockCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
