@@ -4,9 +4,11 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -48,6 +50,25 @@ void JitArm64::FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg)
   gpr.Unlock(WA);
 }
 
+void JitArm64::UpdateFPExceptionSummary(ARM64Reg fpscr)
+{
+  ARM64Reg WA = gpr.GetReg();
+
+  // fpscr.VX = (fpscr & FPSCR_VX_ANY) != 0
+  MOVI2R(WA, FPSCR_VX_ANY);
+  TST(WA, fpscr);
+  CSET(WA, CCFlags::CC_NEQ);
+  BFI(fpscr, WA, IntLog2(FPSCR_VX), 1);
+
+  // fpscr.FEX = ((fpscr >> 22) & (fpscr & FPSCR_ANY_E)) != 0
+  AND(WA, fpscr, LogicalImm(FPSCR_ANY_E, 32));
+  TST(WA, fpscr, ArithOption(fpscr, ShiftType::LSR, 22));
+  CSET(WA, CCFlags::CC_NEQ);
+  BFI(fpscr, WA, IntLog2(FPSCR_FEX), 1);
+
+  gpr.Unlock(WA);
+}
+
 void JitArm64::UpdateRoundingMode()
 {
   const BitSet32 gprs_to_save = gpr.GetCallerSavedUsed();
@@ -65,6 +86,7 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   gpr.BindToRegister(inst.RS, true);
   STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
@@ -232,6 +254,9 @@ void JitArm64::twx(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
   ORR(WA, WA, LogicalImm(EXCEPTION_PROGRAM, 32));
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+
+  MOVI2R(WA, static_cast<u32>(ProgramExceptionCause::Trap));
+  STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR1));
 
   WriteExceptionExit(js.compilerPC, false, true);
 
@@ -728,6 +753,8 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
   {
     const u32 inverted_mask = ~mask;
     AND(WA, WA, LogicalImm(inverted_mask, 32));
+
+    UpdateFPExceptionSummary(WA);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
   }
 
@@ -749,24 +776,11 @@ void JitArm64::mffsx(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
   ARM64Reg VD = fpr.RW(inst.FD, RegType::LowerPair);
-  ARM64Reg WB = gpr.GetReg();
 
-  // FPSCR.FEX = 0;
-  // FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
-  // (FEX is right next to VX, so we can set both using one BFI instruction)
-  MOVI2R(WB, FPSCR_VX_ANY);
-  TST(WA, WB);
-  CSET(WB, CCFlags::CC_NEQ);
-  BFI(WA, WB, 31 - 2, 2);
-
-  STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
-
-  // Vd = FPSCR.Hex | 0xFFF8'0000'0000'0000;
   ORR(XA, XA, LogicalImm(0xFFF8'0000'0000'0000, 64));
   m_float_emit.FMOV(EncodeRegToDouble(VD), XA);
 
   gpr.Unlock(WA);
-  gpr.Unlock(WB);
 }
 
 void JitArm64::mtfsb0x(UGeckoInstruction inst)
@@ -775,12 +789,20 @@ void JitArm64::mtfsb0x(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
 
-  u32 mask = ~(0x80000000 >> inst.CRBD);
+  const u32 mask = 0x80000000 >> inst.CRBD;
+  const u32 inverted_mask = ~mask;
+
+  if (mask == FPSCR_FEX || mask == FPSCR_VX)
+    return;
 
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
-  AND(WA, WA, LogicalImm(mask, 32));
+
+  AND(WA, WA, LogicalImm(inverted_mask, 32));
+
+  if ((mask & (FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+    UpdateFPExceptionSummary(WA);
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
   gpr.Unlock(WA);
@@ -794,13 +816,18 @@ void JitArm64::mtfsb1x(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
-  u32 mask = 0x80000000 >> inst.CRBD;
+  const u32 mask = 0x80000000 >> inst.CRBD;
+
+  if (mask == FPSCR_FEX || mask == FPSCR_VX)
+    return;
 
   ARM64Reg WA = gpr.GetReg();
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
-  if (mask & FPSCR_ANY_X)
+
+  if ((mask & FPSCR_ANY_X) != 0)
   {
     ARM64Reg WB = gpr.GetReg();
     TST(WA, LogicalImm(mask, 32));
@@ -809,6 +836,9 @@ void JitArm64::mtfsb1x(UGeckoInstruction inst)
     gpr.Unlock(WB);
   }
   ORR(WA, WA, LogicalImm(mask, 32));
+
+  if ((mask & (FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+    UpdateFPExceptionSummary(WA);
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
   gpr.Unlock(WA);
@@ -822,16 +852,19 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   u8 imm = (inst.hex >> (31 - 19)) & 0xF;
   u8 shift = 28 - 4 * inst.CRFD;
+  u32 mask = 0xF << shift;
 
   ARM64Reg WA = gpr.GetReg();
+
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
   if (imm == 0xF)
   {
-    ORR(WA, WA, LogicalImm(0xF << shift, 32));
+    ORR(WA, WA, LogicalImm(mask, 32));
   }
   else if (imm == 0x0)
   {
@@ -845,7 +878,10 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
     gpr.Unlock(WB);
   }
 
+  if ((mask & (FPSCR_FEX | FPSCR_VX | FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+    UpdateFPExceptionSummary(WA);
   STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+
   gpr.Unlock(WA);
 
   // Field 7 contains NI and RN.
@@ -858,6 +894,7 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
   for (int i = 0; i < 8; i++)
@@ -869,24 +906,47 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   if (mask == 0xFFFFFFFF)
   {
     ARM64Reg VB = fpr.R(inst.FB, RegType::LowerPair);
+    ARM64Reg WA = gpr.GetReg();
 
-    m_float_emit.STR(32, IndexType::Unsigned, VB, PPC_REG, PPCSTATE_OFF(fpscr));
+    m_float_emit.FMOV(WA, EncodeRegToSingle(VB));
+
+    UpdateFPExceptionSummary(WA);
+    STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+
+    gpr.Unlock(WA);
   }
   else if (mask != 0)
   {
     ARM64Reg VB = fpr.R(inst.FB, RegType::LowerPair);
-
-    ARM64Reg V0 = fpr.GetReg();
-    ARM64Reg V1 = fpr.GetReg();
     ARM64Reg WA = gpr.GetReg();
+    ARM64Reg WB = gpr.GetReg();
 
-    m_float_emit.LDR(32, IndexType::Unsigned, V0, PPC_REG, PPCSTATE_OFF(fpscr));
-    MOVI2R(WA, mask);
-    m_float_emit.FMOV(EncodeRegToSingle(V1), WA);
-    m_float_emit.BIT(EncodeRegToDouble(V0), EncodeRegToDouble(VB), EncodeRegToDouble(V1));
-    m_float_emit.STR(32, IndexType::Unsigned, V0, PPC_REG, PPCSTATE_OFF(fpscr));
+    LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+    m_float_emit.FMOV(WB, EncodeRegToSingle(VB));
 
-    fpr.Unlock(V0, V1);
+    if (LogicalImm imm = LogicalImm(mask, 32))
+    {
+      AND(WA, WA, LogicalImm(~mask, 32));
+      AND(WB, WB, imm);
+    }
+    else
+    {
+      ARM64Reg WC = gpr.GetReg();
+
+      MOVI2R(WC, mask);
+      BIC(WA, WA, WC);
+      AND(WB, WB, WC);
+
+      gpr.Unlock(WC);
+    }
+    ORR(WA, WA, WB);
+
+    gpr.Unlock(WB);
+
+    if ((mask & (FPSCR_FEX | FPSCR_VX | FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+      UpdateFPExceptionSummary(WA);
+    STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
+
     gpr.Unlock(WA);
   }
 

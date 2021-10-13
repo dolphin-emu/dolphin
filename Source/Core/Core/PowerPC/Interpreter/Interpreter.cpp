@@ -180,7 +180,7 @@ int Interpreter::SingleStepInner()
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
-      GenerateProgramException();
+      GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
     else if (MSR.FP)
