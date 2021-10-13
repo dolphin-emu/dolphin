@@ -120,94 +120,96 @@ struct NetTraversalConfig
   u16 traversal_port = 0;
 };
 
-// messages
-enum
+enum class MessageID : u8
 {
-  NP_MSG_PLAYER_JOIN = 0x10,
-  NP_MSG_PLAYER_LEAVE = 0x11,
+  ConnectionSuccessful = 0,
 
-  NP_MSG_CHAT_MESSAGE = 0x30,
+  PlayerJoin = 0x10,
+  PlayerLeave = 0x11,
 
-  NP_MSG_CHUNKED_DATA_START = 0x40,
-  NP_MSG_CHUNKED_DATA_END = 0x41,
-  NP_MSG_CHUNKED_DATA_PAYLOAD = 0x42,
-  NP_MSG_CHUNKED_DATA_PROGRESS = 0x43,
-  NP_MSG_CHUNKED_DATA_COMPLETE = 0x44,
-  NP_MSG_CHUNKED_DATA_ABORT = 0x45,
+  ChatMessage = 0x30,
 
-  NP_MSG_PAD_DATA = 0x60,
-  NP_MSG_PAD_MAPPING = 0x61,
-  NP_MSG_PAD_BUFFER = 0x62,
-  NP_MSG_PAD_HOST_DATA = 0x63,
-  NP_MSG_GBA_CONFIG = 0x64,
+  ChunkedDataStart = 0x40,
+  ChunkedDataEnd = 0x41,
+  ChunkedDataPayload = 0x42,
+  ChunkedDataProgress = 0x43,
+  ChunkedDataComplete = 0x44,
+  ChunkedDataAbort = 0x45,
 
-  NP_MSG_WIIMOTE_DATA = 0x70,
-  NP_MSG_WIIMOTE_MAPPING = 0x71,
+  PadData = 0x60,
+  PadMapping = 0x61,
+  PadBuffer = 0x62,
+  PadHostData = 0x63,
+  GBAConfig = 0x64,
 
-  NP_MSG_GOLF_REQUEST = 0x90,
-  NP_MSG_GOLF_SWITCH = 0x91,
-  NP_MSG_GOLF_ACQUIRE = 0x92,
-  NP_MSG_GOLF_RELEASE = 0x93,
-  NP_MSG_GOLF_PREPARE = 0x94,
+  WiimoteData = 0x70,
+  WiimoteMapping = 0x71,
 
-  NP_MSG_START_GAME = 0xA0,
-  NP_MSG_CHANGE_GAME = 0xA1,
-  NP_MSG_STOP_GAME = 0xA2,
-  NP_MSG_DISABLE_GAME = 0xA3,
-  NP_MSG_GAME_STATUS = 0xA4,
-  NP_MSG_CLIENT_CAPABILITIES = 0xA5,
-  NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
-  NP_MSG_POWER_BUTTON = 0xA7,
+  GolfRequest = 0x90,
+  GolfSwitch = 0x91,
+  GolfAcquire = 0x92,
+  GolfRelease = 0x93,
+  GolfPrepare = 0x94,
 
-  NP_MSG_TIMEBASE = 0xB0,
-  NP_MSG_DESYNC_DETECTED = 0xB1,
+  StartGame = 0xA0,
+  ChangeGame = 0xA1,
+  StopGame = 0xA2,
+  DisableGame = 0xA3,
+  GameStatus = 0xA4,
+  ClientCapabilities = 0xA5,
+  HostInputAuthority = 0xA6,
+  PowerButton = 0xA7,
 
-  NP_MSG_COMPUTE_MD5 = 0xC0,
-  NP_MSG_MD5_PROGRESS = 0xC1,
-  NP_MSG_MD5_RESULT = 0xC2,
-  NP_MSG_MD5_ABORT = 0xC3,
-  NP_MSG_MD5_ERROR = 0xC4,
+  TimeBase = 0xB0,
+  DesyncDetected = 0xB1,
 
-  NP_MSG_READY = 0xD0,
-  NP_MSG_NOT_READY = 0xD1,
+  ComputeMD5 = 0xC0,
+  MD5Progress = 0xC1,
+  MD5Result = 0xC2,
+  MD5Abort = 0xC3,
+  MD5Error = 0xC4,
 
-  NP_MSG_PING = 0xE0,
-  NP_MSG_PONG = 0xE1,
-  NP_MSG_PLAYER_PING_DATA = 0xE2,
+  Ready = 0xD0,
+  NotReady = 0xD1,
 
-  NP_MSG_SYNC_GC_SRAM = 0xF0,
-  NP_MSG_SYNC_SAVE_DATA = 0xF1,
-  NP_MSG_SYNC_CODES = 0xF2,
+  Ping = 0xE0,
+  Pong = 0xE1,
+  PlayerPingData = 0xE2,
+
+  SyncGCSRAM = 0xF0,
+  SyncSaveData = 0xF1,
+  SyncCodes = 0xF2,
 };
 
-enum
+enum class ConnectionError : u8
 {
-  CON_ERR_SERVER_FULL = 1,
-  CON_ERR_GAME_RUNNING = 2,
-  CON_ERR_VERSION_MISMATCH = 3,
-  CON_ERR_NAME_TOO_LONG = 4
+  NoError = 0,
+  ServerFull = 1,
+  GameRunning = 2,
+  VersionMismatch = 3,
+  NameTooLong = 4
 };
 
-enum
+enum class SyncSaveDataID : u8
 {
-  SYNC_SAVE_DATA_NOTIFY = 0,
-  SYNC_SAVE_DATA_SUCCESS = 1,
-  SYNC_SAVE_DATA_FAILURE = 2,
-  SYNC_SAVE_DATA_RAW = 3,
-  SYNC_SAVE_DATA_GCI = 4,
-  SYNC_SAVE_DATA_WII = 5,
-  SYNC_SAVE_DATA_GBA = 6
+  Notify = 0,
+  Success = 1,
+  Failure = 2,
+  RawData = 3,
+  GCIData = 4,
+  WiiData = 5,
+  GBAData = 6
 };
 
-enum
+enum class SyncCodeID : u8
 {
-  SYNC_CODES_NOTIFY = 0,
-  SYNC_CODES_NOTIFY_GECKO = 1,
-  SYNC_CODES_NOTIFY_AR = 2,
-  SYNC_CODES_DATA_GECKO = 3,
-  SYNC_CODES_DATA_AR = 4,
-  SYNC_CODES_SUCCESS = 5,
-  SYNC_CODES_FAILURE = 6,
+  Notify = 0,
+  NotifyGecko = 1,
+  NotifyAR = 2,
+  GeckoData = 3,
+  ARData = 4,
+  Success = 5,
+  Failure = 6,
 };
 
 constexpr u32 MAX_NAME_LENGTH = 30;
@@ -225,7 +227,6 @@ struct WiimoteInput
   u8 report_id;
   std::vector<u8> data;
 };
-using MessageId = u8;
 using PlayerId = u8;
 using FrameNum = u32;
 using PadIndex = s8;
