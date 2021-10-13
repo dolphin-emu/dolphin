@@ -205,5 +205,5 @@ private:
 
   // This array is indexed with the masked PC and likely holds the correct block id.
   // This is used as a fast cache of block_map used in the assembly dispatcher.
-  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map;  // start_addr & mask -> number
+  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map{};  // start_addr & mask -> number
 };

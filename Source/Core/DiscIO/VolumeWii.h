@@ -122,7 +122,7 @@ private:
     Common::Lazy<std::vector<u8>> h3_table;
     Common::Lazy<std::unique_ptr<FileSystem>> file_system;
     Common::Lazy<u64> data_offset;
-    u32 type;
+    u32 type = 0;
   };
 
   std::unique_ptr<BlobReader> m_reader;
@@ -131,7 +131,7 @@ private:
   bool m_encrypted;
 
   mutable u64 m_last_decrypted_block;
-  mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];
+  mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE]{};
 };
 
 }  // namespace DiscIO

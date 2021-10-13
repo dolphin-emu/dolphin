@@ -49,7 +49,7 @@ struct TodoList
   struct DownloadOp
   {
     Manifest::Filename filename;
-    Manifest::Hash hash;
+    Manifest::Hash hash{};
   };
   std::vector<DownloadOp> to_download;
 
@@ -57,14 +57,14 @@ struct TodoList
   {
     Manifest::Filename filename;
     std::optional<Manifest::Hash> old_hash;
-    Manifest::Hash new_hash;
+    Manifest::Hash new_hash{};
   };
   std::vector<UpdateOp> to_update;
 
   struct DeleteOp
   {
     Manifest::Filename filename;
-    Manifest::Hash old_hash;
+    Manifest::Hash old_hash{};
   };
   std::vector<DeleteOp> to_delete;
 

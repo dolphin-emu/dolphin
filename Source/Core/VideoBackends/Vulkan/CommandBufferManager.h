@@ -120,7 +120,7 @@ private:
   u64 m_completed_fence_counter = 0;
 
   std::array<FrameResources, NUM_COMMAND_BUFFERS> m_frame_resources;
-  u32 m_current_frame;
+  u32 m_current_frame = 0;
 
   // Threaded command buffer execution
   // Semaphore determines when a command buffer can be queued

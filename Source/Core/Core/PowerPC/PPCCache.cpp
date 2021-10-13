@@ -87,10 +87,6 @@ constexpr std::array<u32, 128> s_way_from_plru = [] {
 }();
 }  // Anonymous namespace
 
-InstructionCache::InstructionCache()
-{
-}
-
 void InstructionCache::Reset()
 {
   valid.fill(0);

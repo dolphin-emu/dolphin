@@ -113,14 +113,14 @@ static_assert(std::is_standard_layout<PairedSingle>(), "PairedSingle must be sta
 // Unfortunately not all of those fit in 520 bytes, but we can fit most of ps and all of the rest.
 struct PowerPCState
 {
-  u32 pc;  // program counter
-  u32 npc;
+  u32 pc = 0;  // program counter
+  u32 npc = 0;
 
   // gather pipe pointer for JIT access
-  u8* gather_pipe_ptr;
-  u8* gather_pipe_base_ptr;
+  u8* gather_pipe_ptr = nullptr;
+  u8* gather_pipe_base_ptr = nullptr;
 
-  u32 gpr[32];  // General purpose registers. r1 = stack pointer.
+  u32 gpr[32]{};  // General purpose registers. r1 = stack pointer.
 
 #ifndef _M_X86_64
   // The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
@@ -129,25 +129,25 @@ struct PowerPCState
   alignas(16) PairedSingle ps[32];
 #endif
 
-  ConditionRegister cr;
+  ConditionRegister cr{};
 
   UReg_MSR msr;      // machine state register
   UReg_FPSCR fpscr;  // floating point flags/status bits
 
   // Exception management.
-  u32 Exceptions;
+  u32 Exceptions = 0;
 
   // Downcount for determining when we need to do timing
   // This isn't quite the right location for it, but it is here to accelerate the ARM JIT
   // This variable should be inside of the CoreTiming namespace if we wanted to be correct.
-  int downcount;
+  int downcount = 0;
 
   // XER, reformatted into byte fields for easier access.
-  u8 xer_ca;
-  u8 xer_so_ov;  // format: (SO << 1) | OV
+  u8 xer_ca = 0;
+  u8 xer_so_ov = 0;  // format: (SO << 1) | OV
   // The Broadway CPU implements bits 16-23 of the XER register... even though it doesn't support
   // lscbx
-  u16 xer_stringctrl;
+  u16 xer_stringctrl = 0;
 
 #if _M_X86_64
   // This member exists only for the purpose of an assertion that its offset <= 0x100.
@@ -156,19 +156,19 @@ struct PowerPCState
   alignas(16) PairedSingle ps[32];
 #endif
 
-  u32 sr[16];  // Segment registers.
+  u32 sr[16]{};  // Segment registers.
 
   // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
   // also for power management, but we don't care about that.
-  u32 spr[1024];
+  u32 spr[1024]{};
 
   // Storage for the stack pointer of the BLR optimization.
-  u8* stored_stack_pointer;
+  u8* stored_stack_pointer = nullptr;
 
   std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
-  u32 pagetable_base;
-  u32 pagetable_hashmask;
+  u32 pagetable_base = 0;
+  u32 pagetable_hashmask = 0;
 
   InstructionCache iCache;
 

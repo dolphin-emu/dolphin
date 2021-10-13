@@ -79,10 +79,6 @@ Common::Quaternion ComplementaryFilter(const Common::Quaternion& gyroscope,
   }
 }
 
-IMUCursorState::IMUCursorState() : rotation{Common::Quaternion::Identity()}
-{
-}
-
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
                   float time_elapsed)
 {

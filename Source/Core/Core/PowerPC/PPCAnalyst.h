@@ -24,29 +24,29 @@ namespace PPCAnalyst
 struct CodeOp  // 16B
 {
   UGeckoInstruction inst;
-  GekkoOPInfo* opinfo;
-  u32 address;
-  u32 branchTo;  // if UINT32_MAX, not a branch
+  GekkoOPInfo* opinfo = nullptr;
+  u32 address = 0;
+  u32 branchTo = 0;  // if UINT32_MAX, not a branch
   BitSet32 regsOut;
   BitSet32 regsIn;
   BitSet32 fregsIn;
-  s8 fregOut;
-  bool isBranchTarget;
-  bool branchUsesCtr;
-  bool branchIsIdleLoop;
-  bool wantsCR0;
-  bool wantsCR1;
-  bool wantsFPRF;
-  bool wantsCA;
-  bool wantsCAInFlags;
-  bool outputCR0;
-  bool outputCR1;
-  bool outputFPRF;
-  bool outputCA;
-  bool canEndBlock;
-  bool canCauseException;
-  bool skipLRStack;
-  bool skip;  // followed BL-s for example
+  s8 fregOut = 0;
+  bool isBranchTarget = false;
+  bool branchUsesCtr = false;
+  bool branchIsIdleLoop = false;
+  bool wantsCR0 = false;
+  bool wantsCR1 = false;
+  bool wantsFPRF = false;
+  bool wantsCA = false;
+  bool wantsCAInFlags = false;
+  bool outputCR0 = false;
+  bool outputCR1 = false;
+  bool outputFPRF = false;
+  bool outputCA = false;
+  bool canEndBlock = false;
+  bool canCauseException = false;
+  bool skipLRStack = false;
+  bool skip = false;  // followed BL-s for example
   // which registers are still needed after this instruction in this block
   BitSet32 fprInUse;
   BitSet32 gprInUse;
@@ -138,23 +138,24 @@ using CodeBuffer = std::vector<CodeOp>;
 struct CodeBlock
 {
   // Beginning PPC address.
-  u32 m_address;
+  u32 m_address = 0;
 
   // Number of instructions
   // Gives us the size of the block.
-  u32 m_num_instructions;
+  u32 m_num_instructions = 0;
 
   // Some basic statistics about the block.
-  BlockStats* m_stats;
+  BlockStats* m_stats = nullptr;
 
   // Register statistics about the block.
-  BlockRegStats *m_gpa, *m_fpa;
+  BlockRegStats* m_gpa = nullptr;
+  BlockRegStats* m_fpa = nullptr;
 
   // Are we a broken block?
-  bool m_broken;
+  bool m_broken = false;
 
   // Did we have a memory_exception?
-  bool m_memory_exception;
+  bool m_memory_exception = false;
 
   // Which GQRs this block uses, if any.
   BitSet8 m_gqr_used;

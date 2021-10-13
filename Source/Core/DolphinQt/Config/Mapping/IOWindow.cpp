@@ -207,7 +207,7 @@ public:
 
 private:
   std::function<ControlState()> m_state_evaluator;
-  bool m_should_paint_state_indicator;
+  bool m_should_paint_state_indicator = false;
 };
 
 IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,

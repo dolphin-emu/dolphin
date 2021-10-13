@@ -82,11 +82,11 @@ public:
 class Player
 {
 public:
-  PlayerId pid;
+  PlayerId pid{};
   std::string name;
   std::string revision;
-  u32 ping;
-  SyncIdentifierComparison game_status;
+  u32 ping = 0;
+  SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -153,7 +153,7 @@ protected:
   struct AsyncQueueEntry
   {
     sf::Packet packet;
-    u8 channel_id;
+    u8 channel_id = 0;
   };
 
   void ClearBuffers();

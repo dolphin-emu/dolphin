@@ -26,7 +26,7 @@ private:
   struct ActiveQuery
   {
     ComPtr<ID3D11Query> query;
-    PerfQueryGroup query_type;
+    PerfQueryGroup query_type{};
   };
 
   void WeakFlush();

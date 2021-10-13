@@ -28,84 +28,84 @@ namespace NetPlay
 {
 struct NetSettings
 {
-  bool m_CPUthread;
-  PowerPC::CPUCore m_CPUcore;
-  bool m_EnableCheats;
-  int m_SelectedLanguage;
-  bool m_OverrideRegionSettings;
-  bool m_DSPHLE;
-  bool m_DSPEnableJIT;
-  bool m_WriteToMemcard;
-  bool m_RAMOverrideEnable;
-  u32 m_Mem1Size;
-  u32 m_Mem2Size;
-  DiscIO::Region m_FallbackRegion;
-  bool m_AllowSDWrites;
-  bool m_CopyWiiSave;
-  bool m_OCEnable;
-  float m_OCFactor;
-  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
+  bool m_CPUthread = false;
+  PowerPC::CPUCore m_CPUcore{};
+  bool m_EnableCheats = false;
+  int m_SelectedLanguage = 0;
+  bool m_OverrideRegionSettings = false;
+  bool m_DSPHLE = false;
+  bool m_DSPEnableJIT = false;
+  bool m_WriteToMemcard = false;
+  bool m_RAMOverrideEnable = false;
+  u32 m_Mem1Size = 0;
+  u32 m_Mem2Size = 0;
+  DiscIO::Region m_FallbackRegion{};
+  bool m_AllowSDWrites = false;
+  bool m_CopyWiiSave = false;
+  bool m_OCEnable = false;
+  float m_OCFactor = 0;
+  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice{};
 
-  std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings;
+  std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings{};
 
-  bool m_EFBAccessEnable;
-  bool m_BBoxEnable;
-  bool m_ForceProgressive;
-  bool m_EFBToTextureEnable;
-  bool m_XFBToTextureEnable;
-  bool m_DisableCopyToVRAM;
-  bool m_ImmediateXFBEnable;
-  bool m_EFBEmulateFormatChanges;
-  int m_SafeTextureCacheColorSamples;
-  bool m_PerfQueriesEnable;
-  bool m_FloatExceptions;
-  bool m_DivideByZeroExceptions;
-  bool m_FPRF;
-  bool m_AccurateNaNs;
-  bool m_DisableICache;
-  bool m_SyncOnSkipIdle;
-  bool m_SyncGPU;
-  int m_SyncGpuMaxDistance;
-  int m_SyncGpuMinDistance;
-  float m_SyncGpuOverclock;
-  bool m_JITFollowBranch;
-  bool m_FastDiscSpeed;
-  bool m_MMU;
-  bool m_Fastmem;
-  bool m_SkipIPL;
-  bool m_LoadIPLDump;
-  bool m_VertexRounding;
-  int m_InternalResolution;
-  bool m_EFBScaledCopy;
-  bool m_FastDepthCalc;
-  bool m_EnablePixelLighting;
-  bool m_WidescreenHack;
-  bool m_ForceFiltering;
-  int m_MaxAnisotropy;
-  bool m_ForceTrueColor;
-  bool m_DisableCopyFilter;
-  bool m_DisableFog;
-  bool m_ArbitraryMipmapDetection;
-  float m_ArbitraryMipmapDetectionThreshold;
-  bool m_EnableGPUTextureDecoding;
-  bool m_DeferEFBCopies;
-  int m_EFBAccessTileSize;
-  bool m_EFBAccessDeferInvalidation;
+  bool m_EFBAccessEnable = false;
+  bool m_BBoxEnable = false;
+  bool m_ForceProgressive = false;
+  bool m_EFBToTextureEnable = false;
+  bool m_XFBToTextureEnable = false;
+  bool m_DisableCopyToVRAM = false;
+  bool m_ImmediateXFBEnable = false;
+  bool m_EFBEmulateFormatChanges = false;
+  int m_SafeTextureCacheColorSamples = 0;
+  bool m_PerfQueriesEnable = false;
+  bool m_FloatExceptions = false;
+  bool m_DivideByZeroExceptions = false;
+  bool m_FPRF = false;
+  bool m_AccurateNaNs = false;
+  bool m_DisableICache = false;
+  bool m_SyncOnSkipIdle = false;
+  bool m_SyncGPU = false;
+  int m_SyncGpuMaxDistance = 0;
+  int m_SyncGpuMinDistance = 0;
+  float m_SyncGpuOverclock = 0;
+  bool m_JITFollowBranch = false;
+  bool m_FastDiscSpeed = false;
+  bool m_MMU = false;
+  bool m_Fastmem = false;
+  bool m_SkipIPL = false;
+  bool m_LoadIPLDump = false;
+  bool m_VertexRounding = false;
+  int m_InternalResolution = 0;
+  bool m_EFBScaledCopy = false;
+  bool m_FastDepthCalc = false;
+  bool m_EnablePixelLighting = false;
+  bool m_WidescreenHack = false;
+  bool m_ForceFiltering = false;
+  int m_MaxAnisotropy = 0;
+  bool m_ForceTrueColor = false;
+  bool m_DisableCopyFilter = false;
+  bool m_DisableFog = false;
+  bool m_ArbitraryMipmapDetection = false;
+  float m_ArbitraryMipmapDetectionThreshold = 0;
+  bool m_EnableGPUTextureDecoding = false;
+  bool m_DeferEFBCopies = false;
+  int m_EFBAccessTileSize = 0;
+  bool m_EFBAccessDeferInvalidation = false;
 
-  bool m_StrictSettingsSync;
-  bool m_SyncSaveData;
-  bool m_SyncCodes;
+  bool m_StrictSettingsSync = false;
+  bool m_SyncSaveData = false;
+  bool m_SyncCodes = false;
   std::string m_SaveDataRegion;
-  bool m_SyncAllWiiSaves;
-  std::array<int, 4> m_WiimoteExtension;
-  bool m_GolfMode;
-  bool m_UseFMA;
-  bool m_HideRemoteGBAs;
+  bool m_SyncAllWiiSaves = false;
+  std::array<int, 4> m_WiimoteExtension{};
+  bool m_GolfMode = false;
+  bool m_UseFMA = false;
+  bool m_HideRemoteGBAs = false;
 
   // These aren't sent over the network directly
-  bool m_IsHosting;
-  bool m_HostInputAuthority;
-  std::array<std::string, 4> m_GBARomPaths;
+  bool m_IsHosting = false;
+  bool m_HostInputAuthority = false;
+  std::array<std::string, 4> m_GBARomPaths{};
 };
 
 struct NetTraversalConfig
@@ -226,7 +226,7 @@ enum : u8
 
 struct WiimoteInput
 {
-  u8 report_id;
+  u8 report_id = 0;
   std::vector<u8> data;
 };
 using PlayerId = u8;
@@ -235,19 +235,19 @@ using PadIndex = s8;
 using PadMappingArray = std::array<PlayerId, 4>;
 struct GBAConfig
 {
-  bool enabled;
-  bool has_rom;
+  bool enabled = false;
+  bool has_rom = false;
   std::string title;
-  std::array<u8, 20> hash;
+  std::array<u8, 20> hash{};
 };
 using GBAConfigArray = std::array<GBAConfig, 4>;
 
 struct PadDetails
 {
-  std::string player_name;
-  bool is_local;
-  int local_pad;
-  bool hide_gba;
+  std::string player_name{};
+  bool is_local = false;
+  int local_pad = 0;
+  bool hide_gba = false;
 };
 
 std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,

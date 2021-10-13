@@ -27,9 +27,9 @@ private:
     STRUCTUR_SIZE = 0x2BC
   };
 
-  u8* m_pData;
+  u8* m_pData = nullptr;
 
-  size_t m_size;
+  size_t m_size = 0;
 
   u32 Read32(u32 _pos);
 };

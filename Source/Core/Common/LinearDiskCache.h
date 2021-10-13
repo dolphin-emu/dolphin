@@ -153,7 +153,7 @@ private:
                   std::min(Common::scm_rev_git_str.size(), sizeof(ver)));
     }
 
-    u32 id;
+    u32 id = 0;
     const u16 key_t_size = sizeof(K);
     const u16 value_t_size = sizeof(V);
     char ver[40] = {};
@@ -161,5 +161,5 @@ private:
   } m_header;
 
   File::IOFile m_file;
-  u32 m_num_entries;
+  u32 m_num_entries = 0;
 };
