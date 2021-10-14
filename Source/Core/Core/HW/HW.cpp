@@ -6,6 +6,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -42,7 +43,7 @@ void Init()
   ExpansionInterface::Init();  // Needs to be initialized before Memory
   Memory::Init();              // Needs to be initialized before AddressSpace
   AddressSpace::Init();
-  DSP::Init(SConfig::GetInstance().bDSPHLE);
+  DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
   GPFifo::Init();
   CPU::Init(SConfig::GetInstance().cpu_core);
