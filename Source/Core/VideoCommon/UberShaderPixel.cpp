@@ -748,6 +748,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     WriteVertexLighting(out, api_type, "lit_pos", "lit_normal", "colors_0", "colors_1",
                         "lit_colors_0", "lit_colors_1");
     color_input_prefix = "lit_";
+    out.Write("  // The number of colors available to TEV is determined by numColorChans.\n"
+              "  // Normally this is performed in the vertex shader after lighting,\n"
+              "  // but with per-pixel lighting, we need to perform it here.\n"
+              "  // TODO: Actually implement this for ubershaders\n"
+              "  // if (xfmem_numColorChans == 0u)\n"
+              "  //   o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n"
+              "  // if (xfmem_numColorChans <= 1u)\n"
+              "  //   o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
   out.Write("  uint num_stages = {};\n\n",
