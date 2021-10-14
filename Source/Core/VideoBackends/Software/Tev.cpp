@@ -814,6 +814,8 @@ void Tev::Draw()
       fog = 1.0f - fog;
       fog = pow(2.0f, -8.0f * fog * fog);
       break;
+    default:
+      break;
     }
 
     // lerp from output to fog color
