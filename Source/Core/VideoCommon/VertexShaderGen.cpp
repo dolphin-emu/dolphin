@@ -443,38 +443,26 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("}}\n");
   }
 
-  // The number of colors available to TEV is determined by numColorChans.
-  // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+  if (per_pixel_lighting)
+  {
+    // When per-pixel lighting is enabled, the vertex colors are passed through
+    // unmodified so we can evaluate the lighting in the pixel shader.
 
-  // When per-pixel lighting is enabled, the vertex colors are passed through unmodified so we can
-  // evaluate the lighting in the same manner in the pixel shader.
-  if (uid_data->numColorChans == 0)
-  {
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-    {
-      if (per_pixel_lighting)
-        out.Write("o.colors_0 = vertex_color_0;\n");
-      else
-        out.Write("o.colors_0 = rawcolor0;\n");
-    }
-    else
-    {
-      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    }
+    // Lighting is also still computed in the vertex shader since it can be used to
+    // generate texture coordinates. We generated them above, so now the colors can
+    // be reverted to their previous stage.
+    out.Write("o.colors_0 = vertex_color_0;\n");
+    out.Write("o.colors_1 = vertex_color_1;\n");
+    // Note that the numColorChans logic is performed in the pixel shader.
   }
-  if (uid_data->numColorChans <= 1)
+  else
   {
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-    {
-      if (per_pixel_lighting)
-        out.Write("o.colors_1 = vertex_color_1;\n");
-      else
-        out.Write("o.colors_1 = rawcolor1;\n");
-    }
-    else
-    {
+    // The number of colors available to TEV is determined by numColorChans.
+    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+    if (uid_data->numColorChans == 0)
+      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+    if (uid_data->numColorChans <= 1)
       out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    }
   }
 
   // clipPos/w needs to be done in pixel shader, not here
