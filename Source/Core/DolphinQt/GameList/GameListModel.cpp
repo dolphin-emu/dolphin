@@ -195,6 +195,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
 
       return tags.join(QStringLiteral(", "));
     }
+  default:
+    return QVariant();
   }
 
   return QVariant();
@@ -231,8 +233,9 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("Compression");
   case Column::Tags:
     return tr("Tags");
+  default:
+    return QVariant();
   }
-  return QVariant();
 }
 
 int GameListModel::rowCount(const QModelIndex& parent) const
