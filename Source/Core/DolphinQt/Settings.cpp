@@ -365,14 +365,14 @@ bool Settings::IsKeepWindowOnTopEnabled() const
 
 int Settings::GetVolume() const
 {
-  return SConfig::GetInstance().m_Volume;
+  return Config::Get(Config::MAIN_AUDIO_VOLUME);
 }
 
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
   {
-    SConfig::GetInstance().m_Volume = volume;
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
     emit VolumeChanged(volume);
   }
 }

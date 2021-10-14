@@ -22,6 +22,7 @@
 #include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
@@ -789,9 +790,9 @@ void MenuBar::AddMovieMenu()
 
   auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
-  dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
+  dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
 }
 
 void MenuBar::AddJITMenu()
