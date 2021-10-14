@@ -289,6 +289,11 @@ public:
     
     ABStats m_curr_ab_stat;
 
+    bool mRankedStatus;
+    bool mRecordStatus;
+    void setRankedStatus(bool inBool);
+    void setRecordStatus(bool inBool);
+
     void Run();
     void lookForTriggerEvents();
 

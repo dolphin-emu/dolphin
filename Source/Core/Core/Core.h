@@ -172,10 +172,6 @@ void DoFrameStep();
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
-// bool ranked;
-//bool is_record;
-//bool is_submit;
-
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);
 void setSubmitStatus(bool inNewStatus);
