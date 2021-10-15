@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/AudioCommon.h"
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+
 #include "AudioCommon/AlsaSoundStream.h"
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/Mixer.h"
@@ -201,8 +205,15 @@ void SendAIBuffer(const short* samples, unsigned int num_samples)
 
 void StartAudioDump()
 {
-  std::string audio_file_name_dtk = File::GetUserPath(D_DUMPAUDIO_IDX) + "dtkdump.wav";
-  std::string audio_file_name_dsp = File::GetUserPath(D_DUMPAUDIO_IDX) + "dspdump.wav";
+  std::time_t start_time = std::time(nullptr);
+
+  std::string path_prefix = File::GetUserPath(D_DUMPAUDIO_IDX) + SConfig::GetInstance().GetGameID();
+
+  std::string base_name =
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *std::localtime(&start_time));
+
+  const std::string audio_file_name_dtk = fmt::format("{}_dtkdump.wav", base_name);
+  const std::string audio_file_name_dsp = fmt::format("{}_dspdump.wav", base_name);
   File::CreateFullPath(audio_file_name_dtk);
   File::CreateFullPath(audio_file_name_dsp);
   g_sound_stream->GetMixer()->StartLogDTKAudio(audio_file_name_dtk);
