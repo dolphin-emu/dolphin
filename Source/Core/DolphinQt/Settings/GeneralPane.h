@@ -28,7 +28,6 @@ private:
   void CreateLayout();
   void ConnectLayout();
   void CreateBasic();
-  void CreateAutoUpdate();
   void CreateFallbackRegion();
 
   void LoadConfig();

@@ -117,7 +117,6 @@ private:
   void ConnectGameList();
   void ConnectHost();
   void ConnectHotkeys();
-  void ResetLocalPlayers();
   void ConnectMenuBar();
   void ConnectRenderWidget();
   void ConnectStack();

@@ -92,7 +92,7 @@ GeckoDialog::GeckoDialog(QWidget* parent)
     : QDialog(parent)
 {
   setWindowTitle(QStringLiteral("%1 - %2")
-                     .arg(QString::fromStdString("Mario Superstar Baseball Gecko Codes"), QString::fromStdString("(Game ID: GYQE01")));
+                     .arg(QString::fromStdString("Mario Superstar Baseball Gecko Codes"), QString::fromStdString("(Game ID: GYQE01)")));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   QVBoxLayout* layout = new QVBoxLayout();

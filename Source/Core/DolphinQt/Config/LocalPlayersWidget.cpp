@@ -25,7 +25,6 @@
 #include "Core/LocalPlayersConfig.h"
 #include "DolphinQt/Config/AddLocalPlayers.h"
 
-#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
@@ -35,15 +34,12 @@
 
 LocalPlayersWidget::LocalPlayersWidget(QWidget* parent) : QWidget(parent)
 {
-  CreateLayout();
-  LoadPlayers();
-  ConnectWidgets();
-
   IniFile local_players_ini;
   local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
   m_local_players = AddPlayers::LoadPlayers(local_players_ini);
-
-  UpdatePlayers();
+  CreateLayout();
+  LoadPlayers();
+  ConnectWidgets();
 }
 
 void LocalPlayersWidget::CreateLayout()
@@ -61,10 +57,10 @@ void LocalPlayersWidget::CreateLayout()
 
   auto* gc_label3 = new QLabel(tr("Player 3"));
   auto gc_box3 = m_player_list_3 = new QComboBox();
-
+  
   auto* gc_label4 = new QLabel(tr("Player 4"));
   auto gc_box4 = m_player_list_4 = new QComboBox();
-
+ 
   m_player_layout->addWidget(gc_label1, 0, 0);
   m_player_layout->addWidget(gc_box1, 0, 1);
   m_player_layout->addWidget(gc_label2, 1, 0);
@@ -119,16 +115,19 @@ void LocalPlayersWidget::UpdatePlayers()
     const auto& player = m_local_players[i];
 
     auto username = QString::fromStdString(player.username)
-                                         .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
-                                         .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
+                        .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
+                        .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
 
-    // In the future, i should add in a feature that if a player is selected on another port, they won't appear on the dropdown
-    // some conditional that checks the other ports before adding the item
+    // In the future, i should add in a feature that if a player is selected on another port, they
+    // won't appear on the dropdown some conditional that checks the other ports before adding the
+    // item
     m_player_list_1->addItem(username);
     m_player_list_2->addItem(username);
     m_player_list_3->addItem(username);
     m_player_list_4->addItem(username);
   }
+
+  LoadPlayers();
 }
 
 void LocalPlayersWidget::OnAddPlayers()
@@ -161,15 +160,38 @@ void LocalPlayersWidget::SavePlayers()
 
 void LocalPlayersWidget::LoadPlayers()
 {
-  // do this so that no players are selected upon loading Rio for the first time. prevent accidental stat recording for players
-  m_player_list_1->setCurrentIndex(0);
-  m_player_list_2->setCurrentIndex(0);
-  m_player_list_3->setCurrentIndex(0);
-  m_player_list_4->setCurrentIndex(0);
+  // List an option to not select a player
+  m_player_list_1->addItem(tr("No Player Selected"));
+  m_player_list_2->addItem(tr("No Player Selected"));
+  m_player_list_3->addItem(tr("No Player Selected"));
+  m_player_list_4->addItem(tr("No Player Selected"));
+
+  // List avalable players in LocalPlayers.ini
+  for (size_t i = 0; i < m_local_players.size(); i++)
+  {
+    const auto& player = m_local_players[i];
+
+    auto username = QString::fromStdString(player.username)
+                        .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
+                        .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
+
+    // In the future, i should add in a feature that if a player is selected on another port, they
+    // won't appear on the dropdown some conditional that checks the other ports before adding the
+    // item
+    m_player_list_1->addItem(username);
+    m_player_list_2->addItem(username);
+    m_player_list_3->addItem(username);
+    m_player_list_4->addItem(username);
+  }
+  /*
+  m_player_list_1->setCurrentIndex(m_player_list_1->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_1)));
+  m_player_list_2->setCurrentIndex(m_player_list_2->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_2)));
+  m_player_list_3->setCurrentIndex(m_player_list_3->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_3)));
+  m_player_list_4->setCurrentIndex(m_player_list_4->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_4)));*/
 }
 
 void LocalPlayersWidget::ConnectWidgets()
-{          
+{ 
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { Settings::Instance().SetPlayerOne(m_player_list_1->itemText(index)); });
   connect(
@@ -179,7 +201,7 @@ void LocalPlayersWidget::ConnectWidgets()
           [=](int index) { Settings::Instance().SetPlayerThree(m_player_list_3->itemText(index)); });
   connect(m_player_list_4, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { Settings::Instance().SetPlayerFour(m_player_list_4->itemText(index)); });
-
+  
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &LocalPlayersWidget::SavePlayers);
   connect(m_player_list_2, qOverload<int>(&QComboBox::currentIndexChanged), this,

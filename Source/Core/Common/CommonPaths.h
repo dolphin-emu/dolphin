@@ -38,6 +38,7 @@
 #define WII_USER_DIR "Wii"
 #define CONFIG_DIR "Config"
 #define GAMESETTINGS_DIR "GameSettings"
+#define STATFILES_DIR "StatFiles"
 #define MAPS_DIR "Maps"
 #define CACHE_DIR "Cache"
 #define COVERCACHE_DIR "GameCovers"

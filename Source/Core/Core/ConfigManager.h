@@ -223,9 +223,6 @@ struct SConfig
   IniFile LoadLocalGameIni() const;
   IniFile LoadGameIni() const;
 
-  void GetLocalPlayerSettings(IniFile& ini);
-
-  static bool UserHasUserID();
   static bool GameHasDefaultGameIni(const std::string& id, u16 revision);
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
@@ -323,14 +320,12 @@ struct SConfig
   // Auto-update settings
   std::string m_auto_update_track;
   std::string m_auto_update_hash_override;
-
+  
   std::string m_local_player_1{"No Player Selected"};
   std::string m_local_player_2{"No Player Selected"};
   std::string m_local_player_3{"No Player Selected"};
   std::string m_local_player_4{"No Player Selected"};
-
-  std::string m_local_player_reset = "No Player Selected";
-
+  
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -342,7 +337,6 @@ struct SConfig
 
   // Load settings
   void LoadSettings();
-  void LoadLocalSettings();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
@@ -366,21 +360,18 @@ private:
   void SaveAutoUpdateSettings(IniFile& ini);
   void SaveJitDebugSettings(IniFile& ini);
   void SaveLocalPlayerSettings(IniFile& ini);
-
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
-  void LoadLocalPlayerSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadAutoUpdateSettings(IniFile& ini);
   void LoadJitDebugSettings(IniFile& ini);
-  void LoadUserIDSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);
