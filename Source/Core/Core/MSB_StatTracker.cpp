@@ -9,7 +9,6 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Core/LocalPlayers.h"
 
 #include "Common/Swap.h"
 
@@ -216,7 +215,7 @@ void StatTracker::logABContact(){
 
     m_curr_ab_stat.type_of_contact   = Memory::Read_U8(aAB_TypeOfContact);
     m_curr_ab_stat.bunt              =(Memory::Read_U8(aAB_Bunt) == 3);
-    m_curr_ab_stat.charge_swing      = Memgory::Read_U8(aAB_ChargeSwing);
+    m_curr_ab_stat.charge_swing      = Memory::Read_U8(aAB_ChargeSwing);
     m_curr_ab_stat.charge_power_up   = Memory::Read_U32(aAB_ChargeUp);
     m_curr_ab_stat.charge_power_down = Memory::Read_U32(aAB_ChargeDown);
     m_curr_ab_stat.star_swing        = Memory::Read_U8(aAB_StarSwing);
@@ -466,7 +465,7 @@ void StatTracker::printStatsToFile(){
     std::cout << "Logging to " << file_name << std::endl;
 }
 
-
+/*
 IniFile local_players_ini;
 local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
 
@@ -514,3 +513,4 @@ for (const IniFile* ini : {&local_players_ini})
   
   return players;
 }
+*/

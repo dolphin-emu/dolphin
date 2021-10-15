@@ -144,8 +144,8 @@ static const u32 aAB_BatterThrow_Tagged_Out = 0x80893B99; //0=Safe, 1=ThrownOutO
 static const u32 aAB_FinalResult = 0x80893BAA;
 
 //Frame Data. Capture once play is over
-static const u32 aAB_FrameOfSwingAnimUponContact = 0x80890976: //(halfword) frame of swing animation; stops increasing when contact is made
-static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978: //(halfword) frame of pitch that the batter swung
+static const u32 aAB_FrameOfSwingAnimUponContact = 0x80890976; //(halfword) frame of swing animation; stops increasing when contact is made
+static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978; //(halfword) frame of pitch that the batter swung
 
 
 
@@ -315,10 +315,6 @@ public:
     AB_STATE   m_ab_state = AB_STATE::WAITING_FOR_PITCH;
     
     ABStats m_curr_ab_stat;
-
-    //Local Players
-    AddPlayers player1;
-    AddPlayers player2;
 
     void Run();
     void lookForTriggerEvents();
