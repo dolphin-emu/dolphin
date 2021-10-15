@@ -61,4 +61,5 @@ private:
 
   // Experimental
   GraphicsBool* m_defer_efb_access_invalidation;
+  GraphicsBool* m_manual_texture_sampling;
 };

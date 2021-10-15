@@ -199,7 +199,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "EFBEmulateFormatChanges", false),
   GFX_HACK_VERTEX_ROUDING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "VertexRounding", false),
   GFX_HACK_FAST_TEXTURE_SAMPLING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
-          "FastTextureSampling", false),
+          "FastTextureSampling", true),
 
   LOGGER_WRITE_TO_FILE(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "WriteToFile", false),
 

@@ -277,8 +277,6 @@
     <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
-    <string name="fast_texture_sampling">Fast Texture Sampling</string>
-    <string name="fast_texture_sampling_description">Use the video backend\'s built-in texture sampling functionality instead of a manual implementation.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
@@ -305,6 +303,8 @@
     <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this unchecked.</string>
     <string name="defer_efb_invalidation">Defer EFB Cache Invalidation</string>
     <string name="defer_efb_invalidation_description">Defers invalidation of the EFB access cache until a GPU synchronization command is executed. May improve performance in some games at the cost of stability. If unsure, leave this unchecked.</string>
+    <string name="manual_texture_sampling">Manual Texture Sampling</string>
+    <string name="manual_texture_sampling_description">Use a manual implementation of texture sampling instead of the graphics backend\'s built-in functionality.</string>
     <string name="internal_resolution_dumps">Dump Frames at Internal Resolution</string>
     <string name="internal_resolution_dumps_description">Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within. If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.</string>
     <string name="debugging">Debugging</string>
