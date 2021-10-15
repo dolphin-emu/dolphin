@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="org.dolphinemu.dolphinemu">
 
     <uses-feature
@@ -30,12 +29,15 @@
         android:name="android.permission.VIBRATE"
         android:required="false"/>
 
+    <!-- Once compileSdkVersion is 31, add: android:dataExtractionRules="@xml/backup_rules_api_31" -->
     <application
         android:name=".DolphinApplication"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
         android:requestLegacyExternalStorage="true"
-        android:allowBackup="false"
+        android:preserveLegacyExternalStorage="true"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv">
@@ -117,6 +119,12 @@
             android:name=".activities.ConvertActivity"
             android:exported="false"
             android:theme="@style/DolphinBase" />
+
+        <activity
+            android:name=".activities.UserDataActivity"
+            android:exported="false"
+            android:label="@string/user_data_submenu"
+            android:theme="@style/DolphinSettingsBase" />
 
         <service
             android:name=".utils.DirectoryInitialization"
