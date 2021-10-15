@@ -201,9 +201,8 @@ void SwapPairs(ARM64XEmitter* emit, ARM64Reg dst_reg, ARM64Reg src_reg, u32 flag
     emit->REV16(dst_reg, src_reg);
 }
 
-void ByteswapAfterLoad(ARM64XEmitter* emit, Arm64Gen::ARM64FloatEmitter* float_emit,
-                       ARM64Reg dst_reg, ARM64Reg src_reg, u32 flags, bool is_reversed,
-                       bool is_extended)
+void ByteswapAfterLoad(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64Reg dst_reg,
+                       ARM64Reg src_reg, u32 flags, bool is_reversed, bool is_extended)
 {
   if (is_reversed == !(flags & BackPatchInfo::FLAG_REVERSE))
   {
@@ -251,8 +250,8 @@ void ByteswapAfterLoad(ARM64XEmitter* emit, Arm64Gen::ARM64FloatEmitter* float_e
   }
 }
 
-ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, Arm64Gen::ARM64FloatEmitter* float_emit,
-                             ARM64Reg tmp_reg, ARM64Reg src_reg, u32 flags, bool want_reversed)
+ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, ARM64FloatEmitter* float_emit, ARM64Reg tmp_reg,
+                             ARM64Reg src_reg, u32 flags, bool want_reversed)
 {
   ARM64Reg dst_reg = src_reg;
 
@@ -290,8 +289,9 @@ ARM64Reg ByteswapBeforeStore(ARM64XEmitter* emit, Arm64Gen::ARM64FloatEmitter* f
   return dst_reg;
 }
 
-void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
-                   BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address, u32 flags)
+void MMIOLoadToReg(MMIO::Mapping* mmio, ARM64XEmitter* emit, ARM64FloatEmitter* float_emit,
+                   BitSet32 gprs_in_use, BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address,
+                   u32 flags)
 {
   ASSERT(!(flags & BackPatchInfo::FLAG_FLOAT));
 
@@ -314,15 +314,16 @@ void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 
     mmio->GetHandlerForRead<u32>(address).Visit(gen);
   }
 
-  ByteswapAfterLoad(emit, nullptr, dst_reg, dst_reg, flags, false, true);
+  ByteswapAfterLoad(emit, float_emit, dst_reg, dst_reg, flags, false, true);
 }
 
-void MMIOWriteRegToAddr(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
-                        BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address, u32 flags)
+void MMIOWriteRegToAddr(MMIO::Mapping* mmio, ARM64XEmitter* emit, ARM64FloatEmitter* float_emit,
+                        BitSet32 gprs_in_use, BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address,
+                        u32 flags)
 {
   ASSERT(!(flags & BackPatchInfo::FLAG_FLOAT));
 
-  src_reg = ByteswapBeforeStore(emit, nullptr, ARM64Reg::W1, src_reg, flags, false);
+  src_reg = ByteswapBeforeStore(emit, float_emit, ARM64Reg::W1, src_reg, flags, false);
 
   if (flags & BackPatchInfo::FLAG_SIZE_8)
   {
