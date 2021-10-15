@@ -77,7 +77,7 @@ void LogConfigWidget::CreateWidgets()
   verbosity_layout->addWidget(m_verbosity_error);
   verbosity_layout->addWidget(m_verbosity_warning);
   verbosity_layout->addWidget(m_verbosity_info);
-  if constexpr (MAX_LOGLEVEL == Common::Log::LOG_LEVELS::LDEBUG)
+  if constexpr (Common::Log::MAX_LOGLEVEL == Common::Log::LOG_LEVELS::LDEBUG)
   {
     verbosity_layout->addWidget(m_verbosity_debug);
   }

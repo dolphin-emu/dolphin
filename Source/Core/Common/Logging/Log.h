@@ -76,6 +76,12 @@ enum LOG_LEVELS
   LDEBUG = 5,    // Detailed debugging - might make things slow.
 };
 
+#if defined(_DEBUG) || defined(DEBUGFAST)
+constexpr auto MAX_LOGLEVEL = Common::Log::LOG_LEVELS::LDEBUG;
+#else
+constexpr auto MAX_LOGLEVEL = Common::Log::LOG_LEVELS::LINFO;
+#endif  // logging
+
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 
 void GenericLogFmtImpl(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
@@ -99,19 +105,11 @@ void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, con
     ;
 }  // namespace Common::Log
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#define MAX_LOGLEVEL Common::Log::LOG_LEVELS::LDEBUG
-#else
-#ifndef MAX_LOGLEVEL
-#define MAX_LOGLEVEL Common::Log::LOG_LEVELS::LINFO
-#endif  // loglevel
-#endif  // logging
-
 // Let the compiler optimize this out
 #define GENERIC_LOG(t, v, ...)                                                                     \
   do                                                                                               \
   {                                                                                                \
-    if (v <= MAX_LOGLEVEL)                                                                         \
+    if (v <= Common::Log::MAX_LOGLEVEL)                                                            \
       Common::Log::GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__);                              \
   } while (0)
 
@@ -146,7 +144,7 @@ void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, con
 #define GENERIC_LOG_FMT(t, v, format, ...)                                                         \
   do                                                                                               \
   {                                                                                                \
-    if (v <= MAX_LOGLEVEL)                                                                         \
+    if (v <= Common::Log::MAX_LOGLEVEL)                                                            \
     {                                                                                              \
       /* Use a macro-like name to avoid shadowing warnings */                                      \
       constexpr auto GENERIC_LOG_FMT_N = Common::CountFmtReplacementFields(format);                \
