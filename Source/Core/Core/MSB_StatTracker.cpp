@@ -323,6 +323,16 @@ void StatTracker::logABContactResult(){
     m_curr_ab_stat.ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
 }
 
+void StatTracker::setRankedStatus(bool inBool)
+{
+  mRankedStatus = inBool;
+}
+
+void StatTracker::setRecordStatus(bool inBool)
+{
+  mRecordStatus = inBool;
+}
+
 void StatTracker::printStatsToFile(){
     std::string file_name = std::to_string(m_game_id) + ".txt";
     std::ofstream MyFile(file_name);

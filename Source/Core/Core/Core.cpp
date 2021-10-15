@@ -1164,19 +1164,18 @@ void setRecordStatus(bool inNewStatus)
 {
   SConfig& settings = SConfig::GetInstance();
   settings.SaveSettings();
-  //is_record = inNewStatus;
+  //s_stat_tracker->setRecordStatus(inNewStatus);
 }
 
 void setSubmitStatus(bool inNewStatus)
 {
   SConfig& settings = SConfig::GetInstance();
   settings.SaveSettings();
-  //is_submit = inNewStatus;
 }
 
 void setRankedStatus(bool inNewStatus)
 {
-  // is_ranked = inNewStatus;
+  //s_stat_tracker->setRankedStatus(inNewStatus);
 }
 
 }  // namespace Core
