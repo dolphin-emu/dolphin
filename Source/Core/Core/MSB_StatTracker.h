@@ -84,7 +84,8 @@ static const u8 c_offensive_stat_offset = 0x26;
 
 
 //At-Bat Scenario 
-static const u32 aAB_Team1IsBatting  = 0x80892997;
+static const u32 aAB_BatterPort      = 0x802EBF95;
+static const u32 aAB_PitcherPort     = 0x802EBF94;
 static const u32 aAB_RosterID        = 0x80890971;
 static const u32 aAB_Inning          = 0x808928A3;
 static const u32 aAB_HalfInning      = 0x8089294D;
@@ -142,6 +143,11 @@ static const u32 aAB_BatterThrow_Tagged_Out = 0x80893B99; //0=Safe, 1=ThrownOutO
 
 static const u32 aAB_FinalResult = 0x80893BAA;
 
+//Frame Data. Capture once play is over
+static const u32 aAB_FrameOfSwingAnimUponContact = 0x80890976: //(halfword) frame of swing animation; stops increasing when contact is made
+static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978: //(halfword) frame of pitch that the batter swung
+
+
 
 class StatTracker{
 public:
@@ -150,6 +156,7 @@ public:
     struct GameInfo{
         u32 game_id;
         std::string date_time;
+
         std::string p1_name;
         std::string p2_name;
         u8 ranked;
@@ -251,6 +258,9 @@ public:
         u8 input_direction;
         u8 batter_handedness;
         u8 hit_by_pitch;
+
+        u16 frameOfSwingUponContact;
+        u16 frameOfPitchUponSwing;
     
         //  Ball Calcs
         u16 ball_angle;

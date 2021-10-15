@@ -187,7 +187,7 @@ void StatTracker::logOffensiveStats(int team_id, int roster_id){
 void StatTracker::logABScenario(){
     std::cout << "Logging Sceanrio" << std::endl;
     //TODO: Figure out "Team1 is Hitting" Addr
-    m_curr_ab_stat.team_id = (Memory::Read_U8(aAB_Team1IsBatting)) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
+    m_curr_ab_stat.team_id = (Memory::Read_U8(aAB_BatterPort) == 1) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
     m_curr_ab_stat.roster_id = Memory::Read_U8(aAB_RosterID);
 
     m_curr_ab_stat.inning          = Memory::Read_U8(aAB_Inning);
@@ -233,6 +233,10 @@ void StatTracker::logABContact(){
 
     m_curr_ab_stat.hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
+    //Frame collect
+    m_curr_ab_stat.frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
+    m_curr_ab_stat.frameOfPitchUponSwing   = Memory::Read_U16(aAB_FrameOfPitchSeqUponSwing);
+
     logABPitch();
 }
 
@@ -258,6 +262,10 @@ void StatTracker::logABMiss(){
     m_curr_ab_stat.ball_z_velocity   = 0;
 
     m_curr_ab_stat.hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
+
+    //Frame collect
+    m_curr_ab_stat.frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
+    m_curr_ab_stat.frameOfPitchUponSwing   = Memory::Read_U16(aAB_FrameOfPitchSeqUponSwing);
 
     u8 any_strike = Memory::Read_U8(aAB_Miss_AnyStrike);
     u8 miss_type  = Memory::Read_U8(aAB_Miss_SwingOrBunt);
@@ -424,6 +432,8 @@ void StatTracker::printStatsToFile(){
                 MyFile << "          \"Input Direction\": " << std::to_string(ab_stat.input_direction) << "," << std::endl;
                 MyFile << "          \"Batter Handedness\": " << std::to_string(ab_stat.batter_handedness) << "," << std::endl;
                 MyFile << "          \"Hit by Pitch\": " << std::to_string(ab_stat.hit_by_pitch) << "," << std::endl;
+                MyFile << "          \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
+                MyFile << "          \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
                 MyFile << "          \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
                 MyFile << "          \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
                 MyFile << "          \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
@@ -500,5 +510,7 @@ for (const IniFile* ini : {&local_players_ini})
       players.push_back(player);
     }
   }
+
+  
   return players;
 }
