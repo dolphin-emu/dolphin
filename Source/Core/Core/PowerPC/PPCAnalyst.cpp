@@ -542,11 +542,6 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 
 void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
 {
-  // Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
-  // picky about this, but cror seems to almost solely be used for this purpose in real code.
-  // Additionally, the other boolean ops seem to almost never be used.
-  if (HasOption(OPTION_CROR_MERGE))
-    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
   if (HasOption(OPTION_CARRY_MERGE))
@@ -554,8 +549,16 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
     ReorderInstructionsCore(instructions, code, false, ReorderType::Carry);
     ReorderInstructionsCore(instructions, code, true, ReorderType::Carry);
   }
+
+  // Reorder instructions which write to CR (typically compare instructions) towards branches.
   if (HasOption(OPTION_BRANCH_MERGE))
     ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
+
+  // Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
+  // picky about this, but cror seems to almost solely be used for this purpose in real code.
+  // Additionally, the other boolean ops seem to almost never be used.
+  if (HasOption(OPTION_CROR_MERGE))
+    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code,
