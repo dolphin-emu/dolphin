@@ -222,9 +222,9 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
   if (a.canCauseException || b.canCauseException)
     return false;
-  if (a_flags & (FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
+  if (a_flags & (FL_ENDBLOCK | FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
-  if (b_flags & (FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
+  if (b_flags & (FL_ENDBLOCK | FL_TIMER | FL_NO_REORDER | FL_SET_OE))
     return false;
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
