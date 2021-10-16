@@ -17,6 +17,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 // This shouldn't be a global, at least not here.
@@ -51,7 +52,7 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 
 void InitSoundStream()
 {
-  std::string backend = SConfig::GetInstance().sBackend;
+  std::string backend = Config::Get(Config::MAIN_AUDIO_BACKEND);
   g_sound_stream = CreateSoundStreamForBackend(backend);
 
   if (!g_sound_stream)
@@ -77,7 +78,7 @@ void PostInitSoundStream()
   UpdateSoundStream();
   SetSoundStreamRunning(true);
 
-  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !s_audio_dump_start)
     StartAudioDump();
 }
 
@@ -85,7 +86,7 @@ void ShutdownSoundStream()
 {
   INFO_LOG_FMT(AUDIO, "Shutting down sound stream");
 
-  if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+  if (Config::Get(Config::MAIN_DUMP_AUDIO) && s_audio_dump_start)
     StopAudioDump();
 
   SetSoundStreamRunning(false);
@@ -163,7 +164,7 @@ void UpdateSoundStream()
 {
   if (g_sound_stream)
   {
-    int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
+    int volume = Config::Get(Config::MAIN_AUDIO_MUTED) ? 0 : Config::Get(Config::MAIN_AUDIO_VOLUME);
     g_sound_stream->SetVolume(volume);
   }
 }
@@ -190,9 +191,9 @@ void SendAIBuffer(const short* samples, unsigned int num_samples)
   if (!g_sound_stream)
     return;
 
-  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+  if (Config::Get(Config::MAIN_DUMP_AUDIO) && !s_audio_dump_start)
     StartAudioDump();
-  else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+  else if (!Config::Get(Config::MAIN_DUMP_AUDIO) && s_audio_dump_start)
     StopAudioDump();
 
   Mixer* pMixer = g_sound_stream->GetMixer();
@@ -232,28 +233,30 @@ void StopAudioDump()
 
 void IncreaseVolume(unsigned short offset)
 {
-  SConfig::GetInstance().m_IsMuted = false;
-  int& currentVolume = SConfig::GetInstance().m_Volume;
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
+  int currentVolume = Config::Get(Config::MAIN_AUDIO_VOLUME);
   currentVolume += offset;
   if (currentVolume > AUDIO_VOLUME_MAX)
     currentVolume = AUDIO_VOLUME_MAX;
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, currentVolume);
   UpdateSoundStream();
 }
 
 void DecreaseVolume(unsigned short offset)
 {
-  SConfig::GetInstance().m_IsMuted = false;
-  int& currentVolume = SConfig::GetInstance().m_Volume;
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, false);
+  int currentVolume = Config::Get(Config::MAIN_AUDIO_VOLUME);
   currentVolume -= offset;
   if (currentVolume < AUDIO_VOLUME_MIN)
     currentVolume = AUDIO_VOLUME_MIN;
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, currentVolume);
   UpdateSoundStream();
 }
 
 void ToggleMuteVolume()
 {
-  bool& isMuted = SConfig::GetInstance().m_IsMuted;
-  isMuted = !isMuted;
+  bool isMuted = Config::Get(Config::MAIN_AUDIO_MUTED);
+  Config::SetBaseOrCurrent(Config::MAIN_AUDIO_MUTED, !isMuted);
   UpdateSoundStream();
 }
 }  // namespace AudioCommon

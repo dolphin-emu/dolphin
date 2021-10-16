@@ -12,7 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 static HMODULE s_openal_dll = nullptr;
 
@@ -212,7 +212,7 @@ void OpenALStream::SoundLoop()
 
   bool float32_capable = palIsExtensionPresent("AL_EXT_float32") != 0;
   bool surround_capable = palIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
-  bool use_surround = SConfig::GetInstance().ShouldUseDPL2Decoder() && surround_capable;
+  bool use_surround = Config::ShouldUseDPL2Decoder() && surround_capable;
 
   // As there is no extension to check for 32-bit fixed point support
   // and we know that only a X-Fi with hardware OpenAL supports it,
@@ -223,9 +223,9 @@ void OpenALStream::SoundLoop()
 
   u32 frames_per_buffer;
   // Can't have zero samples per buffer
-  if (SConfig::GetInstance().iLatency > 0)
+  if (Config::Get(Config::MAIN_AUDIO_LATENCY) > 0)
   {
-    frames_per_buffer = frequency / 1000 * SConfig::GetInstance().iLatency / OAL_BUFFERS;
+    frames_per_buffer = frequency / 1000 * Config::Get(Config::MAIN_AUDIO_LATENCY) / OAL_BUFFERS;
   }
   else
   {

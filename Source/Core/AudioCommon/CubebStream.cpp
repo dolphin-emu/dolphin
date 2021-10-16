@@ -8,7 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 // ~10 ms - needs to be at least 240 for surround
 constexpr u32 BUFFER_SAMPLES = 512;
@@ -36,7 +36,7 @@ bool CubebStream::Init()
   if (!m_ctx)
     return false;
 
-  m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
+  m_stereo = !Config::ShouldUseDPL2Decoder();
 
   cubeb_stream_params params;
   params.rate = m_mixer->GetSampleRate();
