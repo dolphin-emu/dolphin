@@ -30,7 +30,10 @@ private:
 
   void LoadMatchingXMLs();
   void OpenXML();
-  void MakeGUIForParsedFile(const std::string& path, DiscIO::Riivolution::Disc input_disc);
+  void MakeGUIForParsedFile(const std::string& path, std::string root,
+                            DiscIO::Riivolution::Disc input_disc);
+  std::optional<DiscIO::Riivolution::Config> LoadConfigXML(const std::string& root_directory);
+  void SaveConfigXMLs();
   void BootGame();
 
   std::string m_game_id;
