@@ -195,9 +195,32 @@ struct Disc
   std::vector<Patch> GeneratePatches(const std::string& game_id) const;
 };
 
+// Config format that remembers which patches are enabled/disabled for the next run.
+// Some patches ship with pre-made config XMLs instead of baking their defaults into the actual
+// patch XMLs, so it makes sense to support this format directly.
+struct ConfigOption
+{
+  // The identifier for the referenced Option.
+  std::string m_id;
+
+  // The selected Choice index.
+  u32 m_default;
+};
+
+struct Config
+{
+  // Config version. Riivolution itself only accepts '2' here.
+  int m_version = 2;
+  std::vector<ConfigOption> m_options;
+};
+
 std::optional<Disc> ParseFile(const std::string& filename);
 std::optional<Disc> ParseString(std::string_view xml, std::string xml_path);
 std::vector<DiscIO::Riivolution::Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     const DiscIO::GameModDescriptorRiivolution& descriptor, const std::string& game_id,
     int revision, int disc_number);
+std::optional<Config> ParseConfigFile(const std::string& filename);
+std::optional<Config> ParseConfigString(std::string_view xml);
+std::string WriteConfigString(const Config& config);
+bool WriteConfigFile(const std::string& filename, const Config& config);
 }  // namespace DiscIO::Riivolution
