@@ -662,9 +662,8 @@ uint WrapCoord(int coord, uint wrap, int size) {{
     // IRs), but (at least per the software renderer) actual LOD is S28.4.  How does this work?
     // Also, note that we can make some assumptions due to use of a SamplerState version of the BP
     // configuration, which tidies things compared to whatever nonsense games can put in.
-    // TODO: This doesn't support diagonal LOD
     out.Write(R"(
-  float2 uv_delta = max(uv_delta_x, uv_delta_y);
+  float2 uv_delta = diag_lod ? uv_delta_x + uv_delta_y : max(uv_delta_x, uv_delta_y);
   float max_delta = max(uv_delta.x / 128.0, uv_delta.y / 128.0);
   // log2(x) is undefined if x <= 0, but in practice it seems log2(0) is -infinity, which becomes INT_MIN.
   // If lod_bias is negative, adding it to INT_MIN causes an underflow, resulting in a large positive value.
