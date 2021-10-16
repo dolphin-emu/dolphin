@@ -931,6 +931,10 @@ set(CPACK_RPM_PACKAGE_LICENSE GPL-2.0)
 # TODO: CPACK_NSIS_*
 # TODO: Use CPack components for DSPSpy, etc => cpack_add_component
 
+# Debian Specific. Install dpkg-dev for automatic deps generation
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_SECTION "Games")
+
 set(CPACK_SET_DESTDIR ON)
 set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
 set(CPACK_SOURCE_IGNORE_FILES  "\\\\.#;/#;.*~;\\\\.swp;/\\\\.git")
