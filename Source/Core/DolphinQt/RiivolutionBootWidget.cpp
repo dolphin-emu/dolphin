@@ -3,6 +3,10 @@
 
 #include "DolphinQt/RiivolutionBootWidget.h"
 
+#include <unordered_map>
+
+#include <fmt/format.h>
+
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -81,12 +85,15 @@ void RiivolutionBootWidget::CreateWidgets()
 void RiivolutionBootWidget::LoadMatchingXMLs()
 {
   const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
+  const auto config = LoadConfigXML(riivolution_dir);
   for (const std::string& path : Common::DoFileSearch({riivolution_dir + "riivolution"}, {".xml"}))
   {
     auto parsed = DiscIO::Riivolution::ParseFile(path);
     if (!parsed || !parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
       continue;
-    MakeGUIForParsedFile(path, *parsed);
+    if (config)
+      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+    MakeGUIForParsedFile(path, riivolution_dir, *parsed);
   }
 }
 
@@ -129,15 +136,19 @@ void RiivolutionBootWidget::OpenXML()
       continue;
     }
 
-    MakeGUIForParsedFile(p, *parsed);
+    auto root = FindRoot(p);
+    const auto config = LoadConfigXML(root);
+    if (config)
+      DiscIO::Riivolution::ApplyConfigDefaults(&*parsed, *config);
+    MakeGUIForParsedFile(p, std::move(root), *parsed);
   }
 }
 
-void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path,
+void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path, std::string root,
                                                  DiscIO::Riivolution::Disc input_disc)
 {
   const size_t disc_index = m_discs.size();
-  const auto& disc = m_discs.emplace_back(DiscWithRoot{std::move(input_disc), FindRoot(path)});
+  const auto& disc = m_discs.emplace_back(DiscWithRoot{std::move(input_disc), std::move(root)});
 
   auto* disc_box = new QGroupBox(QFileInfo(QString::fromStdString(path)).fileName());
   auto* disc_layout = new QVBoxLayout();
@@ -206,8 +217,50 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path,
   m_patch_section_layout->addWidget(disc_box);
 }
 
+std::optional<DiscIO::Riivolution::Config>
+RiivolutionBootWidget::LoadConfigXML(const std::string& root_directory)
+{
+  // The way Riivolution stores settings only makes sense for standard game IDs.
+  if (!(m_game_id.size() == 4 || m_game_id.size() == 6))
+    return std::nullopt;
+
+  return DiscIO::Riivolution::ParseConfigFile(
+      fmt::format("{}/riivolution/config/{}.xml", root_directory, m_game_id.substr(0, 4)));
+}
+
+void RiivolutionBootWidget::SaveConfigXMLs()
+{
+  if (!(m_game_id.size() == 4 || m_game_id.size() == 6))
+    return;
+
+  std::unordered_map<std::string, DiscIO::Riivolution::Config> map;
+  for (const auto& disc : m_discs)
+  {
+    auto config = map.try_emplace(disc.root);
+    auto& config_options = config.first->second.m_options;
+    for (const auto& section : disc.disc.m_sections)
+    {
+      for (const auto& option : section.m_options)
+      {
+        std::string id = option.m_id.empty() ? (section.m_name + option.m_name) : option.m_id;
+        config_options.emplace_back(
+            DiscIO::Riivolution::ConfigOption{std::move(id), option.m_selected_choice});
+      }
+    }
+  }
+
+  for (const auto& config : map)
+  {
+    DiscIO::Riivolution::WriteConfigFile(
+        fmt::format("{}/riivolution/config/{}.xml", config.first, m_game_id.substr(0, 4)),
+        config.second);
+  }
+}
+
 void RiivolutionBootWidget::BootGame()
 {
+  SaveConfigXMLs();
+
   m_patches.clear();
   for (const auto& disc : m_discs)
   {
