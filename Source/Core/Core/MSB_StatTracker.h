@@ -152,6 +152,12 @@ static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978; //(halfword) fram
 class StatTracker{
 public:
     //StatTracker() { };
+
+    struct TrackerInfo{
+        bool mRecord;
+        bool mSubmit;
+    };
+    TrackerInfo mTrackerInfo;
     
     struct GameInfo{
         u32 game_id;
@@ -169,6 +175,8 @@ public:
 
         u16 team0_score;
         u16 team1_score;
+
+        u8 stadium;
     };
     GameInfo m_game_info;
 
@@ -316,10 +324,15 @@ public:
     
     ABStats m_curr_ab_stat;
 
-    bool mRankedStatus;
-    bool mRecordStatus;
-    void setRankedStatus(bool inBool);
-    void setRecordStatus(bool inBool);
+    //Holds the status of the ranked button check box. Sampled at beginning of game
+    bool mCurrentRankedStatus = false;
+
+    void setRankedStatus(bool inBool) {
+        mCurrentRankedStatus = inBool;
+    }
+    void setRecordStatus(bool inBool) {
+        mTrackerInfo.mRecord = inBool;
+    }
 
     void Run();
     void lookForTriggerEvents();

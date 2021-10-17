@@ -80,9 +80,11 @@ void StatTracker::lookForTriggerEvents(){
     //End Of Game
     switch (m_game_state){
         case (GAME_STATE::PREGAME):
-            if (Memory::Read_U32(aGameId) != 0){
+            //Start recording when GameId is set AND record button is pressed
+            if ((Memory::Read_U32(aGameId) != 0) && (mTrackerInfo.mRecord)){
                 m_game_id = Memory::Read_U32(aGameId);
                 m_game_state = GAME_STATE::INGAME;
+                m_game_info.ranked = mCurrentRankedStatus;
 
                 std::cout << "PREGAME->INGAME (GameID=" << std::to_string(m_game_id) << ")" << std::endl;
             }
@@ -321,16 +323,6 @@ void StatTracker::logABContactResult(){
     m_curr_ab_stat.ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
     m_curr_ab_stat.ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
     m_curr_ab_stat.ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
-}
-
-void StatTracker::setRankedStatus(bool inBool)
-{
-  mRankedStatus = inBool;
-}
-
-void StatTracker::setRecordStatus(bool inBool)
-{
-  mRecordStatus = inBool;
 }
 
 void StatTracker::printStatsToFile(){
