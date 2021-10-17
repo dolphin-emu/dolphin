@@ -21,7 +21,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
-#include "Core/LocalPlayers.h"
+// #include "Core/LocalPlayers.h"
 #include "Core/LocalPlayersConfig.h"
 #include "DolphinQt/Config/AddLocalPlayers.h"
 
