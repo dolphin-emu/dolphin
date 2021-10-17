@@ -121,6 +121,8 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
       .choices({"HLE", "LLE"})
       .help("Choose audio emulation from [%choices]");
 
+  parser->add_option("--audiodump").action("store_true").help("Dump Audio to file");
+
   return parser;
 }
 

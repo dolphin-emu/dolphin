@@ -220,6 +220,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     game_specified = true;
   }
 
+  if (options.is_set("audiodump"))
+    Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, true);
+
   int retval;
 
   if (save_state_path && !game_specified)
