@@ -148,6 +148,8 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
                  ram_address, length);
     DVDRead(volume, dvd_offset, ram_address, length, partition);
 
+    // TODO: Riivolution memory patches should be applied here using the ram_address/length...
+
     PowerPC::ppcState.gpr[3] = 0x81300004;
     PowerPC::ppcState.gpr[4] = 0x81300008;
     PowerPC::ppcState.gpr[5] = 0x8130000c;
