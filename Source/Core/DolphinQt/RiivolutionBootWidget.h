@@ -38,7 +38,12 @@ private:
   std::optional<u8> m_disc_number;
 
   bool m_should_boot = false;
-  std::vector<DiscIO::Riivolution::Disc> m_discs;
+  struct DiscWithRoot
+  {
+    DiscIO::Riivolution::Disc disc;
+    std::string root;
+  };
+  std::vector<DiscWithRoot> m_discs;
   std::vector<DiscIO::Riivolution::Patch> m_patches;
 
   QVBoxLayout* m_patch_section_layout;
