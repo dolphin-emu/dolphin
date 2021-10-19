@@ -147,6 +147,8 @@ static const u32 aAB_FinalResult = 0x80893BAA;
 static const u32 aAB_FrameOfSwingAnimUponContact = 0x80890976; //(halfword) frame of swing animation; stops increasing when contact is made
 static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978; //(halfword) frame of pitch that the batter swung
 
+static const u32 aAB_FieldingPort = 0x802EBF94;
+static const u32 aAB_BattingPort = 0x802EBF95;
 
 
 class StatTracker{
@@ -163,8 +165,11 @@ public:
         u32 game_id;
         std::string date_time;
 
-        std::string p1_name;
-        std::string p2_name;
+        u8 team0_port = 0;
+        u8 team1_port = 0;
+
+        std::string team0_player_name;
+        std::string team1_player_name;
         u8 ranked;
 
         //Auto capture
@@ -327,12 +332,8 @@ public:
     //Holds the status of the ranked button check box. Sampled at beginning of game
     bool mCurrentRankedStatus = false;
 
-    void setRankedStatus(bool inBool) {
-        mCurrentRankedStatus = inBool;
-    }
-    void setRecordStatus(bool inBool) {
-        mTrackerInfo.mRecord = inBool;
-    }
+    void setRankedStatus(bool inBool);
+    void setRecordStatus(bool inBool);
 
     void Run();
     void lookForTriggerEvents();
@@ -346,6 +347,9 @@ public:
     void logABContact();
     void logABPitch();
     void logABContactResult();
+
+    //Read players from ini file and assign to team
+    void readPlayers(bool inLocal);
 
     void printStatsToFile();
 };

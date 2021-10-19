@@ -18,63 +18,86 @@ void StatTracker::Run(){
 
 void StatTracker::lookForTriggerEvents(){
     //At Bat - Need RosterID (FOUND) and Team1 vs Team2 (MIA)
-    switch(m_ab_state){
-        //Look for Pitch
-        case (AB_STATE::WAITING_FOR_PITCH):
+    if (m_game_state == GAME_STATE::INGAME){
+        switch(m_ab_state){
+            //Look for Pitch
+            case (AB_STATE::WAITING_FOR_PITCH):
+                //Collect port info for players
+                if (m_game_info.team0_port == 0 && m_game_info.team1_port == 0){
+                    m_game_info.team0_port = 1; //Team0 is always P1/Port 1
 
-            if (Memory::Read_U8(aAB_PitchThrown) == 1){
-                std::cout << "Pitch detected!" << std::endl;
+                    u8 fielder_port = Memory::Read_U8(aAB_FieldingPort);
+                    u8 batter_port = Memory::Read_U8(aAB_BattingPort);
+                    if (fielder_port > 1 && fielder_port <= 4){
+                        m_game_info.team1_port = fielder_port;
+                    }
+                    else if (batter_port > 1 && batter_port <= 4){
+                        m_game_info.team1_port = batter_port;
+                    }
+                    else{
+                        m_game_info.team1_port = 0;
+                        //TODO - Disable stat submission here
+                    }
 
-                logABScenario(); //Inning, Order, 
-                m_ab_state = AB_STATE::PITCH_STARTED;
-            }
-            break;
-        case (AB_STATE::PITCH_STARTED): //Look for contact or end of pitch
-            if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
-                logABMiss(); //Strike or Swing or Bunt
-                logABPitch();
-                m_ab_state = AB_STATE::PLAY_OVER;
-            }
-            //Ball X,Y,Z Velocity is only set on contact
-            else if (Memory::Read_U32(aAB_BallVel_X) != 0){
-                logABContact(); //Veolcity, Part of Bat, Charge, Charge Power, Star, Moonshot
-                m_ab_state = AB_STATE::CONTACT;
-            }
-            //Else just keep looking for contact or end of pitch
-            break;
-        case (AB_STATE::CONTACT):
-            if (Memory::Read_U8(aAB_ContactResult) != 0){
-                logABContactResult(); //Land vs Caught vs Foul, Landing POS.
-                m_ab_state = AB_STATE::PLAY_OVER;
-            }
-            break;
-        case (AB_STATE::PLAY_OVER):
-            if (Memory::Read_U8(aAB_PitchThrown) == 0){
-                m_curr_ab_stat.rbi = Memory::Read_U8(aAB_RBI);
-                m_ab_state = AB_STATE::FINAL_RESULT;
-                std::cout << "Play over. Logging final results next frame." << std::endl;
+                    //TODO - Call with correct netplay/local status 
+                    std::cout << "Assigning Players to teams" << std::endl;
+                    readPlayers(true);
+                }
+
+                if (Memory::Read_U8(aAB_PitchThrown) == 1){
+                    std::cout << "Pitch detected!" << std::endl;
+
+                    logABScenario(); //Inning, Order, 
+                    m_ab_state = AB_STATE::PITCH_STARTED;
+                }
+                break;
+            case (AB_STATE::PITCH_STARTED): //Look for contact or end of pitch
+                if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
+                    logABMiss(); //Strike or Swing or Bunt
+                    logABPitch();
+                    m_ab_state = AB_STATE::PLAY_OVER;
+                }
+                //Ball X,Y,Z Velocity is only set on contact
+                else if (Memory::Read_U32(aAB_BallVel_X) != 0){
+                    logABContact(); //Veolcity, Part of Bat, Charge, Charge Power, Star, Moonshot
+                    m_ab_state = AB_STATE::CONTACT;
+                }
+                //Else just keep looking for contact or end of pitch
+                break;
+            case (AB_STATE::CONTACT):
+                if (Memory::Read_U8(aAB_ContactResult) != 0){
+                    logABContactResult(); //Land vs Caught vs Foul, Landing POS.
+                    m_ab_state = AB_STATE::PLAY_OVER;
+                }
+                break;
+            case (AB_STATE::PLAY_OVER):
+                if (Memory::Read_U8(aAB_PitchThrown) == 0){
+                    m_curr_ab_stat.rbi = Memory::Read_U8(aAB_RBI);
+                    m_ab_state = AB_STATE::FINAL_RESULT;
+                    std::cout << "Play over. Logging final results next frame." << std::endl;
+                    std::cout << std::endl;
+                }
+                break;
+            case (AB_STATE::FINAL_RESULT):
+                
+                //Final Stats - Collected 1 frame after aAB_PitchThrown==0
+                m_curr_ab_stat.num_outs = Memory::Read_U8(aAB_NumOutsDuringPlay);
+                m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
+
+                //Store current AB stat to the players vector
+                m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
+                m_curr_ab_stat = ABStats();
+
+                
+                m_ab_state = AB_STATE::WAITING_FOR_PITCH;
+                std::cout << "Final Result. Logging AB. Waiting for next pitch..." << std::endl;
                 std::cout << std::endl;
-            }
-            break;
-        case (AB_STATE::FINAL_RESULT):
-            
-            //Final Stats - Collected 1 frame after aAB_PitchThrown==0
-            m_curr_ab_stat.num_outs = Memory::Read_U8(aAB_NumOutsDuringPlay);
-            m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
-
-            //Store current AB stat to the players vector
-            m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
-            m_curr_ab_stat = ABStats();
-
-            
-            m_ab_state = AB_STATE::WAITING_FOR_PITCH;
-            std::cout << "Final Result. Logging AB. Waiting for next pitch..." << std::endl;
-            std::cout << std::endl;
-            break;
-        default:
-            std::cout << "Unknown State" << std::endl;
-            m_ab_state = AB_STATE::WAITING_FOR_PITCH;
-            break;
+                break;
+            default:
+                std::cout << "Unknown State" << std::endl;
+                m_ab_state = AB_STATE::WAITING_FOR_PITCH;
+                break;
+        }
     }
 
     //End Of Game
@@ -101,6 +124,7 @@ void StatTracker::lookForTriggerEvents(){
         case (GAME_STATE::ENDGAME_LOGGED):
             if (Memory::Read_U32(aGameId) == 0){
                 m_game_state = GAME_STATE::PREGAME;
+                init();
 
                 std::cout << "ENDGAME->PREGAME" << std::endl;
             }
@@ -333,8 +357,8 @@ void StatTracker::printStatsToFile(){
     MyFile << "  \"GameID\": \"" << std::hex << m_game_id << "\"," << std::endl;
     MyFile << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
     MyFile << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
-    MyFile << "  \"Team1 Player\": \"<PLAYER1_NAME>\"," << std::endl; //TODO MAKE THIS AN ID
-    MyFile << "  \"Team2 Player\": \"<PLAYER2_NAME>\"," << std::endl;
+    MyFile << "  \"Team1 Player\": \"" << m_game_info.team0_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
+    MyFile << "  \"Team2 Player\": \"" << m_game_info.team1_player_name << "\"," << std::endl;
 
     MyFile << "  \"Team1 Score\": \"" << std::dec << m_game_info.team0_score << "\"," << std::endl;
     MyFile << "  \"Team2 Score\": \"" << std::dec << m_game_info.team1_score << "\"," << std::endl;
@@ -467,52 +491,65 @@ void StatTracker::printStatsToFile(){
     std::cout << "Logging to " << file_name << std::endl;
 }
 
-/*
-IniFile local_players_ini;
-local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+//Read players from ini file and assign to team
+void StatTracker::readPlayers(bool inLocal) {
+    IniFile local_players_ini;
+    local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
 
-for (const IniFile* ini : {&local_players_ini})
-  {
-    std::vector<std::string> lines;
-    ini->GetLines("Local_Players_List", &lines, false);
-
-    AddPlayers player;
-
-    for (auto& line : lines)
+    for (const IniFile* ini : {&local_players_ini})
     {
-      std::istringstream ss(line);
+        std::vector<std::string> lines;
+        ini->GetLines("Local_Players_List", &lines, false);
 
-      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-      // Use the C locale to workaround this behavior
-      ss.imbue(std::locale::classic());
+        AddPlayers::AddPlayers player;
 
-      switch ((line)[0])
-      {
-      case '+':
+        u8 port = 0;
+        for (auto& line : lines)
+        {
+            ++port;
+            std::istringstream ss(line);
+
+            // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
+            // Use the C locale to workaround this behavior
+            ss.imbue(std::locale::classic());
+
+            switch ((line)[0])
+            {
+            case '+':
+                if (!player.username.empty())
+                //players.push_back(player);
+                player = AddPlayers::AddPlayers();
+                ss.seekg(1, std::ios_base::cur);
+                // read the code name
+                std::getline(ss, player.username,
+                            '[');  // stop at [ character (beginning of contributor name)
+                player.username = StripSpaces(player.username);
+                // read the code creator name
+                std::getline(ss, player.userid, ']');
+                if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
+                else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+                break;
+
+            break;
+            }
+        }
+
+        // add the last code
         if (!player.username.empty())
-          players.push_back(player);
-        player = AddPlayers();
-        ss.seekg(1, std::ios_base::cur);
-        // read the code name
-        std::getline(ss, player.username,
-                     '[');  // stop at [ character (beginning of contributor name)
-        player.username = StripSpaces(player.username);
-        // read the code creator name
-        std::getline(ss, player.userid, ']');
-        break;
+        {
+            //players.push_back(player);
 
-      break;
-      }
+            if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
+            else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+        }
     }
-
-    // add the last code
-    if (!player.username.empty())
-    {
-      players.push_back(player);
-    }
-  }
-
-  
-  return players;
+    //return players;
 }
-*/
+void StatTracker::setRankedStatus(bool inBool) {
+    mCurrentRankedStatus = inBool;
+}
+
+void StatTracker::setRecordStatus(bool inBool) {
+    std::cout << "Record Status=" << inBool << std::endl;
+    mTrackerInfo.mRecord = inBool;
+}
