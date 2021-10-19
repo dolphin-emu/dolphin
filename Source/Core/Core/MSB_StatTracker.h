@@ -37,6 +37,8 @@ static const u32 aAB_PitchThrown     = 0x8088A81B;
 static const u32 aAB_ContactResult   = 0x808926B3; //0=InAir, 1=Landed, 2=Fielded, 3=Caught, FF=Foul
 
 //Addrs for GameInfo
+static const u32 aStadiumId = 0x800E8705;
+
 static const u32 aTeam0_RosterCharId_Start = 0x80353C05;
 static const u32 aTeam1_RosterCharId_Start = 0x803541A5;
 
@@ -288,7 +290,7 @@ public:
         u32 ball_y_pos;
         u32 ball_z_pos;
 
-        u8 num_outs;
+        u8 num_outs_during_play;
         u8 rbi;
 
         std::string result_inferred; //strike-swing, strike-looking, ball, foul, land, caught

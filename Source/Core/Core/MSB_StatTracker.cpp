@@ -81,7 +81,7 @@ void StatTracker::lookForTriggerEvents(){
             case (AB_STATE::FINAL_RESULT):
                 
                 //Final Stats - Collected 1 frame after aAB_PitchThrown==0
-                m_curr_ab_stat.num_outs = Memory::Read_U8(aAB_NumOutsDuringPlay);
+                m_curr_ab_stat.num_outs_during_play = Memory::Read_U8(aAB_NumOutsDuringPlay);
                 m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
 
                 //Store current AB stat to the players vector
@@ -139,9 +139,12 @@ void StatTracker::logGameInfo(){
     //char* date_time = ctime(&now);
     tm *gmtm = gmtime(&now);
     char* dt = asctime(gmtm);
+
     m_game_info.date_time = std::string(dt);
     m_game_info.date_time.pop_back();
     m_game_info.ranked = 0;
+
+    m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
     m_game_info.team0_captain = Memory::Read_U8(aTeam0_Captain);
     m_game_info.team1_captain = Memory::Read_U8(aTeam1_Captain);
@@ -357,6 +360,7 @@ void StatTracker::printStatsToFile(){
     MyFile << "  \"GameID\": \"" << std::hex << m_game_id << "\"," << std::endl;
     MyFile << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
     MyFile << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
+    MyFile << "  \"StadiumID\": " << std::to_string(m_game_info.stadium) << "," << std::endl;
     MyFile << "  \"Team1 Player\": \"" << m_game_info.team0_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
     MyFile << "  \"Team2 Player\": \"" << m_game_info.team1_player_name << "\"," << std::endl;
 
@@ -470,7 +474,7 @@ void StatTracker::printStatsToFile(){
                 MyFile << "          \"Ball Landing Position - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
                 MyFile << "          \"Ball Landing Position - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
 
-                MyFile << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs) << "," << std::endl;
+                MyFile << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
                 MyFile << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
 
                 MyFile << "          \"Final Result - Inferred\": \"" << ab_stat.result_inferred << "\"," << std::endl;
