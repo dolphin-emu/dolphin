@@ -9,6 +9,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMetaType>
 #include <QPushButton>
 #include <QScrollArea>
@@ -16,6 +17,7 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -78,7 +80,7 @@ void RiivolutionBootWidget::CreateWidgets()
 void RiivolutionBootWidget::LoadMatchingXMLs()
 {
   const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
-  for (const std::string& path : Common::DoFileSearch({riivolution_dir + "/riivolution"}, {".xml"}))
+  for (const std::string& path : Common::DoFileSearch({riivolution_dir + "riivolution"}, {".xml"}))
   {
     auto parsed = DiscIO::Riivolution::ParseFile(path);
     if (!parsed || !parsed->IsValidForGame(m_game_id, m_revision, m_disc_number))
@@ -120,15 +122,55 @@ void RiivolutionBootWidget::OpenXML()
   }
 }
 
+static std::string FindRoot(std::string_view path)
+{
+  // Try to set the virtual SD root to directory one up from current.
+  // This mimics where the XML would be on a real SD card.
+  std::string contained_dir;
+  if (SplitPath(path, &contained_dir, nullptr, nullptr))
+  {
+    std::string parent_dir;
+    contained_dir.pop_back();
+    if (SplitPath(contained_dir, &parent_dir, nullptr, nullptr))
+      return parent_dir;
+  }
+  return File::GetUserPath(D_RIIVOLUTION_IDX);
+}
+
 void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path,
                                                  DiscIO::Riivolution::Disc input_disc)
 {
   const size_t disc_index = m_discs.size();
-  const auto& disc = m_discs.emplace_back(std::move(input_disc));
+  const auto& disc = m_discs.emplace_back(DiscWithRoot{std::move(input_disc), FindRoot(path)});
 
-  for (size_t section_index = 0; section_index < disc.m_sections.size(); ++section_index)
+  std::string filename;
+  std::string extension;
+  SplitPath(path, nullptr, &filename, &extension);
+  auto* disc_box = new QGroupBox(QString::fromStdString(filename + extension));
+  QVBoxLayout* disc_layout = new QVBoxLayout();
+  disc_box->setLayout(disc_layout);
+
+  auto* xml_root_line_edit = new QLineEdit(QString::fromStdString(disc.m_root));
+  xml_root_line_edit->setReadOnly(true);
+  auto* xml_root_layout = new QHBoxLayout();
+  QPushButton* xml_root_open = new QPushButton(QStringLiteral("..."));
+  xml_root_layout->addWidget(new QLabel(tr("Root:")), 0);
+  xml_root_layout->addWidget(xml_root_line_edit, 0);
+  xml_root_layout->addWidget(xml_root_open, 0);
+  disc_layout->addLayout(xml_root_layout);
+  connect(xml_root_open, &QPushButton::clicked, this, [this, xml_root_line_edit, disc_index]() {
+    QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+        this, tr("Select the Virtual SD Card Root"), xml_root_line_edit->text()));
+    if (!dir.isEmpty())
+    {
+      xml_root_line_edit->setText(dir);
+      m_discs[disc_index].m_root = dir.toStdString();
+    }
+  });
+
+  for (size_t section_index = 0; section_index < disc.m_disc.m_sections.size(); ++section_index)
   {
-    const auto& section = disc.m_sections[section_index];
+    const auto& section = disc.m_disc.m_sections[section_index];
     auto* group_box = new QGroupBox(QString::fromStdString(section.m_name));
     auto* grid_layout = new QGridLayout();
     group_box->setLayout(grid_layout);
@@ -154,7 +196,7 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path,
       connect(selection, qOverload<int>(&QComboBox::currentIndexChanged), this,
               [this, selection](int idx) {
                 const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
-                auto& disc = m_discs[gui_index.m_disc_index];
+                auto& disc = m_discs[gui_index.m_disc_index].m_disc;
                 auto& section = disc.m_sections[gui_index.m_section_index];
                 auto& option = section.m_options[gui_index.m_option_index];
                 option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
@@ -165,24 +207,24 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path,
       ++row;
     }
 
-    m_patch_section_layout->addWidget(group_box);
+    disc_layout->addWidget(group_box);
   }
+
+  m_patch_section_layout->addWidget(disc_box);
 }
 
 void RiivolutionBootWidget::BootGame()
 {
-  const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
-
   m_patches.clear();
   for (const auto& disc : m_discs)
   {
-    auto patches = disc.GeneratePatches(m_game_id);
+    auto patches = disc.m_disc.GeneratePatches(m_game_id);
 
     // set the file loader for each patch
     for (auto& patch : patches)
     {
       patch.m_file_data_loader = std::make_shared<DiscIO::Riivolution::FileDataLoaderHostFS>(
-          riivolution_dir, disc.m_xml_path, patch.m_root);
+          disc.m_root, disc.m_disc.m_xml_path, patch.m_root);
     }
 
     m_patches.insert(m_patches.end(), patches.begin(), patches.end());
