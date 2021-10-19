@@ -4,6 +4,7 @@
 #include "DiscIO/RiivolutionParser.h"
 
 #include <algorithm>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -379,5 +380,107 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     }
   }
   return result;
+}
+
+std::optional<Config> ParseConfigFile(const std::string& filename)
+{
+  ::File::IOFile f(filename, "rb");
+  if (!f)
+    return std::nullopt;
+
+  std::vector<char> data;
+  data.resize(f.GetSize());
+  if (!f.ReadBytes(data.data(), data.size()))
+    return std::nullopt;
+
+  return ParseConfigString(std::string_view(data.data(), data.size()));
+}
+
+std::optional<Config> ParseConfigString(std::string_view xml)
+{
+  pugi::xml_document doc;
+  const auto parse_result = doc.load_buffer(xml.data(), xml.size());
+  if (!parse_result)
+    return std::nullopt;
+
+  const auto riivolution = doc.child("riivolution");
+  if (!riivolution)
+    return std::nullopt;
+
+  Config config;
+  config.m_version = riivolution.attribute("version").as_int(-1);
+  if (config.m_version != 2)
+    return std::nullopt;
+
+  const auto options = riivolution.children("option");
+  for (const auto& option_node : options)
+  {
+    auto& option = config.m_options.emplace_back();
+    option.m_id = option_node.attribute("id").as_string();
+    option.m_default = option_node.attribute("default").as_uint(0);
+  }
+
+  return config;
+}
+
+std::string WriteConfigString(const Config& config)
+{
+  pugi::xml_document doc;
+  auto riivolution = doc.append_child("riivolution");
+  riivolution.append_attribute("version").set_value(config.m_version);
+  for (const auto& option : config.m_options)
+  {
+    auto option_node = riivolution.append_child("option");
+    option_node.append_attribute("id").set_value(option.m_id.c_str());
+    option_node.append_attribute("default").set_value(option.m_default);
+  }
+
+  std::stringstream ss;
+  doc.print(ss, "  ");
+  return ss.str();
+}
+
+bool WriteConfigFile(const std::string& filename, const Config& config)
+{
+  auto xml = WriteConfigString(config);
+  if (xml.empty())
+    return false;
+
+  ::File::IOFile f(filename, "wb");
+  if (!f)
+    return false;
+
+  if (!f.WriteString(xml))
+    return false;
+
+  return true;
+}
+
+void ApplyConfigDefaults(Disc* disc, const Config& config)
+{
+  for (const auto& config_option : config.m_options)
+  {
+    auto* matching_option = [&]() -> DiscIO::Riivolution::Option* {
+      for (auto& section : disc->m_sections)
+      {
+        for (auto& option : section.m_options)
+        {
+          if (option.m_id.empty())
+          {
+            if ((section.m_name + option.m_name) == config_option.m_id)
+              return &option;
+          }
+          else
+          {
+            if (option.m_id == config_option.m_id)
+              return &option;
+          }
+        }
+      }
+      return nullptr;
+    }();
+    if (matching_option)
+      matching_option->m_selected_choice = config_option.m_default;
+  }
 }
 }  // namespace DiscIO::Riivolution
