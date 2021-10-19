@@ -396,6 +396,8 @@ void ConvertDialog::Convert()
       return;
   }
 
+  bool confirm_replace_none = false;
+
   for (const auto& file : m_files)
   {
     const auto original_path = file->GetFilePath();
@@ -408,15 +410,24 @@ void ConvertDialog::Convert()
       QFileInfo dst_info = QFileInfo(dst_path);
       if (dst_info.exists())
       {
+        if (confirm_replace_none)
+          continue;
+
         ModalMessageBox confirm_replace(this);
         confirm_replace.setIcon(QMessageBox::Warning);
         confirm_replace.setWindowTitle(tr("Confirm"));
         confirm_replace.setText(tr("The file %1 already exists.\n"
                                    "Do you wish to replace it?")
                                     .arg(dst_info.fileName()));
-        confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No |
+                                           QMessageBox::NoToAll);
+        int confirm_replace_result = confirm_replace.exec();
 
-        if (confirm_replace.exec() == QMessageBox::No)
+        if (confirm_replace_result == QMessageBox::NoToAll)
+          confirm_replace_none = true;
+
+        if (confirm_replace_result == QMessageBox::No ||
+            confirm_replace_result == QMessageBox::NoToAll)
           continue;
       }
     }
