@@ -100,9 +100,9 @@ static Common::Timer s_timer;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
 
-static bool s_is_stopping = false;
-static bool s_hardware_initialized = false;
-static bool s_is_started = false;
+static Common::Flag s_is_stopping;
+static Common::Flag s_hardware_initialized;
+static Common::Flag s_is_started;
 static Common::Flag s_is_booting;
 static std::thread s_emu_thread;
 static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
@@ -183,17 +183,23 @@ void DisplayMessage(std::string message, int time_in_ms)
 
 bool IsRunning()
 {
-  return (GetState() != State::Uninitialized || s_hardware_initialized) && !s_is_stopping;
+  return (GetState() != State::Uninitialized || s_hardware_initialized.IsSet()) &&
+         !s_is_stopping.IsSet();
 }
 
 bool IsRunningAndStarted()
 {
-  return s_is_started && !s_is_stopping;
+  return s_is_started.IsSet() && !s_is_stopping.IsSet();
 }
 
 bool IsRunningInCurrentThread()
 {
   return IsRunning() && IsCPUThread();
+}
+
+bool IsBooted()
+{
+  return s_hardware_initialized.IsSet() && !s_is_stopping.IsSet();
 }
 
 bool IsCPUThread()
@@ -275,7 +281,7 @@ void Stop()  // - Hammertime!
 
   const SConfig& _CoreParameter = SConfig::GetInstance();
 
-  s_is_stopping = true;
+  s_is_stopping.Set();
 
   s_timer.Stop();
 
@@ -362,7 +368,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
       File::Delete(*savestate_path);
   }
 
-  s_is_started = true;
+  s_is_started.Set();
   CPUSetInitialExecutionState();
 
 #ifdef USE_GDBSTUB
@@ -389,7 +395,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   s_memory_watcher.reset();
 #endif
 
-  s_is_started = false;
+  s_is_started.Clear();
 
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
@@ -410,12 +416,12 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
   if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
   {
     PowerPC::InjectExternalCPUCore(cpu_core.get());
-    s_is_started = true;
+    s_is_started.Set();
 
     CPUSetInitialExecutionState();
     CPU::Run();
 
-    s_is_started = false;
+    s_is_started.Clear();
     PowerPC::InjectExternalCPUCore(nullptr);
     FifoPlayer::GetInstance().Close();
   }
@@ -437,8 +443,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
-    s_is_started = false;
-    s_is_stopping = false;
+    s_is_started.Clear();
+    s_is_stopping.Clear();
     s_wants_determinism = false;
 
     CallOnStateChangedCallbacks(State::Uninitialized);
@@ -534,7 +540,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   Common::ScopeGuard hw_guard{[] {
     // We must set up this flag before executing HW::Shutdown()
-    s_hardware_initialized = false;
+    s_hardware_initialized.Clear();
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
     HW::Shutdown();
     INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
@@ -583,7 +589,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   AudioCommon::PostInitSoundStream();
 
   // The hardware is initialized.
-  s_hardware_initialized = true;
+  s_hardware_initialized.Set();
   s_is_booting.Clear();
 
   // Set execution state to known values (CPU/FIFO/Audio Paused)
@@ -701,10 +707,10 @@ void SetState(State state)
 
 State GetState()
 {
-  if (s_is_stopping)
+  if (s_is_stopping.IsSet())
     return State::Stopping;
 
-  if (s_hardware_initialized)
+  if (s_hardware_initialized.IsSet())
   {
     if (CPU::IsStepping() || s_frame_step)
       return State::Paused;
@@ -821,7 +827,7 @@ void RunAsCPUThread(std::function<void()> function)
 void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 {
   // If the CPU thread is not running, assume there is no active CPU thread we can race against.
-  if (!IsRunning() || IsCPUThread())
+  if (!IsBooted() || IsCPUThread())
   {
     function();
     return;
