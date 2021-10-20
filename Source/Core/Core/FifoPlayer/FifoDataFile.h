@@ -24,6 +24,7 @@ struct MemoryUpdate
     XF_DATA = 0x02,
     VERTEX_STREAM = 0x04,
     TMEM = 0x08,
+    DISPLAY_LIST = 0x10,
   };
 
   u32 fifoPosition = 0;

@@ -11,5 +11,6 @@ namespace FifoRecordAnalyzer
 void Initialize(const u32* cpMem);
 
 void ProcessLoadIndexedXf(u32 val, int array);
+void ProcessDisplayList(const u32 address, u32 count);
 void WriteVertexArray(int arrayIndex, const u8* vertexData, int vertexSize, int numVertices);
 }  // namespace FifoRecordAnalyzer
