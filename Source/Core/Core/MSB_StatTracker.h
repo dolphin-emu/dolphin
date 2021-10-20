@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <map>
 #include "Core/HW/Memmap.h"
 
 #include "Core/LocalPlayers.h"
@@ -23,6 +24,107 @@ enum class AB_STATE
     PLAY_OVER,
     FINAL_RESULT,
     WAITING_FOR_PITCH,
+};
+
+//Conversion Maps
+
+static const std::map<u8, std::string> cCharIdToCharName = {
+    {0x0, "Mario"},
+    {0x1, "Luigi"},
+    {0x2, "DK"},
+    {0x3, "Diddy"},
+    {0x4, "Peach"},
+    {0x5, "Daisy"},
+    {0x6, "Yoshi"},
+    {0x7, "Baby Mario"},
+    {0x8, "Baby Luigi"},
+    {0x9, "Bowser"},
+    {0xa, "Wario"},
+    {0xb, "Waluigi"},
+    {0xc, "Koopa(G)"},
+    {0xd, "Toad(R)"},
+    {0xe, "Boo"},
+    {0xf, "Toadette"},
+    {0x10, "Shy Guy(R)"},
+    {0x11, "Birdo"},
+    {0x12, "Monty"},
+    {0x13, "Bowser Jr"},
+    {0x14, "Paratroopa(R)"},
+    {0x15, "Pianta(B)"},
+    {0x16, "Pianta(R)"},
+    {0x17, "Pianta(Y)"},
+    {0x18, "Noki(B)"},
+    {0x19, "Noki(R)"},
+    {0x1a, "Noki(G)"},
+    {0x1b, "Bro(H)"},
+    {0x1c, "Toadsworth"},
+    {0x1d, "Toad(B)"},
+    {0x1e, "Toad(Y)"},
+    {0x1f, "Toad(G)"},
+    {0x20, "Toad(P)"},
+    {0x21, "Magikoopa(B)"},
+    {0x22, "Magikoopa(R)"},
+    {0x23, "Magikoopa(G)"},
+    {0x24, "Magikoopa(Y)"},
+    {0x25, "King Boo"},
+    {0x26, "Petey"},
+    {0x27, "Dixie"},
+    {0x28, "Goomba"},
+    {0x29, "Paragoomba"},
+    {0x2a, "Koopa(R)"},
+    {0x2b, "Paratroopa(G)"},
+    {0x2c, "Shy Guy(B)"},
+    {0x2d, "Shy Guy(Y)"},
+    {0x2e, "Shy Guy(G)"},
+    {0x2f, "Shy Guy(Bk)"},
+    {0x30, "Dry Bones(Gy)"},
+    {0x31, "Dry Bones(G)"},
+    {0x32, "Dry Bones(R)"},
+    {0x33, "Dry Bones(B)"},
+    {0x34, "Bro(F)"},
+    {0x35, "Bro(B)"}
+};
+
+static const std::map<u8, std::string> cStadiumIdToStadiumName = {
+    {0x0, "Mario Stadium"},
+    {0x1, "Bowser's Castle"},
+    {0x2, "Wario's Palace"},
+    {0x3, "Yoshi's Island"},
+    {0x4, "Peach's Garden"},
+    {0x5, "DK's Jungle"},
+    {0x6, "Toy Field"}
+};
+
+static const std::map<u8, std::string> cTypeOfContactToHR = {
+    {0, "Sour"},
+    {1, "Nice"}, 
+    {2, "Perfect"},
+    {3, "Nice"}, 
+    {4, "Sour"}
+};
+
+static const std::map<u8, std::string> cHandToHR = {
+    {0, "Right"},
+    {1, "Left"}
+};
+
+static const std::map<u8, std::string> cInputDirectionToHR = {
+    {0, "None"},
+    {1, "Towards Batter"},
+    {2, "Away From Batter"}
+};
+
+static const std::map<u8, std::string> cPitchTypeToHR = {
+    {0, "Curve"},
+    {1, "Charge"},
+    {2, "ChangeUp"}
+};
+
+static const std::map<u8, std::string> cChargePitchTypeToHR = {
+    {0, "???"},
+    {1, "???"},
+    {2, "Slider"},
+    {3, "Perfect"}
 };
 
 //Const for structs
@@ -141,7 +243,6 @@ static const u32 aAB_BallPos_Z = 0x80890B40;
 
 static const u32 aAB_NumOutsDuringPlay = 0x808938AD;
 static const u32 aAB_HitByPitch = 0x808909A3;
-static const u32 aAB_BatterThrow_Tagged_Out = 0x80893B99; //0=Safe, 1=ThrownOutOrTagged, 255=
 
 static const u32 aAB_FinalResult = 0x80893BAA;
 
@@ -355,5 +456,6 @@ public:
     //Read players from ini file and assign to team
     void readPlayers(bool inLocal);
 
-    void printStatsToFile();
+    //Returns JSON, PathToWriteTo
+    std::pair<std::string, std::string> getStatJSON(bool inDecode);
 };
