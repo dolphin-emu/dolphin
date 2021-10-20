@@ -8,6 +8,7 @@
 //For LocalPLayers
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/CommonPaths.h"
 #include "Common/IniFile.h"
 
 #include "Common/Swap.h"
@@ -24,20 +25,26 @@ void StatTracker::lookForTriggerEvents(){
             case (AB_STATE::WAITING_FOR_PITCH):
                 //Collect port info for players
                 if (m_game_info.team0_port == 0 && m_game_info.team1_port == 0){
-                    m_game_info.team0_port = 1; //Team0 is always P1/Port 1
-
                     u8 fielder_port = Memory::Read_U8(aAB_FieldingPort);
                     u8 batter_port = Memory::Read_U8(aAB_BattingPort);
+                    
+                    if (fielder_port == 1) { m_game_info.team0_port = fielder_port; }
+                    else if (batter_port == 1) { m_game_info.team0_port = batter_port; }
+
                     if (fielder_port > 1 && fielder_port <= 4){
                         m_game_info.team1_port = fielder_port;
                     }
-                    else if (batter_port > 1 && batter_port <= 4){
+                    if (batter_port > 1 && batter_port <= 4){
                         m_game_info.team1_port = batter_port;
                     }
                     else{
                         m_game_info.team1_port = 0;
                         //TODO - Disable stat submission here
                     }
+
+                    //Map home and away ports for scores
+                    m_game_info.away_port = (batter_port > 0 && batter_port <= 4) ? batter_port : 0;
+                    m_game_info.home_port = (fielder_port > 0 && fielder_port <= 4) ? fielder_port : 0;
 
                     //TODO - Call with correct netplay/local status 
                     std::cout << "Assigning Players to teams" << std::endl;
@@ -146,11 +153,18 @@ void StatTracker::logGameInfo(){
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
-    m_game_info.team0_captain = Memory::Read_U8(aTeam0_Captain);
-    m_game_info.team1_captain = Memory::Read_U8(aTeam1_Captain);
+    //Captains
+    if (m_game_info.away_port == m_game_info.team0_port){
+        m_game_info.away_captain = Memory::Read_U8(aTeam0_Captain);
+        m_game_info.home_captain = Memory::Read_U8(aTeam1_Captain);
+    }
+    else{
+        m_game_info.away_captain = Memory::Read_U8(aTeam1_Captain);
+        m_game_info.home_captain = Memory::Read_U8(aTeam0_Captain);
+    }
 
-    m_game_info.team0_score = Memory::Read_U16(aTeam0_Score);
-    m_game_info.team1_score = Memory::Read_U16(aTeam1_Score);
+    m_game_info.away_score = Memory::Read_U16(aAwayTeam_Score);
+    m_game_info.home_score = Memory::Read_U16(aHomeTeam_Score);
 
     for (int team=0; team < cNumOfTeams; ++team){
         for (int roster=0; roster < cRosterSize; ++roster){
@@ -215,18 +229,29 @@ void StatTracker::logOffensiveStats(int team_id, int roster_id){
 void StatTracker::logABScenario(){
     std::cout << "Logging Sceanrio" << std::endl;
     //TODO: Figure out "Team1 is Hitting" Addr
-    m_curr_ab_stat.team_id = (Memory::Read_U8(aAB_BatterPort) == 1) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
+    m_curr_ab_stat.team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
     m_curr_ab_stat.roster_id = Memory::Read_U8(aAB_RosterID);
 
     m_curr_ab_stat.inning          = Memory::Read_U8(aAB_Inning);
     m_curr_ab_stat.half_inning     = Memory::Read_U8(aAB_HalfInning);
-    m_curr_ab_stat.team0_score     = Memory::Read_U16(aTeam0_Score);
-    m_curr_ab_stat.team1_score     = Memory::Read_U16(aTeam1_Score);
+
+    //Figure out scores
+    bool away_team_is_batting = (m_curr_ab_stat.half_inning == 0) ? true : false; //away team is batting if were at the top of the inning
+    m_curr_ab_stat.batter_score  = (away_team_is_batting) ? Memory::Read_U16(aAwayTeam_Score) : Memory::Read_U16(aHomeTeam_Score);
+    m_curr_ab_stat.fielder_score = (away_team_is_batting) ? Memory::Read_U16(aHomeTeam_Score) : Memory::Read_U16(aAwayTeam_Score);
+
     m_curr_ab_stat.balls           = Memory::Read_U8(aAB_Balls);
     m_curr_ab_stat.strikes         = Memory::Read_U8(aAB_Strikes);
     m_curr_ab_stat.outs            = Memory::Read_U8(aAB_Outs);
-    m_curr_ab_stat.batter_stars    = Memory::Read_U8(aAB_P1_Stars);
-    m_curr_ab_stat.pitcher_stars   = Memory::Read_U8(aAB_P2_Stars);
+    //Figure out star ownership
+    if (m_curr_ab_stat.team_id == 0) {
+        m_curr_ab_stat.batter_stars    = Memory::Read_U8(aAB_P1_Stars);
+        m_curr_ab_stat.pitcher_stars   = Memory::Read_U8(aAB_P2_Stars);
+    }
+    else if (m_curr_ab_stat.team_id == 1) {
+        m_curr_ab_stat.batter_stars    = Memory::Read_U8(aAB_P2_Stars);
+        m_curr_ab_stat.pitcher_stars   = Memory::Read_U8(aAB_P1_Stars);
+    }
     m_curr_ab_stat.is_star_chance  = Memory::Read_U8(aAB_IsStarChance);
     m_curr_ab_stat.chem_links_ob   = Memory::Read_U8(aAB_ChemLinksOnBase);
 
@@ -353,24 +378,66 @@ void StatTracker::logABContactResult(){
 }
 
 void StatTracker::printStatsToFile(){
-    std::string file_name = std::to_string(m_game_id) + ".txt";
-    std::ofstream MyFile(file_name);
+    std::string away_player_name;
+    std::string home_player_name;
+    bool team0_is_away;
+    if (m_game_info.away_port == m_game_info.team0_port) {
+        team0_is_away = true;
+        away_player_name = m_game_info.team0_player_name;
+        home_player_name = m_game_info.team1_player_name;
+    }
+    else{
+        team0_is_away = false;
+        away_player_name = m_game_info.team1_player_name;
+        home_player_name = m_game_info.team0_player_name;
+    }
 
-    MyFile << "{" << std::endl;
-    MyFile << "  \"GameID\": \"" << std::hex << m_game_id << "\"," << std::endl;
-    MyFile << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
-    MyFile << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
-    MyFile << "  \"StadiumID\": " << std::to_string(m_game_info.stadium) << "," << std::endl;
-    MyFile << "  \"Team1 Player\": \"" << m_game_info.team0_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
-    MyFile << "  \"Team2 Player\": \"" << m_game_info.team1_player_name << "\"," << std::endl;
+    std::string file_name = away_player_name 
+                   + "-Vs-" + home_player_name
+                   + "_" + std::to_string(m_game_id) + ".json";
 
-    MyFile << "  \"Team1 Score\": \"" << std::dec << m_game_info.team0_score << "\"," << std::endl;
-    MyFile << "  \"Team2 Score\": \"" << std::dec << m_game_info.team1_score << "\"," << std::endl;
+    std::string full_file_path = File::GetUserPath(D_STATFILES_IDX) + file_name;
+
+    std::stringstream json_stream;
+
+    json_stream << "{" << std::endl;
+    json_stream << "  \"GameID\": \"" << std::hex << m_game_id << "\"," << std::endl;
+    json_stream << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
+    json_stream << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
+    json_stream << "  \"StadiumID\": " << std::to_string(m_game_info.stadium) << "," << std::endl;
+    json_stream << "  \"Away Player\": \"" << away_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
+    json_stream << "  \"Home Player\": \"" << home_player_name << "\"," << std::endl;
+
+    json_stream << "  \"Away Score\": \"" << std::dec << m_game_info.away_score << "\"," << std::endl;
+    json_stream << "  \"Home Score\": \"" << std::dec << m_game_info.home_score << "\"," << std::endl;
     
     //Team Captain and Roster
     for (int team=0; team < cNumOfTeams; ++team){
-        u16 captain_id = (team==0) ? m_game_info.team0_captain : m_game_info.team1_captain;
-        MyFile << "  \"Team" << (team + 1) << " Captain\": " << std::to_string(captain_id) << "," << std::endl;
+        //If Team0 is away team
+        std::string team_label;
+        u16 captain_id;
+        if (team == 0){
+            if (team0_is_away){
+                team_label = "Away";
+                captain_id = m_game_info.away_captain;
+            }
+            else {
+                team_label = "Home";
+                captain_id = m_game_info.home_captain;
+            }
+        }
+        else if (team == 1) {
+            if (team0_is_away){
+                team_label = "Home";
+                captain_id = m_game_info.home_captain;
+            }
+            else {
+                team_label = "Away";
+                captain_id = m_game_info.away_captain;
+            }
+        }
+
+        json_stream << "  \"" << team_label << " Team Captain\": " << std::to_string(captain_id) << "," << std::endl;
         std::string str_roster = "[";
         for (int roster=0; roster < cRosterSize; ++roster){
             str_roster = str_roster + std::to_string(m_game_info.rosters_char_id[team][roster]);
@@ -381,118 +448,138 @@ void StatTracker::printStatsToFile(){
                 str_roster = str_roster + ", ";
             }
         }
-        MyFile << "  \"Team" << (team + 1) << " Roster\": " << str_roster << std::endl;
+        json_stream << "  \"" << team_label << " Team Roster\": " << str_roster << std::endl;
     }
 
-    MyFile << "  \"Player Stats\": [" << std::endl;
+    json_stream << "  \"Player Stats\": [" << std::endl;
     //Defensive Stats
     for (int team=0; team < cNumOfTeams; ++team){
+        std::string team_label;
+        if (team == 0){
+            if (team0_is_away){
+                team_label = "Away";
+            }
+            else{
+                team_label = "Home";
+            }
+        }
+        else if (team == 1) {
+            if (team0_is_away){
+                team_label = "Home";
+            }
+            else {
+                team_label = "Away";
+            }
+        }
+
         for (int roster=0; roster < cRosterSize; ++roster){
             EndGameRosterDefensiveStats& def_stat = m_defensive_stats[team][roster];
-            MyFile << "    {" << std::endl;
-            MyFile << "      \"TeamID\": " << team << "," << std::endl;
-            MyFile << "      \"RosterID\": " << roster << "," << std::endl;
-            MyFile << "      \"Is Starred\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
-            MyFile << "      \"Defensive Stats\": {" << std::endl;
-            MyFile << "        \"Batters Faced\": " << std::to_string(def_stat.batters_faced) << "," << std::endl;
-            MyFile << "        \"Runs Allowed\": " << std::dec << def_stat.runs_allowed << "," << std::endl;
-            MyFile << "        \"Batters Walked\": " << def_stat.batters_walked << "," << std::endl;
-            MyFile << "        \"Batters Hit\": " << def_stat.batters_hit << "," << std::endl;
-            MyFile << "        \"Hits Allowed\": " << def_stat.hits_allowed << "," << std::endl;
-            MyFile << "        \"HRs Allowed\": " << def_stat.homeruns_allowed << "," << std::endl;
-            MyFile << "        \"Pitches Thrown\": " << def_stat.pitches_thrown << "," << std::endl;
-            MyFile << "        \"Stamina\": " << def_stat.stamina << "," << std::endl;
-            MyFile << "        \"Was Pitcher\": " << std::to_string(def_stat.was_pitcher) << "," << std::endl;
-            MyFile << "        \"Batter Outs\": " << std::to_string(def_stat.batter_outs) << "," << std::endl;
-            MyFile << "        \"Strikeouts\": " << std::to_string(def_stat.strike_outs) << "," << std::endl;
-            MyFile << "        \"Star Pitches Thrown\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
-            MyFile << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << std::endl;
-            MyFile << "      }," << std::endl;
+            json_stream << "    {" << std::endl;
+            json_stream << "      \"Team\": \"" << team_label << "\"," << std::endl;
+            json_stream << "      \"RosterID\": " << roster << "," << std::endl;
+            json_stream << "      \"Is Starred\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
+            json_stream << "      \"Defensive Stats\": {" << std::endl;
+            json_stream << "        \"Batters Faced\": " << std::to_string(def_stat.batters_faced) << "," << std::endl;
+            json_stream << "        \"Runs Allowed\": " << std::dec << def_stat.runs_allowed << "," << std::endl;
+            json_stream << "        \"Batters Walked\": " << def_stat.batters_walked << "," << std::endl;
+            json_stream << "        \"Batters Hit\": " << def_stat.batters_hit << "," << std::endl;
+            json_stream << "        \"Hits Allowed\": " << def_stat.hits_allowed << "," << std::endl;
+            json_stream << "        \"HRs Allowed\": " << def_stat.homeruns_allowed << "," << std::endl;
+            json_stream << "        \"Pitches Thrown\": " << def_stat.pitches_thrown << "," << std::endl;
+            json_stream << "        \"Stamina\": " << def_stat.stamina << "," << std::endl;
+            json_stream << "        \"Was Pitcher\": " << std::to_string(def_stat.was_pitcher) << "," << std::endl;
+            json_stream << "        \"Batter Outs\": " << std::to_string(def_stat.batter_outs) << "," << std::endl;
+            json_stream << "        \"Strikeouts\": " << std::to_string(def_stat.strike_outs) << "," << std::endl;
+            json_stream << "        \"Star Pitches Thrown\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
+            json_stream << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << std::endl;
+            json_stream << "      }," << std::endl;
 
             EndGameRosterOffensiveStats& of_stat = m_offensive_stats[team][roster];
-            MyFile << "      \"Offensive Stats\": {" << std::endl;
-            MyFile << "        \"At Bats\": " << std::to_string(of_stat.at_bats) << "," << std::endl;
-            MyFile << "        \"Hits\": " << std::to_string(of_stat.hits) << "," << std::endl;
-            MyFile << "        \"Singles\": " << std::to_string(of_stat.singles) << "," << std::endl;
-            MyFile << "        \"Doubles\": " << std::to_string(of_stat.doubles) << "," << std::endl;
-            MyFile << "        \"Triples\": " << std::to_string(of_stat.triples) << "," << std::endl;
-            MyFile << "        \"Homeruns\": " << std::to_string(of_stat.homeruns) << "," << std::endl;
-            MyFile << "        \"Strikeouts\": " << std::to_string(of_stat.strikouts) << "," << std::endl;
-            MyFile << "        \"Walks (4 Balls)\": " << std::to_string(of_stat.walks_4balls) << "," << std::endl;
-            MyFile << "        \"Walks (Hit)\": " << std::to_string(of_stat.walks_hit) << "," << std::endl;
-            MyFile << "        \"RBI\": " << std::to_string(of_stat.rbi) << "," << std::endl;
-            MyFile << "        \"Bases Stolen\": " << std::to_string(of_stat.bases_stolen) << "," << std::endl;
-            MyFile << "        \"Star Hits\": " << std::to_string(of_stat.star_hits) << std::endl;
-            MyFile << "      }," << std::endl;
+            json_stream << "      \"Offensive Stats\": {" << std::endl;
+            json_stream << "        \"At Bats\": " << std::to_string(of_stat.at_bats) << "," << std::endl;
+            json_stream << "        \"Hits\": " << std::to_string(of_stat.hits) << "," << std::endl;
+            json_stream << "        \"Singles\": " << std::to_string(of_stat.singles) << "," << std::endl;
+            json_stream << "        \"Doubles\": " << std::to_string(of_stat.doubles) << "," << std::endl;
+            json_stream << "        \"Triples\": " << std::to_string(of_stat.triples) << "," << std::endl;
+            json_stream << "        \"Homeruns\": " << std::to_string(of_stat.homeruns) << "," << std::endl;
+            json_stream << "        \"Strikeouts\": " << std::to_string(of_stat.strikouts) << "," << std::endl;
+            json_stream << "        \"Walks (4 Balls)\": " << std::to_string(of_stat.walks_4balls) << "," << std::endl;
+            json_stream << "        \"Walks (Hit)\": " << std::to_string(of_stat.walks_hit) << "," << std::endl;
+            json_stream << "        \"RBI\": " << std::to_string(of_stat.rbi) << "," << std::endl;
+            json_stream << "        \"Bases Stolen\": " << std::to_string(of_stat.bases_stolen) << "," << std::endl;
+            json_stream << "        \"Star Hits\": " << std::to_string(of_stat.star_hits) << std::endl;
+            json_stream << "      }," << std::endl;
 
             //Iterate Batters vector of batting stats
-            MyFile << "      \"At-Bat Stats\": [" << std::endl;
+            json_stream << "      \"At-Bat Stats\": [" << std::endl;
             for (auto& ab_stat : m_ab_stats[team][roster]){
-                MyFile << "        {" << std::endl;
-                MyFile << "          \"Inning\": " << std::to_string(ab_stat.inning) << "," << std::endl;
-                MyFile << "          \"Half Inning\": " << std::to_string(ab_stat.half_inning) << "," << std::endl;
-                MyFile << "          \"Team1 Score\": \"" << std::dec << ab_stat.team0_score << "\"," << std::endl;
-                MyFile << "          \"Team2 Score\": \"" << std::dec << ab_stat.team1_score << "\"," << std::endl;
-                MyFile << "          \"Balls\": " << std::to_string(ab_stat.balls) << "," << std::endl;
-                MyFile << "          \"Strikes\": " << std::to_string(ab_stat.strikes) << "," << std::endl;
-                MyFile << "          \"Outs\": " << std::to_string(ab_stat.outs) << "," << std::endl;
-                MyFile << "          \"Runners on Base\": [" << std::to_string(ab_stat.runner_on_3) << "," 
+                json_stream << "        {" << std::endl;
+                json_stream << "          \"Inning\": " << std::to_string(ab_stat.inning) << "," << std::endl;
+                json_stream << "          \"Half Inning\": " << std::to_string(ab_stat.half_inning) << "," << std::endl;
+                json_stream << "          \"Batter Score\": \"" << std::dec << ab_stat.batter_score << "\"," << std::endl;
+                json_stream << "          \"Fielder Score\": \"" << std::dec << ab_stat.fielder_score << "\"," << std::endl;
+                json_stream << "          \"Balls\": " << std::to_string(ab_stat.balls) << "," << std::endl;
+                json_stream << "          \"Strikes\": " << std::to_string(ab_stat.strikes) << "," << std::endl;
+                json_stream << "          \"Outs\": " << std::to_string(ab_stat.outs) << "," << std::endl;
+                json_stream << "          \"Runners on Base\": [" << std::to_string(ab_stat.runner_on_3) << "," 
                                                              << std::to_string(ab_stat.runner_on_2) << ","
                                                              << std::to_string(ab_stat.runner_on_1) << "]," << std::endl;
-                MyFile << "          \"Chemistry Links on Base\": " << std::to_string(ab_stat.chem_links_ob) << "," << std::endl;
-                MyFile << "          \"Star Chance\": " << std::to_string(ab_stat.is_star_chance) << "," << std::endl;
-                MyFile << "          \"Batter Stars\": " << std::to_string(ab_stat.batter_stars) << "," << std::endl;
-                MyFile << "          \"Pitcher Stars\": " << std::to_string(ab_stat.pitcher_stars) << "," << std::endl;
+                json_stream << "          \"Chemistry Links on Base\": " << std::to_string(ab_stat.chem_links_ob) << "," << std::endl;
+                json_stream << "          \"Star Chance\": " << std::to_string(ab_stat.is_star_chance) << "," << std::endl;
+                json_stream << "          \"Batter Stars\": " << std::to_string(ab_stat.batter_stars) << "," << std::endl;
+                json_stream << "          \"Pitcher Stars\": " << std::to_string(ab_stat.pitcher_stars) << "," << std::endl;
 
-                MyFile << "          \"PitcherID \": " << std::to_string(ab_stat.pitcher_id) << "," << std::endl;
-                MyFile << "          \"Pitcher Handedness\": " << std::to_string(ab_stat.pitcher_handedness) << "," << std::endl;
-                MyFile << "          \"Pitch Type\": " << std::to_string(ab_stat.pitch_type) << "," << std::endl;
-                MyFile << "          \"Charge Pitch Type\": " << std::to_string(ab_stat.charge_type) << "," << std::endl;
-                MyFile << "          \"Star Pitch\": " << std::to_string(ab_stat.star_pitch) << "," << std::endl;
-                MyFile << "          \"Pitch Speed\": " << std::to_string(ab_stat.pitch_speed) << "," << std::endl;
+                json_stream << "          \"PitcherID \": " << std::to_string(ab_stat.pitcher_id) << "," << std::endl;
+                json_stream << "          \"Pitcher Handedness\": " << std::to_string(ab_stat.pitcher_handedness) << "," << std::endl;
+                json_stream << "          \"Pitch Type\": " << std::to_string(ab_stat.pitch_type) << "," << std::endl;
+                json_stream << "          \"Charge Pitch Type\": " << std::to_string(ab_stat.charge_type) << "," << std::endl;
+                json_stream << "          \"Star Pitch\": " << std::to_string(ab_stat.star_pitch) << "," << std::endl;
+                json_stream << "          \"Pitch Speed\": " << std::to_string(ab_stat.pitch_speed) << "," << std::endl;
 
-                MyFile << "          \"Type of Contact\": " << std::to_string(ab_stat.type_of_contact) << "," << std::endl;
-                MyFile << "          \"Charge Swing\": " << std::to_string(ab_stat.charge_swing) << "," << std::endl;
-                MyFile << "          \"Bunt\": " << std::to_string(ab_stat.bunt) << "," << std::endl;
-                MyFile << "          \"Charge Power Up\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_up << "\"," << std::endl;
-                MyFile << "          \"Charge Power Down\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_down << "\"," << std::endl;
-                MyFile << "          \"Star Swing\": " << std::to_string(ab_stat.star_swing) << "," << std::endl;
-                MyFile << "          \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
-                MyFile << "          \"Input Direction\": " << std::to_string(ab_stat.input_direction) << "," << std::endl;
-                MyFile << "          \"Batter Handedness\": " << std::to_string(ab_stat.batter_handedness) << "," << std::endl;
-                MyFile << "          \"Hit by Pitch\": " << std::to_string(ab_stat.hit_by_pitch) << "," << std::endl;
-                MyFile << "          \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
-                MyFile << "          \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
-                MyFile << "          \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
-                MyFile << "          \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
-                MyFile << "          \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_velocity << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_velocity << "\"," << std::endl;
-                MyFile << "          \"Ball Velocity - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_velocity << "\"," << std::endl;
+                json_stream << "          \"Type of Contact\": " << std::to_string(ab_stat.type_of_contact) << "," << std::endl;
+                json_stream << "          \"Charge Swing\": " << std::to_string(ab_stat.charge_swing) << "," << std::endl;
+                json_stream << "          \"Bunt\": " << std::to_string(ab_stat.bunt) << "," << std::endl;
+                json_stream << "          \"Charge Power Up\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_up << "\"," << std::endl;
+                json_stream << "          \"Charge Power Down\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_down << "\"," << std::endl;
+                json_stream << "          \"Star Swing\": " << std::to_string(ab_stat.star_swing) << "," << std::endl;
+                json_stream << "          \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
+                json_stream << "          \"Input Direction\": " << std::to_string(ab_stat.input_direction) << "," << std::endl;
+                json_stream << "          \"Batter Handedness\": " << std::to_string(ab_stat.batter_handedness) << "," << std::endl;
+                json_stream << "          \"Hit by Pitch\": " << std::to_string(ab_stat.hit_by_pitch) << "," << std::endl;
+                json_stream << "          \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
+                json_stream << "          \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
+                json_stream << "          \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
+                json_stream << "          \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
+                json_stream << "          \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
+                json_stream << "          \"Ball Velocity - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_velocity << "\"," << std::endl;
+                json_stream << "          \"Ball Velocity - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_velocity << "\"," << std::endl;
+                json_stream << "          \"Ball Velocity - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_velocity << "\"," << std::endl;
 
-                MyFile << "          \"Ball Landing Position - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_pos << "\"," << std::endl;
-                MyFile << "          \"Ball Landing Position - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
-                MyFile << "          \"Ball Landing Position - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
+                json_stream << "          \"Ball Landing Position - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_pos << "\"," << std::endl;
+                json_stream << "          \"Ball Landing Position - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
+                json_stream << "          \"Ball Landing Position - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
 
-                MyFile << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
-                MyFile << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
+                json_stream << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
+                json_stream << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
 
-                MyFile << "          \"Final Result - Inferred\": \"" << ab_stat.result_inferred << "\"," << std::endl;
-                MyFile << "          \"Final Result - Game\": \"" << std::to_string(ab_stat.result_game) << "\"" << std::endl;
+                json_stream << "          \"Final Result - Inferred\": \"" << ab_stat.result_inferred << "\"," << std::endl;
+                json_stream << "          \"Final Result - Game\": \"" << std::to_string(ab_stat.result_game) << "\"" << std::endl;
                 
                 std::string end_comma = (ab_stat == m_ab_stats[team][roster].back()) ? "" : ",";
-                MyFile << "        }" << end_comma << std::endl;
+                json_stream << "        }" << end_comma << std::endl;
             }
-            MyFile << "      ]" << std::endl;
+            json_stream << "      ]" << std::endl;
             std::string end_comma = ((team == 1) && (roster==8)) ? "" : ",";
-            MyFile << "    }" << end_comma << std::endl;
+            json_stream << "    }" << end_comma << std::endl;
         }
     }
 
-    MyFile << "  ]" << std::endl;
-    MyFile << "}" << std::endl;
+    json_stream << "  ]" << std::endl;
+    json_stream << "}" << std::endl;
 
-    std::cout << "Logging to " << file_name << std::endl;
+    File::WriteStringToFile(full_file_path, json_stream.str());
+
+    std::cout << "Logging to " << full_file_path << std::endl;
 }
 
 //Read players from ini file and assign to team
@@ -546,6 +633,13 @@ void StatTracker::readPlayers(bool inLocal) {
             if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
             else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
         }
+    }
+
+    if (m_game_info.team0_port == 0) {
+        m_game_info.team0_player_name = "CPU";
+    }
+    if (m_game_info.team1_port == 0) {
+        m_game_info.team1_player_name = "CPU";
     }
     //return players;
 }

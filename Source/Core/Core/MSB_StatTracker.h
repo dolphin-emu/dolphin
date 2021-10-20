@@ -45,8 +45,8 @@ static const u32 aTeam1_RosterCharId_Start = 0x803541A5;
 static const u32 aTeam0_Captain = 0x80353083;
 static const u32 aTeam1_Captain = 0x80353087;
 
-static const u32 aTeam0_Score = 0x808928a4;
-static const u32 aTeam1_Score = 0x808928CA;
+static const u32 aAwayTeam_Score = 0x808928A4;
+static const u32 aHomeTeam_Score = 0x808928CA;
 
 static const u8 c_roster_table_offset = 0xa0;
 
@@ -169,19 +169,21 @@ public:
 
         u8 team0_port = 0;
         u8 team1_port = 0;
+        u8 away_port;
+        u8 home_port;
 
         std::string team0_player_name;
         std::string team1_player_name;
         u8 ranked;
 
         //Auto capture
-        u16 team0_captain;
-        u16 team1_captain;
+        u16 away_captain;
+        u16 home_captain;
 
         std::array<std::array<u8, cRosterSize>, cNumOfTeams> rosters_char_id;
 
-        u16 team0_score;
-        u16 team1_score;
+        u16 away_score;
+        u16 home_score;
 
         u8 stadium;
     };
@@ -241,8 +243,8 @@ public:
         //Scenario
         u8 inning;
         u8 half_inning;
-        u16 team0_score;
-        u16 team1_score;
+        u16 batter_score;
+        u16 fielder_score;
         u8 balls;
         u8 strikes;
         u8 outs;
