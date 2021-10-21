@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -39,7 +38,7 @@ VertexShaderUid GetVertexShaderUid()
     // first transformation
     switch (texinfo.texgentype)
     {
-    case XF_TEXGEN_EMBOSS_MAP:  // calculate tex coords into bump map
+    case TexGenType::EmbossMap:  // calculate tex coords into bump map
       if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
       {
         // transform the light dir into tangent space
@@ -51,18 +50,19 @@ VertexShaderUid GetVertexShaderUid()
         texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       }
       break;
-    case XF_TEXGEN_COLOR_STRGBC0:
-    case XF_TEXGEN_COLOR_STRGBC1:
+    case TexGenType::Color0:
+    case TexGenType::Color1:
       break;
-    case XF_TEXGEN_REGULAR:
+    case TexGenType::Regular:
     default:
-      uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
+                                           << i;
       break;
     }
 
     uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
       postInfo.index = xfmem.postMtxInfo[i].index;
@@ -96,7 +96,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("struct VS_OUTPUT {{\n");
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
-  out.Write("}};\n");
+  out.Write("}};\n\n");
+
+  WriteIsNanHeader(out, api_type);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -213,10 +215,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     else
     {
-      // The default alpha channel depends on the number of components in the vertex format.
-      out.Write(
-          "vertex_color_{0} = float4(1.0, 1.0, 1.0, float((color_chan_alpha >> {0}) & 1u));\n",
-          color);
+      out.Write("vertex_color_{0} = missing_color_value;\n", color);
     }
   }
 
@@ -297,49 +296,55 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
     switch (texinfo.sourcerow)
     {
-    case XF_SRCGEOM_INROW:
+    case SourceRow::Geom:
       out.Write("coord.xyz = rawpos.xyz;\n");
       break;
-    case XF_SRCNORMAL_INROW:
+    case SourceRow::Normal:
       if ((uid_data->components & VB_HAS_NRM0) != 0)
       {
         out.Write("coord.xyz = rawnorm0.xyz;\n");
       }
       break;
-    case XF_SRCCOLORS_INROW:
-      ASSERT(texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 ||
-             texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1);
+    case SourceRow::Colors:
+      ASSERT(texinfo.texgentype == TexGenType::Color0 || texinfo.texgentype == TexGenType::Color1);
       break;
-    case XF_SRCBINORMAL_T_INROW:
+    case SourceRow::BinormalT:
       if ((uid_data->components & VB_HAS_NRM1) != 0)
       {
         out.Write("coord.xyz = rawnorm1.xyz;\n");
       }
       break;
-    case XF_SRCBINORMAL_B_INROW:
+    case SourceRow::BinormalB:
       if ((uid_data->components & VB_HAS_NRM2) != 0)
       {
         out.Write("coord.xyz = rawnorm2.xyz;\n");
       }
       break;
     default:
-      ASSERT(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-      if ((uid_data->components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW))) != 0)
+      ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
+      u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
+      if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
       {
-        out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n",
-                  texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
+        out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
       }
       break;
     }
     // Input form of AB11 sets z element to 1.0
 
-    if (texinfo.inputform == XF_TEXINPUT_AB11)
+    if (texinfo.inputform == TexInputForm::AB11)
       out.Write("coord.z = 1.0;\n");
+
+    // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
+    // See https://bugs.dolphin-emu.org/issues/11458
+    out.Write("// Convert NaN to 1\n");
+    out.Write("if (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
+    out.Write("if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
     // first transformation
     switch (texinfo.texgentype)
     {
-    case XF_TEXGEN_EMBOSS_MAP:  // calculate tex coords into bump map
+    case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
       if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
       {
@@ -359,18 +364,18 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
 
       break;
-    case XF_TEXGEN_COLOR_STRGBC0:
+    case TexGenType::Color0:
       out.Write("o.tex{}.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
       break;
-    case XF_TEXGEN_COLOR_STRGBC1:
+    case TexGenType::Color1:
       out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
       break;
-    case XF_TEXGEN_REGULAR:
+    case TexGenType::Regular:
     default:
       if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -386,7 +391,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES
@@ -404,7 +409,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
 
     // CHECKME: does this only work for regular tex gen types?
-    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+    if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
 
@@ -427,7 +432,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // This can be seen in devkitPro's neheGX Lesson08 example for Wii
     // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
     // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == XF_TEXGEN_REGULAR)
+    if (texinfo.texgentype == TexGenType::Regular)
     {
       out.Write(
           "if(o.tex{0}.z == 0.0f)\n"
@@ -438,19 +443,26 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("}}\n");
   }
 
-  if (uid_data->numColorChans == 0)
+  if (per_pixel_lighting)
   {
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = rawcolor0;\n");
-    else
-      out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
+    // When per-pixel lighting is enabled, the vertex colors are passed through
+    // unmodified so we can evaluate the lighting in the pixel shader.
+
+    // Lighting is also still computed in the vertex shader since it can be used to
+    // generate texture coordinates. We generated them above, so now the colors can
+    // be reverted to their previous stage.
+    out.Write("o.colors_0 = vertex_color_0;\n");
+    out.Write("o.colors_1 = vertex_color_1;\n");
+    // Note that the numColorChans logic is performed in the pixel shader.
   }
-  if (uid_data->numColorChans < 2)
+  else
   {
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = rawcolor1;\n");
-    else
-      out.Write("o.colors_1 = o.colors_0;\n");
+    // The number of colors available to TEV is determined by numColorChans.
+    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+    if (uid_data->numColorChans == 0)
+      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+    if (uid_data->numColorChans <= 1)
+      out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
   // clipPos/w needs to be done in pixel shader, not here
@@ -461,22 +473,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   {
     out.Write("o.Normal = _norm0;\n"
               "o.WorldPos = pos.xyz;\n");
-
-    // Pass through the vertex colors unmodified so we can evaluate the lighting in the same manner.
-    if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = vertex_color_0;\n");
-
-    if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = vertex_color_1;\n");
-  }
-  else
-  {
-    // The number of colors available to TEV is determined by numColorChans.
-    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
-    if (uid_data->numColorChans == 0)
-      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    if (uid_data->numColorChans <= 1)
-      out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
@@ -497,6 +493,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.clipDist0 = clipDist0;\n"
                 "o.clipDist1 = clipDist1;\n");
     }
+  }
+  else
+  {
+    // Same depth adjustment for Sonic. Without depth clamping, it unfortunately
+    // affects non-clipping uses of depth too.
+    out.Write("o.pos.z = o.pos.z * (1.0 - 1e-7);\n");
   }
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will

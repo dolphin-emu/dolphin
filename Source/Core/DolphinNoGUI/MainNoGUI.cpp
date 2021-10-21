@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinNoGUI/Platform.h"
 
@@ -10,6 +9,8 @@
 #include <cstring>
 #include <signal.h>
 #include <string>
+#include <vector>
+
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -17,10 +18,10 @@
 #endif
 
 #include "Common/StringUtil.h"
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/Host.h"
 
 #include "UICommon/CommandLineParse.h"
@@ -48,9 +49,15 @@ static void signal_handler(int)
   s_platform->RequestShutdown();
 }
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  return {};
+}
+
 void Host_NotifyMapLoaded()
 {
 }
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }
@@ -90,6 +97,12 @@ bool Host_RendererHasFocus()
   return s_platform->IsWindowFocused();
 }
 
+bool Host_RendererHasFullFocus()
+{
+  // Mouse capturing isn't implemented
+  return Host_RendererHasFocus();
+}
+
 bool Host_RendererIsFullscreen()
 {
   return s_platform->IsWindowFullscreen();
@@ -104,6 +117,11 @@ void Host_TitleChanged()
 #ifdef USE_DISCORD_PRESENCE
   Discord::UpdateDiscordPresence();
 #endif
+}
+
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
 }
 
 static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
@@ -216,7 +234,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  Core::SetOnStateChangedCallback([](Core::State state) {
+  Core::AddOnStateChangedCallback([](Core::State state) {
     if (state == Core::State::Uninitialized)
       s_platform->Stop();
   });

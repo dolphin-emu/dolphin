@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/PostProcessing.h"
 
@@ -386,7 +385,10 @@ std::vector<std::string> PostProcessing::GetPassiveShaderList()
 bool PostProcessing::Initialize(AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
-  if (!CompileVertexShader() || !CompilePixelShader() || !CompilePipeline())
+  // CompilePixelShader must be run first if configuration options are used.
+  // Otherwise the UBO has a different member list between vertex and pixel
+  // shaders, which is a link error.
+  if (!CompilePixelShader() || !CompileVertexShader() || !CompilePipeline())
     return false;
 
   return true;
@@ -397,6 +399,8 @@ void PostProcessing::RecompileShader()
   m_pipeline.reset();
   m_pixel_shader.reset();
   if (!CompilePixelShader())
+    return;
+  if (!CompileVertexShader())
     return;
 
   CompilePipeline();
@@ -544,6 +548,11 @@ float2 GetWindowResolution()
   return window_resolution.xy;
 }
 
+float2 GetInvWindowResolution()
+{
+  return window_resolution.zw;
+}
+
 float2 GetResolution()
 {
   return resolution.xy;
@@ -673,7 +682,8 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       {static_cast<float>(src_tex->GetWidth()), static_cast<float>(src_tex->GetHeight()),
        rcp_src_width, rcp_src_height},
       {static_cast<float>(window_rect.GetWidth()), static_cast<float>(window_rect.GetHeight()),
-       0.0f, 0.0f},
+       1.0f / static_cast<float>(window_rect.GetWidth()),
+       1.0f / static_cast<float>(window_rect.GetHeight())},
       {static_cast<float>(src.left) * rcp_src_width, static_cast<float>(src.top) * rcp_src_height,
        static_cast<float>(src.GetWidth()) * rcp_src_width,
        static_cast<float>(src.GetHeight()) * rcp_src_height},

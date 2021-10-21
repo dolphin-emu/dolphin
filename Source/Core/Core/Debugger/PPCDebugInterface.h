@@ -1,15 +1,16 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
 #include "Common/DebugInterface.h"
+#include "Core/NetworkCaptureLogger.h"
 
 class PPCPatches : public Common::Debug::MemoryPatches
 {
@@ -82,9 +83,12 @@ public:
   u32 GetColor(u32 address) const override;
   std::string GetDescription(u32 address) const override;
 
+  std::shared_ptr<Core::NetworkCaptureLogger> NetworkLogger();
+
   void Clear() override;
 
 private:
   Common::Debug::Watches m_watches;
   PPCPatches m_patches;
+  std::shared_ptr<Core::NetworkCaptureLogger> m_network_logger;
 };

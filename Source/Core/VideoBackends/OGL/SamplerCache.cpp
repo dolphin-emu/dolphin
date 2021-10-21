@@ -1,9 +1,8 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/OGLRender.h"
 
 #include <memory>
 

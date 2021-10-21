@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/VerifyWidget.h"
 
@@ -17,9 +16,11 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
+#include "Core/Core.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeVerifier.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
+#include "DolphinQt/Settings.h"
 
 VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(std::move(volume))
 {
@@ -38,6 +39,20 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
   layout->setStretchFactor(m_summary_text, 2);
 
   setLayout(layout);
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &VerifyWidget::OnEmulationStateChanged);
+
+  OnEmulationStateChanged();
+}
+
+void VerifyWidget::OnEmulationStateChanged()
+{
+  const bool running = Core::GetState() != Core::State::Uninitialized;
+
+  // Verifying a Wii game while emulation is running doesn't work correctly
+  // due to verification of a Wii game creating an instance of IOS
+  m_verify_button->setEnabled(!running);
 }
 
 void VerifyWidget::CreateWidgets()

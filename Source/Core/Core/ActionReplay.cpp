@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // -----------------------------------------------------------------------------------------
 // Partial Action Replay code system implementation.
@@ -26,20 +25,22 @@
 #include <iterator>
 #include <mutex>
 #include <string>
-#include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/ARDecrypt.h"
-#include "Core/ConfigManager.h"
+#include "Core/CheatCodes.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/PowerPC/MMU.h"
 
 namespace ActionReplay
@@ -113,14 +114,14 @@ struct ARAddr
 // AR Remote Functions
 void ApplyCodes(const std::vector<ARCode>& codes)
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
 
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   s_disable_logging = false;
   s_active_codes.clear();
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-               [](const ARCode& code) { return code.active; });
+               [](const ARCode& code) { return code.enabled; });
   s_active_codes.shrink_to_fit();
 }
 
@@ -136,19 +137,19 @@ void UpdateSyncedCodes(const std::vector<ARCode>& codes)
   s_synced_codes.clear();
   s_synced_codes.reserve(codes.size());
   std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
-               [](const ARCode& code) { return code.active; });
+               [](const ARCode& code) { return code.enabled; });
   s_synced_codes.shrink_to_fit();
 }
 
 std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
 {
-  if (SConfig::GetInstance().bEnableCheats)
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
-    std::lock_guard<std::mutex> guard(s_lock);
+    std::lock_guard guard(s_lock);
     s_disable_logging = false;
     s_active_codes.clear();
     std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
-                 [](const ARCode& code) { return code.active; });
+                 [](const ARCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -157,12 +158,12 @@ std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
 
 void AddCode(ARCode code)
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
 
-  if (code.active)
+  if (code.enabled)
   {
-    std::lock_guard<std::mutex> guard(s_lock);
+    std::lock_guard guard(s_lock);
     s_disable_logging = false;
     s_active_codes.emplace_back(std::move(code));
   }
@@ -177,20 +178,6 @@ void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
 {
   std::vector<ARCode> codes;
-
-  std::unordered_set<std::string> enabled_names;
-  {
-    std::vector<std::string> enabled_lines;
-    local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
-    for (const std::string& line : enabled_lines)
-    {
-      if (!line.empty() && line[0] == '$')
-      {
-        std::string name = line.substr(1, line.size() - 1);
-        enabled_names.insert(name);
-      }
-    }
-  }
 
   const IniFile* inis[2] = {&global_ini, &local_ini};
   for (const IniFile* ini : inis)
@@ -225,47 +212,18 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         }
 
         current_code.name = line.substr(1, line.size() - 1);
-        current_code.active = enabled_names.find(current_code.name) != enabled_names.end();
         current_code.user_defined = (ini == &local_ini);
       }
       else
       {
-        std::vector<std::string> pieces = SplitString(line, ' ');
+        const auto parse_result = DeserializeLine(line);
 
-        // Check if the AR code is decrypted
-        if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
-        {
-          AREntry op;
-          bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
-          bool success_val = TryParse(pieces[1], &op.value, 16);
-
-          if (success_addr && success_val)
-          {
-            current_code.ops.push_back(op);
-          }
-          else
-          {
-            PanicAlertFmtT("Action Replay Error: invalid AR code line: {0}", line);
-
-            if (!success_addr)
-              PanicAlertFmtT("The address is invalid");
-
-            if (!success_val)
-              PanicAlertFmtT("The value is invalid");
-          }
-        }
+        if (std::holds_alternative<AREntry>(parse_result))
+          current_code.ops.push_back(std::get<AREntry>(parse_result));
+        else if (std::holds_alternative<EncryptedLine>(parse_result))
+          encrypted_lines.emplace_back(std::get<EncryptedLine>(parse_result));
         else
-        {
-          pieces = SplitString(line, '-');
-          if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 &&
-              pieces[2].size() == 5)
-          {
-            // Encrypted AR code
-            // Decryption is done in "blocks", so we must push blocks into a vector,
-            // then send to decrypt when a new block is encountered, or if it's the last block.
-            encrypted_lines.emplace_back(pieces[0] + pieces[1] + pieces[2]);
-          }
-        }
+          PanicAlertFmtT("Action Replay Error: invalid AR code line: {0}", line);
       }
     }
 
@@ -279,6 +237,14 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       DecryptARCode(encrypted_lines, &current_code.ops);
       codes.push_back(current_code);
     }
+
+    ReadEnabledAndDisabled(*ini, "ActionReplay", &codes);
+
+    if (ini == &global_ini)
+    {
+      for (ARCode& code : codes)
+        code.default_enabled = code.enabled;
+    }
   }
 
   return codes;
@@ -288,22 +254,59 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
+  std::vector<std::string> disabled_lines;
+
   for (const ActionReplay::ARCode& code : codes)
   {
-    if (code.active)
-      enabled_lines.emplace_back("$" + code.name);
+    if (code.enabled != code.default_enabled)
+      (code.enabled ? enabled_lines : disabled_lines).emplace_back('$' + code.name);
 
     if (code.user_defined)
     {
-      lines.emplace_back("$" + code.name);
+      lines.emplace_back('$' + code.name);
       for (const ActionReplay::AREntry& op : code.ops)
       {
-        lines.emplace_back(fmt::format("{:08X} {:08X}", op.cmd_addr, op.value));
+        lines.emplace_back(SerializeLine(op));
       }
     }
   }
+
   local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
+  local_ini->SetLines("ActionReplay_Disabled", disabled_lines);
   local_ini->SetLines("ActionReplay", lines);
+}
+
+std::variant<std::monostate, AREntry, EncryptedLine> DeserializeLine(const std::string& line)
+{
+  std::vector<std::string> pieces = SplitString(line, ' ');
+
+  // Decrypted AR code
+  if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
+  {
+    AREntry op;
+    bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
+    bool success_val = TryParse(pieces[1], &op.value, 16);
+
+    if (success_addr && success_val)
+      return op;
+  }
+
+  // Encrypted AR code
+  pieces = SplitString(line, '-');
+  if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5)
+  {
+    // Decryption is done in "blocks", so we can't decrypt right away. Instead we push blocks into
+    // a vector, then send to decrypt when a new block is encountered, or if it's the last block.
+    return pieces[0] + pieces[1] + pieces[2];
+  }
+
+  // Parsing failed
+  return std::monostate{};
+}
+
+std::string SerializeLine(const AREntry& op)
+{
+  return fmt::format("{:08X} {:08X}", op.cmd_addr, op.value);
 }
 
 static void VLogInfo(std::string_view format, fmt::format_args args)
@@ -312,7 +315,7 @@ static void VLogInfo(std::string_view format, fmt::format_args args)
     return;
 
   const bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
-  if (MAX_LOGLEVEL < Common::Log::LINFO && !use_internal_log)
+  if (Common::Log::MAX_LOGLEVEL < Common::Log::LINFO && !use_internal_log)
     return;
 
   std::string text = fmt::vformat(format, args);
@@ -338,13 +341,13 @@ void EnableSelfLogging(bool enable)
 
 std::vector<std::string> GetSelfLog()
 {
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   return s_internal_log;
 }
 
 void ClearSelfLog()
 {
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   s_internal_log.clear();
 }
 
@@ -976,13 +979,13 @@ static bool RunCodeLocked(const ARCode& arcode)
 
 void RunAllActive()
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
 
   // If the mutex is idle then acquiring it should be cheap, fast mutexes
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.
-  std::lock_guard<std::mutex> guard(s_lock);
+  std::lock_guard guard(s_lock);
   s_active_codes.erase(std::remove_if(s_active_codes.begin(), s_active_codes.end(),
                                       [](const ARCode& code) {
                                         bool success = RunCodeLocked(code);

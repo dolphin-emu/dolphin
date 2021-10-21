@@ -1,10 +1,10 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -17,17 +17,23 @@ namespace Memcard
 {
 class GCMemcard;
 class GCMemcardErrorCode;
+struct Savefile;
+enum class ReadSavefileErrorCode;
+enum class SavefileFormat;
 }  // namespace Memcard
 
+class QAction;
 class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
+class QMenu;
 class QPixmap;
 class QPushButton;
 class QString;
 class QTableWidget;
 class QTimer;
+class QToolButton;
 
 class GCMemcardManager : public QDialog
 {
@@ -37,6 +43,7 @@ public:
   ~GCMemcardManager();
 
   static QString GetErrorMessagesForErrorCode(const Memcard::GCMemcardErrorCode& code);
+  static QString GetErrorMessageForErrorCode(Memcard::ReadSavefileErrorCode code);
 
 private:
   struct IconAnimationData;
@@ -51,11 +58,14 @@ private:
   void SetSlotFileInteractive(int slot);
   void SetActiveSlot(int slot);
 
+  std::vector<u8> GetSelectedFileIndices();
+
+  void ImportFiles(int slot, const std::vector<Memcard::Savefile>& savefiles);
+
   void CopyFiles();
   void ImportFile();
   void DeleteFiles();
-  void ExportFiles(bool prompt);
-  void ExportAllFiles();
+  void ExportFiles(Memcard::SavefileFormat format);
   void FixChecksums();
   void CreateNewCard(int slot);
   void DrawIcons();
@@ -67,15 +77,18 @@ private:
   // Actions
   QPushButton* m_select_button;
   QPushButton* m_copy_button;
-  QPushButton* m_export_button;
-  QPushButton* m_export_all_button;
+  QToolButton* m_export_button;
+  QMenu* m_export_menu;
+  QAction* m_export_gci_action;
+  QAction* m_export_gcs_action;
+  QAction* m_export_sav_action;
   QPushButton* m_import_button;
   QPushButton* m_delete_button;
   QPushButton* m_fix_checksums_button;
 
   // Slots
   static constexpr int SLOT_COUNT = 2;
-  std::array<std::vector<IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
+  std::array<std::map<u8, IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
   std::array<std::unique_ptr<Memcard::GCMemcard>, SLOT_COUNT> m_slot_memcard;
   std::array<QGroupBox*, SLOT_COUNT> m_slot_group;
   std::array<QLineEdit*, SLOT_COUNT> m_slot_file_edit;

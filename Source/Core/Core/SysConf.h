@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Utilities to parse and modify a Wii SYSCONF file and its sections.
 
@@ -9,6 +8,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -46,8 +46,8 @@ public:
       ByteBool = 7,
     };
 
-    Entry(Type type_, const std::string& name_);
-    Entry(Type type_, const std::string& name_, std::vector<u8> bytes_);
+    Entry(Type type_, std::string name_);
+    Entry(Type type_, std::string name_, std::vector<u8> bytes_);
 
     // Intended for use with the non array types.
     template <typename T>
@@ -74,21 +74,21 @@ public:
     std::vector<u8> bytes;
   };
 
-  void AddEntry(Entry&& entry);
-  Entry* GetEntry(const std::string& key);
-  const Entry* GetEntry(const std::string& key) const;
-  Entry* GetOrAddEntry(const std::string& key, Entry::Type type);
-  void RemoveEntry(const std::string& key);
+  Entry& AddEntry(Entry&& entry);
+  Entry* GetEntry(std::string_view key);
+  const Entry* GetEntry(std::string_view key) const;
+  Entry* GetOrAddEntry(std::string_view key, Entry::Type type);
+  void RemoveEntry(std::string_view key);
 
   // Intended for use with the non array types.
   template <typename T>
-  T GetData(const std::string& key, T default_value) const
+  T GetData(std::string_view key, T default_value) const
   {
     const Entry* entry = GetEntry(key);
     return entry ? entry->GetData(default_value) : default_value;
   }
   template <typename T>
-  void SetData(const std::string& key, Entry::Type type, T value)
+  void SetData(std::string_view key, Entry::Type type, T value)
   {
     GetOrAddEntry(key, type)->SetData(value);
   }

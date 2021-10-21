@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
 
@@ -25,7 +24,7 @@ void SetupUnit::Init(u8 primitiveType)
 
 OutputVertexData* SetupUnit::GetVertex()
 {
-  memset(m_VertWritePointer, 0, sizeof(*m_VertWritePointer));
+  memset(reinterpret_cast<u8*>(m_VertWritePointer), 0, sizeof(*m_VertWritePointer));
   return m_VertWritePointer;
 }
 
@@ -167,4 +166,5 @@ void SetupUnit::SetupLineStrip()
 
 void SetupUnit::SetupPoint()
 {
+  Clipper::ProcessPoint(m_VertPointer[0]);
 }

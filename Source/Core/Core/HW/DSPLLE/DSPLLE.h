@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSPEmulator.h"
 
 class PointerWrap;
@@ -41,10 +41,15 @@ public:
 private:
   static void DSPThread(DSPLLE* dsp_lle);
 
+  DSPCore m_dsp_core;
   std::thread m_dsp_thread;
   std::mutex m_dsp_thread_mutex;
   bool m_is_dsp_on_thread = false;
   Common::Flag m_is_running;
   std::atomic<u32> m_cycle_count{};
+
+  Common::Event m_dsp_event;
+  Common::Event m_ppc_event;
+  bool m_request_disable_thread = false;
 };
 }  // namespace DSP::LLE

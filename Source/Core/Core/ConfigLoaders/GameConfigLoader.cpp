@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 
@@ -69,10 +68,10 @@ using INIToSectionMap = std::map<std::string, std::pair<Config::System, std::str
 static const INIToLocationMap& GetINIToLocationMap()
 {
   static const INIToLocationMap ini_to_location = {
-      {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.location}},
-      {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.location}},
-      {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.location}},
-      {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.location}},
+      {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.GetLocation()}},
+      {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.GetLocation()}},
+      {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.GetLocation()}},
+      {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.GetLocation()}},
   };
   return ini_to_location;
 }
@@ -250,6 +249,9 @@ private:
       if (location.section.empty() && location.key.empty())
         continue;
 
+      if (location.system == Config::System::Session)
+        continue;
+
       layer->Set(location, value.second);
     }
   }
@@ -272,7 +274,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
     const Config::Location& location = config.first;
     const std::optional<std::string>& value = config.second;
 
-    if (!IsSettingSaveable(location))
+    if (!IsSettingSaveable(location) || location.system == Config::System::Session)
       continue;
 
     const auto ini_location = GetINILocationFromConfig(location);

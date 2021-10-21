@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
 #include <memory>
@@ -84,6 +83,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsLogicOp = true;
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsBBox = true;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
@@ -112,7 +112,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
       !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize())
   {
-    PanicAlert("Failed to initialize renderer classes");
+    PanicAlertFmt("Failed to initialize renderer classes");
     Shutdown();
     return false;
   }

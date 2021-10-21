@@ -1,12 +1,13 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/MenuBar.h"
 
 #include <cinttypes>
+#include <future>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDialog>
@@ -21,6 +22,7 @@
 #include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
@@ -50,7 +52,9 @@
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
@@ -128,9 +132,6 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
   // Options
   m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
-
-  // Tools
-  m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
 
   // JIT
   m_jit_interpreter_core->setEnabled(running);
@@ -227,12 +228,7 @@ void MenuBar::AddToolsMenu()
   tools_menu->addAction(tr("&Resource Pack Manager"), this,
                         [this] { emit ShowResourcePackManager(); });
 
-  m_show_cheat_manager =
-      tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
-
-  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this, [this](bool enabled) {
-    m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
-  });
+  tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
@@ -535,6 +531,7 @@ void MenuBar::AddOptionsMenu()
   m_controllers_action =
       options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+  options_menu->addAction(tr("&Free Look Settings"), this, &MenuBar::ConfigureFreelook);
 
   options_menu->addSeparator();
 
@@ -800,9 +797,9 @@ void MenuBar::AddMovieMenu()
 
   auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
-  dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
+  dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
 }
 
 void MenuBar::AddJITMenu()
@@ -1026,12 +1023,8 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
   }
 
-  const auto ios = IOS::HLE::GetIOS();
-  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
-                        nullptr;
-  const bool enable_wiimotes =
-      emulation_started && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
+  const auto bt = WiiUtils::GetBluetoothEmuDevice();
+  const bool enable_wiimotes = emulation_started && bt != nullptr;
 
   for (std::size_t i = 0; i < m_wii_remotes.size(); i++)
   {
@@ -1045,8 +1038,8 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
 
 void MenuBar::InstallWAD()
 {
-  QString wad_file = QFileDialog::getOpenFileName(this, tr("Select a title to install to NAND"),
-                                                  QString(), tr("WAD files (*.wad)"));
+  QString wad_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select a title to install to NAND"), QString(), tr("WAD files (*.wad)"));
 
   if (wad_file.isEmpty())
     return;
@@ -1065,31 +1058,52 @@ void MenuBar::InstallWAD()
 
 void MenuBar::ImportWiiSave()
 {
-  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("Wii save files (*.bin);;"
-                                                 "All Files (*)"));
+  QString file =
+      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                         tr("Wii save files (*.bin);;"
+                                            "All Files (*)"));
 
   if (file.isEmpty())
     return;
 
-  bool cancelled = false;
   auto can_overwrite = [&] {
-    bool yes = ModalMessageBox::question(
-                   this, tr("Save Import"),
-                   tr("Save data for this title already exists in the NAND. Consider backing up "
-                      "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
-    cancelled = !yes;
-    return yes;
+    return ModalMessageBox::question(
+               this, tr("Save Import"),
+               tr("Save data for this title already exists in the NAND. Consider backing up "
+                  "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
   };
-  if (WiiSave::Import(file.toStdString(), can_overwrite))
-    ModalMessageBox::information(this, tr("Save Import"), tr("Successfully imported save files."));
-  else if (!cancelled)
-    ModalMessageBox::critical(this, tr("Save Import"), tr("Failed to import save files."));
+
+  const auto result = WiiSave::Import(file.toStdString(), can_overwrite);
+  switch (result)
+  {
+  case WiiSave::CopyResult::Success:
+    ModalMessageBox::information(this, tr("Save Import"), tr("Successfully imported save file."));
+    break;
+  case WiiSave::CopyResult::CorruptedSource:
+    ModalMessageBox::critical(this, tr("Save Import"),
+                              tr("Failed to import save file. The given file appears to be "
+                                 "corrupted or is not a valid Wii save."));
+    break;
+  case WiiSave::CopyResult::TitleMissing:
+    ModalMessageBox::critical(
+        this, tr("Save Import"),
+        tr("Failed to import save file. Please launch the game once, then try again."));
+    break;
+  case WiiSave::CopyResult::Cancelled:
+    break;
+  default:
+    ModalMessageBox::critical(
+        this, tr("Save Import"),
+        tr("Failed to import save file. Your NAND may be corrupt, or something is preventing "
+           "access to files within it. Try repairing your NAND (Tools -> Manage NAND -> Check "
+           "NAND...), then import the save again."));
+    break;
+  }
 }
 
 void MenuBar::ExportWiiSaves()
 {
-  const QString export_dir = QFileDialog::getExistingDirectory(
+  const QString export_dir = DolphinFileDialog::getExistingDirectory(
       this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
       QFileDialog::ShowDirsOnly);
   if (export_dir.isEmpty())
@@ -1258,9 +1272,11 @@ void MenuBar::GenerateSymbolsFromRSO()
   if (ret == QMessageBox::Yes)
     return GenerateSymbolsFromRSOAuto();
 
-  QString text = QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"));
+  const QString text =
+      QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"),
+                            QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
   bool good;
-  uint address = text.toUInt(&good, 16);
+  const uint address = text.toUInt(&good, 16);
 
   if (!good)
   {
@@ -1282,48 +1298,26 @@ void MenuBar::GenerateSymbolsFromRSO()
 
 void MenuBar::GenerateSymbolsFromRSOAuto()
 {
-  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
-  const AddressSpace::Accessors* accessors =
-      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
-  std::vector<std::pair<u32, std::string>> matches;
+  ParallelProgressDialog progress(tr("Modules found: %1").arg(0), tr("Cancel"), 0, 0, this);
+  progress.GetRaw()->setWindowTitle(tr("Detecting RSO Modules"));
+  progress.GetRaw()->setMinimumDuration(1000 * 10);
+  progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
-  // Find filepath to elf/plf commonly used by RSO modules
-  for (const auto& str : search_for)
-  {
-    u32 next = 0;
-    while (true)
-    {
-      auto found_addr =
-          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+  auto future = std::async(std::launch::async, [&progress, this]() -> RSOVector {
+    progress.SetValue(0);
+    auto matches = DetectRSOModules(progress);
+    progress.Reset();
 
-      if (!found_addr.has_value())
-        break;
-      next = *found_addr + 1;
+    return matches;
+  });
+  progress.GetRaw()->exec();
 
-      // Get the beginning of the string
-      found_addr = accessors->Search(*found_addr, reinterpret_cast<const u8*>(""), 1, false);
-      if (!found_addr.has_value())
-        continue;
-
-      // Get the string reference
-      const u32 ref_addr = *found_addr + 1;
-      const std::array<u8, 4> ref = {static_cast<u8>(ref_addr >> 24),
-                                     static_cast<u8>(ref_addr >> 16),
-                                     static_cast<u8>(ref_addr >> 8), static_cast<u8>(ref_addr)};
-      found_addr = accessors->Search(ref_addr, ref.data(), ref.size(), false);
-      if (!found_addr.has_value() || *found_addr < 16)
-        continue;
-
-      // Go to the beginning of the RSO header
-      matches.emplace_back(*found_addr - 16, PowerPC::HostGetString(ref_addr, 128));
-    }
-  }
+  const auto matches = future.get();
 
   QStringList items;
   for (const auto& match : matches)
   {
     const QString item = QLatin1String("%1 %2");
-
     items << item.arg(QString::number(match.first, 16), QString::fromStdString(match.second));
   }
 
@@ -1334,8 +1328,9 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   }
 
   bool ok;
-  const QString item = QInputDialog::getItem(
-      this, tr("Input"), tr("Select the RSO module address:"), items, 0, false, &ok);
+  const QString item =
+      QInputDialog::getItem(this, tr("Input"), tr("Select the RSO module address:"), items, 0,
+                            false, &ok, Qt::WindowCloseButtonHint);
 
   if (!ok)
     return;
@@ -1351,6 +1346,107 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(address));
   }
+}
+
+RSOVector MenuBar::DetectRSOModules(ParallelProgressDialog& progress)
+{
+  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
+
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+
+  RSOVector matches;
+
+  // Find filepath to elf/plf commonly used by RSO modules
+  for (const auto& str : search_for)
+  {
+    u32 next = 0;
+    while (true)
+    {
+      if (progress.WasCanceled())
+      {
+        return matches;
+      }
+
+      auto found_addr =
+          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+
+      if (!found_addr.has_value())
+        break;
+
+      next = *found_addr + 1;
+
+      // Non-null data can precede the module name.
+      // Get the maximum name length that a module could have.
+      auto get_max_module_name_len = [found_addr] {
+        constexpr u32 MODULE_NAME_MAX_LENGTH = 260;
+        u32 len = 0;
+
+        for (; len < MODULE_NAME_MAX_LENGTH; ++len)
+        {
+          const auto res = PowerPC::HostRead_U8(*found_addr - (len + 1));
+          if (!std::isprint(res))
+          {
+            break;
+          }
+        }
+
+        return len;
+      };
+
+      if (progress.WasCanceled())
+      {
+        return matches;
+      }
+
+      const auto max_name_length = get_max_module_name_len();
+      auto found = false;
+      u32 module_name_length = 0;
+
+      // Look for the Module Name Offset Field based on each possible length
+      for (u32 i = 0; i < max_name_length; ++i)
+      {
+        if (progress.WasCanceled())
+        {
+          return matches;
+        }
+
+        const auto lookup_addr = (*found_addr - max_name_length) + i;
+
+        const std::array<u8, 4> ref = {
+            static_cast<u8>(lookup_addr >> 24), static_cast<u8>(lookup_addr >> 16),
+            static_cast<u8>(lookup_addr >> 8), static_cast<u8>(lookup_addr)};
+
+        // Get the field (Module Name Offset) that point to the string
+        const auto module_name_offset_addr =
+            accessors->Search(lookup_addr, ref.data(), ref.size(), false);
+        if (!module_name_offset_addr.has_value())
+          continue;
+
+        // The next 4 bytes should be the module name length
+        module_name_length = accessors->ReadU32(*module_name_offset_addr + 4);
+        if (module_name_length == max_name_length - i + str.length())
+        {
+          found_addr = module_name_offset_addr;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found)
+        continue;
+
+      const auto module_name_offset = accessors->ReadU32(*found_addr);
+
+      // Go to the beginning of the RSO header
+      matches.emplace_back(*found_addr - 16,
+                           PowerPC::HostGetString(module_name_offset, module_name_length));
+
+      progress.SetLabelText(tr("Modules found: %1").arg(matches.size()));
+    }
+  }
+
+  return matches;
 }
 
 void MenuBar::LoadSymbolMap()
@@ -1396,7 +1492,7 @@ void MenuBar::SaveSymbolMap()
 
 void MenuBar::LoadOtherSymbolMap()
 {
-  const QString file = QFileDialog::getOpenFileName(
+  const QString file = DolphinFileDialog::getOpenFileName(
       this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
       tr("Dolphin Map File (*.map)"));
 
@@ -1412,7 +1508,7 @@ void MenuBar::LoadOtherSymbolMap()
 
 void MenuBar::LoadBadSymbolMap()
 {
-  const QString file = QFileDialog::getOpenFileName(
+  const QString file = DolphinFileDialog::getOpenFileName(
       this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
       tr("Dolphin Map File (*.map)"));
 
@@ -1429,7 +1525,7 @@ void MenuBar::LoadBadSymbolMap()
 void MenuBar::SaveSymbolMapAs()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
-  const QString file = QFileDialog::getSaveFileName(
+  const QString file = DolphinFileDialog::getSaveFileName(
       this, tr("Save map file"),
       QString::fromStdString(File::GetUserPath(D_MAPS_IDX) + "/" + title_id_str + ".map"),
       tr("Dolphin Map File (*.map)"));
@@ -1479,10 +1575,11 @@ void MenuBar::TrySaveSymbolMap(const QString& path)
 void MenuBar::CreateSignatureFile()
 {
   const QString text = QInputDialog::getText(
-      this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
+      this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"),
+      QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
-  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"),
-                                                    QDir::homePath(), GetSignatureSelector());
+  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Save signature file"),
+                                                          QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1503,10 +1600,11 @@ void MenuBar::CreateSignatureFile()
 void MenuBar::AppendSignatureFile()
 {
   const QString text = QInputDialog::getText(
-      this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"));
+      this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"),
+      QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
-  const QString file = QFileDialog::getSaveFileName(this, tr("Append signature to"),
-                                                    QDir::homePath(), GetSignatureSelector());
+  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Append signature to"),
+                                                          QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1528,8 +1626,8 @@ void MenuBar::AppendSignatureFile()
 
 void MenuBar::ApplySignatureFile()
 {
-  const QString file = QFileDialog::getOpenFileName(this, tr("Apply signature file"),
-                                                    QDir::homePath(), GetSignatureSelector());
+  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Apply signature file"),
+                                                          QDir::homePath(), GetSignatureSelector());
 
   if (file.isEmpty())
     return;
@@ -1545,18 +1643,18 @@ void MenuBar::ApplySignatureFile()
 
 void MenuBar::CombineSignatureFiles()
 {
-  const QString priorityFile = QFileDialog::getOpenFileName(
+  const QString priorityFile = DolphinFileDialog::getOpenFileName(
       this, tr("Choose priority input file"), QDir::homePath(), GetSignatureSelector());
   if (priorityFile.isEmpty())
     return;
 
-  const QString secondaryFile = QFileDialog::getOpenFileName(
+  const QString secondaryFile = DolphinFileDialog::getOpenFileName(
       this, tr("Choose secondary input file"), QDir::homePath(), GetSignatureSelector());
   if (secondaryFile.isEmpty())
     return;
 
-  const QString saveFile = QFileDialog::getSaveFileName(this, tr("Save combined output file as"),
-                                                        QDir::homePath(), GetSignatureSelector());
+  const QString saveFile = DolphinFileDialog::getSaveFileName(
+      this, tr("Save combined output file as"), QDir::homePath(), GetSignatureSelector());
   if (saveFile.isEmpty())
     return;
 
@@ -1594,8 +1692,9 @@ void MenuBar::LogInstructions()
 void MenuBar::SearchInstruction()
 {
   bool good;
-  const QString op = QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"),
-                                           QLineEdit::Normal, QString{}, &good);
+  const QString op =
+      QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"), QLineEdit::Normal,
+                            QString{}, &good, Qt::WindowCloseButtonHint);
 
   if (!good)
     return;
@@ -1604,14 +1703,14 @@ void MenuBar::SearchInstruction()
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal();
        addr += 4)
   {
-    auto ins_name =
+    const auto ins_name =
         QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));
     if (op == ins_name)
     {
-      NOTICE_LOG(POWERPC, "Found %s at %08x", op.toStdString().c_str(), addr);
+      NOTICE_LOG_FMT(POWERPC, "Found {} at {:08x}", op.toStdString(), addr);
       found = true;
     }
   }
   if (!found)
-    NOTICE_LOG(POWERPC, "Opcode %s not found", op.toStdString().c_str());
+    NOTICE_LOG_FMT(POWERPC, "Opcode {} not found", op.toStdString());
 }

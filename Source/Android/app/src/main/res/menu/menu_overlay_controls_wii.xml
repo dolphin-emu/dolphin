@@ -12,7 +12,7 @@
 
     <item
         android:id="@+id/menu_emulation_adjust_scale"
-        android:title="@string/emulation_control_scale"/>
+        android:title="@string/emulation_control_adjustments"/>
 
     <group android:checkableBehavior="all">
         <item

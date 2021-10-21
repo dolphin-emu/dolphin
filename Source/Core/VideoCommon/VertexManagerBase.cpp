@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -14,8 +13,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
-#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
+#include "Core/DolphinAnalytics.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
@@ -270,7 +269,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (BoundingBox::IsEnabled() && g_ActiveConfig.bBBoxEnable &&
+  if (g_renderer->IsBBoxEnabled() && g_ActiveConfig.bBBoxEnable &&
       g_ActiveConfig.backend_info.bSupportsBBox)
   {
     g_renderer->BBoxFlush();
@@ -351,7 +350,7 @@ void VertexManagerBase::LoadTextures()
   for (unsigned int i : usedtextures)
     g_texture_cache->Load(i);
 
-  g_texture_cache->BindTextures();
+  g_texture_cache->BindTextures(usedtextures);
 }
 
 void VertexManagerBase::Flush()
@@ -408,10 +407,10 @@ void VertexManagerBase::Flush()
   for (u32 i = 0; i < xfmem.numTexGen.numTexGens; ++i)
   {
     TexMtxInfo tinfo = xfmem.texMtxInfo[i];
-    if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
+    if (tinfo.texgentype != TexGenType::EmbossMap)
       tinfo.hex &= 0x7ff;
-    if (tinfo.texgentype != XF_TEXGEN_REGULAR)
-      tinfo.projection = 0;
+    if (tinfo.texgentype != TexGenType::Regular)
+      tinfo.projection = TexSize::ST;
 
     PRIM_LOG("txgen{}: proj={}, input={}, gentype={}, srcrow={}, embsrc={}, emblght={}, "
              "postmtx={}, postnorm={}",
@@ -430,7 +429,7 @@ void VertexManagerBase::Flush()
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
   if (!SConfig::GetInstance().bWii)
   {
-    const bool is_perspective = xfmem.projection.type == GX_PERSPECTIVE;
+    const bool is_perspective = xfmem.projection.type == ProjectionType::Perspective;
 
     auto& counts =
         is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;

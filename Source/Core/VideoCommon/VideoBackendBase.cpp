@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -48,6 +47,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -84,8 +84,8 @@ void VideoBackendBase::Video_ExitLoop()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                        u64 ticks)
+void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
+                                       u64 ticks)
 {
   if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
   {
@@ -168,10 +168,8 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
                     "for this game.");
     }
     warn_once = false;
-    return 0;
   }
-
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  else if (!g_ActiveConfig.backend_info.bSupportsBBox)
   {
     static bool warn_once = true;
     if (warn_once)
@@ -182,7 +180,6 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
           "freezes while running this game.");
     }
     warn_once = false;
-    return 0;
   }
 
   Fifo::SyncGPU(Fifo::SyncGPUReason::BBox);
@@ -218,6 +215,10 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
     // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+    //
+    // On macOS Mojave and newer, we prefer Vulkan over OGL due to outdated drivers.
+    // However, on macOS High Sierra and older, we still prefer OGL due to its older Metal version
+    // missing several features required by the Vulkan backend.
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
@@ -226,7 +227,18 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
 #ifdef HAS_VULKAN
-    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+#ifdef __APPLE__
+    // If we can run the Vulkan backend, emplace it at the beginning of the vector so
+    // it takes precedence over OpenGL.
+    if (__builtin_available(macOS 10.14, *))
+    {
+      backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
+    }
+    else
+#endif
+    {
+      backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+    }
 #endif
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<SW::VideoSoftware>());
@@ -295,8 +307,8 @@ void VideoBackendBase::DoState(PointerWrap& p)
 
 void VideoBackendBase::InitializeShared()
 {
-  memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
-  memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
+  memset(reinterpret_cast<u8*>(&g_main_cp_state), 0, sizeof(g_main_cp_state));
+  memset(reinterpret_cast<u8*>(&g_preprocess_cp_state), 0, sizeof(g_preprocess_cp_state));
   memset(texMem, 0, TMEM_SIZE);
 
   // do not initialize again for the config window
@@ -311,6 +323,7 @@ void VideoBackendBase::InitializeShared()
   VertexShaderManager::Init();
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
+  TMEM::Init();
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();

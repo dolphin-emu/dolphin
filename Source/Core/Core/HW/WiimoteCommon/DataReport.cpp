@@ -1,12 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cassert>
+#include "Core/HW/WiimoteCommon/DataReport.h"
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/MathUtil.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
 
 namespace WiimoteCommon
 {
@@ -308,7 +307,7 @@ std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID r
     ptr = std::make_unique<ReportInterleave2>();
     break;
   default:
-    assert(false);
+    ASSERT(false);
     break;
   }
 
@@ -335,7 +334,7 @@ InputReportID DataReportBuilder::GetMode() const
 bool DataReportBuilder::IsValidMode(InputReportID mode)
 {
   return (mode >= InputReportID::ReportCore && mode <= InputReportID::ReportCoreAccelIR10Ext6) ||
-         (mode >= InputReportID::ReportExt21 && InputReportID::ReportInterleave2 <= mode);
+         (mode >= InputReportID::ReportExt21 && mode <= InputReportID::ReportInterleave2);
 }
 
 bool DataReportBuilder::HasCore() const

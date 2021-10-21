@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstddef>
@@ -11,14 +10,20 @@
 
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
-DXTexture::DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture)
-    : AbstractTexture(config), m_texture(std::move(texture))
+DXTexture::DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture,
+                     std::string_view name)
+    : AbstractTexture(config), m_texture(std::move(texture)), m_name(name)
 {
+  if (!m_name.empty())
+  {
+    m_texture->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(m_name.size()),
+                              m_name.c_str());
+  }
 }
 
 DXTexture::~DXTexture()
@@ -27,7 +32,7 @@ DXTexture::~DXTexture()
     D3D::stateman->ApplyTextures();
 }
 
-std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config)
+std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::string_view name)
 {
   // Use typeless to create the texture when it's a render target, so we can alias it with an
   // integer format (for EFB).
@@ -45,12 +50,12 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config)
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, d3d_texture.GetAddressOf());
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create %ux%ux%u D3D backing texture", config.width, config.height,
-               config.layers);
+    PanicAlertFmt("Failed to create {}x{}x{} D3D backing texture", config.width, config.height,
+                  config.layers);
     return nullptr;
   }
 
-  std::unique_ptr<DXTexture> tex(new DXTexture(config, std::move(d3d_texture)));
+  std::unique_ptr<DXTexture> tex(new DXTexture(config, std::move(d3d_texture), name));
   if (!tex->CreateSRV() || (config.IsComputeImage() && !tex->CreateUAV()))
     return nullptr;
 
@@ -71,7 +76,7 @@ std::unique_ptr<DXTexture> DXTexture::CreateAdopted(ComPtr<ID3D11Texture2D> text
   if (desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS)
     config.flags |= AbstractTextureFlag_ComputeImage;
 
-  std::unique_ptr<DXTexture> tex(new DXTexture(config, std::move(texture)));
+  std::unique_ptr<DXTexture> tex(new DXTexture(config, std::move(texture), ""));
   if (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE && !tex->CreateSRV())
     return nullptr;
   if (desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS && !tex->CreateUAV())
@@ -92,8 +97,8 @@ bool DXTexture::CreateSRV()
   HRESULT hr = D3D::device->CreateShaderResourceView(m_texture.Get(), &desc, m_srv.GetAddressOf());
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create %ux%ux%u D3D SRV", m_config.width, m_config.height,
-               m_config.layers);
+    PanicAlertFmt("Failed to create {}x{}x{} D3D SRV", m_config.width, m_config.height,
+                  m_config.layers);
     return false;
   }
 
@@ -109,8 +114,8 @@ bool DXTexture::CreateUAV()
   HRESULT hr = D3D::device->CreateUnorderedAccessView(m_texture.Get(), &desc, m_uav.GetAddressOf());
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create %ux%ux%u D3D UAV", m_config.width, m_config.height,
-               m_config.layers);
+    PanicAlertFmt("Failed to create {}x{}x{} D3D UAV", m_config.width, m_config.height,
+                  m_config.layers);
     return false;
   }
 

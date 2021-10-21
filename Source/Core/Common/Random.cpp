@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Random.h"
 
@@ -11,10 +10,42 @@
 
 namespace Common::Random
 {
-class CSPRNG final
+struct PRNG::Impl
+{
+  Impl(void* seed, std::size_t size)
+  {
+    mbedtls_hmac_drbg_init(&m_context);
+    const int ret = mbedtls_hmac_drbg_seed_buf(
+        &m_context, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), static_cast<u8*>(seed), size);
+    ASSERT(ret == 0);
+  }
+
+  ~Impl() { mbedtls_hmac_drbg_free(&m_context); }
+
+  void Generate(void* buffer, std::size_t size)
+  {
+    const int ret = mbedtls_hmac_drbg_random(&m_context, static_cast<u8*>(buffer), size);
+    ASSERT(ret == 0);
+  }
+
+  mbedtls_hmac_drbg_context m_context;
+};
+
+PRNG::PRNG(void* seed, std::size_t size) : m_impl(std::make_unique<Impl>(seed, size))
+{
+}
+
+PRNG::~PRNG() = default;
+
+void PRNG::Generate(void* buffer, std::size_t size)
+{
+  m_impl->Generate(buffer, size);
+}
+
+class EntropySeededPRNG final
 {
 public:
-  CSPRNG()
+  EntropySeededPRNG()
   {
     mbedtls_entropy_init(&m_entropy);
     mbedtls_hmac_drbg_init(&m_context);
@@ -23,7 +54,7 @@ public:
     ASSERT(ret == 0);
   }
 
-  ~CSPRNG()
+  ~EntropySeededPRNG()
   {
     mbedtls_hmac_drbg_free(&m_context);
     mbedtls_entropy_free(&m_entropy);
@@ -40,10 +71,10 @@ private:
   mbedtls_hmac_drbg_context m_context;
 };
 
-static thread_local CSPRNG s_csprng;
+static thread_local EntropySeededPRNG s_esprng;
 
 void Generate(void* buffer, std::size_t size)
 {
-  s_csprng.Generate(buffer, size);
+  s_esprng.Generate(buffer, size);
 }
 }  // namespace Common::Random

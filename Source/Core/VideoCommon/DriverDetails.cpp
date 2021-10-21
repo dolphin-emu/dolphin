@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <map>
 
@@ -35,6 +34,10 @@ constexpr u32 m_os = OS_ALL | OS_LINUX;
 constexpr u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
 constexpr u32 m_os = OS_ALL | OS_OPENBSD;
+#elif __NetBSD__
+constexpr u32 m_os = OS_ALL | OS_NETBSD;
+#elif __HAIKU__
+constexpr u32 m_os = OS_ALL | OS_HAIKU;
 #endif
 
 static API m_api = API_OPENGL;
@@ -92,6 +95,8 @@ constexpr BugInfo m_known_bugs[] = {
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_OSX, VENDOR_INTEL, DRIVER_INTEL, Family::UNKNOWN,
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
+    {API_VULKAN, OS_OSX, VENDOR_INTEL, DRIVER_PORTABILITY, Family::UNKNOWN,
+     BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, 108.4693462, true},
     {API_VULKAN, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0,
@@ -118,6 +123,14 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_SLOW_CACHED_READBACK_MEMORY, -1.0, -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_VECTOR_BITWISE_AND,
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_VECTOR_BITWISE_AND,
+     -1.0, -1.0, true},
+    {API_OPENGL, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_BROKEN_SSBO_FIELD_ATOMICS,
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_OSX, VENDOR_ATI, DRIVER_PORTABILITY, Family::UNKNOWN,
+     BUG_BROKEN_SUBGROUP_INVOCATION_ID, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

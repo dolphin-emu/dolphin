@@ -1,11 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include <array>
-#include <cassert>
 #include <cinttypes>
 #include <string>
 
@@ -106,7 +104,6 @@ void Interpreter::RunTable63(UGeckoInstruction inst)
 void Interpreter::Init()
 {
   InitializeInstructionTables();
-  m_reserve = false;
   m_end_block = false;
 }
 
@@ -114,9 +111,9 @@ void Interpreter::Shutdown()
 {
 }
 
-static int startTrace = 0;
+static bool s_start_trace = false;
 
-static void Trace(UGeckoInstruction& inst)
+static void Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
   for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
@@ -132,11 +129,11 @@ static void Trace(UGeckoInstruction& inst)
   }
 
   const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
-  DEBUG_LOG(POWERPC,
-            "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016" PRIx64 " FPSCR: %08x MSR: %08x LR: "
-            "%08x %s %08x %s",
-            PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
-            PowerPC::ppcState.spr[8], regs.c_str(), inst.hex, ppc_inst.c_str());
+  DEBUG_LOG_FMT(POWERPC,
+                "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
+                "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
+                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
+                PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -169,12 +166,12 @@ int Interpreter::SingleStepInner()
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
   // Uncomment to trace the interpreter
-  // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
-  //	startTrace = 1;
+  // if ((PC & 0x00FFFFFF) >= 0x000AB54C && (PC & 0x00FFFFFF) <= 0x000AB624)
+  //   s_start_trace = true;
   // else
-  //	startTrace = 0;
+  //   s_start_trace = false;
 
-  if (startTrace)
+  if (s_start_trace)
   {
     Trace(m_prev_inst);
   }
@@ -183,13 +180,13 @@ int Interpreter::SingleStepInner()
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
-      GenerateProgramException();
+      GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
     else if (MSR.FP)
     {
       m_op_table[m_prev_inst.OPCD](m_prev_inst);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+      if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
       }
@@ -205,7 +202,7 @@ int Interpreter::SingleStepInner()
       else
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
-        if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+        if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
         }
@@ -219,7 +216,11 @@ int Interpreter::SingleStepInner()
   }
 
   UpdatePC();
-  return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
+
+  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
+  PowerPC::UpdatePerformanceMonitor(opinfo->numCycles, (opinfo->flags & FL_LOADSTORE) != 0,
+                                    (opinfo->flags & FL_USE_FPU) != 0);
+  return opinfo->numCycles;
 }
 
 void Interpreter::SingleStep()
@@ -233,7 +234,7 @@ void Interpreter::SingleStep()
   CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
-  if (PowerPC::ppcState.Exceptions)
+  if (PowerPC::ppcState.Exceptions != 0)
   {
     PowerPC::CheckExceptions();
     PC = NPC;
@@ -242,10 +243,10 @@ void Interpreter::SingleStep()
 
 //#define SHOW_HISTORY
 #ifdef SHOW_HISTORY
-std::vector<int> PCVec;
-std::vector<int> PCBlockVec;
-int ShowBlocks = 30;
-int ShowSteps = 300;
+static std::vector<u32> s_pc_vec;
+static std::vector<u32> s_pc_block_vec;
+constexpr u32 s_show_blocks = 30;
+constexpr u32 s_show_steps = 300;
 #endif
 
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
@@ -262,9 +263,9 @@ void Interpreter::Run()
     if (SConfig::GetInstance().bEnableDebugging)
     {
 #ifdef SHOW_HISTORY
-      PCBlockVec.push_back(PC);
-      if (PCBlockVec.size() > ShowBlocks)
-        PCBlockVec.erase(PCBlockVec.begin());
+      s_pc_block_vec.push_back(PC);
+      if (s_pc_block_vec.size() > s_show_blocks)
+        s_pc_block_vec.erase(s_pc_block_vec.begin());
 #endif
 
       // Debugging friendly version of inner loop. Tries to do the timing as similarly to the
@@ -276,34 +277,34 @@ void Interpreter::Run()
         for (i = 0; !m_end_block; i++)
         {
 #ifdef SHOW_HISTORY
-          PCVec.push_back(PC);
-          if (PCVec.size() > ShowSteps)
-            PCVec.erase(PCVec.begin());
+          s_pc_vec.push_back(PC);
+          if (s_pc_vec.size() > s_show_steps)
+            s_pc_vec.erase(s_pc_vec.begin());
 #endif
 
           // 2: check for breakpoint
           if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
           {
 #ifdef SHOW_HISTORY
-            NOTICE_LOG(POWERPC, "----------------------------");
-            NOTICE_LOG(POWERPC, "Blocks:");
-            for (int j = 0; j < PCBlockVec.size(); j++)
-              NOTICE_LOG(POWERPC, "PC: 0x%08x", PCBlockVec.at(j));
-            NOTICE_LOG(POWERPC, "----------------------------");
-            NOTICE_LOG(POWERPC, "Steps:");
-            for (int j = 0; j < PCVec.size(); j++)
+            NOTICE_LOG_FMT(POWERPC, "----------------------------");
+            NOTICE_LOG_FMT(POWERPC, "Blocks:");
+            for (const u32 entry : s_pc_block_vec)
+              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", entry);
+            NOTICE_LOG_FMT(POWERPC, "----------------------------");
+            NOTICE_LOG_FMT(POWERPC, "Steps:");
+            for (size_t j = 0; j < s_pc_vec.size(); j++)
             {
               // Write space
               if (j > 0)
               {
-                if (PCVec.at(j) != PCVec.at(j - 1) + 4)
-                  NOTICE_LOG(POWERPC, "");
+                if (s_pc_vec[j] != s_pc_vec[(j - 1) + 4]
+                  NOTICE_LOG_FMT(POWERPC, "");
               }
 
-              NOTICE_LOG(POWERPC, "PC: 0x%08x", PCVec.at(j));
+              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", s_pc_vec[j]);
             }
 #endif
-            INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
+            INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
             CPU::Break();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);
@@ -338,15 +339,16 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
   const u32 opcode = PowerPC::HostRead_U32(last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
-  NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
-  Dolphin_Debugger::PrintCallstack();
-  NOTICE_LOG(POWERPC,
-             "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-             inst.hex, PC, last_pc, LR);
+  NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
+  Dolphin_Debugger::PrintCallstack(Common::Log::POWERPC, Common::Log::LNOTICE);
+  NOTICE_LOG_FMT(
+      POWERPC,
+      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
+      inst.hex, PC, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
-    NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
-               rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
+    NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i, rGPR[i],
+                   i + 1, rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",

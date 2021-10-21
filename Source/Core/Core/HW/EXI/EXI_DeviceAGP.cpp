@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 
@@ -11,7 +10,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
@@ -259,7 +258,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
     m_current_cmd = 0;
     break;
   }
-  DEBUG_LOG(EXPANSIONINTERFACE, "AGP read %x", uData);
+  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "AGP read {:x}", uData);
   return uData;
 }
 

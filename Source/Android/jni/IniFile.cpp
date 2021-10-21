@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <jni.h>
 
@@ -60,9 +59,7 @@ static void Set(JNIEnv* env, jobject obj, jstring section_name, jstring key, T n
       ->Set(GetJString(env, key), new_value);
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_exists(
     JNIEnv* env, jobject obj, jstring key)
@@ -243,7 +240,4 @@ JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_copyIniFile
 {
   return reinterpret_cast<jlong>(new IniFile(*GetIniFilePointer(env, other)));
 }
-
-#ifdef __cplusplus
 }
-#endif

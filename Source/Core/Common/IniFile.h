@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -154,6 +153,8 @@ public:
   void SortSections();
 
   Section* GetOrCreateSection(std::string_view section_name);
+  const Section* GetSection(std::string_view section_name) const;
+  Section* GetSection(std::string_view section_name);
 
   // This function is related to parsing data from lines of INI files
   // It's used outside of IniFile, which is why it is exposed publicly
@@ -164,9 +165,6 @@ public:
 
 private:
   std::list<Section> sections;
-
-  const Section* GetSection(std::string_view section_name) const;
-  Section* GetSection(std::string_view section_name);
 
   static const std::string& NULL_STRING;
 };

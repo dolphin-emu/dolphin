@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
@@ -260,13 +259,14 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
   //	s64 oldprod = dsp_get_long_prod();
   //	dsp_set_long_acc(dreg, res);
   //	res = dsp_get_long_acc(dreg);
-  //	Update_SR_Register64(res, isCarry(oldprod, res), false);
+  //	Update_SR_Register64(res, isCarryAdd(oldprod, res), false);
   if (FlagsNeeded())
   {
     get_long_prod(RDX);
     MOV(64, R(RCX), R(RAX));
     set_long_acc(dreg, RCX);
-    Update_SR_Register64_Carry(EAX, tmp1);
+    // TODO: Why does this not set the overflow bit?  (And thus, why can't it use UpdateSR64Add?)
+    Update_SR_Register64(EAX, tmp1);
   }
   else
   {
@@ -417,7 +417,7 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
 }
 
 // MULXAC $ax0.S, $ax1.T, $acR
-// 101s t01r xxxx xxxx
+// 101s t10r xxxx xxxx
 // Add product register to accumulator register $acR. Multiply one part
 // $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
@@ -488,7 +488,7 @@ void DSPEmitter::mulxmv(const UDSPInstruction opc)
   m_gpr.PutXReg(tmp1);
 }
 
-// MULXMV $ax0.S, $ax1.T, $acR
+// MULXMVZ $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
 // Move product register to accumulator register $acR and clear (round) low part
 // of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1
@@ -546,7 +546,7 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
 }
 
 // MULCAC $acS.m, $axT.h, $acR
-// 110s	t10r xxxx xxxx
+// 110s t10r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axS.h of
 // secondary accumulator $axS  (treat them both as signed). Add product
 // register before multiplication to accumulator $acR.
@@ -587,7 +587,6 @@ void DSPEmitter::mulcac(const UDSPInstruction opc)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR.
-// possible mistake in duddie's doc axT.h rather than axS.h
 
 // flags out: --xx xx0x
 void DSPEmitter::mulcmv(const UDSPInstruction opc)
@@ -618,8 +617,7 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 }
 
 // MULCMVZ $acS.m, $axT.h, $acR
-// 110s	t01r xxxx xxxx
-// (fixed possible bug in duddie's description, s->t)
+// 110s t01r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR, set (round) low part of

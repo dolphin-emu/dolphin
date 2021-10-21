@@ -1,10 +1,10 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/GameFileCache.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <functional>
 #include <list>
@@ -17,9 +17,9 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 
 #include "DiscIO/DirectoryBlob.h"
 
@@ -27,7 +27,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 19;  // Last changed in PR 9135
+static constexpr u32 CACHE_REVISION = 20;  // Last changed in PR 9461
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -40,10 +40,6 @@ std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& direct
 }
 
 GameFileCache::GameFileCache() : m_path(File::GetUserPath(D_CACHE_IDX) + "gamelist.cache")
-{
-}
-
-GameFileCache::GameFileCache(std::string path) : m_path(std::move(path))
 {
 }
 
@@ -207,7 +203,7 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   if (custom_cover_changed)
     copy->CustomCoverCommit();
 
-  *game_file = std::move(copy);
+  std::atomic_store(game_file, std::move(copy));
 
   return true;
 }

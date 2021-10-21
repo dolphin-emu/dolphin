@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/DSPHost.h"
 
@@ -9,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCodeUtil.h"
@@ -54,7 +54,7 @@ void OSD_AddMessage(std::string str, u32 ms)
 
 bool OnThread()
 {
-  return SConfig::GetInstance().bDSPThread;
+  return Config::Get(Config::MAIN_DSP_THREAD);
 }
 
 bool IsWiiHost()
@@ -68,31 +68,32 @@ void InterruptRequest()
   DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void CodeLoaded(u32 addr, size_t size)
+void CodeLoaded(DSPCore& dsp, u32 addr, size_t size)
 {
-  CodeLoaded(Memory::GetPointer(addr), size);
+  CodeLoaded(dsp, Memory::GetPointer(addr), size);
 }
 
-void CodeLoaded(const u8* ptr, size_t size)
+void CodeLoaded(DSPCore& dsp, const u8* ptr, size_t size)
 {
-  g_dsp.iram_crc = Common::HashEctor(ptr, size);
-  if (SConfig::GetInstance().m_DumpUCode)
+  auto& state = dsp.DSPState();
+  const u32 iram_crc = Common::HashEctor(ptr, size);
+  state.SetIRAMCRC(iram_crc);
+
+  if (Config::Get(Config::MAIN_DUMP_UCODE))
   {
-    DSP::DumpDSPCode(ptr, size, g_dsp.iram_crc);
+    DSP::DumpDSPCode(ptr, size, iram_crc);
   }
 
-  NOTICE_LOG_FMT(DSPLLE, "g_dsp.iram_crc: {:08x}", g_dsp.iram_crc);
+  NOTICE_LOG_FMT(DSPLLE, "g_dsp.iram_crc: {:08x}", iram_crc);
 
   Symbols::Clear();
-  Symbols::AutoDisassembly(0x0, 0x1000);
-  Symbols::AutoDisassembly(0x8000, 0x9000);
+  Symbols::AutoDisassembly(state, 0x0, 0x1000);
+  Symbols::AutoDisassembly(state, 0x8000, 0x9000);
 
   UpdateDebugger();
 
-  if (g_dsp_jit)
-    g_dsp_jit->ClearIRAM();
-
-  Analyzer::Analyze();
+  dsp.ClearIRAM();
+  state.GetAnalyzer().Analyze(state);
 }
 
 void UpdateDebugger()

@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/AddressSpace.h"
 
@@ -247,22 +246,22 @@ struct CompositeAddressSpaceAccessors : Accessors
 
   u8 ReadU8(u32 address) const override
   {
-    auto it = FindAppropriateAccessor(address);
-    if (it == m_accessor_mappings.end())
+    auto mapping = FindAppropriateAccessor(address);
+    if (mapping == m_accessor_mappings.end())
     {
       return 0;
     }
-    return it->accessors->ReadU8(address);
+    return mapping->accessors->ReadU8(address - mapping->base);
   }
 
   void WriteU8(u32 address, u8 value) override
   {
-    auto it = FindAppropriateAccessor(address);
-    if (it == m_accessor_mappings.end())
+    auto mapping = FindAppropriateAccessor(address);
+    if (mapping == m_accessor_mappings.end())
     {
       return;
     }
-    return it->accessors->WriteU8(address, value);
+    return mapping->accessors->WriteU8(address - mapping->base, value);
   }
 
   std::optional<u32> Search(u32 haystack_offset, const u8* needle_start, std::size_t needle_size,
@@ -355,8 +354,8 @@ struct SmallBlockAccessors : Accessors
   }
 
 private:
-  u8** alloc_base;
-  u32 size;
+  u8** alloc_base = nullptr;
+  u32 size = 0;
 };
 
 struct NullAccessors : Accessors
@@ -374,9 +373,13 @@ static SmallBlockAccessors s_fake_address_space_accessors;
 static CompositeAddressSpaceAccessors s_physical_address_space_accessors_gcn;
 static CompositeAddressSpaceAccessors s_physical_address_space_accessors_wii;
 static NullAccessors s_null_accessors;
+static bool s_initialized = false;
 
 Accessors* GetAccessors(Type address_space)
 {
+  if (!s_initialized)
+    return &s_null_accessors;
+
   // default to effective
   switch (address_space)
   {
@@ -420,6 +423,12 @@ void Init()
   s_physical_address_space_accessors_gcn = {{0x00000000, &s_mem1_address_space_accessors}};
   s_physical_address_space_accessors_wii = {{0x00000000, &s_mem1_address_space_accessors},
                                             {0x10000000, &s_mem2_address_space_accessors}};
+  s_initialized = true;
+}
+
+void Shutdown()
+{
+  s_initialized = false;
 }
 
 }  // namespace AddressSpace

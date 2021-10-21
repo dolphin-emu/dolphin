@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
 #include <sstream>
@@ -766,7 +765,7 @@ bool InputDevice::PressEvent(int button, int action)
       if (binding.second->m_bind_type == BIND_BUTTON)
         m_buttons[binding.second->m_button_type] = action == BUTTON_PRESSED ? true : false;
       else
-        m_axises[binding.second->m_button_type] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
+        m_axes[binding.second->m_button_type] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
       handled = true;
     }
   }
@@ -780,34 +779,54 @@ void InputDevice::AxisEvent(int axis, float value)
     if (binding.second->m_bind == axis)
     {
       if (binding.second->m_bind_type == BIND_AXIS)
-        m_axises[binding.second->m_button_type] = value;
+        m_axes[binding.second->m_button_type] = value;
       else
         m_buttons[binding.second->m_button_type] = value > 0.5f ? true : false;
     }
   }
 }
 
-bool InputDevice::ButtonValue(int pad_id, ButtonType button)
+bool InputDevice::ButtonValue(int pad_id, ButtonType button) const
 {
-  const auto& binding = m_input_binds.find(std::make_pair(pad_id, button));
+  const auto binding = m_input_binds.find(std::make_pair(pad_id, button));
   if (binding == m_input_binds.end())
     return false;
 
   if (binding->second->m_bind_type == BIND_BUTTON)
-    return m_buttons[binding->second->m_button_type];
+  {
+    const auto button = m_buttons.find(binding->second->m_button_type);
+    if (button == m_buttons.end())
+      return false;
+    return button->second;
+  }
   else
-    return (m_axises[binding->second->m_button_type] * binding->second->m_neg) > 0.5f;
+  {
+    const auto axis = m_axes.find(binding->second->m_button_type);
+    if (axis == m_axes.end())
+      return false;
+    return (axis->second * binding->second->m_neg) > 0.5f;
+  }
 }
 
-float InputDevice::AxisValue(int pad_id, ButtonType axis)
+float InputDevice::AxisValue(int pad_id, ButtonType axis) const
 {
-  const auto& binding = m_input_binds.find(std::make_pair(pad_id, axis));
+  const auto binding = m_input_binds.find(std::make_pair(pad_id, axis));
   if (binding == m_input_binds.end())
     return 0.0f;
 
   if (binding->second->m_bind_type == BIND_AXIS)
-    return m_axises[binding->second->m_button_type] * binding->second->m_neg;
+  {
+    const auto axis = m_axes.find(binding->second->m_button_type);
+    if (axis == m_axes.end())
+      return 0.0f;
+    return axis->second * binding->second->m_neg;
+  }
   else
-    return m_buttons[binding->second->m_button_type] == BUTTON_PRESSED ? 1.0f : 0.0f;
+  {
+    const auto button = m_buttons.find(binding->second->m_button_type);
+    if (button == m_buttons.end())
+      return 0.0f;
+    return button->second == BUTTON_PRESSED ? 1.0f : 0.0f;
+  }
 }
 }  // namespace ButtonManager

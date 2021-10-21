@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -22,8 +21,6 @@ public:
   VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr);
 
   int RunVertices(DataReader src, DataReader dst, int count) override;
-  std::string GetName() const override { return "OldLoader"; }
-  bool IsInitialized() override { return true; }  // This vertex loader supports all formats
   // They are used for the communication with the loader functions
   float m_posScale;
   float m_tcScale[8];

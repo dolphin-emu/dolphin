@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -135,6 +134,12 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
   case EXIDEVICE_ETH:
     result = std::make_unique<CEXIETHERNET>(BBADeviceType::TAP);
     break;
+
+#if defined(__APPLE__)
+  case EXIDEVICE_ETHTAPSERVER:
+    result = std::make_unique<CEXIETHERNET>(BBADeviceType::TAPSERVER);
+    break;
+#endif
 
   case EXIDEVICE_ETHXLINK:
     result = std::make_unique<CEXIETHERNET>(BBADeviceType::XLINK);

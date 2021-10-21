@@ -1,8 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+#include <atomic>
 
 #include "Common/CommonTypes.h"
 
@@ -17,27 +18,27 @@ namespace CommandProcessor
 struct SCPFifoStruct
 {
   // fifo registers
-  volatile u32 CPBase;
-  volatile u32 CPEnd;
-  u32 CPHiWatermark;
-  u32 CPLoWatermark;
-  volatile u32 CPReadWriteDistance;
-  volatile u32 CPWritePointer;
-  volatile u32 CPReadPointer;
-  volatile u32 CPBreakpoint;
-  volatile u32 SafeCPReadPointer;
+  std::atomic<u32> CPBase;
+  std::atomic<u32> CPEnd;
+  u32 CPHiWatermark = 0;
+  u32 CPLoWatermark = 0;
+  std::atomic<u32> CPReadWriteDistance;
+  std::atomic<u32> CPWritePointer;
+  std::atomic<u32> CPReadPointer;
+  std::atomic<u32> CPBreakpoint;
+  std::atomic<u32> SafeCPReadPointer;
 
-  volatile u32 bFF_GPLinkEnable;
-  volatile u32 bFF_GPReadEnable;
-  volatile u32 bFF_BPEnable;
-  volatile u32 bFF_BPInt;
-  volatile u32 bFF_Breakpoint;
+  std::atomic<u32> bFF_GPLinkEnable;
+  std::atomic<u32> bFF_GPReadEnable;
+  std::atomic<u32> bFF_BPEnable;
+  std::atomic<u32> bFF_BPInt;
+  std::atomic<u32> bFF_Breakpoint;
 
-  volatile u32 bFF_LoWatermarkInt;
-  volatile u32 bFF_HiWatermarkInt;
+  std::atomic<u32> bFF_LoWatermarkInt;
+  std::atomic<u32> bFF_HiWatermarkInt;
 
-  volatile u32 bFF_LoWatermark;
-  volatile u32 bFF_HiWatermark;
+  std::atomic<u32> bFF_LoWatermark;
+  std::atomic<u32> bFF_HiWatermark;
 
   void DoState(PointerWrap& p);
 };

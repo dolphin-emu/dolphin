@@ -1,13 +1,16 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
+// X.h defines None to be 0, which causes problems with some of the enums
+#undef None
 
 #include <array>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 #include "VideoCommon/CPMemory.h"
 
 class DataReader;
@@ -17,75 +20,164 @@ constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
 // Lighting
 
 // Projection
-enum : u32
+enum class TexSize : u32
 {
-  XF_TEXPROJ_ST = 0,
-  XF_TEXPROJ_STQ = 1
+  ST = 0,
+  STQ = 1
+};
+template <>
+struct fmt::formatter<TexSize> : EnumFormatter<TexSize::STQ>
+{
+  formatter() : EnumFormatter({"ST (2x4 matrix)", "STQ (3x4 matrix)"}) {}
 };
 
 // Input form
-enum : u32
+enum class TexInputForm : u32
 {
-  XF_TEXINPUT_AB11 = 0,
-  XF_TEXINPUT_ABC1 = 1
+  AB11 = 0,
+  ABC1 = 1
+};
+template <>
+struct fmt::formatter<TexInputForm> : EnumFormatter<TexInputForm::ABC1>
+{
+  formatter() : EnumFormatter({"AB11", "ABC1"}) {}
+};
+
+enum class NormalCount : u32
+{
+  None = 0,
+  Normals = 1,
+  NormalsBinormals = 2
+};
+template <>
+struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::NormalsBinormals>
+{
+  formatter() : EnumFormatter({"None", "Normals only", "Normals and binormals"}) {}
 };
 
 // Texture generation type
-enum : u32
+enum class TexGenType : u32
 {
-  XF_TEXGEN_REGULAR = 0,
-  XF_TEXGEN_EMBOSS_MAP = 1,  // Used when bump mapping
-  XF_TEXGEN_COLOR_STRGBC0 = 2,
-  XF_TEXGEN_COLOR_STRGBC1 = 3
+  Regular = 0,
+  EmbossMap = 1,  // Used when bump mapping
+  Color0 = 2,
+  Color1 = 3
+};
+template <>
+struct fmt::formatter<TexGenType> : EnumFormatter<TexGenType::Color1>
+{
+  static constexpr array_type names = {
+      "Regular",
+      "Emboss map (used when bump mapping)",
+      "Color channel 0",
+      "Color channel 1",
+  };
+  formatter() : EnumFormatter(names) {}
 };
 
 // Source row
-enum : u32
+enum class SourceRow : u32
 {
-  XF_SRCGEOM_INROW = 0,    // Input is abc
-  XF_SRCNORMAL_INROW = 1,  // Input is abc
-  XF_SRCCOLORS_INROW = 2,
-  XF_SRCBINORMAL_T_INROW = 3,  // Input is abc
-  XF_SRCBINORMAL_B_INROW = 4,  // Input is abc
-  XF_SRCTEX0_INROW = 5,
-  XF_SRCTEX1_INROW = 6,
-  XF_SRCTEX2_INROW = 7,
-  XF_SRCTEX3_INROW = 8,
-  XF_SRCTEX4_INROW = 9,
-  XF_SRCTEX5_INROW = 10,
-  XF_SRCTEX6_INROW = 11,
-  XF_SRCTEX7_INROW = 12
+  Geom = 0,    // Input is abc
+  Normal = 1,  // Input is abc
+  Colors = 2,
+  BinormalT = 3,  // Input is abc
+  BinormalB = 4,  // Input is abc
+  Tex0 = 5,
+  Tex1 = 6,
+  Tex2 = 7,
+  Tex3 = 8,
+  Tex4 = 9,
+  Tex5 = 10,
+  Tex6 = 11,
+  Tex7 = 12
+};
+template <>
+struct fmt::formatter<SourceRow> : EnumFormatter<SourceRow::Tex7>
+{
+  static constexpr array_type names = {
+      "Geometry (input is ABC1)",
+      "Normal (input is ABC1)",
+      "Colors",
+      "Binormal T (input is ABC1)",
+      "Binormal B (input is ABC1)",
+      "Tex 0",
+      "Tex 1",
+      "Tex 2",
+      "Tex 3",
+      "Tex 4",
+      "Tex 5",
+      "Tex 6",
+      "Tex 7",
+  };
+  formatter() : EnumFormatter(names) {}
 };
 
-// Control source
-enum : u32
+enum class MatSource : u32
 {
-  GX_SRC_REG = 0,
-  GX_SRC_VTX = 1
+  MatColorRegister = 0,
+  Vertex = 1,
+};
+template <>
+struct fmt::formatter<MatSource> : EnumFormatter<MatSource::Vertex>
+{
+  formatter() : EnumFormatter({"Material color register", "Vertex color"}) {}
+};
+
+enum class AmbSource : u32
+{
+  AmbColorRegister = 0,
+  Vertex = 1,
+};
+template <>
+struct fmt::formatter<AmbSource> : EnumFormatter<AmbSource::Vertex>
+{
+  formatter() : EnumFormatter({"Ambient color register", "Vertex color"}) {}
 };
 
 // Light diffuse attenuation function
-enum : u32
+enum class DiffuseFunc : u32
 {
-  LIGHTDIF_NONE = 0,
-  LIGHTDIF_SIGN = 1,
-  LIGHTDIF_CLAMP = 2
+  None = 0,
+  Sign = 1,
+  Clamp = 2
+};
+template <>
+struct fmt::formatter<DiffuseFunc> : EnumFormatter<DiffuseFunc::Clamp>
+{
+  formatter() : EnumFormatter({"None", "Sign", "Clamp"}) {}
 };
 
 // Light attenuation function
-enum : u32
+enum class AttenuationFunc : u32
 {
-  LIGHTATTN_NONE = 0,  // No attenuation
-  LIGHTATTN_SPEC = 1,  // Point light attenuation
-  LIGHTATTN_DIR = 2,   // Directional light attenuation
-  LIGHTATTN_SPOT = 3   // Spot light attenuation
+  None = 0,  // No attenuation
+  Spec = 1,  // Point light attenuation
+  Dir = 2,   // Directional light attenuation
+  Spot = 3   // Spot light attenuation
+};
+template <>
+struct fmt::formatter<AttenuationFunc> : EnumFormatter<AttenuationFunc::Spot>
+{
+  static constexpr array_type names = {
+      "No attenuation",
+      "Point light attenuation",
+      "Directional light attenuation",
+      "Spot light attenuation",
+  };
+  formatter() : EnumFormatter(names) {}
 };
 
 // Projection type
-enum : u32
+enum class ProjectionType : u32
 {
-  GX_PERSPECTIVE = 0,
-  GX_ORTHOGRAPHIC = 1
+  Perspective = 0,
+  Orthographic = 1
+};
+template <>
+struct fmt::formatter<ProjectionType> : EnumFormatter<ProjectionType::Orthographic>
+{
+  formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
 };
 
 // Registers and register ranges
@@ -99,13 +191,15 @@ enum
   XFMEM_POSTMATRICES_END = 0x600,
   XFMEM_LIGHTS = 0x600,
   XFMEM_LIGHTS_END = 0x680,
+  XFMEM_REGISTERS_START = 0x1000,
   XFMEM_ERROR = 0x1000,
   XFMEM_DIAG = 0x1001,
   XFMEM_STATE0 = 0x1002,
   XFMEM_STATE1 = 0x1003,
   XFMEM_CLOCK = 0x1004,
   XFMEM_CLIPDISABLE = 0x1005,
-  XFMEM_SETGPMETRIC = 0x1006,
+  XFMEM_SETGPMETRIC = 0x1006,   // Perf0 according to YAGCD
+  XFMEM_UNKNOWN_1007 = 0x1007,  // Perf1 according to YAGCD
   XFMEM_VTXSPECS = 0x1008,
   XFMEM_SETNUMCHAN = 0x1009,
   XFMEM_SETCHAN0_AMBCOLOR = 0x100a,
@@ -117,32 +211,38 @@ enum
   XFMEM_SETCHAN0_ALPHA = 0x1010,
   XFMEM_SETCHAN1_ALPHA = 0x1011,
   XFMEM_DUALTEX = 0x1012,
+  XFMEM_UNKNOWN_GROUP_1_START = 0x1013,
+  XFMEM_UNKNOWN_GROUP_1_END = 0x1017,
   XFMEM_SETMATRIXINDA = 0x1018,
   XFMEM_SETMATRIXINDB = 0x1019,
   XFMEM_SETVIEWPORT = 0x101a,
   XFMEM_SETZSCALE = 0x101c,
   XFMEM_SETZOFFSET = 0x101f,
   XFMEM_SETPROJECTION = 0x1020,
-  // XFMEM_SETPROJECTIONB      = 0x1021,
-  // XFMEM_SETPROJECTIONC      = 0x1022,
-  // XFMEM_SETPROJECTIOND      = 0x1023,
-  // XFMEM_SETPROJECTIONE      = 0x1024,
-  // XFMEM_SETPROJECTIONF      = 0x1025,
-  // XFMEM_SETPROJECTIONORTHO1 = 0x1026,
-  // XFMEM_SETPROJECTIONORTHO2 = 0x1027,
+  // XFMEM_SETPROJECTIONB = 0x1021,
+  // XFMEM_SETPROJECTIONC = 0x1022,
+  // XFMEM_SETPROJECTIOND = 0x1023,
+  // XFMEM_SETPROJECTIONE = 0x1024,
+  // XFMEM_SETPROJECTIONF = 0x1025,
+  // XFMEM_SETPROJECTIONORTHO = 0x1026,
+  XFMEM_UNKNOWN_GROUP_2_START = 0x1027,
+  XFMEM_UNKNOWN_GROUP_2_END = 0x103e,
   XFMEM_SETNUMTEXGENS = 0x103f,
   XFMEM_SETTEXMTXINFO = 0x1040,
+  XFMEM_UNKNOWN_GROUP_3_START = 0x1048,
+  XFMEM_UNKNOWN_GROUP_3_END = 0x104f,
   XFMEM_SETPOSTMTXINFO = 0x1050,
+  XFMEM_REGISTERS_END = 0x1058,
 };
 
 union LitChannel
 {
-  BitField<0, 1, u32> matsource;
-  BitField<1, 1, u32> enablelighting;
+  BitField<0, 1, MatSource> matsource;
+  BitField<1, 1, bool, u32> enablelighting;
   BitField<2, 4, u32> lightMask0_3;
-  BitField<6, 1, u32> ambsource;
-  BitField<7, 2, u32> diffusefunc;  // LIGHTDIF_X
-  BitField<9, 2, u32> attnfunc;     // LIGHTATTN_X
+  BitField<6, 1, AmbSource> ambsource;
+  BitField<7, 2, DiffuseFunc> diffusefunc;
+  BitField<9, 2, AttenuationFunc> attnfunc;
   BitField<11, 4, u32> lightMask4_7;
   u32 hex;
 
@@ -151,64 +251,126 @@ union LitChannel
     return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
   }
 };
+template <>
+struct fmt::formatter<LitChannel>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const LitChannel& chan, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Material source: {0}\nEnable lighting: {1}\nLight mask: {2:x} ({2:08b})\n"
+                     "Ambient source: {3}\nDiffuse function: {4}\nAttenuation function: {5}",
+                     chan.matsource, chan.enablelighting ? "Yes" : "No", chan.GetFullLightMask(),
+                     chan.ambsource, chan.diffusefunc, chan.attnfunc);
+  }
+};
+
+union ClipDisable
+{
+  BitField<0, 1, bool, u32> disable_clipping_detection;
+  BitField<1, 1, bool, u32> disable_trivial_rejection;
+  BitField<2, 1, bool, u32> disable_cpoly_clipping_acceleration;
+  u32 hex;
+};
+template <>
+struct fmt::formatter<ClipDisable>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const ClipDisable& cd, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Disable clipping detection: {}\n"
+                     "Disable trivial rejection: {}\n"
+                     "Disable cpoly clipping acceleration: {}",
+                     cd.disable_clipping_detection ? "Yes" : "No",
+                     cd.disable_trivial_rejection ? "Yes" : "No",
+                     cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
+  }
+};
 
 union INVTXSPEC
 {
-  struct
-  {
-    u32 numcolors : 2;
-    u32 numnormals : 2;  // 0 - nothing, 1 - just normal, 2 - normals and binormals
-    u32 numtextures : 4;
-    u32 unused : 24;
-  };
+  BitField<0, 2, u32> numcolors;
+  BitField<2, 2, NormalCount> numnormals;
+  BitField<4, 4, u32> numtextures;
   u32 hex;
+};
+template <>
+struct fmt::formatter<INVTXSPEC>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const INVTXSPEC& spec, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "Num colors: {}\nNum normals: {}\nNum textures: {}", spec.numcolors,
+                     spec.numnormals, spec.numtextures);
+  }
 };
 
 union TexMtxInfo
 {
-  BitField<0, 1, u32> unknown;             //
-  BitField<1, 1, u32> projection;          // XF_TEXPROJ_X
-  BitField<2, 1, u32> inputform;           // XF_TEXINPUT_X
-  BitField<3, 1, u32> unknown2;            //
-  BitField<4, 3, u32> texgentype;          // XF_TEXGEN_X
-  BitField<7, 5, u32> sourcerow;           // XF_SRCGEOM_X
+  BitField<0, 1, u32> unknown;
+  BitField<1, 1, TexSize> projection;
+  BitField<2, 1, TexInputForm> inputform;
+  BitField<3, 1, u32> unknown2;
+  BitField<4, 3, TexGenType> texgentype;
+  BitField<7, 5, SourceRow> sourcerow;
   BitField<12, 3, u32> embosssourceshift;  // what generated texcoord to use
   BitField<15, 3, u32> embosslightshift;   // light index that is used
   u32 hex;
 };
+template <>
+struct fmt::formatter<TexMtxInfo>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const TexMtxInfo& i, FormatContext& ctx)
+  {
+    return format_to(ctx.out(),
+                     "Projection: {}\nInput form: {}\nTex gen type: {}\n"
+                     "Source row: {}\nEmboss source shift: {}\nEmboss light shift: {}",
+                     i.projection, i.inputform, i.texgentype, i.sourcerow, i.embosssourceshift,
+                     i.embosslightshift);
+  }
+};
 
 union PostMtxInfo
 {
-  BitField<0, 6, u32> index;      // base row of dual transform matrix
-  BitField<6, 2, u32> unused;     //
-  BitField<8, 1, u32> normalize;  // normalize before send operation
+  BitField<0, 6, u32> index;            // base row of dual transform matrix
+  BitField<6, 2, u32> unused;           //
+  BitField<8, 1, bool, u32> normalize;  // normalize before send operation
   u32 hex;
+};
+
+template <>
+struct fmt::formatter<PostMtxInfo>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const PostMtxInfo& i, FormatContext& ctx)
+  {
+    return format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index,
+                     i.normalize ? "Yes" : "No");
+  }
 };
 
 union NumColorChannel
 {
-  struct
-  {
-    u32 numColorChans : 2;
-  };
+  BitField<0, 2, u32> numColorChans;
   u32 hex;
 };
 
 union NumTexGen
 {
-  struct
-  {
-    u32 numTexGens : 4;
-  };
+  BitField<0, 4, u32> numTexGens;
   u32 hex;
 };
 
 union DualTexInfo
 {
-  struct
-  {
-    u32 enabled : 1;
-  };
+  BitField<0, 1, bool, u32> enabled;
   u32 hex;
 };
 
@@ -250,7 +412,7 @@ struct Projection
   using Raw = std::array<float, 6>;
 
   Raw rawProjection;
-  u32 type;  // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
+  ProjectionType type;
 };
 
 struct XFMemory
@@ -267,7 +429,7 @@ struct XFMemory
   u32 state0;                // 0x1002
   u32 state1;                // 0x1003
   u32 xfClock;               // 0x1004
-  u32 clipDisable;           // 0x1005
+  ClipDisable clipDisable;   // 0x1005
   u32 perf0;                 // 0x1006
   u32 perf1;                 // 0x1007
   INVTXSPEC hostinfo;        // 0x1008 number of textures,colors,normals from vertex input

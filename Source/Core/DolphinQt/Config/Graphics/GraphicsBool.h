@@ -1,19 +1,18 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include <QCheckBox>
-#include <QRadioButton>
+#include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipRadioButton.h"
 
 namespace Config
 {
 template <typename T>
-struct Info;
+class Info;
 }
 
-class GraphicsBool : public QCheckBox
+class GraphicsBool : public ToolTipCheckBox
 {
   Q_OBJECT
 public:
@@ -26,7 +25,7 @@ private:
   bool m_reverse;
 };
 
-class GraphicsBoolEx : public QRadioButton
+class GraphicsBoolEx : public ToolTipRadioButton
 {
   Q_OBJECT
 public:

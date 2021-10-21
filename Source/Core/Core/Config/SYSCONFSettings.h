@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -33,7 +32,7 @@ extern const Info<bool> SYSCONF_WIIMOTE_MOTOR;
 
 struct SYSCONFSetting
 {
-  std::variant<Info<u32>, Info<bool>> config_info;
+  std::variant<const Info<u32>*, const Info<bool>*> config_info;
   SysConf::Entry::Type type;
 };
 

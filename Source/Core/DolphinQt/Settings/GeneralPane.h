@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -30,6 +29,7 @@ private:
   void ConnectLayout();
   void CreateBasic();
   void CreateAutoUpdate();
+  void CreateFallbackRegion();
 
   void LoadConfig();
   void OnSaveConfig();
@@ -39,6 +39,7 @@ private:
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_speedlimit;
   QComboBox* m_combobox_update_track;
+  QComboBox* m_combobox_fallback_region;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
   QCheckBox* m_checkbox_override_region_settings;

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Network/MACUtils.h"
 
@@ -39,14 +38,14 @@ Common::MACAddress GetMACAddress()
     SaveMACAddress(mac.value());
     if (!wireless_mac.empty())
     {
-      ERROR_LOG(IOS_NET,
-                "The MAC provided (%s) is invalid. We have "
-                "generated another one for you.",
-                Common::MacAddressToString(mac.value()).c_str());
+      ERROR_LOG_FMT(IOS_NET,
+                    "The MAC provided ({}) is invalid. We have "
+                    "generated another one for you.",
+                    Common::MacAddressToString(mac.value()));
     }
   }
 
-  INFO_LOG(IOS_NET, "Using MAC address: %s", Common::MacAddressToString(mac.value()).c_str());
+  INFO_LOG_FMT(IOS_NET, "Using MAC address: {}", Common::MacAddressToString(mac.value()));
   return mac.value();
 }
 }  // namespace IOS::Net

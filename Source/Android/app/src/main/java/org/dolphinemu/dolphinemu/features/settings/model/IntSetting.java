@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
+
+import android.content.pm.ActivityInfo;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
@@ -16,10 +20,14 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_GC_LANGUAGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SelectedLanguage", 0),
   MAIN_SLOT_A(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotA", 8),
   MAIN_SLOT_B(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotB", 255),
+  MAIN_FALLBACK_REGION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "FallbackRegion", 2),
 
   MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
 
   MAIN_CONTROL_SCALE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlScale", 50),
+  MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
+  MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "EmulationOrientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
   MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
 
@@ -141,5 +149,10 @@ public enum IntSetting implements AbstractIntSetting
   public int getIntGlobal()
   {
     return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
+  }
+
+  public void setIntGlobal(int layer, int newValue)
+  {
+    NativeConfig.setInt(layer, mFile, mSection, mKey, newValue);
   }
 }

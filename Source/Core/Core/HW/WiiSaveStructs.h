@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Based off of tachtig/twintig http://git.infradead.org/?p=users/segher/wii.git
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
@@ -92,8 +91,9 @@ public:
       File = 1,
       Directory = 2,
     };
-    u8 mode, attributes;
-    Type type;
+    u8 mode = 0;
+    u8 attributes = 0;
+    Type type{};
     /// File name relative to the title data directory.
     std::string path;
     // Only valid for regular (i.e. non-directory) files.
@@ -101,7 +101,8 @@ public:
   };
 
   virtual ~Storage() = default;
-  virtual bool SaveExists() { return true; }
+  virtual bool SaveExists() const = 0;
+  virtual bool EraseSave() = 0;
   virtual std::optional<Header> ReadHeader() = 0;
   virtual std::optional<BkHeader> ReadBkHeader() = 0;
   virtual std::optional<std::vector<SaveFile>> ReadFiles() = 0;

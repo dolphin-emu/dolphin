@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/text_type"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        tools:text="@string/user_data_new_location"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/text_path"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintWidth_max="400dp"/>
+
+    <TextView
+        android:id="@+id/text_path"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        tools:text="/storage/emulated/0/Android/data/org.dolphinemu.dolphinemu/files"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_type"
+        app:layout_constraintBottom_toTopOf="@id/text_android_11"
+        app:layout_constraintWidth_max="400dp" />
+
+    <TextView
+        android:id="@+id/text_android_11"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        android:text="@string/user_data_new_location_android_11"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_path"
+        app:layout_constraintBottom_toTopOf="@id/button_open_system_file_manager"
+        app:layout_constraintWidth_max="400dp" />
+
+    <Button
+        android:id="@+id/button_open_system_file_manager"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        android:text="@string/user_data_open_system_file_manager"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_android_11"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

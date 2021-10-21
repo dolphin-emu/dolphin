@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -53,7 +52,7 @@ private:
     u32 AddInteger(PostProcessingConfigWindow* parent, QGridLayout* grid, u32 row);
     u32 AddFloat(PostProcessingConfigWindow* parent, QGridLayout* grid, u32 row);
 
-    QCheckBox* m_checkbox;
+    QCheckBox* m_checkbox = nullptr;
     std::vector<QSlider*> m_sliders;
     std::vector<QLineEdit*> m_value_boxes;
 

@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -50,15 +49,17 @@ public:
   bool AbortMD5();
   void SendChatMessage(const std::string& msg);
 
-  void SetNetSettings(const NetSettings& settings);
-
   bool DoAllPlayersHaveIPLDump() const;
+  bool DoAllPlayersHaveHardwareFMA() const;
   bool StartGame();
   bool RequestStartGame();
   void AbortGameStart();
 
   PadMappingArray GetPadMapping() const;
   void SetPadMapping(const PadMappingArray& mappings);
+
+  GBAConfigArray GetGBAConfig() const;
+  void SetGBAConfig(const GBAConfigArray& configs, bool update_rom);
 
   PadMappingArray GetWiimoteMapping() const;
   void SetWiimoteMapping(const PadMappingArray& mappings);
@@ -79,15 +80,16 @@ private:
   class Client
   {
   public:
-    PlayerId pid;
+    PlayerId pid{};
     std::string name;
     std::string revision;
-    SyncIdentifierComparison game_status;
-    bool has_ipl_dump;
+    SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
+    bool has_ipl_dump = false;
+    bool has_hardware_fma = false;
 
-    ENetPeer* socket;
-    u32 ping;
-    u32 current_game;
+    ENetPeer* socket = nullptr;
+    u32 ping = 0;
+    u32 current_game = 0;
 
     Common::QoSSession qos_session;
 
@@ -104,38 +106,38 @@ private:
   struct AsyncQueueEntry
   {
     sf::Packet packet;
-    PlayerId target_pid;
-    TargetMode target_mode;
-    u8 channel_id;
+    PlayerId target_pid{};
+    TargetMode target_mode{};
+    u8 channel_id = 0;
   };
 
   struct ChunkedDataQueueEntry
   {
     sf::Packet packet;
-    PlayerId target_pid;
-    TargetMode target_mode;
+    PlayerId target_pid{};
+    TargetMode target_mode{};
     std::string title;
   };
 
+  bool SetupNetSettings();
   bool SyncSaveData();
   bool SyncCodes();
   void CheckSyncAndStartGame();
-  bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
-  bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
 
   u64 GetInitialNetPlayRTC() const;
 
   void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
   void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
-  unsigned int OnConnect(ENetPeer* socket, sf::Packet& rpac);
+  ConnectionError OnConnect(ENetPeer* socket, sf::Packet& rpac);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress) override {}
-  void OnConnectFailed(u8) override {}
+  void OnConnectFailed(TraversalConnectFailedReason) override {}
   void UpdatePadMapping();
+  void UpdateGBAConfig();
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
@@ -155,6 +157,7 @@ private:
   u32 m_current_game = 0;
   unsigned int m_target_buffer_size = 0;
   PadMappingArray m_pad_map;
+  GBAConfigArray m_gba_config;
   PadMappingArray m_wiimote_map;
   unsigned int m_save_data_synced_players = 0;
   unsigned int m_codes_synced_players = 0;
@@ -168,7 +171,7 @@ private:
   std::map<PlayerId, Client> m_players;
 
   std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
-  bool m_desync_detected;
+  bool m_desync_detected = false;
 
   struct
   {
@@ -188,7 +191,7 @@ private:
   Common::Event m_chunked_data_event;
   Common::Event m_chunked_data_complete_event;
   std::thread m_chunked_data_thread;
-  u32 m_next_chunked_data_id;
+  u32 m_next_chunked_data_id = 0;
   std::unordered_map<u32, unsigned int> m_chunked_data_complete_count;
   bool m_abort_chunked_data = false;
 

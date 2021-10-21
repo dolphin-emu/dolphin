@@ -1,11 +1,9 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef ANDROID
 #include "AudioCommon/OpenSLESStream.h"
 
-#include <cassert>
 #include <cmath>
 
 #include <SLES/OpenSLES.h>
@@ -36,8 +34,8 @@ static int curBuffer = 0;
 
 static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
 {
-  assert(bq == bqPlayerBufferQueue);
-  assert(nullptr == context);
+  ASSERT(bq == bqPlayerBufferQueue);
+  ASSERT(nullptr == context);
 
   // Render to the fresh buffer
   g_mixer->Mix(reinterpret_cast<short*>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
@@ -56,15 +54,15 @@ bool OpenSLESStream::Init()
   SLresult result;
   // create engine
   result = slCreateEngine(&engineObject, 0, nullptr, 0, nullptr, nullptr);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
 
   SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
   SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,
@@ -87,21 +85,21 @@ bool OpenSLESStream::Init()
   result =
       (*engineEngine)
           ->CreateAudioPlayer(engineEngine, &bqPlayerObject, &audioSrc, &audioSnk, 2, ids, req);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
 
   result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result =
       (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, nullptr);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
   result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-  assert(SL_RESULT_SUCCESS == result);
+  ASSERT(SL_RESULT_SUCCESS == result);
 
   // Render and enqueue a first buffer.
   curBuffer ^= 1;

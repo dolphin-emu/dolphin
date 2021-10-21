@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstdint>
 #include <map>
@@ -471,8 +470,8 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
   if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
-  auto di = std::static_pointer_cast<IOS::HLE::Device::DI>(
-      IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
+  auto di =
+      std::static_pointer_cast<IOS::HLE::DIDevice>(IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
 
   di->InitializeIfFirstTime();
   di->ChangePartition(data_partition);

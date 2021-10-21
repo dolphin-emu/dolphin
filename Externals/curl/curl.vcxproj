@@ -360,11 +360,6 @@
   <ItemGroup>
     <ResourceCompile Include="lib\libcurl.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
-      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

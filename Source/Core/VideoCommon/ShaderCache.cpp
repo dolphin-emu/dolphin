@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/ShaderCache.h"
 
@@ -36,7 +35,7 @@ ShaderCache::~ShaderCache()
 bool ShaderCache::Initialize()
 {
   m_api_type = g_ActiveConfig.backend_info.api_type;
-  m_host_config = ShaderHostConfig::GetCurrent();
+  m_host_config.bits = ShaderHostConfig::GetCurrent().bits;
 
   if (!CompileSharedPipelines())
     return false;
@@ -188,7 +187,7 @@ template <typename SerializedUidType, typename UidType>
 static void SerializePipelineUid(const UidType& uid, SerializedUidType& serialized_uid)
 {
   // Convert to disk format. Ensure all padding bytes are zero.
-  std::memset(&serialized_uid, 0, sizeof(serialized_uid));
+  std::memset(reinterpret_cast<u8*>(&serialized_uid), 0, sizeof(serialized_uid));
   serialized_uid.vertex_decl = uid.vertex_format->GetVertexDeclaration();
   serialized_uid.vs_uid = uid.vs_uid;
   serialized_uid.gs_uid = uid.gs_uid;
@@ -1115,7 +1114,7 @@ void ShaderCache::QueueUberShaderPipelines()
     {
       // uint_output is only ever enabled when logic ops are enabled.
       config.blending_state.logicopenable = true;
-      config.blending_state.logicmode = BlendMode::AND;
+      config.blending_state.logicmode = LogicOp::And;
     }
 
     auto iter = m_gx_uber_pipeline_cache.find(config);

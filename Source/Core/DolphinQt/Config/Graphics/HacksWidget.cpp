@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
 
@@ -17,11 +16,12 @@
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
+HacksWidget::HacksWidget(GraphicsWindow* parent)
 {
   CreateWidgets();
   LoadSettings();
@@ -60,7 +60,7 @@ void HacksWidget::CreateWidgets()
   auto* texture_cache_layout = new QGridLayout();
   texture_cache_box->setLayout(texture_cache_layout);
 
-  m_accuracy = new QSlider(Qt::Horizontal);
+  m_accuracy = new ToolTipSlider(Qt::Horizontal);
   m_accuracy->setMinimum(0);
   m_accuracy->setMaximum(2);
   m_accuracy->setPageStep(1);
@@ -207,81 +207,90 @@ void HacksWidget::SaveSettings()
 
 void HacksWidget::AddDescriptions()
 {
-  static const char TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION[] =
-      QT_TR_NOOP("Ignores any requests from the CPU to read from or write to the EFB. "
-                 "\n\nImproves performance in some games, but will disable all EFB-based "
-                 "graphical effects or gameplay-related features.\n\nIf unsure, "
-                 "leave this unchecked.");
+  static const char TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION[] = QT_TR_NOOP(
+      "Ignores any requests from the CPU to read from or write to the EFB. "
+      "<br><br>Improves performance in some games, but will disable all EFB-based "
+      "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If unsure, "
+      "leave this unchecked.</dolphin_emphasis>");
   static const char TR_IGNORE_FORMAT_CHANGE_DESCRIPTION[] = QT_TR_NOOP(
-      "Ignores any changes to the EFB format.\n\nImproves performance in many games without "
+      "Ignores any changes to the EFB format.<br><br>Improves performance in many games "
+      "without "
       "any negative effect. Causes graphical defects in a small number of other "
-      "games.\n\nIf unsure, leave this checked.");
+      "games.<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_STORE_EFB_TO_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Stores EFB copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
-      "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to "
-      "RAM (and Texture)\n\nIf unsure, leave this checked.");
+      "in a small number of games.<br><br>Enabled = EFB Copies to Texture<br>Disabled = EFB "
+      "Copies to "
+      "RAM (and Texture)<br><br><dolphin_emphasis>If unsure, leave this "
+      "checked.</dolphin_emphasis>");
   static const char TR_DEFER_EFB_COPIES_DESCRIPTION[] = QT_TR_NOOP(
       "Waits until the game synchronizes with the emulated GPU before writing the contents of EFB "
-      "copies to RAM.\n\nReduces the overhead of EFB RAM copies, providing a performance boost in "
+      "copies to RAM.<br><br>Reduces the overhead of EFB RAM copies, providing a performance "
+      "boost in "
       "many games, at the risk of breaking those which do not safely synchronize with the "
-      "emulated GPU.\n\nIf unsure, leave this checked.");
+      "emulated GPU.<br><br><dolphin_emphasis>If unsure, leave this "
+      "checked.</dolphin_emphasis>");
   static const char TR_ACCUARCY_DESCRIPTION[] = QT_TR_NOOP(
-      "Adjusts the accuracy at which the GPU receives texture updates from RAM.\n\n"
+      "Adjusts the accuracy at which the GPU receives texture updates from RAM.<br><br>"
       "The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
       "from RAM. Lower accuracies cause in-game text to appear garbled in certain "
-      "games.\n\nIf unsure, select the rightmost value.");
-
+      "games.<br><br><dolphin_emphasis>If unsure, select the rightmost "
+      "value.</dolphin_emphasis>");
   static const char TR_STORE_XFB_TO_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Stores XFB copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
-      "in a small number of games.\n\nEnabled = XFB Copies to "
-      "Texture\nDisabled = XFB Copies to RAM (and Texture)\n\nIf unsure, leave this checked.");
-
-  static const char TR_IMMEDIATE_XFB_DESCRIPTION[] =
-      QT_TR_NOOP("Displays XFB copies as soon as they are created, instead of waiting for "
-                 "scanout.\n\nCan cause graphical defects in some games if the game doesn't "
-                 "expect all XFB copies to be displayed. However, turning this setting on reduces "
-                 "latency.\n\nIf unsure, leave this unchecked.");
-
+      "in a small number of games.<br><br>Enabled = XFB Copies to "
+      "Texture<br>Disabled = XFB Copies to RAM (and Texture)<br><br><dolphin_emphasis>If "
+      "unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_IMMEDIATE_XFB_DESCRIPTION[] = QT_TR_NOOP(
+      "Displays XFB copies as soon as they are created, instead of waiting for "
+      "scanout.<br><br>Can cause graphical defects in some games if the game doesn't "
+      "expect all XFB copies to be displayed. However, turning this setting on reduces "
+      "latency.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SKIP_DUPLICATE_XFBS_DESCRIPTION[] = QT_TR_NOOP(
       "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. This may improve "
-      "performance on low-end devices, while making frame pacing less consistent.\n\nDisable this "
-      "option as well as enabling V-Sync for optimal frame pacing.\n\nIf unsure, leave this "
-      "checked.");
-
-  static const char TR_GPU_DECODING_DESCRIPTION[] =
-      QT_TR_NOOP("Enables texture decoding using the GPU instead of the CPU.\n\nThis may result in "
-                 "performance gains in some scenarios, or on systems where the CPU is the "
-                 "bottleneck.\n\nIf unsure, leave this unchecked.");
-
+      "performance on low-end devices, while making frame pacing less consistent.<br><br "
+      "/>Disable this "
+      "option as well as enabling V-Sync for optimal frame pacing.<br><br><dolphin_emphasis>If "
+      "unsure, leave this "
+      "checked.</dolphin_emphasis>");
+  static const char TR_GPU_DECODING_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables texture decoding using the GPU instead of the CPU.<br><br>This may result in "
+      "performance gains in some scenarios, or on systems where the CPU is the "
+      "bottleneck.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
   static const char TR_FAST_DEPTH_CALC_DESCRIPTION[] = QT_TR_NOOP(
-      "Uses a less accurate algorithm to calculate depth values.\n\nCauses issues in a few "
+      "Uses a less accurate algorithm to calculate depth values.<br><br>Causes issues in a few "
       "games, but can result in a decent speed increase depending on the game and/or "
-      "GPU.\n\nIf unsure, leave this checked.");
+      "GPU.<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_DISABLE_BOUNDINGBOX_DESCRIPTION[] =
-      QT_TR_NOOP("Disables bounding box emulation.\n\nThis may improve GPU performance "
-                 "significantly, but some games will break.\n\nIf unsure, leave this checked.");
-  static const char TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION[] = QT_TR_NOOP(
-      "Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies "
-      "in save states. Fixes missing and/or non-upscaled textures/objects when loading "
-      "states at the cost of additional save/load time.\n\nIf unsure, leave this checked.");
-  static const char TR_VERTEX_ROUNDING_DESCRIPTION[] =
-      QT_TR_NOOP("Rounds 2D vertices to whole pixels.\n\nFixes graphical problems in some games at "
-                 "higher internal resolutions. This setting has no effect when native internal "
-                 "resolution is used.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Disables bounding box emulation.<br><br>This may improve GPU performance "
+                 "significantly, but some games will break.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION[] =
+      QT_TR_NOOP("Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies "
+                 "in save states. Fixes missing and/or non-upscaled textures/objects when loading "
+                 "states at the cost of additional save/load time.<br><br><dolphin_emphasis>If "
+                 "unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_VERTEX_ROUNDING_DESCRIPTION[] = QT_TR_NOOP(
+      "Rounds 2D vertices to whole pixels.<br><br>Fixes graphical problems in some games at "
+      "higher internal resolutions. This setting has no effect when native internal "
+      "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
 
-  AddDescription(m_skip_efb_cpu, TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION);
-  AddDescription(m_ignore_format_changes, TR_IGNORE_FORMAT_CHANGE_DESCRIPTION);
-  AddDescription(m_store_efb_copies, TR_STORE_EFB_TO_TEXTURE_DESCRIPTION);
-  AddDescription(m_defer_efb_copies, TR_DEFER_EFB_COPIES_DESCRIPTION);
-  AddDescription(m_accuracy, TR_ACCUARCY_DESCRIPTION);
-  AddDescription(m_store_xfb_copies, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
-  AddDescription(m_immediate_xfb, TR_IMMEDIATE_XFB_DESCRIPTION);
-  AddDescription(m_skip_duplicate_xfbs, TR_SKIP_DUPLICATE_XFBS_DESCRIPTION);
-  AddDescription(m_gpu_texture_decoding, TR_GPU_DECODING_DESCRIPTION);
-  AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
-  AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);
-  AddDescription(m_save_texture_cache_state, TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION);
-  AddDescription(m_vertex_rounding, TR_VERTEX_ROUNDING_DESCRIPTION);
+  m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
+  m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
+  m_store_efb_copies->SetDescription(tr(TR_STORE_EFB_TO_TEXTURE_DESCRIPTION));
+  m_defer_efb_copies->SetDescription(tr(TR_DEFER_EFB_COPIES_DESCRIPTION));
+  m_accuracy->SetTitle(tr("Texture Cache Accuracy"));
+  m_accuracy->SetDescription(tr(TR_ACCUARCY_DESCRIPTION));
+  m_store_xfb_copies->SetDescription(tr(TR_STORE_XFB_TO_TEXTURE_DESCRIPTION));
+  m_immediate_xfb->SetDescription(tr(TR_IMMEDIATE_XFB_DESCRIPTION));
+  m_skip_duplicate_xfbs->SetDescription(tr(TR_SKIP_DUPLICATE_XFBS_DESCRIPTION));
+  m_gpu_texture_decoding->SetDescription(tr(TR_GPU_DECODING_DESCRIPTION));
+  m_fast_depth_calculation->SetDescription(tr(TR_FAST_DEPTH_CALC_DESCRIPTION));
+  m_disable_bounding_box->SetDescription(tr(TR_DISABLE_BOUNDINGBOX_DESCRIPTION));
+  m_save_texture_cache_state->SetDescription(tr(TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION));
+  m_vertex_rounding->SetDescription(tr(TR_VERTEX_ROUNDING_DESCRIPTION));
 }
 
 void HacksWidget::UpdateDeferEFBCopiesEnabled()

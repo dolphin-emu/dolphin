@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Network/KD/NWC24Config.h"
 
@@ -30,7 +29,7 @@ void NWC24Config::ReadConfig()
     {
       const s32 config_error = CheckNwc24Config();
       if (config_error)
-        ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
+        ERROR_LOG_FMT(IOS_WC24, "There is an error in the config for for WC24: {}", config_error);
 
       return;
     }
@@ -44,7 +43,7 @@ void NWC24Config::WriteConfig() const
   m_fs->CreateFullPath(PID_KD, PID_KD, CONFIG_PATH, 0, public_modes);
   const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CONFIG_PATH, public_modes);
   if (!file || !file->Write(&m_data, 1))
-    ERROR_LOG(IOS_WC24, "Failed to open or write WC24 config file");
+    ERROR_LOG_FMT(IOS_WC24, "Failed to open or write WC24 config file");
 }
 
 void NWC24Config::ResetConfig()
@@ -60,8 +59,8 @@ void NWC24Config::ResetConfig()
   memset(&m_data, 0, sizeof(m_data));
 
   SetMagic(0x57634366);
-  SetUnk(8);
-  SetCreationStage(NWC24_IDCS_INITIAL);
+  SetVersion(8);
+  SetCreationStage(NWC24CreationStage::Initial);
   SetEnableBooting(0);
   SetEmail("@wii.com");
 
@@ -93,25 +92,25 @@ s32 NWC24Config::CheckNwc24Config() const
   // 'WcCf' magic
   if (Magic() != 0x57634366)
   {
-    ERROR_LOG(IOS_WC24, "Magic mismatch");
+    ERROR_LOG_FMT(IOS_WC24, "Magic mismatch");
     return -14;
   }
 
   const u32 checksum = CalculateNwc24ConfigChecksum();
-  DEBUG_LOG(IOS_WC24, "Checksum: %X", checksum);
+  DEBUG_LOG_FMT(IOS_WC24, "Checksum: {:X}", checksum);
   if (Checksum() != checksum)
   {
-    ERROR_LOG(IOS_WC24, "Checksum mismatch expected %X and got %X", checksum, Checksum());
+    ERROR_LOG_FMT(IOS_WC24, "Checksum mismatch expected {:X} and got {:X}", checksum, Checksum());
     return -14;
   }
 
   if (IdGen() > 0x1F)
   {
-    ERROR_LOG(IOS_WC24, "Id gen error");
+    ERROR_LOG_FMT(IOS_WC24, "Id gen error");
     return -14;
   }
 
-  if (Unk() != 8)
+  if (Version() != 8)
     return -27;
 
   return 0;
@@ -127,14 +126,14 @@ void NWC24Config::SetMagic(u32 magic)
   m_data.magic = Common::swap32(magic);
 }
 
-u32 NWC24Config::Unk() const
+u32 NWC24Config::Version() const
 {
-  return Common::swap32(m_data.unk_04);
+  return Common::swap32(m_data.version);
 }
 
-void NWC24Config::SetUnk(u32 unk_04)
+void NWC24Config::SetVersion(u32 version)
 {
-  m_data.unk_04 = Common::swap32(unk_04);
+  m_data.version = Common::swap32(version);
 }
 
 u32 NWC24Config::IdGen() const
@@ -166,14 +165,14 @@ void NWC24Config::SetChecksum(u32 checksum)
   m_data.checksum = Common::swap32(checksum);
 }
 
-u32 NWC24Config::CreationStage() const
+NWC24CreationStage NWC24Config::CreationStage() const
 {
-  return Common::swap32(m_data.creation_stage);
+  return NWC24CreationStage(Common::swap32(u32(m_data.creation_stage)));
 }
 
-void NWC24Config::SetCreationStage(u32 creation_stage)
+void NWC24Config::SetCreationStage(NWC24CreationStage creation_stage)
 {
-  m_data.creation_stage = Common::swap32(creation_stage);
+  m_data.creation_stage = NWC24CreationStage(Common::swap32(u32(creation_stage)));
 }
 
 u32 NWC24Config::EnableBooting() const

@@ -190,7 +190,9 @@
 #define HAVE_POSIX_FADVISE 1
 
 /* Define to 1 if you have the `pthread_condattr_setclock' function. */
+#ifndef __APPLE__
 #define HAVE_PTHREAD_CONDATTR_SETCLOCK 1
+#endif
 
 /* Have PTHREAD_PRIO_INHERIT. */
 #define HAVE_PTHREAD_PRIO_INHERIT 1

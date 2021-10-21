@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -67,6 +66,12 @@ typedef x86_thread_state64_t SContext;
 #define CTX_R14 __r14
 #define CTX_R15 __r15
 #define CTX_RIP __rip
+#elif _M_ARM_64
+typedef arm_thread_state64_t SContext;
+#define CTX_REG(x) __x[x]
+#define CTX_LR __x[30]
+#define CTX_SP __sp
+#define CTX_PC __pc
 #else
 #error No context definition for architecture
 #endif

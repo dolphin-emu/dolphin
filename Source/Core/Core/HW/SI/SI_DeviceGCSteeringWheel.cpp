@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 
@@ -26,13 +25,13 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
   ISIDevice::RunBuffer(buffer, request_length);
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
+  const auto command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
   {
-  case CMD_RESET:
-  case CMD_ID:
+  case EBufferCommands::CMD_STATUS:
+  case EBufferCommands::CMD_RESET:
   {
     u32 id = Common::swap32(SI_GC_STEERING);
     std::memcpy(buffer, &id, sizeof(id));
@@ -102,7 +101,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
 {
   UCommand wheel_command(command);
 
-  if (wheel_command.command == CMD_FORCE)
+  if (static_cast<EDirectCommands>(wheel_command.command) == EDirectCommands::CMD_FORCE)
   {
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
@@ -129,15 +128,15 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
         Pad::Rumble(pad_num, 0);
         break;
       default:
-        WARN_LOG(SERIALINTERFACE, "Unknown CMD_FORCE type %i", int(type));
+        WARN_LOG_FMT(SERIALINTERFACE, "Unknown CMD_FORCE type {}", int(type));
         break;
       }
     }
 
-    if (!poll)
+    if (poll == 0)
     {
       m_mode = wheel_command.parameter2;
-      INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", m_device_number, m_mode);
+      INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
     }
   }
   else

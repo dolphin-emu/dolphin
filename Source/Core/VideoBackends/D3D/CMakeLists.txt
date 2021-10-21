@@ -1,25 +1,25 @@
 add_library(videod3d
-  BoundingBox.cpp
-  BoundingBox.h
   D3DBase.cpp
   D3DBase.h
+  D3DBoundingBox.cpp
+  D3DBoundingBox.h
+  D3DMain.cpp
+  D3DNativeVertexFormat.cpp
+  D3DPerfQuery.cpp
+  D3DPerfQuery.h
+  D3DRender.cpp
+  D3DRender.h
   D3DState.cpp
   D3DState.h
+  D3DSwapChain.cpp
+  D3DVertexManager.cpp
+  D3DVertexManager.h
   DXPipeline.cpp
   DXPipeline.h
   DXShader.cpp
   DXShader.h
   DXTexture.cpp
   DXTexture.h
-  main.cpp
-  NativeVertexFormat.cpp
-  PerfQuery.cpp
-  PerfQuery.h
-  Render.cpp
-  Render.h
-  SwapChain.cpp
-  VertexManager.cpp
-  VertexManager.h
   VideoBackend.h
 )
 

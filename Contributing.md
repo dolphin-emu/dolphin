@@ -203,6 +203,7 @@ Summary:
   ```c++
   do
   {
+    // code
   } while (false);
   ```
 

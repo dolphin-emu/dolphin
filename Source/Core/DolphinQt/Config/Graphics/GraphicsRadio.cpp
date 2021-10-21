@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 
@@ -12,7 +11,7 @@
 
 GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::Info<int>& setting,
                                    int value)
-    : QRadioButton(label), m_setting(setting), m_value(value)
+    : ToolTipRadioButton(label), m_setting(setting), m_value(value)
 {
   setChecked(Config::Get(m_setting) == m_value);
   connect(this, &QRadioButton::toggled, this, &GraphicsRadioInt::Update);

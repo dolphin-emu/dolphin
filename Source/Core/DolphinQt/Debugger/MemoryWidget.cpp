@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
@@ -14,15 +13,17 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QSpacerItem>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/Host.h"
@@ -85,12 +86,22 @@ void MemoryWidget::CreateWidgets()
   //// Sidebar
 
   // Search
+  auto* m_address_splitter = new QSplitter(Qt::Horizontal);
+
   m_search_address = new QLineEdit;
+  m_search_offset = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
 
   m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_offset->setPlaceholderText(tr("Offset"));
   m_data_edit->setPlaceholderText(tr("Value"));
+
+  m_address_splitter->addWidget(m_search_address);
+  m_address_splitter->addWidget(m_search_offset);
+  m_address_splitter->setHandleWidth(1);
+  m_address_splitter->setCollapsible(0, false);
+  m_address_splitter->setStretchFactor(1, 2);
 
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
@@ -106,7 +117,7 @@ void MemoryWidget::CreateWidgets()
   m_find_next = new QPushButton(tr("Find &Next"));
   m_find_previous = new QPushButton(tr("Find &Previous"));
   m_find_ascii = new QRadioButton(tr("ASCII"));
-  m_find_hex = new QRadioButton(tr("Hex"));
+  m_find_hex = new QRadioButton(tr("Hex string"));
   m_result_label = new QLabel;
 
   search_layout->addWidget(m_find_next);
@@ -183,16 +194,23 @@ void MemoryWidget::CreateWidgets()
 
   sidebar->setLayout(sidebar_layout);
 
-  sidebar_layout->addWidget(m_search_address);
+  sidebar_layout->addWidget(m_address_splitter);
   sidebar_layout->addWidget(m_data_edit);
-  sidebar_layout->addWidget(m_find_ascii);
-  sidebar_layout->addWidget(m_find_hex);
+
+  auto* types_layout = new QHBoxLayout;
+  types_layout->addWidget(m_find_ascii);
+  types_layout->addItem(new QSpacerItem(20, 1));
+  types_layout->addWidget(m_find_hex);
+  types_layout->setAlignment(Qt::AlignCenter);
+  sidebar_layout->addLayout(types_layout);
+
   sidebar_layout->addWidget(m_set_value);
-  sidebar_layout->addItem(new QSpacerItem(1, 32));
+  sidebar_layout->addItem(new QSpacerItem(1, 20));
   sidebar_layout->addWidget(m_dump_mram);
   sidebar_layout->addWidget(m_dump_exram);
   sidebar_layout->addWidget(m_dump_aram);
   sidebar_layout->addWidget(m_dump_fake_vmem);
+  sidebar_layout->addItem(new QSpacerItem(1, 15));
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addWidget(address_space_group);
   sidebar_layout->addWidget(datatype_group);
@@ -222,6 +240,7 @@ void MemoryWidget::CreateWidgets()
 void MemoryWidget::ConnectWidgets()
 {
   connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_offset, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
 
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
   connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
@@ -253,6 +272,7 @@ void MemoryWidget::ConnectWidgets()
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
+  connect(m_memory_view, &MemoryViewWidget::RequestWatch, this, &MemoryWidget::RequestWatch);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -424,25 +444,35 @@ void MemoryWidget::SetAddress(u32 address)
 
 void MemoryWidget::OnSearchAddress()
 {
-  bool good;
-  u32 addr = m_search_address->text().toUInt(&good, 16);
+  bool good_addr, good_offset;
+  // Returns 0 if conversion fails
+  const u32 addr = m_search_address->text().toUInt(&good_addr, 16);
+  const u32 offset = m_search_offset->text().toUInt(&good_offset, 16);
 
-  QFont font;
-  QPalette palette;
+  QFont addr_font, offset_font;
+  QPalette addr_palette, offset_palette;
 
-  if (good || m_search_address->text().isEmpty())
+  if (good_addr || m_search_address->text().isEmpty())
   {
-    if (good)
-      m_memory_view->SetAddress(addr);
+    if (good_addr)
+      m_memory_view->SetAddress(addr + offset);
   }
   else
   {
-    font.setBold(true);
-    palette.setColor(QPalette::Text, Qt::red);
+    addr_font.setBold(true);
+    addr_palette.setColor(QPalette::Text, Qt::red);
   }
 
-  m_search_address->setFont(font);
-  m_search_address->setPalette(palette);
+  if (!good_offset && !m_search_offset->text().isEmpty())
+  {
+    offset_font.setBold(true);
+    offset_palette.setColor(QPalette::Text, Qt::red);
+  }
+
+  m_search_address->setFont(addr_font);
+  m_search_address->setPalette(addr_palette);
+  m_search_offset->setFont(offset_font);
+  m_search_offset->setPalette(offset_palette);
 }
 
 void MemoryWidget::ValidateSearchValue()
@@ -450,16 +480,10 @@ void MemoryWidget::ValidateSearchValue()
   QFont font;
   QPalette palette;
 
-  if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
+  if (!IsValueValid())
   {
-    bool good;
-    m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-    {
-      font.setBold(true);
-      palette.setColor(QPalette::Text, Qt::red);
-    }
+    font.setBold(true);
+    palette.setColor(QPalette::Text, Qt::red);
   }
 
   m_data_edit->setFont(font);
@@ -468,12 +492,23 @@ void MemoryWidget::ValidateSearchValue()
 
 void MemoryWidget::OnSetValue()
 {
-  bool good_address;
+  if (!Core::IsRunning())
+    return;
+
+  bool good_address, good_offset;
+  // Returns 0 if conversion fails
   u32 addr = m_search_address->text().toUInt(&good_address, 16);
+  addr += m_search_offset->text().toUInt(&good_offset, 16);
 
   if (!good_address)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
+    return;
+  }
+
+  if (!good_offset)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
     return;
   }
 
@@ -483,44 +518,17 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
+  if (!IsValueValid())
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
+    return;
+  }
+
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  if (m_find_ascii->isChecked())
-  {
-    const QByteArray bytes = m_data_edit->text().toUtf8();
-
-    for (char c : bytes)
-      accessors->WriteU8(addr++, static_cast<u8>(c));
-  }
-  else
-  {
-    bool good_value;
-    const QString text = m_data_edit->text();
-    const int length =
-        text.startsWith(QStringLiteral("0x"), Qt::CaseInsensitive) ? text.size() - 2 : text.size();
-    const u64 value = text.toULongLong(&good_value, 16);
-
-    if (!good_value)
-    {
-      ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
-      return;
-    }
-
-    if (length <= 2)
-    {
-      accessors->WriteU8(addr, static_cast<u8>(value));
-    }
-    else if (length <= 4)
-    {
-      accessors->WriteU16(addr, static_cast<u16>(value));
-    }
-    else if (length <= 8)
-    {
-      accessors->WriteU32(addr, static_cast<u32>(value));
-    }
-    else
-      accessors->WriteU64(addr, value);
-  }
+  const QByteArray bytes = GetValueData();
+  for (const char c : bytes)
+    accessors->WriteU8(addr++, static_cast<u8>(c));
 
   Update();
 }
@@ -576,46 +584,40 @@ void MemoryWidget::OnDumpFakeVMEM()
             std::distance(accessors->begin(), accessors->end()));
 }
 
-std::vector<u8> MemoryWidget::GetValueData() const
+bool MemoryWidget::IsValueValid() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  if (m_find_ascii->isChecked())
+    return true;
+  const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
+                                  QRegularExpression::CaseInsensitiveOption);
+  const QRegularExpressionMatch match = is_hex.match(m_data_edit->text());
+  return match.hasMatch();
+}
+
+QByteArray MemoryWidget::GetValueData() const
+{
+  if (!IsValueValid())
+    return QByteArray();
+
+  const QByteArray value = m_data_edit->text().toUtf8();
 
   if (m_find_ascii->isChecked())
-  {
-    const QByteArray bytes = m_data_edit->text().toUtf8();
-    search_for.assign(bytes.begin(), bytes.end());
-  }
-  else
-  {
-    bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
+    return value;
 
-    if (!good)
-      return {};
-
-    int size;
-
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
-  }
-
-  return search_for;
+  return QByteArray::fromHex(value);
 }
 
 void MemoryWidget::FindValue(bool next)
 {
-  std::vector<u8> search_for = GetValueData();
+  if (!IsValueValid())
+  {
+    m_result_label->setText(tr("Bad value provided."));
+    return;
+  }
 
-  if (search_for.empty())
+  const QByteArray search_for = GetValueData();
+
+  if (search_for.isEmpty())
   {
     m_result_label->setText(tr("No Value Given"));
     return;
@@ -625,13 +627,14 @@ void MemoryWidget::FindValue(bool next)
   if (!m_search_address->text().isEmpty())
   {
     // skip the quoted address so we don't potentially refind the last result
-    addr = m_search_address->text().toUInt(nullptr, 16) + (next ? 1 : -1);
+    addr = m_search_address->text().toUInt(nullptr, 16) +
+           m_search_offset->text().toUInt(nullptr, 16) + (next ? 1 : -1);
   }
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  auto found_addr =
-      accessors->Search(addr, search_for.data(), static_cast<u32>(search_for.size()), next);
+  const auto found_addr = accessors->Search(addr, reinterpret_cast<const u8*>(search_for.data()),
+                                            static_cast<u32>(search_for.size()), next);
 
   if (found_addr.has_value())
   {
@@ -640,6 +643,7 @@ void MemoryWidget::FindValue(bool next)
     u32 offset = *found_addr;
 
     m_search_address->setText(QStringLiteral("%1").arg(offset, 8, 16, QLatin1Char('0')));
+    m_search_offset->clear();
 
     m_memory_view->SetAddress(offset);
 

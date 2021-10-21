@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.ui.main;
 
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -21,9 +23,12 @@ public interface MainView
 
   void launchFileListActivity();
 
-  void launchOpenFileActivity();
+  void launchOpenFileActivity(int requestCode);
 
-  void launchInstallWAD();
+  /**
+   * Shows or hides the loading indicator.
+   */
+  void setRefreshing(boolean refreshing);
 
   /**
    * To be called when the game file cache is updated.

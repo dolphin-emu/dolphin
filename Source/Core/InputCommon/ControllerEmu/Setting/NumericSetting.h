@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,7 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 namespace ControllerEmu
 {
@@ -113,9 +112,16 @@ public:
   void SaveToIni(IniFile::Section& section, const std::string& group_name) const override
   {
     if (IsSimpleValue())
+    {
       section.Set(group_name + m_details.ini_name, GetValue(), m_default_value);
+    }
     else
-      section.Set(group_name + m_details.ini_name, m_value.m_input.GetExpression(), "");
+    {
+      // We can't save line breaks in a single line config. Restoring them is too complicated.
+      std::string expression = m_value.m_input.GetExpression();
+      ReplaceBreaksWithSpaces(expression);
+      section.Set(group_name + m_details.ini_name, expression, "");
+    }
   }
 
   bool IsSimpleValue() const override { return m_value.IsSimpleValue(); }

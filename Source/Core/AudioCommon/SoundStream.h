@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -17,11 +16,10 @@ protected:
 public:
   SoundStream() : m_mixer(new Mixer(48000)) {}
   virtual ~SoundStream() {}
-  static bool isValid() { return false; }
+  static bool IsValid() { return false; }
   Mixer* GetMixer() const { return m_mixer.get(); }
   virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
-  virtual void SoundLoop() {}
-  virtual void Update() {}
+  // Returns true if successful.
   virtual bool SetRunning(bool running) { return false; }
 };

@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/GeometryShaderGen.h"
 
@@ -46,11 +45,12 @@ GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
                        const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType ApiType, bool wireframe, bool first_vertex = false);
+                       APIType api_type, bool wireframe, bool first_vertex = false);
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType ApiType, bool wireframe);
+                         const geometry_shader_uid_data* uid_data, APIType api_type,
+                         bool wireframe);
 
-ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
+ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                       const geometry_shader_uid_data* uid_data)
 {
   ShaderCode out;
@@ -68,7 +68,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   if (wireframe)
     vertex_out++;
 
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     // Insert layout parameters
     if (host_config.backend_gs_instancing)
@@ -89,7 +89,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   out.Write("{}", s_lighting_struct);
 
   // uniforms
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     out.Write("UBO_BINDING(std140, 3) uniform GSBlock {{\n");
   else
     out.Write("cbuffer GSBlock {{\n");
@@ -100,21 +100,21 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
             "}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, ApiType, uid_data->numTexGens, host_config, "");
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
   out.Write("}};\n");
 
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     if (host_config.backend_gs_instancing)
       out.Write("#define InstanceID gl_InvocationID\n");
 
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
-    GenerateVSOutputMembers(out, ApiType, uid_data->numTexGens, host_config,
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, true));
     out.Write("}} vs[{}];\n", vertex_in);
 
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
-    GenerateVSOutputMembers(out, ApiType, uid_data->numTexGens, host_config,
+    GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, false));
 
     if (stereo)
@@ -153,7 +153,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
 
   if (primitive_type == PrimitiveType::Lines)
   {
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
       AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens, host_config);
@@ -184,7 +184,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   }
   else if (primitive_type == PrimitiveType::Points)
   {
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {
       out.Write("\tVS_OUTPUT center;\n");
       AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens, host_config);
@@ -215,7 +215,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
 
   out.Write("\tfor (int i = 0; i < {}; ++i) {{\n", vertex_in);
 
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     out.Write("\tVS_OUTPUT f;\n");
     AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, host_config);
@@ -238,7 +238,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
       out.Write("\tgl_Layer = eye;\n");
 
     // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
@@ -270,8 +270,8 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     }
     out.Write("\t}}\n");
 
-    EmitVertex(out, host_config, uid_data, "l", ApiType, wireframe, true);
-    EmitVertex(out, host_config, uid_data, "r", ApiType, wireframe);
+    EmitVertex(out, host_config, uid_data, "l", api_type, wireframe, true);
+    EmitVertex(out, host_config, uid_data, "r", api_type, wireframe);
   }
   else if (primitive_type == PrimitiveType::Points)
   {
@@ -299,19 +299,19 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     }
     out.Write("\t}}\n");
 
-    EmitVertex(out, host_config, uid_data, "ll", ApiType, wireframe, true);
-    EmitVertex(out, host_config, uid_data, "lr", ApiType, wireframe);
-    EmitVertex(out, host_config, uid_data, "ul", ApiType, wireframe);
-    EmitVertex(out, host_config, uid_data, "ur", ApiType, wireframe);
+    EmitVertex(out, host_config, uid_data, "ll", api_type, wireframe, true);
+    EmitVertex(out, host_config, uid_data, "lr", api_type, wireframe);
+    EmitVertex(out, host_config, uid_data, "ul", api_type, wireframe);
+    EmitVertex(out, host_config, uid_data, "ur", api_type, wireframe);
   }
   else
   {
-    EmitVertex(out, host_config, uid_data, "f", ApiType, wireframe, true);
+    EmitVertex(out, host_config, uid_data, "f", api_type, wireframe, true);
   }
 
   out.Write("\t}}\n");
 
-  EndPrimitive(out, host_config, uid_data, ApiType, wireframe);
+  EndPrimitive(out, host_config, uid_data, api_type, wireframe);
 
   if (stereo && !host_config.backend_gs_instancing)
     out.Write("\t}}\n");
@@ -323,12 +323,12 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
                        const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType ApiType, bool wireframe, bool first_vertex)
+                       APIType api_type, bool wireframe, bool first_vertex)
 {
   if (wireframe && first_vertex)
     out.Write("\tif (i == 0) first = {};\n", vertex);
 
-  if (ApiType == APIType::OpenGL)
+  if (api_type == APIType::OpenGL)
   {
     out.Write("\tgl_Position = {}.pos;\n", vertex);
     if (host_config.backend_depth_clamp)
@@ -338,7 +338,7 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
     }
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, host_config);
   }
-  else if (ApiType == APIType::Vulkan)
+  else if (api_type == APIType::Vulkan)
   {
     // Vulkan NDC space has Y pointing down (right-handed NDC space).
     out.Write("\tgl_Position = {}.pos;\n", vertex);
@@ -350,19 +350,19 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
     out.Write("\tps.o = {};\n", vertex);
   }
 
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     out.Write("\tEmitVertex();\n");
   else
     out.Write("\toutput.Append(ps);\n");
 }
 
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType ApiType, bool wireframe)
+                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe)
 {
   if (wireframe)
-    EmitVertex(out, host_config, uid_data, "first", ApiType, wireframe);
+    EmitVertex(out, host_config, uid_data, "first", api_type, wireframe);
 
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     out.Write("\tEndPrimitive();\n");
   else
     out.Write("\toutput.RestartStrip();\n");

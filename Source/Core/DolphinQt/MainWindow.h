@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -23,6 +22,7 @@ class ControllersWindow;
 class DiscordHandler;
 class DragEnterEvent;
 class FIFOPlayerWindow;
+class FreeLookWindow;
 class GameList;
 class GCTASInputWindow;
 class GraphicsWindow;
@@ -109,6 +109,7 @@ private:
   void SetFullScreenResolution(bool fullscreen);
 
   void FullScreen();
+  void UnlockCursor();
   void ScreenShot();
 
   void CreateComponents();
@@ -142,13 +143,14 @@ private:
                  const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
-  void HideRenderWidget(bool reinit = true);
+  void HideRenderWidget(bool reinit = true, bool is_exit = false);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();
   void ShowAudioWindow();
   void ShowControllersWindow();
   void ShowGraphicsWindow();
+  void ShowFreeLookWindow();
   void ShowAboutDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
@@ -191,7 +193,7 @@ private:
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
   std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
 #endif
 
@@ -215,6 +217,7 @@ private:
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
   MappingWindow* m_hotkey_window = nullptr;
+  FreeLookWindow* m_freelook_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;

@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -15,12 +14,14 @@
 #include <unordered_set>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureInfo.h"
 
 class AbstractFramebuffer;
 class AbstractStagingTexture;
@@ -50,8 +51,8 @@ struct TextureAndTLUTFormat
 
 struct EFBCopyParams
 {
-  EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
-                bool yuv_, bool copy_filter_)
+  EFBCopyParams(PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_, bool yuv_,
+                bool copy_filter_)
       : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
         copy_filter(copy_filter_)
   {
@@ -63,7 +64,7 @@ struct EFBCopyParams
            std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.copy_filter);
   }
 
-  PEControl::PixelFormat efb_format;
+  PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;
@@ -89,14 +90,14 @@ public:
     // common members
     std::unique_ptr<AbstractTexture> texture;
     std::unique_ptr<AbstractFramebuffer> framebuffer;
-    u32 addr;
-    u32 size_in_bytes;
-    u64 base_hash;
-    u64 hash;  // for paletted textures, hash = base_hash ^ palette_hash
+    u32 addr = 0;
+    u32 size_in_bytes = 0;
+    u64 base_hash = 0;
+    u64 hash = 0;  // for paletted textures, hash = base_hash ^ palette_hash
     TextureAndTLUTFormat format;
-    u32 memory_stride;
-    bool is_efb_copy;
-    bool is_custom_tex;
+    u32 memory_stride = 0;
+    bool is_efb_copy = false;
+    bool is_custom_tex = false;
     bool may_have_overlapping_textures = true;
     bool tmem_only = false;           // indicates that this texture only exists in the tmem cache
     bool has_arbitrary_mips = false;  // indicates that the mips in this texture are arbitrary
@@ -104,13 +105,14 @@ public:
     bool should_force_safe_hashing = false;  // for XFB
     bool is_xfb_copy = false;
     bool is_xfb_container = false;
-    u64 id;
+    u64 id = 0;
 
     bool reference_changed = false;  // used by xfb to determine when a reference xfb changed
 
-    unsigned int native_width,
-        native_height;  // Texture dimensions from the GameCube's point of view
-    unsigned int native_levels;
+    // Texture dimensions from the GameCube's point of view
+    u32 native_width = 0;
+    u32 native_height = 0;
+    u32 native_levels = 0;
 
     // used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
     int frameCount = FRAMECOUNT_INVALID;
@@ -175,6 +177,7 @@ public:
 
     bool IsEfbCopy() const { return is_efb_copy; }
     bool IsCopy() const { return is_xfb_copy || is_efb_copy; }
+    u32 NumBlocksX() const;
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 
@@ -214,17 +217,11 @@ public:
   void Invalidate();
 
   TCacheEntry* Load(const u32 stage);
-  static void InvalidateAllBindPoints() { valid_bind_points.reset(); }
-  static bool IsValidBindPoint(u32 i) { return valid_bind_points.test(i); }
-  TCacheEntry* GetTexture(u32 address, u32 width, u32 height, const TextureFormat texformat,
-                          const int textureCacheSafetyColorSampleSize, u32 tlutaddr = 0,
-                          TLUTFormat tlutfmt = TLUTFormat::IA8, bool use_mipmaps = false,
-                          u32 tex_levels = 1, bool from_tmem = false, u32 tmem_address_even = 0,
-                          u32 tmem_address_odd = 0);
+  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 
-  virtual void BindTextures();
+  virtual void BindTextures(BitSet32 used_textures);
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy,
                                  const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
@@ -284,13 +281,13 @@ private:
 
   void SetBackupConfig(const VideoConfig& config);
 
-  TCacheEntry* GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride, u64 hash);
+  TCacheEntry* GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride);
 
-  TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt);
+  TCacheEntry* ApplyPaletteToEntry(TCacheEntry* entry, const u8* palette, TLUTFormat tlutfmt);
 
   TCacheEntry* ReinterpretEntry(const TCacheEntry* existing_entry, TextureFormat new_format);
 
-  TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
+  TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, const u8* palette,
                                        TLUTFormat tlutfmt);
   void StitchXFBCopy(TCacheEntry* entry_to_update);
 

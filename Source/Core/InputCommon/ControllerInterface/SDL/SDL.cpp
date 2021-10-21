@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
@@ -46,7 +45,6 @@ static void OpenAndAddDevice(int index)
 static Common::Event s_init_event;
 static Uint32 s_stop_event_type;
 static Uint32 s_populate_event_type;
-static Common::Event s_populated_event;
 static std::thread s_hotplug_thread;
 
 static bool HandleEventAndContinue(const SDL_Event& e)
@@ -64,9 +62,10 @@ static bool HandleEventAndContinue(const SDL_Event& e)
   }
   else if (e.type == s_populate_event_type)
   {
-    for (int i = 0; i < SDL_NumJoysticks(); ++i)
-      OpenAndAddDevice(i);
-    s_populated_event.Set();
+    g_controller_interface.PlatformPopulateDevices([] {
+      for (int i = 0; i < SDL_NumJoysticks(); ++i)
+        OpenAndAddDevice(i);
+    });
   }
   else if (e.type == s_stop_event_type)
   {
@@ -81,7 +80,7 @@ void Init()
 {
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
   if (SDL_Init(SDL_INIT_JOYSTICK) != 0)
-    ERROR_LOG_FMT(SERIALINTERFACE, "SDL failed to initialize");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
   return;
 #else
   s_hotplug_thread = std::thread([] {
@@ -95,14 +94,14 @@ void Init()
 
       if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0)
       {
-        ERROR_LOG_FMT(SERIALINTERFACE, "SDL failed to initialize");
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
         return;
       }
 
       const Uint32 custom_events_start = SDL_RegisterEvents(2);
       if (custom_events_start == static_cast<Uint32>(-1))
       {
-        ERROR_LOG_FMT(SERIALINTERFACE, "SDL failed to register custom events");
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to register custom events");
         return;
       }
       s_stop_event_type = custom_events_start;
@@ -111,7 +110,8 @@ void Init()
       // Drain all of the events and add the initial joysticks before returning. Otherwise, the
       // individual joystick events as well as the custom populate event will be handled _after_
       // ControllerInterface::Init/RefreshDevices has cleared its list of devices, resulting in
-      // duplicate devices.
+      // duplicate devices. Adding devices will actually "fail" here, as the ControllerInterface
+      // hasn't finished initializing yet.
       SDL_Event e;
       while (SDL_PollEvent(&e) != 0)
       {
@@ -161,8 +161,6 @@ void PopulateDevices()
 
   SDL_Event populate_event{s_populate_event_type};
   SDL_PushEvent(&populate_event);
-
-  s_populated_event.Wait();
 #endif
 }
 

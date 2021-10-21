@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import androidx.annotation.NonNull;
@@ -16,6 +18,9 @@ import java.io.File;
  */
 public final class SettingsFile
 {
+  public static final String KEY_ISO_PATH_BASE = "ISOPath";
+  public static final String KEY_ISO_PATHS = "ISOPaths";
+
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
@@ -215,11 +220,6 @@ public final class SettingsFile
   public static void readFile(final String fileName, IniFile ini, SettingsActivityView view)
   {
     readFile(getSettingsFile(fileName), ini, view);
-
-    if (fileName.equals(Settings.FILE_DOLPHIN))
-    {
-      addGcPadSettingsIfTheyDontExist(ini);
-    }
   }
 
   /**
@@ -234,18 +234,6 @@ public final class SettingsFile
           SettingsActivityView view)
   {
     readFile(getCustomGameSettingsFile(gameId), ini, view);
-  }
-
-  public static void readGenericGameSettings(final String gameId, IniFile ini,
-          SettingsActivityView view)
-  {
-    readFile(getGenericGameSettingsFile(gameId), ini, view);
-  }
-
-  public static void readGenericGameSettingsForAllRegions(final String gameId,
-          IniFile ini, SettingsActivityView view)
-  {
-    readFile(getGenericGameSettingsForAllRegions(gameId), ini, view);
   }
 
   /**
@@ -298,22 +286,6 @@ public final class SettingsFile
             DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
   }
 
-  private static File getGenericGameSettingsForAllRegions(String gameId)
-  {
-    // Use the first 3 chars from the gameId to load the generic game settings for all regions
-    gameId = gameId.substring(0, 3);
-    return new File(
-            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
-                    gameId + ".ini");
-  }
-
-  private static File getGenericGameSettingsFile(String gameId)
-  {
-    return new File(
-            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
-                    gameId + ".ini");
-  }
-
   public static File getCustomGameSettingsFile(String gameId)
   {
     return new File(
@@ -327,20 +299,5 @@ public final class SettingsFile
                     profile + ".ini";
 
     return new File(wiiConfigPath);
-  }
-
-  private static void addGcPadSettingsIfTheyDontExist(IniFile ini)
-  {
-    IniFile.Section coreSection = ini.getOrCreateSection(Settings.SECTION_INI_CORE);
-
-    for (int i = 0; i < 4; i++)
-    {
-      String key = SettingsFile.KEY_GCPAD_TYPE + i;
-      if (!coreSection.exists(key))
-      {
-        // Set GameCube controller 1 to enabled, all others disabled
-        coreSection.setInt(key, i == 0 ? 6 : 0);
-      }
-    }
   }
 }

@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -57,6 +56,7 @@ public:
 signals:
   void BreakpointsChanged();
   void ShowCode(u32 address);
+  void RequestWatch(QString name, u32 address);
 
 private:
   void OnContextMenu();

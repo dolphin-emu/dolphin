@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 
@@ -9,7 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 
 namespace
@@ -54,7 +53,7 @@ bool DSYSignatureDB::Save(const std::string& file_path) const
 
   if (!f)
   {
-    ERROR_LOG(SYMBOLS, "Database save failed");
+    ERROR_LOG_FMT(SYMBOLS, "Database save failed");
     return false;
   }
   u32 fcount = static_cast<u32>(m_database.size());
@@ -69,6 +68,6 @@ bool DSYSignatureDB::Save(const std::string& file_path) const
     f.WriteArray(&temp, 1);
   }
 
-  INFO_LOG(SYMBOLS, "Database save successful");
+  INFO_LOG_FMT(SYMBOLS, "Database save successful");
   return true;
 }

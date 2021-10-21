@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Config/UISettings.h"
 
@@ -16,9 +15,5 @@ const Info<bool> MAIN_USE_GAME_COVERS{{System::Main, "General", "UseGameCovers"}
 #endif
 const Info<bool> MAIN_FOCUSED_HOTKEYS{{System::Main, "General", "HotkeysRequireFocus"}, true};
 const Info<bool> MAIN_RECURSIVE_ISO_PATHS{{System::Main, "General", "RecursiveISOPaths"}, false};
-
-// UI.Android
-
-const Info<int> MAIN_LAST_PLATFORM_TAB{{System::Main, "Android", "LastPlatformTab"}, 0};
 
 }  // namespace Config

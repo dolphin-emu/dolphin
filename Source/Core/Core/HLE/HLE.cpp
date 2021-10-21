@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HLE/HLE.h"
 
@@ -9,7 +8,9 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HLE/HLE_Misc.h"
@@ -76,9 +77,17 @@ void Patch(u32 addr, std::string_view func_name)
 
 void PatchFixedFunctions()
 {
+  // MIOS puts patch data in low MEM1 (0x1800-0x3000) for its own use.
+  // Overwriting data in this range can cause the IPL to crash when launching games
+  // that get patched by MIOS. See https://bugs.dolphin-emu.org/issues/11952 for more info.
+  // Not applying the Gecko HLE patches means that Gecko codes will not work under MIOS,
+  // but this is better than the alternative of having specific games crash.
+  if (SConfig::GetInstance().m_is_mios)
+    return;
+
   // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
   // handler
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
     Patch(0x80001800, "HBReload");
     Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
@@ -226,4 +235,4 @@ u32 UnPatch(std::string_view patch_name)
 
   return 0;
 }
-}  // end of namespace HLE
+}  // namespace HLE

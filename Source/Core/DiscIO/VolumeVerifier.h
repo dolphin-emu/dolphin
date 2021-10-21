@@ -1,12 +1,10 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <future>
 #include <map>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -34,8 +32,6 @@
 
 namespace DiscIO
 {
-class FileInfo;
-
 template <typename T>
 struct Hashes
 {
@@ -82,7 +78,7 @@ private:
 
   struct PotentialMatch
   {
-    u64 size;
+    u64 size = 0;
     Hashes<std::vector<u8>> hashes;
   };
 
@@ -91,9 +87,9 @@ private:
   std::vector<PotentialMatch> ScanDatfile(const std::vector<u8>& data, const std::string& system);
 
   std::string m_game_id;
-  u16 m_revision;
-  u8 m_disc_number;
-  u64 m_size;
+  u16 m_revision = 0;
+  u8 m_disc_number = 0;
+  u64 m_size = 0;
 
   std::future<std::vector<PotentialMatch>> m_future;
   Result m_result;
@@ -138,11 +134,12 @@ public:
   const Result& GetResult() const;
 
 private:
-  struct BlockToVerify
+  struct GroupToVerify
   {
     Partition partition;
     u64 offset;
-    u64 block_index;
+    size_t block_index_start;
+    size_t block_index_end;
   };
 
   std::vector<Partition> CheckPartitions();
@@ -154,8 +151,6 @@ private:
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
   void CheckVolumeSize();
-  u64 GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const;
-  u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void CheckSuperPaperMario();
   void SetUpHashing();
@@ -178,23 +173,23 @@ private:
   Hashes<bool> m_hashes_to_calculate{};
   bool m_calculating_any_hash = false;
   unsigned long m_crc32_context = 0;
-  mbedtls_md5_context m_md5_context;
-  mbedtls_sha1_context m_sha1_context;
+  mbedtls_md5_context m_md5_context{};
+  mbedtls_sha1_context m_sha1_context{};
 
+  u64 m_excess_bytes = 0;
   std::vector<u8> m_data;
-  std::mutex m_volume_mutex;
   std::future<void> m_crc32_future;
   std::future<void> m_md5_future;
   std::future<void> m_sha1_future;
   std::future<void> m_content_future;
-  std::future<void> m_block_future;
+  std::future<void> m_group_future;
 
   DiscScrubber m_scrubber;
   IOS::ES::TicketReader m_ticket;
   std::vector<u64> m_content_offsets;
   u16 m_content_index = 0;
-  std::vector<BlockToVerify> m_blocks;
-  size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition
+  std::vector<GroupToVerify> m_groups;
+  size_t m_group_index = 0;  // Index in m_groups, not index in a specific partition
   std::map<Partition, size_t> m_block_errors;
   std::map<Partition, size_t> m_unused_block_errors;
 

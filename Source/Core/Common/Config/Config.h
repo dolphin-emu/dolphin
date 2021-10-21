@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -24,7 +23,10 @@ std::shared_ptr<Layer> GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 
 void AddConfigChangedCallback(ConfigChangedCallback func);
-void InvokeConfigChangedCallbacks();
+void OnConfigChanged();
+
+// Returns the number of times the config has changed in the current execution of the program
+u64 GetConfigVersion();
 
 // Explicit load and save of layers
 void Load();
@@ -39,6 +41,8 @@ std::optional<System> GetSystemFromName(const std::string& system);
 const std::string& GetLayerName(LayerType layer);
 LayerType GetActiveLayerForConfig(const Location&);
 
+std::optional<std::string> GetAsString(const Location&);
+
 template <typename T>
 T Get(LayerType layer, const Info<T>& info)
 {
@@ -50,7 +54,28 @@ T Get(LayerType layer, const Info<T>& info)
 template <typename T>
 T Get(const Info<T>& info)
 {
-  return GetLayer(GetActiveLayerForConfig(info.location))->Get(info);
+  CachedValue<T> cached = info.GetCachedValue();
+  const u64 config_version = GetConfigVersion();
+
+  if (cached.config_version < config_version)
+  {
+    cached.value = GetUncached(info);
+    cached.config_version = config_version;
+
+    info.SetCachedValue(cached);
+  }
+
+  return cached.value;
+}
+
+template <typename T>
+T GetUncached(const Info<T>& info)
+{
+  const std::optional<std::string> str = GetAsString(info.GetLocation());
+  if (!str)
+    return info.GetDefaultValue();
+
+  return detail::TryParse<T>(*str).value_or(info.GetDefaultValue());
 }
 
 template <typename T>
@@ -62,14 +87,14 @@ T GetBase(const Info<T>& info)
 template <typename T>
 LayerType GetActiveLayerForConfig(const Info<T>& info)
 {
-  return GetActiveLayerForConfig(info.location);
+  return GetActiveLayerForConfig(info.GetLocation());
 }
 
 template <typename T>
 void Set(LayerType layer, const Info<T>& info, const std::common_type_t<T>& value)
 {
-  GetLayer(layer)->Set(info, value);
-  InvokeConfigChangedCallbacks();
+  if (GetLayer(layer)->Set(info, value))
+    OnConfigChanged();
 }
 
 template <typename T>
@@ -93,7 +118,7 @@ void SetBaseOrCurrent(const Info<T>& info, const std::common_type_t<T>& value)
     Set<T>(LayerType::CurrentRun, info, value);
 }
 
-// Used to defer InvokeConfigChangedCallbacks until after the completion of many config changes.
+// Used to defer OnConfigChanged until after the completion of many config changes.
 class ConfigChangeCallbackGuard
 {
 public:

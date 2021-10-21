@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,7 +7,7 @@
 #include <memory>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 // ControlReference
 //
@@ -38,15 +37,18 @@ public:
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
   std::string GetExpression() const;
-  void SetExpression(std::string expr);
 
-  ControlState range;
+  // Returns a human-readable error description when the given expression is invalid.
+  std::optional<std::string> SetExpression(std::string expr);
+
+  ControlState range = 1;
 
 protected:
   ControlReference();
   std::string m_expression;
   std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
-  ciface::ExpressionParser::ParseStatus m_parse_status;
+  ciface::ExpressionParser::ParseStatus m_parse_status =
+      ciface::ExpressionParser::ParseStatus::EmptyExpression;
 };
 
 template <>

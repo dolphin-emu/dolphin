@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
@@ -11,7 +10,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
@@ -31,25 +29,30 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
   case DSP_REG_AR1:
   case DSP_REG_AR2:
   case DSP_REG_AR3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ar[reg - DSP_REG_AR0])));
+    return MDisp(
+        R15, static_cast<int>(offsetof(SDSP, r.ar) + sizeof(SDSP::r.ar[0]) * (reg - DSP_REG_AR0)));
   case DSP_REG_IX0:
   case DSP_REG_IX1:
   case DSP_REG_IX2:
   case DSP_REG_IX3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ix[reg - DSP_REG_IX0])));
+    return MDisp(
+        R15, static_cast<int>(offsetof(SDSP, r.ix) + sizeof(SDSP::r.ix[0]) * (reg - DSP_REG_IX0)));
   case DSP_REG_WR0:
   case DSP_REG_WR1:
   case DSP_REG_WR2:
   case DSP_REG_WR3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.wr[reg - DSP_REG_WR0])));
+    return MDisp(
+        R15, static_cast<int>(offsetof(SDSP, r.wr) + sizeof(SDSP::r.wr[0]) * (reg - DSP_REG_WR0)));
   case DSP_REG_ST0:
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[reg - DSP_REG_ST0])));
+    return MDisp(
+        R15, static_cast<int>(offsetof(SDSP, r.st) + sizeof(SDSP::r.st[0]) * (reg - DSP_REG_ST0)));
   case DSP_REG_ACH0:
   case DSP_REG_ACH1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACH0].h)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[0].h) +
+                                       sizeof(SDSP::r.ac[0]) * (reg - DSP_REG_ACH0)));
   case DSP_REG_CR:
     return MDisp(R15, static_cast<int>(offsetof(SDSP, r.cr)));
   case DSP_REG_SR:
@@ -64,22 +67,28 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
     return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.m2)));
   case DSP_REG_AXL0:
   case DSP_REG_AXL1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AXL0].l)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[0].l) +
+                                       sizeof(SDSP::r.ax[0]) * (reg - DSP_REG_AXL0)));
   case DSP_REG_AXH0:
   case DSP_REG_AXH1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AXH0].h)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[0].h) +
+                                       sizeof(SDSP::r.ax[0]) * (reg - DSP_REG_AXH0)));
   case DSP_REG_ACL0:
   case DSP_REG_ACL1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACL0].l)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[0].l) +
+                                       sizeof(SDSP::r.ac[0]) * (reg - DSP_REG_ACL0)));
   case DSP_REG_ACM0:
   case DSP_REG_ACM1:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACM0].m)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[0].m) +
+                                       sizeof(SDSP::r.ac[0]) * (reg - DSP_REG_ACM0)));
   case DSP_REG_AX0_32:
   case DSP_REG_AX1_32:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[reg - DSP_REG_AX0_32].val)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ax[0].val) +
+                                       sizeof(SDSP::r.ax[0]) * (reg - DSP_REG_AX0_32)));
   case DSP_REG_ACC0_64:
   case DSP_REG_ACC1_64:
-    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[reg - DSP_REG_ACC0_64].val)));
+    return MDisp(R15, static_cast<int>(offsetof(SDSP, r.ac[0].val) +
+                                       sizeof(SDSP::r.ac[0]) * (reg - DSP_REG_ACC0_64)));
   case DSP_REG_PROD_64:
     return MDisp(R15, static_cast<int>(offsetof(SDSP, r.prod.val)));
   default:
@@ -91,8 +100,7 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
 #define STATIC_REG_ACCS
 //#undef STATIC_REG_ACCS
 
-DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter)
-    : m_emitter(emitter), m_is_temporary(false), m_is_merged(false)
+DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter) : m_emitter(emitter), m_is_temporary(false)
 {
   for (X64CachedReg& xreg : m_xregs)
   {
@@ -179,13 +187,10 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter)
     m_regs[i + DSP_REG_AXL0].shift = 0;
     m_regs[i + DSP_REG_AXH0].shift = 16;
   }
-
-  m_use_ctr = 0;
 }
 
 DSPJitRegCache::DSPJitRegCache(const DSPJitRegCache& cache)
-    : m_regs(cache.m_regs), m_xregs(cache.m_xregs), m_emitter(cache.m_emitter),
-      m_is_temporary(true), m_is_merged(false)
+    : m_regs(cache.m_regs), m_xregs(cache.m_xregs), m_emitter(cache.m_emitter), m_is_temporary(true)
 {
 }
 
@@ -742,6 +747,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
       else if (oparg.IsImm())
       {
         // TODO: Immediates?
+        ASSERT(false);
       }
       else
       {
@@ -761,6 +767,58 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
     {
       m_emitter.SHL(64, oparg, Imm8(64 - 40));  // sign extend
       m_emitter.SAR(64, oparg, Imm8(64 - 40));
+    }
+    break;
+  case DSP_REG_CR:
+  case DSP_REG_PRODH:
+    if (dirty)
+    {
+      if (oparg.IsSimpleReg())
+      {
+        // register is already shifted correctly
+        // (if at all)
+
+        // Zero extend from the bottom 8 bits.
+        m_emitter.MOVZX(16, 8, oparg.GetSimpleReg(), oparg);
+      }
+      else if (oparg.IsImm())
+      {
+        // TODO: Immediates?
+        ASSERT(false);
+      }
+      else
+      {
+        // This works on the memory, so use reg instead
+        // of real_reg, since it has the right loc
+        X64Reg tmp = GetFreeXReg();
+        // Zero extend from the bottom 8 bits.
+        m_emitter.MOVZX(16, 8, tmp, m_regs[reg].loc);
+        m_emitter.MOV(16, m_regs[reg].loc, R(tmp));
+        PutXReg(tmp);
+      }
+    }
+    break;
+  case DSP_REG_SR:
+    if (dirty)
+    {
+      if (oparg.IsSimpleReg())
+      {
+        // register is already shifted correctly
+        // (if at all)
+
+        // Clear SR_100, which always reads back as 0
+        m_emitter.AND(16, R(oparg.GetSimpleReg()), Gen::Imm16(~SR_100));
+      }
+      else if (oparg.IsImm())
+      {
+        // TODO: Immediates?
+        ASSERT(false);
+      }
+      else
+      {
+        // Clear SR_100, which always reads back as 0
+        m_emitter.AND(16, m_regs[reg].loc, Gen::Imm16(~SR_100));
+      }
     }
     break;
   default:

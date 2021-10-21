@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/ProcessorInterface.h"
 
@@ -236,7 +235,7 @@ static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
 
   auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
-    std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->ResetButton();
+    std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->ResetButton();
 }
 
 static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
@@ -247,7 +246,7 @@ static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
 
   auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (stm)
-    std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->PowerButton();
+    std::static_pointer_cast<IOS::HLE::STMEventHookDevice>(stm)->PowerButton();
 }
 
 void ResetButton_Tap()

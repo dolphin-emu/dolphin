@@ -1,10 +1,9 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
 namespace ciface::DInput
@@ -71,7 +70,7 @@ public:
 private:
   const LPDIRECTINPUTDEVICE8 m_device;
 
-  DIJOYSTATE m_state_in;
+  DIJOYSTATE m_state_in{};
 
   bool m_buffered;
 };

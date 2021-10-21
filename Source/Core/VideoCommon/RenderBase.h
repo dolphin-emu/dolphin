@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
@@ -39,6 +38,7 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
+class BoundingBox;
 class NativeVertexFormat;
 class NetPlayChatUI;
 class PointerWrap;
@@ -94,7 +94,8 @@ public:
   virtual bool IsFullscreen() const { return false; }
   virtual void BeginUtilityDrawing();
   virtual void EndUtilityDrawing();
-  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                         std::string_view name = "") = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
@@ -126,9 +127,11 @@ public:
 
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source) = 0;
-  virtual std::unique_ptr<AbstractShader>
-  CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
+                                                                 std::string_view source,
+                                                                 std::string_view name = "") = 0;
+  virtual std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage,
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name = "") = 0;
   virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
   virtual std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
@@ -211,9 +214,12 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  virtual u16 BBoxRead(int index) = 0;
-  virtual void BBoxWrite(int index, u16 value) = 0;
-  virtual void BBoxFlush() {}
+  bool IsBBoxEnabled() const;
+  void BBoxEnable();
+  void BBoxDisable();
+  u16 BBoxRead(u32 index);
+  void BBoxWrite(u32 index, u16 value);
+  void BBoxFlush();
 
   virtual void Flush() {}
   virtual void WaitForGPUIdle() {}
@@ -232,8 +238,8 @@ public:
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 bits) {}
 
-  PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
-  void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
+  PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
+  void StorePixelFormat(PixelFormat new_format) { m_prev_efb_format = new_format; }
   bool EFBHasAlphaChannel() const;
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
@@ -301,6 +307,8 @@ protected:
   // Should be called with the ImGui lock held.
   void DrawImGui();
 
+  virtual std::unique_ptr<BoundingBox> CreateBoundingBox() const = 0;
+
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
 
@@ -343,7 +351,7 @@ protected:
 private:
   std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
 
-  PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
+  PixelFormat m_prev_efb_format = PixelFormat::INVALID_FMT;
   unsigned int m_efb_scale = 1;
 
   // These will be set on the first call to SetWindowSize.
@@ -390,6 +398,20 @@ private:
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
 
+  std::unique_ptr<BoundingBox> m_bounding_box;
+
+  // Nintendo's SDK seems to write "default" bounding box values before every draw (1023 0 1023 0
+  // are the only values encountered so far, which happen to be the extents allowed by the BP
+  // registers) to reset the registers for comparison in the pixel engine, and presumably to detect
+  // whether GX has updated the registers with real values.
+  //
+  // We can store these values when Bounding Box emulation is disabled and return them on read,
+  // which the game will interpret as "no pixels have been drawn"
+  //
+  // This produces much better results than just returning garbage, which can cause games like
+  // Ultimate Spider-Man to crash
+  std::array<u16, 4> m_bounding_box_fallback = {};
+
   // NOTE: The methods below are called on the framedumping thread.
   void FrameDumpThreadFunc();
   bool StartFrameDumpToFFMPEG(const FrameDump::FrameData&);
@@ -411,7 +433,7 @@ private:
 
   // Fills the frame dump staging texture with the current XFB texture.
   void DumpCurrentFrame(const AbstractTexture* src_texture,
-                        const MathUtil::Rectangle<int>& src_rect, u64 ticks);
+                        const MathUtil::Rectangle<int>& src_rect, u64 ticks, int frame_number);
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
   void DumpFrameData(const u8* data, int w, int h, int stride);

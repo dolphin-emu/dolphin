@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
 // The reason for this is to get rid of race conditions etc when the configuration
@@ -14,8 +13,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-
-enum class APIType;
+#include "VideoCommon/VideoCommon.h"
 
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG 1
@@ -51,146 +49,143 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
-enum class FreelookControlType : int
-{
-  SixAxis,
-  FPS,
-  Orbital
-};
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {
-  VideoConfig();
+  VideoConfig() = default;
   void Refresh();
   void VerifyValidity();
 
   // General
-  bool bVSync;
-  bool bVSyncActive;
-  bool bWidescreenHack;
-  AspectMode aspect_mode;
-  AspectMode suggested_aspect_mode;
-  bool bCrop;  // Aspect ratio controls.
-  bool bShaderCache;
+  bool bVSync = false;
+  bool bVSyncActive = false;
+  bool bWidescreenHack = false;
+  AspectMode aspect_mode{};
+  AspectMode suggested_aspect_mode{};
+  bool bCrop = false;  // Aspect ratio controls.
+  bool bShaderCache = false;
 
   // Enhancements
-  u32 iMultisamples;
-  bool bSSAA;
-  int iEFBScale;
-  bool bForceFiltering;
-  int iMaxAnisotropy;
+  u32 iMultisamples = 0;
+  bool bSSAA = false;
+  int iEFBScale = 0;
+  bool bForceFiltering = false;
+  int iMaxAnisotropy = 0;
   std::string sPostProcessingShader;
-  bool bForceTrueColor;
-  bool bDisableCopyFilter;
-  bool bArbitraryMipmapDetection;
-  float fArbitraryMipmapDetectionThreshold;
+  bool bForceTrueColor = false;
+  bool bDisableCopyFilter = false;
+  bool bArbitraryMipmapDetection = false;
+  float fArbitraryMipmapDetectionThreshold = 0;
 
   // Information
-  bool bShowFPS;
-  bool bShowNetPlayPing;
-  bool bShowNetPlayMessages;
-  bool bOverlayStats;
-  bool bOverlayProjStats;
-  bool bTexFmtOverlayEnable;
-  bool bTexFmtOverlayCenter;
-  bool bLogRenderTimeToFile;
+  bool bShowFPS = false;
+  bool bShowNetPlayPing = false;
+  bool bShowNetPlayMessages = false;
+  bool bOverlayStats = false;
+  bool bOverlayProjStats = false;
+  bool bTexFmtOverlayEnable = false;
+  bool bTexFmtOverlayCenter = false;
+  bool bLogRenderTimeToFile = false;
 
   // Render
-  bool bWireFrame;
-  bool bDisableFog;
+  bool bWireFrame = false;
+  bool bDisableFog = false;
 
   // Utility
-  bool bDumpTextures;
-  bool bDumpMipmapTextures;
-  bool bDumpBaseTextures;
-  bool bHiresTextures;
-  bool bCacheHiresTextures;
-  bool bDumpEFBTarget;
-  bool bDumpXFBTarget;
-  bool bDumpFramesAsImages;
-  bool bUseFFV1;
+  bool bDumpTextures = false;
+  bool bDumpMipmapTextures = false;
+  bool bDumpBaseTextures = false;
+  bool bHiresTextures = false;
+  bool bCacheHiresTextures = false;
+  bool bDumpEFBTarget = false;
+  bool bDumpXFBTarget = false;
+  bool bDumpFramesAsImages = false;
+  bool bUseFFV1 = false;
   std::string sDumpCodec;
   std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
-  bool bInternalResolutionFrameDumps;
-  bool bFreeLook;
-  FreelookControlType iFreelookControlType;
-  bool bBorderlessFullscreen;
-  bool bEnableGPUTextureDecoding;
-  int iBitrateKbps;
+  bool bInternalResolutionFrameDumps = false;
+  bool bBorderlessFullscreen = false;
+  bool bEnableGPUTextureDecoding = false;
+  int iBitrateKbps = 0;
 
   // Hacks
-  bool bEFBAccessEnable;
-  bool bEFBAccessDeferInvalidation;
-  bool bPerfQueriesEnable;
-  bool bBBoxEnable;
-  bool bForceProgressive;
+  bool bEFBAccessEnable = false;
+  bool bEFBAccessDeferInvalidation = false;
+  bool bPerfQueriesEnable = false;
+  bool bBBoxEnable = false;
+  bool bForceProgressive = false;
 
-  bool bEFBEmulateFormatChanges;
-  bool bSkipEFBCopyToRam;
-  bool bSkipXFBCopyToRam;
-  bool bDisableCopyToVRAM;
-  bool bDeferEFBCopies;
-  bool bImmediateXFB;
-  bool bSkipPresentingDuplicateXFBs;
-  bool bCopyEFBScaled;
-  int iSafeTextureCache_ColorSamples;
-  float fAspectRatioHackW, fAspectRatioHackH;
-  bool bEnablePixelLighting;
-  bool bFastDepthCalc;
-  bool bVertexRounding;
-  int iEFBAccessTileSize;
-  int iLog;           // CONF_ bits
-  int iSaveTargetId;  // TODO: Should be dropped
+  bool bEFBEmulateFormatChanges = false;
+  bool bSkipEFBCopyToRam = false;
+  bool bSkipXFBCopyToRam = false;
+  bool bDisableCopyToVRAM = false;
+  bool bDeferEFBCopies = false;
+  bool bImmediateXFB = false;
+  bool bSkipPresentingDuplicateXFBs = false;
+  bool bCopyEFBScaled = false;
+  int iSafeTextureCache_ColorSamples = 0;
+  float fAspectRatioHackW = 1;  // Initial value needed for the first frame
+  float fAspectRatioHackH = 1;
+  bool bEnablePixelLighting = false;
+  bool bFastDepthCalc = false;
+  bool bVertexRounding = false;
+  int iEFBAccessTileSize = 0;
+  int iLog = 0;           // CONF_ bits
+  int iSaveTargetId = 0;  // TODO: Should be dropped
+  u32 iMissingColorValue = 0;
 
   // Stereoscopy
-  StereoMode stereo_mode;
-  int iStereoDepth;
-  int iStereoConvergence;
-  int iStereoConvergencePercentage;
-  bool bStereoSwapEyes;
-  bool bStereoEFBMonoDepth;
-  int iStereoDepthPercentage;
+  StereoMode stereo_mode{};
+  int iStereoDepth = 0;
+  int iStereoConvergence = 0;
+  int iStereoConvergencePercentage = 0;
+  bool bStereoSwapEyes = false;
+  bool bStereoEFBMonoDepth = false;
+  int iStereoDepthPercentage = 0;
 
   // D3D only config, mostly to be merged into the above
-  int iAdapter;
+  int iAdapter = 0;
 
   // VideoSW Debugging
-  int drawStart;
-  int drawEnd;
-  bool bZComploc;
-  bool bZFreeze;
-  bool bDumpObjects;
-  bool bDumpTevStages;
-  bool bDumpTevTextureFetches;
+  int drawStart = 0;
+  int drawEnd = 0;
+  bool bZComploc = false;
+  bool bZFreeze = false;
+  bool bDumpObjects = false;
+  bool bDumpTevStages = false;
+  bool bDumpTevTextureFetches = false;
 
   // Enable API validation layers, currently only supported with Vulkan.
-  bool bEnableValidationLayer;
+  bool bEnableValidationLayer = false;
 
   // Multithreaded submission, currently only supported with Vulkan.
-  bool bBackendMultithreading;
+#if defined(ANDROID)
+  bool bBackendMultithreading = false;
+#else
+  bool bBackendMultithreading = true;
+#endif
 
   // Early command buffer execution interval in number of draws.
   // Currently only supported with Vulkan.
-  int iCommandBufferExecuteInterval;
+  int iCommandBufferExecuteInterval = 0;
 
   // Shader compilation settings.
-  bool bWaitForShadersBeforeStarting;
-  ShaderCompilationMode iShaderCompilationMode;
+  bool bWaitForShadersBeforeStarting = false;
+  ShaderCompilationMode iShaderCompilationMode{};
 
   // Number of shader compiler threads.
   // 0 disables background compilation.
   // -1 uses an automatic number based on the CPU threads.
-  int iShaderCompilerThreads;
-  int iShaderPrecompilerThreads;
+  int iShaderCompilerThreads = 0;
+  int iShaderPrecompilerThreads = 0;
 
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct
   {
-    APIType api_type;
+    APIType api_type = APIType::Nothing;
 
     std::vector<std::string> Adapters;  // for D3D
     std::vector<u32> AAModes;
@@ -198,42 +193,43 @@ struct VideoConfig final
     // TODO: merge AdapterName and Adapters array
     std::string AdapterName;  // for OpenGL
 
-    u32 MaxTextureSize;
-    bool bUsesLowerLeftOrigin;
+    u32 MaxTextureSize = 16384;
+    bool bUsesLowerLeftOrigin = false;
 
-    bool bSupportsExclusiveFullscreen;
-    bool bSupportsDualSourceBlend;
-    bool bSupportsPrimitiveRestart;
-    bool bSupportsOversizedViewports;
-    bool bSupportsGeometryShaders;
-    bool bSupportsComputeShaders;
-    bool bSupports3DVision;
-    bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon
-    bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in VideoCommon
-    bool bSupportsBBox;
-    bool bSupportsGSInstancing;  // Needed by GeometryShaderGen, so must stay in VideoCommon
-    bool bSupportsPostProcessing;
-    bool bSupportsPaletteConversion;
-    bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
-    bool bSupportsSSAA;
-    bool bSupportsFragmentStoresAndAtomics;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
-    bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
-    bool bSupportsReversedDepthRange;
-    bool bSupportsLogicOp;
-    bool bSupportsMultithreading;
-    bool bSupportsGPUTextureDecoding;
-    bool bSupportsST3CTextures;
-    bool bSupportsCopyToVram;
-    bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
-    bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
-    bool bSupportsBPTCTextures;
-    bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
-    bool bSupportsBackgroundCompiling;
-    bool bSupportsLargePoints;
-    bool bSupportsPartialDepthCopies;
-    bool bSupportsDepthReadback;
-    bool bSupportsShaderBinaries;
-    bool bSupportsPipelineCacheData;
+    bool bSupportsExclusiveFullscreen = false;
+    bool bSupportsDualSourceBlend = false;
+    bool bSupportsPrimitiveRestart = false;
+    bool bSupportsOversizedViewports = false;
+    bool bSupportsGeometryShaders = false;
+    bool bSupportsComputeShaders = false;
+    bool bSupports3DVision = false;
+    bool bSupportsEarlyZ = false;         // needed by PixelShaderGen, so must stay in VideoCommon
+    bool bSupportsBindingLayout = false;  // Needed by ShaderGen, so must stay in VideoCommon
+    bool bSupportsBBox = false;
+    bool bSupportsGSInstancing = false;  // Needed by GeometryShaderGen, so must stay in VideoCommon
+    bool bSupportsPostProcessing = false;
+    bool bSupportsPaletteConversion = false;
+    bool bSupportsClipControl = false;  // Needed by VertexShaderGen, so must stay in VideoCommon
+    bool bSupportsSSAA = false;
+    bool bSupportsFragmentStoresAndAtomics = false;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
+    bool bSupportsDepthClamp = false;  // Needed by VertexShaderGen, so must stay in VideoCommon
+    bool bSupportsReversedDepthRange = false;
+    bool bSupportsLogicOp = false;
+    bool bSupportsMultithreading = false;
+    bool bSupportsGPUTextureDecoding = false;
+    bool bSupportsST3CTextures = false;
+    bool bSupportsCopyToVram = false;
+    bool bSupportsBitfield = false;  // Needed by UberShaders, so must stay in VideoCommon
+    // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsDynamicSamplerIndexing = false;
+    bool bSupportsBPTCTextures = false;
+    bool bSupportsFramebufferFetch = false;  // Used as an alternative to dual-source blend on GLES
+    bool bSupportsBackgroundCompiling = false;
+    bool bSupportsLargePoints = false;
+    bool bSupportsPartialDepthCopies = false;
+    bool bSupportsDepthReadback = false;
+    bool bSupportsShaderBinaries = false;
+    bool bSupportsPipelineCacheData = false;
   } backend_info;
 
   // Utility

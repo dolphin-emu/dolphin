@@ -1,4 +1,4 @@
-// This file is public domain, in case it's useful to anyone. -comex
+// SPDX-License-Identifier: CC0-1.0
 
 // The central server implementation.
 #include <arpa/inet.h>
@@ -185,8 +185,9 @@ static const char* SenderName(sockaddr_in6* addr)
 static void TrySend(const void* buffer, size_t size, sockaddr_in6* addr)
 {
 #if DEBUG
-  printf("-> %d %llu %s\n", ((TraversalPacket*)buffer)->type,
-         (long long)((TraversalPacket*)buffer)->requestId, SenderName(addr));
+  const auto* packet = static_cast<const TraversalPacket*>(buffer);
+  printf("-> %d %llu %s\n", static_cast<int>(packet->type),
+         static_cast<long long>(packet->requestId), SenderName(addr));
 #endif
   if ((size_t)sendto(sock, buffer, size, 0, (sockaddr*)addr, sizeof(*addr)) != size)
   {
@@ -227,7 +228,7 @@ static void ResendPackets()
     {
       if (info->tries >= NUMBER_OF_TRIES)
       {
-        if (info->packet.type == TraversalPacketPleaseSendPacket)
+        if (info->packet.type == TraversalPacketType::PleaseSendPacket)
         {
           todoFailures.push_back(std::make_pair(info->packet.pleaseSendPacket.address, info->misc));
         }
@@ -245,21 +246,22 @@ static void ResendPackets()
   for (const auto& p : todoFailures)
   {
     TraversalPacket* fail = AllocPacket(MakeSinAddr(p.first));
-    fail->type = TraversalPacketConnectFailed;
+    fail->type = TraversalPacketType::ConnectFailed;
     fail->connectFailed.requestId = p.second;
-    fail->connectFailed.reason = TraversalConnectFailedClientDidntRespond;
+    fail->connectFailed.reason = TraversalConnectFailedReason::ClientDidntRespond;
   }
 }
 
 static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
 {
 #if DEBUG
-  printf("<- %d %llu %s\n", packet->type, (long long)packet->requestId, SenderName(addr));
+  printf("<- %d %llu %s\n", static_cast<int>(packet->type),
+         static_cast<long long>(packet->requestId), SenderName(addr));
 #endif
   bool packetOk = true;
   switch (packet->type)
   {
-  case TraversalPacketAck:
+  case TraversalPacketType::Ack:
   {
     auto it = outgoingPackets.find(packet->requestId);
     if (it == outgoingPackets.end())
@@ -267,37 +269,37 @@ static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
 
     OutgoingPacketInfo* info = &it->second;
 
-    if (info->packet.type == TraversalPacketPleaseSendPacket)
+    if (info->packet.type == TraversalPacketType::PleaseSendPacket)
     {
       TraversalPacket* ready = AllocPacket(MakeSinAddr(info->packet.pleaseSendPacket.address));
       if (packet->ack.ok)
       {
-        ready->type = TraversalPacketConnectReady;
+        ready->type = TraversalPacketType::ConnectReady;
         ready->connectReady.requestId = info->misc;
         ready->connectReady.address = MakeInetAddress(info->dest);
       }
       else
       {
-        ready->type = TraversalPacketConnectFailed;
+        ready->type = TraversalPacketType::ConnectFailed;
         ready->connectFailed.requestId = info->misc;
-        ready->connectFailed.reason = TraversalConnectFailedClientFailure;
+        ready->connectFailed.reason = TraversalConnectFailedReason::ClientFailure;
       }
     }
 
     outgoingPackets.erase(it);
     break;
   }
-  case TraversalPacketPing:
+  case TraversalPacketType::Ping:
   {
     auto r = EvictFind(connectedClients, packet->ping.hostId, true);
     packetOk = r.found;
     break;
   }
-  case TraversalPacketHelloFromClient:
+  case TraversalPacketType::HelloFromClient:
   {
     u8 ok = packet->helloFromClient.protoVersion <= TraversalProtoVersion;
     TraversalPacket* reply = AllocPacket(*addr);
-    reply->type = TraversalPacketHelloFromServer;
+    reply->type = TraversalPacketType::HelloFromServer;
     reply->helloFromServer.ok = ok;
     if (ok)
     {
@@ -323,32 +325,34 @@ static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
     }
     break;
   }
-  case TraversalPacketConnectPlease:
+  case TraversalPacketType::ConnectPlease:
   {
     TraversalHostId& hostId = packet->connectPlease.hostId;
     auto r = EvictFind(connectedClients, hostId);
     if (!r.found)
     {
       TraversalPacket* reply = AllocPacket(*addr);
-      reply->type = TraversalPacketConnectFailed;
+      reply->type = TraversalPacketType::ConnectFailed;
       reply->connectFailed.requestId = packet->requestId;
-      reply->connectFailed.reason = TraversalConnectFailedNoSuchClient;
+      reply->connectFailed.reason = TraversalConnectFailedReason::NoSuchClient;
     }
     else
     {
       TraversalPacket* please = AllocPacket(MakeSinAddr(*r.value), packet->requestId);
-      please->type = TraversalPacketPleaseSendPacket;
+      please->type = TraversalPacketType::PleaseSendPacket;
       please->pleaseSendPacket.address = MakeInetAddress(*addr);
     }
     break;
   }
   default:
-    fprintf(stderr, "received unknown packet type %d from %s\n", packet->type, SenderName(addr));
+    fprintf(stderr, "received unknown packet type %d from %s\n", static_cast<int>(packet->type),
+            SenderName(addr));
+    break;
   }
-  if (packet->type != TraversalPacketAck)
+  if (packet->type != TraversalPacketType::Ack)
   {
     TraversalPacket ack = {};
-    ack.type = TraversalPacketAck;
+    ack.type = TraversalPacketType::Ack;
     ack.requestId = packet->requestId;
     ack.ack.ok = packetOk;
     TrySend(&ack, sizeof(ack), addr);

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -169,7 +168,9 @@ public:
   RCX64Reg Scratch(Gen::X64Reg xr);
 
   RCForkGuard Fork();
+  void Discard(BitSet32 pregs);
   void Flush(BitSet32 pregs = BitSet32::AllTrue(32));
+  void Reset(BitSet32 pregs);
   void Revert();
   void Commit();
 

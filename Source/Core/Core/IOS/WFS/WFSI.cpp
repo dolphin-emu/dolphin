@@ -1,10 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/WFS/WFSI.h"
 
-#include <cinttypes>
 #include <mbedtls/aes.h>
 #include <stack>
 #include <string>
@@ -14,8 +12,8 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
@@ -51,10 +49,10 @@ void ARCUnpacker::AddBytes(const std::vector<u8>& bytes)
 
 void ARCUnpacker::Extract(const WriteCallback& callback)
 {
-  u32 fourcc = Common::swap32(m_whole_file.data());
+  const u32 fourcc = Common::swap32(m_whole_file.data());
   if (fourcc != 0x55AA382D)
   {
-    ERROR_LOG(IOS_WFS, "ARCUnpacker: invalid fourcc (%08x)", fourcc);
+    ERROR_LOG_FMT(IOS_WFS, "ARCUnpacker: invalid fourcc ({:08x})", fourcc);
     return;
   }
 
@@ -95,13 +93,11 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   }
 }
 
-namespace Device
-{
-WFSI::WFSI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+WFSIDevice::WFSIDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
 
-void WFSI::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
 {
   m_current_title_id = tid;
   m_current_group_id = gid;
@@ -110,7 +106,7 @@ void WFSI::SetCurrentTitleIdAndGroupId(u64 tid, u16 gid)
   m_current_group_id_str = GroupIdStr(gid);
 }
 
-void WFSI::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
+void WFSIDevice::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
 {
   m_import_title_id = tid;
   m_import_group_id = gid;
@@ -119,7 +115,7 @@ void WFSI::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
   m_import_group_id_str = GroupIdStr(gid);
 }
 
-void WFSI::FinalizePatchInstall()
+void WFSIDevice::FinalizePatchInstall()
 {
   const std::string current_title_dir = fmt::format("/vol/{}/title/{}/{}", m_device_name,
                                                     m_current_group_id_str, m_current_title_id_str);
@@ -127,7 +123,7 @@ void WFSI::FinalizePatchInstall()
   File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
 }
 
-IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
 {
   s32 return_error_code = IPC_SUCCESS;
 
@@ -135,14 +131,14 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   {
   case IOCTL_WFSI_IMPORT_TITLE_INIT:
   {
-    u32 tmd_addr = Memory::Read_U32(request.buffer_in);
-    u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
+    const u32 tmd_addr = Memory::Read_U32(request.buffer_in);
+    const u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
 
     m_patch_type = static_cast<PatchType>(Memory::Read_U32(request.buffer_in + 32));
     m_continue_install = Memory::Read_U32(request.buffer_in + 36);
 
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type %d, continue install: %s",
-             m_patch_type, m_continue_install ? "true" : "false");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: patch type {}, continue install: {}",
+                 m_patch_type, m_continue_install ? "true" : "false");
 
     if (m_patch_type == PatchType::PATCH_TYPE_2)
     {
@@ -153,9 +149,9 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
                    WFS::NativePath(content_dir + "/_default.dol"));
     }
 
-    if (!IOS::ES::IsValidTMDSize(tmd_size))
+    if (!ES::IsValidTMDSize(tmd_size))
     {
-      ERROR_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large (%d)", tmd_size);
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_INIT: TMD size too large ({})", tmd_size);
       return_error_code = IPC_EINVAL;
       break;
     }
@@ -164,7 +160,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     Memory::CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
+    const ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
     if (!ticket.IsValid())
     {
       return_error_code = -11028;
@@ -195,11 +191,11 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
                                  "IOCTL_WFSI_PREPARE_CONTENT";
 
     // Initializes the IV from the index of the content in the TMD contents.
-    u32 content_id = Memory::Read_U32(request.buffer_in + 8);
-    IOS::ES::Content content_info;
+    const u32 content_id = Memory::Read_U32(request.buffer_in + 8);
+    ES::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
-      WARN_LOG(IOS_WFS, "%s: Content id %08x not found", ioctl_name, content_id);
+      WARN_LOG_FMT(IOS_WFS, "{}: Content id {:08x} not found", ioctl_name, content_id);
       return_error_code = -10003;
       break;
     }
@@ -207,8 +203,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     memset(m_aes_iv, 0, sizeof(m_aes_iv));
     m_aes_iv[0] = content_info.index >> 8;
     m_aes_iv[1] = content_info.index & 0xFF;
-    INFO_LOG(IOS_WFS, "%s: Content id %08x found at index %d", ioctl_name, content_id,
-             content_info.index);
+    INFO_LOG_FMT(IOS_WFS, "{}: Content id {:08x} found at index {}", ioctl_name, content_id,
+                 content_info.index);
 
     m_arc_unpacker.Reset();
     break;
@@ -221,11 +217,11 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
                                  "IOCTL_WFSI_IMPORT_PROFILE" :
                                  "IOCTL_WFSI_IMPORT_CONTENT";
 
-    u32 content_id = Memory::Read_U32(request.buffer_in + 0xC);
-    u32 input_ptr = Memory::Read_U32(request.buffer_in + 0x10);
-    u32 input_size = Memory::Read_U32(request.buffer_in + 0x14);
-    INFO_LOG(IOS_WFS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, input_size,
-             input_ptr, content_id);
+    const u32 content_id = Memory::Read_U32(request.buffer_in + 0xC);
+    const u32 input_ptr = Memory::Read_U32(request.buffer_in + 0x10);
+    const u32 input_size = Memory::Read_U32(request.buffer_in + 0x14);
+    INFO_LOG_FMT(IOS_WFS, "{}: {:08x} bytes of data at {:08x} from content id {}", ioctl_name,
+                 input_size, input_ptr, content_id);
 
     std::vector<u8> decrypted(input_size);
     mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, input_size, m_aes_iv,
@@ -241,17 +237,17 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     const char* ioctl_name = request.request == IOCTL_WFSI_IMPORT_PROFILE_END ?
                                  "IOCTL_WFSI_IMPORT_PROFILE_END" :
                                  "IOCTL_WFSI_IMPORT_CONTENT_END";
-    INFO_LOG(IOS_WFS, "%s", ioctl_name);
+    INFO_LOG_FMT(IOS_WFS, "{}", ioctl_name);
 
-    auto callback = [this](const std::string& filename, const std::vector<u8>& bytes) {
-      INFO_LOG(IOS_WFS, "Extract: %s (%zd bytes)", filename.c_str(), bytes.size());
+    const auto callback = [this](const std::string& filename, const std::vector<u8>& bytes) {
+      INFO_LOG_FMT(IOS_WFS, "Extract: {} ({} bytes)", filename, bytes.size());
 
-      std::string path = WFS::NativePath(m_base_extract_path + "/" + filename);
+      const std::string path = WFS::NativePath(m_base_extract_path + '/' + filename);
       File::CreateFullPath(path);
       File::IOFile f(path, "wb");
       if (!f)
       {
-        ERROR_LOG(IOS_WFS, "Could not extract %s to %s", filename.c_str(), path.c_str());
+        ERROR_LOG_FMT(IOS_WFS, "Could not extract {} to {}", filename, path);
         return;
       }
       f.WriteBytes(bytes.data(), bytes.size());
@@ -321,7 +317,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_FINALIZE_PATCH_INSTALL:
   {
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
     if (m_patch_type != NOT_A_PATCH)
       FinalizePatchInstall();
     break;
@@ -331,13 +327,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     // Bytes 0-4: ??
     // Bytes 4-8: game id
     // Bytes 1c-1e: title id?
-    WARN_LOG(IOS_WFS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
+    WARN_LOG_FMT(IOS_WFS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
     break;
 
   case IOCTL_WFSI_CHANGE_TITLE:
   {
-    u64 title_id = Memory::Read_U64(request.buffer_in);
-    u16 group_id = Memory::Read_U16(request.buffer_in + 0x1C);
+    const u64 title_id = Memory::Read_U64(request.buffer_in);
+    const u16 group_id = Memory::Read_U16(request.buffer_in + 0x1C);
 
     // TODO: Handle permissions
     SetCurrentTitleIdAndGroupId(title_id, group_id);
@@ -346,30 +342,30 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     const std::string homedir_path = fmt::format("/vol/{}/title/{}/{}/", m_device_name,
                                                  m_current_group_id_str, m_current_title_id_str);
     const u16 homedir_path_len = static_cast<u16>(homedir_path.size());
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_CHANGE_TITLE: %s (path_len: 0x%x)", homedir_path.c_str(),
-             homedir_path_len);
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_CHANGE_TITLE: {} (path_len: {:#x})", homedir_path,
+                 homedir_path_len);
 
     return_error_code = -3;
     if (homedir_path_len > 0x1FD)
       break;
-    auto device = IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
+    auto device = GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
     if (!device)
       break;
-    std::static_pointer_cast<IOS::HLE::Device::WFSSRV>(device)->SetHomeDir(homedir_path);
+    std::static_pointer_cast<WFSSRVDevice>(device)->SetHomeDir(homedir_path);
     return_error_code = IPC_SUCCESS;
     break;
   }
 
   case IOCTL_WFSI_GET_VERSION:
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_GET_VERSION");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_GET_VERSION");
     Memory::Write_U32(0x20, request.buffer_out);
     break;
 
   case IOCTL_WFSI_IMPORT_TITLE_CANCEL:
   {
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_IMPORT_TITLE_CANCEL");
 
-    bool continue_install = Memory::Read_U32(request.buffer_in) != 0;
+    const bool continue_install = Memory::Read_U32(request.buffer_in) != 0;
     if (m_patch_type == PatchType::NOT_A_PATCH)
       return_error_code = CancelTitleImport(continue_install);
     else if (m_patch_type == PatchType::PATCH_TYPE_1 || m_patch_type == PatchType::PATCH_TYPE_2)
@@ -383,28 +379,28 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_INIT:
   {
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_INIT");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_INIT");
     u64 tid;
     if (GetIOS()->GetES()->GetTitleId(&tid) < 0)
     {
-      ERROR_LOG(IOS_WFS, "IOCTL_WFSI_INIT: Could not get title id.");
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFSI_INIT: Could not get title id.");
       return_error_code = IPC_EINVAL;
       break;
     }
 
-    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
+    const ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(tid);
     SetCurrentTitleIdAndGroupId(tmd.GetTitleId(), tmd.GetGroupId());
     break;
   }
 
   case IOCTL_WFSI_SET_DEVICE_NAME:
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_SET_DEVICE_NAME");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_SET_DEVICE_NAME");
     m_device_name = Memory::GetString(request.buffer_in);
     break;
 
   case IOCTL_WFSI_APPLY_TITLE_PROFILE:
   {
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_APPLY_TITLE_PROFILE");
 
     if (m_patch_type == NOT_A_PATCH)
     {
@@ -443,9 +439,9 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_GET_TMD:
   {
-    u64 subtitle_id = Memory::Read_U64(request.buffer_in);
-    u32 address = Memory::Read_U32(request.buffer_in + 24);
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_GET_TMD: subtitle ID %016" PRIx64, subtitle_id);
+    const u64 subtitle_id = Memory::Read_U64(request.buffer_in);
+    const u32 address = Memory::Read_U32(request.buffer_in + 24);
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_GET_TMD: subtitle ID {:016x}", subtitle_id);
 
     u32 tmd_size;
     return_error_code =
@@ -456,12 +452,13 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_GET_TMD_ABSOLUTE:
   {
-    u64 subtitle_id = Memory::Read_U64(request.buffer_in);
-    u32 address = Memory::Read_U32(request.buffer_in + 24);
-    u16 group_id = Memory::Read_U16(request.buffer_in + 36);
-    u32 title_id = Memory::Read_U32(request.buffer_in + 32);
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_GET_TMD_ABSOLUTE: tid %08x, gid %04x, subtitle ID %016" PRIx64,
-             title_id, group_id, subtitle_id);
+    const u64 subtitle_id = Memory::Read_U64(request.buffer_in);
+    const u32 address = Memory::Read_U32(request.buffer_in + 24);
+    const u16 group_id = Memory::Read_U16(request.buffer_in + 36);
+    const u32 title_id = Memory::Read_U32(request.buffer_in + 32);
+    INFO_LOG_FMT(IOS_WFS,
+                 "IOCTL_WFSI_GET_TMD_ABSOLUTE: tid {:08x}, gid {:04x}, subtitle ID {:016x}",
+                 title_id, group_id, subtitle_id);
 
     u32 tmd_size;
     return_error_code = GetTmd(group_id, title_id, subtitle_id, address, &tmd_size);
@@ -471,8 +468,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_SET_FST_BUFFER:
   {
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_SET_FST_BUFFER: address %08x, size %08x", request.buffer_in,
-             request.buffer_in_size);
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_SET_FST_BUFFER: address {:08x}, size {:08x}",
+                 request.buffer_in, request.buffer_in_size);
     break;
   }
 
@@ -497,18 +494,18 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       path += fmt::format("/extension{}.dol", dol_extension_id);
     }
 
-    INFO_LOG(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: loading %s at address %08x (size %d)", path.c_str(),
-             dol_addr, max_dol_size);
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: loading {} at address {:08x} (size {})", path,
+                 dol_addr, max_dol_size);
 
     File::IOFile fp(WFS::NativePath(path), "rb");
     if (!fp)
     {
-      WARN_LOG(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: no such file or directory: %s", path.c_str());
+      WARN_LOG_FMT(IOS_WFS, "IOCTL_WFSI_LOAD_DOL: no such file or directory: {}", path);
       return_error_code = WFS_ENOENT;
       break;
     }
 
-    u32 real_dol_size = fp.GetSize();
+    const auto real_dol_size = static_cast<u32>(fp.GetSize());
     if (dol_addr == 0)
     {
       // Write the expected size to the size parameter, in the input.
@@ -523,7 +520,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   }
 
   case IOCTL_WFSI_CHECK_HAS_SPACE:
-    WARN_LOG(IOS_WFS, "IOCTL_WFSI_CHECK_HAS_SPACE: returning true");
+    WARN_LOG_FMT(IOS_WFS, "IOCTL_WFSI_CHECK_HAS_SPACE: returning true");
 
     // TODO(wfs): implement this properly.
     //       1 is returned if there is free space, 0 otherwise.
@@ -548,17 +545,17 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  return GetDefaultReply(return_error_code);
+  return IPCReply(return_error_code);
 }
 
-u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
+u32 WFSIDevice::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
 {
   const std::string path = fmt::format("/vol/{}/title/{}/{}/meta/{:016x}.tmd", m_device_name,
                                        GroupIdStr(group_id), TitleIdStr(title_id), subtitle_id);
   File::IOFile fp(WFS::NativePath(path), "rb");
   if (!fp)
   {
-    WARN_LOG(IOS_WFS, "GetTmd: no such file or directory: %s", path.c_str());
+    WARN_LOG_FMT(IOS_WFS, "GetTmd: no such file or directory: {}", path);
     return WFS_ENOENT;
   }
   if (address)
@@ -576,7 +573,7 @@ static s32 DeleteTemporaryFiles(const std::string& device_name, u64 title_id)
   return IPC_SUCCESS;
 }
 
-s32 WFSI::CancelTitleImport(bool continue_install)
+s32 WFSIDevice::CancelTitleImport(bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -590,7 +587,7 @@ s32 WFSI::CancelTitleImport(bool continue_install)
   return IPC_SUCCESS;
 }
 
-s32 WFSI::CancelPatchImport(bool continue_install)
+s32 WFSIDevice::CancelPatchImport(bool continue_install)
 {
   m_arc_unpacker.Reset();
 
@@ -614,5 +611,4 @@ s32 WFSI::CancelPatchImport(bool continue_install)
 
   return IPC_SUCCESS;
 }
-}  // namespace Device
 }  // namespace IOS::HLE

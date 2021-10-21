@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 
@@ -11,7 +10,7 @@
 #include "DolphinQt/Settings.h"
 
 GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
-    : QSlider(Qt::Horizontal), m_setting(setting)
+    : ToolTipSlider(Qt::Horizontal), m_setting(setting)
 {
   setMinimum(minimum);
   setMaximum(maximum);

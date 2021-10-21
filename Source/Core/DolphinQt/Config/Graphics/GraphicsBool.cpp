@@ -1,8 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
+#include "DolphinQt/Config/Graphics/BalloonTip.h"
 
 #include <QSignalBlocker>
 
@@ -10,10 +10,11 @@
 
 #include "DolphinQt/Settings.h"
 
+#include <QEvent>
 #include <QFont>
 
 GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
-    : QCheckBox(label), m_setting(setting), m_reverse(reverse)
+    : ToolTipCheckBox(label), m_setting(setting), m_reverse(reverse)
 {
   connect(this, &QCheckBox::toggled, this, &GraphicsBool::Update);
   setChecked(Config::Get(m_setting) ^ reverse);
@@ -35,7 +36,7 @@ void GraphicsBool::Update()
 
 GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::Info<bool>& setting,
                                bool reverse)
-    : QRadioButton(label), m_setting(setting), m_reverse(reverse)
+    : ToolTipRadioButton(label), m_setting(setting), m_reverse(reverse)
 {
   connect(this, &QCheckBox::toggled, this, &GraphicsBoolEx::Update);
   setChecked(Config::Get(m_setting) ^ reverse);

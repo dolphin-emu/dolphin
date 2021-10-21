@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -11,7 +10,6 @@ class AdvancedWidget;
 class EnhancementsWidget;
 class HacksWidget;
 class GeneralWidget;
-class GraphicsWidget;
 class MainWindow;
 class QLabel;
 class QTabWidget;
@@ -29,18 +27,14 @@ class GraphicsWindow final : public QDialog
 public:
   explicit GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent);
 
-  void RegisterWidget(GraphicsWidget* widget);
-  bool eventFilter(QObject* object, QEvent* event) override;
 signals:
   void BackendChanged(const QString& backend);
 
 private:
   void CreateMainLayout();
   void OnBackendChanged(const QString& backend);
-  void OnDescriptionAdded(QWidget* widget, const char* description);
 
   QTabWidget* m_tab_widget;
-  QLabel* m_description;
   QDialogButtonBox* m_button_box;
 
   AdvancedWidget* m_advanced_widget;
@@ -56,6 +50,4 @@ private:
   QWidget* m_wrapped_software;
 
   X11Utils::XRRConfiguration* m_xrr_config;
-
-  QHash<QObject*, const char*> m_widget_descriptions;
 };

@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -19,6 +18,7 @@ extern std::unique_ptr<SoundStream> g_sound_stream;
 namespace AudioCommon
 {
 void InitSoundStream();
+void PostInitSoundStream();
 void ShutdownSoundStream();
 std::string GetDefaultSoundBackend();
 std::vector<std::string> GetSoundBackends();

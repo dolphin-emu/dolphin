@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstddef>
@@ -15,11 +14,11 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeDisc.h"
@@ -94,6 +93,11 @@ u32 FileInfoGCWii::GetSize() const
 u64 FileInfoGCWii::GetOffset() const
 {
   return static_cast<u64>(Get(EntryProperty::FILE_OFFSET)) << m_offset_shift;
+}
+
+bool FileInfoGCWii::IsRoot() const
+{
+  return m_index == 0;
 }
 
 bool FileInfoGCWii::IsDirectory() const
@@ -227,9 +231,9 @@ FileSystemGCWii::FileSystemGCWii(const VolumeDisc* volume, const Partition& part
 {
   u8 offset_shift;
   // Check if this is a GameCube or Wii disc
-  if (volume->ReadSwapped<u32>(0x18, partition) == u32(0x5D1C9EA3))
+  if (volume->ReadSwapped<u32>(0x18, partition) == WII_DISC_MAGIC)
     offset_shift = 2;  // Wii file system
-  else if (volume->ReadSwapped<u32>(0x1c, partition) == u32(0xC2339F3D))
+  else if (volume->ReadSwapped<u32>(0x1c, partition) == GAMECUBE_DISC_MAGIC)
     offset_shift = 0;  // GameCube file system
   else
     return;  // Invalid partition (maybe someone removed its data but not its partition table entry)

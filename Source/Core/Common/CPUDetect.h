@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Detect the CPU, so we'll know which optimizations to use
 #pragma once
@@ -64,6 +63,7 @@ struct CPUInfo
   bool bCRC32 = false;
   bool bSHA1 = false;
   bool bSHA2 = false;
+  bool bAFP = false;  // Alternate floating-point behavior
 
   // Call Detect()
   explicit CPUInfo();

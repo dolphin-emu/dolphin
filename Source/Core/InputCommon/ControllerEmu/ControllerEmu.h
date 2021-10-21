@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -16,8 +15,7 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControllerInterface/Device.h"
-#include "InputCommon/DynamicInputTextureManager.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 class ControllerInterface;
 
@@ -183,7 +181,6 @@ public:
   const ciface::Core::DeviceQualifier& GetDefaultDevice() const;
   void SetDefaultDevice(const std::string& device);
   void SetDefaultDevice(ciface::Core::DeviceQualifier devq);
-  void SetDynamicInputTextureManager(InputCommon::DynamicInputTextureManager*);
 
   void UpdateReferences(const ControllerInterface& devi);
   void UpdateSingleControlReference(const ControllerInterface& devi, ControlReference* ref);
@@ -193,6 +190,11 @@ public:
   // which happens while handling a hotplug event because a control reference's State()
   // could be called before we have finished updating the reference.
   [[nodiscard]] static std::unique_lock<std::recursive_mutex> GetStateLock();
+  const ciface::ExpressionParser::ControlEnvironment::VariableContainer&
+  GetExpressionVariables() const;
+
+  // Resets the values while keeping the list.
+  void ResetExpressionVariables();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
@@ -220,14 +222,13 @@ public:
   }
 
 protected:
-  // TODO: Wiimote attachment has its own member that isn't being used..
+  // TODO: Wiimote attachments actually end up using their parent controller value for this,
+  // so theirs won't be used (and thus shouldn't even exist).
   ciface::ExpressionParser::ControlEnvironment::VariableContainer m_expression_vars;
 
   void UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env);
 
 private:
-  void GenerateTextures(IniFile::Section* sec);
-  InputCommon::DynamicInputTextureManager* m_dynamic_input_tex_config_manager = nullptr;
   ciface::Core::DeviceQualifier m_default_device;
   bool m_default_device_is_connected{false};
 };
