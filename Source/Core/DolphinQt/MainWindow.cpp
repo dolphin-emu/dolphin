@@ -1832,16 +1832,7 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
   if (!w.ShouldBoot())
     return;
 
-  if (!w.GetPatches().empty())
-  {
-    disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
-        std::move(disc.volume),
-        [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
-          DiscIO::Riivolution::ApplyPatchesToFiles(w.GetPatches(), fst, dol_node);
-        }));
-    boot_params->riivolution_patches = std::move(w.GetPatches());
-  }
-
+  AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
   StartGame(std::move(boot_params));
 }
 
