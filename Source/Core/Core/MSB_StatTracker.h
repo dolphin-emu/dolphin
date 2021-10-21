@@ -132,7 +132,7 @@ static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
 
 //Addrs for triggering evts
-static const u32 aGameId           = 0x802EBF90;
+static const u32 aGameId           = 0x802EBF8C;
 static const u32 aEndOfGameFlag    = 0x80892AB3;
 
 static const u32 aAB_PitchThrown     = 0x8088A81B;
