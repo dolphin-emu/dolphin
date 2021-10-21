@@ -233,22 +233,13 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
 
       if (descriptor->riivolution && std::holds_alternative<Disc>(boot_params->parameters))
       {
-        auto& disc = std::get<Disc>(boot_params->parameters);
-        const auto& volume = *disc.volume;
-        boot_params->riivolution_patches =
-            DiscIO::Riivolution::GenerateRiivolutionPatchesFromGameModDescriptor(
-                *descriptor->riivolution, volume.GetGameID(), volume.GetRevision(),
-                volume.GetDiscNumber());
-        if (!boot_params->riivolution_patches.empty())
-        {
-          disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
-              std::move(disc.volume),
-              [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
-                DiscIO::Riivolution::ApplyPatchesToFiles(boot_params->riivolution_patches, fst,
-                                                         dol_node);
-              }));
-        }
+        const auto& volume = *std::get<Disc>(boot_params->parameters).volume;
+        AddRiivolutionPatches(boot_params.get(),
+                              DiscIO::Riivolution::GenerateRiivolutionPatchesFromGameModDescriptor(
+                                  *descriptor->riivolution, volume.GetGameID(),
+                                  volume.GetRevision(), volume.GetDiscNumber()));
       }
+
       return boot_params;
     }
   }
@@ -642,4 +633,21 @@ void CreateSystemMenuTitleDirs()
 {
   const auto es = IOS::HLE::GetIOS()->GetES();
   es->CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
+}
+
+void AddRiivolutionPatches(BootParameters* boot_params,
+                           std::vector<DiscIO::Riivolution::Patch> riivolution_patches)
+{
+  if (riivolution_patches.empty())
+    return;
+  if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
+    return;
+
+  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
+  disc.volume = DiscIO::CreateDisc(DiscIO::DirectoryBlobReader::Create(
+      std::move(disc.volume),
+      [&](std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node) {
+        DiscIO::Riivolution::ApplyPatchesToFiles(riivolution_patches, fst, dol_node);
+      }));
+  boot_params->riivolution_patches = std::move(riivolution_patches);
 }
