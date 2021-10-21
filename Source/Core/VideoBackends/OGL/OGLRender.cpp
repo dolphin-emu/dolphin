@@ -695,8 +695,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
       glDebugMessageCallbackARB(ErrorCallback, nullptr);
     }
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }
@@ -1026,8 +1026,8 @@ void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }

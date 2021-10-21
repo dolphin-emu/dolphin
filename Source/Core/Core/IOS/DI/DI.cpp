@@ -705,17 +705,17 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
   case DIIoctl::DVDLowGetNoDiscOpenPartitionParams:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscOpenPartitionParams - dummied out");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowNoDiscOpenPartition:
     ERROR_LOG_FMT(IOS_DI, "DVDLowNoDiscOpenPartition - dummied out");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowGetNoDiscBufferSizes:
     ERROR_LOG_FMT(IOS_DI, "DVDLowGetNoDiscBufferSizes - dummied out");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DIFFERENT_PARTITION_COMMAND);
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
     break;
   case DIIoctl::DVDLowOpenPartitionWithTmdAndTicket:
     ERROR_LOG_FMT(IOS_DI, "DVDLowOpenPartitionWithTmdAndTicket - not implemented");
@@ -727,7 +727,7 @@ std::optional<IPCReply> DIDevice::IOCtlV(const IOCtlVRequest& request)
     break;
   default:
     ERROR_LOG_FMT(IOS_DI, "Unknown ioctlv {:#04x}", request.request);
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_DI);
   }
   return IPCReply{static_cast<s32>(return_value)};
 }

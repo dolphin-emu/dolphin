@@ -378,7 +378,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_VTSF:
   default:
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
-    request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LWARNING);
+    request.Dump(GetDeviceName(), Common::Log::LogType::IOS_NET, Common::Log::LogLevel::LWARNING);
   }
 
   return IPCReply(IPC_SUCCESS);

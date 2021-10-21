@@ -104,9 +104,10 @@ template <typename... Args>
 static void LogResult(ResultCode code, std::string_view format, Args&&... args)
 {
   const std::string command = fmt::format(format, std::forward<Args>(args)...);
-  const auto type = code == ResultCode::Success ? Common::Log::LINFO : Common::Log::LERROR;
+  const auto type =
+      code == ResultCode::Success ? Common::Log::LogLevel::LINFO : Common::Log::LogLevel::LERROR;
 
-  GENERIC_LOG_FMT(Common::Log::IOS_FS, type, "Command: {}: Result {}", command,
+  GENERIC_LOG_FMT(Common::Log::LogType::IOS_FS, type, "Command: {}: Result {}", command,
                   ConvertResult(code));
 }
 

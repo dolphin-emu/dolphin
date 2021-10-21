@@ -353,7 +353,8 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS, Common::Log::LWARNING);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WFS,
+                        Common::Log::LogLevel::LWARNING);
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }
