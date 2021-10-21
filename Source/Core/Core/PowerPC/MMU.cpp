@@ -401,8 +401,8 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 
     for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
     {
-      WriteToHardware<flag, true>(addr, rotated_data, 4);
-      WriteToHardware<flag, true>(addr + 4, rotated_data, 4);
+      WriteToHardware<flag, TranslateCondition::Never>(addr, rotated_data, 4);
+      WriteToHardware<flag, TranslateCondition::Never>(addr + 4, rotated_data, 4);
     }
 
     return;
@@ -504,7 +504,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   }
   case RequestedAddressSpace::Physical:
   {
-    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, true>(address);
+    const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32, TranslateCondition::Never>(address);
     return ReadResult<u32>(false, value);
   }
   case RequestedAddressSpace::Virtual:
@@ -610,7 +610,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   }
   case RequestedAddressSpace::Physical:
   {
-    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, true>(address);
+    T value = ReadFromHardware<XCheckTLBFlag::NoException, T, TranslateCondition::Never>(address);
     return ReadResult<T>(false, std::move(value));
   }
   case RequestedAddressSpace::Virtual:
