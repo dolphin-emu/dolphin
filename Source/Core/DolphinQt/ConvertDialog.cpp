@@ -397,6 +397,7 @@ void ConvertDialog::Convert()
   }
 
   bool confirm_replace_none = false;
+  bool confirm_replace_all = false;
 
   for (const auto& file : m_files)
   {
@@ -408,7 +409,7 @@ void ConvertDialog::Convert()
               .absoluteFilePath(QFileInfo(QString::fromStdString(original_path)).completeBaseName())
               .append(extension);
       QFileInfo dst_info = QFileInfo(dst_path);
-      if (dst_info.exists())
+      if (dst_info.exists() && !confirm_replace_all)
       {
         if (confirm_replace_none)
           continue;
@@ -420,8 +421,14 @@ void ConvertDialog::Convert()
                                    "Do you wish to replace it?")
                                     .arg(dst_info.fileName()));
         confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No |
-                                           QMessageBox::NoToAll);
+                                           QMessageBox::YesToAll | QMessageBox::NoToAll);
+
+        confirm_replace.setDefaultButton(QMessageBox::No);
+
         int confirm_replace_result = confirm_replace.exec();
+
+        if (confirm_replace_result == QMessageBox::YesToAll)
+          confirm_replace_all = true;
 
         if (confirm_replace_result == QMessageBox::NoToAll)
           confirm_replace_none = true;
