@@ -287,6 +287,11 @@ public:
         u16 home_score;
 
         u8 stadium;
+
+        //Netplay info
+        bool netplay;
+        bool host;
+        std::string netplay_opponent_alias;
     };
     GameInfo m_game_info;
 
@@ -434,11 +439,17 @@ public:
     
     ABStats m_curr_ab_stat;
 
-    //Holds the status of the ranked button check box. Sampled at beginning of game
-    bool mCurrentRankedStatus = false;
+    struct state_members{
+        //Holds the status of the ranked button check box. Sampled at beginning of game
+        bool m_ranked_status = false;
+        bool m_netplay_session = false;
+        bool m_is_host = false;
+        std::string m_netplay_opponent_alias = "";
+    } m_state;
 
     void setRankedStatus(bool inBool);
     void setRecordStatus(bool inBool);
+    void setNetplaySession(bool netplay_session, bool is_host=false, std::string opponent_name = "");
 
     void Run();
     void lookForTriggerEvents();
@@ -454,7 +465,8 @@ public:
     void logABContactResult();
 
     //Read players from ini file and assign to team
-    void readPlayers(bool inLocal);
+    void readPlayerNames(bool local_game);
+    void setDefaultNames(bool local_game);
 
     //Returns JSON, PathToWriteTo
     std::pair<std::string, std::string> getStatJSON(bool inDecode);

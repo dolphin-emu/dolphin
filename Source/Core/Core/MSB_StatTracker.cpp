@@ -18,7 +18,7 @@ void StatTracker::Run(){
 }
 
 void StatTracker::lookForTriggerEvents(){
-    //At Bat - Need RosterID (FOUND) and Team1 vs Team2 (MIA)
+    //At Bat State Machine
     if (m_game_state == GAME_STATE::INGAME){
         switch(m_ab_state){
             //Look for Pitch
@@ -47,10 +47,10 @@ void StatTracker::lookForTriggerEvents(){
                         m_game_info.away_port = (batter_port > 0 && batter_port <= 4) ? batter_port : 0;
                         m_game_info.home_port = (fielder_port > 0 && fielder_port <= 4) ? fielder_port : 0;
 
+                        readPlayerNames(m_game_info.netplay);
+                        setDefaultNames(m_game_info.netplay);
 
                         std::cout << "Away Port=" << std::to_string(m_game_info.away_port) << " Home Port=" << std::to_string(m_game_info.home_port);
-                        //TODO - Call with correct netplay/local status
-                        readPlayers(true);
                     }
 
 
@@ -109,16 +109,22 @@ void StatTracker::lookForTriggerEvents(){
         }
     }
 
-    //End Of Game
+    //Game State Machine
     switch (m_game_state){
         case (GAME_STATE::PREGAME):
             //Start recording when GameId is set AND record button is pressed
             if ((Memory::Read_U32(aGameId) != 0) && (mTrackerInfo.mRecord)){
-                m_game_id = Memory::Read_U32(aGameId);
-                m_game_state = GAME_STATE::INGAME;
-                m_game_info.ranked = mCurrentRankedStatus;
+                m_game_info.game_id = Memory::Read_U32(aGameId);
+                //Sample settings
+                m_game_info.ranked  = m_state.m_ranked_status;
+                m_game_info.netplay = m_state.m_netplay_session;
+                m_game_info.host    = m_state.m_is_host;
+                m_game_info.netplay_opponent_alias = m_state.m_netplay_opponent_alias;
 
-                std::cout << "PREGAME->INGAME (GameID=" << std::to_string(m_game_id) << ")" << std::endl;
+                m_game_state = GAME_STATE::INGAME;
+                std::cout << "PREGAME->INGAME (GameID=" << std::to_string(m_game_info.game_id) << ", Ranked=" << m_game_info.ranked <<")" << std::endl;
+                std::cout << "                (Netplay=" << m_game_info.netplay << ", Host=" << m_game_info.host 
+                          << ", Netplay Opponent Alias=" << m_game_info.netplay_opponent_alias << ")" << std::endl; 
             }
             break;
         case (GAME_STATE::INGAME):
@@ -195,7 +201,7 @@ void StatTracker::logDefensiveStats(int team_id, int roster_id){
 
     u32 is_starred_offset = (team_id * cRosterSize) + roster_id;
 
-    stat.game_id    = m_game_id;
+    stat.game_id    = m_game_info.game_id;
     stat.team_id    = team_id;
     stat.roster_id  = roster_id;
     stat.is_starred = Memory::Read_U8(aPitcher_IsStarred + is_starred_offset);
@@ -218,7 +224,7 @@ void StatTracker::logOffensiveStats(int team_id, int roster_id){
     EndGameRosterOffensiveStats& stat = m_offensive_stats[team_id][roster_id];
     u32 offset = ((team_id * cRosterSize * c_offensive_stat_offset)) + (roster_id * c_offensive_stat_offset);
 
-    stat.game_id   = m_game_id;
+    stat.game_id   = m_game_info.game_id;
     stat.team_id   = team_id;
     stat.roster_id = roster_id;
 
@@ -406,7 +412,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
     std::string file_name = away_player_name 
                    + "-Vs-" + home_player_name
-                   + "_" + std::to_string(m_game_id) + ".json";
+                   + "_" + std::to_string(m_game_info.game_id) + ".json";
 
     std::string full_file_path = File::GetUserPath(D_STATFILES_IDX) + file_name;
 
@@ -414,7 +420,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
     json_stream << "{" << std::endl;
     std::string stadium = (inDecode) ? "\"" + cStadiumIdToStadiumName.at(m_game_info.stadium) + "\"" : std::to_string(m_game_info.stadium);
-    json_stream << "  \"GameID\": \"" << std::hex << m_game_id << "\"," << std::endl;
+    json_stream << "  \"GameID\": \"" << std::hex << m_game_info.game_id << "\"," << std::endl;
     json_stream << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
     json_stream << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
     json_stream << "  \"StadiumID\": " << stadium << "," << std::endl;
@@ -495,7 +501,6 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
             std::string character = (inDecode) ? "\"" + cCharIdToCharName.at(m_game_info.rosters_char_id[team][roster]) + "\"" : std::to_string(m_game_info.rosters_char_id[team][roster]);
             json_stream << "      \"Character\": " << character << "," << std::endl;
-
 
             json_stream << "      \"Is Starred\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
             json_stream << "      \"Defensive Stats\": {" << std::endl;
@@ -609,7 +614,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 }
 
 //Read players from ini file and assign to team
-void StatTracker::readPlayers(bool inLocal) {
+void StatTracker::readPlayerNames(bool local_game) {
     IniFile local_players_ini;
     local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
 
@@ -643,8 +648,19 @@ void StatTracker::readPlayers(bool inLocal) {
                 player.username = StripSpaces(player.username);
                 // read the code creator name
                 std::getline(ss, player.userid, ']');
-                if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
-                else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+                if (local_game){
+                    if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
+                    else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+                }
+                else {
+                    if(m_game_info.host) {
+                        m_game_info.team0_player_name = player.username;
+                    }
+                    else{
+                        m_game_info.team1_player_name = player.username;
+                    }
+                    return;
+                }
                 break;
 
             break;
@@ -654,26 +670,46 @@ void StatTracker::readPlayers(bool inLocal) {
         // add the last code
         if (!player.username.empty())
         {
-            //players.push_back(player);
-
-            if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
-            else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+            if (local_game){
+                if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
+                else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+            }
+            else {
+                if(m_game_info.host) {
+                    m_game_info.team0_player_name = player.username;
+                }
+                else{
+                    m_game_info.team1_player_name = player.username;
+                }
+                return;
+            }
         }
     }
 
-    if (m_game_info.team0_port == 0) {
-        m_game_info.team0_player_name = "CPU";
+    return;
+}
+
+void StatTracker::setDefaultNames(bool local_game){
+    if (local_game){
+        if (m_game_info.team0_port == 0) m_game_info.team0_player_name = "CPU";
+        if (m_game_info.team1_port == 0) m_game_info.team1_player_name = "CPU";
     }
-    if (m_game_info.team1_port == 0) {
-        m_game_info.team1_player_name = "CPU";
+    else {
+        if (m_game_info.team0_player_name.empty()) m_game_info.team0_player_name = "Netplayer~" + m_game_info.netplay_opponent_alias;
+        if (m_game_info.team1_player_name.empty()) m_game_info.team1_player_name = "Netplayer~" + m_game_info.netplay_opponent_alias;
     }
-    //return players;
 }
 void StatTracker::setRankedStatus(bool inBool) {
-    mCurrentRankedStatus = inBool;
+    m_state.m_ranked_status = inBool;
 }
 
 void StatTracker::setRecordStatus(bool inBool) {
     std::cout << "Record Status=" << inBool << std::endl;
     mTrackerInfo.mRecord = inBool;
+}
+
+void StatTracker::setNetplaySession(bool netplay_session, bool is_host, std::string opponent_name){
+    m_state.m_netplay_session = netplay_session;
+    m_state.m_is_host = is_host;
+    m_state.m_netplay_opponent_alias = opponent_name;
 }
