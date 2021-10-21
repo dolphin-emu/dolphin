@@ -91,11 +91,11 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     std::copy(response.begin(), response.end(), buffer);
 
 #ifdef _DEBUG
-    const Common::Log::LOG_LEVELS log_level =
+    const Common::Log::LogLevel log_level =
         (m_last_cmd == EBufferCommands::CMD_STATUS || m_last_cmd == EBufferCommands::CMD_RESET) ?
-            Common::Log::LERROR :
-            Common::Log::LWARNING;
-    GENERIC_LOG_FMT(Common::Log::SERIALINTERFACE, log_level,
+            Common::Log::LogLevel::LERROR :
+            Common::Log::LogLevel::LWARNING;
+    GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,
                     "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
                     m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
                     response.size());

@@ -145,7 +145,7 @@
         <item>0</item>
     </integer-array>
 
-    <!-- Log Verbosity selection based on LOG_LEVELS in Common/Logging/Log.h -->
+    <!-- Log Verbosity selection based on LogLevel in Common/Logging/Log.h -->
     <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
         <item>Notice</item>
         <item>Error</item>
