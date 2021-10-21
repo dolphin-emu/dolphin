@@ -153,8 +153,28 @@ double GetActualEmulationSpeed()
 
 void FrameUpdateOnCPUThread()
 {
-  if (NetPlay::IsNetPlayRunning())
+  if (NetPlay::IsNetPlayRunning()) {
     NetPlay::NetPlayClient::SendTimeBase();
+
+    if (s_stat_tracker){
+      //Figure out if client is hosting via netplay settings. Could use local player as well
+      bool is_hosting = NetPlay::GetNetSettings().m_IsHosting;
+      std::string opponent_name = "";
+      /*
+      for (auto player : NetPlay::NetPlayClient::GetPlayers()){
+        if (!NetPlay::NetPlayClient::IsLocalPlayer(player.pid)){
+          opponent_name = player.name;
+          break;
+        }
+      }*/
+      s_stat_tracker->setNetplaySession(true, is_hosting, opponent_name);
+    }
+  }
+  else{
+    if (s_stat_tracker){
+      s_stat_tracker->setNetplaySession(false);
+    }
+  }
 }
 
 void OnFrameEnd()
