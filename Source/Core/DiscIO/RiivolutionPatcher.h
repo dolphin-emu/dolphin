@@ -68,7 +68,9 @@ private:
 void ApplyPatchesToFiles(const std::vector<Patch>& patches,
                          std::vector<DiscIO::FSTBuilderNode>* fst,
                          DiscIO::FSTBuilderNode* dol_node);
-void ApplyPatchesToMemory(const std::vector<Patch>& patches);
+void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches);
+void ApplyApploaderMemoryPatches(const std::vector<Patch>& patches, u32 ram_address,
+                                 u32 ram_length);
 std::optional<SavegameRedirect>
 ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches);
 }  // namespace DiscIO::Riivolution
