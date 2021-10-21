@@ -527,20 +527,23 @@ static std::vector<u8> GetMemoryPatchValue(const Patch& patch, const Memory& mem
 
 static void ApplyMemoryPatch(const Patch& patch, const Memory& memory_patch)
 {
+  if (memory_patch.m_offset == 0)
+    return;
+
   ApplyMemoryPatch(memory_patch.m_offset | 0x80000000, GetMemoryPatchValue(patch, memory_patch),
                    memory_patch.m_original);
 }
 
-static void ApplySearchMemoryPatch(const Patch& patch, const Memory& memory_patch)
+static void ApplySearchMemoryPatch(const Patch& patch, const Memory& memory_patch, u32 ram_start,
+                                   u32 length)
 {
-  if (memory_patch.m_original.empty())
+  if (memory_patch.m_original.empty() || memory_patch.m_align == 0)
     return;
 
-  const u32 ram_size = ::Memory::GetRamSize();
-  const u32 stride = memory_patch.m_align < 1 ? 1 : memory_patch.m_align;
-  for (u32 i = 0; i < ram_size - (stride - 1); i += stride)
+  const u32 stride = memory_patch.m_align;
+  for (u32 i = 0; i < length - (stride - 1); i += stride)
   {
-    const u32 address = i | 0x80000000;
+    const u32 address = ram_start + i;
     if (MemoryMatchesAt(address, memory_patch.m_original))
     {
       ApplyMemoryPatch(address, GetMemoryPatchValue(patch, memory_patch), {});
@@ -549,22 +552,25 @@ static void ApplySearchMemoryPatch(const Patch& patch, const Memory& memory_patc
   }
 }
 
-static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_patch)
+static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_patch, u32 ram_start,
+                                    u32 length)
 {
-  if (memory_patch.m_value.empty())
+  if (memory_patch.m_offset == 0)
+    return;
+  const std::vector<u8> value = GetMemoryPatchValue(patch, memory_patch);
+  if (value.empty())
     return;
 
-  const u32 ram_size = ::Memory::GetRamSize();
-  for (u32 i = 0; i < ram_size; i += 4)
+  for (u32 i = 0; i < length; i += 4)
   {
     // first find the pattern
-    const u32 address = i | 0x80000000;
-    if (MemoryMatchesAt(address, memory_patch.m_value))
+    const u32 address = ram_start + i;
+    if (MemoryMatchesAt(address, value))
     {
-      for (; i < ram_size; i += 4)
+      for (; i < length; i += 4)
       {
         // from the pattern find the next blr instruction
-        const u32 blr_address = i | 0x80000000;
+        const u32 blr_address = ram_start + i;
         auto blr = PowerPC::HostTryReadU32(blr_address);
         if (blr && blr->value == 0x4e800020)
         {
@@ -580,18 +586,36 @@ static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_pat
   }
 }
 
-void ApplyPatchesToMemory(const std::vector<Patch>& patches)
+void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches)
 {
   for (const auto& patch : patches)
   {
     for (const auto& memory : patch.m_memory_patches)
     {
       if (memory.m_ocarina)
-        ApplyOcarinaMemoryPatch(patch, memory);
-      else if (memory.m_search)
-        ApplySearchMemoryPatch(patch, memory);
+        continue;
+
+      if (memory.m_search)
+        ApplySearchMemoryPatch(patch, memory, 0x80000000, ::Memory::GetRamSize());
       else
         ApplyMemoryPatch(patch, memory);
+    }
+  }
+}
+
+void ApplyApploaderMemoryPatches(const std::vector<Patch>& patches, u32 ram_address, u32 ram_length)
+{
+  for (const auto& patch : patches)
+  {
+    for (const auto& memory : patch.m_memory_patches)
+    {
+      if (!memory.m_ocarina && !memory.m_search)
+        continue;
+
+      if (memory.m_ocarina)
+        ApplyOcarinaMemoryPatch(patch, memory, ram_address, ram_length);
+      else
+        ApplySearchMemoryPatch(patch, memory, ram_address, ram_length);
     }
   }
 }

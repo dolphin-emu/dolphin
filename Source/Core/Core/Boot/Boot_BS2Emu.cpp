@@ -33,6 +33,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 
 namespace
@@ -87,7 +88,8 @@ void CBoot::SetupBAT(bool is_wii)
   PowerPC::IBATUpdated();
 }
 
-bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
+bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
+                         const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   const DiscIO::Partition partition = volume.GetGamePartition();
 
@@ -148,6 +150,8 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
                  ram_address, length);
     DVDRead(volume, dvd_offset, ram_address, length, partition);
 
+    DiscIO::Riivolution::ApplyApploaderMemoryPatches(riivolution_patches, ram_address, length);
+
     PowerPC::ppcState.gpr[3] = 0x81300004;
     PowerPC::ppcState.gpr[4] = 0x81300008;
     PowerPC::ppcState.gpr[5] = 0x8130000c;
@@ -203,7 +207,8 @@ void CBoot::SetupGCMemory()
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
+bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
+                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   INFO_LOG_FMT(BOOT, "Faking GC BS2...");
 
@@ -240,7 +245,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
   // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
   PowerPC::ppcState.gpr[13] = ntsc ? 0x81465320 : 0x814b4fc0;
 
-  return RunApploader(/*is_wii*/ false, volume);
+  return RunApploader(/*is_wii*/ false, volume, riivolution_patches);
 }
 
 static DiscIO::Region CodeRegion(char c)
@@ -436,7 +441,8 @@ static void WriteEmptyPlayRecord()
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
+bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
+                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
   INFO_LOG_FMT(BOOT, "Faking Wii BS2...");
   if (volume.GetVolumeType() != DiscIO::Platform::WiiDisc)
@@ -493,7 +499,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
 
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
-  if (!RunApploader(/*is_wii*/ true, volume))
+  if (!RunApploader(/*is_wii*/ true, volume, riivolution_patches))
     return false;
 
   // The Apploader probably just overwrote values needed for RAM Override.  Run this again!
@@ -508,7 +514,9 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
 
 // Returns true if apploader has run successfully. If is_wii is true, the disc
 // that volume refers to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume)
+bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume,
+                        const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches)
 {
-  return is_wii ? EmulatedBS2_Wii(volume) : EmulatedBS2_GC(volume);
+  return is_wii ? EmulatedBS2_Wii(volume, riivolution_patches) :
+                  EmulatedBS2_GC(volume, riivolution_patches);
 }

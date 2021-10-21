@@ -450,7 +450,10 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
   struct BootTitle
   {
-    BootTitle() : config(SConfig::GetInstance()) {}
+    BootTitle(const std::vector<DiscIO::Riivolution::Patch>& patches)
+        : config(SConfig::GetInstance()), riivolution_patches(patches)
+    {
+    }
     bool operator()(BootParameters::Disc& disc) const
     {
       NOTICE_LOG_FMT(BOOT, "Booting from disc: {}", disc.path);
@@ -460,7 +463,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(config.bWii, *volume))
+      if (!EmulatedBS2(config.bWii, *volume, riivolution_patches))
         return false;
 
       SConfig::OnNewTitleLoad();
@@ -570,12 +573,13 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
   private:
     const SConfig& config;
+    const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches;
   };
 
-  if (!std::visit(BootTitle(), boot->parameters))
+  if (!std::visit(BootTitle(boot->riivolution_patches), boot->parameters))
     return false;
 
-  DiscIO::Riivolution::ApplyPatchesToMemory(boot->riivolution_patches);
+  DiscIO::Riivolution::ApplyGeneralMemoryPatches(boot->riivolution_patches);
 
   return true;
 }
