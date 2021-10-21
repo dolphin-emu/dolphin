@@ -47,10 +47,21 @@ void StatTracker::lookForTriggerEvents(){
                         m_game_info.away_port = (batter_port > 0 && batter_port <= 4) ? batter_port : 0;
                         m_game_info.home_port = (fielder_port > 0 && fielder_port <= 4) ? fielder_port : 0;
 
-                        readPlayerNames(m_game_info.netplay);
-                        setDefaultNames(m_game_info.netplay);
+                        readPlayerNames(!m_game_info.netplay);
+                        setDefaultNames(!m_game_info.netplay);
 
-                        std::cout << "Away Port=" << std::to_string(m_game_info.away_port) << " Home Port=" << std::to_string(m_game_info.home_port);
+                        std::string away_player_name;
+                        std::string home_player_name;
+                        if (m_game_info.away_port == m_game_info.team0_port) {
+                            away_player_name = m_game_info.team0_player_name;
+                            home_player_name = m_game_info.team1_player_name;
+                        }
+                        else{
+                            away_player_name = m_game_info.team1_player_name;
+                            home_player_name = m_game_info.team0_player_name;
+                        }
+
+                        std::cout << "Away Player=" << away_player_name << "(" << std::to_string(m_game_info.away_port) << "), Home Player=" << home_player_name << "(" << std::to_string(m_game_info.home_port) << ")" << std::endl;;
                     }
 
 
@@ -83,8 +94,7 @@ void StatTracker::lookForTriggerEvents(){
                 if (Memory::Read_U8(aAB_PitchThrown) == 0){
                     m_curr_ab_stat.rbi = Memory::Read_U8(aAB_RBI);
                     m_ab_state = AB_STATE::FINAL_RESULT;
-                    std::cout << "Play over. Logging final results next frame." << std::endl;
-                    std::cout << std::endl;
+                    std::cout << "Play over" << std::endl;
                 }
                 break;
             case (AB_STATE::FINAL_RESULT):
@@ -99,7 +109,7 @@ void StatTracker::lookForTriggerEvents(){
 
                 
                 m_ab_state = AB_STATE::WAITING_FOR_PITCH;
-                std::cout << "Final Result. Logging AB. Waiting for next pitch..." << std::endl;
+                std::cout << "Logging Final Result" << std::endl << "Waiting for next pitch..." << std::endl;
                 std::cout << std::endl;
                 break;
             default:
@@ -278,8 +288,6 @@ void StatTracker::logABScenario(){
     m_curr_ab_stat.runner_on_3     = Memory::Read_U8(aAB_RunnerOn3);
 
     m_curr_ab_stat.batter_handedness = Memory::Read_U8(aAB_BatterHand);
-
-    std::cout << "Inning: " << std::to_string(m_curr_ab_stat.inning) << std::endl;
 }
 
 void StatTracker::logABContact(){
