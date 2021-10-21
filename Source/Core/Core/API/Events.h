@@ -21,7 +21,7 @@ struct MemoryBreakpoint
 {
   bool write;
   u32 addr;
-  u32 value;
+  u64 value;
 };
 struct SetInterrupt
 {

@@ -170,7 +170,7 @@ static const std::tuple<> PyFrameAdvance(const API::Events::FrameAdvance& evt)
 {
   return std::make_tuple();
 }
-static const std::tuple<bool, u32, u32> PyMemoryBreakpoint(const API::Events::MemoryBreakpoint& evt)
+static const std::tuple<bool, u32, u64> PyMemoryBreakpoint(const API::Events::MemoryBreakpoint& evt)
 {
   return std::make_tuple(evt.write, evt.addr, evt.value);
 }
