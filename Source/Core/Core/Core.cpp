@@ -113,6 +113,7 @@ static bool s_is_throttler_temp_disabled = false;
 static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
 static std::atomic<bool> s_stop_frame_step;
+static std::atomic<bool> s_frame_advanced;
 
 #ifdef USE_MEMORYWATCHER
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
@@ -887,7 +888,10 @@ void Callback_FramePresented(double actual_emulation_speed)
 
   s_drawn_frame++;
   s_stop_frame_step.store(true);
-  API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
+  // Emitting the frame advanced event may cause work on the CPU thread,
+  // but synchronizing from the GPU thread with CPU thread deadlocks.
+  // So we cannot emit the event here and have to have the CPU thread do it.
+  s_frame_advanced.store(true);
 }
 
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
@@ -908,6 +912,11 @@ void Callback_NewField()
       CPU::Break();
       CallOnStateChangedCallbacks(Core::GetState());
     }
+  }
+  if (s_frame_advanced.load())
+  {
+    s_frame_advanced.store(false);
+    API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
   }
 }
 
