@@ -99,6 +99,7 @@ struct FSTBuilderNode
   std::string m_filename;
   u64 m_size;
   std::variant<std::vector<BuilderContentSource>, std::vector<FSTBuilderNode>> m_content;
+  void* m_user_data = nullptr;
 
   bool IsFile() const
   {
