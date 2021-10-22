@@ -11,6 +11,7 @@
 #include "Core/PrimeHack/Mods/AutoEFB.h"
 #include "Core/PrimeHack/Mods/CutBeamFxMP1.h"
 #include "Core/PrimeHack/Mods/DisableBloom.h"
+#include "Core/PrimeHack/Mods/BloomIntensityMP3.h"
 #include "Core/PrimeHack/Mods/FpsControls.h"
 #include "Core/PrimeHack/Mods/RestoreDashing.h"
 #include "Core/PrimeHack/Mods/Invulnerability.h"
@@ -65,6 +66,7 @@ void InitializeHack() {
   hack_mgr.add_mod("auto_efb", std::make_unique<AutoEFB>());
   hack_mgr.add_mod("cut_beam_fx_mp1", std::make_unique<CutBeamFxMP1>());
   hack_mgr.add_mod("bloom_modifier", std::make_unique<DisableBloom>());
+  hack_mgr.add_mod("bloom_intensity", std::make_unique<BloomIntensityMP3>());
   hack_mgr.add_mod("fps_controls", std::make_unique<FpsControls>());
   hack_mgr.add_mod("invulnerability", std::make_unique<Invulnerability>());
   hack_mgr.add_mod("noclip", std::make_unique<Noclip>());
@@ -81,6 +83,7 @@ void InitializeHack() {
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
   hack_mgr.enable_mod("bloom_modifier");
+  hack_mgr.enable_mod("bloom_intensity");
 
   // Enable no PrimeHack control mods
   if (!SConfig::GetInstance().bEnablePrimeHack) {
@@ -212,6 +215,10 @@ bool GetBloom() {
 
 bool GetReduceBloom() {
   return Config::Get(Config::REDUCE_BLOOM);
+}
+
+float GetBloomIntensity() {
+  return Config::Get(Config::BLOOM_INTENSITY);
 }
 
 bool GetEnableSecondaryGunFX() {

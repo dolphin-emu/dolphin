@@ -5,7 +5,7 @@
 
 namespace prime {
   constexpr u32 base_address = 0x80004164; 
-  constexpr int max_variables = 50;
+  constexpr int max_variables = 45;
 
   void EmuVariableManager::set_variable(const std::string& variable, u8 value) {
     auto result = variables_list.find(variable);

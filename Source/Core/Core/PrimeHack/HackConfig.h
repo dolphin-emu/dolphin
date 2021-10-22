@@ -35,6 +35,7 @@ bool LockCameraInPuzzles();
 bool GetEFBTexture();
 bool GetBloom();
 bool GetReduceBloom();
+float GetBloomIntensity();
 
 bool GetNoclip();
 bool GetInvulnerability();
