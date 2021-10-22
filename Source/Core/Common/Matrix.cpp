@@ -1,8 +1,9 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Matrix.h"
+
+#include "Common/MathUtil.h"
 
 #include <algorithm>
 #include <cmath>
@@ -54,6 +55,13 @@ Quaternion Quaternion::RotateY(float rad)
 Quaternion Quaternion::RotateZ(float rad)
 {
   return Rotate(rad, Vec3(0, 0, 1));
+}
+
+Quaternion Quaternion::RotateXYZ(const Vec3& rads)
+{
+  const auto length = rads.Length();
+  return length ? Common::Quaternion::Rotate(length, rads / length) :
+                  Common::Quaternion::Identity();
 }
 
 Quaternion Quaternion::Rotate(float rad, const Vec3& axis)
@@ -112,6 +120,32 @@ Vec3 operator*(const Quaternion& lhs, const Vec3& rhs)
 {
   const auto result = lhs * Quaternion(0, rhs.x, rhs.y, rhs.z) * lhs.Conjugate();
   return Vec3(result.data.x, result.data.y, result.data.z);
+}
+
+Vec3 FromQuaternionToEuler(const Quaternion& q)
+{
+  Vec3 result;
+
+  const float qx = q.data.x;
+  const float qy = q.data.y;
+  const float qz = q.data.z;
+  const float qw = q.data.w;
+
+  const float sinr_cosp = 2 * (qw * qx + qy * qz);
+  const float cosr_cosp = 1 - 2 * (qx * qx + qy * qy);
+  result.x = std::atan2(sinr_cosp, cosr_cosp);
+
+  const float sinp = 2 * (qw * qy - qz * qx);
+  if (std::abs(sinp) >= 1)
+    result.y = std::copysign(MathUtil::PI / 2, sinp);  // use 90 degrees if out of range
+  else
+    result.y = std::asin(sinp);
+
+  const float siny_cosp = 2 * (qw * qz + qx * qy);
+  const float cosy_cosp = 1 - 2 * (qy * qy + qz * qz);
+  result.z = std::atan2(siny_cosp, cosy_cosp);
+
+  return result;
 }
 
 Matrix33 Matrix33::Identity()
@@ -267,6 +301,11 @@ Matrix44 Matrix44::FromMatrix33(const Matrix33& m33)
   }
   mtx.data[15] = 1.0f;
   return mtx;
+}
+
+Matrix44 Matrix44::FromQuaternion(const Quaternion& q)
+{
+  return FromMatrix33(Matrix33::FromQuaternion(q));
 }
 
 Matrix44 Matrix44::FromArray(const std::array<float, 16>& arr)

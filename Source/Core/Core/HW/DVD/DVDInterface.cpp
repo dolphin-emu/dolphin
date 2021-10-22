@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DVD/DVDInterface.h"
 
@@ -13,15 +12,16 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Align.h"
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/Analytics.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
@@ -36,6 +36,7 @@
 #include "Core/Movie.h"
 
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
@@ -78,61 +79,57 @@ constexpr u32 DI_CONFIG_REGISTER = 0x24;
 // DI Status Register
 union UDISR
 {
-  u32 Hex;
-  struct
-  {
-    u32 BREAK : 1;      // Stop the Device + Interrupt
-    u32 DEINTMASK : 1;  // Access Device Error Int Mask
-    u32 DEINT : 1;      // Access Device Error Int
-    u32 TCINTMASK : 1;  // Transfer Complete Int Mask
-    u32 TCINT : 1;      // Transfer Complete Int
-    u32 BRKINTMASK : 1;
-    u32 BRKINT : 1;  // w 1: clear brkint
-    u32 : 25;
-  };
-  UDISR() { Hex = 0; }
-  UDISR(u32 _hex) { Hex = _hex; }
+  u32 Hex = 0;
+
+  BitField<0, 1, u32> BREAK;      // Stop the Device + Interrupt
+  BitField<1, 1, u32> DEINTMASK;  // Access Device Error Int Mask
+  BitField<2, 1, u32> DEINT;      // Access Device Error Int
+  BitField<3, 1, u32> TCINTMASK;  // Transfer Complete Int Mask
+  BitField<4, 1, u32> TCINT;      // Transfer Complete Int
+  BitField<5, 1, u32> BRKINTMASK;
+  BitField<6, 1, u32> BRKINT;  // w 1: clear brkint
+  BitField<7, 25, u32> reserved;
+
+  UDISR() = default;
+  explicit UDISR(u32 hex) : Hex{hex} {}
 };
 
 // DI Cover Register
 union UDICVR
 {
-  u32 Hex;
-  struct
-  {
-    u32 CVR : 1;         // 0: Cover closed  1: Cover open
-    u32 CVRINTMASK : 1;  // 1: Interrupt enabled
-    u32 CVRINT : 1;      // r 1: Interrupt requested w 1: Interrupt clear
-    u32 : 29;
-  };
-  UDICVR() { Hex = 0; }
-  UDICVR(u32 _hex) { Hex = _hex; }
+  u32 Hex = 0;
+
+  BitField<0, 1, u32> CVR;         // 0: Cover closed  1: Cover open
+  BitField<1, 1, u32> CVRINTMASK;  // 1: Interrupt enabled
+  BitField<2, 1, u32> CVRINT;      // r 1: Interrupt requested w 1: Interrupt clear
+  BitField<3, 29, u32> reserved;
+
+  UDICVR() = default;
+  explicit UDICVR(u32 hex) : Hex{hex} {}
 };
 
 // DI DMA Control Register
 union UDICR
 {
-  u32 Hex;
-  struct
-  {
-    u32 TSTART : 1;  // w:1 start   r:0 ready
-    u32 DMA : 1;     // 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
-    u32 RW : 1;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
-    u32 : 29;
-  };
+  u32 Hex = 0;
+
+  BitField<0, 1, u32> TSTART;  // w:1 start   r:0 ready
+  BitField<1, 1, u32> DMA;     // 1: DMA Mode
+                               // 0: Immediate Mode (can only do Access Register Command)
+  BitField<2, 1, u32> RW;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
+  BitField<3, 29, u32> reserved;
 };
 
 // DI Config Register
 union UDICFG
 {
-  u32 Hex;
-  struct
-  {
-    u32 CONFIG : 8;
-    u32 : 24;
-  };
-  UDICFG() { Hex = 0; }
-  UDICFG(u32 _hex) { Hex = _hex; }
+  u32 Hex = 0;
+
+  BitField<0, 8, u32> CONFIG;
+  BitField<8, 24, u32> reserved;
+
+  UDICFG() = default;
+  explicit UDICFG(u32 hex) : Hex{hex} {}
 };
 
 // STATE_TO_SAVE
@@ -164,6 +161,7 @@ static u8 s_dtk_buffer_length = 0;  // TODO: figure out how this affects the reg
 // Disc drive state
 static DriveState s_drive_state;
 static DriveError s_error_code;
+static u64 s_disc_end_offset;
 
 // Disc drive timing
 static u64 s_read_buffer_start_time;
@@ -425,6 +423,33 @@ void Shutdown()
   DVDThread::Stop();
 }
 
+static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
+{
+  u64 size = disc.GetSize();
+
+  if (disc.IsSizeAccurate())
+  {
+    if (size == DiscIO::MINI_DVD_SIZE)
+      return DiscIO::MINI_DVD_SIZE;
+  }
+  else
+  {
+    size = DiscIO::GetBiggestReferencedOffset(disc);
+  }
+
+  const bool should_be_mini_dvd =
+      disc.GetVolumeType() == DiscIO::Platform::GameCubeDisc || disc.IsDatelDisc();
+
+  // We always return standard DVD sizes here, not DVD-R sizes.
+  // RVT-R (devkit) consoles can't read the extra megabytes there are on RVT-R (DVD-R) discs.
+  if (should_be_mini_dvd && size <= DiscIO::MINI_DVD_SIZE)
+    return DiscIO::MINI_DVD_SIZE;
+  else if (size <= DiscIO::SL_DVD_R_SIZE)
+    return DiscIO::SL_DVD_SIZE;
+  else
+    return DiscIO::DL_DVD_SIZE;
+}
+
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
@@ -433,6 +458,10 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 
   if (has_disc)
   {
+    s_disc_end_offset = GetDiscEndOffset(*disc);
+    if (!disc->IsSizeAccurate())
+      WARN_LOG_FMT(DVDINTERFACE, "Unknown disc size, guessing {0} bytes", s_disc_end_offset);
+
     const DiscIO::BlobReader& blob = disc->GetBlobReader();
     if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
     {
@@ -550,7 +579,7 @@ bool AutoChangeDisc()
 
 static void SetLidOpen()
 {
-  u32 old_value = s_DICVR.CVR;
+  const u32 old_value = s_DICVR.CVR;
   s_DICVR.CVR = IsDiscInside() ? 0 : 1;
   if (s_DICVR.CVR != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
@@ -561,28 +590,27 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
   if (!DVDThread::HasDisc())
     return false;
 
-  return DVDThread::UpdateRunningGameMetadata(IOS::HLE::Device::DI::GetCurrentPartition(),
-                                              title_id);
+  return DVDThread::UpdateRunningGameMetadata(IOS::HLE::DIDevice::GetCurrentPartition(), title_id);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   UDISR tmpStatusReg(val);
+                   const UDISR tmp_status_reg(val);
 
-                   s_DISR.DEINTMASK = tmpStatusReg.DEINTMASK;
-                   s_DISR.TCINTMASK = tmpStatusReg.TCINTMASK;
-                   s_DISR.BRKINTMASK = tmpStatusReg.BRKINTMASK;
-                   s_DISR.BREAK = tmpStatusReg.BREAK;
+                   s_DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
+                   s_DISR.TCINTMASK = tmp_status_reg.TCINTMASK.Value();
+                   s_DISR.BRKINTMASK = tmp_status_reg.BRKINTMASK.Value();
+                   s_DISR.BREAK = tmp_status_reg.BREAK.Value();
 
-                   if (tmpStatusReg.DEINT)
+                   if (tmp_status_reg.DEINT)
                      s_DISR.DEINT = 0;
 
-                   if (tmpStatusReg.TCINT)
+                   if (tmp_status_reg.TCINT)
                      s_DISR.TCINT = 0;
 
-                   if (tmpStatusReg.BRKINT)
+                   if (tmp_status_reg.BRKINT)
                      s_DISR.BRKINT = 0;
 
                    if (s_DISR.BREAK)
@@ -595,11 +623,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   UDICVR tmpCoverReg(val);
+                   const UDICVR tmp_cover_reg(val);
 
-                   s_DICVR.CVRINTMASK = tmpCoverReg.CVRINTMASK;
+                   s_DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
 
-                   if (tmpCoverReg.CVRINT)
+                   if (tmp_cover_reg.CVRINT)
                      s_DICVR.CVRINT = 0;
 
                    UpdateInterrupts();
@@ -639,9 +667,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 static void UpdateInterrupts()
 {
-  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINTMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
-                        (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
-                        (s_DICVR.CVRINT & s_DICVR.CVRINTMASK);
+  const bool set_mask =
+      (s_DISR.DEINT & s_DISR.DEINTMASK) != 0 || (s_DISR.TCINT & s_DISR.TCINTMASK) != 0 ||
+      (s_DISR.BRKINT & s_DISR.BRKINTMASK) != 0 || (s_DICVR.CVRINT & s_DICVR.CVRINTMASK) != 0;
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
@@ -764,20 +792,11 @@ static bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_lengt
     dvd_length = output_length;
   }
 
-  // Many Wii games intentionally try to read from an offset which is just past the end of a regular
-  // DVD but just before the end of a DVD-R, displaying "Error #001" and failing to boot if the read
-  // succeeds (see https://wiibrew.org/wiki//dev/di#0x8D_DVDLowUnencryptedRead for more details).
-  // It would be nice if we simply could rely on DiscIO for letting us know whether a read is out
-  // of bounds, but this unfortunately doesn't work when using a disc image format that doesn't
-  // store the original size of the disc, most notably WBFS. Instead, we have a little hack here:
-  // reject all non-partition reads that come from IOS that go past the offset 0x50000. IOS only
-  // allows non-partition reads if they are before 0x50000 or if they are in one of the two small
-  // areas 0x118240000-0x118240020 and 0x1FB4E0000-0x1FB4E0020 (both of which only are used for
-  // Error #001 checks), so the only thing we disallow with this hack that actually should be
-  // allowed is non-partition reads in the 0x118240000-0x118240020 area on dual-layer discs.
-  // In practice, dual-layer games don't attempt to do non-partition reads in that area.
-  if (reply_type == ReplyType::IOS && partition == DiscIO::PARTITION_NONE &&
-      dvd_offset + dvd_length > 0x50000)
+  // Many Wii games intentionally try to read from an offset which is just past the end of a
+  // regular DVD but just before the end of a DVD-R, displaying "Error #001" and failing to boot
+  // if the read succeeds, so it's critical that we set the correct error code for such reads.
+  // See https://wiibrew.org/wiki//dev/di#0x8D_DVDLowUnencryptedRead for details on Error #001.
+  if (dvd_offset + dvd_length > s_disc_end_offset)
   {
     SetDriveError(DriveError::BlockOOB);
     *interrupt_type = DIInterruptType::DEINT;
@@ -1228,7 +1247,9 @@ void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
                            const DiscIO::Partition& partition, ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
-  SetDriveState(DriveState::Ready);
+
+  if (s_drive_state == DriveState::ReadyNoReadsMade)
+    SetDriveState(DriveState::Ready);
 
   const bool command_handled_by_thread =
       ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length, partition,
@@ -1312,7 +1333,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::IOS:
   {
-    IOS::HLE::Device::DI::InterruptFromDVDInterface(interrupt_type);
+    IOS::HLE::DIDevice::InterruptFromDVDInterface(interrupt_type);
     break;
   }
 
@@ -1342,6 +1363,9 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
   const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WiiDisc;
 
+  // Whether we have performed a seek.
+  bool seek = false;
+
   // Where the DVD read head is (usually parked at the end of the buffer,
   // unless we've interrupted it mid-buffer-read).
   u64 head_position;
@@ -1356,6 +1380,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
   u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
+  const u64 first_block = dvd_offset;
 
   if (SConfig::GetInstance().bFastDiscSpeed)
   {
@@ -1450,6 +1475,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
       if (dvd_offset != head_position)
       {
         // Unbuffered seek+read
+        seek = true;
         ticks_until_completion += static_cast<u64>(
             ticks_per_second * DVDMath::CalculateSeekTime(head_position, dvd_offset));
 
@@ -1489,27 +1515,45 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
     dvd_offset += DVD_ECC_BLOCK_SIZE;
   } while (length > 0);
 
-  // Update the buffer based on this read. Based on experimental testing,
-  // we will only reuse the old buffer while reading forward. Note that the
-  // buffer start we calculate here is not the actual start of the buffer -
-  // it is just the start of the portion we need to read.
+  // Evict blocks from the buffer which are unlikely to be used again after this read,
+  // so that the buffer gets space for prefetching new blocks. Based on hardware testing,
+  // the blocks which are kept are the most recently accessed block, the block immediately
+  // before it, and all blocks after it.
+  //
+  // If the block immediately before the most recently accessed block is not kept, loading
+  // screens in Pitfall: The Lost Expedition are longer than they should be.
+  // https://bugs.dolphin-emu.org/issues/12279
   const u64 last_block = dvd_offset;
-  if (last_block == buffer_start + DVD_ECC_BLOCK_SIZE && buffer_start != buffer_end)
+  constexpr u32 BUFFER_BACKWARD_SEEK_LIMIT = DVD_ECC_BLOCK_SIZE * 2;
+  if (last_block - buffer_start <= BUFFER_BACKWARD_SEEK_LIMIT && buffer_start != buffer_end)
   {
-    // Special case: reading less than one block at the start of the
-    // buffer won't change the buffer state
+    // Special case: reading the first two blocks of the buffer doesn't change the buffer state
   }
   else
   {
+    // Note that the s_read_buffer_start_offset value we calculate here is not the
+    // actual start of the buffer - it is just the start of the portion we need to read.
+    // The actual start of the buffer is s_read_buffer_end_offset - STREAMING_BUFFER_SIZE.
     if (last_block >= buffer_end)
+    {
       // Full buffer read
       s_read_buffer_start_offset = last_block;
+    }
     else
+    {
       // Partial buffer read
       s_read_buffer_start_offset = buffer_end;
+    }
 
-    s_read_buffer_end_offset = last_block + STREAMING_BUFFER_SIZE - DVD_ECC_BLOCK_SIZE;
-    // Assume the buffer starts reading right after the end of the last operation
+    s_read_buffer_end_offset = last_block + STREAMING_BUFFER_SIZE - BUFFER_BACKWARD_SEEK_LIMIT;
+    if (seek)
+    {
+      // If we seek, the block preceding the first accessed block never gets read into the buffer
+      s_read_buffer_end_offset =
+          std::max(s_read_buffer_end_offset, first_block + STREAMING_BUFFER_SIZE);
+    }
+
+    // Assume the buffer starts prefetching new blocks right after the end of the last operation
     s_read_buffer_start_time = current_time + ticks_until_completion;
     s_read_buffer_end_time =
         s_read_buffer_start_time +

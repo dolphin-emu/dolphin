@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceGCController.h"
 
@@ -44,29 +43,25 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 
   GCPadStatus pad_status = GetPadStatus();
   if (!pad_status.isConnected)
-  {
-    u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-    std::memcpy(buffer, &reply, sizeof(reply));
-    return sizeof(reply);
-  }
+    return -1;
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
+  const auto command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
   {
-  case CMD_RESET:
-  case CMD_ID:
+  case EBufferCommands::CMD_STATUS:
+  case EBufferCommands::CMD_RESET:
   {
     u32 id = Common::swap32(SI_GC_CONTROLLER);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
 
-  case CMD_DIRECT:
+  case EBufferCommands::CMD_DIRECT:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Direct (Request length: %d)", request_length);
+    INFO_LOG_FMT(SERIALINTERFACE, "PAD - Direct (Request length: {})", request_length);
     u32 high, low;
     GetData(high, low);
     for (int i = 0; i < 4; i++)
@@ -77,9 +72,9 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     return sizeof(high) + sizeof(low);
   }
 
-  case CMD_ORIGIN:
+  case EBufferCommands::CMD_ORIGIN:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
+    INFO_LOG_FMT(SERIALINTERFACE, "PAD - Get Origin");
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
@@ -90,9 +85,9 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   }
 
   // Recalibrate (FiRES: i am not 100 percent sure about this)
-  case CMD_RECALIBRATE:
+  case EBufferCommands::CMD_RECALIBRATE:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
+    INFO_LOG_FMT(SERIALINTERFACE, "PAD - Recalibrate");
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
@@ -105,8 +100,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   // DEFAULT
   default:
   {
-    ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
-    PanicAlert("SI: Unknown command (0x%x)", command);
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", command);
+    PanicAlertFmt("SI: Unknown command ({:#x})", command);
   }
   break;
   }
@@ -114,28 +109,28 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleMoviePadStatus(int device_number, GCPadStatus* pad_status)
 {
-  Movie::CallGCInputManip(pad_status, m_device_number);
-  API::GetGCManip().PerformInputManip(pad_status, m_device_number);
+  Movie::CallGCInputManip(pad_status, device_number);
+  API::GetGCManip().PerformInputManip(pad_status, device_number);
 
   Movie::SetPolledDevice();
-  if (NetPlay_GetInput(m_device_number, pad_status))
+  if (NetPlay_GetInput(device_number, pad_status))
   {
   }
   else if (Movie::IsPlayingInput())
   {
-    Movie::PlayController(pad_status, m_device_number);
+    Movie::PlayController(pad_status, device_number);
     Movie::InputUpdate();
   }
   else if (Movie::IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, m_device_number);
+    Movie::RecordInput(pad_status, device_number);
     Movie::InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, m_device_number);
+    Movie::CheckPadStatus(pad_status, device_number);
   }
 }
 
@@ -150,7 +145,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
     pad_status = Pad::GetStatus(m_device_number);
   }
 
-  HandleMoviePadStatus(&pad_status);
+  HandleMoviePadStatus(m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -265,12 +260,12 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
-        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_RESET");
+        INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_RESET");
         ProcessorInterface::ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
-        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
+        INFO_LOG_FMT(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
         SetOrigin(pad_status);
       }
 
@@ -297,15 +292,9 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 {
   UCommand controller_command(command);
 
-  switch (controller_command.command)
+  if (static_cast<EDirectCommands>(controller_command.command) == EDirectCommands::CMD_WRITE)
   {
-  // Costis sent it in some demos :)
-  case 0x00:
-    break;
-
-  case CMD_WRITE:
-  {
-    unsigned int type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
+    const u32 type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
@@ -318,20 +307,17 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
         CSIDevice_GCController::Rumble(pad_num, 0.0);
     }
 
-    if (!poll)
+    if (poll == 0)
     {
       m_mode = controller_command.parameter2;
-      INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", m_device_number, m_mode);
+      INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
     }
   }
-  break;
-
-  default:
+  else if (controller_command.command != 0x00)
   {
-    ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", command);
-    PanicAlert("SI: Unknown direct command");
-  }
-  break;
+    // Costis sent 0x00 in some demos :)
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
+    PanicAlertFmt("SI: Unknown direct command");
   }
 }
 

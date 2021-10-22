@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <jni.h>
 
@@ -27,7 +26,7 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   found_wiimotes.clear();
   found_board = nullptr;
 
-  NOTICE_LOG(WIIMOTE, "Finding Wiimotes");
+  NOTICE_LOG_FMT(WIIMOTE, "Finding Wiimotes");
 
   JNIEnv* env = IDCache::GetEnvForThread();
 

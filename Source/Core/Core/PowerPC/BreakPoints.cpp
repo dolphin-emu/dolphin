@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/BreakPoints.h"
 
@@ -22,6 +21,12 @@ bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
   return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
                      [address](const auto& bp) { return bp.address == address; });
+}
+
+bool BreakPoints::IsBreakPointEnable(u32 address) const
+{
+  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
+                     [address](const auto& bp) { return bp.is_enabled && bp.address == address; });
 }
 
 bool BreakPoints::IsTempBreakPoint(u32 address) const
@@ -52,6 +57,8 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
     if (!bp.is_temporary)
     {
       std::ostringstream ss;
+      ss.imbue(std::locale::classic());
+
       ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
          << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "");
       bp_strings.push_back(ss.str());
@@ -66,12 +73,15 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
   for (const std::string& bp_string : bp_strings)
   {
     TBreakPoint bp;
-    std::stringstream ss;
-    ss << std::hex << bp_string;
-    ss >> bp.address;
-    bp.is_enabled = bp_string.find('n') != bp_string.npos;
-    bp.log_on_hit = bp_string.find('l') != bp_string.npos;
-    bp.break_on_hit = bp_string.find('b') != bp_string.npos;
+    std::string flags;
+    std::istringstream iss(bp_string);
+    iss.imbue(std::locale::classic());
+
+    iss >> std::hex >> bp.address;
+    iss >> flags;
+    bp.is_enabled = flags.find('n') != flags.npos;
+    bp.log_on_hit = flags.find('l') != flags.npos;
+    bp.break_on_hit = flags.find('b') != flags.npos;
     bp.is_temporary = false;
     Add(bp);
   }
@@ -108,6 +118,18 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
   m_breakpoints.push_back(bp);
 
   JitInterface::InvalidateICache(address, 4, true);
+}
+
+bool BreakPoints::ToggleBreakPoint(u32 address)
+{
+  auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                           [address](const auto& bp) { return bp.address == address; });
+
+  if (iter == m_breakpoints.end())
+    return false;
+
+  iter->is_enabled = !iter->is_enabled;
+  return true;
 }
 
 void BreakPoints::Remove(u32 address)
@@ -155,11 +177,11 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
   for (const TMemCheck& mc : m_mem_checks)
   {
     std::ostringstream ss;
-    ss << std::hex << mc.start_address;
-    ss << " " << (mc.is_ranged ? mc.end_address : mc.start_address) << " "
-       << (mc.is_ranged ? "n" : "") << (mc.is_break_on_read ? "r" : "")
-       << (mc.is_break_on_write ? "w" : "") << (mc.log_on_hit ? "l" : "")
-       << (mc.break_on_hit ? "p" : "");
+    ss.imbue(std::locale::classic());
+
+    ss << std::hex << mc.start_address << " " << mc.end_address << " " << (mc.is_enabled ? "n" : "")
+       << (mc.is_break_on_read ? "r" : "") << (mc.is_break_on_write ? "w" : "")
+       << (mc.log_on_hit ? "l" : "") << (mc.break_on_hit ? "b" : "");
     mc_strings.push_back(ss.str());
   }
 
@@ -171,18 +193,19 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
   for (const std::string& mc_string : mc_strings)
   {
     TMemCheck mc;
-    std::stringstream ss;
-    ss << std::hex << mc_string;
-    ss >> mc.start_address;
-    mc.is_ranged = mc_string.find('n') != mc_string.npos;
-    mc.is_break_on_read = mc_string.find('r') != mc_string.npos;
-    mc.is_break_on_write = mc_string.find('w') != mc_string.npos;
-    mc.log_on_hit = mc_string.find('l') != mc_string.npos;
-    mc.break_on_hit = mc_string.find('b') != mc_string.npos;
-    if (mc.is_ranged)
-      ss >> mc.end_address;
-    else
-      mc.end_address = mc.start_address;
+    std::istringstream iss(mc_string);
+    iss.imbue(std::locale::classic());
+
+    std::string flags;
+    iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
+
+    mc.is_ranged = mc.start_address != mc.end_address;
+    mc.is_enabled = flags.find('n') != flags.npos;
+    mc.is_break_on_read = flags.find('r') != flags.npos;
+    mc.is_break_on_write = flags.find('w') != flags.npos;
+    mc.log_on_hit = flags.find('l') != flags.npos;
+    mc.break_on_hit = flags.find('b') != flags.npos;
+
     Add(mc);
   }
 }
@@ -201,6 +224,18 @@ void MemChecks::Add(const TMemCheck& memory_check)
       JitInterface::ClearCache();
     PowerPC::DBATUpdated();
   });
+}
+
+bool MemChecks::ToggleBreakPoint(u32 address)
+{
+  auto iter = std::find_if(m_mem_checks.begin(), m_mem_checks.end(),
+                           [address](const auto& bp) { return bp.start_address == address; });
+
+  if (iter == m_mem_checks.end())
+    return false;
+
+  iter->is_enabled = !iter->is_enabled;
+  return true;
 }
 
 void MemChecks::Remove(u32 address)
@@ -259,18 +294,20 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 addr, bool write,
+bool TMemCheck::Action(Common::DebugInterface* debug_interface, u64 value, u32 addr, bool write,
                        size_t size, u32 pc)
 {
+  if (!is_enabled)
+    return false;
+
   API::GetEventHub().EmitEvent(API::Events::MemoryBreakpoint{write, addr, value});
   if ((write && is_break_on_write) || (!write && is_break_on_read))
   {
     if (log_on_hit)
     {
-      NOTICE_LOG(MEMMAP, "MBP %08x (%s) %s%zu %0*x at %08x (%s)", pc,
-                 debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
-                 static_cast<int>(size * 2), value, addr,
-                 debug_interface->GetDescription(addr).c_str());
+      NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
+                     debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8, value,
+                     addr, debug_interface->GetDescription(addr));
     }
     if (break_on_hit)
       return true;

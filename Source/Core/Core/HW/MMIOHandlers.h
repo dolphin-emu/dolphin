@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -46,11 +45,7 @@ WriteHandlingMethod<T>* Nop();
 template <typename T>
 ReadHandlingMethod<T>* DirectRead(const T* addr, u32 mask = 0xFFFFFFFF);
 template <typename T>
-ReadHandlingMethod<T>* DirectRead(volatile const T* addr, u32 mask = 0xFFFFFFFF);
-template <typename T>
 WriteHandlingMethod<T>* DirectWrite(T* addr, u32 mask = 0xFFFFFFFF);
-template <typename T>
-WriteHandlingMethod<T>* DirectWrite(volatile T* addr, u32 mask = 0xFFFFFFFF);
 
 // Complex: use when no other handling method fits your needs. These allow you
 // to directly provide a function that will be called when a read/write needs
@@ -131,16 +126,7 @@ public:
   // Entry point for read handling method visitors.
   void Visit(ReadHandlingMethodVisitor<T>& visitor);
 
-  T Read(u32 addr)
-  {
-    // Check if the handler has already been initialized. For real
-    // handlers, this will always be the case, so this branch should be
-    // easily predictable.
-    if (!m_Method)
-      InitializeInvalid();
-
-    return m_ReadFunc(addr);
-  }
+  T Read(u32 addr);
 
   // Internal method called when changing the internal method object. Its
   // main role is to make sure the read function is updated at the same time.
@@ -149,7 +135,7 @@ public:
 private:
   // Initialize this handler to an invalid handler. Done lazily to avoid
   // useless initialization of thousands of unused handler objects.
-  void InitializeInvalid() { ResetMethod(InvalidRead<T>()); }
+  void InitializeInvalid();
   std::unique_ptr<ReadHandlingMethod<T>> m_Method;
   std::function<T(u32)> m_ReadFunc;
 };
@@ -167,16 +153,7 @@ public:
   // Entry point for write handling method visitors.
   void Visit(WriteHandlingMethodVisitor<T>& visitor);
 
-  void Write(u32 addr, T val)
-  {
-    // Check if the handler has already been initialized. For real
-    // handlers, this will always be the case, so this branch should be
-    // easily predictable.
-    if (!m_Method)
-      InitializeInvalid();
-
-    m_WriteFunc(addr, val);
-  }
+  void Write(u32 addr, T val);
 
   // Internal method called when changing the internal method object. Its
   // main role is to make sure the write function is updated at the same
@@ -186,7 +163,7 @@ public:
 private:
   // Initialize this handler to an invalid handler. Done lazily to avoid
   // useless initialization of thousands of unused handler objects.
-  void InitializeInvalid() { ResetMethod(InvalidWrite<T>()); }
+  void InitializeInvalid();
   std::unique_ptr<WriteHandlingMethod<T>> m_Method;
   std::function<void(u32, T)> m_WriteFunc;
 };
@@ -204,9 +181,7 @@ private:
   MaybeExtern template ReadHandlingMethod<T>* Constant<T>(T value);                                \
   MaybeExtern template WriteHandlingMethod<T>* Nop<T>();                                           \
   MaybeExtern template ReadHandlingMethod<T>* DirectRead(const T* addr, u32 mask);                 \
-  MaybeExtern template ReadHandlingMethod<T>* DirectRead(volatile const T* addr, u32 mask);        \
   MaybeExtern template WriteHandlingMethod<T>* DirectWrite(T* addr, u32 mask);                     \
-  MaybeExtern template WriteHandlingMethod<T>* DirectWrite(volatile T* addr, u32 mask);            \
   MaybeExtern template ReadHandlingMethod<T>* ComplexRead<T>(std::function<T(u32)>);               \
   MaybeExtern template WriteHandlingMethod<T>* ComplexWrite<T>(std::function<void(u32, T)>);       \
   MaybeExtern template ReadHandlingMethod<T>* InvalidRead<T>();                                    \

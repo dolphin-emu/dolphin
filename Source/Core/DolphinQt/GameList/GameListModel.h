@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -44,23 +43,23 @@ public:
   // Using a custom sort role as it sometimes differs slightly from the default Qt::DisplayRole.
   static constexpr int SORT_ROLE = Qt::UserRole;
 
-  enum
+  enum class Column
   {
-    COL_PLATFORM = 0,
-    COL_BANNER,
-    COL_TITLE,
-    COL_DESCRIPTION,
-    COL_MAKER,
-    COL_ID,
-    COL_COUNTRY,
-    COL_SIZE,
-    COL_FILE_NAME,
-    COL_FILE_PATH,
-    COL_FILE_FORMAT,
-    COL_BLOCK_SIZE,
-    COL_COMPRESSION,
-    COL_TAGS,
-    NUM_COLS
+    Platform = 0,
+    Banner,
+    Title,
+    Description,
+    Maker,
+    ID,
+    Country,
+    Size,
+    FileName,
+    FilePath,
+    FileFormat,
+    BlockSize,
+    Compression,
+    Tags,
+    Count,
   };
 
   void AddGame(const std::shared_ptr<const UICommon::GameFile>& game);

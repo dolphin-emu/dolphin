@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -28,7 +27,7 @@ union RasterizationState
   bool operator==(const RasterizationState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const RasterizationState& rhs) const { return hex != rhs.hex; }
   bool operator<(const RasterizationState& rhs) const { return hex < rhs.hex; }
-  BitField<0, 2, GenMode::CullMode> cullmode;
+  BitField<0, 2, CullMode> cullmode;
   BitField<3, 2, PrimitiveType> primitive;
 
   u32 hex;
@@ -59,7 +58,7 @@ union DepthState
   bool operator<(const DepthState& rhs) const { return hex < rhs.hex; }
   BitField<0, 1, u32> testenable;
   BitField<1, 1, u32> updateenable;
-  BitField<2, 3, ZMode::CompareMode> func;
+  BitField<2, 3, CompareMode> func;
 
   u32 hex;
 };
@@ -85,11 +84,11 @@ union BlendingState
   BitField<5, 1, u32> subtract;
   BitField<6, 1, u32> subtractAlpha;
   BitField<7, 1, u32> usedualsrc;
-  BitField<8, 3, BlendMode::BlendFactor> dstfactor;
-  BitField<11, 3, BlendMode::BlendFactor> srcfactor;
-  BitField<14, 3, BlendMode::BlendFactor> dstfactoralpha;
-  BitField<17, 3, BlendMode::BlendFactor> srcfactoralpha;
-  BitField<20, 4, BlendMode::LogicOp> logicmode;
+  BitField<8, 3, DstBlendFactor> dstfactor;
+  BitField<11, 3, SrcBlendFactor> srcfactor;
+  BitField<14, 3, DstBlendFactor> dstfactoralpha;
+  BitField<17, 3, SrcBlendFactor> srcfactoralpha;
+  BitField<20, 4, LogicOp> logicmode;
 
   u32 hex;
 };

@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/GameConfigEdit.h"
 
@@ -11,6 +10,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QScrollBar>
 #include <QStringListModel>
 #include <QTextCursor>
@@ -161,7 +161,7 @@ void GameConfigEdit::AddBoolOption(QMenu* menu, const QString& name, const QStri
 void GameConfigEdit::SetOption(const QString& section, const QString& key, const QString& value)
 {
   auto section_cursor =
-      m_edit->document()->find(QRegExp(QStringLiteral("^\\[%1\\]").arg(section)), 0);
+      m_edit->document()->find(QRegularExpression(QStringLiteral("^\\[%1\\]").arg(section)), 0);
 
   // Check if the section this belongs in can be found
   if (section_cursor.isNull())
@@ -170,8 +170,8 @@ void GameConfigEdit::SetOption(const QString& section, const QString& key, const
   }
   else
   {
-    auto value_cursor =
-        m_edit->document()->find(QRegExp(QStringLiteral("^%1 = .*").arg(key)), section_cursor);
+    auto value_cursor = m_edit->document()->find(
+        QRegularExpression(QStringLiteral("^%1 = .*").arg(key)), section_cursor);
 
     const QString new_line = QStringLiteral("%1 = %2").arg(key).arg(value);
 

@@ -1,6 +1,4 @@
 add_library(inputcommon
-  DynamicInputTextureConfiguration.cpp
-  DynamicInputTextureConfiguration.h
   DynamicInputTextureManager.cpp
   DynamicInputTextureManager.h
   ImageOperations.cpp
@@ -54,16 +52,21 @@ add_library(inputcommon
   ControllerInterface/DualShockUDPClient/DualShockUDPProto.h
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/ControllerInterface.h
-  ControllerInterface/Device.cpp
-  ControllerInterface/Device.h
-  ControllerInterface/Wiimote/Wiimote.cpp
-  ControllerInterface/Wiimote/Wiimote.h
+  ControllerInterface/CoreDevice.cpp
+  ControllerInterface/CoreDevice.h
+  ControllerInterface/Wiimote/WiimoteController.cpp
+  ControllerInterface/Wiimote/WiimoteController.h
   ControlReference/ControlReference.cpp
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp
   ControlReference/ExpressionParser.h
   ControlReference/FunctionExpression.cpp
   ControlReference/FunctionExpression.h
+  DynamicInputTextures/DITConfiguration.cpp
+  DynamicInputTextures/DITConfiguration.h
+  DynamicInputTextures/DITData.h
+  DynamicInputTextures/DITSpecification.cpp
+  DynamicInputTextures/DITSpecification.h
 )
 
 target_link_libraries(inputcommon

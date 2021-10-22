@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Most of the code in this file is from:
 // GCNcrypt - GameCube AR Crypto Program
@@ -470,8 +469,9 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
   if (ret)
   {
     // Return value is index + 1, 0 being the success flag value.
-    PanicAlertT("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s",
-                vCodes[ret - 1].c_str());
+    PanicAlertFmtT(
+        "Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n{0}",
+        vCodes[ret - 1]);
   }
   else if (!batchdecrypt(uCodes.data(), (u16)vCodes.size() << 1))
   {

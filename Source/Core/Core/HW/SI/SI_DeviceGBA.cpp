@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceGBA.h"
 
@@ -35,51 +34,9 @@ int s_num_connected;
 Common::Flag s_server_running;
 }  // namespace
 
-enum EJoybusCmds
-{
-  CMD_RESET = 0xff,
-  CMD_STATUS = 0x00,
-  CMD_READ = 0x14,
-  CMD_WRITE = 0x15
-};
-
-constexpr auto BITS_PER_SECOND = 115200;
-constexpr auto BYTES_PER_SECOND = BITS_PER_SECOND / 8;
 constexpr auto SEND_MAX_SIZE = 5, RECV_MAX_SIZE = 5;
 
 // --- GameBoy Advance "Link Cable" ---
-
-static int GetTransferTime(u8 cmd)
-{
-  u64 bytes_transferred = 0;
-
-  switch (cmd)
-  {
-  case CMD_RESET:
-  case CMD_STATUS:
-  {
-    bytes_transferred = 4;
-    break;
-  }
-  case CMD_READ:
-  {
-    bytes_transferred = 6;
-    break;
-  }
-  case CMD_WRITE:
-  {
-    bytes_transferred = 1;
-    break;
-  }
-  default:
-  {
-    bytes_transferred = 1;
-    break;
-  }
-  }
-  return static_cast<int>(bytes_transferred * SystemTimers::GetTicksPerSecond() /
-                          (std::max(s_num_connected, 1) * BYTES_PER_SECOND));
-}
 
 static void GBAConnectionWaiter()
 {
@@ -106,14 +63,14 @@ static void GBAConnectionWaiter()
   {
     if (server.accept(*new_client) == sf::Socket::Done)
     {
-      std::lock_guard<std::mutex> lk(s_cs_gba);
+      std::lock_guard lk(s_cs_gba);
       s_waiting_socks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
     }
     if (clock_server.accept(*new_client) == sf::Socket::Done)
     {
-      std::lock_guard<std::mutex> lk(s_cs_gba_clk);
+      std::lock_guard lk(s_cs_gba_clk);
       s_waiting_clocks.push(std::move(new_client));
 
       new_client = std::make_unique<sf::TcpSocket>();
@@ -142,13 +99,13 @@ static std::unique_ptr<T> MoveFromFront(std::queue<std::unique_ptr<T>>& ptrs)
 
 static std::unique_ptr<sf::TcpSocket> GetNextSock()
 {
-  std::lock_guard<std::mutex> lk(s_cs_gba);
+  std::lock_guard lk(s_cs_gba);
   return MoveFromFront(s_waiting_socks);
 }
 
 static std::unique_ptr<sf::TcpSocket> GetNextClock()
 {
-  std::lock_guard<std::mutex> lk(s_cs_gba_clk);
+  std::lock_guard lk(s_cs_gba_clk);
   return MoveFromFront(s_waiting_clocks);
 }
 
@@ -220,7 +177,11 @@ void GBASockServer::ClockSync()
 bool GBASockServer::Connect()
 {
   if (!IsConnected())
+  {
     m_client = GetNextSock();
+    if (m_client)
+      m_client->setBlocking(false);
+  }
   return IsConnected();
 }
 
@@ -238,13 +199,10 @@ void GBASockServer::Send(const u8* si_buffer)
   for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i];
 
-  u8 cmd = send_data[0];
-  if (cmd != CMD_STATUS)
-    m_booted = true;
+  const auto cmd = static_cast<EBufferCommands>(send_data[0]);
 
-  m_client->setBlocking(false);
   sf::Socket::Status status;
-  if (cmd == CMD_WRITE)
+  if (cmd == EBufferCommands::CMD_WRITE_GBA)
     status = m_client->send(send_data.data(), send_data.size());
   else
     status = m_client->send(send_data.data(), 1);
@@ -253,7 +211,7 @@ void GBASockServer::Send(const u8* si_buffer)
     Disconnect();
 }
 
-int GBASockServer::Receive(u8* si_buffer)
+int GBASockServer::Receive(u8* si_buffer, u8 bytes)
 {
   if (!m_client)
     return 0;
@@ -267,8 +225,7 @@ int GBASockServer::Receive(u8* si_buffer)
 
   size_t num_received = 0;
   std::array<u8, RECV_MAX_SIZE> recv_data;
-  sf::Socket::Status recv_stat =
-      m_client->receive(recv_data.data(), recv_data.size(), num_received);
+  sf::Socket::Status recv_stat = m_client->receive(recv_data.data(), bytes, num_received);
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
@@ -280,10 +237,26 @@ int GBASockServer::Receive(u8* si_buffer)
     m_booted = false;
     return 0;
   }
+  m_booted = true;
 
   for (size_t i = 0; i < recv_data.size(); i++)
     si_buffer[i] = recv_data[i];
   return static_cast<int>(std::min(num_received, recv_data.size()));
+}
+
+void GBASockServer::Flush()
+{
+  if (!m_client)
+    return;
+
+  size_t num_received = 1;
+  u8 byte;
+  while (num_received)
+  {
+    sf::Socket::Status recv_stat = m_client->receive(&byte, 1, num_received);
+    if (recv_stat != sf::Socket::Done)
+      break;
+  }
 }
 
 CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(device, device_number)
@@ -300,28 +273,28 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
     if (m_sock_server.Connect())
     {
 #ifdef _DEBUG
-      NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number, buffer[0],
-                 buffer[1], buffer[2], buffer[3], buffer[4]);
+      NOTICE_LOG_FMT(SERIALINTERFACE, "{} cmd {:02x} [> {:02x}{:02x}{:02x}{:02x}]", m_device_number,
+                     buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 #endif
+      m_sock_server.Flush();  // Clear out any replies we might have timed out waiting for
       m_sock_server.Send(buffer);
     }
     else
     {
-      u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-      std::memcpy(buffer, &reply, sizeof(reply));
-      return sizeof(reply);
+      return -1;
     }
-    m_last_cmd = buffer[0];
+
+    m_last_cmd = static_cast<EBufferCommands>(buffer[0]);
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
-    [[fallthrough]];
+    return 0;
   }
 
   case NextAction::WaitTransferTime:
   {
     int elapsed_time = static_cast<int>(CoreTiming::GetTicks() - m_timestamp_sent);
     // Tell SI to ask again after TransferInterval() cycles
-    if (GetTransferTime(m_last_cmd) > elapsed_time)
+    if (SIDevice_GetGBATransferTime(m_last_cmd) > elapsed_time)
       return 0;
     m_next_action = NextAction::ReceiveResponse;
     [[fallthrough]];
@@ -329,34 +302,46 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 
   case NextAction::ReceiveResponse:
   {
-    int num_data_received = m_sock_server.Receive(buffer);
+    u8 bytes = 1;
+    switch (m_last_cmd)
+    {
+    case EBufferCommands::CMD_RESET:
+    case EBufferCommands::CMD_STATUS:
+      bytes = 3;
+      break;
+    case EBufferCommands::CMD_READ_GBA:
+      bytes = 5;
+      break;
+    default:
+      break;
+    }
+    int num_data_received = m_sock_server.Receive(buffer, bytes);
+
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)
-    {
-      u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-      std::memcpy(buffer, &reply, sizeof(reply));
-      return sizeof(reply);
-    }
+      return -1;
 #ifdef _DEBUG
     const Common::Log::LOG_LEVELS log_level =
-        (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ? Common::Log::LERROR :
-                                                                Common::Log::LWARNING;
-    GENERIC_LOG(Common::Log::SERIALINTERFACE, log_level,
-                "%01d                              [< %02x%02x%02x%02x%02x] (%i)", m_device_number,
-                buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], num_data_received);
+        (m_last_cmd == EBufferCommands::CMD_STATUS || m_last_cmd == EBufferCommands::CMD_RESET) ?
+            Common::Log::LERROR :
+            Common::Log::LWARNING;
+    GENERIC_LOG_FMT(Common::Log::SERIALINTERFACE, log_level,
+                    "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
+                    m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
+                    num_data_received);
 #endif
     return num_data_received;
   }
   }
 
   // This should never happen, but appease MSVC which thinks it might.
-  ERROR_LOG(SERIALINTERFACE, "Unknown state %i\n", static_cast<int>(m_next_action));
+  ERROR_LOG_FMT(SERIALINTERFACE, "Unknown state {}\n", m_next_action);
   return 0;
 }
 
 int CSIDevice_GBA::TransferInterval()
 {
-  return GetTransferTime(m_last_cmd);
+  return SIDevice_GetGBATransferTime(m_last_cmd);
 }
 
 bool CSIDevice_GBA::GetData(u32& hi, u32& low)

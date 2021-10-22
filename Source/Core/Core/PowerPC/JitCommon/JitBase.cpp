@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
@@ -42,9 +41,21 @@ bool JitBase::CanMergeNextInstructions(int count) const
   return true;
 }
 
-void JitBase::UpdateMemoryOptions()
+void JitBase::UpdateMemoryAndExceptionOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
   jo.fastmem = SConfig::GetInstance().bFastmem && jo.fastmem_arena && (MSR.DR || !any_watchpoints);
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
+  jo.fp_exceptions = SConfig::GetInstance().bFloatExceptions;
+  jo.div_by_zero_exceptions = SConfig::GetInstance().bDivideByZeroExceptions;
+}
+
+bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)
+{
+  if (jo.fp_exceptions)
+    return (op->opinfo->flags & FL_FLOAT_EXCEPTION) != 0;
+  else if (jo.div_by_zero_exceptions)
+    return (op->opinfo->flags & FL_FLOAT_DIV) != 0;
+  else
+    return false;
 }

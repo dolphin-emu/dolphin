@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -22,7 +21,7 @@
 #define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
+    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                    \
     {                                                                                              \
       if (!(_a_))                                                                                  \
       {                                                                                            \
@@ -44,6 +43,6 @@
 #define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
+    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                    \
       ASSERT(_a_);                                                                                 \
   } while (0)

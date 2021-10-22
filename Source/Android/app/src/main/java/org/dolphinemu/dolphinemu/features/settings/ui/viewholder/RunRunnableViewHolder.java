@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
@@ -5,6 +7,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.R;
@@ -40,12 +43,8 @@ public final class RunRunnableViewHolder extends SettingViewHolder
   {
     mItem = (RunRunnable) item;
 
-    mTextSettingName.setText(item.getNameId());
-
-    if (item.getDescriptionId() > 0)
-    {
-      mTextSettingDescription.setText(item.getDescriptionId());
-    }
+    mTextSettingName.setText(item.getName());
+    mTextSettingDescription.setText(item.getDescription());
   }
 
   @Override
@@ -56,8 +55,8 @@ public final class RunRunnableViewHolder extends SettingViewHolder
     if (alertTextID > 0)
     {
       AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
-              .setTitle(mContext.getString(mItem.getNameId()))
-              .setMessage(mContext.getString(alertTextID));
+              .setTitle(mItem.getName())
+              .setMessage(alertTextID);
 
       builder
               .setPositiveButton(R.string.ok, (dialog, whichButton) ->
@@ -73,6 +72,12 @@ public final class RunRunnableViewHolder extends SettingViewHolder
     {
       runRunnable();
     }
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 
   private void runRunnable()

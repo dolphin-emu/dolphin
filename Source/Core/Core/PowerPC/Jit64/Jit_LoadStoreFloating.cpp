@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -105,7 +104,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (js.op->fprIsStoreSafe[s])
+    if (js.fpr_is_store_safe[s] && js.op->fprIsSingle[s])
     {
       RCOpArg Rs = fpr.Use(s, RCMode::Read);
       RegCache::Realize(Rs);

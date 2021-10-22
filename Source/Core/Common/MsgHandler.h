@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -50,6 +49,7 @@ bool MsgAlertFmt(bool yes_no, MsgType style, const S& format, const Args&... arg
 }
 
 void SetEnableAlert(bool enable);
+void SetAbortOnPanicAlert(bool should_abort);
 
 // Like fmt::format, except the string becomes translatable
 template <typename... Args>

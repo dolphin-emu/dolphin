@@ -1,6 +1,5 @@
-﻿// Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// Copyright 2008 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -155,6 +154,8 @@ public:
   virtual void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) = 0;
   // function called when not looking for more Wiimotes
   virtual void Update() = 0;
+  // requests the backend to stop scanning if FindWiimotes is blocking
+  virtual void RequestStopSearching() = 0;
 };
 
 enum class WiimoteScanMode
@@ -171,6 +172,7 @@ public:
   void StartThread();
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
+  void PopulateDevices();
 
   bool IsReady() const;
 
@@ -183,7 +185,8 @@ private:
 
   std::thread m_scan_thread;
   Common::Flag m_scan_thread_running;
-  Common::Event m_scan_mode_changed_event;
+  Common::Flag m_populate_devices;
+  Common::Event m_scan_mode_changed_or_population_event;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
 };
 
@@ -204,6 +207,7 @@ void InitAdapterClass();
 #endif
 
 void HandleWiimotesInControllerInterfaceSettingChange();
+void PopulateDevices();
 void ProcessWiimotePool();
 
 }  // namespace WiimoteReal

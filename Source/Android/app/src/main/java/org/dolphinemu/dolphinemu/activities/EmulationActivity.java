@@ -1,10 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -36,6 +37,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
@@ -44,15 +46,13 @@ import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
-import org.dolphinemu.dolphinemu.ui.main.MainActivity;
-import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
-import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.io.File;
 import java.lang.annotation.Retention;
@@ -98,9 +98,8 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-          MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
-          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS_CORE,
-          MENU_ACTION_SETTINGS_GRAPHICS})
+          MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
+          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
   public @interface MenuAction
   {
   }
@@ -134,13 +133,11 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
   public static final int MENU_SET_IR_SENSITIVITY = 27;
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
-  public static final int MENU_ACTION_SCREEN_ORIENTATION = 29;
-  public static final int MENU_ACTION_MOTION_CONTROLS = 30;
-  public static final int MENU_ACTION_PAUSE_EMULATION = 31;
-  public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
-  public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
-  public static final int MENU_ACTION_SETTINGS_CORE = 34;
-  public static final int MENU_ACTION_SETTINGS_GRAPHICS = 35;
+  public static final int MENU_ACTION_MOTION_CONTROLS = 29;
+  public static final int MENU_ACTION_PAUSE_EMULATION = 30;
+  public static final int MENU_ACTION_UNPAUSE_EMULATION = 31;
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 32;
+  public static final int MENU_ACTION_SETTINGS = 33;
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -167,18 +164,48 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
 
+  public static void launch(FragmentActivity activity, String filePath)
+  {
+    launch(activity, new String[]{filePath});
+  }
+
   public static void launch(FragmentActivity activity, String[] filePaths)
   {
     if (sIgnoreLaunchRequests)
       return;
 
+    new AfterDirectoryInitializationRunner().run(activity, true, () ->
+    {
+      if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
+      {
+        launchWithoutChecks(activity, filePaths);
+      }
+      else
+      {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
+        builder.setMessage(R.string.unavailable_paths);
+        builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
+                SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS));
+        builder.setNeutralButton(R.string.continue_anyway, (dialogInterface, i) ->
+                launchWithoutChecks(activity, filePaths));
+        builder.show();
+      }
+    });
+  }
+
+  private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths)
+  {
     sIgnoreLaunchRequests = true;
 
     Intent launcher = new Intent(activity, EmulationActivity.class);
     launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
 
-    new AfterDirectoryInitializationRunner().run(activity, true,
-            () -> activity.startActivity(launcher));
+    activity.startActivity(launcher);
   }
 
   public static void stopIgnoringLaunchRequests()
@@ -217,14 +244,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
 
-    if (TvUtil.isLeanback(getApplicationContext()))
-    {
-      TvMainActivity.skipRescanningLibrary();
-    }
-    else
-    {
-      MainActivity.skipRescanningLibrary();
-    }
+    MainPresenter.skipRescanningLibrary();
 
     if (savedInstanceState == null)
     {
@@ -245,7 +265,7 @@ public final class EmulationActivity extends AppCompatActivity
     mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
     mSettings = new Settings();
-    mSettings.loadSettings(null);
+    mSettings.loadSettings();
 
     updateOrientation();
 
@@ -308,6 +328,8 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onResume()
   {
     super.onResume();
+
+    updateOrientation();
 
     if (NativeLibrary.IsGameMetadataValid())
       updateMotionListener();
@@ -384,13 +406,9 @@ public final class EmulationActivity extends AppCompatActivity
     if (requestCode == REQUEST_CHANGE_DISC)
     {
       // If the user picked a file, as opposed to just backing out.
-      if (resultCode == MainActivity.RESULT_OK)
+      if (resultCode == RESULT_OK)
       {
-        String newDiscPath = FileBrowserHelper.getSelectedPath(result);
-        if (!TextUtils.isEmpty(newDiscPath))
-        {
-          NativeLibrary.ChangeDisc(newDiscPath);
-        }
+        NativeLibrary.ChangeDisc(result.getData().toString());
       }
     }
   }
@@ -408,8 +426,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void updateOrientation()
   {
-    setRequestedOrientation(mPreferences.getInt("emulationActivityOrientation",
-            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+    setRequestedOrientation(IntSetting.MAIN_EMULATION_ORIENTATION.getInt(mSettings));
   }
 
   private boolean closeSubmenu()
@@ -519,7 +536,7 @@ public final class EmulationActivity extends AppCompatActivity
         toggleControls();
         break;
 
-      // Adjust the scale of the overlay controls.
+      // Adjust the scale and opacity of the overlay controls.
       case MENU_ACTION_ADJUST_SCALE:
         adjustScale();
         break;
@@ -616,8 +633,10 @@ public final class EmulationActivity extends AppCompatActivity
         break;
 
       case MENU_ACTION_CHANGE_DISC:
-        FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC, false,
-                FileBrowserHelper.GAME_EXTENSIONS);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        startActivityForResult(intent, REQUEST_CHANGE_DISC);
         break;
 
       case MENU_SET_IR_SENSITIVITY:
@@ -628,20 +647,12 @@ public final class EmulationActivity extends AppCompatActivity
         chooseDoubleTapButton();
         break;
 
-      case MENU_ACTION_SCREEN_ORIENTATION:
-        chooseOrientation();
-        break;
-
       case MENU_ACTION_MOTION_CONTROLS:
         showMotionControlsOptions();
         break;
 
-      case MENU_ACTION_SETTINGS_CORE:
-        SettingsActivity.launch(this, MenuTag.CONFIG);
-        break;
-
-      case MENU_ACTION_SETTINGS_GRAPHICS:
-        SettingsActivity.launch(this, MenuTag.GRAPHICS);
+      case MENU_ACTION_SETTINGS:
+        SettingsActivity.launch(this, MenuTag.SETTINGS);
         break;
 
       case MENU_ACTION_EXIT:
@@ -809,15 +820,14 @@ public final class EmulationActivity extends AppCompatActivity
   private void adjustScale()
   {
     LayoutInflater inflater = LayoutInflater.from(this);
-    View view = inflater.inflate(R.layout.dialog_seekbar, null);
+    View view = inflater.inflate(R.layout.dialog_input_adjust, null);
 
-    final SeekBar seekbar = view.findViewById(R.id.seekbar);
-    final TextView value = view.findViewById(R.id.text_value);
-    final TextView units = view.findViewById(R.id.text_units);
+    final SeekBar scaleSeekbar = view.findViewById(R.id.input_scale_seekbar);
+    final TextView scaleValue = view.findViewById(R.id.input_scale_value);
 
-    seekbar.setMax(150);
-    seekbar.setProgress(IntSetting.MAIN_CONTROL_SCALE.getInt(mSettings));
-    seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    scaleSeekbar.setMax(150);
+    scaleSeekbar.setProgress(IntSetting.MAIN_CONTROL_SCALE.getInt(mSettings));
+    scaleSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
     {
       public void onStartTrackingTouch(SeekBar seekBar)
       {
@@ -826,7 +836,7 @@ public final class EmulationActivity extends AppCompatActivity
 
       public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
       {
-        value.setText(String.valueOf(progress + 50));
+        scaleValue.setText((progress + 50) + "%");
       }
 
       public void onStopTrackingTouch(SeekBar seekBar)
@@ -835,20 +845,46 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    value.setText(String.valueOf(seekbar.getProgress() + 50));
-    units.setText("%");
+    scaleValue.setText((scaleSeekbar.getProgress() + 50) + "%");
+
+    // alpha
+    final SeekBar seekbarOpacity = view.findViewById(R.id.input_opacity_seekbar);
+    final TextView valueOpacity = view.findViewById(R.id.input_opacity_value);
+
+    seekbarOpacity.setMax(100);
+    seekbarOpacity.setProgress(IntSetting.MAIN_CONTROL_OPACITY.getInt(mSettings));
+    seekbarOpacity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        valueOpacity.setText(progress + "%");
+      }
+
+      public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+    valueOpacity.setText(seekbarOpacity.getProgress() + "%");
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
-    builder.setTitle(R.string.emulation_control_scale);
+    builder.setTitle(R.string.emulation_control_adjustments);
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, seekbar.getProgress());
+      IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, scaleSeekbar.getProgress());
+      IntSetting.MAIN_CONTROL_OPACITY.setInt(mSettings, seekbarOpacity.getProgress());
       mEmulationFragment.refreshInputOverlay();
     });
     builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
     {
       IntSetting.MAIN_CONTROL_SCALE.delete(mSettings);
+      IntSetting.MAIN_CONTROL_OPACITY.delete(mSettings);
       mEmulationFragment.refreshInputOverlay();
     });
 
@@ -894,36 +930,6 @@ public final class EmulationActivity extends AppCompatActivity
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
-
-    builder.show();
-  }
-
-  private void chooseOrientation()
-  {
-    final int[] orientationValues = getResources().getIntArray(R.array.orientationValues);
-    int initialChoice = mPreferences.getInt("emulationActivityOrientation",
-            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-    int initialIndex = -1;
-    for (int i = 0; i < orientationValues.length; i++)
-    {
-      if (orientationValues[i] == initialChoice)
-        initialIndex = i;
-    }
-
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
-    builder.setTitle(R.string.emulation_screen_orientation);
-    builder.setSingleChoiceItems(R.array.orientationEntries, initialIndex,
-            (dialog, indexSelected) ->
-            {
-              int orientation = orientationValues[indexSelected];
-              editor.putInt("emulationActivityOrientation", orientation);
-            });
-    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
-    {
-      editor.apply();
-      updateOrientation();
-    });
 
     builder.show();
   }

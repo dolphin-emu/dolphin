@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -13,7 +12,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Swap.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/MultithreadedCompressor.h"
@@ -70,7 +69,7 @@ private:
   using SHA1 = std::array<u8, 20>;
   using WiiKey = std::array<u8, 16>;
 
-  // See docs/WIA.md for details about the format
+  // See docs/WiaAndRvz.md for details about the format
 
 #pragma pack(push, 1)
   struct WIAHeader1
@@ -169,7 +168,10 @@ private:
     bool is_partition;
     u8 partition_data_index;
 
-    DataEntry(size_t index_) : index(static_cast<u32>(index_)), is_partition(false) {}
+    DataEntry(size_t index_)
+        : index(static_cast<u32>(index_)), is_partition(false), partition_data_index(0)
+    {
+    }
     DataEntry(size_t index_, size_t partition_data_index_)
         : index(static_cast<u32>(index_)), is_partition(true),
           partition_data_index(static_cast<u8>(partition_data_index_))
@@ -201,6 +203,8 @@ private:
     bool Decompress();
     bool HandleExceptions(const u8* data, size_t bytes_allocated, size_t bytes_written,
                           size_t* bytes_used, bool align);
+
+    size_t GetOutBytesWrittenExcludingExceptions() const;
 
     DecompressionBuffer m_in;
     DecompressionBuffer m_out;
@@ -254,11 +258,12 @@ private:
       return std::tie(partition_key, data_size, encrypted, value) >
              std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
     }
+
     bool operator!=(const ReuseID& other) const { return !operator==(other); }
     bool operator>=(const ReuseID& other) const { return !operator<(other); }
     bool operator<=(const ReuseID& other) const { return !operator>(other); }
 
-    const WiiKey* partition_key;
+    WiiKey partition_key;
     u64 data_size;
     bool encrypted;
     u8 value;
@@ -279,11 +284,11 @@ private:
 
   struct CompressParameters
   {
-    std::vector<u8> data;
-    const DataEntry* data_entry;
-    u64 data_offset;
-    u64 bytes_read;
-    size_t group_index;
+    std::vector<u8> data{};
+    const DataEntry* data_entry = nullptr;
+    u64 data_offset = 0;
+    u64 bytes_read = 0;
+    size_t group_index = 0;
   };
 
   struct WIAOutputParametersEntry
@@ -310,8 +315,8 @@ private:
   struct OutputParameters
   {
     std::vector<OutputParametersEntry> entries;
-    u64 bytes_read;
-    size_t group_index;
+    u64 bytes_read = 0;
+    size_t group_index = 0;
   };
 
   static bool PadTo4(File::IOFile* file, u64* bytes_written);

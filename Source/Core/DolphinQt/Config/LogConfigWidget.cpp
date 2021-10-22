@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/LogConfigWidget.h"
 
@@ -78,7 +77,7 @@ void LogConfigWidget::CreateWidgets()
   verbosity_layout->addWidget(m_verbosity_error);
   verbosity_layout->addWidget(m_verbosity_warning);
   verbosity_layout->addWidget(m_verbosity_info);
-  if constexpr (MAX_LOGLEVEL == Common::Log::LOG_LEVELS::LDEBUG)
+  if constexpr (Common::Log::MAX_LOGLEVEL == Common::Log::LOG_LEVELS::LDEBUG)
   {
     verbosity_layout->addWidget(m_verbosity_debug);
   }

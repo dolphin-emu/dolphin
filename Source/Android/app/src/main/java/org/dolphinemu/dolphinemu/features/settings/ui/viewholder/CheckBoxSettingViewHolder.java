@@ -1,8 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
@@ -38,25 +43,8 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
   {
     mItem = (CheckBoxSetting) item;
 
-    // Special case for LogTypes retrieved via JNI since those aren't string references.
-    if (item.getNameId() == 0 && item instanceof LogCheckBoxSetting)
-    {
-      String key = ((LogCheckBoxSetting) item).getKey();
-      mTextSettingName.setText(SettingsFragmentPresenter.LOG_TYPE_NAMES.get(key));
-    }
-    else
-    {
-      mTextSettingName.setText(item.getNameId());
-    }
-
-    if (item.getDescriptionId() > 0)
-    {
-      mTextSettingDescription.setText(item.getDescriptionId());
-    }
-    else
-    {
-      mTextSettingDescription.setText("");
-    }
+    mTextSettingName.setText(item.getName());
+    mTextSettingDescription.setText(item.getDescription());
 
     mCheckbox.setChecked(mItem.isChecked(getAdapter().getSettings()));
 
@@ -77,5 +65,11 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
     getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
 
     setStyle(mTextSettingName, mItem);
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 }

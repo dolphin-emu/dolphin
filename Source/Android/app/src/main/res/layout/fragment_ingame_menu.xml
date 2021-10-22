@@ -15,6 +15,8 @@
         tools:text="The Legend of Zelda: The Wind Waker"
         android:textColor="@android:color/white"
         android:textSize="20sp"
+        android:maxLines="@integer/game_title_lines"
+        android:ellipsize="end"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="32dp"
         android:layout_marginBottom="16dp"/>
@@ -23,6 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:scrollbarSize="8dp"
         android:fadeScrollbars="false">
 
         <LinearLayout
@@ -30,16 +33,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <Button
-                android:id="@+id/menu_settings_core"
-                android:text="@string/grid_menu_config"
-                style="@style/InGameMenuOption"/>
-
-            <Button
-                android:id="@+id/menu_settings_graphics"
-                android:text="@string/grid_menu_graphics_settings"
-                style="@style/InGameMenuOption"/>
 
             <Button
                 android:id="@+id/menu_pause_emulation"
@@ -82,6 +75,11 @@
                 android:visibility="gone"/>
 
             <Button
+                android:id="@+id/menu_settings"
+                android:text="@string/grid_menu_settings"
+                style="@style/InGameMenuOption"/>
+
+            <Button
                 android:id="@+id/menu_overlay_controls"
                 android:text="@string/emulation_overlay_controls"
                 style="@style/InGameMenuOption"/>
@@ -89,11 +87,6 @@
             <Button
                 android:id="@+id/menu_refresh_wiimotes"
                 android:text="@string/emulation_refresh_wiimotes"
-                style="@style/InGameMenuOption"/>
-
-            <Button
-                android:id="@+id/menu_screen_orientation"
-                android:text="@string/emulation_screen_orientation"
                 style="@style/InGameMenuOption"/>
 
             <Button

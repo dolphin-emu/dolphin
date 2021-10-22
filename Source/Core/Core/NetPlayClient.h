@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -10,7 +9,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -45,6 +43,7 @@ public:
 
   virtual void OnMsgChangeGame(const SyncIdentifier& sync_identifier,
                                const std::string& netplay_name) = 0;
+  virtual void OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
   virtual void OnMsgPowerButton() = 0;
@@ -64,6 +63,8 @@ public:
   virtual std::shared_ptr<const UICommon::GameFile>
   FindGameFile(const SyncIdentifier& sync_identifier,
                SyncIdentifierComparison* found = nullptr) = 0;
+  virtual std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
+                                     int device_number) = 0;
   virtual void ShowMD5Dialog(const std::string& title) = 0;
   virtual void SetMD5Progress(int pid, int progress) = 0;
   virtual void SetMD5Result(int pid, const std::string& result) = 0;
@@ -81,11 +82,11 @@ public:
 class Player
 {
 public:
-  PlayerId pid;
+  PlayerId pid{};
   std::string name;
   std::string revision;
-  u32 ping;
-  SyncIdentifierComparison game_status;
+  u32 ping = 0;
+  SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -125,7 +126,7 @@ public:
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress addr) override;
-  void OnConnectFailed(u8 reason) override;
+  void OnConnectFailed(TraversalConnectFailedReason reason) override;
 
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;
@@ -141,6 +142,7 @@ public:
   bool DoAllPlayersHaveGame();
 
   const PadMappingArray& GetPadMapping() const;
+  const GBAConfigArray& GetGBAConfig() const;
   const PadMappingArray& GetWiimoteMapping() const;
 
   void AdjustPadBufferSize(unsigned int size);
@@ -151,7 +153,7 @@ protected:
   struct AsyncQueueEntry
   {
     sf::Packet packet;
-    u8 channel_id;
+    u8 channel_id = 0;
   };
 
   void ClearBuffers();
@@ -201,8 +203,9 @@ protected:
 
   u32 m_current_game = 0;
 
-  PadMappingArray m_pad_map;
-  PadMappingArray m_wiimote_map;
+  PadMappingArray m_pad_map{};
+  GBAConfigArray m_gba_config{};
+  PadMappingArray m_wiimote_map{};
 
   bool m_is_recording = false;
 
@@ -222,8 +225,6 @@ private:
 
   void SyncSaveDataResponse(bool success);
   void SyncCodeResponse(bool success);
-  bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path);
-  std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet);
 
   bool PollLocalPad(int local_pad, sf::Packet& packet);
   void SendPadHostPoll(PadIndex pad_num);
@@ -231,13 +232,58 @@ private:
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void SendWiimoteState(int in_game_pad, const WiimoteInput& nw);
-  unsigned int OnData(sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
+  void SendGameStatus();
   void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
+
+  void OnData(sf::Packet& packet);
+  void OnPlayerJoin(sf::Packet& packet);
+  void OnPlayerLeave(sf::Packet& packet);
+  void OnChatMessage(sf::Packet& packet);
+  void OnChunkedDataStart(sf::Packet& packet);
+  void OnChunkedDataEnd(sf::Packet& packet);
+  void OnChunkedDataPayload(sf::Packet& packet);
+  void OnChunkedDataAbort(sf::Packet& packet);
+  void OnPadMapping(sf::Packet& packet);
+  void OnWiimoteMapping(sf::Packet& packet);
+  void OnGBAConfig(sf::Packet& packet);
+  void OnPadData(sf::Packet& packet);
+  void OnPadHostData(sf::Packet& packet);
+  void OnWiimoteData(sf::Packet& packet);
+  void OnPadBuffer(sf::Packet& packet);
+  void OnHostInputAuthority(sf::Packet& packet);
+  void OnGolfSwitch(sf::Packet& packet);
+  void OnGolfPrepare(sf::Packet& packet);
+  void OnChangeGame(sf::Packet& packet);
+  void OnGameStatus(sf::Packet& packet);
+  void OnStartGame(sf::Packet& packet);
+  void OnStopGame(sf::Packet& packet);
+  void OnPowerButton();
+  void OnPing(sf::Packet& packet);
+  void OnPlayerPingData(sf::Packet& packet);
+  void OnDesyncDetected(sf::Packet& packet);
+  void OnSyncGCSRAM(sf::Packet& packet);
+  void OnSyncSaveData(sf::Packet& packet);
+  void OnSyncSaveDataNotify(sf::Packet& packet);
+  void OnSyncSaveDataRaw(sf::Packet& packet);
+  void OnSyncSaveDataGCI(sf::Packet& packet);
+  void OnSyncSaveDataWii(sf::Packet& packet);
+  void OnSyncSaveDataGBA(sf::Packet& packet);
+  void OnSyncCodes(sf::Packet& packet);
+  void OnSyncCodesNotify();
+  void OnSyncCodesNotifyGecko(sf::Packet& packet);
+  void OnSyncCodesDataGecko(sf::Packet& packet);
+  void OnSyncCodesNotifyAR(sf::Packet& packet);
+  void OnSyncCodesDataAR(sf::Packet& packet);
+  void OnComputeMD5(sf::Packet& packet);
+  void OnMD5Progress(sf::Packet& packet);
+  void OnMD5Result(sf::Packet& packet);
+  void OnMD5Error(sf::Packet& packet);
+  void OnMD5Abort();
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;

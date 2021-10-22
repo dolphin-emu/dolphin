@@ -1,15 +1,19 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <initializer_list>
 #include <type_traits>
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 
 namespace Common
 {
@@ -355,6 +359,67 @@ T ExpandValue(T value, size_t left_shift_amount)
 
   return (value << left_shift_amount) |
          (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
+}
+
+template <typename T>
+constexpr int CountLeadingZerosConst(T value)
+{
+  int result = sizeof(T) * 8;
+  while (value)
+  {
+    result--;
+    value >>= 1;
+  }
+  return result;
+}
+
+constexpr int CountLeadingZeros(uint64_t value)
+{
+#if defined(__GNUC__)
+  return value ? __builtin_clzll(value) : 64;
+#elif defined(_MSC_VER)
+  if (std::is_constant_evaluated())
+  {
+    return CountLeadingZerosConst(value);
+  }
+  else
+  {
+    unsigned long index = 0;
+    return _BitScanReverse64(&index, value) ? 63 - index : 64;
+  }
+#else
+  return CountLeadingZerosConst(value);
+#endif
+}
+
+constexpr int CountLeadingZeros(uint32_t value)
+{
+#if defined(__GNUC__)
+  return value ? __builtin_clz(value) : 32;
+#elif defined(_MSC_VER)
+  if (std::is_constant_evaluated())
+  {
+    return CountLeadingZerosConst(value);
+  }
+  else
+  {
+    unsigned long index = 0;
+    return _BitScanReverse(&index, value) ? 31 - index : 32;
+  }
+#else
+  return CountLeadingZerosConst(value);
+#endif
+}
+
+#undef CONSTEXPR_FROM_INTRINSIC
+
+template <typename T>
+constexpr T LargestPowerOf2Divisor(T value)
+{
+  static_assert(std::is_unsigned<T>(),
+                "LargestPowerOf2Divisor only makes sense for unsigned types.");
+
+  return value & -static_cast<std::make_signed_t<T>>(value);
 }
 
 }  // namespace Common

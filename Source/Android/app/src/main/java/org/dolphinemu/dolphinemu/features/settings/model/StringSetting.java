@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -108,5 +110,10 @@ public enum StringSetting implements AbstractStringSetting
   public String getStringGlobal()
   {
     return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
+  }
+
+  public void setStringGlobal(int layer, String newValue)
+  {
+    NativeConfig.setString(layer, mFile, mSection, mKey, newValue);
   }
 }

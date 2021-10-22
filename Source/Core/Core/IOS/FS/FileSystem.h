@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -205,6 +204,7 @@ public:
   /// Reposition the file offset for a file descriptor.
   virtual Result<u32> SeekFile(Fd fd, u32 offset, SeekMode mode) = 0;
   /// Get status for a file descriptor.
+  /// Guaranteed to succeed for a valid file descriptor.
   virtual Result<FileStatus> GetFileStatus(Fd fd) = 0;
 
   /// Create a file with the specified path and metadata.

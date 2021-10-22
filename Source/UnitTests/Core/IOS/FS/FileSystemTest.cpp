@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <array>
@@ -25,15 +24,31 @@ class FileSystemTest : public testing::Test
 protected:
   FileSystemTest() : m_profile_path{File::CreateTempDir()}
   {
+    if (UserDirectoryCreationFailed())
+    {
+      return;
+    }
     UICommon::SetUserDirectory(m_profile_path);
     m_fs = IOS::HLE::Kernel{}.GetFS();
   }
 
   virtual ~FileSystemTest()
   {
+    if (UserDirectoryCreationFailed())
+    {
+      return;
+    }
     m_fs.reset();
     File::DeleteDirRecursively(m_profile_path);
   }
+  void SetUp()
+  {
+    if (UserDirectoryCreationFailed())
+    {
+      FAIL();
+    }
+  }
+  bool UserDirectoryCreationFailed() const { return m_profile_path.empty(); }
 
   std::shared_ptr<FileSystem> m_fs;
 

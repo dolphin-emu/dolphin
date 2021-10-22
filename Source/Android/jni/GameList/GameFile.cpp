@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "jni/GameList/GameFile.h"
 
@@ -161,6 +160,12 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_isDatel
                                                                                      jobject obj)
 {
   return static_cast<jboolean>(GetRef(env, obj)->IsDatelDisc());
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_isNKit(JNIEnv* env,
+                                                                                jobject obj)
+{
+  return static_cast<jboolean>(GetRef(env, obj)->IsNKit());
 }
 
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,

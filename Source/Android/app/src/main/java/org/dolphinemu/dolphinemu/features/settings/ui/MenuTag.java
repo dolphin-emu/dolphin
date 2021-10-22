@@ -1,9 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.annotation.NonNull;
 
 public enum MenuTag
 {
+  SETTINGS("settings"),
   CONFIG("config"),
   CONFIG_GENERAL("config_general"),
   CONFIG_INTERFACE("config_interface"),
@@ -13,14 +16,15 @@ public enum MenuTag
   CONFIG_WII("config_wii"),
   CONFIG_ADVANCED("config_advanced"),
   CONFIG_LOG("config_log"),
-  WIIMOTE("wiimote"),
-  WIIMOTE_EXTENSION("wiimote_extension"),
-  GCPAD_TYPE("gc_pad_type"),
-  GRAPHICS("graphics"),
-  HACKS("hacks"),
   DEBUG("debug"),
+  GRAPHICS("graphics"),
   ENHANCEMENTS("enhancements"),
   STEREOSCOPY("stereoscopy"),
+  HACKS("hacks"),
+  ADVANCED_GRAPHICS("advanced_graphics"),
+  GCPAD_TYPE("gc_pad_type"),
+  WIIMOTE("wiimote"),
+  WIIMOTE_EXTENSION("wiimote_extension"),
   GCPAD_1("gcpad", 0),
   GCPAD_2("gcpad", 1),
   GCPAD_3("gcpad", 2),

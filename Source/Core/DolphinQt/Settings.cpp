@@ -1,15 +1,27 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings.h"
+
+#include <atomic>
 
 #include <QApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QRadioButton>
 #include <QSize>
+#include <QWidget>
+
+#ifdef _WIN32
+#include <memory>
+
+#include <fmt/format.h>
+
+#include <QTabBar>
+#include <QToolButton>
+#endif
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -24,6 +36,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -36,17 +49,44 @@
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
-  Core::SetOnStateChangedCallback([this](Core::State new_state) {
+  Core::AddOnStateChangedCallback([this](Core::State new_state) {
     QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
   });
 
-  Config::AddConfigChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
+  Config::AddConfigChangedCallback([this] {
+    static std::atomic<bool> do_once{true};
+    if (do_once.exchange(false))
+    {
+      // Calling ConfigChanged() with a "delay" can have risks, for example, if from
+      // code we change some configs that result in Qt greying out some setting, we could
+      // end up editing that setting before its greyed out, sending out an event,
+      // which might not be expected or handled by the code, potentially crashing.
+      // The only safe option would be to wait on the Qt thread to have finished executing this.
+      QueueOnObject(this, [this] {
+        do_once = true;
+        emit ConfigChanged();
+      });
+    }
+  });
 
-  g_controller_interface.RegisterDevicesChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit DevicesChanged(); }); });
+  g_controller_interface.RegisterDevicesChangedCallback([this] {
+    if (Host::GetInstance()->IsHostThread())
+    {
+      emit DevicesChanged();
+    }
+    else
+    {
+      // Any device shared_ptr in the host thread needs to be released immediately as otherwise
+      // they'd continue living until the queued event has run, but some devices can't be recreated
+      // until they are destroyed.
+      // This is safe from any thread. Devices will be refreshed and re-acquired and in
+      // DevicesChanged(). Waiting on QueueOnObject() to have finished running was not feasible as
+      // it would cause deadlocks without heavy workarounds.
+      emit ReleaseDevices();
 
-  SetCurrentUserStyle(GetCurrentUserStyle());
+      QueueOnObject(this, [this] { emit DevicesChanged(); });
+    }
+  });
 }
 
 Settings::~Settings() = default;
@@ -80,10 +120,13 @@ QString Settings::GetCurrentUserStyle() const
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
 }
 
+// Calling this before the main window has been created breaks the style of some widgets on
+// Windows 10/Qt 5.15.0. But only if we set a stylesheet that isn't an empty string.
 void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
 {
   QString stylesheet_contents;
 
+  // If we haven't found one, we continue with an empty (default) style
   if (!stylesheet_name.isEmpty() && AreUserStylesEnabled())
   {
     // Load custom user stylesheet
@@ -93,6 +136,42 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
     if (stylesheet.open(QFile::ReadOnly))
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
   }
+
+  // Define tooltips style if not already defined
+  if (!stylesheet_contents.contains(QStringLiteral("QToolTip"), Qt::CaseSensitive))
+  {
+    const QPalette& palette = qApp->palette();
+    QColor window_color;
+    QColor text_color;
+    QColor unused_text_emphasis_color;
+    QColor border_color;
+    GetToolTipStyle(window_color, text_color, unused_text_emphasis_color, border_color, palette,
+                    palette);
+
+    const auto tooltip_stylesheet =
+        QStringLiteral("QToolTip { background-color: #%1; color: #%2; padding: 8px; "
+                       "border: 1px; border-style: solid; border-color: #%3; }")
+            .arg(window_color.rgba(), 0, 16)
+            .arg(text_color.rgba(), 0, 16)
+            .arg(border_color.rgba(), 0, 16);
+    stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
+  }
+#ifdef _WIN32
+  // MSVC has a bug causing QTabBar scroll buttons to be partially transparent when they inherit any
+  // stylesheet (see https://bugreports.qt.io/browse/QTBUG-74187) which is triggered when setting
+  // qApp's stylesheet below. Setting the scroll buttons' color directly fixes the problem.
+
+  // Create a temporary QToolButton that's a child of a QTabBar in case that has different styling
+  // than a plain QToolButton.
+  const auto tab_bar = std::make_unique<QTabBar>();
+  auto* const tool_button = new QToolButton(tab_bar.get());
+
+  const QRgb background_color = tool_button->palette().color(QPalette::Button).rgba();
+
+  const std::string style_var =
+      fmt::format("QTabBar QToolButton {{ background-color: #{:08x}; }}", background_color);
+  stylesheet_contents.append(QString::fromStdString(style_var));
+#endif
 
   qApp->setStyleSheet(stylesheet_contents);
 
@@ -107,6 +186,32 @@ bool Settings::AreUserStylesEnabled() const
 void Settings::SetUserStylesEnabled(bool enabled)
 {
   GetQSettings().setValue(QStringLiteral("userstyle/enabled"), enabled);
+}
+
+void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
+                               QColor& emphasis_text_color, QColor& border_color,
+                               const QPalette& palette, const QPalette& high_contrast_palette) const
+{
+  const auto theme_window_color = palette.color(QPalette::Base);
+  const auto theme_window_hsv = theme_window_color.toHsv();
+  const auto brightness = theme_window_hsv.value();
+  const bool brightness_over_threshold = brightness > 128;
+  const QColor emphasis_text_color_1 = Qt::yellow;
+  const QColor emphasis_text_color_2 = QColor(QStringLiteral("#0090ff"));  // ~light blue
+  if (Config::Get(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS))
+  {
+    window_color = brightness_over_threshold ? QColor(72, 72, 72) : Qt::white;
+    text_color = brightness_over_threshold ? Qt::white : Qt::black;
+    emphasis_text_color = brightness_over_threshold ? emphasis_text_color_1 : emphasis_text_color_2;
+    border_color = high_contrast_palette.color(QPalette::Window).darker(160);
+  }
+  else
+  {
+    window_color = palette.color(QPalette::Window);
+    text_color = palette.color(QPalette::Text);
+    emphasis_text_color = brightness_over_threshold ? emphasis_text_color_2 : emphasis_text_color_1;
+    border_color = palette.color(QPalette::Text);
+  }
 }
 
 QStringList Settings::GetPaths() const
@@ -221,15 +326,27 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetHideCursor(bool hide_cursor)
+void Settings::SetCursorVisibility(SConfig::ShowCursor hideCursor)
 {
-  SConfig::GetInstance().bHideCursor = hide_cursor;
-  emit HideCursorChanged();
+  SConfig::GetInstance().m_show_cursor = hideCursor;
+
+  emit CursorVisibilityChanged();
 }
 
-bool Settings::GetHideCursor() const
+SConfig::ShowCursor Settings::GetCursorVisibility() const
 {
-  return SConfig::GetInstance().bHideCursor;
+  return SConfig::GetInstance().m_show_cursor;
+}
+
+void Settings::SetLockCursor(bool lock_cursor)
+{
+  SConfig::GetInstance().bLockCursor = lock_cursor;
+  emit LockCursorChanged();
+}
+
+bool Settings::GetLockCursor() const
+{
+  return SConfig::GetInstance().bLockCursor;
 }
 
 void Settings::SetKeepWindowOnTop(bool top)
@@ -248,14 +365,14 @@ bool Settings::IsKeepWindowOnTopEnabled() const
 
 int Settings::GetVolume() const
 {
-  return SConfig::GetInstance().m_Volume;
+  return Config::Get(Config::MAIN_AUDIO_VOLUME);
 }
 
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
   {
-    SConfig::GetInstance().m_Volume = volume;
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
     emit VolumeChanged(volume);
   }
 }
@@ -325,14 +442,14 @@ void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 
 bool Settings::GetCheatsEnabled() const
 {
-  return SConfig::GetInstance().bEnableCheats;
+  return Config::Get(Config::MAIN_ENABLE_CHEATS);
 }
 
 void Settings::SetCheatsEnabled(bool enabled)
 {
-  if (SConfig::GetInstance().bEnableCheats != enabled)
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS) != enabled)
   {
-    SConfig::GetInstance().bEnableCheats = enabled;
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
     emit EnableCheatsChanged(enabled);
   }
 }
@@ -520,6 +637,21 @@ void Settings::SetAutoUpdateTrack(const QString& mode)
 QString Settings::GetAutoUpdateTrack() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
+}
+
+void Settings::SetFallbackRegion(const DiscIO::Region& region)
+{
+  if (region == GetFallbackRegion())
+    return;
+
+  Config::SetBase(Config::MAIN_FALLBACK_REGION, region);
+
+  emit FallbackRegionChanged(region);
+}
+
+DiscIO::Region Settings::GetFallbackRegion() const
+{
+  return Config::Get(Config::MAIN_FALLBACK_REGION);
 }
 
 void Settings::SetAnalyticsEnabled(bool enabled)

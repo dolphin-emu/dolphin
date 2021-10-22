@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
@@ -58,6 +57,10 @@ bool CEXIETHERNET::XLinkNetworkInterface::Activate()
 
 void CEXIETHERNET::XLinkNetworkInterface::Deactivate()
 {
+  // Is the BBA Active? If not skip shutdown
+  if (!IsActivated())
+    return;
+
   // Send d; to tell XLink we want to disconnect cleanly
   // disconnect;optional_locally_unique_name;optional_padding
   std::string cmd =

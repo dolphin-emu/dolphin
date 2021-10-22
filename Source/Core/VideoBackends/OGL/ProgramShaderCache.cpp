@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
@@ -21,10 +20,10 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLShader.h"
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoBackends/OGL/OGLStreamBuffer.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -368,10 +367,10 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
-      PanicAlert("Failed to compile %s shader: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
+      PanicAlertFmt("Failed to compile {} shader: {}\n"
+                    "Debug info ({}, {}, {}):\n{}",
+                    prefix, filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                    g_ogl_config.gl_version, info_log);
 
       return false;
     }
@@ -413,10 +412,10 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
-      PanicAlert("Failed to link shaders: %s\n"
-                 "Debug info (%s, %s, %s):\n%s",
-                 filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, info_log.c_str());
+      PanicAlertFmt("Failed to link shaders: {}\n"
+                    "Debug info ({}, {}, {}):\n{}",
+                    filename, g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                    g_ogl_config.gl_version, info_log);
 
       return false;
     }
@@ -847,7 +846,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
       static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
-    PanicAlert("Failed to create shared context for shader compiling.");
+    PanicAlertFmt("Failed to create shared context for shader compiling.");
     return false;
   }
 

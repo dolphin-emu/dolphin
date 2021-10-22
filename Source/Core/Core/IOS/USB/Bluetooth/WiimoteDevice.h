@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -16,10 +15,7 @@ class PointerWrap;
 
 namespace IOS::HLE
 {
-namespace Device
-{
-class BluetoothEmu;
-}
+class BluetoothEmuDevice;
 
 class WiimoteDevice
 {
@@ -28,7 +24,7 @@ public:
   using FeaturesType = std::array<u8, HCI_FEATURES_SIZE>;
   using LinkKeyType = std::array<u8, HCI_KEY_SIZE>;
 
-  WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd);
+  WiimoteDevice(BluetoothEmuDevice* host, int number, bdaddr_t bd);
   ~WiimoteDevice();
 
   WiimoteDevice(const WiimoteDevice&) = delete;
@@ -116,7 +112,7 @@ private:
 
   using ChannelMap = std::map<u16, SChannel>;
 
-  Device::BluetoothEmu* m_host;
+  BluetoothEmuDevice* m_host;
   WiimoteCommon::HIDWiimote* m_hid_source = nullptr;
 
   // State to save:

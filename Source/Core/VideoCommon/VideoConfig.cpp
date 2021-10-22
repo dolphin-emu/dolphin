@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 
@@ -32,29 +31,6 @@ void UpdateActiveConfig()
     Movie::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
   g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
-}
-
-VideoConfig::VideoConfig()
-{
-  // Needed for the first frame, I think
-  fAspectRatioHackW = 1;
-  fAspectRatioHackH = 1;
-
-  // disable all features by default
-  backend_info.api_type = APIType::Nothing;
-  backend_info.MaxTextureSize = 16384;
-  backend_info.bSupportsExclusiveFullscreen = false;
-  backend_info.bSupportsMultithreading = false;
-  backend_info.bSupportsST3CTextures = false;
-  backend_info.bSupportsBPTCTextures = false;
-
-  bEnableValidationLayer = false;
-
-#if defined(ANDROID)
-  bBackendMultithreading = false;
-#else
-  bBackendMultithreading = true;
-#endif
 }
 
 void VideoConfig::Refresh()
@@ -92,8 +68,6 @@ void VideoConfig::Refresh()
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
   bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
-  bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
-  iFreelookControlType = Config::Get(Config::GFX_FREE_LOOK_CONTROL_TYPE);
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
@@ -160,6 +134,7 @@ void VideoConfig::Refresh()
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
+  iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 

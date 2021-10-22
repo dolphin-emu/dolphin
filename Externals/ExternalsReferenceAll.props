@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
+      <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(DolphinRootDir)Languages\Languages.vcxproj">
+      <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
+      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)bzip2\bzip2.vcxproj">
+      <Project>{1d8c51d2-ffa4-418e-b183-9f42b6a6717e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
+      <Project>{c636d9d1-82fe-42b5-9987-63b7d4836341}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)cubeb\msvc\cubeb.vcxproj">
+      <Project>{8ea11166-6512-44fc-b7a5-a4d1ecc81170}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)curl\curl.vcxproj">
+      <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
+      <Project>{4482fd2a-ec43-3ffb-ac20-2e5c54b05ead}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)ed25519\ed25519.vcxproj">
+      <Project>{5bdf4b91-1491-4fb0-bc27-78e9a8e97dc3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
+      <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)FreeSurround\FreeSurround.vcxproj">
+      <Project>{8498f2fa-5ca6-4169-9971-de5b1fe6132c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)glslang\glslang.vcxproj">
+      <Project>{d178061b-84d3-44f9-beed-efd18d9033f0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)imgui\imgui.vcxproj">
+      <Project>{4c3b2264-ea73-4a7b-9cfe-65b0fd635ebb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)liblzma\liblzma.vcxproj">
+      <Project>{055a775f-b4f5-4970-9240-f6cf7661f37b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libusb\libusb-1.0.vcxproj">
+      <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
+      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)mGBA\mgba.vcxproj">
+      <Project>{864C4C8E-296D-3DBC-AD83-F1D5CB6E8EC6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)miniupnpc\miniupnpc.vcxproj">
+      <Project>{31643fdb-1bb8-4965-9de7-000fc88d35ae}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)minizip\minizip.vcxproj">
+      <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)picojson\picojson.vcxproj">
+      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
+      <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
+      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)soundtouch\SoundTouch.vcxproj">
+      <Project>{ec082900-b4d8-42e9-9663-77f02f6936ae}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{677ea016-1182-440c-9345-dc88d1e98c0c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
+      <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

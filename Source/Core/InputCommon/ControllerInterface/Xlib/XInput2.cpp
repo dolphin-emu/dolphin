@@ -1,6 +1,5 @@
 // Copyright 2013 Max Eliaser
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
@@ -197,6 +196,11 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   // Mouse Axis, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
     AddInput(new Axis(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.axis.y : &m_state.axis.x));
+
+  // Relative Mouse, X-/+ and Y-/+
+  for (int i = 0; i != 4; ++i)
+    AddInput(new RelativeMouse(!!(i & 2), !!(i & 1),
+                               (i & 2) ? &m_state.relative_mouse.y : &m_state.relative_mouse.x));
 }
 
 KeyboardMouse::~KeyboardMouse()
@@ -227,8 +231,8 @@ void KeyboardMouse::UpdateCursor()
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // the mouse position as a range from -1 to 1
-  m_state.cursor.x = (win_x / win_attribs.width * 2 - 1) * window_scale.x;
-  m_state.cursor.y = (win_y / win_attribs.height * 2 - 1) * window_scale.y;
+  m_state.cursor.x = (win_x / std::max(win_attribs.width, 1) * 2 - 1) * window_scale.x;
+  m_state.cursor.y = (win_y / std::max(win_attribs.height, 1) * 2 - 1) * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()
@@ -301,6 +305,9 @@ void KeyboardMouse::UpdateInput()
 
     XFreeEventData(m_display, &event.xcookie);
   }
+
+  m_state.relative_mouse.x = delta_x;
+  m_state.relative_mouse.y = delta_y;
 
   // apply axis smoothing
   m_state.axis.x *= MOUSE_AXIS_SMOOTHING;
@@ -391,7 +398,19 @@ KeyboardMouse::Axis::Axis(u8 index, bool positive, const float* axis)
   name = fmt::format("Axis {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
+KeyboardMouse::RelativeMouse::RelativeMouse(u8 index, bool positive, const float* axis)
+    : m_axis(axis), m_index(index), m_positive(positive)
+{
+  name =
+      fmt::format("RelativeMouse {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
+}
+
 ControlState KeyboardMouse::Axis::GetState() const
+{
+  return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
+}
+
+ControlState KeyboardMouse::RelativeMouse::GetState() const
 {
   return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
 }

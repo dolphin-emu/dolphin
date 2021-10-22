@@ -1,8 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
@@ -16,28 +19,32 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.ui.main.MainActivity;
-import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
-import org.dolphinemu.dolphinemu.utils.TvUtil;
+
+import java.util.Set;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
+  private static final String ARG_IS_WII = "is_wii";
   private static final String FRAGMENT_TAG = "settings";
   private SettingsActivityPresenter mPresenter;
 
   private ProgressDialog dialog;
 
-  public static void launch(Context context, MenuTag menuTag, String gameId, int revision)
+  public static void launch(Context context, MenuTag menuTag, String gameId, int revision,
+          boolean isWii)
   {
     Intent settings = new Intent(context, SettingsActivity.class);
     settings.putExtra(ARG_MENU_TAG, menuTag);
     settings.putExtra(ARG_GAME_ID, gameId);
     settings.putExtra(ARG_REVISION, revision);
+    settings.putExtra(ARG_IS_WII, isWii);
     context.startActivity(settings);
   }
 
@@ -45,8 +52,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     Intent settings = new Intent(context, SettingsActivity.class);
     settings.putExtra(ARG_MENU_TAG, menuTag);
-    settings.putExtra(ARG_GAME_ID, "");
-    settings.putExtra(ARG_REVISION, 0);
+    settings.putExtra(ARG_IS_WII, !NativeLibrary.IsRunning() || NativeLibrary.IsEmulatingWii());
     context.startActivity(settings);
   }
 
@@ -55,24 +61,21 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onCreate(savedInstanceState);
 
-    if (TvUtil.isLeanback(getApplicationContext()))
-    {
-      TvMainActivity.skipRescanningLibrary();
-    }
-    else
-    {
-      MainActivity.skipRescanningLibrary();
-    }
+    MainPresenter.skipRescanningLibrary();
 
     setContentView(R.layout.activity_settings);
 
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
+    if (gameID == null)
+      gameID = "";
     int revision = launcher.getIntExtra(ARG_REVISION, 0);
+    boolean isWii = launcher.getBooleanExtra(ARG_IS_WII, true);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
 
     mPresenter = new SettingsActivityPresenter(this, getSettings());
-    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, getApplicationContext());
+    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii,
+            getApplicationContext());
   }
 
   @Override
@@ -168,11 +171,39 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     super.onActivityResult(requestCode, resultCode, result);
 
     // If the user picked a file, as opposed to just backing out.
-    if (resultCode == MainActivity.RESULT_OK)
+    if (resultCode == RESULT_OK)
     {
-      String path = FileBrowserHelper.getSelectedPath(result);
-      getFragment().getAdapter().onFilePickerConfirmation(path);
+      if (requestCode != MainPresenter.REQUEST_DIRECTORY)
+      {
+        Uri uri = canonicalizeIfPossible(result.getData());
+
+        Set<String> validExtensions = requestCode == MainPresenter.REQUEST_GAME_FILE ?
+                FileBrowserHelper.GAME_EXTENSIONS : FileBrowserHelper.RAW_EXTENSION;
+
+        int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+        if (requestCode != MainPresenter.REQUEST_GAME_FILE)
+          flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+        int takeFlags = flags & result.getFlags();
+
+        FileBrowserHelper.runAfterExtensionCheck(this, uri, validExtensions, () ->
+        {
+          getContentResolver().takePersistableUriPermission(uri, takeFlags);
+          getFragment().getAdapter().onFilePickerConfirmation(uri.toString());
+        });
+      }
+      else
+      {
+        String path = FileBrowserHelper.getSelectedPath(result);
+        getFragment().getAdapter().onFilePickerConfirmation(path);
+      }
     }
+  }
+
+  @NonNull
+  private Uri canonicalizeIfPossible(@NonNull Uri uri)
+  {
+    Uri canonicalizedUri = getContentResolver().canonicalize(uri);
+    return canonicalizedUri != null ? canonicalizedUri : uri;
   }
 
   @Override

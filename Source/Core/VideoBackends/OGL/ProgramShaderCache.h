@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -60,7 +59,7 @@ struct PipelineProgramKeyHash
 
 struct PipelineProgram
 {
-  PipelineProgramKey key;
+  PipelineProgramKey key{};
   SHADER shader;
   std::atomic_size_t reference_count{1};
   bool binary_retrieved = false;

@@ -1,6 +1,5 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/ConvertDialog.h"
 
@@ -12,7 +11,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -27,6 +25,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/WIABlob.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
@@ -184,8 +183,8 @@ void ConvertDialog::OnFormatChanged()
       constexpr int FALLBACK_BLOCK_SIZE = 0x4000;
       if (!block_size_ok(FALLBACK_BLOCK_SIZE))
       {
-        ERROR_LOG(MASTER_LOG, "Failed to find a block size which does not cause problems "
-                              "when decompressing using an old version of Dolphin");
+        ERROR_LOG_FMT(MASTER_LOG, "Failed to find a block size which does not cause problems "
+                                  "when decompressing using an old version of Dolphin");
       }
       AddToBlockSizeComboBox(FALLBACK_BLOCK_SIZE);
     }
@@ -330,6 +329,21 @@ void ConvertDialog::Convert()
     }
   }
 
+  if (std::any_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsNKit)))
+  {
+    if (!ShowAreYouSureDialog(
+            tr("Dolphin can't convert NKit files to non-NKit files. Converting an NKit file in "
+               "Dolphin will result in another NKit file.\n"
+               "\n"
+               "If you want to convert an NKit file to a non-NKit file, you can use the same "
+               "program as you originally used when converting the file to the NKit format.\n"
+               "\n"
+               "Do you want to continue anyway?")))
+    {
+      return;
+    }
+  }
+
   QString extension;
   QString filter;
   switch (format)
@@ -360,7 +374,7 @@ void ConvertDialog::Convert()
 
   if (m_files.size() > 1)
   {
-    dst_dir = QFileDialog::getExistingDirectory(
+    dst_dir = DolphinFileDialog::getExistingDirectory(
         this, tr("Select where you want to save the converted images"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath())).dir().absolutePath());
 
@@ -369,7 +383,7 @@ void ConvertDialog::Convert()
   }
   else
   {
-    dst_path = QFileDialog::getSaveFileName(
+    dst_path = DolphinFileDialog::getSaveFileName(
         this, tr("Select where you want to save the converted image"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath()))
             .dir()
@@ -413,9 +427,9 @@ void ConvertDialog::Convert()
 
     if (m_files.size() > 1)
     {
+      // i18n: %1 is a filename.
       progress_dialog.GetRaw()->setLabelText(
-          tr("Converting...") + QLatin1Char{'\n'} +
-          QFileInfo(QString::fromStdString(original_path)).fileName());
+          tr("Converting...\n%1").arg(QFileInfo(QString::fromStdString(original_path)).fileName()));
     }
 
     std::unique_ptr<DiscIO::BlobReader> blob_reader;

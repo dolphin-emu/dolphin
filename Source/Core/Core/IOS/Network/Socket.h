@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -15,7 +14,8 @@ typedef pollfd pollfd_t;
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__HAIKU__)
+#elif defined(__linux__) or defined(__APPLE__) or defined(__FreeBSD__) or defined(__NetBSD__) or   \
+    defined(__HAIKU__)
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/ioctl.h>
@@ -42,9 +42,12 @@ typedef struct pollfd pollfd_t;
 #endif
 
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <list>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -182,6 +185,7 @@ public:
   WiiSocket& operator=(WiiSocket&&) = default;
 
 private:
+  using Timeout = std::chrono::time_point<std::chrono::steady_clock>;
   struct sockop
   {
     Request request;
@@ -202,14 +206,20 @@ private:
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
+  const Timeout& GetTimeout();
+  void ResetTimeout();
+
   void DoSock(Request request, NET_IOCTL type);
   void DoSock(Request request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
+
   s32 fd = -1;
   s32 wii_fd = -1;
   bool nonBlock = false;
   std::list<sockop> pending_sockops;
+
+  std::optional<Timeout> timeout;
 };
 
 class WiiSockMan
@@ -223,13 +233,13 @@ public:
 
   struct PollCommand
   {
-    u32 request_addr;
-    u32 buffer_out;
+    u32 request_addr = 0;
+    u32 buffer_out = 0;
     std::vector<pollfd_t> wii_fds;
-    s64 timeout;
+    s64 timeout = 0;
   };
 
-  static s32 GetNetErrorCode(s32 ret, const char* caller, bool isRW);
+  static s32 GetNetErrorCode(s32 ret, std::string_view caller, bool is_rw);
   static char* DecodeError(s32 ErrorCode);
 
   static WiiSockMan& GetInstance()
@@ -260,8 +270,8 @@ public:
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
-      ERROR_LOG(IOS_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, request.address,
-                type);
+      ERROR_LOG_FMT(IOS_NET, "DoSock: Error, fd not found ({:08x}, {:08X}, {:08X})", sock,
+                    request.address, type);
       GetIOS()->EnqueueIPCReply(request, -SO_EBADF);
     }
     else
@@ -282,7 +292,7 @@ private:
   void UpdatePollCommands();
 
   std::unordered_map<s32, WiiSocket> WiiSockets;
-  s32 errno_last;
+  s32 errno_last = 0;
   std::vector<PollCommand> pending_polls;
   std::chrono::time_point<std::chrono::high_resolution_clock> last_time =
       std::chrono::high_resolution_clock::now();

@@ -1,7 +1,6 @@
 /*
  * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2+
- * Refer to the license.txt file included.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 package org.dolphinemu.dolphinemu;
@@ -375,6 +374,8 @@ public final class NativeLibrary
    */
   public static native void ReportStartToAnalytics();
 
+  public static native void GenerateNewStatisticsId();
+
   /**
    * Begins emulation.
    */
@@ -392,6 +393,8 @@ public final class NativeLibrary
 
   public static native void SurfaceDestroyed();
 
+  public static native boolean HasSurface();
+
   /**
    * Unpauses emulation from a paused state.
    */
@@ -408,11 +411,20 @@ public final class NativeLibrary
   public static native void StopEmulation();
 
   /**
+   * Ensures that IsRunning will return true from now on until emulation exits.
+   * (If this is not called, IsRunning will start returning true at some point
+   * after calling Run.)
+   */
+  public static native void SetIsBooting();
+
+  /**
    * Returns true if emulation is running (or is paused).
    */
   public static native boolean IsRunning();
 
   public static native boolean IsRunningAndStarted();
+
+  public static native boolean IsRunningAndUnpaused();
 
   /**
    * Enables or disables CPU block profiling
@@ -441,8 +453,6 @@ public final class NativeLibrary
   public static native LinkedHashMap<String, String> GetLogTypeNames();
 
   public static native void ReloadLoggerConfig();
-
-  public static native boolean InstallWAD(String file);
 
   public static native boolean ConvertDiscImage(String inPath, String outPath, int platform,
           int format, int blockSize, int compression, int compressionLevel, boolean scrub,

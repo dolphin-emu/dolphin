@@ -1,10 +1,16 @@
 add_library(main SHARED
+  Cheats/ARCheat.cpp
+  Cheats/Cheats.h
+  Cheats/GeckoCheat.cpp
+  Cheats/PatchCheat.cpp
+  Config/NativeConfig.cpp
+  Config/PostProcessing.cpp
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
   IniFile.cpp
   MainAndroid.cpp
-  NativeConfig.cpp
+  WiiUtils.cpp
 )
 
 target_link_libraries(main

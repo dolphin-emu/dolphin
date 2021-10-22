@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -15,7 +14,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/LinearDiskCache.h"
 
 #include "VideoCommon/AbstractPipeline.h"
@@ -54,7 +53,7 @@ public:
   void InitializeShaderCache();
 
   // Changes the shader host config. Shaders should be reloaded afterwards.
-  void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config = host_config; }
+  void SetHostConfig(const ShaderHostConfig& host_config) { m_host_config.bits = host_config.bits; }
 
   // Reloads/recreates all shaders and pipelines.
   void Reload();
@@ -212,7 +211,7 @@ private:
     struct Shader
     {
       std::unique_ptr<AbstractShader> shader;
-      bool pending;
+      bool pending = false;
     };
     std::map<Uid, Shader> shader_map;
     LinearDiskCache<Uid, u8> disk_cache;

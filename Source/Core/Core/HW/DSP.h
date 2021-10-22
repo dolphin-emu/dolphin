@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -82,4 +81,4 @@ u8* GetARAMPtr();
 void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
 
-}  // end of namespace DSP
+}  // namespace DSP

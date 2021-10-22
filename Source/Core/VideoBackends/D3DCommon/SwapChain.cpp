@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3DCommon/SwapChain.h"
 
@@ -126,7 +125,7 @@ bool SwapChain::CreateSwapChain(bool stereo)
 
   if (FAILED(hr))
   {
-    PanicAlert("Failed to create swap chain with HRESULT %08X", hr);
+    PanicAlertFmt("Failed to create swap chain with HRESULT {:08X}", hr);
     return false;
   }
 
@@ -139,7 +138,7 @@ bool SwapChain::CreateSwapChain(bool stereo)
   m_stereo = stereo;
   if (!CreateSwapChainBuffers())
   {
-    PanicAlert("Failed to create swap chain buffers");
+    PanicAlertFmt("Failed to create swap chain buffers");
     DestroySwapChainBuffers();
     m_swap_chain.Reset();
     return false;
@@ -187,7 +186,7 @@ void SwapChain::SetStereo(bool stereo)
   DestroySwapChain();
   if (!CreateSwapChain(stereo))
   {
-    PanicAlert("Failed to switch swap chain stereo mode");
+    PanicAlertFmt("Failed to switch swap chain stereo mode");
     CreateSwapChain(false);
   }
 }

@@ -1,10 +1,11 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <string>
+
+// Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
 // This class defines all the logic for Dolphin auto-update checking. UI-specific elements have to
 // be defined in a backend specific subclass.

@@ -9,7 +9,7 @@ if ! [ -x "$(command -v git)" ]; then
   exit 1
 fi
 
-REQUIRED_CLANG_FORMAT_MAJOR=9
+REQUIRED_CLANG_FORMAT_MAJOR=12
 REQUIRED_CLANG_FORMAT_MINOR=0
 CLANG_FORMAT=clang-format
 CLANG_FORMAT_MAJOR=clang-format-${REQUIRED_CLANG_FORMAT_MAJOR}
@@ -36,11 +36,18 @@ if [ $# -gt 0 ]; then
 fi
 
 if [ $FORCE -eq 0 ]; then
-  CLANG_FORMAT_VERSION=$($CLANG_FORMAT -version | cut -d' ' -f3)
-  CLANG_FORMAT_MAJOR=$(echo $CLANG_FORMAT_VERSION | cut -d'.' -f1)
-  CLANG_FORMAT_MINOR=$(echo $CLANG_FORMAT_VERSION | cut -d'.' -f2)
+  CLANG_FORMAT_VERSION=$($CLANG_FORMAT --version)
+  clang_format_version_ok=false
+  clang_format_version_re='version ([0-9]+).([0-9]+)'
+  if [[ $CLANG_FORMAT_VERSION =~ $clang_format_version_re ]]; then
+    CLANG_FORMAT_MAJOR="${BASH_REMATCH[1]}"
+    CLANG_FORMAT_MINOR="${BASH_REMATCH[2]}"
+    if [ $CLANG_FORMAT_MAJOR == $REQUIRED_CLANG_FORMAT_MAJOR ] && [ $CLANG_FORMAT_MINOR == $REQUIRED_CLANG_FORMAT_MINOR ]; then
+      clang_format_version_ok=true
+    fi
+  fi
 
-  if [ $CLANG_FORMAT_MAJOR != $REQUIRED_CLANG_FORMAT_MAJOR ] || [ $CLANG_FORMAT_MINOR != $REQUIRED_CLANG_FORMAT_MINOR ]; then
+  if ! [ "$clang_format_version_ok" = true ]; then
     echo >&2 "error: clang-format is the wrong version (${CLANG_FORMAT_VERSION})"
     echo >&2 "Install clang-format version ${REQUIRED_CLANG_FORMAT_MAJOR}.${REQUIRED_CLANG_FORMAT_MINOR}.* or use --force to ignore"
     exit 1

@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
@@ -36,10 +35,10 @@
 
 struct CodeViewBranch
 {
-  u32 src_addr;
-  u32 dst_addr;
+  u32 src_addr = 0;
+  u32 dst_addr = 0;
   u32 indentation = 0;
-  bool is_link;
+  bool is_link = false;
 };
 
 constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
@@ -338,9 +337,19 @@ void CodeViewWidget::Update()
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
-      bp_item->setData(
-          Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2)));
+      auto icon =
+          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2));
+      if (!PowerPC::breakpoints.IsBreakPointEnable(addr))
+      {
+        QPixmap disabled_icon(icon.size());
+        disabled_icon.fill(Qt::transparent);
+        QPainter p(&disabled_icon);
+        p.setOpacity(0.20);
+        p.drawPixmap(0, 0, icon);
+        p.end();
+        icon = disabled_icon;
+      }
+      bp_item->setData(Qt::DecorationRole, icon);
     }
 
     setItem(i, CODE_VIEW_COLUMN_BREAKPOINT, bp_item);
@@ -442,8 +451,19 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
     return;
 
   m_address = address;
-  if (update == SetAddressUpdate::WithUpdate)
+  switch (update)
+  {
+  case SetAddressUpdate::WithoutUpdate:
+    return;
+  case SetAddressUpdate::WithUpdate:
+    // Update the CodeViewWidget
     Update();
+    break;
+  case SetAddressUpdate::WithDetailedUpdate:
+    // Update the CodeWidget's views (code view, function calls/callers, ...)
+    emit UpdateCodeWidget();
+    break;
+  }
 }
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
@@ -611,22 +631,22 @@ void CodeViewWidget::OnFollowBranch()
   if (!branch_addr)
     return;
 
-  SetAddress(branch_addr, SetAddressUpdate::WithUpdate);
+  SetAddress(branch_addr, SetAddressUpdate::WithDetailedUpdate);
 }
 
 void CodeViewWidget::OnRenameSymbol()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  QString name =
+  const QString name =
       QInputDialog::getText(this, tr("Rename symbol"), tr("Symbol name:"), QLineEdit::Normal,
-                            QString::fromStdString(symbol->name), &good);
+                            QString::fromStdString(symbol->name), &good, Qt::WindowCloseButtonHint);
 
   if (good && !name.isEmpty())
   {
@@ -653,16 +673,16 @@ void CodeViewWidget::OnSetSymbolSize()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  int size =
+  const int size =
       QInputDialog::getInt(this, tr("Rename symbol"),
                            tr("Set symbol size (%1):").arg(QString::fromStdString(symbol->name)),
-                           symbol->size, 1, 0xFFFF, 1, &good);
+                           symbol->size, 1, 0xFFFF, 1, &good, Qt::WindowCloseButtonHint);
 
   if (!good)
     return;
@@ -676,18 +696,19 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  QString name = QInputDialog::getText(
+  const QString name = QInputDialog::getText(
       this, tr("Set symbol end address"),
       tr("Symbol (%1) end address:").arg(QString::fromStdString(symbol->name)), QLineEdit::Normal,
-      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good);
+      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good,
+      Qt::WindowCloseButtonHint);
 
-  u32 address = name.toUInt(&good, 16);
+  const u32 address = name.toUInt(&good, 16);
 
   if (!good)
     return;
@@ -785,7 +806,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
       ToggleBreakpoint();
     else
-      SetAddress(addr, SetAddressUpdate::WithUpdate);
+      SetAddress(addr, SetAddressUpdate::WithDetailedUpdate);
 
     Update();
     break;

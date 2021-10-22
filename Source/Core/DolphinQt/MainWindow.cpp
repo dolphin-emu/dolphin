@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <QApplication>
 #include <QCloseEvent>
@@ -8,7 +7,6 @@
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
@@ -41,7 +39,9 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -56,12 +56,14 @@
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 
 #include "DiscIO/NANDImporter.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/CheatsManager.h"
 #include "DolphinQt/Config/ControllersWindow.h"
+#include "DolphinQt/Config/FreeLookWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/LogConfigWidget.h"
 #include "DolphinQt/Config/LogWidget.h"
@@ -88,6 +90,7 @@
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -118,7 +121,7 @@
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
 #include "UICommon/X11Utils.h"
 // This #define within X11/X.h conflicts with our WiimoteSource enum.
 #undef None
@@ -153,6 +156,8 @@ static WindowSystemType GetWindowSystemType()
     return WindowSystemType::X11;
   else if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
+  else if (platform_name == QStringLiteral("haiku"))
+    return WindowSystemType::Haiku;
 
   ModalMessageBox::critical(
       nullptr, QStringLiteral("Error"),
@@ -166,7 +171,7 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   wsi.type = GetWindowSystemType();
 
   // Our Win32 Qt external doesn't have the private API.
-#if defined(WIN32) || defined(__APPLE__)
+#if defined(WIN32) || defined(__APPLE__) || defined(__HAIKU__)
   wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
   wsi.render_surface = wsi.render_window;
 #else
@@ -217,6 +222,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectMenuBar();
   ConnectHotkeys();
 
+  connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
+          &MainWindow::ShowGeneralWindow);
+
   InitCoreCallbacks();
 
   NetPlayInit();
@@ -252,8 +260,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
+  {
     ModalMessageBox::critical(this, tr("Error"),
-                              tr("Error occured while loading some texture packs"));
+                              tr("Error occurred while loading some texture packs"));
+  }
 
   for (auto& pack : ResourcePack::GetPacks())
   {
@@ -266,6 +276,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       return;
     }
   }
+
+  Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 
   if (script.has_value())
   {
@@ -307,8 +319,10 @@ void MainWindow::InitControllers()
 
   g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
   Pad::Initialize();
+  Pad::InitializeGBA();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  FreeLook::Initialize();
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
 
@@ -320,8 +334,14 @@ void MainWindow::InitControllers()
   Pad::LoadConfig();
   Pad::GetConfig()->SaveConfig();
 
+  Pad::LoadGBAConfig();
+  Pad::GetGBAConfig()->SaveConfig();
+
   Keyboard::LoadConfig();
   Keyboard::GetConfig()->SaveConfig();
+
+  FreeLook::LoadInputConfig();
+  FreeLook::GetInputConfig()->SaveConfig();
 }
 
 void MainWindow::ShutdownControllers()
@@ -329,9 +349,11 @@ void MainWindow::ShutdownControllers()
   m_hotkey_scheduler->Stop();
 
   Pad::Shutdown();
+  Pad::ShutdownGBA();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
+  FreeLook::Shutdown();
   g_controller_interface.Shutdown();
 
   m_hotkey_scheduler->deleteLater();
@@ -406,7 +428,7 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
-  m_cheats_manager = new CheatsManager(m_game_list->GetGameListModel(), this);
+  m_cheats_manager = new CheatsManager(this);
   m_scripting_widget = new ScriptingWidget(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
@@ -418,11 +440,12 @@ void MainWindow::CreateComponents()
   };
   const auto request_view_in_memory = [this](u32 addr) { m_memory_widget->SetAddress(addr); };
   const auto request_view_in_code = [this](u32 addr) {
-    m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithUpdate);
+    m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   };
 
   connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
+  connect(m_register_widget, &RegisterWidget::RequestWatch, request_watch);
   connect(m_register_widget, &RegisterWidget::RequestViewInMemory, request_view_in_memory);
   connect(m_register_widget, &RegisterWidget::RequestViewInCode, request_view_in_code);
   connect(m_thread_widget, &ThreadWidget::RequestBreakpoint, request_breakpoint);
@@ -438,8 +461,9 @@ void MainWindow::CreateComponents()
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
   connect(m_memory_widget, &MemoryWidget::ShowCode, m_code_widget, [this](u32 address) {
-    m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
+    m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
+  connect(m_memory_widget, &MemoryWidget::RequestWatch, request_watch);
 
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
           &CodeWidget::Update);
@@ -447,7 +471,7 @@ void MainWindow::CreateComponents()
           &MemoryWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::SelectedBreakpoint, [this](u32 address) {
     if (Core::GetState() == Core::State::Paused)
-      m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
+      m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
   });
 }
 
@@ -487,6 +511,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureAudio, this, &MainWindow::ShowAudioWindow);
   connect(m_menu_bar, &MenuBar::ConfigureControllers, this, &MainWindow::ShowControllersWindow);
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
+  connect(m_menu_bar, &MenuBar::ConfigureFreelook, this, &MainWindow::ShowFreeLookWindow);
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
@@ -542,6 +567,7 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::ChangeDisc, this, &MainWindow::ChangeDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::EjectDisc, this, &MainWindow::EjectDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::UnlockCursor, this, &MainWindow::UnlockCursor);
   connect(m_hotkey_scheduler, &HotkeyScheduler::TogglePauseHotkey, this, &MainWindow::TogglePause);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ActivateChat, this, &MainWindow::OnActivateChat);
   connect(m_hotkey_scheduler, &HotkeyScheduler::RequestGolfControl, this,
@@ -572,6 +598,7 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::SetStateSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
           &MainWindow::OnStartRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::PlayRecording, this, &MainWindow::OnPlayRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
@@ -652,7 +679,7 @@ void MainWindow::ConnectStack()
 
   layout->addWidget(m_game_list);
   layout->addWidget(m_search_bar);
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
 
   connect(m_search_bar, &SearchBar::Search, m_game_list, &GameList::SetSearchTerm);
 
@@ -695,7 +722,7 @@ void MainWindow::RefreshGameList()
 QStringList MainWindow::PromptFileNames()
 {
   auto& settings = Settings::Instance().GetQSettings();
-  QStringList paths = QFileDialog::getOpenFileNames(
+  QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
@@ -783,7 +810,7 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  HideRenderWidget();
+  HideRenderWidget(true, m_exit_requested);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -810,6 +837,13 @@ bool MainWindow::RequestStop()
     return true;
   }
 
+  const bool rendered_widget_was_active =
+      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
+  QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
+                                m_render_widget :
+                                static_cast<QWidget*>(this);
+  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
+
   if (!m_render_widget->isFullScreen())
     m_render_widget_geometry = m_render_widget->saveGeometry();
   else
@@ -830,20 +864,43 @@ bool MainWindow::RequestStop()
     if (pause)
       Core::SetState(Core::State::Paused);
 
+    if (rendered_widget_was_active)
+    {
+      // We have to do this before creating the message box, otherwise we might receive the window
+      // activation event before we know we need to lock the cursor again.
+      m_render_widget->SetCursorLockedOnNextActivation(was_cursor_locked);
+    }
+
+    // This is to avoid any "race conditions" between the "Window Activate" message and the
+    // message box returning, which could break cursor locking depending on the order
+    m_render_widget->SetWaitingForMessageBox(true);
     auto confirm = ModalMessageBox::question(
-        m_rendering_to_main ? static_cast<QWidget*>(this) : m_render_widget, tr("Confirm"),
+        confirm_parent, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
                            tr("Do you want to stop the current emulation?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
+    // If a user confirmed stopping the emulation, we do not capture the cursor again,
+    // even if the render widget will stay alive for a while.
+    // If a used rejected stopping the emulation, we instead capture the cursor again,
+    // and let them continue playing as if nothing had happened
+    // (assuming cursor locking is on).
     if (confirm != QMessageBox::Yes)
     {
+      m_render_widget->SetWaitingForMessageBox(false);
+
       if (pause)
         Core::SetState(state);
 
       return false;
+    }
+    else
+    {
+      m_render_widget->SetCursorLockedOnNextActivation(false);
+      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
+      m_render_widget->SetWaitingForMessageBox(false);
     }
   }
 
@@ -912,6 +969,12 @@ void MainWindow::FullScreen()
   {
     m_render_widget->showFullScreen();
   }
+}
+
+void MainWindow::UnlockCursor()
+{
+  if (!m_render_widget->isFullScreen())
+    m_render_widget->SetCursorLocked(false);
 }
 
 void MainWindow::ScreenShot()
@@ -1057,7 +1120,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit)
+void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 {
   if (m_rendering_to_main)
   {
@@ -1094,7 +1157,9 @@ void MainWindow::HideRenderWidget(bool reinit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window);
+    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
+                                        is_exit ? ControllerInterface::WindowChangeReason::Exit :
+                                                  ControllerInterface::WindowChangeReason::Other);
   }
 }
 
@@ -1109,6 +1174,19 @@ void MainWindow::ShowControllersWindow()
   m_controllers_window->show();
   m_controllers_window->raise();
   m_controllers_window->activateWindow();
+}
+
+void MainWindow::ShowFreeLookWindow()
+{
+  if (!m_freelook_window)
+  {
+    m_freelook_window = new FreeLookWindow(this);
+    InstallHotkeyFilter(m_freelook_window);
+  }
+
+  m_freelook_window->show();
+  m_freelook_window->raise();
+  m_freelook_window->activateWindow();
 }
 
 void MainWindow::ShowSettingsWindow()
@@ -1159,7 +1237,7 @@ void MainWindow::ShowGraphicsWindow()
 {
   if (!m_graphics_window)
   {
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_XRANDR
     if (GetWindowSystemType() == WindowSystemType::X11)
     {
       m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
@@ -1198,7 +1276,7 @@ void MainWindow::ShowFIFOPlayer()
 {
   if (!m_fifo_window)
   {
-    m_fifo_window = new FIFOPlayerWindow(this);
+    m_fifo_window = new FIFOPlayerWindow;
     connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
             [this](const QString& path) { StartGame(path, ScanForSecondDisc::No); });
   }
@@ -1210,15 +1288,17 @@ void MainWindow::ShowFIFOPlayer()
 
 void MainWindow::StateLoad()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::LoadAs(path.toStdString());
 }
 
 void MainWindow::StateSave()
 {
-  QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::SaveAs(path.toStdString());
 }
 
@@ -1315,16 +1395,15 @@ bool MainWindow::NetPlayJoin()
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1383,16 +1462,15 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1416,9 +1494,8 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
     ModalMessageBox::critical(
-        nullptr, QObject::tr("Failed to open server"),
-        QObject::tr(
-            "Failed to listen on port %1. Is another instance of the NetPlay server running?")
+        nullptr, tr("Failed to open server"),
+        tr("Failed to listen on port %1. Is another instance of the NetPlay server running?")
             .arg(host_port));
     NetPlayQuit();
     return false;
@@ -1450,7 +1527,7 @@ void MainWindow::UpdateScreenSaverInhibition()
 
   m_is_screensaver_inhibited = inhibit;
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#ifdef HAVE_X11
   if (GetWindowSystemType() == WindowSystemType::X11)
     UICommon::InhibitScreenSaver(winId(), inhibit);
 #else
@@ -1547,9 +1624,10 @@ void MainWindow::OnImportNANDBackup()
   if (response == QMessageBox::No)
     return;
 
-  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("BootMii NAND backup file (*.bin);;"
-                                                 "All Files (*)"));
+  QString file =
+      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                         tr("BootMii NAND backup file (*.bin);;"
+                                            "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1572,10 +1650,10 @@ void MainWindow::OnImportNANDBackup()
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
-            return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
-                                                QDir::currentPath(),
-                                                tr("BootMii keys file (*.bin);;"
-                                                   "All Files (*)"))
+            return DolphinFileDialog::getOpenFileName(
+                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       tr("BootMii keys file (*.bin);;"
+                          "All Files (*)"))
                 .toStdString();
           });
           if (keys_file)
@@ -1594,8 +1672,8 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
+  QString dtm_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
     return;
@@ -1629,18 +1707,21 @@ void MainWindow::OnStartRecording()
     emit ReadOnlyModeChanged(true);
   }
 
-  int controllers = 0;
+  Movie::ControllerTypeArray controllers{};
+  Movie::WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < 4; i++)
   {
-    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
-      controllers |= (1 << i);
-
-    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-      controllers |= (1 << (i + 4));
+    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      controllers[i] = Movie::ControllerType::GBA;
+    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      controllers[i] = Movie::ControllerType::GC;
+    else
+      controllers[i] = Movie::ControllerType::None;
+    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
   }
 
-  if (Movie::BeginRecordingInput(controllers))
+  if (Movie::BeginRecordingInput(controllers, wiimotes))
   {
     emit RecordingStatusChanged(true);
 
@@ -1660,19 +1741,12 @@ void MainWindow::OnStopRecording()
 
 void MainWindow::OnExportRecording()
 {
-  bool was_paused = Core::GetState() == Core::State::Paused;
-
-  if (!was_paused)
-    Core::SetState(Core::State::Paused);
-
-  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
-
-  if (!dtm_file.isEmpty())
-    Movie::SaveRecording(dtm_file.toStdString());
-
-  if (!was_paused)
-    Core::SetState(Core::State::Running);
+  Core::RunAsCPUThread([this] {
+    QString dtm_file = DolphinFileDialog::getSaveFileName(
+        this, tr("Save Recording File As"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
+    if (!dtm_file.isEmpty())
+      Movie::SaveRecording(dtm_file.toStdString());
+  });
 }
 
 void MainWindow::OnActivateChat()
@@ -1715,12 +1789,8 @@ void MainWindow::ShowTASInput()
 
 void MainWindow::OnConnectWiiRemote(int id)
 {
-  const auto ios = IOS::HLE::GetIOS();
-  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
-    return;
   Core::RunAsCPUThread([&] {
-    if (const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-            ios->GetDeviceByName("/dev/usb/oh1/57e/305")))
+    if (const auto bt = WiiUtils::GetBluetoothEmuDevice())
     {
       const auto wm = bt->AccessWiimoteByIndex(id);
       wm->Activate(!wm->IsConnected());

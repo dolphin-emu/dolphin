@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <experimental/map> // std::erase_if is standardized in C++20, but not C++17 yet
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/API/Events.h"
@@ -34,7 +34,7 @@ public:
   void Clear() { m_overrides.clear(); }
   void NotifyFrameAdvanced()
   {
-    std::experimental::erase_if(m_overrides, [](const auto& kvp) {
+    std::erase_if(m_overrides, [](const auto& kvp) {
       return kvp.second.clear_on == ClearOn::NextFrame && kvp.second.used;
     });
   }

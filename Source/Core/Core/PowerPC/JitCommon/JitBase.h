@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,6 +7,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
@@ -42,6 +42,19 @@
 class JitBase : public CPUCoreBase
 {
 protected:
+  enum class CarryFlag
+  {
+    InPPCState,
+    InHostCarry,
+#ifdef _M_X86_64
+    InHostCarryInverted,
+#endif
+#ifdef _M_ARM_64
+    ConstantTrue,
+    ConstantFalse,
+#endif
+  };
+
   struct JitOptions
   {
     bool enableBlocklink;
@@ -50,6 +63,8 @@ protected:
     bool fastmem;
     bool fastmem_arena;
     bool memcheck;
+    bool fp_exceptions;
+    bool div_by_zero_exceptions;
     bool profile_blocks;
   };
   struct JitState
@@ -73,8 +88,7 @@ protected:
     bool firstFPInstructionFound;
     bool isLastInstruction;
     int skipInstructions;
-    bool carryFlagSet;
-    bool carryFlagInverted;
+    CarryFlag carryFlag;
 
     bool generatingTrampoline = false;
     u8* trampolineExceptionHandler;
@@ -86,6 +100,7 @@ protected:
     PPCAnalyst::BlockRegStats gpa;
     PPCAnalyst::BlockRegStats fpa;
     PPCAnalyst::CodeOp* op;
+    BitSet32 fpr_is_store_safe;
 
     JitBlock* curBlock;
 
@@ -100,7 +115,9 @@ protected:
 
   bool CanMergeNextInstructions(int count) const;
 
-  void UpdateMemoryOptions();
+  void UpdateMemoryAndExceptionOptions();
+
+  bool ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op);
 
 public:
   JitBase();

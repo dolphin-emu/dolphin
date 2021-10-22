@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Version.h"
 
@@ -33,6 +32,7 @@ const std::string scm_rev_git_str = SCM_REV_STR;
 const std::string scm_desc_str = SCM_DESC_STR;
 const std::string scm_branch_str = SCM_BRANCH_STR;
 const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
+const std::string scm_update_track_str = SCM_UPDATE_TRACK_STR;
 
 #ifdef _WIN32
 const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";

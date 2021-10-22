@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
@@ -48,6 +47,12 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     m_network_interface = std::make_unique<TAPNetworkInterface>(this);
     INFO_LOG_FMT(SP1, "Created TAP physical network interface.");
     break;
+#if defined(__APPLE__)
+  case BBADeviceType::TAPSERVER:
+    m_network_interface = std::make_unique<TAPServerNetworkInterface>(this);
+    INFO_LOG(SP1, "Created tapserver physical network interface.");
+    break;
+#endif
   case BBADeviceType::XLINK:
     // TODO start BBA with network link down, bring it up after "connected" response from XLink
 

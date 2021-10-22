@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DVD/DVDThread.h"
 
@@ -38,26 +37,26 @@ namespace DVDThread
 {
 struct ReadRequest
 {
-  bool copy_to_ram;
-  u32 output_address;
-  u64 dvd_offset;
-  u32 length;
-  DiscIO::Partition partition;
+  bool copy_to_ram = false;
+  u32 output_address = 0;
+  u64 dvd_offset = 0;
+  u32 length = 0;
+  DiscIO::Partition partition{};
 
   // This determines which code DVDInterface will run to reply
   // to the emulated software. We can't use callbacks,
   // because function pointers can't be stored in savestates.
-  DVDInterface::ReplyType reply_type;
+  DVDInterface::ReplyType reply_type = DVDInterface::ReplyType::NoReply;
 
   // IDs are used to uniquely identify a request. They must not be
   // identical to IDs of any other requests that currently exist, but
   // it's fine to re-use IDs of requests that have existed in the past.
-  u64 id;
+  u64 id = 0;
 
   // Only used for logging
-  u64 time_started_ticks;
-  u64 realtime_started_us;
-  u64 realtime_done_us;
+  u64 time_started_ticks = 0;
+  u64 realtime_started_us = 0;
+  u64 realtime_done_us = 0;
 };
 
 using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
@@ -347,7 +346,7 @@ static void FinishRead(u64 id, s64 cycles_late)
     PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
                    request.dvd_offset + request.length);
 
-    DVDInterface::SetDriveError(DVDInterface::DriveError::BlockOOB);
+    DVDInterface::SetDriveError(DVDInterface::DriveError::ReadError);
     interrupt = DVDInterface::DIInterruptType::DEINT;
   }
   else

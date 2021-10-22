@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.dolphinemu.dolphinemu">
+    package="org.dolphinemu.dolphinemu">
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -19,6 +19,7 @@
 
     <uses-feature android:glEsVersion="0x00030000"/>
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -28,12 +29,15 @@
         android:name="android.permission.VIBRATE"
         android:required="false"/>
 
+    <!-- Once compileSdkVersion is 31, add: android:dataExtractionRules="@xml/backup_rules_api_31" -->
     <application
         android:name=".DolphinApplication"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
         android:requestLegacyExternalStorage="true"
-        android:allowBackup="false"
+        android:preserveLegacyExternalStorage="true"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv">
@@ -43,6 +47,7 @@
 
         <activity
             android:name=".ui.main.MainActivity"
+            android:exported="true"
             android:theme="@style/DolphinBase">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -55,6 +60,7 @@
 
         <activity
             android:name=".ui.main.TvMainActivity"
+            android:exported="true"
             android:theme="@style/DolphinTvBase">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -67,26 +73,39 @@
 
         <activity
             android:name=".features.settings.ui.SettingsActivity"
+            android:exported="false"
             android:configChanges="orientation|screenSize"
             android:theme="@style/DolphinSettingsBase"
-            android:label="@string/preferences_settings"/>
+            android:label="@string/settings"/>
+
+        <activity
+            android:name=".features.cheats.ui.CheatsActivity"
+            android:exported="false"
+            android:theme="@style/DolphinSettingsBase"
+            android:label="@string/cheats"/>
 
         <activity
             android:name=".activities.EmulationActivity"
+            android:exported="false"
             android:theme="@style/DolphinEmulationBase"
             android:preferMinimalPostProcessing="true"/>
 
         <activity
             android:name=".activities.CustomFilePickerActivity"
+            android:exported="false"
             android:label="@string/app_name"
             android:theme="@style/FilePickerTheme">
+
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.AppLinkActivity">
+        <activity
+            android:name=".activities.AppLinkActivity"
+            android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -98,14 +117,28 @@
 
         <activity
             android:name=".activities.ConvertActivity"
+            android:exported="false"
             android:theme="@style/DolphinBase" />
 
-        <service android:name=".utils.DirectoryInitialization"/>
-        <service android:name=".services.GameFileCacheService"/>
+        <activity
+            android:name=".activities.UserDataActivity"
+            android:exported="false"
+            android:label="@string/user_data_submenu"
+            android:theme="@style/DolphinSettingsBase" />
+
+        <service
+            android:name=".utils.DirectoryInitialization"
+            android:exported="false"/>
+
+        <service
+            android:name=".services.GameFileCacheService"
+            android:exported="false"/>
+
         <service
             android:name=".services.SyncChannelJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
+
         <service
             android:name=".services.SyncProgramsJobService"
             android:exported="false"

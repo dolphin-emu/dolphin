@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
@@ -54,6 +53,10 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     break;
   }
 
+  // Flush bounding box here because software overrides the base function
+  if (g_renderer->IsBBoxEnabled())
+    g_renderer->BBoxFlush();
+
   m_setup_unit.Init(primitiveType);
 
   // set all states with are stored within video sw
@@ -84,7 +87,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
           &m_vertex, (VertexLoaderManager::g_current_components & VB_HAS_NRM2) != 0, outVertex);
     }
     TransformUnit::TransformColor(&m_vertex, outVertex);
-    TransformUnit::TransformTexCoord(&m_vertex, outVertex, m_tex_gen_special_case);
+    TransformUnit::TransformTexCoord(&m_vertex, outVertex);
 
     // assemble and rasterize the primitive
     m_setup_unit.SetupVertex();
@@ -120,11 +123,6 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
   m_vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx;
   m_vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx;
   m_vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx;
-
-  // special case if only pos and tex coord 0 and tex coord input is AB11
-  // http://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
-  m_tex_gen_special_case = VertexLoaderManager::g_current_components == VB_HAS_UV0 &&
-                           xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST;
 }
 
 template <typename T, typename I>
@@ -185,14 +183,11 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
 static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
                                  const PortableVertexDeclaration& vdec)
 {
-  const auto set_default_color = [](u8* color, int i) {
-    // The default alpha channel seems to depend on the number of components in the vertex format.
-    const auto& g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
-    const u32 color_elements = i == 0 ? g0.Color0Elements : g0.Color1Elements;
-    color[0] = color_elements == 0 ? 255 : 0;
-    color[1] = 255;
-    color[2] = 255;
-    color[3] = 255;
+  const auto set_default_color = [](std::array<u8, 4>& color) {
+    color[Tev::ALP_C] = g_ActiveConfig.iMissingColorValue & 0xFF;
+    color[Tev::BLU_C] = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
+    color[Tev::GRN_C] = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
+    color[Tev::RED_C] = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
   };
 
   if (vdec.colors[0].enable)
@@ -202,7 +197,7 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
     if (vdec.colors[1].enable)
       ReadVertexAttribute<u8>(dst->color[1].data(), src, vdec.colors[1], 0, 4, true);
     else
-      set_default_color(dst->color[1].data(), 1);
+      set_default_color(dst->color[1]);
   }
   else
   {
@@ -210,8 +205,8 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
     if (vdec.colors[1].enable)
       ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[1], 0, 4, true);
     else
-      set_default_color(dst->color[0].data(), 0);
-    set_default_color(dst->color[1].data(), 1);
+      set_default_color(dst->color[0]);
+    set_default_color(dst->color[1]);
   }
 }
 

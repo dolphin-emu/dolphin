@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,6 +26,7 @@ signals:
   void RequestViewInCode(u32 addr);
   void RequestViewInMemory(u32 addr);
   void RequestMemoryBreakpoint(u32 addr);
+  void RequestWatch(QString name, u32 addr);
   void UpdateTable();
   void UpdateValue(QTableWidgetItem* item);
   void UpdateValueType(QTableWidgetItem* item);

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.utils;
 
 import android.annotation.TargetApi;
@@ -261,10 +263,12 @@ public class TvUtil
     List<HomeScreenChannel> subs = new ArrayList<>();
     for (Platform platform : Platform.values())
     {
+      // TODO: Replace the getIdString calls with getHeaderName to get localized names.
+      // This would require SyncProgramsJobService to stop using the display name as a key
       subs.add(new HomeScreenChannel(
-              platform.getHeaderName(),
-              platform.getHeaderName(),
-              AppLinkHelper.buildBrowseUri(platform.getHeaderName()).toString()));
+              platform.getIdString(),
+              platform.getIdString(),
+              AppLinkHelper.buildBrowseUri(platform)));
     }
     return subs;
   }

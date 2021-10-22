@@ -1,13 +1,12 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 
 #include <array>
-#include <cassert>
 #include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -163,7 +162,7 @@ ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)
   case TurntableGroup::Crossfade:
     return m_crossfade;
   default:
-    assert(false);
+    ASSERT(false);
     return nullptr;
   }
 }

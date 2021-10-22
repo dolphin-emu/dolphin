@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.adapters;
 
 import android.content.Context;
@@ -88,20 +90,8 @@ public final class GameRowPresenter extends Presenter
     holder.cardParent.setOnLongClickListener((view) ->
     {
       FragmentActivity activity = (FragmentActivity) view.getContext();
-      String gameId = gameFile.getGameId();
-
-      if (gameId.isEmpty())
-      {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
-        builder.setTitle("Game Settings");
-        builder.setMessage("Files without game IDs don't support game-specific settings.");
-
-        builder.show();
-        return true;
-      }
-
       GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile);
-      ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
+      activity.getSupportFragmentManager().beginTransaction()
               .add(fragment, GamePropertiesDialog.TAG).commit();
 
       return true;

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexLoader_TextCoord.h"
 
@@ -16,24 +15,6 @@
 
 namespace
 {
-template <int N>
-void LOG_TEX();
-
-template <>
-void LOG_TEX<1>()
-{
-  // warning: mapping buffer should be disabled to use this
-  // PRIM_LOG("tex: %f, ", ((float*)g_vertex_manager_write_ptr)[-1]);
-}
-
-template <>
-void LOG_TEX<2>()
-{
-  // warning: mapping buffer should be disabled to use this
-  // PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2],
-  // ((float*)g_vertex_manager_write_ptr)[-1]);
-}
-
 void TexCoord_Read_Dummy(VertexLoader* loader)
 {
   loader->m_tcIndex++;
@@ -63,7 +44,6 @@ void TexCoord_ReadDirect(VertexLoader* loader)
 
   g_vertex_manager_write_ptr = dst.GetPointer();
   g_video_buffer_read_ptr = src.GetPointer();
-  LOG_TEX<N>();
 
   ++loader->m_tcIndex;
 }
@@ -84,7 +64,6 @@ void TexCoord_ReadIndex(VertexLoader* loader)
     dst.Write(TCScale(Common::FromBigEndian(data[i]), scale));
 
   g_vertex_manager_write_ptr = dst.GetPointer();
-  LOG_TEX<N>();
   ++loader->m_tcIndex;
 }
 
@@ -211,14 +190,17 @@ constexpr u32 s_table_read_tex_coord_vertex_size[4][8][2] = {
 };
 }  // Anonymous namespace
 
-u32 VertexLoader_TextCoord::GetSize(u64 type, u32 format, u32 elements)
+u32 VertexLoader_TextCoord::GetSize(VertexComponentFormat type, ComponentFormat format,
+                                    TexComponentCount elements)
 {
-  return s_table_read_tex_coord_vertex_size[type][format][elements];
+  return s_table_read_tex_coord_vertex_size[u32(type)][u32(format)][u32(elements)];
 }
 
-TPipelineFunction VertexLoader_TextCoord::GetFunction(u64 type, u32 format, u32 elements)
+TPipelineFunction VertexLoader_TextCoord::GetFunction(VertexComponentFormat type,
+                                                      ComponentFormat format,
+                                                      TexComponentCount elements)
 {
-  return s_table_read_tex_coord[type][format][elements];
+  return s_table_read_tex_coord[u32(type)][u32(format)][u32(elements)];
 }
 
 TPipelineFunction VertexLoader_TextCoord::GetDummyFunction()

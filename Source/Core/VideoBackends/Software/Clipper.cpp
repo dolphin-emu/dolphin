@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 /*
 Portions of this file are based off work by Markus Trenkwalder.
@@ -331,18 +330,36 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   }
 }
 
-static void CopyVertex(OutputVertexData* dst, const OutputVertexData* src, float dx, float dy,
-                       unsigned int sOffset)
+constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
+    0, 1 / 16.f, 1 / 8.f, 1 / 4.f, 1 / 2.f, 1, 1, 1,
+};
+
+static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, int px, int py,
+                           bool apply_line_offset)
 {
-  dst->screenPosition.x = src->screenPosition.x + dx;
-  dst->screenPosition.y = src->screenPosition.y + dy;
+  const float line_half_width = bpmem.lineptwidth.linesize / 12.0f;
+
+  dst->projectedPosition = src->projectedPosition;
+  dst->screenPosition.x = src->screenPosition.x + px * line_half_width;
+  dst->screenPosition.y = src->screenPosition.y + py * line_half_width;
   dst->screenPosition.z = src->screenPosition.z;
 
   dst->normal = src->normal;
   dst->color = src->color;
 
-  // todo - s offset
   dst->texCoords = src->texCoords;
+
+  if (apply_line_offset && LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff] != 0)
+  {
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    {
+      if (bpmem.texcoords[coord_num].s.line_offset)
+      {
+        dst->texCoords[coord_num].x += (bpmem.texcoords[coord_num].s.scale_minus_1 + 1) *
+                                       LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+      }
+    }
+  }
 }
 
 void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
@@ -365,40 +382,83 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
     PerspectiveDivide(v0);
     PerspectiveDivide(v1);
 
-    float dx = v1->screenPosition.x - v0->screenPosition.x;
-    float dy = v1->screenPosition.y - v0->screenPosition.y;
+    const float dx = v1->screenPosition.x - v0->screenPosition.x;
+    const float dy = v1->screenPosition.y - v0->screenPosition.y;
 
-    float screenDx = 0;
-    float screenDy = 0;
+    int px = 0;
+    int py = 0;
 
+    // GameCube/Wii's line drawing algorithm is a little quirky. It does not
+    // use the correct line caps. Instead, the line caps are vertical or
+    // horizontal depending the slope of the line.
+    // FIXME: What does real hardware do when line is at a 45-degree angle?
+
+    // Note that py or px are set positive or negative to ensure that the triangles are drawn ccw.
     if (fabsf(dx) > fabsf(dy))
-    {
-      if (dx > 0)
-        screenDy = bpmem.lineptwidth.linesize / -12.0f;
-      else
-        screenDy = bpmem.lineptwidth.linesize / 12.0f;
-    }
+      py = (dx > 0) ? -1 : 1;
     else
-    {
-      if (dy > 0)
-        screenDx = bpmem.lineptwidth.linesize / 12.0f;
-      else
-        screenDx = bpmem.lineptwidth.linesize / -12.0f;
-    }
+      px = (dy > 0) ? 1 : -1;
 
     OutputVertexData triangle[3];
 
-    CopyVertex(&triangle[0], v0, screenDx, screenDy, 0);
-    CopyVertex(&triangle[1], v1, screenDx, screenDy, 0);
-    CopyVertex(&triangle[2], v1, -screenDx, -screenDy, bpmem.lineptwidth.lineoff);
+    CopyLineVertex(&triangle[0], v0, px, py, false);
+    CopyLineVertex(&triangle[1], v1, px, py, false);
+    CopyLineVertex(&triangle[2], v1, -px, -py, true);
 
     // ccw winding
     Rasterizer::DrawTriangleFrontFace(&triangle[2], &triangle[1], &triangle[0]);
 
-    CopyVertex(&triangle[1], v0, -screenDx, -screenDy, bpmem.lineptwidth.lineoff);
+    CopyLineVertex(&triangle[1], v0, -px, -py, true);
 
     Rasterizer::DrawTriangleFrontFace(&triangle[0], &triangle[1], &triangle[2]);
   }
+}
+
+static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, bool px, bool py)
+{
+  const float point_radius = bpmem.lineptwidth.pointsize / 12.0f;
+
+  dst->projectedPosition = src->projectedPosition;
+  dst->screenPosition.x = src->screenPosition.x + (px ? 1 : -1) * point_radius;
+  dst->screenPosition.y = src->screenPosition.y + (py ? 1 : -1) * point_radius;
+  dst->screenPosition.z = src->screenPosition.z;
+
+  dst->normal = src->normal;
+  dst->color = src->color;
+
+  dst->texCoords = src->texCoords;
+
+  const float point_offset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+  if (point_offset != 0)
+  {
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    {
+      const auto coord_info = bpmem.texcoords[coord_num];
+      if (coord_info.s.point_offset)
+      {
+        if (px)
+          dst->texCoords[coord_num].x += (coord_info.s.scale_minus_1 + 1) * point_offset;
+        if (py)
+          dst->texCoords[coord_num].y += (coord_info.t.scale_minus_1 + 1) * point_offset;
+      }
+    }
+  }
+}
+
+void ProcessPoint(OutputVertexData* center)
+{
+  // TODO: This isn't actually doing any clipping
+  PerspectiveDivide(center);
+
+  OutputVertexData ll, lr, ul, ur;
+
+  CopyPointVertex(&ll, center, false, false);
+  CopyPointVertex(&lr, center, true, false);
+  CopyPointVertex(&ur, center, true, true);
+  CopyPointVertex(&ul, center, false, true);
+
+  Rasterizer::DrawTriangleFrontFace(&ll, &ul, &lr);
+  Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
 }
 
 bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
@@ -427,14 +487,22 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
   float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
 
   backface = normalZDir <= 0.0f;
+  // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
+  // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
+  // but the backface test does need to be inverted for things to be drawn.
+  if (xfmem.viewport.ht > 0)
+    backface = !backface;
 
-  if ((bpmem.genMode.cullmode & 1) && !backface)  // cull frontfacing
+  // TODO: Are these tests / the definition of backface above backwards?
+  if ((bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All) &&
+      !backface)  // cull frontfacing
   {
     INCSTAT(g_stats.this_frame.num_triangles_culled)
     return false;
   }
 
-  if ((bpmem.genMode.cullmode & 2) && backface)  // cull backfacing
+  if ((bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All) &&
+      backface)  // cull backfacing
   {
     INCSTAT(g_stats.this_frame.num_triangles_culled)
     return false;
@@ -449,8 +517,10 @@ void PerspectiveDivide(OutputVertexData* vertex)
   Vec3& screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
+  screen.x =
+      projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2;
+  screen.y =
+      projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper

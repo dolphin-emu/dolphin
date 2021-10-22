@@ -1,15 +1,18 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Stub implementation of the Host_* callbacks for tests. These implementations
 // do nothing except return default values when required.
 
-#include <memory>
 #include <string>
+#include <vector>
 
 #include "Core/Host.h"
 
+std::vector<std::string> Host_GetPreferredLocales()
+{
+  return {};
+}
 void Host_NotifyMapLoaded()
 {
 }
@@ -39,6 +42,10 @@ bool Host_RendererHasFocus()
 {
   return false;
 }
+bool Host_RendererHasFullFocus()
+{
+  return false;
+}
 bool Host_RendererIsFullscreen()
 {
   return false;
@@ -48,4 +55,8 @@ void Host_YieldToUI()
 }
 void Host_TitleChanged()
 {
+}
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
 }

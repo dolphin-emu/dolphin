@@ -1,8 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
@@ -10,6 +15,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
 public final class FilePickerViewHolder extends SettingViewHolder
 {
@@ -18,6 +24,8 @@ public final class FilePickerViewHolder extends SettingViewHolder
 
   private TextView mTextSettingName;
   private TextView mTextSettingDescription;
+
+  private Drawable mDefaultBackground;
 
   public FilePickerViewHolder(View itemView, SettingsAdapter adapter)
   {
@@ -29,6 +37,8 @@ public final class FilePickerViewHolder extends SettingViewHolder
   {
     mTextSettingName = root.findViewById(R.id.text_setting_name);
     mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+
+    mDefaultBackground = root.getBackground();
   }
 
   @Override
@@ -37,16 +47,25 @@ public final class FilePickerViewHolder extends SettingViewHolder
     mFilePicker = (FilePicker) item;
     mItem = item;
 
-    mTextSettingName.setText(item.getNameId());
+    String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
 
-    if (item.getDescriptionId() > 0)
+    if (FileBrowserHelper.isPathEmptyOrValid(path))
     {
-      mTextSettingDescription.setText(item.getDescriptionId());
+      itemView.setBackground(mDefaultBackground);
     }
     else
     {
-      String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
+      itemView.setBackgroundResource(R.drawable.invalid_setting_background);
+    }
 
+    mTextSettingName.setText(item.getName());
+
+    if (!TextUtils.isEmpty(item.getDescription()))
+    {
+      mTextSettingDescription.setText(item.getDescription());
+    }
+    else
+    {
       if (TextUtils.isEmpty(path))
       {
         String defaultPathRelative = mFilePicker.getDefaultPathRelativeToUserDirectory();
@@ -71,15 +90,22 @@ public final class FilePickerViewHolder extends SettingViewHolder
       return;
     }
 
+    int position = getAdapterPosition();
     if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
     {
-      getAdapter().onFilePickerDirectoryClick(mItem);
+      getAdapter().onFilePickerDirectoryClick(mItem, position);
     }
     else
     {
-      getAdapter().onFilePickerFileClick(mItem);
+      getAdapter().onFilePickerFileClick(mItem, position);
     }
 
     setStyle(mTextSettingName, mItem);
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 }

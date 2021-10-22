@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/Network/IP/Top.h"
 
@@ -50,7 +49,11 @@
 #include <unistd.h>
 #endif
 
-namespace IOS::HLE::Device
+#ifdef __ANDROID__
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
+namespace IOS::HLE
 {
 enum SOResultCode : s32
 {
@@ -58,30 +61,22 @@ enum SOResultCode : s32
   SO_ERROR_HOST_NOT_FOUND = -305,
 };
 
-NetIPTop::NetIPTop(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name)
 {
-#ifdef _WIN32
-  int ret = WSAStartup(MAKEWORD(2, 2), &InitData);
-  INFO_LOG(IOS_NET, "WSAStartup: %d", ret);
-#endif
+  m_work_queue.Reset([this](AsyncTask task) {
+    const IPCReply reply = task.handler();
+    {
+      std::lock_guard lg(m_async_reply_lock);
+      m_async_replies.emplace(AsyncReply{task.request, reply.return_value});
+    }
+  });
 }
 
-NetIPTop::~NetIPTop()
-{
-#ifdef _WIN32
-  WSACleanup();
-#endif
-}
-
-void NetIPTop::DoState(PointerWrap& p)
+void NetIPTopDevice::DoState(PointerWrap& p)
 {
   DoStateShared(p);
   WiiSockMan::GetInstance().DoState(p);
-}
-
-static constexpr u32 inet_addr(u8 a, u8 b, u8 c, u8 d)
-{
-  return (static_cast<u32>(a) << 24) | (static_cast<u32>(b) << 16) | (static_cast<u32>(c) << 8) | d;
 }
 
 static int inet_pton(const char* src, unsigned char* dst)
@@ -132,7 +127,7 @@ static s32 MapWiiSockOptLevelToNative(u32 level)
   if (level == 0xFFFF)
     return SOL_SOCKET;
 
-  INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown level %u", level);
+  INFO_LOG_FMT(IOS_NET, "SO_SETSOCKOPT: unknown level {}", level);
   return level;
 }
 
@@ -161,15 +156,16 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
     return SO_ERROR;
   }
 
-  INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown optname %u", optname);
+  INFO_LOG_FMT(IOS_NET, "SO_SETSOCKOPT: unknown optname {}", optname);
   return optname;
 }
 
+// u32 values are in little endian (i.e. 0x0100007f means 127.0.0.1)
 struct DefaultInterface
 {
-  u32 inet;       ///< IPv4 address
-  u32 netmask;    ///< IPv4 subnet mask
-  u32 broadcast;  ///< IPv4 broadcast address
+  u32 inet;       // IPv4 address
+  u32 netmask;    // IPv4 subnet mask
+  u32 broadcast;  // IPv4 broadcast address
 };
 
 static std::optional<DefaultInterface> GetSystemDefaultInterface()
@@ -221,7 +217,14 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
         return DefaultInterface{entry.dwAddr, entry.dwMask, entry.dwBCastAddr};
     }
   }
-#elif !defined(__ANDROID__)
+#elif defined(__ANDROID__)
+  const u32 addr = GetNetworkIpAddress();
+  const u32 prefix_length = GetNetworkPrefixLength();
+  const u32 netmask = (1 << prefix_length) - 1;
+  const u32 gateway = GetNetworkGateway();
+  if (addr || netmask || gateway)
+    return DefaultInterface{addr, netmask, gateway};
+#else
   // Assume that the address that is used to access the Internet corresponds
   // to the default interface.
   auto get_default_address = []() -> std::optional<in_addr> {
@@ -233,7 +236,7 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
     addr.sin_family = AF_INET;
     // The address and port are irrelevant -- no packet is actually sent. These just need to be set
     // to a valid IP and port.
-    addr.sin_addr.s_addr = inet_addr(8, 8, 8, 8);
+    addr.sin_addr.s_addr = inet_addr("8.8.8.8");
     addr.sin_port = htons(53);
     if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == -1)
       return {};
@@ -265,21 +268,23 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
     }
   }
 #endif
-  return {};
+  return std::nullopt;
 }
 
 static DefaultInterface GetSystemDefaultInterfaceOrFallback()
 {
-  static constexpr DefaultInterface FALLBACK_VALUES{
-      inet_addr(10, 0, 1, 30), inet_addr(255, 255, 255, 0), inet_addr(10, 0, 255, 255)};
+  static const u32 FALLBACK_IP = inet_addr("10.0.1.30");
+  static const u32 FALLBACK_NETMASK = inet_addr("255.255.255.0");
+  static const u32 FALLBACK_GATEWAY = inet_addr("10.0.255.255");
+  static const DefaultInterface FALLBACK_VALUES{FALLBACK_IP, FALLBACK_NETMASK, FALLBACK_GATEWAY};
   return GetSystemDefaultInterface().value_or(FALLBACK_VALUES);
 }
 
-IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
+std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
 {
   if (Core::WantsDeterminism())
   {
-    return GetDefaultReply(IPC_EACCES);
+    return IPCReply(IPC_EACCES);
   }
 
   switch (request.request)
@@ -321,7 +326,7 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_POLL:
     return HandlePollRequest(request);
   case IOCTL_SO_GETHOSTBYNAME:
-    return HandleGetHostByNameRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleGetHostByNameRequest, request);
   case IOCTL_SO_ICMPCANCEL:
     return HandleICMPCancelRequest(request);
   default:
@@ -329,10 +334,10 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
+std::optional<IPCReply> NetIPTopDevice::IOCtlV(const IOCtlVRequest& request)
 {
   switch (request.request)
   {
@@ -343,7 +348,7 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_SO_RECVFROM:
     return HandleRecvFromRequest(request);
   case IOCTLV_SO_GETADDRINFO:
-    return HandleGetAddressInfoRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleGetAddressInfoRequest, request);
   case IOCTLV_SO_ICMPPING:
     return HandleICMPPingRequest(request);
   default:
@@ -351,95 +356,106 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
     break;
   }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-void NetIPTop::Update()
+void NetIPTopDevice::Update()
 {
+  {
+    std::lock_guard lg(m_async_reply_lock);
+    while (!m_async_replies.empty())
+    {
+      const auto& reply = m_async_replies.front();
+      GetIOS()->EnqueueIPCReply(reply.request, reply.return_value);
+      m_async_replies.pop();
+    }
+  }
   WiiSockMan::GetInstance().Update();
 }
 
-IPCCommandResult NetIPTop::HandleInitInterfaceRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInitInterfaceRequest(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_WC24);
-  return GetDefaultReply(IPC_SUCCESS);
+  return IPCReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetIPTop::HandleSocketRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleSocketRequest(const IOCtlRequest& request)
 {
-  u32 af = Memory::Read_U32(request.buffer_in);
-  u32 type = Memory::Read_U32(request.buffer_in + 4);
-  u32 prot = Memory::Read_U32(request.buffer_in + 8);
+  const u32 af = Memory::Read_U32(request.buffer_in);
+  const u32 type = Memory::Read_U32(request.buffer_in + 4);
+  const u32 prot = Memory::Read_U32(request.buffer_in + 8);
 
   WiiSockMan& sm = WiiSockMan::GetInstance();
   const s32 return_value = sm.NewSocket(af, type, prot);
-  INFO_LOG(IOS_NET,
-           "IOCTL_SO_SOCKET "
-           "Socket: %08x (%d,%d,%d), BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-           return_value, af, type, prot, request.buffer_in, request.buffer_in_size,
-           request.buffer_out, request.buffer_out_size);
+  INFO_LOG_FMT(IOS_NET,
+               "IOCTL_SO_SOCKET "
+               "Socket: {:08x} ({},{},{}), BufferIn: ({:08x}, {}), BufferOut: ({:08x}, {})",
+               return_value, af, type, prot, request.buffer_in, request.buffer_in_size,
+               request.buffer_out, request.buffer_out_size);
 
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
 
-IPCCommandResult NetIPTop::HandleICMPSocketRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleICMPSocketRequest(const IOCtlRequest& request)
 {
-  u32 pf = Memory::Read_U32(request.buffer_in);
+  const u32 pf = Memory::Read_U32(request.buffer_in);
 
   WiiSockMan& sm = WiiSockMan::GetInstance();
   const s32 return_value = sm.NewSocket(pf, SOCK_RAW, IPPROTO_ICMP);
-  INFO_LOG(IOS_NET, "IOCTL_SO_ICMPSOCKET(%x) %d", pf, return_value);
-  return GetDefaultReply(return_value);
+  INFO_LOG_FMT(IOS_NET, "IOCTL_SO_ICMPSOCKET({:x}) {}", pf, return_value);
+  return IPCReply(return_value);
 }
 
-IPCCommandResult NetIPTop::HandleCloseRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleCloseRequest(const IOCtlRequest& request)
 {
-  u32 fd = Memory::Read_U32(request.buffer_in);
+  const u32 fd = Memory::Read_U32(request.buffer_in);
   WiiSockMan& sm = WiiSockMan::GetInstance();
   const s32 return_value = sm.DeleteSocket(fd);
-  INFO_LOG(IOS_NET, "%s(%x) %x",
-           request.request == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE", fd,
-           return_value);
+  const char* const close_fn =
+      request.request == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE";
 
-  return GetDefaultReply(return_value);
+  INFO_LOG_FMT(IOS_NET, "{}({:x}) {:x}", close_fn, fd, return_value);
+
+  return IPCReply(return_value);
 }
 
-IPCCommandResult NetIPTop::HandleDoSockRequest(const IOCtlRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandleDoSockRequest(const IOCtlRequest& request)
 {
-  u32 fd = Memory::Read_U32(request.buffer_in);
+  const u32 fd = Memory::Read_U32(request.buffer_in);
   WiiSockMan& sm = WiiSockMan::GetInstance();
   sm.DoSock(fd, request, static_cast<NET_IOCTL>(request.request));
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult NetIPTop::HandleShutdownRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleShutdownRequest(const IOCtlRequest& request)
 {
   if (request.buffer_in == 0 || request.buffer_in_size < 8)
   {
-    ERROR_LOG(IOS_NET, "IOCTL_SO_SHUTDOWN = EINVAL, BufferIn: (%08x, %i)", request.buffer_in,
-              request.buffer_in_size);
-    return GetDefaultReply(-SO_EINVAL);
+    ERROR_LOG_FMT(IOS_NET, "IOCTL_SO_SHUTDOWN = EINVAL, BufferIn: ({:08x}, {})", request.buffer_in,
+                  request.buffer_in_size);
+    return IPCReply(-SO_EINVAL);
   }
 
   const u32 fd = Memory::Read_U32(request.buffer_in);
   const u32 how = Memory::Read_U32(request.buffer_in + 4);
   WiiSockMan& sm = WiiSockMan::GetInstance();
   const s32 return_value = sm.ShutdownSocket(fd, how);
-  INFO_LOG(IOS_NET, "IOCTL_SO_SHUTDOWN(fd=%d, how=%d) = %d", fd, how, return_value);
-  return GetDefaultReply(return_value);
+
+  INFO_LOG_FMT(IOS_NET, "IOCTL_SO_SHUTDOWN(fd={}, how={}) = {}", fd, how, return_value);
+  return IPCReply(return_value);
 }
 
-IPCCommandResult NetIPTop::HandleListenRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_in);
   u32 BACKLOG = Memory::Read_U32(request.buffer_in + 0x04);
   u32 ret = listen(WiiSockMan::GetInstance().GetHostSocket(fd), BACKLOG);
 
   request.Log(GetDeviceName(), Common::Log::IOS_WC24);
-  return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false));
+  return IPCReply(WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false));
 }
 
-IPCCommandResult NetIPTop::HandleGetSockOptRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_out);
   u32 level = Memory::Read_U32(request.buffer_out + 4);
@@ -469,45 +485,45 @@ IPCCommandResult NetIPTop::HandleGetSockOptRequest(const IOCtlRequest& request)
     Memory::Write_U32(last_error, request.buffer_out + 0x10);
   }
 
-  return GetDefaultReply(return_value);
+  return IPCReply(return_value);
 }
 
-IPCCommandResult NetIPTop::HandleSetSockOptRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleSetSockOptRequest(const IOCtlRequest& request)
 {
-  u32 fd = Memory::Read_U32(request.buffer_in);
-  u32 level = Memory::Read_U32(request.buffer_in + 4);
-  u32 optname = Memory::Read_U32(request.buffer_in + 8);
+  const u32 fd = Memory::Read_U32(request.buffer_in);
+  const u32 level = Memory::Read_U32(request.buffer_in + 4);
+  const u32 optname = Memory::Read_U32(request.buffer_in + 8);
   u32 optlen = Memory::Read_U32(request.buffer_in + 0xc);
   u8 optval[20];
   optlen = std::min(optlen, (u32)sizeof(optval));
   Memory::CopyFromEmu(optval, request.buffer_in + 0x10, optlen);
 
-  INFO_LOG(IOS_NET,
-           "IOCTL_SO_SETSOCKOPT(%08x, %08x, %08x, %08x) "
-           "BufferIn: (%08x, %i), BufferOut: (%08x, %i)"
-           "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx "
-           "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx",
-           fd, level, optname, optlen, request.buffer_in, request.buffer_in_size,
-           request.buffer_out, request.buffer_out_size, optval[0], optval[1], optval[2], optval[3],
-           optval[4], optval[5], optval[6], optval[7], optval[8], optval[9], optval[10], optval[11],
-           optval[12], optval[13], optval[14], optval[15], optval[16], optval[17], optval[18],
-           optval[19]);
+  INFO_LOG_FMT(IOS_NET,
+               "IOCTL_SO_SETSOCKOPT({:08x}, {:08x}, {:08x}, {:08x}) "
+               "BufferIn: ({:08x}, {}), BufferOut: ({:08x}, {})"
+               "{:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} "
+               "{:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
+               fd, level, optname, optlen, request.buffer_in, request.buffer_in_size,
+               request.buffer_out, request.buffer_out_size, optval[0], optval[1], optval[2],
+               optval[3], optval[4], optval[5], optval[6], optval[7], optval[8], optval[9],
+               optval[10], optval[11], optval[12], optval[13], optval[14], optval[15], optval[16],
+               optval[17], optval[18], optval[19]);
 
   // TODO: bug booto about this, 0x2005 most likely timeout related, default value on Wii is ,
   // 0x2001 is most likely tcpnodelay
   if (level == 6 && (optname == 0x2005 || optname == 0x2001))
-    return GetDefaultReply(0);
+    return IPCReply(0);
 
   // Do the level/optname translation
-  int nat_level = MapWiiSockOptLevelToNative(level);
-  int nat_optname = MapWiiSockOptNameToNative(optname);
+  const int nat_level = MapWiiSockOptLevelToNative(level);
+  const int nat_optname = MapWiiSockOptNameToNative(optname);
 
-  int ret = setsockopt(WiiSockMan::GetInstance().GetHostSocket(fd), nat_level, nat_optname,
-                       (char*)optval, optlen);
-  return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
+  const int ret = setsockopt(WiiSockMan::GetInstance().GetHostSocket(fd), nat_level, nat_optname,
+                             reinterpret_cast<char*>(optval), optlen);
+  return IPCReply(WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false));
 }
 
-IPCCommandResult NetIPTop::HandleGetSockNameRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_in);
 
@@ -515,10 +531,10 @@ IPCCommandResult NetIPTop::HandleGetSockNameRequest(const IOCtlRequest& request)
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
-  int ret = getsockname(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
+  const int ret = getsockname(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
 
   if (request.buffer_out_size < 2 + sizeof(sa.sa_data))
-    WARN_LOG(IOS_NET, "IOCTL_SO_GETSOCKNAME output buffer is too small. Truncating");
+    WARN_LOG_FMT(IOS_NET, "IOCTL_SO_GETSOCKNAME output buffer is too small. Truncating");
 
   if (request.buffer_out_size > 0)
     Memory::Write_U8(request.buffer_out_size, request.buffer_out);
@@ -530,19 +546,19 @@ IPCCommandResult NetIPTop::HandleGetSockNameRequest(const IOCtlRequest& request)
                       std::min<size_t>(sizeof(sa.sa_data), request.buffer_out_size - 2));
   }
 
-  return GetDefaultReply(ret);
+  return IPCReply(ret);
 }
 
-IPCCommandResult NetIPTop::HandleGetPeerNameRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_in);
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
-  int ret = getpeername(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
+  const int ret = getpeername(WiiSockMan::GetInstance().GetHostSocket(fd), &sa, &sa_len);
 
   if (request.buffer_out_size < 2 + sizeof(sa.sa_data))
-    WARN_LOG(IOS_NET, "IOCTL_SO_GETPEERNAME output buffer is too small. Truncating");
+    WARN_LOG_FMT(IOS_NET, "IOCTL_SO_GETPEERNAME output buffer is too small. Truncating");
 
   if (request.buffer_out_size > 0)
     Memory::Write_U8(request.buffer_out_size, request.buffer_out);
@@ -554,52 +570,56 @@ IPCCommandResult NetIPTop::HandleGetPeerNameRequest(const IOCtlRequest& request)
                       std::min<size_t>(sizeof(sa.sa_data), request.buffer_out_size - 2));
   }
 
-  INFO_LOG(IOS_NET, "IOCTL_SO_GETPEERNAME(%x)", fd);
-  return GetDefaultReply(ret);
+  INFO_LOG_FMT(IOS_NET, "IOCTL_SO_GETPEERNAME({:x})", fd);
+  return IPCReply(ret);
 }
 
-IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
   const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
   const u32 host_ip = Common::swap32(interface.inet);
-  INFO_LOG(IOS_NET, "IOCTL_SO_GETHOSTID = %u.%u.%u.%u", host_ip >> 24, (host_ip >> 16) & 0xFF,
-           (host_ip >> 8) & 0xFF, host_ip & 0xFF);
-  return GetDefaultReply(host_ip);
+  INFO_LOG_FMT(IOS_NET, "IOCTL_SO_GETHOSTID = {}.{}.{}.{}", host_ip >> 24, (host_ip >> 16) & 0xFF,
+               (host_ip >> 8) & 0xFF, host_ip & 0xFF);
+  return IPCReply(host_ip);
 }
 
-IPCCommandResult NetIPTop::HandleInetAToNRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInetAToNRequest(const IOCtlRequest& request)
 {
-  std::string hostname = Memory::GetString(request.buffer_in);
+  const std::string hostname = Memory::GetString(request.buffer_in);
   struct hostent* remoteHost = gethostbyname(hostname.c_str());
 
   if (remoteHost == nullptr || remoteHost->h_addr_list == nullptr ||
       remoteHost->h_addr_list[0] == nullptr)
   {
-    INFO_LOG(IOS_NET,
-             "IOCTL_SO_INETATON = -1 "
-             "%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: None",
-             hostname.c_str(), request.buffer_in, request.buffer_in_size, request.buffer_out,
-             request.buffer_out_size);
-    return GetDefaultReply(0);
+    INFO_LOG_FMT(IOS_NET,
+                 "IOCTL_SO_INETATON = -1 "
+                 "{}, BufferIn: ({:08x}, {}), BufferOut: ({:08x}, {}), IP Found: None",
+                 hostname, request.buffer_in, request.buffer_in_size, request.buffer_out,
+                 request.buffer_out_size);
+
+    return IPCReply(0);
   }
 
-  Memory::Write_U32(Common::swap32(*(u32*)remoteHost->h_addr_list[0]), request.buffer_out);
-  INFO_LOG(IOS_NET,
-           "IOCTL_SO_INETATON = 0 "
-           "%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",
-           hostname.c_str(), request.buffer_in, request.buffer_in_size, request.buffer_out,
-           request.buffer_out_size, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
-  return GetDefaultReply(1);
+  const auto ip = Common::swap32(reinterpret_cast<u8*>(remoteHost->h_addr_list[0]));
+  Memory::Write_U32(ip, request.buffer_out);
+
+  INFO_LOG_FMT(IOS_NET,
+               "IOCTL_SO_INETATON = 0 "
+               "{}, BufferIn: ({:08x}, {}), BufferOut: ({:08x}, {}), IP Found: {:08X}",
+               hostname, request.buffer_in, request.buffer_in_size, request.buffer_out,
+               request.buffer_out_size, ip);
+
+  return IPCReply(1);
 }
 
-IPCCommandResult NetIPTop::HandleInetPToNRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInetPToNRequest(const IOCtlRequest& request)
 {
-  std::string address = Memory::GetString(request.buffer_in);
-  INFO_LOG(IOS_NET, "IOCTL_SO_INETPTON (Translating: %s)", address.c_str());
-  return GetDefaultReply(inet_pton(address.c_str(), Memory::GetPointer(request.buffer_out + 4)));
+  const std::string address = Memory::GetString(request.buffer_in);
+  INFO_LOG_FMT(IOS_NET, "IOCTL_SO_INETPTON (Translating: {})", address);
+  return IPCReply(inet_pton(address.c_str(), Memory::GetPointer(request.buffer_out + 4)));
 }
 
-IPCCommandResult NetIPTop::HandleInetNToPRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleInetNToPRequest(const IOCtlRequest& request)
 {
   // u32 af = Memory::Read_U32(BufferIn);
   // u32 validAddress = Memory::Read_U32(request.buffer_in + 4);
@@ -610,17 +630,17 @@ IPCCommandResult NetIPTop::HandleInetNToPRequest(const IOCtlRequest& request)
           Memory::Read_U8(request.buffer_in + 8 + 1), Memory::Read_U8(request.buffer_in + 8 + 2),
           Memory::Read_U8(request.buffer_in + 8 + 3));
 
-  INFO_LOG(IOS_NET, "IOCTL_SO_INETNTOP %s", ip_s);
-  Memory::CopyToEmu(request.buffer_out, (u8*)ip_s, strlen(ip_s));
-  return GetDefaultReply(0);
+  INFO_LOG_FMT(IOS_NET, "IOCTL_SO_INETNTOP {}", ip_s);
+  Memory::CopyToEmu(request.buffer_out, reinterpret_cast<u8*>(ip_s), std::strlen(ip_s));
+  return IPCReply(0);
 }
 
-IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandlePollRequest(const IOCtlRequest& request)
 {
   WiiSockMan& sm = WiiSockMan::GetInstance();
 
   if (!request.buffer_in || !request.buffer_out)
-    return GetDefaultReply(-SO_EINVAL);
+    return IPCReply(-SO_EINVAL);
 
   // Negative timeout indicates wait forever
   const s64 timeout = static_cast<s64>(Memory::Read_U64(request.buffer_in));
@@ -628,8 +648,8 @@ IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
   const u32 nfds = request.buffer_out_size / 0xc;
   if (nfds == 0 || nfds > WII_SOCKET_FD_MAX)
   {
-    ERROR_LOG(IOS_NET, "IOCTL_SO_POLL failed: Invalid array size %d, ret=%d", nfds, -SO_EINVAL);
-    return GetDefaultReply(-SO_EINVAL);
+    ERROR_LOG_FMT(IOS_NET, "IOCTL_SO_POLL failed: Invalid array size {}, ret={}", nfds, -SO_EINVAL);
+    return IPCReply(-SO_EINVAL);
   }
 
   std::vector<pollfd_t> ufds(nfds);
@@ -643,11 +663,11 @@ IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
 
     // Translate Wii to native events
     ufds[i].events = WiiSockMan::ConvertEvents(events, WiiSockMan::ConvertDirection::WiiToNative);
-    DEBUG_LOG(IOS_NET,
-              "IOCTL_SO_POLL(%d) "
-              "Sock: %08x, Events: %08x, "
-              "NativeEvents: %08x",
-              i, wii_fd, events, ufds[i].events);
+    DEBUG_LOG_FMT(IOS_NET,
+                  "IOCTL_SO_POLL({}) "
+                  "Sock: {:08x}, Events: {:08x}, "
+                  "NativeEvents: {:08x}",
+                  i, wii_fd, events, ufds[i].events);
 
     // Do not pass return-only events to the native poll
     ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL | UNSUPPORTED_WSAPOLL);
@@ -655,32 +675,32 @@ IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
 
   // Prevents blocking emulation on a blocking poll
   sm.AddPollCommand({request.address, request.buffer_out, std::move(ufds), timeout});
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleGetHostByNameRequest(const IOCtlRequest& request)
 {
   if (request.buffer_out_size != 0x460)
   {
-    ERROR_LOG(IOS_NET, "Bad buffer size for IOCTL_SO_GETHOSTBYNAME");
-    return GetDefaultReply(-1);
+    ERROR_LOG_FMT(IOS_NET, "Bad buffer size for IOCTL_SO_GETHOSTBYNAME");
+    return IPCReply(-1);
   }
 
-  std::string hostname = Memory::GetString(request.buffer_in);
+  const std::string hostname = Memory::GetString(request.buffer_in);
   hostent* remoteHost = gethostbyname(hostname.c_str());
 
-  INFO_LOG(IOS_NET,
-           "IOCTL_SO_GETHOSTBYNAME "
-           "Address: %s, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-           hostname.c_str(), request.buffer_in, request.buffer_in_size, request.buffer_out,
-           request.buffer_out_size);
+  INFO_LOG_FMT(IOS_NET,
+               "IOCTL_SO_GETHOSTBYNAME "
+               "Address: {}, BufferIn: ({:08x}, {}), BufferOut: ({:08x}, {})",
+               hostname, request.buffer_in, request.buffer_in_size, request.buffer_out,
+               request.buffer_out_size);
 
   if (remoteHost == nullptr)
-    return GetDefaultReply(-1);
+    return IPCReply(-1);
 
   for (int i = 0; remoteHost->h_aliases[i]; ++i)
   {
-    DEBUG_LOG(IOS_NET, "alias%i:%s", i, remoteHost->h_aliases[i]);
+    DEBUG_LOG_FMT(IOS_NET, "alias{}:{}", i, remoteHost->h_aliases[i]);
   }
 
   for (int i = 0; remoteHost->h_addr_list[i]; ++i)
@@ -688,18 +708,18 @@ IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& reques
     const u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
     const std::string ip_s =
         fmt::format("{}.{}.{}.{}", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
-    DEBUG_LOG(IOS_NET, "addr%i:%s", i, ip_s.c_str());
+    DEBUG_LOG_FMT(IOS_NET, "addr{}:{}", i, ip_s);
   }
 
   // Host name; located immediately after struct
-  static const u32 GETHOSTBYNAME_STRUCT_SIZE = 0x10;
-  static const u32 GETHOSTBYNAME_IP_LIST_OFFSET = 0x110;
+  static constexpr u32 GETHOSTBYNAME_STRUCT_SIZE = 0x10;
+  static constexpr u32 GETHOSTBYNAME_IP_LIST_OFFSET = 0x110;
   // Limit host name length to avoid buffer overflow.
-  u32 name_length = (u32)strlen(remoteHost->h_name) + 1;
+  const auto name_length = static_cast<u32>(strlen(remoteHost->h_name)) + 1;
   if (name_length > (GETHOSTBYNAME_IP_LIST_OFFSET - GETHOSTBYNAME_STRUCT_SIZE))
   {
-    ERROR_LOG(IOS_NET, "Hostname too long in IOCTL_SO_GETHOSTBYNAME");
-    return GetDefaultReply(-1);
+    ERROR_LOG_FMT(IOS_NET, "Hostname too long in IOCTL_SO_GETHOSTBYNAME");
+    return IPCReply(-1);
   }
   Memory::CopyToEmu(request.buffer_out + GETHOSTBYNAME_STRUCT_SIZE, remoteHost->h_name,
                     name_length);
@@ -741,16 +761,16 @@ IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& reques
   Memory::Write_U16(AF_INET, request.buffer_out + 8);
   Memory::Write_U16(sizeof(u32), request.buffer_out + 10);
 
-  return GetDefaultReply(0);
+  return IPCReply(0);
 }
 
-IPCCommandResult NetIPTop::HandleICMPCancelRequest(const IOCtlRequest& request)
+IPCReply NetIPTopDevice::HandleICMPCancelRequest(const IOCtlRequest& request)
 {
-  ERROR_LOG(IOS_NET, "IOCTL_SO_ICMPCANCEL");
-  return GetDefaultReply(0);
+  ERROR_LOG_FMT(IOS_NET, "IOCTL_SO_ICMPCANCEL");
+  return IPCReply(0);
 }
 
-IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& request)
+IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& request)
 {
   const u32 param = Memory::Read_U32(request.in_vectors[0].address);
   const u32 param2 = Memory::Read_U32(request.in_vectors[0].address + 4);
@@ -760,8 +780,8 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
 
   if (param != 0xfffe)
   {
-    WARN_LOG(IOS_NET, "GetInterfaceOpt: received invalid request with param0=%08x", param);
-    return GetDefaultReply(SO_ERROR_INVALID_REQUEST);
+    WARN_LOG_FMT(IOS_NET, "GetInterfaceOpt: received invalid request with param0={:08x}", param);
+    return IPCReply(SO_ERROR_INVALID_REQUEST);
   }
 
   if (request.io_vectors[0].size >= 8)
@@ -769,13 +789,13 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
     param5 = Memory::Read_U32(request.io_vectors[0].address + 4);
   }
 
-  INFO_LOG(IOS_NET,
-           "IOCTLV_SO_GETINTERFACEOPT(%08X, %08X, %X, %X, %X) "
-           "BufferIn: (%08x, %i), BufferIn2: (%08x, %i) ",
-           param, param2, param3, param4, param5, request.in_vectors[0].address,
-           request.in_vectors[0].size,
-           request.in_vectors.size() > 1 ? request.in_vectors[1].address : 0,
-           request.in_vectors.size() > 1 ? request.in_vectors[1].size : 0);
+  INFO_LOG_FMT(IOS_NET,
+               "IOCTLV_SO_GETINTERFACEOPT({:08X}, {:08X}, {:X}, {:X}, {:X}) "
+               "BufferIn: ({:08x}, {}), BufferIn2: ({:08x}, {}) ",
+               param, param2, param3, param4, param5, request.in_vectors[0].address,
+               request.in_vectors[0].size,
+               request.in_vectors.size() > 1 ? request.in_vectors[1].address : 0,
+               request.in_vectors.size() > 1 ? request.in_vectors[1].size : 0);
 
   switch (param2)
   {
@@ -824,14 +844,13 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
             if (AdapterList->IfIndex == dwBestIfIndex && AdapterList->FirstDnsServerAddress &&
                 AdapterList->OperStatus == IfOperStatusUp)
             {
-              INFO_LOG(IOS_NET, "Name of valid interface: %S", AdapterList->FriendlyName);
-              INFO_LOG(
-                  IOS_NET, "DNS: %u.%u.%u.%u",
-                  (unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2],
-                  (unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3],
-                  (unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4],
-                  (unsigned char)
-                      AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]);
+              INFO_LOG_FMT(IOS_NET, "Name of valid interface: {}",
+                           WStringToUTF8(AdapterList->FriendlyName));
+              INFO_LOG_FMT(IOS_NET, "DNS: {}.{}.{}.{}",
+                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]),
+                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3]),
+                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4]),
+                           u8(AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]));
               address = Common::swap32(
                   *(u32*)(&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]));
               break;
@@ -851,14 +870,14 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
       if (res_init() == 0)
         address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
       else
-        WARN_LOG(IOS_NET, "Call to res_init failed");
+        WARN_LOG_FMT(IOS_NET, "Call to res_init failed");
     }
 #endif
     if (address == 0)
       address = default_main_dns_resolver;
 
-    INFO_LOG(IOS_NET, "Primary DNS: %X", address);
-    INFO_LOG(IOS_NET, "Secondary DNS: %X", default_backup_dns_resolver);
+    INFO_LOG_FMT(IOS_NET, "Primary DNS: {:X}", address);
+    INFO_LOG_FMT(IOS_NET, "Secondary DNS: {:X}", default_backup_dns_resolver);
 
     Memory::Write_U32(address, request.io_vectors[0].address);
     Memory::Write_U32(default_backup_dns_resolver, request.io_vectors[0].address + 4);
@@ -920,30 +939,30 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
     break;
 
   default:
-    ERROR_LOG(IOS_NET, "Unknown param2: %08X", param2);
+    ERROR_LOG_FMT(IOS_NET, "Unknown param2: {:08X}", param2);
     break;
   }
 
-  return GetDefaultReply(0);
+  return IPCReply(0);
 }
 
-IPCCommandResult NetIPTop::HandleSendToRequest(const IOCtlVRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandleSendToRequest(const IOCtlVRequest& request)
 {
   u32 fd = Memory::Read_U32(request.in_vectors[1].address);
   WiiSockMan& sm = WiiSockMan::GetInstance();
   sm.DoSock(fd, request, IOCTLV_SO_SENDTO);
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult NetIPTop::HandleRecvFromRequest(const IOCtlVRequest& request)
+std::optional<IPCReply> NetIPTopDevice::HandleRecvFromRequest(const IOCtlVRequest& request)
 {
   u32 fd = Memory::Read_U32(request.in_vectors[0].address);
   WiiSockMan& sm = WiiSockMan::GetInstance();
   sm.DoSock(fd, request, IOCTLV_SO_RECVFROM);
-  return GetNoReply();
+  return std::nullopt;
 }
 
-IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& request)
+IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& request)
 {
   addrinfo hints;
   const bool hints_valid = request.in_vectors.size() > 2 && request.in_vectors[2].size;
@@ -1029,10 +1048,10 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   }
 
   request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LINFO);
-  return GetDefaultReply(ret);
+  return IPCReply(ret);
 }
 
-IPCCommandResult NetIPTop::HandleICMPPingRequest(const IOCtlVRequest& request)
+IPCReply NetIPTopDevice::HandleICMPPingRequest(const IOCtlVRequest& request)
 {
   struct
   {
@@ -1042,13 +1061,13 @@ IPCCommandResult NetIPTop::HandleICMPPingRequest(const IOCtlVRequest& request)
     u32 ip;
   } ip_info;
 
-  u32 fd = Memory::Read_U32(request.in_vectors[0].address);
-  u32 num_ip = Memory::Read_U32(request.in_vectors[0].address + 4);
-  u64 timeout = Memory::Read_U64(request.in_vectors[0].address + 8);
+  const u32 fd = Memory::Read_U32(request.in_vectors[0].address);
+  const u32 num_ip = Memory::Read_U32(request.in_vectors[0].address + 4);
+  const u64 timeout = Memory::Read_U64(request.in_vectors[0].address + 8);
 
   if (num_ip != 1)
   {
-    INFO_LOG(IOS_NET, "IOCTLV_SO_ICMPPING %i IPs", num_ip);
+    INFO_LOG_FMT(IOS_NET, "IOCTLV_SO_ICMPPING {} IPs", num_ip);
   }
 
   ip_info.length = Memory::Read_U8(request.in_vectors[0].address + 16);
@@ -1058,13 +1077,13 @@ IPCCommandResult NetIPTop::HandleICMPPingRequest(const IOCtlVRequest& request)
 
   if (ip_info.length != 8 || ip_info.addr_family != AF_INET)
   {
-    INFO_LOG(IOS_NET,
-             "IOCTLV_SO_ICMPPING strange IPInfo:\n"
-             "length %x addr_family %x",
-             ip_info.length, ip_info.addr_family);
+    INFO_LOG_FMT(IOS_NET,
+                 "IOCTLV_SO_ICMPPING strange IPInfo:\n"
+                 "length {:x} addr_family {:x}",
+                 ip_info.length, ip_info.addr_family);
   }
 
-  INFO_LOG(IOS_NET, "IOCTLV_SO_ICMPPING %x", ip_info.ip);
+  INFO_LOG_FMT(IOS_NET, "IOCTLV_SO_ICMPPING {:x}", ip_info.ip);
 
   sockaddr_in addr;
   addr.sin_family = AF_INET;
@@ -1096,6 +1115,6 @@ IPCCommandResult NetIPTop::HandleICMPPingRequest(const IOCtlVRequest& request)
   }
 
   // TODO proper error codes
-  return GetDefaultReply(0);
+  return IPCReply(0);
 }
-}  // namespace IOS::HLE::Device
+}  // namespace IOS::HLE

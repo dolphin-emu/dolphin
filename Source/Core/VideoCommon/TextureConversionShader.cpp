@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/TextureConversionShader.h"
 
@@ -127,13 +126,13 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
     {
       switch (params.efb_format)
       {
-      case PEControl::RGB8_Z24:
+      case PixelFormat::RGB8_Z24:
         code.Write("RGBA8ToRGB8(");
         break;
-      case PEControl::RGBA6_Z24:
+      case PixelFormat::RGBA6_Z24:
         code.Write("RGBA8ToRGBA6(");
         break;
-      case PEControl::RGB565_Z16:
+      case PixelFormat::RGB565_Z16:
         code.Write("RGBA8ToRGB565(");
         break;
       default:

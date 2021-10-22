@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -33,6 +32,15 @@ enum
   TIMER_RATIO = 12
 };
 
+struct TimeBaseTick
+{
+  constexpr TimeBaseTick() = default;
+  constexpr explicit TimeBaseTick(u64 tb_ticks) : cpu_ticks(tb_ticks * TIMER_RATIO) {}
+  constexpr operator u64() const { return cpu_ticks; }
+
+  u64 cpu_ticks = 0;
+};
+
 enum class Mode
 {
   GC,
@@ -63,3 +71,12 @@ s64 GetLocalTimeRTCOffset();
 double GetEstimatedEmulationPerformance();
 
 }  // namespace SystemTimers
+
+inline namespace SystemTimersLiterals
+{
+/// Converts timebase ticks to clock ticks.
+constexpr SystemTimers::TimeBaseTick operator""_tbticks(unsigned long long value)
+{
+  return SystemTimers::TimeBaseTick(value);
+}
+}  // namespace SystemTimersLiterals

@@ -14,9 +14,17 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
   add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
   add_definitions(-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+  # The replacement for the old atomic shared_ptr functions was added in C++20, so we can't use it yet
+  add_definitions(-D_SILENCE_CXX20_OLD_SHARED_PTR_ATOMIC_SUPPORT_DEPRECATION_WARNING)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+if (MSVC)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std:c++latest")
+else()
+  set(CMAKE_CXX_STANDARD 20)
+endif()
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -92,6 +100,12 @@ else()
   check_cxx_compiler_flag(-Wstringop-truncation HAS_STRINGOP_TRUNCATION_WARNING)
   if (HAS_STRINGOP_TRUNCATION_WARNING)
     check_and_add_flag(NO_STRINGOP_TRUNCATION -Wno-stringop-truncation)
+  endif()
+
+  # Format string issues that the compiler can detect should be compile time errors.
+  check_cxx_compiler_flag(-Wformat HAS_FORMAT_WARNING)
+  if (HAS_FORMAT_WARNING)
+    check_and_add_flag(FORMAT_WARNING_TO_ERROR -Werror=format)
   endif()
 endif()
 

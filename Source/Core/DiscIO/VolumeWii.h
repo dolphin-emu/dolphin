@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -37,7 +36,6 @@ public:
   static constexpr size_t AES_KEY_SIZE = 16;
   static constexpr size_t SHA1_SIZE = 20;
 
-  static constexpr u32 H3_TABLE_SIZE = 0x18000;
   static constexpr u32 BLOCKS_PER_GROUP = 0x40;
 
   static constexpr u64 BLOCK_HEADER_SIZE = 0x0400;
@@ -82,7 +80,7 @@ public:
   bool IsDatelDisc() const override;
   bool SupportsIntegrityCheck() const override { return m_encrypted; }
   bool CheckH3TableIntegrity(const Partition& partition) const override;
-  bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
+  bool CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
                            const Partition& partition) const override;
   bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const override;
 
@@ -124,7 +122,7 @@ private:
     Common::Lazy<std::vector<u8>> h3_table;
     Common::Lazy<std::unique_ptr<FileSystem>> file_system;
     Common::Lazy<u64> data_offset;
-    u32 type;
+    u32 type = 0;
   };
 
   std::unique_ptr<BlobReader> m_reader;
@@ -133,7 +131,7 @@ private:
   bool m_encrypted;
 
   mutable u64 m_last_decrypted_block;
-  mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];
+  mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE]{};
 };
 
 }  // namespace DiscIO

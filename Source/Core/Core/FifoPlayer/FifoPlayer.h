@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -74,7 +73,9 @@ public:
   bool IsPlaying() const;
 
   FifoDataFile* GetFile() const { return m_File.get(); }
-  u32 GetFrameObjectCount() const;
+  u32 GetMaxObjectCount() const;
+  u32 GetFrameObjectCount(u32 frame) const;
+  u32 GetCurrentFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
   // Frame range
@@ -134,6 +135,7 @@ private:
   void LoadXFMem16(u16 address, const u32* data);
 
   bool ShouldLoadBP(u8 address);
+  bool ShouldLoadXF(u8 address);
 
   static bool IsIdleSet();
   static bool IsHighWatermarkSet();

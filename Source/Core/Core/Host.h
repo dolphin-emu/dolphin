@@ -1,10 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <memory>
 #include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 
 // Host - defines an interface for the emulator core to communicate back to the
 // OS-specific layer
@@ -23,6 +26,19 @@
 // The host can be just a command line app that opens a window, or a full blown debugger
 // interface.
 
+namespace HW::GBA
+{
+class Core;
+}  // namespace HW::GBA
+
+class GBAHostInterface
+{
+public:
+  virtual ~GBAHostInterface() = default;
+  virtual void GameChanged() = 0;
+  virtual void FrameEnded(const std::vector<u32>& video_buffer) = 0;
+};
+
 enum class HostMessageID
 {
   // Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
@@ -32,9 +48,12 @@ enum class HostMessageID
   WMUserJobDispatch,
 };
 
+std::vector<std::string> Host_GetPreferredLocales();
 bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
+bool Host_RendererHasFullFocus();
 bool Host_RendererIsFullscreen();
+
 void Host_Message(HostMessageID id);
 void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();
@@ -44,3 +63,5 @@ void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
+
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core);

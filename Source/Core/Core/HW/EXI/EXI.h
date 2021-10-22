@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -47,4 +46,4 @@ CEXIChannel* GetChannel(u32 index);
 
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
 
-}  // end of namespace ExpansionInterface
+}  // namespace ExpansionInterface

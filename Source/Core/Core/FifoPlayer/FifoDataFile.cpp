@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/FifoPlayer/FifoDataFile.h"
 
@@ -10,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/Memmap.h"
@@ -121,19 +120,19 @@ bool FifoDataFile::Save(const std::string& filename)
   PadFile(m_Frames.size() * sizeof(FileFrameInfo), file);
 
   u64 bpMemOffset = file.Tell();
-  file.WriteArray(m_BPMem, BP_MEM_SIZE);
+  file.WriteArray(m_BPMem);
 
   u64 cpMemOffset = file.Tell();
-  file.WriteArray(m_CPMem, CP_MEM_SIZE);
+  file.WriteArray(m_CPMem);
 
   u64 xfMemOffset = file.Tell();
-  file.WriteArray(m_XFMem, XF_MEM_SIZE);
+  file.WriteArray(m_XFMem);
 
   u64 xfRegsOffset = file.Tell();
-  file.WriteArray(m_XFRegs, XF_REGS_SIZE);
+  file.WriteArray(m_XFRegs);
 
   u64 texMemOffset = file.Tell();
-  file.WriteArray(m_TexMem, TEX_MEM_SIZE);
+  file.WriteArray(m_TexMem);
 
   // Write header
   FileHeader header;
@@ -210,15 +209,33 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
   if (!file)
     return nullptr;
 
-  FileHeader header;
-  file.ReadBytes(&header, sizeof(header));
+  auto panic_failed_to_read = []() {
+    CriticalAlertFmtT("Failed to read DFF file.");
+    return nullptr;
+  };
 
-  if (header.fileId != FILE_ID || header.min_loader_version > VERSION_NUMBER)
+  if (file.GetSize() == 0)
+  {
+    CriticalAlertFmtT("DFF file size is 0; corrupt/incomplete file?");
+    return nullptr;
+  }
+
+  FileHeader header;
+  if (!file.ReadBytes(&header, sizeof(header)))
+    return panic_failed_to_read();
+
+  if (header.fileId != FILE_ID)
+  {
+    CriticalAlertFmtT("DFF file magic number is incorrect: got {0:08x}, expected {1:08x}",
+                      header.fileId, FILE_ID);
+    return nullptr;
+  }
+
+  if (header.min_loader_version > VERSION_NUMBER)
   {
     CriticalAlertFmtT(
         "The DFF's minimum loader version ({0}) exceeds the version of this FIFO Player ({1})",
         header.min_loader_version, VERSION_NUMBER);
-    file.Close();
     return nullptr;
   }
 
@@ -245,7 +262,6 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     Config::SetCurrent(Config::MAIN_MEM1_SIZE, header.mem1_size);
     Config::SetCurrent(Config::MAIN_MEM2_SIZE, header.mem2_size);
 
-    file.Close();
     return dataFile;
   }
 
@@ -264,34 +280,36 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
                       Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000,
                       header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
                       header.mem2_size / 0x100000);
-    file.Close();
     return nullptr;
   }
 
   u32 size = std::min<u32>(BP_MEM_SIZE, header.bpMemSize);
   file.Seek(header.bpMemOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_BPMem, size);
+  file.ReadArray(&dataFile->m_BPMem);
 
   size = std::min<u32>(CP_MEM_SIZE, header.cpMemSize);
   file.Seek(header.cpMemOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_CPMem, size);
+  file.ReadArray(&dataFile->m_CPMem);
 
   size = std::min<u32>(XF_MEM_SIZE, header.xfMemSize);
   file.Seek(header.xfMemOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_XFMem, size);
+  file.ReadArray(&dataFile->m_XFMem);
 
   size = std::min<u32>(XF_REGS_SIZE, header.xfRegsSize);
   file.Seek(header.xfRegsOffset, SEEK_SET);
-  file.ReadArray(dataFile->m_XFRegs, size);
+  file.ReadArray(&dataFile->m_XFRegs);
 
   // Texture memory saving was added in version 4.
-  std::memset(dataFile->m_TexMem, 0, TEX_MEM_SIZE);
+  dataFile->m_TexMem.fill(0);
   if (dataFile->m_Version >= 4)
   {
     size = std::min<u32>(TEX_MEM_SIZE, header.texMemSize);
     file.Seek(header.texMemOffset, SEEK_SET);
-    file.ReadArray(dataFile->m_TexMem, size);
+    file.ReadArray(&dataFile->m_TexMem);
   }
+
+  if (!file.IsGood())
+    return panic_failed_to_read();
 
   // idk what else these could be used for, but it'd be a shame to not make them available.
   dataFile->m_ram_size_real = header.mem1_size;
@@ -303,7 +321,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     u64 frameOffset = header.frameListOffset + (i * sizeof(FileFrameInfo));
     file.Seek(frameOffset, SEEK_SET);
     FileFrameInfo srcFrame;
-    file.ReadBytes(&srcFrame, sizeof(FileFrameInfo));
+    if (!file.ReadBytes(&srcFrame, sizeof(FileFrameInfo)))
+      return panic_failed_to_read();
 
     FifoFrameInfo dstFrame;
     dstFrame.fifoData.resize(srcFrame.fifoDataSize);
@@ -316,10 +335,11 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     ReadMemoryUpdates(srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates,
                       dstFrame.memoryUpdates, file);
 
+    if (!file.IsGood())
+      return panic_failed_to_read();
+
     dataFile->AddFrame(dstFrame);
   }
-
-  file.Close();
 
   return dataFile;
 }

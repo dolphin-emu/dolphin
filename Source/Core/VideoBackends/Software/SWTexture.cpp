@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/SWTexture.h"
 #include "VideoBackends/Software/SWRenderer.h"
@@ -56,15 +55,10 @@ void SWRenderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
   const SWTexture* software_source_texture = static_cast<const SWTexture*>(src_texture);
   SWTexture* software_dest_texture = static_cast<SWTexture*>(dst_framebuffer->GetColorAttachment());
 
-  std::vector<Pixel> source_pixels;
-  source_pixels.resize(src_rect.GetHeight() * src_rect.GetWidth() * 4);
-  memcpy(source_pixels.data(), software_source_texture->GetData(), source_pixels.size());
-
-  std::vector<Pixel> destination_pixels;
-  destination_pixels.resize(dst_rect.GetHeight() * dst_rect.GetWidth() * 4);
-
-  CopyRegion(source_pixels.data(), src_rect, destination_pixels.data(), dst_rect);
-  memcpy(software_dest_texture->GetData(), destination_pixels.data(), destination_pixels.size());
+  CopyRegion(reinterpret_cast<const Pixel*>(software_source_texture->GetData()), src_rect,
+             src_texture->GetWidth(), src_texture->GetHeight(),
+             reinterpret_cast<Pixel*>(software_dest_texture->GetData()), dst_rect,
+             dst_framebuffer->GetWidth(), dst_framebuffer->GetHeight());
 }
 
 SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)

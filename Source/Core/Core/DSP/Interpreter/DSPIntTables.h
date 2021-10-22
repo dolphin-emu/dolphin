@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,7 +7,9 @@
 
 namespace DSP::Interpreter
 {
-using InterpreterFunction = void (*)(UDSPInstruction);
+class Interpreter;
+
+using InterpreterFunction = void (Interpreter::*)(UDSPInstruction);
 
 InterpreterFunction GetOp(UDSPInstruction inst);
 InterpreterFunction GetExtOp(UDSPInstruction inst);

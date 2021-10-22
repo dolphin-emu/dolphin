@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DSPHLE/DSPHLE.h"
 
@@ -22,10 +21,10 @@ bool DSPHLE::Initialize(bool wii, bool dsp_thread)
   m_wii = wii;
   m_ucode = nullptr;
   m_last_ucode = nullptr;
-  m_halt = false;
-  m_assert_interrupt = false;
 
   SetUCode(UCODE_ROM);
+
+  m_dsp_control.Hex = 0;
   m_dsp_control.DSPHalt = 1;
   m_dsp_control.DSPInit = 1;
 
@@ -79,15 +78,16 @@ void DSPHLE::SwapUCode(u32 crc)
 {
   m_mail_handler.Clear();
 
-  if (m_last_ucode == nullptr)
+  if (m_last_ucode && UCodeInterface::GetCRC(m_last_ucode.get()) == crc)
   {
-    m_last_ucode = std::move(m_ucode);
-    m_ucode = UCodeFactory(crc, this, m_wii);
-    m_ucode->Initialize();
+    m_ucode = std::move(m_last_ucode);
   }
   else
   {
-    m_ucode = std::move(m_last_ucode);
+    if (!m_last_ucode)
+      m_last_ucode = std::move(m_ucode);
+    m_ucode = UCodeFactory(crc, this, m_wii);
+    m_ucode->Initialize();
   }
 }
 

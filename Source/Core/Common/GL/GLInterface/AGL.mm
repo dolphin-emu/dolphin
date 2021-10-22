@@ -1,9 +1,11 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/AGL.h"
 #include "Common/Logging/Log.h"
+
+// UpdateCachedDimensions and AttachContextToView contain calls to UI APIs, so they must only be
+// called from the main thread or they risk crashing!
 
 static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
 {
@@ -36,12 +38,10 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
 
   (void)UpdateCachedDimensions(view, width, height);
 
-  // the following calls can crash if not called from the main thread on macOS 10.15
-  dispatch_sync(dispatch_get_main_queue(), ^{
-    [window makeFirstResponder:view];
-    [context setView:view];
-    [window makeKeyAndOrderFront:nil];
-  });
+  [window makeFirstResponder:view];
+  [context setView:view];
+  [window makeKeyAndOrderFront:nil];
+
   return true;
 }
 
@@ -99,8 +99,16 @@ bool GLContextAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
 
   m_view = static_cast<NSView*>(wsi.render_surface);
   m_opengl_mode = Mode::OpenGL;
-  if (!AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height))
+
+  __block bool success;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    success = AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
+  });
+
+  if (!success)
+  {
     return false;
+  }
 
   [m_context makeCurrentContext];
   return true;
@@ -141,11 +149,12 @@ void GLContextAGL::Update()
   if (!m_view)
     return;
 
-  if (UpdateCachedDimensions(m_view, &m_backbuffer_width, &m_backbuffer_height))
-    // the following calls can crash if not called from the main thread on macOS 10.15
-    dispatch_sync(dispatch_get_main_queue(), ^{
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    if (UpdateCachedDimensions(m_view, &m_backbuffer_width, &m_backbuffer_height))
+    {
       [m_context update];
-    });
+    }
+  });
 }
 
 void GLContextAGL::SwapInterval(int interval)

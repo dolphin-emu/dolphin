@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // This file is UGLY (full of #ifdef) so that it can be used with both GC and
 // Wii version of AX. Maybe it would be better to abstract away the parts that
@@ -18,6 +17,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/DSP/DSPAccelerator.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
@@ -33,8 +33,14 @@ namespace DSP::HLE
 #define MAX_SAMPLES_PER_FRAME 96
 #endif
 
-// Put all of that in an anonymous namespace to avoid stupid compilers merging
+// Use an inline namespace to prevent stupid compilers and debuggers from merging
 // functions from AX GC and AX Wii.
+#ifdef AX_GC
+inline namespace AXGC
+#else
+inline namespace AXWii
+#endif
+{
 namespace
 {
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
@@ -139,31 +145,8 @@ void WritePB(u32 addr, const PB_TYPE& pb, u32 crc)
   }
 }
 
-#if 0
-// Dump the value of a PB for debugging
-#define DUMP_U16(field) WARN_LOG(DSPHLE, "    %04x (%s)", pb.field, #field)
-#define DUMP_U32(field) WARN_LOG(DSPHLE, "    %08x (%s)", HILO_TO_32(pb.field), #field)
-void DumpPB(const PB_TYPE& pb)
-{
-	DUMP_U32(next_pb);
-	DUMP_U32(this_pb);
-	DUMP_U16(src_type);
-	DUMP_U16(coef_select);
-#ifdef AX_GC
-	DUMP_U16(mixer_control);
-#else
-	DUMP_U32(mixer_control);
-#endif
-	DUMP_U16(running);
-	DUMP_U16(is_stream);
-
-	// TODO: complete as needed
-}
-#endif
-
 // Simulated accelerator state.
 static PB_TYPE* acc_pb;
-static bool acc_end_reached;
 
 class HLEAccelerator final : public Accelerator
 {
@@ -174,7 +157,7 @@ protected:
     {
       // Set the ADPCM info to continue processing at loop_addr.
       SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
-      if (!acc_pb->is_stream)
+      if (acc_pb->is_stream != 1)
       {
         SetYn1(acc_pb->adpcm_loop_info.yn1);
         SetYn2(acc_pb->adpcm_loop_info.yn2);
@@ -194,15 +177,6 @@ protected:
     {
       // Non looping voice reached the end -> running = 0.
       acc_pb->running = 0;
-
-#ifdef AX_WII
-      // One of the few meaningful differences between AXGC and AXWii:
-      // while AXGC handles non looping voices ending by relying on the
-      // accelerator to stop reads once the loop address is reached,
-      // AXWii has the 0000 samples internally in DRAM and use an internal
-      // pointer to it (loop addr does not contain 0000 samples on AXWii!).
-      acc_end_reached = true;
-#endif
     }
   }
 
@@ -223,7 +197,6 @@ void AcceleratorSetup(PB_TYPE* pb)
   s_accelerator->SetYn1(pb->adpcm.yn1);
   s_accelerator->SetYn2(pb->adpcm.yn2);
   s_accelerator->SetPredScale(pb->adpcm.pred_scale);
-  acc_end_reached = false;
 }
 
 // Reads a sample from the accelerator. Also handles looping and
@@ -231,10 +204,6 @@ void AcceleratorSetup(PB_TYPE* pb)
 // by the accelerator on real hardware).
 u16 AcceleratorGetSample()
 {
-  // See below for explanations about acc_end_reached.
-  if (acc_end_reached)
-    return 0;
-
   return s_accelerator->Read(acc_pb->adpcm.coefs);
 }
 
@@ -263,11 +232,8 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 {
   int read_samples_count = 0;
 
-  // TODO(delroth): find out why the polyphase resampling algorithm causes
-  // audio glitches in Wii games with non integral ratios.
-
   // If DSP DROM coefficients are available, support polyphase resampling.
-  if (0)  // if (coeffs && srctype == SRCTYPE_POLYPHASE)
+  if (coeffs && srctype == SRCTYPE_POLYPHASE)
   {
     s16 temp[4];
     u32 idx = 0;
@@ -296,7 +262,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 
       s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
-      output[i] = (s16)samp;
+      output[i] = MathUtil::SaturatingCast<s16>(samp);
     }
 
     last_samples[3] = temp[--idx & 3];
@@ -435,7 +401,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
                   const s16* coeffs)
 {
   // If the voice is not running, nothing to do.
-  if (!pb.running)
+  if (pb.running != 1)
     return;
 
   // Read input samples, performing sample rate conversion if needed.
@@ -451,9 +417,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   }
 
   // Optionally, execute a low pass filter
-  // TODO: LPF code is currently broken, causing Super Monkey Ball sound
-  // corruption. Disabled until someone figures out what is wrong with it.
-  if (0 && pb.lpf.enabled)
+  if (pb.lpf.enabled)
   {
     pb.lpf.yn1 = LowPassFilter(samples, count, pb.lpf.yn1, pb.lpf.a0, pb.lpf.b0);
   }
@@ -510,6 +474,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   if (pb.initial_time_delay.on)
   {
     // TODO
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_AX_INITIAL_TIME_DELAY);
   }
 
 #ifdef AX_WII
@@ -564,4 +529,5 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 }
 
 }  // namespace
+}  // inline namespace AXGC/AXWii
 }  // namespace DSP::HLE

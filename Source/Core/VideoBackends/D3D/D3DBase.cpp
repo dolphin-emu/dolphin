@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D/D3DBase.h"
 
@@ -15,7 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -43,7 +42,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   if (!s_d3d11_library.Open("d3d11.dll") ||
       !s_d3d11_library.GetSymbol("D3D11CreateDevice", &d3d11_create_device))
   {
-    PanicAlertT("Failed to load d3d11.dll");
+    PanicAlertFmtT("Failed to load d3d11.dll");
     s_d3d11_library.Close();
     return false;
   }
@@ -57,7 +56,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   dxgi_factory = D3DCommon::CreateDXGIFactory(enable_debug_layer);
   if (!dxgi_factory)
   {
-    PanicAlertT("Failed to create DXGI factory");
+    PanicAlertFmtT("Failed to create DXGI factory");
     D3DCommon::UnloadLibraries();
     s_d3d11_library.Close();
     return false;
@@ -113,7 +112,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
 
   if (FAILED(hr))
   {
-    PanicAlertT(
+    PanicAlertFmtT(
         "Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0");
     dxgi_factory.Reset();
     D3DCommon::UnloadLibraries();

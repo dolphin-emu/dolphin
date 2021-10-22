@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/BPMemory.h"
 
@@ -17,7 +16,7 @@ bool BlendMode::UseLogicOp() const
     return false;
 
   // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
-  if (logicmode == BlendMode::NOOP)
+  if (logicmode == LogicOp::NoOp)
     return false;
 
   return true;
@@ -47,16 +46,26 @@ bool FogParams::IsNaNCase() const
   return a.exp == 255 && c_proj_fsel.c_exp == 255;
 }
 
+float FogParam0::FloatValue() const
+{
+  // scale mantissa from 11 to 23 bits
+  const u32 integral = (sign << 31) | (exp << 23) | (mant << 12);
+  return Common::BitCast<float>(integral);
+}
+
+float FogParam3::FloatValue() const
+{
+  // scale mantissa from 11 to 23 bits
+  const u32 integral = (c_sign << 31) | (c_exp << 23) | (c_mant << 12);
+  return Common::BitCast<float>(integral);
+}
+
 float FogParams::GetA() const
 {
   if (IsNaNCase())
     return 0.0f;
 
-  // scale mantissa from 11 to 23 bits
-  const u32 integral = (static_cast<u32>(a.sign) << 31) | (static_cast<u32>(a.exp) << 23) |
-                       (static_cast<u32>(a.mant) << 12);
-
-  return Common::BitCast<float>(integral);
+  return a.FloatValue();
 }
 
 float FogParams::GetC() const
@@ -67,9 +76,5 @@ float FogParams::GetC() const
     return !a.sign && !c_proj_fsel.c_sign ? -inf : inf;
   }
 
-  // scale mantissa from 11 to 23 bits
-  const u32 integral = (c_proj_fsel.c_sign.Value() << 31) | (c_proj_fsel.c_exp.Value() << 23) |
-                       (c_proj_fsel.c_mant.Value() << 12);
-
-  return Common::BitCast<float>(integral);
+  return c_proj_fsel.FloatValue();
 }

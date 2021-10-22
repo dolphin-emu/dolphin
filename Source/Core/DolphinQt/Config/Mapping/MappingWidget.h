@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -17,6 +16,7 @@ class InputConfig;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;
+class QFormLayout;
 class QPushButton;
 class QGroupBox;
 
@@ -53,6 +53,9 @@ protected:
 
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
+  QGroupBox* CreateControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
+                               int columns);
+  void CreateControl(const ControllerEmu::Control* control, QFormLayout* layout, bool indicator);
   QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:

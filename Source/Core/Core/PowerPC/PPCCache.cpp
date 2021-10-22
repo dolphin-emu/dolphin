@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/PPCCache.h"
 
@@ -8,7 +7,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
-#include "Core/Analytics.h"
+#include "Core/ConfigManager.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -87,10 +87,6 @@ constexpr std::array<u32, 128> s_way_from_plru = [] {
 }();
 }  // Anonymous namespace
 
-InstructionCache::InstructionCache()
-{
-}
-
 void InstructionCache::Reset()
 {
   valid.fill(0);
@@ -110,7 +106,7 @@ void InstructionCache::Init()
 
 void InstructionCache::Invalidate(u32 addr)
 {
-  if (!HID0.ICE)
+  if (!HID0.ICE || SConfig::GetInstance().bDisableICache)
     return;
 
   // Invalidates the whole set
@@ -128,12 +124,12 @@ void InstructionCache::Invalidate(u32 addr)
     }
   }
   valid[set] = 0;
-  JitInterface::InvalidateICache(addr & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(addr);
 }
 
 u32 InstructionCache::ReadInstruction(u32 addr)
 {
-  if (!HID0.ICE)  // instruction cache is disabled
+  if (!HID0.ICE || SConfig::GetInstance().bDisableICache)  // instruction cache is disabled
     return Memory::Read_U32(addr);
   u32 set = (addr >> 5) & 0x7f;
   u32 tag = addr >> 12;
@@ -184,12 +180,13 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   }
   // update plru
   plru[set] = (plru[set] & ~s_plru_mask[t]) | s_plru_value[t];
-  u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
-  u32 inmem = Memory::Read_U32(addr);
+  const u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
+  const u32 inmem = Memory::Read_U32(addr);
   if (res != inmem)
   {
-    INFO_LOG(POWERPC, "ICache read at %08x returned stale data: CACHED: %08x vs. RAM: %08x", addr,
-             res, inmem);
+    INFO_LOG_FMT(POWERPC,
+                 "ICache read at {:08x} returned stale data: CACHED: {:08x} vs. RAM: {:08x}", addr,
+                 res, inmem);
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::ICACHE_MATTERS);
   }
   return res;

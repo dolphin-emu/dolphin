@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.services;
 
 import android.app.job.JobParameters;
@@ -96,7 +98,7 @@ public class SyncProgramsJobService extends JobService
           Channel channel = TvUtil.getChannelById(context, channelId);
           for (Platform platform : Platform.values())
           {
-            if (channel != null && channel.getDisplayName().equals(platform.getHeaderName()))
+            if (channel != null && channel.getDisplayName().equals(platform.getIdString()))
             {
               getGamesByPlatform(platform);
               syncPrograms(channelId);

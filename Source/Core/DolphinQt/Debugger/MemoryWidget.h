@@ -1,11 +1,11 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <vector>
 
+#include <QByteArray>
 #include <QDockWidget>
 
 #include "Common/CommonTypes.h"
@@ -31,6 +31,7 @@ public:
 signals:
   void BreakpointsChanged();
   void ShowCode(u32 address);
+  void RequestWatch(QString name, u32 address);
 
 private:
   void CreateWidgets();
@@ -56,7 +57,8 @@ private:
   void OnDumpARAM();
   void OnDumpFakeVMEM();
 
-  std::vector<u8> GetValueData() const;
+  bool IsValueValid() const;
+  QByteArray GetValueData() const;
 
   void FindValue(bool next);
 
@@ -66,6 +68,7 @@ private:
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
   QLineEdit* m_search_address;
+  QLineEdit* m_search_offset;
   QLineEdit* m_data_edit;
   QPushButton* m_set_value;
   QPushButton* m_dump_mram;

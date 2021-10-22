@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 
@@ -11,9 +10,11 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -30,6 +31,7 @@ public:
   {
     layer->Set(Config::MAIN_CPU_THREAD, m_settings.m_CPUthread);
     layer->Set(Config::MAIN_CPU_CORE, m_settings.m_CPUcore);
+    layer->Set(Config::MAIN_ENABLE_CHEATS, m_settings.m_EnableCheats);
     layer->Set(Config::MAIN_GC_LANGUAGE, m_settings.m_SelectedLanguage);
     layer->Set(Config::MAIN_OVERRIDE_REGION_SETTINGS, m_settings.m_OverrideRegionSettings);
     layer->Set(Config::MAIN_DSP_HLE, m_settings.m_DSPHLE);
@@ -38,10 +40,24 @@ public:
     layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
-    layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
+    layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
+    layer->Set(Config::MAIN_MEM2_SIZE, m_settings.m_Mem2Size);
+    layer->Set(Config::MAIN_FALLBACK_REGION, m_settings.m_FallbackRegion);
+    layer->Set(Config::MAIN_ALLOW_SD_WRITES, m_settings.m_AllowSDWrites);
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
-    layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_settings.m_ProgressiveScan);
-    layer->Set(Config::SYSCONF_PAL60, m_settings.m_PAL60);
+
+    for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
+    {
+      std::visit(
+          [&](auto* info) {
+            layer->Set(*info, static_cast<decltype(info->GetDefaultValue())>(
+                                  m_settings.m_SYSCONFSettings[i]));
+          },
+          Config::SYSCONF_SETTINGS[i].config_info);
+    }
+
     layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, m_settings.m_EFBAccessEnable);
     layer->Set(Config::GFX_HACK_BBOX_ENABLE, m_settings.m_BBoxEnable);
     layer->Set(Config::GFX_HACK_FORCE_PROGRESSIVE, m_settings.m_ForceProgressive);
@@ -53,22 +69,29 @@ public:
     layer->Set(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
                m_settings.m_SafeTextureCacheColorSamples);
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.m_PerfQueriesEnable);
+    layer->Set(Config::MAIN_FLOAT_EXCEPTIONS, m_settings.m_FloatExceptions);
+    layer->Set(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS, m_settings.m_DivideByZeroExceptions);
     layer->Set(Config::MAIN_FPRF, m_settings.m_FPRF);
     layer->Set(Config::MAIN_ACCURATE_NANS, m_settings.m_AccurateNaNs);
+    layer->Set(Config::MAIN_DISABLE_ICACHE, m_settings.m_DisableICache);
     layer->Set(Config::MAIN_SYNC_ON_SKIP_IDLE, m_settings.m_SyncOnSkipIdle);
     layer->Set(Config::MAIN_SYNC_GPU, m_settings.m_SyncGPU);
     layer->Set(Config::MAIN_SYNC_GPU_MAX_DISTANCE, m_settings.m_SyncGpuMaxDistance);
     layer->Set(Config::MAIN_SYNC_GPU_MIN_DISTANCE, m_settings.m_SyncGpuMinDistance);
     layer->Set(Config::MAIN_SYNC_GPU_OVERCLOCK, m_settings.m_SyncGpuOverclock);
+
     layer->Set(Config::MAIN_JIT_FOLLOW_BRANCH, m_settings.m_JITFollowBranch);
     layer->Set(Config::MAIN_FAST_DISC_SPEED, m_settings.m_FastDiscSpeed);
     layer->Set(Config::MAIN_MMU, m_settings.m_MMU);
     layer->Set(Config::MAIN_FASTMEM, m_settings.m_Fastmem);
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
-    layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
+    layer->Set(Config::SESSION_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
+
     layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
     layer->Set(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE, m_settings.m_EFBAccessTileSize);
     layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);
+
+    layer->Set(Config::SESSION_USE_FMA, m_settings.m_UseFMA);
 
     if (m_settings.m_StrictSettingsSync)
     {
@@ -110,14 +133,19 @@ public:
         layer->Set(Config::MAIN_MEMCARD_B_PATH, make_memcard_path('B'));
       }
 
-      layer->Set(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY, true);
+      layer->Set(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY, true);
+    }
+
+    for (size_t i = 0; i < m_settings.m_GBARomPaths.size(); ++i)
+    {
+      layer->Set(Config::MAIN_GBA_ROM_PATHS[i], m_settings.m_GBARomPaths[i]);
     }
 
     // Check To Override Client's Cheat Codes
     if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
     {
       // Raise flag to use host's codes
-      layer->Set(Config::MAIN_CODE_SYNC_OVERRIDE, true);
+      layer->Set(Config::SESSION_CODE_SYNC_OVERRIDE, true);
     }
   }
 

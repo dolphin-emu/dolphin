@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -22,11 +21,18 @@ public:
 
   static Host* GetInstance();
 
-  bool GetRenderFocus();
-  bool GetRenderFullscreen();
+  void DeclareAsHostThread();
+  bool IsHostThread();
 
+  bool GetRenderFocus();
+  bool GetRenderFullFocus();
+  bool GetRenderFullscreen();
+  bool GetGBAFocus();
+
+  void SetMainWindowHandle(void* handle);
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
+  void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void ResizeSurface(int new_width, int new_height);
   void RequestNotifyMapLoaded();
@@ -42,6 +48,9 @@ private:
   Host();
 
   std::atomic<void*> m_render_handle{nullptr};
+  std::atomic<void*> m_main_window_handle{nullptr};
+  std::atomic<bool> m_render_to_main{false};
   std::atomic<bool> m_render_focus{false};
+  std::atomic<bool> m_render_full_focus{false};
   std::atomic<bool> m_render_fullscreen{false};
 };

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -75,6 +74,9 @@ std::string GetName(Language language, bool translate);
 bool IsDisc(Platform volume_type);
 bool IsWii(Platform volume_type);
 bool IsNTSC(Region region);
+
+int ToGameCubeLanguage(Language language);
+Language FromGameCubeLanguage(int language);
 
 Country TypicalCountryForRegion(Region region);
 Region SysConfCountryToRegion(u8 country_code);

@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
 #include <string>
@@ -34,6 +33,7 @@ TEST(UniqueID, UniqueEnough)
 TEST(IsMMIOAddress, SpecialAddresses)
 {
   const std::string profile_path = File::CreateTempDir();
+  ASSERT_FALSE(profile_path.empty());
   UICommon::SetUserDirectory(profile_path);
   Config::Init();
   SConfig::Init();
@@ -67,7 +67,7 @@ class MappingTest : public testing::Test
 protected:
   virtual void SetUp() override { m_mapping = new MMIO::Mapping(); }
   virtual void TearDown() override { delete m_mapping; }
-  MMIO::Mapping* m_mapping;
+  MMIO::Mapping* m_mapping = nullptr;
 };
 
 TEST_F(MappingTest, ReadConstant)

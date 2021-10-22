@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
@@ -52,7 +54,7 @@ public class Analytics
   {
     try (Settings settings = new Settings())
     {
-      settings.loadSettings(null);
+      settings.loadSettings();
 
       BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled);
       BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true);

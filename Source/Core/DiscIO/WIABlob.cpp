@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/WIABlob.h"
 
@@ -22,15 +21,15 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
-#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/LaggedFibonacciGenerator.h"
 #include "DiscIO/MultithreadedCompressor.h"
@@ -653,7 +652,7 @@ bool WIARVZFileReader<RVZ>::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
     return false;
   }
 
-  while (offset + size > m_out.bytes_written - m_out_bytes_used_for_exceptions)
+  while (offset + size > GetOutBytesWrittenExcludingExceptions())
   {
     u64 bytes_to_read;
     if (offset + size == m_out.data.size())
@@ -663,13 +662,13 @@ bool WIARVZFileReader<RVZ>::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
     }
     else
     {
-      // Pick a suitable amount of compressed data to read. The std::min line has to
-      // be as it is, but the rest is a bit arbitrary and can be changed if desired.
+      // Pick a suitable amount of compressed data to read. We have to ensure that bytes_to_read
+      // is larger than 0 and smaller than or equal to the number of bytes available to read,
+      // but the rest is a bit arbitrary and could be changed.
 
       // The compressed data is probably not much bigger than the decompressed data.
       // Add a few bytes for possible compression overhead and for any hash exceptions.
-      bytes_to_read =
-          offset + size - (m_out.bytes_written - m_out_bytes_used_for_exceptions) + 0x100;
+      bytes_to_read = offset + size - GetOutBytesWrittenExcludingExceptions() + 0x100;
 
       // Align the access in an attempt to gain speed. But we don't actually know the
       // block size of the underlying storage device, so we just use the Wii block size.
@@ -837,6 +836,12 @@ void WIARVZFileReader<RVZ>::Chunk::GetHashExceptions(
 
   ASSERT(data <= data_start + (m_compressed_exception_lists ? m_out_bytes_used_for_exceptions :
                                                               m_in_bytes_used_for_exceptions));
+}
+
+template <bool RVZ>
+size_t WIARVZFileReader<RVZ>::Chunk::GetOutBytesWrittenExcludingExceptions() const
+{
+  return m_exception_lists == 0 ? m_out.bytes_written - m_out_bytes_used_for_exceptions : 0;
 }
 
 template <bool RVZ>
@@ -1299,7 +1304,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     std::vector<u8>& data = parameters.data;
 
     if (AllSame(data))
-      entry.reuse_id = ReuseID{nullptr, data.size(), false, data.front()};
+      entry.reuse_id = ReuseID{WiiKey{}, data.size(), false, data.front()};
 
     if constexpr (RVZ)
     {
@@ -1338,7 +1343,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
     const auto create_reuse_id = [&partition_entry, blocks,
                                   blocks_per_chunk](u8 value, bool encrypted, u64 block) {
       const u64 size = std::min(blocks - block, blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
-      return ReuseID{&partition_entry.partition_key, size, encrypted, value};
+      return ReuseID{partition_entry.partition_key, size, encrypted, value};
     };
 
     const u8* parameters_data_end = parameters.data.data() + parameters.data.size();
@@ -1452,8 +1457,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           compare_hashes(offsetof(HashBlock, padding_2), sizeof(HashBlock::padding_2));
         }
 
-        static_assert(std::is_trivially_copyable_v<typename decltype(
-                          CompressThreadState::decryption_buffer)::value_type>);
+        static_assert(std::is_trivially_copyable_v<
+                      typename decltype(CompressThreadState::decryption_buffer)::value_type>);
         if constexpr (RVZ)
         {
           // We must not store junk efficiently for chunks that may get reused at a position

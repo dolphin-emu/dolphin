@@ -1,17 +1,20 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include "DolphinQt/Config/Graphics/GraphicsWidget.h"
 
+class GraphicsBool;
+class GraphicsChoice;
+class GraphicsRadioInt;
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
 class QRadioButton;
 class QGridLayout;
+class ToolTipComboBox;
 
 namespace X11Utils
 {
@@ -39,21 +42,21 @@ private:
 
   // Video
   QGridLayout* m_video_layout;
-  QComboBox* m_backend_combo;
-  QComboBox* m_adapter_combo;
-  QComboBox* m_aspect_combo;
-  QCheckBox* m_enable_vsync;
-  QCheckBox* m_enable_fullscreen;
+  ToolTipComboBox* m_backend_combo;
+  ToolTipComboBox* m_adapter_combo;
+  GraphicsChoice* m_aspect_combo;
+  GraphicsBool* m_enable_vsync;
+  GraphicsBool* m_enable_fullscreen;
 
   // Options
-  QCheckBox* m_show_fps;
-  QCheckBox* m_show_ping;
-  QCheckBox* m_log_render_time;
-  QCheckBox* m_autoadjust_window_size;
-  QCheckBox* m_show_messages;
-  QCheckBox* m_render_main_window;
-  std::array<QRadioButton*, 4> m_shader_compilation_mode{};
-  QCheckBox* m_wait_for_shaders;
+  GraphicsBool* m_show_fps;
+  GraphicsBool* m_show_ping;
+  GraphicsBool* m_log_render_time;
+  GraphicsBool* m_autoadjust_window_size;
+  GraphicsBool* m_show_messages;
+  GraphicsBool* m_render_main_window;
+  std::array<GraphicsRadioInt*, 4> m_shader_compilation_mode{};
+  GraphicsBool* m_wait_for_shaders;
 
   X11Utils::XRRConfiguration* m_xrr_config;
 };

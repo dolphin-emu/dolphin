@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -59,8 +58,8 @@ public:
   bool operator!=(const DiscContent& other) const { return !(*this == other); }
   bool operator<(const DiscContent& other) const { return GetEndOffset() < other.GetEndOffset(); }
   bool operator>(const DiscContent& other) const { return other < *this; }
-  bool operator<=(const DiscContent& other) const { return !(*this < other); }
-  bool operator>=(const DiscContent& other) const { return !(*this > other); }
+  bool operator<=(const DiscContent& other) const { return !(*this > other); }
+  bool operator>=(const DiscContent& other) const { return !(*this < other); }
 
 private:
   u64 m_offset;
@@ -133,14 +132,14 @@ private:
   std::vector<u8> m_apploader;
   std::vector<u8> m_fst_data;
 
-  std::array<u8, VolumeWii::AES_KEY_SIZE> m_key;
+  std::array<u8, VolumeWii::AES_KEY_SIZE> m_key{};
 
   std::string m_root_directory;
   bool m_is_wii = false;
   // GameCube has no shift, Wii has 2 bit shift
   u32 m_address_shift = 0;
 
-  u64 m_data_size;
+  u64 m_data_size = 0;
 };
 
 class DirectoryBlobReader : public BlobReader

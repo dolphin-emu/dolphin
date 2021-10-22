@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -8,6 +7,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -46,15 +46,6 @@ enum SIDevices : int;
 }  // namespace SerialInterface
 
 struct BootParameters;
-
-// DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No Audio Output")
-#define BACKEND_ALSA "ALSA"
-#define BACKEND_CUBEB "Cubeb"
-#define BACKEND_OPENAL "OpenAL"
-#define BACKEND_PULSEAUDIO "Pulse"
-#define BACKEND_OPENSLES "OpenSLES"
-#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
 
 enum class GPUDeterminismMode
 {
@@ -108,23 +99,17 @@ struct SConfig
   bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
+  bool bFloatExceptions = false;
+  bool bDivideByZeroExceptions = false;
   bool bFPRF = false;
   bool bAccurateNaNs = false;
+  bool bDisableICache = false;
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
-  bool bDSPThread = false;
-  bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
-  bool bEnableCheats = false;
-  bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
-
-  bool bDPL2Decoder = false;
-  int iLatency = 20;
-  bool m_audio_stretch = false;
-  int m_audio_stretch_max_latency = 80;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
@@ -147,7 +132,15 @@ struct SConfig
 
   // Interface settings
   bool bConfirmStop = false;
-  bool bHideCursor = false;
+
+  enum class ShowCursor
+  {
+    Never,
+    Constantly,
+    OnMovement,
+  } m_show_cursor;
+
+  bool bLockCursor = false;
   std::string theme_name;
 
   // Bluetooth passthrough mode settings
@@ -167,9 +160,6 @@ struct SConfig
   bool bEnableCustomRTC;
   u32 m_customRTCValue;
 
-  // DPL2
-  bool ShouldUseDPL2Decoder() const;
-
   DiscIO::Region m_region;
 
   std::string m_strGPUDeterminismMode;
@@ -188,6 +178,7 @@ struct SConfig
   bool m_disc_booted_from_game_list = false;
 
   const std::string& GetGameID() const { return m_game_id; }
+  const std::string& GetGameTDBID() const { return m_gametdb_id; }
   const std::string& GetTitleName() const { return m_title_name; }
   const std::string& GetTitleDescription() const { return m_title_description; }
   u64 GetTitleID() const { return m_title_id; }
@@ -195,8 +186,13 @@ struct SConfig
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
   void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
+  void SetRunningGameMetadata(const std::string& game_id);
+  // Reloads title-specific map files, patches, custom textures, etc.
+  // This should only be called after the new title has been loaded into memory.
+  static void OnNewTitleLoad();
 
   void LoadDefaults();
+  static std::string MakeGameID(std::string_view file_name);
   // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
   static DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
   // The region argument must be valid for GameCube (i.e. must not be NTSC-K)
@@ -284,21 +280,6 @@ struct SConfig
 
   bool m_PauseOnFocusLost;
 
-  // DSP settings
-  bool m_DSPEnableJIT;
-  bool m_DSPCaptureLog;
-  bool m_DumpAudio;
-  bool m_DumpAudioSilent;
-  bool m_IsMuted;
-  bool m_DumpUCode;
-  int m_Volume;
-  std::string sBackend;
-
-#ifdef _WIN32
-  // WSAPI settings
-  std::string sWASAPIDevice;
-#endif
-
   // Input settings
   bool m_BackgroundInput;
   bool m_AdapterRumble[4];
@@ -332,7 +313,6 @@ private:
   void SaveInterfaceSettings(IniFile& ini);
   void SaveGameListSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
-  void SaveDSPSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
@@ -345,7 +325,6 @@ private:
   void LoadInterfaceSettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
-  void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);

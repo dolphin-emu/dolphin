@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
 
@@ -45,7 +44,7 @@ void GeometryShaderManager::SetConstants()
   {
     s_projection_changed = false;
 
-    if (xfmem.projection.type == GX_PERSPECTIVE)
+    if (xfmem.projection.type == ProjectionType::Perspective)
     {
       float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
                      (g_ActiveConfig.iStereoDepthPercentage / 100.0f);

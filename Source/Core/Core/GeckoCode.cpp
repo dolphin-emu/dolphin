@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/GeckoCode.h"
 
@@ -13,8 +12,10 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -66,10 +67,10 @@ static std::mutex s_active_codes_lock;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+  std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
-  if (SConfig::GetInstance().bEnableCheats)
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
     s_active_codes.reserve(gcodes.size());
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
@@ -98,10 +99,10 @@ void UpdateSyncedCodes(const std::vector<GeckoCode>& gcodes)
 
 std::vector<GeckoCode> SetAndReturnActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+  std::lock_guard lk(s_active_codes_lock);
 
   s_active_codes.clear();
-  if (SConfig::GetInstance().bEnableCheats)
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
     s_active_codes.reserve(gcodes.size());
     std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
@@ -218,26 +219,26 @@ static Installation InstallCodeHandlerLocked()
 // modifications will be reset]
 void DoState(PointerWrap& p)
 {
-  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  std::lock_guard codes_lock(s_active_codes_lock);
   p.Do(s_code_handler_installed);
   // FIXME: The active codes list will disagree with the embedded GCT
 }
 
 void Shutdown()
 {
-  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  std::lock_guard codes_lock(s_active_codes_lock);
   s_active_codes.clear();
   s_code_handler_installed = Installation::Uninstalled;
 }
 
 void RunCodeHandler()
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
 
   // NOTE: Need to release the lock because of GUI deadlocks with PanicAlert in HostWrite_*
   {
-    std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+    std::lock_guard codes_lock(s_active_codes_lock);
     if (s_code_handler_installed != Installation::Installed)
     {
       // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be

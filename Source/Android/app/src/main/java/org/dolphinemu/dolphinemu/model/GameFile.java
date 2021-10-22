@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.model;
 
 import android.content.Context;
@@ -57,6 +59,8 @@ public class GameFile
   public native long getFileSize();
 
   public native boolean isDatelDisc();
+
+  public native boolean isNKit();
 
   public native int[] getBanner();
 

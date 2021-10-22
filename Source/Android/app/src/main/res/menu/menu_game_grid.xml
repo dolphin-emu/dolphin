@@ -3,27 +3,9 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_settings_core"
-        android:title="@string/grid_menu_config"
-        android:icon="@drawable/ic_settings_core"
-        app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_settings_graphics"
-        android:title="@string/grid_menu_graphics_settings"
-        android:icon="@drawable/ic_settings_graphics"
-        app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_settings_gcpad"
-        android:title="@string/grid_menu_gcpad_settings"
-        android:icon="@drawable/ic_settings_gcpad"
-        app:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_settings_wiimote"
-        android:title="@string/grid_menu_wiimote_settings"
-        android:icon="@drawable/ic_settings_wiimote"
+        android:id="@+id/menu_settings"
+        android:title="@string/grid_menu_settings"
+        android:icon="@drawable/ic_settings"
         app:showAsAction="ifRoom"/>
 
     <item
@@ -41,6 +23,16 @@
     <item
         android:id="@+id/menu_install_wad"
         android:title="@string/grid_menu_install_wad"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/menu_import_wii_save"
+        android:title="@string/grid_menu_import_wii_save"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/menu_import_nand_backup"
+        android:title="@string/grid_menu_import_nand_backup"
         app:showAsAction="never"/>
 
 </menu>
