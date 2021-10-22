@@ -435,8 +435,10 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches,
   // For file searching purposes, Riivolution assumes that the game's main.dol is in the root of the
   // file system. So to avoid doing a bunch of special case handling for that, we just put a node
   // for this into the FST and remove it again after the file patching is done.
-  dol_node->m_filename = "main.dol";
-  fst->push_back(*dol_node);
+  // We mark the inserted node with a pointer to a stack variable so we can find it again.
+  int marker = 0;
+  fst->emplace_back(DiscIO::FSTBuilderNode{"main.dol", dol_node->m_size,
+                                           std::move(dol_node->m_content), &marker});
 
   for (const auto& patch : patches)
   {
@@ -483,14 +485,20 @@ void ApplyPatchesToFiles(const std::vector<Patch>& patches,
     }
   }
 
+  // Remove the inserted main.dol node again and propagate its changes.
   auto main_dol_node_in_fst =
-      std::find_if(fst->begin(), fst->end(), [&](const DiscIO::FSTBuilderNode& node) {
-        return node.m_filename == "main.dol";
-      });
+      std::find_if(fst->begin(), fst->end(),
+                   [&](const DiscIO::FSTBuilderNode& node) { return node.m_user_data == &marker; });
   if (main_dol_node_in_fst != fst->end())
   {
-    *dol_node = *main_dol_node_in_fst;
+    dol_node->m_size = main_dol_node_in_fst->m_size;
+    dol_node->m_content = std::move(main_dol_node_in_fst->m_content);
     fst->erase(main_dol_node_in_fst);
+  }
+  else
+  {
+    // The main.dol node disappeared, this should never happen.
+    ASSERT(false);
   }
 }
 
