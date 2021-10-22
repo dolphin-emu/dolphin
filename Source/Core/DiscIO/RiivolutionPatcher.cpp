@@ -98,6 +98,13 @@ FileDataLoaderHostFS::MakeAbsoluteFromRelative(std::string_view external_relativ
         result.pop_back();
       result.pop_back();
     }
+    else if (std::all_of(element.begin(), element.end(), [](char c) { return c == '.'; }))
+    {
+      // This is a triple, quadruple, etc. dot.
+      // Some file systems treat this as several 'up' path traversals, but Riivolution does not.
+      // If someone tries this just error out, it wouldn't work sensibly in Riivolution anyway.
+      return std::nullopt;
+    }
     else
     {
       // We're going down a level.
