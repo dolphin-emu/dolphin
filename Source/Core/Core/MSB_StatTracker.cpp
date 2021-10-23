@@ -23,6 +23,14 @@ void StatTracker::lookForTriggerEvents(){
         switch(m_ab_state){
             //Look for Pitch
             case (AB_STATE::WAITING_FOR_PITCH):
+                //Handle quit to main menu
+                if (Memory::Read_U32(aGameId) == 0){
+                    //Game has ended. Write file but do not submit
+                    std::pair<std::string, std::string> jsonPlusPath = getStatJSON(true);
+                    File::WriteStringToFile(jsonPlusPath.second+".QUIT", jsonPlusPath.first);
+                    init();
+                }
+
                 if (Memory::Read_U8(aAB_PitchThrown) == 1){
                     //Collect port info for players
                     if (m_game_info.team0_port == 0 && m_game_info.team1_port == 0){
