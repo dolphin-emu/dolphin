@@ -442,7 +442,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     for (int team=0; team < cNumOfTeams; ++team){
         //If Team0 is away team
         std::string team_label;
-        u16 captain_id;
+        u16 captain_id = 0;
         if (team == 0){
             if (team0_is_away){
                 team_label = "Away";
