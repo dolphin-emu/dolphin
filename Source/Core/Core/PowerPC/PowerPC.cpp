@@ -25,6 +25,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -611,7 +612,11 @@ void CheckBreakPoints()
     return;
 
   if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
+  {
     CPU::Break();
+    if (GDBStub::IsActive())
+      GDBStub::TakeControl();
+  }
   if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
   {
     NOTICE_LOG_FMT(MEMMAP,

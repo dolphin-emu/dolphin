@@ -20,14 +20,11 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace
 {
@@ -151,16 +148,6 @@ int Interpreter::SingleStepInner()
     UpdatePC();
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
-
-#ifdef USE_GDBSTUB
-  if (gdb_active() && gdb_bp_x(PC))
-  {
-    Host_UpdateDisasmDialog();
-
-    gdb_signal(GDB_SIGTRAP);
-    gdb_handle_exception();
-  }
-#endif
 
   NPC = PC + sizeof(UGeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
@@ -306,6 +293,8 @@ void Interpreter::Run()
 #endif
             INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
             CPU::Break();
+            if (GDBStub::IsActive())
+              GDBStub::TakeControl();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);
 

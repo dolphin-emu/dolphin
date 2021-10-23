@@ -63,14 +63,11 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
@@ -316,12 +313,13 @@ void UndeclareAsCPUThread()
 }
 
 // For the CPU Thread only.
-static void CPUSetInitialExecutionState()
+static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
-  QueueHostJob([]() {
-    SetState(SConfig::GetInstance().bBootToPause ? State::Paused : State::Running);
+  QueueHostJob([force_paused]() {
+    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+    SetState(paused ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
     Host_Message(HostMessageID::WMUserCreate);
@@ -363,24 +361,23 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   }
 
   s_is_started = true;
-  CPUSetInitialExecutionState();
-
-#ifdef USE_GDBSTUB
 #ifndef _WIN32
   if (!_CoreParameter.gdb_socket.empty())
   {
-    gdb_init_local(_CoreParameter.gdb_socket.data());
-    gdb_break();
+    GDBStub::InitLocal(_CoreParameter.gdb_socket.data());
+    CPUSetInitialExecutionState(true);
   }
   else
 #endif
       if (_CoreParameter.iGDBPort > 0)
   {
-    gdb_init(_CoreParameter.iGDBPort);
-    // break at next instruction (the first instruction)
-    gdb_break();
+    GDBStub::Init(_CoreParameter.iGDBPort);
+    CPUSetInitialExecutionState(true);
   }
-#endif
+  else
+  {
+    CPUSetInitialExecutionState();
+  }
 
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
@@ -393,6 +390,13 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
+
+  if (GDBStub::IsActive())
+  {
+    GDBStub::Deinit();
+    INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
+    return;
+  }
 }
 
 static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
@@ -653,11 +657,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     cpuThreadFunc(savestate_path, delete_savestate);
   }
 
-#ifdef USE_GDBSTUB
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
-  gdb_deinit();
+  GDBStub::Deinit();
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
-#endif
 }
 
 // Set or get the running state

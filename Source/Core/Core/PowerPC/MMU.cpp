@@ -18,14 +18,11 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace PowerPC
 {
@@ -521,6 +518,9 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
     return;
 
   CPU::Break();
+
+  if (GDBStub::IsActive())
+    GDBStub::TakeControl();
 
   // Fake a DSI so that all the code that tests for it in order to skip
   // the rest of the instruction will apply.  (This means that
