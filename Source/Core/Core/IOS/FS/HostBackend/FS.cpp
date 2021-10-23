@@ -506,8 +506,10 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
     return ResultCode::InUse;
   }
 
-  const std::string host_old_path = BuildFilename(old_path).host_path;
-  const std::string host_new_path = BuildFilename(new_path).host_path;
+  const auto host_old_info = BuildFilename(old_path);
+  const auto host_new_info = BuildFilename(new_path);
+  const std::string& host_old_path = host_old_info.host_path;
+  const std::string& host_new_path = host_new_info.host_path;
 
   // If there is already something of the same type at the new path, delete it.
   if (File::Exists(host_new_path))
@@ -524,8 +526,27 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
 
   if (!File::Rename(host_old_path, host_new_path))
   {
-    ERROR_LOG_FMT(IOS_FS, "Rename {} to {} - failed", host_old_path, host_new_path);
-    return ResultCode::NotFound;
+    if (host_old_info.is_redirect || host_new_info.is_redirect)
+    {
+      // If either path is a redirect, the source and target may be on a different partition or
+      // device, so a simple rename may not work. Fall back to Copy & Delete and see if that works.
+      if (!File::Copy(host_old_path, host_new_path))
+      {
+        ERROR_LOG_FMT(IOS_FS, "Copying {} to {} in Rename fallback failed", host_old_path,
+                      host_new_path);
+        return ResultCode::NotFound;
+      }
+      if (!File::Delete(host_old_path))
+      {
+        ERROR_LOG_FMT(IOS_FS, "Deleting {} in Rename fallback failed", host_old_path);
+        return ResultCode::Invalid;
+      }
+    }
+    else
+    {
+      ERROR_LOG_FMT(IOS_FS, "Rename {} to {} - failed", host_old_path, host_new_path);
+      return ResultCode::NotFound;
+    }
   }
 
   // Finally, remove the child from the old parent and move it to the new parent.
