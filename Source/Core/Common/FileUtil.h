@@ -120,7 +120,11 @@ private:
   void AndroidContentInit(const std::string& path);
 #endif
 
+#ifdef _WIN32
+  struct __stat64 m_stat;
+#else
   struct stat m_stat;
+#endif
   bool m_exists;
 };
 
