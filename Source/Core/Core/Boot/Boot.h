@@ -15,6 +15,7 @@
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
@@ -78,6 +79,7 @@ struct BootParameters
   BootParameters(Parameters&& parameters_, const std::optional<std::string>& savestate_path_ = {});
 
   Parameters parameters;
+  std::vector<DiscIO::Riivolution::Patch> riivolution_patches;
   std::optional<std::string> savestate_path;
   bool delete_savestate = false;
 };
@@ -113,10 +115,14 @@ private:
 
   static void SetupMSR();
   static void SetupBAT(bool is_wii);
-  static bool RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume);
-  static bool EmulatedBS2_GC(const DiscIO::VolumeDisc& volume);
-  static bool EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume);
-  static bool EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume);
+  static bool RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
+                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
+  static bool EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
+                             const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
+  static bool EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
+                              const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
+  static bool EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume,
+                          const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool Load_BS2(const std::string& boot_rom_filename);
 
   static void SetupGCMemory();
@@ -161,3 +167,6 @@ void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
 /// Normally, this is automatically done by ES when the System Menu is installed,
 /// but we cannot rely on this because we don't require any system titles to be installed.
 void CreateSystemMenuTitleDirs();
+
+void AddRiivolutionPatches(BootParameters* boot_params,
+                           std::vector<DiscIO::Riivolution::Patch> riivolution_patches);

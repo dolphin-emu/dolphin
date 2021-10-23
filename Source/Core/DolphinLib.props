@@ -430,9 +430,12 @@
     <ClInclude Include="DiscIO\FileBlob.h" />
     <ClInclude Include="DiscIO\Filesystem.h" />
     <ClInclude Include="DiscIO\FileSystemGCWii.h" />
+    <ClInclude Include="DiscIO\GameModDescriptor.h" />
     <ClInclude Include="DiscIO\LaggedFibonacciGenerator.h" />
     <ClInclude Include="DiscIO\MultithreadedCompressor.h" />
     <ClInclude Include="DiscIO\NANDImporter.h" />
+    <ClInclude Include="DiscIO\RiivolutionParser.h" />
+    <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
     <ClInclude Include="DiscIO\TGCBlob.h" />
     <ClInclude Include="DiscIO\Volume.h" />
@@ -1017,8 +1020,11 @@
     <ClCompile Include="DiscIO\FileBlob.cpp" />
     <ClCompile Include="DiscIO\Filesystem.cpp" />
     <ClCompile Include="DiscIO\FileSystemGCWii.cpp" />
+    <ClCompile Include="DiscIO\GameModDescriptor.cpp" />
     <ClCompile Include="DiscIO\LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="DiscIO\NANDImporter.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />
     <ClCompile Include="DiscIO\TGCBlob.cpp" />
     <ClCompile Include="DiscIO\Volume.cpp" />

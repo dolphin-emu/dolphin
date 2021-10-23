@@ -179,6 +179,7 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="RiivolutionBootWidget.cpp" />
     <ClCompile Include="SearchBar.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
@@ -351,6 +352,7 @@
     <QtMoc Include="QtUtils\UTF8CodePointCountValidator.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
+    <QtMoc Include="RiivolutionBootWidget.h" />
     <QtMoc Include="SearchBar.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />

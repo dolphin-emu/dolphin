@@ -73,6 +73,8 @@
 #include "Core/MemoryWatcher.h"
 #endif
 
+#include "DiscIO/RiivolutionPatcher.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
@@ -603,6 +605,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   else
     cpuThreadFunc = CpuThread;
 
+  std::optional<DiscIO::Riivolution::SavegameRedirect> savegame_redirect = std::nullopt;
+  if (SConfig::GetInstance().bWii)
+    savegame_redirect = DiscIO::Riivolution::ExtractSavegameRedirect(boot->riivolution_patches);
+
   if (!CBoot::BootUp(std::move(boot)))
     return;
 
@@ -611,7 +617,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // with the correct title context since save copying requires title directories to exist.
   Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
   if (SConfig::GetInstance().bWii)
-    Core::InitializeWiiFileSystemContents();
+    Core::InitializeWiiFileSystemContents(savegame_redirect);
   else
     wiifs_guard.Dismiss();
 
