@@ -121,7 +121,7 @@ static const std::map<u8, std::string> cPitchTypeToHR = {
 };
 
 static const std::map<u8, std::string> cChargePitchTypeToHR = {
-    {0, "???"},
+    {0, "N/A"},
     {1, "???"},
     {2, "Slider"},
     {3, "Perfect"}
@@ -423,9 +423,7 @@ public:
                 m_offensive_stats[team][roster] = EndGameRosterOffensiveStats();
                 m_ab_stats[team][roster].clear();
             }
-        }
-
-        m_game_id = 0;
+        }   
 
         //Reset state machines
         m_game_state = GAME_STATE::PREGAME;
