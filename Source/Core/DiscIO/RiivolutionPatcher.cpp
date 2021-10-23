@@ -135,8 +135,8 @@ FileDataLoaderHostFS::GetExternalFileSize(std::string_view external_relative_pat
   auto path = MakeAbsoluteFromRelative(external_relative_path);
   if (!path)
     return std::nullopt;
-  ::File::IOFile f(*path, "rb");
-  if (!f)
+  ::File::FileInfo f(*path);
+  if (!f.IsFile())
     return std::nullopt;
   return f.GetSize();
 }
