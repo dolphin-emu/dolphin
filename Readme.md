@@ -27,10 +27,11 @@ Everything printed to `stdout` or `stderr` will then be visible in the log (View
 
 The API is organized as various python module aggregated into one module called `dolphin`.
 For example, to access the memory module, import it via `from dolphin import memory`.
+For comprehensive documentation of all API functions, please check out the **[dolphin module stubs](python-stubs/dolphin)**.
+The stub files serve as documentation for the API surface.
 
-For comprehensive documentation of all API functions, please check out the **[dolphin module stubs](dolphin-stubs/)**.
-Not only do those `.pyi` stub files serve as documentation for the API surface,
-they can also be directly consumed by tools like linters or IDEs, e.g. for auto-completion.
+Additionally, if you are using an IDE and place the `dolphin` stub module directory somewhere it gets recognized as a python module
+(e.g. next to the python scripts you are working on) they get recognized and can give you useful features like auto-completion.
 
 If both the stub files and the rest of this section fail to explain something,
 please let me know and I will attempt to improve the documentation.
