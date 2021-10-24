@@ -70,7 +70,7 @@ static PyThreadState* InitMainPythonInterpreter()
 static void Init(std::filesystem::path script_filepath)
 {
   if (script_filepath.is_relative())
-    script_filepath = File::GetExeDirectory() / script_filepath;
+    script_filepath = File::GetCurrentDir() / script_filepath;
   std::string script_filepath_str = script_filepath.string();
 
   if (!std::filesystem::exists(script_filepath))
