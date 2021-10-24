@@ -140,6 +140,6 @@ public class AppLinkActivity extends FragmentActivity
       mAfterDirectoryInitializationRunner.cancel();
       mAfterDirectoryInitializationRunner = null;
     }
-    EmulationActivity.launch(this, GameFileCacheService.findSecondDiscAndGetPaths(game));
+    EmulationActivity.launch(this, GameFileCacheService.findSecondDiscAndGetPaths(game), false);
   }
 }

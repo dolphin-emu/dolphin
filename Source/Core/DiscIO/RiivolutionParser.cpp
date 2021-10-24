@@ -9,8 +9,10 @@
 #include <string_view>
 #include <vector>
 
+#include <fmt/format.h>
 #include <pugixml.hpp>
 
+#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
@@ -354,7 +356,7 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     {
       for (auto& option : section.m_options)
       {
-        const auto* info = [&]() -> const DiscIO::GameModDescriptorRiivolutionPatchOption* {
+        const auto* info = [&]() -> const GameModDescriptorRiivolutionPatchOption* {
           for (const auto& o : patch_info.options)
           {
             if (o.section_name == section.m_name)
@@ -374,11 +376,44 @@ std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
 
     for (auto& p : parsed->GeneratePatches(game_id))
     {
-      p.m_file_data_loader = std::make_shared<DiscIO::Riivolution::FileDataLoaderHostFS>(
-          patch_info.root, parsed->m_xml_path, p.m_root);
+      p.m_file_data_loader =
+          std::make_shared<FileDataLoaderHostFS>(patch_info.root, parsed->m_xml_path, p.m_root);
       result.emplace_back(std::move(p));
     }
   }
+  return result;
+}
+
+std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string root_directory,
+                                                        const std::string& game_id,
+                                                        std::optional<u16> revision,
+                                                        std::optional<u8> disc_number)
+{
+  std::vector<Patch> result;
+
+  // The way Riivolution stores settings only makes sense for standard game IDs.
+  if (!(game_id.size() == 4 || game_id.size() == 6))
+    return result;
+
+  const std::optional<Config> config = ParseConfigFile(
+      fmt::format("{}/riivolution/config/{}.xml", root_directory, game_id.substr(0, 4)));
+
+  for (const std::string& path : Common::DoFileSearch({root_directory + "riivolution"}, {".xml"}))
+  {
+    std::optional<Disc> parsed = ParseFile(path);
+    if (!parsed || !parsed->IsValidForGame(game_id, revision, disc_number))
+      continue;
+    if (config)
+      ApplyConfigDefaults(&*parsed, *config);
+
+    for (auto& patch : parsed->GeneratePatches(game_id))
+    {
+      patch.m_file_data_loader =
+          std::make_shared<FileDataLoaderHostFS>(root_directory, parsed->m_xml_path, patch.m_root);
+      result.emplace_back(std::move(patch));
+    }
+  }
+
   return result;
 }
 
@@ -460,7 +495,7 @@ void ApplyConfigDefaults(Disc* disc, const Config& config)
 {
   for (const auto& config_option : config.m_options)
   {
-    auto* matching_option = [&]() -> DiscIO::Riivolution::Option* {
+    auto* matching_option = [&]() -> Option* {
       for (auto& section : disc->m_sections)
       {
         for (auto& option : section.m_options)

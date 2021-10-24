@@ -127,6 +127,11 @@
             android:label="@string/user_data_submenu"
             android:theme="@style/DolphinSettingsBase" />
 
+        <activity
+            android:name=".features.riivolution.ui.RiivolutionBootActivity"
+            android:exported="false"
+            android:theme="@style/DolphinBase" />
+
         <service
             android:name=".utils.DirectoryInitialization"
             android:exported="false"/>

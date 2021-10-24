@@ -216,7 +216,7 @@ public final class MainActivity extends AppCompatActivity
         case MainPresenter.REQUEST_GAME_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri,
                   FileBrowserHelper.GAME_LIKE_EXTENSIONS,
-                  () -> EmulationActivity.launch(this, result.getData().toString()));
+                  () -> EmulationActivity.launch(this, result.getData().toString(), false));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:

@@ -399,8 +399,9 @@
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
-    <string name="properties_convert">Convert File</string>
+    <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
+    <string name="properties_convert">Convert File</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_edit_cheats">Edit Cheats</string>
     <string name="properties_clear_game_settings">Clear Game Settings and Cheats</string>
@@ -479,6 +480,9 @@ and a few other programs. It can efficiently compress encrypted Wii data, but no
 \n\nRVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later.
 It can efficiently compress both junk data and encrypted Wii data.
     </string>
+
+    <!-- Riivolution Boot Screen -->
+    <string name="riivolution_start">Start</string>
 
     <!-- Emulation Menu -->
     <string name="pause_emulation">Pause Emulation</string>

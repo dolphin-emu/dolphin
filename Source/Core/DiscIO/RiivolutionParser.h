@@ -143,7 +143,6 @@ struct Memory
   std::vector<u8> m_original;
 
   // If true, this memory patch is an ocarina-style patch.
-  // TODO: I'm unsure what this means exactly, need to check some examples...
   bool m_ocarina = false;
 
   // If true, the offset is not known, and instead we should search for the m_original bytes in
@@ -223,6 +222,10 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path);
 std::vector<Patch> GenerateRiivolutionPatchesFromGameModDescriptor(
     const GameModDescriptorRiivolution& descriptor, const std::string& game_id,
     std::optional<u16> revision, std::optional<u8> disc_number);
+std::vector<Patch> GenerateRiivolutionPatchesFromConfig(const std::string root_directory,
+                                                        const std::string& game_id,
+                                                        std::optional<u16> revision,
+                                                        std::optional<u8> disc_number);
 std::optional<Config> ParseConfigFile(const std::string& filename);
 std::optional<Config> ParseConfigString(std::string_view xml);
 std::string WriteConfigString(const Config& config);
