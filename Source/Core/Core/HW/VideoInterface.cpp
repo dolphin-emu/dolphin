@@ -821,6 +821,7 @@ static void OutputField(FieldType field, u64 ticks)
 
 static void BeginField(FieldType field, u64 ticks)
 {
+  Core::OnFrameBegin();
   // Outputting the frame at the beginning of scanout reduces latency. This assumes the game isn't
   // going to change the VI registers while a frame is scanning out.
   if (Config::Get(Config::GFX_HACK_EARLY_XFB_OUTPUT))

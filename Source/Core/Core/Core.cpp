@@ -158,6 +158,10 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
+}
+
+void OnFrameBegin()
+{
   API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
 }
 

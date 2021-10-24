@@ -121,6 +121,7 @@ void DisplayMessage(std::string message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
 void OnFrameEnd();
+void OnFrameBegin();
 
 void VideoThrottle();
 
