@@ -45,7 +45,7 @@ class WiiInputs(TypedDict):
     Home: bool
 
 
-def get_gc_buttons(controller_id: int) -> GCInputs:
+def get_gc_buttons(controller_id: int, /) -> GCInputs:
     """
     Retrieves the current input map for the given GameCube controller.
     :param controller_id: 0-based index of the controller
@@ -53,7 +53,7 @@ def get_gc_buttons(controller_id: int) -> GCInputs:
     """
 
 
-def set_gc_buttons(controller_id: int, inputs: GCInputs):
+def set_gc_buttons(controller_id: int, inputs: GCInputs, /):
     """
     Sets the current input map for the given GameCube controller.
     The override will hold for the current frame.
@@ -62,7 +62,7 @@ def set_gc_buttons(controller_id: int, inputs: GCInputs):
     """
 
 
-def get_wii_buttons(controller_id: int) -> WiiInputs:
+def get_wii_buttons(controller_id: int, /) -> WiiInputs:
     """
     Retrieves the current input map for the given Wii controller.
     :param controller_id: 0-based index of the controller
@@ -70,7 +70,7 @@ def get_wii_buttons(controller_id: int) -> WiiInputs:
     """
 
 
-def set_wii_buttons(controller_id: int, inputs: WiiInputs):
+def set_wii_buttons(controller_id: int, inputs: WiiInputs, /):
     """
     Sets the current input map for the given Wii controller.
     The override will hold for the current frame.
