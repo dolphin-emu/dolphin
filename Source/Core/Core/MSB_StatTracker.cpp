@@ -25,12 +25,17 @@ void StatTracker::lookForTriggerEvents(){
             case (AB_STATE::WAITING_FOR_PITCH):
                 //Handle quit to main menu
                 if (Memory::Read_U32(aGameId) == 0){
+                    u8 quitter_port = Memory::Read_U8(aWhoQuit);
+                    m_game_info.quitter_team = (quitter_port == m_game_info.away_port) ? "Away" : "Home";
+                    logGameInfo();
                     //Game has ended. Write file but do not submit
                     std::pair<std::string, std::string> jsonPlusPath = getStatJSON(true);
                     File::WriteStringToFile(jsonPlusPath.second+".QUIT", jsonPlusPath.first);
                     init();
                 }
 
+                //First Pitch of the game: collect port/player names
+                //Log beginning of pitch
                 if (Memory::Read_U8(aAB_PitchThrown) == 1){
                     //Collect port info for players
                     if (m_game_info.team0_port == 0 && m_game_info.team1_port == 0){
@@ -185,7 +190,6 @@ void StatTracker::logGameInfo(){
 
     m_game_info.date_time = std::string(dt);
     m_game_info.date_time.pop_back();
-    m_game_info.ranked = 0;
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
@@ -486,6 +490,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             }
         }
         json_stream << "  \"" << team_label << " Team Roster\": " << str_roster << std::endl;
+        json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
     }
 
     json_stream << "  \"Player Stats\": [" << std::endl;

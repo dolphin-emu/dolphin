@@ -134,6 +134,7 @@ static const int cNumOfTeams = 2;
 //Addrs for triggering evts
 static const u32 aGameId           = 0x802EBF8C;
 static const u32 aEndOfGameFlag    = 0x80892AB3;
+static const u32 aWhoQuit          = 0x802EBF93;
 
 static const u32 aAB_PitchThrown     = 0x8088A81B;
 static const u32 aAB_ContactResult   = 0x808926B3; //0=InAir, 1=Landed, 2=Fielded, 3=Caught, FF=Foul
@@ -292,6 +293,9 @@ public:
         bool netplay;
         bool host;
         std::string netplay_opponent_alias;
+
+        //Quit?
+        std::string quitter_team = "";
     };
     GameInfo m_game_info;
 
@@ -429,8 +433,6 @@ public:
         m_game_state = GAME_STATE::PREGAME;
         m_ab_state   = AB_STATE::WAITING_FOR_PITCH;
     }
-
-    u32 m_game_id = 0;
 
     GAME_STATE m_game_state = GAME_STATE::PREGAME;
     AB_STATE   m_ab_state = AB_STATE::WAITING_FOR_PITCH;
