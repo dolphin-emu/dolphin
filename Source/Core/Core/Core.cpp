@@ -1202,7 +1202,11 @@ void setSubmitStatus(bool inNewStatus)
 
 void setRankedStatus(bool inNewStatus)
 {
-  //s_stat_tracker->setRankedStatus(inNewStatus);
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+  s_stat_tracker->setRankedStatus(inNewStatus);
 }
 
 }  // namespace Core

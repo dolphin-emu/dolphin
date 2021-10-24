@@ -721,6 +721,7 @@ void StatTracker::setDefaultNames(bool local_game){
     }
 }
 void StatTracker::setRankedStatus(bool inBool) {
+    std::cout << "Ranked Status=" << inBool << std::endl;
     m_state.m_ranked_status = inBool;
 }
 
