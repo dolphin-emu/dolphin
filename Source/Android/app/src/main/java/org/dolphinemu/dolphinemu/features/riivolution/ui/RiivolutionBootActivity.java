@@ -7,10 +7,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
+import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 
 public class RiivolutionBootActivity extends AppCompatActivity
 {
@@ -18,6 +23,8 @@ public class RiivolutionBootActivity extends AppCompatActivity
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_REVISION = "revision";
   private static final String ARG_DISC_NUMBER = "disc_number";
+
+  private RiivolutionPatches mPatches;
 
   public static void launch(Context context, String gamePath, String gameId, int revision,
           int discNumber)
@@ -45,6 +52,38 @@ public class RiivolutionBootActivity extends AppCompatActivity
     int discNumber = intent.getIntExtra(ARG_DISC_NUMBER, -1);
 
     Button buttonStart = findViewById(R.id.button_start);
-    buttonStart.setOnClickListener((v) -> EmulationActivity.launch(this, path, true));
+    buttonStart.setOnClickListener((v) ->
+    {
+      if (mPatches != null)
+        mPatches.saveConfig();
+
+      EmulationActivity.launch(this, path, true);
+    });
+
+    new Thread(() ->
+    {
+      RiivolutionPatches patches = new RiivolutionPatches(gameId, revision, discNumber);
+      patches.loadConfig();
+      runOnUiThread(() -> populateList(patches));
+    }).start();
+  }
+
+  @Override
+  protected void onStop()
+  {
+    super.onStop();
+
+    if (mPatches != null)
+      mPatches.saveConfig();
+  }
+
+  private void populateList(RiivolutionPatches patches)
+  {
+    mPatches = patches;
+
+    RecyclerView recyclerView = findViewById(R.id.recycler_view);
+
+    recyclerView.setAdapter(new RiivolutionAdapter(this, patches));
+    recyclerView.setLayoutManager(new LinearLayoutManager(this));
   }
 }

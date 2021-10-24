@@ -482,6 +482,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     </string>
 
     <!-- Riivolution Boot Screen -->
+    <string name="riivolution_disabled">Disabled</string>
     <string name="riivolution_start">Start</string>
 
     <!-- Emulation Menu -->

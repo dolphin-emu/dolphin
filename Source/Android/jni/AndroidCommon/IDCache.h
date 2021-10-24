@@ -69,4 +69,7 @@ jclass GetPatchCheatClass();
 jfieldID GetPatchCheatPointer();
 jmethodID GetPatchCheatConstructor();
 
+jclass GetRiivolutionPatchesClass();
+jfieldID GetRiivolutionPatchesPointer();
+
 }  // namespace IDCache
