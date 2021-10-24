@@ -9,16 +9,25 @@ Check out the original repository for general information and build instructions
 You can run a python script by clicking "Add New Script" in the Scripting panel (View -> Scripting).
 Say you have a file `myscript.py`:
 ```python
-from dolphin import event
+from dolphin import event, gui
+
+red = 0xffff0000
+frame_counter = 0
 while True:
     await event.frameadvance()
-    print("Hello Dolphin!")
+    frame_counter += 1
+    # draw on screen
+    gui.draw_text((10, 10), red, f"Frame: {frame_counter}")
+    # print to console
+    if frame_counter % 60 == 0:
+        print(f"The frame count has reached {frame_counter}")
 ```
 Then you should select that file in the file selection dialog.
 Alternatively, launch Dolphin from a command line with e.g. `./Dolphin.exe --script myscript.py`
 to automatically add a script at startup.
 
-Start a game for the above script to output text.
+Start a game for the above script to start drawing a frame counter in the top left corner.
+
 To be able to see the script's output, enable the `Scripting` log type in the logging configuration (View -> Show Log Configuration) and set the verbosity to "Error" or lower (not "Notice").
 Everything printed to `stdout` or `stderr` will then be visible in the log (View -> Show Log).
 
