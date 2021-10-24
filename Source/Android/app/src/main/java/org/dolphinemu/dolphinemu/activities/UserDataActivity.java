@@ -37,17 +37,19 @@ public class UserDataActivity extends AppCompatActivity implements View.OnClickL
     TextView textAndroid11 = findViewById(R.id.text_android_11);
     Button buttonOpenSystemFileManager = findViewById(R.id.button_open_system_file_manager);
 
-    textType.setText(DirectoryInitialization.isUsingLegacyUserDirectory() ?
-            R.string.user_data_old_location : R.string.user_data_new_location);
+    boolean android_10 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+    boolean android_11 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
+    boolean legacy = DirectoryInitialization.isUsingLegacyUserDirectory();
+
+    int user_data_new_location = android_10 ?
+            R.string.user_data_new_location_android_10 : R.string.user_data_new_location;
+    textType.setText(legacy ? R.string.user_data_old_location : user_data_new_location);
 
     textPath.setText(DirectoryInitialization.getUserDirectory());
 
-    boolean show_android_11_text = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-            !DirectoryInitialization.isUsingLegacyUserDirectory();
-    textAndroid11.setVisibility(show_android_11_text ? View.VISIBLE : View.GONE);
+    textAndroid11.setVisibility(android_11 && !legacy ? View.VISIBLE : View.GONE);
 
-    boolean show_file_manager_button = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
-    buttonOpenSystemFileManager.setVisibility(show_file_manager_button ? View.VISIBLE : View.GONE);
+    buttonOpenSystemFileManager.setVisibility(android_11 ? View.VISIBLE : View.GONE);
 
     buttonOpenSystemFileManager.setOnClickListener(this);
   }
