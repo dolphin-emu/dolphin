@@ -30,6 +30,7 @@ static PyThreadState* InitMainPythonInterpreter()
 #ifdef _WIN32
   static const std::wstring python_home = UTF8ToWString(File::GetExeDirectory()) + L"/python-embed";
   static const std::wstring python_path =
+      UTF8ToWString(File::GetCurrentDir()) + L";" +
       UTF8ToWString(File::GetExeDirectory()) + L"/python-embed/python38.zip;" +
       UTF8ToWString(File::GetExeDirectory()) + L"/python-embed;" +
       UTF8ToWString(File::GetExeDirectory());
