@@ -47,29 +47,50 @@ static PyObject* GCPadStatusToPyDict(GCPadStatus status) {
 }
 
 static GCPadStatus GCPadStatusFromPyDict(PyObject* dict) {
-  bool button_left = PyObject_IsTrue(PyDict_GetItemString(dict, "Left"));
-  bool button_right = PyObject_IsTrue(PyDict_GetItemString(dict, "Right"));
-  bool button_down = PyObject_IsTrue(PyDict_GetItemString(dict, "Down"));
-  bool button_up = PyObject_IsTrue(PyDict_GetItemString(dict, "Up"));
-  bool trigger_z = PyObject_IsTrue(PyDict_GetItemString(dict, "Z"));
-  bool trigger_r = PyObject_IsTrue(PyDict_GetItemString(dict, "R"));
-  bool trigger_l = PyObject_IsTrue(PyDict_GetItemString(dict, "L"));
-  bool button_a = PyObject_IsTrue(PyDict_GetItemString(dict, "A"));
-  bool button_b = PyObject_IsTrue(PyDict_GetItemString(dict, "B"));
-  bool button_x = PyObject_IsTrue(PyDict_GetItemString(dict, "X"));
-  bool button_y = PyObject_IsTrue(PyDict_GetItemString(dict, "Y"));
-  bool button_start = PyObject_IsTrue(PyDict_GetItemString(dict, "Start"));
+  PyObject* py_button_left = PyDict_GetItemString(dict, "Left");
+  PyObject* py_button_right = PyDict_GetItemString(dict, "Right");
+  PyObject* py_button_down = PyDict_GetItemString(dict, "Down");
+  PyObject* py_button_up = PyDict_GetItemString(dict, "Up");
+  PyObject* py_trigger_z = PyDict_GetItemString(dict, "Z");
+  PyObject* py_trigger_r = PyDict_GetItemString(dict, "R");
+  PyObject* py_trigger_l = PyDict_GetItemString(dict, "L");
+  PyObject* py_button_a = PyDict_GetItemString(dict, "A");
+  PyObject* py_button_b = PyDict_GetItemString(dict, "B");
+  PyObject* py_button_x = PyDict_GetItemString(dict, "X");
+  PyObject* py_button_y = PyDict_GetItemString(dict, "Y");
+  PyObject* py_button_start = PyDict_GetItemString(dict, "Start");
+  bool button_left = py_button_left != nullptr && PyObject_IsTrue(py_button_left);
+  bool button_right = py_button_right != nullptr && PyObject_IsTrue(py_button_right);
+  bool button_down = py_button_down != nullptr && PyObject_IsTrue(py_button_down);
+  bool button_up = py_button_up != nullptr && PyObject_IsTrue(py_button_up);
+  bool trigger_z = py_trigger_z != nullptr && PyObject_IsTrue(py_trigger_z);
+  bool trigger_r = py_trigger_r != nullptr && PyObject_IsTrue(py_trigger_r);
+  bool trigger_l = py_trigger_l != nullptr && PyObject_IsTrue(py_trigger_l);
+  bool button_a = py_button_a != nullptr && PyObject_IsTrue(py_button_a);
+  bool button_b = py_button_b != nullptr && PyObject_IsTrue(py_button_b);
+  bool button_x = py_button_x != nullptr && PyObject_IsTrue(py_button_x);
+  bool button_y = py_button_y != nullptr && PyObject_IsTrue(py_button_y);
+  bool button_start = py_button_start != nullptr && PyObject_IsTrue(py_button_start);
 
-  u8 stick_x = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "StickX"));
-  u8 stick_y = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "StickY"));
-  u8 substick_x = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "CStickX"));
-  u8 substick_y = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "CStickY"));
-  u8 trigger_left = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "TriggerLeft"));
-  u8 trigger_right = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "TriggerRight"));
-  u8 analog_a = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "AnalogA"));
-  u8 analog_b = PyLong_AsUnsignedLong(PyDict_GetItemString(dict, "AnalogB"));
+  PyObject* py_stick_x = PyDict_GetItemString(dict, "StickX");
+  PyObject* py_stick_y = PyDict_GetItemString(dict, "StickY");
+  PyObject* py_substick_x = PyDict_GetItemString(dict, "CStickX");
+  PyObject* py_substick_y = PyDict_GetItemString(dict, "CStickY");
+  PyObject* py_trigger_left = PyDict_GetItemString(dict, "TriggerLeft");
+  PyObject* py_trigger_right = PyDict_GetItemString(dict, "TriggerRight");
+  PyObject* py_analog_a = PyDict_GetItemString(dict, "AnalogA");
+  PyObject* py_analog_b = PyDict_GetItemString(dict, "AnalogB");
+  u8 stick_x = py_stick_x == nullptr ? 128 : PyLong_AsUnsignedLong(py_stick_x);
+  u8 stick_y = py_stick_y == nullptr ? 128 : PyLong_AsUnsignedLong(py_stick_y);
+  u8 substick_x = py_substick_x == nullptr ? 128 : PyLong_AsUnsignedLong(py_substick_x);
+  u8 substick_y = py_substick_y == nullptr ? 128 : PyLong_AsUnsignedLong(py_substick_y);
+  u8 trigger_left = py_trigger_left == nullptr ? 0 : PyLong_AsUnsignedLong(py_trigger_left);
+  u8 trigger_right = py_trigger_right == nullptr ? 0 : PyLong_AsUnsignedLong(py_trigger_right);
+  u8 analog_a = py_analog_a == nullptr ? 0 : PyLong_AsUnsignedLong(py_analog_a);
+  u8 analog_b = py_analog_b == nullptr ? 0 : PyLong_AsUnsignedLong(py_analog_b);
 
-  bool connected = PyObject_IsTrue(PyDict_GetItemString(dict, "Connected"));
+  PyObject* py_connected = PyDict_GetItemString(dict, "Connected");
+  bool connected = py_connected != nullptr && PyObject_IsTrue(py_connected);
 
   GCPadStatus status;
   status.button = (button_left ? PAD_BUTTON_LEFT : 0) | (button_right ? PAD_BUTTON_RIGHT : 0) |
@@ -109,17 +130,28 @@ static PyObject* WiiButtonDataToPyDict(WiimoteCommon::ButtonData status) {
 static WiimoteCommon::ButtonData WiiButtonDataFromPyDict(PyObject* dict) {
   WiimoteCommon::ButtonData status;
   status.hex = 0;
-  status.left = PyObject_IsTrue(PyDict_GetItemString(dict, "Left"));
-  status.right = PyObject_IsTrue(PyDict_GetItemString(dict, "Right"));
-  status.down = PyObject_IsTrue(PyDict_GetItemString(dict, "Down"));
-  status.up = PyObject_IsTrue(PyDict_GetItemString(dict, "Up"));
-  status.plus = PyObject_IsTrue(PyDict_GetItemString(dict, "Plus"));
-  status.two = PyObject_IsTrue(PyDict_GetItemString(dict, "Two"));
-  status.one = PyObject_IsTrue(PyDict_GetItemString(dict, "One"));
-  status.b = PyObject_IsTrue(PyDict_GetItemString(dict, "B"));
-  status.a = PyObject_IsTrue(PyDict_GetItemString(dict, "A"));
-  status.minus = PyObject_IsTrue(PyDict_GetItemString(dict, "Minus"));
-  status.home = PyObject_IsTrue(PyDict_GetItemString(dict, "Home"));
+  PyObject* py_left = PyDict_GetItemString(dict, "Left");
+  PyObject* py_right = PyDict_GetItemString(dict, "Right");
+  PyObject* py_down = PyDict_GetItemString(dict, "Down");
+  PyObject* py_up = PyDict_GetItemString(dict, "Up");
+  PyObject* py_plus = PyDict_GetItemString(dict, "Plus");
+  PyObject* py_two = PyDict_GetItemString(dict, "Two");
+  PyObject* py_one = PyDict_GetItemString(dict, "One");
+  PyObject* py_b = PyDict_GetItemString(dict, "B");
+  PyObject* py_a = PyDict_GetItemString(dict, "A");
+  PyObject* py_minus = PyDict_GetItemString(dict, "Minus");
+  PyObject* py_home = PyDict_GetItemString(dict, "Home");
+  status.left = py_left != nullptr && PyObject_IsTrue(py_left);
+  status.right = py_right != nullptr && PyObject_IsTrue(py_right);
+  status.down = py_down != nullptr && PyObject_IsTrue(py_down);
+  status.up = py_up != nullptr && PyObject_IsTrue(py_up);
+  status.plus = py_plus != nullptr && PyObject_IsTrue(py_plus);
+  status.two = py_two != nullptr && PyObject_IsTrue(py_two);
+  status.one = py_one != nullptr && PyObject_IsTrue(py_one);
+  status.b = py_b != nullptr && PyObject_IsTrue(py_b);
+  status.a = py_a != nullptr && PyObject_IsTrue(py_a);
+  status.minus = py_minus != nullptr && PyObject_IsTrue(py_minus);
+  status.home = py_home != nullptr && PyObject_IsTrue(py_home);
   return status;
 }
 
