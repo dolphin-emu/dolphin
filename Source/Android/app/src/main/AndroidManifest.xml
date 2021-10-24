@@ -40,7 +40,8 @@
         android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true"
         android:isGame="true"
-        android:banner="@drawable/banner_tv">
+        android:banner="@drawable/banner_tv"
+        android:hasFragileUserData="true">
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>
