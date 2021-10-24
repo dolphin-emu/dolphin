@@ -130,12 +130,13 @@ struct IOCtlRequest final : Request
   u32 buffer_out = 0;
   u32 buffer_out_size = 0;
   explicit IOCtlRequest(u32 address);
-  void Log(std::string_view description, Common::Log::LOG_TYPE type = Common::Log::IOS,
-           Common::Log::LOG_LEVELS level = Common::Log::LINFO) const;
-  void Dump(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
-            Common::Log::LOG_LEVELS level = Common::Log::LINFO) const;
-  void DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
-                   Common::Log::LOG_LEVELS level = Common::Log::LERROR) const;
+  void Log(std::string_view description, Common::Log::LogType type = Common::Log::LogType::IOS,
+           Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
+  void Dump(const std::string& description, Common::Log::LogType type = Common::Log::LogType::IOS,
+            Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
+  void DumpUnknown(const std::string& description,
+                   Common::Log::LogType type = Common::Log::LogType::IOS,
+                   Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
 };
 
 struct IOCtlVRequest final : Request
@@ -160,10 +161,11 @@ struct IOCtlVRequest final : Request
 
   explicit IOCtlVRequest(u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
-  void Dump(std::string_view description, Common::Log::LOG_TYPE type = Common::Log::IOS,
-            Common::Log::LOG_LEVELS level = Common::Log::LINFO) const;
-  void DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type = Common::Log::IOS,
-                   Common::Log::LOG_LEVELS level = Common::Log::LERROR) const;
+  void Dump(std::string_view description, Common::Log::LogType type = Common::Log::LogType::IOS,
+            Common::Log::LogLevel level = Common::Log::LogLevel::LINFO) const;
+  void DumpUnknown(const std::string& description,
+                   Common::Log::LogType type = Common::Log::LogType::IOS,
+                   Common::Log::LogLevel level = Common::Log::LogLevel::LERROR) const;
 };
 
 class Device

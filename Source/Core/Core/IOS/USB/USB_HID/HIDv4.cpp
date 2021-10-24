@@ -32,7 +32,7 @@ USB_HIDv4::~USB_HIDv4()
 
 std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_USB);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV4_GETVERSION:
@@ -60,7 +60,7 @@ std::optional<IPCReply> USB_HIDv4::IOCtl(const IOCtlRequest& request)
                           [&, this]() { return SubmitTransfer(*device, request); });
   }
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB);
     return IPCReply(IPC_SUCCESS);
   }
 }

@@ -29,7 +29,8 @@ static void LogCallback(const char* format, ...)
   const std::string message = StringFromFormatV(adapted_format.c_str(), args);
   va_end(args);
 
-  instance->Log(Common::Log::LNOTICE, Common::Log::AUDIO, filename, lineno, message.c_str());
+  instance->Log(Common::Log::LogLevel::LNOTICE, Common::Log::LogType::AUDIO, filename, lineno,
+                message.c_str());
 }
 
 static void DestroyContext(cubeb* ctx)

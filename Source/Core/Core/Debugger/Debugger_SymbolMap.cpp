@@ -97,7 +97,7 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   return true;
 }
 
-void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level)
+void PrintCallstack(Common::Log::LogType type, Common::Log::LogLevel level)
 {
   GENERIC_LOG_FMT(type, level, "== STACK TRACE - SP = {:08x} ==", PowerPC::ppcState.gpr[1]);
 
@@ -119,10 +119,9 @@ void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level)
   });
 }
 
-void PrintDataBuffer(Common::Log::LOG_TYPE type, const u8* data, size_t size,
-                     std::string_view title)
+void PrintDataBuffer(Common::Log::LogType type, const u8* data, size_t size, std::string_view title)
 {
-  GENERIC_LOG_FMT(type, Common::Log::LDEBUG, "{}", title);
+  GENERIC_LOG_FMT(type, Common::Log::LogLevel::LDEBUG, "{}", title);
   for (u32 j = 0; j < size;)
   {
     std::string hex_line;
@@ -133,7 +132,7 @@ void PrintDataBuffer(Common::Log::LOG_TYPE type, const u8* data, size_t size,
       if (j >= size)
         break;
     }
-    GENERIC_LOG_FMT(type, Common::Log::LDEBUG, "   Data: {}", hex_line);
+    GENERIC_LOG_FMT(type, Common::Log::LogLevel::LDEBUG, "   Data: {}", hex_line);
   }
 }
 

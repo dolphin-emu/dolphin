@@ -42,6 +42,7 @@ add_library(common
   ENetUtil.cpp
   ENetUtil.h
   EnumFormatter.h
+  EnumMap.h
   Event.h
   FileSearch.cpp
   FileSearch.h

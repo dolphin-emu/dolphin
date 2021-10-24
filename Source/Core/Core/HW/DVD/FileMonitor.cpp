@@ -53,8 +53,8 @@ static bool IsSoundFile(const std::string& filename)
 void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
   // Do nothing if the log isn't selected
-  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::FILEMON,
-                                                         Common::Log::LWARNING))
+  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::FILEMON,
+                                                         Common::Log::LogLevel::LWARNING))
   {
     return;
   }

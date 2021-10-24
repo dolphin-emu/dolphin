@@ -315,7 +315,7 @@ static void VLogInfo(std::string_view format, fmt::format_args args)
     return;
 
   const bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
-  if (Common::Log::MAX_LOGLEVEL < Common::Log::LINFO && !use_internal_log)
+  if (Common::Log::MAX_LOGLEVEL < Common::Log::LogLevel::LINFO && !use_internal_log)
     return;
 
   std::string text = fmt::vformat(format, args);
