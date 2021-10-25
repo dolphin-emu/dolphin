@@ -9,6 +9,7 @@
 
 #include "DolphinQt/GameList/GameListModel.h"
 
+class QAbstractItemView;
 class QLabel;
 class QListView;
 class QSortFilterProxyModel;
@@ -89,6 +90,8 @@ private:
   void MakeEmptyView();
   // We only have two views, just use a bool to distinguish.
   void SetPreferredView(bool list);
+  QAbstractItemView* GetActiveView() const;
+  QSortFilterProxyModel* GetActiveProxyModel() const;
   void ConsiderViewChange();
   void UpdateFont();
 
