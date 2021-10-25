@@ -31,7 +31,7 @@ constexpr std::array<Hook, 23> os_patches{{
     {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HookType::Replace, HookFlag::Generic},
 
     // Name doesn't matter, installed in CBoot::BootUp()
-    {"HBReload",                     HLE_Misc::HBReload,                    HookType::Replace, HookFlag::Generic},
+    {"HBReload",                     HLE_Misc::HBReload,                    HookType::Replace, HookFlag::Fixed},
 
     // Debug/OS Support
     {"OSPanic",                      HLE_OS::HLE_OSPanic,                   HookType::Replace, HookFlag::Debug},
