@@ -593,8 +593,17 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Type of Contact\": " << type_of_contact << "," << std::endl;
                 json_stream << "          \"Charge Swing\": " << std::to_string(ab_stat.charge_swing) << "," << std::endl;
                 json_stream << "          \"Bunt\": " << std::to_string(ab_stat.bunt) << "," << std::endl;
-                json_stream << "          \"Charge Power Up\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_up << "\"," << std::endl;
-                json_stream << "          \"Charge Power Down\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.charge_power_down << "\"," << std::endl;
+
+                //Convert Charge u32s to IEEE 754 Floats
+                float charge_power_up, charge_power_down;
+                float_converter.num = ab_stat.charge_power_up;
+                charge_power_up = float_converter.fnum;
+
+                float_converter.num = ab_stat.charge_power_down;
+                charge_power_down = float_converter.fnum;
+
+                json_stream << "          \"Charge Power Up\": \"" << std::setw(8) << charge_power_up << "\"," << std::endl;
+                json_stream << "          \"Charge Power Down\": \"" << std::setw(8) << charge_power_down << "\"," << std::endl;
                 json_stream << "          \"Star Swing\": " << std::to_string(ab_stat.star_swing) << "," << std::endl;
                 json_stream << "          \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
                 json_stream << "          \"Input Direction\": " << input_direction << "," << std::endl;
@@ -605,13 +614,35 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
                 json_stream << "          \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
                 json_stream << "          \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
-                json_stream << "          \"Ball Velocity - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_velocity << "\"," << std::endl;
-                json_stream << "          \"Ball Velocity - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_velocity << "\"," << std::endl;
-                json_stream << "          \"Ball Velocity - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_velocity << "\"," << std::endl;
 
-                json_stream << "          \"Ball Landing Position - X\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_x_pos << "\"," << std::endl;
-                json_stream << "          \"Ball Landing Position - Y\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_y_pos << "\"," << std::endl;
-                json_stream << "          \"Ball Landing Position - Z\": \"" << std::setfill('0') << std::setw(8) << std::hex << ab_stat.ball_z_pos << "\"," << std::endl;
+
+                //Convert velocity, pos u32s to IEEE 754 Floats
+                float ball_x_velocity, ball_y_velocity, ball_z_velocity, ball_x_pos, ball_y_pos, ball_z_pos;
+                float_converter.num = ab_stat.ball_x_velocity;
+                ball_x_velocity = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_y_velocity;
+                ball_y_velocity = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_z_velocity;
+                ball_z_velocity = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_x_pos;
+                ball_x_pos = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_y_pos;
+                ball_y_pos = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_z_pos;
+                ball_z_pos = float_converter.fnum;
+
+                json_stream << "          \"Ball Velocity - X\": \"" << std::setw(8) << ball_x_velocity << "\"," << std::endl;
+                json_stream << "          \"Ball Velocity - Y\": \"" << std::setw(8) << ball_y_velocity << "\"," << std::endl;
+                json_stream << "          \"Ball Velocity - Z\": \"" << std::setw(8) << ball_z_velocity << "\"," << std::endl;
+
+                json_stream << "          \"Ball Landing Position - X\": \"" << std::setw(8) << ball_x_pos << "\"," << std::endl;
+                json_stream << "          \"Ball Landing Position - Y\": \"" << std::setw(8) << ball_y_pos << "\"," << std::endl;
+                json_stream << "          \"Ball Landing Position - Z\": \"" << std::setw(8) << ball_z_pos << "\"," << std::endl;
 
                 json_stream << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
                 json_stream << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;

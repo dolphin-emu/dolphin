@@ -276,7 +276,7 @@ public:
 
         std::string team0_player_name;
         std::string team1_player_name;
-        u8 ranked;
+        bool ranked;
 
         //Auto capture
         u16 away_captain;
@@ -446,6 +446,12 @@ public:
         bool m_is_host = false;
         std::string m_netplay_opponent_alias = "";
     } m_state;
+
+    union
+    {
+        u32 num;
+        float fnum;
+    } float_converter;
 
     void setRankedStatus(bool inBool);
     void setRecordStatus(bool inBool);
