@@ -2034,18 +2034,18 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 }
 
 bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
-                       const std::string& outfile_path, bool rvz,
+                       const std::string& tempfile_path, bool rvz,
                        WIARVZCompressionType compression_type, int compression_level,
                        int chunk_size, CompressCB callback)
 {
-  File::IOFile outfile(outfile_path, "wb");
-  if (!outfile)
+  File::IOFile tempfile(tempfile_path, "wb");
+  if (!tempfile)
   {
     PanicAlertFmtT(
         "Failed to open the output file \"{0}\".\n"
         "Check that you have permissions to write the target folder and that the media can "
         "be written.",
-        outfile_path);
+        tempfile_path);
     return false;
   }
 
@@ -2053,7 +2053,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
 
   const auto convert = rvz ? RVZFileReader::Convert : WIAFileReader::Convert;
   const ConversionResultCode result =
-      convert(infile, infile_volume.get(), &outfile, compression_type, compression_level,
+      convert(infile, infile_volume.get(), &tempfile, compression_type, compression_level,
               chunk_size, callback);
 
   if (result == ConversionResultCode::ReadFailed)
@@ -2063,14 +2063,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
   {
     PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                    "Check that you have enough space available on the target drive.",
-                   outfile_path);
-  }
-
-  if (result != ConversionResultCode::Success)
-  {
-    // Remove the incomplete output file
-    outfile.Close();
-    File::Delete(outfile_path);
+                   tempfile_path);
   }
 
   return result == ConversionResultCode::Success;
