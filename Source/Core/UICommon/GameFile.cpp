@@ -43,6 +43,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
 
@@ -162,6 +163,32 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_is_nkit = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
+  }
+
+  if (!IsValid() && GetExtension() == ".json")
+  {
+    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    if (descriptor)
+    {
+      GameFile proxy(descriptor->base_file);
+      if (proxy.IsValid())
+      {
+        m_valid = true;
+        m_file_size = File::GetSize(m_file_path);
+        m_long_names.emplace(DiscIO::Language::English, std::move(descriptor->display_name));
+        m_internal_name = proxy.GetInternalName();
+        m_game_id = proxy.GetGameID();
+        m_gametdb_id = proxy.GetGameTDBID();
+        m_title_id = proxy.GetTitleID();
+        m_maker_id = proxy.GetMakerID();
+        m_region = proxy.GetRegion();
+        m_country = proxy.GetCountry();
+        m_platform = proxy.GetPlatform();
+        m_revision = proxy.GetRevision();
+        m_disc_number = proxy.GetDiscNumber();
+        m_blob_type = DiscIO::BlobType::MOD_DESCRIPTOR;
+      }
+    }
   }
 }
 
@@ -470,6 +497,18 @@ bool GameFile::ReadPNGBanner(const std::string& path)
   return true;
 }
 
+bool GameFile::TryLoadGameModDescriptorBanner()
+{
+  if (m_blob_type != DiscIO::BlobType::MOD_DESCRIPTOR)
+    return false;
+
+  auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+  if (!descriptor)
+    return false;
+
+  return ReadPNGBanner(descriptor->banner);
+}
+
 bool GameFile::CustomBannerChanged()
 {
   std::string path, name;
@@ -482,8 +521,12 @@ bool GameFile::CustomBannerChanged()
     // Homebrew Channel icon naming. Typical for DOLs and ELFs, but we also support it for volumes.
     if (!ReadPNGBanner(path + "icon.png"))
     {
-      // If no custom icon is found, go back to the non-custom one.
-      m_pending.custom_banner = {};
+      // If it's a game mod descriptor file, it may specify its own custom banner.
+      if (!TryLoadGameModDescriptorBanner())
+      {
+        // If no custom icon is found, go back to the non-custom one.
+        m_pending.custom_banner = {};
+      }
     }
   }
 
@@ -499,6 +542,8 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
 {
   if (!m_custom_name.empty())
     return m_custom_name;
+  if (IsModDescriptor())
+    return GetName(Variant::LongAndPossiblyCustom);
 
   const std::string& database_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
@@ -652,6 +697,7 @@ bool GameFile::ShouldShowFileFormatDetails() const
   case DiscIO::BlobType::PLAIN:
     break;
   case DiscIO::BlobType::DRIVE:
+  case DiscIO::BlobType::MOD_DESCRIPTOR:
     return false;
   default:
     return true;
@@ -697,6 +743,11 @@ std::string GameFile::GetFileFormatName() const
 bool GameFile::ShouldAllowConversion() const
 {
   return DiscIO::IsDisc(m_platform) && m_volume_size_is_accurate;
+}
+
+bool GameFile::IsModDescriptor() const
+{
+  return m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR;
 }
 
 const GameBanner& GameFile::GetBannerImage() const
