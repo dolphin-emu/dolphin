@@ -1702,6 +1702,10 @@ ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u
 
   const float completion = static_cast<float>(bytes_read) / iso_size;
 
+  // Progress Dialog will close prematurely if 100% is reached
+  if (completion >= 0.99f)
+    return callback(text, 0.99f) ? ConversionResultCode::Success : ConversionResultCode::Canceled;
+
   return callback(text, completion) ? ConversionResultCode::Success :
                                       ConversionResultCode::Canceled;
 }

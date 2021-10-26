@@ -365,7 +365,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
     outfile.WriteArray(offsets.data(), header.num_blocks);
     outfile.WriteArray(hashes.data(), header.num_blocks);
 
-    callback(Common::GetStringT("Done compressing disc image."), 1.0f);
+    callback(Common::GetStringT("Done compressing disc image."), 0.99f);
   }
 
   if (result == ConversionResultCode::ReadFailed)
