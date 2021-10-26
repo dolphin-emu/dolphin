@@ -364,20 +364,26 @@ void StatTracker::logABMiss(){
     if (!any_strike){
         if (m_curr_ab_stat.hit_by_pitch){ m_curr_ab_stat.result_inferred = "Walk-HPB"; }
         else if (m_curr_ab_stat.balls == 3) {  m_curr_ab_stat.result_inferred = "Walk-BB"; }
-        else {m_curr_ab_stat.result_inferred = "Ball";};
+        else {
+            m_curr_ab_stat.result_inferred = "Ball";
+            m_curr_ab_stat.frameOfPitchUponSwing = 0;
+        };
     }
     else{
         if (miss_type == 0){
             m_curr_ab_stat.result_inferred = "Strike-looking";
+            m_curr_ab_stat.frameOfPitchUponSwing = 0;
         }
         else if (miss_type == 1){
             m_curr_ab_stat.result_inferred = "Strike-swing";
         }
         else if (miss_type == 2){
             m_curr_ab_stat.result_inferred = "Strike-bunting";
+            m_curr_ab_stat.frameOfPitchUponSwing = 0;
         }
         else{
             m_curr_ab_stat.result_inferred = "Unknown Miss Result";
+            m_curr_ab_stat.frameOfPitchUponSwing = 0;
         }
     }
 }
@@ -602,8 +608,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 float_converter.num = ab_stat.charge_power_down;
                 charge_power_down = float_converter.fnum;
 
-                json_stream << "          \"Charge Power Up\": \"" << std::setw(8) << charge_power_up << "\"," << std::endl;
-                json_stream << "          \"Charge Power Down\": \"" << std::setw(8) << charge_power_down << "\"," << std::endl;
+                json_stream << "          \"Charge Power Up\": " << charge_power_up << "," << std::endl;
+                json_stream << "          \"Charge Power Down\": " << charge_power_down << "," << std::endl;
                 json_stream << "          \"Star Swing\": " << std::to_string(ab_stat.star_swing) << "," << std::endl;
                 json_stream << "          \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
                 json_stream << "          \"Input Direction\": " << input_direction << "," << std::endl;
@@ -636,13 +642,13 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 float_converter.num = ab_stat.ball_z_pos;
                 ball_z_pos = float_converter.fnum;
 
-                json_stream << "          \"Ball Velocity - X\": \"" << std::setw(8) << ball_x_velocity << "\"," << std::endl;
-                json_stream << "          \"Ball Velocity - Y\": \"" << std::setw(8) << ball_y_velocity << "\"," << std::endl;
-                json_stream << "          \"Ball Velocity - Z\": \"" << std::setw(8) << ball_z_velocity << "\"," << std::endl;
+                json_stream << "          \"Ball Velocity - X\": " << ball_x_velocity << "," << std::endl;
+                json_stream << "          \"Ball Velocity - Y\": " << ball_y_velocity << "," << std::endl;
+                json_stream << "          \"Ball Velocity - Z\": " << ball_z_velocity << "," << std::endl;
 
-                json_stream << "          \"Ball Landing Position - X\": \"" << std::setw(8) << ball_x_pos << "\"," << std::endl;
-                json_stream << "          \"Ball Landing Position - Y\": \"" << std::setw(8) << ball_y_pos << "\"," << std::endl;
-                json_stream << "          \"Ball Landing Position - Z\": \"" << std::setw(8) << ball_z_pos << "\"," << std::endl;
+                json_stream << "          \"Ball Landing Position - X\": " << ball_x_pos << "," << std::endl;
+                json_stream << "          \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
+                json_stream << "          \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
 
                 json_stream << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
                 json_stream << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
