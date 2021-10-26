@@ -1847,7 +1847,7 @@ void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
 
   auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
   RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
-                          disc.volume->GetDiscNumber(), this);
+                          disc.volume->GetDiscNumber(), game.GetFilePath(), this);
   w.exec();
   if (!w.ShouldBoot())
     return;
