@@ -322,6 +322,10 @@ void StatTracker::logABContact(){
     m_curr_ab_stat.ball_y_velocity   = Memory::Read_U32(aAB_BallVel_Y);
     m_curr_ab_stat.ball_z_velocity   = Memory::Read_U32(aAB_BallVel_Z);
 
+    m_curr_ab_stat.ball_x_accel   = Memory::Read_U32(aAB_BallAccel_X);
+    m_curr_ab_stat.ball_y_accel   = Memory::Read_U32(aAB_BallAccel_Y);
+    m_curr_ab_stat.ball_z_accel   = Memory::Read_U32(aAB_BallAccel_Z);
+
     m_curr_ab_stat.hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
     //Frame collect
@@ -351,6 +355,10 @@ void StatTracker::logABMiss(){
     m_curr_ab_stat.ball_x_velocity   = 0;
     m_curr_ab_stat.ball_y_velocity   = 0;
     m_curr_ab_stat.ball_z_velocity   = 0;
+
+    m_curr_ab_stat.ball_x_accel   = 0;
+    m_curr_ab_stat.ball_y_accel   = 0;
+    m_curr_ab_stat.ball_z_accel   = 0;
 
     m_curr_ab_stat.hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
@@ -586,7 +594,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 std::string pitcher_hand  = (inDecode) ? "\"" + cHandToHR.at(ab_stat.pitcher_handedness) + "\"" : std::to_string(ab_stat.pitcher_handedness);
                 std::string pitch_type    = (inDecode) ? "\"" + cPitchTypeToHR.at(ab_stat.pitch_type) + "\"" : std::to_string(ab_stat.pitch_type);
                 std::string charge_pitch_type    = (inDecode) ? "\"" + cChargePitchTypeToHR.at(ab_stat.charge_type) + "\"" : std::to_string(ab_stat.charge_type);
-                json_stream << "          \"PitcherID \": " << pitcher << "," << std::endl;
+                json_stream << "          \"PitcherID\": " << pitcher << "," << std::endl;
                 json_stream << "          \"Pitcher Handedness\": " << pitcher_hand << "," << std::endl;
                 json_stream << "          \"Pitch Type\": " << pitch_type << "," << std::endl;
                 json_stream << "          \"Charge Pitch Type\": " << charge_pitch_type << "," << std::endl;
@@ -623,7 +631,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
 
                 //Convert velocity, pos u32s to IEEE 754 Floats
-                float ball_x_velocity, ball_y_velocity, ball_z_velocity, ball_x_pos, ball_y_pos, ball_z_pos;
+                float ball_x_velocity, ball_y_velocity, ball_z_velocity, 
+                      ball_x_accel, ball_y_accel, ball_z_accel, 
+                      ball_x_pos, ball_y_pos, ball_z_pos;
                 float_converter.num = ab_stat.ball_x_velocity;
                 ball_x_velocity = float_converter.fnum;
 
@@ -632,6 +642,15 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
                 float_converter.num = ab_stat.ball_z_velocity;
                 ball_z_velocity = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_x_accel;
+                ball_x_accel = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_y_accel;
+                ball_y_accel = float_converter.fnum;
+
+                float_converter.num = ab_stat.ball_z_accel;
+                ball_z_accel = float_converter.fnum;
 
                 float_converter.num = ab_stat.ball_x_pos;
                 ball_x_pos = float_converter.fnum;
@@ -645,7 +664,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Ball Velocity - X\": " << ball_x_velocity << "," << std::endl;
                 json_stream << "          \"Ball Velocity - Y\": " << ball_y_velocity << "," << std::endl;
                 json_stream << "          \"Ball Velocity - Z\": " << ball_z_velocity << "," << std::endl;
-
+                json_stream << "          \"Ball Acceleration - X\": " << ball_x_accel << "," << std::endl;
+                json_stream << "          \"Ball Acceleration - Y\": " << ball_y_accel << "," << std::endl;
+                json_stream << "          \"Ball Acceleration - Z\": " << ball_z_accel << "," << std::endl;
                 json_stream << "          \"Ball Landing Position - X\": " << ball_x_pos << "," << std::endl;
                 json_stream << "          \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
                 json_stream << "          \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;

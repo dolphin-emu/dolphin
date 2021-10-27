@@ -223,6 +223,10 @@ static const u32 aAB_BallVel_X      = 0x80890E50;
 static const u32 aAB_BallVel_Y      = 0x80890E54;
 static const u32 aAB_BallVel_Z      = 0x80890E58;
 
+static const u32 aAB_BallAccel_X    = 0x80890E5C;
+static const u32 aAB_BallAccel_Y    = 0x80890E60;
+static const u32 aAB_BallAccel_Z    = 0x80890E64;
+
 static const u32 aAB_ChargeSwing    = 0x8089099B;
 static const u32 aAB_Bunt           = 0x8089099B; //Bunt when =3 on contact
 static const u32 aAB_ChargeUp       = 0x80890968;
@@ -396,6 +400,9 @@ public:
         u32 ball_x_velocity;
         u32 ball_y_velocity;
         u32 ball_z_velocity;
+        u32 ball_x_accel;
+        u32 ball_y_accel;
+        u32 ball_z_accel;
         
         //Final Result Ball
         u32 ball_x_pos;
