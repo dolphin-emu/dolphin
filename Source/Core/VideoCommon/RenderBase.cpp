@@ -978,6 +978,7 @@ bool Renderer::InitializeImGui()
   ImGui::GetIO().DisplayFramebufferScale.y = m_backbuffer_scale;
   ImGui::GetIO().FontGlobalScale = m_backbuffer_scale;
   ImGui::GetStyle().ScaleAllSizes(m_backbuffer_scale);
+  ImGui::GetStyle().WindowRounding = 7.0f;
 
   PortableVertexDeclaration vdecl = {};
   vdecl.position = {VAR_FLOAT, 2, offsetof(ImDrawVert, pos), true, false};
