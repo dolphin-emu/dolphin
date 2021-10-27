@@ -21,7 +21,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
-#include "Core/LocalPlayers.h"
+// #include "Core/LocalPlayers.h"
 #include "Core/LocalPlayersConfig.h"
 #include "DolphinQt/Config/AddLocalPlayers.h"
 
@@ -160,6 +160,12 @@ void LocalPlayersWidget::SavePlayers()
 
 void LocalPlayersWidget::LoadPlayers()
 {
+
+  m_player_list_1->clear();
+  m_player_list_2->clear();
+  m_player_list_3->clear();
+  m_player_list_4->clear();
+
   // List an option to not select a player
   m_player_list_1->addItem(tr("No Player Selected"));
   m_player_list_2->addItem(tr("No Player Selected"));

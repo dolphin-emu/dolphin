@@ -404,6 +404,8 @@ add_library(core
   IOS/WFS/WFSSRV.h
   LibusbUtils.cpp
   LibusbUtils.h
+  MSB_StatTracker.cpp
+  MSB_StatTracker.h
   LocalPlayers.cpp
   LocalPlayers.h
   LocalPlayersConfig.cpp

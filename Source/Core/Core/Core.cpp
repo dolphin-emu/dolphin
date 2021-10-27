@@ -77,6 +77,8 @@
 #include "Core/MemoryWatcher.h"
 #endif
 
+#include "MSB_StatTracker.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
@@ -119,6 +121,8 @@ static std::atomic<bool> s_stop_frame_step;
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
 
+static std::unique_ptr<StatTracker> s_stat_tracker;
+
 struct HostJob
 {
   std::function<void()> job;
@@ -149,8 +153,28 @@ double GetActualEmulationSpeed()
 
 void FrameUpdateOnCPUThread()
 {
-  if (NetPlay::IsNetPlayRunning())
+  if (NetPlay::IsNetPlayRunning()) {
     NetPlay::NetPlayClient::SendTimeBase();
+
+    if (s_stat_tracker){
+      //Figure out if client is hosting via netplay settings. Could use local player as well
+      bool is_hosting = NetPlay::GetNetSettings().m_IsHosting;
+      std::string opponent_name = "";
+      /*
+      for (auto player : NetPlay::NetPlayClient::GetPlayers()){
+        if (!NetPlay::NetPlayClient::IsLocalPlayer(player.pid)){
+          opponent_name = player.name;
+          break;
+        }
+      }*/
+      s_stat_tracker->setNetplaySession(true, is_hosting, opponent_name);
+    }
+  }
+  else{
+    if (s_stat_tracker){
+      s_stat_tracker->setNetplaySession(false);
+    }
+  }
 }
 
 void OnFrameEnd()
@@ -174,6 +198,10 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
+
+  if (s_stat_tracker) {
+    s_stat_tracker->Run();
+  }
 }
 
 // Display messages and return values
@@ -371,6 +399,11 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher = std::make_unique<MemoryWatcher>();
 #endif
+
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
 
   if (savestate_path)
   {
@@ -1151,21 +1184,29 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
 
 void setRecordStatus(bool inNewStatus)
 {
-  SConfig& settings = SConfig::GetInstance();
-  settings.SaveSettings();
-  //is_record = inNewStatus;
+  //SConfig& settings = SConfig::GetInstance();
+  //settings.SaveSettings();
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+
+  s_stat_tracker->setRecordStatus(inNewStatus);
 }
 
 void setSubmitStatus(bool inNewStatus)
 {
   SConfig& settings = SConfig::GetInstance();
   settings.SaveSettings();
-  //is_submit = inNewStatus;
 }
 
 void setRankedStatus(bool inNewStatus)
 {
-  // is_ranked = inNewStatus;
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+  s_stat_tracker->setRankedStatus(inNewStatus);
 }
 
 }  // namespace Core
