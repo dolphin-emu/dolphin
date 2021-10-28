@@ -340,22 +340,31 @@ void Cheats::CheatSearchSession<T>::SetFilterType(FilterType filter_type)
 }
 
 template <typename T>
-static std::optional<T> ParseValue(const std::string& str)
+static std::optional<T> ParseValue(const std::string& str, bool force_parse_as_hex)
 {
   if (str.empty())
     return std::nullopt;
 
   T tmp;
-  if (TryParse(str, &tmp))
-    return tmp;
+  if constexpr (std::is_integral_v<T>)
+  {
+    if (TryParse(str, &tmp, force_parse_as_hex ? 16 : 0))
+      return tmp;
+  }
+  else
+  {
+    if (TryParse(str, &tmp))
+      return tmp;
+  }
 
   return std::nullopt;
 }
 
 template <typename T>
-bool Cheats::CheatSearchSession<T>::SetValueFromString(const std::string& value_as_string)
+bool Cheats::CheatSearchSession<T>::SetValueFromString(const std::string& value_as_string,
+                                                       bool force_parse_as_hex)
 {
-  m_value = ParseValue<T>(value_as_string);
+  m_value = ParseValue<T>(value_as_string, force_parse_as_hex);
   return m_value.has_value();
 }
 
@@ -496,6 +505,18 @@ template <typename T>
 bool Cheats::CheatSearchSession<T>::GetAligned()
 {
   return m_aligned;
+}
+
+template <typename T>
+bool Cheats::CheatSearchSession<T>::IsIntegerType() const
+{
+  return std::is_integral_v<T>;
+}
+
+template <typename T>
+bool Cheats::CheatSearchSession<T>::IsFloatingType() const
+{
+  return std::is_floating_point_v<T>;
 }
 
 template <typename T>
