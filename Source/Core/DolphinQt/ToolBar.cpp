@@ -88,6 +88,10 @@ void ToolBar::OnDebugModeToggled(bool enabled)
   m_skip_action->setVisible(enabled);
   m_show_pc_action->setVisible(enabled);
   m_set_pc_action->setVisible(enabled);
+  m_open_action->setVisible(enabled);
+  m_refresh_action->setVisible(enabled);
+  m_pause_play_action->setVisible(enabled);
+  m_stop_action->setVisible(enabled);
 
   bool paused = Core::GetState() == Core::State::Paused;
   m_step_action->setEnabled(paused);
@@ -118,7 +122,7 @@ void ToolBar::MakeActions()
   m_refresh_action = addAction(tr("Refresh"), [this] { emit RefreshPressed(); });
   m_refresh_action->setEnabled(false);
 
-  addSeparator();
+  // addSeparator();
 
   m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
 
