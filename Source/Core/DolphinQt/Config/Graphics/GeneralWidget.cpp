@@ -87,7 +87,7 @@ void GeneralWidget::CreateWidgets()
   auto* m_options_layout = new QGridLayout();
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
-  m_show_batter_fielder = new GraphicsBool(tr("Show NetPlay Batter/Fielder"), Config::GFX_SHOW_BATTER_FIELDER);
+  m_show_batter_fielder = new GraphicsBool(tr("Display Current Batter/Fielder"), Config::GFX_SHOW_BATTER_FIELDER);
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
@@ -269,6 +269,9 @@ void GeneralWidget::AddDescriptions()
                  "two or fewer cores, it is recommended to enable this option, as a large shader "
                  "queue may reduce frame rates.<br><br><dolphin_emphasis>Otherwise, if "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SHOW_BATTER_FIELDER[] =
+      QT_TR_NOOP("Displays the NetPlay Nickname of the batter and fielder. Only works on NetPlay.<br>"
+                 "Option for displaying local player will be added in the future.");
 
   m_backend_combo->SetTitle(tr("Backend"));
   m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
@@ -285,6 +288,8 @@ void GeneralWidget::AddDescriptions()
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
 
   m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
+
+  m_show_batter_fielder->SetDescription(tr(TR_SHOW_BATTER_FIELDER));
 
   m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
 
