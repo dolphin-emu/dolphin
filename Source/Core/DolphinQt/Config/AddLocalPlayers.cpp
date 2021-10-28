@@ -37,9 +37,13 @@ void AddLocalPlayersEditor::CreateWidgets()
   m_username_edit = new QLineEdit;
   m_userid_edit = new QLineEdit;
   m_description = new QLabel(
+      tr("\nEnter a Username.\n"
+        "WARNING: the first username entered will\nbe used over NetPlay. You can manually\n"
+        "change this by editing LocalPlayers.ini\nin Project Rio/Config/LocalPlayers.ini."));
+  /*m_description = new QLabel(
       tr("\nEnter the Username and User ID EXACTLY\nas they appear on projectrio.online.\n"
          "This is necessary to send stat files to\nour database properly. If you enter an\n"
-         "invalid Username and/or User ID, your\nstats will not be saved to the database.\n"));
+         "invalid Username and/or User ID, your\nstats will not be saved to the database.\n"));*/
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Save);
 
@@ -48,8 +52,8 @@ void AddLocalPlayersEditor::CreateWidgets()
 
   grid_layout->addWidget(new QLabel(tr("Username:")), 0, 0);
   grid_layout->addWidget(m_username_edit, 0, 1);
-  grid_layout->addWidget(new QLabel(tr("User ID:")), 1, 0);
-  grid_layout->addWidget(m_userid_edit, 1, 1);
+  //grid_layout->addWidget(new QLabel(tr("User ID:")), 1, 0);
+  // grid_layout->addWidget(m_userid_edit, 1, 1);
   grid_layout->addWidget(m_description, 3, 1);
   grid_layout->addWidget(m_button_box, 4, 1);
 
@@ -91,7 +95,7 @@ bool AddLocalPlayersEditor::AcceptPlayer()
     ModalMessageBox::critical(this, tr("Error"), tr("Username cannot begin with \"+\"."));
     return false;
   }
-
+  /*
   m_local_player->userid = m_userid_edit->text().toStdString();
 
   if (m_local_player->userid.empty())
@@ -106,7 +110,7 @@ bool AddLocalPlayersEditor::AcceptPlayer()
     ModalMessageBox::critical(this, tr("Error"), tr("You must enter a valid User ID"));
     return false;
   }
-
+  */
   return true;
 }
 
