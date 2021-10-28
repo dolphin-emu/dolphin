@@ -369,11 +369,13 @@ void NetPlaySetupDialog::PopulateGameList()
   for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
   {
     std::shared_ptr<const UICommon::GameFile> game = m_game_list_model.GetGameFile(i);
-
-    auto* item =
-        new QListWidgetItem(QString::fromStdString(m_game_list_model.GetNetPlayName(*game)));
-    item->setData(Qt::UserRole, QVariant::fromValue(std::move(game)));
-    m_host_games->addItem(item);
+    if ((m_game_list_model.GetNetPlayName(*game) == "Mario Superstar Baseball (GYQE01)"))
+    {
+      auto* item =
+          new QListWidgetItem(QString::fromStdString(m_game_list_model.GetNetPlayName(*game)));
+      item->setData(Qt::UserRole, QVariant::fromValue(std::move(game)));
+      m_host_games->addItem(item);
+    }
   }
 
   m_host_games->sortItems();
