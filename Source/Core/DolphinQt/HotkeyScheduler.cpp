@@ -192,19 +192,6 @@ void HotkeyScheduler::Run()
         Common::SleepCurrentThread(100);
       }
 
-      // add permanent fullscreen hotkey "F + S"
-      if (GetKeyState('F') & 0x8000)
-      {
-        if (GetKeyState('S') & 0x8000)
-        {
-          emit FullScreenHotkey();
-
-          // Prevent fullscreen from getting toggled too often
-          Common::SleepCurrentThread(500);
-        }
-      }
-
-
       // Refresh Game List
       if (IsHotkey(HK_REFRESH_LIST))
         emit RefreshGameListHotkey();

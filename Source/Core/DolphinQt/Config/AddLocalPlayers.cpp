@@ -86,7 +86,7 @@ bool AddLocalPlayersEditor::AcceptPlayer()
   }
 
   // checks if the username starts with "+"
-  if (m_local_player->username._Starts_with("+"))
+  if (m_local_player->username.rfind("+", 0) == 0)
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Username cannot begin with \"+\"."));
     return false;

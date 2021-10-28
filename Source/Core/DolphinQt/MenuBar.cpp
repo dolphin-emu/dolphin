@@ -545,15 +545,18 @@ void MenuBar::AddOptionsMenu()
           [](bool enable) { SConfig::GetInstance().bRecordStats = enable; });
 
   Core::setRecordStatus(SConfig::GetInstance().bRecordStats);
-
+  
   m_submit_stats = options_menu->addAction(tr("Submit Stats"), this, &Core::setSubmitStatus);
   m_submit_stats->setCheckable(true);
+  // Hiding since submission won't be in alpha release
+  m_submit_stats->setVisible(false);
   m_submit_stats->setChecked(SConfig::GetInstance().bSubmitStats);
 
   connect(m_submit_stats, &QAction::toggled, this,
           [](bool enable) { SConfig::GetInstance().bSubmitStats = enable; });
 
   Core::setSubmitStatus(SConfig::GetInstance().bSubmitStats);
+
 
   // Debugging mode only
   m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));

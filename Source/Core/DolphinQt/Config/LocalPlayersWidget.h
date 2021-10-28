@@ -7,6 +7,8 @@
 
 #include <array>
 
+#include "Core/LocalPlayers.h"
+
 class QComboBox;
 class QHBoxLayout;
 class QGridLayout;
@@ -14,10 +16,7 @@ class QGroupBox;
 class QPushButton;
 class QListWidget;
 
-namespace AddPlayers
-{
-class AddPlayers;
-}
+// class AddPlayers;
 
 class LocalPlayersWidget final : public QWidget
 {
