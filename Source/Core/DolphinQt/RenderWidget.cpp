@@ -19,7 +19,7 @@
 #include <QTimer>
 #include <QWindow>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
