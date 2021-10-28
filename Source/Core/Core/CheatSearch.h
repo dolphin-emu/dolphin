@@ -140,11 +140,11 @@ public:
   // Run either a new search or a next search based on the current state of this session.
   virtual SearchErrorCode RunSearch() = 0;
 
-  virtual size_t GetMemoryRangeCount() = 0;
-  virtual MemoryRange GetMemoryRange(size_t index) = 0;
-  virtual PowerPC::RequestedAddressSpace GetAddressSpace() = 0;
-  virtual DataType GetDataType() = 0;
-  virtual bool GetAligned() = 0;
+  virtual size_t GetMemoryRangeCount() const = 0;
+  virtual MemoryRange GetMemoryRange(size_t index) const = 0;
+  virtual PowerPC::RequestedAddressSpace GetAddressSpace() const = 0;
+  virtual DataType GetDataType() const = 0;
+  virtual bool GetAligned() const = 0;
 
   virtual bool IsIntegerType() const = 0;
   virtual bool IsFloatingType() const = 0;
@@ -186,11 +186,11 @@ public:
   void ResetResults() override;
   SearchErrorCode RunSearch() override;
 
-  size_t GetMemoryRangeCount() override;
-  MemoryRange GetMemoryRange(size_t index) override;
-  PowerPC::RequestedAddressSpace GetAddressSpace() override;
-  DataType GetDataType() override;
-  bool GetAligned() override;
+  size_t GetMemoryRangeCount() const override;
+  MemoryRange GetMemoryRange(size_t index) const override;
+  PowerPC::RequestedAddressSpace GetAddressSpace() const override;
+  DataType GetDataType() const override;
+  bool GetAligned() const override;
 
   bool IsIntegerType() const override;
   bool IsFloatingType() const override;
