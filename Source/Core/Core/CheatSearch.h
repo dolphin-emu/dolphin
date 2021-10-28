@@ -168,7 +168,7 @@ public:
 };
 
 template <typename T>
-class CheatSearchSession : public CheatSearchSessionBase
+class CheatSearchSession final : public CheatSearchSessionBase
 {
 public:
   CheatSearchSession(std::vector<MemoryRange> memory_ranges,
