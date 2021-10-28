@@ -85,7 +85,7 @@ var default_update_track = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DEFAULT_U
 if (default_update_track == "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_track = "";
 
 // remove hash (and trailing "-0" if needed) from description
-describe = "1.0";
+describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +

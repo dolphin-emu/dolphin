@@ -16,6 +16,7 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
+#define RIO_REV_STR "Alpha-0.9"
 
 const std::string scm_rev_str = "Project Rio "
 #if !SCM_IS_MASTER
@@ -23,22 +24,22 @@ const std::string scm_rev_str = "Project Rio "
 #endif
 
 #ifdef __INTEL_COMPILER
-    BUILD_TYPE_STR SCM_DESC_STR "-ICC";
+    BUILD_TYPE_STR RIO_REV_STR "-ICC";
 #else
-    BUILD_TYPE_STR SCM_DESC_STR;
+    BUILD_TYPE_STR RIO_REV_STR;
 #endif
 
 const std::string scm_rev_git_str = SCM_REV_STR;
-const std::string scm_desc_str = SCM_DESC_STR;
+const std::string scm_desc_str = RIO_REV_STR;
 const std::string scm_branch_str = SCM_BRANCH_STR;
 const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
 const std::string scm_update_track_str = SCM_UPDATE_TRACK_STR;
 
 #ifdef _WIN32
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";
+const std::string netplay_dolphin_ver = RIO_REV_STR " Win";
 #elif __APPLE__
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Mac";
+const std::string netplay_dolphin_ver = RIO_REV_STR " Mac";
 #else
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Lin";
+const std::string netplay_dolphin_ver = RIO_REV_STR " Lin";
 #endif
 }  // namespace Common

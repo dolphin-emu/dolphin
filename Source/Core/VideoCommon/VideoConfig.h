@@ -80,6 +80,7 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS;
+  bool bShowBatterFielder;
   bool bShowNetPlayPing;
   bool bShowNetPlayMessages;
   bool bOverlayStats;
