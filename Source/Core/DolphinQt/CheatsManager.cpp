@@ -34,9 +34,16 @@ CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 
   RefreshCodeTabs(Core::GetState(), true);
+
+  auto& settings = Settings::GetQSettings();
+  restoreGeometry(settings.value(QStringLiteral("cheatsmanager/geometry")).toByteArray());
 }
 
-CheatsManager::~CheatsManager() = default;
+CheatsManager::~CheatsManager()
+{
+  auto& settings = Settings::GetQSettings();
+  settings.setValue(QStringLiteral("cheatsmanager/geometry"), saveGeometry());
+}
 
 void CheatsManager::OnStateChanged(Core::State state)
 {
