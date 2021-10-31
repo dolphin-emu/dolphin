@@ -141,7 +141,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
     GameViewHolder holder = (GameViewHolder) view.getTag();
 
     String[] paths = GameFileCacheService.findSecondDiscAndGetPaths(holder.gameFile);
-    EmulationActivity.launch((FragmentActivity) view.getContext(), paths);
+    EmulationActivity.launch((FragmentActivity) view.getContext(), paths, false);
   }
 
   /**

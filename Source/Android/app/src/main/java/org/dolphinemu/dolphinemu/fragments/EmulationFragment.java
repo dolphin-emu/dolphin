@@ -29,19 +29,22 @@ import java.io.File;
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
   private static final String KEY_GAMEPATHS = "gamepaths";
+  private static final String KEY_RIIVOLUTION = "riivolution";
 
   private InputOverlay mInputOverlay;
 
   private String[] mGamePaths;
+  private boolean mRiivolution;
   private boolean mRunWhenSurfaceIsValid;
   private boolean mLoadPreviousTemporaryState;
 
   private EmulationActivity activity;
 
-  public static EmulationFragment newInstance(String[] gamePaths)
+  public static EmulationFragment newInstance(String[] gamePaths, boolean riivolution)
   {
     Bundle args = new Bundle();
     args.putStringArray(KEY_GAMEPATHS, gamePaths);
+    args.putBoolean(KEY_RIIVOLUTION, riivolution);
 
     EmulationFragment fragment = new EmulationFragment();
     fragment.setArguments(args);
@@ -76,6 +79,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     setRetainInstance(true);
 
     mGamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
+    mRiivolution = getArguments().getBoolean(KEY_RIIVOLUTION);
   }
 
   /**
@@ -267,12 +271,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         if (mLoadPreviousTemporaryState)
         {
           Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-          NativeLibrary.Run(mGamePaths, getTemporaryStateFilePath(), true);
+          NativeLibrary.Run(mGamePaths, mRiivolution, getTemporaryStateFilePath(), true);
         }
         else
         {
           Log.debug("[EmulationFragment] Starting emulation thread.");
-          NativeLibrary.Run(mGamePaths);
+          NativeLibrary.Run(mGamePaths, mRiivolution);
         }
         EmulationActivity.stopIgnoringLaunchRequests();
       }, "NativeEmulation");

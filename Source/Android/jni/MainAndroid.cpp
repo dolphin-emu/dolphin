@@ -48,6 +48,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
@@ -547,7 +548,7 @@ static float GetRenderSurfaceScale(JNIEnv* env)
   return env->CallStaticFloatMethod(native_library_class, get_render_surface_scale_method);
 }
 
-static void Run(JNIEnv* env, const std::vector<std::string>& paths,
+static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool riivolution,
                 const std::optional<std::string>& savestate_path = {},
                 bool delete_savestate = false)
 {
@@ -563,6 +564,16 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
   std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(paths, savestate_path);
   if (boot)
     boot->delete_savestate = delete_savestate;
+
+  if (riivolution && std::holds_alternative<BootParameters::Disc>(boot->parameters))
+  {
+    const std::string& riivolution_dir = File::GetUserPath(D_RIIVOLUTION_IDX);
+    const DiscIO::Volume& volume = *std::get<BootParameters::Disc>(boot->parameters).volume;
+
+    AddRiivolutionPatches(boot.get(), DiscIO::Riivolution::GenerateRiivolutionPatchesFromConfig(
+                                          riivolution_dir, volume.GetGameID(), volume.GetRevision(),
+                                          volume.GetDiscNumber()));
+  }
 
   WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf, s_surf);
   wsi.render_surface_scale = GetRenderSurfaceScale(env);
@@ -616,17 +627,19 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
                             IDCache::GetFinishEmulationActivity());
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2(
-    JNIEnv* env, jclass, jobjectArray jPaths)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Z(
+    JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution)
 {
-  Run(env, JStringArrayToVector(env, jPaths));
+  Run(env, JStringArrayToVector(env, jPaths), jRiivolution);
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Ljava_lang_String_2Z(
-    JNIEnv* env, jclass, jobjectArray jPaths, jstring jSavestate, jboolean jDeleteSavestate)
+Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2ZLjava_lang_String_2Z(
+    JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution, jstring jSavestate,
+    jboolean jDeleteSavestate)
 {
-  Run(env, JStringArrayToVector(env, jPaths), GetJString(env, jSavestate), jDeleteSavestate);
+  Run(env, JStringArrayToVector(env, jPaths), jRiivolution, GetJString(env, jSavestate),
+      jDeleteSavestate);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env, jclass,
