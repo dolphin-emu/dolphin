@@ -93,6 +93,7 @@
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
 #endif
+#include <Core/NetPlayServer.h>
 
 namespace Core
 {
@@ -179,7 +180,7 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  if (!NetPlay::IsNetPlayRunning())
+  if (!NetPlay::IsNetPlayRunning() || NetPlay::HIA)
   {
     // for some unknown reason, when playing locally the game gets a write error at frme 6457
     // no idea why, so imma just write to the addr on some arbiturary frame number

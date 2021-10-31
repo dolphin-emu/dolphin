@@ -285,4 +285,5 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
+bool HIA = false;
 }  // namespace NetPlay
