@@ -75,7 +75,7 @@ private:
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
 {
   auto parser = std::make_unique<optparse::OptionParser>();
-  parser->usage("usage: %prog [options]... [FILE]...").version(Common::scm_rev_str);
+  parser->usage("usage: %prog [options]... [FILE]...").version(Common::scm_slippi_semver_str);
 
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");
