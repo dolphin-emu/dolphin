@@ -10,6 +10,8 @@
 #include <string_view>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
@@ -365,148 +367,109 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
                            create_if_not_exists);
 }
 
-static void FindFilenameNodesInFST(std::vector<DiscIO::FSTBuilderNode*>* nodes_out,
-                                   std::string_view filename, std::vector<FSTBuilderNode>* fst)
+static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
+                                                     std::vector<FSTBuilderNode>& fst)
 {
-  for (FSTBuilderNode& node : *fst)
+  for (FSTBuilderNode& node : fst)
   {
     if (node.IsFolder())
     {
-      FindFilenameNodesInFST(nodes_out, filename,
-                             &std::get<std::vector<FSTBuilderNode>>(node.m_content));
+      DiscIO::FSTBuilderNode* result = FindFilenameNodeInFST(filename, node.GetFolderContent());
+      if (result)
+        return result;
     }
     else if (node.m_filename == filename)
     {
-      nodes_out->push_back(&node);
+      return &node;
+    }
+  }
+
+  return nullptr;
+}
+
+static void ApplyFilePatchToFST(const Patch& patch, const File& file,
+                                std::vector<DiscIO::FSTBuilderNode>* fst,
+                                DiscIO::FSTBuilderNode* dol_node)
+{
+  if (!file.m_disc.empty() && file.m_disc[0] == '/')
+  {
+    // If the disc path starts with a / then we should patch that specific disc path.
+    DiscIO::FSTBuilderNode* node =
+        FindFileNodeInFST(std::string_view(file.m_disc).substr(1), fst, file.m_create);
+    if (node)
+      ApplyPatchToFile(patch, file, node);
+  }
+  else if (CaseInsensitiveEquals(file.m_disc, "main.dol"))
+  {
+    // Special case: If the filename is "main.dol", we want to patch the main executable.
+    ApplyPatchToFile(patch, file, dol_node);
+  }
+  else
+  {
+    // Otherwise we want to patch the first file in the FST that matches that filename.
+    DiscIO::FSTBuilderNode* node = FindFilenameNodeInFST(file.m_disc, *fst);
+    if (node)
+      ApplyPatchToFile(patch, file, node);
+  }
+}
+
+static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
+                                  std::vector<DiscIO::FSTBuilderNode>* fst,
+                                  DiscIO::FSTBuilderNode* dol_node, std::string_view disc_path,
+                                  std::string_view external_path)
+{
+  const auto external_files = patch.m_file_data_loader->GetFolderContents(external_path);
+  for (const auto& child : external_files)
+  {
+    const auto combine_paths = [](std::string_view a, std::string_view b) {
+      if (a.empty())
+        return std::string(b);
+      if (b.empty())
+        return std::string(a);
+      if (StringEndsWith(a, "/"))
+        a.remove_suffix(1);
+      if (StringBeginsWith(b, "/"))
+        b.remove_prefix(1);
+      return fmt::format("{}/{}", a, b);
+    };
+    std::string child_disc_path = combine_paths(disc_path, child.m_filename);
+    std::string child_external_path = combine_paths(external_path, child.m_filename);
+
+    if (child.m_is_directory)
+    {
+      if (folder.m_recursive)
+        ApplyFolderPatchToFST(patch, folder, fst, dol_node, child_disc_path, child_external_path);
+    }
+    else
+    {
+      File file;
+      file.m_disc = std::move(child_disc_path);
+      file.m_external = std::move(child_external_path);
+      file.m_resize = folder.m_resize;
+      file.m_create = folder.m_create;
+      file.m_length = folder.m_length;
+      ApplyFilePatchToFST(patch, file, fst, dol_node);
     }
   }
 }
 
 static void ApplyFolderPatchToFST(const Patch& patch, const Folder& folder,
-                                  const std::vector<FileDataLoader::Node>& external_files,
-                                  const std::string& external_path, bool recursive,
-                                  std::string_view disc_path,
-                                  std::vector<DiscIO::FSTBuilderNode>* fst)
+                                  std::vector<DiscIO::FSTBuilderNode>* fst,
+                                  DiscIO::FSTBuilderNode* dol_node)
 {
-  for (const auto& child : external_files)
-  {
-    const std::string child_disc_path = std::string(disc_path) + "/" + child.m_filename;
-    const std::string child_external_path = external_path + "/" + child.m_filename;
-    if (child.m_is_directory)
-    {
-      if (recursive)
-      {
-        ApplyFolderPatchToFST(patch, folder,
-                              patch.m_file_data_loader->GetFolderContents(child_external_path),
-                              child_external_path, recursive, child_disc_path, fst);
-      }
-    }
-    else
-    {
-      DiscIO::FSTBuilderNode* node = FindFileNodeInFST(child_disc_path, fst, folder.m_create);
-      if (node)
-        ApplyPatchToFile(patch, node, child_external_path, 0, 0, folder.m_length, folder.m_resize);
-    }
-  }
-}
-
-static void ApplyUnknownFolderPatchToFST(const Patch& patch, const Folder& folder,
-                                         const std::vector<FileDataLoader::Node>& external_files,
-                                         const std::string& external_path, bool recursive,
-                                         std::vector<DiscIO::FSTBuilderNode>* fst)
-{
-  for (const auto& child : external_files)
-  {
-    const std::string child_external_path = external_path + "/" + child.m_filename;
-    if (child.m_is_directory)
-    {
-      if (recursive)
-      {
-        ApplyUnknownFolderPatchToFST(
-            patch, folder, patch.m_file_data_loader->GetFolderContents(child_external_path),
-            child_external_path, recursive, fst);
-      }
-    }
-    else
-    {
-      std::vector<DiscIO::FSTBuilderNode*> nodes;
-      FindFilenameNodesInFST(&nodes, child.m_filename, fst);
-      for (auto* node : nodes)
-        ApplyPatchToFile(patch, node, child_external_path, 0, 0, folder.m_length, folder.m_resize);
-    }
-  }
+  ApplyFolderPatchToFST(patch, folder, fst, dol_node, folder.m_disc, folder.m_external);
 }
 
 void ApplyPatchesToFiles(const std::vector<Patch>& patches,
                          std::vector<DiscIO::FSTBuilderNode>* fst, DiscIO::FSTBuilderNode* dol_node)
 {
-  // For file searching purposes, Riivolution assumes that the game's main.dol is in the root of the
-  // file system. So to avoid doing a bunch of special case handling for that, we just put a node
-  // for this into the FST and remove it again after the file patching is done.
-  // We mark the inserted node with a pointer to a stack variable so we can find it again.
-  int marker = 0;
-  fst->emplace_back(DiscIO::FSTBuilderNode{"main.dol", dol_node->m_size,
-                                           std::move(dol_node->m_content), &marker});
-
   for (const auto& patch : patches)
   {
     for (const auto& file : patch.m_file_patches)
-    {
-      if (!file.m_disc.empty() && file.m_disc[0] == '/')
-      {
-        // If the disc path starts with a / then we should patch that specific disc path.
-        DiscIO::FSTBuilderNode* node =
-            FindFileNodeInFST(std::string_view(file.m_disc).substr(1), fst, file.m_create);
-        if (node)
-          ApplyPatchToFile(patch, file, node);
-      }
-      else
-      {
-        // Otherwise we want to patch any file on the entire disc matching that filename.
-        std::vector<DiscIO::FSTBuilderNode*> nodes;
-        FindFilenameNodesInFST(&nodes, file.m_disc, fst);
-        for (auto* node : nodes)
-          ApplyPatchToFile(patch, file, node);
-      }
-    }
+      ApplyFilePatchToFST(patch, file, fst, dol_node);
 
     for (const auto& folder : patch.m_folder_patches)
-    {
-      const auto external_files = patch.m_file_data_loader->GetFolderContents(folder.m_external);
-
-      std::string_view disc_path = folder.m_disc;
-      while (StringBeginsWith(disc_path, "/"))
-        disc_path.remove_prefix(1);
-      while (StringEndsWith(disc_path, "/"))
-        disc_path.remove_suffix(1);
-
-      if (disc_path.empty())
-      {
-        ApplyUnknownFolderPatchToFST(patch, folder, external_files, folder.m_external,
-                                     folder.m_recursive, fst);
-      }
-      else
-      {
-        ApplyFolderPatchToFST(patch, folder, external_files, folder.m_external, folder.m_recursive,
-                              disc_path, fst);
-      }
-    }
-  }
-
-  // Remove the inserted main.dol node again and propagate its changes.
-  auto main_dol_node_in_fst =
-      std::find_if(fst->begin(), fst->end(),
-                   [&](const DiscIO::FSTBuilderNode& node) { return node.m_user_data == &marker; });
-  if (main_dol_node_in_fst != fst->end())
-  {
-    dol_node->m_size = main_dol_node_in_fst->m_size;
-    dol_node->m_content = std::move(main_dol_node_in_fst->m_content);
-    fst->erase(main_dol_node_in_fst);
-  }
-  else
-  {
-    // The main.dol node disappeared, this should never happen.
-    ASSERT(false);
+      ApplyFolderPatchToFST(patch, folder, fst, dol_node);
   }
 }
 
