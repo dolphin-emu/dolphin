@@ -13,6 +13,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/PowerPC/MMU.h"
@@ -529,8 +530,15 @@ static void ApplyMemoryPatch(u32 offset, const std::vector<u8>& value,
   if (!original.empty() && !MemoryMatchesAt(offset, original))
     return;
 
-  for (u32 i = 0; i < value.size(); ++i)
+  const u32 size = static_cast<u32>(value.size());
+  for (u32 i = 0; i < size; ++i)
     PowerPC::HostTryWriteU8(value[i], offset + i);
+  const u32 overlapping_hook_count = HLE::UnpatchRange(offset, offset + size);
+  if (overlapping_hook_count != 0)
+  {
+    WARN_LOG_FMT(OSHLE, "Riivolution memory patch overlaps {} HLE hook(s) at {:08x} (size: {})",
+                 overlapping_hook_count, offset, value.size());
+  }
 }
 
 static std::vector<u8> GetMemoryPatchValue(const Patch& patch, const Memory& memory_patch)
@@ -593,6 +601,11 @@ static void ApplyOcarinaMemoryPatch(const Patch& patch, const Memory& memory_pat
           const u32 target = memory_patch.m_offset | 0x80000000;
           const u32 jmp = ((target - blr_address) & 0x03fffffc) | 0x48000000;
           PowerPC::HostTryWriteU32(jmp, blr_address);
+          const u32 overlapping_hook_count = HLE::UnpatchRange(blr_address, blr_address + 4);
+          if (overlapping_hook_count != 0)
+          {
+            WARN_LOG_FMT(OSHLE, "Riivolution ocarina patch overlaps HLE hook at {}", blr_address);
+          }
           return;
         }
       }
