@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-24 21:17+0200\n"
-"PO-Revision-Date: 2021-10-24 19:17+0000\n"
+"POT-Creation-Date: 2021-10-31 18:59+0100\n"
+"PO-Revision-Date: 2021-10-31 17:59+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
@@ -108,12 +108,12 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:278
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:304
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:282
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:308
 msgid "%1 %2"
 msgstr "%1 %2"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:287
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:291
 msgid "%1 %2 %3"
 msgstr "%1 %2 %3"
 
@@ -207,7 +207,7 @@ msgstr "%1 القرص غير صالح"
 msgid "%1 is now golfing"
 msgstr "%1 is now golfing"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:98
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:99
 msgid "%1 memory ranges"
 msgstr "نطاقات الذاكرة %1"
 
@@ -236,7 +236,7 @@ msgstr "%1% (%2 MHz)"
 msgid "%1% (Normal Speed)"
 msgstr "%1% (السرعة القياسية)"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:157
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:158
 msgid "%1, %2, %3, %4"
 msgstr "%1, %2, %3, %4"
 
@@ -260,20 +260,20 @@ msgstr "%1[%2]: %3/%4 ميغابايت"
 msgid "%1x Native (%2x%3)"
 msgstr "%1x Native (%2x%3)"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:283
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:301
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:287
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:305
 #, c-format
 msgctxt ""
 msgid "%n address(es) could not be accessed in emulated memory."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:274
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:278
 #, c-format
 msgctxt ""
 msgid "%n address(es) remain."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:273
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:277
 #, c-format
 msgctxt ""
 msgid "%n address(es) were removed."
@@ -537,7 +537,7 @@ msgstr "&إيقاف مؤقت"
 msgid "&Play"
 msgstr "&تشغيل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:346
+#: Source/Core/DolphinQt/GameList/GameList.cpp:356
 msgid "&Properties"
 msgstr "&خصائص"
 
@@ -617,7 +617,7 @@ msgstr "&مشاهدة"
 msgid "&Website"
 msgstr "&الموقع"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:349
+#: Source/Core/DolphinQt/GameList/GameList.cpp:359
 msgid "&Wiki"
 msgstr "&معلومات عن اللعبة"
 
@@ -692,15 +692,15 @@ msgstr "16 Mbit (251 blocks)"
 msgid "16-bit"
 msgstr "16-bit"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:100
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:138
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:102
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:139
 msgid "16-bit Signed Integer"
-msgstr ""
+msgstr "16-bit عدد صحيح موقع"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:92
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:126
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:94
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:127
 msgid "16-bit Unsigned Integer"
-msgstr ""
+msgstr "16-bit عدد صحيح غير موقع"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:117
 msgid "16:9"
@@ -732,20 +732,20 @@ msgstr "32 Mbit (507 blocks)"
 msgid "32-bit"
 msgstr "32-bit"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:106
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:147
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:108
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:148
 msgid "32-bit Float"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:102
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:141
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:104
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:142
 msgid "32-bit Signed Integer"
-msgstr ""
+msgstr "32-bit عدد صحيح موقع"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:94
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:129
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:96
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:130
 msgid "32-bit Unsigned Integer"
-msgstr ""
+msgstr "32-bit عدد صحيح غير موقع"
 
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:344
@@ -793,20 +793,20 @@ msgstr "5x Native (3200x2640)"
 msgid "64 Mbit (1019 blocks)"
 msgstr "64 Mbit (1019 blocks)"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:107
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:150
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:109
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:151
 msgid "64-bit Float"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:104
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:144
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:106
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:145
 msgid "64-bit Signed Integer"
-msgstr ""
+msgstr "64-bit عدد صحيح موقع"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:96
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:132
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:98
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:133
 msgid "64-bit Unsigned Integer"
-msgstr ""
+msgstr "64-bit عدد صحيح غير موقع"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:55
 msgid "6x Native (3840x3168) for 4K"
@@ -824,15 +824,15 @@ msgstr "8 Mbit (123 blocks)"
 msgid "8-bit"
 msgstr "8-bit"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:98
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:135
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:100
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:136
 msgid "8-bit Signed Integer"
-msgstr ""
+msgstr "8-bit عدد صحيح موقع"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:90
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:123
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:92
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:124
 msgid "8-bit Unsigned Integer"
-msgstr ""
+msgstr "8-bit عدد صحيح غير موقع"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:75
 msgid "8x"
@@ -882,6 +882,13 @@ msgid ""
 "\n"
 "Installing this WAD will replace it irreversibly. Continue?"
 msgstr ""
+"NAND تم بالفعل تثبيت إصدار مختلف من هذا العنوان على .\n"
+"\n"
+" {0} الإصدار المثبت \n"
+" {1} WAD اصدار\n"
+"\n"
+" wad سيؤدي تثبيت  \n"
+"هذا إلى استبداله بشكل لا رجعة فيه. استمر ؟"
 
 #: Source/Core/Core/HW/DVD/DVDInterface.cpp:547
 msgid "A disc is already about to be inserted."
@@ -931,7 +938,7 @@ msgstr ""
 "دعم ريموت وي في اللعب عبر الشبكة تجريبي وقد لا يعمل بشكل الصحيح.\n"
 "استخدام على مسؤوليتك الخاصة.\n"
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:83
+#: Source/Core/DolphinQt/CheatsManager.cpp:90
 msgid "AR Code"
 msgstr "AR رموز"
 
@@ -1077,8 +1084,8 @@ msgstr "DSU إضافة خادم جديد"
 msgid "Add New USB Device"
 msgstr "إضافة جهاز يو إس بي جديد"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:429
-#: Source/Core/DolphinQt/GameList/GameList.cpp:432
+#: Source/Core/DolphinQt/GameList/GameList.cpp:439
+#: Source/Core/DolphinQt/GameList/GameList.cpp:442
 msgid "Add Shortcut to Desktop"
 msgstr "إضافة اختصار إلى سطح المكتب"
 
@@ -1115,7 +1122,7 @@ msgstr "إضافة للمشاهدة"
 msgid "Add..."
 msgstr "أضف"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:486
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:492
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:147
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:80
@@ -1129,12 +1136,12 @@ msgstr "أضف"
 msgid "Address"
 msgstr "عنوان"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:41
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:43
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:129
 msgid "Address Space"
 msgstr "مساحة العنوان"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:106
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:107
 msgid "Address space by CPU state"
 msgstr "مساحة العنوان حسب حالة وحدة المعالجة المركزية"
 
@@ -1160,6 +1167,10 @@ msgid ""
 "WARNING: Enabling this will completely break many games. Only a small number "
 "of games can benefit from this."
 msgstr ""
+"ضبط مقدار ذاكرة الوصول العشوائي في وحدة التحكم التي تم محاكاتها\n"
+"\n"
+"تحذير: سيؤدي تمكين هذا إلى كسر العديد من الألعاب تمامًا. يمكن فقط لعدد قليل "
+"من الألعاب الاستفادة من ذلك."
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:91
 msgid ""
@@ -1197,7 +1208,7 @@ msgstr "خيارات متقدمة"
 msgid "Africa"
 msgstr "أفريقيا"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:112
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:114
 msgid "Aligned to data type length"
 msgstr "محاذاة لطول نوع البيانات"
 
@@ -1383,7 +1394,7 @@ msgstr "Arbitrary Mipmap Detection"
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "هل أنت متأكد من أنك تريد حذفها '%1'?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:758
+#: Source/Core/DolphinQt/GameList/GameList.cpp:768
 msgid "Are you sure you want to delete this file?"
 msgstr "هل أنت متأكد من أنك تريد حذف هذا الملف؟"
 
@@ -1570,7 +1581,7 @@ msgstr "تم توفير تعويض غير صالح"
 msgid "Bad value provided."
 msgstr "قيمة سيئة المقدمة."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:927
+#: Source/Core/DolphinQt/GameList/GameList.cpp:931
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:215
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:140
 #: Source/Core/DolphinQt/MenuBar.cpp:627
@@ -1637,7 +1648,7 @@ msgstr ""
 msgid "Bitrate (kbps):"
 msgstr "(kbps) معدل البت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:937
+#: Source/Core/DolphinQt/GameList/GameList.cpp:941
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
 #: Source/Core/DolphinQt/MenuBar.cpp:637
 msgid "Block Size"
@@ -1870,7 +1881,7 @@ msgstr "كاميرا 1"
 msgid "Camera field of view (affects sensitivity of pointing)."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:467
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:473
 msgid "Can only generate AR code for values in virtual memory."
 msgstr ""
 
@@ -1906,7 +1917,7 @@ msgstr ""
 "WAD لا يمكن تشغيل هذا\n"
 "NAND لأنه لا يمكن تثبيته على"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:249
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:252
 msgid "Cannot compare against last value on first search."
 msgstr "لا يمكن مقارنة القيمة الأخيرة في البحث الأول"
 
@@ -1914,11 +1925,11 @@ msgstr "لا يمكن مقارنة القيمة الأخيرة في البحث �
 msgid "Cannot find the GC IPL."
 msgstr "Cannot find the GC IPL."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:470
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:476
 msgid "Cannot generate AR code for this address."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:347
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:351
 msgid "Cannot refresh without results."
 msgstr "لا يمكن التحديث بدون نتائج"
 
@@ -1940,7 +1951,7 @@ msgstr "مركز"
 msgid "Center and Calibrate"
 msgstr "المركز و المعايرة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:366
+#: Source/Core/DolphinQt/GameList/GameList.cpp:376
 msgid "Change &Disc"
 msgstr "تغيير &القرص"
 
@@ -1988,7 +1999,7 @@ msgstr "محادثه"
 msgid "Cheat Code Editor"
 msgstr "محرر رمز الأسرار"
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:112
+#: Source/Core/DolphinQt/CheatsManager.cpp:119
 msgid "Cheat Search"
 msgstr "بحث عن اسرار"
 
@@ -2008,7 +2019,7 @@ msgstr "التحقق من وجود تغييرات في قائمة الألعاب
 msgid "Check for updates"
 msgstr "تحقق من وجود تحديثات"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:783
+#: Source/Core/DolphinQt/GameList/GameList.cpp:793
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
@@ -2112,11 +2123,11 @@ msgstr "مقارنة"
 msgid "Compile Shaders Before Starting"
 msgstr "تجميع التظليل قبل البدء"
 
-#: Source/Core/VideoCommon/ShaderCache.cpp:167
+#: Source/Core/VideoCommon/ShaderCache.cpp:169
 msgid "Compiling Shaders"
 msgstr "تجميع التظليل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:938
+#: Source/Core/DolphinQt/GameList/GameList.cpp:942
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
 #: Source/Core/DolphinQt/MenuBar.cpp:638
 msgid "Compression"
@@ -2168,8 +2179,8 @@ msgstr "تكوين الإخراج"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:250
 #: Source/Core/DolphinQt/ConvertDialog.cpp:292
 #: Source/Core/DolphinQt/ConvertDialog.cpp:413
-#: Source/Core/DolphinQt/GameList/GameList.cpp:576
-#: Source/Core/DolphinQt/GameList/GameList.cpp:757
+#: Source/Core/DolphinQt/GameList/GameList.cpp:586
+#: Source/Core/DolphinQt/GameList/GameList.cpp:767
 #: Source/Core/DolphinQt/MainWindow.cpp:873
 #: Source/Core/DolphinQt/MainWindow.cpp:1590
 #: Source/Core/DolphinQt/WiiUpdate.cpp:137
@@ -2349,11 +2360,11 @@ msgstr "التقارب"
 msgid "Convert"
 msgstr "تحويل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:364
+#: Source/Core/DolphinQt/GameList/GameList.cpp:374
 msgid "Convert File..."
 msgstr "تحويل الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:329
+#: Source/Core/DolphinQt/GameList/GameList.cpp:339
 msgid "Convert Selected Files..."
 msgstr "تحويل الملفات المحددة..."
 
@@ -2600,7 +2611,7 @@ msgstr "الإبهات المتداخل"
 msgid "Current Region"
 msgstr "المنطقة الحالية"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:486
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:492
 msgid "Current Value"
 msgstr "القيمة الحالية"
 
@@ -2616,7 +2627,7 @@ msgstr "لعبة الحالية"
 msgid "Current thread"
 msgstr "الموضوع الحالي"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:47
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:49
 msgid "Custom Address Space"
 msgstr "مساحة العنوان المخصصة"
 
@@ -2704,7 +2715,7 @@ msgstr "(%1) قسم البيانات"
 msgid "Data Transfer"
 msgstr "نقل البيانات"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:85
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:87
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 msgid "Data Type"
 msgstr "نوع البيانات"
@@ -2833,11 +2844,11 @@ msgstr ""
 msgid "Delete"
 msgstr "حذف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:427
+#: Source/Core/DolphinQt/GameList/GameList.cpp:437
 msgid "Delete File..."
 msgstr "حذف الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:340
+#: Source/Core/DolphinQt/GameList/GameList.cpp:350
 msgid "Delete Selected Files..."
 msgstr "حذف الملفات المحددة"
 
@@ -2858,10 +2869,10 @@ msgstr "نسبة العمق"
 msgid "Depth:"
 msgstr "العمق"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:486
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:492
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:49
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
-#: Source/Core/DolphinQt/GameList/GameList.cpp:929
+#: Source/Core/DolphinQt/GameList/GameList.cpp:933
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/MenuBar.cpp:629
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:90
@@ -2986,7 +2997,7 @@ msgstr "Disable JIT Cache"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:189
 msgid "Disabled"
-msgstr ""
+msgstr "تعطيل"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:266
 msgid ""
@@ -3019,7 +3030,7 @@ msgstr "القرص"
 msgid "Discard"
 msgstr "تجاهل"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:211
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:213
 msgid "Display values in Hex"
 msgstr "Hex عرض القيم في"
 
@@ -3788,7 +3799,7 @@ msgstr "حدث خطا اثناء مزامنة حفظ البيانات!"
 msgid "Error writing file: {0}"
 msgstr "{0} خطأ في كتابة الملف"
 
-#: Source/Core/Common/ChunkFile.h:275
+#: Source/Core/Common/ChunkFile.h:282
 msgid ""
 "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:"
 "#x}). Aborting savestate load..."
@@ -3935,11 +3946,11 @@ msgstr "تصدير حفظ الملف"
 msgid "Export Save Files"
 msgstr "تصدير حفظ الملفات"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:416
+#: Source/Core/DolphinQt/GameList/GameList.cpp:426
 msgid "Export Wii Save"
 msgstr "تصدير حفظ وي"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:336
+#: Source/Core/DolphinQt/GameList/GameList.cpp:346
 msgid "Export Wii Saves"
 msgstr "تصدير حفظ وي"
 
@@ -4023,7 +4034,7 @@ msgstr "FIFO Player"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:126
 msgid "Failed loading XML."
-msgstr ""
+msgstr "XML فشل تحميل"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:333
 msgid ""
@@ -4080,7 +4091,7 @@ msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 "فشل حذف بطاقة الذاكرة في لعب عبر الشبكة تحقق من أذونات الكتابة الخاصة بك."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:782
+#: Source/Core/DolphinQt/GameList/GameList.cpp:792
 msgid "Failed to delete the selected file."
 msgstr "فشل حذف الملف المحدد."
 
@@ -4105,7 +4116,7 @@ msgctxt ""
 msgid "Failed to export %n out of %1 save file(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:520
+#: Source/Core/DolphinQt/GameList/GameList.cpp:530
 msgid "Failed to export the following save files:"
 msgstr "فشل تصدير ملفات الحفظ التالية:"
 
@@ -4180,7 +4191,7 @@ msgstr "فشل في تهيئة فئات العارض"
 msgid "Failed to install pack: %1"
 msgstr "%1 :فشل تثبيت الحزمة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:563
+#: Source/Core/DolphinQt/GameList/GameList.cpp:573
 #: Source/Core/DolphinQt/MenuBar.cpp:1048
 msgid "Failed to install this title to the NAND."
 msgstr "NAND فشل تثبيت هذا العنوان على"
@@ -4275,13 +4286,13 @@ msgstr ""
 msgid "Failed to parse Redump.org data"
 msgstr "Redump.org فشل تحليل بيانات"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:258
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:262
 msgid "Failed to parse given value into target data type."
 msgstr ""
 
 #: Source/Core/Core/FifoPlayer/FifoDataFile.cpp:213
 msgid "Failed to read DFF file."
-msgstr ""
+msgstr "DFF فشل في قراءة ملف"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:848
 msgid "Failed to read from file."
@@ -4315,7 +4326,7 @@ msgstr ""
 "\n"
 "هل تريد تحويلها دون إزالة البيانات غير المرغوب فيها؟"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:591
+#: Source/Core/DolphinQt/GameList/GameList.cpp:601
 msgid "Failed to remove this title from the NAND."
 msgstr "NAND فشل في إزالة هذا العنوان من"
 
@@ -4386,9 +4397,9 @@ msgstr ""
 "فشل كتابة ملف الإخراج \"{0}\".\n"
 "تأكد من أن لديك مساحة كافية متوفرة على محرك الأقراص الهدف."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:561
-#: Source/Core/DolphinQt/GameList/GameList.cpp:589
-#: Source/Core/DolphinQt/GameList/GameList.cpp:781
+#: Source/Core/DolphinQt/GameList/GameList.cpp:571
+#: Source/Core/DolphinQt/GameList/GameList.cpp:599
+#: Source/Core/DolphinQt/GameList/GameList.cpp:791
 #: Source/Core/DolphinQt/MenuBar.cpp:1048
 msgid "Failure"
 msgstr "فشل"
@@ -4429,7 +4440,7 @@ msgstr "مجال الرؤية"
 msgid "File Details"
 msgstr "تفاصيل الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:936
+#: Source/Core/DolphinQt/GameList/GameList.cpp:940
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:227
 #: Source/Core/DolphinQt/MenuBar.cpp:636
 msgid "File Format"
@@ -4443,19 +4454,19 @@ msgstr "تنسيق الملف"
 msgid "File Info"
 msgstr "معلومات الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:931
+#: Source/Core/DolphinQt/GameList/GameList.cpp:935
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
 #: Source/Core/DolphinQt/MenuBar.cpp:631
 msgid "File Name"
 msgstr "اسم الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:932
+#: Source/Core/DolphinQt/GameList/GameList.cpp:936
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
 #: Source/Core/DolphinQt/MenuBar.cpp:632
 msgid "File Path"
 msgstr "مسار الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:935
+#: Source/Core/DolphinQt/GameList/GameList.cpp:939
 #: Source/Core/DolphinQt/MenuBar.cpp:635
 msgid "File Size"
 msgstr "حجم الملف"
@@ -4635,7 +4646,7 @@ msgstr "Forward port (UPnP)"
 msgid "Found %1 results for \"%2\""
 msgstr "Found %1 results for \"%2\""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:292
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:296
 #, c-format
 msgctxt ""
 msgid "Found %n address(es)."
@@ -4670,7 +4681,7 @@ msgstr "تفريغ الإطار"
 msgid "Frame Range"
 msgstr "مجموعة الإطار "
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1746
+#: Source/Core/VideoCommon/RenderBase.cpp:1747
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr ""
 
@@ -4934,7 +4945,7 @@ msgstr "تفاصيل اللعبة"
 msgid "Game Folders"
 msgstr "مجلدات الألعاب"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:933
+#: Source/Core/DolphinQt/GameList/GameList.cpp:937
 #: Source/Core/DolphinQt/MenuBar.cpp:633
 msgid "Game ID"
 msgstr "معرف اللعبة"
@@ -5018,7 +5029,7 @@ msgstr "فتحة ميكروفون جيم كيوب %1"
 msgid "GameCube TAS Input %1"
 msgstr "GameCube TAS Input %1"
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:84
+#: Source/Core/DolphinQt/CheatsManager.cpp:91
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:58
 msgid "Gecko Codes"
 msgstr "Gecko رموز"
@@ -5039,7 +5050,7 @@ msgstr "عام"
 msgid "General and Options"
 msgstr "العامة و الخيارات"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:426
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:430
 msgid "Generate Action Replay Code"
 msgstr "Generate Action Replay Code"
 
@@ -5047,7 +5058,7 @@ msgstr "Generate Action Replay Code"
 msgid "Generate a New Statistics Identity"
 msgstr "إنشاء هوية جديد للحصائيات "
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:460
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:466
 msgid "Generated AR code."
 msgstr ""
 
@@ -5229,7 +5240,7 @@ msgstr "تم تعطيل سلطة إدخال المضيف"
 msgid "Host input authority enabled"
 msgstr "تمكين سلطة إدخال المضيف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:465
+#: Source/Core/DolphinQt/GameList/GameList.cpp:475
 msgid "Host with NetPlay"
 msgstr "استضافة لعب عبر الشبكة"
 
@@ -5500,7 +5511,7 @@ msgid "Info"
 msgstr "معلومات"
 
 #: Source/Core/Common/MsgHandler.cpp:59
-#: Source/Core/DolphinQt/GameList/GameList.cpp:703
+#: Source/Core/DolphinQt/GameList/GameList.cpp:713
 #: Source/Core/DolphinQt/MenuBar.cpp:1246
 #: Source/Core/DolphinQt/MenuBar.cpp:1470
 msgid "Information"
@@ -5553,7 +5564,7 @@ msgstr "تثبيت التحديث"
 msgid "Install WAD..."
 msgstr "WAD تثبيت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:389
+#: Source/Core/DolphinQt/GameList/GameList.cpp:399
 msgid "Install to the NAND"
 msgstr "NAND تثبيت على"
 
@@ -5616,7 +5627,7 @@ msgstr "الدقة الداخلية"
 msgid "Internal Resolution:"
 msgstr "الدقة الداخلية"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:473
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:479
 msgid "Internal error while generating AR code."
 msgstr ""
 
@@ -5659,7 +5670,7 @@ msgstr "المجموع الاختباري غير صالح."
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:134
 msgid "Invalid game."
-msgstr ""
+msgstr "لعبة غير صالحة"
 
 #: Source/Core/Core/NetPlayClient.cpp:1891
 msgid "Invalid host"
@@ -5678,7 +5689,7 @@ msgstr "إدخال غير صالح المقدمة"
 msgid "Invalid literal."
 msgstr "قيمة حرفية غير صحيحة"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:328
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:332
 msgid "Invalid parameters given to search."
 msgstr "تم إعطاء معلمات غير صالحة للبحث"
 
@@ -5823,9 +5834,9 @@ msgstr "الاحتفاظ بالإطار في الأعلى"
 #. value", "last value", or "this value:". These three UI elements are intended to form a sentence
 #. together. Because the UI elements can't be reordered by a translation, you may have to give
 #. up on the idea of having them form a sentence depending on the grammar of your target language.
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:167
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:166
 msgid "Keep addresses where value in memory"
-msgstr ""
+msgstr "احتفظ بالعناوين حيث القيمة في الذاكرة"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:20
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:39
@@ -5876,13 +5887,13 @@ msgstr "L-قوة ضغطة"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
 msgid "LR Save"
-msgstr ""
+msgstr "LR حفظ"
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
 msgid "Label"
 msgstr "ضع الكلمة المناسبة"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:486
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:492
 msgid "Last Value"
 msgstr "آخر قيمة"
 
@@ -6230,7 +6241,7 @@ msgstr "ملفات MadCatz Gameshark"
 msgid "Main Stick"
 msgstr "العصا الرئيسية"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:930
+#: Source/Core/DolphinQt/GameList/GameList.cpp:934
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
 #: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Maker"
@@ -6488,11 +6499,11 @@ msgstr "NTSC-U"
 msgid "Name"
 msgstr "الاسم"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1049
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1053
 msgid "Name for a new tag:"
 msgstr "الاسم لعلامة جديدة:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1061
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1065
 msgid "Name of the tag to remove:"
 msgstr "اسم العلامة المراد إزالتها:"
 
@@ -6568,11 +6579,11 @@ msgstr "جديد"
 msgid "New Breakpoint"
 msgstr "نقطة توقف جديدة"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:119
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:121
 msgid "New Search"
 msgstr "بحث جديد"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:460
+#: Source/Core/DolphinQt/GameList/GameList.cpp:470
 msgid "New Tag..."
 msgstr "علامة جديدة"
 
@@ -6584,7 +6595,7 @@ msgstr "تم إنشاء هوية جديدة ."
 msgid "New instruction:"
 msgstr "تعليمات جديدة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1049
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1053
 msgid "New tag"
 msgstr "علامة جديدة"
 
@@ -6657,9 +6668,13 @@ msgstr "لم يتم تحديد ملحق"
 msgid "No file loaded / recorded."
 msgstr "لا يوجد ملف تحميل / مسجل."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:325
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:329
 msgid "No game is running."
 msgstr "لا توجد لعبة قيد التشغيل"
+
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:161
+msgid "No game running."
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1116
 msgid "No issues have been detected."
@@ -6691,7 +6706,7 @@ msgstr "'{0}' لم يتم العثور على ملفات تعريف لإعداد
 msgid "No recording loaded."
 msgstr "لم يتم تحميل التسجيل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:703
+#: Source/Core/DolphinQt/GameList/GameList.cpp:713
 msgid "No save data found."
 msgstr "لم يتم العثور على حفظ البيانات"
 
@@ -6855,7 +6870,7 @@ msgstr ""
 msgid "Open"
 msgstr "فتح"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:426
+#: Source/Core/DolphinQt/GameList/GameList.cpp:436
 msgid "Open &Containing Folder"
 msgstr "فتح موقع الملف"
 
@@ -6867,7 +6882,7 @@ msgstr "فتح"
 msgid "Open FIFO log"
 msgstr "FIFO فتح سجل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:422
+#: Source/Core/DolphinQt/GameList/GameList.cpp:432
 msgid "Open GameCube &Save Folder"
 msgstr "فتح مجلد حفظ جيم كيوب"
 
@@ -6875,7 +6890,7 @@ msgstr "فتح مجلد حفظ جيم كيوب"
 msgid "Open Riivolution XML..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:415
+#: Source/Core/DolphinQt/GameList/GameList.cpp:425
 msgid "Open Wii &Save Folder"
 msgstr "فتح مجلد حفظ وي"
 
@@ -6997,6 +7012,10 @@ msgstr "منصات"
 msgid "Parameters"
 msgstr "المعلمات"
 
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:196
+msgid "Parse as Hex"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:149
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:236
 msgid "Parsing Error"
@@ -7078,7 +7097,7 @@ msgstr "لكل بكسل إضاءة"
 msgid "Perform Online System Update"
 msgstr "تحديث النظام عبر الإنترنت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:377
+#: Source/Core/DolphinQt/GameList/GameList.cpp:387
 msgid "Perform System Update"
 msgstr "تحديث النظام"
 
@@ -7088,7 +7107,7 @@ msgstr "تحديث النظام"
 msgid "Physical"
 msgstr "فيزيائي"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:109
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:110
 msgid "Physical address space"
 msgstr "مساحة العنوان الفعلي"
 
@@ -7112,7 +7131,7 @@ msgstr "Pitch Down"
 msgid "Pitch Up"
 msgstr "Pitch Up"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:926
+#: Source/Core/DolphinQt/GameList/GameList.cpp:930
 #: Source/Core/DolphinQt/MenuBar.cpp:626
 msgid "Platform"
 msgstr "منصة"
@@ -7141,6 +7160,11 @@ msgstr "لاعب"
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:233
 msgid "Players"
 msgstr "اللاعبين"
+
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:162
+msgid ""
+"Please start a game before starting a search with standard memory regions."
+msgstr ""
 
 #. i18n: "Point" refers to the action of pointing a Wii Remote.
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
@@ -7377,11 +7401,11 @@ msgstr ""
 msgid "Range"
 msgstr "نطاق"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:71
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:73
 msgid "Range End: "
 msgstr "نهاية النطاق:"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:69
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:71
 msgid "Range Start: "
 msgstr "بداية النطاق:"
 
@@ -7488,7 +7512,7 @@ msgstr "Redump.org حالة"
 msgid "Refresh"
 msgstr "تحديث"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:200
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:202
 msgid "Refresh Current Values"
 msgstr "تحديث القيم الحالية"
 
@@ -7496,11 +7520,11 @@ msgstr "تحديث القيم الحالية"
 msgid "Refresh Game List"
 msgstr "تحديث قائمة اللعبة"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:369
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:373
 msgid "Refresh failed. Please run the game for a bit and try again."
 msgstr "فشل التحديث. الرجاء تشغيل اللعبة قليلاً وحاول مرة أخرى"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:383
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:387
 msgid "Refreshed current values."
 msgstr "تحديث القيم الحالية"
 
@@ -7509,7 +7533,7 @@ msgstr "تحديث القيم الحالية"
 msgid "Refreshing..."
 msgstr "تحديث..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:934
+#: Source/Core/DolphinQt/GameList/GameList.cpp:938
 #: Source/Core/DolphinQt/MenuBar.cpp:634
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:222
 msgid "Region"
@@ -7552,11 +7576,11 @@ msgstr "فشل الإزالة"
 msgid "Remove Junk Data (Irreversible):"
 msgstr "إزالة البيانات غير المرغوب فيها (لا رجعة فيها)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:461
+#: Source/Core/DolphinQt/GameList/GameList.cpp:471
 msgid "Remove Tag..."
 msgstr "إزالة العلامة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1061
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1065
 msgid "Remove tag"
 msgstr "إزالة العلامة"
 
@@ -7610,7 +7634,7 @@ msgstr "طلب الانضمام إلى المجموعة"
 msgid "Reset"
 msgstr "إعادة تعيين"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:202
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:204
 msgid "Reset Results"
 msgstr "إعادة النتائج"
 
@@ -7828,8 +7852,8 @@ msgstr "حفظ"
 msgid "Save All"
 msgstr "حفظ الكل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:519
-#: Source/Core/DolphinQt/GameList/GameList.cpp:524
+#: Source/Core/DolphinQt/GameList/GameList.cpp:529
+#: Source/Core/DolphinQt/GameList/GameList.cpp:534
 #: Source/Core/DolphinQt/MenuBar.cpp:1106
 msgid "Save Export"
 msgstr "حفظ التصدير"
@@ -7990,7 +8014,7 @@ msgstr ""
 msgid "Scaled EFB Copy"
 msgstr "EFB تحجيم نسخة"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:268
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:272
 msgid "Scan succeeded."
 msgstr "Scan succeeded"
 
@@ -8017,11 +8041,11 @@ msgstr "بحث في الكائن الحالي"
 msgid "Search Subfolders"
 msgstr "البحث في المجلدات الفرعية"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:198
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:200
 msgid "Search and Filter"
 msgstr "البحث والتصفية"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:332
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:336
 msgid ""
 "Search currently not possible in virtual address space. Please run the game "
 "for a bit and try again."
@@ -8067,7 +8091,7 @@ msgstr "حدد"
 msgid "Select Dump Path"
 msgstr "تحديد مسار التفريغ"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:499
+#: Source/Core/DolphinQt/GameList/GameList.cpp:509
 #: Source/Core/DolphinQt/MenuBar.cpp:1100
 msgid "Select Export Directory"
 msgstr "حدد تصدير الدليل"
@@ -8331,7 +8355,7 @@ msgstr "تعيين القيمة"
 msgid "Set PC"
 msgstr "تعيين الكمبيوتر"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:361
+#: Source/Core/DolphinQt/GameList/GameList.cpp:371
 msgid "Set as &Default ISO"
 msgstr "تعيين القرص افتراضي "
 
@@ -8379,7 +8403,7 @@ msgid ""
 "Certain backends only."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:50
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:52
 msgid ""
 "Sets up the search using standard MEM1 and (on Wii) MEM2 mappings in virtual "
 "address space. This will work for the vast majority of games."
@@ -8825,7 +8849,7 @@ msgstr "تشغيل"
 msgid "Start &NetPlay..."
 msgstr "بدء &اللعب عبر الشبكة"
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:99
+#: Source/Core/DolphinQt/CheatsManager.cpp:106
 msgid "Start New Cheat Search"
 msgstr "ابدأ بحث أسرار جديد"
 
@@ -8845,7 +8869,7 @@ msgstr "ابدأ بملء الشاشة"
 msgid "Start with Riivolution Patches"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:356
+#: Source/Core/DolphinQt/GameList/GameList.cpp:366
 msgid "Start with Riivolution Patches..."
 msgstr ""
 
@@ -9008,8 +9032,8 @@ msgstr "مرقم"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:381
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:268
 #: Source/Core/DolphinQt/ConvertDialog.cpp:524
-#: Source/Core/DolphinQt/GameList/GameList.cpp:561
-#: Source/Core/DolphinQt/GameList/GameList.cpp:589
+#: Source/Core/DolphinQt/GameList/GameList.cpp:571
+#: Source/Core/DolphinQt/GameList/GameList.cpp:599
 #: Source/Core/DolphinQt/MenuBar.cpp:1043
 #: Source/Core/DolphinQt/MenuBar.cpp:1178
 msgid "Success"
@@ -9034,7 +9058,7 @@ msgctxt ""
 msgid "Successfully exported %n out of %1 save file(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:524
+#: Source/Core/DolphinQt/GameList/GameList.cpp:534
 msgid "Successfully exported save files"
 msgstr "تم تصدير ملفات الحفظ بنجاح"
 
@@ -9054,12 +9078,12 @@ msgstr "استخرجت بنجاح بيانات النظام."
 msgid "Successfully imported save file."
 msgstr "تم استيراد ملف الحفظ بنجاح"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:562
+#: Source/Core/DolphinQt/GameList/GameList.cpp:572
 #: Source/Core/DolphinQt/MenuBar.cpp:1044
 msgid "Successfully installed this title to the NAND."
 msgstr "تم بنجاح تثبيت هذا العنوان على NAND."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:590
+#: Source/Core/DolphinQt/GameList/GameList.cpp:600
 msgid "Successfully removed this title from the NAND."
 msgstr "تمت إزالة هذا العنوان بنجاح من NAND."
 
@@ -9186,8 +9210,8 @@ msgstr "الإدخال"
 msgid "TAS Tools"
 msgstr "TAS أدوات"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:440
-#: Source/Core/DolphinQt/GameList/GameList.cpp:939
+#: Source/Core/DolphinQt/GameList/GameList.cpp:450
+#: Source/Core/DolphinQt/GameList/GameList.cpp:943
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:233
 #: Source/Core/DolphinQt/MenuBar.cpp:639
 msgid "Tags"
@@ -9551,19 +9575,19 @@ msgstr "قسم التحديث ليس في وضعه الطبيعي"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:622
 msgid "The {0} partition does not have a valid file system."
-msgstr ""
+msgstr "لا يحتوي القسم {0} على نظام ملفات صالح"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:553
 msgid "The {0} partition does not seem to contain valid data."
-msgstr ""
+msgstr "يبدو أن القسم {0} لا يحتوي على بيانات صالحة"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:573
 msgid "The {0} partition is not correctly signed."
-msgstr ""
+msgstr "لم يتم توقيع القسم {0} بشكل صحيح"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:520
 msgid "The {0} partition is not properly aligned."
-msgstr ""
+msgstr "لم تتم محاذاة القسم {0} بشكل صحيح"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:426
 msgid "There are too many partitions in the first partition table."
@@ -9573,7 +9597,7 @@ msgstr "هناك الكثير من الأقسام في جدول القسم ال�
 msgid "There is nothing to undo!"
 msgstr "لا يوجد شيء للتراجع !"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:433
+#: Source/Core/DolphinQt/GameList/GameList.cpp:443
 msgid "There was an issue adding a shortcut to the desktop"
 msgstr "حدثت مشكلة أثناء إضافة اختصار إلى سطح المكتب"
 
@@ -9633,7 +9657,7 @@ msgstr ""
 "Replay itself."
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:252
-#: Source/Core/DolphinQt/GameList/GameList.cpp:759
+#: Source/Core/DolphinQt/GameList/GameList.cpp:769
 msgid "This cannot be undone!"
 msgstr "هذا لا يمكن التراجع عنه"
 
@@ -9835,7 +9859,7 @@ msgstr "إمالة"
 msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr "الفترة الزمنية للإدخال المستقر لتشغيل المعايرة. (صفر لتعطيل)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:928
+#: Source/Core/DolphinQt/GameList/GameList.cpp:932
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:211
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:141
 #: Source/Core/DolphinQt/MenuBar.cpp:628
@@ -10020,7 +10044,7 @@ msgstr "أزرار الكتف"
 msgid "Type"
 msgstr "اكتب"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:45
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:47
 msgid "Typical GameCube/Wii Address Space"
 msgstr "مساحة عنوان جيم كيوب / وي النموذجية"
 
@@ -10132,11 +10156,11 @@ msgstr "التراجع عن حفظ الحالة"
 msgid "Uninstall"
 msgstr "إلغاء التثبيت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:390
+#: Source/Core/DolphinQt/GameList/GameList.cpp:400
 msgid "Uninstall from the NAND"
 msgstr "NAND إلغاء التثبيت من"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:577
+#: Source/Core/DolphinQt/GameList/GameList.cpp:587
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -10184,7 +10208,7 @@ msgid ""
 "player!"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:115
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:116
 msgid "Unknown address space"
 msgstr "مساحة عنوان غير معروفة"
 
@@ -10192,7 +10216,7 @@ msgstr "مساحة عنوان غير معروفة"
 msgid "Unknown author"
 msgstr "مؤلف غير معروف"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:153
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:154
 msgid "Unknown data type"
 msgstr "نوع بيانات غير معروف"
 
@@ -10200,7 +10224,7 @@ msgstr "نوع بيانات غير معروف"
 msgid "Unknown disc"
 msgstr "قرص غير معروف"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:336
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:340
 msgid "Unknown error occurred."
 msgstr "حدث خطأ غير معروف"
 
@@ -10337,15 +10361,15 @@ msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr ""
 "استخدام منطقة عازلة بعمق واحد لكلتا العينين. هناك حاجة لعدد قليل من الألعاب ."
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:61
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:63
 msgid "Use memory mapper configuration at time of scan"
 msgstr "استخدم تكوين مخطط الذاكرة في وقت المسح"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:59
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:61
 msgid "Use physical addresses"
 msgstr "استخدام العناوين الفعلية"
 
-#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:57
+#: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:59
 msgid "Use virtual addresses when possible"
 msgstr "استخدم العناوين الافتراضية عندما يكون ذلك ممكنًا"
 
@@ -10496,7 +10520,7 @@ msgstr "عرض &الذكرة"
 msgid "Virtual Notches"
 msgstr "الشقوق الافتراضية"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:112
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:113
 msgid "Virtual address space"
 msgstr "مساحة العنوان الافتراضية"
 
@@ -10585,8 +10609,8 @@ msgstr "WASAPI (الوضع الحصري)"
 msgid "WIA GC/Wii images (*.wia)"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:208
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:398
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:210
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:402
 msgid "Waiting for first scan..."
 msgstr "في انتظار المسح الضوئي الأول"
 
@@ -11015,11 +11039,11 @@ msgstr "رمز 3 أصفار غير مدعوم"
 msgid "Zero code unknown to Dolphin: {0:08x}"
 msgstr "{0:08x} رمز صفر غير معروف لدولفين"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:80
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:81
 msgid "[%1, %2]"
 msgstr "[%1, %2]"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:90
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:91
 msgid "[%1, %2] and [%3, %4]"
 msgstr "[%1, %2] and [%3, %4]"
 
@@ -11027,11 +11051,11 @@ msgstr "[%1, %2] and [%3, %4]"
 msgid "^ Xor"
 msgstr "^ Xor"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:156
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:157
 msgid "aligned"
 msgstr "محاذاة"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:190
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:189
 msgid "any value"
 msgstr "اي قيمة"
 
@@ -11072,31 +11096,31 @@ msgstr "تخطئ"
 msgid "fake-completion"
 msgstr "إكمال زائف "
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:171
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:170
 msgid "is equal to"
 msgstr "يساوي"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:179
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:178
 msgid "is greater than"
 msgstr "أكبر من"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:181
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:180
 msgid "is greater than or equal to"
 msgstr "أكبر من أو يساوي"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:175
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:174
 msgid "is less than"
 msgstr "أقل من"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:177
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:176
 msgid "is less than or equal to"
 msgstr "أقل من أو يساوي"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:173
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:172
 msgid "is not equal to"
 msgstr "لا يساوي"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:189
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:188
 msgid "last value"
 msgstr "آخر قيمة"
 
@@ -11135,7 +11159,7 @@ msgstr "او حدد الجهاز"
 msgid "s"
 msgstr "s"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:187
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:186
 msgid "this value:"
 msgstr "هذه القيمة "
 
@@ -11144,7 +11168,7 @@ msgstr "هذه القيمة "
 msgid "uDraw GameTablet"
 msgstr "uDraw GameTablet"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:156
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:157
 msgid "unaligned"
 msgstr "غير محاذي"
 
