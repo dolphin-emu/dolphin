@@ -124,10 +124,10 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
     .metavar("<file>")
     .type("string")
     .help("Path to Slippi replay config file (default: Slippi/playback.txt)");
-#endif
-  parser->add_option("-hs", "--hide-seekbar")
+  parser->add_option("--hide-seekbar")
     .action("store_true")
     .help("Disable and hide seekbar during playback");
+#endif
 
   return parser;
 }
