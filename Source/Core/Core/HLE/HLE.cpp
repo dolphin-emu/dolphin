@@ -235,4 +235,21 @@ u32 UnPatch(std::string_view patch_name)
 
   return 0;
 }
+
+u32 UnpatchRange(u32 start_addr, u32 end_addr)
+{
+  u32 count = 0;
+
+  auto i = s_hooked_addresses.lower_bound(start_addr);
+  while (i != s_hooked_addresses.end() && i->first < end_addr)
+  {
+    INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
+                 os_patches[i->second].name, i->first);
+    PowerPC::ppcState.iCache.Invalidate(i->first);
+    i = s_hooked_addresses.erase(i);
+    count += 1;
+  }
+
+  return count;
+}
 }  // namespace HLE
