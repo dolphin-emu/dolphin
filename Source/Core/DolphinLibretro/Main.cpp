@@ -233,6 +233,12 @@ void retro_run(void)
     Libretro::environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info);
   }
 
+  if (Libretro::Options::irMode.Updated() || Libretro::Options::irCenter.Updated()
+      || Libretro::Options::irWidth.Updated() || Libretro::Options::irHeight.Updated())
+  {
+    Libretro::Input::ResetControllers();
+  }
+
   if (Libretro::Options::WiimoteContinuousScanning.Updated())
   {
     SConfig::GetInstance().m_WiimoteContinuousScanning =

@@ -17,6 +17,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
 #include "DolphinLibretro/Input.h"
+#include "DolphinLibretro/Options.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -471,6 +472,12 @@ void Update()
 #endif
 }
 
+void ResetControllers()
+{
+  for (int port = 0; port < 4; port++)
+    retro_set_controller_port_device(port, input_types[port]);
+}
+
 }  // namespace Input
 }  // namespace Libretro
 
@@ -608,6 +615,12 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       ControllerEmu::ControlGroup* wmHotkeys = wm->GetWiimoteGroup(WiimoteGroup::Hotkeys);
 #endif
 
+      static_cast<ControllerEmu::NumericSetting<double>*>(wmIR->numeric_settings[1].get())
+        ->SetValue(Libretro::Options::irCenter); // IR Vertical Offset
+      static_cast<ControllerEmu::NumericSetting<double>*>(wmIR->numeric_settings[2].get())
+        ->SetValue(Libretro::Options::irWidth);  // IR Total Yaw
+      static_cast<ControllerEmu::NumericSetting<double>*>(wmIR->numeric_settings[3].get())
+        ->SetValue(Libretro::Options::irHeight); // IR Total Pitch
 
       if (device == RETRO_DEVICE_WIIMOTE_NC)
       {
@@ -635,10 +648,14 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         wmButtons->SetControlExpression(3, "Select");                        // 2
         wmButtons->SetControlExpression(4, "L");                             // -
         wmButtons->SetControlExpression(5, "R");                             // +
-        wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y1-`");  // Forward
-        wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y1+`");  // Backward
-        wmTilt->SetControlExpression(2, "`" + devAnalog + ":X1-`");  // Left
-        wmTilt->SetControlExpression(3, "`" + devAnalog + ":X1+`");  // Right
+
+        if (Libretro::Options::irMode != 1 && Libretro::Options::irMode != 2)
+        {
+          wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y1-`");  // Forward
+          wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y1+`");  // Backward
+          wmTilt->SetControlExpression(2, "`" + devAnalog + ":X1-`");  // Left
+          wmTilt->SetControlExpression(3, "`" + devAnalog + ":X1+`");  // Right
+        }
       }
       else
       {
@@ -670,10 +687,31 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       wmDPad->SetControlExpression(2, "Left");   // Left
       wmDPad->SetControlExpression(3, "Right");  // Right
 
-      wmIR->SetControlExpression(0, "`" + devPointer + ":Y0-`");  // Up
-      wmIR->SetControlExpression(1, "`" + devPointer + ":Y0+`");  // Down
-      wmIR->SetControlExpression(2, "`" + devPointer + ":X0-`");  // Left
-      wmIR->SetControlExpression(3, "`" + devPointer + ":X0+`");  // Right
+      if (Libretro::Options::irMode == 1 || Libretro::Options::irMode == 2)
+      {
+        // Set right stick to control the IR
+        wmIR->SetControlExpression(0, "`" + devAnalog + ":Y1-`");     // Up
+        wmIR->SetControlExpression(1, "`" + devAnalog + ":Y1+`");     // Down
+        wmIR->SetControlExpression(2, "`" + devAnalog + ":X1-`");     // Left
+        wmIR->SetControlExpression(3, "`" + devAnalog + ":X1+`");     // Right
+        static_cast<ControllerEmu::NumericSetting<bool>*>(wmIR->numeric_settings[4].get())
+          ->SetValue(Libretro::Options::irMode == 1);                 // Relative input
+        static_cast<ControllerEmu::NumericSetting<bool>*>(wmIR->numeric_settings[5].get())
+          ->SetValue(true);                                           // Auto hide
+      }
+      else
+      {
+        // Mouse controls IR
+        wmIR->SetControlExpression(0, "`" + devPointer + ":Y0-`");    // Up
+        wmIR->SetControlExpression(1, "`" + devPointer + ":Y0+`");    // Down
+        wmIR->SetControlExpression(2, "`" + devPointer + ":X0-`");    // Left
+        wmIR->SetControlExpression(3, "`" + devPointer + ":X0+`");    // Right
+        static_cast<ControllerEmu::NumericSetting<bool>*>(wmIR->numeric_settings[4].get())
+          ->SetValue(false);                                          // Relative input
+        static_cast<ControllerEmu::NumericSetting<bool>*>(wmIR->numeric_settings[5].get())
+          ->SetValue(false);                                          // Auto hide
+      }
+
       wmShake->SetControlExpression(0, "R2");                     // X
       wmShake->SetControlExpression(1, "R2");                     // Y
       wmShake->SetControlExpression(2, "R2");                     // Z
