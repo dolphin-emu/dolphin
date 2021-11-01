@@ -1496,15 +1496,18 @@ void Jit64::divwx(UGeckoInstruction inst)
       X64Reg tmp = RSCRATCH;
       if (!Ra.IsSimpleReg())
       {
+        // Load dividend from memory
         MOV(32, R(tmp), Ra);
         MOV(32, Rd, R(tmp));
       }
       else if (d == a)
       {
+        // Make a copy of the dividend
         MOV(32, R(tmp), Ra);
       }
       else
       {
+        // Copy dividend directly into destination
         MOV(32, Rd, Ra);
         tmp = Ra.GetSimpleReg();
       }
@@ -1538,11 +1541,11 @@ void Jit64::divwx(UGeckoInstruction inst)
       else if (d == a)
       {
         // Rd holds the dividend, while RSCRATCH holds the sum
-        // This is opposite of the other cases
+        // This is the reverse of the other cases
         dividend = Rd;
         sum = RSCRATCH;
         src = RSCRATCH;
-        // Negate condition to compensate the swapped values
+        // Negate condition to compensate for the swapped values
         cond = CC_S;
       }
       else
