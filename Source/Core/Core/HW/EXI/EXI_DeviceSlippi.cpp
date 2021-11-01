@@ -1011,11 +1011,19 @@ void CEXISlippi::prepareGeckoList()
       {0x80376200, true},  // Binary/LagReduction/PD+VB.bin
       {0x801A5018, true},  // Binary/LagReduction/PD+VB.bin
       {0x80218D68, true},  // Binary/LagReduction/PD+VB.bin
+      {0x8016E9AC, true},  // Binary/Force2PCenterHud.bin
+      {0x80030E44, true},  // Binary/DisableScreenShake.bin
+      {0x803761EC, true},  // Binary/NormalLagReduction.bin
+      {0x80376238, true},  // Binary/NormalLagReduction.bin
 
       {0x800055f0, true},  // Common/EXITransferBuffer.asm
       {0x800055f8, true},  // Common/GetIsFollower.asm
       {0x800055fc, true},  // Common/Gecko/ProcessCodeList.asm
       {0x8016d294, true},  // Common/IncrementFrameIndex.asm
+      {0x80376a24, true},  // Common/UseInGameDelay/ApplyInGameDelay.asm
+      {0x8016e9b0, true},  // Common/UseInGameDelay/InitializeInGameDelay.asm
+      {0x8000561c, true},  // Common/GetCommonMinorID/GetCommonMinorID.asm
+      {0x802f666c, true},  // Common/UseInGameDelay/InitializeInGameDelay.asm v2
 
       {0x801a5b14, true},  // External/Salty Runback/Salty Runback.asm
       {0x801a4570, true},  // External/LagReduction/ForceHD/480pDeflickerOff.asm
@@ -1040,10 +1048,10 @@ void CEXISlippi::prepareGeckoList()
       {0x804ddb84, true},  // External/Widescreen/Nametag Fixes/Adjust Nametag Text X Scale.asm
       {0x803BB05C, true},  // External/Widescreen/Fix Screen Flash.asm
       {0x8036A4A8, true},  // External/Widescreen/Overwrite CObj Values.asm
+      {0x80302784, true},  // External/Monitor4-3/Add Shutters.asm
       {0x800C0148, true},  // External/FlashRedFailedLCancel/ChangeColor.asm
       {0x8008D690, true},  // External/FlashRedFailedLCancel/TriggerColor.asm
 
-      {0x8006A880, true},  // Online/Core/BrawlOffscreenDamage.asm
       {0x801A4DB4, true},  // Online/Core/ForceEngineOnRollback.asm
       {0x8016D310, true},  // Online/Core/HandleLRAS.asm
       {0x8034DED8, true},  // Online/Core/HandleRumble.asm
@@ -1068,8 +1076,15 @@ void CEXISlippi::prepareGeckoList()
       {0x80185050, true},  // Online/Menus/VSScreen/HideStageDisplay/PreventEarlyR3Overwrite.asm
       {0x80184b1c, true},  // Online/Menus/VSScreen/HideStageText/SkipStageNumberShow.asm
       {0x801A45BC, true},  // Online/Slippi Online Scene/main.asm
-      {0x801a45b8, true}, // Online/Slippi Online Scene/main.asm (https://bit.ly/3kxohf4)
+      {0x801a45b8, true},  // Online/Slippi Online Scene/main.asm (https://bit.ly/3kxohf4)
       {0x801BFA20, true},  // Online/Slippi Online Scene/boot.asm
+      {0x800cc818, true},  // External/GreenDuringWait/fall.asm
+      {0x8008a478, true},  // External/GreenDuringWait/wait.asm
+
+      {0x802f6690, true},  // HUD Transparency v1.1
+                           // (https://smashboards.com/threads/transparent-hud-v1-1.508509/)
+      {0x802F71E0,
+       true},  // Smaller "Ready, GO!" (https://smashboards.com/threads/smaller-ready-go.509740/)
   };
 
   std::unordered_map<u32, bool> blacklist;
