@@ -5,12 +5,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include <SlippiLib/SlippiGame.h>
 #include <open-vcdiff/src/google/vcdecoder.h>
 #include <open-vcdiff/src/google/vcencoder.h>
-#include <SlippiLib/SlippiGame.h>
 
-#include "Core/ConfigManager.h"
 #include "../../Common/CommonTypes.h"
+#include "Core/ConfigManager.h"
 
 class SlippiPlaybackStatus
 {
@@ -48,9 +48,9 @@ private:
   void updateWatchSettingsStartEnd();
 
   std::unordered_map<int32_t, std::shared_future<std::string>>
-    futureDiffs;        // State diffs keyed by frameIndex, processed async
-  std::vector<u8> iState; // The initial state
-  std::vector<u8> cState; // The current (latest) state
+      futureDiffs;         // State diffs keyed by frameIndex, processed async
+  std::vector<u8> iState;  // The initial state
+  std::vector<u8> cState;  // The current (latest) state
 
   open_vcdiff::VCDiffDecoder decoder;
   open_vcdiff::VCDiffEncoder* encoder = NULL;

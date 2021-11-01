@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
 #include <array>
-#include <vector>
-#include <unordered_map>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace Slippi {
   const uint8_t EVENT_SPLIT_MESSAGE = 0x10;

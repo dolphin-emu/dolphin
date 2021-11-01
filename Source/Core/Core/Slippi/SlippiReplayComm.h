@@ -1,10 +1,10 @@
 #pragma once
 
+#include <SlippiGame.h>
 #include <limits.h>
+#include <nlohmann/json.hpp>
 #include <queue>
 #include <string>
-#include <nlohmann/json.hpp>
-#include <SlippiGame.h>
 
 #include <Common/CommonTypes.h>
 
@@ -32,8 +32,8 @@ public:
     int endFrame = INT_MAX;
     bool outputOverlayFiles;
     bool isRealTimeMode;
-    bool shouldResync; // If true, logic will attempt to resync games
-    std::string rollbackDisplayMethod; // off, normal, visible
+    bool shouldResync;                  // If true, logic will attempt to resync games
+    std::string rollbackDisplayMethod;  // off, normal, visible
     std::string commandId;
     std::queue<WatchSettings> queue;
   } CommSettings;

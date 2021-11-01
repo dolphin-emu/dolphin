@@ -438,13 +438,13 @@ endif()
 
 if(APPLE)
   include(BundleUtilities)
-  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app)
+  set(BUNDLE_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Slippi_Dolphin.app")
 
   # Ask for an application bundle.
   set_target_properties(dolphin-emu PROPERTIES
     MACOSX_BUNDLE true
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-    OUTPUT_NAME Dolphin
+    OUTPUT_NAME "Slippi_Dolphin"
     )
 
   # Copy qt.conf into the bundle

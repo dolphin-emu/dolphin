@@ -1,18 +1,18 @@
 #include "SlippiGameFileLoader.h"
 
-#include "Common/Logging/Log.h"
-#include "Common/FileUtil.h"
 #include "Common/File.h"
-#include "Core/HW/DVD/DVDThread.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/Boot/Boot.h"
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/DVD/DVDThread.h"
 
 std::string getFilePath(std::string fileName)
 {
   std::string dirPath = File::GetSysDirectory();
 
-  std::string filePath = dirPath + "GameFiles/GALE01/" + fileName; // TODO: Handle other games?
+  std::string filePath = dirPath + "GameFiles/GALE01/" + fileName;  // TODO: Handle other games?
 
   if (File::Exists(filePath))
   {
@@ -49,8 +49,10 @@ u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
   std::string fileContents;
   File::ReadFileToString(gameFilePath, fileContents);
 
-  // If the file was a diff file and the game is running, load the main file from ISO and apply patch
-  if (gameFilePath.substr(gameFilePath.length() - 5) == ".diff" && Core::GetState() == Core::State::Running)
+  // If the file was a diff file and the game is running, load the main file from ISO and apply
+  // patch
+  if (gameFilePath.substr(gameFilePath.length() - 5) == ".diff" &&
+      Core::GetState() == Core::State::Running)
   {
     std::vector<u8> buf;
     INFO_LOG(SLIPPI, "Will process diff");

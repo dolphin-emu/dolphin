@@ -86,8 +86,7 @@ void SlippiPlaybackStatus::prepareSlippiPlayback(s32& frameIndex)
   // TODO: figure out why sometimes playback frame increments past targetFrameNum
   if (inSlippiPlayback && frameIndex >= targetFrameNum)
   {
-    INFO_LOG(SLIPPI, "Reached frame %d. Target was %d. Unblocking", frameIndex,
-      targetFrameNum);
+    INFO_LOG(SLIPPI, "Reached frame %d. Target was %d. Unblocking", frameIndex, targetFrameNum);
     cv_waitingForTargetFrame.notify_one();
   }
 }
@@ -101,7 +100,7 @@ void SlippiPlaybackStatus::resetPlayback()
     if (m_savestateThread.joinable())
       m_savestateThread.detach();
 
-    condVar.notify_one(); // Will allow thread to kill itself
+    condVar.notify_one();  // Will allow thread to kill itself
     futureDiffs.clear();
     futureDiffs.rehash(0);
   }
@@ -122,7 +121,8 @@ void SlippiPlaybackStatus::processInitialState()
   // Doing it here to get it out of the way and prevent stutters later
   // Subsequent calls to SaveToBuffer for cState take ~1 frame
   State::SaveToBuffer(cState);
-  if (SConfig::GetInstance().m_slippiEnableSeek) {
+  if (SConfig::GetInstance().m_slippiEnableSeek)
+  {
     SConfig::GetInstance().bHideCursor = false;
   }
 };
@@ -138,7 +138,8 @@ void SlippiPlaybackStatus::SavestateThread()
   {
     // Wait to hit one of the intervals
     // Possible while rewinding that we hit this wait again.
-    while (shouldRunThreads && (currentPlaybackFrame - Slippi::PLAYBACK_FIRST_SAVE) % FRAME_INTERVAL != 0)
+    while (shouldRunThreads &&
+           (currentPlaybackFrame - Slippi::PLAYBACK_FIRST_SAVE) % FRAME_INTERVAL != 0)
       condVar.wait(intervalLock);
 
     if (!shouldRunThreads)
@@ -171,11 +172,13 @@ void SlippiPlaybackStatus::SavestateThread()
 
 void SlippiPlaybackStatus::seekToFrame()
 {
-  if (seekMtx.try_lock()) {
+  if (seekMtx.try_lock())
+  {
     if (targetFrameNum < Slippi::PLAYBACK_FIRST_SAVE)
       targetFrameNum = Slippi::PLAYBACK_FIRST_SAVE;
 
-    if (targetFrameNum > lastFrame) {
+    if (targetFrameNum > lastFrame)
+    {
       targetFrameNum = lastFrame;
     }
 
@@ -188,8 +191,10 @@ void SlippiPlaybackStatus::seekToFrame()
     if (prevState != Core::State::Paused)
       Core::SetState(Core::State::Paused);
 
-    s32 closestStateFrame = targetFrameNum - emod(targetFrameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
-    bool isLoadingStateOptimal = targetFrameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
+    s32 closestStateFrame =
+        targetFrameNum - emod(targetFrameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
+    bool isLoadingStateOptimal =
+        targetFrameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
 
     if (isLoadingStateOptimal)
     {
@@ -208,7 +213,7 @@ void SlippiPlaybackStatus::seekToFrame()
         {
           s32 closestActualStateFrame = closestStateFrame - FRAME_INTERVAL;
           while (closestActualStateFrame > Slippi::PLAYBACK_FIRST_SAVE &&
-            futureDiffs.count(closestActualStateFrame) == 0)
+                 futureDiffs.count(closestActualStateFrame) == 0)
             closestActualStateFrame -= FRAME_INTERVAL;
           loadState(closestActualStateFrame);
         }
@@ -216,10 +221,11 @@ void SlippiPlaybackStatus::seekToFrame()
         {
           s32 closestActualStateFrame = closestStateFrame - FRAME_INTERVAL;
           while (closestActualStateFrame > currentPlaybackFrame &&
-            futureDiffs.count(closestActualStateFrame) == 0)
+                 futureDiffs.count(closestActualStateFrame) == 0)
             closestActualStateFrame -= FRAME_INTERVAL;
 
-          // only load a savestate if we find one past our current frame since we are seeking forwards
+          // only load a savestate if we find one past our current frame since we are seeking
+          // forwards
           if (closestActualStateFrame > currentPlaybackFrame)
             loadState(closestActualStateFrame);
         }
@@ -236,18 +242,22 @@ void SlippiPlaybackStatus::seekToFrame()
       setHardFFW(false);
     }
 
-    // We've reached the frame we want. Reset targetFrameNum and release mutex so another seek can be performed
+    // We've reached the frame we want. Reset targetFrameNum and release mutex so another seek can
+    // be performed
     g_playbackStatus->currentPlaybackFrame = targetFrameNum;
     targetFrameNum = INT_MAX;
     Core::SetState(prevState);
     seekMtx.unlock();
-  } else {
+  }
+  else
+  {
     INFO_LOG(SLIPPI, "Already seeking. Ignoring this call");
   }
 }
 
 // Set isHardFFW and update OC settings to speed up the FFW
-void SlippiPlaybackStatus::setHardFFW(bool enable) {
+void SlippiPlaybackStatus::setHardFFW(bool enable)
+{
   if (enable)
   {
     SConfig::GetInstance().m_OCEnable = true;
@@ -262,7 +272,6 @@ void SlippiPlaybackStatus::setHardFFW(bool enable) {
   isHardFFW = enable;
 }
 
-
 void SlippiPlaybackStatus::loadState(s32 closestStateFrame)
 {
   if (closestStateFrame == Slippi::PLAYBACK_FIRST_SAVE)
@@ -270,7 +279,8 @@ void SlippiPlaybackStatus::loadState(s32 closestStateFrame)
   else
   {
     std::string stateString;
-    decoder.Decode((char*)iState.data(), iState.size(), futureDiffs[closestStateFrame].get(), &stateString);
+    decoder.Decode((char*)iState.data(), iState.size(), futureDiffs[closestStateFrame].get(),
+                   &stateString);
     std::vector<u8> stateToLoad(stateString.begin(), stateString.end());
     State::LoadFromBuffer(stateToLoad);
   }
