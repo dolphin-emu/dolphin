@@ -93,7 +93,6 @@
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
 #endif
-#include <Core/NetPlayServer.h>
 
 namespace Core
 {
