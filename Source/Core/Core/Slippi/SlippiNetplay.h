@@ -48,6 +48,8 @@ public:
 
   u32 rngOffset = 0;
 
+  int messageId;
+
   void Merge(SlippiPlayerSelections& s)
   {
     this->rngOffset = s.rngOffset;
@@ -123,8 +125,16 @@ public:
   std::unique_ptr<SlippiRemotePadOutput> GetSlippiRemotePad(int32_t curFrame);
   SlippiMatchInfo* GetMatchInfo();
   u64 GetSlippiPing();
-  int32_t GetSlippiLatestRemoteFrame();
+  s32 GetSlippiLatestRemoteFrame();
+  u8 GetSlippiRemoteChatMessage();
+	u8 GetSlippiRemoteSentChatMessage();
   s32 CalcTimeOffsetUs();
+
+  void WriteChatMessageToPacket(sf::Packet &packet, int messageId);
+	std::unique_ptr<SlippiPlayerSelections> ReadChatMessageFromPacket(sf::Packet &packet);
+
+	u8 remoteChatMessageId = 0;     // most recent chat message id from opponent
+	u8 remoteSentChatMessageId = 0; // most recent chat message id that current player sent
 
 protected:
   struct

@@ -271,6 +271,18 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NetPlay::NP_MSG_SLIPPI_CHAT_MESSAGE:
+  {
+    auto playerSelection = ReadChatMessageFromPacket(packet);
+    auto messageId = playerSelection->messageId;
+
+    // set message id to netplay instance
+    remoteChatMessageId = messageId;
+    // Show chat message OSD
+    INFO_LOG(SLIPPI_ONLINE, "[Netplay] Received chat message from opponent %i", messageId);
+  }
+  break;
+
   case NetPlay::NP_MSG_SLIPPI_CONN_SELECTED:
   {
     // Currently this is unused but the intent is to support two-way simultaneous connection
@@ -293,6 +305,22 @@ void SlippiNetplayClient::writeToPacket(sf::Packet& packet, SlippiPlayerSelectio
   packet << s.characterId << s.characterColor << s.isCharacterSelected;
   packet << s.stageId << s.isStageSelected;
   packet << s.rngOffset;
+}
+
+void SlippiNetplayClient::WriteChatMessageToPacket(sf::Packet& packet, int messageId)
+{
+  packet << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_CHAT_MESSAGE);
+  packet << messageId;
+}
+
+std::unique_ptr<SlippiPlayerSelections>
+SlippiNetplayClient::ReadChatMessageFromPacket(sf::Packet& packet)
+{
+  auto s = std::make_unique<SlippiPlayerSelections>();
+
+  packet >> s->messageId;
+
+  return std::move(s);
 }
 
 std::unique_ptr<SlippiPlayerSelections>
@@ -625,6 +653,20 @@ void SlippiNetplayClient::SetMatchSelections(SlippiPlayerSelections& s)
   auto spac = std::make_unique<sf::Packet>();
   writeToPacket(*spac, matchInfo.localPlayerSelections);
   SendAsync(std::move(spac));
+}
+
+u8 SlippiNetplayClient::GetSlippiRemoteChatMessage()
+{
+  u8 copiedMessageId = remoteChatMessageId;
+  remoteChatMessageId = 0;  // Clear it out
+  return copiedMessageId;
+}
+
+u8 SlippiNetplayClient::GetSlippiRemoteSentChatMessage()
+{
+  u8 copiedMessageId = remoteSentChatMessageId;
+  remoteSentChatMessageId = 0;  // Clear it out
+  return copiedMessageId;
 }
 
 std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(int32_t curFrame)

@@ -70,6 +70,7 @@ private:
     CMD_UPDATE = 0xB8,
     CMD_GET_ONLINE_STATUS = 0xB9,
     CMD_CLEANUP_CONNECTION = 0xBA,
+    CMD_SEND_CHAT_MESSAGE = 0xBB,
     CMD_GET_NEW_SEED = 0xBC,
 
     // Misc
@@ -108,6 +109,7 @@ private:
       {CMD_GET_MATCH_STATE, 0},
       {CMD_FIND_OPPONENT, 19},
       {CMD_SET_MATCH_SELECTIONS, 6},
+      {CMD_SEND_CHAT_MESSAGE, 2},
       {CMD_OPEN_LOGIN, 0},
       {CMD_LOGOUT, 0},
       {CMD_UPDATE, 0},
@@ -179,6 +181,7 @@ private:
   void prepareIsFileReady();
 
   // misc stuff
+  void handleChatMessage(u8 *payload);
   void logMessageFromGame(u8* payload);
   void prepareFileLength(u8* payload);
   void prepareFileLoad(u8* payload);

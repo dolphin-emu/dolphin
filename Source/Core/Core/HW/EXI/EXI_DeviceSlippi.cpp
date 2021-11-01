@@ -41,6 +41,7 @@ extern bool g_needInputForFrame;
 
 #ifdef LOCAL_TESTING
 bool isLocalConnected = false;
+int localChatMessageId = 0;
 #endif
 
 namespace ExpansionInterface
@@ -1884,6 +1885,26 @@ void CEXISlippi::prepareOnlineMatchState()
   u32 rngOffset = 0;
   std::string p1Name = "";
   std::string p2Name = "";
+  u8 chatMessageId = 0;
+  u8 sentChatMessageId = 0;
+
+#ifdef LOCAL_TESTING
+  chatMessageId = localChatMessageId;
+  localChatMessageId = 0;
+  // in CSS p1 is always current player and p2 is opponent
+  p1Name = "Player 1";
+  p2Name = "Player 2";
+#endif
+
+  // Set chat message if any
+  if (slippi_netplay)
+  {
+    chatMessageId = slippi_netplay->GetSlippiRemoteChatMessage();
+    sentChatMessageId = slippi_netplay->GetSlippiRemoteSentChatMessage();
+    // in CSS p1 is always current player and p2 is opponent
+    p1Name = userInfo.display_name;
+    p2Name = oppName;
+  }
 
   auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
 
@@ -1968,6 +1989,10 @@ void CEXISlippi::prepareOnlineMatchState()
 
   // Add delay frames to output
   m_read_queue.push_back((u8)SConfig::GetInstance().m_slippiOnlineDelay);
+
+  // Add chat messages id
+  m_read_queue.push_back((u8)sentChatMessageId);
+  m_read_queue.push_back((u8)chatMessageId);
 
   // Add names to output
   p1Name = ConvertStringForGame(p1Name, MAX_NAME_LENGTH);
@@ -2071,6 +2096,26 @@ void CEXISlippi::prepareFileLoad(u8* payload)
 
   // Write the contents to output
   m_read_queue.insert(m_read_queue.end(), buf.begin(), buf.end());
+}
+
+void CEXISlippi::handleChatMessage(u8* payload)
+{
+  int messageId = payload[0];
+  INFO_LOG(SLIPPI, "SLIPPI CHAT INPUT: 0x%x", messageId);
+
+#ifdef LOCAL_TESTING
+  localChatMessageId = 11;
+#endif
+
+  if (slippi_netplay)
+  {
+    auto userInfo = user->GetUserInfo();
+    auto packet = std::make_unique<sf::Packet>();
+    //		OSD::AddMessage("[Me]: "+ msg, OSD::Duration::VERY_LONG, OSD::Color::YELLOW);
+    slippi_netplay->remoteSentChatMessageId = messageId;
+    slippi_netplay->WriteChatMessageToPacket(*packet, messageId);
+    slippi_netplay->SendAsync(std::move(packet));
+  }
 }
 
 void CEXISlippi::logMessageFromGame(u8* payload)
@@ -2314,6 +2359,9 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_LOG_MESSAGE:
       logMessageFromGame(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_SEND_CHAT_MESSAGE:
+      handleChatMessage(&memPtr[bufLoc + 1]);
       break;
     case CMD_UPDATE:
       handleUpdateAppRequest();
