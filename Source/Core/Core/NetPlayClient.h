@@ -140,6 +140,7 @@ public:
   bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
+  static void AutoGolfMode(int isBat, int GameID, int BatPort, int FieldPort);
   bool DoAllPlayersHaveGame();
 
   const PadMappingArray& GetPadMapping() const;
@@ -248,6 +249,7 @@ private:
   u8 GetFielderPort();
   u8 GetBatterPort();
   std::string GetPortPlayer(int port);
+  bool ShouldBeGolfer(int port);
   u32 GetPlayersMaxPing() const;
 
   static const u32 fielderPort = 0x802EBF94;

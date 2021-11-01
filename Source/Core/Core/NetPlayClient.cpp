@@ -1476,6 +1476,19 @@ std::string NetPlayClient::GetPortPlayer(int port)
   return "";
 }
 
+bool NetPlayClient::ShouldBeGolfer(int port)
+{
+  bool out = false;
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (portnum == port && player_id == m_local_player->pid)
+      out = true;
+  }
+  return out;
+}
+
 u32 NetPlayClient::GetPlayersMaxPing() const
 {
   return std::max_element(
@@ -2322,7 +2335,6 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
 {
   if (!m_host_input_authority || !m_net_settings.m_GolfMode)
     return;
-
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_GOLF_REQUEST);
   packet << pid;
@@ -2332,6 +2344,21 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
 void NetPlayClient::RequestGolfControl()
 {
   RequestGolfControl(m_local_player->pid);
+}
+
+void NetPlayClient::AutoGolfMode(int isBat, int GameID, int BatPort, int FieldPort)
+{
+  if (isBat == 1 && GameID != 0)  // batting/pitching state
+  {
+    if (netplay_client->ShouldBeGolfer(BatPort))
+      netplay_client->RequestGolfControl();
+  }
+  if (isBat == 0 && GameID != 0)  // fielding/baserunning state
+  {
+    if (netplay_client->ShouldBeGolfer(FieldPort))
+      netplay_client->RequestGolfControl();
+  }
+  return;
 }
 
 // called from ---GUI--- thread

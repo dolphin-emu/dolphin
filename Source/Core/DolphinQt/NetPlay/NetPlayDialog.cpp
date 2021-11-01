@@ -145,23 +145,16 @@ void NetPlayDialog::CreateMainLayout()
          "configured by the host.\nSuitable for competitive games where fairness and minimal "
          "latency are most important."));
   m_fixed_delay_action->setCheckable(true);
-  m_host_input_authority_action = m_network_menu->addAction(tr("Host Input Authority"));
-  m_host_input_authority_action->setToolTip(
-      tr("Host has control of sending all inputs to the game, as received from other players, "
-         "giving the host zero latency but increasing latency for others.\nSuitable for casual "
-         "games with 3+ players, possibly on unstable or high latency connections."));
-  m_host_input_authority_action->setCheckable(true);
-  m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
+  m_golf_mode_action = m_network_menu->addAction(tr("Auto Golf Mode"));
   m_golf_mode_action->setToolTip(
-      tr("Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be "
-         "switched at any time.\nSuitable for turn-based games with timing-sensitive controls, "
-         "such as golf."));
+      tr("One player will have 0 input delay (the golfer), while the opponent will have a latency penalty.\n"
+         "With Auto Golf Mode, the Batter is always set to the golfer, then when the ball is hit the golfer\n"
+         "will automatically switch to the fielder."));
   m_golf_mode_action->setCheckable(true);
 
   m_network_mode_group = new QActionGroup(this);
   m_network_mode_group->setExclusive(true);
   m_network_mode_group->addAction(m_fixed_delay_action);
-  m_network_mode_group->addAction(m_host_input_authority_action);
   m_network_mode_group->addAction(m_golf_mode_action);
   m_fixed_delay_action->setChecked(true);
 
@@ -341,8 +334,7 @@ void NetPlayDialog::ConnectWidgets()
     }
   };
 
-  connect(m_host_input_authority_action, &QAction::toggled, this,
-          [hia_function] { hia_function(true); });
+
   connect(m_golf_mode_action, &QAction::toggled, this, [hia_function] { hia_function(true); });
   connect(m_fixed_delay_action, &QAction::toggled, this, [hia_function] { hia_function(false); });
 
@@ -392,7 +384,6 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_sync_codes_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_record_input_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_strict_settings_sync_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_host_input_authority_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
@@ -815,7 +806,6 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_sync_codes_action->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_strict_settings_sync_action->setEnabled(enabled);
-    m_host_input_authority_action->setEnabled(enabled);
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
     m_golf_mode_action->setEnabled(enabled);
     m_fixed_delay_action->setEnabled(enabled);
@@ -1114,10 +1104,6 @@ void NetPlayDialog::LoadSettings()
   {
     m_fixed_delay_action->setChecked(true);
   }
-  else if (network_mode == "hostinputauthority")
-  {
-    m_host_input_authority_action->setChecked(true);
-  }
   else if (network_mode == "golf")
   {
     m_golf_mode_action->setChecked(true);
@@ -1154,10 +1140,6 @@ void NetPlayDialog::SaveSettings()
   if (m_fixed_delay_action->isChecked())
   {
     network_mode = "fixeddelay";
-  }
-  else if (m_host_input_authority_action->isChecked())
-  {
-    network_mode = "hostinputauthority";
   }
   else if (m_golf_mode_action->isChecked())
   {

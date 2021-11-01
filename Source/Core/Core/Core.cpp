@@ -194,6 +194,13 @@ void OnFrameEnd()
       accessors->WriteU8(0x802EBF96, 1);
     }
   }
+  // Auto Golf Mode
+  if (NetPlay::HIA)
+  {
+    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8036F3B8), Memory::Read_U32(0x802EBF8C),
+                                         (Memory::Read_U8(0x802EBF95)),
+                                         (Memory::Read_U8(0x802EBF94)));
+  }
 
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
