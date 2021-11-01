@@ -1758,6 +1758,7 @@
     <ClInclude Include="HW\EXI\BBA\TAP_Win32.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
     </ClInclude>
+    <ClInclude Include="CheatCodes.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

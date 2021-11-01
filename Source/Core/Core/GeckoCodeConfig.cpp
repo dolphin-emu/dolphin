@@ -13,6 +13,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/CheatCodes.h"
 
 namespace Gecko
 {
@@ -192,23 +193,12 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
       gcodes.push_back(gcode);
     }
 
-    ini->GetLines("Gecko_Enabled", &lines, false);
+    ReadEnabledAndDisabled(*ini, "Gecko", &gcodes);
 
-    for (const std::string& line : lines)
+    if (ini == &globalIni)
     {
-      if (line.empty() || line[0] != '$')
-      {
-        continue;
-      }
-
-      for (GeckoCode& ogcode : gcodes)
-      {
-        // Exclude the initial '$' from the comparison.
-        if (line.compare(1, std::string::npos, ogcode.name) == 0)
-        {
-          ogcode.enabled = true;
-        }
-      }
+      for (GeckoCode& code : gcodes)
+        code.default_enabled = code.enabled;
     }
   }
 
@@ -228,12 +218,8 @@ static std::string MakeGeckoCodeTitle(const GeckoCode& code)
 }
 
 // used by the SaveGeckoCodes function
-static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& enabledLines,
-                          const GeckoCode& gcode)
+static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
 {
-  if (gcode.enabled)
-    enabledLines.push_back('$' + gcode.name);
-
   if (!gcode.user_defined)
     return;
 
@@ -253,14 +239,21 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 {
   std::vector<std::string> lines;
-  std::vector<std::string> enabledLines;
+  std::vector<std::string> enabled_lines;
+  std::vector<std::string> disabled_lines;
 
   for (const GeckoCode& geckoCode : gcodes)
   {
-    SaveGeckoCode(lines, enabledLines, geckoCode);
+    if (geckoCode.enabled)
+      enabled_lines.emplace_back('$' + geckoCode.name);
+    else if (geckoCode.default_enabled)
+      disabled_lines.emplace_back('$' + geckoCode.name);
+
+    SaveGeckoCode(lines, geckoCode);
   }
 
   inifile.SetLines("Gecko", lines);
-  inifile.SetLines("Gecko_Enabled", enabledLines);
+  inifile.SetLines("Gecko_Enabled", enabled_lines);
+  inifile.SetLines("Gecko_Disabled", disabled_lines);
 }
 }  // namespace Gecko

@@ -383,6 +383,7 @@
     <ClInclude Include="Boot\DolReader.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
+    <ClInclude Include="CheatCodes.h" />
     <ClInclude Include="Config\GraphicsSettings.h" />
     <ClInclude Include="Config\MainSettings.h" />
     <ClInclude Include="Config\NetplaySettings.h" />

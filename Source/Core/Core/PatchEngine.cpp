@@ -12,7 +12,6 @@
 #include <array>
 #include <iterator>
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -21,6 +20,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/CheatCodes.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
@@ -47,20 +47,6 @@ const char* PatchTypeAsString(PatchType type)
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
                       IniFile& localIni)
 {
-  // Load the name of all enabled patches
-  std::string enabledSectionName = section + "_Enabled";
-  std::vector<std::string> enabledLines;
-  std::set<std::string> enabledNames;
-  localIni.GetLines(enabledSectionName, &enabledLines);
-  for (const std::string& line : enabledLines)
-  {
-    if (!line.empty() && line[0] == '$')
-    {
-      std::string name = line.substr(1, line.size() - 1);
-      enabledNames.insert(name);
-    }
-  }
-
   const IniFile* inis[2] = {&globalIni, &localIni};
 
   for (const IniFile* ini : inis)
@@ -83,9 +69,8 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         }
         currentPatch.entries.clear();
 
-        // Set active and name
+        // Set name and whether the patch is user defined
         currentPatch.name = line.substr(1, line.size() - 1);
-        currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
         currentPatch.user_defined = (ini == &localIni);
       }
       else
@@ -128,6 +113,14 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
     if (!currentPatch.name.empty() && !currentPatch.entries.empty())
     {
       patches.push_back(currentPatch);
+    }
+
+    ReadEnabledAndDisabled(*ini, section, &patches);
+
+    if (ini == &globalIni)
+    {
+      for (Patch& patch : patches)
+        patch.default_enabled = patch.enabled;
     }
   }
 }
@@ -191,7 +184,7 @@ static void ApplyPatches(const std::vector<Patch>& patches)
 {
   for (const Patch& patch : patches)
   {
-    if (patch.active)
+    if (patch.enabled)
     {
       for (const PatchEntry& entry : patch.entries)
       {

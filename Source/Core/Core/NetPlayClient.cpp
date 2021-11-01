@@ -1136,7 +1136,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       arcode = ActionReplay::ARCode();
       // Initialize arcode
       arcode.name = "Synced Codes";
-      arcode.active = true;
+      arcode.enabled = true;
 
       // Receive code contents from packet
       for (int i = 0; i < m_sync_ar_codes_count; i++)
