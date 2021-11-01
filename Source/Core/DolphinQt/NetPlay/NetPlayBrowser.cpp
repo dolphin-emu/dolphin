@@ -87,7 +87,6 @@ void NetPlayBrowser::CreateWidgets()
   m_button_refresh = new QPushButton(tr("Refresh"));
   m_edit_name = new QLineEdit;
   m_edit_game_id = new QLineEdit;
-  m_check_hide_incompatible = new QCheckBox(tr("Hide Incompatible Sessions"));
   m_check_hide_ingame = new QCheckBox(tr("Hide In-Game Sessions"));
 
   m_check_hide_incompatible->setChecked(true);
