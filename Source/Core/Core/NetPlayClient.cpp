@@ -2346,17 +2346,20 @@ void NetPlayClient::RequestGolfControl()
   RequestGolfControl(m_local_player->pid);
 }
 
-void NetPlayClient::AutoGolfMode(int isBat, int GameID, int BatPort, int FieldPort)
+void NetPlayClient::AutoGolfMode(int isBat, int GameID, int BatPort, int FieldPort, int isField)
 {
-  if (isBat == 1 && GameID != 0)  // batting/pitching state
+  if (GameID != 0)
   {
-    if (netplay_client->ShouldBeGolfer(BatPort))
-      netplay_client->RequestGolfControl();
-  }
-  if (isBat == 0 && GameID != 0)  // fielding/baserunning state
-  {
-    if (netplay_client->ShouldBeGolfer(FieldPort))
-      netplay_client->RequestGolfControl();
+    if (isBat == 0 || isField == 1)  // fielding/baserunning state
+    {
+      if (netplay_client->ShouldBeGolfer(FieldPort))
+        netplay_client->RequestGolfControl();
+    }
+    else if (isBat == 1)  // batting/pitching state
+    {
+      if (netplay_client->ShouldBeGolfer(BatPort))
+        netplay_client->RequestGolfControl();
+    }
   }
   return;
 }
