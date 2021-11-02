@@ -140,6 +140,7 @@ public:
   bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
+  static void AutoGolfMode(int isBat, int BatPort, int FieldPort, int isField);
   bool DoAllPlayersHaveGame();
 
   const PadMappingArray& GetPadMapping() const;
@@ -248,6 +249,7 @@ private:
   u8 GetFielderPort();
   u8 GetBatterPort();
   std::string GetPortPlayer(int port);
+  bool ShouldBeGolfer(int port);
   u32 GetPlayersMaxPing() const;
 
   static const u32 fielderPort = 0x802EBF94;
@@ -285,4 +287,5 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
+bool HIA = false;
 }  // namespace NetPlay

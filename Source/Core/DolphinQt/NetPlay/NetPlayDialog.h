@@ -138,7 +138,6 @@ private:
   QAction* m_sync_codes_action;
   QAction* m_record_input_action;
   QAction* m_strict_settings_sync_action;
-  QAction* m_host_input_authority_action;
   QAction* m_sync_all_wii_saves_action;
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
