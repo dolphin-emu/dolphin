@@ -140,7 +140,7 @@ public:
   bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
-  static void AutoGolfMode(int isBat, int GameID, int BatPort, int FieldPort, int isField);
+  static void AutoGolfMode(int isBat, int BatPort, int FieldPort, int isField);
   bool DoAllPlayersHaveGame();
 
   const PadMappingArray& GetPadMapping() const;

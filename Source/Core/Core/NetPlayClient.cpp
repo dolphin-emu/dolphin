@@ -2346,9 +2346,9 @@ void NetPlayClient::RequestGolfControl()
   RequestGolfControl(m_local_player->pid);
 }
 
-void NetPlayClient::AutoGolfMode(int isBat, int GameID, int BatPort, int FieldPort, int isField)
+void NetPlayClient::AutoGolfMode(int isBat, int BatPort, int FieldPort, int isField)
 {
-  if (GameID != 0)
+  if (BatPort != 0) // only != 0 when a game is in progress
   {
     if (isBat == 0 || isField == 1)  // fielding/baserunning state
     {
