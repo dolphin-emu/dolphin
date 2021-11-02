@@ -75,6 +75,8 @@ void NewBreakpointDialog::CreateWidgets()
   // i18n: This is a selectable action when adding a breakpoint
   m_do_log_and_break = new QRadioButton(tr("Write to Log and Break"));
   m_do_log_and_break->setChecked(true);
+  m_log_message_label = new QLabel(tr("Log message:"));
+  m_log_message = new QLineEdit;
 
   auto* memory_layout = new QGridLayout;
   m_memory_box->setLayout(memory_layout);
@@ -94,11 +96,13 @@ void NewBreakpointDialog::CreateWidgets()
   condition_layout->addWidget(m_memory_on_read_and_write);
 
   QGroupBox* action_box = new QGroupBox(tr("Action"));
-  auto* action_layout = new QHBoxLayout;
+  auto* action_layout = new QGridLayout;
   action_box->setLayout(action_layout);
-  action_layout->addWidget(m_do_log);
-  action_layout->addWidget(m_do_break);
-  action_layout->addWidget(m_do_log_and_break);
+  action_layout->addWidget(m_do_log, 0, 0);
+  action_layout->addWidget(m_do_break, 0, 1);
+  action_layout->addWidget(m_do_log_and_break, 0, 2);
+  action_layout->addWidget(m_log_message_label, 1, 0);
+  action_layout->addWidget(m_log_message, 1, 1, 1, 2);
 
   auto* layout = new QVBoxLayout;
 
@@ -161,6 +165,7 @@ void NewBreakpointDialog::accept()
   // Actions
   bool do_log = m_do_log->isChecked() || m_do_log_and_break->isChecked();
   bool do_break = m_do_break->isChecked() || m_do_log_and_break->isChecked();
+  std::string message = m_log_message->text().toStdString();
 
   bool good;
 
@@ -174,7 +179,7 @@ void NewBreakpointDialog::accept()
       return;
     }
 
-    m_parent->AddBP(address, false, do_break, do_log);
+    m_parent->AddBP(address, false, do_break, do_log, std::move(message));
   }
   else
   {
@@ -195,11 +200,11 @@ void NewBreakpointDialog::accept()
         return;
       }
 
-      m_parent->AddRangedMBP(from, to, on_read, on_write, do_log, do_break);
+      m_parent->AddRangedMBP(from, to, on_read, on_write, do_log, do_break, std::move(message));
     }
     else
     {
-      m_parent->AddAddressMBP(from, on_read, on_write, do_log, do_break);
+      m_parent->AddAddressMBP(from, on_read, on_write, do_log, do_break, std::move(message));
     }
   }
 

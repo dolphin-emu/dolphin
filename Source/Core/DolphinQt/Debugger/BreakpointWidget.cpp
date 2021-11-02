@@ -86,7 +86,7 @@ void BreakpointWidget::CreateWidgets()
   m_table = new QTableWidget;
   m_table->setTabKeyNavigation(false);
   m_table->setContentsMargins(0, 0, 0, 0);
-  m_table->setColumnCount(5);
+  m_table->setColumnCount(6);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -160,7 +160,7 @@ void BreakpointWidget::Update()
   m_table->clear();
 
   m_table->setHorizontalHeaderLabels(
-      {tr("Active"), tr("Type"), tr("Function"), tr("Address"), tr("Flags")});
+      {tr("Active"), tr("Type"), tr("Function"), tr("Address"), tr("Flags"), tr("Message")});
 
   int i = 0;
   m_table->setRowCount(i);
@@ -202,6 +202,7 @@ void BreakpointWidget::Update()
       flags.append(QLatin1Char{'l'});
 
     m_table->setItem(i, 4, create_item(flags));
+    m_table->setItem(i, 5, create_item(QString::fromStdString(bp.message)));
 
     i++;
   }
@@ -246,6 +247,7 @@ void BreakpointWidget::Update()
       flags.append(QLatin1Char{'w'});
 
     m_table->setItem(i, 4, create_item(flags));
+    m_table->setItem(i, 5, create_item(QString::fromStdString(mbp.message)));
 
     i++;
   }
@@ -390,16 +392,17 @@ void BreakpointWidget::AddBP(u32 addr)
   AddBP(addr, false, true, true);
 }
 
-void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit)
+void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit,
+                             std::string message)
 {
-  PowerPC::breakpoints.Add(addr, temp, break_on_hit, log_on_hit);
+  PowerPC::breakpoints.Add(addr, temp, break_on_hit, log_on_hit, std::move(message));
 
   emit BreakpointsChanged();
   Update();
 }
 
 void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool do_log,
-                                     bool do_break)
+                                     bool do_break, std::string message)
 {
   TMemCheck check;
 
@@ -410,6 +413,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   check.is_break_on_write = on_write;
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
+  check.message = std::move(message);
 
   {
     const QSignalBlocker blocker(Settings::Instance());
@@ -421,7 +425,7 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
 }
 
 void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_write, bool do_log,
-                                    bool do_break)
+                                    bool do_break, std::string message)
 {
   TMemCheck check;
 
@@ -432,6 +436,7 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   check.is_break_on_write = on_write;
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
+  check.message = std::move(message);
 
   {
     const QSignalBlocker blocker(Settings::Instance());
