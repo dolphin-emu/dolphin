@@ -179,9 +179,10 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  if (!NetPlay::IsNetPlayRunning() || NetPlay::HIA)
+  bool is_golf = NetPlay::GetNetSettings().m_HostInputAuthority;
+  if (!NetPlay::IsNetPlayRunning() || is_golf)
   {
-    // for some unknown reason, when playing locally the game gets a write error at frme 6457
+    // for some unknown reason, when playing locally the game gets a write error at frame 6457
     // no idea why, so imma just write to the addr on some arbiturary frame number
     if (Movie::GetCurrentFrame()==500)
     {
@@ -194,7 +195,7 @@ void OnFrameEnd()
     }
   }
   // Auto Golf Mode
-  if (NetPlay::HIA)
+  if (is_golf)
   {
     NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8036F3B8), // isBat
                                          (Memory::Read_U8(0x802EBF95)), // BatPort
