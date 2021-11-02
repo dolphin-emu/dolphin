@@ -1494,6 +1494,8 @@ void Jit64::divwx(UGeckoInstruction inst)
     else if (divisor == 2 || divisor == -2)
     {
       X64Reg tmp = RSCRATCH;
+      X64Reg sign = tmp;
+
       if (!Ra.IsSimpleReg())
       {
         // Load dividend from memory
@@ -1510,9 +1512,10 @@ void Jit64::divwx(UGeckoInstruction inst)
         // Copy dividend directly into destination
         MOV(32, Rd, Ra);
         tmp = Ra.GetSimpleReg();
+        sign = Rd;
       }
 
-      SHR(32, Rd, Imm8(31));
+      SHR(32, R(sign), Imm8(31));
       ADD(32, Rd, R(tmp));
       SAR(32, Rd, Imm8(1));
 
