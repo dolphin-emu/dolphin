@@ -59,7 +59,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
       ss.imbue(std::locale::classic());
 
       ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
-         << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "");
+         << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "") << " " << bp.message;
       bp_strings.push_back(ss.str());
     }
   }
@@ -78,6 +78,10 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
 
     iss >> std::hex >> bp.address;
     iss >> flags;
+    std::getline(iss, bp.message);
+    if (!bp.message.empty() && bp.message.front() == ' ')
+      bp.message.erase(0, 1);
+
     bp.is_enabled = flags.find('n') != flags.npos;
     bp.log_on_hit = flags.find('l') != flags.npos;
     bp.break_on_hit = flags.find('b') != flags.npos;
@@ -101,7 +105,8 @@ void BreakPoints::Add(u32 address, bool temp)
   BreakPoints::Add(address, temp, true, false);
 }
 
-void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit)
+void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit,
+                      std::string message)
 {
   // Only add new addresses
   if (IsAddressBreakPoint(address))
@@ -113,6 +118,7 @@ void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit
   bp.break_on_hit = break_on_hit;
   bp.log_on_hit = log_on_hit;
   bp.address = address;
+  bp.message = std::move(message);
 
   m_breakpoints.push_back(bp);
 
@@ -180,7 +186,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 
     ss << std::hex << mc.start_address << " " << mc.end_address << " " << (mc.is_enabled ? "n" : "")
        << (mc.is_break_on_read ? "r" : "") << (mc.is_break_on_write ? "w" : "")
-       << (mc.log_on_hit ? "l" : "") << (mc.break_on_hit ? "b" : "");
+       << (mc.log_on_hit ? "l" : "") << (mc.break_on_hit ? "b" : "") << " " << mc.message;
     mc_strings.push_back(ss.str());
   }
 
@@ -197,6 +203,9 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 
     std::string flags;
     iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
+    std::getline(iss, mc.message);
+    if (!mc.message.empty() && mc.message.front() == ' ')
+      mc.message.erase(0, 1);
 
     mc.is_ranged = mc.start_address != mc.end_address;
     mc.is_enabled = flags.find('n') != flags.npos;
