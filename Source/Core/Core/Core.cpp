@@ -179,7 +179,7 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  if (!NetPlay::IsNetPlayRunning())
+  if (!NetPlay::IsNetPlayRunning() || NetPlay::HIA)
   {
     // for some unknown reason, when playing locally the game gets a write error at frme 6457
     // no idea why, so imma just write to the addr on some arbiturary frame number
@@ -192,6 +192,14 @@ void OnFrameEnd()
       AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
       accessors->WriteU8(0x802EBF96, 1);
     }
+  }
+  // Auto Golf Mode
+  if (NetPlay::HIA)
+  {
+    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8036F3B8), // isBat
+                                         (Memory::Read_U8(0x802EBF95)), // BatPort
+                                         (Memory::Read_U8(0x802EBF94)), // FieldPort
+                                         Memory::Read_U8(0x802EBF98)); // isField
   }
 
 #ifdef USE_MEMORYWATCHER

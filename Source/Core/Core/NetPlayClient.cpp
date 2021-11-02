@@ -606,6 +606,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     packet >> m_host_input_authority;
     m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
+    isHostInputAuthority(m_host_input_authority);
   }
   break;
 
@@ -1475,6 +1476,19 @@ std::string NetPlayClient::GetPortPlayer(int port)
   return "";
 }
 
+bool NetPlayClient::ShouldBeGolfer(int port)
+{
+  bool out = false;
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (portnum == port && player_id == m_local_player->pid)
+      out = true;
+  }
+  return out;
+}
+
 u32 NetPlayClient::GetPlayersMaxPing() const
 {
   return std::max_element(
@@ -2321,7 +2335,6 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
 {
   if (!m_host_input_authority || !m_net_settings.m_GolfMode)
     return;
-
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_GOLF_REQUEST);
   packet << pid;
@@ -2331,6 +2344,24 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
 void NetPlayClient::RequestGolfControl()
 {
   RequestGolfControl(m_local_player->pid);
+}
+
+void NetPlayClient::AutoGolfMode(int isBat, int BatPort, int FieldPort, int isField)
+{
+  if (BatPort != 0) // only != 0 when a game is in progress
+  {
+    if (isBat == 0 || isField == 1)  // fielding/baserunning state
+    {
+      if (netplay_client->ShouldBeGolfer(FieldPort))
+        netplay_client->RequestGolfControl();
+    }
+    else if (isBat == 1)  // batting/pitching state
+    {
+      if (netplay_client->ShouldBeGolfer(BatPort))
+        netplay_client->RequestGolfControl();
+    }
+  }
+  return;
 }
 
 // called from ---GUI--- thread
@@ -2562,6 +2593,19 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
 bool IsNetPlayRunning()
 {
   return netplay_client != nullptr;
+}
+
+void isHostInputAuthority(bool enabled)
+{
+  if (enabled == true)
+  {
+    HIA = true;
+  }
+  else
+  {
+    HIA = false;
+  }
+  return;
 }
 
 const NetSettings& GetNetSettings()

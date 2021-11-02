@@ -87,10 +87,7 @@ void NetPlayBrowser::CreateWidgets()
   m_button_refresh = new QPushButton(tr("Refresh"));
   m_edit_name = new QLineEdit;
   m_edit_game_id = new QLineEdit;
-  m_check_hide_incompatible = new QCheckBox(tr("Hide Incompatible Sessions"));
   m_check_hide_ingame = new QCheckBox(tr("Hide In-Game Sessions"));
-
-  m_check_hide_incompatible->setChecked(true);
 
   m_radio_all = new QRadioButton(tr("Private and Public"));
   m_radio_private = new QRadioButton(tr("Private"));
@@ -112,8 +109,7 @@ void NetPlayBrowser::CreateWidgets()
   filter_layout->addWidget(m_radio_public, 3, 2);
   filter_layout->addWidget(m_radio_private, 3, 3);
   filter_layout->addItem(new QSpacerItem(4, 1, QSizePolicy::Expanding), 3, 4);
-  filter_layout->addWidget(m_check_hide_incompatible, 4, 1, 1, -1);
-  filter_layout->addWidget(m_check_hide_ingame, 5, 1, 1, -1);
+  filter_layout->addWidget(m_check_hide_ingame, 4, 1, 1, -1);
 
   layout->addWidget(m_table_widget);
   layout->addWidget(filter_box);
@@ -137,7 +133,6 @@ void NetPlayBrowser::ConnectWidgets()
 
   connect(m_radio_all, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
   connect(m_radio_private, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
-  connect(m_check_hide_incompatible, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
   connect(m_check_hide_ingame, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
 
   connect(m_edit_name, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
@@ -157,7 +152,7 @@ void NetPlayBrowser::Refresh()
 {
   std::map<std::string, std::string> filters;
 
-  if (m_check_hide_incompatible->isChecked())
+  if (true)
     filters["version"] = Common::scm_desc_str;
 
   if (!m_edit_name->text().isEmpty())
@@ -349,7 +344,7 @@ void NetPlayBrowser::SaveSettings() const
   settings.setValue(QStringLiteral("netplaybrowser/visibility"), visibility);
 
   settings.setValue(QStringLiteral("netplaybrowser/hide_incompatible"),
-                    m_check_hide_incompatible->isChecked());
+                    true);
   settings.setValue(QStringLiteral("netplaybrowser/hide_ingame"), m_check_hide_ingame->isChecked());
 }
 
@@ -376,7 +371,6 @@ void NetPlayBrowser::RestoreSettings()
   else if (visibility == QStringLiteral("private"))
     m_radio_private->setChecked(true);
 
-  m_check_hide_incompatible->setChecked(true);
   m_check_hide_ingame->setChecked(true);
   // m_check_hide_incompatible->setChecked(
      // settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
