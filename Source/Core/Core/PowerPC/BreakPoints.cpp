@@ -69,7 +69,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
       std::ostringstream ss;
       ss.imbue(std::locale::classic());
 
-      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
+      ss << '$' << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
          << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "") << " " << bp.message;
       bp_strings.push_back(ss.str());
     }
@@ -80,10 +80,11 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 
 void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
 {
-  for (const std::string& bp_string : bp_strings)
+  for (std::string bp_string : bp_strings)
   {
     TBreakPoint bp;
     std::string flags;
+    StringPopFrontIf(&bp_string, '$');
     std::istringstream iss(bp_string);
     iss.imbue(std::locale::classic());
 
@@ -194,9 +195,10 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
     std::ostringstream ss;
     ss.imbue(std::locale::classic());
 
-    ss << std::hex << mc.start_address << " " << mc.end_address << " " << (mc.is_enabled ? "n" : "")
-       << (mc.is_break_on_read ? "r" : "") << (mc.is_break_on_write ? "w" : "")
-       << (mc.log_on_hit ? "l" : "") << (mc.break_on_hit ? "b" : "") << " " << mc.message;
+    ss << '$' << std::hex << mc.start_address << " " << mc.end_address << " "
+       << (mc.is_enabled ? "n" : "") << (mc.is_break_on_read ? "r" : "")
+       << (mc.is_break_on_write ? "w" : "") << (mc.log_on_hit ? "l" : "")
+       << (mc.break_on_hit ? "b" : "") << " " << mc.message;
     mc_strings.push_back(ss.str());
   }
 
@@ -205,9 +207,10 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 
 void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 {
-  for (const std::string& mc_string : mc_strings)
+  for (std::string mc_string : mc_strings)
   {
     TMemCheck mc;
+    StringPopFrontIf(&mc_string, '$');
     std::istringstream iss(mc_string);
     iss.imbue(std::locale::classic());
 
