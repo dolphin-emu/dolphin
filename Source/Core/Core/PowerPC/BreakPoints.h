@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,7 @@ public:
   using TBreakPointsStr = std::vector<std::string>;
 
   const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
+  std::optional<TBreakPoint> GetBreakPoint(u32 address) const;
   TBreakPointsStr GetStrings() const;
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 

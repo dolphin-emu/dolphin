@@ -49,6 +49,15 @@ bool BreakPoints::IsBreakPointLogOnHit(u32 address) const
                      [address](const auto& bp) { return bp.address == address && bp.log_on_hit; });
 }
 
+std::optional<TBreakPoint> BreakPoints::GetBreakPoint(u32 address) const
+{
+  const auto it = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                               [address](const auto& bp) { return bp.address == address; });
+  if (it == m_breakpoints.end())
+    return std::nullopt;
+  return *it;
+}
+
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
   TBreakPointsStr bp_strings;
@@ -311,9 +320,16 @@ bool TMemCheck::Action(Common::DebugInterface* debug_interface, u64 value, u32 a
   {
     if (log_on_hit)
     {
-      NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
-                     debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8, value,
-                     addr, debug_interface->GetDescription(addr));
+      if (message.empty())
+      {
+        NOTICE_LOG_FMT(MEMMAP, "MBP {:08x} ({}) {}{} {:x} at {:08x} ({})", pc,
+                       debug_interface->GetDescription(pc), write ? "Write" : "Read", size * 8,
+                       value, addr, debug_interface->GetDescription(addr));
+      }
+      else
+      {
+        NOTICE_LOG_FMT(MEMMAP, "{}", message);
+      }
     }
     if (break_on_hit)
       return true;
