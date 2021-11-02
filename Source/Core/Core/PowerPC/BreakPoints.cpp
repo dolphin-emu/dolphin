@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
+#include "Core/Debugger/HLEFormatter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 
@@ -328,7 +329,7 @@ bool TMemCheck::Action(Common::DebugInterface* debug_interface, u64 value, u32 a
       }
       else
       {
-        NOTICE_LOG_FMT(MEMMAP, "{}", message);
+        NOTICE_LOG_FMT(MEMMAP, "{}", Core::Debug::HLEFormatString(message));
       }
     }
     if (break_on_hit)

@@ -22,6 +22,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/HLEFormatter.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
@@ -632,7 +633,7 @@ void CheckBreakPoints()
     }
     else
     {
-      NOTICE_LOG_FMT(MEMMAP, "{}", bp->message);
+      NOTICE_LOG_FMT(MEMMAP, "{}", Core::Debug::HLEFormatString(bp->message));
     }
   }
   if (PowerPC::breakpoints.IsTempBreakPoint(PC))
