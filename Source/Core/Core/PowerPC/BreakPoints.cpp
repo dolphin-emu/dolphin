@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -79,8 +80,7 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     iss >> std::hex >> bp.address;
     iss >> flags;
     std::getline(iss, bp.message);
-    if (!bp.message.empty() && bp.message.front() == ' ')
-      bp.message.erase(0, 1);
+    StringPopFrontIf(&bp.message, ' ');
 
     bp.is_enabled = flags.find('n') != flags.npos;
     bp.log_on_hit = flags.find('l') != flags.npos;
@@ -204,8 +204,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     std::string flags;
     iss >> std::hex >> mc.start_address >> mc.end_address >> flags;
     std::getline(iss, mc.message);
-    if (!mc.message.empty() && mc.message.front() == ' ')
-      mc.message.erase(0, 1);
+    StringPopFrontIf(&mc.message, ' ');
 
     mc.is_ranged = mc.start_address != mc.end_address;
     mc.is_enabled = flags.find('n') != flags.npos;

@@ -40,6 +40,40 @@ TEST(StringUtil, StringEndsWith)
   EXPECT_TRUE(StringEndsWith("", ""));
 }
 
+TEST(StringUtil, StringPopFrontIf)
+{
+  std::string abc = "abc";
+  std::string empty;
+
+  StringPopFrontIf(&abc, 'c');
+  StringPopFrontIf(&empty, 'c');
+  EXPECT_STREQ("abc", abc.c_str());
+  EXPECT_STRNE(empty.c_str(), abc.c_str());
+
+  StringPopFrontIf(&abc, 'a');
+  StringPopFrontIf(&empty, 'a');
+  EXPECT_STRNE("abc", abc.c_str());
+  EXPECT_STREQ("bc", abc.c_str());
+  EXPECT_STRNE(empty.c_str(), abc.c_str());
+
+  StringPopFrontIf(&abc, 'b');
+  StringPopFrontIf(&empty, 'b');
+  EXPECT_STRNE("bc", abc.c_str());
+  EXPECT_STREQ("c", abc.c_str());
+  EXPECT_STRNE(empty.c_str(), abc.c_str());
+
+  StringPopFrontIf(&abc, 'c');
+  StringPopFrontIf(&empty, 'c');
+  EXPECT_STRNE("c", abc.c_str());
+  EXPECT_STREQ("", abc.c_str());
+  EXPECT_STREQ(empty.c_str(), abc.c_str());
+
+  StringPopFrontIf(&abc, 'c');
+  StringPopFrontIf(&empty, 'c');
+  EXPECT_STREQ("", abc.c_str());
+  EXPECT_STREQ(empty.c_str(), abc.c_str());
+}
+
 TEST(StringUtil, StringPopBackIf)
 {
   std::string abc = "abc";
