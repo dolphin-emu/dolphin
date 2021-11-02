@@ -606,7 +606,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     packet >> m_host_input_authority;
     m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
-    isHostInputAuthority(m_host_input_authority);
   }
   break;
 
@@ -2593,19 +2592,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
 bool IsNetPlayRunning()
 {
   return netplay_client != nullptr;
-}
-
-void isHostInputAuthority(bool enabled)
-{
-  if (enabled == true)
-  {
-    HIA = true;
-  }
-  else
-  {
-    HIA = false;
-  }
-  return;
 }
 
 const NetSettings& GetNetSettings()

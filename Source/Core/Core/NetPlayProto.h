@@ -256,7 +256,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
 bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
-void isHostInputAuthority(bool enabled);
 const NetSettings& GetNetSettings();
 IOS::HLE::FS::FileSystem* GetWiiSyncFS();
 const std::vector<u64>& GetWiiSyncTitles();
