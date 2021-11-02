@@ -331,6 +331,9 @@ void StatTracker::logABContact(){
     //Frame collect
     m_curr_ab_stat.frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
     m_curr_ab_stat.frameOfPitchUponSwing   = Memory::Read_U16(aAB_FrameOfPitchSeqUponSwing);
+    if (m_curr_ab_stat.bunt){
+        m_curr_ab_stat.frameOfPitchUponSwing = 0;
+    }
 
     logABPitch();
 }
@@ -370,6 +373,7 @@ void StatTracker::logABMiss(){
     u8 miss_type  = Memory::Read_U8(aAB_Miss_SwingOrBunt);
 
     if (!any_strike){
+        m_curr_ab_stat.frameOfPitchUponSwing = 0;
         if (m_curr_ab_stat.hit_by_pitch){ m_curr_ab_stat.result_inferred = "Walk-HPB"; }
         else if (m_curr_ab_stat.balls == 3) {  m_curr_ab_stat.result_inferred = "Walk-BB"; }
         else {
