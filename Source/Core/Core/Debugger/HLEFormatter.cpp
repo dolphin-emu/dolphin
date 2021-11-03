@@ -10,6 +10,18 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
+template <>
+struct fmt::formatter<PowerPC::PairedSingle>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+  template <typename FormatContext>
+  auto format(const PowerPC::PairedSingle& ps, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "{:016x} {:016x}", ps.ps0, ps.ps1);
+  }
+};
+
 namespace Core::Debug
 {
 namespace
@@ -29,9 +41,11 @@ HLENamedArgs GetHLENamedArgs()
 
     // Floating point registers (double)
     name = fmt::format("f{}", i);
-    args.push_back(fmt::arg(name.c_str(), rPS(i).PS0AsU64()));
-    name += "_2";
-    args.push_back(fmt::arg(name.c_str(), rPS(i).PS1AsU64()));
+    args.push_back(fmt::arg(name.c_str(), rPS(i)));
+    name = fmt::format("f{}_1", i);
+    args.push_back(fmt::arg(name.c_str(), rPS(i).PS0AsDouble()));
+    name = fmt::format("f{}_2", i);
+    args.push_back(fmt::arg(name.c_str(), rPS(i).PS1AsDouble()));
   }
 
   // Special registers
