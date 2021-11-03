@@ -179,8 +179,7 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  bool is_golf = NetPlay::GetNetSettings().m_HostInputAuthority;
-  if (!NetPlay::IsNetPlayRunning() || is_golf)
+  if (!NetPlay::IsNetPlayRunning() || IsGolfMode())
   {
     // for some unknown reason, when playing locally the game gets a write error at frame 6457
     // no idea why, so imma just write to the addr on some arbiturary frame number
@@ -195,7 +194,7 @@ void OnFrameEnd()
     }
   }
   // Auto Golf Mode
-  if (is_golf)
+  if (NetPlay::IsNetPlayRunning() && IsGolfMode())
   {
     NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8036F3B8), // isBat
                                          (Memory::Read_U8(0x802EBF95)), // BatPort
@@ -211,6 +210,18 @@ void OnFrameEnd()
   if (s_stat_tracker) {
     s_stat_tracker->Run();
   }
+}
+
+bool IsGolfMode()
+{
+  // we have to do this dumb work around cause Dolphin gets an error
+  // when calling GetNetSetttings when NetPlay's not running
+  bool out = false;
+  if (NetPlay::IsNetPlayRunning())
+  {
+    out = NetPlay::GetNetSettings().m_HostInputAuthority;
+  }
+  return out;
 }
 
 // Display messages and return values
