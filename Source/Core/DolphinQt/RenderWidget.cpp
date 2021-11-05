@@ -451,6 +451,9 @@ bool RenderWidget::event(QEvent* event)
     win_w = (new_size.width() * dpr) / 2;
     win_h = (new_size.height() * dpr) / 2;
     win_hdl = reinterpret_cast<void*>(winId());
+
+    emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
+
     break;
   }
   // Happens when we add/remove the widget from the main window instead of the dedicated one

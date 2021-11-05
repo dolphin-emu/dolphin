@@ -74,7 +74,6 @@ private:
   bool valid;
   bool bCPUThread;
   bool bJITFollowBranch;
-  bool bEnableCheats;
   bool bEnablePrimeHack;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
@@ -110,7 +109,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bCPUThread = config.bCPUThread;
   bJITFollowBranch = config.bJITFollowBranch;
-  bEnableCheats = config.bEnableCheats;
   bEnablePrimeHack = config.bEnablePrimeHack;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
@@ -157,7 +155,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   config->bCPUThread = bCPUThread;
   config->bJITFollowBranch = bJITFollowBranch;
-  config->bEnableCheats = bEnableCheats;
   config->bEnablePrimeHack = bEnablePrimeHack;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;

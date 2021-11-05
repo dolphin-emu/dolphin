@@ -19,6 +19,7 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/Host.h"
@@ -558,7 +559,7 @@ void HotkeyScheduler::Run()
     }
 
     // PrimeHack
-    if (SConfig::GetInstance().bEnableCheats) {
+    if (Config::Get(Config::MAIN_ENABLE_CHEATS)) {
       if (IsHotkey(HK_NOCLIP_TOGGLE))
       {
         const bool new_value = !SConfig::GetInstance().bPrimeNoclip;

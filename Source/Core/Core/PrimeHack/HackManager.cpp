@@ -7,6 +7,7 @@
 #include "Core/PowerPC/MMU.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 #include "InputCommon/GenericMouse.h"
 
@@ -151,7 +152,7 @@ void HackManager::run_active_mods() {
         mod.second->apply_instruction_changes();
       }
     }
-      
+
     last_game = active_game;
     last_region = active_region;
     for (auto& mod : mods) {
@@ -170,7 +171,7 @@ void HackManager::update_mod_states() {
   set_mod_enabled("auto_efb", UseMPAutoEFB());
   set_mod_enabled("cut_beam_fx_mp1", GetEnableSecondaryGunFX());
 
-  if (settings.bEnableCheats) {
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS)) {
     set_mod_enabled("noclip", GetNoclip());
     set_mod_enabled("invulnerability", GetInvulnerability());
     set_mod_enabled("skip_cutscene", GetSkipCutscene());
@@ -187,7 +188,7 @@ void HackManager::update_mod_states() {
     disable_mod("friend_vouchers_cheat");
     disable_mod("portal_skip_mp2");
   }
-  
+
   // Disallow any PrimeHack control mods
   if (!settings.bEnablePrimeHack) {
     disable_mod("fps_controls");
